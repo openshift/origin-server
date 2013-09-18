@@ -61,6 +61,9 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_post_receive_default_builder_nonscaled
+    @cartridge_model.expects(:web_proxy).returns(nil)
+    @container.expects(:child_gear_ssh_urls).never
+    @container.expects(:sync_git_repo).never
     repository = mock()
 
     OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
@@ -88,7 +91,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    @cartridge_model.expects(:web_proxy).returns(false)
+
     @container.expects(:distribute).never
     @container.expects(:activate_many).never
     @container.expects(:activate).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
@@ -99,6 +102,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_post_receive_default_builder_scaled
+    proxy_cart = mock()
+    @cartridge_model.expects(:web_proxy).returns(proxy_cart)
+    gear_env = {a: 1, b: 2}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+    proxy_ssh_urls = %w(uuid1@localhost uuid2@localhost uuid3@localhost)
+    @container.expects(:child_gear_ssh_urls).with(:proxy).returns(proxy_ssh_urls)
+    @container.expects(:sync_git_repo).with(proxy_ssh_urls, gear_env)
+
     repository = mock()
 
     OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
@@ -126,7 +137,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    @cartridge_model.expects(:web_proxy).returns(true)
+
     @container.expects(:distribute).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:activate_many).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:activate).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
@@ -137,6 +148,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_post_receive_default_hot_deploy
+    @cartridge_model.expects(:web_proxy).returns(nil)
+
     repository = mock()
 
     OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
@@ -165,7 +178,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
-    @cartridge_model.expects(:web_proxy).returns(false)
+
     @container.expects(:distribute).never
     @container.expects(:activate_many).never
     @container.expects(:activate).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
@@ -185,6 +198,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_post_receive_builder_cart
+    @cartridge_model.expects(:web_proxy).returns(nil)
+
     builder = mock()
     @cartridge_model.expects(:builder_cartridge).returns(builder)
 
@@ -707,9 +722,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_child_gear_ssh_urls_web_proxy
-    @cartridge_model.expects(:web_proxy).times(2).returns(1)
+    @cartridge_model.expects(:web_proxy).returns(1)
+
     gear_registry = mock()
-    ::OpenShift::Runtime::GearRegistry.expects(:new).with(@container).returns(gear_registry)
+    @container.expects(:gear_registry).returns(gear_registry)
 
     self_entry = mock()
 
@@ -732,6 +748,37 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     urls = @container.child_gear_ssh_urls
     assert_equal 2, urls.size
     assert_includes urls, '5504@localhost'
+    assert_includes urls, '5505@localhost'
+  end
+
+  def test_child_gear_ssh_urls_uses_specified_type
+    @cartridge_model.expects(:web_proxy).returns(1)
+    gear_registry = mock()
+    @container.expects(:gear_registry).returns(gear_registry)
+
+    self_entry = mock()
+
+    other_entry = mock()
+
+    other_entry2 = mock()
+    other_entry2.expects(:proxy_hostname).returns('localhost')
+
+    entries = {
+      :proxy => {
+        @container.uuid => self_entry,
+        '5505' => other_entry2
+      },
+      :web => {
+        @container.uuid => self_entry,
+        '5504' => other_entry,
+        '5505' => other_entry2
+      }
+    }
+
+    gear_registry.expects(:entries).returns(entries)
+
+    urls = @container.child_gear_ssh_urls(:proxy)
+    assert_equal 1, urls.size
     assert_includes urls, '5505@localhost'
   end
 

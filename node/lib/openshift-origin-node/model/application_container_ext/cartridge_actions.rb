@@ -277,11 +277,11 @@ module OpenShift
           end
         end
 
-        def child_gear_ssh_urls
+        def child_gear_ssh_urls(type = :web)
           if @cartridge_model.web_proxy
-            web_entries = gear_registry.entries[:web]
-            web_entries_excluding_self = web_entries.select { |gear_uuid, entry| gear_uuid != @uuid }
-            web_entries_excluding_self.map { |gear_uuid, entry| "#{gear_uuid}@#{entry.proxy_hostname}" }
+            entries = gear_registry.entries[type]
+            entries_excluding_self = entries.select { |gear_uuid, entry| gear_uuid != @uuid }
+            entries_excluding_self.map { |gear_uuid, entry| "#{gear_uuid}@#{entry.proxy_hostname}" }
           else
             []
           end
@@ -307,6 +307,12 @@ module OpenShift
         #   :report_deployments : a boolean to toggle hot deploy for the operation (default: false)
         #
         def post_receive(options={})
+          gear_env = nil
+          if proxy_cart = @cartridge_model.web_proxy
+            gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+            sync_git_repo(child_gear_ssh_urls(:proxy), gear_env)
+          end
+
           builder_cartridge = @cartridge_model.builder_cartridge
 
           if builder_cartridge
@@ -345,7 +351,7 @@ module OpenShift
             activate(options)
 
             # if we have children, activate them
-            if @cartridge_model.web_proxy
+            if proxy_cart
               distribute(options)
 
               activate_many(options)
@@ -353,7 +359,7 @@ module OpenShift
           end
 
           if options[:report_deployments]
-            gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+            gear_env ||= ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
             report_deployments(gear_env)
           end
 
@@ -1059,17 +1065,21 @@ module OpenShift
 
               # sync from this gear (load balancer) to all new proxy gears
               # copy the git repo
-              ssh_urls.each do |gear|
-                out, err, rc = run_in_container_context("rsync -avz --delete --exclude hooks --rsh=/usr/bin/oo-ssh git/#{application_name}.git/ #{gear}:git/#{application_name}.git/",
-                                                        env: gear_env,
-                                                        chdir: container_dir,
-                                                        expected_exitstatus: 0)
-              end
+              sync_git_repo(ssh_urls, gear_env)
             end
           end
 
           args = set_proxy_input.join(' ')
           @cartridge_model.do_control('update-cluster', @cartridge_model.web_proxy, args: args)
+        end
+
+        def sync_git_repo(ssh_urls, gear_env)
+          ssh_urls.each do |gear|
+            out, err, rc = run_in_container_context("rsync -avz --delete --exclude hooks --rsh=/usr/bin/oo-ssh git/#{application_name}.git/ #{gear}:git/#{application_name}.git/",
+                                                    env: gear_env,
+                                                    chdir: container_dir,
+                                                    expected_exitstatus: 0)
+          end
         end
 
         # Enables/disables the specified gear in the current gear's web proxy
