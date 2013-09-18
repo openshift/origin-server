@@ -60,8 +60,8 @@ class DeploymentsController < BaseController
                             hot_deploy: d["hot_deploy"],
                      force_clean_build: d["force_clean_build"]))
       end
-      @application.deployments = deploys
-      @application.save
+      @application.update_deployments(deploys)
+      @application.reload
     end
     rest_deployments = @application.deployments.map{ |d| get_rest_deployment(d) }
     render_success(:ok, "deployments", rest_deployments, "Updated deployments for application #{@application.name} under domain #{@application.domain_namespace}")

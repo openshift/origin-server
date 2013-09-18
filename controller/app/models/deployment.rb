@@ -17,7 +17,7 @@
 
 class Deployment
   include Mongoid::Document
-  embedded_in :application
+  embedded_in :application, class_name: Application.name
 
   self.field :deployment_id, type: String
   self.field :created_at,type: Date

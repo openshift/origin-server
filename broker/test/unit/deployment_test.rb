@@ -31,11 +31,9 @@ class DeploymentTest < ActiveSupport::TestCase
   test "create and get deployment" do
 
     d = Deployment.new(deployment_id: 1, ref: "mybranch")
-    result_io = ResultIO.new
-    result_io.deployments = [{:id => 1, :ref => "mybranch"}]
-    OpenShift::MCollectiveApplicationContainerProxy.any_instance.stubs(:deploy).returns(result_io)
+    ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch"}])
     @app.deploy(d)
-    #assert_equal(1, @app.deployments.length)
+    assert_equal(1, @app.deployments.length)
 
     d = Deployment.new(deployment_id: 2, artifact_url: "myurl")
     @app.deploy(d)
@@ -55,7 +53,8 @@ class DeploymentTest < ActiveSupport::TestCase
     for i in 1..5
       deployments.push(Deployment.new(deployment_id: i, ref: "tag_#{i}"))
     end
-    @app.deployments = deployments
+    @app.update_deployments(deployments)
+    @app.reload
     assert_equal(5, @app.deployments.length)
   end
 end

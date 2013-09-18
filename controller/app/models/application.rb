@@ -2929,10 +2929,14 @@ class Application
     #TODO call node to get the latest deployments
   end
 
+  def update_deployments(deployments)
+    self.set(:deployments, deployments.map{|d| d.to_hash})
+  end
+
   def update_deployments_from_result(result_io)
     if result_io.deployments
       deploys = []
-      deployments.each do |d|
+      result_io.deployments.each do |d|
         deploys.push(Deployment.new(deployment_id: d[:id],
                                             state: d[:state],
                                        created_at: d[:created_at],  #TODO:  Need to figure out the transfer format here.  time_in_millis is probably best
@@ -2941,7 +2945,7 @@ class Application
                                        hot_deploy: d[:hot_deploy],
                                 force_clean_build: d[:force_clean_build]))
       end
-      self.deployments = deploys
+      update_deployments(deploys)
     end
   end
 end
