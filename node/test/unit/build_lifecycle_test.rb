@@ -784,33 +784,76 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
   def test_distribute_no_child_gears
     @container.expects(:child_gear_ssh_urls).returns([])
+
     @container.expects(:get_deployment_datetime_for_deployment_id).never
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).never
     @container.expects(:run_in_container_context).never
-    @container.distribute()
+
+    result = @container.distribute({ deployment_id: 123})
+
+    assert_equal :success, result[:status]
+    assert_equal 0, result[:gear_results].size
   end
 
-  def test_distribute_defaults_to_child_gears
+  def test_distribute_no_deployment_id
+    @container.expects(:get_deployment_datetime_for_deployment_id).never
+
+    assert_raise(ArgumentError) do
+      @container.distribute({})
+    end
+  end
+
+  def test_distribute_child_gears_success
     deployment_id = 'abcd1234'
     deployment_datetime = 'now'
     deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
+    
     gears = %w(1234@localhost 2345@localhost)
-
     @container.expects(:child_gear_ssh_urls).returns(gears)
+
     @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     gears.each do |g|
-      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id)
+      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: :success })
     end
 
-    @container.distribute(deployment_id: deployment_id)
+    result = @container.distribute(deployment_id: deployment_id)
+
+    assert_equal :success, result[:status]
+    assert_equal 2, result[:gear_results].size
+    assert_equal :success, result[:gear_results]['1234'][:status]
+    assert_equal :success, result[:gear_results]['2345'][:status]
   end
 
-  def test_distribute_uses_specified_gears
+  def test_distribute_failure
     deployment_id = 'abcd1234'
     deployment_datetime = 'now'
     deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
+    
+    gears = %w(1234@localhost 2345@localhost)
+    @container.expects(:child_gear_ssh_urls).returns(gears)
+
+    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    @container.expects(:distribute_to_gear).with('1234@localhost', gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: :success })
+    @container.expects(:distribute_to_gear).with('2345@localhost', gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: :failure })
+
+    result = @container.distribute(deployment_id: deployment_id)
+
+    assert_equal :failure, result[:status]
+    assert_equal 2, result[:gear_results].size
+    assert_equal :success, result[:gear_results]['1234'][:status]
+    assert_equal :failure, result[:gear_results]['2345'][:status]
+  end
+
+  def test_distribute_specified_gears
+    deployment_id = 'abcd1234'
+    deployment_datetime = 'now'
+    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
+
     gears = %w(1234@localhost 2345@localhost)
 
     @container.expects(:child_gear_ssh_urls).never
@@ -818,10 +861,15 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     gears.each do |g|
-      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id)
+      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: :success })
     end
 
-    @container.distribute(gears: gears, deployment_id: deployment_id)
+    result = @container.distribute(gears: gears, deployment_id: deployment_id)
+
+    assert_equal :success, result[:status]
+    assert_equal 2, result[:gear_results].size
+    assert_equal :success, result[:gear_results]['1234'][:status]
+    assert_equal :success, result[:gear_results]['2345'][:status]
   end
 
   def test_distribute_to_gear_success
@@ -833,10 +881,12 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:attempt_distribute_to_gear).with(gear, gear_env, deployment_dir, deployment_datetime, deployment_id).once()
 
-    @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+    result = @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+
+    assert_equal :success, result[:status]
   end
 
-  def test_distribute_to_gear_retry
+  def test_distribute_to_gear_retry_success
     gear = mock()
     gear_env = mock()
     deployment_dir = mock()
@@ -846,7 +896,24 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     results = [ lambda { raise ::OpenShift::Runtime::Utils::ShellExecutionException.new('msg') }, lambda { return true } ]
     @container.expects(:attempt_distribute_to_gear).with(gear, gear_env, deployment_dir, deployment_datetime, deployment_id).returns { lambda { results.shift.call }}
 
-    @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+    result = @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+
+    assert_equal :success, result[:status]
+  end
+
+  def test_distribute_to_gear_retry_failure
+    gear = mock()
+    gear_env = mock()
+    deployment_dir = mock()
+    deployment_datetime = mock()
+    deployment_id = mock()
+
+    exception = ::OpenShift::Runtime::Utils::ShellExecutionException.new('msg')
+    @container.expects(:attempt_distribute_to_gear).with(gear, gear_env, deployment_dir, deployment_datetime, deployment_id).raises(exception).times(3)
+
+    result = @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+
+    assert_equal :failure, result[:status]
   end
 
   def test_activate_many_app_dns_different_from_gear_dns

@@ -546,32 +546,52 @@ module OpenShift
         #   :deployment_id   : previously built/prepared deployment
         #
         def distribute(options={})
-          gears = options[:gears] || child_gear_ssh_urls
-          return if gears.empty?
-
-          # TODO error if deployment doesn't exist
-
           deployment_id = options[:deployment_id]
+          raise ArgumentError.new("deployment_id must be supplied") unless deployment_id
+
+          gears = options[:gears] || child_gear_ssh_urls
+          return { status: :success, gear_results: {}} if gears.empty?
+
           deployment_datetime = get_deployment_datetime_for_deployment_id(deployment_id)
           deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
-
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
-          Parallel.map(gears, :in_threads => MAX_THREADS) do |gear|
-            distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+          result = { status: :success, gear_results: {}}
+
+          gear_results = Parallel.map(gears, :in_threads => MAX_THREADS) do |gear|
+            gear_uuid = gear.split('@')[0]
+            gear_result = distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+            status = gear_result[:status]
+
+            { gear_uuid: gear_uuid, status: status}
           end
+
+          gear_results.each do |gear_result|
+            result[:gear_results][gear_result[:gear_uuid]] = gear_result
+
+            if gear_result[:status] == :failure
+              result[:status] = :failure
+            end
+          end
+
+          result
         end
 
         def distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+          status = :failure
+
           3.times do
             begin
               attempt_distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+              status = :success
             rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
               next
             end
 
             break
           end
+
+          { status: status }
         end
 
         def attempt_distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
