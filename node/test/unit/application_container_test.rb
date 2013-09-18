@@ -353,6 +353,8 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
         @config.stubs(:get_bool).with('no_overcommit_active', false).returns(false)
       end
       OpenShift::Runtime::Node.stubs(:node_utilization).returns({'gears_active_usage_pct' => s[2]})
+      OpenShift::Runtime::Node.stubs(:resource_limits).returns(@config)
+
       containerization_plugin_mock = mock('OpenShift::Runtime::Containerization::Plugin')
       containerization_plugin_mock.stubs(:create).returns(nil)
       OpenShift::Runtime::Containerization::Plugin.stubs(:new).returns(containerization_plugin_mock)
