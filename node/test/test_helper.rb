@@ -21,6 +21,7 @@ require 'test/unit'
 require 'mocha/setup'
 require 'logger'
 require 'securerandom'
+require 'digest/sha1'
 
 require_relative '../lib/openshift-origin-node'
 require_relative '../lib/openshift-origin-node/utils/logger/stdout_logger'
@@ -67,6 +68,8 @@ module OpenShift
       @tc_mock.stubs(:startuser)
       @tc_mock.stubs(:stopuser)
       @tc_mock.stubs(:deluser)
+
+      @secret_token = Digest::SHA1.base64digest(SecureRandom.random_bytes(256)).to_s
 
       super
     end

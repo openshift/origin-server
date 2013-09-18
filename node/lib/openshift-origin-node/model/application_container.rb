@@ -164,7 +164,8 @@ module OpenShift
       #
       # - model/unix_user.rb
       # context: root
-      def create
+      # @param secret_token value of OPENSHIFT_SECRET_TOKEN for application
+      def create(secret_token = nil)
         output = ''
         notify_observers(:before_container_create)
         # lock to prevent race condition between create and delete of gear
@@ -176,7 +177,7 @@ module OpenShift
           resource = OpenShift::Runtime::Node.resource_limits
           no_overcommit_active = resource.get_bool('no_overcommit_active', false)
           overcommit_lock_file = "/var/lock/oo-create.overcommit"
-          File.open(overcommit_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | overcommit_lock |
+          File.open(overcommit_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | overcommit_lock |
             overcommit_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
 
             if no_overcommit_active
@@ -193,8 +194,10 @@ module OpenShift
 
             overcommit_lock.flock(File::LOCK_UN) if no_overcommit_active
 
+            add_env_var('SECRET_TOKEN', secret_token, true) if secret_token
             output = generate_ssh_key
           end
+
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             unobfuscated = PathUtils.join(File.dirname(@container_dir),"#{@container_name}-#{@namespace}")
             if not File.exists? unobfuscated
