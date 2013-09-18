@@ -18,9 +18,7 @@ class PendingUserOps
   include Mongoid::Timestamps
 
   embedded_in :cloud_user, class_name: CloudUser.name
-  field :op_type,   type: Symbol
-  field :state,    type: Symbol, :default => :init
-  field :arguments, type: Hash, default: {}
+  field :state, type: Symbol, :default => :init
   has_and_belongs_to_many :on_domains, class_name: Domain.name, inverse_of: nil
   has_and_belongs_to_many :completed_domains, class_name: Domain.name, inverse_of: nil
   field :on_completion_method, type: Symbol
@@ -109,6 +107,8 @@ class PendingUserOps
     if self.updated_at.nil?
       s_hash["updated_at"] = t
     end
+    # need to set the _type attribute for MongoId to instantiate the appropriate class 
+    s_hash["_type"] = self.class.to_s unless s_hash["_type"]
     s_hash
   end
 end

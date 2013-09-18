@@ -310,9 +310,9 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert d2 = Domain.find_by(:namespace => 'test')
     assert_equal 1, d2.pending_ops.length
     assert op = d2.pending_ops.last
-    assert_equal :change_members, op.op_type
-    assert_equal [[u._id, :admin, nil, "propagate_test"]], op.args['added']
-    assert_nil op.args['removed']
+    assert_equal ChangeMembersDomainOp, op.class
+    assert_equal [[u._id, :admin, nil, "propagate_test"]], op.members_added
+    assert_nil op.members_removed
 
     d.run_jobs
     assert d.pending_ops.empty?
@@ -326,9 +326,9 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert d2 = Domain.find_by(:namespace => 'test')
     assert_equal 1, d2.pending_ops.length
     assert op = d2.pending_ops.last
-    assert_equal :change_members, op.op_type
-    assert_equal [u._id], op.args['removed']
-    assert_nil op.args['added']
+    assert_equal ChangeMembersDomainOp, op.class
+    assert_equal [u._id], op.members_removed
+    assert_nil op.members_added
 
     d.run_jobs
     assert d.pending_ops.empty?
@@ -396,8 +396,8 @@ class AccessControlledTest < ActiveSupport::TestCase
 
     assert jobs = d.applications.first.pending_op_groups
     assert jobs.length == 1
-    assert_equal :change_members, jobs.first.op_type
-    assert_equal [[u2._id, :admin, nil, 'propagate_test_2'], [u3._id, :admin, nil, 'propagate_test_3']], jobs.last.args['added']
+    assert_equal ChangeMembersOpGroup, jobs.first.class
+    assert_equal [[u2._id, :admin, nil, 'propagate_test_2'], [u3._id, :admin, nil, 'propagate_test_3']], jobs.last.members_added
 
     a = d.applications.first
     assert_equal 3, (a.members & d.members).length
@@ -432,8 +432,8 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert jobs = a.pending_op_groups
 
     assert jobs.length == 2
-    assert_equal :change_members, jobs.last.op_type
-    assert_equal [u3._id], jobs.last.args['removed']
+    assert_equal ChangeMembersOpGroup, jobs.last.class
+    assert_equal [u3._id], jobs.last.members_removed
 
     assert_equal 1, (a.members & d.members).length
     assert_equal 2, a.members.length

@@ -142,8 +142,10 @@ class Domain
   end
 
   def add_system_ssh_keys(ssh_keys)
-    keys_attrs = ssh_keys.map{|k| k.attributes.dup}
-    pending_op = PendingDomainOps.new(op_type: :add_domain_ssh_keys, arguments: { "keys_attrs" => keys_attrs }, on_apps: applications, created_at: Time.now, state: "init")
+    #keys_attrs = ssh_keys.map{|k| k.attributes.dup}
+    #pending_op = PendingDomainOps.new(op_type: :add_domain_ssh_keys, arguments: { "keys_attrs" => keys_attrs }, on_apps: applications, created_at: Time.now, state: "init")
+    keys_attrs = ssh_keys.map { |k| k.to_key_hash() }
+    pending_op = AddSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { system_ssh_keys: keys_attrs }})
   end
 
@@ -155,8 +157,10 @@ class Domain
       ssh_keys = [ssh_keys].flatten
     end
     return if ssh_keys.empty?
-    keys_attrs = ssh_keys.map{|k| k.attributes.dup}
-    pending_op = PendingDomainOps.new(op_type: :delete_domain_ssh_keys, arguments: {"keys_attrs" => keys_attrs}, on_apps: applications, created_at: Time.now, state: "init")
+    #keys_attrs = ssh_keys.map{|k| k.attributes.dup}
+    #pending_op = PendingDomainOps.new(op_type: :delete_domain_ssh_keys, arguments: {"keys_attrs" => keys_attrs}, on_apps: applications, created_at: Time.now, state: "init")
+    keys_attrs = ssh_keys.map { |k| k.to_key_hash() }
+    pending_op = RemoveSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { system_ssh_keys: keys_attrs }})
   end
 
@@ -170,7 +174,8 @@ class Domain
       end
     end
 
-    pending_op = PendingDomainOps.new(op_type: :add_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
+    #pending_op = PendingDomainOps.new(op_type: :add_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
+    pending_op = AddEnvVarsDomainOp.new(variables: variables, on_apps: applications)
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { env_vars: variables }})
 
     # if this is an update to an existing environment variable, remove the previous ones
@@ -184,8 +189,14 @@ class Domain
       variables = self.env_vars.select { |env| env["component_id"]==remove_key }
     end
     return if variables.empty?
-    pending_op = PendingDomainOps.new(op_type: :remove_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
+    #pending_op = PendingDomainOps.new(op_type: :remove_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
+    pending_op = RemoveEnvVarsDomainOp.new(variables: variables, on_apps: applications)
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { env_vars: variables }})
+  end
+
+  def members_changed(added, removed, changed_roles)
+    pending_op = ChangeMembersDomainOp.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence)
+    self.pending_ops.push pending_op
   end
 
   # Runs all jobs in "init" phase and stops at the first failure.
@@ -213,40 +224,7 @@ class Domain
           next
         end
 
-        case op.op_type
-        when :change_members
-          self.applications.select do |a|
-            a.change_member_roles(Array(op.args['changed']), [:domain])
-            a.remove_members(Array(op.args['removed']), [:domain])
-            a.add_members(Array(op.args['added']).map{ |m| self.class.to_member(m) }, [:domain])
-            if a.changed?
-              a.save!
-            end
-          end.each do |app|
-            # only run jobs on applications that had changes
-            app.with_lock{ |a| a.run_jobs }
-          end
-          op.set_state(:completed)
-
-        when :add_domain_ssh_keys
-          ssh_keys = op.arguments["keys_attrs"].map{|k| SystemSshKey.new.to_obj(k)}
-          op.pending_apps.each { |app| app.add_ssh_keys(nil, ssh_keys, op) }
-        when :delete_domain_ssh_keys
-          ssh_keys = op.arguments["keys_attrs"].map{|k| SystemSshKey.new.to_obj(k)}
-          op.pending_apps.each { |app| app.remove_ssh_keys(nil, ssh_keys, op) }
-        when :add_env_variables
-          op.pending_apps.each { |app| app.add_env_variables(op.arguments["variables"], op) }
-        when :remove_env_variables
-          op.pending_apps.each { |app| app.remove_env_variables(op.arguments["variables"], op) }
-
-        # DEPRECATED: These jobs will be replaced with no-op statements after sprint 32
-        when :add_ssh_key
-          ssh_keys = op.arguments["key_attrs"].map{|k| UserSshKey.new.to_obj(k)}
-          op.pending_apps.each { |app| app.add_ssh_keys(op.arguments["user_id"], ssh_keys, op) }
-        when :delete_ssh_key
-          ssh_keys = op.arguments["key_attrs"].map{|k| UserSshKey.new.to_obj(k)}
-          op.pending_apps.each { |app| app.remove_ssh_keys(op.arguments["user_id"], ssh_keys, op) }
-        end
+        op.execute()
 
         # reloading the op reloads the domain and then incorrectly reloads (potentially)
         # the op based on its position within the pending_ops list
