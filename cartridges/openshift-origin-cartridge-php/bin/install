@@ -7,6 +7,7 @@ esac
 
 echo "$version" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_VERSION"
 echo "$OPENSHIFT_PHP_DIR/configuration/etc/php.ini" > "$OPENSHIFT_PHP_DIR/env/PHPRC"
+echo "$OPENSHIFT_PHP_DIR/configuration/etc/php.d" > "$OPENSHIFT_PHP_DIR/env/PHP_INI_SCAN_DIR"
 
 rm -f $OPENSHIFT_PHP_DIR/modules $OPENSHIFT_PHP_DIR/conf/magic
 ln -s /usr/lib64/httpd/modules $OPENSHIFT_PHP_DIR/modules
