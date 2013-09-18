@@ -529,7 +529,7 @@ A cartridge must implement the following scripts:
 |Script Name |Usage
 
 |setup
-|Prepare this instance of cartridge to be operational for the initial install and each upgrade
+|Prepare this instance of cartridge to be operational for the initial install and each incompatible upgrade
 
 |control
 |Command cartridge to report or change state
@@ -615,7 +615,7 @@ Options::
 `--version <version>`: Selects which version of cartridge to install. If no version is provided, the version denoted by the `Version` element from `manifest.yml` will be installed.
 
 Description::
-The `setup` script is responsible for creating and/or configuring the files that were copied from the cartridge repository into the gear's directory. Setup must also be reentrant and will be called on every non-backward compatible upgrade. Any logic you want to occur only once should be added to `install`. +
+The `setup` script is responsible for creating and/or configuring the files that were copied from the cartridge repository into the gear's directory. Setup must also be reentrant and will be called on every incompatible upgrade. Any logic you want to occur only once should be added to `install`. +
 +
 Any files created during `setup` should be added to `setup_rewritten` section of `metadata/managed_files.yml`. These files will be deleted prior to `setup` being run during upgrades. +
 +
