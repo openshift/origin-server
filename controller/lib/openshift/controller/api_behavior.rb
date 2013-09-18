@@ -74,7 +74,7 @@ module OpenShift
           elsif param_value.is_a? String and param_value.upcase == "FALSE"
             return false
           end
-          raise OpenShift::OOException.new("Invalid value '#{param_value}'. Valid options: [true, false]", 167)
+          raise OpenShift::UserException.new("Invalid value '#{param_value}'. Valid options: [true, false]", 167)
         end
 
         def get_includes
