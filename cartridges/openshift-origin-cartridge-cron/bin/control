@@ -12,14 +12,14 @@ function _status_cron_service() {
     then
         client_result "$output"
     else
-        client_result "Cron is either stopped or inaccessible"
+        client_result "Cron is either stopped or inaccessible for gear $OPENSHIFT_GEAR_UUID"
     fi
 }  #  End of function  _status_cron_service.
 
 function start() {
     echo "Starting Cron cartridge"
     if _are_cronjobs_enabled; then
-        client_result "cron scheduling service is already enabled"
+        client_result "cron scheduling service is already enabled for gear $OPENSHIFT_GEAR_UUID"
     else
         touch "$OPENSHIFT_CRON_DIR/run/jobs.enabled"
     fi
@@ -30,7 +30,7 @@ function stop() {
     if _are_cronjobs_enabled; then
         rm -f $OPENSHIFT_CRON_DIR/run/jobs.enabled
     else
-        client_result "cron scheduling service is already disabled"
+        client_result "cron scheduling service is already disabled for gear $OPENSHIFT_GEAR_UUID"
     fi
 }
 
@@ -51,17 +51,17 @@ function status() {
          fi
       done
       if test 0 -ge ${njobs:-0}; then
-         client_result "Application has no scheduled jobs"
+         client_result "Application has no scheduled jobs for gear $OPENSHIFT_GEAR_UUID"
       fi
    else
-      client_result "Application has no scheduled jobs"
+      client_result "Application has no scheduled jobs for gear $OPENSHIFT_GEAR_UUID"
       client_result "   - Missing .openshift/cron/ directory."
    fi
 
    if _are_cronjobs_enabled; then
-      client_result "cron scheduling service is enabled"
+      client_result "cron scheduling service is enabled for gear $OPENSHIFT_GEAR_UUID"
    else
-      client_result "cron scheduling service is disabled"
+      client_result "cron scheduling service is disabled for gear $OPENSHIFT_GEAR_UUID"
    fi
 }
 
