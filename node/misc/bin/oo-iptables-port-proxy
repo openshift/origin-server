@@ -1,0 +1,184 @@
+#!/bin/bash -e
+
+source /etc/openshift/node.conf
+nat_rules_file=/etc/openshift/iptables.nat.rules
+filter_rules_file=/etc/openshift/iptables.filter.rules
+lock_file=/etc/openshift/iptables.rules.lock
+
+function help() {
+    echo "Usage: $0 addproxy|removeproxy|showproxies"
+}
+
+function getaddr() {
+    # External due to using DNS for gear->gear
+    ip -4 addr show dev ${EXTERNAL_ETH_DEV:-eth0} scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
+}
+
+# Fix up the IP Address in the config if the assigned node IP Address has changed.
+function fixaddr() {
+    cfg_addr=$(tail -n 2 $nat_rules_file | head -n 1 | awk '{ print $4 }')
+    baddr=$(getaddr)
+    echo $baddr
+    echo $cfg_addr
+    if [ "${cfg_addr}" != "${baddr}/32" ]; then
+        atomic_nat_config sed -i "s#${cfg_addr}#${baddr}/32#g"
+    fi
+}
+
+# Make atomic updates to the specified config file.
+# E.g. atomic_cfg config_file_path sed -i 's/A/B/'
+function atomic_cfg() {
+    cfgfile=$1
+    shift
+    cfg_old="${cfgfile}"
+    cfgfile="${cfgfile}.editing"
+
+    rm -f "${cfgfile}"
+    cp -a -f "${cfg_old}" "${cfgfile}"
+
+    "$@" "${cfgfile}"
+
+    rm -f "${cfg_old}.bak"
+    ln -f "${cfg_old}" "${cfg_old}.bak"
+    mv -f "${cfgfile}" "${cfg_old}"
+}
+
+# Helper function for atomically updating the filter rules file.
+function atomic_filter_config() {
+    atomic_cfg $filter_rules_file "$@"
+}
+
+# Helper function for atomically updating the nat rules file.
+function atomic_nat_config() {
+    atomic_cfg $nat_rules_file "$@"
+}
+
+# Synchronize code execution with a file lock.
+function lockwrap() {
+    (
+    flock 200
+    "$@"
+    ) 200>${lock_file}
+}
+
+# Add entry for a new proxy mapping.
+# addproxy 23456 127.0.0.1:8080
+function addproxy() {
+    proxyport="$1"
+    target="$2"
+
+    # Validate input
+    if ! [ "$proxyport" -ge 16384 -a "$proxyport" -le 65535 ]; then
+        echo "Proxy port must be an integer between 16384 and 65535"
+        return 1
+    fi
+
+    bip=$(echo "$target" | cut -f 1 -d :)
+    ipbytes=( $(echo "$bip" | sed -e 's/\./ /g') )
+    if [ ${#ipbytes[@]} -ne 4 ]; then
+        echo "Dest addr must be a valid IPv4 address."
+        return 1
+    fi
+
+    for byt in "${ipbytes[@]}"; do
+        if ! [ "$byt" -ge 0 -a "$byt" -le 255 ]; then
+            echo "Dest addr must be a valid IP address."
+            return 1
+        fi
+    done
+
+    port=$(echo $target | cut -f 2 -d :)
+    if ! [ "$port" -ge 1 -a "$port" -le 65535 ]; then
+        echo "Dest port must be an integer between 16384 and 65535"
+        return 1
+    fi
+
+    baddr=$(getaddr)
+
+    # Add the iptables filter rule.
+    if ! grep -q "comment ${proxyport}" $filter_rules_file; then
+        filter_output_rule="-I rhc-app-comm 1 -d ${bip} -p tcp --dport ${port} -j ACCEPT -m comment --comment ${proxyport}"
+        filter_input_rule="-I rhc-app-comm 1 -d ${bip} -m conntrack --ctstate NEW -m tcp -p tcp --dport ${port} -j ACCEPT -m comment --comment ${proxyport}"
+        echo $filter_output_rule
+        iptables -t filter $filter_output_rule
+        echo $filter_input_rule
+        iptables -t filter $filter_input_rule
+        atomic_filter_config sed -i "s/#COMMIT/${filter_output_rule}\n${filter_input_rule}\n#COMMIT/g"
+    fi
+ 
+    # Add the iptables nat rule.
+    if ! grep -q "dport ${proxyport}" $nat_rules_file; then
+        nat_output_rule="-A OUTPUT -d ${baddr}/32 -m tcp -p tcp --dport ${proxyport} -j DNAT --to-destination ${target}"
+        nat_pre_rule="-A PREROUTING -d ${baddr}/32 -m tcp -p tcp --dport ${proxyport} -j DNAT --to-destination ${target}"
+        echo $nat_output_rule
+        iptables -t nat $nat_output_rule
+        echo $nat_pre_rule
+        iptables -t nat $nat_pre_rule
+        atomic_nat_config sed -i "s&#COMMIT&${nat_output_rule}\n${nat_pre_rule}\n#COMMIT&g"
+    fi
+}
+
+# Support adding multiple proxy mappings at the same time.
+# addproxy 23456 127.0.0.1:8080 34535 127.0.0.129:8080 [proxyport backendip:port]
+function addproxies() {
+    while [ "$1" ]; do
+        addproxy "$1" "$2"
+        shift; shift
+    done
+}
+
+# Remove the proxy mapping for the specified proxy port.
+# removeproxy 38032
+function removeproxy() {
+    proxyport=$1
+    
+    # Remove the filter rules
+    grep "comment ${proxyport}" $filter_rules_file | while read line; do
+        cmd=$(echo $line | sed 's/-I/-D/' | sed 's/rhc-app-comm 1/rhc-app-comm/')
+        echo $cmd
+        iptables $cmd
+    done
+    atomic_filter_config sed -i "/--comment\s${proxyport}/d"
+
+    # Remove the nat rules
+    grep "dport ${proxyport}" $nat_rules_file | while read line; do
+        cmd=$(echo $line | sed 's/-A/-D/')
+        echo $cmd
+        iptables -t nat $cmd
+    done
+    atomic_nat_config sed -i "/--dport\s${proxyport}/d"
+}
+
+# Support removing multiple proxy port mappings at the same time.
+# removeproxies 38935 35355 [proxyport]
+function removeproxies() {
+    for proxyport in "$@"; do
+        removeproxy ${proxyport}
+    done
+}
+
+# Display the mapping for the specified proxy ports.
+function showproxies() {
+    for proxyport in "$@"; do
+        grep -m 1 "dport ${proxyport}" $nat_rules_file | awk "{print \"$proxyport\" \" \" \$14}"
+    done
+}
+
+case "$1" in
+    addproxy)
+        shift
+        lockwrap addproxies "$@";;
+    removeproxy)
+        shift
+        lockwrap removeproxies "$@";;
+    showproxy)
+        shift
+        lockwrap showproxies "$@";;
+    fixaddr)
+        shift
+        lockwrap fixaddr;;
+    *)
+        help
+        exit 2
+        ;;
+esac

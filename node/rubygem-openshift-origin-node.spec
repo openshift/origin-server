@@ -138,6 +138,7 @@ mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{gem_docdir}/c
 %if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}/etc/rc.d/init.d/
 cp %{buildroot}%{gem_instdir}/misc/init/openshift-tc %{buildroot}/etc/rc.d/init.d/
+cp %{buildroot}%{gem_instdir}/misc/init/openshift-iptables-port-proxy %{buildroot}/etc/rc.d/init.d/
 %else
 mkdir -p %{buildroot}/etc/systemd/system
 mv %{buildroot}%{gem_instdir}/misc/services/openshift-tc.service %{buildroot}/etc/systemd/system/openshift-tc.service
@@ -180,6 +181,7 @@ fi
   systemctl enable openshift-tc.service || :
 %else
   /sbin/chkconfig --add openshift-tc || :
+  /sbin/chkconfig --add openshift-iptables-port-proxy || :
   service crond restart || :
 %endif
 
@@ -194,6 +196,7 @@ oo-admin-ctl-tc stop >/dev/null 2>&1 || :
   systemctl disable openshift-tc.service || :
 %else
   chkconfig --del openshift-tc || :
+  chkconfig --del openshift-iptables-port-proxy || :
 %endif
 
 fi
@@ -216,6 +219,8 @@ fi
 %attr(0744,-,-) %{openshift_lib}/cartridge_sdk/ruby/*
 %dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
+%config(noreplace) /etc/openshift/iptables.filter.rules
+%config(noreplace) /etc/openshift/iptables.nat.rules
 %config(noreplace) /etc/openshift/env/*
 %attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
 %dir %attr(0755,-,-) %{appdir}
@@ -223,6 +228,7 @@ fi
 
 %if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-) /etc/rc.d/init.d/openshift-tc
+%attr(0755,-,-) /etc/rc.d/init.d/openshift-iptables-port-proxy
 %else
 %attr(0750,-,-) /etc/systemd/system/openshift-tc.service
 %endif
