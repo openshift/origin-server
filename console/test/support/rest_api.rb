@@ -216,6 +216,7 @@ class ActiveSupport::TestCase
     h = {}
     h['Cookie'] = "rh_sso=#{@user.ticket}" if @user.ticket
     h['Authorization'] = ActionController::HttpAuthentication::Basic.encode_credentials(@user.login, @user.password) if @user.login
+    h['X-Forwarded-For'] = '0.0.0.0' if self.class < ActionController::TestCase
     h
   end
 

@@ -280,7 +280,7 @@ class RestApiTest < ActiveSupport::TestCase
     response = stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello', :exit_code => 125}]}))
     assert errors = RestApi::Base.remote_errors_for(response)
     assert_equal 1, errors.length
-    assert_equal [125, 'test', 'hello'], errors[0]
+    assert_equal [125, 'test', 'hello', nil], errors[0]
   end
 
   def test_save_handles_invalid_error
