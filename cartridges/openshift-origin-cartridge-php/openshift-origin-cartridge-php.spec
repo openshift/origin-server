@@ -34,6 +34,13 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 %prep
 %setup -q
+%if 0%{?fedora}%{?rhel} <= 6
+%__rm -rf versions/5.5
+%endif
+%if 0%{?fedora} >= 19
+%__rm -rf versions/5.3
+%__rm -rf versions/5.4
+%endif
 
 %build
 
