@@ -32,7 +32,8 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert_equal 1, members.length
     assert m = members.first
     assert m.owner
-    assert_equal @user.login, m.name
+    assert_equal @user.login, m.login
+    assert_equal m.login, m.name
     assert_equal User.find(:one, :as => @user).id, m.id
     assert_equal 'admin', m.role
     assert_nil m.explicit_role
@@ -69,27 +70,27 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert m = @domain.members.find{ |m| m.id == other_user.id }
     assert_equal 'admin', m.role
     assert_equal 'admin', m.explicit_role
-    assert_equal other_user.login, m.name
+    assert_equal other_user.login, m.login
 
     # Destroy by element_path
     assert m.destroy
-    assert_equal [@user.login], @domain.reload.members.map(&:name)
+    assert_equal [@user.login], @domain.reload.members.map(&:login)
 
     # Add by login
     assert @domain.update_members([Member.new(:login => other_user.login, :role => 'edit')])
     assert m = @domain.members.find{ |m| m.id == other_user.id }
     assert_equal 'edit', m.role
     assert_equal 'edit', m.explicit_role
-    assert_equal other_user.login, m.name
+    assert_equal other_user.login, m.login
 
     # Only removal by id is currently supported
     assert @domain.update_members([Member.new(:login => other_user.login, :role => 'none')])
-    assert_equal [@user.login].sort, @domain.reload.members.map(&:name).sort
+    assert_equal [@user.login].sort, @domain.reload.members.map(&:login).sort
 
     # Destroy by login and PATCH
     assert @domain.update_members([Member.new(:login => other_user.login, :role => 'edit')])
     assert @domain.update_members([Member.new(:id => other_user.id, :role => 'none')]), @domain.errors.full_messages.join(' ')
-    assert_equal [@user.login], @domain.reload.members.map(&:name)
+    assert_equal [@user.login], @domain.reload.members.map(&:login)
   end
 
   def test_able_to_add_other_members_as_admin
@@ -162,6 +163,6 @@ class RestApiMembershipTest < ActiveSupport::TestCase
 
     # remove all members
     assert @domain.reload.delete(:members)
-    assert_equal [@user.login], @domain.reload.members.map(&:name)
+    assert_equal [@user.login], @domain.reload.members.map(&:login)
   end
 end

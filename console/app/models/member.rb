@@ -11,6 +11,10 @@ class Member < RestApi::Base
   validates :login, presence: true, if: "id.blank?"
   validates :role, presence: true
 
+  def name
+    super || login
+  end
+
   def <=>(other)
     to_s <=> other.to_s
   end
