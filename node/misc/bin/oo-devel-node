@@ -21,6 +21,8 @@ require 'rubygems'
 require 'etc'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node'
+require 'securerandom'
+require 'digest/sha1'
 
 require 'commander/import'
 
@@ -137,10 +139,12 @@ end
 
 command :'app-create' do |c|
   c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID --with-namespace NAMESPACE \\
-     --with-app-uuid UUID --with-app-name NAME [--with-uid UID] [--with-container-name NAME] \\
+     --with-app-uuid UUID --with-app-name NAME --with-secret-token TOKEN \\
+     [--with-uid UID] [--with-container-name NAME] \\
      [--with-quota-blocks BLOCKS] [--with-quota-files FILES])
   c.description = 'Create a gear without using the Broker'
 
+  c.option '-S', '--with-secret-token token', 'Value of OPENSHIFT_SECRET_TOKEN for gear'
   c.option '-s', '--with-namespace NAMESPACE', 'Namespace of the application'
   c.option '-A', '--with-app-name NAME', 'Name of the application'
   c.option '-a', '--with-app-uuid UUID', 'Unique application identifier'
@@ -149,7 +153,8 @@ command :'app-create' do |c|
   c.option '-b', '--with-quota-blocks BLOCKS', Integer, 'Number of blocks to allow'
   c.option '-f', '--with-quota-files FILES', Integer, 'Number of files to allow'
   c.action do |args, options|
-    options.default with_container_name: options.with_app_name
+    options.default with_container_name: options.with_app_name,
+                    with_secret_token: Digest::SHA1.base64digest(SecureRandom.random_bytes(256)).to_s
 
     usage(c.syntax, "Missing --with-namespace NAMESPACE") unless options.with_namespace
     usage(c.syntax, "Missing --with-app-name NAME") unless options.with_app_name
@@ -166,7 +171,7 @@ command :'app-create' do |c|
         options.with_quota_blocks,
         options.with_quota_files
     )
-    execute { container.create }
+    execute { container.create(options.with_secret_token) }
   end
 end
 
@@ -237,7 +242,7 @@ command :'broker-auth-key-add' do |c|
   c.description = 'Adds broker auth key to the application'
 
   c.option '--with-iv', 'Initialization vector to add'
-  c.option '--with-token', 'Token to add'
+  c.option '-S', '--with-token', 'Token to add'
   c.action do |args, options|
     if options.with_iv && options.with_token
       container = new_container(options.with_container_uuid, c)

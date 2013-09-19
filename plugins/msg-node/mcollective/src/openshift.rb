@@ -299,10 +299,12 @@ module MCollective
       end
 
       def oo_app_create(args)
-        output = ""
+        output = ''
         begin
+          token = args.key?('--with-secret-token') ? args['--with-secret-token'].to_s : nil
+
           container = get_app_container_from_args(args)
-          output = container.create
+          output = container.create(token)
         rescue OpenShift::Runtime::UserCreationException => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
