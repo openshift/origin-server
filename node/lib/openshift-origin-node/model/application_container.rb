@@ -515,7 +515,7 @@ module OpenShift
 
         params = broker_auth_params
         if params
-          deployments = calc_deployments
+          deployments = calculate_deployments
           params['deployments[]'] = deployments
           params[:application_id] = app_uuid
 

@@ -36,20 +36,8 @@ class DeploymentTest < ActiveSupport::TestCase
 
     d = Deployment.new(deployment_id: 2, artifact_url: "myurl")
     @app.deploy(d)
-    assert(@app.deployments.length == 3)
 
-    d = @app.deployments.find_by(ref: "d975cbfd5c398610326c97f3988a52b208036eef")
-    assert_equal("d975cbfd5c398610326c97f3988a52b208036eef", d.ref)
-
-    d = Deployment.new(deployment_id: "4", artifact_url: "myurl")
-    @app.deploy(d)
-    assert(@app.deployments.length == 4)
-
-    d = @app.deployments.find_by(artifact_url: "myurl")
-    assert_equal("myurl", d.artifact_url)
-    
     @app.refresh_deployments
-
   end
 
   test "create deployment with bad inputs" do
@@ -62,20 +50,20 @@ class DeploymentTest < ActiveSupport::TestCase
   end
 
   test "rollback deployment" do
-    
+
     assert_raise(OpenShift::UserException){@app.rollback}
-    
+
     deployments = []
     for i in 1..5
       @app.deployments.push(Deployment.new(deployment_id: i.to_s, ref: "tag_#{i}"))
     end
 
     @app.rollback
-    
+
     deployment_id = @app.deployments.last.deployment_id
     @app.rollback(deployment_id)
   end
-  
+
   test "batch update deployments" do
     deployments = []
     for i in 1..5

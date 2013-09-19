@@ -20,7 +20,7 @@ class Deployment
   embedded_in :application, class_name: Application.name
 
   self.field :deployment_id, type: String
-  self.field :created_at,type: Date
+  self.field :created_at, type: Integer
   self.field :state, type: String, default: "active"
   self.field :hot_deploy, type: Boolean, default: false
   self.field :force_clean_build, type: Boolean, default: false

@@ -384,7 +384,7 @@ module MCollective
         begin
           with_container_from_args(args) do |container|
             container.deploy(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url, out: out, err: err)
-            addtl_params[:deployments] = container.calc_deployments
+            addtl_params[:deployments] = container.calculate_deployments
           end
         rescue Exception => e
           Log.instance.info e.message
@@ -406,7 +406,7 @@ module MCollective
         begin
           with_container_from_args(args) do |container|
             container.rollback(deployment_id: deployment_id, out: out, err: err)
-            addtl_params[:deployments] = container.calc_deployments
+            addtl_params[:deployments] = container.calculate_deployments
           end
         rescue Exception => e
           Log.instance.info e.message

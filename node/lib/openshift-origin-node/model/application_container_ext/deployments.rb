@@ -217,13 +217,13 @@ module OpenShift
           out
         end
 
-        def calc_deployments
+        def calculate_deployments
           deployments = []
           all_deployments.each do |d|
             deployment_datetime = File.basename(d)
             deployment_state = (read_deployment_metadata(deployment_datetime, 'state') || 'NOT DEPLOYED').chomp
             deployment_id = (read_deployment_metadata(deployment_datetime, 'id') || '').chomp
-            deployments.push({:id => deployment_id, :ref => "TODO", :state => deployment_state, :created_at => deployment_datetime})
+            deployments.push({:id => deployment_id, :ref => "TODO", :state => deployment_state, :created_at => Time.parse(deployment_datetime).to_i})
           end
           deployments
         end
