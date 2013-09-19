@@ -116,7 +116,8 @@ module OpenShift
                     f.write("# ELEMENT: ")
                     f.write([path, uri, options].to_json)
                     f.write("\n")
-                    
+
+                    gen_default_rule=false
                     if options["gone"]
                       f.puts("RewriteRule ^#{path}(/.*)?$ - [NS,G]")
                     elsif options["forbidden"]
@@ -132,7 +133,12 @@ module OpenShift
                     elsif options["tohttps"]
                       f.puts("RewriteCond %{HTTPS} =off")
                       f.puts("RewriteRule ^#{path}(/.*)?$ https://%{HTTP_HOST}$1 [R,NS,L]")
+                      gen_default_rule = true
                     else
+                      gen_default_rule = true
+                    end
+
+                    if gen_default_rule
                       f.puts("RewriteRule ^#{path}(/.*)?$ http://#{uri}$1 [P,NS]")
 
                       if path.empty?
