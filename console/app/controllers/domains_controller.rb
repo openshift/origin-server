@@ -39,7 +39,7 @@ class DomainsController < ConsoleController
     @domain = Domain.find(:one, :as => current_user)
     @domain.attributes.merge!(params[:domain]) if params[:domain]
 
-    if @domain.save
+    if @domain.save or @domain.has_exit_code?(133)
       redirect_to domain_path(@domain), :flash => {:success => @domain.messages.first.presence || "The domain '#{@domain.name}' has been updated."}
     else
       render :edit
