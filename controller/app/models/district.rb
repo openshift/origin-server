@@ -13,6 +13,7 @@ class District
   field :server_identities, type: Array
 
   index({:name => 1}, {:unique => true})
+  index({:uuid => 1}, {:unique => true})
   create_indexes
 
   def self.create_district(name, gear_size=nil)
