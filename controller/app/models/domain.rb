@@ -103,8 +103,8 @@ class Domain
 
   before_save prepend: true do
     self.canonical_namespace = namespace.present? ? namespace.downcase : nil
-    if has_owner?
-      self.allowed_gear_sizes = owner.allowed_gear_sizes if owner_id_changed? || !persisted?
+    if has_owner? && ((persisted? && owner_id_changed?) || (!persisted? && allowed_gear_sizes.nil?))
+      self.allowed_gear_sizes = owner.allowed_gear_sizes
     end
   end
 

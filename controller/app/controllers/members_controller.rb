@@ -117,6 +117,7 @@ class MembersController < BaseController
 
   def leave
     authorize! :leave, membership
+    return render_error(:bad_request, "You are the owner of this #{membership.class.model_name.humanize.downcase} and cannot leave.") if membership.owned_by?(current_user)
     remove_member(current_user._id)
   end
 
