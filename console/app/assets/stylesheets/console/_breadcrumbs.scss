@@ -1,5 +1,5 @@
 .breadcrumb {
-  color: #777;
+  color: #666;
   font-size: $smallText;
   list-style: none;
   margin: -35px 0 0;
@@ -11,12 +11,21 @@
   a,
   a:hover,
   a:visited {
-    color: #444;
+    color: #666;
     white-space: nowrap;
   }
 
+  .active {
+    color: #444;
+    a,
+    a:hover,
+    a:visited  {
+      color: #444;
+    }
+  }
+
   .divider {
-    color: #bbb;
+    color: #e22434;
     padding: 0 5px;
   }
 

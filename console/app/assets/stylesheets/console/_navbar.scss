@@ -1,6 +1,7 @@
 .navbar {
   background: #333;
   @include navbar_background;
+  border-top: 3px solid #eb0011;
   .brand {
     float: left;
     position: relative;
@@ -208,7 +209,7 @@
   margin: 0;
   position: absolute;
   right: 0;
-  top: 0;
+  top: 1px;
   z-index: 9999 !important;
   .alert {
     -moz-border-radius: 0;

@@ -129,6 +129,7 @@ ol.wizard {
 
 @media (max-width: 767px) {
   ol.wizard {
+    border-bottom-color: #ccc;
     padding-bottom: 10px;
     li {
       margin-bottom: 10px;
@@ -173,18 +174,56 @@ figure {
 }
 
 .row-console > .row {
-  color: $consoleTextColorDefault;
-}
-/*
-.section-console-light .row-console > .row {
   background: #fcfcfc;
-  -moz-box-shadow: 0 0 3px rgba(0,0,0,0.09);
-  -webkit-box-shadow: 0 0 3px rgba(0,0,0,0.09);
-  box-shadow: 0 0 3px rgba(0,0,0,0.09);
+  @include box-shadow(0 0 3px rgba(0,0,0,0.09));
   color: #333;
   min-height: 400px;
+  .section-console-blank & {
+    background: none;
+    @include box-shadow(none);
+  }
+  .section-console-fade & {
+    background-color: transparent;
+    background-image: linear-gradient(top, rgba(253,253,253,1) 125px, rgba(253,253,253,0) 225px);
+    background-image: -o-linear-gradient(top, rgba(253,253,253,1) 125px, rgba(253,253,253,0) 225px);
+    background-image: -moz-linear-gradient(top, rgba(253,253,253,1) 125px, rgba(253,253,253,0) 225px);
+    background-image: -webkit-linear-gradient(top, rgba(253,253,253,1) 125px, rgba(253,253,253,0) 225px);
+    background-image: -ms-linear-gradient(top, rgba(253,253,253,1) 125px, rgba(253,253,253,0) 225px);
+    background-image: -webkit-gradient(
+      linear,
+      left top,
+      left bottom,
+      color-stop(125px, rgba(253,253,253,1)),
+      color-stop(225px, rgba(253,253,253,0))
+    );
+    @include box-shadow(none);
+    color: $consoleTextColorDefault;
+    position: relative;
+    &:before {
+      background-image: linear-gradient(top, transparent 0%, rgba(0,0,0,.035) 3px);
+      background-image: -o-linear-gradient(top, transparent 0%, rgba(0,0,0,.035) 3px);
+      background-image: -moz-linear-gradient(top, transparent 0%, rgba(0,0,0,.035) 3px);
+      background-image: -webkit-linear-gradient(top, transparent 0%, rgba(0,0,0,.035) 3px);
+      background-image: -ms-linear-gradient(top, transparent 0%, rgba(0,0,0,.035) 3px);
+      background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, transparent),
+        color-stop(3px, rgba(0,0,0,.035))
+      );
+      content: '';
+      display: block;
+      height: 3px;
+      left: 1px;
+      position: absolute;
+      right: 1px; 
+      top: -3px;
+      width: 100%;
+    }
+  }
 }
-*/
+
 
 .divide, legend {
   margin-bottom: 0;
@@ -278,16 +317,22 @@ aside .header-bar {
 
 @media (max-width: 767px) {
   .section-console {
+    background: #fcfcfc;
     padding-bottom: 0;
     padding-top: 0;
-  }
-  /*.section-console-light { 
-    background: #fcfcfc;
+    &.section-console-blank, &.section-console-fade {
+      @include console_background;
+    }
     .row-console > .row {
       @include box-shadow(none);
     }
-  }*/
-
+  }
+  .section-console-fade .row-console > .row {
+    background: transparent;
+    &:before {
+      display: none;
+    }
+  }
   .section-header {
     margin-left: 0;
   }
@@ -610,14 +655,12 @@ $cartridgeBorderWidth: 10px;
 .cartridge_type.installed,
 .cartridge_type.inactive,
 .cartridge_type.installed > h3,
-.cartridge_type.inactive > h3
-/*.section-console-light .cartridge_type.installed > h3,
-.section-console-light .cartridge_type.inactive > h3 */ {
+.cartridge_type.inactive > h3 {
   color: #888;
   }
 .cartridge_type.inactive,
 .cartridge_type.installed {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.45);
   cursor: default;
   }
 
@@ -670,9 +713,6 @@ $cartridgeBorderWidth: 10px;
     float: none;
     display: block;
     margin-left: 0;
-    }
-  .section-console-light {
-    //padding:0 20px;
     }
   .row > strong {
     display: block;
@@ -747,6 +787,9 @@ $cartridgeBorderWidth: 10px;
   }
   #my-apps .status {
     position: static;
+  }
+  .row > .column-content > :first-child {
+    margin-top: 20px;
   }
 }
 
