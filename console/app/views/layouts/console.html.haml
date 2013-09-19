@@ -17,27 +17,13 @@
     #wrap
 
       %header
-      = render 'layouts/console/header'
+        = render 'layouts/console/header'
 
-    .section-console#content{:class => content_for(:section_console_presentation), :role => 'main'}
-      .container
-        .row-console
-          - if content_for? :full_layout
-            .row.row-flush-right
-              .grid-wrapper
-                .span12.span-flush-right
-                  - if content_for? :breadcrumbs
-                    %nav
-                      = yield :breadcrumbs
-              = yield :top
-              .grid-wrapper.section-body
-                .span12
-                  = flashes
-                = yield
-
-          - else
-            .row.row-flush-right
-              - if content_for? :breadcrumbs
+      .section-console#content{:class => content_for(:section_console_presentation), :role => 'main'}
+        .container
+          .row-console
+            - if content_for? :full_layout
+              .row.row-flush-right
                 .grid-wrapper
                   .span12.span-flush-right
                     - if content_for? :breadcrumbs
@@ -47,15 +33,17 @@
                 .grid-wrapper.section-body
                   .span12
                     = flashes
-                  = yield
+                    = yield
 
             - else
               .row.row-flush-right
-                - if content_for? :breadcrumbs
-                  .grid-wrapper
-                    .span12.span-flush-right
+                .grid-wrapper
+                  .span12.span-flush-right
+                    - if content_for? :breadcrumbs
                       %nav
                         = yield :breadcrumbs
+                    - else
+                      &nbsp;
                 = yield :top
                 .column-content.grid-wrapper
                   .span12
