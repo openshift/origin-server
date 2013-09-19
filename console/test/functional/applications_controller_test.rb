@@ -223,7 +223,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert !assigns(:has_keys)
 
     assert_select 'h1', /#{with_app.name}/
-    assert_select 'h1', /#{with_app.domain_id}/
+    assert_select '.section-header a', /#{with_app.domain_id}/
     assert_select 'h1 a.url-alter', /\bchange\b/
     with_app.cartridges.map(&:display_name).each do |name|
       assert_select 'h2', /#{name}/

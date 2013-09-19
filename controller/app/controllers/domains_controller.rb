@@ -108,10 +108,9 @@ class DomainsController < BaseController
       end
     end
 
-    return render_error(:unprocessable_entity, "No changes specified to the domain.", 106) unless domain.changed?
+    return render_success(:ok, "domain", get_rest_domain(domain), 'No changes specified to the domain.', domain) unless domain.changed?
 
     domain.save_with_duplicate_check!
-
     render_success(:ok, "domain", get_rest_domain(domain), messages.join(" "), domain)
   end
 

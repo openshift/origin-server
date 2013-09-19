@@ -39,8 +39,7 @@ class DomainsController < ConsoleController
     @domain = Domain.find(:one, :as => current_user)
     @domain.attributes.merge!(params[:domain]) if params[:domain]
 
-    # Redirect on a successful save or a no-changes error
-    if @domain.save or @domain.has_exit_code?(106)
+    if @domain.save
       redirect_to domain_path(@domain), :flash => {:success => @domain.messages.first.presence || "The domain '#{@domain.name}' has been updated."}
     else
       render :edit
