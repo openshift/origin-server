@@ -226,8 +226,12 @@ def assert_successful_install(next_version, current_manifest)
   $logger.info "Observed latest version: #{observed_latest_version}"
 
   assert_equal next_version, observed_latest_version
-
-  %x(service ruby193-mcollective restart)
+  
+  if File.exists?("/etc/fedora-release")
+    %x(service mcollective restart)
+  else
+    %x(service ruby193-mcollective restart)
+  end
 
   mcol_output = `oo-admin-cartridge --list | grep -e "mock,.*#{current_manifest.version}"`
 

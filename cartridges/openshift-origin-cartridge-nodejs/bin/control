@@ -11,7 +11,7 @@ supervisor_exe(){
 # All PIDs running node (including supervisor)
 # Need to combine double slashes in case our PATH contains them
 node_pids(){
-  pgrep -fl '^node\s' -u $(id -u) | replace '//' '/'
+  ps -u $(id -u) -o pid= -o cmd= | grep -e '[0-9]\{1,\}\snode\s' | replace '//' '/'
 }
 
 # Only PIDs with node running supervisor
