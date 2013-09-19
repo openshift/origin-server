@@ -14,7 +14,9 @@
 
     %a.skip-navigation{:href => '#content', :accesskey => '2'} Skip to main content
 
-    %header
+    #wrap
+
+      %header
       = render 'layouts/console/header'
 
     .section-console#content{:class => content_for(:section_console_presentation), :role => 'main'}
@@ -38,13 +40,27 @@
               - if content_for? :breadcrumbs
                 .grid-wrapper
                   .span12.span-flush-right
-                    %nav
-                      = yield :breadcrumbs
-              = yield :top
-              .column-content.grid-wrapper
-                .span12
-                  = flashes
+                    - if content_for? :breadcrumbs
+                      %nav
+                        = yield :breadcrumbs
+                = yield :top
+                .grid-wrapper.section-body
+                  .span12
+                    = flashes
                   = yield
+
+            - else
+              .row.row-flush-right
+                - if content_for? :breadcrumbs
+                  .grid-wrapper
+                    .span12.span-flush-right
+                      %nav
+                        = yield :breadcrumbs
+                = yield :top
+                .column-content.grid-wrapper
+                  .span12
+                    = flashes
+                    = yield
 
     %footer
       = yield :footer

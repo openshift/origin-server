@@ -26,3 +26,10 @@
 
 @mixin account_background {
 }
+
+@mixin account_background {
+  background-color: transparent;
+  background-image: image-url('mts-bottom-transparent.png');
+  background-repeat: repeat-x;
+  background-position: left 100% bottom 70px;
+}

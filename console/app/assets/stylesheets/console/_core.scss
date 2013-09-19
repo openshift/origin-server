@@ -1,3 +1,10 @@
+#wrap {
+    height: auto !important;
+    margin: 0 auto -70px;
+    min-height: 100%;
+    padding-bottom: 70px;
+    @include box-sizing(border-box);
+}
 .alert {
   word-wrap: break-word;
   text-shadow: none;
@@ -44,6 +51,12 @@ h3 .label { font-size: inherit; margin: 0 0 0 10px; }
 }
 .block {
   display: block;
+}
+
+.action-more:before {
+  content: '\2192 ';
+  position: relative;
+  top: -3px;
 }
 
 // Disabled and read-only inputs
@@ -154,10 +167,6 @@ ol.wizard {
 .section-console {
   padding-top: 50px;
   padding-bottom: 50px;
-}
-
-.section-console {
-  @include console_background;
 }
 
 figure {
@@ -301,7 +310,6 @@ aside .header-bar {
     }
   }
 }
-
 
 .sidebar {
   border-bottom: 1px dotted #ccc;
@@ -660,7 +668,7 @@ $cartridgeBorderWidth: 10px;
   }
 .cartridge_type.inactive,
 .cartridge_type.installed {
-  background-color: rgba(255, 255, 255, 0.45);
+  background-color: $consolePanelColorDisabled;
   cursor: default;
   }
 
@@ -690,24 +698,6 @@ $cartridgeBorderWidth: 10px;
   }
 }
 
-/* Arbitrarily chosen 
-@media (max-width: 600px) {
-  #app-cartridges .cartridge-block .bits {
-    margin-left: 0;
-    li {
-      display: block;
-      float: none;
-      border: 0;
-      text-align: right;
-      min-height: 0;
-      h6 {
-        display: inline;
-      }
-    }
-  }
-}
-*/
-
 @media (max-width: 767px) {
   .section-console .base {
     float: none;
@@ -726,12 +716,6 @@ $cartridgeBorderWidth: 10px;
     float: left;
     margin-left: 28px;
   }
-  .digest-bg {
-    margin: 0;
-    }
-  #secondary {
-    margin: 0 30px;
-    }
   #my-apps li h2 {
     float: right;
     }
@@ -747,19 +731,6 @@ $cartridgeBorderWidth: 10px;
     padding-left: 0 !important;
     display:block;
     }
-
-  #account-digest {
-    @include expand_for_phone(false);
-    .digest-bg {
-      padding-left: 0;
-      padding-right: 0;
-      background: transparent;
-
-      #secondary {
-        margin: 0 $gridGutterWidthPhone;
-      }
-    }
-  }
 
   #app-unique-info {
     margin: 0;
@@ -778,10 +749,6 @@ $cartridgeBorderWidth: 10px;
   .total-cost {
     font-size: 23px; // responsive
   }
-  .digest-bg {
-    margin-right: -15px;
-    margin-left: -15px;
-   }
   #my-apps li h2 {
     float: none;
   }
@@ -794,9 +761,6 @@ $cartridgeBorderWidth: 10px;
 }
 
 @media (min-width: 980px) and (max-width: 1199px) {
-  .digest-bg {
-    margin: 0 -23px;
-  }
   #app-cartridges {
     .cartridge-block .cartridge-inset {
       padding-left: $gridGutterWidth - $cartridgeBorderWidth;
