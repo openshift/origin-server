@@ -778,6 +778,7 @@ Alias / <%= ENV['OPENSHIFT_HOMEDIR'] + "/mongodb/httpd.d/index.html" %>
 Environment variables are used to communicate information between this cartridge and others, as well as to OpenShift. The cartridge controlled variables are stored in the `env` directory and will be loaded after system-provided environment variables but before your code is called. OpenShift-provided environment variables will be loaded and available to be used for all cartridge entry points.
 
 You cannot override system provided variables by creating new copies in your cartridge `env` directory. If you attempt to do so, when an application developer attempts to instantiate your cartridge the system will raise an exception and refuse to do so.
+With the exception of `OPENSHIFT_SECRET_TOKEN`, these variables may not be overridden using `rhc env-set`.
 
 === System Provided Variables (Read Only)
 
@@ -817,6 +818,10 @@ You cannot override system provided variables by creating new copies in your car
 
 |OPENSHIFT_REPO_DIR
 |The directory where the developer's application is "archived" to and will be run from
+
+|OPENSHIFT_SECRET_TOKEN
+|A unique 128 character string that is unique to your application that may be used for authentication: joining clusters
+|initial passwords, etc. This variable may be overridden using `rhc set-env`.
 
 |OPENSHIFT_TMP_DIR
 |The directory where your cartridge may store temporary data
