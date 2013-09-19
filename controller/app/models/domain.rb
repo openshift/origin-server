@@ -35,7 +35,7 @@ class Domain
   field :namespace, type: String
   field :canonical_namespace, type: String
   field :env_vars, type: Array, default: []
-  field :allowed_gear_sizes, type: Array, default: []
+  field :allowed_gear_sizes, type: Array
   embeds_many :system_ssh_keys, class_name: SystemSshKey.name
   belongs_to :owner, class_name: CloudUser.name
   has_many :applications, class_name: Application.name, dependent: :restrict
@@ -103,7 +103,7 @@ class Domain
 
   before_save prepend: true do
     self.canonical_namespace = namespace.present? ? namespace.downcase : nil
-    if has_owner? && ((persisted? && owner_id_changed?) || (!persisted? && allowed_gear_sizes.nil?))
+    if has_owner? && (allowed_gear_sizes.nil? || (persisted? && owner_id_changed?))
       self.allowed_gear_sizes = owner.allowed_gear_sizes
     end
   end

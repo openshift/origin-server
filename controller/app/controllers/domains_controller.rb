@@ -62,8 +62,8 @@ class DomainsController < BaseController
     domain.allowed_gear_sizes = Array(params[:allowed_gear_sizes]) if params.has_key? :allowed_gear_sizes
 
     unless pre_and_post_condition(
-             lambda{ Domain.where(owner: current_user).count < allowed_domains }, 
-             lambda{ Domain.where(owner: current_user).count <= allowed_domains }, 
+             lambda{ Domain.where(owner: current_user).count < allowed_domains },
+             lambda{ Domain.where(owner: current_user).count <= allowed_domains },
              lambda{ domain.save_with_duplicate_check! },
              lambda{ domain.destroy rescue nil }
            )
