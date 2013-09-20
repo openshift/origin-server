@@ -10,7 +10,7 @@
 
 Summary:       OpenShift NodeJS Websocket frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.1.4
+Version: 0.1.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Tue Sep 17 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
+- fixing tito tags
+
 * Sat Sep 14 2013 Rob Millner <rmillner@redhat.com> 0.1.4-1
 - Functional tests for the frontend plugins. (rmillner@redhat.com)
 

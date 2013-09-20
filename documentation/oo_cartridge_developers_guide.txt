@@ -529,7 +529,7 @@ A cartridge must implement the following scripts:
 |Script Name |Usage
 
 |setup
-|Prepare this instance of cartridge to be operational for the initial install and each upgrade
+|Prepare this instance of cartridge to be operational for the initial install and each incompatible upgrade
 
 |control
 |Command cartridge to report or change state
@@ -615,7 +615,7 @@ Options::
 `--version <version>`: Selects which version of cartridge to install. If no version is provided, the version denoted by the `Version` element from `manifest.yml` will be installed.
 
 Description::
-The `setup` script is responsible for creating and/or configuring the files that were copied from the cartridge repository into the gear's directory. Setup must also be reentrant and will be called on every non-backward compatible upgrade. Any logic you want to occur only once should be added to `install`. +
+The `setup` script is responsible for creating and/or configuring the files that were copied from the cartridge repository into the gear's directory. Setup must also be reentrant and will be called on every incompatible upgrade. Any logic you want to occur only once should be added to `install`. +
 +
 Any files created during `setup` should be added to `setup_rewritten` section of `metadata/managed_files.yml`. These files will be deleted prior to `setup` being run during upgrades. +
 +
@@ -778,6 +778,7 @@ Alias / <%= ENV['OPENSHIFT_HOMEDIR'] + "/mongodb/httpd.d/index.html" %>
 Environment variables are used to communicate information between this cartridge and others, as well as to OpenShift. The cartridge controlled variables are stored in the `env` directory and will be loaded after system-provided environment variables but before your code is called. OpenShift-provided environment variables will be loaded and available to be used for all cartridge entry points.
 
 You cannot override system provided variables by creating new copies in your cartridge `env` directory. If you attempt to do so, when an application developer attempts to instantiate your cartridge the system will raise an exception and refuse to do so.
+With the exception of `OPENSHIFT_SECRET_TOKEN`, these variables may not be overridden using `rhc env-set`.
 
 === System Provided Variables (Read Only)
 
@@ -817,6 +818,10 @@ You cannot override system provided variables by creating new copies in your car
 
 |OPENSHIFT_REPO_DIR
 |The directory where the developer's application is "archived" to and will be run from
+
+|OPENSHIFT_SECRET_TOKEN
+|A unique 128 character string that is unique to your application that may be used for authentication: joining clusters
+|initial passwords, etc. This variable may be overridden using `rhc set-env`.
 
 |OPENSHIFT_TMP_DIR
 |The directory where your cartridge may store temporary data

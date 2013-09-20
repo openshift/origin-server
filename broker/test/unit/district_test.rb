@@ -32,13 +32,13 @@ class DistrictTest < ActiveSupport::TestCase
     orig_d.deactivate_node("abcd")
     orig_d.remove_node("abcd")
     Mocha::Mockery.instance.stubba.unstub_all
-   
+
     d = District.find_by(uuid: orig_d.uuid)
     assert_equal(orig_d, d)
     d.destroy
     assert(District.where(uuid: orig_d.uuid).count == 0)
   end
-  
+
   test "reserve district uid" do
     orig_d = get_district_obj
     orig_d.save!
@@ -47,14 +47,14 @@ class DistrictTest < ActiveSupport::TestCase
     assert_equal(orig_d.available_uids.length - 1, new_d.available_uids.length)
     assert_equal(orig_d.available_capacity - 1 , new_d.available_capacity)
     assert(!new_d.available_uids.include?(uid))
-    
+
     (1..new_d.available_capacity).each do |i| 
       uid = District.reserve_uid(orig_d.uuid)
     end
-    
+
     uid = District.reserve_uid(orig_d.uuid)
     assert(uid.nil?)
-    
+
     2.times do |i|
       District.unreserve_uid(orig_d.uuid, 1)
       new_d = District.find_by(uuid: orig_d.uuid)
@@ -92,14 +92,14 @@ class DistrictTest < ActiveSupport::TestCase
     new_d = District.find_by(uuid: orig_d.uuid)
     assert_equal(0, new_d.available_uids.length)
     assert_equal(0, new_d.available_capacity)
-   
+
     District.unreserve_uid(orig_d.uuid, preferred_uid)
     new_d = District.find_by(uuid: orig_d.uuid)
     assert_equal(1, new_d.available_uids.length)
     assert_equal(1, new_d.available_capacity)
     assert(new_d.available_uids.include?(preferred_uid))
   end
-  
+
   test "reserve given district uid" do
     d = get_district_obj
     d.save!
@@ -110,7 +110,7 @@ class DistrictTest < ActiveSupport::TestCase
     d = District.find_by(uuid: d.uuid)
     assert_equal(available_capacity_before, d.available_capacity)
   end
-  
+
   test "district capacity" do
     orig_d = get_district_obj
     orig_d.save!
@@ -121,7 +121,7 @@ class DistrictTest < ActiveSupport::TestCase
     orig_available_uids_min = orig_d.available_uids.min
     orig_available_uids_max = orig_d.available_uids.max
     assert(orig_d.available_uids.reduce{|prev,l| break unless l >= prev; l}, "The initial UIDs are not sorted")
-    
+
     additional_capacity = 50
 
     # add capacity
@@ -135,7 +135,7 @@ class DistrictTest < ActiveSupport::TestCase
     assert_equal(orig_available_uids_max + additional_capacity, new_d.available_uids.max)
     # assert that the available_uids array is not sorted
     assert_nil(new_d.available_uids.reduce{|prev,l| break unless l >= prev; l}, "The UIDs are not randomized")
-    
+
     # remove capacity
     new_d.remove_capacity(additional_capacity)
     new_d = District.find_by(uuid: orig_d.uuid)
@@ -146,7 +146,7 @@ class DistrictTest < ActiveSupport::TestCase
     assert_equal(orig_available_uids_min, new_d.available_uids.min)
     assert_equal(orig_available_uids_max, new_d.available_uids.max)
   end
-  
+
   test "available uids sorted" do
     uuid = gen_uuid
     name = "dist_" + uuid
@@ -163,7 +163,7 @@ class DistrictTest < ActiveSupport::TestCase
     assert_equal(new_default_gear_size, new_d.gear_size)
     Rails.application.config.openshift[:default_gear_size] = o_default_gear_size
   end
- 
+
 =begin
   test "district nodes" do
     orig_d = get_district_obj
@@ -174,16 +174,16 @@ class DistrictTest < ActiveSupport::TestCase
       orig_d.add_node(hostname)
       new_d = District.find_by(uuid: orig_d.uuid)
       assert(new_d.server_identities_hash[hostname]["active"])
-      
+
       d = District.find_available
       assert_not_nil(d)
       assert(d.available_capacity > 0)
-     
+
       new_d = District.in("server_identities.name" => [hostname]).first 
       assert_equal(new_d.uuid, orig_d.uuid)
-      
+
       exception = nil
-      begin  
+      begin
         new_d.remove_node(hostname)
       rescue Exception => e
         exception = e
@@ -192,7 +192,7 @@ class DistrictTest < ActiveSupport::TestCase
 
       new_d = District.find_by(uuid: orig_d.uuid)
       assert(new_d.server_identities_hash[hostname]["active"])
-  
+
       new_d.deactivate_node(hostname)
       new_d = District.find_by(uuid: orig_d.uuid)
       assert(!new_d.server_identities_hash[hostname]["active"])
@@ -203,7 +203,7 @@ class DistrictTest < ActiveSupport::TestCase
       new_d.deactivate_node(hostname)
       new_d = District.find_by(uuid: orig_d.uuid)
       assert(!new_d.server_identities_hash[hostname]["active"])
- 
+
       new_d.remove_node(hostname)
       new_d = District.find_by(uuid: orig_d.uuid)
       assert(!new_d.server_identities_hash[hostname])

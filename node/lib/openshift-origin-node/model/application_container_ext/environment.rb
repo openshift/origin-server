@@ -3,13 +3,11 @@ module OpenShift
     module ApplicationContainerExt
       module Environment
 
-        USER_VARIABLE_MAX_COUNT = 25
-        USER_VARIABLE_NAME_MAX_SIZE = 128
+        USER_VARIABLE_MAX_COUNT      = 25
+        USER_VARIABLE_NAME_MAX_SIZE  = 128
         USER_VARIABLE_VALUE_MAX_SIZE = 512
-        RESERVED_VARIABLE_NAMES = [
-                                   'OPENSHIFT_PRIMARY_CARTRIDGE_DIR', 'OPENSHIFT_NAMESPACE', 'PATH',
-                                   'IFS', 'USER', 'SHELL', 'HOSTNAME', 'LOGNAME'
-                                  ]
+        RESERVED_VARIABLE_NAMES      = %w(OPENSHIFT_PRIMARY_CARTRIDGE_DIR OPENSHIFT_NAMESPACE PATH IFS USER SHELL HOSTNAME LOGNAME)
+        ALLOWED_OVERRIDES            = %w(OPENSHIFT_SECRET_TOKEN)
 
         # Public: Add an environment variable to a given gear.
         #
@@ -272,9 +270,9 @@ module OpenShift
           variables.each_pair do |name, value|
             path = PathUtils.join(@container_dir, '.env', name)
 
-            if File.exists?(path) ||
+            if !ALLOWED_OVERRIDES.include?(name) && (File.exists?(path) ||
                 name =~ /\AOPENSHIFT_.*_IDENT\Z/ ||
-                RESERVED_VARIABLE_NAMES.include?(name)
+                RESERVED_VARIABLE_NAMES.include?(name))
               return 127, "CLIENT_ERROR: #{name} cannot be overridden"
             end
 

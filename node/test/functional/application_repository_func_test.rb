@@ -15,6 +15,7 @@
 #++
 require_relative '../test_helper'
 require 'pathname'
+require 'securerandom'
 
 # Deploy cannot be testing in this manner. SELinux requires a valid UID or the tests fail.
 # See cucumber test application_repository.feature
@@ -39,7 +40,7 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     @config.stubs(:get).with("BROKER_HOST").returns('localhost')
     @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns('.')
 
-    @uuid = `uuidgen -r |sed -e s/-//g`.chomp
+    @uuid = SecureRandom.uuid.gsub(/-/, '')
 
     begin
       %x(userdel -f #{Etc.getpwuid(@uid).name})
@@ -47,7 +48,7 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     end
 
     @container = OpenShift::Runtime::ApplicationContainer.new(@uuid, @uuid, @uid, "AppRepoFuncTest", "AppRepoFuncTest", "functional-test")
-    @container.create
+    @container.create(@secret_token)
 
     OpenShift::Runtime::CartridgeRepository.instance.clear
     OpenShift::Runtime::CartridgeRepository.instance.load

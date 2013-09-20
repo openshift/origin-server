@@ -1066,7 +1066,7 @@ class OODiag
     # Under certain circumstances they would not have the dominating MCS label
     # (s0-s0:c0.c1023) and not be able to affect gears.
     scl_root = @project_is[:enterprise] ? "/opt/rh/ruby193/root" : ""
-    context = `ps -o label= $(pgrep -f ruby[[:space:]]#{scl_root}/usr/sbin/mcollectived)`.chomp.split ":"
+    context = `ps -o label= $(pgrep -f 'ruby[^[:space:]]*[[:space:]]/usr/sbin/mcollectived([[:space:]]|$)')`.chomp.split ":"
     context.shift
     context = context.join ":"
     expected = "system_r:openshift_initrc_t:s0-s0:c0.c1023"
@@ -1105,14 +1105,14 @@ class OODiag
     do_match_check = true
 
     if File.exists? '/var/www/openshift/console'
-      console = `ls /var/www/openshift/console/httpd/conf.d/*auth*.conf | grep -v -- '-dev.conf$'`
+      console = `ls /var/www/openshift/console/httpd/conf.d/*auth*.conf | grep -v -- '-dev.conf$'`.split
       #Make sure there is only 1 conf file for the console
-      if(console.split.size > 1)
+      if(console.size > 1)
         do_match_check = false
         do_warn <<-CONSOLE
           There is more than one authentication configuration file for the
           console in /var/www/openshift/console/httpd/conf.d
-          Authentication configration files:
+          Authentication configuration files:
           #{console.join "\n\t"}
         CONSOLE
       elsif console.empty?
@@ -1122,26 +1122,26 @@ class OODiag
       do_match_check = false
     end
 
-    broker = `ls /etc/openshift/plugins.d/*auth*.conf | grep -v -- '-dev.conf$'`
+    broker = `ls /etc/openshift/plugins.d/*auth*.conf | grep -v -- '-dev.conf$'`.split
     #Make sure there is only 1 conf file for the broker
-    if(broker.split.size > 1)
+    if(broker.size > 1)
       do_match_check = false
       do_warn <<-BROKER
         There is more than one authentication configuration file for the
         broker in /etc/openshift/plugins.d
-        Authentication configration files:
+        Authentication configuration files:
         #{broker.join "\n\t"}
       BROKER
     end
 
     #If conf files don't match, then it is possible they are using two different auth types.
-    if(do_match_check && console.split("/")[-1] != broker.split("/")[-1])
+    if(do_match_check && console.first.split("/")[-1] != broker.first.split("/")[-1])
       do_warn <<-MISMATCH
         The two authentication configuration file names set up for the console and broker do not match;
         please ensure that they are using the same authentication mechanism.
-        Authentication configration files:
-        Broker: #{broker}
-        Console: #{console}
+        Authentication configuration files:
+        Broker: #{broker.first}
+        Console: #{console.first}
       MISMATCH
     end
 
@@ -1160,7 +1160,7 @@ class OODiag
       do_warn "Using a self-signed certificate for the broker"
     end
 
-    apacheconfig = `httpd -S 2> /dev/null`.slice(/^\*:443.*\*:80/m)
+    apacheconfig = `httpd -S 2> /dev/null`.slice(/^\*:443.*\n[[:space:]][^\n]*\n[^[:space:]]/m)
     servername = apacheconfig.scan(/(?:(?:default server )|(?:port 443 namevhost ))(\S+) \((?:[^:]+)/)
     badnames = []
     servername.each do |sn|

@@ -45,7 +45,7 @@ module OpenShift
         raise "Couldn't find cart base path at #{cart_base_path}" unless File.exists?(cart_base_path)
         @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns(cart_base_path)
 
-        @uuid = %x(uuidgen -r |sed -e s/-//g).chomp
+        @uuid = SecureRandom.uuid.gsub(/-/, '')
 
         begin
           %x(userdel -f #{Etc.getpwuid(@uid).name})
@@ -54,7 +54,7 @@ module OpenShift
 
         @container = Runtime::ApplicationContainer.new(@uuid, @uuid, @uid, "NodeFunctionalTest",
                                                        "NodeFunctionalTest", "functional-test")
-        @container.create
+        @container.create(@secret_token)
       end
 
       def after_teardown

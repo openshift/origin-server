@@ -97,6 +97,18 @@ module Membership
     end
   end
 
+  #
+  # Helper method for processing role changes
+  #
+  def change_member_roles(changed_roles, source)
+    changed_roles.each do |arr|
+      if m = members.detect{ |m| m._id == arr.first }
+        m.update_grant(arr.last, source)
+      end
+    end
+    self
+  end
+
   protected
     def parent_membership_relation
       relations.values.find{ |r| r.macro == :belongs_to }
@@ -110,23 +122,13 @@ module Membership
     end
 
     #
-    # The list of member ids that changed on the object.  The change_members op
-    # is best if it is consistent on all access controlled classes
+    # The list of member ids that changed on the object. 
+    # This method needs to be implemented in any class that includes Membership
     #
     def members_changed(added, removed, changed_roles)
-      queue_op(:change_members, added: added.presence, removed: removed.presence, changed: changed_roles.presence)
-    end
-
-    #
-    # Helper method for processing role changes
-    #
-    def change_member_roles(changed_roles, source)
-      changed_roles.each do |arr|
-        if m = members.detect{ |m| m._id == arr.first }
-          m.update_grant(arr.last, source)
-        end
-      end
-      self
+      #queue_op(:change_members, added: added.presence, removed: removed.presence, changed: changed_roles.presence)
+      Rails.logger.error "The members_changed method needs to be implemented in the specific classes\n  #{caller.join("\n  ")}"
+      raise "Membership changes not implemented"
     end
 
     # FIXME create a standard pending operations model mixin that uniformly handles queueing on all type

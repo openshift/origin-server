@@ -363,6 +363,15 @@ module OpenShift
         result = nil
         (1..10).each do |i|
           args = build_base_gear_args(gear, quota_blocks, quota_files)
+          
+          # set the secret token for new gear creations
+          # log an error if the application does not have its secret_token set
+          if app.secret_token.present?
+            args['--with-secret-token'] = app.secret_token
+          else
+            Rails.logger.error "The application #{app.name} (#{app._id.to_s}) does not have its secret token set"
+          end
+          
           mcoll_reply = execute_direct(@@C_CONTROLLER, 'app-create', args)
 
           begin
@@ -2834,7 +2843,7 @@ module OpenShift
         end
 
         # Get the districts
-        districts = prefer_district ? District.find_all : [] # candidate for caching
+        districts = prefer_district ? District.find_all((require_district && node_profile ) ? node_profile : nil, required_uid) : []
 
         # Get the active % on the nodes
         rpc_opts = nil

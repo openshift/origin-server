@@ -95,6 +95,7 @@ class Application
   field :ha, type: Boolean, default: false
   field :init_git_url, type: String, default: ""
   field :analytics, type: Hash, default: {}
+  field :secret_token, type: String
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
@@ -103,7 +104,7 @@ class Application
   has_members through: :domain, default_role: :admin
 
   index({'group_instances.gears.uuid' => 1}, {:unique => true, :sparse => true})
-  index({'created_at' => 1})
+  index({'pending_op_groups.created_at' => 1})
   index({'domain_id' => 1})
   create_indexes
 
@@ -298,6 +299,10 @@ class Application
     self.app_ssh_keys = []
     #self.pending_op_groups = []
     self.analytics = {} if self.analytics.nil?
+    
+    # the resultant string length is 4/3 times the number specified as the first argument
+    # with 96 specified, the token is going to be 128 characters long
+    self.secret_token = SecureRandom.urlsafe_base64(96, false)
     self.save
   end
 
@@ -328,7 +333,8 @@ class Application
     keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
       return unless user_id.nil? || Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
-      op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"add_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"add_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
+      op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -348,7 +354,8 @@ class Application
     keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
       return unless user_id.nil? || Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
-      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
+      op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -370,7 +377,8 @@ class Application
       ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
       ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
 
-      op_group = PendingAppOpGroup.new(op_type: :replace_all_ssh_keys,  args: {"keys_attrs" => ssh_keys}, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :replace_all_ssh_keys,  args: {"keys_attrs" => ssh_keys}, user_agent: self.user_agent)
+      op_group = ReplaceAllSshKeysOpGroup.new(keys_attrs: ssh_keys, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -385,7 +393,8 @@ class Application
   # @return [ResultIO] Output from cartridges
   def add_env_variables(vars, parent_op=nil)
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_env_vars" => vars}, parent_op: parent_op, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_env_vars" => vars}, parent_op: parent_op, user_agent: self.user_agent)
+      op_group = UpdateAppConfigOpGroup.new(add_env_vars: vars, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -400,7 +409,8 @@ class Application
   # @return [ResultIO] Output from cartridges
   def remove_env_variables(vars, parent_op=nil)
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_vars" => vars}, parent_op: parent_op, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_vars" => vars}, parent_op: parent_op, user_agent: self.user_agent)
+      op_group = UpdateAppConfigOpGroup.new(remove_env_vars: vars, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -414,7 +424,8 @@ class Application
   # @return [ResultIO] Output from node platform
   def patch_user_env_variables(vars)
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :patch_user_env_vars, args: {"user_env_vars" => vars}, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :patch_user_env_vars, args: {"user_env_vars" => vars}, user_agent: self.user_agent)
+      op_group = PatchUserEnvVarsOpGroup.new(user_env_vars: vars, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -459,13 +470,24 @@ class Application
   def requires(include_pending=false)
     features = component_instances.map {|ci| ci.cartridge_name} #get_feature(ci.cartridge_name, ci.component_name)}
 
+#    if include_pending
+#      self.pending_op_groups.each do |op_group|
+#        case op_group.op_type
+#        when :add_features
+#          features += op_group[:args]["features"]
+#       when :remove_features
+#          features -= op_group[:args]["features"]
+#        end
+#      end
+#    end
+
     if include_pending
       self.pending_op_groups.each do |op_group|
-        case op_group.op_type
-        when :add_features
-          features += op_group[:args]["features"]
-        when :remove_features
-          features -= op_group[:args]["features"]
+        case op_group.class
+        when AddFeaturesOpGroup
+          features += op_group.features
+        when RemoveFeaturesOpGroup
+          features -= op_group.features
         end
       end
     end
@@ -569,8 +591,11 @@ class Application
 
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
-      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url" => init_git_url,
-                                                        "user_env_vars" => user_env_vars}, user_agent: self.user_agent)
+#      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url" => init_git_url,
+#                                                        "user_env_vars" => user_env_vars}, user_agent: self.user_agent)
+      
+      self.pending_op_groups.push AddFeaturesOpGroup.new(features: features, group_overrides: group_overrides, init_git_url: init_git_url,
+                                                         user_env_vars: user_env_vars, user_agent: self.user_agent)
       self.run_jobs(result_io)
     end
 
@@ -619,7 +644,8 @@ class Application
             ucart = CartridgeCache.find_cartridge(feature_name, uapp)
             if ucart.is_ci_builder?
               Application.run_in_application_lock(uapp) do
-                uapp.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => [feature_name], "group_overrides" => uapp.group_overrides}, user_agent: uapp.user_agent)
+                #uapp.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => [feature_name], "group_overrides" => uapp.group_overrides}, user_agent: uapp.user_agent)
+                uapp.pending_op_groups.push RemoveFeaturesOpGroup.new(features: [feature_name], group_overrides: uapp.group_overrides, user_agent: uapp.user_agent)
                 client_result_io = ResultIO.new
                 uapp.run_jobs(client_result_io)
                 if client_result_io.exitcode == 0
@@ -634,7 +660,8 @@ class Application
       end
     end
     Application.run_in_application_lock(self) do
-      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides, "remove_all_features" => remove_all_features}, user_agent: self.user_agent)
+      #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides, "remove_all_features" => remove_all_features}, user_agent: self.user_agent)
+      self.pending_op_groups.push RemoveFeaturesOpGroup.new(features: features, group_overrides: group_overrides, remove_all_features: remove_all_features, user_agent: self.user_agent)
       self.run_jobs(result_io)
     end
 
@@ -666,7 +693,8 @@ class Application
     # specifying the remove_all_features flag as true to ensure removal of all features
     result_io.append(self.remove_features(self.requires, [], true, true))
     Application.run_in_application_lock(self) do
-      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :delete_app, user_agent: self.user_agent)
+      #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :delete_app, user_agent: self.user_agent)
+      self.pending_op_groups.push DeleteAppOpGroup.new(user_agent: self.user_agent)
       self.run_jobs(result_io)
       result_io
     end
@@ -678,7 +706,8 @@ class Application
   # @return [ResultIO] Output from cartridges
   def set_group_overrides(group_overrides)
     Application.run_in_application_lock(self) do
-      pending_op = PendingAppOpGroup.new(op_type: :add_features, args: {"features" => [], "group_overrides" => group_overrides}, created_at: Time.new, user_agent: self.user_agent)
+      #pending_op = PendingAppOpGroup.new(op_type: :add_features, args: {"features" => [], "group_overrides" => group_overrides}, created_at: Time.new, user_agent: self.user_agent)
+      pending_op = AddFeaturesOpGroup.new(features: [], group_overrides: group_overrides, user_agent: self.user_agent)
       pending_op_groups.push pending_op
       self.save
       result_io = ResultIO.new
@@ -722,7 +751,8 @@ class Application
     #   register ha dns
     #   set ha flag
     Application.run_in_application_lock(self) do
-      pending_op = PendingAppOpGroup.new(op_type: :make_ha, args: {}, created_at: Time.new, user_agent: self.user_agent)
+      #pending_op = PendingAppOpGroup.new(op_type: :make_ha, args: {}, created_at: Time.new, user_agent: self.user_agent)
+      pending_op = MakeAppHaOpGroup.new(user_agent: self.user_agent)
       pending_op_groups.push pending_op
       self.save
       result_io = ResultIO.new
@@ -747,7 +777,8 @@ class Application
     end
     raise OpenShift::UserException.new("Cannot set the max gear limit to '1' if the application is HA (highly available)") if self.ha and scale_to==1
     Application.run_in_application_lock(self) do
-      pending_op = PendingAppOpGroup.new(op_type: :update_component_limits, args: {"comp_spec" => component_instance.to_hash, "min"=>scale_from, "max"=>scale_to, "additional_filesystem_gb"=>additional_filesystem_gb}, created_at: Time.new, user_agent: self.user_agent)
+      #pending_op = PendingAppOpGroup.new(op_type: :update_component_limits, args: {"comp_spec" => component_instance.to_hash, "min"=>scale_from, "max"=>scale_to, "additional_filesystem_gb"=>additional_filesystem_gb}, created_at: Time.new, user_agent: self.user_agent)
+      pending_op = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_hash, min: scale_from, max: scale_to, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
       pending_op_groups.push pending_op
       self.save
       result_io = ResultIO.new
@@ -771,7 +802,8 @@ class Application
     raise OpenShift::UserException.new("Cannot scale up beyond maximum gear limit in app #{self.name}.", 168) if scale_by > 0 && ginst.gears.length >= ginst.max and ginst.max > 0
 
     Application.run_in_application_lock(self) do
-      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :scale_by, args: {"group_instance_id" => group_instance_id, "scale_by" => scale_by}, user_agent: self.user_agent)
+      #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :scale_by, args: {"group_instance_id" => group_instance_id, "scale_by" => scale_by}, user_agent: self.user_agent)
+      self.pending_op_groups.push ScaleOpGroup.new(group_instance_id: group_instance_id, scale_by: scale_by, user_agent: self.user_agent)
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -836,9 +868,11 @@ class Application
     result_io = ResultIO.new
     op_group = nil
     if feature.nil?
-      op_group = PendingAppOpGroup.new(op_type: :start_app, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :start_app, user_agent: self.user_agent)
+      op_group = StartAppOpGroup.new(user_agent: self.user_agent)
     else
-      op_group = PendingAppOpGroup.new(op_type: :start_feature, args: {"feature" => feature}, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :start_feature, args: {"feature" => feature}, user_agent: self.user_agent)
+      op_group = StartFeatureOpGroup.new(feature: feature, user_agent: self.user_agent)
     end
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push op_group
@@ -850,7 +884,8 @@ class Application
   def start_component(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
-      op_group = PendingAppOpGroup.new(op_type: :start_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}}, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :start_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}}, user_agent: self.user_agent)
+      op_group = StartCompOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
@@ -862,9 +897,11 @@ class Application
       result_io = ResultIO.new
       op_group = nil
       if feature.nil?
-        op_group = PendingAppOpGroup.new(op_type: :stop_app, args: { "force" => force }, user_agent: self.user_agent)
+        #op_group = PendingAppOpGroup.new(op_type: :stop_app, args: { "force" => force }, user_agent: self.user_agent)
+        op_group = StopAppOpGroup.new(force: force, user_agent: self.user_agent)
       else
-        op_group = PendingAppOpGroup.new(op_type: :stop_feature, args: {"feature" => feature, "force" => force }, user_agent: self.user_agent)
+        #op_group = PendingAppOpGroup.new(op_type: :stop_feature, args: {"feature" => feature, "force" => force }, user_agent: self.user_agent)
+        op_group = StopFeatureOpGroup.new(feature: feature, force: force, user_agent: self.user_agent)
       end
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
@@ -875,7 +912,8 @@ class Application
   def stop_component(component_name, cartridge_name, force=false)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
-      op_group = PendingAppOpGroup.new(op_type: :stop_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}, "force" => force}, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :stop_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}, "force" => force}, user_agent: self.user_agent)
+      op_group = StopCompOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, force: force, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
@@ -887,9 +925,11 @@ class Application
       result_io = ResultIO.new
       op_group = nil
       if feature.nil?
-        op_group = PendingAppOpGroup.new(op_type: :restart_app, user_agent: self.user_agent)
+        #op_group = PendingAppOpGroup.new(op_type: :restart_app, user_agent: self.user_agent)
+        op_group = RestartAppOpGroup.new(user_agent: self.user_agent)
       else
-        op_group = PendingAppOpGroup.new(op_type: :restart_feature, args: {"feature" => feature}, user_agent: self.user_agent)
+        #op_group = PendingAppOpGroup.new(op_type: :restart_feature, args: {"feature" => feature}, user_agent: self.user_agent)
+        op_group = RestartFeatureOpGroup.new(feature: feature, user_agent: self.user_agent)
       end
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
@@ -900,7 +940,8 @@ class Application
   def restart_component(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
-      op_group = PendingAppOpGroup.new(op_type: :restart_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}}, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :restart_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}}, user_agent: self.user_agent)
+      op_group = RestartCompOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
@@ -912,9 +953,11 @@ class Application
       result_io = ResultIO.new
       op_group = nil
       if feature.nil?
-        op_group = PendingAppOpGroup.new(op_type: :reload_app_config, user_agent: self.user_agent)
+        #op_group = PendingAppOpGroup.new(op_type: :reload_app_config, user_agent: self.user_agent)
+        op_group = ReloadAppConfigOpGroup.new(user_agent: self.user_agent)
       else
-        op_group = PendingAppOpGroup.new(op_type: :reload_feature_config, args: {"feature" => feature}, user_agent: self.user_agent)
+        #op_group = PendingAppOpGroup.new(op_type: :reload_feature_config, args: {"feature" => feature}, user_agent: self.user_agent)
+        op_group = ReloadFeatureConfigOpGroup.new(feature: feature, user_agent: self.user_agent)
       end
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
@@ -937,7 +980,8 @@ class Application
 
   def reload_component_config(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :reload_component_config, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}}, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :reload_component_config, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}}, user_agent: self.user_agent)
+      op_group = ReloadCompConfigOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -948,7 +992,8 @@ class Application
   def tidy
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
-      op_group = PendingAppOpGroup.new(op_type: :tidy_app, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :tidy_app, user_agent: self.user_agent)
+      op_group = TidyAppOpGroup.new(user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
@@ -964,7 +1009,8 @@ class Application
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
     raise OpenShift::UserException.new("Gear for removal not specified") if gear_uuid.nil?
     Application.run_in_application_lock(self) do
-      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_gear, args: {"gear_id" => gear_uuid}, user_agent: self.user_agent)
+      #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_gear, args: {"gear_id" => gear_uuid}, user_agent: self.user_agent)
+      self.pending_op_groups.push RemoveGearOpGroup.new(gear_id: gear_uuid, user_agent: self.user_agent)
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -1027,10 +1073,12 @@ class Application
 
     Application.run_in_application_lock(self) do
       raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140, "id") if Application.where("aliases.fqdn" => server_alias).count > 0
-      op_group = PendingAppOpGroup.new(op_type: :add_alias, args: {"fqdn" => server_alias}, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :add_alias, args: {"fqdn" => server_alias}, user_agent: self.user_agent)
+      op_group = AddAliasOpGroup.new(fqdn: server_alias, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       if ssl_certificate.present?
-        op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => server_alias, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
+        #op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => server_alias, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
+        op_group = AddSslCertOpGroup.new(fqdn: server_alias, ssl_certificate: ssl_certificate, private_key: private_key, pass_phrase: pass_phrase, user_agent: self.user_agent)
         self.pending_op_groups.push op_group
       end
       result_io = ResultIO.new
@@ -1052,10 +1100,12 @@ class Application
     al1as = aliases.find_by(fqdn: fqdn)
     Application.run_in_application_lock(self) do
       if al1as.has_private_ssl_certificate
-         op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => al1as.fqdn}, user_agent: self.user_agent)
+         #op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => al1as.fqdn}, user_agent: self.user_agent)
+         op_group = RemoveSslCertOpGroup.new(fqdn: al1as.fqdn, user_agent: self.user_agent)
          self.pending_op_groups.push op_group
       end
-      op_group = PendingAppOpGroup.new(op_type: :remove_alias, args: {"fqdn" => al1as.fqdn}, user_agent: self.user_agent)
+      #op_group = PendingAppOpGroup.new(op_type: :remove_alias, args: {"fqdn" => al1as.fqdn}, user_agent: self.user_agent)
+      op_group = RemoveAliasOpGroup.new(fqdn: al1as.fqdn, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -1072,12 +1122,14 @@ class Application
     Application.run_in_application_lock(self) do
       #remove old certificate
       if old_alias.has_private_ssl_certificate
-         op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => fqdn}, user_agent: self.user_agent)
+         #op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => fqdn}, user_agent: self.user_agent)
+         op_group = RemoveSslCertOpGroup.new(fqdn: fqdn, user_agent: self.user_agent)
          self.pending_op_groups.push op_group
       end
       #add new certificate
       if ssl_certificate.present?
-        op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => fqdn, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
+        #op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => fqdn, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
+        op_group = AddSslCertOpGroup.new(fqdn: fqdn, ssl_certificate: ssl_certificate, private_key: private_key, pass_phrase: pass_phrase, user_agent: self.user_agent)
         self.pending_op_groups.push op_group
       end
 
@@ -1089,7 +1141,8 @@ class Application
 
   def run_connection_hooks
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :execute_connections)
+      #op_group = PendingAppOpGroup.new(op_type: :execute_connections)
+      op_group = ExecuteConnectionsOpGroup.new()
       self.pending_op_groups.push op_group
 
       result_io = ResultIO.new
@@ -1272,6 +1325,11 @@ class Application
     end
   end
 
+  def members_changed(added, removed, changed_roles)
+    op_group = ChangeMembersOpGroup.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence, user_agent: self.user_agent)
+    self.pending_op_groups.push op_group
+  end
+
   # Processes directives returned by component hooks to add/remove domain ssh keys, app ssh keys, env variables, broker keys etc
   # @note {#run_jobs} must be called in order to perform the updates
   #
@@ -1300,15 +1358,17 @@ class Application
         domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
       when "BROKER_KEY_ADD"
         iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
-        pending_op = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token }, user_agent: self.user_agent)
+        #pending_op = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token }, user_agent: self.user_agent)
+        pending_op = AddBrokerAuthKeyOpGroup.new(iv: iv, token: token, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp } })
       when "BROKER_KEY_REMOVE"
-        pending_op = PendingAppOpGroup.new(op_type: :remove_broker_auth_key, args: { }, user_agent: self.user_agent)
+        #pending_op = PendingAppOpGroup.new(op_type: :remove_broker_auth_key, args: { }, user_agent: self.user_agent)
+        pending_op = RemoveBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp } })
       when "NOTIFY_ENDPOINT_CREATE"
         if gear and component_id
           pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args]) 
-	  gear.port_interfaces.push(pi)
+          gear.port_interfaces.push(pi)
           pi.publish_endpoint(self) if self.ha
         end
         # OpenShift::RoutingService.notify_create_public_endpoint self, *command_item[:args]
@@ -1320,11 +1380,13 @@ class Application
 
     if add_ssh_keys.length > 0
       keys_attrs = get_updated_ssh_keys(nil, add_ssh_keys)
-      pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
+      #pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
+      pending_op = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, user_agent: self.user_agent)
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
     if remove_env_vars.length > 0
-      pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_vars" => remove_env_vars})
+      #pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_vars" => remove_env_vars})
+      pending_op = UpdateAppConfigOpGroup.new(remove_env_vars: remove_env_vars)
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp }})
     end
 
@@ -1347,165 +1409,18 @@ class Application
   def run_jobs(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
     self.reload
+    op_group = nil
     begin
       while self.pending_op_groups.count > 0
         op_group = self.pending_op_groups.first
         self.user_agent = op_group.user_agent
-        if op_group.pending_ops.count == 0
-          case op_group.op_type
-          when :change_members
-            added = Array(op_group.args['added']).select{ |id| (role = role_for(id)) and Ability.has_permission?(id, :ssh_to_gears, Application, role, self) } 
-            removed = Array(op_group.args['removed']).dup
-            Array(op_group.args['changed']).each do |(id, from, to)|
-              was = Ability.has_permission?(id, :ssh_to_gears, Application, from || default_role, self) 
-              is =  Ability.has_permission?(id, :ssh_to_gears, Application, to || default_role, self) 
-              next if is == was
-              (is ? added : removed) << id
-            end
-            ops = calculate_update_existing_configuration_ops({
-              # FIXME this is an unbounded operation, all keys for all users added and removed to each gear.  need to optimize
-              'add_keys_attrs' => CloudUser.members_of(added).map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1),
-              'remove_keys_attrs' => CloudUser.members_of(removed).map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1),
-            })
-            op_group.pending_ops.push(*ops)
-          when :update_configuration
-            ops = calculate_update_existing_configuration_ops(op_group.args)
-            op_group.pending_ops.push(*ops)
-          when :add_features
-            #need rollback
-            features = self.requires + op_group.args["features"]
-            group_overrides = (self.group_overrides || []) + (op_group.args["group_overrides"] || [])
-            ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides, op_group.args["init_git_url"], op_group.args["user_env_vars"])
-            try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
-          when :remove_features
-            #need rollback
-            features = []
-            features = self.requires - op_group.args["features"] unless op_group.args["remove_all_features"]
-            group_overrides = (self.group_overrides || []) + (op_group.args["group_overrides"] || [])
-            ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
-            try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
-          when :make_ha
-            self.group_instances.each { |gi|
-              gi.gears.each { |gear|
-	        op_group.pending_ops.push PendingAppOp.new(op_type: :publish_routing_info, args: {"group_instance_id" => gi._id.to_s, "gear_id" => gear._id.to_s} )
-              }
-            }
-            op_group.pending_ops.push PendingAppOp.new(op_type: :register_routing_dns, args: { })
-          when :update_component_limits
-            updated_overrides = (self.group_overrides || []).deep_dup
-            ci = self.component_instances.find_by(cartridge_name: op_group.args["comp_spec"]["cart"], component_name: op_group.args["comp_spec"]["comp"])
-	    found = updated_overrides.find {|go| 
-	      go["components"].find { |go_comp_spec| ci.cartridge_name==go_comp_spec["cart"] and ci.component_name==go_comp_spec["comp"] }
-	    }
-            if ci.is_sparse?
-              if found
-                updated_overrides.each { |go|
-                  go["components"].each { |go_comp_spec| 
-                    if go_comp_spec["cart"]==ci.cartridge_name and go_comp_spec["comp"]==ci.component_name
-                      go_comp_spec["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil? 
-                      go_comp_spec["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
-                      go_comp_spec["multiplier"] = op_group.args["multiplier"] unless op_group.args["multiplier"].nil?
-                    end
-                  }
-                }
-                group_override = found
-              else
-                new_comp_spec = { "cart"=> ci.cartridge_name, "comp" => ci.component_name }
-                new_comp_spec["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil? 
-                new_comp_spec["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
-                new_comp_spec["multiplier"] = op_group.args["multiplier"] unless op_group.args["multiplier"].nil?
-                group_override = {"components" => [new_comp_spec]}
-              end
-            else
-              group_override = found || {"components" => [op_group.args["comp_spec"]]}
-              group_override["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil?
-              group_override["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
-            end
-            group_override["additional_filesystem_gb"] = op_group.args["additional_filesystem_gb"] unless op_group.args["additional_filesystem_gb"].nil?
-            updated_overrides.push(group_override) unless found
-            features = self.requires
-            ops, add_gear_count, rm_gear_count = update_requirements(features, updated_overrides)
-            try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
-          when :delete_app
-            self.pending_op_groups.clear
-            self.delete
-          when :remove_gear
-            ops = calculate_remove_gear_ops(op_group.args)
-            try_reserve_gears(0, 1, op_group, ops)
-          when :scale_by
-            #need rollback
-            ops, add_gear_count, rm_gear_count = calculate_scale_by(op_group.args["group_instance_id"], op_group.args["scale_by"])
-            try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
-          when :replace_all_ssh_keys
-            ops = calculate_replace_all_ssh_keys_ops(op_group.args)
-            op_group.pending_ops.push(*ops)
-          when :add_alias
-            self.group_instances.each do |group_instance|
-              if group_instance.gears.where(app_dns: true).count > 0
-                gear = group_instance.gears.find_by(app_dns: true)
-                op_group.pending_ops.push PendingAppOp.new(op_type: :add_alias, args: {"group_instance_id" => group_instance._id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
-                break
-              end
-            end
-          when :remove_alias
-            self.group_instances.each do |group_instance|
-              if group_instance.gears.where(app_dns: true).count > 0
-                gear = group_instance.gears.find_by(app_dns: true)
-                op_group.pending_ops.push PendingAppOp.new(op_type: :remove_alias, args: {"group_instance_id" => group_instance._id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
-                break
-              end
-            end
-          when :add_ssl_cert
-            self.group_instances.each do |group_instance|
-              if group_instance.gears.where(app_dns: true).count > 0
-                gear = group_instance.gears.find_by(app_dns: true)
-                op_group.pending_ops.push PendingAppOp.new(op_type: :add_ssl_cert, args: {"group_instance_id" => group_instance._id.to_s, "gear_id" => gear.id.to_s,
-                  "fqdn" => op_group.args["fqdn"], "ssl_certificate" => op_group.args["ssl_certificate"], "private_key" => op_group.args["private_key"], "pass_phrase" => op_group.args["pass_phrase"] } )
-                break
-              end
-            end
-          when :remove_ssl_cert
-            self.group_instances.each do |group_instance|
-              if group_instance.gears.where(app_dns: true).count > 0
-                gear = group_instance.gears.find_by(app_dns: true)
-                op_group.pending_ops.push PendingAppOp.new(op_type: :remove_ssl_cert, args: {"group_instance_id" => group_instance._id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
-                break
-              end
-            end
-          when :patch_user_env_vars
-            op_group.pending_ops.push(PendingAppOp.new(op_type: op_group.op_type, args: op_group.args.dup))
-          when :add_broker_auth_key, :remove_broker_auth_key
-            ops = []
-            args = op_group.args.dup
-            self.group_instances.each do |group_instance|
-              args["group_instance_id"] = group_instance._id.to_s
-              group_instance.gears.each do |gear|
-                args["gear_id"] = gear._id.to_s
-                ops.push(PendingAppOp.new(op_type: op_group.op_type, args: args.dup))
-              end
-            end
-            op_group.pending_ops.push(*ops)
-          when :start_app, :stop_app, :restart_app, :reload_app_config, :tidy_app
-            ops = calculate_ctl_app_component_ops(op_group.op_type)
-            op_group.pending_ops.push(*ops)
-          when :start_feature, :stop_feature, :restart_feature, :reload_feature_config
-            ops = calculate_ctl_feature_component_ops(op_group.op_type, op_group.args['feature'])
-            op_group.pending_ops.push(*ops)
-          when :start_component, :stop_component, :restart_component, :reload_component_config
-            ops = calculate_ctl_component_ops(op_group.op_type, op_group.args['comp_spec'])
-            op_group.pending_ops.push(*ops)
-          when :execute_connections
-            op_group.pending_ops.push PendingAppOp.new(op_type: :execute_connections)
-          end
-        end
 
-        if op_group.op_type != :delete_app
-          op_group.execute(result_io)
-          unreserve_gears(op_group.num_gears_removed)
-          op_group.delete
-          self.reload
-        end
-
+        op_group.elaborate(self) if op_group.pending_ops.count == 0
+        op_group.execute(result_io)
+        op_group.unreserve_gears(op_group.num_gears_removed, self)
+        op_group.delete
+        
+        self.reload unless op_group.class == DeleteAppOpGroup
       end
       true
     rescue Exception => e_orig
@@ -1517,7 +1432,7 @@ class Application
         op_group.execute_rollback(result_io)
         op_group.delete
         num_gears_recovered = op_group.num_gears_added - op_group.num_gears_created + op_group.num_gears_rolled_back + op_group.num_gears_destroyed
-        unreserve_gears(num_gears_recovered)
+        op_group.unreserve_gears(num_gears_recovered, self)
       rescue Exception => e_rollback
         Rails.logger.error "Error during rollback"
         Rails.logger.error e_rollback.message
@@ -1554,16 +1469,6 @@ class Application
     end
   end
 
-  def calculate_remove_gear_ops(args, prereqs={})
-    gear_id = args["gear_id"]
-    group_instance = (self.group_instances.select { |gi| (gi.gears.select { |g| g._id.to_s == gear_id.to_s }).length > 0 }).first
-    return [] if group_instance.nil?
-    ops = calculate_gear_destroy_ops(group_instance._id.to_s, [gear_id], group_instance.addtl_fs_gb)
-    all_ops_ids = ops.map{ |op| op._id.to_s }
-    ops.push PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
-    ops
-  end
-
   def update_requirements(features, group_overrides, init_git_url=nil, user_env_vars=nil)
     group_overrides = (group_overrides + gen_non_scalable_app_overrides(features)).uniq unless self.scalable
 
@@ -1574,46 +1479,16 @@ class Application
     calculate_ops(changes, moves, connections, cleaned_group_overrides, init_git_url, user_env_vars)
   end
 
-  def calculate_update_existing_configuration_ops(args, prereqs={})
-    ops = []
-
-    if (args.has_key?("add_keys_attrs") or args.has_key?("remove_keys_attrs") or args.has_key?("add_env_vars") or args.has_key?("remove_env_vars"))
-      self.group_instances.each do |group_instance|
-        args["group_instance_id"] = group_instance._id.to_s
-        group_instance.gears.each do |gear|
-          prereq = prereqs[gear._id.to_s].nil? ? [] : [prereqs[gear._id.to_s]]
-          args["gear_id"] = gear._id.to_s
-          ops.push(PendingAppOp.new(op_type: :update_configuration, args: args.dup, prereq: prereq))
-        end
-      end
-    end
-    ops
-  end
-
   def calculate_update_new_configuration_ops(args, group_instance_id, gear_id_prereqs)
     ops = []
 
     if (args.has_key?("add_keys_attrs") or args.has_key?("remove_keys_attrs") or args.has_key?("add_env_vars") or args.has_key?("remove_env_vars"))
-      args["group_instance_id"] = group_instance_id
       gear_id_prereqs.each_key do |gear_id|
-        args["gear_id"] = gear_id
         prereq = gear_id_prereqs[gear_id].nil? ? [] : [gear_id_prereqs[gear_id]]
-        ops.push(PendingAppOp.new(op_type: :update_configuration, args: args.dup, prereq: prereq))
-      end
-    end
-    ops
-  end
-
-  def calculate_replace_all_ssh_keys_ops(args)
-    ops = []
-
-    if (args.has_key?("keys_attrs"))
-      self.group_instances.each do |group_instance|
-        args["group_instance_id"] = group_instance._id.to_s
-        group_instance.gears.each do |gear|
-          args["gear_id"] = gear._id.to_s
-          ops.push(PendingAppOp.new(op_type: :replace_all_ssh_keys, args: args.dup, prereq: []))
-        end
+        #ops.push(PendingAppOp.new(op_type: :update_configuration, args: args.dup, prereq: prereq))
+        ops.push(UpdateAppConfigOp.new(group_instance_id: group_instance_id, gear_id: gear_id, prereq: prereq,
+            add_keys_attrs: args["add_keys_attrs"], remove_keys_attrs: args["remove_keys_attrs"],
+            add_env_vars: args["add_env_vars"], remove_env_vars: args["remove_env_vars"]))
       end
     end
     ops
@@ -1653,20 +1528,24 @@ class Application
       remove_ssh_keys = [remove_ssh_keys].flatten
       if remove_ssh_keys.length > 0
         keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
-        pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
+        #pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
+        pending_op = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       end
       domain.remove_system_ssh_keys(comp_instance._id)
       domain.remove_env_variables(comp_instance._id)
-      op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: gear_destroy_op_ids)
+      #op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: gear_destroy_op_ids)
+      op = DeleteCompOp.new(group_instance_id: group_instance._id.to_s, comp_spec: comp_spec, prereq: gear_destroy_op_ids)
       delete_comp_ops.push op
-      unsubscribe_conn_ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(comp_instance)}, prereq: [op._id.to_s]))
+      #unsubscribe_conn_ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(comp_instance)}, prereq: [op._id.to_s]))
+      unsubscribe_conn_ops.push(UnsubscribeConnectionsOp.new(sub_pub_info: get_unsubscribe_info(comp_instance), prereq: [op._id.to_s]))
     end
     pending_ops.push(*delete_comp_ops)
     pending_ops.push(*unsubscribe_conn_ops)
     comp_delete_op_ids = delete_comp_ops.map{|op| op._id.to_s}
 
-    destroy_ginst_op  = PendingAppOp.new(op_type: :destroy_group_instance, args: {"group_instance_id"=> group_instance._id.to_s}, prereq: gear_destroy_op_ids + comp_delete_op_ids)
+    #destroy_ginst_op  = PendingAppOp.new(op_type: :destroy_group_instance, args: {"group_instance_id"=> group_instance._id.to_s}, prereq: gear_destroy_op_ids + comp_delete_op_ids)
+    destroy_ginst_op  = DeleteGroupInstanceOp.new(group_instance_id: group_instance._id.to_s, prereq: gear_destroy_op_ids + comp_delete_op_ids)
     pending_ops.push(destroy_ginst_op)
     pending_ops
   end
@@ -1682,19 +1561,33 @@ class Application
       app_dns = (host_singletons && hosts_app_dns)
 
       if app_dns
-        notify_app_create_op = PendingAppOp.new(op_type: :notify_app_create)
+        #notify_app_create_op = PendingAppOp.new(op_type: :notify_app_create)
+        notify_app_create_op = NotifyAppCreateOp.new()
         pending_ops.push(notify_app_create_op) 
         maybe_notify_app_create_op = [notify_app_create_op._id.to_s]
       end
 
-      init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns}, prereq: maybe_notify_app_create_op)
+      #init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns}, prereq: maybe_notify_app_create_op)
+      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, host_singletons: host_singletons, app_dns: app_dns, prereq: maybe_notify_app_create_op)
       init_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
-      reserve_uid_op  = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
-      create_gear_op    = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
-      track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-                       "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
-                       "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage], "gear_size" => gear_size}, prereq: [create_gear_op._id.to_s])
-      register_dns_op = PendingAppOp.new(op_type: :register_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
+      
+      #reserve_uid_op = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
+      reserve_uid_op = ReserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [init_gear_op._id.to_s])
+
+      #create_gear_op = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
+      create_gear_op = CreateGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
+      
+      #track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
+      #                 "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
+      #                 "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage], "gear_size" => gear_size}, prereq: [create_gear_op._id.to_s])
+      track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: 
+                           self.domain.owner.parent_user_id, app_name: self.name, gear_id: gear_id, 
+                           event: UsageRecord::EVENTS[:begin], usage_type: UsageRecord::USAGE_TYPES[:gear_usage], 
+                           gear_size: gear_size, prereq: [create_gear_op._id.to_s])
+
+      #register_dns_op = PendingAppOp.new(op_type: :register_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
+      register_dns_op = RegisterDnsOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [create_gear_op._id.to_s])
+
       pending_ops.push(init_gear_op)
       pending_ops.push(reserve_uid_op)
       pending_ops.push(create_gear_op)
@@ -1702,15 +1595,21 @@ class Application
       pending_ops.push(register_dns_op)
 
       if additional_filesystem_gb != 0
-        fs_op           = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb,
-          args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "additional_filesystem_gb" => additional_filesystem_gb},
-          prereq: [create_gear_op._id.to_s],
-          saved_values: {"additional_filesystem_gb" => 0})
+        #fs_op = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb,
+        #  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "additional_filesystem_gb" => additional_filesystem_gb},
+        #  prereq: [create_gear_op._id.to_s],
+        #  saved_values: {"additional_filesystem_gb" => 0})
+        fs_op = SetAddtlFsGbOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [create_gear_op._id.to_s],
+                                   addtl_fs_gb: additional_filesystem_gb, saved_addtl_fs_gb: 0)
         pending_ops.push(fs_op)
 
-        track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-          "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
-          "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [fs_op._id.to_s])
+        #track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
+        #  "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
+        #  "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [fs_op._id.to_s])
+        track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+                                             app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin],
+                                             usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb], 
+                                             additional_filesystem_gb: additional_filesystem_gb, prereq: [fs_op._id.to_s])
         pending_ops.push(track_usage_fs_op)
       end
 
@@ -1729,7 +1628,8 @@ class Application
     # Add and/or push user env vars when this is not an app create or user_env_vars are specified
     user_vars_op_id = nil
     if maybe_notify_app_create_op.empty? || user_env_vars.present?
-      op = PendingAppOp.new(op_type: :patch_user_env_vars, args: {"user_env_vars" => user_env_vars, "push" => true}, prereq: [pending_ops.last._id.to_s])
+      #op = PendingAppOp.new(op_type: :patch_user_env_vars, args: {"user_env_vars" => user_env_vars, "push" => true}, prereq: [pending_ops.last._id.to_s])
+      op = PatchUserEnvVarsOp.new(user_env_vars: user_env_vars, push_vars: true, prereq: [pending_ops.last._id.to_s])
       pending_ops.push(op)
       user_vars_op_id = op._id.to_s
     end
@@ -1745,20 +1645,34 @@ class Application
     deleting_app = false
     gear_ids.each do |gear_id|
       deleting_app = true if self.group_instances.find(ginst_id).gears.find(gear_id).app_dns
-      destroy_gear_op   = PendingAppOp.new(op_type: :destroy_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id})
-      deregister_dns_op = PendingAppOp.new(op_type: :deregister_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [destroy_gear_op._id.to_s])
-      unreserve_uid_op  = PendingAppOp.new(op_type: :unreserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [deregister_dns_op._id.to_s])
-      delete_gear_op    = PendingAppOp.new(op_type: :delete_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [unreserve_uid_op._id.to_s])
-      track_usage_op    = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-                          "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
-                          "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage]}, prereq: [delete_gear_op._id.to_s])
+      #destroy_gear_op = PendingAppOp.new(op_type: :destroy_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id})
+      destroy_gear_op = DestroyGearOp.new(group_instance_id: ginst_id, gear_id: gear_id)
+      
+      #deregister_dns_op = PendingAppOp.new(op_type: :deregister_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [destroy_gear_op._id.to_s])
+      deregister_dns_op = DeregisterDnsOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [destroy_gear_op._id.to_s])
+      
+      #unreserve_uid_op = PendingAppOp.new(op_type: :unreserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [deregister_dns_op._id.to_s])
+      unreserve_uid_op = UnreserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [deregister_dns_op._id.to_s])
+      
+      #delete_gear_op = PendingAppOp.new(op_type: :delete_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [unreserve_uid_op._id.to_s])
+      delete_gear_op = DeleteGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [unreserve_uid_op._id.to_s])
+      
+      #track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
+      #                    "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
+      #                    "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage]}, prereq: [delete_gear_op._id.to_s])
+      track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+                          app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end],
+                          usage_type: UsageRecord::USAGE_TYPES[:gear_usage], prereq: [delete_gear_op._id.to_s])
 
       ops = [destroy_gear_op, deregister_dns_op, unreserve_uid_op, delete_gear_op, track_usage_op]
       pending_ops.push *ops
       if additional_filesystem_gb != 0
-        track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-          "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
-          "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [delete_gear_op._id.to_s])
+        #track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
+        #  "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
+        #  "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [delete_gear_op._id.to_s])
+        track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+          app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb], 
+          additional_filesystem_gb: additional_filesystem_gb, prereq: [delete_gear_op._id.to_s])
         pending_ops.push(track_usage_fs_op)
       end
     end
@@ -1766,14 +1680,18 @@ class Application
     comp_specs.each do |comp_spec|
       cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
       gear_ids.each do |gear_id|
-        pending_ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-          "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
-          "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [delete_gear_op._id.to_s]))
+        #pending_ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
+        #  "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
+        #  "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [delete_gear_op._id.to_s]))
+        pending_ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+          app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], cart_name: comp_spec["cart"], 
+          usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: [delete_gear_op._id.to_s]))
       end if cartridge.is_premium?
     end
 
     if deleting_app
-      notify_app_delete_op = PendingAppOp.new(op_type: :notify_app_delete, prereq: [pending_ops.last._id.to_s])
+      #notify_app_delete_op = PendingAppOp.new(op_type: :notify_app_delete, prereq: [pending_ops.last._id.to_s])
+      notify_app_delete_op = NotifyAppDeleteOp.new(prereq: [pending_ops.last._id.to_s])
       pending_ops.push(notify_app_delete_op) 
     end
 
@@ -1875,7 +1793,8 @@ class Application
 
       new_component_op_id = []
       unless is_scale_up
-        new_component_op = PendingAppOp.new(op_type: :new_component, args: {"group_instance_id"=> group_instance_id, "comp_spec" => comp_spec, "cartridge_vendor" => cartridge.cartridge_vendor, "version" => cartridge.version}, prereq: [prereq_id])
+        #new_component_op = PendingAppOp.new(op_type: :new_component, args: {"group_instance_id"=> group_instance_id, "comp_spec" => comp_spec, "cartridge_vendor" => cartridge.cartridge_vendor, "version" => cartridge.version}, prereq: [prereq_id])
+        new_component_op = NewCompOp.new(group_instance_id: group_instance_id, comp_spec: comp_spec, cartridge_vendor: cartridge.cartridge_vendor, version: cartridge.version, prereq: [prereq_id])
         component_ops[comp_spec][:new_component] = new_component_op
         new_component_op_id = [new_component_op._id.to_s]
         ops.push new_component_op
@@ -1888,21 +1807,26 @@ class Application
         sparse_carts_added_count += 1
         git_url = nil
         git_url = init_git_url if gear_id == deploy_gear_id && cartridge.is_deployable?
-        add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: new_component_op_id + [prereq_id])
+        #add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: new_component_op_id + [prereq_id])
+        add_component_op = AddCompOp.new(group_instance_id: group_instance_id, gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, prereq: new_component_op_id + [prereq_id])
         ops.push add_component_op
         component_ops[comp_spec][:adds].push add_component_op
         usage_op_prereq = [add_component_op._id.to_s]
 
         unless is_scale_up and cartridge.is_deployable?
-          post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
+          #post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
+          post_configure_op = PostConfigureCompOp.new(group_instance_id: group_instance_id, gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, prereq: [add_component_op._id.to_s] + [prereq_id])
           ops.push post_configure_op
           component_ops[comp_spec][:post_configures].push post_configure_op
           usage_op_prereq = [post_configure_op._id.to_s]
         end
 
-        ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-          "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
-          "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: usage_op_prereq)) if cartridge.is_premium?
+        #ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
+        #  "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
+        #  "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: usage_op_prereq)) if cartridge.is_premium?
+        ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+          app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin], cart_name: comp_spec["cart"],
+          usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: usage_op_prereq)) if cartridge.is_premium?
       end
     end
 
@@ -1913,66 +1837,13 @@ class Application
 
       comp_specs.each do |comp_spec|
         gear_id_prereqs.each do |gear_id, prereq_id|
-          op = PendingAppOp.new(op_type: :expose_port, args: { "group_instance_id" => group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec }, prereq: expose_prereqs + [prereq_id])
+          #op = PendingAppOp.new(op_type: :expose_port, args: { "group_instance_id" => group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec }, prereq: expose_prereqs + [prereq_id])
+          op = ExposePortOp.new(group_instance_id: group_instance_id, gear_id: gear_id, comp_spec: comp_spec, prereq: expose_prereqs + [prereq_id])
           ops.push op
         end
       end
     end
     ops
-  end
-
-  def calculate_ctl_component_ops(op_type, comp_spec)
-    component_instance = self.component_instances.find_by(cartridge_name: comp_spec['cart'], component_name: comp_spec['comp'])
-    ops = []
-    add_component_ops(op_type, component_instance, ops)
-    ops
-  end
-
-  def calculate_ctl_app_component_ops(op_type)
-    ops = []
-    start_order, stop_order = calculate_component_orders
-    order = (op_type == :stop_app) ? stop_order : start_order
-    order.each do |component_instance|
-      add_component_ops(op_type_to_comp_op_type(op_type), component_instance, ops)
-    end
-    ops
-  end
-
-  def calculate_ctl_feature_component_ops(op_type, feature)
-    ops = []
-    component_instances = get_components_for_feature(feature)
-    start_order, stop_order = calculate_component_orders
-    order = op_type == :stop_feature ? stop_order : start_order
-    order.each do |component_instance|
-      if component_instances.include? component_instance
-        add_component_ops(op_type_to_comp_op_type(op_type), component_instance, ops)
-      end
-    end
-    ops
-  end
-
-  def add_component_ops(op_type, component_instance, ops)
-    component_instance.group_instance.get_gears(component_instance).each do |gear|
-      op = PendingAppOp.new(op_type: op_type, args: {'group_instance_id' => component_instance.group_instance._id, 'gear_id' => gear._id, 'comp_spec' => {'cart' => component_instance.cartridge_name, 'comp' => component_instance.component_name}})
-      ops.push op
-    end
-  end
-
-  def op_type_to_comp_op_type(op_type)
-    comp_op_type = nil
-    case op_type
-    when :start_app, :start_feature
-      comp_op_type = :start_component
-    when :stop_app, :stop_feature
-      comp_op_type = :stop_component
-    when :restart_app, :restart_feature
-      comp_op_type = :restart_component
-    when :reload_app_config, :reload_feature_config
-      comp_op_type = :reload_component_config
-    when :tidy_app
-      comp_op_type = :tidy_component
-    end
-    comp_op_type
   end
 
   def calculate_remove_component_ops(comp_specs, group_instance)
@@ -1982,25 +1853,32 @@ class Application
       cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
       if component_instance.is_plugin? || (!self.scalable && component_instance.is_embeddable?)
         group_instance.get_gears(component_instance).each do |gear|
-          op = PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id, "comp_spec" => comp_spec})
+          #op = PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id, "comp_spec" => comp_spec})
+          op = RemoveCompOp.new(group_instance_id: group_instance._id, gear_id: gear._id, comp_spec: comp_spec)
           ops.push op
-          ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-            "app_name" => self.name, "gear_ref" => gear._id.to_s, "event" => UsageRecord::EVENTS[:end],
-            "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
+          #ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
+          #  "app_name" => self.name, "gear_ref" => gear._id.to_s, "event" => UsageRecord::EVENTS[:end],
+          #  "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
+          ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+            app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end], cart_name: comp_spec["cart"],
+            usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: [op._id.to_s])) if cartridge.is_premium?
         end
       end
       remove_ssh_keys = self.app_ssh_keys.find_by(component_id: component_instance._id) rescue []
       remove_ssh_keys = [remove_ssh_keys].flatten
       if remove_ssh_keys.length > 0
         keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
-        pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
+        #pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
+        pending_op = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       end
       domain.remove_system_ssh_keys(component_instance._id)
       domain.remove_env_variables(component_instance._id)
-      op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s})
+      #op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s})
+      op = DeleteCompOp.new(group_instance_id: group_instance._id, comp_spec: comp_spec, prereq: ops.map{|o| o._id.to_s})
       ops.push op
-      ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(component_instance)}, prereq: [op._id.to_s]))
+      #ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(component_instance)}, prereq: [op._id.to_s]))
+      ops.push(UnsubscribeConnectionsOp.new(sub_pub_info: get_unsubscribe_info(component_instance), prereq: [op._id.to_s]))
     end
     ops
   end
@@ -2024,7 +1902,8 @@ class Application
     start_order, stop_order = calculate_component_orders
 
     unless group_overrides.nil?
-      set_group_override_op = PendingAppOp.new(op_type: :set_group_overrides, args: {"group_overrides"=> group_overrides}, saved_values: {"group_overrides" => self.group_overrides})
+      #set_group_override_op = PendingAppOp.new(op_type: :set_group_overrides, args: {"group_overrides"=> group_overrides}, saved_values: {"group_overrides" => self.group_overrides})
+      set_group_override_op = SetGroupOverridesOp.new(group_overrides: group_overrides, saved_group_overrides: self.group_overrides)
       pending_ops.push set_group_override_op
     end
 
@@ -2038,7 +1917,7 @@ class Application
       additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb] || 0
       add_gears   += ginst_scale if ginst_scale > 0
 
-      ginst_op = PendingAppOp.new(op_type: :create_group_instance, args: {"group_instance_id"=> ginst_id})
+      ginst_op = CreateGroupInstanceOp.new(group_instance_id: ginst_id)
       ginst_op.prereq << set_group_override_op._id.to_s unless set_group_override_op.nil?
       pending_ops.push(ginst_op)
       gear_ids = (1..ginst_scale).map {|idx| Moped::BSON::ObjectId.new.to_s}
@@ -2058,7 +1937,7 @@ class Application
 
       ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb,
                                       gear_size, ginst_op._id.to_s, false, app_dns_ginst, init_git_url, user_env_vars)
-      pending_ops.push *ops
+      pending_ops.push(*ops)
     end
 
     moves.each do |move|
@@ -2069,7 +1948,8 @@ class Application
     if user_env_vars.present?
       changes.each do |change|
         unless change[:from].nil? or change[:added].empty?
-          op = PendingAppOp.new(op_type: :patch_user_env_vars, args: {"user_env_vars" => user_env_vars})
+          #op = PendingAppOp.new(op_type: :patch_user_env_vars, args: {"user_env_vars" => user_env_vars})
+          op = PatchUserEnvVarsOp.new(user_env_vars: user_env_vars)
           pending_ops.push(op)
           user_vars_op_id = op._id.to_s
           break
@@ -2116,24 +1996,36 @@ class Application
             usage_ops = []
             if change[:from_scale][:additional_filesystem_gb] != 0
               group_instance.gears.each do |gear|
-                track_usage_old_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-                  "app_name" => self.name, "gear_ref" => gear._id.to_s,
-                  "event" => UsageRecord::EVENTS[:end], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]}, prereq: usage_prereq)
+                #track_usage_old_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
+                #  "app_name" => self.name, "gear_ref" => gear._id.to_s,
+                #  "event" => UsageRecord::EVENTS[:end], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]}, prereq: usage_prereq)
+                track_usage_old_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+                  app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end], 
+                  usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb], 
+                  additional_filesystem_gb: change[:from_scale][:additional_filesystem_gb], prereq: usage_prereq)
                 usage_ops.push(track_usage_old_fs_op._id.to_s)
                 pending_ops.push(track_usage_old_fs_op)
               end
             end
             group_instance.gears.each do |gear|
-              fs_op = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb,
-                  args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]},
-                  saved_values: {"additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]},
-                  prereq: (usage_ops.empty?? usage_prereq : usage_ops))
+              #fs_op = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb,
+              #    args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]},
+              #    saved_values: {"additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]},
+              #    prereq: (usage_ops.empty?? usage_prereq : usage_ops))
+              fs_op = SetAddtlFsGbOp.new(group_instance_id: group_instance._id.to_s, gear_id: gear._id.to_s, 
+                  addtl_fs_gb: change[:to_scale][:additional_filesystem_gb], 
+                  saved_addtl_fs_gb: change[:from_scale][:additional_filesystem_gb],
+                  prereq: (usage_ops.empty? ? usage_prereq : usage_ops))
               pending_ops.push(fs_op)
 
               if change[:to_scale][:additional_filesystem_gb] != 0
-                track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-                  "app_name" => self.name, "gear_ref" => gear._id.to_s, "event" => UsageRecord::EVENTS[:begin],
-                  "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, prereq: [fs_op._id.to_s])
+                #track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
+                #  "app_name" => self.name, "gear_ref" => gear._id.to_s, "event" => UsageRecord::EVENTS[:begin],
+                #  "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, prereq: [fs_op._id.to_s])
+                track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+                  app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:begin],
+                  usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb], 
+                  additional_filesystem_gb: change[:to_scale][:additional_filesystem_gb], prereq: [fs_op._id.to_s])
                 pending_ops.push(track_usage_fs_op)
               end
             end
@@ -2176,10 +2068,11 @@ class Application
       component_ops[config_order[idx]][:post_configures].each { |op| op.prereq += prereq_ids }
     end
 
-    unless pending_ops.empty? or ((pending_ops.length == 1) and (pending_ops[0].op_type == :set_group_overrides))
+    unless pending_ops.empty? or ((pending_ops.length == 1) and (pending_ops[0].class == SetGroupOverridesOp))
       execute_connection_op = nil
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
-      execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
+      #execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
+      execute_connection_op = ExecuteConnectionsOp.new(prereq: all_ops_ids)
       pending_ops.push execute_connection_op
     end
 
@@ -2671,9 +2564,22 @@ class Application
       configure_order.add_component_order(comp_spec[:prof].configure_order.map{|c| categories[c]}.flatten)
     end
 
+    # enforce system order of components (web_framework first etc)
+    system_order = []
+    ['web_framework','service','plugin'].each { |c|
+      if categories[c]
+        categories[c].each { |ci| system_order << ci if ci and not system_order.include?(ci) }
+      end
+    }
+    configure_order.add_component_order(system_order)
+
     #calculate configure order using tsort
     if self.component_configure_order.empty?
-      computed_configure_order = configure_order.tsort
+      begin
+        computed_configure_order = configure_order.tsort
+      rescue Exception=>e
+        raise OpenShift::UserException.new("Conflict in calculating configure order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
+      end
     else
       computed_configure_order = self.component_configure_order.map{|c| categories[c]}.flatten
     end
@@ -2718,16 +2624,34 @@ class Application
       stop_order.add_component_order(comp_spec[:prof].stop_order.map{|c| categories[c]}.flatten)
     end
 
+    # enforce system order of components (web_framework first etc)
+    system_order = []
+    ['web_framework','service','plugin'].each { |c|
+      if categories[c]
+        categories[c].each { |ci| system_order << ci if ci and not system_order.include?(ci) }
+      end
+    }
+    start_order.add_component_order(system_order)
+    stop_order.add_component_order(system_order.dup)
+
     #calculate start order using tsort
     if self.component_start_order.empty?
-      computed_start_order = start_order.tsort
+      begin
+        computed_start_order = start_order.tsort
+      rescue Exception=>e
+        raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
+      end
     else
       computed_start_order = self.component_start_order.map{|c| categories[c]}.flatten
     end
 
     #calculate stop order using tsort
     if self.component_stop_order.empty?
-      computed_stop_order = stop_order.tsort
+      begin
+        computed_stop_order = stop_order.tsort
+      rescue Exception=>e
+        raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
+      end
     else
       computed_stop_order = self.component_stop_order.map{|c| categories[c]}.flatten
     end

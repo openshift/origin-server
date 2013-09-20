@@ -1,0 +1,2 @@
+class RegisterRoutingDnsOp < PendingAppOp
+end

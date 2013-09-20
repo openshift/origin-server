@@ -12,10 +12,13 @@
 .font-icon {
   display: inline-block;
   top: 0;
-  @include icon-text-shadow();
   &.font-icon-inline  {
     position: relative;
   }
+}
+
+.font-icon-shadow {
+  @include icon-text-shadow();
 }
 
 .font-icon
