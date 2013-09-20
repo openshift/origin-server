@@ -4,18 +4,19 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 HTTPD_CFG_FILE=$OPENSHIFT_PHP_DIR/configuration/etc/conf/httpd_nolog.conf
 HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/configuration/etc/conf.d
+HTTPD_PASSENV_FILE=$HTTPD_CFG_DIR/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_PHP_DIR/run/httpd.pid
 
 function apache() {
-    [ "$1" != "stop" ] && update_httpd_passenv $HTTPD_CFG_FILE
+    [ "$1" != "stop" ] && write_httpd_passenv $HTTPD_PASSENV_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k $1
     return $?
 }
 
 function restart() {
-    update_httpd_passenv $HTTPD_CFG_FILE
-    ensure_httpd_restart_action "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    write_httpd_passenv $HTTPD_PASSENV_FILE
+    ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k restart
     return $?
 }

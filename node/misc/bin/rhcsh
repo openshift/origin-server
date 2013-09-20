@@ -48,8 +48,11 @@ done
 source /etc/openshift/node.conf
 
 function welcome {
-    cat 1>&2 <<EOF
-
+    if [ -n "$MOTD_FILE" -a -f "$MOTD_FILE" ]; then
+        cat $MOTD_FILE
+    else
+      # Do not replace with HEREDOC. HEREDOC fails when quota exceeded on gear.
+      echo 1>&2 '
     *********************************************************************
 
     You are accessing a service that is for use only by authorized users.  
@@ -67,13 +70,14 @@ function welcome {
     !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
     Shell access is quite powerful and it is possible for you to
     accidentally damage your application.  Proceed with care!
-    If worse comes to worst, destroy your application with 'rhc app delete'
+    If worse comes to worst, destroy your application with "rhc app delete"
     and recreate it
     !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
 
     Type "help" for more info.
 
-EOF
+'
+  fi
 
   # Quota returns nonzero if you are over limit
   quota >/dev/null 2>&1

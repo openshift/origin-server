@@ -8,12 +8,12 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.13.3
+Version: 1.15.0
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      %{?scl:%scl_prefix}mcollective-common
+Requires:      %{?scl:%scl_prefix}mcollective-common >= 2.2.3
 BuildArch:     noarch
 
 %description
@@ -27,21 +27,33 @@ for OpenShift broker and node
 
 %install
 mkdir -p %{buildroot}%{mco_root}agent
-mkdir -p %{buildroot}%{mco_root}validator
 cp -p agent/* %{buildroot}%{mco_root}agent/
 chmod 644 %{buildroot}%{mco_root}agent/*
-%if 0%{?fedora}%{?rhel} < 19
-cp -p validator/* %{buildroot}%{mco_root}validator/
-chmod 644 %{buildroot}%{mco_root}validator/*
-%endif
 
 %files
 %{mco_root}agent/*
-%if 0%{?fedora}%{?rhel} < 19
-%{mco_root}validator/*
-%endif
 
 %changelog
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- remove validator, require mcollective-common >= 2.2.3 (#961137)
+  (tdawson@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- User vars node changes:  - Use 'user-var-add' mcollective call for *add*
+  and/or *push* user vars. This will reduce unnecessary additional
+  code/complexity.  - Add some more reserved var names: PATH, IFS, USER, SHELL,
+  HOSTNAME, LOGNAME  - Do not attempt rsync when .env/user_vars dir is empty  -
+  Misc bug fixes (rpenta@redhat.com)
+- WIP Node Platform - Add support for settable user variables
+  (jhonce@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
 - Removing has_app mcollective method since its no longer used
   (abhgupta@redhat.com)

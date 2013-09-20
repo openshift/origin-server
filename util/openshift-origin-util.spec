@@ -5,7 +5,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util
-Version:       1.10.2
+Version:       1.15.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -34,9 +34,16 @@ chmod 0755 %{buildroot}%{_bindir}/*
 %{_bindir}/oo-ruby
 %{_bindir}/oo-erb
 %{_bindir}/oo-exec-ruby
+%{_bindir}/oo-mco
 
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Adding lsof dependency (kraman@gmail.com)
+
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-0
+- Bump up version to 1.15
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - <util> remove oo-diagnostics from spec file (lmeyer@redhat.com)
 - Revert "<util> removing legacy package" - Fedora Origin is using

@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.8.4
+Version:       1.15.1
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -54,6 +54,7 @@ Requires:      freetype-devel
 Requires:      atlas-devel
 Requires:      lapack-devel
 Requires:      redhat-lsb-core
+Requires:      symlinks
 
 Obsoletes: openshift-origin-cartridge-community-python-2.7
 Obsoletes: openshift-origin-cartridge-community-python-3.3
@@ -114,6 +115,74 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 0.9.6-1
+- Merge pull request #3620 from ironcladlou/dev/cart-version-bumps
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3552 from VojtechVitek/passenv
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+- Fix Apache PassEnv config files (vvitek@redhat.com)
+
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 0.9.5-1
+- Merge pull request #3614 from kraman/test_case_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3609 from rmillner/BZ1006183
+  (dmcphers+openshiftbot@redhat.com)
+- Python needs symlinks dependency on both F19 and RHEL (kraman@gmail.com)
+- Bug 1006183 - Do builds from the REPO dir instead. (rmillner@redhat.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 0.9.4-1
+- Add symlinks requirement for python cart on Fedora 19 (kraman@gmail.com)
+
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.3-1
+- Merge pull request #3555 from rmillner/BZ1004886
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1004515 - PYTHON_EGG_CACHE is passed in from the environment and does not
+  need to hardcode. (rmillner@redhat.com)
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- The "-e" is causing regressions, was not in the original script and is not
+  needed by the script itself. (rmillner@redhat.com)
+- Bug 1000978 - Make curl more silent when fetching status of python cartridge
+  (mfojtik@redhat.com)
+- Status was failing at the curl command on stopped gears due to the -e
+  (rmillner@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
+- Add support for Flask and requirements.txt (rmillner@redhat.com)
+- Merge pull request #3460 from rmillner/BZ999400
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Bug 999400 - test the mirror to see if its up, if not then use external.
+  (rmillner@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.8-1
+- Merge pull request #3456 from tdawson/tdawson/fixmirrorfix/2013-08
+  (admiller@redhat.com)
+- change mirror.openshift.com to mirror1.ops.rhcloud.com for aws mirroring
+  (tdawson@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.7-1
+- Merge pull request #3455 from jwhonce/latest_cartridge_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.6-1
+- Bug 998926 - setup needs a reentrant version of creating the Apache symlinks
+  (rmillner@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
+- Merge pull request #3415 from tdawson/tdawson/mirrorfixes/2013-08
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 998444 - Jenkins fixes. (rmillner@redhat.com)
+- The upstream-repo is no longer necessary. (rmillner@redhat.com)
+- fix old mirror url (tdawson@redhat.com)
+- Writing env ERB files in the wrong location. (rmillner@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
 - Updated 'restart' operation for all HTTPD based cartridges to use
   'httpd_restart_action' (mfojtik@redhat.com)

@@ -1,10 +1,6 @@
 Broker::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb
 
-  # The test environment is used exclusively to run your application's
-  # test suite.  You never need to work with it otherwise.  Remember that
-  # your test database is "scratch space" for the test suite and is wiped
-  # and recreated between test runs.  Don't rely on the data there!
   config.cache_classes = true
 
   # Log error messages when you accidentally call methods on nil.
@@ -17,7 +13,7 @@ Broker::Application.configure do
   # Raise exceptions instead of rendering exception templates
   config.action_dispatch.show_exceptions = false
 
-  # Disable request forgery protection in test environment
+  # Disable request forgery protection in prod
   config.action_controller.allow_forgery_protection    = false
 
   # Tell Action Mailer not to deliver emails to the real world.
@@ -25,13 +21,13 @@ Broker::Application.configure do
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
 
-  # Use SQL instead of Active Record's schema dumper when creating the test database.
-  # This is necessary if your schema can't be completely dumped by the schema dumper,
-  # like if you have constraints or database-specific column types
-  # config.active_record.schema_format = :sql
-
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
+
+  # Compile assets at runtime even in production
+  config.assets.compile = true
+  # Do compress assets to minimize bw use
+  config.assets.compress = true
 
   ############################################
   # OpenShift Configuration Below this point #
@@ -79,11 +75,13 @@ Broker::Application.configure do
     :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Domain', 'Scope::Application', 'Scope::Userinfo'],
     :default_scope => 'userinfo',
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration(conf.get('AUTH_SCOPE_TIMEOUTS'), 1.day),
-    :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "false"),    
+    :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "false"),
     :ssl_endpoint => conf.get("SSL_ENDPOINT", "allow"),
     :membership_enabled => conf.get_bool("MEMBERSHIP_ENABLED", "false"),
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
     :max_domains_per_user => conf.get('MAX_DOMAINS_PER_USER', '1').to_i,
+    :allow_ha_applications => conf.get_bool('ALLOW_HA_APPLICATIONS', "false"),
+    :router_hostname => conf.get('ROUTER_HOSTNAME', "www.example.com"),
   }
 
   config.auth = {

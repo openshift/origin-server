@@ -1,0 +1,229 @@
+<html><body><pre>{
+  "api_version": 1.6,
+  "data": {
+    "additional_gear_storage": 10,
+    "base_gear_storage": 1,
+    "collocated_with": [
+      "ruby-1.9",
+      "haproxy-1.4"
+    ],
+    "current_scale": 1,
+    "description": "MySQL is a multi-user, multi-threaded SQL database server.",
+    "display_name": "MySQL Database 5.1",
+    "gear_profile": "small",
+    "help_topics": {
+    },
+    "license": "GPL",
+    "license_url": "",
+    "links": {
+      "GET": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "Get cartridge",
+        "required_params": [
+
+        ]
+      },
+      "UPDATE": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1",
+        "method": "PUT",
+        "optional_params": [
+          {
+            "default_value": null,
+            "description": "Additional filesystem storage in gigabytes on each gear having cartridge mysql-5.1",
+            "name": "additional_gear_storage",
+            "type": "integer",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Minimum number of gears having cartridge mysql-5.1",
+            "name": "scales_from",
+            "type": "integer",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Maximum number of gears having cartridge mysql-5.1",
+            "name": "scales_to",
+            "type": "integer",
+            "valid_options": [
+
+            ]
+          }
+        ],
+        "rel": "Update cartridge configuration",
+        "required_params": [
+
+        ]
+      },
+      "START": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Start cartridge",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "start"
+            ]
+          }
+        ]
+      },
+      "STOP": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Stop cartridge",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "stop"
+            ]
+          }
+        ]
+      },
+      "RESTART": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Restart cartridge",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "restart"
+            ]
+          }
+        ]
+      },
+      "RELOAD": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Reload cartridge",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "reload"
+            ]
+          }
+        ]
+      },
+      "DELETE": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1",
+        "method": "DELETE",
+        "optional_params": [
+
+        ],
+        "rel": "Delete cartridge",
+        "required_params": [
+
+        ]
+      }
+    },
+    "name": "mysql-5.1",
+    "properties": [
+      {
+        "name": "username",
+        "type": "cart_data",
+        "description": "Root user on mysql database",
+        "value": "adminzZu3vRW"
+      },
+      {
+        "name": "password",
+        "type": "cart_data",
+        "description": "Password for root user on mysql database",
+        "value": "xE61v_vw6Vqh"
+      },
+      {
+        "name": "database_name",
+        "type": "cart_data",
+        "description": "MySQL DB name",
+        "value": "myapplication"
+      },
+      {
+        "name": "connection_url",
+        "type": "cart_data",
+        "description": "MySQL DB connection URL",
+        "value": "mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/"
+      }
+    ],
+    "scales_from": 1,
+    "scales_to": 1,
+    "scales_with": "haproxy-1.4",
+    "status_messages": null,
+    "supported_scales_from": 1,
+    "supported_scales_to": 1,
+    "tags": [
+      "service",
+      "database",
+      "embedded"
+    ],
+    "type": "embedded",
+    "url": null,
+    "usage_rates": [
+
+    ],
+    "version": "5.1",
+    "website": "http://www.mysql.com"
+  },
+  "messages": [
+    {
+      "exit_code": 0,
+      "field": null,
+      "severity": "info",
+      "text": "Showing cartridge mysql-5.1 for application myapplication under domain mydomain"
+    }
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "cartridge",
+  "version": "1.6"
+}</pre></body></html>

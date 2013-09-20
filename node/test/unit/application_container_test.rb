@@ -281,7 +281,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     filename = "#{source}/UNIT_TEST"
     gears    = ['unit_test.example.com']
 
-    @container.expects(:user_var_push).with(gears)
+    @container.expects(:user_var_push).with(gears, true)
 
     @container.user_var_add({'UNIT_TEST' => 'true'}, gears)
 
@@ -292,7 +292,8 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     path  = "/var/lib/openshift/#{@gear_uuid}/.env/user_vars/UNIT_TEST"
     gears = ['unit_test.example.com']
 
-    @container.expects(:user_var_push).with(gears).twice
+    @container.expects(:user_var_push).with(gears, true)
+    @container.expects(:user_var_push).with(gears)
 
     @container.user_var_add({'UNIT_TEST' => 'true'}, gears)
     assert_path_exist path
@@ -317,7 +318,13 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
   def test_bad_user_var()
     env = {'OPENSHIFT_TEST_IDENT'            => 'x:x:x:x',
            'OPENSHIFT_NAMESPACE'             => 'namespace',
-           'OPENSHIFT_PRIMARY_CARTRIDGE_DIR' => 'mine'}
+           'OPENSHIFT_PRIMARY_CARTRIDGE_DIR' => 'mine',
+           'PATH'                            => '/usr/bin',
+           'IFS'                             => '/',
+           'USER'                            => 'none',
+           'SHELL'                           => 'tcsh',
+           'HOSTNAME'                        => 'remotehost',
+           'LOGNAME'                         => '/tmp/log'}
 
     env.each do |key, value|
       rc, msg = @container.user_var_add({key => value})
@@ -327,6 +334,49 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
     rc, msg = @container.user_var_add({'TOO_BIG' => '*' * 513})
     assert_equal 127, rc
-    assert_equal 'CLIENT_ERROR: TOO_BIG value exceeds maximum size of 512b', msg
+    assert_equal "CLIENT_ERROR: 'TOO_BIG' value exceeds maximum size of 512b", msg
+  end
+
+  # Tests that no_overcommit logic works as intended
+  def test_no_overcommit
+        scenarios = [
+        [5507, true, 0.0],
+        [5508, true, 100.0],
+        [5509, false, 0.0],
+        [5510, false, 100.0],
+    ]
+
+    scenarios.each do |s|
+      if s[1]
+        @config.stubs(:get_bool).with('no_overcommit_active', false).returns(true)
+      else
+        @config.stubs(:get_bool).with('no_overcommit_active', false).returns(false)
+      end
+      OpenShift::Runtime::Node.stubs(:node_utilization).returns({'gears_active_usage_pct' => s[2]})
+      OpenShift::Runtime::Node.stubs(:resource_limits).returns(@config)
+
+      containerization_plugin_mock = mock('OpenShift::Runtime::Containerization::Plugin')
+      containerization_plugin_mock.stubs(:create).returns(nil)
+      OpenShift::Runtime::Containerization::Plugin.stubs(:new).returns(containerization_plugin_mock)
+      Etc.stubs(:getpwnam).returns(
+        OpenStruct.new(
+          uid: s[0],
+          gid: s[0],
+          gecos: "OpenShift guest",
+          container_dir: "/var/lib/openshift/#{s[0].to_s}"
+        )
+      )
+
+      container = OpenShift::Runtime::ApplicationContainer.new(s[0].to_s, s[0].to_s, s[0],
+                                                               @app_name, s[0].to_s, @namespace, nil, nil, nil)
+      container.stubs(:generate_ssh_key).returns('generate_ssh_key stub')
+      if s[1] and (s[2] == 100.0)
+        assert_raise OpenShift::Runtime::GearCreationException do
+          container.create
+        end
+      else
+        container.create
+      end
+    end
   end
 end

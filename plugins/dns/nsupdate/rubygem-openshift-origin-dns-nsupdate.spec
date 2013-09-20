@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for DNS update service using nsupdate
 Name:          rubygem-%{gem_name}
-Version:       1.10.2
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,14 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Bump up version (tdawson@redhat.com)
+- Merge pull request #3585 from Miciah/plugins-dns-nsupdate-delete-duplicate-
+  kinit-command (dmcphers+openshiftbot@redhat.com)
+- plugins/dns/nsupdate: Delete duplicate kinit (miciah.masters@gmail.com)
+- plugins/dns/nsupdate: Support unauthenticated use (miciah.masters@gmail.com)
+- plugins/dns/nsupdate: Specify zone (miciah.masters@gmail.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - Fixing syntax error in the nsupdate plugin (bleanhar@redhat.com)
 - added alternate TSIG key algorithms (mlamouri@redhat.com)

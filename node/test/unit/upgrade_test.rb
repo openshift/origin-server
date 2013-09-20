@@ -29,7 +29,7 @@ module OpenShift
         @current_manifest.stubs(:cartridge_version).returns(current_version)
 
         @version = '1.1'
-        @target = mock()
+        @target = 'foo'
 
         @container = mock()
         @container.stubs(:uid).returns('123')
@@ -37,22 +37,28 @@ module OpenShift
         @container.stubs(:homedir).returns('user/shouldnotexist')
 
         @uuid = '123'
+        @app_uuid = 'abc'
 
         @config.expects(:get).with('GEAR_BASE_DIR').returns('/test')
 
+        @hourglass = mock()
+        @hourglass.stubs(:remaining).returns(420)
+
         @gear_env = mock()
         Utils::Environ.expects(:for_gear).with('/test/123').returns(@gear_env)
-        ApplicationContainer.expects(:from_uuid).with(@uuid).returns(@container)
+        ApplicationContainer.expects(:from_uuid).with(@uuid, @hourglass).returns(@container)
 
-        @upgrader = Upgrader.new(@uuid, 'namespace', @version, 'hostname', false)
+        @upgrader = Upgrader.new(@uuid, @app_uuid, 'namespace', @version, 'hostname', false, @hourglass)
       end
 
       def test_compatible_success
         CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
 
         container.expects(:processed_templates).with(next_manifest).returns(%w(a b c))
+        Dir.expects(:glob).with(PathUtils.join(target, 'env', '*.erb')).returns(%w(d e))
         FileUtils.expects(:rm_f).with(%w(a b c))
-        
+        FileUtils.expects(:rm_f).with(%w(d e))
+
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', container.uid, container.gid, target)
 

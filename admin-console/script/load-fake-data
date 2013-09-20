@@ -30,7 +30,7 @@ class FakeData
       # Disable analytics for admin scripts
       Rails.configuration.analytics[:enabled] = false
       #monkey-patch the stats module to return fake node data
-      Admin::Stats.class_eval { def get_node_entries; FakeData.get_node_entries; end}
+      Admin::Stats::Maker.class_eval { def get_node_entries; FakeData.get_node_entries; end}
     rescue Exception => e
       puts <<-"FAIL"
         Broker application failed to load; aborting.

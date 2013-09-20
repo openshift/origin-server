@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.13.6
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,43 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- I'm withdrawing this fix.  The deeper issue is that LANG appears to be messed
+  up when the script is run and that needs to be diagnosed instead.
+  (rmillner@redhat.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- Bug 998337 - Added missing man page number (mfojtik@redhat.com)
+- Bug 1005421 - the ps command was returning unicode characters, strip them
+  out. (rmillner@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Updated cartridges and scripts for phpmyadmin-4 (mfojtik@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- nurture -> analytics (dmcphers@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- <oo-accept-node> Bug 1000174 - oo-accept-node fixes (jdetiber@redhat.com)
+- Merge pull request #3428 from mfojtik/bugzilla/998337
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+- Bug 998337 - Fixed 'untitled' string in some oo commands man pages
+  (mfojtik@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- Bug 999460 - Trap range error on large, all numeric UUIDs for the test to see
+  if the UUID is really a UID. (rmillner@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3419 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- removing v2 specific logic (dmcphers@redhat.com)
+- Bug 998683 - oo-accept-node failed to read manifests from source
+  (jhonce@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
 - Merge pull request #3381 from mrunalp/bugs/970939
   (dmcphers+openshiftbot@redhat.com)

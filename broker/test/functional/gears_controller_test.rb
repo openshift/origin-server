@@ -4,10 +4,10 @@ require 'openshift-origin-controller'
 require 'mocha/setup'
 
 class GearsControllerTest < ActionController::TestCase
-  
+
   def setup
     @controller = GearsController.new
-    
+
     @random = rand(1000000000)
     @login = "user#{@random}"
     @password = "password"
@@ -16,19 +16,19 @@ class GearsControllerTest < ActionController::TestCase
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
-    
+
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
 
   end
-  
+
   def teardown
     begin
       @user.force_delete
     rescue
     end
   end
-  
+
   test "show and list gear groups" do
     get :index , {}
     assert_response :moved_permanently

@@ -20,4 +20,11 @@ namespace :test do
       '../admin-console/test/functional/**/*_test.rb'
     ]
   end
+
+  Rake::TestTask.new :admin_console_integration => ['test:prepare'] do |t|
+    t.libs << 'test'
+    t.test_files = FileList[
+      '../admin-console/test/integration/**/*_test.rb'
+    ]
+  end  
 end

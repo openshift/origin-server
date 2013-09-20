@@ -1,10 +1,10 @@
 ENV["TEST_NAME"] = "functional_emb_cart_events_controller_test"
 require 'test_helper'
 class EmbCartEventsControllerTest < ActionController::TestCase
-  
+
   def setup
     @controller = EmbCartEventsController.new
-    
+
     @random = rand(1000000000)
     @login = "user#{@random}"
     @user = CloudUser.new(login: @login)
@@ -13,7 +13,7 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)    
-    
+
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
@@ -25,14 +25,14 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     @app = Application.create_app(@app_name, [PHP_VERSION, @cartridge_id], @domain)
     @app.save
   end
-  
+
   def teardown
     begin
       @user.force_delete
     rescue
     end
   end
-  
+
   test "cartridge events by domain and app name" do
     post :create, {"event" => "stop", "domain_id" => @domain.namespace, "application_id" => @app.name, "cartridge_id" => @cartridge_id}
     assert_response :success
@@ -43,7 +43,7 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     post :create, {"event" => "reload", "domain_id" => @domain.namespace, "application_id" => @app.name, "cartridge_id" => @cartridge_id}
     assert_response :success
   end
-  
+
   test "cartridge events" do
     post :create, {"event" => "stop", "application_id" => @app.id, "cartridge_id" => @cartridge_id}
     assert_response :success
@@ -54,7 +54,7 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     post :create, {"event" => "reload", "application_id" => @app.id, "cartridge_id" => @cartridge_id}
     assert_response :success
   end
-  
+
   test "no app domain or cartridge name and no app id" do
     post :create, {"event" => "stop", "application_id" => @app.name, "cartridge_id" => @cartridge_id}
     assert_response :not_found
@@ -65,7 +65,7 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     post :create, {"event" => "stop", "cartridge_id" => @cartridge_id}
     assert_response :not_found
   end
-  
+
   test "wrong event type" do
     post :create, {"event" => "bogus", "domain_id" => @domain.namespace, "application_id" => @app.name, "cartridge_id" => @cartridge_id}
     assert_response :unprocessable_entity

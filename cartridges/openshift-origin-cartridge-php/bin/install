@@ -12,6 +12,9 @@ rm -f $OPENSHIFT_PHP_DIR/modules $OPENSHIFT_PHP_DIR/conf/magic
 ln -s /usr/lib64/httpd/modules $OPENSHIFT_PHP_DIR/modules
 ln -s /etc/httpd/conf/magic $OPENSHIFT_PHP_DIR/conf/magic
 
+# Create a writable directory for Drush settings
+mkdir -p $OPENSHIFT_HOMEDIR/.drush
+
 # Pear setup
 rm -f $OPENSHIFT_HOMEDIR/.pearrc
 pear config-create "$OPENSHIFT_PHP_DIR"/phplib/pear/ "$OPENSHIFT_HOMEDIR"/.pearrc

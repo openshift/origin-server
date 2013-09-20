@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.8.5
+Version:       1.15.1
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -183,6 +183,31 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 0.9.3-1
+- Merge pull request #3620 from ironcladlou/dev/cart-version-bumps
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+- Fix Apache PassEnv config files (vvitek@redhat.com)
+
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Bug 1000614 (asari.ruby@gmail.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.6-1
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
 - Updated 'restart' operation for all HTTPD based cartridges to use
   'httpd_restart_action' (mfojtik@redhat.com)

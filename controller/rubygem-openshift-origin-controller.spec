@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.5
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,157 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.8-1
+- Merge pull request #3631 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz1003014 - find_cartridge should search for 'Name' as well
+  (rchopra@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.7-1
+- Merge pull request #3621 from smarterclayton/storage_rest_response_broken
+  (dmcphers+openshiftbot@redhat.com)
+- Sparse group_instance support broke rest api response for carts
+  (ccoleman@redhat.com)
+
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.6-1
+- fix bz1006645 (rchopra@redhat.com)
+- Fix for bug 1005007 and bug 1006526 (abhgupta@redhat.com)
+- Merge pull request #3582 from kraman/test_case_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing code to allow admin to restrict # of domains to be less than # of
+  gears allocated to a user. (kraman@gmail.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.14.5-1
+- Merge pull request #3592 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3589 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1005631 (abhgupta@redhat.com)
+- Merge pull request #3583 from jwforres/admin_console_capacity_planning-fork
+  (dmcphers+openshiftbot@redhat.com)
+- fix enable_ha with respect to max gear limits of web cart + config fixes
+  (rchopra@redhat.com)
+- <admin libs> remove licenses, minor format (lmeyer@redhat.com)
+- <admin suggestions> fix bug 1004671 (lmeyer@redhat.com)
+- <admin suggestions> allow 1-node districts (lmeyer@redhat.com)
+- <admin suggestions> fix bug 1004297 (lmeyer@redhat.com)
+- <admin suggestions> fix bug 1004157 (lmeyer@redhat.com)
+- <admin suggestions> library to suggest admin changes (lmeyer@redhat.com)
+- <admin stats> refactor and mods for admin console (lmeyer@redhat.com)
+
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
+- Use EXTERNAL_ETH_DEV if its set in node.conf. (rmillner@redhat.com)
+
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Merge pull request #3558 from pravisankar/dev/ravi/env-var-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Remove environment variables support from REST 1.0 api version
+  (rpenta@redhat.com)
+- Using _id instead of uuid for application (abhgupta@redhat.com)
+
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- Merge pull request #3538 from pmorie/dev/fix_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3548 from jwhonce/wip/oo-devel-node
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3543 from fotioslindiakos/nodejs
+  (dmcphers+openshiftbot@redhat.com)
+- SCL support for nodejs (fotios@redhat.com)
+- Node Platform - Fix cucumber tests (jhonce@redhat.com)
+- WIP Node Platform - oo-devel-node: clean up oo-* scripts that emulate mco
+  calls (jhonce@redhat.com)
+- Fix platform upgrade tests (pmorie@gmail.com)
+- enable ha feature (rchopra@redhat.com)
+- fixing test cases for phpmyadmin-4 (dmcphers@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Bug 1002685 - Downcase domain names when fetching applications by domain
+  (ccoleman@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Merge pull request #3399 from smarterclayton/propagate_app_id_to_gears
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Fix env var subscription tests (pmorie@gmail.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Merge pull request #3485 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Make dependency on 0.0.1 version of mock explicit for upgrade tests
+  (pmorie@gmail.com)
+- cleanup (dmcphers@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Merge pull request #3446 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Fix test cases (ccoleman@redhat.com)
+- Merge pull request #3477 from
+  smarterclayton/protect_environment_vars_with_edit
+  (dmcphers+openshiftbot@redhat.com)
+- Environment variables should be protected with :edit permission
+  (ccoleman@redhat.com)
+- Mongoid 3.1 does not return the Array that was stored on the model
+  (ccoleman@redhat.com)
+- Fix for bug 997008 (abhgupta@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Merge pull request #3452 from pravisankar/dev/ravi/bug998905
+  (dmcphers+openshiftbot@redhat.com)
+- Added environment variable name limitations  - Limit length to 128 bytes.  -
+  Allow letters, digits and underscore but can't begin with digit
+  (rpenta@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+- Changes for doing atomic updates on embedded documents (abhgupta@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- Merge pull request #3451 from
+  smarterclayton/bug_997567_alias_error_message_vague
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997567 - The alias error message is too vague (ccoleman@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3441 from jwhonce/wip/user_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3326 from kraman/admin_command_connection_hooks
+  (dmcphers+openshiftbot@redhat.com)
+- origin_broker_77 (lnader@redhat.com)
+- Merge pull request #3439 from pravisankar/dev/ravi/user-env-bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 998794 - Allow blank value for a user environment variable
+  (rpenta@redhat.com)
+- Node Platform - Add .env/user_vars during upgrade (jhonce@redhat.com)
+- Merge pull request #3436 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Fix creating new endpoints during incompatible upgrades (pmorie@gmail.com)
+- New admin command to call connection hooks on an application.
+  (kraman@gmail.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Merge pull request #3435 from
+  smarterclayton/bug_997848_capabilities_not_shown_via_api
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997848 - Inherited capabilities not in REST API (ccoleman@redhat.com)
+- Fix cucumber step ambiguity (ironcladlou@gmail.com)
+- Merge pull request #3398 from detiber/bz994445
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3413 from sosiouxme/admin-stats-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3410 from pravisankar/dev/ravi/card86
+  (dmcphers+openshiftbot@redhat.com)
+- <Admin::Stats> use only strings for hash keys (lmeyer@redhat.com)
+- <Admin::Stats> exclude inactive nodes from eff avail gears
+  (lmeyer@redhat.com)
+- <Admin::Stats> fix minor bug - NONE district should be HashWithReaders
+  (lmeyer@redhat.com)
+- Added REST api support for user environment variables (rpenta@redhat.com)
+- Added User environment variables support in broker (rpenta@redhat.com)
+- WIP Node Platform - Add support for settable user variables
+  (jhonce@redhat.com)
+- Bug 99445 - Better error message for No nodes available (jdetiber@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
 - Fixing typos (dmcphers@redhat.com)
 - Bug 997785 (dmcphers@redhat.com)

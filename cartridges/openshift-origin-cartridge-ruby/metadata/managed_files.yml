@@ -7,8 +7,10 @@ locked_files:
 - hooks/
 - hooks/*
 - etc/
+- etc/conf/
+- etc/conf/*
 - etc/conf.d/
-- etc/conf.d/*
+- etc/conf.d/openshift.conf
 - env/
 - env/OPENSHIFT_RUBY_DIR
 - env/OPENSHIFT_RUBY_LOG_DIR

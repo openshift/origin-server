@@ -54,7 +54,7 @@ class OOStats
       @stats = OOStats::Reader.new(@options)
     else
       @time[:load_broker_environment] = time_msecs { load_broker_rails_env }
-      @stats = Admin::Stats.new(@options)
+      @stats = Admin::Stats::Maker.new(@options)
     end
     set_initial_columns
   end
@@ -120,7 +120,7 @@ class OOStats
   # Print results to stdout according to current options
   def display_results
     r = results
-    classless = OpenShift::HashWithReaders.deep_clear_subclasses(r)
+    classless = Admin::Stats::HashWithReaders.deep_clear_subclasses(r)
     case @options[:format] 
     when :yaml
       require 'yaml'
@@ -306,7 +306,7 @@ class OOStats
     hashes.each do |hash|
       hash.each {|key,value| cols[key] = true if [String, Symbol, Integer, Fixnum].include? value.class}
     end
-    cols = cols.keys.sort # if you wanted a specific order you wouldn't be here
+    cols = cols.keys.sort_by(&:to_s) # if you wanted a specific order you wouldn't be here
     # OK let's make an exception to bring a few identifier columns to the front
     [:name, :profile, :node_profile, :login].each {|col| cols.include?(col) and cols = [col] + (cols - [col])}
     return cols
@@ -389,17 +389,7 @@ class OOStats
     gem 'activesupport'
     require 'active_support/inflector'
     gem 'openshift-origin-controller'
-    require 'openshift/hash_with_readers'
-    module ::Admin
-      class Stats
-        class DistrictSummary < OpenShift::HashWithReaders; end
-        class ProfileSummary < OpenShift::HashWithReaders; end
-        class DistrictEntry < OpenShift::HashWithReaders; end
-        class NodeEntry < OpenShift::HashWithReaders; end
-        class DbSummary < OpenShift::HashWithReaders; end
-        class Results < OpenShift::HashWithReaders; end
-      end
-    end
+    require 'admin/stats/results'
 
     def initialize(options = {})
       @options = options
@@ -417,13 +407,13 @@ class OOStats
         raise "No file given"
       when /(yml|yaml)$/
         require 'yaml'
-        unless (@results = YAML.load_file file).is_a? OpenShift::HashWithReaders
-          @results = OpenShift::HashWithReaders.deep_convert_hashes(@results)
+        unless (@results = YAML.load_file file).is_a? Admin::Stats::HashWithReaders
+          @results = Admin::Stats::HashWithReaders.deep_convert_hashes(@results)
         end
       when /(json|jsn|js)$/
         require 'json'
         @results = JSON.parse( IO.read(file) )
-        @results = OpenShift::HashWithReaders.deep_convert_hashes(@results)
+        @results = Admin::Stats::HashWithReaders.deep_convert_hashes(@results)
       else
         puts "Don't know how to parse file '#{file}'"
         puts "Please change extension to .yaml"

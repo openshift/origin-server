@@ -50,6 +50,8 @@ Options:
     Remove gearsize from the capability for this login user
   --inheritgearsizes (true|false)
     Allow / Disallow inheritance of login user gearsizes capability to sub accounts
+  --allowha (true|false)
+    Allow / Disallow High Availability capability to the user
   -h|--help
     Show Usage info
 
@@ -270,11 +272,21 @@ def add_gear_size(user, gear_size)
         exit 6
     end
     puts "Done."
+
+    print "Adding gear size #{gear_size} for domains of user #{user.login}... "
+    user.domains.each do |d|
+        d.allowed_gear_sizes << gear_size
+        if !d.save
+            puts "An error occurred adding the gear size #{gear_size} to domain #{d.namespace} for user #{user.login}."
+            exit 7
+        end
+    end
+    puts "Done."
 end
 
 def remove_gear_size(user, gear_size)
     print "Removing gear size #{gear_size} for user #{user.login}... "
-    
+
     begin
       user.remove_gear_size(gear_size)
     rescue Exception => e
@@ -286,7 +298,7 @@ def remove_gear_size(user, gear_size)
         exit 6
     end
     puts "Done."
-end    
+end
 
 def inherit_on_subaccounts(user, allow, capability, cap_name)
     caps = user.capabilities
@@ -313,6 +325,27 @@ def inherit_on_subaccounts(user, allow, capability, cap_name)
     end
 end
 
+def allow_ha(user, allow)
+    unless Rails.configuration.openshift[:allow_ha_applications]
+      puts "Error: Platform does not allow HA applications"
+      exit 5
+    end
+    caps = user.capabilities
+    if caps['ha'] == allow
+        puts "User already has HA set to #{allow}"
+        return
+    end
+
+    print "Setting HA capability to #{allow} for user #{user.login}... "
+    caps['ha'] = allow
+    if user.save
+        puts "Done."
+    else
+        puts "An error occurred modifying the user capabilities."
+        exit 6
+    end
+end
+
 opts = GetoptLong.new(
     ["--login",          "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxgears",      GetoptLong::REQUIRED_ARGUMENT],
@@ -328,6 +361,7 @@ opts = GetoptLong.new(
     ["--addgearsize",      GetoptLong::REQUIRED_ARGUMENT],
     ["--removegearsize",   GetoptLong::REQUIRED_ARGUMENT],
     ["--inheritgearsizes", GetoptLong::REQUIRED_ARGUMENT],
+    ["--allowha",          GetoptLong::REQUIRED_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -342,6 +376,7 @@ login = args["--login"]
 allowsubaccounts = args["--allowsubaccounts"].to_b if args["--allowsubaccounts"]
 allowprivatesslcertificates = args["--allowprivatesslcertificates"].to_b if args["--allowprivatesslcertificates"]
 inheritgearsizes = args["--inheritgearsizes"].to_b if args["--inheritgearsizes"]
+allowha = args["--allowha"].to_b if args["--allowha"]
 
 if args["--setmaxgears"]
   unless args["--setmaxgears"] =~ /^[0-9]+$/
@@ -458,6 +493,11 @@ unless inheritgearsizes.nil?
     changed_user = true
 end
 
+unless allowha.nil?
+    allow_ha(user, allowha)
+    changed_user = true
+end
+
 if args["--listsubaccounts"]
     subaccount_list = CloudUser.where(parent_user_id: user._id) 
 end
@@ -473,6 +513,7 @@ caps = user.capabilities
 
 # print out the user's current settings
 puts "User #{user.login}:"
+puts "                            plan: #{user.plan_id}"
 puts "                  consumed gears: #{user.consumed_gears}"
 puts "                       max gears: #{caps['max_gears']}"
 puts "    max tracked storage per gear: #{caps['max_tracked_addtl_storage_per_gear'] || 0}"
@@ -482,6 +523,7 @@ puts "                      gear sizes: #{caps['gear_sizes'].join(', ')}" if cap
 puts "            sub accounts allowed: #{caps['subaccounts']}" if caps.has_key?('subaccounts')
 puts "private SSL certificates allowed: #{caps['private_ssl_certificates']}" if caps.has_key?('private_ssl_certificates')
 puts "              inherit gear sizes: #{caps['inherit_on_subaccounts'].include?('gear_sizes')}" if caps.has_key?('inherit_on_subaccounts')
+puts "                      HA allowed: #{caps['ha']}" if caps.has_key?('ha')
 puts 
 if args["--listsubaccounts"] and (not subaccount_list.nil?) and (not subaccount_list.empty?)
     puts "Sub Accounts: #{subaccount_list.length}"

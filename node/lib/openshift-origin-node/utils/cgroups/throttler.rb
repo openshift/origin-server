@@ -23,17 +23,15 @@ module OpenShift
             @mutex = Mutex.new
             @uuids = []
 
-            throttler_config = ::OpenShift::Runtime::Utils::Cgroups::Config.new(@@conf_file).get_group('cg_template_throttled')
-
             # Set the interval to save
-            @interval = throttler_config.get('apply_period').to_i rescue nil
-            # The threshold to query against
-            @threshold = throttler_config.get('apply_threshold').to_i rescue nil
-
-            raise ArgumentError, "#{@@conf_file} requires 'apply_period' in '[cg_template_throttled]' group" if @interval.nil?
-            raise ArgumentError, "#{@@conf_file} requires 'apply_threshold' in '[cg_template_throttled]' group" if @threshold.nil?
+            @interval = config_val('apply_period'){|x| Integer(x) }
+            # Throttle at this percent
+            @throttle_percent = config_val('apply_percent'){|x| Float(x) }
+            # Restore at this percent
+            @restore_percent = config_val('restore_percent'){|x| Float(x) }
 
             MonitoredGear.intervals = [@interval]
+            MonitoredGear.delay = 5
 
             # Allow us to lazy initialize MonitoredGears
             @running_apps = Hash.new do |h,uuid|
@@ -41,11 +39,26 @@ module OpenShift
             end
 
             Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
-            Syslog.info("Starting throttler => threshold: #{@threshold.to_f}%%/#{@interval}s, check_interval: #{MonitoredGear.delay}")
+            # Need to "escape" the percents here for use in Syslog.info
+            str = "throttle at: %0.2f%%%%, restore at: %0.2f%%%%, period: %d, check_interval: %0.2f" % [@throttle_percent, @restore_percent, @interval, MonitoredGear.delay]
+            Syslog.info("Starting throttler => #{str}")
 
             # Start our collector thread
             start
           end
+
+          # Allow us to get the config value from the cgroups_config
+          # It also allows us to try to cast it into a particular type or raise an error it that fails
+          def config_val(key)
+            begin
+              @config ||= ::OpenShift::Runtime::Utils::Cgroups::Config.new(@@conf_file).get_group('cg_template_throttled')
+              val = @config.get(key)
+              yield val
+            rescue
+              raise ArgumentError, "#{@@conf_file} requires '#{key}' in '[cg_template_throttled]' group"
+            end
+          end
+
 
           def start
             Thread.new do
@@ -122,7 +135,13 @@ module OpenShift
               end
               # Find any gears over the threshold
               over_usage = with_period.select do |k,v|
-                v[:usage_percent] >= usage
+                begin
+                  percent = v[:usage_percent]
+                  percent && percent >= usage
+                rescue
+                  Syslog.log(:info, "Throttler: problem in find for #{k} (#{v[:usage_percent]})")
+                  return false
+                end
               end.keys
               apps.select!{|k,v| over_usage.include?(k) }
             end
@@ -141,52 +160,77 @@ module OpenShift
             [apps, cur_util]
           end
 
-          def throttle(args)
-            (@bad_gears, cur_util) = find(args)
-            # If this is our first run, make sure we find any previously throttled gears
-            # NOTE: There is a corner case where we won't find non-running throttled applications
-            @old_bad_gears ||= find(state: :throttled).first
+          def throttle(cur_uuids)
+            self.uuids = cur_uuids
+            (bad_gears, cur_util) = find(period: @interval, usage: @throttle_percent)
 
-            apply_action({
-              :restore => @old_bad_gears,
-              :throttle => @bad_gears,
-            }, cur_util)
-          end
-
-          def apply_action(hash, cur_util)
             util = cur_util.inject({}) do |h,(uuid,vals)|
               h[uuid] = (vals.map{|k,v| v[:usage_percent] }.first || '???')
               h
             end
 
+            # If this is our first run, make sure we find any previously throttled gears
+            # NOTE: There is a corner case where we won't find non-running throttled applications
+            @old_bad_gears ||= find(state: :throttled).first
+
+            # Remove any previously throttled gears that are no longer running
+            @mutex.synchronize do
+              @old_bad_gears.select!{|k,v| running_apps.keys.include?(k) }
+            end
+
+            # Restore any gears we have utilization values for that are <= restore_percent
+            (restore_gears, @old_bad_gears) = @old_bad_gears.partition do |uuid, gear|
+              util.has_key?(uuid) && util[uuid] <= @restore_percent
+            end.map{|a| Hash[a] }
+
+            @old_bad_gears.each do |uuid, gear|
+              u = util[uuid]
+              msg = (u.nil? || u == '???') ? 'unknown utilization' : "still over threshold (#{util[uuid]})"
+              refuse_action(:restore, uuid, msg)
+            end
+
+            # Do not attempt to throttle any gears that are already throttled
+            bad_gears.reject! do |uuid, gear|
+              @old_bad_gears.has_key?(uuid)
+            end
+
+            # Find any "bad" gears that are boosted
+            (boosted_gears, bad_gears) = bad_gears.partition do |uuid,gear|
+              gear.gear.boosted?
+            end.map{|a| Hash[a] }
+
+            boosted_gears.each do |uuid, gear|
+              refuse_action(:throttle, uuid, "gear is boosted")
+            end
+
+            apply_action({
+              :restore => restore_gears,
+              :throttle => bad_gears,
+            }, util)
+          end
+
+          def apply_action(hash, util)
             hash.each do |action, gears|
               gears.each do |uuid, g|
                 begin
-                  case action
-                  when :throttle
-                    if @old_bad_gears.has_key?(uuid)
-                      log_action("REFUSED #{action}", uuid, "gear already throttled", :warning)
-                      next
-                    elsif g.gear.boosted?
-                      log_action("REFUSED #{action}", uuid, "gear is boosted", :warning)
-                      next
-                    end
-                  when :restore
-                    if @bad_gears.has_key?(uuid)
-                      log_action("REFUSED #{action}", uuid, "still over threshold", :warning)
-                      next
-                    end
-                  end
                   g.gear.send(action)
                   if action == :throttle
                     @old_bad_gears[uuid] = g
                   end
                   log_action(action, uuid, util[uuid])
                 rescue RuntimeError => e
-                  log_action("FAILED #{action}", uuid, e.message, :warning)
+                  failed_action(action, uuid, e.message)
                 end
               end
             end
+          end
+
+          def refuse_action(action, uuid, reason)
+            log_action("REFUSED #{action}", uuid, reason, :warning)
+          end
+
+          def failed_action(action, uuid, reason)
+            log_action("FAILED #{action}", uuid, reason, :warning)
           end
 
           def log_action(action, uuid, value, level = :info)

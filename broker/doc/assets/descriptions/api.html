@@ -1,0 +1,196 @@
+<ul>
+  <li><a href="#authentication">Authentication</a></li>
+  <li><a href="#response">API Response</a></li>
+  <li><a href="#message">API Messages</a></li>
+  <li><a href="#response_type">Response Type</a></li>
+  <li><a href="#links">Links</a></li>
+  <li><a href="#http_status_codes">HTTP Status Codes</a></li>
+</ul>
+<a name="authentication"></a>
+<h3>Authentication</h3>
+The OpenShift API uses Basic Authentication. A client is required to send the username and password, separated by a colon, with all requests to correctly authenticate. For example, send the credentials as username:password. This string is encoded with Base64 algorithm, and transmitted in the HTTP authorization header in the formats shown below.
+<br/>
+<h4>Using Ruby</h4>
+<pre>
+  require 'base64'
+  base64string = Base64.encode64("#{username}:#{password}").strip
+  headers = { "Authorization" => "Basic #{base64string}" }
+</pre>
+<br/>
+<h4>Using Python</h4>
+<pre>
+  import base64
+  base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
+  request.add_header("Authorization", "Basic %s" % base64string)
+</pre>
+<br/>
+<h4>Using cURL</h4>
+The cURL library supports basic authentication using the --user or -u option, as shown in the example below.
+<pre class="terminal">
+  $ curl -k https://openshift.redhat.com/broker/rest/user --user "user@myemail.com:password"
+</pre>
+<br/>
+
+<a name="response"></a>
+<h3>API Response</h3>
+Each response from the REST API contains te following information
+<table border=1>
+  <tr><td>Name</td><td>Description</td></tr>
+  <tr><td>status</td><td>HTTP status text e.g. ok, not_found, etc</td></tr>
+  <tr><td>data</td><td>The data requested from the API (may be null in cases where there is no data to return)</td></tr>
+  <tr><td>type</td><td>The type of data e.g. application, cartridge, etc (may be null in cases where there is no data)</td></tr>
+  <tr><td>messages</td><td>An Array of messages returned to the client (See <a href="#message">API Messages</a>)</td></tr>
+  <tr><td>API version</td><td>The API version requested by client and returned by the API.  The version defaults to latest if the client does not specify a version (See <a href="#version">Version</a>)</td></tr>
+  <tr><td>supported API versions</td><td>An Array of supported API versions</td></tr>
+</table>
+<br/>
+
+<a name="message"></a>
+<h3>API Messages</h3>
+Each response from the REST API may contain 0 or more messages.
+<table border=1>
+  <tr><td>Name</td><td>Description</td></tr>
+  <tr><td>severity</td><td>The severity of the message e.g. debug, info, warning, error or result</td></tr>
+  <tr><td>text</td><td>The text of the message</td></tr>
+  <tr><td>field</td><td>Indicates that the message is relevant to a particual field in the resource.  Used for validation errors.  May be null.</td></tr>
+  <tr><td>exit code</td><td>Exit code returned from API (0 if everyhting is ok)</td></tr>
+</table>
+<br/>
+Note: Messages with severity=result contain information that should be passed on to the user.  For example the database username and password. 
+<br/>
+
+<a name="version"></a>
+<h3>API Version</h3>
+Every OpenShift REST API call returns the current API version, and other versions that are supported.
+<br/>
+For example:
+<pre>
+{
+  "supported_api_versions": [
+   1.0,
+   1.1,
+   1.2,
+   1.3,
+   1.4
+  ],
+  "api_version": 1.5
+}
+</pre>
+To request a specific API version, the client must include a HTTP header with the request. 
+<pre>
+  JSON Clients       Accept: application/json; version=1.4
+ 
+  XML Clients        Accept: application/xml; version=1.4
+</pre>
+
+If the version requested by the client is not supported, the server responds with the HTTP status code 406, as shown below.
+<br />
+<pre>
+{
+  "messages": [
+    {
+      "field": null,
+      "severity": "error",
+      "text": "Requested API version 2.0 is not supported. Supported versions are 1.0, 1.1, 1.2, 1.3, 1.4"
+    }
+  ],
+  "status": "not_acceptable",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4
+  ],
+  "api_version": 1.4
+}
+</pre>
+<br/>
+
+<a name="response_type"></a>
+<h3>Response Type</h3>
+
+Although OpenShift supports both XML and JSON response formats, the default server response is in JSON. To receive the response in XML, send the following HTTP header with your request:
+<pre>
+  Accept: application/xml
+</pre>
+
+Example using cURL
+<pre class="terminal">
+  $ curl -k "https://openshift.redhat.com/broker/rest/api" -H "Accept: application/xml"
+</pre>
+<br/>
+
+<a name="links"></a>
+<h3>Links</h3>
+
+The OpenShift REST API implements the Hypermedia as the Engine of Application State, or HATEOAS, design principle of the REST application architecture. This principle implies that the interaction between a client and a network application happens entirely through links provided dynamically by the application server. No prior knowledge, beyond a generic understanding of REST and HTTP protocol, is required from the REST client on how to interact with any particular application or server. Entry to the REST application by a REST client is through a simple fixed URL. All future actions the client takes are discovered within resource representations returned from the server. The client selects the links within these resources to navigate to the required resource.
+<br/><br/>
+
+Each resource returned by the OpenShift REST API will have an array of relevant links embedded in it. Each link has the following attributes:
+<br/>
+
+<table border=1>
+  <tr><td>name</td><td>Description</td></tr>
+  <tr><td>method</td><td>HTTP method to use with resource link: GET, PUT, POST or DELETE</td></tr>
+  <tr><td>href</td><td>The full URI for the resource</td></tr>
+  <tr><td>required parameters</td><td>An Array of input parameters that the client is required to provide</td></tr>
+  <tr><td>optional parameters</td><td>An Array of optional input parameters</td></tr>
+</table>
+<br/>
+
+Each required input parameter has the following attributes:
+<br/>
+
+<table border=1>
+  <tr><td>Name</td><td>Description</td></tr>
+  <tr><td>name</td><td>The name of the parameter</td></tr>
+  <tr><td>type</td><td>The type of the paramater e.g. String, Integer, Array or Boolean</td></tr>
+  <tr><td>description</td><td>A brief description of the paramater</td></tr>
+  <tr><td>valid options</td><td>An Array of valid values (May be empty)</td></tr>
+  <tr><td>invalid options</td><td>An Array of invalid values (May be empty)</td></tr>
+</table>
+<br/>
+
+Each optional input parameter has the following attributes:
+<br/>
+
+<table border=1>
+  <tr><td>Name</td><td>Description</td></tr>
+  <tr><td>name</td><td>The name of the parameter</td></tr>
+  <tr><td>type</td><td>The type of the paramater e.g. String, Integer, Array or Boolean</td></tr>
+  <tr><td>description</td><td>A brief description of the paramater</td></tr>
+  <tr><td>valid options</td><td>An Array of valid values (May be empty)</td></tr>
+  <tr><td>default value</td><td>The value this parameter defaults to if not provided by the client</td></tr>
+</table>
+<br/>
+
+<b>Note:</b> The links can be excluded from the API response by passing nolinks=true to any API call.
+<br/>
+
+<a name="http_status_codes"></a>
+<h3>HTTP Status Codes</h3>
+
+The OpenShift REST API attempts to return standard HTTP status codes, with the more common status codes shown in the table below along with a brief description of each.
+<br/><br/>
+
+<table border=1>
+<tr><td>Code</td>  <td>Text  </td>  <td>Description</td></tr>
+<tr><td>200</td>   <td>OK  </td>  <td>Standard response for successful HTTP requests.</td></tr>
+<tr><td>201</td>   <td>Created   </td>  <td>The resource was successfully created.</td></tr>
+<tr><td>204</td>   <td>No content  </td>  <td>The requested delete operation was successful.</td></tr>
+<tr><td>301</td>   <td>Moved Permanently   </td>  <td>The resource has moved, and all future requests should be made to the new URI.</td></tr>
+<tr><td>400</td>   <td>Bad Request   </td>  <td>Invalid request due to bad syntax.</td></tr>
+<tr><td>401</td>   <td>Unauthorized  </td>  <td>Authentication has failed, or was not provided.</td></tr>
+<tr><td>403</td>   <td>Forbidden   </td>  <td>The request is understood, but server is refusing to respond.</td></tr>
+<tr><td>404</td>   <td>Not Found   </td>  <td>The requested resource cannot be found.</td></tr>
+<tr><td>406</td>   <td>Not Acceptable  </td>  <td>The content from the requested resource is not acceptable according to the Accept headers. Possibly due to version requested, or it no longer being supported.</td></tr>
+<tr><td>409</td>   <td>Conflict  </td>  <td>The request could not be processed because of conflict in the request.</td></tr>
+<tr><td>410</td>   <td>Gone  </td>  <td>The resource is no longer available, and will not be available again.</td></tr>
+<tr><td>422</td>   <td>Unprocessable Entity  </td>  <td>The request was well formed, but was not followed due to semantic errors.</td></tr>
+<tr><td>500</td>   <td>Internal Server Error   </td>  <td>A generic error message when something is broken.</td></tr>
+<tr><td>502</td>   <td>Bad Gateway   </td>  <td>Server was acting as a gateway or proxy, and received an invalid response.</td></tr>
+<tr><td>503</td>   <td>Service Unavailable   </td>  <td>The server is currently unavailable; possibly down for maintenance.</td></tr>
+<tr><td>504</td>   <td>Gateway Timeout   </td>  <td>The server was acting as a gateway or proxy and did not receive a timely response. </td></tr>
+</table>
+

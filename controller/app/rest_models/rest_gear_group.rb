@@ -72,7 +72,7 @@ class RestGearGroup < OpenShift::Model
     self.name         = self.id
     self.gear_profile = group_instance.gear_size
     self.gears        = group_instance.gears.map{ |gear|
-      { :id => gear.uuid, 
+      { :id => gear.uuid,
         :state => gear_states[gear.uuid] || 'unknown',
         :ssh_url => "ssh://#{app.ssh_uri(gear.app_dns ? nil: gear.uuid)}",
         :port_interfaces => gear.port_interfaces
@@ -82,6 +82,9 @@ class RestGearGroup < OpenShift::Model
     self.cartridges   = group_instance.all_component_instances.map { |component_instance| 
       cart = CartridgeCache.find_cartridge(component_instance.cartridge_name, app)
 
+      # raise an exception in case the application cartridge is not found
+      raise OpenShift::OOException.new("The application '#{app.name}' requires '#{component_instance.cartridge_name}' but a matching cartridge could not be found") if cart.nil?
+
       # Handling the case when component_properties is an empty array
       # This can happen if the mongo document is copied and pasted back and saved using a UI tool
       if component_instance.component_properties.nil? or component_instance.component_properties.is_a? Array
@@ -89,7 +92,7 @@ class RestGearGroup < OpenShift::Model
       end
 
       component_instance.component_properties.merge({
-        :name => cart.name, 
+        :name => cart.name,
         :display_name => cart.display_name,
         :tags => cart.categories
       })

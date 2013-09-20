@@ -40,28 +40,35 @@ def assert_unprocessed_erbs(negate, app)
   end
 end
 
-Given /^the expected version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ do |cart_name, component_version|
+Given /^the ([\d\.]+) version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ do |cartridge_version, cart_name, software_version|
   # Try to discover the packaged version of manifest.yml using rpm
   cart_manifest_from_package = %x(/bin/rpm -ql openshift-origin-cartridge-#{cart_name} | /bin/grep 'manifest.yml$').strip
-  # Fall back to semi-hardcoded "where it should be" path
+  # Fall back to current RPM installation path
   if cart_manifest_from_package.empty?
     cart_manifest_from_package = "/usr/libexec/openshift/cartridges/#{cart_name}/metadata/manifest.yml" 
   end
-  manifest_from_package = YAML.load_file(cart_manifest_from_package)
+
+  rpm_manifest = YAML.load_file(cart_manifest_from_package)
 
   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
 
   # This might be useful info - stash it
   @packaged_carts ||= {}
   @packaged_carts[cart_name] ||= {}
-  @packaged_carts[cart_name]['Version'] = manifest_from_package['Version']
-  @packaged_carts[cart_name]['Cartridge-Version'] = manifest_from_package['Cartridge-Version']
+  @packaged_carts[cart_name]['Version'] = rpm_manifest['Version']
+  @packaged_carts[cart_name]['Cartridge-Version'] = rpm_manifest['Cartridge-Version']
 
   # Make sure the package we've found provides the version of the
   # cartridge component we're looking for
-  assert component_version = manifest_from_package['Version']
+  rpm_version = rpm_manifest['Version']
+  rpm_cartridge_version = rpm_manifest['Cartridge-Version']
 
-  assert cart_repo.exist?(cart_name, manifest_from_package['Version'], manifest_from_package['Cartridge-Version']), "expected #{cart_name} version must exist"
+  assert software_version == rpm_version
+  assert cartridge_version == rpm_cartridge_version
+
+  # Ensure that the specified (cart_name, version, cartridge_version) is available and the latest
+  # in the repository
+  assert cart_repo.latest_cartridge_version?(cart_name, rpm_version, rpm_cartridge_version), "(#{cart_name},#{software_version},#{cartridge_version}) must be the latest in the repository"
 end
 
 Given /^a compatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_name, component_version|
@@ -77,7 +84,16 @@ Given /^an incompatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_n
   current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
   create_upgrade_script(@upgrade_script_path)
 
-  rewrite_and_install(current_manifest, @manifest_path)
+  new_endpoint = { 'Private-IP-Name' => 'EXAMPLE_IP1', 'Private-Port-Name' => 'EXAMPLE_PUBLIC_PORT4', 'Private-Port' => 8083 }
+
+  rewrite_and_install(current_manifest, @manifest_path) do |manifest, current_version|
+    manifest['Endpoints'] << new_endpoint
+  end
+end
+
+Then /^a new port will be exposed$/ do
+  port_env_file = File.join($home_root, @app.uid, '.env', 'OPENSHIFT_MOCK_EXAMPLE_PUBLIC_PORT4')
+  assert_file_exist port_env_file
 end
 
 Given /^a rigged version of the ([^ ]+)\-([\d\.]+) cartridge set to fail (\d) times$/ do |cart_name, component_version, max_failures|
@@ -210,8 +226,16 @@ def assert_successful_install(next_version, current_manifest)
   $logger.info "Observed latest version: #{observed_latest_version}"
 
   assert_equal next_version, observed_latest_version
+  
+  if File.exists?("/etc/fedora-release")
+    %x(service mcollective restart)
+  else
+    %x(service ruby193-mcollective restart)
+  end
 
-  %x(service mcollective restart)
+  mcol_output = `oo-admin-cartridge --list | grep -e "mock,.*#{current_manifest.version}"`
+
+  assert_equal 0, $?, "Couldn't find new cartridge in oo-admin-cartridge output: #{mcol_output}"
 
   sleep 5
 end
@@ -328,9 +352,9 @@ module OpenShift
       'expected'
     end
 
-    def initialize(uuid, gear_home)
-      @uuid = uuid
-      @gear_home = gear_home
+    def initialize(upgrader)
+      @uuid = upgrader.uuid
+      @gear_home = upgrader.gear_home
     end
 
     def pre_upgrade(progress)
@@ -369,9 +393,9 @@ module OpenShift
       'expected'
     end
 
-    def initialize(uuid, gear_home)
-      @uuid = uuid
-      @gear_home = gear_home
+    def initialize(upgrader)
+      @uuid = upgrader.uuid
+      @gear_home = upgrader.gear_home
     end
 
     def pre_upgrade(progress)

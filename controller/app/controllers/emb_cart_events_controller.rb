@@ -9,18 +9,18 @@ class EmbCartEventsController < BaseController
     cartid = params[:cartridge_id].downcase if params[:cartridge_id].presence
     event = params[:event].downcase if params[:event].presence
     cartridge = CartridgeCache.find_cartridge(cartid, @application).name rescue nil
-    
+
     return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{@application.name}", 129) if !@application.requires.include?(cartridge)
 
     authorize! :change_cartridge_state, @application
 
     case event
       when 'start'
-        result = @application.start(cartridge)      
+        result = @application.start(cartridge)
       when 'stop'
-        result = @application.stop(cartridge)      
+        result = @application.stop(cartridge)
       when 'restart'
-        result = @application.restart(cartridge)          
+        result = @application.restart(cartridge)
       when 'reload'
         result = @application.reload_config(cartridge)
       else
@@ -28,9 +28,9 @@ class EmbCartEventsController < BaseController
     end
 
     app = get_rest_application(@application)
-    render_success(:ok, "application", app, "Added #{event} on #{cartridge} for application #{@application.name}", result) 
+    render_success(:ok, "application", app, "Added #{event} on #{cartridge} for application #{@application.name}", result)
   end
-  
+
   protected
     def action_log_tag_action
       if event = params[:event].presence

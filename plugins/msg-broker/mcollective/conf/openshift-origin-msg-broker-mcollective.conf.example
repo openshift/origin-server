@@ -18,6 +18,7 @@ MCOLLECTIVE_TIMEOUT=180
 MCOLLECTIVE_VERBOSE=false
 MCOLLECTIVE_PROGRESS_BAR=0
 MCOLLECTIVE_CONFIG="/etc/mcollective/client.cfg"
+MCOLLECTIVE_FACT_TIMEOUT=10
 
 # Place gears on nodes with the requested profile; should be true, as
 # a false value means gear profiles are ignored and gears are placed arbitrarily.

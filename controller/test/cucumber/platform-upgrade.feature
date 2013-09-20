@@ -3,7 +3,7 @@
 @singleton
 Feature: Cartridge upgrades
   Scenario: Upgrade from compatible version
-    Given the expected version of the mock-0.1 cartridge is installed
+    Given the 0.0.1 version of the mock-0.1 cartridge is installed
     And a new client created mock-0.1 application
     And a compatible version of the mock-0.1 cartridge
     And the mock invocation markers are cleared
@@ -18,7 +18,7 @@ Feature: Cartridge upgrades
     And the application should be accessible
 
   Scenario: Upgrade from incompatible version
-    Given the expected version of the mock-0.1 cartridge is installed
+    Given the 0.0.1 version of the mock-0.1 cartridge is installed
     And a new client created mock-0.1 application
     And an incompatible version of the mock-0.1 cartridge
     And the mock invocation markers are cleared
@@ -26,6 +26,7 @@ Feature: Cartridge upgrades
 
     When the application is upgraded to the new cartridge versions
     Then the upgrade metadata will be cleaned up
+    And a new port will be exposed
     And the mock cartridge version should be updated
     And no unprocessed ERB templates should exist
     And the invocation markers from an incompatible upgrade should exist
@@ -33,7 +34,7 @@ Feature: Cartridge upgrades
     And the application should be accessible
 
   Scenario: Upgrade a node using containing failed apps
-    Given the expected version of the mock-0.1 cartridge is installed
+    Given the 0.0.1 version of the mock-0.1 cartridge is installed
     And a new client created mock-0.1 application named mock1
     And a new client created mock-0.2 application named mock2
     And the mock invocation markers are cleared in mock1
@@ -59,7 +60,7 @@ Feature: Cartridge upgrades
     And the mock1 application should be accessible
 
   Scenario: Upgrade from incompatible version with different software version
-    Given the expected version of the mock-0.1 cartridge is installed
+    Given the 0.0.1 version of the mock-0.1 cartridge is installed
     And a new client created mock-0.1 application
     And an incompatible version of the mock-0.1 cartridge with different software version
     And the mock invocation markers are cleared
@@ -74,7 +75,7 @@ Feature: Cartridge upgrades
     And the application should be accessible
 
   Scenario: Upgrade from compatible version with different software version
-    Given the expected version of the mock-0.1 cartridge is installed
+    Given the 0.0.1 version of the mock-0.1 cartridge is installed
     And a new client created mock-0.1 application
     And a compatible version of the mock-0.1 cartridge with different software version
     And the mock invocation markers are cleared

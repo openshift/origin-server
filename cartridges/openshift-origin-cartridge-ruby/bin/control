@@ -5,11 +5,12 @@ source "${OPENSHIFT_RUBY_DIR}/lib/util"
 source "${OPENSHIFT_RUBY_DIR}/lib/ruby_context"
 
 HTTPD_CFG_FILE=$OPENSHIFT_RUBY_DIR/etc/conf/httpd_nolog.conf
+HTTPD_PASSENV_FILE=$OPENSHIFT_RUBY_DIR/etc/conf.d/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_RUBY_DIR/run/httpd.pid
 
 function start() {
     echo "Starting Ruby cartridge"
-    update_httpd_passenv $HTTPD_CFG_FILE
+    write_httpd_passenv $HTTPD_PASSENV_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     ruby_context "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k start"
 }
@@ -26,7 +27,7 @@ function stop() {
 
 function restart() {
     echo "${1}ing Ruby cart"
-    update_httpd_passenv $HTTPD_CFG_FILE
+    write_httpd_passenv $HTTPD_PASSENV_FILE
     touch $OPENSHIFT_REPO_DIR/tmp/restart.txt
     ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     ruby_context "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k restart"
@@ -135,21 +136,15 @@ function post-deploy() {
 
 function threaddump() {
   # Handle scaled (non-head) gears
-  if [ "$OPENSHIFT_GEAR_UUID" != "$OPENSHIFT_APP_UUID" ]
-  then
-      if [ -t 0 ]
-      then
-          result=$(_threaddump $OPENSHIFT_GEAR_UUID)
-          if [ "$result" = "" ]; then
-              DATE=`date -u '+%Y%m%d'`
-              echo "The thread dump file will be available via: tail -f ${OPENSHIFT_RUBY_LOG_DIR}/error_log-$DATE-*"
-          else
-              echo " $result"
-          fi
-          echo ""
+  if [ -t 0 ]; then
+      result=$(_threaddump $OPENSHIFT_GEAR_UUID)
+      if [ "$result" = "" ]; then
+          DATE=`date -u '+%Y%m%d'`
+          echo "The thread dump file will be available via: tail -f ${OPENSHIFT_RUBY_LOG_DIR}/error_log-$DATE-*"
       else
-          client_error "The rhc threaddump command is not supported on scaled gear: $OPENSHIFT_GEAR_UUID. ssh into the gear and issue ~/ruby/bin/control threaddump. "
+          echo " $result"
       fi
+      echo ""
       exit
   fi
 
@@ -160,7 +155,7 @@ function threaddump() {
       client_result "Success"
       client_result ""
       # note bz 923405/921537 for why log file name is not more specific
-      client_result "The thread dump file will be available via: rhc tail ${OPENSHIFT_APP_NAME} -f ${OPENSHIFT_RUBY_LOG_DIR}/error_log-$DATE-* -o '-n 250'"
+      client_result "The thread dump file will be available via: rhc tail ${OPENSHIFT_APP_NAME} -g ${OPENSHIFT_GEAR_UUID} -f ${OPENSHIFT_RUBY_LOG_DIR}/error_log-$DATE-* -o '-n 250'"
   else
       client_result " $result"
   fi

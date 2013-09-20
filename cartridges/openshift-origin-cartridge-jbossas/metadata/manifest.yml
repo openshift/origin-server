@@ -1,125 +1,129 @@
+---
 Name: jbossas
 Cartridge-Short-Name: JBOSSAS
 Display-Name: JBoss Application Server 7
-Description: "The leading open source Java EE6 application server for enterprise Java applications. Popular development frameworks include Seam, CDI, Weld, and Spring."
+Description: The leading open source Java EE6 application server for enterprise Java
+  applications. Popular development frameworks include Seam, CDI, Weld, and Spring.
 Version: '7'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
-Cartridge-Version: '0.0.4'
+Cartridge-Version: 0.0.6
 Cartridge-Vendor: redhat
 Categories:
-  - service
-  - web_framework
-  - java
-  - jboss
-  - jee_full_profile
+- service
+- web_framework
+- java
+- jboss
+- jee_full_profile
 Website: http://www.jboss.org
 Help-Topics:
-  "Developer Center": https://www.openshift.com/developers
+  Developer Center: https://www.openshift.com/developers
 Cart-Data:
-  - Key: OPENSHIFT_JBOSSAS_LOG_DIR
-    Type: environment
-    Description: "Directory to store application log files."
-  - Key: OPENSHIFT_TMP_DIR
-    Type: environment
-    Description: "Directory to store application temporary files."
-  - Key: OPENSHIFT_REPO_DIR
-    Type: environment
-    Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
-  - Key: OPENSHIFT_JBOSSAS_HTTP_PORT
-    Type: environment
-    Description: "Internal port to which the web-framework binds to."
-  - Key: OPENSHIFT_JBOSSAS_IP
-    Type: environment
-    Description: "Internal IP to which the web-framework binds to."
-  - Key: OPENSHIFT_APP_DNS
-    Type: environment
-    Description: "Fully qualified domain name for the application."
-  - Key: OPENSHIFT_APP_NAME
-    Type: environment
-    Description: "Application name"
-  - Key: OPENSHIFT_DATA_DIR
-    Type: environment
-    Description: "Directory to store application data files. Preserved across git-pushes. Not shared across gears."
-  - Key: OPENSHIFT_APP_UUID
-    Type: environment
-    Description: "Unique ID which identified the application. Does not change between gears."
-  - Key: OPENSHIFT_GEAR_UUID
-    Type: environment
-    Description: "Unique ID which identified the gear. This value changes between gears."
+- Key: OPENSHIFT_JBOSSAS_LOG_DIR
+  Type: environment
+  Description: Directory to store application log files.
+- Key: OPENSHIFT_TMP_DIR
+  Type: environment
+  Description: Directory to store application temporary files.
+- Key: OPENSHIFT_REPO_DIR
+  Type: environment
+  Description: Application root directory where application files reside. This directory
+    is reset every time you do a git-push
+- Key: OPENSHIFT_JBOSSAS_HTTP_PORT
+  Type: environment
+  Description: Internal port to which the web-framework binds to.
+- Key: OPENSHIFT_JBOSSAS_IP
+  Type: environment
+  Description: Internal IP to which the web-framework binds to.
+- Key: OPENSHIFT_APP_DNS
+  Type: environment
+  Description: Fully qualified domain name for the application.
+- Key: OPENSHIFT_APP_NAME
+  Type: environment
+  Description: Application name
+- Key: OPENSHIFT_DATA_DIR
+  Type: environment
+  Description: Directory to store application data files. Preserved across git-pushes.
+    Not shared across gears.
+- Key: OPENSHIFT_APP_UUID
+  Type: environment
+  Description: Unique ID which identified the application. Does not change between
+    gears.
+- Key: OPENSHIFT_GEAR_UUID
+  Type: environment
+  Description: Unique ID which identified the gear. This value changes between gears.
 Provides:
-  - jbossas-7
-  - "jbossas"
-  - "jboss-as7"
-  - jbossas-standalone
-  - jboss-as7-standalone
+- jbossas-7
+- jbossas
+- jboss-as7
+- jbossas-standalone
+- jboss-as7-standalone
 Publishes:
   publish-http-url:
-    Type: "NET_TCP:httpd-proxy-info"
+    Type: NET_TCP:httpd-proxy-info
   publish-gear-endpoint:
-    Type: "NET_TCP:gear-endpoint-info"
+    Type: NET_TCP:gear-endpoint-info
   publish-jboss-cluster:
-    Type: "NET_TCP:jbossas-cluster-info"
+    Type: NET_TCP:jbossas-cluster-info
   publish-jboss-remoting:
-    Type: "NET_TCP:jbossas-remoting-info"
+    Type: NET_TCP:jbossas-remoting-info
 Subscribes:
   set-env:
-    Type: "ENV:*"
+    Type: ENV:*
     Required: false
-  set-mysql-connection-info:
-    Type: "NET_TCP:db:mysql"
-    Required : false
-  set-postgres-connection-info:
-    Type: "NET_TCP:db:postgres"
-    Required : false
   set-doc-url:
-    Type: "STRING:urlpath"
-    Required : false
+    Type: STRING:urlpath
+    Required: false
   set-jboss-cluster:
-    Type: "NET_TCP:jbossas-cluster-info"
+    Type: NET_TCP:jbossas-cluster-info
   set-jboss-remoting:
-    Type: "NET_TCP:jbossas-remoting-info"
+    Type: NET_TCP:jbossas-remoting-info
   set-generic-java:
-    Type: "ENV:NET_TCP:generic-java"
+    Type: ENV:NET_TCP:generic-java
 Scaling:
   Min: 1
   Max: -1
 Endpoints:
-  - Private-IP-Name:     IP
-    Private-Port-Name:   HTTP_PORT
-    Private-Port:        8080
-    Public-Port-Name:    HTTP_PROXY_PORT
-    WebSocket-Port-Name: WEBSOCKET_PORT
-    WebSocket-Port:      8676
-    Mappings:
-      - Frontend:      ""
-        Backend:       ""
-        Options:       { "websocket": true}
-      - Frontend:      "/health"
-        Backend:       ""
-        Options:       { health: true }
-  - Private-IP-Name:   IP
-    Private-Port-Name: CLUSTER_PORT
-    Private-Port:      7600
-    Public-Port-Name:  CLUSTER_PROXY_PORT
-  - Private-IP-Name:   IP
-    Private-Port-Name: MESSAGING_PORT
-    Private-Port:      5445
-    Public-Port-Name:  MESSAGING_PROXY_PORT
-  - Private-IP-Name:   IP
-    Private-Port-Name: MESSAGING_THROUGHPUT_PORT
-    Private-Port:      5455
-    Public-Port-Name:  MESSAGING_THROUGHPUT_PROXY_PORT
-  - Private-IP-Name:   IP
-    Private-Port-Name: REMOTING_PORT
-    Private-Port:      4447
-    Public-Port-Name:  REMOTING_PROXY_PORT
-  - Private-IP-Name:   IP
-    Private-Port-Name: MANAGEMENT_NATIVE_PORT
-    Private-Port:      9999
-  - Private-IP-Name:   IP
-    Private-Port-Name: MANAGEMENT_HTTP_PORT
-    Private-Port:      9990
+- Private-IP-Name: IP
+  Private-Port-Name: HTTP_PORT
+  Private-Port: 8080
+  Public-Port-Name: HTTP_PROXY_PORT
+  WebSocket-Port-Name: WEBSOCKET_PORT
+  WebSocket-Port: 8676
+  Mappings:
+  - Frontend: ''
+    Backend: ''
+    Options:
+      websocket: true
+  - Frontend: /health
+    Backend: ''
+    Options:
+      health: true
+- Private-IP-Name: IP
+  Private-Port-Name: CLUSTER_PORT
+  Private-Port: 7600
+  Public-Port-Name: CLUSTER_PROXY_PORT
+- Private-IP-Name: IP
+  Private-Port-Name: MESSAGING_PORT
+  Private-Port: 5445
+  Public-Port-Name: MESSAGING_PROXY_PORT
+- Private-IP-Name: IP
+  Private-Port-Name: MESSAGING_THROUGHPUT_PORT
+  Private-Port: 5455
+  Public-Port-Name: MESSAGING_THROUGHPUT_PROXY_PORT
+- Private-IP-Name: IP
+  Private-Port-Name: REMOTING_PORT
+  Private-Port: 4447
+  Public-Port-Name: REMOTING_PROXY_PORT
+- Private-IP-Name: IP
+  Private-Port-Name: MANAGEMENT_NATIVE_PORT
+  Private-Port: 9999
+- Private-IP-Name: IP
+  Private-Port-Name: MANAGEMENT_HTTP_PORT
+  Private-Port: 9990
 Additional-Control-Actions:
-    - threaddump
+- threaddump
+Compatible-Versions:
+- 0.0.4
+- 0.0.5

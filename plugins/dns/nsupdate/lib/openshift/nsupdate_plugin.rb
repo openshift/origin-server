@@ -123,12 +123,16 @@ module OpenShift
       end
 
       # If the config gave a TSIG key, use it
-      keystring = @keyname ? "key #{@keyalgorithm}:#{@keyname} #{keyvalue}" : "gsstsig"
+      keystring = @keyname ? "key #{@keyalgorithm}:#{@keyname} #{keyvalue}" :
+                  @krb_principal ?  "gsstsig" : ""
+
+      zonestring = @zone ? "zone #{@zone}" : ""
 
       # compose the nsupdate add command
       cmd += %{nsupdate <<EOF
 #{keystring}
 server #{@server} #{@port}
+#{zonestring}
 update add #{fqdn} 60 CNAME #{value}
 send
 quit
@@ -153,12 +157,16 @@ EOF
       end
 
       # If the config gave a TSIG key, use it
-      keystring = @keyname ? "key #{@keyname} #{keyvalue}" : "gsstsig"
+      keystring = @keyname ? "key #{@keyname} #{keyvalue}" :
+                  @krb_principal ?  "gsstsig" : ""
+
+      zonestring = @zone ? "zone #{@zone}" : ""
 
       # compose the nsupdate add command
       cmd += %{nsupdate <<EOF
 #{keystring}
 server #{@server} #{@port}
+#{zonestring}
 update delete #{fqdn}
 send
 quit
@@ -205,10 +213,6 @@ EOF
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
 
       cmd = del_cmd(fqdn)
-      # authenticate if credentials have been given
-      if @krb_principal
-        cmd = "kinit -kt #{@krb_keytab} #{@krb_principal} &&" + cmd
-      end
 
       success = system cmd
       if not success

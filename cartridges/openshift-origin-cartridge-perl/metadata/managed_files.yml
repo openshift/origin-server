@@ -9,7 +9,9 @@ locked_files:
 - hooks/
 - hooks/*
 - etc/
+- etc/conf/
+- etc/conf/*
 - etc/conf.d/
-- etc/conf.d/*
+- etc/conf.d/openshift.conf
 processed_templates:
 - '**/*.erb'

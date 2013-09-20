@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.13.5
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,25 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- Bug 1005119 - Updated manifest.yml text (jhonce@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3455 from jwhonce/latest_cartridge_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- <cartridge versions> origin_runtime_219, Fix up Display-Name: field in
+  manifests https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-
+  versions (jolamb@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
 - additional version changes (dmcphers@redhat.com)
 

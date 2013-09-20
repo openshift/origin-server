@@ -274,7 +274,7 @@ module OpenShift
               expected_entries = Dir.glob(PathUtils.join(@container.container_dir, '*'))
 
               output << cartridge_action(cartridge, 'setup', software_version, true)
-              process_erb_templates(c)
+              output << process_erb_templates(c)
               output << cartridge_action(cartridge, 'install', software_version)
 
               actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
@@ -605,12 +605,26 @@ module OpenShift
       #
       # Search cartridge for any remaining <code>erb</code> files render them
       def process_erb_templates(cartridge)
+        buffer = ''
+
         directory = PathUtils.join(@container.container_dir, cartridge.name)
         logger.info "Processing ERB templates for #{cartridge.name}"
 
         env  = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir, directory)
         erbs = @container.processed_templates(cartridge).map { |x| PathUtils.join(@container.container_dir, x) }
+        erbs.delete_if do |erb_file|
+          reject = !File.exists?(erb_file)
+
+          if reject
+            buffer << "CLIENT_ERROR: File declared in processed_templates does not exist and will not be rendered: #{erb_file}"
+          end
+
+          reject
+        end
+
         render_erbs(env, erbs)
+
+        buffer
       end
 
       #  cartridge_action(cartridge, action, software_version, render_erbs) -> buffer
@@ -668,7 +682,11 @@ module OpenShift
           rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
             logger.info("Failed to render ERB #{file}: #{e.stderr}")
           else
-            File.delete(file)
+            begin
+              File.delete(file)
+            rescue Errno::ENOENT
+              # already gone for some reason; ignore it
+            end
           end
         end
         nil
@@ -745,6 +763,7 @@ module OpenShift
 
         env           = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir, PathUtils.join(@container.container_dir, cartridge.directory))
         allocated_ips = {}
+        allocated_endpoints = []
 
         cartridge.endpoints.each do |endpoint|
           # Reuse previously allocated IPs of the same name. When recycling
@@ -772,6 +791,8 @@ module OpenShift
 
           next if env[endpoint.private_port_name]
 
+          allocated_endpoints << endpoint
+
           @container.add_env_var(endpoint.private_port_name, endpoint.private_port)
 
           # Create the environment variable for WebSocket Port if it is specified
@@ -792,10 +813,10 @@ module OpenShift
 
         # Validate all the allocations to ensure they aren't already bound. Batch up the initial check
         # for efficiency, then do individual checks to provide better reporting before we fail.
-        address_list = cartridge.endpoints.map { |e| {ip: allocated_ips[e.private_ip_name], port: e.private_port} }
+        address_list = allocated_endpoints.map { |e| {ip: allocated_ips[e.private_ip_name], port: e.private_port} }
         if !address_list.empty? && addresses_bound?(address_list)
           failures = ''
-          cartridge.endpoints.each do |endpoint|
+          allocated_endpoints.each do |endpoint|
             if address_bound?(allocated_ips[endpoint.private_ip_name], endpoint.private_port)
               failures << "#{endpoint.private_ip_name}(#{endpoint.private_port})=#{allocated_ips[endpoint.private_ip_name]};"
             end
@@ -1247,13 +1268,17 @@ module OpenShift
         end
 
         buffer = ''
-        each_cartridge do |cartridge|
-          next if options[:primary_only] and cartridge.name != primary_cartridge.name
-          next if options[:secondary_only] and cartridge.name == primary_cartridge.name
+        if options[:primary_only] || options[:secondary_only]
+          each_cartridge do |cartridge|
+            next if options[:primary_only] and cartridge.name != primary_cartridge.name
+            next if options[:secondary_only] and cartridge.name == primary_cartridge.name
 
-          buffer << start_cartridge('start', cartridge, options)
+            buffer << start_cartridge('start', cartridge, options)
+          end
+        else
+          buffer << start_gear(options.merge({secondary_only: true}))
+          buffer << start_gear(options.merge({primary_only: true}))
         end
-
         buffer
       end
 
@@ -1365,6 +1390,10 @@ module OpenShift
           File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
           @container.set_rw_permission(stop_lock)
         end
+      end
+
+      def has_repository?
+        ApplicationRepository.new(@container).exists?
       end
 
       private

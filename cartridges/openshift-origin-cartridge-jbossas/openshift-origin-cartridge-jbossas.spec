@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.6.3
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,32 @@ fi
 
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- Bug 1004927: Don't override JAVA_HOME in standalone.conf
+  (ironcladlou@gmail.com)
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
+- Merge pull request #3456 from tdawson/tdawson/fixmirrorfix/2013-08
+  (admiller@redhat.com)
+- change mirror.openshift.com to mirror1.ops.rhcloud.com for aws mirroring
+  (tdawson@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
+- fix old mirror url (tdawson@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
 - Merge pull request #3279 from detiber/clientresult
   (dmcphers+openshiftbot@redhat.com)

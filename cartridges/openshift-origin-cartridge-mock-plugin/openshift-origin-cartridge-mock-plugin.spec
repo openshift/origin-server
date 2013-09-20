@@ -2,7 +2,7 @@
 
 Summary:       Mock plugin cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock-plugin
-Version: 0.7.2
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -36,6 +36,19 @@ test platform functionality.
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Bump up version (tdawson@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
+- Merge pull request #3479 from jwhonce/latest_cartridge_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge - restore mock and mock-plugin cartridge versions
+  (jhonce@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.7.3-1
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.7.2-1
 - Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
   Unnecessary messages from mongodb cartridge (jhonce@redhat.com)

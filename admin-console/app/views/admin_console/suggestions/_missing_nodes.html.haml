@@ -1,0 +1,43 @@
+.lead
+  - if suggestion.nodes.size == 1
+    & Node #{suggestion.nodes[0]} failed to respond
+  - else
+    #{suggestion.nodes.size} nodes failed to respond
+- case size
+- when :short
+  %div
+    = "The #{'node'.pluralize(suggestion.nodes.size)} may be down, or may not have responded within the configured timeout."
+
+- when :full
+  %p
+    = "The #{'node'.pluralize(suggestion.nodes.size)} may be down, or may not have responded within the configured timeout."
+  %table.table
+    %thead
+      %th
+        Server Identity
+      %th
+        District Name
+      %th
+        Profile
+    %tbody
+      - suggestion.contents.each do |subsuggest| 
+        - if subsuggest.scope == 'district'
+          - subsuggest.nodes.each do |node|
+            %tr
+              %td
+                &= node
+              %td
+                &= subsuggest.district_name
+              %td
+                &= subsuggest.profile
+  %p
+    = "From the broker, check if a node is still responding with:"
+    %pre
+      = "mco ping -I <server_identity>"
+  %p
+    If the node is still responding then the configured timeout may be too short.  Compare the response time from mco ping to the STATS_GATHER_TIMEOUT in 
+    %pre
+      = File.join(OpenShift::Config::PLUGINS_DIR, "openshift-origin-admin-console.conf")
+    If the node does not respond at all, the node may actually be unresponsive, or there may be a network or service outage blocking communication.
+  %p
+    While a node is not responding, its district is exempt from recommendations, because accurate district statistics cannot be calculated.

@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.13.6
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -23,7 +23,7 @@ Requires:      mongodb
 # For oo-register-dns
 Requires:      bind-utils
 # For oo-admin-broker-auth
-Requires:      mcollective-client
+Requires:      %{?scl:%scl_prefix}mcollective-client
 BuildArch:     noarch
 
 %description
@@ -84,6 +84,74 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.5-1
+- <oo-admin-ctl-usage> Bug 990451, use Mongo config options for Moped session
+  https://bugzilla.redhat.com/show_bug.cgi?id=990451 (jolamb@redhat.com)
+- Merge pull request #3617 from ironcladlou/dev/upgrade-stability
+  (dmcphers+openshiftbot@redhat.com)
+- Improve upgrade MCollective response handling (ironcladlou@gmail.com)
+
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
+- Merge pull request #3613 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3610 from ironcladlou/bz/1001855
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1005007 and bug 1006526 (abhgupta@redhat.com)
+- Merge pull request #3604 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1001855: Process all active gears before inactive (ironcladlou@gmail.com)
+- Fix for bug 1006223 (abhgupta@redhat.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Merge pull request #3583 from jwforres/admin_console_capacity_planning-fork
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3588 from abhgupta/abhgupta-scheduler
+  (dmcphers@redhat.com)
+- The uuid attribute is being removed from the application documents
+  (abhgupta@redhat.com)
+- <admin stats> refactor and mods for admin console (lmeyer@redhat.com)
+
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- Fix for bug 1005151 (abhgupta@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Upgrade fix for warning handling (ironcladlou@gmail.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Bug 1000193: Use an Hourglass in the gear upgrader (ironcladlou@gmail.com)
+- Fix test cases (ccoleman@redhat.com)
+- Merge pull request #3459 from pravisankar/dev/ravi/bug999702
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Bug 999702 - oo-admin-chk: Don't sort usage records based on time, instead
+  update app_name based on created_at field (rpenta@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- Merge pull request #3442 from smarterclayton/oo_admin_user_not_setting_domain
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3326 from kraman/admin_command_connection_hooks
+  (dmcphers+openshiftbot@redhat.com)
+- fix 998355, last gear of a cart cannot be removed (rchopra@redhat.com)
+- oo-admin-ctl-user should update child domains when new gear size added
+  (ccoleman@redhat.com)
+- New admin command to call connection hooks on an application.
+  (kraman@gmail.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3423 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- bz998355 oo-admint-ctl-app fix for sparse components (rchopra@redhat.com)
+- Merge pull request #3421 from pravisankar/dev/ravi/bug997352
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997352 - Added usage_record -> usage inconsistency checks
+  (rpenta@redhat.com)
+- Merge pull request #3417 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 991398 (abhgupta@redhat.com)
+- <Admin::Stats> use only strings for hash keys (lmeyer@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
 - Handle lack of JSON reply from gear upgrades (ironcladlou@gmail.com)
 

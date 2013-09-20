@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.13.3
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -10,15 +10,8 @@ URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-Requires:      phpMyAdmin >= 3.4
-Requires:      phpMyAdmin < 3.6
-%if 0%{?fedora}%{?rhel} <= 6
-Requires:      httpd < 2.4
-%endif
-%if 0%{?fedora} >= 19
-Requires:      httpd > 2.3
-Requires:      httpd < 2.5
-%endif
+Requires:      phpMyAdmin < 5.0
+Requires:      httpd
 BuildArch:     noarch
 
 Obsoletes: openshift-origin-cartridge-phpmyadmin-3.4
@@ -58,6 +51,34 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
+- Merge pull request #3629 from VojtechVitek/phpmyadmin_lock
+  (dmcphers+openshiftbot@redhat.com)
+- fix phpmyadmin locking mechanism (vvitek@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Merge pull request #3620 from ironcladlou/dev/cart-version-bumps
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+- Fix Apache PassEnv config files (vvitek@redhat.com)
+
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- simplify phpmyadmin requires (dmcphers@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Card origin_runtime_228 - Update PHP My Admin cartridge (mfojtik@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Merge pull request #3455 from jwhonce/latest_cartridge_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- <cartridge versions> origin_runtime_219, Fix up Display-Name: field in
+  manifests https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-
+  versions (jolamb@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
 - Merge pull request #3354 from dobbymoodge/origin_runtime_219
   (dmcphers+openshiftbot@redhat.com)

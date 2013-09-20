@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.13.4
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -21,7 +21,6 @@ Requires:      ruby(release)
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
-%if 0%{?fedora}%{?rhel} <= 6
 Requires:      %{?scl:%scl_prefix}rubygem(rails)
 Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
 Requires:      %{?scl:%scl_prefix}rubygem(rdiscount)
@@ -44,8 +43,11 @@ Requires:      %{?scl:%scl_prefix}rubygem(minitest)
 Requires:      %{?scl:%scl_prefix}rubygem(rspec-core)
 Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
 
+%if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
+%endif
+
 BuildRequires: %{?scl:%scl_prefix}rubygem(coffee-rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sass-rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(jquery-rails)
@@ -69,7 +71,6 @@ BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
 BuildRequires: %{?scl:%scl_prefix}rubygem(rspec-core)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
 
-%endif
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 %if 0%{?fedora} >= 19
 BuildRequires: ruby(release)
@@ -153,6 +154,32 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Bump up version (tdawson@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Updated cartridges and scripts for phpmyadmin-4 (mfojtik@redhat.com)
+- Handle .resultset.json (dmcphers@redhat.com)
+- Fixing console RPM spec to install ruby dependencies on Fedora 19
+  (kraman@gmail.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Merge pull request #3437 from smarterclayton/alias_overzealous_messaging
+  (dmcphers+openshiftbot@redhat.com)
+- Review comments (ccoleman@redhat.com)
+- Aliases are writing too many flashes when errors are present
+  (ccoleman@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Merge pull request #3415 from tdawson/tdawson/mirrorfixes/2013-08
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997080 - chrome input fields - turn of break word (jforrest@redhat.com)
+- fix old mirror url (tdawson@redhat.com)
+- Merge pull request #3408 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 995034 (abhgupta@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
 - Merge pull request #3382 from smarterclayton/builder_scope_incorrect
   (dmcphers+openshiftbot@redhat.com)

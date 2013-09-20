@@ -81,6 +81,10 @@ class RestApplication10 < OpenShift::Model
     self.embedded = {}
     app.requires(true).each do |feature|
       cart = CartridgeCache.find_cartridge(feature, app)
+
+      # raise an exception in case the application cartridge is not found
+      raise OpenShift::OOException.new("The application '#{app.name}' requires '#{feature}' but a matching cartridge could not be found") if cart.nil?
+
       if cart.categories.include? "web_framework"
         self.framework = cart.name
       else
@@ -90,7 +94,7 @@ class RestApplication10 < OpenShift::Model
 
     self.name = app.name
     self.creation_time = app.created_at
-    self.uuid = app.uuid
+    self.uuid = app._id
     self.aliases = []
     app.aliases.each do |a|
       self.aliases << a.fqdn
@@ -201,16 +205,9 @@ class RestApplication10 < OpenShift::Model
         "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
           Param.new("cartridge", "string", "framework-type, e.g.: mongodb-2.2", carts)
-        ], [
-          OptionalParam.new("environment_variables", "array", "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]")]),
-        "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
-        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable")),
-        "SET_UNSET_ENVIRONMENT_VARIABLES" => Link.new("Add/Update/Delete one or more environment variables", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment-variables"), nil, [
-          OptionalParam.new("name", "string", "Name of the environment variable to add/update"),
-          OptionalParam.new("value", "string", "Value of the environment variable"),
-          OptionalParam.new("environment_variables", "array", "Add/Update/Delete application environment variables, e.g. Add/Update: [{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}], Delete: [{'name':'FOO'}, {'name':'BAR'}]")
         ]),
-        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment-variables"))
+        "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
+        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable"))
       }
     end
   end

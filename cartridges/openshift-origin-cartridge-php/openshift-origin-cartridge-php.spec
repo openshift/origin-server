@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.8.4
+Version:       1.15.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -76,6 +76,40 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 0.9.3-1
+- fix drush dir permissions (vvitek@redhat.com)
+- Merge pull request #3620 from ironcladlou/dev/cart-version-bumps
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+- Fix Apache PassEnv config files (vvitek@redhat.com)
+
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- Merge pull request #3554 from pmorie/bugs/1004899
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+- Create a writable directory for Drush settings (vvitek@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.7-1
+- Merge pull request #3455 from jwhonce/latest_cartridge_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.6-1
+- Merge pull request #3424 from mfojtik/bugzilla/998789 (dmcphers@redhat.com)
+- Bug 998789 - Fixed a typo in PHP cartridge control script
+  (mfojtik@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
+- Merge pull request #2984 from VojtechVitek/pear_path
+  (dmcphers+openshiftbot@redhat.com)
+- Add PEAR bin dir to the PATH variable (vvitek@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
 - Updated 'restart' operation for all HTTPD based cartridges to use
   'httpd_restart_action' (mfojtik@redhat.com)

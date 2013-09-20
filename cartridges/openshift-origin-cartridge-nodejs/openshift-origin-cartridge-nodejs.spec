@@ -1,17 +1,42 @@
+# RHEL has 0.6 and 0.10. but 0.10 has a prefix for SCL
+# Fedora 18 and 19 has 0.10 as the default
+%if 0%{?fedora}%{?rhel} <= 6
+  %global scl nodejs010
+  %global scl_prefix nodejs010-
+%endif
+
 %global cartridgedir %{_libexecdir}/openshift/cartridges/nodejs
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.14.4
+Version: 1.16.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildRequires: nodejs >= 0.6
+
 Requires:      facter
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:      %{scl}
+%endif
+
+Requires:      %{?scl:%scl_prefix}npm
+Requires:      %{?scl:%scl_prefix}nodejs-pg
+Requires:      %{?scl:%scl_prefix}nodejs-options
+Requires:      %{?scl:%scl_prefix}nodejs-supervisor
+Requires:      %{?scl:%scl_prefix}nodejs-async
+
+Requires:      %{?scl:%scl_prefix}nodejs-express
+Requires:      %{?scl:%scl_prefix}nodejs-connect
+Requires:      %{?scl:%scl_prefix}nodejs-mongodb
+Requires:      %{?scl:%scl_prefix}nodejs-mysql
+Requires:      %{?scl:%scl_prefix}nodejs-node-static
+
+Requires:      nodejs
 Requires:      nodejs-async
 Requires:      nodejs-connect
 Requires:      nodejs-express
@@ -21,9 +46,6 @@ Requires:      nodejs-node-static
 Requires:      nodejs-pg
 Requires:      nodejs-supervisor
 Requires:      nodejs-options
-%if 0%{?fedora} >= 19
-Requires:      npm
-%endif
 
 Obsoletes: openshift-origin-cartridge-nodejs-0.6
 
@@ -42,16 +64,17 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-echo "NodeJS version is `/usr/bin/node -v`"
-if [[ $(/usr/bin/node -v) == v0.6* ]]; then
-%__rm -f %{buildroot}%{cartridgedir}/versions/0.10
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.6 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
-fi
-
-if [[ $(/usr/bin/node -v) == v0.10* ]]; then
+%if 0%{?rhel}
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/lib/nodejs_context.rhel %{buildroot}%{cartridgedir}/lib/nodejs_context
+%endif
+%if 0%{?fedora}
 %__rm -f %{buildroot}%{cartridgedir}/versions/0.6
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.10 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
-fi
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/lib/nodejs_context.fedora %{buildroot}%{cartridgedir}/lib/nodejs_context
+%endif
+%__rm -f %{buildroot}%{cartridgedir}/lib/nodejs_context.*
+%__rm -f %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 %files
 %dir %{cartridgedir}
@@ -63,6 +86,33 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.15.6-1
+- Merge pull request #3630 from mrunalp/bug/1007272
+  (dmcphers+openshiftbot@redhat.com)
+- Set the right context before a build. (mrunalp@gmail.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.15.5-1
+- Merge pull request #3620 from ironcladlou/dev/cart-version-bumps
+  (dmcphers+openshiftbot@redhat.com)
+- Fix checking for existing NodeJS supervisor process (fotios@redhat.com)
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.15.4-1
+- Fix hot_deploy in NodeJS cartridge (fotios@redhat.com)
+
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.15.3-1
+- Fix NodeJS cartridge build failure on F19 due to SCL (kraman@gmail.com)
+
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.15.2-1
+- SCL support for nodejs (fotios@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.15.1-1
+- Bug 100616 (asari.ruby@gmail.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.14.5-1
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
 - Merge pull request #3376 from brenton/BZ986300_BZ981148
   (dmcphers+openshiftbot@redhat.com)

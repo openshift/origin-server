@@ -23,7 +23,7 @@ module OpenShift
               end
             end
             nil
-          end.presence 
+          end.presence
           if version.nil?
             version = API_VERSION
             #FIXME  this is a hack that should be removed by April
@@ -74,7 +74,7 @@ module OpenShift
           elsif param_value.is_a? String and param_value.upcase == "FALSE"
             return false
           end
-          raise OpenShift::OOException.new("Invalid value '#{param_value}'. Valid options: [true, false]", 167)
+          raise OpenShift::UserException.new("Invalid value '#{param_value}'. Valid options: [true, false]", 167)
         end
 
         def get_includes
@@ -117,7 +117,7 @@ module OpenShift
               tag = "LIST_"
             end
           when "POST"
-            tag = "ADD_" 
+            tag = "ADD_"
           when "PUT"
             tag = "UPDATE_"
           when "DELETE"
@@ -139,8 +139,8 @@ module OpenShift
 
           @application =
             if domain_id.nil?
-              Application.accessible(current_user).find_by(uuid: application_id)
-            else 
+              Application.accessible(current_user).find(application_id)
+            else
               domain_id = Domain.check_name!(domain_id).downcase
               begin
                 Application.accessible(current_user).find_by(domain_namespace: domain_id, canonical_name: Application.check_name!(application_id).downcase)

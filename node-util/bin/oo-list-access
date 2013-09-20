@@ -49,14 +49,14 @@ status = Open4.popen4 "find #{ENV["LAST_ACCESS_DIR"]} -mindepth 1 -mtime -#{days
 end
 exit 1 unless 0 == status.exitstatus
 
-payload = { :nurture_action => "update_last_access", :gear_timestamps => gears}
+payload = { :analytics_action => "update_last_access", :gear_timestamps => gears}
 
 scratch = Tempfile.new("list_access")
 begin
   scratch.write("#{payload.to_json}")
   scratch.rewind
   sleep(rand(600) + 1)
-  cmd = "curl  -k -X POST -H \"Content-Type:application/json\" -d @#{scratch.path} https://#{ENV['BROKER_HOST']}/broker/nurture"
+  cmd = "curl  -k -X POST -H \"Content-Type:application/json\" -d @#{scratch.path} https://#{ENV['BROKER_HOST']}/broker/analytics"
   pid, stdin, stdout, stderr = Open4.popen4(cmd)
   Process::waitpid2 pid
 ensure

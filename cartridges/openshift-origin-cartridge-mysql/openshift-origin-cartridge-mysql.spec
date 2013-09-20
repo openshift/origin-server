@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 0.7.3
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -10,6 +10,7 @@ URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      mysql-server
 Requires:      mysql-devel
+Requires:      mysql-connector-java
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
@@ -39,6 +40,29 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Merge pull request #3599 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1002894 (dmcphers@redhat.com)
+- Bug 1002893 - Added mysql-connector-java dependency to mysql cartridge
+  (mfojtik@redhat.com)
+
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
+- Bug 1000167 (dmcphers@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
+- Updated cartridges and scripts for phpmyadmin-4 (mfojtik@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.7.4-1
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.7.3-1
 - Merge pull request #3379 from pmorie/bugs/997593
   (dmcphers+openshiftbot@redhat.com)

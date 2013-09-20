@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version: 0.6.2
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -38,7 +38,7 @@ alternatives --install /etc/alternatives/switchyard-0 switchyard-0 /usr/share/sw
 alternatives --set switchyard-0 /usr/share/switchyard
 
 alternatives --remove switchyard-0.6 /usr/share/switchyard
-alternatives --install /etc/alternatives/switchyard-0.6 switchyard-0 /usr/share/switchyard 102
+alternatives --install /etc/alternatives/switchyard-0.6 switchyard-0.6 /usr/share/switchyard 100
 alternatives --set switchyard-0.6 /usr/share/switchyard
 
 %files
@@ -50,6 +50,26 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 0.7.2-1
+- Bug 990726 - Fixed typo in switchyard cartridge spec file
+  (mfojtik@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.7.1-1
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.6.4-1
+- Merge pull request #3455 from jwhonce/latest_cartridge_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.6.3-1
+- <cartridge versions> origin_runtime_219, Fix up Display-Name: field in
+  manifests https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-
+  versions (jolamb@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
 - <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
 - <cart version> origin_runtime_219, Update carts and manifests with new

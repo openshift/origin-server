@@ -9,12 +9,39 @@ a.skip-navigation {
 }
 
 .stat {
-  margin-bottom: 20px;
+  td {
+    vertical-align: top;
+    padding-bottom: 20px;
+    padding-right: 20px;
+  }
 }
 
 .stat-number {
-  font-size: 52px;
-  margin: 20px 0;
+  font-size: 28px;
+  margin: 0 0 7px;
+}
+
+.stat-number-large {
+  font-size: 39px;
+  margin: 0 0 10px 0;
+  line-height: 31px;
+
+  + .hover-action {
+    margin-top: 23px;
+  }
+}
+
+.stat-label {
+  text-transform: uppercase;
+  font-size: 12px;
+
+  > br.hidden {
+    display: none;
+  }
+}
+
+.nowrap {
+  white-space: nowrap;
 }
 
 .extra-large {
@@ -23,6 +50,10 @@ a.skip-navigation {
 
 .large {
   font-size: $largeFontSize;
+}
+
+.clear {
+  clear: both;
 }
 
 .container section {
@@ -42,6 +73,10 @@ section.application {
 
 h1 .icon {
     height: 30px;
+}
+
+h3 .icon {
+    height: 17px;
 }
 
 @media (max-width: 480px) {

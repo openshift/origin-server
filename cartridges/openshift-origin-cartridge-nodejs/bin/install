@@ -1,6 +1,10 @@
 #!/bin/bash
 #set -e
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_NODEJS_DIR}/lib/util"
+source "${OPENSHIFT_NODEJS_DIR}/lib/nodejs_context"
+
 case "$1" in
   -v|--version)
     version="$2"
@@ -21,6 +25,9 @@ popd > /dev/null
 touch "$OPENSHIFT_HOMEDIR"/.npmrc
 mkdir "$OPENSHIFT_HOMEDIR"/.npm
 mkdir "$OPENSHIFT_HOMEDIR"/.node-gyp
-chown $OPENSHIFT_APP_UUID.$OPENSHIFT_APP_UUID -R "$OPENSHIFT_HOMEDIR"/.npm "$OPENSHIFT_HOMEDIR"/.npmrc  \
+chown `id -u $OPENSHIFT_GEAR_UUID` -R "$OPENSHIFT_HOMEDIR"/.npm "$OPENSHIFT_HOMEDIR"/.npmrc  \
                             "$OPENSHIFT_HOMEDIR"/.node-gyp
-npm config set tmp $OPENSHIFT_TMP_DIR
+nodejs_context "npm config set tmp $OPENSHIFT_TMP_DIR"
+
+echo "$version" > $OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_VERSION
+update-configuration $version

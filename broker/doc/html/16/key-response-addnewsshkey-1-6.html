@@ -1,0 +1,89 @@
+<html><body><pre>{
+  "api_version": 1.6,
+  "data": {
+    "content": "AAAAB3NzaC1yc2EAAAADAQABAAABAQDBJHobjmzxy8cv9A1xw9X5TlnQd0bW/19FwOC0c6jPNu9ZbtWQcAE0xfODl7ZqVPPU2qAFOh4rbL3gL2UzTyA+NwERyDrH7tMXAoXPT2L6sqExl0xxuEvb/lXUfLquMq+BMOFxxqCEg8X7GavHN72FMUHwweNybE7C82So+OFSWqFoctiWMNdNsKW4lvBd/jkIudGdRdK+/PzV75TW1LcpfsBrFOJZbd5WzDJEPNdMqOH68YDExD82VtzeJm0HEavhMY9HtxIDEmjIhtfedzCGZLe+6OxReuatw6M+n1sFxT9liprZ6NIANvbnYZKGT50hYfnIi/hZOTCvqYNS97O3",
+    "links": {
+      "GET": {
+        "href": "https://openshift.redhat.com/broker/rest/user/keys/mykey",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "Get SSH key",
+        "required_params": [
+
+        ]
+      },
+      "UPDATE": {
+        "href": "https://openshift.redhat.com/broker/rest/user/keys/mykey",
+        "method": "PUT",
+        "optional_params": [
+
+        ],
+        "rel": "Update SSH key",
+        "required_params": [
+          {
+            "description": "Type of Key",
+            "invalid_options": [
+
+            ],
+            "name": "type",
+            "type": "string",
+            "valid_options": [
+              "ssh-rsa",
+              "ssh-dss",
+              "ssh-rsa-cert-v01@openssh.com",
+              "ssh-dss-cert-v01@openssh.com",
+              "ssh-rsa-cert-v00@openssh.com",
+              "ssh-dss-cert-v00@openssh.com"
+            ]
+          },
+          {
+            "description": "The key portion of an rsa key (excluding ssh key type and comment)",
+            "invalid_options": [
+
+            ],
+            "name": "content",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          }
+        ]
+      },
+      "DELETE": {
+        "href": "https://openshift.redhat.com/broker/rest/user/keys/mykey",
+        "method": "DELETE",
+        "optional_params": [
+
+        ],
+        "rel": "Delete SSH key",
+        "required_params": [
+
+        ]
+      }
+    },
+    "name": "mykey",
+    "type": "ssh-rsa"
+  },
+  "messages": [
+    {
+      "exit_code": 0,
+      "field": null,
+      "severity": "info",
+      "text": "Created SSH key mykey"
+    }
+  ],
+  "status": "created",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "key",
+  "version": "1.6"
+}</pre></body></html>

@@ -44,6 +44,7 @@ class Scope::Application < Scope::Parameterized
       resource === Application && resource._id === app_id && [
           :change_state,
           :change_cartridge_state,
+          :make_ha,
           :scale_cartridge,
           :view_code_details,
           :change_gear_quota,
@@ -53,6 +54,8 @@ class Scope::Application < Scope::Parameterized
           :update_alias,
           :ssh_to_gears,
           :destroy_alias,
+          :view_environment_variables,
+          :change_environment_variables,
           #:destroy,
           #:change_members,
         ].include?(permission)

@@ -1,6 +1,6 @@
 class UserController < BaseController
   include RestModelHelper
-  
+
   # GET /user
   def show
     return render_error(:not_found, "User '#{@login}' not found", 99) unless @cloud_user

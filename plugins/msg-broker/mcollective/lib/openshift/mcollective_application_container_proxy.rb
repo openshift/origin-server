@@ -363,6 +363,15 @@ module OpenShift
         result = nil
         (1..10).each do |i|
           args = build_base_gear_args(gear, quota_blocks, quota_files)
+          
+          # set the secret token for new gear creations
+          # log an error if the application does not have its secret_token set
+          if app.secret_token.present?
+            args['--with-secret-token'] = app.secret_token
+          else
+            Rails.logger.error "The application #{app.name} (#{app._id.to_s}) does not have its secret token set"
+          end
+          
           mcoll_reply = execute_direct(@@C_CONTROLLER, 'app-create', args)
 
           begin
@@ -1247,9 +1256,7 @@ module OpenShift
       #
       def set_user_env_vars(gear, env_vars, gears_ssh_endpoint)
         args = build_base_gear_args(gear)
-        if env_vars.present?
-          args['--with-variables'] = env_vars.map {|ev| "#{ev['name']}=#{ev['value']}"}.join(' ')
-        end
+        args['--with-variables'] = env_vars.to_json if env_vars.present?
         args['--with-gears'] = gears_ssh_endpoint.join(';') if gears_ssh_endpoint.present?
         result = execute_direct(@@C_CONTROLLER, 'user-var-add', args)
         parse_result(result)
@@ -1785,10 +1792,14 @@ module OpenShift
           raise OpenShift::UserException.new("Error moving app.  Cannot change node profile for *scalable* app.", 1)
         end
 
-        # get the state of all cartridges
-        quota_blocks = nil
-        quota_files = nil
-        idle, leave_stopped, quota_blocks, quota_files = get_app_status(app)
+        # get the application state
+        idle, leave_stopped = get_app_status(app)
+        
+        # get the quota blocks and files from the gear
+        gear_quota = get_quota(gear)
+        quota_blocks = Integer(gear_quota[3])
+        quota_files = Integer(gear_quota[6])
+        
         gi = gear.group_instance
         gi.all_component_instances.each do |cinst|
           next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
@@ -2004,7 +2015,7 @@ module OpenShift
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
         rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
-        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
+        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; exit_code=$?; ssh-agent -k; exit $exit_code`
         if $?.exitstatus != 0
           raise OpenShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
@@ -2028,7 +2039,7 @@ module OpenShift
       # app: an Application object
       #
       # RETURN:
-      # * Array: [idle, leave_stopped, quota_file, quota_blocks]
+      # * Array: [idle, leave_stopped]
       #
       # NOTES:
       # * calls get_cart_status
@@ -2046,7 +2057,8 @@ module OpenShift
 
         component_instances = app.get_components_for_feature(web_framework)
         gear = component_instances.first.group_instance.gears.first
-        get_cart_status(gear, component_instances.first)
+        idle, leave_stopped, quota_blocks, quota_files = get_cart_status(gear, component_instances.first)
+        return idle, leave_stopped
       end
 
       #
@@ -2529,6 +2541,8 @@ module OpenShift
           result.debugIO << "Command return code: " + result.exitcode.to_s
           if result.hasUserActionableError
             raise OpenShift::UserException.new(result.errorIO.string, result.exitcode, nil, result)
+          elsif result.exitcode == 146
+            raise OpenShift::NodeException.new("Gear creation failed (chosen node capacity exceeded).", 146, result)
           else
             raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).", 143, result)
           end
@@ -2829,7 +2843,7 @@ module OpenShift
         end
 
         # Get the districts
-        districts = prefer_district ? District.find_all : [] # candidate for caching
+        districts = prefer_district ? District.find_all((require_district && node_profile ) ? node_profile : nil, required_uid) : []
 
         # Get the active % on the nodes
         rpc_opts = nil
@@ -3015,6 +3029,7 @@ module OpenShift
         result = nil
         options = custom_rpc_opts ? custom_rpc_opts : MCollectiveApplicationContainerProxy.rpc_options
         options[:filter]['fact'] = options[:filter]['fact'] + additional_filters if additional_filters
+        options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
 
         Rails.logger.debug("DEBUG: rpc_get_fact: fact=#{fact}")
         rpc_exec('rpcutil', servers, force_rediscovery, options) do |client|
@@ -3050,6 +3065,7 @@ module OpenShift
       #
       def rpc_get_fact_direct(fact)
           options = MCollectiveApplicationContainerProxy.rpc_options
+          options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
 
           rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('rpcutil', options)
           begin
@@ -3086,6 +3102,7 @@ module OpenShift
       #
       def rpc_get_facts_direct(facts)
           options = MCollectiveApplicationContainerProxy.rpc_options
+          options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
 
           rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
           begin
@@ -3119,8 +3136,11 @@ module OpenShift
       # * uses MCollective::RPC::Client
       #
       def self.rpc_get_facts_for_all_nodes(fact_list)
+        options = MCollectiveApplicationContainerProxy.rpc_options
+        options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
+
         node_fact_map = {}
-        rpc_exec('openshift', nil, true) do |client|
+        rpc_exec('openshift', nil, true, options) do |client|
           client.get_facts(:facts => fact_list) do |response|
             if response[:body][:statuscode] == 0
               fact_map = response[:body][:data][:output]

@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.8.3
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -76,6 +76,35 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 0.9.4-1
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 0.9.3-1
+- Bug 1005281 - Removing unneeded EAP dependency from EWS pom template
+  (bleanhar@redhat.com)
+
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- Bug 1004008: Use symlink test rather than -e before call to rm
+  (ironcladlou@gmail.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.6-1
+- Merge pull request #3456 from tdawson/tdawson/fixmirrorfix/2013-08
+  (admiller@redhat.com)
+- change mirror.openshift.com to mirror1.ops.rhcloud.com for aws mirroring
+  (tdawson@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
+- fix old mirror url (tdawson@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
 - Merge pull request #3376 from brenton/BZ986300_BZ981148
   (dmcphers+openshiftbot@redhat.com)

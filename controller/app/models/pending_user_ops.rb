@@ -18,9 +18,7 @@ class PendingUserOps
   include Mongoid::Timestamps
 
   embedded_in :cloud_user, class_name: CloudUser.name
-  field :op_type,   type: Symbol
-  field :state,    type: Symbol, :default => :init
-  field :arguments, type: Hash, default: {}
+  field :state, type: Symbol, :default => :init
   has_and_belongs_to_many :on_domains, class_name: Domain.name, inverse_of: nil
   has_and_belongs_to_many :completed_domains, class_name: Domain.name, inverse_of: nil
   field :on_completion_method, type: Symbol
@@ -47,31 +45,57 @@ class PendingUserOps
 
   # Callback from {PendingDomainOps} to indicate that a domain has been processed
   def child_completed(domain)
+    failure_message = "Failed to add domain #{domain._id.to_s} to the completed_domains for pending_op #{self._id.to_s} for user #{self.cloud_user.login}"
+    update_with_retries(5, failure_message) do |current_user, current_op, op_index|
+      CloudUser.where({ "_id" => current_user._id, "pending_ops.#{op_index}._id" => current_op._id }).update({"$addToSet" => { "pending_ops.#{op_index}.completed_domain_ids" => domain._id }})
+    end
+
+    reloaded_user = CloudUser.find_by(_id: self.cloud_user._id)
+    reloaded_op = reloaded_user.pending_ops.find_by(_id: self._id)
+    reloaded_op.set_state(:completed) if reloaded_op.completed?
+  end
+
+  # the new_state needs to be a symbol
+  def set_state(new_state)
+    failure_message = "Failed to set pending_op #{self._id.to_s} state to #{new_state.to_s} for user #{self.cloud_user.login}"
+    updated_op = update_with_retries(5, failure_message) do |current_user, current_op, op_index|
+      CloudUser.where({ "_id" => current_user._id, "pending_ops.#{op_index}._id" => current_op._id }).update({"$set" => { "pending_ops.#{op_index}.state" => new_state }})
+    end
+    
+    # set the state in the object in mongoid memory for access by the caller
+    self.state = updated_op.state
+  end
+
+  def update_with_retries(num_retries, failure_message, &block)
     retries = 0
     success = false
 
-    # find the op index and do an atomic update
-    op_index = self.cloud_user.pending_ops.index(self) 
-    while retries < 5
-      retval = CloudUser.where({ "_id" => self.cloud_user._id, "pending_ops.#{op_index}._id" => self._id }).update({"$addToSet" => { "pending_ops.#{op_index}.completed_domain_ids" => domain._id }})
+    current_op = self
+    current_user = self.cloud_user
 
-      # the op needs to be reloaded to either set the :state or to find the updated index
-      reloaded_user = CloudUser.find_by(_id: self.cloud_user._id)
-      current_op = reloaded_user.pending_ops.find_by(_id: self._id)
+    # find the op index and do an atomic update
+    op_index = current_user.pending_ops.index(current_op) 
+    while retries < num_retries
+      retval = block.call(current_user, current_op, op_index)
+
+      # the op needs to be reloaded to find the updated index
+      current_user = CloudUser.find_by(_id: current_user._id)
+      current_op = current_user.pending_ops.find_by(_id: current_op._id)
+      op_index = current_user.pending_ops.index(current_op)
+      retries += 1
+
       if retval["updatedExisting"]
-        current_op.set(:state, :completed) if current_op.completed?
         success = true
         break
-      else
-        op_index = reloaded_user.pending_ops.index(current_op)
-        retries += 1
       end
     end
 
     # log the details in case we cannot update the pending_op
     unless success
-      Rails.logger.error "Failed to add domain #{domain._id} to the completed_domains for pending_op #{self._id} for user #{self.cloud_user.login}"
+      Rails.logger.error(failure_message)
     end
+    
+    return current_op
   end
 
   def serializable_hash_with_timestamp
@@ -83,6 +107,8 @@ class PendingUserOps
     if self.updated_at.nil?
       s_hash["updated_at"] = t
     end
+    # need to set the _type attribute for MongoId to instantiate the appropriate class 
+    s_hash["_type"] = self.class.to_s unless s_hash["_type"]
     s_hash
   end
 end

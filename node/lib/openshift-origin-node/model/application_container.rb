@@ -18,6 +18,7 @@ require 'rubygems'
 require 'openshift-origin-node/model/frontend_proxy'
 require 'openshift-origin-node/model/frontend_httpd'
 require 'openshift-origin-node/model/v2_cart_model'
+require 'openshift-origin-node/model/node'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/application_container_ext/environment'
 require 'openshift-origin-node/model/application_container_ext/setup'
@@ -45,6 +46,9 @@ module OpenShift
     end
 
     class UserDeletionException < Exception
+    end
+
+    class GearCreationException < Exception
     end
 
     # == Application Container
@@ -160,7 +164,8 @@ module OpenShift
       #
       # - model/unix_user.rb
       # context: root
-      def create
+      # @param secret_token value of OPENSHIFT_SECRET_TOKEN for application
+      def create(secret_token = nil)
         output = ''
         notify_observers(:before_container_create)
         # lock to prevent race condition between create and delete of gear
@@ -169,10 +174,29 @@ module OpenShift
           uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           uuid_lock.flock(File::LOCK_EX)
 
-          @container_plugin = Containerization::Plugin.new(self)
-          @container_plugin.create
+          resource = OpenShift::Runtime::Node.resource_limits
+          no_overcommit_active = resource.get_bool('no_overcommit_active', false)
+          overcommit_lock_file = "/var/lock/oo-create.overcommit"
+          File.open(overcommit_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | overcommit_lock |
+            overcommit_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
 
-          output = generate_ssh_key
+            if no_overcommit_active
+              overcommit_lock.flock(File::LOCK_EX)
+
+              nu = OpenShift::Runtime::Node.node_utilization
+              if (nu['gears_active_usage_pct'] >= 100)
+                raise GearCreationException.new("ERROR: Node capacity exceeded, unable to create container #{@uuid}")
+              end
+            end
+
+            @container_plugin = Containerization::Plugin.new(self)
+            @container_plugin.create
+
+            overcommit_lock.flock(File::LOCK_UN) if no_overcommit_active
+
+            add_env_var('SECRET_TOKEN', secret_token, true) if secret_token
+            output = generate_ssh_key
+          end
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             unobfuscated = PathUtils.join(File.dirname(@container_dir),"#{@container_name}-#{@namespace}")
@@ -500,7 +524,7 @@ module OpenShift
       #
       def report_build_analytics
         broker_addr = @config.get('BROKER_HOST')
-        url         = "https://#{broker_addr}/broker/nurture"
+        url         = "https://#{broker_addr}/broker/analytics"
 
         payload = {
           "json_data" => {
@@ -575,6 +599,19 @@ module OpenShift
             end
           end
         end
+      end
+
+      ##
+      # Returns +true+ if the user's disk block usage meets or exceeds +max_percent+ of
+      # the configured block limit, otherwise +false+.
+      def disk_usage_exceeds?(max_percent)
+        raise "Percent must be between 1-100 (inclusive)" unless (1..100).member?(max_percent)
+
+        quota = OpenShift::Runtime::Node.get_quota(@uuid)
+
+        used_percent = ((quota[:blocks_used].to_f / quota[:blocks_limit].to_f) * 100.00).to_i
+
+        return used_percent >= max_percent
       end
 
       # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]

@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 0.1.1
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -36,7 +36,7 @@ Requires:      %{?scl:%scl_prefix}rubygem-uglifier
 Requires:      %{?scl:%scl_prefix}rubygem-therubyracer
 Requires:      rubygem-openshift-origin-common
 Requires:      rubygem-openshift-origin-controller
-Requires:      mcollective-client
+Requires:      %{?scl:%scl_prefix}mcollective-client
 Requires:      openshift-origin-broker
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
@@ -129,6 +129,35 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-0
+- Bump up version to 1.15
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Admin console design feedback css tweaks (jforrest@redhat.com)
+- Bug 1005733 - admin console stats y-label mis-aligned and mobile res x-labels
+  wrap badly (jforrest@redhat.com)
+- <capacity planning> review comments (jforrest@redhat.com)
+- <admin console> edge case on suggestion display (lmeyer@redhat.com)
+- <admin-console> tweaks to views (lmeyer@redhat.com)
+- <admin console> lower default active%% to 5 (lmeyer@redhat.com)
+- Bug 1004160 - admin console stats graphs fail to load with arg error
+  (jforrest@redhat.com)
+- <admin console> capacity planning (jforrest@redhat.com)
+- <admin stats> refactor and mods for admin console (lmeyer@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
+- fix old mirror url (tdawson@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.1.1-1
 - bump_minor_versions for sprint 32 (admiller@redhat.com)
 

@@ -21,7 +21,7 @@ external_pid_file = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_PID'] %>'
 #------------------------------------------------------------------------------
 listen_addresses = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_HOST'] %>'
 port = <%= ENV['OPENSHIFT_POSTGRESQL_DB_PORT'] %>
-max_connections = 10
+max_connections = 100
 unix_socket_directories  = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_SOCKET'] %>'
 unix_socket_permissions = 0700
 
@@ -31,13 +31,14 @@ unix_socket_permissions = 0700
 
 # - Memory -
 
-shared_buffers = 2MB
+shared_buffers = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 16 : 64 %>MB
 temp_buffers = 1MB
+work_mem = 3MB
 
 #------------------------------------------------------------------------------
 # QUERY TUNING
 #------------------------------------------------------------------------------
-effective_cache_size = 32
+effective_cache_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 40 : 186 %>MB
 
 #------------------------------------------------------------------------------
 # ERROR REPORTING AND LOGGING

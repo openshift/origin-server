@@ -1,0 +1,92 @@
+<html><body><pre>{
+  "api_version": 1.6,
+  "data": {
+    "certificate_added_at": "2013-08-26T00:00:00Z",
+    "has_private_ssl_certificate": true,
+    "id": "myalias",
+    "links": {
+      "GET": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases/myalias",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "Get alias",
+        "required_params": [
+
+        ]
+      },
+      "UPDATE": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases/myalias",
+        "method": "PUT",
+        "optional_params": [
+          {
+            "default_value": null,
+            "description": "Optional passphrase for the private key",
+            "name": "pass_phrase",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          }
+        ],
+        "rel": "Update alias",
+        "required_params": [
+          {
+            "description": "Content of SSL Certificate",
+            "invalid_options": [
+
+            ],
+            "name": "ssl_certificate",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "description": "Private key for the certificate.  Required if adding a certificate",
+            "invalid_options": [
+
+            ],
+            "name": "private_key",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          }
+        ]
+      },
+      "DELETE": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases/myalias",
+        "method": "DELETE",
+        "optional_params": [
+
+        ],
+        "rel": "Delete alias",
+        "required_params": [
+
+        ]
+      }
+    }
+  },
+  "messages": [
+    {
+      "exit_code": 0,
+      "field": null,
+      "severity": "info",
+      "text": "Updated myalias to application myapplication"
+    }
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "alias",
+  "version": "1.6"
+}</pre></body></html>

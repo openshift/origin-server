@@ -1,0 +1,71 @@
+<html><body><pre>{
+  "api_version": 1.6,
+  "data": [
+    {
+      "additional_gear_storage": 0,
+      "base_gear_storage": 1,
+      "cartridges": [
+        {
+          "name": "ruby-1.9",
+          "display_name": "Ruby 1.9",
+          "tags": [
+            "service",
+            "ruby",
+            "web_framework"
+          ]
+        },
+        {
+          "name": "haproxy-1.4",
+          "display_name": "OpenShift Web Balancer",
+          "tags": [
+            "web_proxy",
+            "scales",
+            "embedded"
+          ]
+        }
+      ],
+      "gear_profile": "small",
+      "gears": [
+        {
+          "id": "521bf818656c67309c000001",
+          "state": "started",
+          "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com",
+          "port_interfaces": [
+            {
+              "_id": "521bf82b656c674541000028",
+              "cartridge_name": "ruby-1.9",
+              "external_address": "54.243.5.227",
+              "external_port": "35536",
+              "internal_address": "127.0.250.129",
+              "internal_port": "8080"
+            }
+          ]
+        }
+      ],
+      "id": "521bf818656c674541000015",
+      "name": "521bf818656c674541000015",
+      "scales_from": 1,
+      "scales_to": -1
+    }
+  ],
+  "messages": [
+    {
+      "exit_code": 0,
+      "field": null,
+      "severity": "info",
+      "text": "Showing gear groups for application 'myapplication' with domain 'mydomain'"
+    }
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "gear_groups",
+  "version": "1.6"
+}</pre></body></html>

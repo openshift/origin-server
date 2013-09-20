@@ -34,6 +34,9 @@ begin
   when "restart"
     tc.restart
 
+  when "reload"
+    tc.restart
+
   when "startuser"
     tc.startuser(ARGV[1])
 
@@ -59,7 +62,7 @@ begin
     tc.show(ARGV[1])
 
   else
-    $stderr.puts "Usage: $0 {start|stop|restart|status [username]|startuser <username>|stopuser <username>|restartuser <username>|throttleuser <username>|nothrottleuser <username>|deluser <username>}"
+    $stderr.puts "Usage: #{__FILE__} {start|stop|restart|status [username]|startuser <username>|stopuser <username>|restartuser <username>|throttleuser <username>|nothrottleuser <username>|deluser <username>}"
     exit(1)
   end
 

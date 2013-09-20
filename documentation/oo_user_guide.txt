@@ -463,6 +463,14 @@ These scripts will be executed by the system directly. See link:oo_cartridge_dev
 ==== Cartridge Control Action Hooks
 Cartridges implement a standard set of named control actions which allow them to function within OpenShift. Each time OpenShift invokes one of these cartridge actions, a standard set of application action hooks are executed to give the application developer an opportunity to integrate more closely with specific cartridges.
 
+To use these hooks in your application create a file in:
+
+----
+<repository>/.openshift/action_hooks
+----
+
+with the same name as the event you want to trigger. All the hooks listed below are available to application developers as well cartridge developers. The order of execution will be first the platform/cartridge script and then the application developers.
+
 The following is a list of all possible action hooks executed in association with a single cartridge control action. For each control action, a set of `pre` and `post` action hooks surround the control action. In the action hook names, `{Name}` refers to the `Name` cartridge manifest element.
 
 * `start` control action:

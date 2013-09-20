@@ -13,7 +13,7 @@
 [\fB--listsubaccounts\fP] [\fB--addsubaccount\fP \fIsubaccount_login\fP]
 [\fB--removesubaccount\fP \fIsubaccount_login\fP] [\fB--allowsubaccounts\fP true|false]
 [\fB--addgearsize\fP \fIgear_size\fP] [\fB--removegearsize\fP \fIgear_size\fP]
-[\fB--inheritgearsizes\fP true|false]
+[\fB--inheritgearsizes\fP true|false] [\fB--allowha\fP true|false]
 [\fB--allowprivatesslcertificates\fP true|false]
 
 .fam T
@@ -75,6 +75,10 @@ Remove \fIgear_size\fP from the capability for this login user account.
 \fB--inheritgearsizes\fP true|false
 Allow or Diasllow inheritance of login user gearsizes capability to
 subaccounts.
+.TP
+.B
+\fB--allowha\fP true|false
+Add or Remove High Availability capability for this login user account.
 .TP
 .B
 \fB--allowprivatesslcertificates\fP true|false

@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.7.3
+Version: 2.9.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -75,6 +75,11 @@ mkdir -p /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main
 ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main
 cp -p %{cartridgedir}/versions/shared/modules/postgresql_module.xml /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main/module.xml
 
+# Do the same for the mysql connector.
+mkdir -p /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main
+ln -fs /usr/share/java/mysql-connector-java.jar /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main
+cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main/module.xml
+
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
@@ -86,6 +91,54 @@ cp -p %{cartridgedir}/versions/shared/modules/postgresql_module.xml /etc/alterna
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 2.8.5-1
+- Bug 1002893 - Added .jdbc to the mysql module name in JBossEAP
+  (mfojtik@redhat.com)
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 2.8.4-1
+- Merge pull request #3595 from mfojtik/bugzilla/1002893
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1002893 - Updated jbosseap cartridge to support mysql-connector
+  (mfojtik@redhat.com)
+- Bug 1005281 - EAP cartridge maps to specific EAP release
+  (bleanhar@redhat.com)
+
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 2.8.3-1
+- Merge pull request #3569 from brenton/BZ1005281
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1005281 - EAP cartridge maps to specific EAP release
+  (bleanhar@redhat.com)
+
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 2.8.2-1
+- Bug 1004927: Don't override JAVA_HOME in standalone.conf
+  (ironcladlou@gmail.com)
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 2.8.1-1
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 2.7.7-1
+- Merge pull request #3456 from tdawson/tdawson/fixmirrorfix/2013-08
+  (admiller@redhat.com)
+- change mirror.openshift.com to mirror1.ops.rhcloud.com for aws mirroring
+  (tdawson@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 2.7.6-1
+- Merge pull request #3455 from jwhonce/latest_cartridge_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 2.7.5-1
+- Merge pull request #3444 from dobbymoodge/fix_cart_names_card219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridge versions> origin_runtime_219, Fix up Display-Name: field in
+  manifests https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-
+  versions (jolamb@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 2.7.4-1
+- fix old mirror url (tdawson@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 2.7.3-1
 - Merge pull request #3279 from detiber/clientresult
   (dmcphers+openshiftbot@redhat.com)

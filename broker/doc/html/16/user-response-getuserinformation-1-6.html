@@ -1,0 +1,98 @@
+<html><body><pre>{
+  "api_version": 1.6,
+  "data": {
+    "capabilities": {
+      "subaccounts": false,
+      "gear_sizes": [
+        "small"
+      ],
+      "plan_upgrade_enabled": true,
+      "private_ssl_certificates": true,
+      "max_storage_per_gear": 20
+    },
+    "consumed_gears": 0,
+    "created_at": "2013-08-27T00:51:15Z",
+    "id": "521bf803656c674541000001",
+    "links": {
+      "ADD_KEY": {
+        "href": "https://openshift.redhat.com/broker/rest/user/keys",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Add new SSH key",
+        "required_params": [
+          {
+            "description": "Name of the key",
+            "invalid_options": [
+
+            ],
+            "name": "name",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "description": "Type of Key",
+            "invalid_options": [
+
+            ],
+            "name": "type",
+            "type": "string",
+            "valid_options": [
+              "ssh-rsa",
+              "ssh-dss",
+              "ssh-rsa-cert-v01@openssh.com",
+              "ssh-dss-cert-v01@openssh.com",
+              "ssh-rsa-cert-v00@openssh.com",
+              "ssh-dss-cert-v00@openssh.com"
+            ]
+          },
+          {
+            "description": "The key portion of an rsa key (excluding ssh-rsa and comment)",
+            "invalid_options": [
+
+            ],
+            "name": "content",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          }
+        ]
+      },
+      "LIST_KEYS": {
+        "href": "https://openshift.redhat.com/broker/rest/user/keys",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "List SSH keys",
+        "required_params": [
+
+        ]
+      }
+    },
+    "login": "first.last@mycompany.com",
+    "max_gears": 3,
+    "plan_id": "free",
+    "plan_state": "ACTIVE",
+    "usage_account_id": null
+  },
+  "messages": [
+
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "user",
+  "version": "1.6"
+}</pre></body></html>

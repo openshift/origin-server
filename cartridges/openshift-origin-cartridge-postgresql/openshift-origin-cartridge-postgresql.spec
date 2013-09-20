@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 0.6.3
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -100,6 +100,29 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 0.7.3-1
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 0.7.2-1
+- Bump up PostgreSQL memory parameters (asari.ruby@gmail.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.7.1-1
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.6.6-1
+- Merge pull request #3455 from jwhonce/latest_cartridge_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.6.5-1
+- move update config to setup (dmcphers@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.6.4-1
+- Adjust interval before considering auto scale down (dmcphers@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.6.3-1
 - Merge pull request #3354 from dobbymoodge/origin_runtime_219
   (dmcphers+openshiftbot@redhat.com)

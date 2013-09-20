@@ -3,12 +3,11 @@ module OpenShift
     module ApplicationContainerExt
       module Environment
 
-        USER_VARIABLE_MAX_COUNT = 25
-        USER_VARIABLE_MAX_SIZE = 512
-        RESERVED_VARIABLE_NAMES = [
-                                   'OPENSHIFT_PRIMARY_CARTRIDGE_DIR', 'OPENSHIFT_NAMESPACE', 'PATH',
-                                   'IFS', 'USER', 'SHELL', 'HOSTNAME', 'LOGNAME'
-                                  ]
+        USER_VARIABLE_MAX_COUNT      = 25
+        USER_VARIABLE_NAME_MAX_SIZE  = 128
+        USER_VARIABLE_VALUE_MAX_SIZE = 512
+        RESERVED_VARIABLE_NAMES      = %w(OPENSHIFT_PRIMARY_CARTRIDGE_DIR OPENSHIFT_NAMESPACE PATH IFS USER SHELL HOSTNAME LOGNAME)
+        ALLOWED_OVERRIDES            = %w(OPENSHIFT_SECRET_TOKEN)
 
         # Public: Add an environment variable to a given gear.
         #
@@ -271,14 +270,17 @@ module OpenShift
           variables.each_pair do |name, value|
             path = PathUtils.join(@container_dir, '.env', name)
 
-            if File.exists?(path) ||
+            if !ALLOWED_OVERRIDES.include?(name) && (File.exists?(path) ||
                 name =~ /\AOPENSHIFT_.*_IDENT\Z/ ||
-                RESERVED_VARIABLE_NAMES.include?(name)
+                RESERVED_VARIABLE_NAMES.include?(name))
               return 127, "CLIENT_ERROR: #{name} cannot be overridden"
             end
 
-            if value.to_s.length > USER_VARIABLE_MAX_SIZE
-              return 127, "CLIENT_ERROR: #{name} value exceeds maximum size of #{USER_VARIABLE_MAX_SIZE}b"
+            if name.to_s.length > USER_VARIABLE_NAME_MAX_SIZE
+              return 127, "CLIENT_ERROR: name '#{name}' exceeds maximum size of #{USER_VARIABLE_NAME_MAX_SIZE}b"
+            end
+            if value.to_s.length > USER_VARIABLE_VALUE_MAX_SIZE
+              return 127, "CLIENT_ERROR: '#{name}' value exceeds maximum size of #{USER_VARIABLE_VALUE_MAX_SIZE}b"
             end
           end
 
@@ -290,7 +292,7 @@ module OpenShift
             set_ro_permission(path)
           end
 
-          return user_var_push(gears) unless gears.empty?
+          return user_var_push(gears, true) unless gears.empty?
           return 0, ''
         end
 
@@ -307,11 +309,12 @@ module OpenShift
         end
 
         # update user environment variable(s) on other gears
-        def user_var_push(gears)
+        def user_var_push(gears, env_add=false)
           output, gear_dns, threads = '', '', {}
           target  = PathUtils.join('.env', 'user_vars').freeze
           source  = PathUtils.join(@container_dir, target).freeze
-          return 0, '' unless File.directory?(source) and !(Dir.entries(source) - %w{. ..}).empty?
+          return 0, '' unless File.directory?(source)
+          return 0, '' if env_add and (Dir.entries(source) - %w{. ..}).empty?
 
           begin
             gears.each do |gear|

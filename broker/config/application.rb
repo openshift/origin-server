@@ -7,7 +7,8 @@ require "rails/test_unit/railtie"
 
 # If you have a Gemfile, require the gems listed there, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(*Rails.groups(:default, :assets => %w(development test))) if defined?(Bundler) 
+Bundler.require(:default, :assets, Rails.env) if defined?(Bundler)
+
 
 module Broker
   class Application < Rails::Application
@@ -18,7 +19,7 @@ module Broker
     # Set logs to somewhere more standard
     config.paths['log'] =  ENV['RAILS_LOG_PATH'] ||
                               "/var/log/openshift/broker/#{Rails.env}.log"
-                                     
+
     # Custom directories with classes and modules you want to be autoloadable.
     # config.autoload_paths += %W(#{config.root}/extras)
 
@@ -46,5 +47,15 @@ module Broker
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
     config.autoload_paths += %W(#{config.root}/lib)
+
+    Mongoid.logger.level = Logger::WARN
+    Moped.logger.level = Logger::WARN
+
+    # Enable the asset pipeline in all environments
+    config.assets.enabled = true
+
+    # Version of your assets, change this if you want to expire all your assets
+    config.assets.version = '1.0'
+
   end
 end

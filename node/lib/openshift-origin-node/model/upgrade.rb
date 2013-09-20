@@ -13,6 +13,7 @@ require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/upgrade_progress'
 require 'openshift-origin-node/utils/upgrade_itinerary'
+require 'openshift-origin-node/utils/hourglass'
 require 'openshift-origin-common'
 require 'net/http'
 require 'uri'
@@ -63,25 +64,28 @@ module OpenShift
       @@gear_extension_present = false
       gear_extension_path = OpenShift::Config.new.get('GEAR_UPGRADE_EXTENSION')
       if gear_extension_path && File.exists?("#{gear_extension_path}.rb")
-        require gear_extension_path
-        @@gear_extension_present = true
+        @@gear_extension_present = require gear_extension_path
+        raise "#{gear_extension_path} exists and failed to load" unless @@gear_extension_present
       end
 
-      attr_reader :uuid, :namespace, :version, :hostname, :ignore_cartridge_version, :gear_home, :gear_env, :progress, :container, :gear_extension, :config
+      attr_reader :uuid, :application_uuid, :namespace, :version, :hostname, :ignore_cartridge_version,
+                  :gear_home, :gear_env, :progress, :container, :gear_extension, :config, :hourglass
 
-      def initialize(uuid, namespace, version, hostname, ignore_cartridge_version)
+      def initialize(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, hourglass = nil)
         @uuid = uuid
+        @application_uuid = application_uuid
         @namespace = namespace
         @version = version
         @hostname = hostname
         @ignore_cartridge_version = ignore_cartridge_version
         @config = OpenShift::Config.new
+        @hourglass = hourglass || OpenShift::Runtime::Utils::Hourglass.new(235)
 
         gear_base_dir = @config.get('GEAR_BASE_DIR')
         @gear_home = PathUtils.join(gear_base_dir, uuid)
         @gear_env = Utils::Environ.for_gear(gear_home)
         @progress = Utils::UpgradeProgress.new(gear_base_dir, gear_home, uuid)
-        @container = ApplicationContainer.from_uuid(uuid)
+        @container = ApplicationContainer.from_uuid(uuid, @hourglass)
         @gear_extension = nil
       end
 
@@ -138,6 +142,7 @@ module OpenShift
 
         begin
           start_time = timestamp
+          result[:times][:start_time] = start_time
           restart_time = 0
 
           progress.log "Beginning #{version} upgrade for #{uuid}"
@@ -202,14 +207,15 @@ module OpenShift
           extension_version = OpenShift::GearUpgradeExtension.version
 
           if version != extension_version
-            raise "Version mismatch between supplied release version (#{version}) and extension version (#{extension_version}"
+            progress.log "Version mismatch between supplied release version (#{version}) and extension version (#{extension_version})"
+            return  
           end
         rescue NameError => e
           raise "Unable to resolve OpenShift::GearUpgradeExtension: #{e.message}"
         end
 
         begin
-          @gear_extension = OpenShift::GearUpgradeExtension.new(uuid, gear_home)
+          @gear_extension = OpenShift::GearUpgradeExtension.new(self)
         rescue Exception => e
           raise "Unable to instantiate gear upgrade extension: #{e.message}\n#{e.backtrace}"
         end
@@ -271,7 +277,7 @@ module OpenShift
         progress.step "compute_itinerary" do |context, errors|
           itinerary            = OpenShift::Runtime::UpgradeItinerary.new(gear_home)
           state                = OpenShift::Runtime::Utils::ApplicationState.new(container)
-          cartridge_model      = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, OpenShift::Runtime::Utils::Hourglass.new(235))
+          cartridge_model      = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, hourglass)
           cartridge_repository = OpenShift::Runtime::CartridgeRepository.instance
 
           cartridge_model.each_cartridge do |manifest|
@@ -338,7 +344,7 @@ module OpenShift
         progress.log "Migrating gear at #{gear_home}"
 
         state                = OpenShift::Runtime::Utils::ApplicationState.new(container)
-        cartridge_model      = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, OpenShift::Runtime::Utils::Hourglass.new(235))
+        cartridge_model      = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, hourglass)
         cartridge_repository = OpenShift::Runtime::CartridgeRepository.instance
         restart_required     = false
         restart_time         = 0
@@ -460,6 +466,7 @@ module OpenShift
         OpenShift::Runtime::CartridgeRepository.overlay_cartridge(next_manifest, target)
 
         FileUtils.rm_f container.processed_templates(next_manifest)
+        FileUtils.rm_f Dir.glob(PathUtils.join(target, 'env', '*.erb'))
         progress.log "Removed ERB templates for #{next_manifest.name}"
 
         cart_model.unlock_gear(next_manifest) do |m|
@@ -609,8 +616,6 @@ module OpenShift
         progress.log "Starting gear on node '#{hostname}'"
 
         progress.step 'start_gear' do |context, errors|
-          container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
-
           begin
             output = container.start_gear(user_initiated: false)
             progress.log "Start gear output: #{output}"
@@ -640,10 +645,10 @@ module OpenShift
 
           if preupgrade_state.value != 'stopped' && preupgrade_state.value != 'idle'
             state  = OpenShift::Runtime::Utils::ApplicationState.new(container)
-            cart_model = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, OpenShift::Runtime::Utils::Hourglass.new(235))
+            cart_model = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, hourglass)
 
-            # only validate via http query on the head gear
-            if cart_model.primary_cartridge && (container.uuid == container.application_uuid)
+            # only validate via http query one of the primary gears (has a git repo)
+            if cart_model.primary_cartridge && cart_model.has_repository?
               env = OpenShift::Runtime::Utils::Environ.for_gear(gear_home)
 
               dns = env['OPENSHIFT_GEAR_DNS']
@@ -652,6 +657,11 @@ module OpenShift
               num_tries = 1
               while true do
                 http = Net::HTTP.new(uri.host, uri.port)
+                http.read_timeout = hourglass.remaining
+                http.open_timeout = hourglass.remaining
+                http.ssl_timeout = hourglass.remaining
+                http.continue_timeout = hourglass.remaining
+
                 request = Net::HTTP::Get.new(uri.request_uri)
 
                 begin

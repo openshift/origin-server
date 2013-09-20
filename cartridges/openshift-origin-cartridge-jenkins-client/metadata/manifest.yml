@@ -1,31 +1,36 @@
+---
 Name: jenkins-client
 Cartridge-Short-Name: JENKINS_CLIENT
-Display-Name: Jenkins Client 1
-Description: "The Jenkins client connects to your Jenkins application and enables builds and testing of your application. Requires the Jenkins Application to be created via the new application page."
+Display-Name: Jenkins Client
+Description: The Jenkins client connects to your Jenkins application and enables builds
+  and testing of your application. Requires the Jenkins Application to be created
+  via the new application page. Based on Jenkins Client 1.509+
 Version: '1'
 License: ASL 2.0
-Cartridge-Version: 0.0.2
-Compatible-Versions: [0.0.1]
+Cartridge-Version: 0.0.3
+Compatible-Versions:
+- 0.0.1
+- 0.0.2
 Cartridge-Vendor: redhat
 Categories:
-  - ci_builder
-  - embedded
+- ci_builder
+- embedded
 Cart-Data:
-  - Key: "job_url"
-    Type: cart_data
-    Description: "URL for the build job submitted on jenkins server"
+- Key: job_url
+  Type: cart_data
+  Description: URL for the build job submitted on jenkins server
 Website: http://www.jenkins-ci.org
 Help-Topics:
-  "Developer Center": https://www.openshift.com/developers
+  Developer Center: https://www.openshift.com/developers
 Provides:
-  - "jenkins-client-1"
-  - "jenkins-client"
-Publishes:
-Subscribes:
+- jenkins-client-1
+- jenkins-client
+Publishes: 
+Subscribes: 
 Group-Overrides:
-  - components:
-    - jenkins-client-1
-    - web_proxy    
+- components:
+  - jenkins-client-1
+  - web_proxy
 Scaling:
   Min: 1
   Max: 1

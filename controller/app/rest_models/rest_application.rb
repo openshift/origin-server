@@ -79,6 +79,10 @@ class RestApplication < OpenShift::Model
     self.embedded = {}
     app.requires(true).each do |feature|
       cart = CartridgeCache.find_cartridge(feature, app)
+
+      # raise an exception in case the application cartridge is not found
+      raise OpenShift::OOException.new("The application '#{app.name}' requires '#{feature}' but a matching cartridge could not be found") if cart.nil?
+
       if cart.is_web_framework?
         self.framework = cart.name
       else
@@ -88,7 +92,7 @@ class RestApplication < OpenShift::Model
 
     self.name = app.name
     self.creation_time = app.created_at
-    self.id = app.uuid
+    self.id = app._id
     self.aliases = []
     app.aliases.each do |a|
       self.aliases << RestAlias.new(app, a, url, nolinks)
@@ -157,9 +161,7 @@ class RestApplication < OpenShift::Model
 
       self.links = {
         "GET" => Link.new("Get application", "GET", URI::join(url, "applications/#{@id}")),
-        "GET_BY_NAME" => Link.new("Get application by name", "GET", URI::join(url, "domains/#{app.domain_namespace}/applications/#{@name}")),
         "GET_DESCRIPTOR" => Link.new("Get application descriptor", "GET", URI::join(url, "applications/#{@id}/descriptor")),
-        #"GET_GEARS" => Link.new("Get application gears", "GET", URI::join(url, "applications/#{@id}/gears")),
         "GET_GEAR_GROUPS" => Link.new("Get application gear groups", "GET", URI::join(url, "applications/#{@id}/gear_groups")),
         "START" => Link.new("Start application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "start")
@@ -167,11 +169,11 @@ class RestApplication < OpenShift::Model
         "STOP" => Link.new("Stop application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "stop")
         ]),
-        "RESTART" => Link.new("Restart application", "POST", URI::join(url, "applications/#{@id}/events"), [
-          Param.new("event", "string", "event", "restart")
-        ]),
         "FORCE_STOP" => Link.new("Force stop application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "force-stop")
+        ]),
+        "RESTART" => Link.new("Restart application", "POST", URI::join(url, "applications/#{@id}/events"), [
+          Param.new("event", "string", "event", "restart")
         ]),
         "SCALE_UP" => Link.new("Scale up application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "scale-up")
@@ -188,9 +190,8 @@ class RestApplication < OpenShift::Model
         "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "thread-dump")
         ]),
-        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "applications/#{@id}")),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "applications/#{@id}/cartridges"),[
-            Param.new("name", "string", "framework-type, e.g.: mongodb-2.0", carts)
+            Param.new("name", "string", "Name of the cartridge, e.g. mongodb-2.2", carts)
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
             OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),
@@ -214,7 +215,12 @@ class RestApplication < OpenShift::Model
           OptionalParam.new("value", "string", "Value of the environment variable"),
           OptionalParam.new("environment_variables", "array", "Add/Update/Delete application environment variables, e.g. Add/Update: [{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}], Delete: [{'name':'FOO'}, {'name':'BAR'}]")
         ]),
-        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "applications/#{@id}/environment-variables"))
+        "ADD_ENVIRONMENT_VARIABLE" => Link.new("Add an environment variable", "POST", URI::join(url, "applications/#{@id}/environment-variables"), [
+          Param.new("name", "string", "Name of the environment variable"),
+          Param.new("value", "string", "Value of the environment variable")
+        ]),
+        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "applications/#{@id}/environment-variables")),
+        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "applications/#{@id}"))
       }
     end
   end

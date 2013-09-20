@@ -6,6 +6,7 @@ require 'getoptlong'
 require 'stringio'
 require 'set'
 require 'json'
+require 'thread'
 require 'thor'
 
 module OpenShift
@@ -140,6 +141,7 @@ module OpenShift
       attr_accessor :login,
                     :app_name,
                     :gear_uuid,
+                    :hostname,
                     :version,
                     :errors,
                     :warnings,
@@ -236,7 +238,8 @@ class Upgrader
 
     upgrade_result = OpenShift::Upgrader::ClusterUpgradeResult.new
 
-    start_time = (Time.now.to_f * 1000).to_i
+    start_time = current_time
+    upgrade_result.times["start"] = start_time
 
     # only rebuild the queues and meta if none exists
     if File.exists?(cluster_metadata_path)
@@ -276,71 +279,70 @@ class Upgrader
       puts "#####################################################"
     end
 
+    # build a work queue that ensures active gears are processed across all
+    # nodes prior to any inactive gears being upgraded
+    work_queue = Queue.new
+    node_queue.each {|node| work_queue << { node: node, active_only: true }}
+    
     node_threads = []
-    mutex = Mutex.new
-    starting_nodes = node_queue.shift(max_threads)
-    starting_nodes.each_with_index do |node, index|
-      server_identity = node.server_identity
-      upgrade_result.gear_counts[index] = node.gears_length
-      upgrade_result.gear_count += node.gears_length
+    completed_node_count = 0
+
+    # consume the work across the max number of threads
+    max_threads.times do |thread_num|
       node_threads << Thread.new do
-        # perform the node upgrade
-        begin
-          upgrade_node(server_identity)
-        rescue => e
-          puts e.message
-          puts e.backtrace.join("\n")
-        end
-
-        upgrade_result.incomplete_node_queue << node if node_has_remaining_work?(server_identity)
-
-        # get the next available node to process
-        while !node_queue.empty? do
-          server_identity = nil
-          mutex.synchronize do
-            unless node_queue.empty?
-              node = node_queue.delete_at(0)
-              server_identity = node.server_identity
-              upgrade_result.gear_counts[index] += node.gears_length
-              upgrade_result.gear_count += node.gears_length
-              puts "#####################################################"
-              puts "Remaining node queue:"
-              puts node_queue.pretty_inspect
-              puts "#####################################################"
-            end
+        while completed_node_count != node_queue.length
+          begin
+            work = work_queue.pop(true)
+          rescue ThreadError => e
+            # wait for more work
+            sleep 1
+            next
           end
-          # perform the node upgrade
-          if server_identity
-            begin
-              upgrade_node(server_identity)
-            rescue => e
-              puts e.message
-              puts e.backtrace
-            end
 
-            upgrade_result.incomplete_node_queue << node if node_has_remaining_work?(server_identity)
+          node = work[:node]
+          active_only = work[:active_only]
+
+          upgrade_result.gear_counts[thread_num] = node.gears_length
+
+          # perform the node upgrade
+          begin
+            upgrade_node(node.server_identity, active_only)
+          rescue Exception => e
+            puts e.message
+            puts e.backtrace.join("\n")
+          end
+
+          # queue the remaining (inactive) work for the node if we
+          # already did a pass at just the active gears
+          if active_only && File.exists?(gear_queue_path(node.server_identity))
+            work_queue << { node: node, active_only: false }
+          else
+            completed_node_count += 1
+            upgrade_result.gear_count += node.gears_length
+            puts "#{completed_node_count} of #{node_queue.length} nodes completed"
           end
         end
       end
     end
 
     # wait for all the threads to finish
-    node_threads.each do |t|
-      t.join
-    end
+    node_threads.each {|t| t.join}
 
     # rewrite the node queue with any leftover work
+    node_queue.each do |node|
+      upgrade_result.incomplete_node_queue << node if node_has_remaining_work?(node.server_identity)
+    end
+
     puts "Writing updated node queue to #{node_queue_path}"
-    incomplete_node_queue = upgrade_result.incomplete_node_queue + node_queue
 
     timestamp = Time.now.strftime("%Y-%m-%d-%H%M%S")
     FileUtils.mv(node_queue_path, "#{node_queue_path}-#{timestamp}")
     FileUtils.touch node_queue_path
-    incomplete_node_queue.each do |node|
+    upgrade_result.incomplete_node_queue.each do |node|
       append_to_file(node_queue_path, node.to_json)
     end
 
-    upgrade_result.times["total"] = (Time.now.to_f * 1000).to_i - start_time
+    upgrade_result.times["total"] = current_time - start_time
 
     # print a report
     puts build_text_summary(upgrade_result)
@@ -390,12 +392,12 @@ class Upgrader
     metadata = OpenShift::Upgrader::ClusterMetadata.new
 
     puts "Getting all active gears..."
-    gather_active_gears_start_time = (Time.now.to_f * 1000).to_i
+    gather_active_gears_start_time = current_time
     active_gears_map = OpenShift::ApplicationContainerProxy.get_all_active_gears
-    metadata.times["gather_active_gears_total_time"] = (Time.now.to_f * 1000).to_i - gather_active_gears_start_time
+    metadata.times["gather_active_gears_total_time"] = current_time - gather_active_gears_start_time
 
     puts "Getting all logins..."
-    gather_users_start_time = (Time.now.to_f * 1000).to_i
+    gather_users_start_time = current_time
     query = {"group_instances.gears.0" => {"$exists" => true}}
     options = {:fields => [ "uuid",
                 "domain_id",
@@ -454,7 +456,7 @@ class Upgrader
       end
     end
 
-    metadata.times["gather_users_total_time"] = (Time.now.to_f * 1000).to_i - gather_users_start_time
+    metadata.times["gather_users_total_time"] = current_time - gather_users_start_time
 
     position = upgrade_position - 1
     if num_upgraders > 1
@@ -560,7 +562,7 @@ class Upgrader
   # The upgrade logic will continue or retry failures depending on the presence of the appropriate
   # gear queue files, and will do nothing if there are no queues to process.
   #
-  def upgrade_node(server_identity)
+  def upgrade_node(server_identity, active_only)
     raise "No server identity specified" unless server_identity
 
     gear_queue_file = gear_queue_path(server_identity)
@@ -589,7 +591,7 @@ class Upgrader
 
     # fork the call to +upgrade_node_from_gear_queue_file+ (TODO: revisit this later; the
     # fork is apparently used to work around long-forgotten MCollective threading issues)
-    upgrade_node_cmd = "#{__FILE__} upgrade-from-file --upgrade-file '#{gear_queue_file}'"
+    upgrade_node_cmd = "#{__FILE__} upgrade-from-file --upgrade-file '#{gear_queue_file}' --active-only #{active_only}"
     execute_script(upgrade_node_cmd)
   end
 
@@ -610,12 +612,13 @@ class Upgrader
   # This method returns nothing; callers must inspect the result file contents for
   # upgrade details.
   #
-  def upgrade_node_from_gear_queue_file(file)
-    while true
-      queue_entry_json = File.open(file, &:gets)
-      break if queue_entry_json.nil? || queue_entry_json.empty?
+  def upgrade_node_from_gear_queue_file(file, active_only = false)
+    File.open(file, 'r').each_line do |queue_entry_json|
+      next if queue_entry_json.nil? || queue_entry_json.empty?
 
       gear = OpenShift::Upgrader::GearQueueEntry.from_json(queue_entry_json)
+
+      next if active_only && !gear.active
 
       log_file = log_file_path(gear.server_identity)
       results_file = results_file_path(gear.server_identity)
@@ -653,7 +656,7 @@ class Upgrader
 
         # if not, throw a warning and move on
         unless user && Application.find_by_user(user, gear.app_name)
-          gear_result[:warnings] << "App '#{gear.app_name}' no longer found in datastore with uuid '#{gear.gear_uuid}'.  Ignoring..." 
+          gear_result.warnings << "App '#{gear.app_name}' no longer found in datastore with uuid '#{gear.gear_uuid}'.  Ignoring..." 
           append_to_file(results_file, gear_result.to_json)
           break
         end
@@ -662,8 +665,19 @@ class Upgrader
         sleep 4
       end
 
-      # the gear has been processed; delete the entry from the file
-      `sed -i '1,1d' #{file}`
+      # The gear has been processed; delete the entry from the file. Inefficient, but
+      # it only happens between upgrades which are measured in minutes, and the last
+      # non-skipped gear should be near the head of the file anyway. Consider using
+      # a database rather than a flat file at a later time.
+      gear_line = 1
+      File.open(file, 'r').each_line do |line|
+        gear_to_delete = OpenShift::Upgrader::GearQueueEntry.from_json(line)
+        if gear_to_delete.gear_uuid == gear.gear_uuid
+          `sed -i '#{gear_line},#{gear_line}d' #{file}`
+          break
+        end
+        gear_line += 1
+      end
     end
 
     # double-check to ensure all lines were processed, and remove
@@ -689,7 +703,7 @@ class Upgrader
       version: version
     })
 
-    total_upgrade_gear_start_time = (Time.now.to_f * 1000).to_i
+    total_upgrade_gear_start_time = current_time
 
     begin
       user = nil
@@ -707,51 +721,53 @@ class Upgrader
 
       if app && gear
         server_identity = gear.server_identity
+        gear_result.hostname = server_identity
+
+        remote_result_json = nil
+        remote_output = nil
+        response_processed = false
+
+        upgrade_on_node_start_time = current_time
 
         Timeout::timeout(420) do
-          output = ''
-          exit_code = 1
-          remote_result_json = nil
-
-          upgrade_on_node_start_time = (Time.now.to_f * 1000).to_i
-
           OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
             client.upgrade(:uuid => gear_uuid,
                            :namespace => app.domain.namespace,
+                           :app_uuid => app.uuid,
                            :version => version,
                            :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
-              exit_code = response[:body][:data][:exitcode]
               remote_result_json = response[:body][:data][:upgrade_result_json]
+              remote_output = response[:body][:data][:output]
+              response_processed = true
             end
           end
+        end
 
-          gear_result.remote_upgrade_result = JSON.load(remote_result_json) if remote_result_json
-          gear_result.remote_exit_code = exit_code
+        if response_processed
+          if remote_result_json.nil?
+            gear_result.errors << "No upgrade result JSON was returned in the upgrade response. The outcome of the upgrade request is unknown. "\
+                                  "The following output was returned: #{remote_output}"
+          else
+            gear_result.remote_upgrade_result = JSON.load(remote_result_json)
 
-          if gear_result.remote_upgrade_result
             unless gear_result.remote_upgrade_result['upgrade_complete']
               gear_result.errors << "Gear upgrade result is marked incomplete"
             end
-          else
-            gear_result.errors << "Gear upgrade response absent from MCollective reply"
           end
-
-          upgrade_on_node_time = (Time.now.to_f * 1000).to_i - upgrade_on_node_start_time
-
-          gear_result.times["time_upgrade_on_node_measured_from_broker"] = upgrade_on_node_time
-
-          if exit_code != 0
-            raise "Remote upgrade returned nonzero exit code: #{exit_code}"
-          end
+        else
+          gear_result.errors << "The MCollective upgrade execution didn't explicitly fail, but the response handler was not invoked. "\
+                                "The outcome of the upgrade request is unknown."
         end
+
+        gear_result.times["time_upgrade_on_node_measured_from_broker"] = current_time - upgrade_on_node_start_time
       end
     rescue Timeout::Error => e
-      gear_result.errors << "Remote upgrade timed out"
-    rescue => e
-      gear_result.errors << "Upgrade failed: #{e.message}\n#{e.backtrace.join("\n")}"
+      gear_result.errors << "Timed out waiting on a response from the MCollective upgrade call"
+    rescue Exception => e
+      gear_result.errors << "Upgrade failed with an unhandled exception: #{e.message}\n#{e.backtrace.join("\n")}"
     end
 
-    total_upgrade_gear_time = (Time.now.to_f * 1000).to_i - total_upgrade_gear_start_time
+    total_upgrade_gear_time = current_time - total_upgrade_gear_start_time
     gear_result.times["time_total_upgrade_gear_measured_from_broker"] = total_upgrade_gear_start_time
 
     gear_result
@@ -915,6 +931,10 @@ class Upgrader
     end
     return output, exitcode
   end
+
+  def current_time
+    (Time.now.to_f * 1000).to_i
+  end
 end
 
 class UpgraderCli < Thor
@@ -967,9 +987,10 @@ class UpgraderCli < Thor
 
   desc "upgrade-from-file", "Upgrades gears from a gear queue file"
   method_option :upgrade_file, :type => :string, :required => true, :desc => "The gear queue file to upgrade from"
+  method_option :active_only, :type => :boolean, :default => false, :desc => "Skip inactive gears when processing the file"
   def upgrade_from_file
     with_upgrader do |upgrader|
-      upgrader.upgrade_node_from_gear_queue_file(options.upgrade_file)
+      upgrader.upgrade_node_from_gear_queue_file(options.upgrade_file, options.active_only?)
     end
   end
 

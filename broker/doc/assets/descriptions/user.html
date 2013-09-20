@@ -1,0 +1,24 @@
+This resource provides information that allow a client to manage OpenShift user account information.
+<br />
+The table below describes each parameter associated with a user account.
+<br />
+<table border="1">
+<tr><td>Name</td><td>Description</td></tr>
+<tr><td>capabilities</td><td> Map of user capabilities. See the table below for user capabilities.</td></tr>
+<tr><td>consumed_gears </td><td>Total number of gears consumed by all applications owned by user.</td></tr>
+<tr><td>login   </td><td>Account user name.</td></tr>
+<tr><td>max_gears   </td><td>Maximum number of gears available to the specified user.</td></tr>
+<tr><td>plan_id   </td><td>Subscription plan of the specified user.</td></tr>
+<tr><td>plan_state  </td><td>State of the account for the specified user. </td></tr>
+</table>
+<br />
+The table below further describes each available capability for the user. 
+<br />
+<table border="1">
+<tr><td>Name</td><td>Description</td></tr>
+<tr><td>plan_upgrade_enabled  </td><td>Indicates whether the user is on an upgraded plan.</td></tr>
+<tr><td>subaccounts   </td><td>Indicates whether the user has the ability to create subaccounts.</td></tr>
+<tr><td>gear_sizes  </td><td>Available gear sizes depending on the type of plan.</td></tr>
+<tr><td>max_storage_per_gear  </td><td>Maximum storage in gigabytes available per gear to the specified user.</td></tr>
+<tr><td>private_ssl_certificates</td><td>Whether the user can add their own private SSL certificates</td></tr>
+</table>

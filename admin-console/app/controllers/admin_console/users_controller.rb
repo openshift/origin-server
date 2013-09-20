@@ -1,5 +1,3 @@
-require_dependency "admin_console/application_controller"
-
 module AdminConsole
   class UsersController < ApplicationController
     def show

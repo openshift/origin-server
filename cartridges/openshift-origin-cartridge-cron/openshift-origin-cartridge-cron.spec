@@ -2,7 +2,7 @@
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron
-Version: 1.11.2
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -37,6 +37,24 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- Bug 1005305 - The cron cartridge should support scaled applications
+  (bleanhar@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
+- openshift-origin-cartridge-cron: stop the cartridge only if started during a
+  restart (mmahut@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
 - Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
   Unnecessary messages from mongodb cartridge (jhonce@redhat.com)

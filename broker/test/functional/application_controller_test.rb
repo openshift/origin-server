@@ -66,6 +66,12 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :ok
   end
 
+  test "list applications in a non-lowercased domain" do
+    Domain.find_or_create_by(namespace: "abcD", owner: @user)
+    get :index, :domain_id => 'abcD'
+    assert_response :success
+  end
+
   test "attempt to create without create_application permission" do
     @app_name = "app#{@random}"
     scopes = Scope::Scopes.new
@@ -168,8 +174,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridges" => [PHP_VERSION, "ruby-1.9"], "domain_id" => @domain.namespace}
     assert_response :unprocessable_entity
   end
-  
-  
+
   test "get application in all version" do
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}

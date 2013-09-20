@@ -1,7 +1,6 @@
 #!/usr/bin/python -tt
 
 import sys, os
-import syslog
 import pwd
 import syslog
 import glob

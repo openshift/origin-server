@@ -10,10 +10,11 @@
           = navigation_tab 'admin_console/index', :action => :index, :name => "Overview"
           = navigation_tab 'admin_console/search', :action => :index, :name => "Search"
           = navigation_tab 'admin_console/stats', :action => :index, :name => "Stats"
+          = navigation_tab 'admin_console/suggestions', :action => :index, :name => "Suggestions"
 
         %form{:class => "navbar-search pull-right", :method => "GET", :action => search_path}
           %div{:class => "input-append input-prepend"}
-            %select{:name => "scope"}
+            %select.span2{:name => "scope"}
               %option{:value => "user"}
                 User
               %option{:value => "application"}
@@ -23,6 +24,6 @@
               %option{:value => "gear"}
                 Gear
 
-            %input{:type => "text", :class => "search-query", :placeholder => "search by id", :name => "query"}
+            %input{:type => "text", :class => "search-query", :placeholder => "search", :name => "query"}
             %button{:type => "submit", :class => "btn"}
               %span{:class => "icon-search"}

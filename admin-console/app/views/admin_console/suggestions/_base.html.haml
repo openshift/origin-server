@@ -1,0 +1,23 @@
+- show_sug = suggestion.class.to_s.sub('Admin::Suggestion::', '') 
+.lead
+  &= show_sug
+- case size
+- when :short  # just the basic facts about the suggestion
+  %div
+    A suggestion of unexpected type
+    &= show_sug
+    was generated. Only raw details are available.
+
+- when :full  # the full monty
+  %p
+    A suggestion of unexpected type
+    &= show_sug
+    was generated. Only raw details are available.
+  %p
+    This may be a suggestion type that is under development.
+    If so, developers should also add a view mapping and partial for this type.
+  %p
+    The suggestion contains the following raw values:
+    - require 'pp'
+    %pre
+      &= suggestion.pretty_inspect

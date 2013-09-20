@@ -1,0 +1,557 @@
+<html><body><pre>{
+  "api_version": 1.6,
+  "data": {
+    "aliases": [
+
+    ],
+    "app_url": "http://myapplication-mydomain.dev.rhcloud.com/",
+    "build_job_url": null,
+    "building_app": null,
+    "building_with": null,
+    "creation_time": "2013-08-27T00:51:36Z",
+    "domain_id": "mydomain",
+    "embedded": {
+      "haproxy-1.4": {
+      }
+    },
+    "framework": "ruby-1.9",
+    "gear_count": 1,
+    "gear_profile": "small",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "health_check_path": "health",
+    "id": "521bf818656c67309c000001",
+    "initial_git_url": null,
+    "links": {
+      "GET": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "Get application",
+        "required_params": [
+
+        ]
+      },
+      "GET_DESCRIPTOR": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/descriptor",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "Get application descriptor",
+        "required_params": [
+
+        ]
+      },
+      "GET_GEAR_GROUPS": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/gear_groups",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "Get application gear groups",
+        "required_params": [
+
+        ]
+      },
+      "START": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Start application",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "start"
+            ]
+          }
+        ]
+      },
+      "STOP": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Stop application",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "stop"
+            ]
+          }
+        ]
+      },
+      "FORCE_STOP": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Force stop application",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "force-stop"
+            ]
+          }
+        ]
+      },
+      "RESTART": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Restart application",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "restart"
+            ]
+          }
+        ]
+      },
+      "SCALE_UP": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Scale up application",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "scale-up"
+            ]
+          }
+        ]
+      },
+      "SCALE_DOWN": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Scale down application",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "scale-down"
+            ]
+          }
+        ]
+      },
+      "TIDY": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Tidy the application framework",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "tidy"
+            ]
+          }
+        ]
+      },
+      "RELOAD": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Reload the application",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "reload"
+            ]
+          }
+        ]
+      },
+      "THREAD_DUMP": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Trigger thread dump",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "thread-dump"
+            ]
+          }
+        ]
+      },
+      "ADD_CARTRIDGE": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges",
+        "method": "POST",
+        "optional_params": [
+          {
+            "default_value": null,
+            "description": "The component to colocate with",
+            "name": "colocate_with",
+            "type": "string",
+            "valid_options": [
+              "ruby-1.9",
+              "haproxy-1.4"
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Minimum number of gears to run the component on.",
+            "name": "scales_from",
+            "type": "integer",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Maximum number of gears to run the component on.",
+            "name": "scales_to",
+            "type": "integer",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Additional GB of space to request on all gears running this component.",
+            "name": "additional_storage",
+            "type": "integer",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "A URL to a downloadable cartridge.",
+            "name": "url",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]",
+            "name": "environment_variables",
+            "type": "array",
+            "valid_options": [
+
+            ]
+          }
+        ],
+        "rel": "Add embedded cartridge",
+        "required_params": [
+          {
+            "description": "Name of the cartridge, e.g. mongodb-2.2",
+            "invalid_options": [
+
+            ],
+            "name": "name",
+            "type": "string",
+            "valid_options": [
+              "mock-plugin-0.1",
+              "cron-1.4",
+              "phpmyadmin-4",
+              "rockmongo-1.1",
+              "switchyard-0",
+              "metrics-0.1",
+              "10gen-mms-agent-0.1",
+              "mysql-5.1",
+              "haproxy-1.4",
+              "postgresql-9.2",
+              "postgresql-8.4",
+              "mongodb-2.2",
+              "jenkins-client-1"
+            ]
+          }
+        ]
+      },
+      "LIST_CARTRIDGES": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "List embedded cartridges",
+        "required_params": [
+
+        ]
+      },
+      "DNS_RESOLVABLE": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/dns_resolvable",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "Resolve DNS",
+        "required_params": [
+
+        ]
+      },
+      "ADD_ALIAS": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases",
+        "method": "POST",
+        "optional_params": [
+          {
+            "default_value": null,
+            "description": "Content of SSL Certificate",
+            "name": "ssl_certificate",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Private key for the certificate.  Required if adding a certificate",
+            "name": "private_key",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Optional passphrase for the private key",
+            "name": "pass_phrase",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          }
+        ],
+        "rel": "Create new alias",
+        "required_params": [
+          {
+            "description": "Alias for application",
+            "invalid_options": [
+
+            ],
+            "name": "id",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          }
+        ]
+      },
+      "LIST_ALIASES": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "List application aliases",
+        "required_params": [
+
+        ]
+      },
+      "LIST_MEMBERS": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/members",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "List members of this application",
+        "required_params": [
+
+        ]
+      },
+      "SET_UNSET_ENVIRONMENT_VARIABLES": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables",
+        "method": "POST",
+        "optional_params": [
+          {
+            "default_value": null,
+            "description": "Name of the environment variable to add/update",
+            "name": "name",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Value of the environment variable",
+            "name": "value",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Add/Update/Delete application environment variables, e.g. Add/Update: [{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}], Delete: [{'name':'FOO'}, {'name':'BAR'}]",
+            "name": "environment_variables",
+            "type": "array",
+            "valid_options": [
+
+            ]
+          }
+        ],
+        "rel": "Add/Update/Delete one or more environment variables",
+        "required_params": [
+
+        ]
+      },
+      "ADD_ENVIRONMENT_VARIABLE": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Add an environment variable",
+        "required_params": [
+          {
+            "description": "Name of the environment variable",
+            "invalid_options": [
+
+            ],
+            "name": "name",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "description": "Value of the environment variable",
+            "invalid_options": [
+
+            ],
+            "name": "value",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          }
+        ]
+      },
+      "LIST_ENVIRONMENT_VARIABLES": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "List all environment variables",
+        "required_params": [
+
+        ]
+      },
+      "DELETE": {
+        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001",
+        "method": "DELETE",
+        "optional_params": [
+
+        ],
+        "rel": "Delete application",
+        "required_params": [
+
+        ]
+      }
+    },
+    "members": [
+      {
+        "explicit_role": null,
+        "from": [
+          {
+            "type": "domain",
+            "role": "admin"
+          }
+        ],
+        "id": "521bf803656c674541000001",
+        "name": "first.last@mycompany.com",
+        "owner": true,
+        "role": "admin",
+        "type": "user"
+      }
+    ],
+    "name": "myapplication",
+    "scalable": true,
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
+  },
+  "messages": [
+    {
+      "exit_code": 0,
+      "field": null,
+      "severity": "info",
+      "text": "Application myapplication has stopped"
+    }
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "application",
+  "version": "1.6"
+}</pre></body></html>

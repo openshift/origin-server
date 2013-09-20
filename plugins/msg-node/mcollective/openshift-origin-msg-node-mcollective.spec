@@ -3,14 +3,16 @@
     %global scl_prefix ruby193-
     %global vendor_ruby /opt/rh/%{scl}/root/usr/share/ruby/vendor_ruby/
     %global mco_agent_root /opt/rh/%{scl}/root/usr/libexec/mcollective/mcollective/agent/
+    %global update_yaml_root /opt/rh/ruby193/root/usr/libexec/mcollective/
 %else
     %global vendor_ruby /usr/share/ruby/vendor_ruby/
     %global mco_agent_root /usr/libexec/mcollective/mcollective/agent/
+    %global update_yaml_root /usr/libexec/mcollective/
 %endif
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.13.6
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -20,7 +22,7 @@ Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem-open4
 Requires:      %{?scl:%scl_prefix}rubygem-json
 Requires:      rubygem-openshift-origin-node
-Requires:      mcollective
+Requires:      %{?scl:%scl_prefix}mcollective
 Requires:      %{?scl:%scl_prefix}facter
 Requires:      openshift-origin-msg-common
 BuildArch:     noarch
@@ -42,15 +44,62 @@ mkdir -p %{buildroot}/usr/libexec/mcollective
 cp -p src/openshift.rb %{buildroot}%{mco_agent_root}
 cp -p facts/openshift_facts.rb %{buildroot}%{vendor_ruby}facter/
 cp -p facts/openshift-facts %{buildroot}/etc/cron.minutely/
-cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
+cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 
 %files
 %{mco_agent_root}openshift.rb
 %{vendor_ruby}facter/openshift_facts.rb
-%attr(0700,-,-) /usr/libexec/mcollective/update_yaml.rb
+%attr(0700,-,-) %{update_yaml_root}/update_yaml.rb
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
+- Improve upgrade MCollective response handling (ironcladlou@gmail.com)
+
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Allow for the mcollective node agent to be extended (jforrest@redhat.com)
+
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- Merge pull request #3311 from detiber/runtime_card_213
+  (dmcphers+openshiftbot@redhat.com)
+- <runtime> Card origin_runtime_213: realtime node_utilization checks
+  (jdetiber@redhat.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Merge pull request #3486 from jwhonce/bug/1000580
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1000580 - Reduce quota precision (jhonce@redhat.com)
+- Bug 1000193: Use an Hourglass in the gear upgrader (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Merge pull request #3452 from pravisankar/dev/ravi/bug998905
+  (dmcphers+openshiftbot@redhat.com)
+- Added environment variable name limitations  - Limit length to 128 bytes.  -
+  Allow letters, digits and underscore but can't begin with digit
+  (rpenta@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- fix bug 999144 - check gear_file against uid map (rchopra@redhat.com)
+- Bug 998794 - Allow blank value for a user environment variable
+  (rpenta@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3418 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 994419 (lnader@redhat.com)
+- Merge pull request #3410 from pravisankar/dev/ravi/card86
+  (dmcphers+openshiftbot@redhat.com)
+- User vars node changes:  - Use 'user-var-add' mcollective call for *add*
+  and/or *push* user vars. This will reduce unnecessary additional
+  code/complexity.  - Add some more reserved var names: PATH, IFS, USER, SHELL,
+  HOSTNAME, LOGNAME  - Do not attempt rsync when .env/user_vars dir is empty  -
+  Misc bug fixes (rpenta@redhat.com)
+- WIP Node Platform - Add support for settable user variables
+  (jhonce@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
 - Bug 995599 - Add lock when building cartridge repository (jhonce@redhat.com)
 

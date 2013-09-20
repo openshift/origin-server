@@ -73,13 +73,13 @@ level = args["--level"].to_i || 0
 verbose = args["--verbose"]
 usage if args["--help"]
 
-def datastore_has_gear?(gear_uuid, app_uuid=nil, false_positive_response=true)
+def datastore_has_gear?(gear_uuid, app_id=nil, false_positive_response=true)
   $false_positive_check_cnt += 1
   if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
-    # specifying the app_uuid first, if present
+    # specifying the app_id first, if present
     # this makes better use of the indexes and performance is better 
-    if app_uuid
-      query = { "uuid" => app_uuid }
+    if app_id
+      query = { "_id" => app_id }
     else
       query = {}
     end
@@ -112,7 +112,7 @@ end
 
 def get_user_info(user, level=0)
   user_ssh_keys = {}
-  user["ssh_keys"].each { |k| user_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if user["ssh_keys"]
+  user["ssh_keys"].each { |k| user_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if user["ssh_keys"]
   user_info = {"consumed_gears" => user["consumed_gears"], "domains" => {}, "login" => user["login"], "ssh_keys" => user_ssh_keys,
                "max_untracked_addtl_storage_per_gear" => user["capabilities"]["max_untracked_addtl_storage_per_gear"],
                "plan_id" => user["plan_id"], "plan_state" => user["plan_state"], "usage_account_id" => user["usage_account_id"],
@@ -178,7 +178,10 @@ def assign_usage_hash(urec, gear_hash, storage_hash, cart_hash, summary, verbose
     hash[gear_id]['num_begin_recs'] = 0
     hash[gear_id]['num_end_recs'] = 0
   end
-  hash[gear_id]['app_name'] = urec['app_name']
+  if hash[gear_id]['created_at'].nil? or (urec['created_at'] > hash[gear_id]['created_at'])
+    hash[gear_id]['app_name'] = urec['app_name']
+    hash[gear_id]['created_at'] = urec['created_at']
+  end
   if urec['event'] == UsageRecord::EVENTS[:end]
     hash[gear_id]['num_end_recs'] += 1
   else
@@ -187,6 +190,9 @@ def assign_usage_hash(urec, gear_hash, storage_hash, cart_hash, summary, verbose
   if urec['cart_name']
     hash[gear_id]['cart_name'] = [] unless hash[gear_id]['cart_name']
     hash[gear_id]['cart_name'] << urec['cart_name']
+  end
+  if urec['addtl_fs_gb']
+    hash[gear_id]['addtl_fs_gb'] = urec['addtl_fs_gb']
   end
 end
 
@@ -241,7 +247,7 @@ if level >= 1
     domain_hash[domain["_id"].to_s] = owner_id
     domain_namespace_hash[domain["_id"].to_s] = domain['canonical_namespace']
     system_ssh_keys = {}
-    domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if domain["system_ssh_keys"]
+    domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if domain["system_ssh_keys"]
 
     if !user_hash[owner_id]
       OpenShift::DataStore.find(:cloud_users, {"_id" => domain["owner_id"]}, user_selection_primary) do |user|
@@ -275,7 +281,7 @@ if level >= 1 and $districts_enabled
   end
 end
 
-app_selection = {:fields => ["name", "uuid", "created_at", "domain_id", "group_instances.gears._id",
+app_selection = {:fields => ["name", "created_at", "domain_id", "group_instances.gears._id",
                              "group_instances.gears.uuid", "group_instances.gears.uid", "group_instances.gears.server_identity",
                              "group_instances._id", "component_instances._id", "component_instances.cartridge_name",
                              "component_instances.group_instance_id", "app_ssh_keys.name", "app_ssh_keys.content",
@@ -290,7 +296,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   creation_time = app['created_at']
   domain_id = app['domain_id'].to_s
   app_ssh_keys = {}
-  app['app_ssh_keys'].each { |k| app_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if app['app_ssh_keys']
+  app['app_ssh_keys'].each { |k| app_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if app['app_ssh_keys']
 
   if level >= 1
     owner_id = domain_hash[domain_id]
@@ -353,7 +359,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   app['group_instances'].each do |gi|
     gi['gears'].each do |gear|
       gear_count += 1
-      datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"], app_ssh_keys ]
+      datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["_id"].to_s, app_ssh_keys ]
 
       if level >= 1 and $districts_enabled
         # record all used uid values for each node to match later with the district
@@ -370,7 +376,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       gid = gi['_id'].to_s
       gi_hash[gid] = {}
       gi_hash[gid]['premium_carts'] = []
-      gi_hash[gid]['addtl_fs_gb'] = false
+      gi_hash[gid]['addtl_fs_gb'] = 0
     end
     # Get premium carts for the group instance
     premium_carts = get_premium_carts
@@ -395,7 +401,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
           if ci['cartridge_name'] == go_components['cart']
             gid = ci['group_instance_id'].to_s
             gi_hash[gid] = {} unless gi_hash[gid]
-            gi_hash[gid]['addtl_fs_gb'] = true
+            gi_hash[gid]['addtl_fs_gb'] = go['additional_filesystem_gb']
             found = true
             break
           end
@@ -468,19 +474,19 @@ datastore_hash.each do |gear_uuid, gear_info|
   login = gear_info[0]
   creation_time = gear_info[1]
   server_identity = gear_info[3]
-  app_uuid = gear_info[4]
+  app_id = gear_info[4]
   db_sshkeys = gear_info[5]
   print "#{gear_uuid} : #{gear_uuid.class}...\t" if verbose
   if (current_time - creation_time) > 600
     if not node_hash.has_key? gear_uuid
       if gear_sender_hash.has_key? server_identity
-        if datastore_has_gear?(gear_uuid, app_uuid, false)
+        if datastore_has_gear?(gear_uuid, app_id, false)
           puts "FAIL" if verbose
           summary << "Gear #{gear_uuid} does not exist on any node"
         elsif verbose
           puts "OK"
         end
-      elsif datastore_has_gear?(gear_uuid, app_uuid, false)
+      elsif datastore_has_gear?(gear_uuid, app_id, false)
         non_responding_nodes[server_identity] = 0 unless non_responding_nodes.has_key? server_identity
         non_responding_nodes[server_identity] += 1
         puts "FAIL" if verbose
@@ -715,8 +721,8 @@ if level >= 1 and $billing_enabled
   usage_storage_hash = {}
   usage_cart_hash = {}
   # Populate usage hash: Only for un-ended usage records
-  selection = {:fields => ["app_name", "gear_id", "event", "usage_type", "cart_name"],
-               :sort => [["time", 1]], :timeout => false}
+  selection = {:fields => ["app_name", "created_at", "gear_id", "event", "usage_type", "cart_name", "addtl_fs_gb"],
+               :timeout => false}
   OpenShift::DataStore.find(:usage_records, {}, selection) do |urec|
     assign_usage_hash(urec, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose)
   end
@@ -766,10 +772,13 @@ if level >= 1 and $billing_enabled
 
   # Find applications with additional storage but not in usage_records and viceversa.
   app_storage_hash = {}
-  gear_id_hash.each { |gear_id, gear_info| app_storage_hash[gear_id] = gear_info if gear_info[2] }
+  gear_id_hash.each { |gear_id, gear_info| app_storage_hash[gear_id] = gear_info if gear_info[2]!=0 }
   app_storage_gear_ids = app_storage_hash.keys
   usage_storage_gear_ids = usage_storage_hash.keys
   missing_storage_gear_ids = (usage_storage_gear_ids - app_storage_gear_ids) + (app_storage_gear_ids - usage_storage_gear_ids)
+  (app_storage_gear_ids & usage_storage_gear_ids).each do |gear_id|
+    missing_storage_gear_ids << gear_id if app_storage_hash[gear_id][2] != usage_storage_hash[gear_id]['addtl_fs_gb']
+  end
   puts "Checking gears with additional storage in applications collection but not in usage_records and viceversa: " + ((missing_storage_gear_ids.length > 0) ? "FAIL" : "OK") if verbose
 
   missing_storage_gear_ids.each do |gear_id|
@@ -781,7 +790,7 @@ if level >= 1 and $billing_enabled
     end
     query['group_instances.gears._id'] = Moped::BSON::ObjectId(gear_id)
     app = Application.where(query).first
-    app_storage_exists = false
+    app_storage = 0
     group_inst = nil
     app.group_instances.each do |gi|
       gi.gears.each do |gear|
@@ -792,30 +801,33 @@ if level >= 1 and $billing_enabled
       end
       break if group_inst
     end if app
-    app_storage_exists = true if group_inst and (group_inst.addtl_fs_gb != 0)
+    app_storage = group_inst.addtl_fs_gb if group_inst and (group_inst.addtl_fs_gb != 0)
 
     query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:addtl_fs_gb]}
-    selection = {:fields => ["event"], :timeout => false}
-    num_end_events = num_begin_events = 0
+    selection = {:fields => ["event", "addtl_fs_gb"], :timeout => false}
+    num_end_events = num_begin_events = addtl_fs_gb = 0
     OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
       next if !UsageRecord::EVENTS.values.include?(urec['event'])
       if urec['event'] == UsageRecord::EVENTS[:end]
         num_end_events += 1
       else
+        addtl_fs_gb = urec['addtl_fs_gb']
         num_begin_events += 1
       end
     end
-    usage_storage_exists = (num_begin_events > num_end_events)
+    usage_storage = (num_begin_events > num_end_events)
 
-    if app_storage_exists and usage_storage_exists
+    if usage_storage and (app_storage > 0) and (app_storage == addtl_fs_gb)
       # Ignore, false alarm
       puts "OK" if verbose
     else
       puts "FAIL" if verbose
-      if app_storage_exists
-        summary << "Found addtl storage for gear Id '#{gear_id}' but could not find corresponding usage record."
-      else
+      if app_storage == 0
         summary << "Found usage record for addtl storage with gear Id '#{gear_id}' but could not find corresponding gear with addtl storage in the application."
+      elsif !usage_storage
+        summary << "Found addtl storage for gear Id '#{gear_id}' but could not find corresponding usage record."
+      else # app_storage != addtl_fs_gb
+        summary << "Found addtl storage mismatch for gear Id '#{gear_id}', #{addtl_fs_gb} in usage record vs #{app_storage} for corresponding gear in the application."
       end
     end
   end

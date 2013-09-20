@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.13.4
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -42,7 +42,6 @@ BuildRequires: %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
-BuildRequires: %{?scl:%scl_prefix}rubygem-yard
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
 
@@ -77,7 +76,6 @@ gem install -V \
 %install
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
-mkdir -p %{buildroot}/%{gem_instdir}/.yardoc
 
 %if 0%{?scl:1}
 mkdir -p %{buildroot}%{_root_sbindir}
@@ -96,7 +94,6 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %dir %{gem_instdir}
 %doc %{gem_instdir}/LICENSE
 %doc %{gem_instdir}/COPYRIGHT
-%doc %{gem_instdir}/.yardoc
 %doc %{gem_instdir}/Gemfile
 %doc %{gem_instdir}/Rakefile
 %doc %{gem_instdir}/README.md
@@ -120,6 +117,28 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Bump up version (tdawson@redhat.com)
+
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-0
+- Bump up version to 1.15
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Merge pull request #3104 from Miciah/rubygem-openshift-origin-common-drop-
+  rubygem-yard-dependency (dmcphers+openshiftbot@redhat.com)
+- Handle .resultset.json (dmcphers@redhat.com)
+- Drop spurious yard dependency from common pkg (miciah.masters@gmail.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Merge pull request #3435 from
+  smarterclayton/bug_997848_capabilities_not_shown_via_api
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3327 from Miciah/oo-diagnostics-add-
+  test_node_containerization_plugin (dmcphers+openshiftbot@redhat.com)
+- Bug 997848 - Inherited capabilities not in REST API (ccoleman@redhat.com)
+- oo-diagnostics: test_node_containerization_plugin (miciah.masters@gmail.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
 - Merge pull request #3373 from pmorie/bugs/997158
   (dmcphers+openshiftbot@redhat.com)

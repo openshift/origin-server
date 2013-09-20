@@ -52,6 +52,7 @@ class CloudUser
 
   scope :with_plan, any_of({:plan_id.ne => nil}, {:pending_plan_id.ne => nil}) 
   index({:login => 1}, {:unique => true})
+  index({'pending_ops.created_at' => 1})
 
   scope :with_identity_id, lambda{ |id| where(login: id) }
   scope :with_identity, lambda{ |provider, uid| with_identity_id(uid) }
@@ -187,7 +188,8 @@ class CloudUser
   # domains/application that the user has access to.
   def add_ssh_key(key)
     if persisted?
-      pending_op = PendingUserOps.new(op_type: :add_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: self.domains.map{|d|d._id.to_s}, created_at: Time.new)
+      #pending_op = PendingUserOps.new(op_type: :add_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: self.domains.map{|d|d._id.to_s}, created_at: Time.new)
+      pending_op = AddSshKeysUserOp.new(keys_attrs: [key.to_key_hash()])
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp , ssh_keys: key.serializable_hash }})
       reload.run_jobs
     else
@@ -207,7 +209,8 @@ class CloudUser
   def remove_ssh_key(name)
     if persisted?
       key = self.ssh_keys.find_by(name: name)
-      pending_op = PendingUserOps.new(op_type: :delete_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: self.domains.map{|d|d._id.to_s}, created_at: Time.new)
+      #pending_op = PendingUserOps.new(op_type: :delete_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: self.domains.map{|d|d._id.to_s}, created_at: Time.new)
+      pending_op = RemoveSshKeysUserOp.new(keys_attrs: [key.to_key_hash()])
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp } , "$pull" => { ssh_keys: key.serializable_hash }})
       reload.run_jobs
     else
@@ -217,6 +220,7 @@ class CloudUser
 
   def default_capabilities
     {
+      "ha" => false,
       "subaccounts" => false,
       "gear_sizes" => Rails.application.config.openshift[:default_gear_capabilities],
       "max_gears" => Rails.application.config.openshift[:default_max_gears],
@@ -241,6 +245,15 @@ class CloudUser
     def [](key)
       @inherited[key] || super
     end
+    def deep_dup
+      __getobj__.deep_dup.merge!(@inherited.deep_dup)
+    end
+    def to_hash
+      deep_dup
+    end
+    def serializable_hash
+      to_hash
+    end
   end
 
   #
@@ -258,6 +271,10 @@ class CloudUser
       @capability_proxy = nil if caps != @capability_proxy
       @capability_proxy ||= CapabilityProxy.new(caps, inherited_capabilities)
     end
+  end
+
+  def ha
+    return capabilities["ha"] || false
   end
 
   def max_gears
@@ -337,12 +354,7 @@ class CloudUser
           next
         end
 
-        case op.op_type
-        when :add_ssh_key
-          Application.accessible(self).each{ |app| app.add_ssh_keys(self._id, [UserSshKey.new.to_obj(op.arguments)], nil) }
-        when :delete_ssh_key
-          Application.accessible(self).each{ |app| app.remove_ssh_keys(self._id, [UserSshKey.new.to_obj(op.arguments)], nil) }
-        end
+        op.execute
 
         # reloading the op reloads the cloud_user and then incorrectly reloads (potentially)
         # the op based on its position within the pending_ops list
@@ -350,8 +362,10 @@ class CloudUser
         self.reload
         op = self.pending_ops.find_by(_id: op_id)
 
+        # FIXME: We are assuming that the op is complete at this point.
+        # Need to use on_applications and completed_applications to figure out completion 
         op.close_op
-        op.delete if op.completed?
+        op.delete
       end
       true
     rescue Exception => ex

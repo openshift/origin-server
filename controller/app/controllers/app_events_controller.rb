@@ -8,7 +8,7 @@ class AppEventsController < BaseController
 
   ##
   # API to perform manage an application
-  # 
+  #
   # URL: /domains/:domain_id/applications/:application_id/events
   #
   # Action: POST
@@ -34,11 +34,11 @@ class AppEventsController < BaseController
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
                         "alias") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
     return render_error(:unprocessable_entity, "Reached gear limit of #{@cloud_user.max_gears}", 104) if (event == 'scale-up') && (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-    
+
     if @application.quarantined && ['scale-up', 'scale-down'].include?(event)
-      return render_upgrade_in_progress            
+      return render_upgrade_in_progress
     end
-      
+
     msg = "Sent #{event} to application #{@application.name}"
 
     case event
@@ -68,6 +68,10 @@ class AppEventsController < BaseController
       authorize! :destroy_alias, @application
       r = @application.remove_alias(server_alias)
       msg = "Application #{@application.name} has removed alias"
+    when "make-ha"
+      authorize! :make_ha, @application
+      r = @application.make_ha
+      msg = "Application #{@application.name} is now ha"
     when "scale-up"
       authorize! :scale_cartridge, @application
       web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,@application).categories.include?("web_framework") }.first
@@ -101,8 +105,8 @@ class AppEventsController < BaseController
 
     @application.reload
     app = get_rest_application(@application)
-    
-    if !r.errorIO.string.empty?     
+
+    if !r.errorIO.string.empty?
       return render_error(r.hasUserActionableError ? :unprocessable_entity : :internal_server_error, "Error occured while processing event '#{event}':#{r.errorIO.string.chomp}",
                           r.exitcode)
     end

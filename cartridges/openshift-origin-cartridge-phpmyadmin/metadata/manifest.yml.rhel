@@ -1,44 +1,45 @@
+---
 Name: phpmyadmin
 Cartridge-Short-Name: PHPMYADMIN
-Display-Name: phpMyAdmin 3
-Description: "Web based MySQL admin tool. Requires the MySQL cartridge to be installed first."
-Version: 3
+Display-Name: phpMyAdmin 4.0
+Description: Web based MySQL admin tool. Requires the MySQL cartridge to be installed
+Version: '4'
 License: GPLv2
 Vendor: Red Hat
-Cartridge-Version: 0.0.3
-Compatible-Versions: [0.0.2]
+Cartridge-Version: 0.0.5
 Cartridge-Vendor: redhat
-Website: "http://www.phpmyadmin.net/"
+Website: http://www.phpmyadmin.net/
 Categories:
-  - embedded
+- embedded
 Cart-Data:
-  - Key: connection_url
-    Type: cart_data
-    Description: "phpMyAdmin connection URL"
+- Key: connection_url
+  Type: cart_data
+  Description: phpMyAdmin connection URL
 Provides:
-  - phpmyadmin-3
-  - "phpmyadmin"
+- phpmyadmin-4
+- phpmyadmin
 Publishes:
   get-serve-info:
-    Type: "NET_TCP:db-config:url"
+    Type: NET_TCP:db-config:url
 Subscribes:
   set-db-connection-info:
-    Type: "NET_TCP:db:connection-info"
+    Type: NET_TCP:db:connection-info
     Required: false
   set-mysql-connection-info:
-    Type: "NET_TCP:db:mysql"
-    Required : true
+    Type: NET_TCP:db:mysql
+    Required: true
 Scaling:
   Min: 1
   Max: 1
 Configure-Order:
-  - mysql
-  - phpmyadmin
+- mysql
+- phpmyadmin
 Endpoints:
-  - Private-IP-Name:   IP
-    Private-Port-Name: PORT
-    Private-Port:      8080
-    Public-Port-Name:  PROXY_PORT
-    Mappings:
-      - Frontend:      "/phpmyadmin"
-        Backend:       "/phpmyadmin"
+- Private-IP-Name: IP
+  Private-Port-Name: PORT
+  Private-Port: 8080
+  Public-Port-Name: PROXY_PORT
+  Mappings:
+  - Frontend: /phpmyadmin
+    Backend: /phpmyadmin
+Compatible-Versions: []

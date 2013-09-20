@@ -9,10 +9,10 @@ require 'dnsruby'
 
 # Controller cartridge command paths
 $cartridge_root = '/usr/libexec/openshift/cartridges'
-$controller_config_path = "oo-app-create"
+$controller_config_path = "oo-devel-node app-create"
 $controller_config_format = "#{$controller_config_path} -c '%s' -a '%s' --with-namespace '%s' --with-app-name '%s'"
-$controller_deconfig_path = "oo-app-destroy"
-$controller_deconfig_format = "#{$controller_deconfig_path} -c '%s' -a '%s' --with-namespace '%s' --with-app-name '%s'"
+$controller_deconfig_path = "oo-devel-node app-destroy"
+$controller_deconfig_format = "#{$controller_deconfig_path} -c '%s'"
 $home_root = "/var/lib/openshift"
 
 # --------------------------------------------------------------------------
@@ -59,7 +59,8 @@ Given /^a new gear with namespace "([^\"]*)" and app name "([^\"]*)"$/ do |names
   }
 
   command = $controller_config_format % [acctname, acctname, namespace, name]
-  runcon(command, $selinux_user, $selinux_role, $selinux_type)
+  rc = runcon(command, $selinux_user, $selinux_role, $selinux_type)
+  assert_equal(0, rc, "#{command} failed with #{rc}")
 
   # get and store the account UID's by name
   @account['uid'] = Etc.getpwnam(acctname).uid
@@ -113,10 +114,7 @@ end
 When /^I delete the guest account$/ do
   # call /usr/libexec/openshift/cartridges  @table.hashes.each do |row|
   
-  command = $controller_deconfig_format % [@account['accountname'],
-                                           @account['accountname'],
-                                           @account['namespace'],
-                                           @account['appnames'][0]]
+  command = $controller_deconfig_format % [@account['accountname']]
   runcon(command, $selinux_user, $selinux_role, $selinux_type)
 
 end
@@ -328,8 +326,10 @@ end
 
 Then /^a traffic control entry should( not)? exist$/ do |negate|
   acctname = @account['accountname']
-  tc_format = 'tc -s class show dev eth0 classid 1:%s'
-  tc_command = tc_format % (netclass @account['uid'])
+  netdev = `source /etc/openshift/node.conf; echo $EXTERNAL_ETH_DEV 2>/dev/null`.chomp
+  netdev = "eth0" if netdev.empty?
+  tc_format = 'tc -s class show dev %s classid 1:%s'
+  tc_command = tc_format % [netdev, (netclass @account['uid'])]
   result = `#{tc_command}`
   if negate
     result.should be == ""

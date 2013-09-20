@@ -1,0 +1,42 @@
+This chapter provides information on API resources that allow a client to manage OpenShift cartridges. Cartridges are the components of an OpenShift application, and include databases, build systems, and management capabilities. Adding a cartridge to an application provides the desired capability without requiring you to administer or update the included feature. T here are two types of cartridges available with OpenShift: standalone and embedded.
+
+<h4>Standalone Cartridges</h4>
+
+Standalone cartridges allow you to choose from a variety of programming languages and frameworks for developing your application. Every application requires a framework cartridge. Examples include PHP, JBoss, and Ruby.
+
+The table below describes each parameter associated with both standalone and embedded cartridges.
+<br />
+<table border=1>
+<tr><td>Name</td><td>Description</td></tr>
+<tr><td>name</td><td>Name of the cartridge.</td></tr>
+<tr><td>version</td><td>Version of the packaged software in the cartridge.</td></tr>
+<tr><td>license</td><td>License of the packaged software in the cartridge.</td></tr>
+<tr><td>license_url</td><td>URL of the license file for the packaged software in the cartridge.</td></tr>
+<tr><td>website</td><td>Website URL for the packaged software in the cartridge.</td></tr>
+<tr><td>help_topics</td><td>Map of topics and associated URLs that can provide help on how to use and configure the cartridge.</td></tr>
+<tr><td>display_name</td><td>Formatted name of the cartridge for user interfaces.</td></tr>
+<tr><td>description</td><td>Description of the cartridge for user interfaces.</td></tr>
+<tr><td>current_scale</td><td>Current number of gears used to run the cartridge.</td></tr>
+<tr><td>scales_from</td><td>Minimum number of gears that a cartridge can scale to; once reached, scale_down requests are rejected. Cannot be less than the supported_scales_from value.</td></tr>
+<tr><td>scales_to</td><td>Maximum number of gears that a cartridge can scale to; once reached, scale_up requests are rejected. Cannot be greater than the supported_scales_to value.</td></tr>
+<tr><td>scales_with</td><td>Names of other cartridges that scale with this cartridge and run on the same set of gears; currently only HAProxy-1.4 is available.</td></tr>
+<tr><td>supported_scales_from</td><td>Minimum number of gears supported by the cartridge; the scales_from value cannot be less than this number.</td></tr>
+<tr><td>supported_scales_to</td><td>Maximum number of gears supported by the cartridge; the scales_to value cannot be greater than this number.</td></tr>
+<tr><td>tags</td><td>Array of tags associated with the cartridge.</td></tr>
+<tr><td>usage_rates</td><td>Plan usage costs.</td></tr>
+<tr><td>status_messages</td><td>Status messages returned back by the cartridge.</td></tr>
+</table>
+
+<h4>Embedded Cartridges</h4>
+<br />
+Embedded cartridges provide extended functionality to OpenShift applications. Examples include MySQL, MongoDB, and phpMyAdmin.
+The table below describes each parameter associated with only embedded cartridges.
+<br />
+<table border=1>
+<tr><td>Name</td><td>Description</td></tr>
+<tr><td>additional_gear_storage</td><td>Set additional filesystem storage in gigabytes for the gear profile that the cartridge is running on.</td></tr>
+<tr><td>base_gear_storage</td><td>Default basic storage in gigabytes associated with the gear profile that the cartridge is running on.</td></tr>
+<tr><td>collocated_with</td><td>Array of names of other cartridges that share the same gear(s) with the cartridge.</td></tr>
+<tr><td>gear_profile</td><td>Size of the gears grouped in this profile that the cartridge is running on; all gears in a group will have the same gear_profile.</td></tr>
+<tr><td>properties</td><td>List of environment variables and property values exposed by the cartridge and usable in application code. </td></tr>
+</table>

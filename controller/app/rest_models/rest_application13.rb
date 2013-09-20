@@ -6,6 +6,10 @@ class RestApplication13 < OpenShift::Model
     self.embedded = {}
     app.requires(true).each do |feature|
       cart = CartridgeCache.find_cartridge(feature, app)
+
+      # raise an exception in case the application cartridge is not found
+      raise OpenShift::OOException.new("The application '#{app.name}' requires '#{feature}' but a matching cartridge could not be found") if cart.nil?
+
       if cart.categories.include? "web_framework"
         self.framework = cart.name
       else
@@ -15,7 +19,7 @@ class RestApplication13 < OpenShift::Model
 
     self.name = app.name
     self.creation_time = app.created_at
-    self.uuid = app.uuid
+    self.uuid = app._id
     self.aliases = []
     app.aliases.each do |a|
       self.aliases << a.fqdn
@@ -120,7 +124,7 @@ class RestApplication13 < OpenShift::Model
         ]),
         "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
-            Param.new("name", "string", "framework-type, e.g.: mongodb-2.0", carts)
+            Param.new("name", "string", "framework-type, e.g.: mongodb-2.2", carts)
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
             OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),

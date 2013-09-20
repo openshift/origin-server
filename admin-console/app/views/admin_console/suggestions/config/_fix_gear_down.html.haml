@@ -1,0 +1,18 @@
+.lead
+  & Gear down threshold for #{suggestion.profile} gear profile needs adjustment.
+- case size
+- when :short
+  %div
+    & The config variable GEAR_DOWN_THRESHOLD for profile #{suggestion.profile} conflicts with other config values.
+- when :full
+  %p
+    & The config variable GEAR_DOWN_THRESHOLD for profile #{suggestion.profile} conflicts with other config values.
+  %p
+    When available capacity is below the GEAR_UP_THRESHOLD (#{suggestion.up}),
+    a suggestion to add GEAR_UP_SIZE (#{suggestion.size}) gears
+    would result in enough excess capacity to reach the GEAR_DOWN_THRESHOLD (#{suggestion.down})
+    and immediately trigger a suggestion to remove capacity.
+  %p
+    Adjust your configuration in:
+    %pre
+      &= File.join(OpenShift::Config::PLUGINS_DIR, "openshift-origin-admin-console.conf")

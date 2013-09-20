@@ -54,6 +54,7 @@ The OpenShift Origin content is mirrored on
 available through other mirrors worldwide.
 
 * http://mirror.digmia.com/openshift/ (SK, Europe)
+* http://ftp.inf.utfsm.cl/pub/openshift/ (CL, South America)
 
 Copyright
 ----------------------

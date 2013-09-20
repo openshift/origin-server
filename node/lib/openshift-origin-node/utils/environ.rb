@@ -85,7 +85,6 @@ module OpenShift
 
               begin
                 contents = IO.read(file).chomp
-                next if contents.empty?
 
                 if contents.start_with? 'export '
                   index           = contents.index('=')

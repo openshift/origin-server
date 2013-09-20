@@ -35,6 +35,14 @@ Broker::Application.configure do
 
   config.log_level = :debug
 
+  # Do not compress assets
+  config.assets.compress = false
+
+  # Expands the lines which load the assets
+  config.assets.debug = true
+  config.assets.logger = false
+
+
   ############################################
   # OpenShift Configuration Below this point #
   ############################################
@@ -81,6 +89,8 @@ Broker::Application.configure do
     :membership_enabled => conf.get_bool("MEMBERSHIP_ENABLED", "false"),
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
     :max_domains_per_user => conf.get('MAX_DOMAINS_PER_USER', '1').to_i,
+    :allow_ha_applications => conf.get_bool('ALLOW_HA_APPLICATIONS', "false"),
+    :router_hostname => conf.get('ROUTER_HOSTNAME', "www.example.com"),
   }
 
   config.auth = {
@@ -97,4 +107,5 @@ Broker::Application.configure do
     :max_cart_size => conf.get("MAX_CART_SIZE", "20480").to_i,
     :max_download_time => conf.get("MAX_DOWNLOAD_TIME", "10").to_i
   }
+
 end

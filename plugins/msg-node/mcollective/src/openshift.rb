@@ -46,6 +46,18 @@ module MCollective
 
         Log.instance.info(
             "#{@@cartridge_repository.count} cartridge(s) installed in #{@@cartridge_repository.path}")
+
+        begin
+          if path = @@config.get('AGENT_EXTENSION')
+            require path
+            include ::Openshift::AgentExtension
+            agent_startup
+          end        
+        rescue Exception => e
+          Log.instance.error e.message
+          Log.instance.error e.backtrace.inspect
+        end
+
         true
       end
 
@@ -123,6 +135,7 @@ module MCollective
 
             exitcode, output = self.send(action_method.to_sym, args)
           rescue => e
+            report_exception e
             Log.instance.error("Unhandled action execution exception for action [#{action}]: #{e.message}")
             Log.instance.error(e.backtrace)
             exitcode = 127
@@ -144,10 +157,14 @@ module MCollective
         watermark = @@config.get('QUOTA_WARNING_PERCENT', '90.0').to_f
 
         usage = (quota[:blocks_used] / quota[:blocks_limit].to_f) * 100.0
-        buffer << "CLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of disk quota\n" if watermark < usage
+        if watermark < usage
+          buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using %3.1f%% of disk quota\n" % usage
+        end
 
         usage = (quota[:inodes_used] / quota[:inodes_limit].to_f) * 100.0
-        buffer << "CLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of inodes allowed\n" if watermark < usage
+        if watermark < usage
+          buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using %3.1f%% of inodes allowed\n" % usage
+        end
       rescue Exception => e
         # do nothing
       end
@@ -193,39 +210,52 @@ module MCollective
       def upgrade_action
         Log.instance.info("upgrade_action call / action=#{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
+        validate :app_uuid, /^[a-zA-Z0-9]+$/
         validate :version, /^.+$/
         validate :namespace, /^.+$/
         uuid = request[:uuid]
+        application_uuid = request[:app_uuid]
         namespace = request[:namespace]
         version = request[:version]
         ignore_cartridge_version = request[:ignore_cartridge_version] == 'true' ? true : false
         hostname = Facter.value(:hostname)
 
-        output = ''
+        error_message = nil
         exitcode = 0
 
         begin
           require 'openshift-origin-node/model/upgrade'
-
-          upgrader = OpenShift::Runtime::Upgrader.new(uuid, namespace, version, hostname, ignore_cartridge_version)
-          result = upgrader.execute
-        rescue LoadError => e
-          exitcode = 127
-          output += "upgrade not supported. #{e.message}\n"
-        rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-          exitcode = 1
-          output += "Gear failed to upgrade: #{e.message}\n#{e.stdout}\n#{e.stderr}"
+          upgrader = OpenShift::Runtime::Upgrader.new(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, OpenShift::Runtime::Utils::Hourglass.new(235))
         rescue Exception => e
+          report_exception e
           exitcode = 1
-          output += "Gear failed to upgrade with exception: #{e.message}\n#{e.backtrace}\n"
+          error_message = "Failed to instantiate the upgrader; this is typically due to the gear being corrupt or missing its UNIX account.\n"\
+                          "Exception: #{e.message}\n#{e.backtrace.join("\n")}"
+        else
+          begin
+            result = upgrader.execute
+          rescue LoadError => e
+            report_exception e
+            exitcode = 127
+            error_message = "Upgrade not supported: #{e.message}"
+          rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+            report_exception e
+            exitcode = 2
+            error_message = "Gear failed to upgrade due to an unhandled shell execution: #{e.message}\n#{e.backtrace.join("\n")}\n"\
+                            "Stdout: #{e.stdout}\nStderr: #{e.stderr}"
+          rescue Exception => e
+            report_exception e
+            exitcode = 3
+            error_message = "Gear failed to upgrade due to an unhandled internal exception: #{e.message}\n#{e.backtrace.join("\n")}"
+          end
         end
 
-        Log.instance.info("upgrade_action (#{exitcode})\n------\n#{output}\n------)")
+        Log.instance.info("upgrade_action (#{exitcode})\n------\n#{error_message}\n------)")
 
-        reply[:output] = output
+        reply[:output] = error_message
         reply[:exitcode] = exitcode
-        reply[:upgrade_result_json] = JSON.dump(result)
-        reply.fail! "upgrade_action failed #{exitcode}.  Output #{output}" unless exitcode == 0
+        reply[:upgrade_result_json] = JSON.dump(result) if result
+        reply.fail! "upgrade_action failed with exit code #{exitcode}. Output: #{error_message}" unless exitcode == 0
       end
 
       #
@@ -265,8 +295,10 @@ module MCollective
           yield(container, output)
           return 0, output
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+          report_exception e
           return e.rc, "#{e.message}\n#{e.stdout}\n#{e.stderr}"
         rescue Exception => e
+          report_exception e
           Log.instance.error e.message
           Log.instance.error e.backtrace.join("\n")
           return -1, e.message
@@ -274,15 +306,24 @@ module MCollective
       end
 
       def oo_app_create(args)
-        output = ""
+        output = ''
         begin
+          token = args.key?('--with-secret-token') ? args['--with-secret-token'].to_s : nil
+
           container = get_app_container_from_args(args)
-          output = container.create
+          output = container.create(token)
         rescue OpenShift::Runtime::UserCreationException => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return 129, e.message
+        rescue OpenShift::Runtime::GearCreationException => e
+          report_exception e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return 146, e.message
         rescue Exception => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
@@ -298,6 +339,7 @@ module MCollective
           container    = get_app_container_from_args(args)
           out, err, rc = container.destroy(skip_hooks)
         rescue Exception => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
@@ -334,6 +376,7 @@ module MCollective
           container = get_app_container_from_args(args)
           container.replace_ssh_keys(ssh_keys)
         rescue Exception => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
@@ -375,9 +418,11 @@ module MCollective
       end
 
       def oo_user_var_add(args)
-        variables, gears = {}, []
-        args['--with-variables'].split(' ').each { |a| token = a.split('='); variables[token.first] = token.last } if args['--with-variables']
-        gears = args['--with-gears'].split(';') if args['--with-gears']
+        variables = {}
+        if args['--with-variables']
+          JSON.parse(args['--with-variables']).each {|env| variables[env['name']] = env['value']}
+        end
+        gears = args['--with-gears'] ? args['--with-gears'].split(';') : []
 
         if variables.empty? and gears.empty?
           return -1, "In #{__method__} at least user environment variables or gears must be provided for #{args['--with-app-name']}"
@@ -414,6 +459,7 @@ module MCollective
           list      = container.user_var_list(keys)
           output    = 'CLIENT_RESULT: ' + list.to_json
         rescue Exception => e
+          report_exception e
           Log.instance.info "#{e.message}\n#{e.backtrace}"
           return -1, e.message
         else
@@ -429,6 +475,7 @@ module MCollective
         begin
           output = OpenShift::Runtime::Node.get_cartridge_list(list_descriptors, porcelain, false)
         rescue Exception => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
@@ -458,6 +505,7 @@ module MCollective
             q[:inodes_used].to_s, q[:inodes_quota].to_s, q[:inodes_limit].to_s
           ]
         rescue Exception => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
@@ -475,6 +523,7 @@ module MCollective
         begin
           output = OpenShift::Runtime::Node.set_quota(uuid, blocks, inodes)
         rescue Exception => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
@@ -502,14 +551,17 @@ module MCollective
         begin
           yield(output)
         rescue OpenShift::Runtime::FrontendHttpServerExecException => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return e.rc, e.message + e.stdout + e.stderr
         rescue OpenShift::Runtime::FrontendHttpServerException => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return 129, e.message
         rescue Exception => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
@@ -794,6 +846,7 @@ module MCollective
         begin
           output = OpenShift::Runtime::Node.find_system_messages(cart_name)
         rescue Exception => e
+          report_exception e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
@@ -850,9 +903,11 @@ module MCollective
           container = get_app_container_from_args(args)
           output    = container.threaddump(cart_name)
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+          report_exception e
           Log.instance.info "#{e.message}\n#{e.backtrace}\n#{e.stderr}"
           return e.rc, "CLIENT_ERROR: action 'threaddump' failed #{e.message} #{e.stderr}"
         rescue Exception => e
+          report_exception e
           Log.instance.info "#{e.message}\n#{e.backtrace}"
           return -1, e.message
         else
@@ -887,6 +942,7 @@ module MCollective
           reply[:output]   = "created/updated district #{uuid} with active = #{active}"
           reply[:exitcode] = 0
         rescue Exception => e
+          report_exception e
           reply[:output]   = e.message
           reply[:exitcode] = 255
           reply.fail! "set_district failed #{reply[:exitcode]}.  Output #{reply[:output]}"
@@ -942,9 +998,16 @@ module MCollective
       def get_all_gears_endpoints_action
         gear_map = {}
 
+        uid_map          = {}
+        uids             = IO.readlines("/etc/passwd").map { |line|
+          uid               = line.split(":")[2]
+          username          = line.split(":")[0]
+          uid_map[username] = uid
+        }
         dir = "/var/lib/openshift/"
         Dir.foreach(dir) do |gear_file|
           if File.directory?(dir + gear_file) and not File.symlink?(dir + gear_file) and not gear_file[0] == '.'
+           next if not uid_map.has_key?(gear_file)
            gear_uuid = gear_file
            cont = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
            env = OpenShift::Runtime::Utils::Environ::for_gear(cont.container_dir)
@@ -1000,6 +1063,7 @@ module MCollective
           reply[:output] = (not cartridge.nil?)
           reply[:exitcode] = 0
         rescue Exception => e
+          report_exception e
           Log.instance.error e.message
           Log.instance.error e.backtrace.join("\n")
           reply[:output] = false
@@ -1108,10 +1172,16 @@ module MCollective
               return
           end
         rescue Exception => e
+          report_exception e
           Log.instance.info("cartridge_repository_action(#{action}): failed #{e.message}\n#{e.backtrace}")
           reply.fail!("#{action} failed for #{path} #{e.message}", 4)
         end
       end
+
+      protected
+        # No-op by default
+        def report_exception(e)
+        end
     end
   end
 end

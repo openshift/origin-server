@@ -60,18 +60,21 @@ module Ability
     if Application <= type
       case permission
 
-      when :change_state, 
+      when :change_state,
            :change_cartridge_state,
+           :make_ha,
            :scale_cartridge,
            :view_code_details,
            :change_gear_quota,
            :destroy,
-           :create_cartridge, 
+           :create_cartridge,
            :destroy_cartridge,
            :create_alias,
            :update_alias,
            :ssh_to_gears,
-           :destroy_alias 
+           :destroy_alias,
+           :view_environment_variables,
+           :change_environment_variables
         Role.in?(:edit, role)
 
       when :change_members

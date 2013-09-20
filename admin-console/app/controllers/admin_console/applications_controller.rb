@@ -1,5 +1,3 @@
-require_dependency "admin_console/application_controller"
-
 module AdminConsole
   class ApplicationsController < ApplicationController
     def show
@@ -8,7 +6,7 @@ module AdminConsole
       #If a url is passed with http:// or https:// then get rid of it, one of the /'s is already stripped off by rails
       @id.gsub! /http(s)?:\//, ""
       begin
-        @app = Application.find_by(:$or => [{:uuid => @id}, {:name => @id}, {"aliases.fqdn" => @id}])
+        @app = Application.find_by(:$or => [{:_id => @id}, {:name => @id}, {"aliases.fqdn" => @id}])
       rescue Mongoid::Errors::DocumentNotFound => e
         #attempt to match the default fqdn based on app name and domain
         @id.match(/(.+)-([^\.]+)\./) do |m|

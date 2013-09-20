@@ -5,9 +5,10 @@ require 'logger'
 require 'getoptlong'
 require 'net/http'
 
-@check_interval=3
+@check_interval=5
 
-CONFIG_VALIDATION_CHECK_INTERVAL=300
+CONFIG_VALIDATION_CHECK_INTERVAL = 300
+FLAP_PROTECTION_TIME_SECONDS = 600
 HAPROXY_CONF_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "conf")
 HAPROXY_RUN_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "run")
 GEAR_REGISTRY_DB=File.join(HAPROXY_CONF_DIR, "gear-registry.db")
@@ -100,6 +101,8 @@ end
 class Haproxy
     MAX_SESSIONS_PER_GEAR = 16.0
 
+    attr_accessor :gear_count, :sessions, :sessions_per_gear, :session_capacity_pct, :gear_namespace, :last_scale_up_time, :last_scale_error_time
+
     class ShouldRetry < StandardError
       attr_reader :message
       def initialize(message)
@@ -134,7 +137,6 @@ class Haproxy
         end
 
         @last_scale_up_time=Time.now
-        @flap_protection_time_seconds = 600 # number of seconds to ignore gear remove events since last up event
         @remove_count_threshold = 20
         @remove_count = 0
         self.populate_status_urls
@@ -186,7 +188,7 @@ class Haproxy
           raise ShouldRetry, e.to_s
         end
 
-        @gear_count = self.stats['express'].count - 3
+        @gear_count = self.stats['express'].count - 2
         @gear_up_pct = 90.0
         if @gear_count > 1
           # Pick a percentage for removing gears which is a moderate amount below the threshold where the gear would scale back up.
@@ -216,54 +218,51 @@ class Haproxy
         @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
     end
 
-    def gear_namespace()
-        @gear_namespace
-    end
-
-    def last_scale_up_time()
-        @last_scale_up_time
-    end
-
-    def last_scale_up_time_seconds()
+    def last_scale_up_time_seconds
         seconds = Time.now - @last_scale_up_time
         seconds.to_i
     end
 
-    def seconds_left_til_remove()
-        seconds = @flap_protection_time_seconds - self.last_scale_up_time_seconds
+    def last_scale_error_time_seconds
+        if last_scale_error_time
+          seconds = Time.now - @last_scale_error_time
+          seconds.to_i
+        else
+          0
+        end
+    end
+
+    def seconds_left_til_remove
+        seconds = FLAP_PROTECTION_TIME_SECONDS - self.last_scale_up_time_seconds
         seconds.to_i
-    end
-
-    def gear_count()
-        @gear_count
-    end
-
-    def sessions()
-        @sessions
-    end
-
-    def sessions_per_gear()
-        @sessions_per_gear
-    end
-
-    def session_capacity_pct()
-        @session_capacity_pct
     end
 
     def add_gear(verbose=false)
         @last_scale_up_time = Time.now
         @log.info("GEAR_UP - capacity: #{self.session_capacity_pct}% gear_count: #{self.gear_count} sessions: #{self.sessions} up_thresh: #{@gear_up_pct}%")
         res=`#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/add-gear -n #{self.gear_namespace}  -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_GEAR_UUID']} 2>&1`
-        @log.info("GEAR_UP - add-gear: exit: #{$?}  stdout: #{res}")
-        $stderr.puts(res) if verbose and res != ""
+        exit_code = $?.exitstatus
+        @log.info("GEAR_UP - add-gear: exit: #{exit_code}  stdout: #{res}")
+        if exit_code != 0
+          @last_scale_error_time = Time.now
+        else
+          @last_scale_error_time = nil
+        end
+        $stderr.puts(res) if verbose and !res.empty?
         self.print_gear_stats
     end
 
     def remove_gear(verbose=false)
         @log.info("GEAR_DOWN - capacity: #{self.session_capacity_pct}% gear_count: #{self.gear_count} sessions: #{self.sessions} remove_thresh: #{@gear_remove_pct}%")
         res=`#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/remove-gear -n #{self.gear_namespace} -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_GEAR_UUID']} 2>&1`
-        @log.info("GEAR_DOWN - remove-gear: exit: #{$?}  stdout: #{res}")
-        $stderr.puts(res) if verbose and res != ""
+        exit_code = $?.exitstatus
+        @log.info("GEAR_DOWN - remove-gear: exit: #{exit_code}  stdout: #{res}")
+        if exit_code != 0
+          @last_scale_error_time = Time.now
+        else
+          @last_scale_error_time = nil
+        end
+        $stderr.puts(res) if verbose and !res.empty?
         self.populate_status_urls
         self.print_gear_stats
     end
@@ -279,7 +278,7 @@ class Haproxy
     end
 
     def check_capacity(debug=nil)
-        # check_capacity tracks the following information for determing whether
+        # check_capacity tracks the following information for determining whether
         # or not to increase or decrease a gear
         #
         # @session_capacity_pct (%full considering total number of gears and
@@ -291,46 +290,49 @@ class Haproxy
         #       only one left.
         # @last_scale_up_time_seconds - how long it's been since we last scaled
         #       up
-        # @flap_protection_time_seconds - The number of seconds to wait until
-        #       triggering a gear_remove event
         # @remove_count - Number of consecutive remove_gear requests
         # @remove_count_threshold - when remove_count meets remove_count_threshold
         #       actually issue a remove_gear
 
-        min, max = get_scaling_limits
+        lsets = last_scale_error_time_seconds
+        if lsets == 0 || lsets > FLAP_PROTECTION_TIME_SECONDS
+          min, max = get_scaling_limits
 
-        # If active capacity is greater then gear_up pct. Add a gear
-        if @session_capacity_pct >= @gear_up_pct
-            @remove_count = 0
-            if @gear_count < max or max < 0
-              self.add_gear
-            else
-                @log.error("Cannot add gear, max gears already met")
-                @log.error("max: #{max} gearcount: #{@gear_count}")
-            end
-            self.print_gear_stats if debug
-        elsif @session_capacity_pct < @gear_remove_pct and @gear_count > 1
-            # If active capacity is less then gear remove percentage
-            # *AND* the last gear up happened longer then
-            # ago @flap_protection_time_seconds
-            # *AND* remove_count is larger then the remove_count_threshold
-            # Gear remove.
+          # If active capacity is greater then gear_up pct. Add a gear
+          if @session_capacity_pct >= @gear_up_pct
+              @remove_count = 0
+              if @gear_count < max or max < 0
+                self.add_gear
+              else
+                  @log.error("Cannot add gear, max gears already met")
+                  @log.error("max: #{max} gearcount: #{@gear_count}")
+              end
+              self.print_gear_stats if debug
+          elsif @session_capacity_pct < @gear_remove_pct and @gear_count > 1
+              # If active capacity is less then gear remove percentage
+              # *AND* the last gear up happened longer then
+              # ago FLAP_PROTECTION_TIME_SECONDS
+              # *AND* remove_count is larger then the remove_count_threshold
+              # Gear remove.
 
-            @remove_count += 1 if @remove_count < @remove_count_threshold
+              @remove_count += 1 if @remove_count < @remove_count_threshold
 
-            if self.last_scale_up_time_seconds.to_i > @flap_protection_time_seconds
-                if @remove_count >= @remove_count_threshold
-                    self.remove_gear if @gear_count > min
-                    @remove_count = 0
-                else
-                    self.print_gear_stats if debug
-                end
-            else
-                self.print_gear_stats if debug
-            end
+              if self.last_scale_up_time_seconds.to_i > FLAP_PROTECTION_TIME_SECONDS
+                  if @remove_count >= @remove_count_threshold
+                      self.remove_gear if @gear_count > min
+                      @remove_count = 0
+                  else
+                      self.print_gear_stats if debug
+                  end
+              else
+                  self.print_gear_stats if debug
+              end
+          else
+              @remove_count = 0
+              self.print_gear_stats if debug
+          end
         else
-            @remove_count = 0
-            self.print_gear_stats if debug
+          @log.debug("Skipping check_capacity for #{FLAP_PROTECTION_TIME_SECONDS - lsets}s due to a previous failed scale operation") if debug
         end
     end
 
@@ -342,15 +344,15 @@ class Haproxy
       if File.exists? scale_file
         scale_data = File.read(scale_file)
         scale_hash = {}
-        scale_data.split("\n").each { |s| 
+        scale_data.split("\n").each { |s|
           line = s.split("=")
-          scale_hash[line[0]] = line[1] 
+          scale_hash[line[0]] = line[1]
         }
         begin
           min = scale_hash["scale_min"].to_i
           max = scale_hash["scale_max"].to_i
         rescue Exception => e
-          @@log.error("Unable to get gear's min/max scaling limits because of #{e.message}")
+          @log.error("Unable to get gear's min/max scaling limits because of #{e.message}")
         end
       end
       return min, max
@@ -387,7 +389,7 @@ Auto scaling options:
 
 Notes:
 1. To start/stop auto scaling in daemon mode run:
-    haproxy_watcher (start|stop|restart|run|)
+    haproxy_ctld_daemon (start|stop|restart|run|)
 USAGE
     exit! 255
 end

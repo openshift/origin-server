@@ -53,7 +53,7 @@ module OpenShift
 
       @container = Runtime::ApplicationContainer.new(@uuid, @uuid, @uid, "V2CartridgeModelFunctionalTest",
                                                                 "V2CartridgeModelFunctionalTest", "functional-test")
-      @container.create
+      @container.create(@secret_token)
 
       refute_nil @container.container_dir
 

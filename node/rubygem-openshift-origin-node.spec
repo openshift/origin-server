@@ -8,15 +8,11 @@
 %global rubyabi 1.9.1
 %global appdir %{_var}/lib/openshift
 %global apprundir %{_var}/run/openshift
-%if 0%{?fedora} >= 18
-    %global httxt2dbm /usr/bin/httxt2dbm
-%else
-    %global httxt2dbm /usr/sbin/httxt2dbm
-%endif
+%global openshift_lib %{_usr}/lib/openshift
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.7
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -45,7 +41,6 @@ Requires:      %{?scl:%scl_prefix}ruby(selinux)
 Requires:      cronie
 Requires:      crontabs
 Requires:      git
-Requires:      httpd
 Requires:      libcgroup-pam
 Requires:      libselinux-python
 Requires:      iproute
@@ -61,12 +56,6 @@ Requires:      rubygem(openshift-origin-common)
 Requires:      libcgroup
 %else
 Requires:      libcgroup-tools
-%endif
-%if 0%{?fedora} >= 18
-Requires:      httpd-tools
-BuildRequires: httpd-tools
-%else
-BuildRequires: httpd
 %endif
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
@@ -113,25 +102,7 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
 mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/sbin
-mkdir -p %{buildroot}/etc/httpd/conf.d
-mkdir -p %{buildroot}%{appdir}/.httpd.d
 mkdir -p %{buildroot}%{appdir}/.tc_user_dir
-ln -sf %{appdir}/.httpd.d %{buildroot}/etc/httpd/conf.d/openshift
-
-# Create empty route database files
-for map in nodes aliases idler sts
-do
-    mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
-    touch "${mapf}.txt"
-    %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
-done
-
-for map in routes geardb
-do
-    mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
-    echo '{}' > "${mapf}.json"
-done
-
 
 # Move the gem configs to the standard filesystem location
 mkdir -p %{buildroot}/etc/openshift
@@ -144,10 +115,10 @@ mv %{buildroot}%{gem_instdir}/misc/libexec/lib/quota_attrs.sh %{buildroot}/usr/l
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/archive_git_submodules.sh %{buildroot}/usr/libexec/openshift/lib
 
 # Install the cartridge SDK files and environment variables for each
-mkdir -p %{buildroot}/usr/lib/openshift/cartridge_sdk
-mv %{buildroot}%{gem_instdir}/misc/usr/lib/cartridge_sdk/* %{buildroot}/usr/lib/openshift/cartridge_sdk
-echo '/usr/lib/openshift/cartridge_sdk/bash/sdk' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_BASH
-echo '/usr/lib/openshift/cartridge_sdk/ruby/sdk.rb' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_RUBY
+mkdir -p %{buildroot}%{openshift_lib}/cartridge_sdk
+mv %{buildroot}%{gem_instdir}/misc/usr/lib/cartridge_sdk/* %{buildroot}%{openshift_lib}/cartridge_sdk
+echo '%{openshift_lib}/cartridge_sdk/bash/sdk' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_BASH
+echo '%{openshift_lib}/cartridge_sdk/ruby/sdk.rb' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_RUBY
 
 #move the shell binaries into proper location
 mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
@@ -161,19 +132,8 @@ mv %{buildroot}%{gem_instdir}/misc/etc/openshift-run.conf %{buildroot}/etc/tmpfi
 mkdir -p %{buildroot}%{apprundir}
 
 # place an example file.  It _must_ be placed in the gem_docdir because of how
-# the %doc directive works and how we're using it in the files section.
+# the doc directive works and how we're using it in the files section.
 mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{gem_docdir}/cgconfig.conf
-
-%if 0%{?fedora} >= 18
-  #patch for apache 2.4
-  sed -i 's/include /IncludeOptional /g' httpd/000001_openshift_origin_node.conf
-  sed -i 's/^RewriteLog/#RewriteLog/g' httpd/openshift_route.include
-  sed -i 's/^RewriteLogLevel/#RewriteLogLevel/g' httpd/openshift_route.include
-  sed -i 's/^#LogLevel/LogLevel/g' httpd/openshift_route.include
-%endif
-mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
-mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
-mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
 
 %if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}/etc/rc.d/init.d/
@@ -195,16 +155,16 @@ mkdir -p %{buildroot}/etc/cron.hourly
 mkdir -p %{buildroot}/etc/cron.daily
 mkdir -p %{buildroot}/etc/cron.weekly
 mkdir -p %{buildroot}/etc/cron.monthly
-mkdir -p %{buildroot}/usr/lib/openshift/node/jobs
+mkdir -p %{buildroot}%{openshift_lib}/node/jobs
 
-mv %{buildroot}%{gem_instdir}/jobs/* %{buildroot}/usr/lib/openshift/node/jobs/
-ln -s /usr/lib/openshift/node/jobs/1minutely %{buildroot}/etc/cron.d/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-minutely %{buildroot}/etc/cron.minutely/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-hourly %{buildroot}/etc/cron.hourly/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-daily %{buildroot}/etc/cron.daily/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/cron.weekly/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-stale-lockfiles %{buildroot}/etc/cron.daily/
+mv %{buildroot}%{gem_instdir}/jobs/* %{buildroot}%{openshift_lib}/node/jobs/
+ln -s %{openshift_lib}/node/jobs/1minutely %{buildroot}/etc/cron.d/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-minutely %{buildroot}/etc/cron.minutely/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-hourly %{buildroot}/etc/cron.hourly/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-daily %{buildroot}/etc/cron.daily/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/cron.weekly/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-stale-lockfiles %{buildroot}/etc/cron.daily/
 
 %post
 /bin/rm -f /etc/openshift/env/*.rpmnew
@@ -249,35 +209,20 @@ fi
 %attr(0755,-,-) /usr/bin/*
 /usr/libexec/openshift/lib/quota_attrs.sh
 /usr/libexec/openshift/lib/archive_git_submodules.sh
-%attr(0755,-,-) /usr/lib/openshift/cartridge_sdk
-%attr(0755,-,-) /usr/lib/openshift/cartridge_sdk/bash
-%attr(0744,-,-) /usr/lib/openshift/cartridge_sdk/bash/*
-%attr(0755,-,-) /usr/lib/openshift/cartridge_sdk/ruby
-%attr(0744,-,-) /usr/lib/openshift/cartridge_sdk/ruby/*
+%attr(0755,-,-) %{openshift_lib}/cartridge_sdk
+%attr(0755,-,-) %{openshift_lib}/cartridge_sdk/bash
+%attr(0744,-,-) %{openshift_lib}/cartridge_sdk/bash/*
+%attr(0755,-,-) %{openshift_lib}/cartridge_sdk/ruby
+%attr(0744,-,-) %{openshift_lib}/cartridge_sdk/ruby/*
 %dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
 %config(noreplace) /etc/openshift/env/*
 %attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
-%attr(0750,-,-) /etc/httpd/conf.d/openshift
-%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
-%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
-%config(noreplace) /etc/httpd/conf.d/openshift_route.include
 %dir %attr(0755,-,-) %{appdir}
-%dir %attr(0750,root,apache) %{appdir}/.httpd.d
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/geardb.json
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.txt
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.txt
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.db
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.db
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.db
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.db
 %dir %attr(0750,-,-) %{appdir}/.tc_user_dir
 
 %if 0%{?fedora}%{?rhel} <= 6
-%attr(0755,-,-)	/etc/rc.d/init.d/openshift-tc
+%attr(0755,-,-) /etc/rc.d/init.d/openshift-tc
 %else
 %attr(0750,-,-) /etc/systemd/system/openshift-tc.service
 %endif
@@ -287,14 +232,14 @@ fi
 %endif
 # upstart files
 %attr(0755,-,-) %{_var}/run/openshift
-%dir %attr(0755,-,-) /usr/lib/openshift/node/jobs
-%config(noreplace) %attr(0644,-,-) /usr/lib/openshift/node/jobs/1minutely
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-minutely
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-hourly
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-daily
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-stale-lockfiles
+%dir %attr(0755,-,-) %{openshift_lib}/node/jobs
+%config(noreplace) %attr(0644,-,-) %{openshift_lib}/node/jobs/1minutely
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-minutely
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-hourly
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-daily
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-weekly
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-monthly
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-stale-lockfiles
 %dir /etc/cron.minutely
 %config(noreplace) %attr(0644,-,-) /etc/cron.d/1minutely
 %attr(0755,-,-) /etc/cron.minutely/openshift-origin-cron-minutely
@@ -305,6 +250,192 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.7-1
+- Merge pull request #3552 from VojtechVitek/passenv
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3617 from ironcladlou/dev/upgrade-stability
+  (dmcphers+openshiftbot@redhat.com)
+- Fix Apache PassEnv config files (vvitek@redhat.com)
+- Improve upgrade MCollective response handling (ironcladlou@gmail.com)
+
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.6-1
+- Bug 1000764 - Enforce cartridge start order (jhonce@redhat.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.14.5-1
+- Bug 1006236 - Update description (jhonce@redhat.com)
+- Merge pull request #3596 from mfojtik/bugzilla/1006207
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3594 from mfojtik/bugzilla/1004687
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1006207 - Fixed typo in add/remove alias (oo-devel-node)
+  (mfojtik@redhat.com)
+- Merge pull request #3590 from tdawson/tdawson/node-rpmlint/2013-09
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1004687 - Fix 'undefined method json_create' in frontend-restore
+  (mfojtik@redhat.com)
+- fix rpmlint errors (tdawson@redhat.com)
+
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
+- Fix bug 1004910: provide warning when processed_templates declares a non-
+  existent file (pmorie@gmail.com)
+- Merge pull request #3580 from jwhonce/bug/1005364
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1005364 - Restore gear user usage of facter (jhonce@redhat.com)
+- Bug 1004510 - Remove welcome HEREDOC from rhcsh (jhonce@redhat.com)
+
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Bug 1005244 - Remove unused INSTANCE_ID setting from node.conf
+  (bleanhar@redhat.com)
+- Merge pull request #3561 from jwhonce/bug/1004644
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1004886 - set memory.move_charge_at_immigrate (rmillner@redhat.com)
+- Bug 1004644 - Description of frontend-no-sts is wrong (jhonce@redhat.com)
+
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- Merge pull request #3548 from jwhonce/wip/oo-devel-node
+  (dmcphers+openshiftbot@redhat.com)
+- Node Platform - Fix cucumber tests (jhonce@redhat.com)
+- Merge pull request #3545 from mfojtik/bugzilla/1004216
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1004216 - Fixed typo in frontend-disconnect (oo-devel-node)
+  (mfojtik@redhat.com)
+- Bug 1004292 - Fix typo in oo-devel-node command (mfojtik@redhat.com)
+- Merge pull request #3541 from jwhonce/wip/oo-devel-node
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3528 from rmillner/wrap_port_allocation
+  (dmcphers+openshiftbot@redhat.com)
+- Node Platform - Remove files deprecated by oo-devel-node (jhonce@redhat.com)
+- WIP Node Platform - oo-devel-node: clean up oo-* scripts that emulate mco
+  calls (jhonce@redhat.com)
+- Wrap the port range indefinitely. (rmillner@redhat.com)
+- Merge pull request #3535 from ironcladlou/bz/1003969
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1003969: Don't raise if processed ERBs no longer exist to delete
+  (ironcladlou@gmail.com)
+- Merge pull request #3311 from detiber/runtime_card_213
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1002269 - empty client messages are dropped, should be new line
+  (jforrest@redhat.com)
+- Merge pull request #3521 from kraman/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix up unit test to prevent test pollution, fix variable name typo
+  (jdetiber@redhat.com)
+- <runtime> Card origin_runtime_213: realtime node_utilization checks
+  (jdetiber@redhat.com)
+- Adding reload as an action to restart openshift-tc (kraman@gmail.com)
+
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- misc: remove duplicate import in oo-trap-user (mmahut@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Bug 999859 - Check required arguments for oo-app-create command
+  (mfojtik@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Merge pull request #3485 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Make dependency on 0.0.1 version of mock explicit for upgrade tests
+  (pmorie@gmail.com)
+- Bug 988662 - Add --help to list of arguments for oo-env-var-* commands
+  (mfojtik@redhat.com)
+- nurture -> analytics (dmcphers@redhat.com)
+- Handle .resultset.json (dmcphers@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Fixing openshift-tc service definition (kraman@gmail.com)
+- Merge pull request #3483 from detiber/bz1000174
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-accept-node> Bug 1000174 - oo-accept-node fixes (jdetiber@redhat.com)
+- Merge pull request #3481 from ironcladlou/bz/1000193
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1000193: Use an Hourglass in the gear upgrader (ironcladlou@gmail.com)
+- Fix test cases (ccoleman@redhat.com)
+- Merge pull request #3464 from mfojtik/bugzilla/999883
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 999883 - Print command name in usage instead of '$0' (mfojtik@redhat.com)
+- Merge pull request #3474 from fotioslindiakos/Bug999837
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3470 from fotioslindiakos/Bug998704
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3432 from mfojtik/bugzilla/983605
+  (dmcphers+openshiftbot@redhat.com)
+- Remove any deleted/missing throttled gears from throttler's memory
+  (fotios@redhat.com)
+- Rescue usage percentage calculation if it's an unexpected value type
+  (fotios@redhat.com)
+- Add test for zero-length manifest in cartridge repo (pmorie@gmail.com)
+- Bug 983605 - Allow to administrator to change the default 'rhc ssh' motd
+  (mfojtik@redhat.com)
+- Fix message for bug 999189 (pmorie@gmail.com)
+- Merge pull request #3458 from pmorie/bugs/999679
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Merge pull request #3452 from pravisankar/dev/ravi/bug998905
+  (dmcphers+openshiftbot@redhat.com)
+- Added environment variable name limitations  - Limit length to 128 bytes.  -
+  Allow letters, digits and underscore but can't begin with digit
+  (rpenta@redhat.com)
+- Fix bug 999679: skip corrupted manifests during cartridge installation
+  (pmorie@gmail.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.9-1
+- Merge pull request #3449 from pmorie/bugs/999189
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3440 from pmorie/bugs/999013
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3427 from ironcladlou/bz/996491
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3441 from jwhonce/wip/user_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3429 from mfojtik/bugzilla/988662
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3426 from mfojtik/bugzilla/998420
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3425 from mfojtik/bugzilla/998363
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 999189: gear upgrade extension is a no-op if release version doesn't
+  match supplied version (pmorie@gmail.com)
+- Fix bug 999013: always remove unprocessed env/*.erb files from cartridge dir
+  during compatible upgrade (pmorie@gmail.com)
+- Merge pull request #3439 from pravisankar/dev/ravi/user-env-bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3443 from fotioslindiakos/throttler
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 998794 - Allow blank value for a user environment variable
+  (rpenta@redhat.com)
+- Node Platform - Add .env/user_vars during upgrade (jhonce@redhat.com)
+- Merge pull request #3436 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Force throttler to only restore applications under a certain threshold
+  (fotios@redhat.com)
+- Fix creating new endpoints during incompatible upgrades (pmorie@gmail.com)
+- Bug 988662 - Add exit(255) to the usage() methods for oo-user-var scripts
+  (mfojtik@redhat.com)
+- Bug 996491: Show warning when using snapshot and near disk quota
+  (ironcladlou@gmail.com)
+- Bug 998420 - Fixed typo in the --help option for oo-cgroup-template
+  (mfojtik@redhat.com)
+- Bug 998363 - Add --help option to GetoptLong list (mfojtik@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- BZ#990382: Return error message and code when wrong gear id is given to oo-
+  pam-(enable|disable) (mfojtik@redhat.com)
+- Merge pull request #3410 from pravisankar/dev/ravi/card86
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3409 from rmillner/trailing_dot
+  (dmcphers+openshiftbot@redhat.com)
+- Node Platform - make user variable rsync more reliable (jhonce@redhat.com)
+- User vars node changes:  - Use 'user-var-add' mcollective call for *add*
+  and/or *push* user vars. This will reduce unnecessary additional
+  code/complexity.  - Add some more reserved var names: PATH, IFS, USER, SHELL,
+  HOSTNAME, LOGNAME  - Do not attempt rsync when .env/user_vars dir is empty  -
+  Misc bug fixes (rpenta@redhat.com)
+- WIP Node Platform - Add support for settable user variables
+  (jhonce@redhat.com)
+- Remove trailing dot from the fqdn if there is one. (rmillner@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
 - Added 'httpd_restart_action' function to Bash SDK (mfojtik@redhat.com)
 - Fixing typos (dmcphers@redhat.com)

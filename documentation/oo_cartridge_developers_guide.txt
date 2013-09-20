@@ -529,7 +529,7 @@ A cartridge must implement the following scripts:
 |Script Name |Usage
 
 |setup
-|Prepare this instance of cartridge to be operational for the initial install and each upgrade
+|Prepare this instance of cartridge to be operational for the initial install and each incompatible upgrade
 
 |control
 |Command cartridge to report or change state
@@ -615,7 +615,7 @@ Options::
 `--version <version>`: Selects which version of cartridge to install. If no version is provided, the version denoted by the `Version` element from `manifest.yml` will be installed.
 
 Description::
-The `setup` script is responsible for creating and/or configuring the files that were copied from the cartridge repository into the gear's directory. Setup must also be reentrant and will be called on every non-backward compatible upgrade. Any logic you want to occur only once should be added to `install`. +
+The `setup` script is responsible for creating and/or configuring the files that were copied from the cartridge repository into the gear's directory. Setup must also be reentrant and will be called on every incompatible upgrade. Any logic you want to occur only once should be added to `install`. +
 +
 Any files created during `setup` should be added to `setup_rewritten` section of `metadata/managed_files.yml`. These files will be deleted prior to `setup` being run during upgrades. +
 +
@@ -778,6 +778,7 @@ Alias / <%= ENV['OPENSHIFT_HOMEDIR'] + "/mongodb/httpd.d/index.html" %>
 Environment variables are used to communicate information between this cartridge and others, as well as to OpenShift. The cartridge controlled variables are stored in the `env` directory and will be loaded after system-provided environment variables but before your code is called. OpenShift-provided environment variables will be loaded and available to be used for all cartridge entry points.
 
 You cannot override system provided variables by creating new copies in your cartridge `env` directory. If you attempt to do so, when an application developer attempts to instantiate your cartridge the system will raise an exception and refuse to do so.
+With the exception of `OPENSHIFT_SECRET_TOKEN`, these variables may not be overridden using `rhc env-set`.
 
 === System Provided Variables (Read Only)
 
@@ -817,6 +818,10 @@ You cannot override system provided variables by creating new copies in your car
 
 |OPENSHIFT_REPO_DIR
 |The directory where the developer's application is "archived" to and will be run from
+
+|OPENSHIFT_SECRET_TOKEN
+|A unique 128 character string that is unique to your application that may be used for authentication: joining clusters
+|initial passwords, etc. This variable may be overridden using `rhc set-env`.
 
 |OPENSHIFT_TMP_DIR
 |The directory where your cartridge may store temporary data
@@ -892,13 +897,44 @@ Subscriptions to events published by other carts are defined via the `manifest.y
 [source,yaml]
 Subscribes:   <event name>     Type: "<event type>"   ...
 
-When a cartridge publish event is fired, the subscription entries in the `Subscribes` section whose `Type` matches that of the publish event will be processed. For each matching subscription event, OpenShift will attempt to execute a script named `hooks/<event name>`:
+When a cartridge publish event is fired, the subscription entries in the `Subscribes` section whose `Type` matches that of the publish event will be processed. Subscriptions which have a `Type` that starts with `ENV:` are processed differently, as described below. For each matching subscription event, OpenShift will attempt to execute a script named `hooks/<event name>`:
 
 ----
 hooks/<event name> <gear name> <namespace> <gear uuid> <publish output>
 ----
 
 The format of the `<publish output>` input to the subscription script is defined by the implementation of the publisher script, and so the cartridge subscription script must have an awareness of the output format of the matching publish script.
+
+==== ENV: Subscription Type
+Subscription types that start with `ENV:` have special designation as environment variable subscriptions. For these subscriptions the event hook script `hooks/<event name>` is optional. If this script is not present or present but not executable, a specialized built-in event hook is used.
+
+The built-in event hook imports environment variables from any matching `Publishes` sections of other cartridges added to the application in question. A typical example where this is useful would be setting up connection credentials in a web cartridge for a database add-on cartridge.
+
+There are two forms of this subscription type: the wildcard type, which is usually what you want to use, and the targeted type.
+
+===== Wildcard ENV:* Subscription Type
+It's often useful to pull in environment variables from all add-on cartridges within an application, particularly for web cartridges. For these instances, the `ENV:*` subscription type is provided. When a cartridge with this this subscription type is added to an application, all other cartridges in the application are scanned for `ENV:` type event publications. These are then processed automatically as detailed above.
+
+The convention for adding the `ENV:*` subscription to a cartridge manifest is as follows:
+
+[source,yaml]
+Subscribes:  set-env:    Type: ENV:*    Required: false
+
+===== Targeted ENV: Subscription Type
+
+In most cases, it is appropriate to use the special wildcard subscription type format described above. For the small remainder of cases, there is the targeted `ENV:` subscription form. This allows a cartridge author to control specifically which published environment variable event types a cartridge will use to pull in environment variables.
+
+A targeted `ENV:` subscription takes the same format as a normal subscription event, with a particular event type specified as in the following example:
+
+Suppose the fictitious "AwesomeSQL" cartridge publishes environment variables with the following manifest entry:
+
+[source,yaml]
+Publishes:   publish-awesomesql-connection-info:     Type: "ENV:NET_TCP:db:awesomesql"
+
+The cooresponding subscription event would be written thus:
+
+[source,yaml]
+Subscribes:   set-awesomesql-connection-info:     Type: "ENV:NET_TCP:db:awesomesql"
 
 === Cartridge Event Example
 Consider a simple example of a PHP cartridge which can react when MySQL is added to an application, so that it can set environment variables on the gear to be able to connect to the newly added MySQL cartridge on a different gear.
@@ -957,11 +993,11 @@ OpenShift creates an archive during `snapshot` as follows:
 2.  OpenShift invokes `control pre-snapshot` for each installed cartridge in the gear. Cartridges may control their serialization in the snapshot by implementing this control action in conjunction with exclusions (example: cartridge authors want to snapshot/restore to/from a database dump instead of a database file).
 3.  OpenShift builds a list of exclusions by reading the `snapshot_exclusions` list from the `metadata/managed_files.yml` file for each cartridge in the gear.
 4.  OpenShift creates an archive in tar.gz format and writes it to STDOUT for consumption by the client tools. The following exclusions are used in addition to the list created from cartridges:
-5.  Gear user `.tmp`, `.ssh`, `.sandbox`
-6.  Application state file (`app-root/runtime/.state`)
-7.  Bash history file (`$OPENSHIFT_DATA_DIR/.bash_history`)
-8.  OpenShift invokes `control post-snapshot` for each installed cartridge in the gear.
-9.  OpenShift starts the application by invoking `gear start`.
+*  Gear user `.tmp`, `.ssh`, `.sandbox`
+*  Application state file (`app-root/runtime/.state`)
+*  Bash history file (`$OPENSHIFT_DATA_DIR/.bash_history`)
+5.  OpenShift invokes `control post-snapshot` for each installed cartridge in the gear.
+6.  OpenShift starts the application by invoking `gear start`.
 
 === Understanding OpenShift Behavior: Restore
 OpenShift restores an application from an archive as follows:
