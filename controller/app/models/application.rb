@@ -1450,7 +1450,6 @@ class Application
       while self.pending_op_groups.count > 0
         op_group = self.pending_op_groups.first
         self.user_agent = op_group.user_agent
-
         op_group.elaborate(self) if op_group.pending_ops.count == 0
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
