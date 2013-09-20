@@ -113,7 +113,6 @@ class ApplicationsController < ConsoleController
 
   def create
     app_params = params[:application] || params
-    @advanced = to_boolean(params[:advanced])
     @unlock_cartridges = to_boolean(params[:unlock])
 
     type = params[:application_type] || app_params[:application_type]
@@ -143,7 +142,20 @@ class ApplicationsController < ConsoleController
     @user_writeable_domains = user_writeable_domains
     @can_create = current_api_user.max_domains > user_owned_domains.length
 
-    flash.now[:error] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free?
+    if (selected_domain = @user_writeable_domains.find {|d| d.name == @application.domain_name})
+      @domain_capabilities = selected_domain.capabilities
+      @is_domain_owner = selected_domain.owner?
+    elsif @user_writeable_domains.length == 1
+      @domain_capabilities = @user_writeable_domains.first.capabilities
+      @is_domain_owner = @user_writeable_domains.first.owner?
+    elsif @can_create and @user_writeable_domains.length == 0
+      @domain_capabilities = @capabilities
+      @is_domain_owner = true
+    end
+
+    @gear_sizes = (@capabilities.allowed_gear_sizes + @user_writeable_domains.map(&:capabilities).map(&:allowed_gear_sizes).flatten).uniq
+
+    flash.now[:error] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free? or @user_writeable_domains.find(&:can_create_application?)
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
     # only need to check that domain_name is set (which it should be by the show form)
     if (valid = @application.valid?) # set any errors on the application object

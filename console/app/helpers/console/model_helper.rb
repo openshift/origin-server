@@ -50,6 +50,17 @@ module Console::ModelHelper
     end.to_sentence
   end
 
+  def domains_for_select(domains)
+    domains.sort_by(&:name).map do |d|
+      capabilities = d.capabilities
+      if capabilities
+        [d.name, d.name, {"data-gear-sizes" => capabilities.allowed_gear_sizes.join(',') }]
+      else
+        [d.name, d.name]
+      end
+    end
+  end
+
   def web_cartridge_scale_title(cartridge)
     if cartridge.current_scale == cartridge.scales_from
       'Your web cartridge is running on the minimum amount of gears and will scale up if needed'
@@ -142,17 +153,17 @@ module Console::ModelHelper
     [['No scaling',false],['Scale with web traffic',true]]
   end
 
-  def can_scale_application_type(type, capabilities)
+  def can_scale_application_type(type, capabilities=nil)
     type.scalable?
   end
 
-  def cannot_scale_title(type, capabilities)
+  def cannot_scale_title(type, capabilities=nil)
     unless can_scale_application_type(type, capabilities)
       "This application shares filesystem resources and can't be scaled."
     end
   end
 
-  def warn_may_not_scale(type, capabilities)
+  def warn_may_not_scale(type, capabilities=nil)
     if type.may_not_scale?
       "This application may require additional work to scale. Please see the application's documentation for more information."
     end

@@ -13,7 +13,7 @@ module DomainAware
   end
 
   def user_domains
-    @domains ||= Rails.cache.fetch(domains_cache_key, :expires_in => 5.minutes) do
+    @domains ||= begin # TODO: enable caching? # Rails.cache.fetch(domains_cache_key, :expires_in => 5.minutes) do
       Domain.find(:all, :as => current_user, :params => {:include => :application_info})
     end
   end
