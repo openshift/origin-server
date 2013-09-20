@@ -101,7 +101,7 @@ Feature: domains
     And the error message should have "field=name&severity=error&exit_code=106"
     When I send a PUT request to "/domains/api<random>" with the following:""
     Then the response should be "422"
-    And the error message should have "severity=error&exit_code=106"
+    And the error message should have "severity=error&exit_code=133"
     When I send a PUT request to "/domains/api<random>" with the following:"name=api?"
     Then the response should be "422"
     And the error message should have "field=name&severity=error&exit_code=106"
