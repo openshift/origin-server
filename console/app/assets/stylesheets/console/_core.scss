@@ -349,7 +349,9 @@ aside .header-bar {
 
 #app-list {
  margin-top: 0;
- color: #babbbc;
+ .application-suggestions span[data-icon] {
+  color: #aaa;
+ }
 }
 
 .table-data {
@@ -550,17 +552,14 @@ a.cap-link:hover {
     padding-left: 0 !important;
     display:block;
     }
+    h1.tile {
+      margin-top: 20px;
+    }
 }
 
 @media (min-width: 768px) and (max-width: 979px) {
   .total-cost {
     font-size: 23px; // responsive
-  }
-}
-
-@media (min-width: 980px) and (max-width: 1199px) {
-  .row > .column-content > :first-child {
-    margin-top: 20px;
   }
 }
 
