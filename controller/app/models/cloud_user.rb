@@ -52,7 +52,7 @@ class CloudUser
 
   scope :with_plan, any_of({:plan_id.ne => nil}, {:pending_plan_id.ne => nil}) 
   index({:login => 1}, {:unique => true})
-  index({:created_at => 1})
+  index({'pending_ops.created_at' => 1})
 
   scope :with_identity_id, lambda{ |id| where(login: id) }
   scope :with_identity, lambda{ |provider, uid| with_identity_id(uid) }
