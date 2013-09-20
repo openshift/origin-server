@@ -564,9 +564,15 @@ def check_user_cgroups(username)
 end
 
 def check_system_httpd_configs
+  verbose("checking system httpd configs")
+
+  if $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS') == nil
+    do_fail("No frontend plugins configured in OPENSHIFT_FRONTEND_HTTP_PLUGINS")
+    return
+  end
+
   return unless $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').include?('openshift-origin-frontend-apache-mod-rewrite')
   return unless $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').include?('openshift-origin-frontend-nodejs-websocket')
-  verbose("checking system httpd configs")
 
   ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
     begin

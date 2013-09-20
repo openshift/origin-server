@@ -49,7 +49,7 @@ BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
-Conflicts:     rubygem(openshift-frontend-apache-vhost)
+Conflicts:     rubygem(openshift-origin-frontend-apache-vhost)
 
 %description
 Provides the Apache mod_rewrite plugin for OpenShift web frontends

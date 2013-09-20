@@ -919,7 +919,7 @@ module OpenShift
         end
       end
 
-      def connect_frontend(cartridge)
+      def connect_frontend(cartridge, rebuild=false)
         frontend       = FrontendHttpServer.new(@container)
         gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         web_proxy_cart = web_proxy
@@ -937,7 +937,7 @@ module OpenShift
               end
 
               # Make sure that the mapping does not collide with the default web_proxy mapping
-              if mapping.frontend == "" and not cartridge.web_proxy? and web_proxy_cart
+              if mapping.frontend == "" and not cartridge.web_proxy? and web_proxy_cart and not rebuild
                 logger.info("Skipping default mapping as web proxy owns it for the application")
                 next
               end

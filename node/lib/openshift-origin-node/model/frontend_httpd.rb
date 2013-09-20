@@ -126,27 +126,12 @@ module OpenShift
       # objects for each gear which has run create.
       def self.all
         Enumerator.new do |yielder|
-
-          # Avoid deadlocks by listing the gears first
-          gearlist = []
-          self.plugins.each do |pl|
+          ApplicationContainer.all.each do |container|
             begin
-              pl.all.each do |obj|
-                gearlist << obj.container_uuid
-              end
-            rescue NoMethodError
-            end
-          end
-
-          gearlist.uniq.each do |uuid|
-            frontend = nil
-            begin
-              frontend = self.new(ApplicationContainer.from_uuid(uuid))
+              yielder.yield(self.new(container))
             rescue => e
-              NodeLogger.logger.error("Failed to instantiate FrontendHttpServer for #{uuid}: #{e}")
+              NodeLogger.logger.error("Failed to instantiate FrontendHttpServer for #{container.uuid}: #{e}")
               NodeLogger.logger.error("Backtrace: #{e.backtrace}")
-            else
-              yielder.yield(frontend)
             end
           end
         end
