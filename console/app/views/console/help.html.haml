@@ -1,38 +1,3 @@
-:css
-  .row-help a { font-weight: bold; }
--#:css
-  .row-help > .span3 {
-    position: relative;
-  }
-  .row-help > .span3 > h2:after {
-    content: ' ';
-    position: absolute;
-    right: -10px;
-    top: 0;
-    border-color: transparent #C83423;
-    border-style: solid;
-    border-width: 0 0 36px 10px;
-  }
-  .row-help > .span3 > h2:before {
-    content: ' ';
-    position: absolute;
-    left: -18px;
-    top: 0;
-    width: 10px;
-    border-color: #C83423 transparent;
-    border-style: solid;
-    border-width: 0 0 36px 10px;
-  }
-  .row-help > .span3 > h2 {
-    border-color: #C83423;
-    background-color: #C83423;
-  }
-  .row-help > .span3:first-child > h2:before {
-    border-left: 10px;
-    left: -10px;
-    border-color: #C83423;
-  }
-
 %section.row.row-help
   .span3
     %h2 Create
@@ -63,7 +28,7 @@
       %strong Hit a bump in the road?
     %p Our #{link_to 'community forum', post_to_forum_url} is watched round the clock by an army of developers, evangelists, and OpenShift devotees.
     %form.form-search{:method => 'get', :action => community_search_url}
-      %input.span3.search-query{:name => 'keys', :placeholder => 'Search the forums'}
+      %input.span3.search-query{:name => 'keys', :placeholder => 'Search the forums', :type => 'text'}
       %button.search.font-icon.font-icon-size-16{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"}
     %p Check out the #{link_to 'Knowledge Base', knowledge_base_url} for known headaches and #{link_to 'FAQ', faq_url} for more general questions
     %p Talk directly to the team on IRC - #{link_to 'freenode.net on channel #openshift', irc_web_url}.

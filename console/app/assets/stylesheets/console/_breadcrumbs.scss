@@ -1,32 +1,48 @@
 .breadcrumb {
-  padding: 7px 0;
-  margin: 0;
-  text-transform: uppercase;
-  color: #939598;
+  color: #666;
+  font-size: $smallText;
+  list-style: none;
+  margin: -35px 0 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-transform: uppercase;
   white-space: nowrap;
-
-  li {
-    text-shadow: -1px 0 1px rgba(0, 0, 0, 0.5);
-    display: inline;
-  }
 
   a,
   a:hover,
   a:visited {
-    color: #d9d9da;
+    color: #666;
     white-space: nowrap;
   }
 
+  .active {
+    color: #444;
+    a,
+    a:hover,
+    a:visited  {
+      color: #444;
+    }
+  }
+
   .divider {
-    color: #939598;
+    color: #e22434;
     padding: 0 5px;
+  }
+
+  li {
+    float: left;
+    margin: 0;
+  }
+}
+
+@media (max-width: 979px) {
+  .breadcrumb {
+    margin-top: -30px;
   }
 }
 
 @media (max-width: 767px) {
-	.breadcrumb {
-    padding: 4px 0;
-	}
+  .breadcrumb {
+    display: none;
+  }
 }

@@ -1,7 +1,7 @@
 - content_for :javascripts do
   -#= javascript_include_tag status_jsonp_url('outage')
   :javascript
-    window.loader_image = '#{image_path('loader-dark.gif')}';
+    window.loader_image = '#{image_path('loader.gif')}';
 
 !!! 5
 -# http://paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither
@@ -14,39 +14,41 @@
 
     %a.skip-navigation{:href => '#content', :accesskey => '2'} Skip to main content
 
-    %header
-      = render 'layouts/console/header'
+    #wrap
 
-    .section-console#content{:class => content_for?(:dark_layout) ? '' : 'section-console-light', :role => 'main'}
-      .container
-        .row-console
-          - if content_for? :full_layout
-            .row.row-flush-right
-              .grid-wrapper.banner-ribbon
-                .span12.span-flush-right
-                  - if content_for? :breadcrumbs
-                    %nav
-                      = yield :breadcrumbs
-              = yield :top
-              .grid-wrapper.section-body
-                .span12
-                  = flashes unless @noflash
-                = yield
+      %header
+        = render 'layouts/console/header'
 
-          - else
-            .row.row-flush-right
-              .grid-wrapper.banner-ribbon
-                .span12.span-flush-right
-                  - if content_for? :breadcrumbs
-                    %nav
-                      = yield :breadcrumbs
-                  - else
-                    &nbsp;
-              = yield :top
-              .column-content.grid-wrapper
-                .span12
-                  = flashes unless @noflash
-                  = yield
+      .section-console#content{:class => content_for(:section_console_presentation), :role => 'main'}
+        .container
+          .row-console
+            - if content_for? :full_layout
+              .row.row-flush-right
+                .grid-wrapper
+                  .span12.span-flush-right
+                    - if content_for? :breadcrumbs
+                      %nav
+                        = yield :breadcrumbs
+                = yield :top
+                .grid-wrapper.section-body
+                  .span12
+                    = flashes unless @noflash
+                    = yield
+
+            - else
+              .row.row-flush-right
+                .grid-wrapper
+                  .span12.span-flush-right
+                    - if content_for? :breadcrumbs
+                      %nav
+                        = yield :breadcrumbs
+                    - else
+                      &nbsp;
+                = yield :top
+                .column-content.grid-wrapper
+                  .span12
+                    = flashes unless @noflash
+                    = yield
 
     %footer
       = yield :footer

@@ -1,5 +1,5 @@
 - content_for :full_layout, true
-- content_for :dark_layout, true
+- content_for :section_console_presentation, 'section-console-blank'
 - content_for :footer do
   = render :partial => 'applications/footer'
 
@@ -15,7 +15,7 @@
 
   .row
     .span8
-      .tile-dark
+      .tile
         - groups = @applications.sort_by{ |a| [a.owner? ? 0 : 1, a.creation_time] }.group_by{ |a| a.domain_id }
         - groups.each_pair do |domain_id, apps|
           %h4.domain

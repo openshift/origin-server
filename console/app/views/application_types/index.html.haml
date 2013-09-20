@@ -1,3 +1,5 @@
+- content_for :section_console_presentation, 'section-console-fade'
+
 %h1.invisible Create a New Application
 = breadcrumb_for_create_application
 = app_wizard_steps_create 0
@@ -18,7 +20,7 @@
       %button.search.font-icon{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"}
     - if @browse_tags.present?
       %span.dropdown
-        %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
+        %button.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
           Browse by tag...
           %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee12"}
         %ul.dropdown-menu#tag-filter
@@ -47,7 +49,7 @@
     %h3.divide Featured
     .row-fluid
       - @featured_types.each do |type|
-        %div{:class => @featured_types.length > 2 ? 'span4 tile-dark' : 'span6 tile-dark'}
+        %div{:class => @featured_types.length > 2 ? 'span4' : 'span6'}
           = render :partial => 'application_type', :object => type, :locals => {:excluded_tags => []}
 
 %section
@@ -62,7 +64,7 @@
     .row
       - in_columns_of(2, types).each do |types|
         .span6
-          .section.tile-dark
+          .section
             - types.sort!.each do |type|
               = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}
 
@@ -71,7 +73,7 @@
       - in_balanced_columns_of(2, @type_groups).each do |groups|
         .span6
           - groups.each do |(title, types, link)|
-            .section.tile-dark
+            .section
               %h3.divide
                 = title
                 - if link
@@ -100,7 +102,6 @@
           
         .span6
           %p Want to build your own cartridge? Get started with the DIY cart.
-          .tile-dark
-            - excluded_tags = common_tags_for(@custom_types)
-            - @custom_types.sort!.each do |type|
-              = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}
+          - excluded_tags = common_tags_for(@custom_types)
+          - @custom_types.sort!.each do |type|
+            = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}

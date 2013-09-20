@@ -2,7 +2,7 @@ $baseFontFamily:      "Helvetica Neue", Helvetica, "Liberation Sans", Arial, san
 $headerFontFamily:    "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 $monoFontFamily:      Menlo, Monaco, "Liberation Mono", Consolas, monospace !default;
 
-$baseLineHeight:          20.5px;
+$baseLineHeight:          20px;
 $baseFontSize:						14.5px;
 $leadLineHeight:          $baseLineHeight * 1.5;
 $leadFontSize:            20px;
@@ -27,8 +27,8 @@ $responsiveTablet:        768px;
 $responsiveDefault:       980px;
 $responsiveLarge:         1200px;
 
-$gridGutterWidth:         28px;
-$gridColumnWidth:         50px; // 80 * 12 = 960
+$gridGutterWidth:         25px;
+$gridColumnWidth:         55px; // 80 * 12 = 960
 
 $gridGutterWidthPhone:    20px; // replaces padding
 
@@ -37,10 +37,6 @@ $gridColumnWidthTablet:   42.5px; // 62 * 12 = 744 and 12px gutters
 
 $gridGutterWidthLarge:    40px;
 $gridColumnWidthLarge:    58.5px;
-
-$logoHeight:      91px;
-$logoWidth:       91px;
-$logoSeparation:  10px;
 
 $openshiftRed:                  #CD202C; /* From style guide */
 $openshiftBrightRed:            #EA0011;
@@ -56,12 +52,9 @@ $genericLightGreen:             #d4e16b;
 $preBackground:                 #eff1f1;
 $preBorder:                     rgba(120, 120, 120, 0.35);
 $preColor:                      #484848;
-$cliColor:                      #D0E57B;
 $codeColor:                     #3B3B3B;
 
-$consolePreBackground:          #222;
-$consolePreBorder:              #000;
-$consolePreColor:               #babbbc;
+$consolePreBackground:          #f5f5f5;
 
 $breadcrumbDividerColor:        $openshiftDarkRed;
 $breadcrumbTextColor:           $openshiftMediumBackgroundGray; 
@@ -90,6 +83,7 @@ $linkColorBlue:                 #069;
 $linkColorBlueHover:            $openshiftBrightRed;
 $linkColorBlueOnDark:           #42a0bf;
 $buttonBlueHover:               #B1E5F2;
+$highlightBlue:					#E7F6F9;
 
 $textColor:                     #404040;
 
@@ -106,7 +100,7 @@ $grayMedium:                    #505050;
 $grayDark:                      #2f2f2f;
 $grayDarker:                    #202020;
 $primaryButtonBackground:       #B1E5F2;
-$orange:                        #ffb02e;
+$orange:                        #d39d00;
 $linkColor:                     #069;
 $white:                         #fff;
 
@@ -129,7 +123,7 @@ $successBackground:       #8ACA1A;
 $successBorder:           darken(adjust-hue($successBackground, -10), 5%);
 
 $infoText:                #222;
-$infoBackground:          #7FC3E1;
+$infoBackground:          #c8ddf3;
 $infoBorder:              darken(adjust-hue($infoBackground, -10), 7%);
 /* END */
 
@@ -145,11 +139,12 @@ $stripesHover:                  #ccc;
 
 $pollBarColor:                  $openshiftDarkRed;
 
-$inputBackground:               #fafafa !default;
+$inputBackground:               #fff !default;
 $inputBorder:                   #ccc !default;
 $inputBorderRadius:             3px;
-$inputDisabledBackground:       #444 !default;
+$inputDisabledBackground:       #eee !default;
 $inputDisabledBorder:           #222 !default;
+$inputAddOnBackground:          #eee !default;
 $horizontalComponentOffset:     180px !default; /* Horizontal forms & lists */
 
 // Input placeholder text color
@@ -165,6 +160,10 @@ $consoleTableStriped:            rgba(255,255,255,0.02);
 $consoleTableStripedHover:       rgba(255,255,255,0.04);
 
 $consoleHeaderColor:             #fafbfc;
+$consoleTextColorDefault:		 #303030;
+
+$consolePanelColor:				#fefefe;
+$consolePanelColorDisabled:		rgba(255, 255, 255, 0.45);
 
 
 // Navbar
@@ -175,5 +174,9 @@ $navbarText:                              #e0e0e0 !default;
 $navbarLinkColor:                         $navbarText !default;
 
 $navbarBrandColor:                        $navbarLinkColor !default;
+
+// Popover
+// -------
+$popoverColor:      			$consolePanelColor;
 
 

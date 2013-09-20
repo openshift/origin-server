@@ -72,7 +72,6 @@ input,
   margin-bottom: 9px;
   font-size: floor($baseFontSize);
   line-height: $baseLineHeight;
-  min-height: $baseLineHeight;
   color: $grayDark;
   @include border-radius(3px);
 }
@@ -84,18 +83,32 @@ textarea,
 .uneditable-input {
   width: 206px; // plus 12px padding and 2px border
 }
-// Reset height since textareas have rows
-textarea {
-  height: auto;
-}
+
 // Everything else
 select,
 textarea,
-input,
+input[type="text"],
+input[type="password"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="date"],
+input[type="month"],
+input[type="time"],
+input[type="week"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="search"],
+input[type="tel"],
+input[type="color"],
+input[type="file"],
+input[type="image"],
 .uneditable-input {
   background-color: $inputBackground;
   border: 1px solid $inputBorder;
   @include box-shadow(inset 0 1px 1px rgba(0,0,0,.075));
+  height: $baseLineHeight; /* IE needs an explicit height */
+  line-height: $baseLineHeight; /* IE needs an explicit line-height */
   $transition: border linear .2s, box-shadow linear .2s;
   @include transition($transition);
 
@@ -110,6 +123,11 @@ input,
   //box-shadow: none;
 
   }
+}
+
+// Reset height since textareas have rows
+textarea {
+  height: auto;
 }
 
 // Position radios and checkboxes better
@@ -462,7 +480,6 @@ textarea:focus:required:valid {
     *margin-left: 0;
     font-size: $baseFontSize;
     vertical-align: top;
-    border-left: 0;
     @include border-radius(0 $inputBorderRadius $inputBorderRadius 0);
     // Make input on top when focused so blue border and shadow always show
     &:focus {
@@ -472,17 +489,15 @@ textarea:focus:required:valid {
   .add-on {
     display: inline-block;
     width: auto;
-    height: $baseLineHeight;
+    height: $baseLineHeight; /* IE needs an explicit height */
     min-width: 16px;
     padding: 4px 5px;
     font-size: $baseFontSize;
     font-weight: normal;
-    line-height: $baseLineHeight;
+    line-height: $baseLineHeight; /* IE needs an explicit line-height */
     text-align: center;
-    //text-shadow: 0 1px 0 $white;
-    background-color: $inputDisabledBackground;
-    border: 1px solid $inputDisabledBorder;
-    color: $grayLight;
+    background-color: $inputAddOnBackground;
+    border: 1px solid $inputBorder;
   }
   .add-on,
   .btn {
@@ -525,7 +540,6 @@ textarea:focus:required:valid {
   select,
   .uneditable-input {
     @include border-radius(0);
-    border-right: 0;
   }
   .add-on:first-child,
   .btn:first-child {
@@ -735,9 +749,9 @@ input[readonly],
 select[readonly],
 textarea[readonly] {
   cursor: inherit;
-  color: #BABBBC !important;
+  color: #666 !important;
   background-color: inherit !important;
-  border: 1px dotted #444444 !important;
+  border: 1px dotted #ccc !important;
   border-radius: 0 0 0 0 !important;
 }
 .input-copyable {
@@ -755,25 +769,22 @@ textarea[readonly] {
 // ---------------------------
 .form-important {
   .control-group { margin-bottom: 14px; }
-  .controls { margin-left: 140px; }
 
   input.expand { width: auto; max-width: -moz-available; }
   input.narrow { width: 140px; }
 
   .controls > h3 { 
-    margin-top: 5px; margin-bottom: 0; color: $consoleHeaderColor; 
+    margin-top: 5px; margin-bottom: 0;
 
     > small { margin-left: 10px; vertical-align: middle; display: inline-block; }
     > select { margin-top: -5px; }
   }
 
-  .control-label { margin-left: 15px; width: 120px; text-align: left; color: #949494; }
+  .control-label { margin-left: 15px; text-align: left; color: #666; }
   .error > .control-label { color: $errorBackground; }
 
-  .help-block { color: #949494 !important; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; }
+  .help-block { color: #949494 !important; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; font-size: $smallFontSize;}
   .alert { max-width: 500px; }
-
-  .form-actions { padding-left: 140px; }
 
   h3 .font-icon {margin-left: 25px}
 }
@@ -785,7 +796,7 @@ textarea[readonly] {
     .help-block { max-width: inherit; white-space: normal; }
     .alert { max-width: inherit; }
     .controls > h3 { display: inline-block; margin-top: 0; }
-    .form-actions { padding-left: 10px; }
+    .form-actions { padding-left: 0; }
   }
 }
 

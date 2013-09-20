@@ -5,23 +5,21 @@
   padding: 0;
   width: 220px;
   overflow: hidden;
-  background: $black; // has to be full background declaration for IE fallback
-  background: rgba(0,0,0,1);
+  background: $popoverColor;
   @include border-radius(0);
-  @include box-shadow(0);
+  @include box-shadow(0 0 10px rgba(75, 75, 75, 0.5));
 }
 .popover-title {
-  padding: 9px 15px;
+  border-bottom: 0;
+  padding: 14px 15px 0;
   margin-bottom: 0;
   line-height: 1;
-  background-color: $subtleTextDarkBackground;
-  border-bottom:1px solid rgba(0,0,0,.25);
+  background-color: $popoverColor;
   @include border-radius(0);
 }
 .popover-content {
-  padding: 14px;
-  background-color: $subtleTextDarkBackground;
-  border-top: 1px solid rgba(255,255,255,.35);
+  padding: 14px 14px 5px;
+  background-color: $popoverColor;
   @include border-radius(0);
   @include background-clip(padding-box);
   p, ul, ol {
@@ -42,8 +40,6 @@
   left: 0;
   z-index: $zindexPopover;
   display: none;
-  border: 6px solid rgba(255,255,255,.5);
-  @include border-radius(6px);
   padding: 0;
   &.top    { margin-top:  -10px; }
   &.right  { margin-left:  10px; }

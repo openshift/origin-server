@@ -1,5 +1,5 @@
 - content_for :full_layout, true
-- content_for :dark_layout, true
+- content_for :section_console_presentation, 'section-console-blank'
 
 - breadcrumb_for_application @application
 
@@ -112,10 +112,9 @@
   %header.clearfix.header-bar
     %h3
       Cartridges
-    .header-btn
-      = link_to application_cartridge_types_path(@application) do
-        %span.header-btn-title add cartridge
-        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16"}
+    = link_to application_cartridge_types_path(@application) do
+      %span.header-btn-title add cartridge
+      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16"}
 
   - can_scale_up = @application.cartridges.any?{ |c| c.can_scale_up?(max_gears) }
   - visual_limit = 6
@@ -126,7 +125,7 @@
         - primary = i == 0
         .cartridge-block{:class => ('cartridge-embedded' if !primary)}
           .cartridge-border
-            .cartridge-inset
+            .cartridge-inset.tile
               - if primary
                 %h2.flow
                   .flow-block{:title => cartridge.name}= cartridge.display_name
@@ -315,8 +314,6 @@
       .header-btn
         = link_to new_application_alias_path(@application) do
           %span.header-btn-title add alias
-          %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16"}
-
     %ul.unstyled
       - if @application.aliases.empty?
         %li

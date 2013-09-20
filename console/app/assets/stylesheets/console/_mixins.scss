@@ -1,14 +1,35 @@
 @mixin console_background {
-}
-
-@mixin console_background_ie9 {
+  background-color: #e5e5e5;
 }
 
 @mixin navbar_background {
 }
 
+@mixin brand_hover {
+}
+
 @mixin brand_image {
+  background: image-url('logo-origin.svg') no-repeat;
+  margin: 21px 0 0;
+  height: 55px;
+  width: 132px;
+  @media (max-width: 979px) {
+    height: 51px;
+    margin-top: 11px;
+    width: 125px;
+  }
+}
+
+@mixin brand_image_ie {
+  background-image: image-url('logo-origin.png');
 }
 
 @mixin account_background {
+}
+
+@mixin account_background {
+  background-color: transparent;
+  background-image: image-url('mts-bottom-transparent.png');
+  background-repeat: repeat-x;
+  background-position: left 100% bottom 70px;
 }

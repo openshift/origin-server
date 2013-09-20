@@ -1,39 +1,12 @@
-.tile {
-  padding: 15px 25px; 
-  margin-bottom: 20px; 
-  background-color: #222;
-  color: #b0b0b0;
-  
-  h2 {
-    @include clearfix();
-  }
-
-  > p {
-    margin-bottom: $baseLineHeight / 1.5;
-  }
-
-  > ul.meta > li > label, {
-    display: inline;
-  }
-
-  > h3 > a { 
-    color: #dadada; 
-    text-decoration: none; 
-  }
-
-  &.cartridge_type .warning {
-    color: $orange;
-  }
-}
-
 .label-tags {
   a.label {
-    color: #666;
+    color: $openshiftLinkGray;
     background-color: transparent;
     text-decoration: none;
-    margin-right: 5px;
+    margin-right: 10px;
+    margin-top: -5px;
+    margin-left: -6px;
     text-shadow: none;
-
     &:hover {
       color: #111;
       background-color: #eee !important;
@@ -41,31 +14,71 @@
   }
 }
 
+.tile {
+  background: $consolePanelColor;
+  @include box-shadow(0 1px 2px rgba(0,0,0,.1));
+  color: $consoleTextColorDefault;
+  padding: 15px 25px; 
+  margin-bottom: 20px; 
+  #app-cartridges &, #app-list & {
+    background: #fafafa;
+  }
+  &.cartridge_type .warning {
+    color: $orange;
+  }
+  > p {
+    margin-bottom: $baseLineHeight / 1.5;
+  }
+  > ul.meta > li > label {
+    display: inline;
+  }
+  .application-info > h2, > h3 {
+    > a { 
+      text-decoration: none;
+    }
+  }
+  h2 {
+    @include clearfix();
+  }
+  .tile-featured h3 {
+    margin-right: 20px;
+  }
+}
+
 .tile-click {
   cursor: pointer;
-  
+  position: relative;
   h3 {
     margin-right: 10px;
   }
-
   &:hover {
-    background-color: #151515;
-
-    h3 {
-      color: #f0f0f0;
+    background: #fff !important;
+    @include box-shadow(0 1px 2px rgba(0,0,0,.35));
+    .application-info > h2, > h3 {
+      > a {
+        color: #ea0011;
+      }
+    }
+    .font-icon-block {
+      opacity: 1;
     }
   }
-
-  &:active {
-    background-color: #333;
-    color: white
+  .font-icon-block {
+    position: absolute;
+    right: 25px;
+    top: 37%;
+    font-size: $largeFontSize; 
+    color: #666;
+    opacity: .3;
+  }
+  &.tile-featured .font-icon-block {
+    top: 20px;
   }
 }
 
 .tile-compact {
   padding-right: 35px;
   h3 {
-    display: inline-block;
     margin-right: 10px;
     margin-bottom: 0;
   }
@@ -73,54 +86,6 @@
     display: inline-block;
     vertical-align: middle;
     margin-top: -5px;
-  }
-}
-
-.tile-dark {
-
-  .tile {
-    background: #131313;
-  }
-  
-  .tile-featured h3 {
-    margin-right: 20px;
-  }
-
-  .tile-target:link,
-  .tile-target:visited {
-    color: white;
-  }
-
-  > .tile-click {
-    position: relative;
-    margin-bottom: 3px;
-
-    &:hover  {
-      background: #000;
-      
-      .font-icon-block {
-        opacity: 1;
-      }
-      .tile-target {
-        text-decoration: underline;
-        color: #6DB3C7;
-      }
-    }
-    .font-icon-block {
-      position: absolute;
-      right: 25px;
-      top: 20px;
-      font-size: 16px; 
-      color: #777;
-      opacity: .3;
-    }
-  }
-}
-
-.section-body .tile-dark > .tile-click {
-  margin-left: 5px;
-  > div {
-    margin-right: -5px;
   }
 }
 
