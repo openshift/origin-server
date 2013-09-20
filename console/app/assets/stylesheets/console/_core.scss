@@ -105,19 +105,19 @@ ol.wizard {
     margin-top: -26px;
     padding-top: 25px;
     &:after, &:before {
-      @include background-image(radial-gradient(center -5px,75% 10px,rgba(0,0,0,0.1) 0%,rgba(0,0,0,0) 100%), radial-gradient(center 83px,75% 15px,rgba(0,0,0,0.1) 0%,rgba(0,0,0,0) 100%));
+      @include background-image(radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%));
       content: '';
       display: block;
-      height: 50px;
+      height: 5px;
       position: absolute;
-      bottom: -50px;
+      bottom: -5px;
       width: 100%;
       z-index: -1;
     }
     &:before {
-      @include background-image(radial-gradient(center 55px,75% 10px,rgba(0,0,0,0.1) 0%,rgba(0,0,0,0) 100%), radial-gradient(center 83px,75% 15px,rgba(0,0,0,0.1) 0%,rgba(0,0,0,0) 100%));
-        bottom: auto;
-        top: -50px;
+      @include background-image(radial-gradient(50% 5px,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%));
+      bottom: auto;
+      top: -5px;
     }
   }
   li {
