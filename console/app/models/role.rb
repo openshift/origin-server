@@ -4,37 +4,33 @@ class Role < RestApi::Base
     string :id, :name
   end
 
-  def category
-    case id
+  def self.description_for(role)
+    case role
     when 'admin'
-      'Admins'
+      'Can administer'
     when 'edit'
-      'Editors'
+      'Can edit'
     when 'view'
-      'Viewers'
+      'Can view'
     else
-      name
+      role.to_s.humanize
     end
   end
 
-  def self.role_options_ascending
-    role_options_descending.reverse
-  end
-
-  def self.role_options_descending
-    [
-      Role.new(:id => 'admin', :name => 'Admin'),
-      Role.new(:id => 'edit',  :name => 'Edit' ),
-      Role.new(:id => 'view',  :name => 'View' )
-    ]
-  end
-
-  def self.role_descriptions_descending
-    [
-      ['Can administer','admin'],
-      ['Can edit','edit'],
-      ['Can view','view'],
-      ['Remove', 'none']
-    ]
+  def self.role_descriptions(include_blank=false)
+    if include_blank
+      @blank_descriptions ||= [
+        ['No access', 'none'],
+        ['Can view','view'],
+        ['Can edit','edit'],
+        ['Can administer','admin']
+      ]
+    else
+      @descriptions ||= [
+        ['Can view','view'],
+        ['Can edit','edit'],
+        ['Can administer','admin']
+      ]
+    end
   end
 end

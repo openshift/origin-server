@@ -125,7 +125,7 @@ class DomainsControllerTest < ActionController::TestCase
 
     assert domain = assigns(:domain)
     assert domain.errors.empty?, domain.errors.inspect
-    assert_redirected_to settings_path
+    assert_redirected_to domain_path(domain)
   end
 
   test "should update domain and clear session cache" do
@@ -136,7 +136,7 @@ class DomainsControllerTest < ActionController::TestCase
 
     assert domain = assigns(:domain)
     assert domain.errors.empty?, domain.errors.inspect
-    assert_redirected_to settings_path
+    assert_redirected_to domain_path(domain)
     assert_nil Rails.cache.read(@controller.domains_cache_key)
   end
 

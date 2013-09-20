@@ -54,6 +54,20 @@ class Domain < RestApi::Base
     { :domain_id => id }
   end
 
+  def allowed_gear_sizes
+    Array(attributes[:allowed_gear_sizes]).map(&:to_sym)
+  end
+
+  def can_rename?
+    if readonly?
+      false
+    elsif application_count.present?
+      application_count == 0
+    else
+      applications.count == 0
+    end
+  end
+
   # FIXME: Temporary until multiple domains are supported
   def self.find_one(options)
     domain = first(options)

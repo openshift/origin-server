@@ -7,38 +7,24 @@ class DomainsController < ConsoleController
 
   def show
     @domain = Domain.find(params[:id].to_s, :params => {:include => :application_info}, :as => current_user)
+    @capabilities = user_capabilities
   end
 
   def new
     @domain = Domain.new
-    @referrer = valid_referrer(params[:then] || params[:redirectUrl] || request.referrer)
+    @referrer = valid_referrer(params[:then])
   end
 
   def create
     @domain = Domain.new params[:domain]
     @domain.as = current_user
 
-    @referrer = valid_referrer(params[:then] || params[:redirectUrl])
+    @referrer = valid_referrer(params[:then])
 
     if @domain.save
-      if @referrer.present? and params[:domain_param].present?
-        begin
-          puts "@referrer = #{@referrer}"
-          u = URI(@referrer)
-          puts "u = #{u.inspect}"
-          q = Rack::Utils.parse_query u.query
-          puts "q = #{q.inspect}"
-          q[params[:domain_param]] = @domain.name
-          puts "q = #{u.inspect}"
-          u.query = q.to_query
-          puts "u = #{u.inspect}"
-          @referrer = u.to_s
-          puts "@referrer = #{@referrer}"
-        rescue Exception => e
-          Rails.logger.debug "Error replacing domain param: #{e}\n#{e.backtrace.join("\n  ")}"
-        end
+      if @referrer and (domain_param = params[:domain_param])
+        @referrer = rewrite_url(@referrer, { domain_param => @domain.name }) rescue nil
       end
-
       redirect_to @referrer || settings_path, :flash => {:success => "The domain '#{@domain.name}' has been created"}
     else
       render :new
@@ -51,9 +37,10 @@ class DomainsController < ConsoleController
 
   def update
     @domain = Domain.find(:one, :as => current_user)
-    @domain.attributes = params[:domain]
-    if @domain.save
-      redirect_to settings_path, :flash => {:success => 'Your domain has been changed.  Your public URLs will now be different'}
+    @domain.attributes.merge!(params[:domain]) if params[:domain]
+
+    if @domain.save or @domain.has_exit_code?(133)
+      redirect_to domain_path(@domain), :flash => {:success => @domain.messages.first.presence || "The domain '#{@domain.name}' has been updated."}
     else
       render :edit
     end
@@ -62,5 +49,11 @@ class DomainsController < ConsoleController
   protected
     def active_tab
       :settings unless ['show', 'index'].include? action_name
+    end
+
+    def rewrite_url(url, query)
+      url = URI(url) unless url.is_a? URI
+      url.query = Rack::Utils.parse_query(url.query).merge(query).select {|k,v| v != nil }.to_query
+      url.to_s
     end
 end

@@ -16,10 +16,6 @@ class Member < RestApi::Base
   end
 
   def <=>(other)
-    to_s <=> other.to_s
-  end
-
-  def to_s
-    name || login || id
+    [name, id] <=> [other.name, other.id]
   end
 end

@@ -90,21 +90,28 @@ class DomainsController < BaseController
 
     domain = Domain.accessible(current_user).find_by(canonical_namespace: Domain.check_name!(id).downcase)
 
+    messages = []
+
     if !new_namespace.nil?
       domain.namespace = new_namespace.downcase
-      authorize!(:change_namespace, domain) if domain.namespace_changed?
+      if domain.namespace_changed?
+        authorize!(:change_namespace, domain)
+        messages << "Changed namespace to '#{domain.namespace}'."
+      end
     end
 
     if params.has_key? :allowed_gear_sizes
-      domain.allowed_gear_sizes = params[:allowed_gear_sizes]
-      authorize!(:change_gear_sizes, domain) if domain.allowed_gear_sizes_changed?
+      domain.allowed_gear_sizes = Array(params[:allowed_gear_sizes]).map(&:presence).compact
+      if domain.allowed_gear_sizes_changed?
+        authorize!(:change_gear_sizes, domain)
+        messages << "Updated allowed gear sizes."
+      end
     end
 
-    return render_error(:unprocessable_entity, "No changes specified to the domain.", 106) unless domain.changed?
+    return render_error(:unprocessable_entity, "No changes specified to the domain.", 133) unless domain.changed?
 
     domain.save_with_duplicate_check!
-
-    render_success(:ok, "domain", get_rest_domain(domain), "Updated domain #{domain.namespace}", domain)
+    render_success(:ok, "domain", get_rest_domain(domain), messages.join(" "), domain)
   end
 
   # Delete a domain for the user. Requires that domain be empty unless 'force' parameter is set.
