@@ -429,6 +429,15 @@ action "upgrade", :description => "upgrade a gear" do
         :optional       => false,
         :maxlength      => 32
                 
+    input :secret_token,
+        :prompt         => "Application secret token",
+        :description    => "Application secret token",
+        :type           => :string,
+        :validation     => '^[\w\-]+$',
+        :optional       => false,
+        :minlength      => 128,
+        :maxlength      => 128
+                
     input :namespace,
         :prompt         => "Namespace",
         :description    => "Namespace",

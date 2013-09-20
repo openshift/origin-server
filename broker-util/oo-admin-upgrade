@@ -734,6 +734,7 @@ class Upgrader
             client.upgrade(:uuid => gear_uuid,
                            :namespace => app.domain.namespace,
                            :app_uuid => app.uuid,
+                           :secret_token => app.secret_token,
                            :version => version,
                            :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
               remote_result_json = response[:body][:data][:upgrade_result_json]
