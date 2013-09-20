@@ -2843,7 +2843,7 @@ module OpenShift
         end
 
         # Get the districts
-        districts = prefer_district ? District.find_all : [] # candidate for caching
+        districts = prefer_district ? District.find_all((require_district && node_profile ) ? node_profile : nil, required_uid) : []
 
         # Get the active % on the nodes
         rpc_opts = nil
