@@ -13,6 +13,8 @@ class District
   field :server_identities, type: Array
 
   index({:name => 1}, {:unique => true})
+  index({:uuid => 1}, {:unique => true})
+  index({:gear_size => 1})
   create_indexes
 
   def self.create_district(name, gear_size=nil)
@@ -50,8 +52,16 @@ class District
     valid_district
   end
 
-  def self.find_all()
-    District.where(nil).find_all.to_a
+  def self.find_all(gear_size=nil, include_available_uids=true)
+    query = nil
+    if gear_size
+      query = {'gear_size' => gear_size}
+    end
+    if include_available_uids
+      District.where(query).find_all.to_a
+    else
+      District.where(query).only(:name, :uuid, :gear_size, :max_capacity, :max_uid, :available_capacity, :active_server_identities_size, :server_identities).find_all.to_a
+    end
   end
 
   def delete()

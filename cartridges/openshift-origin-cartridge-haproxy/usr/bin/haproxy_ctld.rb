@@ -389,7 +389,7 @@ Auto scaling options:
 
 Notes:
 1. To start/stop auto scaling in daemon mode run:
-    haproxy_watcher (start|stop|restart|run|)
+    haproxy_ctld_daemon (start|stop|restart|run|)
 USAGE
     exit! 255
 end
