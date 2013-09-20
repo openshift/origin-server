@@ -380,7 +380,7 @@ class Application
       raise OpenShift::UserException.new("Invalid application configuration: #{messages}", 1)
     end
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"config" => self.config})
+      op_group = UpdateAppConfigOpGroup.new(config: self.config)
       self.pending_op_groups.push op_group
       self.save
       result_io = ResultIO.new
@@ -1605,13 +1605,13 @@ class Application
       #init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns}, prereq: maybe_notify_app_create_op)
       init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, host_singletons: host_singletons, app_dns: app_dns, prereq: maybe_notify_app_create_op)
       init_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
-      
+
       #reserve_uid_op = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
       reserve_uid_op = ReserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [init_gear_op._id.to_s])
 
       #create_gear_op = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
       create_gear_op = CreateGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
-      
+
       #track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
       #                 "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
       #                 "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage], "gear_size" => gear_size}, prereq: [create_gear_op._id.to_s])
@@ -2114,16 +2114,13 @@ class Application
 
     unless pending_ops.empty? or ((pending_ops.length == 1) and (pending_ops[0].class == SetGroupOverridesOp))
 
-      #TODO danmcp
       if scalable
         all_ops_ids = pending_ops.map{ |op| op._id.to_s }
-        update_cluster_op = PendingAppOp.new(op_type: :update_cluster, prereq: all_ops_ids)
+        update_cluster_op = UpdateClusterOp.new(prereq: all_ops_ids)
         pending_ops.push update_cluster_op
       end
 
-      execute_connection_op = nil
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
-      #execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
       execute_connection_op = ExecuteConnectionsOp.new(prereq: all_ops_ids)
       pending_ops.push execute_connection_op
     end
@@ -2908,7 +2905,7 @@ class Application
   def deploy(deployment)
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :deploy,  args: {:hot_deploy => deployment.hot_deploy, :force_clean_build => deployment.force_clean_build, :ref => deployment.ref, :artifact_url => deployment.artifact_url})
+      op_group = DeployOpGroup.new(hot_deploy: deployment.hot_deploy, force_clean_build: deployment.force_clean_build, ref: deployment.ref, artifact_url: deployment.artifact_url)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
     end
@@ -2922,7 +2919,7 @@ class Application
     raise OpenShift::UserException.new("There are no previous deployments to roll-back to", 126, "deployment_id") if deployment_id.nil?
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :rollback,  args: {:deployment_id => deployment_id})
+      op_group = RollbackOpGroup.new(deployment_id: deployment_id)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
     end

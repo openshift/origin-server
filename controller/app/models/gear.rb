@@ -317,7 +317,7 @@ class Gear
       @container = OpenShift::ApplicationContainerProxy.instance(self.server_identity)
     elsif @container and @container.id!=self.server_identity 
       @container = OpenShift::ApplicationContainerProxy.instance(self.server_identity)
-    end    
+    end
 
     return @container
   end
@@ -335,7 +335,6 @@ class Gear
     add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(self, env["key"],env["value"]))} if add_envs.present?
     remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(self, env["key"]))} if remove_envs.present?
 
-    #TODO danmcp
     RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_configuration_job(self, config)) unless config.nil?
   end
 
