@@ -744,7 +744,7 @@ unless unresponsive_servers.empty?
     if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
       unresponsive_unscalable_apps.each do |app_info|
         begin
-          Application.find_by(_id: app_info['_id']).destroy_app(true)
+          Application.find_by(_id: Moped::BSON::ObjectId(app_info['_id'].to_s)).destroy_app(true)
           puts "Application with id: #{app_info['_id']} deleted." if verbose
         rescue Exception => e
           error_msg = "Unable to delete application with id: #{app_info['_id']}, error: #{e.message}"

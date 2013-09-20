@@ -14,6 +14,13 @@ namespace :test do
     ]
   end
 
+  Rake::TestTask.new :integration_ext => ['test:prepare'] do |t|
+    t.libs << 'test'
+    t.test_files = FileList[
+      'test/integration_ext/*_test.rb'
+    ]
+  end
+
   Rake::TestTask.new :admin_console_functionals => ['test:prepare'] do |t|
     t.libs << 'test'
     t.test_files = FileList[
