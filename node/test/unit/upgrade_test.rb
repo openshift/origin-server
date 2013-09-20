@@ -48,7 +48,8 @@ module OpenShift
         Utils::Environ.expects(:for_gear).with('/test/123').returns(@gear_env)
         ApplicationContainer.expects(:from_uuid).with(@uuid, @hourglass).returns(@container)
 
-        @upgrader = Upgrader.new(@uuid, @app_uuid, 'namespace', @version, 'hostname', false, @hourglass)
+        secret_token = SecureRandom.urlsafe_base64(96, false)
+        @upgrader = Upgrader.new(@uuid, @app_uuid, secret_token, 'namespace', @version, 'hostname', false, @hourglass)
       end
 
       def test_compatible_success
