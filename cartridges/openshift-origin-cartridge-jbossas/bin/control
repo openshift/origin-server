@@ -351,6 +351,8 @@ function threaddump() {
     fi
 }
 
+export OPENSHIFT_SECRET_TOKEN=${OPENSHIFT_SECRET_TOKEN:-OPENSHIFT_APP_UUID}
+
 case "$1" in
   build)           build ;;
   deploy)          deploy ;;
