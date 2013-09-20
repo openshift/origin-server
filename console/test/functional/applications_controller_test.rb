@@ -211,7 +211,7 @@ class ApplicationsControllerTest < ActionController::TestCase
   end
 
   test "should retrieve application details" do
-    with_app.aliases.each{ |a| a.destroy! }
+    with_app.aliases.each{ |a| a.destroy }
     get :show, :id => with_app.to_param
     assert_response :success
     assert app = assigns(:application)
