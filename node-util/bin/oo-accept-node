@@ -83,7 +83,13 @@ $LIMITS_CONF_DIR="/etc/security/limits.d"
 #
 # Control variables.  Override for testing
 #
-DEFAULT_SEBOOL_LIST="httpd_can_network_connect:on allow_polyinstantiation:on"
+
+poly_sebool = "allow_polyinstantiation:on"
+if %x[/usr/sbin/getsebool -a] =~ /polyinstantiation_enabled/
+  poly_sebool = "polyinstantiation_enabled:on"
+end
+DEFAULT_SEBOOL_LIST="httpd_can_network_connect:on #{poly_sebool}"
+
 DEFAULT_PACKAGES="rubygem-openshift-origin-node openshift-origin-node-util \
     rubygem-openshift-origin-common selinux-policy selinux-policy-targeted"
 
