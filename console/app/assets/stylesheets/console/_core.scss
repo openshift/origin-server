@@ -100,22 +100,45 @@ ol.wizard {
   display: block;
   margin: 0 0 25px 0;
   padding: 0;
+  position: relative;
+  .section-console-blank & {
+    border-bottom: 1px solid rgba(0,0,0,.01);
+    border-top: 1px solid rgba(0,0,0,.01);
+    color: #888;
+    margin-top: -26px;
+    padding-top: 25px;
+    &:after, &:before {
+      @include background-image(radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%));
+      content: '';
+      display: block;
+      height: 5px;
+      position: absolute;
+      bottom: -5px;
+      width: 100%;
+      z-index: -1;
+    }
+    &:before {
+      @include background-image(radial-gradient(50% 5px,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%));
+      bottom: auto;
+      top: -5px;
+    }
+  }
   li {
     display: inline-block;
     font-size: $baseFontSize;
     line-height: 25px;
     list-style-position: inside;
     list-style-type: none;
-    margin: 0 35px 25px 0;
+    margin: 0 35px 30px 0;
     padding: 6px 0 0 45px;
     &:last-child {
       margin-right: 0;
     }
     &.active {
       span {
-        color: #000;
+        color: #000 !important;
         i {
-          border-color: #aaa;
+          border-color: #aaa !important;
         }
       }
     }
@@ -127,7 +150,7 @@ ol.wizard {
         color: inherit;
       }
       i {
-        border: 4px solid #e5e5e5;
+        border: 4px solid #e0e0e0;
         border-radius: 30px;
         font-style: normal;
         font-weight: bold;
@@ -138,15 +161,33 @@ ol.wizard {
         text-align: center;
         top: -9px;
         width: 25px;
+        .section-console-blank & {
+          border-color: #ccc;
+        }
       }
+    }
+  }
+}
+
+@media (max-width: 979px) {
+  ol.wizard {
+    li {
+      margin-right: 25px;
+    }
+    .section-console-blank & {
+      margin-top: -21px;
     }
   }
 }
 
 @media (max-width: 767px) {
   ol.wizard {
-    border-bottom-color: #ccc;
+    border-bottom-color: #ccc !important;
+    border-top: 0;
     padding-bottom: 10px;
+    &:after, &:before {
+      display: none;
+    }
     li {
       margin-bottom: 10px;
       padding-left: 0;
@@ -188,51 +229,10 @@ figure {
 .row-console > .row {
   background: #fcfcfc;
   @include box-shadow(0 0 3px rgba(0,0,0,0.09));
-  color: #333;
   min-height: 400px;
   .section-console-blank & {
     background: none;
     @include box-shadow(none);
-  }
-  .section-console-fade & {
-    background-color: transparent;
-    background-image: linear-gradient(top, rgba(253,253,253,1) 125px, rgba(253,253,253,0) 225px);
-    background-image: -o-linear-gradient(top, rgba(253,253,253,1) 125px, rgba(253,253,253,0) 225px);
-    background-image: -moz-linear-gradient(top, rgba(253,253,253,1) 125px, rgba(253,253,253,0) 225px);
-    background-image: -webkit-linear-gradient(top, rgba(253,253,253,1) 125px, rgba(253,253,253,0) 225px);
-    background-image: -ms-linear-gradient(top, rgba(253,253,253,1) 125px, rgba(253,253,253,0) 225px);
-    background-image: -webkit-gradient(
-      linear,
-      left top,
-      left bottom,
-      color-stop(125px, rgba(253,253,253,1)),
-      color-stop(225px, rgba(253,253,253,0))
-    );
-    @include box-shadow(none);
-    color: $consoleTextColorDefault;
-    position: relative;
-    &:before {
-      background-image: linear-gradient(top, transparent 0%, rgba(0,0,0,.035) 3px);
-      background-image: -o-linear-gradient(top, transparent 0%, rgba(0,0,0,.035) 3px);
-      background-image: -moz-linear-gradient(top, transparent 0%, rgba(0,0,0,.035) 3px);
-      background-image: -webkit-linear-gradient(top, transparent 0%, rgba(0,0,0,.035) 3px);
-      background-image: -ms-linear-gradient(top, transparent 0%, rgba(0,0,0,.035) 3px);
-      background-image: -webkit-gradient(
-        linear,
-        left top,
-        left bottom,
-        color-stop(0, transparent),
-        color-stop(3px, rgba(0,0,0,.035))
-      );
-      content: '';
-      display: block;
-      height: 3px;
-      left: 1px;
-      position: absolute;
-      right: 1px; 
-      top: -3px;
-      width: 100%;
-    }
   }
 }
 
@@ -331,17 +331,11 @@ aside .header-bar {
     background: #fcfcfc;
     padding-bottom: 0;
     padding-top: 0;
-    &.section-console-blank, &.section-console-fade {
+    &.section-console-blank {
       @include console_background;
     }
     .row-console > .row {
       @include box-shadow(none);
-    }
-  }
-  .section-console-fade .row-console > .row {
-    background: transparent;
-    &:before {
-      display: none;
     }
   }
   .section-header {
