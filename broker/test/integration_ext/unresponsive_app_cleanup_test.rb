@@ -43,8 +43,7 @@ class UnresponsiveAppCleanupTest < ActionDispatch::IntegrationTest
     
     repair_unresponsive_apps
 
-    app = Application.find_by(name: @appname, domain: @domain)
-    assert(nil == app)
+    assert_equal(0, Application.where(name: @appname, domain: @domain).count)
     assert_equal(2, UsageRecord.where(gear_id: gear._id).count)
     assert_equal(1, Usage.where(gear_id: gear._id).count)
     usage = Usage.find_by(gear_id: gear._id)
@@ -55,9 +54,7 @@ class UnresponsiveAppCleanupTest < ActionDispatch::IntegrationTest
   def repair_unresponsive_apps
     output = `export RAILS_ENV=test; oo-admin-repair --unresponsive-apps --confirm --verbose 2>&1`
     exit_code = $?.exitstatus
-    puts output
     puts output if exit_code != 0
-    assert_equal(0, exit_code)
   end
 
 end

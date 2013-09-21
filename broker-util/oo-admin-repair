@@ -722,7 +722,7 @@ unless unresponsive_servers.empty?
     if auto_confirm or (ans =~ /^\s*(y|yes|1|t|true)\s*$/i)
       unresponsive_unscalable_apps.each do |app_info|
         begin
-          Application.find_by(_id: app_info['_id']).destroy_app(true)
+          Application.find_by(_id: Moped::BSON::ObjectId(app_info['_id'].to_s)).destroy_app(true)
           puts "Application with id: #{app_info['_id']} deleted." if verbose
         rescue Exception => e
           error_msg = "Unable to delete application with id: #{app_info['_id']}, error: #{e.message}"
@@ -743,7 +743,7 @@ unless unresponsive_servers.empty?
     # Fix scalable apps
     unresponsive_scalable_apps.each do |app_info|
       begin
-        app = Application.find_by(_id: app_info['_id'])
+        app = Application.find_by(_id: Moped::BSON::ObjectId(app_info['_id'].to_s))
         fixup_app(app)
       rescue Exception => e
         error_msg = "Unable to fix application with id: #{app_info['_id']}, error: #{e.message}"
