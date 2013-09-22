@@ -58,7 +58,7 @@ module OpenShift
     end
 
     def test_connections
-      app_cfg = File.join(@basedir, "#{@container_uuid}_#{@namespace}_9_#{@container_name}.conf")
+      app_cfg = File.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{@container_name}.conf")
       exercise_connections_api do |mode|
         case mode
         when :pre_set, :unset
@@ -111,12 +111,14 @@ module OpenShift
     def test_ssl
       exercise_ssl_api do |mode|
         @ssl_certs.each do |ssl_cert, ssl_key, server_alias|
-          ssl_cfg = File.join(@basedir, "#{@container_uuid}_#{@namespace}_0_#{server_alias}.conf")
+          ssl_cfg = File.join(@basedir, "#{@container_uuid}_#{@namespace}_9_#{server_alias}.conf")
+          alias_path = File.join(@app_path, "888888_server_alias-#{server_alias}.conf")
           case mode
           when :pre_set, :unset
             assert (not File.exists?(ssl_cfg)), "SSL conf file should not exist"
           when :set, :pre_unset
             assert File.size?(ssl_cfg), "SSL conf file should exist and not be empty"
+            assert (not File.exists?(alias_path)), "Alias file must be replaced by SSL conf file"
             assert File.size?(File.join(@app_path, "#{server_alias}.crt")), "SSL cert file should exist and not be empty"
             assert File.size?(File.join(@app_path, "#{server_alias}.key")), "SSL key file should exist and not be empty"
             assert_equal ssl_cert, File.read(File.join(@app_path, "#{server_alias}.crt")).chomp, "Cert and saved cert should match"

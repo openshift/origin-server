@@ -127,7 +127,7 @@ begin
             final_carts << cart
           else
             begin
-              container.cartridge_model.connect_frontend(cart)
+              container.cartridge_model.connect_frontend(cart, true)
             rescue Exception => e
               $stderr.puts("ERROR: Failed to rebuild frontend for gear: #{container.name} cart: #{cart.name}")
               $stderr.puts("ERROR: #{e.message}")
@@ -138,7 +138,7 @@ begin
 
         final_carts.each do |cart|
           begin
-            container.cartridge_model.connect_frontend(cart)
+            container.cartridge_model.connect_frontend(cart, true)
           rescue Exception => e
             $stderr.puts("ERROR: Failed to rebuild frontend for gear: #{container.name} cart: #{cart.name}")
             $stderr.puts("ERROR: #{e.message}")
