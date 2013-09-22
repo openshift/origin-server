@@ -86,6 +86,7 @@ def stubber
   @container.stubs(:update_cluster).returns(ResultIO.new)
   @container.stubs(:deploy).returns(ResultIO.new)
   @container.stubs(:rollback).returns(ResultIO.new)
+  @container.stubs(:update_cluster).returns(ResultIO.new)
   @container.stubs(:get_update_cluster_job).returns(RemoteJob.new(nil, nil, nil))
   OpenShift::ApplicationContainerProxy.stubs(:execute_parallel_jobs)
   RemoteJob.stubs(:get_parallel_run_results)
