@@ -82,7 +82,7 @@ module OpenShift
 
         raise OpenShift::AccessDeniedException, "No such application exists #{app_name || app_id} or invalid token time" if app.nil? or (Time.parse(creation_time) - app.created_at).abs > 1.0
 
-        scopes = [Scope::Application.new(:id => app._id.to_s, :app_scope => :scale)]
+        scopes = [Scope::Application.new(:id => app._id.to_s, :app_scope => :scale), Scope::Application.new(:id => app._id.to_s, :app_scope => :report_deployments)]
         if app.requires(true).any?{ |feature| (c = CartridgeCache.find_cartridge(feature, app)) && c.is_ci_server? }
           scopes << Scope::DomainBuilder.new(app)
         end

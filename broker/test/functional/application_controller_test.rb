@@ -50,7 +50,7 @@ class ApplicationControllerTest < ActionController::TestCase
                   "deployment_branch" => 'stage'
                  }
     assert_response :success
-    
+
     get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
     assert_response :success
     assert json = JSON.parse(response.body)
@@ -59,7 +59,7 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal json['data']['keep_deployments'], 2
     assert_equal json['data']['deployment_type'], 'binary'
     assert_equal json['data']['deployment_branch'], 'stage'
-    
+
 
     delete :destroy, {"id" => @app_name, "domain_id" => @domain.namespace}
     assert_response :ok

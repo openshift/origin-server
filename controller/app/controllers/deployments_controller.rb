@@ -23,9 +23,7 @@ class DeploymentsController < BaseController
   def create
     #if there is a deployment parameter call update
     return update if params[:deployments].presence
-
-    #TODO implement :create_deployment
-    #authorize! :create_deployment, @application
+    authorize! :create_deployment, @application
 
     hot_deploy = params[:hot_deploy].presence || false
     force_clean_build = params[:force_clean_build].presence || false
@@ -44,15 +42,14 @@ class DeploymentsController < BaseController
   end
 
   def update
-    #TODO implement :update_deployments
-    #authorize! :update_deployments, @application
+    authorize! :update_deployments, @application
     deployments = params[:deployments].presence
     if deployments
       deploys = []
       deployments.each do |d|
         deploys.push(Deployment.new(deployment_id: d["id"],
                                  state: d["state"],
-                            created_at: d["created_at"],  #TODO:  Need to figure out the transfer format here.  time_in_millis is probably best
+                            created_at: d["created_at"],
                                    ref: d["ref"],
                           artifact_url: d["artifact_url"],
                             hot_deploy: d["hot_deploy"],

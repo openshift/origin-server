@@ -32,30 +32,47 @@ class DeploymentsControllerTest < ActionController::TestCase
     end
   end
 
+  test "attempt to create and update deployments without permission" do
+    scopes = Scope::Scopes.new
+    CloudUser.any_instance.stubs(:scopes).returns(scopes << Scope::Read.new)
+    post :create, {"ref" => "mybranch", "application_id" => @app._id}
+    assert_response :forbidden
+
+    @domain.members.find(@user).role = :edit
+    @domain.save; @domain.run_jobs
+
+    post :create, {"deployments" => [], "application_id" => @app._id}
+    assert_response :forbidden
+  end
+
   test "deployment create show list" do
+    @domain.members.find(@user).role = :edit
+    @domain.save; @domain.run_jobs
+
     Application.any_instance.stubs(:deployments).returns([Deployment.new(ref: "mybranch", deployment_id: "1")])
-    post :create, {"ref" => "mybranch", "application_id" => @app.uuid}
+    post :create, {"ref" => "mybranch", "application_id" => @app._id}
     assert_response :created
     assert json = JSON.parse(response.body)
     assert id = json['data']['id']
 
-    get :show, {"id" => id, "application_id" => @app.uuid}
+    get :show, {"id" => id, "application_id" => @app._id}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert_equal id, json['data']['id'] 
 
-    get :index , {"application_id" => @app.uuid}
+    get :index , {"application_id" => @app._id}
     assert_response :success
   end
 
   test "update deployments" do
+    CloudUser.any_instance.stubs(:scopes).returns(Scope::Scopes.new << Scope::Application.new(:id => @app._id.to_s, :app_scope => :report_deployments))
     deployments = []
     for i in 1..5
       deployments.push({:id => i.to_s, :ref => "tag_#{i}"})
     end
-    post :create, {"deployments" => deployments, "application_id" => @app.uuid}
+    post :create, {"deployments" => deployments, "application_id" => @app._id}
     assert_response :success
-    get :index , {"application_id" => @app.uuid}
+    get :index , {"application_id" => @app._id}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json['data']
