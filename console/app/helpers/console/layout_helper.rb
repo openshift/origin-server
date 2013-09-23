@@ -196,7 +196,7 @@ module Console::LayoutHelper
 
   def breadcrumb_for_application(application, *args)
     breadcrumbs_for_each [
-      link_to('My Applications', :applications, :action => :index),
+      link_to('Applications', :applications, :action => :index),
       link_to(application.name, application),
     ] + args
   end

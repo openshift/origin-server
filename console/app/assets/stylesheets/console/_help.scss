@@ -43,8 +43,10 @@
       font-weight: 500;
     }
   }
-  h2 + p > strong {
-    color: #999;
+  .subhead {
+    color: #888;
+    font-size: $smallFontSize;
+    margin-top: -6px;
   }
 }
 

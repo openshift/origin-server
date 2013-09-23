@@ -1,7 +1,6 @@
 .navbar {
   background: #333;
   @include navbar_background;
-  border-top: 3px solid #eb0011;
   .brand {
     float: left;
     position: relative;

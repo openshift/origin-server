@@ -5,35 +5,34 @@
 
 - content_for :top do
   .grid-wrapper.section-header
-    %nav.span12.span-flush-right.applications
-      %h1.flow
-        Applications
+    %nav.span12.applications
+      %h1.tile
         = render :partial => 'account_state', :locals => {:capabilities => @capabilities}
+        Applications
 
-%section#app-list.span12
+%section#app-list
   %section{style: 'margin-bottom: 20px;'}
 
   .row
     .span8
-      .tile
-        - groups = @applications.sort_by{ |a| [a.owner? ? 0 : 1, a.creation_time] }.group_by{ |a| a.domain_id }
-        - groups.each_pair do |domain_id, apps|
-          %h4.domain
-            - if groups.length == 1
-              Applications in domain 
-            = link_to domain_id, domain_path(domain_id)
-            - if apps.first.owner?
-            - elsif owner = apps.first.members.find(&:owner)
-              (#{owner.name})
+      - groups = @applications.sort_by{ |a| [a.owner? ? 0 : 1, a.creation_time] }.group_by{ |a| a.domain_id }
+      - groups.each_pair do |domain_id, apps|
+        %h4.domain
+          - if groups.length == 1
+            Applications in domain 
+          = link_to domain_id, domain_path(domain_id)
+          - if apps.first.owner?
+          - elsif owner = apps.first.members.find(&:owner)
+            (#{owner.name})
 
-          - apps.each do |application|
-            = render :partial => 'application2', :locals => {:application => application}
+        - apps.each do |application|
+          = render :partial => 'application2', :locals => {:application => application}
 
-        .btn-toolbar.base
-          = link_to application_types_path, :class => 'btn btn-primary btn-large' do
-            Add
-            %strong Application
-            %i.icon-add
+      .btn-toolbar.base
+        = link_to application_types_path, :class => 'btn btn-primary btn-large' do
+          Add
+          %strong Application
+          %i.icon-add
 
     .span4.application-suggestions
       %h5 You may want to...

@@ -1,5 +1,5 @@
 - content_for :full_layout, true
-- content_for :dark_layout, true
+- content_for :section_console_presentation, 'section-console-blank'
 - content_for :footer do
   = render :partial => 'applications/footer'
 
@@ -8,7 +8,7 @@
     %nav.span12.span-flush-right
       %h1 Welcome to OpenShift
 
-%section.span12{:style => 'margin-top: 20px; margin-bottom: 5px;'}
+%section
   %p.lead OpenShift helps you build and deploy web applications, mobile backends, service oriented architectures, and host your favorite services.
 
   -#%p.larger 
@@ -18,7 +18,6 @@
   .important-list {
     counter-reset:  li;
     list-style: none;
-    margin-left: 0;
   }
   .important-list > li {
     position: relative;
@@ -27,12 +26,12 @@
     content: counter(li);
     counter-increment: li;
     position: absolute;
-    left: -30px;
-    font-size: 25px;
-    top: 5px;
+    left: -26px;
+    font-size: 24px;
+    top: 4px;
   }
 
-%section.span11.offset1
+%section.tile
 
   -#%p.lead Create your first application now
 
@@ -45,10 +44,10 @@
       %h3 Add cartridges like MySQL or MongoDB to your application
       %p.larger OpenShift lets you add services and tools to your application through <strong>cartridges</strong> - including databases, cache servers, management tools, and continuous integration servers.
     %li
-      %h3 Upload your code to OpenShift
+      %h3 Upload your code to OpenShift via Git
       %p.larger Your source code is stored with your application in a Git version control repository.
 
-%section.span12
   %p.lead= link_to "→ Create your first application now", application_types_path
+%section
   %p.larger
     For more about OpenShift, see the #{link_to "How it Works page", product_architecture_url}.
