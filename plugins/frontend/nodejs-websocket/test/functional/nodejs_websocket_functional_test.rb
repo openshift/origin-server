@@ -74,6 +74,18 @@ module OpenShift
       end
     end
 
+    def test_idle
+      @plugin.connect(*@elements)
+      exercise_idle_api do |mode|
+        case mode
+        when :pre_set, :unset
+          assert (not @db[@fqdn]["idle"]), "Idle should be unset or false"
+        when :set, :pre_unset
+          assert_equal @container_uuid, @db[@fqdn]["idle"], "Idle should be set to the uuid"
+        end
+      end
+    end
+
     def teardown
       @plugin.destroy
       assert @db.empty?, "Database should be empty."
