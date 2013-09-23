@@ -1,8 +1,7 @@
 %section.row.row-help
   .span3
     %h2 Create
-    %p
-      %strong Just starting with OpenShift?
+    %p.subhead Just starting with OpenShift?
     %p Get your first application up off the ground through the application creation wizard.
     %p #{link_to 'Create an app now', application_types_path, :class => 'btn btn-primary'}
     %p If you prefer the command line, #{link_to 'our Getting Started page', getting_started_path} will help you install the client tools, create your application, and make your first change.
@@ -14,8 +13,7 @@
 
   .span3
     %h2 Learn
-    %p 
-      %strong Want to explore our platform?
+    %p.subhead Want to explore our platform?
     %p #{link_to 'The Developer Center', developers_url} is the first destination for new developers to find the information you need about OpenShift.
     %p When you're looking for a great reference for understanding OpenShift, look no further than the #{link_to 'the User Guide', user_guide_url}.  It covers the entire experience and can be downloaded as HTML or PDF when you're on the go.
     %p Our technology highlight pages bring together what you need to know - #{link_to 'JBoss', jboss_resources_url} and #{link_to 'MongoDB', mongodb_resources_url} are up now, with more to come.
@@ -24,8 +22,7 @@
 
   .span3
     %h2 Troubleshoot
-    %p 
-      %strong Hit a bump in the road?
+    %p.subhead Hit a bump in the road?
     %p Our #{link_to 'community forum', post_to_forum_url} is watched round the clock by an army of developers, evangelists, and OpenShift devotees.
     %form.form-search{:method => 'get', :action => community_search_url}
       %input.span3.search-query{:name => 'keys', :placeholder => 'Search the forums', :type => 'text'}
@@ -35,8 +32,7 @@
 
   .span3
     %h2 Engage
-    %p 
-      %strong Need to know what's new?
+    %p.subhead Need to know what's new?
     %p The OpenShift newsletter is a great way to track the latest news.
     %p #{link_to 'Subscribe today', newsletter_signup_url, :class => 'btn btn-primary'}
     %p OpenShift is #{link_to "powered by open source ", opensource_community_url} and can be #{link_to "run on your laptop", opensource_download_path}. #{link_to "Get involved today", get_involved_url} and help drive our evolution.
