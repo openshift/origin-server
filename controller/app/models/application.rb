@@ -95,7 +95,6 @@ class Application
   field :ha, type: Boolean, default: false
   field :init_git_url, type: String, default: ""
   field :analytics, type: Hash, default: {}
-  field :secret_token, type: String
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
@@ -299,10 +298,6 @@ class Application
     self.app_ssh_keys = []
     #self.pending_op_groups = []
     self.analytics = {} if self.analytics.nil?
-    
-    # the resultant string length is 4/3 times the number specified as the first argument
-    # with 96 specified, the token is going to be 128 characters long
-    self.secret_token = SecureRandom.urlsafe_base64(96, false)
     self.save
   end
 
