@@ -15,8 +15,8 @@ class ChangeMembersOpGroup < PendingAppOpGroup
     end
 
     # FIXME this is an unbounded operation, all keys for all users added and removed to each gear.  need to optimize
-    add_keys_attrs = CloudUser.members_of(added_ids).map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
-    remove_keys_attrs = CloudUser.members_of(removed_ids).map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
+    add_keys_attrs = CloudUser.members_of(added_ids).map{ |u| app.get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
+    remove_keys_attrs = CloudUser.members_of(removed_ids).map{ |u| app.get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
 
     if add_keys_attrs.present? or remove_keys_attrs.present?
       app.group_instances.each do |group_instance|
