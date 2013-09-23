@@ -4,7 +4,7 @@ module CostAware
 
   included do
     include Console::CostHelper
-    helper_method :user_currency_symbol, :user_currency_cd, :number_to_user_currency
+    helper_method :user_currency_symbol, :user_currency_cd, :number_to_user_currency, :gear_increase_cost, :gear_types_with_cost
   end
 
   protected
@@ -51,4 +51,7 @@ module CostAware
     def gear_types_with_cost
       []
     end
+
+  private
+    include ActionView::Helpers::NumberHelper
 end

@@ -1,4 +1,5 @@
 class ApplicationTypesController < ConsoleController
+  include Console::ModelHelper
   include CostAware
 
   def index

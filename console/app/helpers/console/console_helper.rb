@@ -8,10 +8,6 @@ module Console::ConsoleHelper
   def outage_notification
   end
 
-  def user_currency_symbol
-    "$"
-  end
-
   def product_branding
     content_tag(:span, "<strong>Open</strong>Shift Origin".html_safe, :class => 'brand-text headline')
   end
