@@ -1,5 +1,4 @@
 module Console::ModelHelper
-
   def cartridge_info(cartridge, application)
     case
     when cartridge.jenkins_client?
@@ -157,93 +156,6 @@ module Console::ModelHelper
     if type.may_not_scale?
       "This application may require additional work to scale. Please see the application's documentation for more information."
     end
-  end
-
-  def gear_increase_indicator(cartridges, scales, gear_type, existing, capabilities)
-    range = scales ? gear_estimate_for_scaled_app(cartridges) : (existing ? 0..0 : 1..1)
-    min = range.begin
-    max = range.end
-    increasing = (min > 0 || max > 0)
-
-    cost, title = 
-      if gear_increase_cost(min, capabilities)
-        [true, "This will add #{pluralize(min, 'gear')} to your account and will result in additional charges."]
-      elsif gear_increase_cost(max, capabilities)
-        [true, "This will add at least #{pluralize(min, 'gear')} to your account and may result in additional charges."]
-      elsif !increasing
-        [false, "No gears will be added to your account."]
-      else
-        [false, "This will add #{pluralize(min, 'gear')} to your account."]
-      end
-    if cartridges_premium(cartridges)
-      cost = true
-      title = "#{title} Additional charges may be accrued for premium cartridges."
-    end
-    if increasing && gear_types_with_cost.include?(gear_type)
-      cost = true
-      title = "#{title} The selected gear type will have additional hourly charges."
-    end
-
-    content_tag(:span, 
-      [
-        (if max == Float::INFINITY
-          "+#{min}-?"
-        elsif max != min
-          "+#{min}-#{max}"
-        else
-          "+#{min}"
-        end),
-        "<span data-icon=\"\ue014\" aria-hidden=\"true\"> </span>",
-        ("<span class=\"label label-premium\">#{user_currency_symbol}</span>" if cost),
-      ].compact.join(' ').html_safe, 
-      :class => 'indicator-gear-increase',
-      :title => title,
-    )
-  end
-
-  def cartridges_premium(cartridges)
-    false
-  end
-  def gear_increase_cost(count, capabilities)
-    false
-  end
-  def gear_types_with_cost
-    []
-  end
-  def gear_estimate_for_scaled_app(cartridges)
-    min = 0
-    max = 0
-    if cartridges.present?
-      cartridges.each_pair do |_, carts|
-        any = false
-        all = true
-        variable = false
-        carts.each do |cart|
-          if cart.service? || cart.web_framework?
-            any = true
-          elsif cart.custom?
-            variable = any = true
-          else
-            all = false
-            break if any
-          end
-        end
-        max += 1 if any
-        min += 1 if all && !variable
-      end
-    else
-      min = 1
-      max = Float::INFINITY
-    end
-    Range.new(min,max)
-  end
-
-  def user_currency_symbol
-    "$"
-  end
-
-  def usage_rate_indicator
-    content_tag :span, user_currency_symbol, :class => "label label-premium", :title => 'May include additional usage fees at certain levels, see plan for details.'
   end
 
   def in_groups_by_tag(ary, tags)

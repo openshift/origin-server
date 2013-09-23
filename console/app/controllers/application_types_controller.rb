@@ -1,5 +1,5 @@
 class ApplicationTypesController < ConsoleController
-  include Console::ModelHelper
+  include CostAware
 
   def index
     @capabilities = user_capabilities
