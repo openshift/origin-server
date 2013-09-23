@@ -28,6 +28,9 @@
   }
   > p {
     margin-bottom: $baseLineHeight / 1.5;
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
   > ul.meta > li > label {
     display: inline;

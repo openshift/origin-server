@@ -1,30 +1,31 @@
-- breadcrumb_for_application @application, 'Add a public key'
-- content_for :title, "Add a public key"
+- breadcrumb_for_application @application, 'Next Steps'
+- content_for :title, "Next Steps"
 
 - if @wizard
   = app_wizard_steps_create 2, :completed => true
 
-%h1.invisible Configure your SSH keys
+%h1.invisible Next Steps
 
 %section
-  %h2.center Will you be changing the code of this application?
+  %h2 Will you be changing the code of this application?
 
 %section.row.row-position
   .span6
-    %h3.center Yes, help me get started
+    %h3
+      %a{:class => 'expand', :data => {:toggle => 'collapse', :target => '#ssh'}} Yes, help me get started
+    #ssh.collapse
+      %p
+        OpenShift uses the #{link_to "Git version control system", git_homepage_url, :target => '_blank'} for your source code, and grants you access to it via
+        the Secure Shell (SSH) protocol.  In order to upload and download code to your application you need
+        to give us your #{link_to "public SSH key", ssh_keys_help_path, :target => '_blank'}.
 
-    %p
-      OpenShift uses the #{link_to "Git version control system", git_homepage_url, :target => '_blank'} for your source code, and grants you access to it via
-      the Secure Shell (SSH) protocol.  In order to upload and download code to your application you need
-      to give us your #{link_to "public SSH key", ssh_keys_help_path, :target => '_blank'}.
+      = render :partial => 'keys/simple_form', :locals => { :key => @key, :input_class => 'span6', :to => upload_key_application_path(@application, :wizard => @wizard) }
 
-    = render :partial => 'keys/simple_form', :locals => { :key => @key, :input_class => 'span6', :to => upload_key_application_path(@application, :wizard => @wizard) }
+      %p
+        Note: You can also #{link_to "install the RHC command line tool", client_tools_install_help_url} and run <code>rhc setup</code> to generate and upload your key automatically.
 
-    %p
-      Note: You can also #{link_to "install the RHC command line tool", client_tools_install_help_url} and run <code>rhc setup</code> to generate and upload your key automatically.
-
-  .span5.center.offset1
+  .span5.offset1
     %h3= link_to "No, continue", application_path(@application)
-    %p Show me the app overview page
+    -#%p Show me the app overview page
 
-    %p Or, #{link_to "visit my app in the browser", @application.web_url, :target => '_blank'}
+    %p Or #{link_to "visit app in the browser", @application.web_url, :target => '_blank'}

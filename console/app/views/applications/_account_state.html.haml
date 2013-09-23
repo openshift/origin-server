@@ -1,4 +1,4 @@
-.flow-block.right{:title => "You are using #{capabilities.consumed_gears} of the #{capabilities.max_gears} gears allowed for your account", style: "cursor: default;"}
-  %span{style: 'font-weight: bold;'} #{capabilities.consumed_gears}
+.pull-right{:title => "You are using #{capabilities.consumed_gears} of the #{capabilities.max_gears} gears allowed for your account", style: "cursor: default;"}
+  %span{style: 'font-weight: bold; color: red;'} #{capabilities.consumed_gears}
   %span{style: 'opacity: 0.5;'} of #{capabilities.max_gears} 
-  %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.4;'} 
+  %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.4;'}
