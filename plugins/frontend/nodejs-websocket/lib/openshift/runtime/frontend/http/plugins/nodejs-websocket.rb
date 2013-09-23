@@ -103,26 +103,28 @@ module OpenShift
               end
             end
 
-            # Idler is not yet implemented for nodejs and this implementation
-            # should change to reflect alias handling.
-            #
-            # def idle
-            #  NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
-            #    d[@fqdn]["idle"]=@container_uuid
-            #  end
-            # end
 
-            # def unidle
-            #  NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
-            #    d[@fqdn].delete("idle")
-            #  end
-            # end
+            def idle
+              NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
+                d.select { |k, v| ( k == @fqdn ) or (v["alias"] == @fqdn ) }.each do |k, entry|
+                  entry["idle"]=@container_uuid
+                end
+              end
+            end
 
-            # def idle?
-            #  NodeJSDBRoutes.open(NodeJSDBRoutes::READER) do |d|
-            #    return d[@fqdn]["idle"]
-            #  end
-            # end
+            def unidle
+              NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
+                d.select { |k, v| ( k == @fqdn ) or (v["alias"] == @fqdn ) }.each do |k, entry|
+                  entry.delete("idle")
+                end
+              end
+            end
+
+            def idle?
+              NodeJSDBRoutes.open(NodeJSDBRoutes::READER) do |d|
+                return d[@fqdn]["idle"]
+              end
+            end
 
             def aliases
               NodeJSDBRoutes.open(NodeJSDBRoutes::READER) do |d|
