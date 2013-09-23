@@ -110,12 +110,11 @@ class ResultIO
         elsif line =~ /^NOTIFY_ENDPOINT_(CREATE|DELETE): /
           # 'NOTIFY_ENDPOINT_CREATE: ' and 'NOTIFY_ENDPOINT_DELETE: '
           # both have length 24.
+          endpoint,address,port,internal_addr,internal_port = line[23..-1].chomp.split(' ')
           if line =~ /^NOTIFY_ENDPOINT_CREATE: /
-            endpoint_hash = JSON.parse(line[23..-1].chomp)
-            self.cart_commands.push({:command => "NOTIFY_ENDPOINT_CREATE", :args => [endpoint_hash]})
+            self.cart_commands.push({:command => "NOTIFY_ENDPOINT_CREATE", :args => [endpoint,address,port,internal_addr,internal_port]})
           else
-            address,port = line[23..-1].chomp.split(' ')
-            self.cart_commands.push({:command => "NOTIFY_ENDPOINT_DELETE", :args => [address,port]})
+            self.cart_commands.push({:command => "NOTIFY_ENDPOINT_DELETE", :args => [endpoint,address,port]})
           end
         elsif self.exitcode == 0
           if line.start_with?('SSH_KEY_ADD: ')
