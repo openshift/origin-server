@@ -71,22 +71,21 @@ class District
     super
   end
 
-  def add_node(server_identity)
+  def add_node(server_identity, skip_node_ops=false)
     if server_identity
       found = District.in("server_identities.name" => [server_identity]).exists?
       unless found
-        container = OpenShift::ApplicationContainerProxy.instance(server_identity)
+        container = OpenShift::ApplicationContainerProxy.instance(server_identity) unless skip_node_ops
         begin
-          capacity = container.get_capacity
-          if capacity == 0 or capacity == 0.0
-            container_node_profile = container.get_node_profile
-            if container_node_profile == gear_size
-              container.set_district("#{uuid}", true)
+          capacity = container.get_capacity unless skip_node_ops
+          if skip_node_ops or capacity == 0 or capacity == 0.0
+            if skip_node_ops or (container.get_node_profile == gear_size)
+              container.set_district("#{uuid}", true) unless skip_node_ops
               self.active_server_identities_size += 1
               self.server_identities << { "name" => server_identity, "active" => true}
               self.save!
             else
-              raise OpenShift::OOException.new("Node with server identity: #{server_identity} is of node profile '#{container_node_profile}' and needs to be '#{gear_size}' to add to district '#{name}'")  
+              raise OpenShift::OOException.new("Node with server identity: #{server_identity} is of node profile '#{container.get_node_profile}' and needs to be '#{gear_size}' to add to district '#{name}'")  
             end
           else
             raise OpenShift::OOException.new("Node with server identity: #{server_identity} already has gears on it")
@@ -108,14 +107,16 @@ class District
     sih
   end
 
-  def remove_node(server_identity)
+  def remove_node(server_identity, skip_node_ops=false)
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
       unless server_map[server_identity]["active"]
-        container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-        capacity = container.get_capacity
-        if capacity == 0 or capacity == 0.0
-          container.set_district('NONE', false)
+        unless skip_node_ops
+          container = OpenShift::ApplicationContainerProxy.instance(server_identity)
+          capacity = container.get_capacity
+        end
+        if skip_node_ops or capacity == 0 or capacity == 0.0
+          container.set_district('NONE', false) unless skip_node_ops
           server_identities.delete({ "name" => server_identity, "active" => false} )
           if not self.save
             raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid}")
@@ -137,14 +138,16 @@ class District
     self.available_uids.include? uid
   end
 
-  def deactivate_node(server_identity)
+  def deactivate_node(server_identity, skip_node_ops=false)
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
       if server_map[server_identity]["active"]
         District.where("_id" => self._id, "server_identities.name" => server_identity ).update({ "$set" => { "server_identities.$.active" => false }, "$inc" => { "active_server_identities_size" => -1 } })
         self.reload
-        container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-        container.set_district("#{uuid}", false)
+        unless skip_node_ops
+          container = OpenShift::ApplicationContainerProxy.instance(server_identity)
+          container.set_district("#{uuid}", false)
+        end
       else
         raise OpenShift::OOException.new("Node with server identity: #{server_identity} is already deactivated")
       end
@@ -153,14 +156,16 @@ class District
     end
   end
 
-  def activate_node(server_identity)
+  def activate_node(server_identity, skip_node_ops=false)
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
       unless server_map[server_identity]["active"]
         District.where("_id" => self._id, "server_identities.name" => server_identity ).update({ "$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } })
         self.reload
-        container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-        container.set_district("#{uuid}", true)
+        unless skip_node_ops
+          container = OpenShift::ApplicationContainerProxy.instance(server_identity)
+          container.set_district("#{uuid}", true)
+        end
       else
         raise OpenShift::OOException.new("Node with server identity: #{server_identity} is already active")
       end
