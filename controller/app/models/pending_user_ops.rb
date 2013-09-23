@@ -34,7 +34,7 @@ class PendingUserOps
 
   # Returns true if all domains have been processed
   def completed?
-    (self.state == :completed) || (on_domains.length == completed_domains.length)
+    self.state == :completed
   end
 
   def close_op
