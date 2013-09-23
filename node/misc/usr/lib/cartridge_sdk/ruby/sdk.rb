@@ -16,13 +16,22 @@
 
 require 'openshift-origin-node/model/application_container'
 
-def primary_cartridge
-  return @primary_cartridge unless @primary_cartridge.nil?
-  OpenShift::Runtime::NodeLogger.disable
-  container = OpenShift::Runtime::ApplicationContainer.from_uuid(ENV['OPENSHIFT_GEAR_UUID'])
-  @primary_cartridge = container.cartridge_model.primary_cartridge
+module OpenShift
+  module Cartridge
+    module Sdk
+
+      def primary_cartridge
+        return @primary_cartridge unless @primary_cartridge.nil?
+        OpenShift::Runtime::NodeLogger.disable
+        container = OpenShift::Runtime::ApplicationContainer.from_uuid(ENV['OPENSHIFT_GEAR_UUID'])
+        @primary_cartridge = container.cartridge_model.primary_cartridge
+      end
+
+      def primary_cartridge_manifest
+        primary_cartridge.manifest
+      end
+
+    end
+  end
 end
 
-def primary_cartridge_manifest
-  primary_cartridge.manifest
-end

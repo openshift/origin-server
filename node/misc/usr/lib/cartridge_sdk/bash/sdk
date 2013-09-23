@@ -561,7 +561,7 @@ function has_web_proxy() {
 # Wrapper for the OpenShift Ruby SDK
 #
 function ruby_sdk() {
-  oo-ruby -I/usr/lib/openshift/cartridge_sdk -rruby/sdk -e "puts $1"
+  oo-ruby -I/usr/lib/openshift/cartridge_sdk -rruby/sdk -e "include OpenShift::Cartridge::Sdk; puts $1"
 }
 
 function primary_cartridge_short_name() {

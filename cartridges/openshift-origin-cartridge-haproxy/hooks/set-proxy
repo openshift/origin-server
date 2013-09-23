@@ -87,7 +87,7 @@ for sg in $srvgears; do
 done
 
 # Get the local app server endpoint.
-# TODO: SDK should provide a better way to get this value
+#
 prim_cart=$(primary_cartridge_short_name)
 prim_cart_ip="OPENSHIFT_${prim_cart}_IP"
 prim_cart_port="OPENSHIFT_${prim_cart}_PORT"
