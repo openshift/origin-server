@@ -22,33 +22,17 @@
       .section-console#content{:class => content_for(:section_console_presentation), :role => 'main'}
         .container
           .row-console
-            - if content_for? :full_layout
-              .row.row-flush-right
-                .grid-wrapper
-                  .span12.span-flush-right
-                    - if content_for? :breadcrumbs
-                      %nav
-                        = yield :breadcrumbs
-                = yield :top
-                .grid-wrapper.section-body
-                  .span12
-                    = flashes unless @noflash
-                    = yield
-
-            - else
-              .row.row-flush-right
-                .grid-wrapper
-                  .span12.span-flush-right
-                    - if content_for? :breadcrumbs
-                      %nav
-                        = yield :breadcrumbs
-                    - else
-                      &nbsp;
-                = yield :top
-                .column-content.grid-wrapper
-                  .span12
-                    = flashes unless @noflash
-                    = yield
+            .row.row-flush-right
+              .grid-wrapper
+                .span12.span-flush-right
+                  - if content_for? :breadcrumbs
+                    %nav
+                      = yield :breadcrumbs
+              = yield :top
+              .grid-wrapper.section-body
+                .span12
+                  = flashes unless @noflash
+                  = yield
 
     %footer
       = yield :footer

@@ -98,7 +98,7 @@ ol.wizard {
   border-bottom: 1px solid #eaeaea;
   color: #aaa;
   display: block;
-  margin: 25px 0;
+  margin: 0 0 25px;
   padding: 0;
   position: relative;
   .section-console-blank & {
@@ -230,9 +230,11 @@ figure {
   background: #fcfcfc;
   @include box-shadow(0 0 3px rgba(0,0,0,0.09));
   min-height: 400px;
+  padding-top: 25px;
   .section-console-blank & {
     background: none;
     @include box-shadow(none);
+    padding-top: 0;
   }
 }
 
@@ -339,7 +341,6 @@ aside .header-bar {
 }
 
 #app-list {
- margin-top: 0;
  .application-suggestions span[data-icon] {
   color: #aaa;
  }
@@ -496,7 +497,6 @@ a.cap-link:hover {
 }
 
 .section-console h6 {
-  color: #777;
   font-weight: normal;
   }
 .section-console .bits .data {
