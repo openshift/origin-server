@@ -37,8 +37,6 @@ Provides:
 - mariadb-5.5
 - mariadb
 - mariadb-singleton-master
-Conflicts:
-- postgresql
 Publishes:
   publish-db-connection-info:
     Type: ENV:NET_TCP:db:connection-info
