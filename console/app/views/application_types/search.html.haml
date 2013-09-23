@@ -1,3 +1,5 @@
+- content_for :section_console_presentation, 'section-console-blank'
+
 %h1.invisible Create a New Application
 = breadcrumb_for_create_application(@type_groups[0][0])
 = app_wizard_steps_create 0, :active => true
