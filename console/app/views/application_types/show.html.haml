@@ -135,8 +135,11 @@
 
       .controls
         %p.help-block
-          Gears are the application containers running your code. For most applications,
-          the '#{@gear_sizes.first.to_s}' gear size provides plenty of resources.
+          Gears are the application containers running your code.
+          - if @gear_sizes.empty?
+            There are no gear sizes available for this application.
+          - else
+            For most applications, the '#{@gear_sizes.first.to_s}' gear size provides plenty of resources.
 
           - if @gear_sizes.length > 1
             If you require more resources, select a larger gear size here.
@@ -243,8 +246,11 @@
         return "#{estimate_application_type_path(@application_type.id)}" + '?' + $.param(fields);
       }
       $('select#application_domain_name, #application_scale, #application_gear_profile').change(function() {
+        $("form#new_application").validate().element('#application_gear_profile');
         $("#gear_increase").load(estimateUrl($(this).closest('form')));
       });
+
+      $("form#new_application").validate().element('#application_gear_profile');
     });
     $(function() {
       $('input, textarea').placeholder();

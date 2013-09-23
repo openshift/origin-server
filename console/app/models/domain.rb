@@ -75,8 +75,12 @@ class Domain < RestApi::Base
     Array(attributes[:allowed_gear_sizes]).map(&:to_sym)
   end
 
-  def can_create_application?
-    editor? and allowed_gear_sizes.present? and available_gears > 0
+  def allows_gears?
+    allowed_gear_sizes.present?
+  end
+
+  def has_available_gears?
+    available_gears > 0
   end
 
   def can_rename?
