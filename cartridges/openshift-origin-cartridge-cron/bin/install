@@ -2,8 +2,9 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
+check_webproxy=$(has_web_proxy)
 # check if we're in a non-scaled environment or if we're the web-proxy
-if [ "$OPENSHIFT_GEAR_DNS" == "$OPENSHIFT_APP_DNS" ] || has_web_proxy; then
+if [ "$OPENSHIFT_GEAR_DNS" == "$OPENSHIFT_APP_DNS" ] || [ "$check_webproxy" == "1" ]; then
     frequencies=$(cat $OPENSHIFT_CRON_DIR/configuration/frequencies | tr '\n' ',')
     client_result ""
     client_result "To schedule your scripts to run on a periodic basis, add the scripts to "
