@@ -128,7 +128,7 @@ function _logFileRenameCheck(zlog) {
   }
 
   /*  Check if the path exists -- if not we got renamed.  */
-  if (!path.existsSync(zlog.logfile) ) {
+  if (!fs.existsSync(zlog.logfile) ) {
     zlog.close();
     zlog.open();
     return;
@@ -284,7 +284,7 @@ Logger.prototype.open = function() {
   }
 
   var logdir = path.dirname(this.logfile);
-  if (path.existsSync(logdir) ) {
+  if (fs.existsSync(logdir) ) {
     this._stream = fs.createWriteStream(this.logfile, {'flags': 'a'});
     var self = this;
     this._stream.once('open', function(fd) {

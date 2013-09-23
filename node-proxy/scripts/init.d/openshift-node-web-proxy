@@ -39,8 +39,8 @@ start() {
     echo -n $"Starting node-web-proxy: "
     chown apache.apache /var/log/node-web-proxy/*.log >/dev/null 2>&1 || :
     export NODE_PATH="$nodesysmodulespath"
-    nohup $cmd &> $logfile &
-    echo $! > $pidfile
+    nohup scl enable nodejs010 "$cmd" &> $logfile &
+    pgrep -u 0 -f bin/node-supervisor > $pidfile
     retval=$?
     [ $retval -eq 0 ] && touch $lockfile && echo_success
     echo
@@ -52,10 +52,9 @@ stop() {
     killproc -p $pidfile $prog 
     retval=$?
     # If pid's whacked, we need to send a HUP.
-    pids=$(ps -U root -opid,args | grep "$nodeserver" | grep -v 'grep' |   \
-                                   awk '{print $1}' | tr '\n' ' ')
+    pids=$(/usr/bin/pgrep -f $nodeserver)
     if [ -n "$pids" ]; then
-       kill -HUP $pids
+       kill -TERM $pids
        retval=$?
     fi
 
