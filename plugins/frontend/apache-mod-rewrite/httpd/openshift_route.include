@@ -170,9 +170,22 @@ RewriteRule ^(.*)$ %1 [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,L]
 RewriteCond %{ENV:V_ROUTE} ^TOHTTPS:(.*)$
 RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=TOHTTPS:1,NS]
 
+# If SSL_TO_GEAR is enabled, set variable
+RewriteCond %{ENV:V_ROUTE} ^SSL_TO_GEAR:(.*)$
+RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=SSL_TO_GEAR:1,NS]
+
 RewriteCond %{ENV:TOHTTPS} =1
 RewriteCond %{HTTPS} =off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R,NS,L]
+
+RewriteCond %{ENV:SSL_TO_GEAR} =1
+RewriteCond %{HTTPS} =off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R,NS,L]
+
+# If SSL_TO_GEAR is enabled, proxy to https
+RewriteCond %{ENV:SSL_TO_GEAR} =1
+RewriteCond %{ENV:V_ROUTE} ^.+$
+RewriteRule ^(.*)$ https://%{ENV:V_ROUTE}%{ENV:V_PATH} [P,NS]
 
 # By default, attempt to proxy to the match
 RewriteCond %{ENV:V_ROUTE} ^.+$
