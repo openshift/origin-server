@@ -240,7 +240,7 @@ module OpenShift
           @cartridge_model.each_cartridge do |cart|
             env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
             cart.public_endpoints.each do |endpoint|
-              notify_endpoint_delete << "NOTIFY_ENDPOINT_DELETE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
+              notify_endpoint_delete << "NOTIFY_ENDPOINT_DELETE: #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
             end
           end
           # possible mismatch across cart model versions
