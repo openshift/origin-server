@@ -230,10 +230,11 @@ figure {
   background: #fcfcfc;
   @include box-shadow(0 0 3px rgba(0,0,0,0.09));
   min-height: 400px;
-  padding-top: 25px;
+  padding: 25px 0;
   .section-console-blank & {
     background: none;
     @include box-shadow(none);
+    padding-bottom: 0;
     padding-top: 0;
   }
 }
@@ -320,6 +321,9 @@ aside .header-bar {
 }
 
 @media (max-width: 767px) {
+  html {
+    background: #fcfcfc;
+  }
   .section-console {
     background: #fcfcfc;
     padding-bottom: 0;
