@@ -7,7 +7,7 @@ function start {
   echo "Starting Mock cartridge"
   touch $MOCK_STATE/control_start
   touch $MOCK_STATE/mock_process
-  $OPENSHIFT_MOCK_DIR/bin/mock_server.rb $OPENSHIFT_MOCK_EXAMPLE_IP1 $OPENSHIFT_REPO_DIR > $OPENSHIFT_MOCK_DIR/logs/server.log 2>&1 &
+  oo-ruby $OPENSHIFT_MOCK_DIR/bin/mock_server.rb $OPENSHIFT_MOCK_EXAMPLE_IP1 $OPENSHIFT_REPO_DIR > $OPENSHIFT_MOCK_DIR/logs/server.log 2>&1 &
 }
 
 function stop {
