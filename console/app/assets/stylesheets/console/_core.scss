@@ -98,14 +98,14 @@ ol.wizard {
   border-bottom: 1px solid #eaeaea;
   color: #aaa;
   display: block;
-  margin: 0 0 25px 0;
+  margin: 25px 0;
   padding: 0;
   position: relative;
   .section-console-blank & {
     border-bottom: 1px solid rgba(0,0,0,.01);
     border-top: 1px solid rgba(0,0,0,.01);
     color: #888;
-    margin-top: -26px;
+    margin-top: -1px;
     padding-top: 25px;
     &:after, &:before {
       @include background-image(radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%));
@@ -175,7 +175,7 @@ ol.wizard {
       margin-right: 25px;
     }
     .section-console-blank & {
-      margin-top: -21px;
+      margin-top: -1px;
     }
   }
 }
@@ -245,15 +245,6 @@ figure {
 .divide {
   margin-bottom: $baseLineHeight / 3;
 }
-
-.row > .column-content {
-  padding-top: 0;
-}
-
-.row > .column-content > :first-child {
-  margin-top: 25px;
-}
-
 
 .header-bar {
   @include box-sizing(border-box);
@@ -525,11 +516,16 @@ a.cap-link:hover {
     display: block;
     margin-left: 0;
     }
-  .row > strong {
-    display: block;
-    float: none;
-    margin: 0;
-    width: auto;
+  .row {
+    h1 {
+      margin-top: 20px;
+    }
+    > strong {
+      display: block;
+      float: none;
+      margin: 0;
+      width: auto;
+    }
   }
 
   .total-cost {
@@ -551,9 +547,6 @@ a.cap-link:hover {
   .control-group.error p+p {
     padding-left: 0 !important;
     display:block;
-    }
-    h1.tile {
-      margin-top: 20px;
     }
 }
 
