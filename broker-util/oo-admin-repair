@@ -54,6 +54,13 @@ USAGE
   exit 255
 end
 
+class String
+  def to_b
+    return true if self.to_s.strip =~ /^(true|t|yes|y|1)$/i
+    return false
+  end
+end
+
 args = {}
 begin
   opts = GetoptLong.new(
@@ -63,7 +70,7 @@ begin
     ["--district-uids",          GetoptLong::NO_ARGUMENT],
     ["--consumed-gears",         GetoptLong::NO_ARGUMENT],
     ["--unresponsive-apps",      GetoptLong::NO_ARGUMENT],
-    ["--confirm",                GetoptLong::NO_ARGUMENT], # Only used for test automation
+    ["--confirm",                GetoptLong::REQUIRED_ARGUMENT], # Only used for test automation
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
   )
   opts.each{ |k, v| args[k] = v }
@@ -71,14 +78,19 @@ rescue GetoptLong::Error => e
   usage
 end
 
+usage if args["--help"]
+ 
+verbose = args["--verbose"]
 report_only = args["--report-only"]
 fix_ssh_keys = args["--ssh-keys"]
 fix_district_uids = args["--district-uids"]
 fix_consumed_gears = args["--consumed-gears"]
 fix_unresponsive_apps = args["--unresponsive-apps"]
-auto_confirm = args["--confirm"]
-verbose = args["--verbose"]
-usage if args["--help"] 
+if args["--confirm"]
+  auto_confirm = args["--confirm"].to_b
+else
+  auto_confirm = nil
+end
 
 if fix_ssh_keys.nil? and fix_district_uids.nil? and fix_consumed_gears.nil? and fix_unresponsive_apps.nil?
   puts "You must specify at least one item to fix."
@@ -88,8 +100,8 @@ end
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
-Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
-Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
+Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 2
+Rails.configuration.msg_broker[:rpc_options][:timeout] = 45
 
 summary = []
 datastore_hash = {}
@@ -185,9 +197,12 @@ def get_user_info(user)
           "ssh_keys" => user_ssh_keys}
 end
 
-def fixup_app(app)
-  framework = { :available => false, :scaled =>false, :unresponsive_gears => [], :responsive_gears => [] }
-  db = { :available => false, :unresponsive_gears => [], :responsive_gears => [] }
+def analyze_app(app, unresponsive_servers)
+  framework = { :available => false, :scaled =>false, :unresponsive_gears => [],
+                :responsive_gears => [], :backup_available => false }
+  db = { :available => false, :unresponsive_gears => [], :responsive_gears => [],
+         :backup_available => false, :remove_features => [] }
+  app_recoverable = false
 
   # Gather required info on this app
   app.group_instances.each_with_index do |gi, group_idx|
@@ -223,32 +238,39 @@ def fixup_app(app)
   end if app.group_instances.present?
 
   if !framework[:available] and !db[:available]
-    (db[:responsive_gears] + framework[:responsive_gears]).each { |gear| app.remove_gear(gear.uuid) }
-    app.destroy_app(true)
-    puts "Application with id: #{app._id} deleted." if verbose
+    framework[:backup_available] = true if framework[:scaled]
   elsif !framework[:available] and db[:available]
-    puts "Application with id: #{app._id} is not recoverable."
-    print "If you would like to take backup of this app, enter 'yes'. WARNING: Entering 'no' will delete the application [yes/no]: "
-    ans = gets.chomp unless auto_confirm
-    if auto_confirm or !(ans =~ /^\s*(y|yes|1|t|true)\s*$/i)
-      (db[:responsive_gears] + framework[:responsive_gears]).each { |gear| app.remove_gear(gear.uuid) }
-      app.destroy_app(true)
-    else
-      puts "Application with id: #{app._id} skipped." if verbose
-    end
+    db[:backup_available] = true
+    framework[:backup_available] = true if framework[:scaled]
   elsif framework[:available] and !db[:available]
+    app_recoverable = true
     unless db[:unresponsive_gears].empty?
       gear = db[:unresponsive_gears][0]
       carts = gear.group_instance.all_component_instances.map { |ci| ci.to_hash['cart'] }
-      app.remove_features(carts, [], false, false, true)
-      puts "Removed features: #{carts.join(',')} from application with id: #{app._id}." if verbose
+      db[:remove_features] = carts
     end
-    framework[:unresponsive_gears].each { |gear| app.remove_gear(gear.uuid, true) }
-    puts "Application with id: #{app._id} fixed." if verbose
   else # framework[:available] and db[:available]
-    (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear.uuid, true) }
-    puts "Application with id: #{app._id} fixed." if verbose
+    app_recoverable = true
   end
+
+  return  app_recoverable, framework, db
+end
+
+def delete_app(app, framework, db, verbose)
+  (db[:responsive_gears] + framework[:responsive_gears]).each { |gear| app.remove_gear(gear.uuid) }
+  app.destroy_app(true)
+  puts "Application with id: #{app._id} deleted." if verbose
+end
+
+def recover_app(app, framework, db, verbose)
+  unless db[:remove_features].empty?
+    app.remove_features(db[:remove_features], [], false, false, true)
+    puts "Removed features: #{db[:remove_features].join(',')} from application with id: #{app._id}." if verbose
+    framework[:unresponsive_gears].each { |gear| app.remove_gear(gear.uuid, true) }
+  else
+    (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear.uuid, true) }
+  end
+  puts "Application with id: #{app._id} fixed." if verbose
 end
 
 puts "Started at: #{Time.now}"
@@ -509,8 +531,10 @@ if fix_unresponsive_apps
   responsive_servers = []
   message = "ping"
   options = OpenShift::MCollectiveApplicationContainerProxy.rpc_options
-  options[:disctimeout] = 2
-  options[:timeout] = 2 #TODO: change these values
+  unless auto_confirm.nil? # for test automation
+    options[:disctimeout] = 1
+    options[:timeout] = 1
+  end
   OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', available_servers.keys, false, options) do |client|
     client.echo(:msg => message).each do |resp|
       if resp[:data][:msg] != message
@@ -677,8 +701,7 @@ end
 unless unresponsive_servers.empty?
   unless (available_servers.values.uniq - ['NONE']).empty?
     print "Do you want to delete unresponsive servers from their respective districts [yes/no]: "
-    ans = gets.chomp unless auto_confirm
-    if auto_confirm or (ans =~ /^\s*(y|yes|1|t|true)\s*$/i)
+    if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
       # Remove unresponsive servers from their respective districts
       unresponsive_servers.each do |server|
         if available_servers[server] != 'NONE'
@@ -693,7 +716,7 @@ unless unresponsive_servers.empty?
           end
         end
       end
-      puts "Finished deleting unresponsive servers from their respective districts."
+      puts "Finished deleting unresponsive servers from their respective districts." if verbose
     else
       puts "Skipped deleting unresponsive servers from their respective districts." if verbose
     end
@@ -718,8 +741,7 @@ unless unresponsive_servers.empty?
     puts "Found #{unresponsive_unscalable_apps.size} unresponsive unscalable apps:"
     unresponsive_unscalable_apps.each { |ai| puts "#{ai['name']} (id: #{ai['_id']})" }
     print "These apps can not be recovered. Do you want to delete all of them [yes/no]: "
-    ans = gets.chomp unless auto_confirm
-    if auto_confirm or (ans =~ /^\s*(y|yes|1|t|true)\s*$/i)
+    if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
       unresponsive_unscalable_apps.each do |app_info|
         begin
           Application.find_by(_id: app_info['_id']).destroy_app(true)
@@ -730,28 +752,106 @@ unless unresponsive_servers.empty?
           summary << error_msg
         end
       end
-      puts "Finished deleting unresponsive unscalable apps."
+      puts "Finished deleting unresponsive unscalable apps." if verbose
     else
       puts "Skipped deleting unresponsive unscalable apps." if verbose
     end
   end 
 
   unless unresponsive_scalable_apps.empty?
-    # Report unresponsive unscalable apps
-    puts "Found #{unresponsive_scalable_apps.size} unresponsive scalable apps:"
-    unresponsive_scalable_apps.each { |ai| puts "#{ai['name']} (id: #{ai['_id']})" }
-    # Fix scalable apps
+    # Analyze scalable apps
+    analyzed_app_reports = {}
     unresponsive_scalable_apps.each do |app_info|
       begin
-        app = Application.find_by(_id: app_info['_id'])
-        fixup_app(app)
+        app_id = app_info['_id'].to_s
+        app = Application.find_by(_id: Moped::BSON::ObjectId(app_id))
+        recoverable, framework, db = analyze_app(app, unresponsive_servers)
+        analyzed_app_reports[app_id] = [app, recoverable, framework, db]
       rescue Exception => e
-        error_msg = "Unable to fix application with id: #{app_info['_id']}, error: #{e.message}"
+        error_msg = "Unable to analyze application with id: #{app_info['_id']}, error: #{e.message}"
         puts error_msg
         summary << error_msg
       end
     end
-    puts "Finished fixing/deleting unresponsive scalable apps."
+
+    apps_not_recoverable = []
+    analyzed_app_reports.each do |app_id, app_info|
+      app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
+      if !recoverable and !framework[:backup_available] and !db[:backup_available]
+        apps_not_recoverable << app_id
+      end 
+    end
+    unless apps_not_recoverable.empty?
+      puts "Found #{apps_not_recoverable.size} unresponsive scalable apps that can not be recovered."
+      apps_not_recoverable.each { |app_id| puts "#{analyzed_app_reports[app_id][0].name} (id: #{app_id})" }
+      print "Do you want to delete all of them [yes/no]: "
+      if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
+        apps_not_recoverable.each do |app_id|
+          app_info = analyzed_app_reports[app_id]
+          app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
+          delete_app(app, framework, db, verbose)
+        end
+      end
+      analyzed_app_reports.delete_if { |k,v| apps_not_recoverable.include?(k) }
+    end
+
+    apps_to_backup = []
+    analyzed_app_reports.each do |app_id, app_info|
+      app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
+      if !recoverable and (framework[:backup_available] or db[:backup_available])
+        apps_to_backup << app_id
+      end 
+    end
+    unless apps_to_backup.empty?
+      puts "Found #{apps_to_backup.size} unresponsive scalable apps that can not be recovered but framework/db backup available."
+      apps_to_backup.each { |app_id| puts "#{analyzed_app_reports[app_id][0].name} (id: #{app_id})" }
+      print "Do you want to skip all of them [yes/no]:(Warning: entering 'no' will delete the apps) "
+      if auto_confirm or (auto_confirm.nil? and !gets.chomp.to_b)
+        apps_to_backup.each do |app_id|
+          app_info = analyzed_app_reports[app_id]
+          app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
+          delete_app(app, framework, db, verbose)
+        end
+      end
+      analyzed_app_reports.delete_if { |k,v| apps_to_backup.include?(k) }
+    end
+   
+    apps_to_remove_features = []
+    analyzed_app_reports.each do |app_id, app_info|
+      app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
+      if recoverable and !db[:remove_features].empty?
+        apps_to_remove_features << app_id
+      end 
+    end
+    unless apps_to_remove_features.empty?
+      puts "Found #{apps_to_remove_features.size} unresponsive scalable apps that are recoverable but some features/carts need to be removed."
+      apps_to_remove_features.each { |app_id| puts "#{analyzed_app_reports[app_id][0].name} (id: #{app_id})" }
+      print "Do you want to skip all of them [yes/no]:(Warning: entering 'no' will remove features from apps) "
+      if auto_confirm or (auto_confirm.nil? and !gets.chomp.to_b)
+        apps_to_remove_features.each do |app_id|
+          app_info = analyzed_app_reports[app_id]
+          app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
+          recover_app(app, framework, db, verbose)
+        end
+      end
+      analyzed_app_reports.delete_if { |k,v| apps_to_remove_features.include?(k) }
+    end
+
+    unless analyzed_app_reports.empty?
+      if verbose
+        puts "Found #{analyzed_app_reports.size} unresponsive scalable apps that are recoverable."
+        analyzed_app_reports.each { |app_id, app_info| puts "#{app_info[0].name} (id: #{app_id})" }
+      end
+      analyzed_app_reports.each do |app_id, app_info|
+        app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
+        if recoverable
+          recover_app(app, framework, db, verbose)
+        else
+          puts "Error: Not recoverable app found but not processed. Details framework: #{framework.inspect}, db: #{db.inspect}"
+        end
+      end
+    end
+    puts "Finished fixing/deleting unresponsive scalable apps." if verbose
   end
 end
 
