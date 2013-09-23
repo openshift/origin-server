@@ -11,11 +11,11 @@
       = render :partial => 'add_key', :locals => {:keys => @keys}
 
   - if @keys.present?
-    .span6
+    .span12
       %section
         = render :partial => 'keys', :locals => {:keys => @keys}
 
-  .span6
+  .span12
 
     - if @domain
       %section
