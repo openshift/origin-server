@@ -1172,7 +1172,11 @@ class Application
     end
   end
 
-  def update_cluster
+  # Updates the gear registry on all proxy gears and invokes each proxy cartridge's
+  # update-cluster control method so it can update its configuration as well.
+  #
+  # options may contain rollback:true to indicate this is a rollback
+  def update_cluster(options={})
     web_framework_gears = []
     web_proxy_gears = []
 
@@ -1181,7 +1185,7 @@ class Application
     component_instances.each do |ci|
       web_framework_gears << ci.group_instance.gears if ci.is_web_framework?
       ci.group_instance.gears.each do |gear|
-        web_proxy_gears << gear unless gear.sparse_carts.empty?
+        web_proxy_gears << gear if gear.sparse_carts.include?(ci._id) and ci.is_web_proxy?
       end
     end
 
@@ -1194,14 +1198,20 @@ class Application
     # first one by itself, wait for it to finish, and then do the rest in
     # parallel
     first_proxy = web_proxy_gears.first
-    first_proxy.update_cluster(web_proxy_gears, web_framework_gears)
+
+    if options[:rollback] != true
+      options[:proxy_gears] = web_proxy_gears
+      options[:web_gears] = web_framework_gears
+    end
+
+    first_proxy.update_cluster(options)
 
     if web_proxy_gears.size > 1
       # do the rest
       handle = RemoteJob.create_parallel_job
 
       web_proxy_gears[1..-1].each do |gear|
-        job = gear.get_update_cluster_job(web_proxy_gears, web_framework_gears)
+        job = gear.get_update_cluster_job(options)
         RemoteJob.add_parallel_job(handle, "", gear, job)
       end
 

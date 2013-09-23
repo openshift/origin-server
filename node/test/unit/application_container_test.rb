@@ -410,15 +410,33 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.update_cluster("", "")
   end
 
-  def test_update_cluster_add_gears
+  def test_update_cluster_rollback
     web_proxy = mock()
-    @container.cartridge_model.expects(:web_proxy).times(3).returns(web_proxy)
+    @container.cartridge_model.expects(:web_proxy).returns(web_proxy)
 
     gear_env = {'OPENSHIFT_APP_DNS' => 'foo-bar.example.com', 'OPENSHIFT_GEAR_DNS' => 'foo-bar.example.com'}
     ::OpenShift::Runtime::Utils::Environ::expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
     gear_registry = mock()
-    ::OpenShift::Runtime::GearRegistry.expects(:new).with(@container).returns(gear_registry)
+    @container.expects(:gear_registry).returns(gear_registry)
+
+    gear_registry.expects(:restore_from_backup)
+    args = "args"
+    @container.expects(:generate_update_cluster_control_args).with(nil).returns(args)
+
+    @container.cartridge_model.expects(:do_control).with('update-cluster', web_proxy, args: args)
+    @container.update_cluster("", "", true)
+  end
+
+  def test_update_cluster_add_gears
+    web_proxy = mock()
+    @container.cartridge_model.expects(:web_proxy).returns(web_proxy)
+
+    gear_env = {'OPENSHIFT_APP_DNS' => 'foo-bar.example.com', 'OPENSHIFT_GEAR_DNS' => 'foo-bar.example.com'}
+    ::OpenShift::Runtime::Utils::Environ::expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gear_registry = mock()
+    @container.expects(:gear_registry).returns(gear_registry).at_least_once
 
     uuid1 = @container.uuid
     gear1 = {
@@ -426,7 +444,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
       namespace: 'bar',
       dns: 'foo-bar.example.com',
       proxy_hostname: 'node1.example.com',
-      proxy_port: 35561
+      proxy_port: '35561'
     }
     web_entry1 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear1)
     proxy_entry1 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear1.merge(proxy_port: 0))
@@ -437,7 +455,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
       namespace: 'bar',
       dns: "#{uuid2}-bar.example.com",
       proxy_hostname: 'node1.example.com',
-      proxy_port: 35566
+      proxy_port: '35566'
     }
     web_entry2 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear2)
     proxy_entry2 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear2.merge(proxy_port: 0))
@@ -448,7 +466,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
       namespace: 'bar',
       dns: "#{uuid3}-bar.example.com",
       proxy_hostname: 'node1.example.com',
-      proxy_port: 35571
+      proxy_port: '35571'
     }
     web_entry3 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear3)
     proxy_entry3 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear3.merge(proxy_port: 0))
@@ -473,28 +491,33 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
         uuid3 => proxy_entry3
       }
     }
-    gear_registry.expects(:entries).twice.returns(old_entries, updated_entries)
+
+    gear_registry.expects(:backup)
+    gear_registry.expects(:entries).times(2).returns(old_entries, updated_entries)
     gear_registry.expects(:clear)
 
     @config.expects(:get).with('CLOUD_DOMAIN').returns('example.com')
     web_uuids = [uuid1, uuid2, uuid3]
 
-    web_uuids.each do |uuid|
+    dns_entries = %W(foo #{uuid2} #{uuid3})
+    ports = %w(35561 35566 35571)
+
+    web_uuids.each_with_index do |uuid, index|
       gear_registry.expects(:add).with(type: :web,
                                        uuid: uuid,
-                                       namespace: "namespace#{uuid}",
-                                       dns: "name#{uuid}-namespace#{uuid}.example.com",
-                                       proxy_hostname: "host#{uuid}",
-                                       proxy_port: "port#{uuid}")
+                                       namespace: "bar",
+                                       dns: "#{dns_entries[index]}-bar.example.com",
+                                       proxy_hostname: "node1.example.com",
+                                       proxy_port: ports[index])
     end
 
     proxy_uuids = [uuid1, uuid3]
-    proxy_uuids.each do |uuid|
+    proxy_uuids.each_with_index do |uuid, index|
       gear_registry.expects(:add).with(type: :proxy,
                                        uuid: uuid,
-                                       namespace: "namespace#{uuid}",
-                                       dns: "name#{uuid}-namespace#{uuid}.example.com",
-                                       proxy_hostname: "host#{uuid}",
+                                       namespace: "bar",
+                                       dns: "#{dns_entries[index]}-bar.example.com",
+                                       proxy_hostname: "node1.example.com",
                                        proxy_port: 0)
     end
 
@@ -522,11 +545,19 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
                                                         chdir: @container.container_dir,
                                                         expected_exitstatus: 0)
 
-    do_control_args = web_uuids.map { |uuid| "name#{uuid}-namespace#{uuid}.example.com|host#{uuid}:port#{uuid}" }.join(' ')
+    do_control_args = web_uuids.each_with_index.map do |uuid, index|
+      "#{dns_entries[index]}-bar.example.com|node1.example.com:#{ports[index]}"
+    end.join(' ')
+
     @container.cartridge_model.expects(:do_control).with('update-cluster', web_proxy, args: do_control_args)
 
-    proxy_arg = proxy_uuids.map { |uuid| "#{uuid},name#{uuid},namespace#{uuid},host#{uuid}"}.join(' ')
-    cluster_arg = web_uuids.map { |uuid| "#{uuid},name#{uuid},namespace#{uuid},host#{uuid},port#{uuid}"}.join(' ')
+    proxy_arg = proxy_uuids.each_with_index.map do |uuid, index|
+      "#{uuid},#{dns_entries[index]},bar,node1.example.com"
+    end.join(' ')
+
+    cluster_arg = web_uuids.each_with_index.map do |uuid, index|
+      "#{uuid},#{dns_entries[index]},bar,node1.example.com,#{ports[index]}"
+    end.join(' ')
 
     @container.update_cluster(proxy_arg, cluster_arg)
   end

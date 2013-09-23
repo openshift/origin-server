@@ -1718,38 +1718,42 @@ module OpenShift
         job
       end
 
-      def build_update_cluster_args(proxy_gears, cluster, args)
-        proxy_args = []
-        proxy_gears.each do |gear|
-          proxy_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname}"
+      def build_update_cluster_args(options, args)
+        if options.has_key?(:rollback)
+          args['--rollback'] = options[:rollback]
+        else
+          proxy_args = []
+          options[:proxy_gears].each do |gear|
+            proxy_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname}"
+          end
+
+          args['--proxy-gears'] = proxy_args.join(' ')
+
+          web_args = []
+          options[:web_gears].each do |gear|
+            # TODO eventually support multiple ports
+            first_port_interface = gear.port_interfaces[0]
+
+            # uuid, name, namespace, proxy_hostname, proxy port
+            web_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname},#{first_port_interface.external_port}"
+          end
+
+          args['--web-gears'] = web_args.join(' ')
         end
-
-        args['--proxies'] = proxy_args.join(' ')
-
-        cluster_args = []
-        cluster.each do |gear|
-          # TODO eventually support multiple ports
-          first_port_interface = gear.port_interfaces[0]
-
-          # uuid, name, namespace, proxy_hostname, proxy port
-          cluster_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname},#{first_port_interface.external_port}"
-        end
-
-        args['--cluster'] = cluster_args.join(' ')
 
         args
       end
 
-      def update_cluster(gear, proxy_gears, cluster)
+      def update_cluster(gear, options)
         args = build_base_gear_args(gear)
-        args = build_update_cluster_args(proxy_gears, cluster, args)
+        args = build_update_cluster_args(options, args)
         result = execute_direct(@@C_CONTROLLER, 'update-cluster', args)
         parse_result(result)
       end
 
-      def get_update_cluster_job(gear, proxy_gears, cluster)
+      def get_update_cluster_job(gear, options)
         args = build_base_gear_args(gear)
-        args = build_update_cluster_args(proxy_gears, cluster, args)
+        args = build_update_cluster_args(options, args)
         RemoteJob.new(@@C_CONTROLLER, 'update-cluster', args)
       end
 

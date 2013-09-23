@@ -976,121 +976,138 @@ module OpenShift
           buffer
         end
 
+        def generate_update_cluster_control_args(entries)
+          entries ||= gear_registry.entries
+          args = []
+          entries[:web].each_value do |entry|
+            args << "#{entry.dns}|#{entry.proxy_hostname}:#{entry.proxy_port}"
+          end
+          args.join(' ')
+        end
+
         # Performs the following actions in response to scale up/down:
         #
         # - updates the gear registry
         # - if the current "master" gear, copies all app-deployments to all new gears (if any)
         # - if the current "master" gear, activates the current deployment on all new gears (if any)
         # - calls the web proxy cartridge's 'update-cluster' control method
-        def update_cluster(proxies, cluster)
+        def update_cluster(proxies, cluster, rollback = false)
           # currently there's no easy way to only target web proxy gears from the broker
           # via mcollective, so this is a temporary workaround
-          return unless @cartridge_model.web_proxy
+          return unless proxy_cart = @cartridge_model.web_proxy
 
           gear_env = ::OpenShift::Runtime::Utils::Environ::for_gear(container_dir)
+          updated_entries = nil
 
-          # get a copy of the gear registry as it was before update_cluster was called
-          logger.info 'Retrieving gear registry entries prior to this update'
-          old_registry = gear_registry.entries
+          if rollback
+            logger.info "Restoring #{uuid} gear registry from backup"
+            gear_registry.restore_from_backup
+          else
+            logger.info "Backing up #{uuid }gear registry"
+            gear_registry.backup
 
-          # clear out the gear registry, as we're going to replace it completely with
-          # the data provided to us here
-          logger.info 'Clearing gear registry'
-          gear_registry.clear
+            # get a copy of the gear registry as it was before update_cluster was called
+            logger.info "Retrieving #{uuid} gear registry entries prior to this update"
+            old_registry = gear_registry.entries
 
-          cloud_domain = @config.get("CLOUD_DOMAIN")
-          set_proxy_input = []
-          cluster.split(' ').each do |line|
-            gear_uuid, gear_name, namespace, proxy_hostname, proxy_port = line.split(',')
-            gear_dns = "#{gear_name}-#{namespace}.#{cloud_domain}"
-            set_proxy_input << "#{gear_dns}|#{proxy_hostname}:#{proxy_port}"
+            # clear out the gear registry, as we're going to replace it completely with
+            # the data provided to us here
+            logger.info "Clearing #{uuid} gear registry"
+            gear_registry.clear
 
-            # add the entry to the gear registry
-            new_entry = {
-              type: :web,
-              uuid: gear_uuid,
-              namespace: namespace,
-              dns: gear_dns,
-              proxy_hostname: proxy_hostname,
-              proxy_port: proxy_port
-            }
-            logger.info "Adding new web entry: #{new_entry}"
-            gear_registry.add(new_entry)
-          end
+            cloud_domain = @config.get("CLOUD_DOMAIN")
 
-          proxies.split(' ').each do |line|
-            gear_uuid, gear_name, namespace, proxy_hostname = line.split(',')
-            gear_dns = "#{gear_name}-#{namespace}.#{cloud_domain}"
-            new_entry = {
-              type: :proxy,
-              uuid: gear_uuid,
-              namespace: namespace,
-              dns: gear_dns,
-              proxy_hostname: proxy_hostname,
-              proxy_port: 0
-            }
-            logger.info "Adding new proxy entry: #{new_entry}"
-            gear_registry.add(new_entry)
-          end
+            cluster.split(' ').each do |line|
+              gear_uuid, gear_name, namespace, proxy_hostname, proxy_port = line.split(',')
+              gear_dns = "#{gear_name}-#{namespace}.#{cloud_domain}"
 
-          # registry_updates now contains what should be the full gear registry and it should
-          # replace the existing file on disk
-          logger.info "Saving gear registry"
-          gear_registry.save
-
-          logger.info "Retrieving updated gear registry entries"
-          updated_entries = gear_registry.entries
-
-          # only rsync and activate if we're the currently elected proxy
-          # TODO the way we determine this needs to change so gears other than
-          # the initial proxy gear can be elected
-          if gear_env['OPENSHIFT_APP_DNS'] == gear_env['OPENSHIFT_GEAR_DNS']
-            old_web_gears = old_registry[:web]
-            new_web_gears = updated_entries[:web].values.select do |entry|
-              entry.uuid != self.uuid and not old_web_gears.keys.include?(entry.uuid)
+              # add the entry to the gear registry
+              new_entry = {
+                type: :web,
+                uuid: gear_uuid,
+                namespace: namespace,
+                dns: gear_dns,
+                proxy_hostname: proxy_hostname,
+                proxy_port: proxy_port
+              }
+              logger.info "Adding gear registry #{uuid} new web entry: #{new_entry}"
+              gear_registry.add(new_entry)
             end
 
-            unless new_web_gears.empty?
-              # convert the new gears to the format uuid@ip
-              ssh_urls = new_web_gears.map { |e| "#{e.uuid}@#{e.proxy_hostname}" }
+            proxies.split(' ').each do |line|
+              gear_uuid, gear_name, namespace, proxy_hostname = line.split(',')
+              gear_dns = "#{gear_name}-#{namespace}.#{cloud_domain}"
+              new_entry = {
+                type: :proxy,
+                uuid: gear_uuid,
+                namespace: namespace,
+                dns: gear_dns,
+                proxy_hostname: proxy_hostname,
+                proxy_port: 0
+              }
+              logger.info "Adding gear registry #{uuid} new proxy entry: #{new_entry}"
+              gear_registry.add(new_entry)
+            end
 
-              # sync from this gear (load balancer) to all new gears
-              # copy app-deployments and make all the new gears look just like it (i.e., use --delete)
-              ssh_urls.each do |gear|
-                out, err, rc = run_in_container_context("rsync -avz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{gear}:app-deployments/",
-                                                        env: gear_env,
-                                                        chdir: container_dir,
-                                                        expected_exitstatus: 0)
+            # registry_updates now contains what should be the full gear registry and it should
+            # replace the existing file on disk
+            logger.info "Saving gear registry #{uuid}"
+            gear_registry.save
+
+            logger.info "Retrieving updated gear registry #{uuid} entries"
+            updated_entries = gear_registry.entries
+
+            # only rsync and activate if we're the currently elected proxy
+            # TODO the way we determine this needs to change so gears other than
+            # the initial proxy gear can be elected
+            if gear_env['OPENSHIFT_APP_DNS'] == gear_env['OPENSHIFT_GEAR_DNS']
+              old_web_gears = old_registry[:web]
+              new_web_gears = updated_entries[:web].values.select do |entry|
+                entry.uuid != self.uuid and not old_web_gears.keys.include?(entry.uuid)
               end
 
-              # activate the current deployment on all the new gears
-              deployment_id = read_deployment_metadata(current_deployment_datetime, 'id').chomp
+              unless new_web_gears.empty?
+                # convert the new gears to the format uuid@ip
+                ssh_urls = new_web_gears.map { |e| "#{e.uuid}@#{e.proxy_hostname}" }
 
-              # TODO this will activate in batches, based on the ratio defined in activate_many
-              # may want to consider activating all (limited concurrently to :in_threads) instead
-              # of in batches
+                # sync from this gear (load balancer) to all new gears
+                # copy app-deployments and make all the new gears look just like it (i.e., use --delete)
+                ssh_urls.each do |gear|
+                  out, err, rc = run_in_container_context("rsync -avz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{gear}:app-deployments/",
+                                                          env: gear_env,
+                                                          chdir: container_dir,
+                                                          expected_exitstatus: 0)
+                end
 
-              # since the gears are new, set init to true and hot_deploy to false
-              activate_many(gears: ssh_urls, deployment_id: deployment_id, init: true, hot_deploy: false)
-            end
+                # activate the current deployment on all the new gears
+                deployment_id = read_deployment_metadata(current_deployment_datetime, 'id').chomp
 
-            old_proxy_gears = old_registry[:proxy]
-            new_proxy_gears = updated_entries[:proxy].values.select do |entry|
-              entry.uuid != self.uuid and not old_proxy_gears.keys.include?(entry.uuid)
-            end
+                # TODO this will activate in batches, based on the ratio defined in activate_many
+                # may want to consider activating all (limited concurrently to :in_threads) instead
+                # of in batches
 
-            unless new_proxy_gears.empty?
-              # convert the new gears to the format uuid@ip
-              ssh_urls = new_proxy_gears.map { |e| "#{e.uuid}@#{e.proxy_hostname}" }
+                # since the gears are new, set init to true and hot_deploy to false
+                activate_many(gears: ssh_urls, deployment_id: deployment_id, init: true, hot_deploy: false)
+              end
 
-              # sync from this gear (load balancer) to all new proxy gears
-              # copy the git repo
-              sync_git_repo(ssh_urls, gear_env)
+              old_proxy_gears = old_registry[:proxy]
+              new_proxy_gears = updated_entries[:proxy].values.select do |entry|
+                entry.uuid != self.uuid and not old_proxy_gears.keys.include?(entry.uuid)
+              end
+
+              unless new_proxy_gears.empty?
+                # convert the new gears to the format uuid@ip
+                ssh_urls = new_proxy_gears.map { |e| "#{e.uuid}@#{e.proxy_hostname}" }
+
+                # sync from this gear (load balancer) to all new proxy gears
+                # copy the git repo
+                sync_git_repo(ssh_urls, gear_env)
+              end
             end
           end
 
-          args = set_proxy_input.join(' ')
-          @cartridge_model.do_control('update-cluster', @cartridge_model.web_proxy, args: args)
+          args = generate_update_cluster_control_args(updated_entries)
+          @cartridge_model.do_control('update-cluster', proxy_cart, args: args)
         end
 
         def sync_git_repo(ssh_urls, gear_env)

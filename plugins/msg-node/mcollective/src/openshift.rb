@@ -987,7 +987,7 @@ module MCollective
 
       def oo_update_cluster(args)
         with_container_from_args(args) do |container|
-          container.update_cluster(args['--proxies'], args['--cluster'])
+          container.update_cluster(args['--proxy-gears'], args['--web-gears'], args['--rollback'])
         end
       end
 

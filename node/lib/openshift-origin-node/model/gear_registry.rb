@@ -46,15 +46,22 @@ module OpenShift
       def initialize(container)
         @container = container
 
-        @registry_file = PathUtils.join(@container.container_dir, 'gear_registry.json')
+        base_dir = PathUtils.join(@container.container_dir, 'gear_registry')
+        FileUtils.mkdir_p(base_dir)
+
+        @registry_file = PathUtils.join(base_dir, 'gear_registry.json')
         unless File.exist?(@registry_file)
           File.new(@registry_file, "w", 0o0644)
-          @container.set_rw_permission(@registry_file)
+          @container.set_ro_permission(@registry_file)
         end
 
-        @lock_file = PathUtils.join(@container.container_dir, 'gear_registry.lock')
+        @backup_file = PathUtils.join(base_dir, 'gear_registry.json.bak')
+
+        @lock_file = PathUtils.join(base_dir, 'gear_registry.lock')
         unless File.exist?(@lock_file)
           File.new(@lock_file, "w", 0o0644)
+          # needs to be rw so the gear user can obtain the lock for reading
+          # from the gear registry
           @container.set_rw_permission(@lock_file)
         end
 
@@ -120,6 +127,16 @@ module OpenShift
         with_lock do
           File.open(@registry_file, "w") { |f| f.write JSON.dump(self) }
         end
+      end
+
+      def backup
+        FileUtils.copy(@registry_file, @backup_file)
+      end
+
+      def restore_from_backup
+        raise 'Backup file does not exist' unless File.exist?(@backup_file)
+        FileUtils.copy(@backup_file, @registry_file)
+        load
       end
 
       def as_json(options={})

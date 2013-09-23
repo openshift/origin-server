@@ -21,10 +21,10 @@ require 'fileutils'
 class GearRegistryTest < OpenShift::NodeTestCase
   def setup
     @test_dir = File.join('/tmp', time_to_s(Time.now))
-    FileUtils.mkpath(@test_dir)
+    FileUtils.mkpath(File.join(@test_dir, 'gear_registry'))
 
-    @registry_file = File.join(@test_dir, 'gear_registry.json')
-    @registry_lock_file = File.join(@test_dir, 'gear_registry.lock')
+    @registry_file = File.join(@test_dir, 'gear_registry', 'gear_registry.json')
+    @registry_lock_file = File.join(@test_dir, 'gear_registry', 'gear_registry.lock')
 
     @container = mock('container')
     @sample_json = <<EOF
@@ -66,8 +66,8 @@ EOF
   end
 
   def create_empty_registry
-    @container.expects(:container_dir).returns(@test_dir).times(2)
-    @container.expects(:set_rw_permission).with(@registry_file)
+    @container.expects(:container_dir).returns(@test_dir)
+    @container.expects(:set_ro_permission).with(@registry_file)
     @container.expects(:set_rw_permission).with(@registry_lock_file)
 
     registry = ::OpenShift::Runtime::GearRegistry.new(@container)
@@ -127,7 +127,7 @@ EOF
   end
 
   def test_gear_registry_initialize_files_already_exist
-    @container.expects(:container_dir).returns(@test_dir).times(2)
+    @container.expects(:container_dir).returns(@test_dir)
     @container.expects(:set_rw_permission).never
 
     File.new(@registry_file, 'w')
@@ -143,7 +143,7 @@ EOF
   end
 
   def test_gear_registry_initialize_loads_existing
-    @container.expects(:container_dir).returns(@test_dir).times(2)
+    @container.expects(:container_dir).returns(@test_dir)
     @container.expects(:set_rw_permission).never
 
     File.open(@registry_file, 'w') { |f| f.write @sample_json }
