@@ -19,7 +19,7 @@ class PortInterface
   field :internal_port, type: String, default: ""
   field :protocols, type: Array, default: []
   field :type, type: Array, default: []
-  attr :external_address
+  attr_accessor :external_address
 
   # Initializes the port interface
   def initialize(attrs = nil, options = nil)
@@ -62,6 +62,7 @@ class PortInterface
 
   def to_hash
     { 
+      "cartridge_name" => self.cartridge_name,
       "external_address" => self.external_address,
       "external_port" => self.external_port,
       "internal_address" => self.internal_address,
