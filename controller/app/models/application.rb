@@ -304,7 +304,7 @@ class Application
     self.app_ssh_keys = []
     #self.pending_op_groups = []
     self.analytics = {} if self.analytics.nil?
-    
+
     # the resultant string length is 4/3 times the number specified as the first argument
     # with 96 specified, the token is going to be 128 characters long
     self.secret_token = SecureRandom.urlsafe_base64(96, false)
@@ -619,10 +619,10 @@ class Application
     Application.run_in_application_lock(self) do
 #      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url" => init_git_url,
 #                                                        "user_env_vars" => user_env_vars}, user_agent: self.user_agent)
-      
       op_group = AddFeaturesOpGroup.new(features: features, group_overrides: group_overrides, init_git_url: init_git_url,
                                         user_env_vars: user_env_vars, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
+
       self.run_jobs(result_io)
     end
 
@@ -1407,10 +1407,6 @@ class Application
         #op_group = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token }, user_agent: self.user_agent)
         op_group = AddBrokerAuthKeyOpGroup.new(iv: iv, token: token, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp } })
-      when "BROKER_KEY_REMOVE"
-        #op_group = PendingAppOpGroup.new(op_type: :remove_broker_auth_key, args: { }, user_agent: self.user_agent)
-        op_group = RemoveBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp } })
       when "NOTIFY_ENDPOINT_CREATE"
         if gear and component_id
           pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args])
@@ -1464,6 +1460,7 @@ class Application
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
+
         self.reload unless op_group.class == DeleteAppOpGroup
       end
       true
@@ -1600,6 +1597,8 @@ class Application
 
     gear_id_prereqs = {}
     maybe_notify_app_create_op = []
+    app_dns_group_instance_id = nil
+    app_dns_gear_id = nil
     gear_ids.each do |gear_id|
       host_singletons = (gear_id == deploy_gear_id)
       app_dns = (host_singletons && hosts_app_dns)
@@ -1607,8 +1606,11 @@ class Application
       if app_dns
         #notify_app_create_op = PendingAppOp.new(op_type: :notify_app_create)
         notify_app_create_op = NotifyAppCreateOp.new()
-        pending_ops.push(notify_app_create_op) 
+        pending_ops.push(notify_app_create_op)
         maybe_notify_app_create_op = [notify_app_create_op._id.to_s]
+
+        app_dns_group_instance_id = ginst_id.to_s
+        app_dns_gear_id = gear_id.to_s
       end
 
       #init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns}, prereq: maybe_notify_app_create_op)
@@ -1669,6 +1671,13 @@ class Application
     ops = calculate_update_new_configuration_ops({"add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, ginst_id, gear_id_prereqs)
     pending_ops.push(*ops)
 
+    if app_dns_group_instance_id && app_dns_gear_id
+      iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
+      prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [] : [gear_id_prereqs[app_dns_gear_id]]
+      add_broker_auth_op = AddBrokerAuthKeyOp.new(iv: iv, token: token, group_instance_id: app_dns_group_instance_id, gear_id: app_dns_gear_id, prereq: prereq)
+      pending_ops.push add_broker_auth_op
+    end
+
     # Add and/or push user env vars when this is not an app create or user_env_vars are specified
     user_vars_op_id = nil
     if maybe_notify_app_create_op.empty? || user_env_vars.present?
@@ -1680,6 +1689,7 @@ class Application
 
     ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, (user_vars_op_id || ginst_op_id), init_git_url)
     pending_ops.push(*ops)
+
     pending_ops
   end
 
@@ -1691,16 +1701,16 @@ class Application
       deleting_app = true if self.group_instances.find(ginst_id).gears.find(gear_id).app_dns
       #destroy_gear_op = PendingAppOp.new(op_type: :destroy_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id})
       destroy_gear_op = DestroyGearOp.new(group_instance_id: ginst_id, gear_id: gear_id)
-      
+
       #deregister_dns_op = PendingAppOp.new(op_type: :deregister_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [destroy_gear_op._id.to_s])
       deregister_dns_op = DeregisterDnsOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [destroy_gear_op._id.to_s])
-      
+
       #unreserve_uid_op = PendingAppOp.new(op_type: :unreserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [deregister_dns_op._id.to_s])
       unreserve_uid_op = UnreserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [deregister_dns_op._id.to_s])
-      
+
       #delete_gear_op = PendingAppOp.new(op_type: :delete_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [unreserve_uid_op._id.to_s])
       delete_gear_op = DeleteGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [unreserve_uid_op._id.to_s])
-      
+
       #track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
       #                    "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
       #                    "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage]}, prereq: [delete_gear_op._id.to_s])

@@ -132,11 +132,9 @@ class ResultIO
           elsif line.start_with?('ENV_VAR_ADD: ')
             env_var = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
             self.cart_commands.push({:command => "ENV_VAR_ADD", :args => [env_var[0], env_var[1]]})
-          elsif line =~ /^BROKER_AUTH_KEY_(ADD|REMOVE): /
+          elsif line =~ /^BROKER_AUTH_KEY_(ADD): /
             if $1 == 'ADD'
               self.cart_commands.push({:command => "BROKER_KEY_ADD", :args => []})
-            else
-              self.cart_commands.push({:command => "BROKER_KEY_REMOVE", :args => []})
             end
           else
             #self.debugIO << line

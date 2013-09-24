@@ -1549,8 +1549,8 @@ module OpenShift
       #
       # INPUTS:
       # * gear: a Gear object
-      # * iv: ??
-      # * token: ??
+      # * iv: String - Broker auth initialization vector
+      # * token: String - Broker auth token
       #
       # RETURNS:
       # * a RemoteJob object
@@ -1563,24 +1563,6 @@ module OpenShift
         args['--with-iv'] = iv
         args['--with-token'] = token
         job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-add', args)
-        job
-      end
-
-      #
-      # Create a job to remove a broker auth key
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      #
-      # RETURNS:
-      # * a RemoteJob object
-      #
-      # NOTES:
-      # * uses RemoteJob
-      #
-      def get_broker_auth_key_remove_job(gear)
-        args = build_base_gear_args(gear)
-        job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-remove', args)
         job
       end
 

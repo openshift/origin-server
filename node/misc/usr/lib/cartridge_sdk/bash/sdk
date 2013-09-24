@@ -112,10 +112,6 @@ function add_broker_auth_key {
     echo "BROKER_AUTH_KEY_ADD: "
 }
 
-function remove_broker_auth_key {
-    echo "BROKER_AUTH_KEY_REMOVE: "
-}
-
 # add cartridge data in Broker data store
 # Argument(s):
 # - list of cartridge datums

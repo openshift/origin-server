@@ -10,17 +10,13 @@ There are a few cases where a Node will actually need to contact the broker. The
 
 The install hook for both of those cartridges calls the add_broker_auth_key method defined in the cartridge bash sdk.
 
-In order for this to be done securely OpenShift uses an encrypted auth token that is specific to each gear.  There is never a case where a Node uses some sort of admin account to make calls to the Broker.
-
-In the configure hooks mentioned above the ```BROKER_AUTH_KEY_ADD``` message is passed back in the result of the gear creation (it's added to the stdout of the configure script).
-
-Eventually this triggers ```generate_broker_key``` to be called on the AuthService and the result is sent back to the gear via mcollective.  application.rb has the details.
+In order for this to be done securely OpenShift uses an encrypted auth token that is specific to each gear that is added when the gear is created.  There is never a case where a Node uses some sort of admin account to make calls to the Broker.
 
 ## The encrypted token
 
 The actual token is encrypted with a key that is setup by the OpenShift administrator at install time.  The relavant settings are in ```/etc/openshift/broker.conf```.
 
-## How the enrypted token is used
+## How the encrypted token is used
 
 Cartridges that request this token to be create can then use it for authentication to the broker on behalf of the user (since user identifiable information in stored within).
 
