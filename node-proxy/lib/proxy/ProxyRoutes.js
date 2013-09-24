@@ -226,7 +226,6 @@ ProxyRoutes.prototype.remove = function(n) {
 ProxyRoutes.prototype.load = function(f) {
   Logger.debug("Loading routes from file '" + f + "'. ");
   var zroutes = _load_routes(f);
-  Logger.error("JSON: "  + JSON.stringify(zroutes))
   for (var d in zroutes) {
     this.add(d, zroutes[d].endpoints, zroutes[d].limits, zroutes[d].idle);
   }
