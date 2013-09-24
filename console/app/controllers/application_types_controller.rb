@@ -57,8 +57,8 @@ class ApplicationTypesController < ConsoleController
 
     @capabilities = user_capabilities :refresh => true
 
+    @user_writeable_domains = user_writeable_domains :refresh => true
     @user_default_domain = user_default_domain rescue (Domain.new)
-    @user_writeable_domains = user_writeable_domains
     @can_create = @capabilities.max_domains > user_owned_domains.length
 
     @gear_sizes = new_application_gear_sizes(@user_writeable_domains, @capabilities)

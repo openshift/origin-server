@@ -41,7 +41,7 @@ module DomainAssociations
       end
 
       def domain
-        Domain.find(domain_id, :as => as) if domain_id
+        Domain.find(domain_id, :params => {:include => :application_info}, :as => as) if domain_id
       end
 
       def domain=(domain)
