@@ -118,6 +118,7 @@ module OpenShift
                     f.write("\n")
 
                     gen_default_rule=false
+                    proxy_proto = "http"
                     if options["gone"]
                       f.puts("RewriteRule ^#{path}(/.*)?$ - [NS,G]")
                     elsif options["forbidden"]
@@ -134,12 +135,17 @@ module OpenShift
                       f.puts("RewriteCond %{HTTPS} =off")
                       f.puts("RewriteRule ^#{path}(/.*)?$ https://%{HTTP_HOST}$1 [R,NS,L]")
                       gen_default_rule = true
+                    elsif options["ssl_to_gear"]
+                      f.puts("RewriteCond %{HTTPS} =off")
+                      f.puts("RewriteRule ^#{path}(/.*)?$ https://%{HTTP_HOST}$1 [R,NS,L]")
+                      proxy_proto="https"
+                      gen_default_rule = true
                     else
                       gen_default_rule = true
                     end
 
                     if gen_default_rule
-                      f.puts("RewriteRule ^#{path}(/.*)?$ http://#{uri}$1 [P,NS]")
+                      f.puts("RewriteRule ^#{path}(/.*)?$ #{proxy_proto}://#{uri}$1 [P,NS]")
 
                       if path.empty?
                         tpath = "/"
@@ -155,7 +161,7 @@ module OpenShift
                         turi = uri + "/"
                       end
 
-                      f.puts("ProxyPassReverse #{tpath} http://#{turi}")
+                      f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{turi}")
                     end
 
                     f.fsync

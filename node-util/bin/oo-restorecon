@@ -7,16 +7,55 @@
 
 require 'rubygems'
 require 'openshift-origin-node'
+require 'optparse'
 
+options = {}
 
-debug=1
+optparse = OptionParser.new do|opts|
+       opts.banner = "Usage: #{$0} [options] [UUIDs]"
 
-OpenShift::Runtime::ApplicationContainer.all.each do |container|
-  mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(container.uid)
+       options[:verbose] = false
+       opts.on('-v', '--verbose', 'Verbose output') do
+            options[:verbose] = true
+       end
 
-  # Use case not a good match for the SELinux module's file methods
-  puts "restorecon -R #{container.container_dir}" if debug
-  puts "chcon -l #{mcs_label} -R #{container.container_dir}/*" if debug
-  %x[restorecon -R #{container.container_dir} ]
-  %x[chcon -l #{mcs_label} -R #{container.container_dir}/* ]
+       options[:all] = false
+       opts.on('-a', '--all', 'Chcon all gears') do
+            options[:all] = true
+       end
+
+       opts.on('-h', '--help', 'Display help') do
+            puts opts
+            exit
+       end
+end
+
+optparse.parse!
+# output help if we have nothing to do
+if ARGV.empty? and options[:all] == false
+  puts optparse
+  exit 128
+end
+
+def restore_con(dir, label, verbose = False)
+    puts "restorecon -R #{dir}" if verbose
+    %x[restorecon -R #{dir} ]
+    puts "chcon -l #{label} -R #{dir}*" if verbose
+    %x[chcon -l #{label} -R #{dir}* ]
+end
+
+if options[:all]
+    OpenShift::Runtime::ApplicationContainer.all.each do |container|
+        mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(container.uid)
+        restore_con(container.container_dir, mcs_label, options[:verbose])
+    end
+else
+    ARGV.each do |contan|
+        if OpenShift::Runtime::ApplicationContainer.exists?(contan.to_s)
+            mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(contan.to_s)
+            restore_con(OpenShift::Runtime::ApplicationContainer.from_uuid(contan.to_s).container_dir, mcs_label, options[:verbose])
+        else
+            puts "ERROR: Gear #{contan} does not exist!"
+        end
+    end
 end

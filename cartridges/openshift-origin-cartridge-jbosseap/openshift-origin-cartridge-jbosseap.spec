@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.9.0
+Version: 2.9.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,11 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 2.9.1-1
+- Card origin_runtime_102 - use secret token for auth_value in JGroups
+  (jhonce@redhat.com)
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 2.8.5-1
 - Bug 1002893 - Added .jdbc to the mysql module name in JBossEAP
   (mfojtik@redhat.com)

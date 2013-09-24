@@ -89,6 +89,10 @@ module OpenShift
         p_runner(false) do |gear|
           $stdout.puts("Checking application #{gear.container_name} (#{gear.uuid}) status:")
           $stdout.puts("-----------------------------------------------")
+          if gear.stop_lock?
+              $stdout.puts("Gear #{gear.uuid} is locked.")
+              $stdout.puts("")
+          end
           begin
             gear.cartridge_model.each_cartridge do |cart|
               $stdout.puts("Cartridge: #{cart.name}...")

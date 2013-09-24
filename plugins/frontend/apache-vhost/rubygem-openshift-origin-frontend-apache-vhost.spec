@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.1.4
+Version: 0.1.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -110,6 +110,14 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshif
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 0.1.5-1
+- Port ssl_to_gear changes to the frontend plugins. (rmillner@redhat.com)
+- Fix up conflicts in frontend plugins. (rmillner@redhat.com)
+- Bug 1010047 - Change alias handling to that SNI requests do not misroute.
+  (rmillner@redhat.com)
+- Report an error if there are no frontend plugins defined.
+  (rmillner@redhat.com)
+
 * Tue Sep 17 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
 - fixing tito tags
 

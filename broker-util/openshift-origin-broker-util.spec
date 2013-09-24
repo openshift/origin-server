@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.15.0
+Version: 1.15.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,28 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Fix for bug 1010632 (abhgupta@redhat.com)
+- Creating the app secret token (abhgupta@redhat.com)
+- Merge pull request #3648 from pravisankar/dev/ravi/misc-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Allow/Disallow HA capability from oo-admin-ctl-user script Show user plan in
+  oo-admin-ctl-user output (rpenta@redhat.com)
+- Fix for bug 1007582 and bug 1008517 (abhgupta@redhat.com)
+- Merge pull request #3622 from brenton/ruby193-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- force destroy should take care of usage too (rchopra@redhat.com)
+- Bug 1007711: Fix upgraded gear count reporting (ironcladlou@gmail.com)
+- Merge pull request #3632 from pravisankar/dev/ravi/bug-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 998467 - Add addtional storage mismatch checks in oo-admin-chk
+  (rpenta@redhat.com)
+- Bug 998810 - Handle symbols during sort (rpenta@redhat.com)
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+- Adding oo-mco and updating oo-diagnostics to support the SCL'd mcollective
+  (bleanhar@redhat.com)
+- Dependency changes for the SCL mcollective package (bleanhar@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.5-1
 - <oo-admin-ctl-usage> Bug 990451, use Mongo config options for Moped session
   https://bugzilla.redhat.com/show_bug.cgi?id=990451 (jolamb@redhat.com)

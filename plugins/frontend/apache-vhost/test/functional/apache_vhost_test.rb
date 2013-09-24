@@ -34,7 +34,8 @@ module OpenShift
                   ["/noproxy", "", { "noproxy" => 1 }],
                   ["/redirect", "/dest", { "redirect" => 1 }],
                   ["/file", "/dest.html", { "file" => 1 }],
-                  ["/tohttps", "/dest", { "tohttps" => 1 }] ]
+                  ["/tohttps", "/dest", { "tohttps" => 1 }],
+                  ["/ssl_to_gear", "/dest", { "ssl_to_gear" => 1 }] ]
 
 
       @aliases=["foo.example.com", "bar.example.com"]

@@ -2,23 +2,36 @@ NAME
   oo-restorecon 
   
 SYNOPSIS
-  oo-restorecon
+  oo-restorecon [-h|--help] [-v|--verbose] [-a|--all|UUIDs]
 
 DESCRIPTION
   Restores the OpenShift MCS labels.
+
+OPTIONS
+ -a|--all
+      Chcon all gears.
+
+ -h|--help
+    Display a simple help menu.
+
+ -d|--debug
+    Provide verbose output.
   
 EXAMPLE
+  $ oo-restorecon -a
 
-  $ oo-restorecon
+    Restores the MCS labels for all gears.
+
+  $ oo-restorecon $gear_uuid
+
+    Restores the MCS labels for a specific gear(s).
   
 HINTS
-  This should be run after a filesystem relabel.  oo-accept-node will report
-  when it needs to be run.
+   This should be run after a filesystem relabel.  oo-accept-node will report
+   when it needs to be run.
  
 SEE ALSO
-  oo-accept-node(8), oo-admin-ctl-gears(8), oo-idler-stats(8),
-  oo-init-quota(8), oo-last-access(8), oo-restorer(8),
-  oo-restorer-wrapper.sh(8), oo-setup-node(8), rhc-list-ports(8)
+  oo-accept-node(8)
 
 AUTHOR
-  Brenton Leanhardt <bleanhar@redhat.com> - man page written for OpenShift Origin 
+  Brenton Leanhardt <bleanhar@redhat.com> and Marek Mahut <mmahut@redhat.com> - man page written for OpenShift Origin

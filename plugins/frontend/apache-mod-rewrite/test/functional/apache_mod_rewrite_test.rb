@@ -52,7 +52,8 @@ module OpenShift
                   ["/noproxy", "", { "noproxy" => 1 }],
                   ["/redirect", "/dest", { "redirect" => 1 }],
                   ["/file", "/dest.html", { "file" => 1 }],
-                  ["/tohttps", "/dest", { "tohttps" => 1 }] ]
+                  ["/tohttps", "/dest", { "tohttps" => 1 }],
+                  ["/ssl_to_gear", "/dest", { "ssl_to_gear" => 1 }] ]
 
       @nodes_expected = {
         "#{@fqdn}" => "1.2.3.4:5678",
@@ -62,7 +63,8 @@ module OpenShift
         "#{@fqdn}/noproxy" => "NOPROXY",
         "#{@fqdn}/redirect" => "REDIRECT:/dest",
         "#{@fqdn}/file" => "FILE:/dest.html",
-        "#{@fqdn}/tohttps" => "TOHTTPS:/dest"
+        "#{@fqdn}/tohttps" => "TOHTTPS:/dest",
+        "#{@fqdn}/ssl_to_gear" => "SSL_TO_GEAR:/dest"
       }
         
 
