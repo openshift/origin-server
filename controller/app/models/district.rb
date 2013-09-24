@@ -6,6 +6,7 @@ class District
   field :uuid, type: String, default: ""
   field :gear_size, type: String
   field :max_capacity, type: Integer
+  field :first_uid, type: Integer
   field :max_uid, type: Integer
   field :available_uids, type: Array, default: []
   field :available_capacity, type: Integer
@@ -33,14 +34,14 @@ class District
   def initialize(attrs = nil, options = nil)
     super
 
-    first_uid = Rails.configuration.msg_broker[:districts][:first_uid]
+    self.first_uid = Rails.configuration.msg_broker[:districts][:first_uid]
     num_uids = Rails.configuration.msg_broker[:districts][:max_capacity]
     self.server_identities = []
     self.available_uids = []
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.available_capacity = num_uids
-    self.available_uids = (first_uid...first_uid + num_uids).sort_by{rand}
-    self.max_uid = first_uid + num_uids - 1
+    self.available_uids = (self.first_uid...self.first_uid + num_uids).sort_by{rand}
+    self.max_uid = self.first_uid + num_uids - 1
     self.max_capacity = num_uids
     self.active_server_identities_size = 0
     save!
@@ -81,7 +82,7 @@ class District
           if capacity == 0 or capacity == 0.0
             container_node_profile = container.get_node_profile
             if container_node_profile == gear_size
-              container.set_district("#{uuid}", true)
+              container.set_district("#{uuid}", true, first_uid, max_uid)
               self.active_server_identities_size += 1
               self.server_identities << { "name" => server_identity, "active" => true}
               self.save!
@@ -115,7 +116,7 @@ class District
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         capacity = container.get_capacity
         if capacity == 0 or capacity == 0.0
-          container.set_district('NONE', false)
+          container.set_district('NONE', false, first_uid, max_uid)
           server_identities.delete({ "name" => server_identity, "active" => false} )
           if not self.save
             raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid}")
@@ -144,7 +145,7 @@ class District
         District.where("_id" => self._id, "server_identities.name" => server_identity ).update({ "$set" => { "server_identities.$.active" => false }, "$inc" => { "active_server_identities_size" => -1 } })
         self.reload
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-        container.set_district("#{uuid}", false)
+        container.set_district("#{uuid}", false, first_uid, max_uid)
       else
         raise OpenShift::OOException.new("Node with server identity: #{server_identity} is already deactivated")
       end
@@ -160,7 +161,7 @@ class District
         District.where("_id" => self._id, "server_identities.name" => server_identity ).update({ "$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } })
         self.reload
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-        container.set_district("#{uuid}", true)
+        container.set_district("#{uuid}", true, first_uid, max_uid)
       else
         raise OpenShift::OOException.new("Node with server identity: #{server_identity} is already active")
       end
@@ -195,7 +196,15 @@ class District
         raise OpenShift::OOException.new("Could not add capacity to district: #{uuid}")
       end
 
-      return self.reload
+      self.reload
+
+      begin
+        OpenShift::ApplicationContainerProxy.set_district_uid_limits("#{uuid}", first_uid, max_uid)
+      rescue OpenShift::NodeException => e
+        raise OpenShift::OOException.new("There was an issue updating district uid limits on the nodes: #{e.message}")
+      end
+
+      return self
     else
       raise OpenShift::OOException.new("You must supply a positive number of uids to add")
     end
@@ -216,7 +225,15 @@ class District
         raise OpenShift::OOException.new("Specified number of UIDs not found in order in available_uids.  Can not continue!")
       end
 
-      return self.reload
+      self.reload
+
+      begin
+        OpenShift::ApplicationContainerProxy.set_district_uid_limits("#{uuid}", first_uid, max_uid)
+      rescue OpenShift::NodeException => e
+        raise OpenShift::OOException.new("There was an issue updating district uid limits on the nodes: #{e.message}")
+      end
+
+      return self
     else
       raise OpenShift::OOException.new("You must supply a positive number of uids to remove")
     end
