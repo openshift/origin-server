@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.0
+Version: 1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,47 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Merge pull request #3686 from rajatchopra/new_master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3682 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- routing spi changes (rchopra@redhat.com)
+- Fix for bug 1010632 (abhgupta@redhat.com)
+- Fixing AddCompOp code (abhgupta@redhat.com)
+- Fixes for pending_op changes (abhgupta@redhat.com)
+- Merge pull request #3673 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3667 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix indexing (rchopra@redhat.com)
+- optimize find all district scenarios (dmcphers@redhat.com)
+- Add index to district uuid (dmcphers@redhat.com)
+- Fix tests to use ruby193-mcollective only on RHEL. Fix nodejs cart to work on
+  F19 and RHEL. (kraman@gmail.com)
+- Merge pull request #3666 from jwhonce/wip/secret_token
+  (dmcphers+openshiftbot@redhat.com)
+- Creating the app secret token and sending to gear creation requests
+  (abhgupta@redhat.com)
+- Card origin_runtime_102 - Support OPENSHIFT_SECRET_TOKEN (jhonce@redhat.com)
+- Merge pull request #3578 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3656 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- First draft of changes to create subclasses for pending ops
+  (abhgupta@redhat.com)
+- Rescue OOException and include result_io in message (lnader@redhat.com)
+- Merge pull request #3654 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3646 from ironcladlou/dev/test-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Handle categories not used (dmcphers@redhat.com)
+- fix configure order calculation - bz1008609 (rchopra@redhat.com)
+- Fix mock cartridge verification in cuke tests (ironcladlou@gmail.com)
+- add index for created_at (rchopra@redhat.com)
+- add index for created_at field for clear-pending-ops (rchopra@redhat.com)
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.8-1
 - Merge pull request #3631 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
