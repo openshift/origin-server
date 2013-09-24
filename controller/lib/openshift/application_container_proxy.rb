@@ -74,6 +74,10 @@ module OpenShift
       @proxy_provider.get_details_for_all_impl(name_list)
     end
 
+    def self.set_district_uid_limits(uuid, first_uid, max_uid)
+      @proxy_provider.set_district_uid_limits_impl(uuid, first_uid, max_uid) 
+    end
+
     attr_accessor :id
   end
 end
