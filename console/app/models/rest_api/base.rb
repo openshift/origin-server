@@ -401,6 +401,10 @@ module RestApi
       true
     rescue ActiveResource::ResourceNotFound => e
       raise ResourceNotFound.new(self.class.model_name, id, e.response)
+    rescue ActiveResource::ClientError => error
+      @remote_errors = error
+      load_remote_errors(@remote_errors, true)
+      false
     end
 
     class << self

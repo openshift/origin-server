@@ -20,7 +20,7 @@ class StorageController < ConsoleController
 
   private
   def user_information
-    user_default_domain
+    # TODO: look up domain capabilities here
     @user = User.find :one, :as => current_user
     @max_storage = @user.capabilities[:max_storage_per_gear] || 0
     @can_modify_storage = @max_storage > 0
