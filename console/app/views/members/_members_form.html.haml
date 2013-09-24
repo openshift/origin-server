@@ -26,10 +26,19 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .members table input {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }  
   .members table select { 
     margin-bottom: 0;
     white-space: nowrap;
     width: 100%;
+  }
+  .members table input[type="text"] {
+    width: 100%;
+    height: auto;
   }
 
   .members table a.remove-member,
