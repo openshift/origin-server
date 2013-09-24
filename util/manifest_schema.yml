@@ -1,0 +1,151 @@
+&manifest
+type: map
+required: yes
+mapping:
+  "Name":
+    required: yes
+  "Cartridge-Short-Name":
+    required: yes
+  "Display-Name":
+    required: yes
+  "Architecture":
+    enum: [ 'noarch', 'i386', 'x86_64' ]
+  "Description":
+    required: yes
+  "Version":
+    required: yes
+    pattern: /^([\d\.]+)$/
+  "Versions":
+    type: seq
+    sequence:
+      - { unique: yes }
+  "License":
+    required: yes
+  "License-Url":
+    pattern: /^http(s?):\/\//
+  "Vendor":
+    required: yes
+  "Cartridge-Version":
+    required: yes
+    pattern: /^([\d\.]+)$/
+  "Compatible-Versions":
+    type: seq
+    sequence:
+      - { unique: yes }
+  "Cartridge-Vendor":
+    required: yes
+  "Categories":
+    type: seq
+    required: yes
+    sequence:
+      - { unique: yes }
+  "Website":
+    pattern: /^http(s?):\/\//
+  "Help-Topics":
+    type: any
+  "Cart-Data":
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+          "Key":
+            required: true
+          "Type":
+            required: true
+          "Description":
+            required: true
+  "Publishes": &publishes
+    type: map
+    mapping:
+      "=": 
+        type: map
+        mapping:
+          "Type":
+            pattern: /^(ENV|STRING|NET_TCP|NET_UDP|FILESYSTEM)\:/
+  "Subscribes": &subscribes
+    type: map
+    mapping:
+      "=":
+        type: map
+        mapping:
+          "Type":
+            pattern: /^(ENV|STRING|NET_TCP|NET_UDP|FILESYSTEM)\:/
+          "Required":
+            type: bool
+  "Scaling": &scaling
+    type: map
+    mapping:
+      "Min": &scale_type
+        type: int
+        range: { max: 10, min: -10 }
+      "Max": *scale_type
+      "Multiplier": *scale_type
+  "Provides":
+    type: seq
+    sequence:
+      - { unique: yes }
+  "Endpoints":
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+          "Private-IP-Name":
+          "Private-Port-Name":
+          "Private-Port": { type: int }
+          "Public-Port-Name": { unique: yes }
+          "WebSocket-Port": { type: int }
+          "WebSocket-Port-Name": { unique: yes }
+          "Protocols":
+            type: seq
+            sequence:
+              - { unique: yes }
+          "Options":
+            type: any
+          "Mappings":
+            type: seq
+            sequence:
+              - type: map
+                mapping:
+                  "Frontend": { required: yes }
+                  "Backend": { required: yes }
+                  "Options":
+                    type: map
+                    mapping:
+                      "=": { type: any }
+  "Additional-Control-Actions":
+    type: seq
+    sequence:
+      - { unique: yes  }
+  "Configure-Order":
+    type: seq
+    sequence:
+      - { unique: yes }
+  "Group-Overrides":
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+          "components":
+            type: seq
+            sequence:
+              - { type: str, unique: yes }
+  "Components":
+    type: map
+    mapping:
+      "=":
+        type: map
+        mapping:
+          "Publishes": *publishes
+          "Subscribes": *subscribes
+          "Scaling": *scaling
+  "Version-Overrides": { type: any }
+  "Conflicts":
+    type: seq
+    sequence:
+      - { unique: yes }
+  "Suggests":
+    type: seq
+    sequence:
+      - { unique: yes }
+  "Install-Build-Required":
+    type: bool
