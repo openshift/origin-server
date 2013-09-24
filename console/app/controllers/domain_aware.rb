@@ -14,21 +14,23 @@ module DomainAware
     [current_user.login, session_key_component, :domains]
   end
 
-  def user_domains
-    @domains ||= Rails.cache.fetch(domains_cache_key, :expires_in => 5.minutes) do
+  def user_domains(opts={})
+    key = domains_cache_key
+    Rails.cache.delete(key) if opts and (opts[:refresh] or opts[:clear])
+    @domains ||= Rails.cache.fetch(key, :expires_in => 5.minutes) do
       Domain.find(:all, :as => current_user, :params => {:include => :application_info})
     end
   end
 
-  def user_writeable_domains
-    user_domains.select(&:editor?)
+  def user_writeable_domains(opts={})
+    user_domains(opts).select(&:editor?)
   end
 
-  def user_owned_domains
+  def user_owned_domains(opts={})
     user_domains.select(&:owner?)
   end
 
-  def user_default_domain
+  def user_default_domain(opts={})
     @domain ||= user_domains.first.tap do |d|
       raise RestApi::ResourceNotFound.new(Domain.model_name, nil) unless d.present? and d.owner?
     end

@@ -140,8 +140,8 @@ class ApplicationsController < ConsoleController
       @disabled = @missing_cartridges.present? || @cartridges.blank?
     end
 
+    @user_writeable_domains = user_writeable_domains :refresh => true
     @user_default_domain = user_default_domain rescue nil
-    @user_writeable_domains = user_writeable_domains
     @can_create = current_api_user.max_domains > user_owned_domains.length
 
     (@domain_capabilities, @is_domain_owner) = estimate_domain_capabilities(@application.domain_name, @user_writeable_domains, @can_create, @capabilities)
