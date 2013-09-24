@@ -35,7 +35,7 @@
               = link_to 'Cancel', @referer || application_path(@application), :class => 'btn cancel-delete-alias'
               = f.commit_button :label => "Delete", :button_html => {:class => 'btn btn-danger'}
               = f.loading
-        = link_to 'Delete Alias', application_alias_delete_path(@application, @alias) << "?id=#{@alias.name}", { 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'btn btn-danger delete-alias', :title => 'Delete Alias'}
+        = link_to 'Delete Alias', delete_application_alias_path(@application, @alias) << "?id=#{@alias.name}", { 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'btn btn-danger delete-alias', :title => 'Delete Alias'}
 
   - if @alias.has_private_ssl_certificate?
     %p
@@ -58,7 +58,7 @@
                 = link_to 'Cancel', @referer || application_path(@application), :class => 'btn cancel-delete-certificate'
                 = f.commit_button :label => "Delete", :button_html => {:class => 'btn btn-danger'}
                 = f.loading
-          = link_to 'Delete Certificate', application_alias_delete_path(@application, @alias) << "?id=#{@alias.name}", { 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'btn btn-danger delete-certificate', :title => 'Delete Certificate'}
+          = link_to 'Delete Certificate', delete_application_alias_path(@application, @alias) << "?id=#{@alias.name}", { 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'btn btn-danger delete-certificate', :title => 'Delete Certificate'}
 
   .platform
 
