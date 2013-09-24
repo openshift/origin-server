@@ -9,7 +9,9 @@ module DomainAware
   [Domain, Member] if Rails.env.development?
 
   def domains_cache_key
-    [current_user.login, :domains]
+    # Put something in the session so that logging out and back in will give a different cache key
+    session_key_component = (session[:domain_cache_key_component] ||= Time.new.to_f.to_s)
+    [current_user.login, session_key_component, :domains]
   end
 
   def user_domains
