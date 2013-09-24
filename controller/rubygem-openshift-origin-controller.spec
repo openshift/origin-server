@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.1
+Version: 1.15.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,16 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3696 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3647 from detiber/runtime_card_255
+  (dmcphers+openshiftbot@redhat.com)
+- endpoints included for rest call to gear_groups (rchopra@redhat.com)
+- <README.auth_plugin.md> Fixed typo (jolamb@redhat.com)
+- Card origin_runtime_255: Publish district uid limits to nodes
+  (jdetiber@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Merge pull request #3686 from rajatchopra/new_master
   (dmcphers+openshiftbot@redhat.com)
