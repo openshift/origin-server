@@ -44,7 +44,7 @@ module CostAware
       number_to_currency(number, options)
     end
 
-    def gear_increase_cost(count, capabilities)
+    def gear_increase_cost(count, capabilities=nil)
       false
     end
 
