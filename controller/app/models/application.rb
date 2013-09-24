@@ -1172,27 +1172,33 @@ class Application
     end
   end
 
+  def get_web_framework_gears
+    [].tap do |gears|
+      component_instances.each do |ci|
+        gears << ci.group_instance.gears if ci.is_web_framework?
+      end
+    end.flatten.uniq
+  end
+
+  def get_web_proxy_gears
+    [].tap do |gears|
+      component_instances.each do |ci|
+        ci.group_instance.gears.each do |gear|
+          gears << gear if gear.sparse_carts.include?(ci._id) and ci.is_web_proxy?
+        end
+      end
+    end.flatten.uniq
+  end
+
   # Updates the gear registry on all proxy gears and invokes each proxy cartridge's
   # update-cluster control method so it can update its configuration as well.
   #
   # options may contain rollback:true to indicate this is a rollback
   def update_cluster(options={})
-    web_framework_gears = []
-    web_proxy_gears = []
-
-    # get the lists of web proxy gears and web framework gears
-    # TODO find a better way to do this
-    component_instances.each do |ci|
-      web_framework_gears << ci.group_instance.gears if ci.is_web_framework?
-      ci.group_instance.gears.each do |gear|
-        web_proxy_gears << gear if gear.sparse_carts.include?(ci._id) and ci.is_web_proxy?
-      end
-    end
-
-    web_proxy_gears = web_proxy_gears.flatten.uniq
+    web_proxy_gears = get_web_proxy_gears
     return if web_proxy_gears.empty?
 
-    web_framework_gears = web_framework_gears.flatten.uniq
+    web_framework_gears = get_web_framework_gears
 
     # we don't want to have all the proxies down at the same time, so do the
     # first one by itself, wait for it to finish, and then do the rest in
@@ -1224,6 +1230,31 @@ class Application
           Rails.logger.error "Update cluster failed:: tag: #{tag}, gear_id: #{gear_id},"\
                              "output: #{output}, status: #{status}"
         end
+      end
+    end
+  end
+
+  # Enables or disables a target gear in all proxies
+  #
+  # options:
+  #  :action - :enable or :disable
+  #  :gear_uuid - target gear uuid to enable/disable
+  #  :persist - if true, update the proxy configuration on disk
+  def update_proxy_status(options)
+    web_proxy_gears = get_web_proxy_gears
+    return if web_proxy_gears.empty?
+
+    handle = RemoteJob.create_parallel_job
+    web_proxy_gears.each do |gear|
+      RemoteJob.add_parallel_job(handle, "", gear, gear.get_update_proxy_status_job(options))
+    end
+
+    RemoteJob.execute_parallel_jobs(handle)
+
+    RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+      if status != 0
+        Rails.logger.error "Update proxy status failed:: tag: #{tag}, gear_id: #{gear_id},"\
+                           "output: #{output}, status: #{status}"
       end
     end
   end

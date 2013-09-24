@@ -1739,6 +1739,17 @@ module OpenShift
         RemoteJob.new(@@C_CONTROLLER, 'update-cluster', args)
       end
 
+      # Enable/disable a target gear in the proxy component
+      def get_update_proxy_status_job(gear, options)
+        args = build_base_gear_args(gear)
+        #TODO support specifying the proxy component/cart?
+        #args = build_base_component_args(proxy_component, args)
+        args['--action'] = options[:action]
+        args['--gear_uuid'] = options[:gear_uuid]
+        args['--persist'] = options[:persist]
+        RemoteJob.new(@@C_CONTROLLER, 'update-proxy-status', args)
+      end
+
       #
       # Re-start a gear after migration
       #
@@ -1811,6 +1822,9 @@ module OpenShift
         source_container = gear.get_proxy
         gi_comps = gear.group_instance.all_component_instances.to_a
         start_order,stop_order = app.calculate_component_orders
+
+        app.update_proxy_status(action: :disable, gear_uuid: gear.uuid) if app.scalable
+
         stop_order.each { |cinst|
           next if not gi_comps.include? cinst
           next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
@@ -1942,6 +1956,10 @@ module OpenShift
             # start the gears again and change DNS entry
             reply.append move_gear_post(gear, destination_container, state_map)
             # app.elaborate_descriptor
+
+            # update all proxy gear registries and configs
+            app.update_cluster if app.scalable
+
             app.execute_connections
             if app.scalable
               # execute connections restart the haproxy service, so stop it explicitly if needed
@@ -1954,6 +1972,8 @@ module OpenShift
                   reply.append destination_container.stop(gear, cinst)
                 end
               end
+              
+              app.update_proxy_status(action: :enable, gear_uuid: gear.uuid)
             end
             app.save
 
@@ -1981,6 +2001,8 @@ module OpenShift
                 reply.append source_container.run_cartridge_command(cart, gear, "start", args, false)
               end
             end
+
+            app.update_proxy_status(action: :enable, gear_uuid: gear.uuid)
           ensure
             raise
           end
