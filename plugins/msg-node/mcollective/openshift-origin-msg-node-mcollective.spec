@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.15.0
+Version: 1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,21 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Creating the app secret token (abhgupta@redhat.com)
+- Merge pull request #3664 from jwforres/exception_reporting
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_runtime_102 - Support OPENSHIFT_SECRET_TOKEN (jhonce@redhat.com)
+- Allow for extensions to listen for exceptions that should be reported
+  (jforrest@redhat.com)
+- Merge pull request #3622 from brenton/ruby193-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- Moving update_yaml.rb under the SCL for ruby193-mcollective on RHEL
+  (bleanhar@redhat.com)
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+- Node plugin changes for ruby193-mcollective (bleanhar@redhat.com)
+- Dependency changes for the SCL mcollective package (bleanhar@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
 - Improve upgrade MCollective response handling (ironcladlou@gmail.com)
 
