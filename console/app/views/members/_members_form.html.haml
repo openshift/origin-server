@@ -1,4 +1,8 @@
 :css
+  h6 + form > .checkbox {
+    margin: 5px 0 10px;
+  }
+
   tr.borderless td ,
   .members table tr:first-of-type td,
   .members.editing table tr.read-only:first-of-type + tr td {
@@ -9,20 +13,22 @@
     margin-bottom: 0px;
     table-layout: fixed;
   }
-  .members table td {
+  .members table tr:hover td {
+  background-color: transparent;
+  }
+  .members .table td {
+    border-top: 0;
+    padding-left: 0;
     vertical-align: middle;
   }
   .members table td.member {
+    max-width: 50px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .members table input {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-  }
   .members table select { 
     margin-bottom: 0;
+    white-space: nowrap;
     width: 100%;
   }
 
@@ -37,7 +43,12 @@
     font-size: 14px;
   }
 
-  .members aside { margin-top: 20px }
+  .members aside {
+    margin-top: 16px
+  }
+  .members h6 {
+    margin-bottom: 10px;
+  }
 
   .members tr.error-row td   { padding-top: 0px; }
   .members tr.error-row td p { margin-top: 0; }
@@ -102,7 +113,7 @@
 = form_tag domain_members_path(domain), :method => :put, :class => "members warn-dirty #{'editing' if editing} #{'dirty' if new_members.present?}" do
   %table.table.table-condensed
     %colgroup
-      %col
+      %col{:width => "45%"}
       %col{:width => "45%"}
       - if editable
         %col.script-only{:width => "30"}
@@ -114,7 +125,7 @@
     - else
       %tr
         - owner = members.find(&:owner)
-        %td.member{:title => owner.name}
+        %td.nowrap.member{:title => owner.name}
           = owner.name
         %td Owner
         - if editable
@@ -150,7 +161,7 @@
           %td
             -# Always start with a common field to make param hashes group correctly
             = hidden_field_tag('members[][x]', 0)
-            = text_field_tag('members[][login]', new_member.login, {:placeholder => 'User Login', :title => 'User Login', :style => "width: 100%;", :autocomplete => 'off', :class => ('error' if error)})
+            = text_field_tag('members[][login]', new_member.login, {:placeholder => 'User Login', :title => 'User Login', :autocomplete => 'off', :class => ('error' if error)})
           %td
             = select_tag('members[][role]', options_for_select(Role.role_descriptions(false), new_member.role))
           %td.script-only
