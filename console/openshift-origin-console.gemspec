@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'rails',                   '~> 3.2.8'
   s.add_dependency 'formtastic',              '~> 1.2.3'
   s.add_dependency 'net-http-persistent',     '>= 2.7'
-  s.add_dependency 'haml',                    '~> 3.1.7'
+  s.add_dependency 'haml',                    '>= 3.1.7', '< 4.1'
   s.add_dependency 'rdiscount',               '> 1.6.3'
   s.add_dependency 'sass-twitter-bootstrap',  '~> 2.0.1'
 end
