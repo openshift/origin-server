@@ -993,10 +993,10 @@ module MCollective
 
       def oo_update_proxy_status(args)
         with_container_from_args(args) do |container|
-          container.parallel_update_proxy_status(action: args['--action'],
-                                                 gear_uuid: args['--gear_uuid'],
-                                                 cartridge: args['--cart-name'],
-                                                 persist: args['--persist'])
+          container.update_proxy_status(action: args['--action'],
+                                        gear_uuid: args['--gear_uuid'],
+                                        cartridge: args['--cart-name'],
+                                        persist: args['--persist'])
         end
       end
 

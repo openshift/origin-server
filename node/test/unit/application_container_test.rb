@@ -404,7 +404,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.expects(:run_in_container_context).never
     @container.expects(:current_deployment_datetime).never
     @container.expects(:read_deployment_metadata).never
-    @container.expects(:activate_many).never
+    @container.expects(:activate).never
     @container.cartridge_model.expects(:do_control).never
 
     @container.update_cluster("", "")
@@ -535,7 +535,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     deployment_id = 'abcd1234'
     @container.expects(:read_deployment_metadata).with(current_deployment_datetime, 'id').returns(deployment_id)
 
-    @container.expects(:activate_many).with(gears: [web_entry2, web_entry3].map { |e| "#{e.uuid}@#{e.proxy_hostname}" },
+    @container.expects(:activate).with(gears: [web_entry2, web_entry3].map { |e| "#{e.uuid}@#{e.proxy_hostname}" },
                                             deployment_id: deployment_id,
                                             init: true,
                                             hot_deploy: false)

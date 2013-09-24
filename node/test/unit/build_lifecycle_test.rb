@@ -1220,10 +1220,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     web_proxy = options[:scalable] ? mock() : nil
     @cartridge_model.expects(:web_proxy).returns(web_proxy)
-    enable_server_expectation = @container.expects(:parallel_update_proxy_status).with(cartridge: web_proxy,
-                                                                                       action: :enable,
-                                                                                       gear_uuid: @container.uuid,
-                                                                                       persist: false)
+    enable_server_expectation = @container.expects(:update_proxy_status).with(cartridge: web_proxy,
+                                                                              action: :enable,
+                                                                              gear_uuid: @container.uuid,
+                                                                              persist: false)
     enable_server_expectation.never unless web_proxy
 
     output = @container.activate(activate_options)
