@@ -11,6 +11,6 @@
         %span.add-on>= ".#{RestApi.application_domain_suffix}"
       = f.semantic_errors :name, :alias => {:name => :id}, :class => [:unstyled, :errors, 'help-block']
   = f.buttons do
-    = link_to "Cancel", @referrer || domain_path(domain), :class => 'btn'
+    = link_to "Cancel", @referrer || (domain.persisted? ? domain_path(domain) : settings_path), :class => 'btn'
     = f.commit_button :label => domain.persisted? ? 'Save' : 'Create'
     = f.loading
