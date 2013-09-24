@@ -91,10 +91,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    @container.expects(:activate_gear).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
 
     @container.expects(:distribute).never
-    @container.expects(:activate_many).never
-    @container.expects(:activate).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    @container.expects(:activate).never
 
     @container.expects(:report_build_analytics)
 
@@ -137,9 +137,9 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    @container.expects(:activate_gear).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
 
     @container.expects(:distribute).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    @container.expects(:activate_many).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:activate).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
 
     @container.expects(:report_build_analytics)
@@ -147,7 +147,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.post_receive(out: $stdout, err: $stderr)
   end
 
-  def test_post_receive_default_hot_deploy
+  def test_post_receive_default_unscaled_hot_deploy
     @cartridge_model.expects(:web_proxy).returns(nil)
 
     repository = mock()
@@ -178,10 +178,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
+    @container.expects(:activate_gear).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
 
     @container.expects(:distribute).never
-    @container.expects(:activate_many).never
-    @container.expects(:activate).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
+    @container.expects(:activate).never
 
     @container.expects(:report_build_analytics)
 
@@ -360,7 +360,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     deployment_datetime = "now"
 
-    [:prepare, :activate].each do |method|
+    [:prepare, :activate_gear].each do |method|
       @container.expects(method).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     end
 
@@ -383,14 +383,13 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     deployment_datetime = "now"
 
-    [:prepare, :activate].each do |method|
-      @container.expects(method).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    end
-
+    @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    @container.expects(:activate_gear).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    
     web_proxy = mock()
     @cartridge_model.expects(:web_proxy).returns(mock)
 
-    [:distribute, :activate_many].each do |method|
+    [:distribute, :activate].each do |method|
       @container.expects(method).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     end
 
@@ -951,8 +950,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).returns(gears)
 
-    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(status: :success, errors: [], messages: [])
-    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(status: :success, errors: [], messages: [])
+    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '1234', status: :success, errors: [], messages: [])
+    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '2345', status: :success, errors: [], messages: [])
     
     result = @container.activate(deployment_id: deployment_id)
 
@@ -969,11 +968,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    web_proxy = mock()
-    @cartridge_model.expects(:web_proxy).returns(web_proxy)
-
-    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(status: :success, errors: [], messages: [])
-    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(status: :success, errors: [], messages: [])
+    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '1234', status: :success, errors: [], messages: [])
+    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '2345', status: :failure, errors: [], messages: [])
 
     result = @container.activate(deployment_id: deployment_id)
 
@@ -988,7 +984,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     options = { deployment_id: deployment_id }
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
               .returns(status: :success, messages: [], errors: [])
 
@@ -997,7 +993,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                        expected_exitstatus: 0)
                                                  .returns('out')
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :enable, gear_uuid: gear_uuid, persist: false)
               .returns(status: :success, messages: [], errors: [])
 
@@ -1013,7 +1009,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     options = { deployment_id: deployment_id }
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
               .returns(status: :failure, messages: [], errors: [])
 
@@ -1022,7 +1018,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                        expected_exitstatus: 0)
                                                  .never
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :enable, gear_uuid: gear_uuid, persist: false)
               .never
 
@@ -1038,7 +1034,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     options = { deployment_id: deployment_id }
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
               .returns(status: :success, messages: [], errors: [])
 
@@ -1047,7 +1043,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                        expected_exitstatus: 0)
                                                  .raises(::OpenShift::Runtime::Utils::ShellExecutionException.new('msg'))
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :enable, gear_uuid: gear_uuid, persist: false)
               .never
 
@@ -1063,7 +1059,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     options = { deployment_id: deployment_id }
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
               .returns(status: :success, messages: [], errors: [])
 
@@ -1072,7 +1068,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                        expected_exitstatus: 0)
                                                  .returns('out')
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :enable, gear_uuid: gear_uuid, persist: false)
               .returns(status: :failure, messages: [], errors: [])
 
@@ -1088,18 +1084,18 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     options = { deployment_id: deployment_id, hot_deploy: true }
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: :success, messages: [], errors: [])
+              .never
 
     @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --hot-deploy",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
                                                  .returns('out')
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: :success, messages: [], errors: [])
+              .never
 
     result = @container.activate_remote_gear(g, gear_env, options)
 
@@ -1113,7 +1109,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     options = { deployment_id: deployment_id, init: true }
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
               .returns(status: :success, messages: [], errors: [])
 
@@ -1122,7 +1118,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                        expected_exitstatus: 0)
                                                  .returns('out')
 
-    @container.expects(:parallel_update_proxy_status)
+    @container.expects(:update_proxy_status)
               .with(action: :enable, gear_uuid: gear_uuid, persist: false)
               .returns(status: :success, messages: [], errors: [])
 

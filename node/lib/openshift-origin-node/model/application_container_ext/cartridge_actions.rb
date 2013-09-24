@@ -718,7 +718,9 @@ module OpenShift
             return result
           end
 
-          unless options[:hot_deploy] == true
+          if options[:hot_deploy] == true
+            result[:status] = :success
+          else
             result[:messages] << "Enabling gear in proxies"
             proxy_result = update_proxy_status(action: :enable, gear_uuid: gear_uuid, persist: false)
             result[:enable_proxy_results] = proxy_result
