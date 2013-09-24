@@ -15,6 +15,7 @@
 .label-popular { color: #101010 !important; background-color: #BFDCE8 !important; }
 
 h3 .label { font-size: inherit; margin: 0 0 0 10px; }
+h5 {font-weight: normal;}
 
 .account-total {
 	font-size: $h1FontSize;
@@ -254,6 +255,7 @@ figure {
     display:table-cell;
     vertical-align:middle;
     margin: 0;
+    text-transform: uppercase;
   }
   .header-btn {
     vertical-align:middle;

@@ -36,7 +36,6 @@
     }
     .url-default {
       > .name {
-        color: white;
         margin-right: 0;
       }
       > .url {
@@ -49,9 +48,6 @@
 
   .name {
     display: inline-block;
-    margin-bottom: 0;
-    vertical-align: middle;
-    margin-right: 5px;
   }
 
   .cartridges { margin-top: -10px; }
@@ -327,12 +323,8 @@ $cartridgeBorderWidth: 10px;
 
 #app-cartridges {
   header {
-    padding-left: $gridGutterWidth;
-
-    h3 {
-      margin: 4px 0;
-    }
-
+    a {display: none}
+    /*
     .btn-add-cart {
       display: inline-block;
       padding: 9px 8px 8px 20px;
@@ -364,32 +356,38 @@ $cartridgeBorderWidth: 10px;
           background-position:-26px -50px;
         }
       }
-    }
+    }*/
   }
 
-  .gear-group {
-    margin-top: 5px;
-    margin-bottom: 15px;
-    border-bottom: 3px solid #2a2a2a;
+  .gear-group { /* mimic tile */
+    background: $consolePanelColor;
+    @include box-shadow(0 0 4px rgba(0,0,0,.1));
+    color: $consoleTextColorDefault;
   }
 
   .cartridge-block {
-    border-top: 3px solid #2a2a2a;
+    border-bottom: 1px dashed #eee;
+    position: relative;
+      &:last-child {border-bottom: none;
+    }
 
-    .cartridge-border {
-      background: image-url('cartridge-edge.gif') repeat-y;
-      padding-left: 10px;
+    &.gear-error .cartridge-border:before {
+      position: absolute;
+      border-left: 6px solid #c00;
+      height: 100%;
+      top: 0;
+      left: 0;
+      content: "";
     }
 
     .cartridge-inset {
-      background-color: #1d1d1d;
-      border: 1px solid #101010;
-      border-width: 2px 0;
-      padding: 15px ($gridGutterWidth - $cartridgeBorderWidth);
+      background-color: $consolePanelColor;
+      padding: 25px;
     }
 
     h2, h3, h4 {
       margin-bottom: 0;
+      line-height: 1;
       //text-overflow: ellipsis;
       //overflow: hidden;
       //white-space: nowrap;
@@ -420,8 +418,8 @@ $cartridgeBorderWidth: 10px;
   }
 
   .cartridge-block.cartridge-embedded .cartridge-inset {
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 15px;
+    padding-bottom: 15px;
   }
 }
 
@@ -446,7 +444,6 @@ $cartridgeBorderWidth: 10px;
 @media (max-width: 767px) {
   #app-cartridges {
     header {
-      padding-left: $gridGutterWidthTablet;
     }
     .cartridge-block .cartridge-inset {
       padding-left: $gridGutterWidthTablet - $cartridgeBorderWidth;
@@ -461,7 +458,6 @@ $cartridgeBorderWidth: 10px;
 @media (min-width: 980px) and (max-width: 1199px) {
   #app-cartridges {
     header {
-      padding-left: $gridGutterWidth;
     }
     .cartridge-block .cartridge-inset {
       padding-left: $gridGutterWidth - $cartridgeBorderWidth;

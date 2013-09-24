@@ -22,6 +22,11 @@
   margin-right: $gridGutterWidth/2;
 }
 
+// Use to set generic bottom margin between elements
+.gutter-bottom, .column-content section, .row-content  {
+  margin-bottom: $gridGutterWidth*1.5;
+}
+
 // Put content into a box with gutters compatible with the grid
 .box-content {
   padding: 20px $gridGutterWidth;
@@ -57,6 +62,7 @@
 
   > .flow-block {
     display: table-cell;
+    vertical-align: middle;
 
     > ul.inline {
       display: inline-block;
