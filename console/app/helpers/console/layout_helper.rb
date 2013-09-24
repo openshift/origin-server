@@ -108,10 +108,6 @@ module Console::LayoutHelper
     end
   end
 
-  def breadcrumb_divider
-    content_tag(:span, '/', :class => 'divider')
-  end
-
   AppWizardStepsCreate = [
     {
       :name => 'Choose a type of application',
@@ -174,56 +170,6 @@ module Console::LayoutHelper
       end.join.html_safe,
       :class => 'wizard'
     )
-  end
-
-  def breadcrumbs_for_each(items)
-    last_index = items.length - 1
-    content_for :breadcrumbs, content_tag(
-      :ul,
-      items.each_with_index.map do |crumb, index|
-        content = crumb
-        active_tag = ""
-        if index == last_index
-          active_tag = "active"
-        else
-          content += breadcrumb_divider
-        end
-
-        content_tag(:li, content, :class => active_tag)
-      end.join.html_safe,
-      :class => 'breadcrumb')
-  end
-
-  def breadcrumb_for_application(application, *args)
-    breadcrumbs_for_each [
-      link_to('Applications', :applications, :action => :index),
-      link_to(application.name, application),
-    ] + args
-  end
-
-  def breadcrumb_for_domain(domain, *args)
-    breadcrumbs_for_each [
-      link_to('Domains', :domains, :action => :index),
-      link_to(domain.name, domain),
-    ] + args
-  end
-
-  def breadcrumb_for_create_application(*args)
-    breadcrumbs_for_each [
-      link_to('Create an application', application_types_path), 
-    ] + args
-  end
-
-  def breadcrumb_for_account(*args)
-    breadcrumbs_for_each [
-      link_to('My Account', account_path),
-    ] + args
-  end
-
-  def breadcrumb_for_settings(*args)
-    breadcrumbs_for_each [
-      link_to('Settings', settings_path),
-    ] + args
   end
 
   def take_action(link, text, *args)

@@ -4,7 +4,7 @@
   .leave .popover { width: 300px; }
   .leave .popover-inner, .leave .popover-content { width: auto; }
 
-- content_for :section_console_presentation, 'section-console-blank'
+- content_for :page_style, 'highlight'
 - content_for :top do
   .grid-wrapper.section-header
     %nav.span12.applications
@@ -18,8 +18,6 @@
         - if @domain.can_rename?
           = surround '(',')' do
             = link_to 'edit name', edit_domain_path(@domain)
-
-= breadcrumb_for_domain(@domain)
 
 %section#app-list
   %section

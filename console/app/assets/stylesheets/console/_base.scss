@@ -19,9 +19,11 @@ Color palette
 */
 
 html {
-  background: white;
-  @include console_background;
+  background: #fcfcfc;
   height: 100%;
+  &.highlight {
+    @include console_background;
+  }
 }
 
 body {

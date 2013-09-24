@@ -96,32 +96,25 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
 
 ol.wizard {
   border-bottom: 1px solid #eaeaea;
-  color: #aaa;
+  border-bottom: 1px solid rgba(0,0,0,.01);
+  color: #999;
   display: block;
   margin: 0 0 25px;
   padding: 0;
   position: relative;
+  text-align: center;
   .section-console-blank & {
-    border-bottom: 1px solid rgba(0,0,0,.01);
-    border-top: 1px solid rgba(0,0,0,.01);
     color: #888;
-    margin-top: -1px;
-    padding-top: 25px;
-    &:after, &:before {
-      @include background-image(radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%));
-      content: '';
-      display: block;
-      height: 5px;
-      position: absolute;
-      bottom: -5px;
-      width: 100%;
-      z-index: -1;
-    }
-    &:before {
-      @include background-image(radial-gradient(50% 5px,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%));
-      bottom: auto;
-      top: -5px;
-    }
+  }
+  &:after {
+    @include background-image(radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%));
+    content: '';
+    display: block;
+    height: 5px;
+    position: absolute;
+    bottom: -5px;
+    width: 100%;
+    z-index: 0;
   }
   li {
     display: inline-block;
@@ -174,20 +167,13 @@ ol.wizard {
     li {
       margin-right: 25px;
     }
-    .section-console-blank & {
-      margin-top: -1px;
-    }
   }
 }
 
 @media (max-width: 767px) {
   ol.wizard {
-    border-bottom-color: #ccc !important;
-    border-top: 0;
     padding-bottom: 10px;
-    &:after, &:before {
-      display: none;
-    }
+    text-align: left;
     li {
       margin-bottom: 10px;
       padding-left: 0;
@@ -207,12 +193,6 @@ ol.wizard {
   }
 }
 
-
-.section-console {
-  padding-top: 50px;
-  padding-bottom: 50px;
-}
-
 figure {
   background: black;
   padding: 5px;
@@ -227,16 +207,8 @@ figure {
 }
 
 .row-console > .row {
-  background: #fcfcfc;
-  @include box-shadow(0 0 3px rgba(0,0,0,0.09));
   min-height: 400px;
   padding: 25px 0;
-  .section-console-blank & {
-    background: none;
-    @include box-shadow(none);
-    padding-bottom: 0;
-    padding-top: 0;
-  }
 }
 
 
@@ -313,28 +285,7 @@ aside .header-bar {
   margin-bottom: $baseLineHeight; 	
 }
 
-@media (max-width: 979px) {
-  .section-console {
-    padding-bottom: 40px;
-    padding-top: 40px;
-  }
-}
-
 @media (max-width: 767px) {
-  html {
-    background: #fcfcfc;
-  }
-  .section-console {
-    background: #fcfcfc;
-    padding-bottom: 0;
-    padding-top: 0;
-    &.section-console-blank {
-      @include console_background;
-    }
-    .row-console > .row {
-      @include box-shadow(none);
-    }
-  }
   .section-header {
     margin-left: 0;
   }
