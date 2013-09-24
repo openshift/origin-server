@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'compass-rails',          '~> 1.0.3'
   s.add_dependency 'coffee-rails',           '~> 3.2.2'
   s.add_dependency 'sass-rails',             '~> 3.2.5'
-  s.add_dependency 'haml',                   '~> 3.1.7'
+  s.add_dependency 'haml',                   '>= 3.1.7', '< 4.1'
   s.add_dependency 'uglifier',               '>= 1.2.6'
   s.add_dependency 'therubyracer',           '>= 0.10'
   s.add_dependency 'net-http-persistent',    '>= 2.7'
