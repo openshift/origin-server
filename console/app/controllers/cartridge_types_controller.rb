@@ -1,5 +1,7 @@
 class CartridgeTypesController < ConsoleController
 
+  include CostAware
+
   def index
     @application = Application.find(params[:application_id], :params => {:include => :cartridges}, :as => current_user)
     installed_carts = @application.cartridges

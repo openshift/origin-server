@@ -1,5 +1,5 @@
 module Console::CostHelper
-  def gear_increase_indicator(cartridges, scales, gear_type, existing, capabilities=nil, yours=false)
+  def gear_increase_indicator(cartridges, scales, gear_type, existing, capabilities, yours)
     range = scales ? gear_estimate_for_scaled_app(cartridges) : (existing ? 0..0 : 1..1)
     min = range.begin
     max = range.end
