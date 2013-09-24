@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.15.0
+Version: 1.15.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,22 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- node-util: RHBZ#1004512 oo-admin-ctl-gears gearstatus show locked status
+  (mmahut@redhat.com)
+- Report an error if there are no frontend plugins defined.
+  (rmillner@redhat.com)
+- <oo-accept-node> Fix polyinstantiation sebool detection (jolamb@redhat.com)
+- Merge pull request #3502 from rmillner/origin_runtime_245
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3622 from brenton/ruby193-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- Break out FrontendHttpServer class into plugin modules. (rmillner@redhat.com)
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+- oo-accept-node changes for ruby193-mcollective (bleanhar@redhat.com)
+- Adding oo-mco and updating oo-diagnostics to support the SCL'd mcollective
+  (bleanhar@redhat.com)
+
 * Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
 - I'm withdrawing this fix.  The deeper issue is that LANG appears to be messed
   up when the script is run and that needs to be diagnosed instead.
