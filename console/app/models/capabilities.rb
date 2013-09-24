@@ -13,6 +13,7 @@ module Capabilities
   def gear_sizes
     Array(capabilities[:gear_sizes]).map(&:to_sym)
   end
+  alias_method :allowed_gear_sizes, :gear_sizes
 
   module Helpers
     def gears_free?
@@ -76,6 +77,8 @@ module Capabilities
     def gear_sizes
       Array(@gear_sizes).map(&:to_sym)
     end
+    alias_method :allowed_gear_sizes, :gear_sizes
+
     def max_gears
       @max_gears || UnlimitedGears
     end

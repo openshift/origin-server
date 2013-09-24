@@ -1,19 +1,19 @@
 module Console::CostHelper
-  def gear_increase_indicator(cartridges, scales, gear_type, existing, capabilities)
+  def gear_increase_indicator(cartridges, scales, gear_type, existing, capabilities, yours)
     range = scales ? gear_estimate_for_scaled_app(cartridges) : (existing ? 0..0 : 1..1)
     min = range.begin
     max = range.end
     increasing = (min > 0 || max > 0)
-
-    cost, title =
+    owner = yours ? "your" : "the domain owner's"
+    cost, title = 
       if gear_increase_cost(min, capabilities)
-        [true, "This will add #{pluralize(min, 'gear')} to your account and will result in additional charges."]
+        [true, "This will add #{pluralize(min, 'gear')} to #{owner} account and will result in additional charges."]
       elsif gear_increase_cost(max, capabilities)
-        [true, "This will add at least #{pluralize(min, 'gear')} to your account and may result in additional charges."]
+        [true, "This will add at least #{pluralize(min, 'gear')} to #{owner} account and may result in additional charges."]
       elsif !increasing
-        [false, "No gears will be added to your account."]
+        [false, "No gears will be added to #{owner} account."]
       else
-        [false, "This will add #{pluralize(min, 'gear')} to your account."]
+        [false, "This will add #{pluralize(min, 'gear')} to #{owner} account."]
       end
     if cartridges_premium(cartridges)
       cost = true
@@ -24,7 +24,7 @@ module Console::CostHelper
       title = "#{title} The selected gear type will have additional hourly charges."
     end
 
-    content_tag(:span,
+    content_tag(:span, 
       [
         (if max == Float::INFINITY
           "+#{min}-?"
@@ -35,7 +35,7 @@ module Console::CostHelper
         end),
         "<span data-icon=\"\ue014\" aria-hidden=\"true\"> </span>",
         ("<span class=\"label label-premium\">#{user_currency_symbol}</span>" if cost),
-      ].compact.join(' ').html_safe,
+      ].compact.join(' ').html_safe, 
       :class => 'indicator-gear-increase',
       :title => title,
     )

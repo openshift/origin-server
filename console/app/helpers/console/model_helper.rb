@@ -50,6 +50,55 @@ module Console::ModelHelper
     end.to_sentence
   end
 
+  def available_gears_warning(writeable_domains)
+    if writeable_domains.present?
+      if !writeable_domains.find(&:allows_gears?)
+        has_shared = writeable_domains.find {|d| !d.owner? }
+        if has_shared
+          "The owners of the available domains have disabled all gear sizes from being created."
+        else
+          "You have disabled all gear sizes from being created."
+        end
+      elsif !writeable_domains.find(&:has_available_gears?)
+        "There are not enough free gears available to create a new application. You will either need to scale down or delete existing applications to free up resources."
+      end
+    end
+  end
+
+  def new_application_gear_sizes(writeable_domains, user_capabilities)
+    gear_sizes = user_capabilities.allowed_gear_sizes
+    if writeable_domains.present?
+      gear_sizes = writeable_domains.map(&:capabilities).map(&:allowed_gear_sizes).flatten.uniq
+    end
+    gear_sizes
+  end
+
+  def estimate_domain_capabilities(selected_domain_name, writeable_domains, can_create, user_capabilities)
+    if (selected_domain = writeable_domains.find {|d| d.name == selected_domain_name})
+      [selected_domain.capabilities, selected_domain.owner?]
+    elsif writeable_domains.length == 1
+      [writeable_domains.first.capabilities, writeable_domains.first.owner?]
+    elsif can_create and writeable_domains.length == 0
+      [user_capabilities, true]
+    else
+      [nil, nil]
+    end
+  end
+
+  def domains_for_select(domains)
+    domains.sort_by(&:name).map do |d|
+      capabilities = d.capabilities
+      if capabilities
+        [d.name, d.name, {
+          "data-gear-sizes" => capabilities.allowed_gear_sizes.join(','),
+          "data-gears-free" => capabilities.gears_free
+        }]
+      else
+        [d.name, d.name]
+      end
+    end
+  end
+
   def web_cartridge_scale_title(cartridge)
     if cartridge.current_scale == cartridge.scales_from
       'Your web cartridge is running on the minimum amount of gears and will scale up if needed'
@@ -142,17 +191,17 @@ module Console::ModelHelper
     [['No scaling',false],['Scale with web traffic',true]]
   end
 
-  def can_scale_application_type(type, capabilities)
+  def can_scale_application_type(type, capabilities=nil)
     type.scalable?
   end
 
-  def cannot_scale_title(type, capabilities)
+  def cannot_scale_title(type, capabilities=nil)
     unless can_scale_application_type(type, capabilities)
       "This application shares filesystem resources and can't be scaled."
     end
   end
 
-  def warn_may_not_scale(type, capabilities)
+  def warn_may_not_scale(type, capabilities=nil)
     if type.may_not_scale?
       "This application may require additional work to scale. Please see the application's documentation for more information."
     end

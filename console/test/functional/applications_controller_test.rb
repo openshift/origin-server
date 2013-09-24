@@ -192,7 +192,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert !app.errors.empty?
     assert app.errors[:gear_profile].present?, app.errors.to_hash.inspect
     assert_equal 1, app.errors[:gear_profile].length, app.errors.to_hash.inspect
-    assert app.errors[:gear_profile][0].include? 'Invalid size: foobar.'
+    assert app.errors[:gear_profile][0].include? "'foobar' is not valid"
   end
 
   test "should retrieve application list" do
@@ -406,7 +406,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_response :success
     assert app = assigns(:application)
-    assert app.errors.messages[:gear_profile][0].include? 'Invalid size: medium.'
+    assert app.errors.messages[:gear_profile][0].include? "'medium' is not valid"
   end
 
   test 'should prevent scaled apps when not enough gears are available' do

@@ -13,6 +13,7 @@ class Domain < RestApi::Base
     string :id
     string :suffix
     integer :application_count
+    integer :available_gears
   end
 
   has_many :allowed_gear_sizes, :class_name => String
@@ -54,8 +55,32 @@ class Domain < RestApi::Base
     { :domain_id => id }
   end
 
+  def capabilities
+    # TODO: replace with a real class
+    consumed_gears = gear_counts.values.sum
+
+    OpenStruct.new({
+      :allowed_gear_sizes => allowed_gear_sizes,
+      :max_gears => available_gears + consumed_gears,
+      :consumed_gears => consumed_gears,
+      :gears_free => available_gears,
+      :gears_free? => available_gears > 0
+    })
+  rescue
+    # Unavailable if domain wasn't loaded with {:include => 'application_info'}
+    nil
+  end
+
   def allowed_gear_sizes
     Array(attributes[:allowed_gear_sizes]).map(&:to_sym)
+  end
+
+  def allows_gears?
+    allowed_gear_sizes.present?
+  end
+
+  def has_available_gears?
+    available_gears > 0
   end
 
   def can_rename?

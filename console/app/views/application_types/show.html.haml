@@ -9,10 +9,8 @@
 
 - new_domain_redirect_path = application_type_path(@application_type.id, @application_type.to_params)
 - advanced_path = application_type_path(@application_type.id, @application_type.to_params.merge(:advanced => true))
-- focus = params[:focus]
 
 = semantic_form_for @application, :url => applications_path, :html => {:class => "form-horizontal form-important #{@compact ? 'collapse-help' : ''}"} do |f|
-  = hidden_field_tag :advanced, @advanced
   = hidden_field_tag :unlock, @unlock_cartridges
   - if @application_type.persisted?
     = f.hidden_field :application_type, :value => @application_type.id
@@ -108,56 +106,42 @@
     = control_group(e.has_key?(:initial_git_url) || e.has_key?(:initial_git_branch), :important => true) do
       %h3.control-label Source Code
       .controls.first
-        - if @advanced
-          = f.text_field :initial_git_url, :class => 'expand', :placeholder => 'URL to a Git repository', :autofocus => focus == 'initial_git_url'
-          -#= f.text_field :initial_git_branch, :class => 'narrow', :placeholder => 'Git branch (optional)'
-          %span branch 'master'
-        - else
-          %h3
-            - if @application_type.initial_git_url.present?
-              #{link_to @application_type.initial_git_url, @application_type.initial_git_url, :target => "_blank"}
-              -# if @application_type.initial_git_branch
-                (branch '#{@application_type.initial_git_branch}')
-            - else
-              Default 
-            %small= link_to "Change", advanced_path, :data => {:submit_advanced => true, :focus => 'initial_git_url'}
+        = f.text_field :initial_git_url, :class => 'expand', :placeholder => 'Optional URL to a Git repository'
+        -#= f.text_field :initial_git_branch, :class => 'narrow', :placeholder => 'Git branch (optional)'
+        %span branch 'master'
         = f.inline_errors_for :initial_git_url
         = f.inline_errors_for :initial_git_branch
 
       .controls
         %p.help-block 
-          - if @application_type.initial_git_url || @advanced
+          - if @application_type.initial_git_url
             Your application will start with an exact copy of the code and configuration provided in 
             this Git repository. OpenShift may expect certain files to exist in certain directories,
             which may require you to update your repository after creation.
           - else
             We'll create a Git code repository in the cloud, and populate it with a set of 
-            reasonable defaults. 
+            reasonable defaults. If you provide a Git URL, your application will start with an exact 
+            copy of the code and configuration provided in this Git repository. 
 
     = control_group(e.has_key?(:gear_profile), :important => true) do
       %h3.control-label Gears
       .controls.first
-        - gear_sizes = @capabilities.gear_sizes
-        - if gear_sizes.length > 1
-          - if @advanced
-            = f.select :gear_profile, gear_sizes.map{ |size| [size.to_s.titleize, size]}, {}, {:autofocus => focus == 'gear_profile'}
-          - else
-            %h3
-              = gear_sizes.first.to_s.titleize
-              %small= link_to 'Change', advanced_path, :data => {:submit_advanced => true, :focus => 'gear_profile'}
-            = f.hidden_field :gear_profile
-
+        - if @gear_sizes.length > 1
+          = f.select :gear_profile, @gear_sizes.map{ |size| [size.to_s.titleize, size]}, {}
         - else
-          %h3= gear_sizes.first.to_s.titleize
-          = f.hidden_field :gear_profile
+          %h3= @gear_sizes.first.to_s.titleize
+          = f.hidden_field :gear_profile, :value => @gear_sizes.first.to_s
         = f.inline_errors_for :gear_profile
 
       .controls
         %p.help-block
-          Gears are the application containers running your code. For most applications,
-          the '#{gear_sizes.first.to_s}' gear size provides plenty of resources.
+          Gears are the application containers running your code.
+          - if @gear_sizes.empty?
+            There are no gear sizes available for this application.
+          - else
+            For most applications, the '#{@gear_sizes.first.to_s}' gear size provides plenty of resources.
 
-          - if gear_sizes.length > 1
+          - if @gear_sizes.length > 1
             If you require more resources, select a larger gear size here.
 
     = control_group(e.has_key?(:cartridges), :important => true) do
@@ -195,21 +179,16 @@
     .control-group.control-group-important
       %h3.control-label Scaling
       .controls.first
-        - can_scale = can_scale_application_type(@application_type, @capabilities)
-        - scale_reason = cannot_scale_title(@application_type, @capabilities)
+        - can_scale = can_scale_application_type(@application_type, @domain_capabilities)
+        - scale_reason = cannot_scale_title(@application_type, @domain_capabilities)
         - if can_scale
-          - if @advanced
-            = f.select :scale, scale_options, {}, {:autofocus => focus == 'scale'}
-          - else
-            %h3{:title => "Scaling your web cartridge will allocate an extra gear for the load balancer"}
-              = scale_options[@application.scale? ? 1 : 0][0]
-              %small= link_to 'Change', advanced_path, :data => {:submit_advanced => true, :focus => 'scale'}
+          = f.select :scale, scale_options, {}
         - else
           %h3
             %span.text-warning{:title => scale_reason}= scale_options[0][0]
 
       .controls
-        - if warn = warn_may_not_scale(@application_type, @capabilities)
+        - if warn = warn_may_not_scale(@application_type, @domain_capabilities)
           %span.text-warning= warn
         %p.help-block
           OpenShift automatically routes web requests to your web gear.
@@ -226,7 +205,7 @@
     = link_to "Back", application_types_path, :class => 'btn'
     = f.commit_button :button_html => { :disabled => @disabled }
     %span#gear_increase
-      = gear_increase_indicator(@cartridges, @application.scales?, @application.gear_profile, false, @capabilities)
+      = gear_increase_indicator(@cartridges, @application.scales?, @application.gear_profile, false, @domain_capabilities, @is_domain_owner)
     = f.loading
 
 - if @compact
@@ -241,22 +220,14 @@
 - content_for :javascripts do
   :javascript
     $(function() {
-      var applicationTypeUrl = function(form, advanced, focus) {
+      var applicationTypeUrl = function(form) {
         var fields = form.serializeArray();
 
         // Remove special fields
-        var removeFields = advanced ? ['utf8', 'authenticity_token', 'advanced'] : ['utf8', 'authenticity_token'];
+        var removeFields = ['utf8', 'authenticity_token'];
         fields = $.grep(fields, function(field) {
           return removeFields.indexOf(field.name) == -1;
         });
-
-        // Explicitly set advanced
-        if (advanced)
-          fields.push({name: 'advanced', value: advanced});
-
-        // Set focus target
-        if (focus)
-          fields.push({name: 'focus', value: focus});
 
         return "#{application_type_path(@application_type.id)}" + '?' + $.param(fields);
       };
@@ -268,21 +239,18 @@
         return false;
       });
 
-      $('a[data-submit-advanced]').click(function() {
-        var url = applicationTypeUrl($(this).closest('form'), 'true', $(this).data('focus'));
-        window.location.href = url;
-        return false;
-      });
-
       var estimateUrl = function(form) {
         var fields = $.grep(form.serializeArray(), function(field) {
-          return ['application[scale]', 'application[cartridges][]', 'application_type[cartridges][]', 'application[gear_profile]', 'unlock'].indexOf(field.name) != -1;
+          return ['application[domain_name]', 'application[scale]', 'application[cartridges][]', 'application_type[cartridges][]', 'application[gear_profile]', 'unlock'].indexOf(field.name) != -1;
         });
         return "#{estimate_application_type_path(@application_type.id)}" + '?' + $.param(fields);
       }
-      $('#application_scale, #application_gear_profile').change(function() {
+      $('select#application_domain_name, #application_scale, #application_gear_profile').change(function() {
+        $("form#new_application").validate().element('#application_gear_profile');
         $("#gear_increase").load(estimateUrl($(this).closest('form')));
       });
+
+      $("form#new_application").validate().element('#application_gear_profile');
     });
     $(function() {
       $('input, textarea').placeholder();

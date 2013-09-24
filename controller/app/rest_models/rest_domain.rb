@@ -33,6 +33,7 @@ class RestDomain < OpenShift::Model
     if not domain.application_count.nil?
       @application_count = domain.application_count
       @gear_counts = domain.gear_counts || {}
+      @available_gears = domain.available_gears
     end
 
     unless nolinks

@@ -9,7 +9,7 @@
   %label.invisible{:for => 'application_name'} Application name
   = form.text_field :name, 
     :value => "#{application.name}", 
-    :autofocus => (params[:focus].blank?),
+    :autofocus => true,
     :size => nil, 
     :placeholder => 'Application name', 
     :class => "application_name span3 #{'error' if application.errors.include? :name}"
@@ -27,7 +27,7 @@
     -# Select
     %span.add-on.middle> &ndash;
     = form.select :domain_name,
-      domains.map(&:name).sort,
+      domains_for_select(domains),
       {:include_blank => !domains.find {|d| d.name == application.domain_name }},
       {:class => "domain_name #{'error' if application.errors.include? :domain_name}"}
     %span.add-on>= ".#{RestApi.application_domain_suffix}"
