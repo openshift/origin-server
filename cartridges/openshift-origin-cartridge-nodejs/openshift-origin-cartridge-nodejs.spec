@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,13 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.16.1-1
+- Bug 1010435 - /health provided by proxy (jhonce@redhat.com)
+- Fix tests to use ruby193-mcollective only on RHEL. Fix nodejs cart to work on
+  F19 and RHEL. (kraman@gmail.com)
+- Fix finding supervisor pid when starting nodejs (fotios@redhat.com)
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.15.6-1
 - Merge pull request #3630 from mrunalp/bug/1007272
   (dmcphers+openshiftbot@redhat.com)
