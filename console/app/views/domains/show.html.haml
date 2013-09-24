@@ -1,31 +1,28 @@
 :css
-  span.flow-block > span {margin: 0 10px; font-size: 18px; font-weight: normal; text-transform: uppercase; opacity: .75;}
+  span.pull-right > span {margin: 0 10px; font-size: 18px; font-weight: normal; text-transform: uppercase; opacity: .75;}
 
   .leave .popover { width: 300px; }
   .leave .popover-inner, .leave .popover-content { width: auto; }
 
-- content_for :full_layout, true
-- content_for :dark_layout, true
+- content_for :page_style, 'highlight'
 - content_for :top do
   .grid-wrapper.section-header
-    %nav.span12.span-flush-right.applications
-      %h1.flow
+    %nav.span12.applications
+      %h1.tile
+        %span.pull-right
+          %span{:title => 'Applications'}= pluralize(@domain.application_count, 'application')
+          %span{:title => 'Gears'}= pluralize(@domain.gear_counts.values.sum, 'gear')
+          %span{:title => 'Members'}= pluralize(@domain.members.count, 'member')
+
         = "Domain #{@domain.name}"
         - if @domain.can_rename?
           = surround '(',')' do
             = link_to 'edit name', edit_domain_path(@domain)
 
-        %span.flow-block.right
-          %span{:title => 'Applications'}= pluralize(@domain.application_count, 'application')
-          %span{:title => 'Gears'}= pluralize(@domain.gear_counts.values.sum, 'gear')
-          %span{:title => 'Members'}= pluralize(@domain.members.count, 'member')
+%section#app-list
+  %section
 
-= breadcrumb_for_domain(@domain)
-
-%section#app-list.span12
-  %section{style: 'margin-bottom: 20px; padding-bottom:'}
-
-  .row{style: 'margin-bottom: 20px; padding-bottom:'}
+  .row
     .span8
       %h2 Applications
       - @domain.applications.each do |application|

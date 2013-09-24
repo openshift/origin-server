@@ -476,9 +476,7 @@ $cartridgeBorderWidth: 10px;
 
 
 .cartridge_type.installed,
-.cartridge_type.inactive,
-.section-console-light .cartridge_type.installed > h3,
-.section-console-light .cartridge_type.inactive > h3 {
+.cartridge_type.inactive {
   color: #888;
 }
 .cartridge_type.inactive,

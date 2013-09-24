@@ -567,7 +567,7 @@ textarea:focus:required:valid {
 
 // Overide assigned error state styles from bootstrap
 .control-group.error .input-prepend .add-on, .control-group.error .input-append .add-on {
-  color: inherit !important;
+  color: #fff !important;
 }
 
 

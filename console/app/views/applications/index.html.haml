@@ -1,5 +1,4 @@
-- content_for :full_layout, true
-- content_for :section_console_presentation, 'section-console-blank'
+- content_for :page_style, 'highlight'
 - content_for :footer do
   = render :partial => 'applications/footer'
 
@@ -11,7 +10,7 @@
         Applications
 
 %section#app-list
-  %section{style: 'margin-bottom: 20px;'}
+  %section
 
   .row
     .span8

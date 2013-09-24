@@ -4,7 +4,7 @@
 
 $noiseImage: image-url('noise.png') !default; 
 
-html {background-color: #3e3e3e; /* override light background in _base */}
+html.highlight {background-color: #3e3e3e; /* override light background in _base */}
 
 body.simple {
   min-height: 100%;

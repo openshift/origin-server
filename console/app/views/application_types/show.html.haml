@@ -1,6 +1,5 @@
 %h1.invisible Configure New Application
 = app_wizard_steps_create 1
-= breadcrumb_for_create_application(@application_type.persisted? ? "Based on '#{@application_type.display_name}'" : "From scratch")
 = flashes
 
 :css

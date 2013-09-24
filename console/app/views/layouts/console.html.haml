@@ -5,7 +5,7 @@
 
 !!! 5
 -# http://paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither
--ie_html :class => 'no-js', :lang => 'en' do
+-ie_html :class => content_for(:page_style) + ' no-js', :lang => 'en' do
   %head
     = render "layouts/head"
     = render "layouts/console/stylesheets"
@@ -19,36 +19,15 @@
       %header
         = render 'layouts/console/header'
 
-      .section-console#content{:class => content_for(:section_console_presentation), :role => 'main'}
+      .section-console#content{:role => 'main'}
         .container
           .row-console
-            - if content_for? :full_layout
-              .row.row-flush-right
-                .grid-wrapper
-                  .span12.span-flush-right
-                    - if content_for? :breadcrumbs
-                      %nav
-                        = yield :breadcrumbs
-                = yield :top
-                .grid-wrapper.section-body
-                  .span12
-                    = flashes unless @noflash
-                    = yield
-
-            - else
-              .row.row-flush-right
-                .grid-wrapper
-                  .span12.span-flush-right
-                    - if content_for? :breadcrumbs
-                      %nav
-                        = yield :breadcrumbs
-                    - else
-                      &nbsp;
-                = yield :top
-                .column-content.grid-wrapper
-                  .span12
-                    = flashes unless @noflash
-                    = yield
+            .row.row-flush-right
+              = yield :top
+              .grid-wrapper.section-body
+                .span12
+                  = flashes unless @noflash
+                  = yield
 
     %footer
       = yield :footer
