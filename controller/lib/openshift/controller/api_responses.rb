@@ -139,7 +139,7 @@ module OpenShift
             if ex.resultIO
               error_code = ex.resultIO.exitcode
               if ex.resultIO.errorIO && ex.resultIO.errorIO.length > 0
-                message = ex.resultIO.errorIO.string.strip
+                message = ex.resultIO.errorIO.string.strip + "\n"
               end
               Rail.logger.error "message: #{message}"
             end
@@ -152,7 +152,7 @@ module OpenShift
             if ex.resultIO
               error_code = ex.resultIO.exitcode
               if ex.resultIO.errorIO && ex.resultIO.errorIO.length > 0
-                message = ex.resultIO.errorIO.string.strip
+                message = ex.resultIO.errorIO.string.strip + "\n"
               end
             end
             message ||= ""
