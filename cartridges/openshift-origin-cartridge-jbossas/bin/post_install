@@ -1,3 +1,5 @@
 #!/bin/bash -eu
 
-cp $OPENSHIFT_JBOSSAS_DIR/standalone/deployments/ROOT.war $OPENSHIFT_REPO_DIR/deployments
+if [ -e $OPENSHIFT_JBOSSAS_DIR/standalone/deployments/ROOT.war ]; then
+  cp $OPENSHIFT_JBOSSAS_DIR/standalone/deployments/ROOT.war $OPENSHIFT_REPO_DIR/deployments
+fi
