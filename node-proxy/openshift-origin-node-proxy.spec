@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version:       1.15.3
+Version:       1.15.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -125,6 +125,12 @@ fi
 %doc README
 
 %changelog
+* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #3697 from kraman/f19_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Fedora 19 comes with NodeJS 0.10.Remove scl call from service file.
+  (kraman@gmail.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - * remove debugging output from log (jhonce@redhat.com)
 - Bug 1011459 - oo-last-access does not process node-web-proxy/websockets.log
