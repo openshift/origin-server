@@ -1,4 +1,5 @@
 @runtime_extended3
+@cartridge_nodejs
 @runtime_extended
 @not-enterprise
 Feature: Cartridge Lifecycle NodeJS Verification Tests
