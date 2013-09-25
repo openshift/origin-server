@@ -51,6 +51,7 @@ class Domain
   attr_accessor :application_count
   attr_accessor :gear_counts
   attr_accessor :available_gears
+  attr_accessor :max_storage_per_gear  
 
   validates :namespace,
     #presence: {message: "Namespace is required and cannot be blank."},
@@ -100,6 +101,7 @@ class Domain
       if owners_by_id[d.owner_id].present?
         owner = owners_by_id[d.owner_id].first
         d.available_gears = owner.max_gears - owner.consumed_gears
+        d.max_storage_per_gear = owner.max_storage
       end
     end
   end
