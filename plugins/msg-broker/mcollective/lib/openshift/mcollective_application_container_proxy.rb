@@ -269,8 +269,17 @@ module OpenShift
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
             district_uuid = @district.uuid
-          else
-            district_uuid = get_district_uuid unless district_uuid
+          elsif !district_uuid
+            if @id
+              begin
+                district = District.find_by({"server_identities.name" => @id})
+                district_uuid = district.uuid
+              rescue Mongoid::Errors::DocumentNotFound 
+                district_uuid = 'NONE'
+              end
+            else
+              district_uuid = get_district_uuid
+            end
           end
           if district_uuid && district_uuid != 'NONE'
             reserved_uid = District::reserve_uid(district_uuid, preferred_uid)
@@ -297,8 +306,17 @@ module OpenShift
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
             district_uuid = @district.uuid
-          else
-            district_uuid = get_district_uuid unless district_uuid
+          elsif !district_uuid
+            if @id
+              begin
+                district = District.find_by({"server_identities.name" => @id})
+                district_uuid = district.uuid
+              rescue Mongoid::Errors::DocumentNotFound 
+                district_uuid = 'NONE'
+              end
+            else
+              district_uuid = get_district_uuid
+            end
           end
           if district_uuid && district_uuid != 'NONE'
             #cleanup
