@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.1
+Version: 1.15.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -250,6 +250,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3659 from mfojtik/bugzilla/1007455
+  (dmcphers+openshiftbot@redhat.com)
+- Added OpenShift::Cartridge::Sdk namespace and removed TODO
+  (mfojtik@redhat.com)
+- Bug 1007455 - Added primary_cartridge methods to Ruby SDK
+  (mfojtik@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - routing spi changes (rchopra@redhat.com)
 - Merge pull request #3662 from abhgupta/abhgupta-dev

@@ -27,6 +27,57 @@ var _ws_logger     = 'websockets.log';
 /*!  {{{  section: 'Internal-Functions'                                  */
 
 /**
+ * Format log message
+ *
+ * @param payload
+ * @returns {*}
+ * @private
+ */
+function _format(payload) {
+  var remote_host    = payload.request.remoteaddr  ||  '-';
+  var vhost          = payload.request.host ||  '-';
+  var remote_login   = '-';
+  var auth_user      = payload.request.authuser  ||  '-';
+  var referer        = payload.request.referer  ||  '-';
+  var user_agent     = payload.request.useragent  ||  '-';
+  var req_time_ms    = payload.end - payload.start;
+  var keepalive_flag = payload.response.keepalive;
+  var req_info       = payload.request.reqinfo;
+  var tzoffset       = dateutils.getTimeZoneOffset();
+  var ap_times       = util.format('%s %s',
+                                   dateutils.strftime('%d/%b/%Y:%T'),
+                                   tzoffset);
+
+  console.log("playload.websocket: " + payload.websocket);
+  if (!(typeof(payload.websocket) === 'undefined')) {
+    user_agent = payload.websocket.protoinfo;
+  }
+
+  /**
+   *  Log a NCSA/apache style access log message.
+   *  Example:
+   *    209.132.181.15 nodescale-rr64.dev.rhcloud.com - -                  \
+   *    [04/Dec/2012:18:47:03 -0500] "GET /favicon.ico HTTP/1.1"           \
+   *    404 41 "-"                                                         \
+   *    " Lynx/2.8.6rel.5 libwww-FM/2.14 SSL-MM/1.4.1 OpenSSL/1.0.0-fips"  \
+   *    (42ms) +
+   */
+  return util.format('%s %s %s %s [%s] "%s" %d %d "%s" "%s" (%dms) %s\n',
+                     remote_host,
+                     vhost.toLowerCase(),
+                     remote_login,
+                     auth_user,
+                     ap_times,
+                     req_info,
+                     payload.response.code,
+                     payload.metrics.bytes_out,
+                     referer,
+                     user_agent,
+                     req_time_ms,
+                     keepalive_flag)
+}
+
+/**
  *  Logs an access.log message for the handled request.
  *
  *  Examples:
@@ -39,40 +90,7 @@ var _ws_logger     = 'websockets.log';
  *  @api    private
  */
 function _log_access(payload) {
-  var remote_host    = payload.request.remoteaddr  ||  '-';
-  var vhost          = payload.request.host ||  '-';
-  var remote_login   = '-';
-  var auth_user      = payload.request.authuser  ||  '-';
-  var tzoffset       = dateutils.getTimeZoneOffset();
-  var referer        = payload.request.referer  ||  '-';
-  var user_agent     = payload.request.useragent  ||  '-';
-  var protocol       = 'HTTP';
-  var nbytes         = payload.metrics.bytes_out;
-  var req_time_ms    = payload.end - payload.start;
-  var keepalive_flag = payload.response.keepalive;
-  var req_info       = payload.request.reqinfo;
-  var ap_times       = util.format('%s %s', dateutils.strftime('%d/%b/%Y:%T'),
-                                   tzoffset);
-
-  /**
-   *  Log a NCSA/apache style access log message.
-   *  Example:
-   *    209.132.181.15 nodescale-rr64.dev.rhcloud.com - -                  \
-   *    [04/Dec/2012:18:47:03 -0500] "GET /favicon.ico HTTP/1.1"           \
-   *    404 41 "-"                                                         \
-   *    " Lynx/2.8.6rel.5 libwww-FM/2.14 SSL-MM/1.4.1 OpenSSL/1.0.0-fips"  \
-   *    (42ms) +
-   */
-  var zmsg = util.format('%s %s %s %s [%s] "%s" %d %d "%s" "%s" (%dms) %s\n',
-                         remote_host, vhost.toLowerCase(),
-                         remote_login, auth_user,
-                         ap_times, req_info,
-                         payload.response.code, payload.metrics.bytes_out,
-                         referer, user_agent,
-                         req_time_ms, keepalive_flag);
-
-  return Logger.get(_access_logger).logMessage(zmsg, "INFO");
-
+  return Logger.get(_access_logger).logMessage(_format(payload), "INFO");
 }  /*  End of function  _log_access.  */
 
 
@@ -89,39 +107,7 @@ function _log_access(payload) {
  *  @api    private
  */
 function _log_websocket_access(payload) {
-  var wsproto_info = payload.websocket.protoinfo  ||  '-';
-  var tzoffset     = dateutils.getTimeZoneOffset();
-  var ap_times     = util.format('%s %s', dateutils.strftime('%d/%b/%Y:%T'),
-                                 tzoffset);
-
-  /*  Set error info to the status code or error.  */
-  var err_info = payload.response.code;
-  if (payload.response.error  &&  (payload.response.error.length > 0)) {
-    err_info = util.format('"%s"', + payload.response.error);
-  }
-
-  var ws_metrics = util.format('msgs:%d,%d bytes:%d,%d',
-                               payload.metrics.messages_in,
-                               payload.metrics.messages_out,
-                               payload.metrics.bytes_in,
-                               payload.metrics.bytes_out);
-
-
-  /**
-   *  Log websocket message.
-   *  Example:
-   *    209.132.181.15 echo-ramr.dev.rhcloud.com [07/Dec/2012:19:09:44 -0500]  \
-   *    "GET /wsecho/eh HTTP/1.1" "Websocket RFC-6455/13" 1000                 \
-   *    "msgs:0,1 bytes:0,39" (337ms)
-   */
-  var msg = util.format('%s %s [%s] "%s" "%s" %s "%s" (%dms)\n',
-                        payload.request.remoteaddr, payload.request.host,
-                        ap_times,
-                        payload.request.reqinfo, wsproto_info, err_info,
-                        ws_metrics, (payload.end - payload.start) );
-
-  return Logger.get(_ws_logger).logMessage(msg, "INFO");
-
+  return Logger.get(_ws_logger).logMessage(_format(payload), "INFO");
 }  /*  End of function  _log_websocket_access.  */
 
 

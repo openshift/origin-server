@@ -121,6 +121,7 @@ begin
   when 'rebuild'
     if confirmed or agree('Rebuild all web frontend configurations? (yes/no)')
       ::OpenShift::Runtime::ApplicationContainer.all.each do |container|
+        ::OpenShift::Runtime::FrontendHttpServer.new(container).create
         final_carts = []
         container.cartridge_model.each_cartridge do |cart|
           if cart.web_proxy?

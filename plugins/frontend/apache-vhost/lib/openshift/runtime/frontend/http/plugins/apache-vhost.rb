@@ -340,6 +340,8 @@ module OpenShift
                 File.open(ssl_conf_path(server_alias), File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                   server_name = server_alias
                   include_path = @app_path
+                  f.write(ERB.new(File.read(@template_http)).result(binding))
+                  f.write("\n")
                   f.write(ERB.new(File.read(@template_https)).result(binding))
                   f.write("\n")
                   f.fsync

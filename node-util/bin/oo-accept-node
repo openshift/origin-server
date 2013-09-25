@@ -24,6 +24,7 @@ require 'socket'
 require 'json'
 require 'etc'
 require 'safe_yaml'
+require 'facter'
 
 $OPTIONS = {}
 
@@ -415,16 +416,24 @@ def check_cgroup_procs
     ### Gather current procs running ###
     min_uid = $CONF.get('GEAR_MIN_UID').to_i
     max_uid = $CONF.get('GEAR_MAX_UID').to_i
-    uid_range = (min_uid..max_uid)
 
-    # Need to collect 3 and 4 digit uids since a non-district host could have a 3 digit uid
-    all_user_procs = %x[/bin/ps -e -o uid,pid | /bin/egrep "^\s+[0-9]{3,4}"].split("\n")
+    district_uuid = Facter.[]('district_uuid').value
+    verbose("find district uuid: #{district_uuid}")
+
+    if district_uuid.casecmp("None") != 0
+      min_uid = Facter.[]('district_first_uid').value.to_i
+      max_uid = Facter.[]('district_max_uid').value.to_i
+    end
+
+    verbose("determining node uid range: #{min_uid} to #{max_uid}")
+
+    all_user_procs = %x[/bin/ps -e -o uid,pid].split("\n")
     ps_procs = Hash.new{|hash, key| hash[key] = Array.new}
     all_user_procs.each do |line|
         uid,pid = line.split[0,2]
         uid = uid.to_i
 
-        if uid_range.include?(uid)
+        if uid.between?(min_uid, max_uid)
             passwd_lines = $USERS.select { |u| u.uid == uid }
 
             if passwd_lines.empty?

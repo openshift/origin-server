@@ -42,12 +42,12 @@ class PendingAppOp
   end
 
   # this method needs to be implemented by the subclass
-  def execute()
+  def execute(skip_node_ops=false)
     Rails.logger.debug "Execution not implemented: #{self.class.to_s}"
   end
 
   # this method needs to be implemented by the subclass
-  def rollback()
+  def rollback(skip_node_ops=false)
     Rails.logger.debug "Rollback not implemented: #{self.class.to_s}"
   end
 
