@@ -14,6 +14,7 @@ class Domain < RestApi::Base
     string :suffix
     integer :application_count
     integer :available_gears
+    integer :max_storage_per_gear
   end
 
   has_many :allowed_gear_sizes, :class_name => String
@@ -64,7 +65,8 @@ class Domain < RestApi::Base
       :max_gears => available_gears + consumed_gears,
       :consumed_gears => consumed_gears,
       :gears_free => available_gears,
-      :gears_free? => available_gears > 0
+      :gears_free? => available_gears > 0,
+      :max_storage_per_gear => max_storage_per_gear
     })
   rescue
     # Unavailable if domain wasn't loaded with {:include => 'application_info'}
