@@ -79,7 +79,7 @@
     %p{:'data-hide-parent' => '1'}
       No one else can see this domain. #{link_to "Add members...", "javascript:;", :'data-unhide' => '.members'}
 
-  = form_tag domain_members_path(domain), :method => :put, :class => "members warn-dirty #{'editing' if editing} #{'hidden-scripted' if !editing && members.count <= 1} #{'dirty' if new_members.present?}" do
+  = form_tag domain_members_path(domain), :method => :put, :class => "members warn-dirty #{'editing' if editing || members.count <= 1} #{'hidden-scripted' if !editing && members.count <= 1} #{'dirty' if new_members.present?}" do
 
     %table.table.table-condensed
       %colgroup
