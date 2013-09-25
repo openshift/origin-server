@@ -89,6 +89,17 @@ ln -sf %{appdir}/.httpd.d %{buildroot}/etc/httpd/conf.d/openshift
 echo '{}' > "%{buildroot}%{appdir}/.httpd.d/geardb.json"
 
 
+%post
+# The routes file changed which RPM owns it.  If there's an .rpmsave
+# version then its likely the correct contents from the old package.
+if [ $(stat --printf '%%s' %{appdir}/.httpd.d/geardb.json) -le 3 ]
+then
+  if [ -f %{appdir}/.httpd.d/geardb.json.rpmsave ]
+  then
+    mv -f %{appdir}/.httpd.d/geardb.json.rpmsave %{appdir}/.httpd.d/geardb.json
+  fi
+fi
+
 
 %files
 %doc %{gem_docdir}

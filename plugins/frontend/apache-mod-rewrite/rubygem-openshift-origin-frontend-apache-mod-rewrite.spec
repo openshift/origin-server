@@ -114,6 +114,24 @@ mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
 
 mv httpd/frontend-vhost-https-template.erb %{buildroot}%{appdir}/.httpd.d/frontend-vhost-https-template.erb
 
+%post
+# The mapping files changed which RPM owns them.  If there's an .rpmsave
+# version then its likely the correct contents from the old package.
+for map in nodes aliases idler sts
+do
+mapf="%{appdir}/.httpd.d/${map}.txt"
+mapdb="%{appdir}/.httpd.d/${map}.db"
+if [ $(stat --printf '%%s' "$mapf") -eq 0 ]
+then
+  if [ -f "${mapf}".rpmsave -a -f "${mapdb}".rpmsave ]
+  then
+    mv -f "${mapf}".rpmsave "${mapf}"
+    mv -f "${mapdb}".rpmsave "${mapdb}"
+  fi
+fi
+
+done
+
 %files
 %doc %{gem_docdir}
 %{gem_instdir}

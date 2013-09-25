@@ -76,6 +76,17 @@ mkdir -p "%{buildroot}%{appdir}/.httpd.d"
 echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 
 
+%post
+# The routes file changed which RPM owns it.  If there's an .rpmsave
+# version then its likely the correct contents from the old package.
+if [ $(stat --printf '%%s' %{appdir}/.httpd.d/routes.json) -le 3 ]
+then
+  if [ -f %{appdir}/.httpd.d/routes.json.rpmsave ]
+  then
+    mv -f %{appdir}/.httpd.d/routes.json.rpmsave %{appdir}/.httpd.d/routes.json
+  fi
+fi
+
 %files
 %doc %{gem_docdir}
 %{gem_instdir}
