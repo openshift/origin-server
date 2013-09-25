@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version:       1.15.2
+Version:       1.15.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -125,6 +125,11 @@ fi
 %doc README
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- * remove debugging output from log (jhonce@redhat.com)
+- Bug 1011459 - oo-last-access does not process node-web-proxy/websockets.log
+  (jhonce@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
 - Card origin_runtime_232 - Unidle application if accessed via node-web-proxy
   (jhonce@redhat.com)

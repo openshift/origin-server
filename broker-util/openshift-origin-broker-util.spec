@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.15.1
+Version: 1.15.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,12 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3647 from detiber/runtime_card_255
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_runtime_255: Publish district uid limits to nodes
+  (jdetiber@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Fix for bug 1010632 (abhgupta@redhat.com)
 - Creating the app secret token (abhgupta@redhat.com)

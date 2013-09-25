@@ -269,8 +269,17 @@ module OpenShift
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
             district_uuid = @district.uuid
-          else
-            district_uuid = get_district_uuid unless district_uuid
+          elsif !district_uuid
+            if @id
+              begin
+                district = District.find_by({"server_identities.name" => @id})
+                district_uuid = district.uuid
+              rescue Mongoid::Errors::DocumentNotFound 
+                district_uuid = 'NONE'
+              end
+            else
+              district_uuid = get_district_uuid
+            end
           end
           if district_uuid && district_uuid != 'NONE'
             reserved_uid = District::reserve_uid(district_uuid, preferred_uid)
@@ -297,8 +306,17 @@ module OpenShift
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
             district_uuid = @district.uuid
-          else
-            district_uuid = get_district_uuid unless district_uuid
+          elsif !district_uuid
+            if @id
+              begin
+                district = District.find_by({"server_identities.name" => @id})
+                district_uuid = district.uuid
+              rescue Mongoid::Errors::DocumentNotFound 
+                district_uuid = 'NONE'
+              end
+            else
+              district_uuid = get_district_uuid
+            end
           end
           if district_uuid && district_uuid != 'NONE'
             #cleanup
@@ -2205,6 +2223,8 @@ module OpenShift
       # INPUTS:
       # * uuid: String
       # * active: String (?)
+      # * first_uid: Integer
+      # * max_uid: Integer
       #
       # RETURNS:
       # * ResultIO?
@@ -2213,15 +2233,49 @@ module OpenShift
       # * uses MCollective::RPC::Client
       # * uses ApplicationContainerProxy @id
       #
-      def set_district(uuid, active)
+      def set_district(uuid, active, first_uid, max_uid)
         mc_args = { :uuid => uuid,
-                    :active => active}
+                    :active => active,
+                    :first_uid => first_uid,
+                    :max_uid => max_uid}
         options = MCollectiveApplicationContainerProxy.rpc_options
         rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
         result = nil
         begin
           Rails.logger.debug "DEBUG: rpc_client.custom_request('set_district', #{mc_args.inspect}, #{@id}, {'identity' => #{@id}})"
           result = rpc_client.custom_request('set_district', mc_args, @id, {'identity' => @id})
+          Rails.logger.debug "DEBUG: #{result.inspect}"
+        ensure
+          rpc_client.disconnect
+        end
+        Rails.logger.debug result.inspect
+        result
+      end
+
+      #
+      # Set the district uid limits for all district nodes
+      #
+      # INPUTS:
+      # * uuid: String
+      # * first_uid: Integer
+      # * max_uid: Integer
+      #
+      # RETURNS:
+      # * ResultIO?
+      #
+      # NOTES:
+      # * uses MCollective::RPC::Client
+      #
+      def self.set_district_uid_limits_impl(uuid, first_uid, max_uid)
+        mc_args = { :first_uid => first_uid,
+                    :max_uid => max_uid}
+        options = MCollectiveApplicationContainerProxy.rpc_options
+        rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
+        rpc_client.fact_filter "district_uuid", uuid
+        result = nil
+        begin
+          Rails.logger.debug "DEBUG: rpc_client.custom_request('set_district_uid_limits', #{mc_args.inspect})"
+          result = rpc_client.set_district_uid_limits(mc_args)
           Rails.logger.debug "DEBUG: #{result.inspect}"
         ensure
           rpc_client.disconnect

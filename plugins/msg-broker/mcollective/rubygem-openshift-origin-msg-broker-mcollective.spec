@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.15.1
+Version: 1.15.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,12 @@ sed -e -i "s|\(/etc/mcollective/client.cfg\)|/opt/rh/ruby193/root/\1|" /etc/open
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3647 from detiber/runtime_card_255
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_runtime_255: Publish district uid limits to nodes
+  (jdetiber@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - optimize find all district scenarios (dmcphers@redhat.com)
 - Creating the app secret token and sending to gear creation requests

@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.15.1
+Version: 1.15.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,21 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3695 from jwhonce/wip/idle_websockets
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3647 from detiber/runtime_card_255
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1011459 - oo-last-access does not process node-web-proxy/websockets.log
+  (jhonce@redhat.com)
+- Merge pull request #3687 from mmahut/mmahut/oo_restorecon
+  (dmcphers+openshiftbot@redhat.com)
+- node-util: extend the oo-restorecon man pages (mmahut@redhat.com)
+- RHBZ#1005307 refactor oo-restorecon to accept files as arguments
+  (mmahut@redhat.com)
+- Card origin_runtime_255: Publish district uid limits to nodes
+  (jdetiber@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - node-util: RHBZ#1004512 oo-admin-ctl-gears gearstatus show locked status
   (mmahut@redhat.com)

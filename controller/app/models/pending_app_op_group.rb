@@ -22,6 +22,7 @@ class PendingAppOpGroup
   field :num_gears_destroyed, type: Integer, default: 0
   field :num_gears_rolled_back, type: Integer, default: 0
   field :user_agent, type: String, default: ""
+  field :skip_node_ops, type: Boolean
 
   def initialize(attrs = nil, options = nil)
     parent_opid = nil
@@ -53,7 +54,7 @@ class PendingAppOpGroup
     pending_ops.where(:state.ne => :completed).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
   end
 
-  def execute(result_io = nil)
+  def execute(result_io=nil, skip_node_ops=false)
     result_io = ResultIO.new if result_io.nil?
 
     begin
@@ -68,10 +69,14 @@ class PendingAppOpGroup
           op.set_state(:queued)
           
           if op.isParallelExecutable()
-            op.addParallelExecuteJob(handle)
-            parallel_job_ops.push op
+            unless skip_node_ops
+              op.addParallelExecuteJob(handle)
+              parallel_job_ops.push op
+            else
+              op.set_state(:completed)
+            end
           else
-            return_val = op.execute()
+            return_val = op.execute(skip_node_ops)
             result_io.append return_val if return_val.is_a? ResultIO
             if result_io.exitcode != 0
               op.set_state(:failed)
@@ -106,7 +111,7 @@ class PendingAppOpGroup
                   }
                   break if process_gear
                 }
-                application.process_commands(result, component_instance, process_gear)
+                application.process_commands(result, component_instance, process_gear, skip_node_ops)
               end
             else
               result_io.append ResultIO.new(status, output, gear_id)
@@ -135,7 +140,7 @@ class PendingAppOpGroup
     end
   end
   
-  def execute_rollback(result_io = nil)
+  def execute_rollback(result_io=nil, skip_node_ops=false)
     result_io = ResultIO.new if result_io.nil?
 
     while(pending_ops.where(:state => :completed).count > 0) do
@@ -147,10 +152,14 @@ class PendingAppOpGroup
         Rails.logger.debug "Rollback #{op.class.to_s}"
 
         if op.isParallelExecutable()
-          op.addParallelRollbackJob(handle)
-          parallel_job_ops.push op
+          unless skip_node_ops
+            op.addParallelRollbackJob(handle)
+            parallel_job_ops.push op
+          else
+            op.set_state(:rolledback)
+          end
         else
-          return_val = op.rollback()
+          return_val = op.rollback(skip_node_ops)
           result_io.append return_val if return_val.is_a? ResultIO
           op.set_state(:rolledback)
         end

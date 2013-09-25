@@ -1,6 +1,6 @@
 class RegisterRoutingDnsOp < PendingAppOp
 
-  def execute()
+  def execute(skip_node_ops=false)
     self.pending_app_op_group.application.register_routing_dns
     self.pending_app_op_group.application.ha = true
     self.pending_app_op_group.application.save 
