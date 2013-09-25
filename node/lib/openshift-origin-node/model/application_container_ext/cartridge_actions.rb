@@ -116,7 +116,7 @@ module OpenShift
                                     }
 
             if cart.web_proxy?
-              endpont_create_hash['protocols'] = @cartridge_model.primary_cartridge.public_endpoints.first.protocols
+              endpoint_create_hash['protocols'] = @cartridge_model.primary_cartridge.public_endpoints.first.protocols
               endpoint_create_hash['type'] = ["load_balancer"]
             elsif cart.web_framework?
               endpoint_create_hash['type'] = ["web_framework"]
