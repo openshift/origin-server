@@ -33,12 +33,12 @@
 #help a {
   font-size: $h2FontSize;
   color: #EB0011;
-  font-weight: 200;
+  font-weight: 300;
 }
 
 .row-help {
   a {
-    font-weight: bold;
+    font-weight: 600;
     &.btn {
       font-weight: 500;
     }

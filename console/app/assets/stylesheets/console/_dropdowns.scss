@@ -2,7 +2,7 @@
 * Customizations
 */
 .dropdown {
-  display: inline-block; 
+  display: inline-block;
 }
 .dropdown.open .dropdown-toggle {
   background-color: #E7E7E7;
@@ -12,8 +12,23 @@
   @include box-shadow(0 5px 5px rgba(0, 0, 0, 0.2));
   border: 0;
   @include border-radius(0);
-
+  font-size: $tinyFontSize;
+  a {
+    line-height: 22px;
+    padding: 0 10px;
+  }
+  .active > a, .active > a:hover, li > a:hover {
+    background-color: #0072ac;
+    background-image: -moz-linear-gradient(top, #08c, #007bb9);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#08c), to(#007bb9));
+    background-image: -webkit-linear-gradient(top, #08c, #007bb9);
+    background-image: -o-linear-gradient(top, #08c, #007bb9);
+    background-image: linear-gradient(to bottom, #08c, #007bb9);
+  }
   hr {
-    margin: 9px 0;
+    margin: 4px 0;
+  }
+  li {
+    margin-bottom: 0;
   }
 }
