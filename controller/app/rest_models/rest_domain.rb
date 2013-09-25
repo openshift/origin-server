@@ -21,9 +21,10 @@
 # @!attribute [r] suffix
 #   @return [String] DNS suffix under which the application is created. Eg: rhcloud.com
 class RestDomain < OpenShift::Model
-  attr_accessor :name, :suffix, :members, :allowed_gear_sizes, :creation_time, :links
+  attr_accessor :id, :name, :suffix, :members, :allowed_gear_sizes, :creation_time, :links
 
   def initialize(domain, url, nolinks=false)
+    self.id = domain._id
     self.name = domain.namespace
     self.suffix = Rails.application.config.openshift[:domain_suffix]
     self.creation_time = domain.created_at
