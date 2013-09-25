@@ -1030,9 +1030,10 @@ module OpenShift
         run_cartridge_command_ignore_components(cart, gear, "restart", args)
       end
 
-      def get_restart_job(gear, component)
+      def get_restart_job(gear, component, all=false)
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
+        args['--all'] = all
         RemoteJob.new('openshift-origin-node', 'restart', args)
       end
 
