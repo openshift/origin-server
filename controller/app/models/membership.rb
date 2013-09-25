@@ -117,12 +117,12 @@ module Membership
     def default_members
       if parent = parent_membership_relation
         p = send(parent.name)
-        p.inherit_membership.each{ |m| m.clear.add_grant(m.role || default_role, parent.name) } if p
+        p.inherit_membership.each{ |m| role = m.role; m.clear.add_grant(role || default_role, parent.name) } if p
       end || []
     end
 
     #
-    # The list of member ids that changed on the object. 
+    # The list of member ids that changed on the object.
     # This method needs to be implemented in any class that includes Membership
     #
     def members_changed(added, removed, changed_roles)

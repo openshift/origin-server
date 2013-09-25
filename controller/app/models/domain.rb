@@ -143,7 +143,7 @@ class Domain
   end
 
   def inherit_membership
-    members.clone
+    members.map{ |m| m.clone }
   end
 
   def self.legacy_accessible(to)
