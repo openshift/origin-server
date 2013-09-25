@@ -34,6 +34,7 @@ class RestDomain < OpenShift::Model
       @application_count = domain.application_count
       @gear_counts = domain.gear_counts || {}
       @available_gears = domain.available_gears
+      @max_storage_per_gear = domain.max_storage_per_gear
     end
 
     unless nolinks
