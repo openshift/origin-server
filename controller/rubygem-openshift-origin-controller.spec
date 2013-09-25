@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.2
+Version: 1.15.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,17 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Merge pull request #3691 from BanzaiMan/idle_websockets
+  (dmcphers+openshiftbot@redhat.com)
+- Add Node.js 0.10 tests to runtime-cartridge-nodejs.feature
+  (asari.ruby@gmail.com)
+- Merge pull request #3693 from pravisankar/dev/ravi/card98
+  (dmcphers+openshiftbot@redhat.com)
+- Added skip_node_ops flag to app/domain/user/district models.
+  (rpenta@redhat.com)
+- typo fix (rchopra@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
 - Merge pull request #3696 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
