@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version:       1.15.2
+Version:       1.15.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,14 @@ fi
 
 
 %changelog
+* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Merge pull request #3518 from a13m/bugzilla/989276
+  (dmcphers+openshiftbot@redhat.com)
+- Merge branch 'master' of https://github.com/openshift/origin-server into
+  bugzilla/989276 (agrimm@redhat.com)
+- Bug 989276 - Check for existence of ROOT.war before attempting to copy it
+  (agrimm@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
 - Card origin_runtime_102 - use secret token for auth_value in JGroups
   (jhonce@redhat.com)
