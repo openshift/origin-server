@@ -135,7 +135,7 @@ class RestApiMembershipTest < ActiveSupport::TestCase
 
     # a viewer can't delete members
     assert_raises(ActiveResource::ForbiddenAccess){ d_third.delete(:members) }
-    assert_raises(ActiveResource::ForbiddenAccess){ d.destroy }
+    assert !d.destroy
 
     # a viewer can't change the domain
     assert_raises(ActiveResource::ResourceInvalid){ d.name = "#{d.id}_"; d.save! }

@@ -837,7 +837,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_domain_object_assignment_to_application
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domain/test3.json', json_header, { :id => 'test3' }.to_json()
+      mock.get '/broker/rest/domain/test3.json?include=application_info', json_header, { :id => 'test3' }.to_json()
     end
 
     app = Application.new :as => @user

@@ -36,7 +36,7 @@ class BuildingControllerTest < ActionController::TestCase
       ].to_json
 
       mock.get '/broker/rest/user.json', json_header, user.to_json
-      mock.get '/broker/rest/domain/test.json', json_header, domain.to_json
+      mock.get '/broker/rest/domain/test.json?include=application_info', json_header, domain.to_json
 
       mock.get '/broker/rest/domain/test/application/test.json', json_header, app.to_json
       mock.get '/broker/rest/application/testid.json', json_header, app.to_json
