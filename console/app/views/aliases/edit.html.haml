@@ -10,7 +10,7 @@
     = link_to('CNAME record with your DNS provider', alias_docs_url) << '.'
     The alias is
     %strong= @alias.name
-    and the destination app is 
+    and the destination app is
     %strong= URI::parse(@application.web_url).host
 
   %p
