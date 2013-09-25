@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.2
+Version: 1.15.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -250,6 +250,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Merge pull request #3702 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3698 from rmillner/vhost_bugs
+  (dmcphers+openshiftbot@redhat.com)
+- typo fix (rchopra@redhat.com)
+- Bug 1008638 - The create step is needed on vhost and other plugins.
+  (rmillner@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
 - Merge pull request #3659 from mfojtik/bugzilla/1007455
   (dmcphers+openshiftbot@redhat.com)
