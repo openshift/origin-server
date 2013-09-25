@@ -2,4 +2,6 @@
 
 mkdir -p $OPENSHIFT_MYSQL_DIR/{log,pid,socket,data,run}
 
-cp conf/my.cnf.erb conf/my.cnf.erb.hidden
+if [ -f conf/my.cnf.erb ]; then
+  cp conf/my.cnf.erb conf/my.cnf.erb.hidden
+fi
