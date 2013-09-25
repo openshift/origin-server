@@ -702,6 +702,7 @@ The Node.JS cartridge provides several environment variables to reference for ea
 
 OPENSHIFT_NODEJS_IP:: The IP address used to bind Node.js
 OPENSHIFT_NODEJS_PORT:: The Node.js listening port
+OPENSHIFT_NODEJS_POLL_INTERVAL:: May be set as a user environment variable to change the default of 1s
 
 === Markers
 Adding marker files to `.openshift/markers` will have the following effects:
