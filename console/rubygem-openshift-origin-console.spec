@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.15.3
+Version:       1.15.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -154,6 +154,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #3699 from jwforres/wrong_scale_arg_in_help
+  (dmcphers+openshiftbot@redhat.com)
+- Fix rhc command in not scalable help text (jforrest@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - Allow for version 4.0.x of haml gem to be used (jforrest@redhat.com)
 
