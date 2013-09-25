@@ -410,6 +410,7 @@ command :restart do |c|
   c.syntax = "#{name} restart"
 
   c.option "--cart CART", "The cart to restart"
+  c.option "--all", "Restart all instances of the specified cartridge for all gears for this application"
 
   c.description = "Restart a cart"
   c.action do |args, options|
@@ -417,7 +418,7 @@ command :restart do |c|
     # in addition to individual cart restarts?
     do_command(c, options) do
       options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
-      @container.restart(options.cart, out: $stdout, err: $stderr)
+      @container.restart(options.cart, all: !!options.all, out: $stdout, err: $stderr)
     end
   end
 end

@@ -999,10 +999,52 @@ module OpenShift
 
         # restart gear as supported by cartridges
         def restart(cart_name, options={})
-          @cartridge_model.start_cartridge('restart', cart_name,
-                                           user_initiated: true,
-              out:            options[:out],
-              err:            options[:err])
+          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+          proxy_cart = options[:proxy_cart] = @cartridge_model.web_proxy
+
+          gears = []
+          if proxy_cart and options[:all]
+            entries = gear_registry.entries[:web]
+            gears = entries.map { |gear_uuid, entry| "#{gear_uuid}@#{entry.proxy_hostname}" }
+          else
+            gears = ["#{uuid}@unused"]
+          end
+
+          batch_size = calculate_batch_size(gears.size, PARALLEL_CONCURRENCY_RATIO)
+          threads = [batch_size, MAX_THREADS].min
+
+          parallel_output = Parallel.map(gears, :in_threads => threads) do |gear|
+            restart_gear(gear, gear_env, cart_name, options)
+          end
+        end
+
+        def restart_gear(gear, gear_env, cart_name, options)
+          gear_uuid = gear.split('@')[0]
+          proxy_cart = options[:proxy_cart]
+
+          if proxy_cart
+            update_proxy_status(action: :disable,
+                                gear_uuid: gear_uuid,
+                                cartridge: proxy_cart)
+          end
+
+          if gear_uuid == uuid
+            @cartridge_model.start_cartridge('restart',
+                                             cart_name,
+                                             user_initiated: true,
+                                             out: options[:out],
+                                             err: options[:err])
+          else
+            out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear} gear restart --cart #{cart_name}",
+                                                    env: gear_env,
+                                                    expected_exitstatus: 0)
+          end
+
+          if proxy_cart
+            update_proxy_status(action: :enable,
+                                gear_uuid: gear_uuid,
+                                cartridge: proxy_cart)
+          end
         end
 
         # reload gear as supported by cartridges
