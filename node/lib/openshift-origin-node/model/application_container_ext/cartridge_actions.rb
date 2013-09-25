@@ -120,9 +120,16 @@ module OpenShift
               endpoint_create_hash['type'] = ["load_balancer"]
             elsif cart.web_framework?
               endpoint_create_hash['type'] = ["web_framework"]
+            elsif cart.categories.include? "database"
+              endpoint_create_hash['type'] = ["database"]
             elsif cart.categories.include? "plugin"
               endpoint_create_hash['type'] = ["plugin"]
+            elsif cart.categories.include? "admin_tool"
+              endpoint_create_hash['type'] = ["admin_tool"]
+            else
+              endpoint_create_hash['type'] = ["other"]
             end
+            endpoint_create_hash['mappings'] = endpoint.mappings.map { |m| { "frontend" => m.frontend, "backend" => m.backend } } if endpoint.mappings
             output << "NOTIFY_ENDPOINT_CREATE: #{endpoint_create_hash.to_json}\n"
 
             logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
