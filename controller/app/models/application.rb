@@ -2603,7 +2603,7 @@ class Application
     comps.each do |comp_spec|
       comp_spec[:prof].configure_order.each do |dep_cart|
         if !categories[dep_cart] and !existing_categories[dep_cart]
-          raise OpenShift::UserException.new("Cartridge '#{comp_spec[:cart].name}' can not be added with out cartridge '#{dep_cart}'.", 185)
+          raise OpenShift::UserException.new("Cartridge '#{comp_spec[:cart].name}' can not be added without cartridge '#{dep_cart}'.", 185)
         end
       end 
       configure_order.add_component_order(comp_spec[:prof].configure_order.map{|c| categories[c]}.flatten)
