@@ -379,7 +379,7 @@ class AccessControlledTest < ActiveSupport::TestCase
 
     assert a = Application.create(:name => 'propagatetest', :domain => d)
     assert_equal [Member.new(_id: u._id)], d.members
-    assert_equal [['domain', :admin]], d.members.first.from
+    assert_equal [['domain', :admin]], a.members.first.from
     assert_equal Application.default_role, a.members.first.role
 
     assert     Application.accessible(u).first
