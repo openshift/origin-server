@@ -126,7 +126,14 @@ class PendingAppOpGroup
             end
           }
           self.application.save
-          raise OpenShift::OOException.new("Failed to correctly execute all parallel operations", 1, result_io) unless failed_ops.empty?
+          
+          unless failed_ops.empty?
+            if result_io.hasUserActionableError
+              raise OpenShift::UserException.new(result_io.errorIO.string, result_io.exitcode, nil, result_io)
+            else
+              raise OpenShift::OOException.new("Failed to correctly execute all parallel operations", 1, result_io)
+            end
+          end
         end
       end
       unless self.parent_op_id.nil?
