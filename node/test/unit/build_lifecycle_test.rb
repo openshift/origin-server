@@ -715,6 +715,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_raises(RuntimeError, 'msg') { @container.prepare(prepare_options) }
   end
 
+  def test_prepare_no_datetime
+    assert_raises(ArgumentError, 'msg') { @container.prepare({}) }
+  end
+
   def test_child_gear_ssh_urls_no_web_proxy
     @cartridge_model.expects(:web_proxy).returns(nil)
     assert_empty @container.child_gear_ssh_urls

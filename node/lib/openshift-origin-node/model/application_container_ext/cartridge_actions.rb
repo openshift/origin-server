@@ -498,10 +498,12 @@ module OpenShift
         # Returns the combined output of all actions as a +String+.
         #
         def prepare(options={})
-          env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
-
-          # override deployment dir env var for hook use
           deployment_datetime = options[:deployment_datetime]
+
+          raise ArgumentError.new('deployment_datetime is required') unless deployment_datetime
+
+          env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+          
           deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
           env['OPENSHIFT_REPO_DIR'] = "#{deployment_dir}/repo"
 
