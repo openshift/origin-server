@@ -22,7 +22,7 @@ html {
   background: #fcfcfc;
   height: 100%;
   &.highlight {
-    @include console_background;
+    background: #e5e5e5;
   }
 }
 

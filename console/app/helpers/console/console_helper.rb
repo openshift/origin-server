@@ -10,8 +10,7 @@ module Console::ConsoleHelper
 
   def product_branding
     [
-      content_tag(:span, "OpenShift Origin", :class => 'brand-text headline'),
-      content_tag(:span, nil, :class => 'brand-image')
+      image_tag('/assets/logo-origin.svg', :alt => 'OpenShift Origin')
     ].join.html_safe
   end
 
