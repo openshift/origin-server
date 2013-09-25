@@ -13,7 +13,6 @@ gem 'mongoid'
 gem 'bson'
 gem 'bson_ext'
 gem 'pry', :require => 'pry' if ENV['PRY']
-gem 'minitest'
 # Fedora 19 splits psych out into its own gem.
 if Gem::Specification.respond_to?(:find_all_by_name) and not Gem::Specification::find_all_by_name('psych').empty?
   gem 'psych'
@@ -73,6 +72,13 @@ end
 # gem 'sqlite3-ruby', :require => 'sqlite3'
 # gem 'aws-s3', :require => 'aws/s3'
 
+# NON-RUNTIME BEGIN
+
+# To simplify the packaging burden for distro maintainers it's important to
+# place all gems not needed at runtime in this section.  It can be removed
+# during package build time to avoid having to ship/support development-only
+# packages.
+
 # Bundle gems for the local environment. Make sure to
 # put test-only gems in this group so their generators
 # and rake tasks are available in development mode:
@@ -83,6 +89,9 @@ group :development, :test do
   gem 'rake', '>= 0.8.7'
   gem 'simplecov'
   gem 'cucumber'
+  gem 'minitest'
   gem 'capybara', '~> 2.1.0', :require => false
   gem 'poltergeist',   '~> 1.2.0', :require => false
 end
+
+# NON-RUNTIME END

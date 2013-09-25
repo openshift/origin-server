@@ -29,28 +29,21 @@ Requires:      %{?scl:%scl_prefix}mod_passenger
 
 %if 0%{?scl:1}
 Requires:      %{?scl:%scl_prefix}ruby-wrapper
-Requires:      %{?scl:%scl_prefix}rubygem-minitest
 Requires:      %{?scl:%scl_prefix}rubygem-therubyracer
 Requires:      openshift-origin-util-scl
 %endif
 Requires:      %{?scl:%scl_prefix}rubygem-rails
 Requires:      %{?scl:%scl_prefix}rubygem-compass-rails
-Requires:      %{?scl:%scl_prefix}rubygem-test-unit
-Requires:      %{?scl:%scl_prefix}rubygem-ci_reporter
 Requires:      %{?scl:%scl_prefix}rubygem-sprockets
 Requires:      %{?scl:%scl_prefix}rubygem-rdiscount
 Requires:      %{?scl:%scl_prefix}rubygem-formtastic
 Requires:      %{?scl:%scl_prefix}rubygem-net-http-persistent
 Requires:      %{?scl:%scl_prefix}rubygem-haml
 Requires:      %{?scl:%scl_prefix}rubygem-therubyracer
-Requires:      %{?scl:%scl_prefix}rubygem-minitest
 Requires:      %{?scl:%scl_prefix}rubygems-devel
 Requires:      %{?scl:%scl_prefix}rubygem-coffee-rails
 Requires:      %{?scl:%scl_prefix}rubygem-jquery-rails
 Requires:      %{?scl:%scl_prefix}rubygem-uglifier
-Requires:      %{?scl:%scl_prefix}rubygem-poltergeist
-Requires:      %{?scl:%scl_prefix}rubygem-webmock
-Requires:      %{?scl:%scl_prefix}rubygem-capybara
 
 %if 0%{?fedora}
 Requires:      openshift-origin-util
@@ -64,22 +57,18 @@ BuildRequires:  scl-utils-build
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygem-rails
 BuildRequires: %{?scl:%scl_prefix}rubygem-compass-rails
-BuildRequires: %{?scl:%scl_prefix}rubygem-test-unit
-BuildRequires: %{?scl:%scl_prefix}rubygem-ci_reporter
 BuildRequires: %{?scl:%scl_prefix}rubygem-sprockets
 BuildRequires: %{?scl:%scl_prefix}rubygem-rdiscount
 BuildRequires: %{?scl:%scl_prefix}rubygem-formtastic
 BuildRequires: %{?scl:%scl_prefix}rubygem-net-http-persistent
 BuildRequires: %{?scl:%scl_prefix}rubygem-haml
 BuildRequires: %{?scl:%scl_prefix}rubygem-therubyracer
+# Required by activesupport during the asset precompilation process
 BuildRequires: %{?scl:%scl_prefix}rubygem-minitest
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildRequires: %{?scl:%scl_prefix}rubygem-coffee-rails
 BuildRequires: %{?scl:%scl_prefix}rubygem-jquery-rails
 BuildRequires: %{?scl:%scl_prefix}rubygem-uglifier
-BuildRequires: %{?scl:%scl_prefix}rubygem-poltergeist
-BuildRequires: %{?scl:%scl_prefix}rubygem-webmock
-BuildRequires: %{?scl:%scl_prefix}rubygem-capybara
 
 %if 0%{?fedora} >= 19
 BuildRequires: ruby(release)
@@ -104,6 +93,9 @@ This includes the configuration necessary to run the console with mod_passenger.
 %{?scl:scl enable %scl - << \EOF}
 
 set -e
+# Remove dependencies not needed at runtime
+sed -i -e '/NON-RUNTIME BEGIN/,/NON-RUNTIME END/d' Gemfile
+
 %if 0%{?fedora}%{?rhel} <= 6
 rm -f Gemfile.lock
 bundle install --local
@@ -186,6 +178,7 @@ mv %{buildroot}%{consoledir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{consoledi
 mv %{buildroot}%{consoledir}/httpd/httpd.conf.apache-2.3 %{buildroot}%{consoledir}/httpd/httpd.conf
 %endif
 rm %{buildroot}%{consoledir}/httpd/httpd.conf.apache-*
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT

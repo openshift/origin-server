@@ -25,7 +25,6 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygem(commander)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
-Requires:      %{?scl:%scl_prefix}rubygem(mocha)
 Requires:      %{?scl:%scl_prefix}rubygem(open4)
 Requires:      %{?scl:%scl_prefix}rubygem(parallel)
 %if 0%{?rhel} <= 6
@@ -34,7 +33,6 @@ Requires:      %{?scl:%scl_prefix}rubygem(parallel)
 Requires:      rubygem(open4)
 %endif
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
-Requires:      %{?scl:%scl_prefix}rubygem(rspec)
 Requires:      %{?scl:%scl_prefix}rubygem(safe_yaml)
 Requires:      %{?scl:%scl_prefix}rubygem(rest-client)
 Requires:      %{?scl:%scl_prefix}rubygems
@@ -81,6 +79,10 @@ This contains the Cloud Development Node packaged as a rubygem.
 %setup -q
 
 %build
+# Remove dependencies not needed at runtime
+sed -i -e '/NON-RUNTIME BEGIN/,/NON-RUNTIME END/d' Gemfile
+
+
 %{?scl:scl enable %scl - << \EOF}
 mkdir -p .%{gem_dir}
 # Create the gem as gem install only works on a gem file
