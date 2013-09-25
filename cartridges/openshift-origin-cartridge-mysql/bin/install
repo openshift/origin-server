@@ -34,5 +34,3 @@ cart_props 'connection_url=mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_
 cart_props "username=$username"
 cart_props "password=$password"
 cart_props "database_name=$OPENSHIFT_APP_NAME"
-
-set_app_info 'Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT'

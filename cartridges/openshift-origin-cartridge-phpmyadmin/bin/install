@@ -24,5 +24,3 @@ fi
 client_result "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
 
 cart_props "connection_url=https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
-
-set_app_info "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"

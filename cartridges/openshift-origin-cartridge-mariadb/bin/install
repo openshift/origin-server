@@ -40,5 +40,3 @@ cart_props 'connection_url=mysql://$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB
 cart_props "username=$username"
 cart_props "password=$password"
 cart_props "database_name=$OPENSHIFT_APP_NAME"
-
-set_app_info "Connection URL: mysql://$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT"
