@@ -16,7 +16,7 @@
 
 .tile {
   background: $consolePanelColor;
-  @include box-shadow(0 0 2px rgba(0,0,0,.25));
+  @include panel_default_boxshadow();
   color: $consoleTextColorDefault;
   padding: 15px 25px; 
   margin-bottom: 20px; 
@@ -94,3 +94,4 @@
     @include expand_for_phone();
   }
 }
+

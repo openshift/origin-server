@@ -32,7 +32,7 @@ $gridColumnWidth:         55px; // 80 * 12 = 960
 
 $gridGutterWidthPhone:    20px; // replaces padding
 
-$gridGutterWidthTablet:   20px;
+$gridGutterWidthTablet:   30px;
 $gridColumnWidthTablet:   42.5px; // 62 * 12 = 744 and 12px gutters
 
 $gridGutterWidthLarge:    40px;
@@ -54,7 +54,7 @@ $preBorder:                     rgba(120, 120, 120, 0.35);
 $preColor:                      #484848;
 $codeColor:                     #3B3B3B;
 
-$consolePreBackground:          #f5f5f5;
+$consolePreBackground:          #e0e0e0;
 
 $breadcrumbDividerColor:        $openshiftDarkRed;
 $breadcrumbTextColor:           $openshiftMediumBackgroundGray; 
@@ -164,6 +164,7 @@ $consoleTextColorDefault:		 #303030;
 
 $consolePanelColor:				#fefefe;
 $consolePanelColorDisabled:		rgba(255, 255, 255, 0.45);
+$consolePanelBorderColor:		#ddd;
 
 
 // Navbar

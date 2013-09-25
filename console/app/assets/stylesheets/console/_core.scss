@@ -192,6 +192,9 @@ ol.wizard {
   ol.wizard li {
     display: block;
   }
+  .row > .section-header {
+    padding: 0;
+  }
 }
 
 figure {
@@ -211,7 +214,6 @@ figure {
   min-height: 400px;
   padding: 25px 0;
 }
-
 
 .divide, legend {
   margin-bottom: 0;
@@ -508,6 +510,11 @@ a.cap-link:hover {
     padding-left: 0 !important;
     display:block;
     }
+}
+@media (max-width: 480px) {
+  .row > .section-header {
+    padding: 0;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 979px) {

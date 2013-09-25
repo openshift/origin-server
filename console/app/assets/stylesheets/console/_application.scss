@@ -2,6 +2,8 @@
 * Application standard layouts
 */
 
+$cartridgeBorderWidth: 10px;
+
 .applications {
   .application {
     .flow > .flow-block.right {
@@ -170,6 +172,8 @@
   .section-header > .application {
     margin-right: 0;
     left: 0;
+    padding-left: $gridGutterWidthTablet - $cartridgeBorderWidth;
+    padding-right: $gridGutterWidthTablet - $cartridgeBorderWidth;
   }
   .application {
     > .url,
@@ -319,8 +323,6 @@
 }
 
 
-$cartridgeBorderWidth: 10px;
-
 #app-cartridges {
   header {
     a {display: none}
@@ -361,28 +363,33 @@ $cartridgeBorderWidth: 10px;
 
   .gear-group { /* mimic tile */
     background: $consolePanelColor;
-    @include box-shadow(0 0 4px rgba(0,0,0,.1));
+    @include panel_default_boxshadow();
     color: $consoleTextColorDefault;
-  }
-
-  .cartridge-block {
-    border-bottom: 1px dashed #eee;
-    position: relative;
-      &:last-child {border-bottom: none;
-    }
-
-    &.gear-error .cartridge-border:before {
+    .cartridge-block.cartridge-error .cartridge-border:before {
       position: absolute;
-      border-left: 6px solid #c00;
+      border-left: 6px solid $openshiftBrightRed;
       height: 100%;
       top: 0;
       left: 0;
       content: "";
     }
-
+  }
+  .cartridge-block {
+    position: relative;
+    &.cartridge-embedded {
+      border-top: 1px dashed $consolePanelBorderColor;
+    }
     .cartridge-inset {
       background-color: $consolePanelColor;
       padding: 25px;
+    }
+    .font-icon-block {
+      font-size: 24px;
+      color: #888;
+      margin-right: 5px;
+      :last-child {
+        color: #e7e7e7;
+      }
     }
 
     h2, h3, h4 {
@@ -424,6 +431,37 @@ $cartridgeBorderWidth: 10px;
 }
 
 
+@media (min-width: 1200px) {
+}
+@media (min-width: 980px) and (max-width: 1199px) {
+}
+@media (max-width: 979px) {
+  .cartridge-block {
+    .font-icon-block {
+      font-size: 24px;
+      color: #888;
+      margin-right: 5px;
+      :last-child {
+        color: #e7e7e7;
+      }
+    }
+  }
+}
+@media (max-width: 767px) {
+  #app-cartridges {
+    header {
+    }
+    .cartridge-block {
+      .font-icon-block {
+        font-size: 20px;
+      }
+      .cartridge-inset {
+        padding-left: $gridGutterWidthTablet - $cartridgeBorderWidth;
+        padding-right: $gridGutterWidthTablet - $cartridgeBorderWidth;
+      }
+    }
+  }
+}
 @media (max-width: 480px) {
   .embedded .view-cart-details {
     position: inherit;
@@ -434,44 +472,20 @@ $cartridgeBorderWidth: 10px;
     header {
       padding-left: $gridGutterWidthPhone;
     }
-    .cartridge-block .cartridge-inset {
-      padding-left: $gridGutterWidthPhone - $cartridgeBorderWidth;
-      padding-right: $gridGutterWidthPhone - $cartridgeBorderWidth;
+    .cartridge-block {
+      .font-icon-block {
+        font-size: 16px;
+      }
+      .cartridge-inset {
+        padding-left: $gridGutterWidthPhone - $cartridgeBorderWidth;
+        padding-right: $gridGutterWidthPhone - $cartridgeBorderWidth;
+      }
     }
   }
-}
-
-@media (max-width: 767px) {
-  #app-cartridges {
-    header {
-    }
-    .cartridge-block .cartridge-inset {
-      padding-left: $gridGutterWidthTablet - $cartridgeBorderWidth;
-      padding-right: $gridGutterWidthTablet - $cartridgeBorderWidth;
-    }
+  .tile {
+    padding-left: $gridGutterWidthPhone - $cartridgeBorderWidth;
+    padding-right: $gridGutterWidthPhone - $cartridgeBorderWidth;
   }
-}
-
-@media (min-width: 768px) and (max-width: 979px) {
-}
-
-@media (min-width: 980px) and (max-width: 1199px) {
-  #app-cartridges {
-    header {
-    }
-    .cartridge-block .cartridge-inset {
-      padding-left: $gridGutterWidth - $cartridgeBorderWidth;
-      padding-right: $gridGutterWidth - $cartridgeBorderWidth;
-    }
-  }
-
-}
-
-@media (min-width: 1200px) {
-}
-@media (max-width: 979px) {
-}
-@media (min-width: 980px) {
 }
 
 

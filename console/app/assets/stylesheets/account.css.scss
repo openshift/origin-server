@@ -17,6 +17,7 @@ html.highlight {background-color: #3e3e3e; /* override light background in _base
 
 body.simple {
   min-height: 100%;
+  background: $noiseImage;
   &.login h1 {
     margin-bottom: 14px;
   }
@@ -148,6 +149,8 @@ h2 + ul, h3 + ul, h4 + ul {
 .navbar.centered {
   background: transparent;
   border-top: 0;
+  height: 62px;
+  padding: 40px 0;
   .brand {
     float: none;
     margin: 30px 0;
@@ -218,8 +221,23 @@ h2 + ul, h3 + ul, h4 + ul {
   }
   .column-1 { margin-bottom: 20px; }
   }
-  .navbar.centered .brand {
-    margin: 15px 0;
+  .navbar.centered {
+    height: 82px;
+    padding: 0;
+    .brand {
+      margin: 25px 0 0;
+      > a {
+        width: 220px; 
+        .brand-image {
+          width: 220px;
+        }
+        &:hover:after {
+          bottom: 4px;
+          left: 50px;
+          right: 0;
+        }
+      }
+    }
   }
 }
 
