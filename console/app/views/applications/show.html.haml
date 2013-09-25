@@ -99,7 +99,7 @@
             .confirm-popover.hide
               = render 'restarts/form'
 
-      %p{style: 'margin-top: -10px; margin-bottom: 10px; opacity: 0.8;'}
+      %p{style: 'margin-top: -15px; margin-bottom: 5px; color: #999; font-size: 12px'}
         Created #{time_ago_in_words(@application.creation_time)} ago in domain
         #{link_to @application.domain_id, domain_path(@application.domain_id)}
 
@@ -125,6 +125,9 @@
               .cartridge-inset
                 - if primary
                   %h2.flow
+                    .font-icon-block
+                      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021"}
+                      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue022"}
                     .flow-block{:title => cartridge.name}= cartridge.display_name
 
                     .flow-block.right>

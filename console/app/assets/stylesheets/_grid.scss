@@ -71,7 +71,7 @@
 
       > li {
         line-height: 120%;
-        font-size: 50%;
+        font-size: $tinyFontSize;
         text-transform: uppercase;
 
         > h6 {
@@ -89,7 +89,6 @@
 @media (max-width: 767px) {
   .flow > .flow-block {
     display: inline-block;
-    float: left;
 
     &.right {
       float: right;

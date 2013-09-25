@@ -33,3 +33,7 @@
   background-repeat: repeat-x;
   background-position: left 100% bottom 70px;
 }
+
+@mixin panel_default_boxshadow {
+  @include box-shadow(0 0 2px rgba(0, 0, 0, 0.25));
+} 
