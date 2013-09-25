@@ -59,5 +59,3 @@ cart_props "connection_url=${conn_url}"
 cart_props "username=${username}"
 cart_props "password=${password}"
 cart_props "database_name=${OPENSHIFT_APP_NAME}"
-
-set_app_info "Connection URL: ${conn_url}"
