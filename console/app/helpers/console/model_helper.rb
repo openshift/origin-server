@@ -270,4 +270,11 @@ module Console::ModelHelper
   def common_tags_for(ary)
     ary.length < 2 ? [] : ary.inject(nil){ |tags, a| tags ? (a.tags & tags) : a.tags } || []
   end
+
+  def class_for_cartridge(cart)
+    %w{jboss jbossews ruby php perl nodejs python mongodb mysql postgresql zend diy jenkins}.each do |c|
+      return "icon-#{c}" if cart.name.match(c)
+    end
+    return "icon-cartridge"
+  end
 end
