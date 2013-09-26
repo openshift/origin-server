@@ -10,11 +10,11 @@
 - content_for :dark_layout, true
 - content_for :top do
   .grid-wrapper.section-header
-    %nav.span12.span-flush-right.applications
+    %nav.span12.span-flush-right.application
       %h1.flow
         = "Domain #{@domain.name}"
         - if @domain.can_rename?
-          = link_to 'change', edit_domain_path(@domain), :class => 'url-alter'
+          = link_to 'change', edit_domain_path(@domain), :class => 'link-alter'
 
         - count = @domain.gear_counts.values.sum
         .flow-block.right{:title => "This domain is using #{pluralize(count, 'gear')} and can use up to #{@domain.available_gears} more", style: "cursor: default;"}

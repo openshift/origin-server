@@ -71,15 +71,15 @@
           .name= @application.name
           = link_to @application.aliases.first.name, URI::HTTP.new('http', nil, @application.aliases.first.name, nil, nil, nil, nil, nil, nil).to_s, :class => 'url url-alias'
           - if @application.aliases.length > 1
-            = link_to "\u2026 #{pluralize(@application.aliases.length - 1, 'other alias')}", application_aliases_path(@application), :class => 'url-alter'
+            = link_to "\u2026 #{pluralize(@application.aliases.length - 1, 'other alias')}", application_aliases_path(@application), :class => 'link-alter'
           - else
-            = link_to "\u2026 change alias", application_aliases_path(@application), :class => 'url-alter'
+            = link_to "\u2026 change alias", application_aliases_path(@application), :class => 'link-alter'
 
         - else
           = link_to @application.web_url, :class => 'url-default' do
             %span.name>= @application.name
             %span.url>= URI.parse(@application.web_url).hostname.gsub(/\A#{Regexp.escape(@application.name)}/, '')
-          = link_to "change", new_application_alias_path(@application), :class => 'url-alter'
+          = link_to "change", new_application_alias_path(@application), :class => 'link-alter'
 
         - types = @application.gear_ranges(max_gears).map{ |(profile, count, max)| "#{count} #{profile}" }
         - states = @gear_groups.map(&:states).flatten(1)

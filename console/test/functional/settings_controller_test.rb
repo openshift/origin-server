@@ -7,7 +7,7 @@ class SettingsControllerTest < ActionController::TestCase
     get :show
     assert_response :success
     assert assigns(:user)
-    assert_nil assigns(:domain)
+    assert !assigns(:domain).persisted?
     assert assigns(:keys).empty?
     assert assigns(:authorizations)
 
@@ -24,12 +24,13 @@ class SettingsControllerTest < ActionController::TestCase
 
     assert_response :success
     assert assigns(:user)
-    assert assigns(:domain)
+    assert assigns(:domains)
+    assert assigns(:domains).present?
+    assert_nil assigns(:domain)
     assert assigns(:keys)
     assert assigns(:authorizations)
 
-    assert_select '.namespace', @domain.name
-    assert_select '.well', %r(http://applicationname)
+    assert_select 'td > a', @domain.name
 
     assert_select 'a', 'test authorization'
     assert_select 'td', 'a_key'
