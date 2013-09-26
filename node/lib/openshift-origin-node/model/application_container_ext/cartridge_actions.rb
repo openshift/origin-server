@@ -1278,13 +1278,18 @@ module OpenShift
 
           url = "#{entry.uuid}@#{entry.proxy_hostname}"
 
-          command = "/usr/bin/oo-ssh #{url} gear rotate-#{direction} --gear #{target_gear} #{persist_option} --cart #{cartridge.name}-#{cartridge.version}"
+          command = "/usr/bin/oo-ssh #{url} gear rotate-#{direction} --gear #{target_gear} #{persist_option} --cart #{cartridge.name}-#{cartridge.version} --as-json"
           
           begin
             out, err, rc = run_in_container_context(command,
                                                     env: gear_env,
                                                     expected_exitstatus: 0)
+
+            raise "No result JSON was received from the remote proxy update call" if out.nil? || out.empty?
+
             result = HashWithIndifferentAccess.new(JSON.load(out))
+
+            raise "Invalid result JSON received from remote proxy update call: #{result.inspect}" unless result.has_key?(:status)
           rescue Exception => e
             result = {
               status: :failure,
@@ -1388,9 +1393,7 @@ module OpenShift
               proxy_gear_uuid = parallel_result[:proxy_gear_uuid]
               result[:proxy_results][proxy_gear_uuid] = parallel_result
 
-              if parallel_result[:status] == :failure
-                result[:status] = :failure
-              end
+              result[:status] = :failure unless parallel_result[:status] == :success
             end
           end
 

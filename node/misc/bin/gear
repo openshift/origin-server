@@ -17,6 +17,7 @@
 
 require 'pp'
 require 'rubygems'
+require 'json'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/utils/node_logger'
@@ -477,13 +478,16 @@ command :'rotate-out' do |c|
   c.option "--cart CART", "The cart to update"
   c.option "--persist", "Store the disabling of this gear in the proxy configuration file"
   c.option "--gear UUID", "UUID of the gear to disable"
+  c.option "--as-json", "Render the results as JSON to stdout"
 
   c.description = "Disables this gear from receiving traffic from the proxy"
   c.action do |args, options|
-    @container.update_proxy_status(cartridge: options.cart,
-                                   action: :disable,
-                                   gear_uuid: options.gear || @container.uuid,
-                                   persist: !!options.persist)
+    result = @container.update_proxy_status(cartridge: options.cart,
+                                            action: :disable,
+                                            gear_uuid: options.gear || @container.uuid,
+                                            persist: !!options.persist)
+
+    $stdout.puts(JSON.dump(result)) if options.as_json
   end
 end
 
@@ -493,12 +497,15 @@ command :'rotate-in' do |c|
   c.option "--cart CART", "The cart to update"
   c.option "--persist", "Store the enabling of this gear in the proxy configuration file"
   c.option "--gear UUID", "UUID of the gear to disable"
+  c.option "--as-json", "Render the results as JSON to stdout"
 
   c.description = "Enables this gear to receive traffic from the proxy"
   c.action do |args, options|
-    @container.update_proxy_status(cartridge: options.cart,
-                                   action: :enable,
-                                   gear_uuid: options.gear || @container.uuid,
-                                   persist: !!options.persist)
+    result = @container.update_proxy_status(cartridge: options.cart,
+                                            action: :enable,
+                                            gear_uuid: options.gear || @container.uuid,
+                                            persist: !!options.persist)
+
+    $stdout.puts(JSON.dump(result)) if options.as_json
   end
 end
