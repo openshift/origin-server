@@ -10,6 +10,26 @@
         Applications
         = render :partial => 'account_state', :locals => {:capabilities => @capabilities}
 
+:css
+  @media (max-width: 767px) {    
+    .popover {
+      bottom: 50% !important;
+      top: auto !important;
+      left: auto !important;
+      right: 25% !important;
+    }
+
+    .popover .arrow {
+      display: none;
+    }
+  }
+
+  @media (max-width: 590px) {
+    .popover {
+      right: 5px !important;
+    }
+  }
+
 %section#app-list.span12
   %section{style: 'margin-bottom: 20px;'}
 
@@ -115,6 +135,11 @@
   :javascript
     var popups = '.application-suggestions [data-content]'
     $(popups).popover({placement:'left', html: true, trigger: 'manual'}).click(function(e) {
+      e.stopPropagation();
       $(popups).not(this).popover('hide');
-      $(this).popover('toggle', e);
+      $(this).popover('show', e);
+    });
+    $('html').click(function(e) {
+      if (!$(e.target).is('.popover *'))
+        $(popups).popover('hide');
     });
