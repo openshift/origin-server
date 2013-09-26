@@ -20,7 +20,6 @@ html {
 
 body.simple {
   min-height: 100%;
-  background: $noiseImage;
   &.login h1 {
     margin-bottom: 14px;
   }
@@ -150,10 +149,6 @@ h2 + ul, h3 + ul, h4 + ul {
 }
 
 .navbar.centered {
-  background: transparent;
-  border-top: 0;
-  height: 62px;
-  padding: 40px 0;
   .brand {
     float: none;
     padding: 0;
