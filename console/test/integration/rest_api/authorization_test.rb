@@ -37,7 +37,7 @@ class RestApiAuthorizationTest < ActiveSupport::TestCase
 
   test 'limits expiration' do
     assert a = Authorization.create(:as => @user)
-    assert b = Authorization.create(:expires_in => 1.years.seconds, :as => @user)
+    assert b = Authorization.create(:expires_in => 10.years.seconds, :as => @user)
     assert_equal a.expires_in, b.expires_in
   end
 

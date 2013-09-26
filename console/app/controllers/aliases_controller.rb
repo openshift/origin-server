@@ -1,5 +1,13 @@
 class AliasesController < ConsoleController
 
+  def index
+    @capabilities = user_capabilities
+    @application = Application.find(params[:application_id], :as => current_user)
+    redirect_to new_application_alias_path(@application) and return if @application.aliases.blank?
+    @user = User.find :one, :as => current_user
+    @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
+  end
+
   def new
     user_default_domain
     @capabilities = user_capabilities

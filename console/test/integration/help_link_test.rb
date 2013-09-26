@@ -1,4 +1,5 @@
 require File.expand_path('../../test_helper', __FILE__)
+require 'timeout'
 
 class HelpLinkTest < ActionDispatch::IntegrationTest
   class << self
@@ -29,10 +30,14 @@ class HelpLinkTest < ActionDispatch::IntegrationTest
         req.use_ssl = true
         req.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
-      res = req.start do |http|
-        http.get(uri.request_uri)
+      Timeout::timeout(2) do
+        res = req.start do |http|
+          http.get(uri.request_uri)
+        end
+        assert 200, res.code
       end
-      assert 200, res.code
+    rescue Timeout::Error 
+      omit("Unable to reach #{uri} in under 2 seconds, skipping")
     rescue Exception => e
       raise e, "Could not retrieve #{name}(#{uri}): #{e.message}"
     end

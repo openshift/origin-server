@@ -43,6 +43,7 @@ $ ->
     src = $(this)
     tgt = $(src.attr('data-unhide'))
     if (tgt)
+      tgt.removeClass('hidden hidden-scripted')
       event.preventDefault() if event?
       src.closest('[data-hide-parent]').addClass('hidden')
       $('input',tgt.removeClass('hidden')).focus()

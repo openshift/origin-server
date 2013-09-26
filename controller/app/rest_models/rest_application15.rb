@@ -160,39 +160,39 @@ class RestApplication15 < OpenShift::Model
       carts = CartridgeCache.find_cartridge_by_category("embedded", app).map{ |c| c.name }
 
       self.links = {
-        "GET" => Link.new("Get application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
-        "GET_DESCRIPTOR" => Link.new("Get application descriptor", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/descriptor")),
-        #"GET_GEARS" => Link.new("Get application gears", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/gears")),
-        "GET_GEAR_GROUPS" => Link.new("Get application gear groups", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/gear_groups")),
-        "START" => Link.new("Start application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "GET" => Link.new("Get application", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}")),
+        "GET_DESCRIPTOR" => Link.new("Get application descriptor", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/descriptor")),
+        #"GET_GEARS" => Link.new("Get application gears", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/gears")),
+        "GET_GEAR_GROUPS" => Link.new("Get application gear groups", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/gear_groups")),
+        "START" => Link.new("Start application", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "start")
         ]),
-        "STOP" => Link.new("Stop application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "STOP" => Link.new("Stop application", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "stop")
         ]),
-        "RESTART" => Link.new("Restart application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "RESTART" => Link.new("Restart application", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "restart")
         ]),
-        "FORCE_STOP" => Link.new("Force stop application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "FORCE_STOP" => Link.new("Force stop application", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "force-stop")
         ]),
-        "SCALE_UP" => Link.new("Scale up application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "SCALE_UP" => Link.new("Scale up application", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "scale-up")
         ]),
-        "SCALE_DOWN" => Link.new("Scale down application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "SCALE_DOWN" => Link.new("Scale down application", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "scale-down")
         ]),
-        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "tidy")
         ]),
-        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "reload")
         ]),
-        "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "thread-dump")
         ]),
-        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
-        "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
+        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domain/#{@domain_id}/application/#{@name}")),
+        "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/cartridges"),[
             Param.new("name", "string", "framework-type, e.g.: mongodb-2.2", carts)
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
@@ -203,21 +203,21 @@ class RestApplication15 < OpenShift::Model
             OptionalParam.new("environment_variables", "array", "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]")
           ].compact
         ),
-        "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
-        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable")),
-        "ADD_ALIAS" => Link.new("Create new alias", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases"),
+        "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/cartridges")),
+        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/dns_resolvable")),
+        "ADD_ALIAS" => Link.new("Create new alias", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/aliases"),
           [Param.new("id", "string", "Alias for application")],
           [OptionalParam.new("ssl_certificate", "string", "Content of SSL Certificate"),
             OptionalParam.new("private_key", "string", "Private key for the certificate.  Required if adding a certificate"),
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
-        "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases")),
-        "LIST_MEMBERS" => Link.new("List members of this application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/members")),
-        "SET_UNSET_ENVIRONMENT_VARIABLES" => Link.new("Add/Update/Delete one or more environment variables", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment-variables"), nil, [
+        "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/aliases")),
+        "LIST_MEMBERS" => Link.new("List members of this application", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/members")),
+        "SET_UNSET_ENVIRONMENT_VARIABLES" => Link.new("Add/Update/Delete one or more environment variables", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/environment-variables"), nil, [
           OptionalParam.new("name", "string", "Name of the environment variable to add/update"),
           OptionalParam.new("value", "string", "Value of the environment variable"),
           OptionalParam.new("environment_variables", "array", "Add/Update/Delete application environment variables, e.g. Add/Update: [{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}], Delete: [{'name':'FOO'}, {'name':'BAR'}]")
         ]),
-        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment-variables"))
+        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/environment-variables"))
       }
     end
   end

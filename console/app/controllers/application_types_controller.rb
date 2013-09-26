@@ -82,4 +82,30 @@ class ApplicationTypesController < ConsoleController
 
     user_default_domain rescue nil
   end
+
+  def estimate
+    app_params = params[:application] || params
+    app_type_params = params[:application_type] || app_params
+
+    scales = to_boolean(app_params[:scale])
+    application_type = params[:id] == 'custom' ?
+      ApplicationType.custom(app_type_params) :
+      ApplicationType.find(params[:id])
+    cartridges = to_boolean(params[:unlock]) ? {} : (application_type.matching_cartridges.first rescue {})
+    application = (application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
+
+    begin
+      domain = Domain.find(app_params[:domain_name], :as => current_user, :params => {:include => :application_info})
+      capabilities = domain.capabilities
+      owner = domain.owner?
+    rescue RestApi::ResourceNotFound => e
+      # Assume this is a new domain name being entered, so use the user's capabilities
+      capabilities = user_capabilities
+      owner = true
+    end
+
+    render :inline => gear_increase_indicator(cartridges, scales, application.gear_profile, false, capabilities, owner)
+  rescue => e
+    render :inline => e.message, :status => 500
+  end
 end

@@ -68,15 +68,15 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_translate_api_error
-    (errors = mock).expects(:add).once.with(:base, 'test')
+    (errors = mock).expects(:add).once.with('base', 'test')
     RestApi::Base.translate_api_error(errors, nil, nil, 'test')
     (errors = mock).expects(:add).once.with(:test, 'test')
     RestApi::Base.translate_api_error(errors, nil, :test, 'test')
-    (errors = mock).expects(:add).once.with(:test, 'test')
-    RestApi::Base.translate_api_error(errors, nil, 'test', 'test')
-    (errors = mock).expects(:add).once.with(:test, I18n.t('116', :scope => [:rest_api, :errors]))
+    (errors = mock).expects(:add).once.with('test', 'other')
+    RestApi::Base.translate_api_error(errors, nil, 'test', 'other')
+    (errors = mock).expects(:add).once.with('test', I18n.t('116', :scope => [:rest_api, :errors]))
     RestApi::Base.translate_api_error(errors, '116', 'test', 'test')
-    (errors = mock).expects(:add).once.with(:base, I18n.t('116', :scope => [:rest_api, :errors]))
+    (errors = mock).expects(:add).once.with('base', I18n.t('116', :scope => [:rest_api, :errors]))
     RestApi::Base.translate_api_error(errors, '116', nil, nil)
   end
 
@@ -280,7 +280,7 @@ class RestApiTest < ActiveSupport::TestCase
     response = stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello', :exit_code => 125}]}))
     assert errors = RestApi::Base.remote_errors_for(response)
     assert_equal 1, errors.length
-    assert_equal [125, 'test', 'hello'], errors[0]
+    assert_equal [125, 'test', 'hello', nil], errors[0]
   end
 
   def test_save_handles_invalid_error
@@ -526,7 +526,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
   end
 
-  def test_find_single_raises_resource_not_found
+  def test_find_single_domain_raises_resource_not_found
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domain/foo.json', json_header, nil, 404
     end
@@ -1158,21 +1158,22 @@ class RestApiTest < ActiveSupport::TestCase
   class CacheableRestApi < RestApi::Base
     include RestApi::Cacheable
 
-    @count = 0
     def self.find_single(*args)
-      #puts "find_single: #{caller.join("\n  ")}"
-      @count += 1
+      CacheableRestApi.increment
     end
     cache_method :find_single, lambda{ |id, *args| [CacheableRestApi.name, :item, id] }
 
     def self.find_every(*args)
-      #puts "find_every: #{caller.join("\n  ")}"
-      @count += 1
+      CacheableRestApi.increment
     end
     cache_method :find_every, [CacheableRestApi.name, :find_every]
 
     def self.count
-      @count
+      @count ||= 0
+    end
+    def self.increment
+      (@count ||= 0)
+      @count += 1
     end
   end
 
@@ -1189,7 +1190,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert !CacheableRestApi.equal?(cached)
     assert cached < CacheableRestApi
     assert_equal CacheableRestApi.name, cached.name
-    assert_equal [:find_every, :find_single], cached.send(:cache_options)[:caches].keys.map(&:to_s).sort.map(&:to_sym)
+    assert_equal [:find_every, :find_single], cached.send(:caches).keys.map(&:to_s).sort.map(&:to_sym)
 
     assert_same cached, cached.cached
 
@@ -1215,9 +1216,9 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_cacheable_key_for
-    assert_equal [CacheableRestApi.name, :item, 1], CacheableRestApi.send(:cache_key_for, :find_single, 1)
-    assert_equal [CacheableRestApi.name, :item, 2], CacheableRestApi.send(:cache_key_for, :find_single, 2)
-    assert_equal [CacheableRestApi.name, :find_every], CacheableRestApi.send(:cache_key_for, :find_every)
+    assert_equal [CacheableRestApi.name, :item, 1], CacheableRestApi.cached.send(:cache_key_for, :find_single, 1)
+    assert_equal [CacheableRestApi.name, :item, 2], CacheableRestApi.cached.send(:cache_key_for, :find_single, 2)
+    assert_equal [CacheableRestApi.name, :find_every], CacheableRestApi.cached.send(:cache_key_for, :find_every)
   end
 
   def test_cartridge_type_find_invalid
@@ -1318,7 +1319,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
 
     Rails.cache.clear
-    key = CartridgeType.send(:cache_key_for, :find_every)
+    key = CartridgeType.cached.send(:cache_key_for, :find_every)
     assert_nil Rails.cache.read(key)
 
     types = CartridgeType.embedded
@@ -1455,9 +1456,9 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal [true, 1, 3, 5],
                  [:scales?, :scales_from, :current_scale, :scales_to].map{ |s| php.send(s) }
 
-    assert_equal app.git_url, php.git_url
-    assert_equal app.ssh_url, php.ssh_url
-    assert_equal app.ssh_string, php.ssh_string
+    # assert_equal app.git_url, php.git_url
+    # assert_equal app.ssh_url, php.ssh_url
+    # assert_equal app.ssh_string, php.ssh_string
 
     assert mysql = groups[1].cartridges.first
     assert_equal 'mysql-5.1', mysql.name
@@ -1499,30 +1500,6 @@ class RestApiTest < ActiveSupport::TestCase
     assert c.buildable?
     t.tags.clear
     assert !c.buildable?
-  end
-
-  def test_gear_group_move_features
-    mock_types
-
-    gear1 = Gear.new :id => 1, :state => 'started'
-    cart_build = Cartridge.new :name => 'jenkins-client-1'
-    cart_web = Cartridge.new :name => 'php-5.3'
-    group1 = GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_build]}, :as => @user)
-
-    group2 = GearGroup.new(:cartridges => [cart_web])
-
-    assert !group1.send(:move_features, group1)
-
-    assert group1.send(:move_features, group2)
-    assert group1.gears.empty?
-    assert group1.cartridges.empty?
-    assert_equal 1, group2.gears.length
-    assert group2.cartridges[0].builds?
-    assert group2.cartridges[0].builds
-    assert_equal cart_build, group2.cartridges[0].builds.with
-    assert_equal group1.name, group2.cartridges[0].builds.on
-
-    assert group1.send(:move_features, group2) # nothing is moved, but group1 is still empty and should be purged
   end
 
   def a_quickstart(additional_tags=[])
@@ -1709,7 +1686,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
     types = CartridgeType.cached.all
     assert types.length > 0
-    assert Rails.cache.read(CartridgeType.send(:cache_key_for, :find_every))
+    assert Rails.cache.read(CartridgeType.cached.send(:cache_key_for, :find_every))
     types
   end
 

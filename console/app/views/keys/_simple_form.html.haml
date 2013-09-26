@@ -1,6 +1,6 @@
 - input_html = { :class => input_class } if defined? input_class
 
-= semantic_form_for key, :simple => true do |f|
+= semantic_form_for key, :url => (defined?(to) ? to : keys_path), :simple => true do |f|
   = f.semantic_errors :except => [:name, :raw_content, :content, :type]
   = f.inputs do
     = f.hidden_field :name, :value => 'default'

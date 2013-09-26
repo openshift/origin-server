@@ -54,17 +54,16 @@ class DomainsController < BaseController
     authorize! :create_domain, current_user
 
     namespace = (params[:name] || params[:id] || params[:namespace] || '').downcase
-    new_gear_sizes = params[:allowed_gear_sizes]
 
     allowed_domains = OpenShift::ApplicationContainerProxy.max_user_domains(current_user)
     allowed_domains = 1 if requested_api_version < 1.5
 
     @domain = domain = Domain.new(namespace: namespace, owner: current_user)
-    domain.allowed_gear_sizes = new_gear_sizes unless new_gear_sizes.nil?
+    domain.allowed_gear_sizes = Array(params[:allowed_gear_sizes]) if params.has_key? :allowed_gear_sizes
 
     unless pre_and_post_condition(
-             lambda{ Domain.where(owner: current_user).count < allowed_domains }, 
-             lambda{ Domain.where(owner: current_user).count <= allowed_domains }, 
+             lambda{ Domain.where(owner: current_user).count < allowed_domains },
+             lambda{ Domain.where(owner: current_user).count <= allowed_domains },
              lambda{ domain.save_with_duplicate_check! },
              lambda{ domain.destroy rescue nil }
            )

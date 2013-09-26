@@ -108,7 +108,7 @@ input[type="submit"].btn {
 .btn-mini {
   padding: 2px 6px;
   font-size: $baseFontSize - 2px; // FIXME
-  line-height: $baseLineHeight - 4px;
+  line-height: $baseFontSize;
 }
 
 

@@ -16,8 +16,8 @@ class ApplicationsFilter
     @filtered
   end
 
-  def present?
-    !(name.nil? or name.blank?) or !(type.nil? or type.blank?)
+  def blank?
+    name.blank? and type.blank?
   end
 
   def apply(applications)
@@ -164,11 +164,22 @@ class ApplicationsController < ConsoleController
   end
 
   def show
-    @domain = user_default_domain
+    @capabilities = user_capabilities
+
+    if params[:test]
+      @capabilities.send(:max_gears=, params[:test_gears].to_i) if params[:test_gears]
+      @application = Fixtures::Applications.send(params[:test])
+      @domain = Domain.new({:name => @application.domain_id}, true)
+      @gear_groups = @application.cartridge_gear_groups
+      @gear_groups_with_state = @application.gear_groups
+      @gear_groups.each{ |g| g.merge_gears(@gear_groups_with_state) }
+      return
+    end
+
     app_id = params[:id].to_s
 
-    async{ @application = Application.find(app_id, :as => current_user, :params => {:include => :cartridges, :domain_id => @domain.id}) }
-    async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_name => app_id, :domain_id => @domain.id}) }
+    async{ @application = Application.find(app_id, :as => current_user, :params => {:include => :cartridges}) }
+    async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_id => app_id}) }
     async{ sshkey_uploaded? }
 
     join!(30)
@@ -178,10 +189,30 @@ class ApplicationsController < ConsoleController
   end
 
   def get_started
-    user_default_domain
-    @application = @domain.find_application params[:id]
+    @application = Application.find(params[:id], :as => current_user)
+    @wizard = params[:wizard].present?
 
-    @wizard = !params[:wizard].nil?
-    sshkey_uploaded?
+    if !sshkey_uploaded? && !params[:ssh]
+      @noflash = true; flash.keep
+      @key = Key.new
+      render :upload_key and return
+    end
+  end
+
+  def upload_key
+    @application = Application.find(params[:id], :as => current_user)
+    @noflash = true; flash.keep
+    @wizard = params[:wizard].present?
+
+    @key ||= Key.new params[:key]
+    @key.as = current_user
+
+    if @key.save
+      redirect_to get_started_application_path(@application, :ssh => 'no', :wizard => @wizard)
+    else
+      render :upload_key
+    end
+  rescue Key::DuplicateName
+    redirect_to get_started_application_path(@application, :ssh => 'no', :wizard => @wizard)
   end
 end

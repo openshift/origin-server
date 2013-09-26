@@ -72,36 +72,11 @@ class GearGroup < RestApi::Base
   def self.infer(cartridges, application)
     groups = cartridges.group_by(&:grouping).map do |a|
       GearGroup.new({
-        :cartridges => a[1].sort!, 
+        :cartridges => a[1].sort!,
         :gear_profile => a[1].first.gear_profile
       }, true)
     end
-    groups.delete_if{ |g| g.send(:move_features, groups[0]) }
     groups.sort!{ |a,b| a.cartridges.first <=> b.cartridges.first }
-
-    if groups.first
-      cart = groups.first.cartridges.first
-      cart.git_url = application.git_url
-      cart.ssh_url = application.ssh_url
-      cart.ssh_string = application.ssh_string
-    end
     groups
   end
-
-  protected
-    #
-    # Return true if the group is now empty
-    #
-    def move_features(to)
-      cartridges.delete_if do |c|
-        if c.tags.include?(:ci_builder) and not c.tags.include?(:web_framework)
-          to.cartridges.select{ |d| d.tags.include?(:web_framework) }.each{ |d| d.builds_with(c, self) }.present?
-        end
-      end
-      cartridges.delete_if{ |c| cartridges.any?{ |other| other != c && other.scales_with == c.name } }
-      if self != to && cartridges.empty?
-        to.gears.concat(gears)
-        gears.clear
-      end
-    end
 end

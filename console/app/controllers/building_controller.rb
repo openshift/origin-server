@@ -1,5 +1,7 @@
 class BuildingController < ConsoleController
 
+  include CostAware
+  
   def show
     user_default_domain
     @application = @domain.find_application params[:application_id]

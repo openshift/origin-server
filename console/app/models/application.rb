@@ -2,6 +2,14 @@
 # The REST API model object representing an application instance.
 #
 class Application < RestApi::Base
+  include Membership
+
+  class Member < ::Member
+    belongs_to :application
+    self.schema = ::Member.schema
+  end
+
+
   schema do
     string :name, :creation_time
     string :uuid, :domain_id
@@ -28,6 +36,8 @@ class Application < RestApi::Base
   has_many :gears
   has_many :gear_groups
   has_one  :embedded, :class_name => as_indifferent_hash
+
+  has_members :as => Application::Member
 
   attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch
 
@@ -60,6 +70,7 @@ class Application < RestApi::Base
   def gear_groups
     @gear_groups ||= GearGroup.find(:all, child_options)
   end
+  attr_writer :gear_groups
   def cartridge_gear_groups
     @cartridge_gear_groups ||= GearGroup.infer(cartridges, self)
   end
@@ -71,8 +82,14 @@ class Application < RestApi::Base
     true
   end
 
-  def aliases
-    Alias.find :all, child_options
+  def aliases(skip_cache=false)
+    attributes[:aliases] = begin
+      if skip_cache or !attributes[:aliases]
+        persisted? ? Alias.find(:all, child_options) : []
+      else
+        attributes[:aliases]
+      end
+    end
   end
   def find_alias(id)
     Alias.find id, child_options
@@ -91,6 +108,12 @@ class Application < RestApi::Base
 
   def web_url
     app_url
+  end
+
+  def web_uri(scheme=nil)
+    uri = URI.parse(app_url)
+    uri.scheme = scheme
+    uri
   end
 
   #FIXME would prefer this come from REST API
@@ -122,8 +145,22 @@ class Application < RestApi::Base
     scale
   end
 
+  def gear_ranges(account_max=Float::INFINITY)
+    cartridge_gear_groups.inject({}) do |h, group|
+      profile = (h[group.gear_profile] ||= [0, 0])
+      count, max = 0, 0
+      group.cartridges.each do |cart|
+        count = [cart.current_scale, count].max
+        max = [cart.will_scale_to(account_max), max].max
+      end
+      profile[0] += count
+      profile[1] = [profile[1] + max, account_max].max
+      h
+    end.map{ |k, (v, v2)| [k, v, v2] }.sort_by{ |a| [a[1], a[2], a[0]] }.reverse
+  end
+
   def scale_status_url
-    "#{web_url}haproxy-status/"
+    URI.join(web_url, "/haproxy-status/").to_s
   end
 
   def builds?

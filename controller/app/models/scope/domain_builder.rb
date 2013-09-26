@@ -24,12 +24,7 @@ class Scope::DomainBuilder < Scope::Parameterized
     when Application
       if app.domain_id === resource.domain_id
         b = Ability.has_permission?(user, permission, Application, :admin, resource, *other_resources)
-        if Rails.configuration.openshift[:membership_enabled]
-          b && resource.builder_id == builder_id
-        else
-          # DEPRECATED Will be removed after migrations
-          b
-        end
+        b && resource.builder_id == builder_id
       end
     end
   end
@@ -37,12 +32,7 @@ class Scope::DomainBuilder < Scope::Parameterized
   def limits_access(criteria)
     case criteria.klass
     when Application then
-      if Rails.configuration.openshift[:membership_enabled]
-        (criteria.options[:conditions] ||= []).concat([{:domain_id => @id, :builder => app}, {:_id => app._id}])
-      else
-          # DEPRECATED Will be removed after migrations
-        (criteria.options[:conditions] ||= []) << {:domain_id => @id}
-      end
+      (criteria.options[:conditions] ||= []).concat([{:domain_id => @id, :builder => app}, {:_id => app._id}])
     when Domain then (criteria.options[:for_ids] ||= []) << @id
     else criteria.options[:visible] ||= false
     end

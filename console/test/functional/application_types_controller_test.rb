@@ -2,6 +2,8 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class ApplicationTypesControllerTest < ActionController::TestCase
 
+  with_clean_cache
+
   setup{ Quickstart.reset! }
 
   test 'should show index with proper title' do
@@ -65,7 +67,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert type = assigns(:application_type)
     assert_equal t.display_name, type.display_name
     assert assigns(:application)
-    assert assigns(:domain)
+    assert assigns(:domains)
     assert css_select('input#application_domain_name').present?
     if t.id == 'diy-0.1'
       # Sanity-check known non-scalable types
@@ -96,7 +98,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   test "should handle invalid quickstart page" do
     with_unique_user
     type = Quickstart.new(:id => 'test', :name => '', :cartridges => '[{')
-    Quickstart.expects(:find).returns(type)
+    Quickstart.cached.expects(:find).returns(type)
     type = ApplicationType.from_quickstart(type)
     get :show, :id => 'quickstart!test'
     assert_standard_show_type(type)
@@ -109,7 +111,8 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select '.alert.alert-error', /No cartridges are defined for this type/i
     assert_select 'h3 > span.text-warning', 'None'
     assert_select '.btn-primary[disabled=disabled]'
-    assert_select "input[name='application[initial_git_url]']", 0
+    assert_select "input[name='application[initial_git_url]']"
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom single cart type" do
@@ -119,6 +122,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select 'h3', 'Ruby 1.9'
     assert_select 'h3', 'From Scratch'
     assert_select "input[name='application[cartridges][]'][value=ruby-1.9]"
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom single cart type with url" do
@@ -129,15 +133,17 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select 'h3 > a', 'custom_cart'
     assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
     assert_select "input[type=hidden][name='application[cartridges][][url]'][value=http://foo.bar#custom_cart]"
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom single cart type with url unlocked" do
     with_unique_user
-    get :show, :id => 'custom', :application_type => {:cartridges => 'http://foo.bar#custom_cart'}, :unlock => true
+    get :show, :id => 'custom', :application_type => {:cartridges => 'http://foo.bar#custom_cart'}, :scale => true, :unlock => true
     assert_response :success
     assert_select 'h3', 'From Scratch'
     assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
     assert_select "input[type=text][name='application_type[cartridges]'][value=http://foo.bar#custom_cart]"
+    assert_select ".indicator-gear-increase", /\+1\-\?\s+\$/
   end
 
   test "should render custom cart type with a choice" do
@@ -146,6 +152,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_response :success
     assert_select "select[name='application[cartridges][]'] > option", 'Ruby 1.9'
     assert_select "select[name='application[cartridges][]'] > option", 'Ruby 1.8'
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom multiple carts" do
@@ -154,6 +161,25 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_response :success
     assert_select 'h3', /Ruby 1\.9/i
     assert_select 'h3', /MySQL/i
+    assert_select ".indicator-gear-increase", "+1"
+  end
+
+  test "should render custom multiple carts scaled" do
+    with_unique_user
+    get :show, :id => 'custom', :cartridges => ['ruby-1.9', 'mysql-5.1'], :scale => true
+    assert_response :success
+    assert_select 'h3', /Ruby 1\.9/i
+    assert_select 'h3', /MySQL/i
+    assert_select ".indicator-gear-increase", "+2"
+  end
+
+  test "should render custom multiple carts with alternate params" do
+    with_unique_user
+    get :show, :id => 'custom', :application => {:cartridges => ['ruby-1.9', 'mysql-5.1'], :scale => true}
+    assert_response :success
+    assert_select 'h3', /Ruby 1\.9/i
+    assert_select 'h3', /MySQL/i
+    assert_select ".indicator-gear-increase", "+2"
   end
 
   test "should not render custom valid JSON" do
@@ -217,7 +243,8 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     get :show, :id => type.id
 
     # compare the session cache with expected values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps]).first(3)
+    assert_equal [user.max_domains, user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps])[1..4]
+    assert_equal user.max_domains, assigns(:capabilities).max_domains
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
@@ -231,13 +258,14 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     type = types[0]
 
     # seed the cache with values that will never be returned by the broker.
-    session[:caps] = ['test_value','test_value',['test_value','test_value'], 'test_value']
+    session[:caps] = [-1, 'test_value', 'test_value','test_value',['test_value','test_value'], 'test_value']
 
     # make the request
     get :show, :id => type.id
 
     # confirm that the assigned values match our cached values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps]).first(3)
+    assert_equal [user.max_domains, user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps])[1..4]
+    assert_equal user.max_domains, assigns(:capabilities).max_domains
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes

@@ -1,0 +1,61 @@
+- breadcrumb_for_application @application, 'Aliases'
+- content_for :page_title, "Aliases for #{@application.name}"
+
+%h1 Aliases for #{@application.name}
+=flashes
+
+%p.larger
+  Aliases allow you to use your own domain names for your applications on OpenShift.
+
+- if @application.aliases.empty?
+  %p.larger No aliases exist. #{link_to "Add your first alias now", new_application_alias_path(@application)}
+
+- else
+  - alias_scheme = @application.web_url.split(':').first
+  %table.table{style: 'width: auto;'}
+    %thead
+      %tr
+        %th
+        %th{style: 'min-width: 200px;'} Name
+        %th{colspan: 2} 
+        %th
+    %tbody
+      - web_uri = @application.web_uri('http')
+      %tr
+        %td
+          %span.icon-lock{'aria-hidden' => true, :title => 'Uses the .rhcloud.com SSL certificate', style: 'opacity: 0.5'}
+        %td= web_uri.hostname
+        %td{colspan: 2} 
+        %td
+          = link_to web_uri.to_s, title: "Go to the application's web page", target: "_blank", class: 'url' do
+            %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
+
+
+      - @application.aliases.sort.each do |a|
+        %tr
+          %td
+            - if a.has_private_ssl_certificate?
+              %span.icon-lock{'aria-hidden' => true, :title => 'SSL certificate attached'}
+            - else
+              %span.icon-unlock{'aria-hidden' => true, :title => 'No SSL certificate'}
+          %td= link_to a.name, edit_application_alias_path(@application, a.name)
+          %td
+            = link_to edit_application_alias_path(@application, a.name) do
+              edit
+          %td
+            = link_to delete_application_alias_path(@application, a.name) do
+              delete
+          %td
+            = link_to a.web_uri(a.has_private_ssl_certificate? ? 'https' : 'http').to_s, title: "Go to the application's web page", target: "_blank", class: 'url' do
+              %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
+
+    %tfooter
+      %tr
+        %td
+        %td= link_to "Add a new alias now", new_application_alias_path(@application)
+        %td{colspan: 2} 
+        %td
+
+  %p.larger
+
+%p Note: In order to route traffic on your domain to OpenShift, you must #{link_to("set up a CNAME record with your DNS provider", alias_docs_url)}.

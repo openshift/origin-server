@@ -118,7 +118,7 @@ module Console::LayoutHelper
       :link => 'application_types_path'
     },
     {
-      :name => 'Configure and deploy the application'
+      :name => 'Configure the application'
     },
     {
       :name => 'Next steps'
@@ -135,7 +135,7 @@ module Console::LayoutHelper
       :link => 'application_cartridge_types_path'
     },
     {
-      :name => 'Configure and deploy the cartridge'
+      :name => 'Configure the cartridge'
     },
     {
       :name => 'Next steps'

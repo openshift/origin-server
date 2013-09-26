@@ -8,11 +8,11 @@ class AccessControlledTest < ActiveSupport::TestCase
   end
 
   def with_membership(&block)
-    with_config(:membership_enabled, true, &block)
+    yield
   end
 
   def without_membership(&block)
-    with_config(:membership_enabled, false, &block)
+    # do nothing
   end
 
   def with_config(sym, value, base=:openshift, &block)
@@ -335,6 +335,31 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert Domain.find_by(:namespace => 'test').pending_ops.empty?
   end
 
+  def test_domain_propagates_changes_to_new_applications
+    CloudUser.in(:login => ['propagate_test', 'propagate_test_2', 'propagate_test_3', 'propagate_test_4']).delete
+    assert u = CloudUser.create(:login => 'propagate_test')
+    assert u2 = CloudUser.create(:login => 'propagate_test_2')
+    assert u3 = CloudUser.create(:login => 'propagate_test_3')
+    assert u4 = CloudUser.create(:login => 'propagate_test_4')
+
+    Domain.where(:namespace => 'test').delete
+    assert d = Domain.create(:namespace => 'test', :owner => u)
+    d.add_members(u2, :edit)
+    d.add_members(u3, :view)
+    d.add_members(u4, :admin)
+    d.save
+
+    Application.where(:name => 'propagatetest').delete
+    assert a = Application.create(:name => 'propagatetest', :domain => d)
+
+    [d, a].each do |m|
+      assert_equal :admin, m.role_for(u), "Role incorrect for #{m.class.model_name}"
+      assert_equal :edit, m.role_for(u2), "Role incorrect for #{m.class.model_name}"
+      assert_equal :view, m.role_for(u3), "Role incorrect for #{m.class.model_name}"
+      assert_equal :admin, m.role_for(u4), "Role incorrect for #{m.class.model_name}"
+    end
+  end
+
   def test_domain_propagates_changes_to_application
     CloudUser.in(:login => ['propagate_test', 'propagate_test_2', 'propagate_test_3']).delete
     Domain.where(:namespace => 'test').delete
@@ -354,7 +379,7 @@ class AccessControlledTest < ActiveSupport::TestCase
 
     assert a = Application.create(:name => 'propagatetest', :domain => d)
     assert_equal [Member.new(_id: u._id)], d.members
-    assert_equal [['domain', :admin]], d.members.first.from
+    assert_equal [['domain', :admin]], a.members.first.from
     assert_equal Application.default_role, a.members.first.role
 
     assert     Application.accessible(u).first

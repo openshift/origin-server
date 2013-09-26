@@ -13,11 +13,12 @@ module RestApi
   #  password - a user password
   #
   class Credentials
-    attr_reader :login, :ticket, :password
-    def initialize(login,ticket=nil,password=nil)
+    attr_reader :login, :ticket, :password, :remote_ip
+    def initialize(login,ticket=nil,password=nil,remote_ip=nil)
       @login = login
       @ticket = ticket
       @password = password
+      @remote_ip = remote_ip
     end
     def cache_key
       login
@@ -49,11 +50,11 @@ module RestApi
       "#{model.to_s.titleize}#{ " '#{id}'" unless id.nil?} does not exist"
     end
     def errors
-      @errors ||= Base.remote_errors_for(response)      
+      @errors ||= Base.remote_errors_for(response)
     end
     def messages
       @messages ||= Base.messages_for(response)
-    end    
+    end
   end
 
   class ServerUnavailable < ActiveResource::ServerError ; end

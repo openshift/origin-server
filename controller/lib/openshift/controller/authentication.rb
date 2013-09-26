@@ -70,6 +70,7 @@ module OpenShift
           log_actions_as(user)
 
           headers['X-OpenShift-Identity'] = user.login
+          headers['X-OpenShift-Identity-Id'] = user._id.to_s
           headers['X-OAuth-Scopes'] = scopes
 
           log_action("AUTHENTICATE", nil, true, "Authenticated", 'IP' => request.remote_ip, 'SCOPES' => scopes)

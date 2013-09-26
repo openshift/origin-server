@@ -193,8 +193,9 @@ module OpenShift
           log_args = get_log_args.merge(extra_log_args)
 
           if extra_messages.present?
-            reply.messages.concat(messages)
-            log_action(action_log_tag, status, true, message, log_args, messages.map(&:text).join(', '))
+            extra_messages = Array(extra_messages)
+            reply.messages.concat(extra_messages)
+            log_action(action_log_tag, status, true, message, log_args, extra_messages.map(&:text).join(', '))
           else
             log_action(action_log_tag, status, true, message, log_args)
           end
@@ -208,15 +209,17 @@ module OpenShift
         #    MongoId model to process
         #  field_name_map::
         #    Maps an internal field name to a user visible field name. (Optional)
-        def get_error_messages(object, field_name_map={})
+        def get_error_messages(object, field_name_map={}, for_index=false)
           messages = []
-          object.errors.keys.each do |key|
-            field = field_name_map[key.to_s] || key.to_s
-            err_msgs = object.errors.get(key)
-            err_msgs.each do |err_msg|
-              messages.push(Message.new(:error, err_msg, object.class.validation_map[key], field))
-            end if err_msgs
-          end if object && object.errors && object.errors.keys
+          Array(object).each_with_index do |o, i|
+            o.errors.keys.each do |key|
+              field = field_name_map[key.to_s] || key.to_s
+              err_msgs = o.errors.get(key)
+              err_msgs.each do |err_msg|
+                messages.push(Message.new(:error, err_msg, o.class.validation_map[key], field, (i if for_index)))
+              end if err_msgs
+            end if o.respond_to?(:errors) && o.errors.respond_to?(:keys)
+          end
           messages
         end
 

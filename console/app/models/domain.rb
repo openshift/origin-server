@@ -2,6 +2,13 @@
 # The REST API model object representing the domain, which may contain multiple applications.
 #
 class Domain < RestApi::Base
+  include Membership
+
+  class Member < ::Member
+    belongs_to :domain
+    self.schema = ::Member.schema
+  end
+
   schema do
     string :id
     string :suffix

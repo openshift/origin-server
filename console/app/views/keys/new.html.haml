@@ -1,6 +1,6 @@
-- content_for :title, "Add a public SSH key"
-- breadcrumb_for_settings 'Add a public SSH key'
+- content_for :title, "Add a public key"
+- breadcrumb_for_settings 'Add a public key'
 %h1 Add a public key
 =flashes
 
-= render :partial => 'keys/form', :locals => {:key => @key, :first => @first}
+= render :partial => 'keys/form', :locals => {:key => @key, :input_class => 'span6', :focus => @key.errors.empty?, :first => @first}

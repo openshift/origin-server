@@ -12,7 +12,7 @@ class SingularResourcesIntegrationTest < ActionDispatch::IntegrationTest
 
     assert_response :success
 
-    assert_select "h1.name", :text => app.name
+    assert_select "h1 > .name", :text => /#{app.name}/
 
   end
 

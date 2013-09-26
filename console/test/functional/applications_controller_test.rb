@@ -144,7 +144,6 @@ class ApplicationsControllerTest < ActionController::TestCase
     app_params[:name] = ''
     app_params[:cartridges] = [{:url => 'https://foo.bar'}]
     Application.any_instance.expects(:save).returns(true)
-    Application.any_instance.expects(:persisted?).at_least_once.returns(true)
 
     post(:create, {:application => app_params, :application_type => app_type, :advanced => true})
     
@@ -161,7 +160,6 @@ class ApplicationsControllerTest < ActionController::TestCase
     }
     app_params[:name] = ''
     Application.any_instance.expects(:save).returns(true)
-    Application.any_instance.expects(:persisted?).at_least_once.returns(true)
 
     post(:create, {:application => app_params, :application_type => app_type, :advanced => true})
     
