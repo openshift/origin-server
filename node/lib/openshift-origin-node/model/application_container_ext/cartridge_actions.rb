@@ -1010,7 +1010,9 @@ module OpenShift
             gears = ["#{uuid}@unused"]
           end
 
-          batch_size = calculate_batch_size(gears.size, PARALLEL_CONCURRENCY_RATIO)
+          parallel_concurrency_ratio = options[:parallel_concurrency_ratio] || PARALLEL_CONCURRENCY_RATIO
+
+          batch_size = calculate_batch_size(gears.size, parallel_concurrency_ratio)
           threads = [batch_size, MAX_THREADS].min
 
           parallel_output = Parallel.map(gears, :in_threads => threads) do |gear|

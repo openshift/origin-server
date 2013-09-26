@@ -944,9 +944,8 @@ module MCollective
       def oo_restart(args)
         cart_name = args['--cart-name']
         options = {}
-        if args['--all']
-          options[:all] = true
-        end
+        options[:all] = true if args['--all']
+        options[:parallel_concurrency_ratio] = args['--parallel_concurrency_ratio'].to_f if args['--parallel_concurrency_ratio']
 
         with_container_from_args(args) do |container, output|
           container.restart(cart_name, options)

@@ -1034,6 +1034,7 @@ module OpenShift
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
         args['--all'] = all
+        args['--parallel_concurrency_ratio'] = 0.5
         RemoteJob.new('openshift-origin-node', 'restart', args)
       end
 
