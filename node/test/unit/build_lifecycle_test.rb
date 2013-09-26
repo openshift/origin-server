@@ -821,7 +821,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     result = @container.distribute({ deployment_id: 123})
 
-    assert_equal :success, result[:status]
+    assert_equal 'success', result[:status]
     assert_equal 0, result[:gear_results].size
   end
 
@@ -845,15 +845,15 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     gears.each do |g|
-      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: :success })
+      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: 'success' })
     end
 
     result = @container.distribute(deployment_id: deployment_id)
 
-    assert_equal :success, result[:status]
+    assert_equal 'success', result[:status]
     assert_equal 2, result[:gear_results].size
-    assert_equal :success, result[:gear_results]['1234'][:status]
-    assert_equal :success, result[:gear_results]['2345'][:status]
+    assert_equal 'success', result[:gear_results]['1234'][:status]
+    assert_equal 'success', result[:gear_results]['2345'][:status]
   end
 
   def test_distribute_failure
@@ -868,15 +868,15 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    @container.expects(:distribute_to_gear).with('1234@localhost', gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: :success })
-    @container.expects(:distribute_to_gear).with('2345@localhost', gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: :failure })
+    @container.expects(:distribute_to_gear).with('1234@localhost', gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: 'success' })
+    @container.expects(:distribute_to_gear).with('2345@localhost', gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: 'failure' })
 
     result = @container.distribute(deployment_id: deployment_id)
 
-    assert_equal :failure, result[:status]
+    assert_equal 'failure', result[:status]
     assert_equal 2, result[:gear_results].size
-    assert_equal :success, result[:gear_results]['1234'][:status]
-    assert_equal :failure, result[:gear_results]['2345'][:status]
+    assert_equal 'success', result[:gear_results]['1234'][:status]
+    assert_equal 'failure', result[:gear_results]['2345'][:status]
   end
 
   def test_distribute_specified_gears
@@ -891,15 +891,15 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     gears.each do |g|
-      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: :success })
+      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: 'success' })
     end
 
     result = @container.distribute(gears: gears, deployment_id: deployment_id)
 
-    assert_equal :success, result[:status]
+    assert_equal 'success', result[:status]
     assert_equal 2, result[:gear_results].size
-    assert_equal :success, result[:gear_results]['1234'][:status]
-    assert_equal :success, result[:gear_results]['2345'][:status]
+    assert_equal 'success', result[:gear_results]['1234'][:status]
+    assert_equal 'success', result[:gear_results]['2345'][:status]
   end
 
   def test_distribute_to_gear_success
@@ -913,7 +913,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     result = @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
 
-    assert_equal :success, result[:status]
+    assert_equal 'success', result[:status]
   end
 
   def test_distribute_to_gear_retry_success
@@ -928,7 +928,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     result = @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
 
-    assert_equal :success, result[:status]
+    assert_equal 'success', result[:status]
   end
 
   def test_distribute_to_gear_retry_failure
@@ -943,7 +943,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     result = @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
 
-    assert_equal :failure, result[:status]
+    assert_equal 'failure', result[:status]
   end
 
   def test_activate_not_elected_proxy
@@ -955,7 +955,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     result = @container.activate(deployment_id: "123")
 
-    assert_equal :success, result[:status]
+    assert_equal 'success', result[:status]
     assert_equal 0, result[:gear_results].size
   end
 
@@ -964,12 +964,13 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     @container.expects(:child_gear_ssh_urls).returns([])
-    @container.expects(:run_in_container_context).never
+
+    @container.expects(:activate_gear).with(deployment_id: "123", hot_deploy: nil, init: nil).returns(gear_uuid: @container.uuid, status: 'success', errors: [], messages: [])
 
     result = @container.activate(deployment_id: "123")
 
-    assert_equal :success, result[:status]
-    assert_equal 0, result[:gear_results].size
+    assert_equal 'success', result[:status]
+    assert_equal 1, result[:gear_results].size
   end
 
   def test_activate_success
@@ -981,13 +982,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).returns(gears)
 
-    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '1234', status: :success, errors: [], messages: [])
-    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '2345', status: :success, errors: [], messages: [])
+    @container.expects(:activate_gear).with(deployment_id: deployment_id, hot_deploy: nil, init: nil).returns(gear_uuid: @container.uuid, status: 'success', errors: [], messages: [])
+    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '1234', status: 'success', errors: [], messages: [])
+    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '2345', status: 'success', errors: [], messages: [])
     
     result = @container.activate(deployment_id: deployment_id)
 
-    assert_equal :success, result[:status]
-    assert_equal 2, result[:gear_results].size
+    assert_equal 'success', result[:status]
+    assert_equal 3, result[:gear_results].size
   end
 
   def test_activate_failure
@@ -999,13 +1001,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '1234', status: :success, errors: [], messages: [])
-    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '2345', status: :failure, errors: [], messages: [])
+    @container.expects(:activate_gear).with(deployment_id: deployment_id, hot_deploy: nil, init: nil).returns(gear_uuid: @container.uuid, status: 'success', errors: [], messages: [])
+    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '1234', status: 'success', errors: [], messages: [])
+    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '2345', status: 'failure', errors: [], messages: [])
 
     result = @container.activate(deployment_id: deployment_id)
 
-    assert_equal :failure, result[:status]
-    assert_equal 2, result[:gear_results].size
+    assert_equal 'failure', result[:status]
+    assert_equal 3, result[:gear_results].size
   end
 
   def test_activate_remote_gear_success
@@ -1017,20 +1020,20 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: :success, messages: [], errors: [])
+              .returns(status: 'success', messages: [], errors: [])
 
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
-                                                 .returns('out')
+                                                 .returns(JSON.dump(status: 'success', gear_uuid: gear_uuid))
 
     @container.expects(:update_proxy_status)
               .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: :success, messages: [], errors: [])
+              .returns(status: 'success', messages: [], errors: [])
 
     result = @container.activate_remote_gear(g, gear_env, options)
 
-    assert_equal :success, result[:status]
+    assert_equal 'success', result[:status]
   end
 
   def test_activate_remote_gear_proxy_disable_fails
@@ -1042,9 +1045,9 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: :failure, messages: [], errors: [])
+              .returns(status: 'failure', messages: [], errors: [])
 
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
                                                  .never
@@ -1055,7 +1058,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     result = @container.activate_remote_gear(g, gear_env, options)
 
-    assert_equal :failure, result[:status]
+    assert_equal 'failure', result[:status]
   end
 
   def test_activate_remote_gear_activation_fails
@@ -1067,9 +1070,9 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: :success, messages: [], errors: [])
+              .returns(status: 'success', messages: [], errors: [])
 
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
                                                  .raises(::OpenShift::Runtime::Utils::ShellExecutionException.new('msg'))
@@ -1080,7 +1083,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     result = @container.activate_remote_gear(g, gear_env, options)
 
-    assert_equal :failure, result[:status]
+    assert_equal 'failure', result[:status]
   end
 
   def test_activate_remote_gear_proxy_enable_fails
@@ -1092,20 +1095,20 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: :success, messages: [], errors: [])
+              .returns(status: 'success', messages: [], errors: [])
 
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
-                                                 .returns('out')
+                                                 .returns(JSON.dump(status: 'success', gear_uuid: gear_uuid))
 
     @container.expects(:update_proxy_status)
               .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: :failure, messages: [], errors: [])
+              .returns(status: 'failure', messages: [], errors: [])
 
     result = @container.activate_remote_gear(g, gear_env, options)
 
-    assert_equal :failure, result[:status]
+    assert_equal 'failure', result[:status]
   end
 
   def test_activate_remote_gear_hot_deploy
@@ -1119,10 +1122,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
               .never
 
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --hot-deploy",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --hot-deploy",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
-                                                 .returns('out')
+                                                 .returns(JSON.dump(status: 'success', gear_uuid: gear_uuid))
 
     @container.expects(:update_proxy_status)
               .with(action: :enable, gear_uuid: gear_uuid, persist: false)
@@ -1130,7 +1133,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     result = @container.activate_remote_gear(g, gear_env, options)
 
-    assert_equal :success, result[:status]
+    assert_equal 'success', result[:status]
   end
 
   def test_activate_remote_gear_init
@@ -1142,20 +1145,20 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:update_proxy_status)
               .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: :success, messages: [], errors: [])
+              .returns(status: 'success', messages: [], errors: [])
 
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy --init",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy --init",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
-                                                 .returns('out')
+                                                 .returns(JSON.dump(status: 'success', gear_uuid: gear_uuid))
 
     @container.expects(:update_proxy_status)
               .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: :success, messages: [], errors: [])
+              .returns(status: 'success', messages: [], errors: [])
 
     result = @container.activate_remote_gear(g, gear_env, options)
 
-    assert_equal :success, result[:status]
+    assert_equal 'success', result[:status]
   end
 
   # options

@@ -254,6 +254,9 @@ command :activate do |c|
   c.option "--init", "Run post_install for new gears"
   c.option "--[no-]hot-deploy", "Perform hot deployment according to the specified "\
            "argument rather than checking for the presence of the hot_deploy marker in the application Git repo"
+  c.option "--as-json", "Render the results as JSON to stdout"
+  c.option "--all", "Activate all gears in the application (only applicable if executed from a proxy gear)"
+
   c.action do |args, options|
     # TODO make sure there is a deployment id arg
     do_command(c, options) do
@@ -263,8 +266,13 @@ command :activate do |c|
         hot_deploy_enabled = options.hot_deploy
       end
 
-      @container.activate_gear(out: $stdout, err: $stderr, deployment_id: args[0], hot_deploy: hot_deploy_enabled, init: options.init)
-      @container.activate(out: $stdout, err: $stderr, deployment_id: args[0], hot_deploy: hot_deploy_enabled, init: options.init)
+      if options.all
+        result = @container.activate(deployment_id: args[0], hot_deploy: hot_deploy_enabled, init: options.init)
+      else
+        result = @container.activate_gear(deployment_id: args[0], hot_deploy: hot_deploy_enabled, init: options.init)
+      end
+
+      $stdout.puts(JSON.dump(result)) if options.as_json      
     end
   end
 end

@@ -210,7 +210,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
 
       # rollback
       OpenShift::Runtime::NodeLogger.logger.info("Rolling back to #{deployment_id}")
-      OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id}`
+      OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id} --all`
 
       # make sure the http content is rolled back
       entries[:web].values.each { |entry| assert_http_title_for_entry entry, DEFAULT_TITLE }
@@ -218,7 +218,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
       assert_http_title_for_app app_name, @namespace, CHANGED_TITLE
 
       OpenShift::Runtime::NodeLogger.logger.info("Rolling back to #{deployment_id}")
-      OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id}`
+      OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id} --all`
 
       assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE      
     end
