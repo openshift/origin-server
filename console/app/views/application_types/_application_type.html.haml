@@ -1,7 +1,7 @@
 - type = application_type
 = div_for type, :class => 'tile tile-click tile-featured label-tags' do
   %h3
-    = link_to type.display_name, application_type_path(type)
+    = link_to type.display_name, application_type_path(type), :class => 'tile-target'
 
     - if type.usage_rates?
       = usage_rate_indicator

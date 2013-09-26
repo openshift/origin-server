@@ -1,10 +1,13 @@
 class ApplicationTypesController < ConsoleController
-
   include Console::ModelHelper
+  include CostAware
 
   def index
     @capabilities = user_capabilities
-    flash.now[:warning] = "Currently you do not have enough free gears available to create a new application. You can either scale down or delete existing applications to free up resources." unless @capabilities.gears_free?
+
+    if (create_warning = available_gears_warning(user_writeable_domains))
+      flash.now[:warning] = create_warning
+    end
 
     @browse_tags = [
       ['Java', :java],
@@ -50,10 +53,15 @@ class ApplicationTypesController < ConsoleController
   def show
     app_params = params[:application] || params
     app_type_params = params[:application_type] || app_params
-    @advanced = to_boolean(params[:advanced])
     @unlock_cartridges = to_boolean(params[:unlock])
 
-    user_default_domain rescue (@domain = Domain.new)
+    @capabilities = user_capabilities :refresh => true
+
+    @user_writeable_domains = user_writeable_domains :refresh => true
+    @user_default_domain = user_default_domain rescue (Domain.new)
+    @can_create = @capabilities.max_domains > user_owned_domains.length
+
+    @gear_sizes = new_application_gear_sizes(@user_writeable_domains, @capabilities)
 
     @compact = false # @domain.persisted?
 
@@ -61,11 +69,11 @@ class ApplicationTypesController < ConsoleController
       ApplicationType.custom(app_type_params) :
       ApplicationType.find(params[:id])
 
-    @capabilities = user_capabilities :refresh => true
-
     @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
-    @application.gear_profile = @capabilities.gear_sizes.first unless @capabilities.gear_sizes.include?(@application.gear_profile)
-    @application.domain_name = app_params[:domain_name].presence || app_params[:domain_id].presence
+    @application.gear_profile = @gear_sizes.first unless @gear_sizes.include?(@application.gear_profile)
+    @application.domain_name = app_params[:domain_name] || app_params[:domain_id] || @user_default_domain.name
+
+    (@domain_capabilities, @is_domain_owner) = estimate_domain_capabilities(@application.domain_name, @user_writeable_domains, @can_create, @capabilities)
 
     unless @unlock_cartridges
       begin
@@ -78,8 +86,10 @@ class ApplicationTypesController < ConsoleController
       @disabled = @missing_cartridges.present? || @cartridges.blank?
     end
 
-    flash.now[:error] = "There are not enough free gears available to create a new application. You will either need to scale down or delete existing applications to free up resources." unless @capabilities.gears_free?
-
+    if (create_warning = available_gears_warning(@user_writeable_domains))
+      flash.now[:error] = create_warning
+    end
+    
     user_default_domain rescue nil
   end
 

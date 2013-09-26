@@ -218,17 +218,33 @@ module RestApi
       end
     end
 
-    def initialize(attributes = {}, persisted=false)
+    def child_prefix_options
+      {}
+    end
+
+    def initialize(attributes = {}, persisted=false, prefix_options=nil)
       @as = attributes.delete :as
       @attributes     = HashWithSimpleIndifferentAccess.new
-      @prefix_options = {}
+      @prefix_options = prefix_options || split_options(attributes).first
       @persisted = persisted
       load(attributes)
     end
 
+    def attribute_load_order_sort
+      lambda do |key|
+        if schema and schema.has_key?(key)
+          [-1, key.to_s]
+        elsif reflections and reflections.has_key?(key.to_sym)
+          [1,  key.to_s]
+        else
+          [0,  key.to_s]
+        end
+      end
+    end
+
     def load(attributes, remove_root=false)
       raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
-      self.prefix_options, attributes = split_options(attributes)
+      #self.prefix_options, attributes = split_options(attributes)
 
       # Clear calculated messages
       self.messages = nil
@@ -242,7 +258,9 @@ module RestApi
         send("#{to}=", value) unless value.nil?
       end
 
-      attributes.each do |key, value|
+      attributes.keys.sort_by(&attribute_load_order_sort).each do |key|
+        value = attributes[key]
+
         if !known.include? key.to_s and !calculated.include? key and self.class.method_defined?("#{key}=")
           send("#{key}=", value)
         else
@@ -254,7 +272,11 @@ module RestApi
                     value.map do |attrs|
                       if attrs.is_a?(Hash)
                         attrs[:as] = as if resource.method_defined? :as=
-                        resource.new(attrs)
+                        if resource < RestApi::Base
+                          resource.new(attrs, persisted?, child_prefix_options)
+                        else
+                          resource.new(attrs)
+                        end
                       else
                         attrs
                       end
@@ -268,7 +290,11 @@ module RestApi
               when Hash
                 if resource = find_or_create_resource_for(key)
                   value[:as] = as if resource.method_defined? :as=
-                  resource.new(value)
+                  if resource < RestApi::Base
+                    resource.new(value, persisted?, child_prefix_options)
+                  else
+                    resource.new(value)
+                  end
                 else
                   value
                 end
@@ -368,10 +394,17 @@ module RestApi
       end
     end
 
-    def destroy
-      super
+    # Overrides ActiveResource::Base#destroy
+    def destroy_without_notifications
+      response = connection.delete(element_path, self.class.headers)
+      set_remote_errors(response, true) if response.code != 204
+      true
     rescue ActiveResource::ResourceNotFound => e
       raise ResourceNotFound.new(self.class.model_name, id, e.response)
+    rescue ActiveResource::ForbiddenAccess => error
+      @remote_errors = error
+      load_remote_errors(@remote_errors, true)
+      false
     end
 
     class << self
@@ -595,6 +628,19 @@ module RestApi
       end
     end
 
+    def extract_messages(response)
+      results = RestApi::Base.format.decode(response.body)
+      if results.is_a? Hash
+        results['messages'] || []
+      elsif results.is_a? Array
+        results.first['messages'] || []
+      else
+        []
+      end
+    rescue
+      []
+    end
+
     #FIXME may be refactored
     def remote_results
       (attributes[:messages] || []).select{ |m| m['severity'] == 'result' }.map{ |m| m['text'].presence }.compact
@@ -644,12 +690,24 @@ module RestApi
     # Override method from CustomMethods to handle body objects
     #
     def get(custom_method_name, options = {})
-      self.class.send(:instantiate_collection, self.class.format.decode(connection.get(custom_method_element_url(custom_method_name, options), self.class.headers).body), as, prefix_options ) #changed
+      response = connection(options).get(custom_method_element_url(custom_method_name, options), self.class.headers)
+      self.class.send(:instantiate_collection, self.class.format.decode(response.body), as, prefix_options, response) #changed
     rescue ActiveResource::ResourceNotFound => e
       raise ResourceNotFound.new(self.class.model_name, id, e.response)
     end
 
-    [:post, :delete, :put, :patch].each do |sym|
+    #
+    # Define patch method
+    #
+    def patch(custom_method_name, options = {}, body = '')
+      begin
+        connection.patch(custom_method_element_url(custom_method_name, options), body, self.class.headers)
+      rescue ActiveResource::ResourceNotFound => e
+        raise ResourceNotFound.new(self.class.model_name, id, e.response)
+      end
+    end
+
+    [:post, :delete, :put].each do |sym|
       define_method sym do |*args|
         begin
           super *args
@@ -664,7 +722,8 @@ module RestApi
     # aware
     #
     def reload
-      self.load(prefix_options.merge(self.class.find(to_param, :params => prefix_options, :as => as).attributes))
+      p = prefix_options || {}
+      self.load(p.merge(self.class.find(to_param, :params => p, :as => as).attributes))
     end
 
     #
@@ -880,7 +939,6 @@ module RestApi
       end
 
       def method_missing(method_symbol, *arguments) #:nodoc:
-        #puts "in method missing of RestApi::Base #{method_symbol}"
         method_name = method_symbol.to_s
 
         if method_name =~ /(=|\?)$/

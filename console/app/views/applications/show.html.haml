@@ -395,17 +395,7 @@
 
 - content_for :javascripts do
   :javascript
-    $('#restart-link').popover({
-      content: function() { return $('#restart-popover').html(); }
-    }).click(function() {
-      $('#restart-link').toggleClass('highlight');
-      $('#restart-container').activateForms();
-      return false;
-    });
-
-    $('#restart-container').on('click', '.restart-cancel', function() {
-      $('#restart-link').removeClass('highlight').popover('hide');
-      return false;
-    }).on('submit', 'form', function() {
-      $('#restart-container .btn').hide();
+    $('[data-text-copy]').click(function() {
+      $(this).focus().select();
+      $(this).keypress(function(e){ e.preventDefault(); });
     });

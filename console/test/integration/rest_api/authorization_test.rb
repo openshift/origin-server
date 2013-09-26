@@ -124,7 +124,9 @@ class RestApiAuthorizationTest < ActiveSupport::TestCase
   test 'authorization delete by token fails when token has no scope' do
     assert auth = Authorization.create(:as => @user)
     auth = Authorization.new({:id => auth.token, :as => auth}, true)
-    assert_raises(ActiveResource::ForbiddenAccess){ auth.destroy }
+    assert !auth.destroy
+    assert error = auth.errors[:base].first
+    assert error["not allowed"]
   end
 
   test 'authorization delete by token when token has session scope succeeds' do

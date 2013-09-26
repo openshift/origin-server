@@ -53,10 +53,26 @@ class MembersController < BaseController
       warnings << Message.new(:warning, msg, 1, nil)
     end
 
+    count_remove = remove.count
+    count_update = (membership.member_ids & new_members.map(&:id)).count
+    count_add    = new_members.count - count_update
+
+    membership.remove_members(remove.keys)
     membership.add_members(new_members)
 
     if save_membership(membership)
-      render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, "Added #{pluralize(new_members.length, 'member')}.")
+      msg = [
+        ("added #{pluralize(count_add,      'member')}" if count_add > 0),
+        ("updated #{pluralize(count_update, 'member')}" if count_update > 0),
+        ("removed #{pluralize(count_remove, 'member')}" if count_remove > 0),
+        ("ignored #{pluralize(invalid_members.length, 'missing member')} (#{invalid_members.join(', ')})" if invalid_members.present?),
+      ].compact.join(", ").humanize + '.'
+
+      if (count_add + count_update == 1) and (count_remove == 0) and (member = members.detect{|m| m._id == new_members.first._id })
+        render_success(:ok, "member", get_rest_member(member), msg, nil, warnings)
+      else
+        render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, msg, nil, warnings)
+      end
     else
       render_error(:unprocessable_entity, "The members could not be added due to validation errors.", nil, nil, nil, get_error_messages(new_members))
     end
@@ -64,18 +80,7 @@ class MembersController < BaseController
 
   def destroy
     authorize! :change_members, membership
-
-    membership.remove_members(params[:id])
-
-    if save_membership(membership)
-      if m = members.detect{ |m| m._id === params[:id] }
-        render_success(:ok, "member", get_rest_member(m), "The member #{m.name} is no longer directly granted a role.")
-      else
-        render_success(:no_content, nil, nil, "Removed member.")
-      end
-    else
-      render_error(:unprocessable_entity, "The member could not be removed due to an error.", nil, nil, nil, get_error_messages(membership))
-    end
+    remove_member(params[:id])
   end
 
   def destroy_all
@@ -110,9 +115,28 @@ class MembersController < BaseController
     end
   end
 
+  def leave
+    authorize! :leave, membership
+    return render_error(:bad_request, "You are the owner of this #{membership.class.model_name.humanize.downcase} and cannot leave.") if membership.owned_by?(current_user)
+    remove_member(current_user._id)
+  end
+
   protected
     def membership
       raise "Must be implemented to return the resource under access control"
+    end
+
+    def remove_member(id)
+      membership.remove_members(id)
+      if save_membership(membership)
+        if m = members.detect{ |m| m._id === id }
+          render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:info, "The member #{m.name} is no longer directly granted a role.", 132))
+        else
+          render_success(:no_content, nil, nil, "Removed member.")
+        end
+      else
+        render_error(:unprocessable_entity, "The member could not be removed due to an error.", nil, nil, nil, get_error_messages(membership))
+      end
     end
 
     #
