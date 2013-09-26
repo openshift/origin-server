@@ -7,6 +7,7 @@ Version: '0.1'
 Versions:
 - '0.1'
 - '0.2'
+- '0.3'
 License: ASL 2.0
 Vendor: Red Hat
 Cartridge-Version: 0.0.1
@@ -75,3 +76,27 @@ Version-Overrides:
     Provides:
     - mock-0.2
     - mock
+  '0.3':
+    Display-Name: Mock Cartridge 0.3
+    Install-Build-Required: true
+    Provides:
+    - mock-0.3
+    - mock-0.2
+    - mock
+    Endpoints:
+    - Private-IP-Name: EXAMPLE_IP1
+      Private-Port-Name: EXAMPLE_PORT1
+      Private-Port: 8123
+      Public-Port-Name: EXAMPLE_PUBLIC_PORT1
+      Mappings:
+      - Frontend: ''
+        Backend: ''
+        Options:
+          ssl_to_gear: true
+          websocket: true
+      - Frontend: /health
+        Backend: ''
+        Options:
+          health: true
+      Options:
+        ssl_to_gear: true
