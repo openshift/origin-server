@@ -159,8 +159,13 @@ h2 + ul, h3 + ul, h4 + ul {
       position: relative;
       width: 270px;
       &:hover:after {
+        background: #e22434;
         bottom: -3px;
-        left: 64px;
+        content: "";
+        display: block;
+        height: 2px;
+        left: 65px;
+        position: absolute;
         right: 3px;
       }
       .brand-image {
@@ -231,7 +236,7 @@ h2 + ul, h3 + ul, h4 + ul {
         }
         &:hover:after {
           bottom: 4px;
-          left: 50px;
+          left: 52px;
           right: 0;
         }
       }
