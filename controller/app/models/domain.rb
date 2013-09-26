@@ -80,7 +80,8 @@ class Domain
     lambda{ |d| [user._id == d.owner_id ? 0 : 1, d.created_at] }
   end
 
-  def self.with_gear_counts(domains=queryable.to_a)
+  def self.with_gear_counts(domains=queryable)
+    domains = domains.to_a
     owners_by_id = CloudUser.in(_id: domains.map(&:owner_id)).group_by(&:_id)
     info_by_domain = Application.in(domain_id: domains.map(&:_id)).with_gear_counts.group_by{ |a| a['domain_id'] }
     domains.each do |d|
