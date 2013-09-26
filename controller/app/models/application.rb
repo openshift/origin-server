@@ -2993,8 +2993,8 @@ class Application
                                        created_at: d[:created_at],  #TODO:  Need to figure out the transfer format here.  time_in_millis is probably best
                                               ref: d[:ref],
                                      artifact_url: d[:artifact_url],
-                                       hot_deploy: d[:hot_deploy],
-                                force_clean_build: d[:force_clean_build]))
+                                       hot_deploy: d[:hot_deploy] || false,
+                                force_clean_build: d[:force_clean_build] || false))
       end
       update_deployments(deploys)
     end

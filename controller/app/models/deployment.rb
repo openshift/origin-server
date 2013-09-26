@@ -37,8 +37,8 @@ class Deployment
   validate  :validate_deployment
 
   def validate_deployment
-    if self.ref and self.artifact_url
-      self.errors[:base] << "You can either use an artifact URL or ref.  You can not use both."
+    if (self.ref and not self.ref.empty?) and (self.artifact_url and not self.artifact_url.empty?)
+      self.errors[:base] << "You can either use an aritifact URL or ref.  You cannot use both."
     end
   end
 

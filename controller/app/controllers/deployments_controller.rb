@@ -14,7 +14,7 @@ class DeploymentsController < BaseController
   def show
     deployment_id = params[:id].presence
 
-    deployment = @application.deployments.find {|d| d['deployment_id'] == deployment_id }
+    deployment = @application.deployments.find_by(deployment_id: deployment_id)
     return render_error(:not_found, "Could not find deployment #{deployment_id} for application #{@application.name}", nil, "SHOW_DEPLOYMENT") if deployment.nil?
     render_success(:ok, "deployment", get_rest_deployment(deployment), "Showing deployment #{deployment_id} for application #{@application.name} under domain #{@application.domain_namespace}")
   end
@@ -52,8 +52,8 @@ class DeploymentsController < BaseController
                             created_at: d["created_at"],
                                    ref: d["ref"],
                           artifact_url: d["artifact_url"],
-                            hot_deploy: d["hot_deploy"],
-                     force_clean_build: d["force_clean_build"]))
+                            hot_deploy: d["hot_deploy"] || false,
+                     force_clean_build: d["force_clean_build"] || false))
       end
       @application.update_deployments(deploys)
       @application.reload
