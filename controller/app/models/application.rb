@@ -1034,12 +1034,12 @@ class Application
     raise "noimpl"
   end
 
-  def remove_gear(gear_uuid, skip_node_ops=false)
+  def remove_gear(gear_id, skip_node_ops=false)
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
-    raise OpenShift::UserException.new("Gear for removal not specified") if gear_uuid.nil?
+    raise OpenShift::UserException.new("Gear for removal not specified") if gear_id.nil?
     Application.run_in_application_lock(self) do
-      #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_gear, args: {"gear_id" => gear_uuid}, user_agent: self.user_agent)
-      op_group = RemoveGearOpGroup.new(gear_id: gear_uuid, user_agent: self.user_agent)
+      #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_gear, args: {"gear_id" => gear_id}, user_agent: self.user_agent)
+      op_group = RemoveGearOpGroup.new(gear_id: gear_id, user_agent: self.user_agent)
       op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new

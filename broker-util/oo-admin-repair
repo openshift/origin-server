@@ -260,7 +260,7 @@ def delete_app(app, framework, db, verbose)
   if (db[:responsive_gears] + framework[:responsive_gears]).empty?
     app.destroy_app(true)
   else
-    (db[:unresponsive_gears] + framework[:unresponsive_gears]).each { |gear| app.remove_gear(gear.uuid, true) }
+    (db[:unresponsive_gears] + framework[:unresponsive_gears]).each { |gear| app.remove_gear(gear._id.to_s, true) }
     app.destroy_app
   end
   puts "Application with id: #{app._id} deleted." if verbose
@@ -270,9 +270,9 @@ def recover_app(app, framework, db, verbose)
   unless db[:remove_features].empty?
     app.remove_features(db[:remove_features], [], false, false, true)
     puts "Removed features: #{db[:remove_features].join(',')} from application with id: #{app._id}." if verbose
-    framework[:unresponsive_gears].each { |gear| app.remove_gear(gear.uuid, true) }
+    framework[:unresponsive_gears].each { |gear| app.remove_gear(gear._id.to_s, true) }
   else
-    (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear.uuid, true) }
+    (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear._id.to_s, true) }
   end
   puts "Application with id: #{app._id} fixed." if verbose
 end
