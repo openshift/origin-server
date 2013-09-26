@@ -99,7 +99,7 @@ class AppEventsController < BaseController
       authorize! :change_cartridge_state, @application
       r = @application.reload_config
       msg = "Application #{@application.name} called reload"
-    when 'rollback'
+    when 'activate'
       if deployment_id.nil? and @application.deployments.length > 0
         deployment_id =  @application.deployments[@application.deployments.length -2].deployment_id
       end
@@ -107,7 +107,7 @@ class AppEventsController < BaseController
                         "deployment_id") if deployment_id.nil? or deployment_id.to_s.empty?
       #TODO implement change_deployment or use change_state
       #authorize! :change_deployment, @application
-      r = @application.rollback(deployment_id)
+      r = @application.activate(deployment_id)
       msg = "Application #{@application.name} has been rolled back"
     else
       return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",

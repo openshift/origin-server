@@ -86,7 +86,7 @@ action "cartridge_do", :description => "run a cartridge action" do
                               update-cluster
                               update-configuration
                               deploy
-                              rollback
+                              activate
                               ),
         :optional       => false,
         :maxlength      => 64

@@ -209,18 +209,18 @@ class Gear
     result_io
   end
 
-  # Performs the rollback steps for this gear.
+  # Performs the activate steps for this gear.
   #
   # == Returns:
   # A {ResultIO} object with with output or error messages from the Node.
   # Exit codes:
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
-  def rollback(deployment_id)
-    result_io = get_proxy.rollback(self, deployment_id)
+  def activate(deployment_id)
+    result_io = get_proxy.activate(self, deployment_id)
     app.update_deployments_from_result(result_io)
     #app.process_commands(result_io, nil, self)
-    raise OpenShift::NodeException.new("Unable to rollback #{app.name} to #{deployment_id}", result_io.exitcode, result_io) if result_io.exitcode != 0
+    raise OpenShift::NodeException.new("Unable to activate #{deployment_id} for #{app.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
 

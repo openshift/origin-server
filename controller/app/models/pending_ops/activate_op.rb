@@ -1,10 +1,10 @@
-class RollbackOp < PendingAppOp
+class ActivateOp < PendingAppOp
 
   field :deployment_id, type: String
 
   def execute
     gear = get_gear()
-    gear.rollback(deployment_id)
+    gear.activate(deployment_id)
   end
 
 end

@@ -142,7 +142,7 @@ class PendingAppOpGroup
       raise e_orig
     end
   end
-  
+
   def execute_rollback(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
 

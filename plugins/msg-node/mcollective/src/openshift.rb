@@ -398,7 +398,7 @@ module MCollective
         end
       end
 
-      def oo_rollback(args)
+      def oo_activate(args)
         deployment_id  = args['--with-deployment-id']
         out = StringIO.new
         err = StringIO.new

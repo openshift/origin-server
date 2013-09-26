@@ -235,9 +235,9 @@ class RestApplication15 < OpenShift::Model
         ]),
         "UPDATE_DEPLOYMENTS" => Link.new("Update deployments", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
           Param.new("deployments", "array", "An Array of deployments")]),
-        "ROLLBACK" => Link.new("Roll-back application to a previous deployment", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
-          Param.new("event", "string", "event", "rollback"),
-          Param.new("deployment_id", "string", "The deployment ID to rollback the application"),
+        "ACTIVATE" => Link.new("Roll-back application to a previous deployment", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+          Param.new("event", "string", "event", "activate"),
+          Param.new("deployment_id", "string", "The deployment ID to activate the application"),
         ]),
         "LIST_DEPLOYMENT" => Link.new("List all deployments", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments")),
         "UPDATE" => Link.new("Update application", "PUT", URI::join(url, "domains/#{@domain_id}/applications/#{@name}"), nil, [

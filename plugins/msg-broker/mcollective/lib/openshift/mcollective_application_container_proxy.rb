@@ -867,7 +867,7 @@ module OpenShift
       end
 
       #
-      # Rollback a gear.
+      # Activate a deployment for a gear
       #
       # INPUTS:
       # * gear: a Gear object
@@ -876,14 +876,14 @@ module OpenShift
       # RETURNS
       # ResultIO: the result of running post-configure on the cartridge
       #
-      def rollback(gear, deployment_id)
+      def activate(gear, deployment_id)
         result_io = ResultIO.new
 
         args = build_base_gear_args(gear)
 
         args['--with-deployment-id'] = deployment_id
 
-        result_io = run_cartridge_command(@@C_CONTROLLER, gear, "rollback", args)
+        result_io = run_cartridge_command(@@C_CONTROLLER, gear, "activate", args)
         return result_io
       end
 

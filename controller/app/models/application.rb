@@ -2962,14 +2962,14 @@ class Application
     return result_io
   end
 
-  def rollback(deployment_id=nil)
+  def activate(deployment_id=nil)
     if deployment_id.nil? and self.deployments.length > 0
       deployment_id =  self.deployments[self.deployments.length - 2].deployment_id
     end
     raise OpenShift::UserException.new("There are no previous deployments to roll-back to", 126, "deployment_id") if deployment_id.nil?
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
-      op_group = RollbackOpGroup.new(deployment_id: deployment_id)
+      op_group = ActivateOpGroup.new(deployment_id: deployment_id)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
     end

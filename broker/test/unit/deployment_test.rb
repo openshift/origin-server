@@ -49,19 +49,19 @@ class DeploymentTest < ActiveSupport::TestCase
     assert Deployment.new(ref: "0" * 257).invalid?
   end
 
-  test "rollback deployment" do
+  test "activate deployment" do
 
-    assert_raise(OpenShift::UserException){@app.rollback}
+    assert_raise(OpenShift::UserException){@app.activate}
 
     deployments = []
     for i in 1..5
       @app.deployments.push(Deployment.new(deployment_id: i.to_s, ref: "tag_#{i}"))
     end
 
-    @app.rollback
+    @app.activate
 
     deployment_id = @app.deployments.last.deployment_id
-    @app.rollback(deployment_id)
+    @app.activate(deployment_id)
   end
 
   test "batch update deployments" do
