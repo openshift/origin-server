@@ -51,8 +51,8 @@ module OpenShift
       notify_providers :notify_delete_application, app
     end
 
-    def self.notify_create_public_endpoint(app, endpoint_name, public_ip, public_port, internal_ip, internal_port, protocols, types)
-      notify_providers :notify_create_public_endpoint, app, endpoint_name, public_ip, public_port, protocols, types
+    def self.notify_create_public_endpoint(app, endpoint_name, public_ip, public_port, internal_ip, internal_port, protocols, types, mappings)
+      notify_providers :notify_create_public_endpoint, app, endpoint_name, public_ip, public_port, protocols, types, mappings
     end
 
     def self.notify_delete_public_endpoint(app, public_ip, public_port)

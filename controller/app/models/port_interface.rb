@@ -19,6 +19,7 @@ class PortInterface
   field :internal_port, type: String, default: ""
   field :protocols, type: Array, default: []
   field :type, type: Array, default: []
+  field :mappings, type: Array, default: []
   attr_accessor :external_address
 
   # Initializes the port interface
@@ -34,6 +35,7 @@ class PortInterface
     internal_port = endpoint_hash["internal_port"]
     protocols = endpoint_hash["protocols"]
     types = endpoint_hash["type"]
+    mappings = endpoint_hash["mappings"]
 
     pi = gear.port_interfaces.find_by(external_port: public_port) rescue nil
     if pi
@@ -43,7 +45,7 @@ class PortInterface
     end
 
     comp = gear.app.component_instances.find_by(_id: component_id)
-    PortInterface.new(cartridge_name: comp.cartridge_name, external_port: public_port.to_s, internal_port: internal_port.to_s, internal_address: internal_ip, protocols: protocols, type: types)
+    PortInterface.new(cartridge_name: comp.cartridge_name, external_port: public_port.to_s, internal_port: internal_port.to_s, internal_address: internal_ip, protocols: protocols, type: types, mappings: mappings)
   end
 
   def self.remove_port_interface(gear, component_id, pub_ip, public_port) 
@@ -52,7 +54,7 @@ class PortInterface
   end
 
   def publish_endpoint(app)
-    OpenShift::RoutingService.notify_create_public_endpoint(app, self.cartridge_name, self.external_address, self.external_port, self.internal_address, self.internal_port, self.protocols, self.type)
+    OpenShift::RoutingService.notify_create_public_endpoint(app, self.cartridge_name, self.external_address, self.external_port, self.internal_address, self.internal_port, self.protocols, self.type, self.mappings)
   end
 
   def external_address
@@ -68,7 +70,8 @@ class PortInterface
       "internal_address" => self.internal_address,
       "internal_port" => self.internal_port,
       "protocols" => self.protocols,
-      "types" => self.type
+      "types" => self.type,
+      "mappings" => self.mappings
     }
   end
 end

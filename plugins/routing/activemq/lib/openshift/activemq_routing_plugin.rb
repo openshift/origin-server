@@ -37,7 +37,7 @@ module OpenShift
       send_msg msg.to_yaml
     end
 
-    def notify_create_public_endpoint(app, endpoint_name, public_ip, public_port, protocols, types)
+    def notify_create_public_endpoint(app, endpoint_name, public_ip, public_port, protocols, types, mappings)
       msg = {
         :action => :add_gear,
         :app_name => app.name,
@@ -46,7 +46,8 @@ module OpenShift
         :public_address => public_ip,
         :public_port => public_port,
         :protocols => protocols,
-        :types => types
+        :types => types,
+        :mappings => mappings
       }
       send_msg msg.to_yaml
     end
