@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version:       1.15.2
+Version:       1.15.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- add mappings support to routing spi, and add protocols to cart manifests
+  (rchopra@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
 - Merge pull request #3663 from dobbymoodge/oo-util-fixes
   (dmcphers+openshiftbot@redhat.com)

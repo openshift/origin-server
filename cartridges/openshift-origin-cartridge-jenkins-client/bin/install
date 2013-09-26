@@ -63,5 +63,3 @@ else
 fi
 
 cart_props "job_url=${JENKINS_URL}job/${JOB_NAME}/"
-
-set_app_info "Job URL: ${JENKINS_URL}job/${JOB_NAME}/"

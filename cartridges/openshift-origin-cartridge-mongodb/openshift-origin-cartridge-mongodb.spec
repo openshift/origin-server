@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version:       1.15.1
+Version:       1.15.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -41,6 +41,13 @@ Provides mongodb cartridge support to OpenShift
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3707 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- add mappings support to routing spi, and add protocols to cart manifests
+  (rchopra@redhat.com)
+- Bug 982434 - remove extraneous set_app_info usage (jhonce@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - bump_minor_versions for sprint 34 (admiller@redhat.com)
 

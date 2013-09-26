@@ -47,6 +47,7 @@ Endpoints:
   Private-Port-Name: DB_PORT
   Private-Port: 5432
   Public-Port-Name: DB_PROXY_PORT
+  Protocols: [postgresql]
 Version-Overrides:
   '8.4':
     Display-Name: PostgreSQL 8.4

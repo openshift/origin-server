@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.9.1
+Version: 2.9.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,14 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 2.9.2-1
+- Merge pull request #3518 from a13m/bugzilla/989276
+  (dmcphers+openshiftbot@redhat.com)
+- Merge branch 'master' of https://github.com/openshift/origin-server into
+  bugzilla/989276 (agrimm@redhat.com)
+- Bug 989276 - Check for existence of ROOT.war before attempting to copy it
+  (agrimm@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 2.9.1-1
 - Card origin_runtime_102 - use secret token for auth_value in JGroups
   (jhonce@redhat.com)

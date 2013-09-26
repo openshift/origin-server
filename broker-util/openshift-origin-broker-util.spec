@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.15.2
+Version: 1.15.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,12 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Add rake test for extended integration tests (rpenta@redhat.com)
+- oo-admin-repair fixes (rpenta@redhat.com)
+- Added skip_node_ops flag to app/domain/user/district models.
+  (rpenta@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
 - Merge pull request #3647 from detiber/runtime_card_255
   (dmcphers+openshiftbot@redhat.com)

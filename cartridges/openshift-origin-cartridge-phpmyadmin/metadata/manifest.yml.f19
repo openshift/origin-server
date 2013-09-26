@@ -14,6 +14,7 @@ Website: http://www.phpmyadmin.net/
 Categories:
 - embedded
 - service
+- admin_tool
 Cart-Data:
 - Key: connection_url
   Type: cart_data
@@ -39,6 +40,7 @@ Endpoints:
   Private-Port-Name: PORT
   Private-Port: 8080
   Public-Port-Name: PROXY_PORT
+  Protocols: [http]
   Mappings:
   - Frontend: /phpmyadmin
     Backend: /phpmyadmin

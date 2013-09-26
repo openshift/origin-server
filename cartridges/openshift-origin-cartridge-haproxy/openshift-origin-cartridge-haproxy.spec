@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version:       1.15.3
+Version:       1.15.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,10 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Feature tests for ssl_to_gear, V3 of mock cart serves https at primary
+  endpoint on port 8123 (teddythetwig@gmail.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - Merge pull request #3659 from mfojtik/bugzilla/1007455
   (dmcphers+openshiftbot@redhat.com)
