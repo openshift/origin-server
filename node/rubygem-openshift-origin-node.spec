@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.3
+Version: 1.15.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -250,6 +250,18 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #3707 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- add mappings support to routing spi, and add protocols to cart manifests
+  (rchopra@redhat.com)
+- Feature tests for ssl_to_gear, V3 of mock cart serves https at primary
+  endpoint on port 8123 (teddythetwig@gmail.com)
+- Merge pull request #3703 from mfojtik/bugzilla/1011721
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1011721- Fixed wrong namespace for Cartridge Ruby SDK
+  (mfojtik@redhat.com)
+
 * Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - Merge pull request #3702 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
