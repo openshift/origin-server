@@ -287,10 +287,6 @@ class Application
     return [app, gear]
   end
 
-  def self.legacy_accessible(to)
-    scope_limited(to, self.in(domain: Domain.legacy_accessible(to).map(&:_id)))
-  end
-
   ##
   # Constructor. Should not be used directly. Use {Application#create_app} instead.
   # @note side-effect: Saves application object in mongo

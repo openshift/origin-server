@@ -173,14 +173,7 @@ module Membership
     # Overrides AccessControlled#accessible
     #
     def accessible(to)
-      criteria =
-        if Rails.configuration.openshift[:membership_enabled]
-          where(:'members._id' => to.is_a?(String) ? to : to._id)
-        elsif respond_to? :legacy_accessible
-          legacy_accessible(to)
-        else
-          queryable
-        end
+      criteria = where(:'members._id' => to.is_a?(String) ? to : to._id)
       scope_limited(to, criteria)
     end
 

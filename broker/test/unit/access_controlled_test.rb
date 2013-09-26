@@ -8,11 +8,11 @@ class AccessControlledTest < ActiveSupport::TestCase
   end
 
   def with_membership(&block)
-    with_config(:membership_enabled, true, &block)
+    yield
   end
 
   def without_membership(&block)
-    with_config(:membership_enabled, false, &block)
+    # do nothing
   end
 
   def with_config(sym, value, base=:openshift, &block)

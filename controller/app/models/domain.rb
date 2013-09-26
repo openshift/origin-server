@@ -146,10 +146,6 @@ class Domain
     members.map{ |m| m.clone }
   end
 
-  def self.legacy_accessible(to)
-    scope_limited(to, to.respond_to?(:domains) ? to.domains.scoped : where(owner: to))
-  end
-
   def add_system_ssh_keys(ssh_keys, skip_node_ops=false)
     #keys_attrs = ssh_keys.map{|k| k.attributes.dup}
     #pending_op = PendingDomainOps.new(op_type: :add_domain_ssh_keys, arguments: { "keys_attrs" => keys_attrs }, on_apps: applications, created_at: Time.now, state: "init")
