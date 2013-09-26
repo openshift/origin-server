@@ -35,15 +35,15 @@ class RestDomain15 < OpenShift::Model
       @gear_counts = domain.gear_counts || {}
     end
 
-    unless nolinks      
+    unless nolinks
       valid_sizes = domain.allowed_gear_sizes
       blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
       carts = CartridgeCache.cartridge_names("web_framework")
 
       self.links = {
-        "GET" => Link.new("Get domain", "GET", URI::join(url, "domains/#{id}")),
-        "LIST_APPLICATIONS" => Link.new("List applications", "GET", URI::join(url, "domains/#{id}/applications")),
-        "ADD_APPLICATION" => Link.new("Create new application", "POST", URI::join(url, "domains/#{id}/applications"), 
+        "GET" => Link.new("Get domain", "GET", URI::join(url, "domain/#{id}")),
+        "LIST_APPLICATIONS" => Link.new("List applications", "GET", URI::join(url, "domain/#{id}/applications")),
+        "ADD_APPLICATION" => Link.new("Create new application", "POST", URI::join(url, "domain/#{id}/applications"), 
           [Param.new("name", "string", "Name of the application",nil,blacklisted_words)], 
           [OptionalParam.new("cartridges", "array", "Array of one or more cartridge names. i.e. [\"php-5.3\", \"mongodb-2.2\"]", carts),
           OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),
@@ -52,15 +52,17 @@ class RestDomain15 < OpenShift::Model
           (OptionalParam.new("cartridges[][url]", "string", "A URL to a downloadable cartridge. You may specify an multiple urls via {'cartridges' : [{'url':'http://...'}, ...]}") if Rails.application.config.openshift[:download_cartridges_enabled]),
           OptionalParam.new("environment_variables", "array", "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]")
         ].compact),
-        "UPDATE" => Link.new("Update domain", "PUT", URI::join(url, "domains/#{id}"),[
-          Param.new("id", "string", "Name of the domain")
-        ]),
-        "DELETE" => Link.new("Delete domain", "DELETE", URI::join(url, "domains/#{id}"),nil,[
+        "UPDATE" => Link.new("Update domain", "PUT", URI::join(url, "domain/#{id}"),
+          [Param.new("id", "string", "Name of the domain")],
+          [OptionalParam.new("allowed_gear_sizes", "array", "Array of zero or more gear sizes allowed on this domain", OpenShift::ApplicationContainerProxy.valid_gear_sizes)],
+        ),
+        "DELETE" => Link.new("Delete domain", "DELETE", URI::join(url, "domain/#{id}"),nil,[
           OptionalParam.new("force", "boolean", "Force delete domain.  i.e. delete any applications under this domain", [true, false], false)
         ]),
-        "LIST_MEMBERS" => Link.new("List members of this domain", "GET", URI::join(url, "domains/#{id}/members")),
-        "ADD_MEMBER" => Link.new("Add one or more members to this domain", "POST", URI::join(url, "domains/#{id}/members"), 
-          [Param.new("role", "string", "The role the user should have on the domain", Role.all)], 
+        "LIST_MEMBERS" => Link.new("List members of this domain", "GET", URI::join(url, "domain/#{id}/members")),
+        "LEAVE" => Link.new("Leave this domain", "DELETE", URI::join(url, "domain/#{id}/members/self")),
+        "UPDATE_MEMBERS" => Link.new("Add or remove one or more members to this domain.", "PATCH", URI::join(url, "domain/#{id}/members"),
+          [Param.new("role", "string", "The role the user should have on the domain", Role.all)],
           [OptionalParam.new("id", "string", "Unique identifier of the user"),
           OptionalParam.new("login", "string", "The user's login attribute")]
         ),

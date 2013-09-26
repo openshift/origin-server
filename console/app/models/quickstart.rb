@@ -63,6 +63,7 @@ class Quickstart < RestApi::Base
   end
 
   cache_method :find_every, :expires_in => 10.minutes
+  cache_method :find_single, :expires_in => 5.minutes
 
   class << self
     def promoted(opts={})

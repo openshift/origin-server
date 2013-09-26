@@ -21,10 +21,12 @@ class ApiController < BaseController
     links = {
       "API" => Link.new("API entry point", "GET", URI::join(get_url, "api")),
       "GET_ENVIRONMENT" => Link.new("Get environment information", "GET", URI::join(get_url, "environment")),
-      "GET_USER" => Link.new("Get user information", "GET", URI::join(get_url, "user")),      
+      "GET_USER" => Link.new("Get user information", "GET", URI::join(get_url, "user")),
       "ADD_DOMAIN" => Link.new("Create new domain", "POST", URI::join(get_url, "domains"), [
         Param.new(requested_api_version <= 1.5 ? "id" : "name", "string", "Name of the domain",nil,blacklisted_words)
-      ]),
+      ], [
+        (OptionalParam.new("allowed_gear_sizes", "array", "A list of gear sizes that are allowed to be created on this domain", OpenShift::ApplicationContainerProxy.valid_gear_sizes) if requested_api_version >= 1.5),
+      ].compact),
       "LIST_DOMAINS" => Link.new("List all domains you have access to", "GET", URI::join(get_url, "domains")),
       "LIST_DOMAINS_BY_OWNER" => Link.new("List domains", "GET", URI::join(get_url, "domains"), [
         Param.new("owner", "string", "Return only the domains owned by the specified user id or identity.  Use @self to refer to the current user.", ['@self', '*'], [])

@@ -35,7 +35,7 @@ class Domain
   field :namespace, type: String
   field :canonical_namespace, type: String
   field :env_vars, type: Array, default: []
-  field :allowed_gear_sizes, type: Array, default: []
+  field :allowed_gear_sizes, type: Array
   embeds_many :system_ssh_keys, class_name: SystemSshKey.name
   belongs_to :owner, class_name: CloudUser.name
   has_many :applications, class_name: Application.name, dependent: :restrict
@@ -50,6 +50,8 @@ class Domain
   # non-persisted fields used to store info about the applications in this domain
   attr_accessor :application_count
   attr_accessor :gear_counts
+  attr_accessor :available_gears
+  attr_accessor :max_storage_per_gear  
 
   validates :namespace,
     #presence: {message: "Namespace is required and cannot be blank."},
@@ -79,6 +81,7 @@ class Domain
   end
 
   def self.with_gear_counts(domains=queryable.to_a)
+    owners_by_id = CloudUser.in(_id: domains.map(&:owner_id)).group_by(&:_id)
     info_by_domain = Application.in(domain_id: domains.map(&:_id)).with_gear_counts.group_by{ |a| a['domain_id'] }
     domains.each do |d|
       if info = info_by_domain[d._id]
@@ -94,6 +97,12 @@ class Domain
         d.application_count = 0
         d.gear_counts = {}
       end
+
+      if owners_by_id[d.owner_id].present?
+        owner = owners_by_id[d.owner_id].first
+        d.available_gears = owner.max_gears - owner.consumed_gears
+        d.max_storage_per_gear = owner.max_storage
+      end
     end
   end
 
@@ -103,8 +112,8 @@ class Domain
 
   before_save prepend: true do
     self.canonical_namespace = namespace.present? ? namespace.downcase : nil
-    if has_owner?
-      self.allowed_gear_sizes = owner.allowed_gear_sizes if owner_id_changed? || !persisted?
+    if has_owner? && (allowed_gear_sizes.nil? || (persisted? && owner_id_changed?))
+      self.allowed_gear_sizes = owner.allowed_gear_sizes
     end
   end
 
@@ -134,11 +143,7 @@ class Domain
   end
 
   def inherit_membership
-    members.clone
-  end
-
-  def self.legacy_accessible(to)
-    scope_limited(to, to.respond_to?(:domains) ? to.domains.scoped : where(owner: to))
+    members.map{ |m| m.clone }
   end
 
   def add_system_ssh_keys(ssh_keys, skip_node_ops=false)

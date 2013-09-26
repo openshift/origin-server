@@ -12,26 +12,11 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_redirected_to application_types_path
   end
 
-  test 'report and clear cached error if domain not found' do
-    with_configured_user
-    session[:domain] = 'does_not_exist'
-    get :index
-    assert_not_found_page(/Domain 'does_not_exist' does not exist/)
-    assert_nil session[:domain]
-  end
-
-  test 'index will cache domain' do
+  test 'index does not look up domains' do
     with_unique_domain
-    get :index
-    assert_equal @domain.id, session[:domain]
-  end
-
-  test 'index will use cached domain' do
-    with_unique_domain
-    session[:domain] = @domain.id
+    ApplicationsController.any_instance.expects(:user_domains).returns([])
     Domain.expects(:find).never
     get :index
-    assert_equal @domain.id, session[:domain]
   end
 
   test "should assign domain errors on empty name" do
@@ -44,7 +29,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert !app.errors.empty?
     assert app.errors[:domain_name].present?, app.errors.inspect
     assert !app.errors[:domain_name].nil?
-    assert app.errors[:domain_name].include?('Must be a minimum of 1 and maximum of 16 characters.')
+    assert app.errors[:domain_name].find {|msg| msg['is required'] }
   end
 
   test "should assign errors on empty name" do
@@ -144,7 +129,6 @@ class ApplicationsControllerTest < ActionController::TestCase
     app_params[:name] = ''
     app_params[:cartridges] = [{:url => 'https://foo.bar'}]
     Application.any_instance.expects(:save).returns(true)
-    Application.any_instance.expects(:persisted?).at_least_once.returns(true)
 
     post(:create, {:application => app_params, :application_type => app_type, :advanced => true})
     
@@ -161,7 +145,6 @@ class ApplicationsControllerTest < ActionController::TestCase
     }
     app_params[:name] = ''
     Application.any_instance.expects(:save).returns(true)
-    Application.any_instance.expects(:persisted?).at_least_once.returns(true)
 
     post(:create, {:application => app_params, :application_type => app_type, :advanced => true})
     
@@ -177,7 +160,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_template 'application_types/show'
     assert app = assigns(:application)
-    assert assigns(:domain)
+    #assert assigns(:domain)
     assert !app.errors.empty?
     assert app.errors[:name].present?, app.errors.inspect
     assert_equal 1, app.errors[:name].length, app.errors.inspect
@@ -191,7 +174,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_template 'application_types/show'
     assert app = assigns(:application)
-    assert assigns(:domain)
+    #assert assigns(:domain)
     assert !app.errors.empty?
     assert app.errors[:name].present?, app.errors.inspect
     assert_equal 1, app.errors[:name].length, app.errors.inspect
@@ -209,7 +192,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert !app.errors.empty?
     assert app.errors[:gear_profile].present?, app.errors.to_hash.inspect
     assert_equal 1, app.errors[:gear_profile].length, app.errors.to_hash.inspect
-    assert app.errors[:gear_profile][0].include? 'Invalid size: foobar.'
+    assert app.errors[:gear_profile][0].include? "'foobar' is not valid"
   end
 
   test "should retrieve application list" do
@@ -218,97 +201,114 @@ class ApplicationsControllerTest < ActionController::TestCase
     # get full version of the list
     get(:index)
     apps = assigns(:applications)
+    caps = assigns(:capabilities)
     assert apps
     assert apps.length > 0
     assert apps.any?{ |a| a.name == app.name }
     assert_response :success
-    assert_select 'h2 > a', app.name
-  end
-
-  test "should filter application list with name" do
-    app = with_app
-
-    # get a filtered version of the list
-    get(:index, :applications_filter => {:name => app.name})
-    apps = assigns(:applications)
-    assert apps
-    assert_equal apps.length, 1
-    assert_equal apps[0].name, app.name
-    assert_response :success
-  end
-
-  test "should not filter application list with other name" do
-    app = with_app
-
-    # get a filtered version of the list
-    get(:index, :applications_filter => {:name => 'not'})
-    apps = assigns(:applications)
-    assert apps
-    assert_equal apps.length, 0
-    assert_response :success
+    assert_select 'h2 > a', /#{app.name}/
+    assert_select 'h1 > .right', /#{caps.consumed_gears}\sof #{caps.max_gears}/m
   end
 
   test "should retrieve application details" do
-    get :show, :id => with_app.name
+    with_app.aliases.each{ |a| a.destroy }
+    get :show, :id => with_app.to_param
     assert_response :success
     assert app = assigns(:application)
     assert_equal with_app.name, app.name
     assert groups = assigns(:gear_groups)
-    assert_equal 1, groups.length
+    assert_equal 1, groups.length, groups.inspect
     assert (groups[0].cartridges.map(&:name) - with_app.cartridges.map(&:name)).empty?
     assert groups[0].cartridges[0].display_name
-    assert domain = assigns(:domain)
+    #assert domain = assigns(:domain)
     assert !assigns(:has_keys)
 
-    assert_select 'h1', with_app.name
+    assert_select 'h1', /#{with_app.name}/
+    assert_select '.section-header a', /#{with_app.domain_id}/
+    assert_select 'h1 a.url-alter', /\bchange\b/
     with_app.cartridges.map(&:display_name).each do |name|
-      assert_select 'h2', name
+      assert_select 'h2', /#{name}/
+    end
+  end
+
+  test "should retrieve application details with one alias" do
+    Application.any_instance.stubs(:aliases).returns([
+      Alias.new({:id => "www.#{with_app.domain_id}.com", :application => with_app},true),
+    ]);
+
+    get :show, :id => with_app.to_param
+    assert_response :success
+
+    assert_select 'h1', /#{with_app.name}/
+    assert css_select('h1') !=~ /#{with_app.domain_id}/
+    assert_select 'h1 a', with_app.aliases.first.name
+    assert_select 'h1 a.url-alter', /\bchange alias\b/
+    with_app.cartridges.map(&:display_name).each do |name|
+      assert_select 'h2', /#{name}/
+    end
+  end
+
+  test "should retrieve application details with two aliases" do
+    Application.any_instance.stubs(:aliases).returns([
+      Alias.new({:id => "www.#{with_app.domain_id}.com", :application => with_app},true),
+      Alias.new({:id => "www.#{with_app.domain_id}-2.com", :application => with_app},true),
+    ]);
+
+    get :show, :id => with_app.to_param
+    assert_response :success
+
+    assert_select 'h1', /#{with_app.name}/
+    assert css_select('h1') !=~ /#{with_app.domain_id}/
+    assert_select 'h1 a', with_app.aliases.first.name
+    assert_select 'h1 a.url-alter', / 1 other alias\b/
+    with_app.cartridges.map(&:display_name).each do |name|
+      assert_select 'h2', /#{name}/
     end
   end
 
   test "should retrieve downloaded application details" do
     cart = with_downloaded_app.reload.cartridges.first
 
-    get :show, :id => with_downloaded_app.name
+    get :show, :id => with_downloaded_app.to_param
     assert_response :success
     assert app = assigns(:application)
     assert groups = assigns(:gear_groups)
 
-    assert_select 'h1', with_downloaded_app.name
+    assert_select 'h1', /#{with_downloaded_app.name}/
     assert_select 'p', /Created from/ do |p|
       assert_select 'a', :href => cart.url
     end
-    assert_select 'h2', cart.name
+    assert_select 'h2', /#{cart.name}/
   end
 
   test "should retrieve application details with has_sshkey cache set" do
     session[:has_sshkey] = true
-    get :show, :id => with_app.name
+    get :show, :id => with_app.to_param
     assert_response :success
     assert app = assigns(:application)
     assert has_keys = assigns(:has_keys)
   end
 
   test "should retrieve scalable application details" do
-    get :show, :id => with_scalable_app.name
+    get :show, :id => with_scalable_app.to_param
     assert_response :success
     assert app = assigns(:application)
     assert_equal with_scalable_app.name, app.name
     assert groups = assigns(:gear_groups)
     assert_equal 1, groups.length, groups.pretty_inspect
     assert (groups[0].cartridges.map(&:name) - with_scalable_app.cartridges.map(&:name)).empty?
-    assert domain = assigns(:domain)
+    #assert domain = assigns(:domain)
   end
 
   test "should retrieve application get started page" do
-    get :get_started, :id => with_app.name
+    get :get_started, :id => with_app.to_param
     assert_response :success
     assert app = assigns(:application)
     assert_equal with_app.name, app.name
   end
 
   test "should retrieve application delete confirm page" do
-    get :delete, :id => with_app.name
+    get :delete, :id => with_app.to_param
     assert_response :success
     assert app = assigns(:application)
     assert_equal with_app.name, app.name
@@ -319,14 +319,14 @@ class ApplicationsControllerTest < ActionController::TestCase
     with_rescue_from{ get :show, :id => 'idontexist' }
     assert_response :success
     assert_select 'h1', /Application 'idontexist' does not exist/
-    assert_select 'a', "Application #{with_app.name}"
+    #assert_select 'a', "Application #{with_app.name}" # has not established a domain
   end
 
   test "should result in a not found when retrieving a domain that does not exist" do
     with_unique_user
     with_rescue_from{ get :show, :id => 'idontexist' }
     assert_response :success
-    assert_select 'h1', /Domain does not exist/
+    assert_select 'h1', /Application 'idontexist' does not exist/
   end
 
   test "should result in a not found when retrieving an application that does not exist" do
@@ -349,7 +349,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
   test 'invalid destroy should render page' do
     Application.any_instance.expects(:destroy).returns(false)
-    delete :destroy, :id => with_app.name
+    delete :destroy, :id => with_app.to_param
     assert_response :success
     assert_template :delete
   end
@@ -358,7 +358,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     with_domain
     app = Application.create(:name => 'delete1', :cartridge => 'php-5.3', :domain => @domain)
     assert app.persisted?
-    delete :destroy, {:id => app.name}, user_to_session(@user, :caps => [3])
+    delete :destroy, {:id => app.to_param}, user_to_session(@user, :caps => [3])
     assert_redirected_to applications_path
     assert_nil session[:caps]
   end
@@ -406,7 +406,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_response :success
     assert app = assigns(:application)
-    assert app.errors.messages[:gear_profile][0].include? 'Invalid size: medium.'
+    assert app.errors.messages[:gear_profile][0].include? "'medium' is not valid"
   end
 
   test 'should prevent scaled apps when not enough gears are available' do
@@ -415,7 +415,7 @@ class ApplicationsControllerTest < ActionController::TestCase
   end
 
   def get_post_form(name = 'cart!diy-0.1')
-    {:name => 'test1', :application_type => name}
+    {:name => 'test1', :application_type => name, :domain_name => (@domain.name if @domain)}
   end
 
 end

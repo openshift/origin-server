@@ -7,6 +7,7 @@ module CapabilityAware
 
   def current_api_user
     @current_api_user ||= begin
+        Rails.logger.debug("Fetching current_api_user")
         @user_capabilities = nil
         session[:caps] = nil
         User.find :one, :as => current_user
@@ -16,9 +17,10 @@ module CapabilityAware
   # Call this with :refresh => true to force a
   # refresh of the values stored in session
   def user_capabilities(args = {})
-    if args[:refresh]
+    if args[:refresh] || args[:clear]
       @user_capabilities = nil
       session[:caps] = nil
+      return if args[:clear]
     end
     model = Console.config.capabilities_model_class
     @user_capabilities ||=

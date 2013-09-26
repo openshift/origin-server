@@ -3,6 +3,7 @@ class ConsoleController < Console.config.parent_controller.constantize
   include CapabilityAware
   include DomainAware
   include SshkeyAware
+  include CostAware
   include Console::CommunityAware
   include Console::LogHelper
 
@@ -19,4 +20,17 @@ class ConsoleController < Console.config.parent_controller.constantize
     def to_boolean(param)
       ['1','on','true'].include?(param.to_s.downcase) if param
     end
+
+    def valid_referrer(referrer)
+      referrer = (URI.parse(referrer) rescue nil) if referrer.is_a? String
+      case
+      when referrer.nil?, remote_request?(referrer)
+        nil
+      when !referrer.path.start_with?('/')
+        nil
+      else
+        referrer.to_s
+      end
+    end
+
 end

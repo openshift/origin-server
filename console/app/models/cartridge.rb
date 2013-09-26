@@ -28,7 +28,7 @@ class Cartridge < RestApi::Base
   has_one    :help_topics, :class_name => as_indifferent_hash
   has_one    :links, :class_name => as_indifferent_hash
 
-  delegate :display_name, :tags, :priority, :to => :cartridge_type, :allow_nil => false
+  delegate :display_name, :tags, :priority, :database?, :web_framework?, :builder?, :jenkins_client?, :haproxy_balancer?, :to => :cartridge_type, :allow_nil => false
 
   def custom?
     url.present?
@@ -91,6 +91,35 @@ class Cartridge < RestApi::Base
     end
   end
 
+  def scales_with_type
+    return nil unless scales_with.present?
+    @scales_with_type ||= (CartridgeType.cached.find(scales_with) rescue CartridgeType.new(:name => scales_with))
+  end
+
+  def has_scale_range?
+    scales? && scales_from != scales_to
+  end
+
+  def will_scale_to(account_max=Float::INFINITY)
+    effective_scales_to(effective_supported_scales_to(account_max))
+  end
+
+  def effective_supported_scales_to(max=Float::INFINITY)
+    supported_scales_to == -1 ? max : [supported_scales_to, max].min
+  end
+
+  def effective_scales_to(max=Float::INFINITY)
+    scales_to == -1 ? max : [scales_to, max].min
+  end
+
+  def can_scale_up?(max=Float::INFINITY)
+    current_scale < will_scale_to(max)
+  end
+
+  def can_scale_down?
+    current_scale > scales_from
+  end
+
   #
   # The build attributes are used for view manipulation only
   #
@@ -108,8 +137,19 @@ class Cartridge < RestApi::Base
     @builds = BuildRelation.new cart, gear_group.is_a?(String) ? gear_group : gear_group.name
   end
 
+  def builds_with_type
+    return nil unless builds?
+    builds.with
+  end
+
   def grouping
     @grouping ||= [name].concat(collocated_with).uniq.sort
+  end
+
+  def data(name, default=nil)
+    if prop = (properties || []).find{ |p| p['type'] == 'cart_data' && p['name'] == name.to_s }
+      [prop['value'].presence || default, prop['description']]
+    end
   end
 
   def <=>(other)
@@ -130,6 +170,10 @@ class Cartridge::ScaleRelation
   end
 
   Null = new(nil,nil,1)
+
+  def blank?
+    @with.blank?
+  end
 end
 
 class Cartridge::BuildRelation
