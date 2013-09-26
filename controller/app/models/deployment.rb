@@ -26,6 +26,7 @@ class Deployment
   self.field :force_clean_build, type: Boolean, default: false
   self.field :ref, type: String
   self.field :artifact_url, type: String
+  self.field :activations, type: Array, default: []
 
   #TODO define possible values?
   DEPLOYMENT_STATES =[:active, :past, :prepared]
@@ -36,7 +37,7 @@ class Deployment
 
   def validate_deployment
     if self.ref and self.artifact_url
-      self.errors[:base] << "You can either use an aritifact URL or ref.  You can not use both."
+      self.errors[:base] << "You can either use an artifact URL or ref.  You can not use both."
     end
   end
   #TODO add error codes for deployment to li/misc/docs/ERROR_CODES.txt
@@ -49,7 +50,7 @@ class Deployment
   def to_hash
     {
       "deployment_id" => deployment_id, "created_at" => created_at, "state" => state, "hot_deploy" => hot_deploy,
-      "force_clean_build" => force_clean_build, "ref" => ref, "artifact_url" => artifact_url
+      "force_clean_build" => force_clean_build, "ref" => ref, "artifact_url" => artifact_url, 'activations' => activations
       }
   end
 end
