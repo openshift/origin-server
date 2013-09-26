@@ -33,6 +33,7 @@ class Deployment
 
   validates :state, :inclusion => { :in => DEPLOYMENT_STATES.map { |s| s.to_s }, :message => "%{value} is not a valid state. Valid states are #{DEPLOYMENT_STATES.join(", ")}." }
   validates :ref, :allow_blank => true, length: {maximum: 256}
+  validate  :validate_activations
   validate  :validate_deployment
 
   def validate_deployment
@@ -40,6 +41,15 @@ class Deployment
       self.errors[:base] << "You can either use an artifact URL or ref.  You can not use both."
     end
   end
+
+  def validate_activations
+    self.activations.each do |activation|
+      if !activation.is_a? Integer
+        self.errors[:activations] << "Activations must be integers representing time in milliseconds."
+      end
+    end
+  end
+
   #TODO add error codes for deployment to li/misc/docs/ERROR_CODES.txt
   def self.validation_map
     return {}

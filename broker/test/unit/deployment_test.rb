@@ -29,8 +29,8 @@ class DeploymentTest < ActiveSupport::TestCase
   end
 
   test "create and get deployment" do
-    d = Deployment.new(deployment_id: 1, ref: "mybranch", activations: [])
-    ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch", activations: []}])
+    d = Deployment.new(deployment_id: 1, ref: "mybranch")
+    ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch"}])
     @app.deploy(d)
     assert_equal(1, @app.deployments.length)
 
@@ -47,6 +47,10 @@ class DeploymentTest < ActiveSupport::TestCase
 
     # git commit id length
     assert Deployment.new(ref: "0" * 257).invalid?
+
+    # activation must be integers
+    assert Deployment.new(ref: "mybranch", activations: ["hello", "world"]).invalid?
+    assert !Deployment.new(ref: "mybranch", activations: [1, 2]).invalid?
   end
 
   test "activate deployment" do
