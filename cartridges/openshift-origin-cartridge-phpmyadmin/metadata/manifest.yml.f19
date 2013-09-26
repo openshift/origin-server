@@ -13,7 +13,6 @@ Cartridge-Vendor: redhat
 Website: http://www.phpmyadmin.net/
 Categories:
 - embedded
-- admin_tool
 Cart-Data:
 - Key: connection_url
   Type: cart_data

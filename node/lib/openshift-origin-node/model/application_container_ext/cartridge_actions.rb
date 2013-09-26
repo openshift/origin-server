@@ -124,8 +124,6 @@ module OpenShift
               endpoint_create_hash['type'] = ["database"]
             elsif cart.categories.include? "plugin"
               endpoint_create_hash['type'] = ["plugin"]
-            elsif cart.categories.include? "admin_tool"
-              endpoint_create_hash['type'] = ["admin_tool"]
             else
               endpoint_create_hash['type'] = ["other"]
             end
