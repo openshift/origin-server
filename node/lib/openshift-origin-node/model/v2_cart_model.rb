@@ -948,6 +948,11 @@ module OpenShift
                 next
               end
 
+              # If the mapping contains the option ssl_to_gear, create an environment
+              if options["ssl_to_gear"]
+                @container.add_env_var("SSL_TO_GEAR", 1)
+                logger.debug("Adding SSL_TO_GEAR env var")
+              end
               logger.info("Connecting frontend mapping for #{@container.uuid}/#{cartridge.name}: "\
                       "[#{mapping.frontend}] => [#{backend_uri}] with options: #{mapping.options}")
               frontend.connect(mapping.frontend, backend_uri, options)

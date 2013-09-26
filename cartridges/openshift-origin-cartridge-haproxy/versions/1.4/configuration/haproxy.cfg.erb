@@ -60,6 +60,12 @@ listen stats <%= "#{ENV['OPENSHIFT_HAPROXY_STATUS_IP']}:#{ENV['OPENSHIFT_HAPROXY
     stats uri /
 
 listen express <%= "#{ENV['OPENSHIFT_HAPROXY_IP']}:#{ENV['OPENSHIFT_HAPROXY_PORT']}" %>
+<% if ENV["SSL_TO_GEAR"] == "1" %>
+    mode tcp
+    option ssl-hello-chk
+    option tcplog
+<% else %>
     cookie GEAR insert indirect nocache
     option httpchk GET /
+<% end %>
     balance leastconn

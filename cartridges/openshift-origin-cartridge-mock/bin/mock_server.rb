@@ -11,7 +11,7 @@ config.update(:DocumentRoot => ARGV[1])
 httpserver = HTTPServer.new(config)
 config.update(:SSLEnable => true)
 config.update(:SSLCertName => cert_name)
-config.update(:Port => 8443)
+config.update(:Port => 8123)
 httpsserver = HTTPServer.new(config)
 ['INT', 'TERM'].each {|signal|
   trap(signal) do
