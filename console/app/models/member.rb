@@ -1,6 +1,8 @@
 class Member < RestApi::Base
   singular_resource
 
+  attr_accessor :me
+
   schema do
     string :id, :login, :name, :role, :type
     boolean :owner

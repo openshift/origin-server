@@ -62,6 +62,8 @@
 :css
   .restart .popover.bottom {margin-left: -75px;}
   .restart .popover.bottom .arrow {margin-left: 70px;}
+  tr.borderless td, tr:first-of-type td {border-top: medium none !important;}
+  h5 aside {text-transform: none; font-size: 13px; font-weight: normal; opacity: 0.7;}
 
 - content_for :top do
   .grid-wrapper.section-header
@@ -389,6 +391,28 @@
         %ul.unstyled
         - @application_type.help_topics.each do |key, value|
           %li= link_to key, value
+
+  - members = @application.members
+  - if members.size > 1
+    %h5
+      Members
+      %aside.pull-right
+        from 
+        = link_to "domain", domain_members_path(@application.domain_id)
+    %table.table.table-condensed
+      - if me = members.find(&:me)
+        %tr
+          %td.member{:title => me.name}
+            = me.name
+          %td 
+            = me.owner? ? "Owner" : Role.description_for(me.role)    
+
+      - members.reject(&:me).sort.each do |member|
+        %tr
+          %td.nowrap.member{:title => member.name}
+            = member.name
+          %td
+            = member.owner? ? "Owner" : Role.description_for(member.role)
 
   .btn-toolbar
     = link_to 'Delete this application', delete_application_path(@application), :class => 'btn btn-small'
