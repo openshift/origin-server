@@ -1,6 +1,23 @@
 .header.rcue {
   border-top: 0;
   @include header_border;
+  position: relative;
+  &:after {
+    background: -moz-linear-gradient(top, rgba(0,0,0,0.175) 0%, rgba(0,0,0,0) 5px); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0.175)), color-stop(5px,rgba(0,0,0,0))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, rgba(0,0,0,0.175) 0%,rgba(0,0,0,0) 5px); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, rgba(0,0,0,0.175) 0%,rgba(0,0,0,0) 5px); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, rgba(0,0,0,0.175) 0%,rgba(0,0,0,0) 5px); /* IE10+ */
+    background: linear-gradient(to bottom, rgba(0,0,0,0.175) 0%,rgba(0,0,0,0) 5px); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a6000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
+    content: '';
+    display: block;
+    height: 5px;
+    position: absolute;
+    bottom: -5px;
+    width: 100%;
+    z-index: 0;
+  }
   .brand {
     display: block;
     float: left;
@@ -134,7 +151,21 @@
             color: #ffd24e !important;
             margin-bottom: 0;
             margin-top: 0;
+            position: relative;
             opacity: 1;
+            &:before {
+              content: '\ee01';
+              display: inline-block;
+              font-family: openshift-icon;
+              font-weight: normal;
+              font-style: normal;
+              height: 11px;
+              margin: 0 5px 0 0;
+              position: relative;
+              top: -1px;
+              text-decoration: inherit;
+              width: 11px;
+            }
             &:hover {
               text-decoration: underline;
             }
@@ -252,10 +283,19 @@
         }
       }
       &.utility .nav {
-        position: absolute;
-        right: 34px;
-        > li > a {
-          padding: 5px 0 0;
+        background: $warningBackground;
+        clear: left;
+        float: none;
+        font-weight: 600;
+        margin: 0 -20px 7px !important;
+        padding: 5px 0;
+        text-align: center;
+        > li {
+          float: none;
+          > a.alert {
+            color: #000 !important;
+            padding: 0;
+          }
         }
       }
       .btn-navbar {
