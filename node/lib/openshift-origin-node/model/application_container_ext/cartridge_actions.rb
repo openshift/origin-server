@@ -72,29 +72,28 @@ module OpenShift
 
               raise ::OpenShift::Runtime::Utils::Sdk.translate_out_for_client(message, :error)
             end
-          else
+          elsif cartridge.deployable?
             deployment_datetime = latest_deployment_datetime
-            deployment_state = (read_deployment_metadata(deployment_datetime, 'state') || '').chomp
+            deployment_metadata = deployment_metadata_for(deployment_datetime)
 
-            # no need to do this for load balancer cartridges
-            # no need to do this when cartridges are added (state is already DEPLOYED)
-            unless deployment_state == 'DEPLOYED' or cartridge.web_proxy?
+            # only do this if we've never activated
+            if deployment_metadata.activations.empty?
               prepare(deployment_datetime: deployment_datetime)
+
+              # prepare modifies the deployment metadata - need to reload
+              deployment_metadata.load
 
               update_repo_symlink(deployment_datetime)
 
-              write_deployment_metadata(deployment_datetime, 'state', 'DEPLOYED')
-
               application_repository = ApplicationRepository.new(self)
               git_sha1 = application_repository.get_sha1('master')
-              if git_sha1 != ''
-                write_deployment_metadata(deployment_datetime, 'git_sha1', git_sha1)
-                write_deployment_metadata(deployment_datetime, 'git_ref', 'master')
-              end
+              deployment_metadata.git_sha1 = git_sha1
 
               deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
               set_rw_permission_R(deployments_dir)
               reset_permission_R(deployments_dir)
+
+              record_deployment_activation(deployment_datetime)
             end
           end
 
@@ -343,9 +342,11 @@ module OpenShift
             application_repository = ApplicationRepository.new(self)
             git_ref = options[:ref] || 'master'
             application_repository.archive(repo_dir, git_ref)
+
             git_sha1 = application_repository.get_sha1(git_ref)
-            write_deployment_metadata(options[:deployment_datetime], 'git_sha1', git_sha1)
-            write_deployment_metadata(options[:deployment_datetime], 'git_ref', git_ref)
+            deployment_metadata = deployment_metadata_for(options[:deployment_datetime])
+            deployment_metadata.git_sha1 = git_sha1
+            deployment_metadata.git_ref = git_ref
 
             build(options)
 
@@ -503,7 +504,7 @@ module OpenShift
           raise ArgumentError.new('deployment_datetime is required') unless deployment_datetime
 
           env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
-          
+
           deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
           env['OPENSHIFT_REPO_DIR'] = "#{deployment_dir}/repo"
 
@@ -524,7 +525,9 @@ module OpenShift
           link_deployment_id(deployment_datetime, deployment_id)
 
           begin
-            write_deployment_metadata(deployment_datetime, 'id', deployment_id)
+            deployment_metadata = deployment_metadata_for(deployment_datetime)
+            deployment_metadata.id = deployment_id
+
             # this is needed so the distribute and activate steps down the line can work
             options[:deployment_id] = deployment_id
 
@@ -828,61 +831,16 @@ module OpenShift
 
           end
 
-          write_deployment_metadata(deployment_datetime, 'state', 'DEPLOYED')
-          clean_up_deployments_before(deployment_datetime)
-
           if web_proxy_cart = @cartridge_model.web_proxy
             unless options[:hot_deploy] == true
               update_proxy_status(cartridge: web_proxy_cart, action: :enable, gear_uuid: self.uuid, persist: false)
             end
           end
 
-          buffer
-        end
+          # append this activation time to the metadata
+          record_deployment_activation(deployment_datetime)
 
-        #
-        # Rolls back to the previous deployment for the specified gears
-        #
-        # options: hash
-        #   :out           : an IO to which any stdout should be written (default: nil)
-        #   :err           : an IO to which any stderr should be written (default: nil)
-        #   :gears         : an Array of FQDNs to activate (required)
-        #
-        def rollback_many(options={})
-          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
-
-          # only rollback if we're the currently elected proxy
-          # TODO the way we determine this needs to change so gears other than
-          # the initial proxy gear can be elected
-          return if gear_env['OPENSHIFT_APP_DNS'] != gear_env['OPENSHIFT_GEAR_DNS']
-
-          gears = options[:gears] || child_gear_ssh_urls
-          return if gears.empty?
-
-          buffer = ''
-
-          web_proxy_cart = @cartridge_model.web_proxy
-
-          #TODO this really should be parallelized
-          gears.each do |gear|
-            # since the gear will look like 51e96b5e4f43c070fc000001@s1-agoldste.dev.rhcloud.com
-            # splitting by @ and taking the first element gets the gear's uuid
-            gear_uuid = gear.split('@')[0]
-
-            update_proxy_status(action: :disable, gear_uuid: gear_uuid, persist: false)
-
-            out = "Rolling back gear #{gear_uuid}\n"
-            buffer << out
-            options[:out].puts(out) if options[:out]
-
-            out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear} gear rollback",
-                                                    env: gear_env,
-                                                    expected_exitstatus: 0)
-            buffer << out
-            options[:out].puts(out) if options[:out]
-
-            update_proxy_status(action: :enable, gear_uuid: gear_uuid, persist: false)
-          end
+          prune_deployments
 
           buffer
         end
@@ -909,76 +867,6 @@ module OpenShift
           report_deployments = options[:report_deployments]
           pre_receive(out: out, err: err, hot_deploy: hot_deploy)
           post_receive(out: out, err: err, hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, report_deployments: report_deployments)
-        end
-
-        #
-        # Rolls back to the previous deployment
-        #
-        # options: hash
-        #   :deployment_id : the deployment to roll back to
-        #   :report_deployments  : report the deployments back to the broker
-        #   :out           : an IO to which any stdout should be written (default: nil)
-        #   :err           : an IO to which any stderr should be written (default: nil)
-        #
-        def rollback(options={})
-          buffer = ''
-          rollback_to = nil
-
-          if options[:deployment_id]
-            deployment_datetime = get_deployment_datetime_for_deployment_id(options[:deployment_id])
-            unless deployment_datetime.nil?
-              deployment_state = read_deployment_metadata(deployment_datetime, 'state') || ''
-              rollback_to = options[:deployment_id] if deployment_state.chomp == 'DEPLOYED'
-            end
-          else
-            deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
-
-            current_deployment = current_deployment_datetime
-
-            # get a list of all entries in app-deployments excluding 'by-id'
-            deployments = Dir["#{deployments_dir}/*"].entries.reject {|e| File.basename(e) == 'by-id'}.sort.reverse
-
-            out = "Looking up previous deployment\n"
-            buffer << out
-            options[:out].puts(out) if options[:out]
-
-            # make sure we get the latest 'deployed' dir prior to the current one
-            rollback_to = nil
-            found_current = false
-            deployments.each do |d|
-              candidate = File.basename(d)
-              unless found_current
-                found_current = true if candidate == current_deployment
-              else
-                deployment_state = read_deployment_metadata(candidate, 'state') || ''
-                if deployment_state.chomp == 'DEPLOYED'
-                  rollback_to = read_deployment_metadata(candidate, 'id').chomp
-                  break
-                end
-              end
-            end
-          end
-
-          if rollback_to
-            # activate
-            out = "Rolling back to deployment ID #{rollback_to}\n"
-            buffer << out
-            options[:out].puts(out) if options[:out]
-
-            buffer << activate_gear(options.merge(deployment_id: rollback_to))
-          else
-            if options[:deployment_id]
-              if deployment_exists?(options[:deployment_id])
-                raise "Deployment ID '#{options[:deployment_id]}' was never deployed - unable to roll back"
-              else
-                raise "Deployment ID '#{options[:deployment_id]}' does not exist"
-              end
-            else
-              raise 'No prior deployments exist - unable to roll back'
-            end
-          end
-
-          buffer
         end
 
         # === Cartridge control methods
@@ -1181,7 +1069,7 @@ module OpenShift
                 end
 
                 # activate the current deployment on all the new gears
-                deployment_id = read_deployment_metadata(current_deployment_datetime, 'id').chomp
+                deployment_id = deployment_metadata_for(current_deployment_datetime)
 
                 # TODO this will activate in batches, based on the ratio defined in activate_many
                 # may want to consider activating all (limited concurrently to :in_threads) instead

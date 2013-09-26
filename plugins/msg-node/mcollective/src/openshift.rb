@@ -405,7 +405,7 @@ module MCollective
 
         begin
           with_container_from_args(args) do |container|
-            container.rollback(deployment_id: deployment_id, out: out, err: err)
+            container.activate(deployment_id: deployment_id, out: out, err: err)
             addtl_params[:deployments] = container.calculate_deployments
           end
         rescue Exception => e

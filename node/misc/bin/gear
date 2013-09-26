@@ -269,20 +269,6 @@ command :activate do |c|
   end
 end
 
-command :rollback do |c|
-  c.syntax = "#{name} rollback"
-  c.description = "Roll back to the previous deployment"
-
-  c.option "--deployment-id ID", "Deployment ID to roll back to"
-
-  c.action do |args, options|
-    do_command(c, options) do
-      @container.rollback(out: $stdout, err: $stderr, deployment_id: options.deployment_id)
-      @container.rollback_many(out: $stdout, err: $stderr, deployment_id: options.deployment_id)
-    end
-  end
-end
-
 command :archive_deployment do |c|
   c.syntax = "#{name} archive-deployment"
 

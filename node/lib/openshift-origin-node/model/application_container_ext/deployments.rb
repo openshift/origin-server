@@ -1,26 +1,58 @@
+require 'active_support/hash_with_indifferent_access'
+require 'active_support/core_ext/hash'
+
 module OpenShift
   module Runtime
     module ApplicationContainerExt
       module Deployments
+        DEPLOYMENT_DATETIME_FORMAT = "%Y-%m-%d_%H-%M-%S.%L"
+
+        def deployment_metadata_for(deployment_datetime)
+          ::OpenShift::Runtime::DeploymentMetadata.new(self, deployment_datetime)
+        end
+
         # Returns the number of deployments to keep as configured in the given env
         def deployments_to_keep(env)
           (env['OPENSHIFT_KEEP_DEPLOYMENTS'] || 1).to_i
         end
 
-        # Returns all the date/time based deployment directories (full paths), sorted in ascending order
+        # Returns all the deployment directories
         def all_deployments
           deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
-          Dir[deployments_dir + "/*"].entries.reject {|e| ['.', '..'].include?(e) or File.basename(e) == 'by-id'}.sort
+
+          Dir[deployments_dir + "/*"].entries.reject { |e| File.basename(e) == 'by-id' }
+        end
+
+        # Returns all the date/time based deployment directories (full paths),
+        # sorted by most recent activation date/time in ascending order
+        # (i.e. oldest activation first)
+        def all_deployments_by_activation(dirs = nil)
+          deployments = dirs || all_deployments
+          deployments.sort_by do |d|
+            latest_activation = deployment_metadata_for(File.basename(d)).activations.last
+
+            # treat a deployment dir without any activations as the latest
+            # TODO may want to revisit this later, but it allows prune to work by considering
+            # dirs with no activations as newer than any other dir, so we can delete a dir
+            # that actually has at least 1 activation
+            latest_activation || Float::MAX
+          end
         end
 
         # Returns the most recent date/time based deployment directory name
         def latest_deployment_datetime
-          latest = all_deployments[-1]
+          latest = all_deployments_by_activation[-1]
           File.basename(latest)
         end
 
         def deployment_exists?(deployment_id)
           File.exist?(PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id))
+        end
+
+        def record_deployment_activation(deployment_datetime)
+          deployment_metadata = deployment_metadata_for(deployment_datetime)
+          deployment_metadata.activations << Time.now.to_f
+          deployment_metadata.save
         end
 
         def move_dependencies(deployment_datetime)
@@ -61,11 +93,11 @@ module OpenShift
         end
 
         # Creates a deployment directory in app-root/deployments with a name like
-        # 2013-07-19_09-37-03
+        # 2013-07-19_09-37-03.431
         #
         # returns the name of the newly created directory (just the date and time, not the full path)
         def create_deployment_dir(options={})
-          deployment_datetime = Time.now.strftime("%Y-%m-%d_%H-%M-%S.%L")
+          deployment_datetime = Time.now.strftime(DEPLOYMENT_DATETIME_FORMAT)
           full_path = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
           FileUtils.mkdir_p(full_path)
           FileUtils.mkdir_p(PathUtils.join(full_path, "repo"))
@@ -74,19 +106,25 @@ module OpenShift
           FileUtils.chmod_R(0o0750, full_path, :verbose => @debug)
           set_rw_permission_R(full_path)
 
-          unless options[:force_clean_build] or current_deployment_datetime.nil?
+          current = current_deployment_datetime
+          unless options[:force_clean_build] or current.nil?
             gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
             to_keep = deployments_to_keep(gear_env)
 
             if to_keep == 1
+              # move deps from the current deployment to this new one
+              # current deployment will be deleted by prune_deployments below
               move_dependencies(deployment_datetime)
-
-              # delete any previous deployments
-              clean_up_deployments_before(current_deployment_datetime)
             else
+              # calling prune here to delete the oldest to save on disk space
+              prune_deployments
+
               copy_dependencies(deployment_datetime)
             end
           end
+
+          # need to call this regardless of force_clean_build above so we always stay <= deployments_to_keep
+          prune_deployments
 
           deployment_datetime
         end
@@ -100,19 +138,6 @@ module OpenShift
                                                   expected_exitstatus: 0)
 
           deployment_id = out[0..7]
-        end
-
-        def read_deployment_metadata(deployment_datetime, filename)
-          file = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime, 'metadata', filename)
-          File.exist?(file) ? IO.read(file) : nil
-        end
-
-        def write_deployment_metadata(deployment_datetime, filename, data)
-          metadata_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime, 'metadata')
-          FileUtils.mkdir_p(metadata_dir)
-          File.open(PathUtils.join(metadata_dir, filename), File::WRONLY|File::TRUNC|File::CREAT, 0640) { |file|
-            file.write "#{data}\n"
-          }
         end
 
         def link_deployment_id(deployment_datetime, deployment_id)
@@ -164,44 +189,69 @@ module OpenShift
 
         def delete_deployment(deployment_datetime)
           deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
-          deployment_id = read_deployment_metadata(deployment_datetime, 'id')
-          FileUtils.rm_f(PathUtils.join(deployments_dir, 'by-id', deployment_id.chomp)) if deployment_id
+          deployment_id = deployment_metadata_for(deployment_datetime).id
+          FileUtils.rm_f(PathUtils.join(deployments_dir, 'by-id', deployment_id)) if deployment_id
           FileUtils.rm_rf(PathUtils.join(deployments_dir, deployment_datetime))
         end
 
-        # Prunes deployment directories prior to +deployment_datetime+
-        # - where the deployment state != DEPLOYED
-        # - where the # of total deployments > OPENSHIFT_KEEP_DEPLOYMENTS
-        def clean_up_deployments_before(deployment_datetime)
+        # Prunes deployment directories, using the following algorithm:
+        #
+        # - Only keep at most $OPENSHIFT_KEEP_DEPLOYMENTS directories in app-deployments
+        #
+        # - Remove the "oldest" directory sorted by latest activation time
+        #
+        # - Also remove any activation times earlier than the latest activation time of
+        #   the deployment being deleted across all deployments
+        def prune_deployments
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
           to_keep = deployments_to_keep(gear_env)
           deleted = 0
 
-          # remove all deployments prior to the specified one that were never deployed
-          all_deployments.each do |d|
-            # skip the specified one
-            next if d.end_with?(deployment_datetime)
+          deployments = all_deployments
 
-            deployment_state = read_deployment_metadata(deployment_datetime, 'state') || ''
-            delete_deployment(File.basename(d)) unless deployment_state.chomp == 'DEPLOYED'
-          end
+          # short-circuit - don't do anything if we're under the limit
+          count = deployments.count
+          return if count <= to_keep
 
           # remove so we stay under to_keep
-          all = all_deployments
-          count = all.count
+          all = all_deployments_by_activation(deployments)
+
+          # this is the activation time of the most recent deployment to be deleted
+          activation_cutoff = nil
 
           all.each do |d|
             # stop if the remaining # of deployments is <= to_keep
             break if count <= to_keep
 
-            # stop if we've reached the specified one
-            break if d.end_with?(deployment_datetime)
+            deployment_datetime = File.basename(d)
 
-            # remove the old one
-            delete_deployment(File.basename(d))
+            activation_cutoff = deployment_metadata_for(deployment_datetime).activations.last
+
+            delete_deployment(deployment_datetime)
 
             # update remaining # of deployments
             count -= 1
+          end
+
+          delete_activations_before(activation_cutoff) unless activation_cutoff.nil?
+        end
+
+        # Removes all activation entries from all deployment directories where
+        # the activation time <= cutoff
+        #
+        # @param [Float] cutoff activation cutoff time
+        def delete_activations_before(cutoff)
+          all_deployments.each do |full_path|
+            deployment_datetime = File.basename(full_path)
+
+            # load the metadata
+            deployment_metadata = deployment_metadata_for(deployment_datetime)
+
+            # remove activations <= cutoff
+            deployment_metadata.activations.delete_if { |a| a <= cutoff }
+
+            # write metadata to disk
+            deployment_metadata.save
           end
         end
 
@@ -221,9 +271,12 @@ module OpenShift
           deployments = []
           all_deployments.each do |d|
             deployment_datetime = File.basename(d)
-            deployment_state = (read_deployment_metadata(deployment_datetime, 'state') || 'NOT DEPLOYED').chomp
-            deployment_id = (read_deployment_metadata(deployment_datetime, 'id') || '').chomp
-            deployments.push({:id => deployment_id, :ref => "TODO", :state => deployment_state, :created_at => Time.parse(deployment_datetime).to_i})
+            deployment_metadata = deployment_metadata_for(deployment_datetime)
+            deployments.push({
+              :id => deployment_metadata.id,
+              :ref => deployment_metadata.git_ref,
+              :created_at => Time.parse(deployment_datetime).to_i
+            })
           end
           deployments
         end
@@ -248,13 +301,21 @@ module OpenShift
         def list_deployments
           current = current_deployment_datetime
 
-          all_deployments.reverse.map do |d|
+          list = []
+          list << "Activation time - Deployment ID - Git Ref - Git SHA1"
+          list += all_deployments_by_activation.reverse.map do |d|
             deployment_datetime = File.basename(d)
-            deployment_id = (read_deployment_metadata(deployment_datetime, 'id') || '').chomp
-            deployment_state = (read_deployment_metadata(deployment_datetime, 'state') || 'NOT DEPLOYED').chomp
+            deployment_metadata = deployment_metadata_for(deployment_datetime)
             active_text = " - ACTIVE" if deployment_datetime == current
-            "#{deployment_datetime} - #{deployment_id} - #{deployment_state}#{active_text}"
-          end.join("\n")
+            latest_activation = deployment_metadata.activations.last
+            activation_text = if latest_activation.nil?
+              'NEVER'
+            else
+              Time.at(latest_activation)
+            end
+            "#{activation_text} - #{deployment_metadata.id} - #{deployment_metadata.git_ref} - #{deployment_metadata.git_sha1}#{active_text}"
+          end
+          list.join("\n")
         end
 
         def determine_extract_command(filename)
