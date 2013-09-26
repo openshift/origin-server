@@ -138,7 +138,7 @@ $cartridgeBorderWidth: 10px;
   }
 	.total-cost {	
 		font-size: 32px; //FIXME
-		font-weight: 200;
+		font-weight: 300;
 		margin-top: 10px;
 		padding-right: 30px;
     text-align: right;
@@ -249,7 +249,7 @@ $cartridgeBorderWidth: 10px;
   border: 1px dotted #999;
   border-radius: 2px 2px 2px 2px;
   display: inline-block;
-  font-weight: bold;
+  font-weight: 600;
   padding: 3px 6px;
   cursor: default;
 }

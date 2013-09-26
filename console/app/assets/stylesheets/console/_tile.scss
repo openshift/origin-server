@@ -53,7 +53,7 @@
   }
   &:hover {
     background: #fff !important;
-    @include box-shadow(0 0 3px rgba(0,0,0,.45));
+    @include panel_default_boxshadow_hover();
     .application-info > h2, > h3 {
       > a {
         color: #ea0011;

@@ -1,18 +1,7 @@
-@mixin console_background {
-  background-color: #e5e5e5;
+@mixin header_border {
 }
 
-@mixin navbar_background {
-}
-
-@mixin brand_hover {
-}
-
-@mixin brand_image {
-  background: image-url('logo-origin.svg') no-repeat;
-  margin: 21px 0 0;
-  height: 55px;
-  width: 132px;
+@mixin brand {
   @media (max-width: 979px) {
     height: 51px;
     margin-top: 11px;
@@ -20,20 +9,19 @@
   }
 }
 
-@mixin brand_image_ie {
-  background-image: image-url('logo-origin.png');
+@mixin brand_hover {
 }
 
-@mixin account_background {
-}
-
-@mixin account_background {
-  background-color: transparent;
-  background-image: image-url('mts-bottom-transparent.png');
-  background-repeat: repeat-x;
-  background-position: left 100% bottom 70px;
+@mixin brand_ie {
+  background: image-url('logo-origin.png') no-repeat 0 50%;
+  height: 55px;
+  width: 133px;
 }
 
 @mixin panel_default_boxshadow {
-  @include box-shadow(0 0 2px rgba(0, 0, 0, 0.25));
-} 
+  @include box-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
+}
+
+@mixin panel_default_boxshadow_hover {
+  @include box-shadow(0 1px 3px rgba(0,0,0,.35));
+}

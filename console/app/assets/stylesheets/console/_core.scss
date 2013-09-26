@@ -104,7 +104,7 @@ ol.wizard {
   padding: 0;
   position: relative;
   text-align: center;
-  .section-console-blank & {
+  .highlight & {
     color: #888;
   }
   &:after {
@@ -147,15 +147,15 @@ ol.wizard {
         border: 4px solid #e0e0e0;
         border-radius: 30px;
         font-style: normal;
-        font-weight: bold;
+        font-weight: 600;
         height: 25px;
         left: -44px;
         line-height: 25px;
         position: absolute;
         text-align: center;
-        top: -9px;
+        top: -7px;
         width: 25px;
-        .section-console-blank & {
+        .highlight & {
           border-color: #ccc;
         }
       }
@@ -173,8 +173,12 @@ ol.wizard {
 
 @media (max-width: 767px) {
   ol.wizard {
+    border-bottom-color: rgba(0,0,0,.07);
     padding-bottom: 10px;
     text-align: left;
+    &:after {
+      display: none;
+    }
     li {
       margin-bottom: 10px;
       padding-left: 0;

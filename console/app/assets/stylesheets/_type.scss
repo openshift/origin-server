@@ -23,7 +23,7 @@ p {
 .lead {
   margin-bottom: $baseLineHeight;
   font-size: $leadFontSize;
-  font-weight: 200;
+  font-weight: 300;
   line-height: $leadLineHeight;
 }
 p.larger,
@@ -39,11 +39,13 @@ h1, h2, h3, h4, h5, h6 {
   font-family: $headerFontFamily;
   font-weight: normal;
   color: #000;
-  text-rendering: optimizelegibility; // Fix the character spacing for headings
   small {
     font-weight: normal;
     color: $grayLight;
   }
+}
+h1 {
+  font-weight: 300;
 }
 h3 + h4, h3 + h5, h4 + h5 {
   padding-top: $baseLineHeight / 3;
@@ -81,13 +83,13 @@ h5 {
   line-height: $baseLineHeight;
   margin-bottom: $baseLineHeight / 3;
   text-transform: uppercase;
-  font-weight: bold;
+  font-weight: 600;
 }
 h6 {
   font-size: $h6FontSize;
   line-height: $baseLineHeight;
   text-transform: uppercase;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 @media (max-width:480px) {
@@ -171,7 +173,7 @@ dd {
   line-height: $baseLineHeight;
 }
 dt {
-  font-weight: bold;
+  font-weight: 600;
 }
 dd {
   margin: 0 0 10px 10px;
@@ -190,7 +192,7 @@ hr {
 
 // Emphasis
 strong {
-  font-weight: bold;
+  font-weight: 600;
 }
 em {
   font-style: italic;
@@ -331,7 +333,7 @@ ul.unstyled-flat {
   }
 }
 
-.headline, .nav, .section-top, .btn-navbar {
+.headline, .section-top {
 	font-family: $headerFontFamily;
   font-weight: normal;
 }

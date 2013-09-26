@@ -13,11 +13,13 @@ $smallFontSize:           13.5px;
 
 
 
-html.highlight {background-color: #3e3e3e; /* override light background in _base */}
+html {
+  background-color: #3e3e3e; /* override light background in _base */
+  background-image: $noiseImage;
+}
 
 body.simple {
   min-height: 100%;
-  background: $noiseImage;
   &.login h1 {
     margin-bottom: 14px;
   }
@@ -115,7 +117,7 @@ iframe {
 .graph-horizontal {
   caption {
     caption-side: top;
-    font-weight: bold;
+    font-weight: 600;
     padding: 4px 5px;
     text-align: left;
   }
@@ -147,29 +149,30 @@ h2 + ul, h3 + ul, h4 + ul {
 }
 
 .navbar.centered {
-  background: transparent;
-  border-top: 0;
-  height: 62px;
-  padding: 40px 0;
   .brand {
     float: none;
+    padding: 0;
     margin: 30px 0;
     > a {
       display: block;
-      height: 41px;
       margin: 0 auto;
       position: relative;
       width: 270px;
       &:hover:after {
+        background: #e22434;
         bottom: -3px;
-        left: 64px;
+        content: "";
+        display: block;
+        height: 2px;
+        left: 65px;
+        position: absolute;
         right: 3px;
       }
       .brand-image {
         background: image-url('openshift-logo-horizontal.svg') no-repeat;
         background-size: 100%;
         height: 41px;
-        margin: 0;
+        margin: 0 auto;
         width: 270px;
         .ie6 &, .ie7 &, .ie8 & {
           background-image: image-url('openshift-logo-horizontal.png');
@@ -233,7 +236,7 @@ h2 + ul, h3 + ul, h4 + ul {
         }
         &:hover:after {
           bottom: 4px;
-          left: 50px;
+          left: 52px;
           right: 0;
         }
       }
@@ -259,5 +262,9 @@ h2 + ul, h3 + ul, h4 + ul {
 @media (max-width: 320px) {
   .img-captcha, .img-recaptcha {
     max-width: 240px;
+  }
+  .navbar.centered .brand > a .brand-image {
+    height: 31px;
+    width: 200px;
   }
 }
