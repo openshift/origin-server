@@ -102,3 +102,8 @@ Version-Overrides:
     - python-3.3
     - python
     - python(version) = 3.3
+    Categories:
+    - service
+    - python
+    - web_framework
+    - community
