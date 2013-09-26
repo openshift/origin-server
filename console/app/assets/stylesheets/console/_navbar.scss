@@ -13,6 +13,9 @@
         display: none;
       }
     }
+    img {
+      max-height: 100%; /* for IE */
+    }
   }
   .container {
     position: relative;
