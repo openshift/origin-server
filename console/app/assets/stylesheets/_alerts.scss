@@ -6,8 +6,8 @@
   background-color: $warningBackground;
   clear: left;
   margin: 15px 0;
-  padding: 10px;
-  @include border-radius(4px);
+  padding: 6px 8px;
+  @include border-radius(2px);
   > p:last-child {
     margin-bottom: 0;
   }
