@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.3
+Version: 1.15.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,17 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #3707 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3712 from teddythetwig/ssl_to_gear_tests
+  (dmcphers+openshiftbot@redhat.com)
+- add mappings support to routing spi, and add protocols to cart manifests
+  (rchopra@redhat.com)
+- Feature tests for ssl_to_gear, V3 of mock cart serves https at primary
+  endpoint on port 8123 (teddythetwig@gmail.com)
+- Fix for bug 1012138 (abhgupta@redhat.com)
+
 * Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - Merge pull request #3691 from BanzaiMan/idle_websockets
   (dmcphers+openshiftbot@redhat.com)
