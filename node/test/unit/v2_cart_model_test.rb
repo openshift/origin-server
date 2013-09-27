@@ -196,7 +196,7 @@ module OpenShift
       @model.expects(:find_open_ip).with(8080).returns(ip1)
       @model.expects(:find_open_ip).with(9090).returns(ip2)
 
-      @model.expects(:addresses_bound?).returns(false)
+      @container.expects(:addresses_bound?).returns(false)
 
       Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns({})
 
@@ -231,7 +231,7 @@ module OpenShift
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP2", ip2)
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT4", 9090)
 
-      @model.expects(:addresses_bound?).with(responds_with(:size, 4)).returns(false)
+      @container.expects(:addresses_bound?).with(responds_with(:size, 4), anything).returns(false)
 
       @model.create_private_endpoints(@mock_cartridge)
     end
@@ -239,8 +239,8 @@ module OpenShift
     def test_private_endpoint_create_empty_endpoints
       @container.expects(:add_env_var).never
       @model.expects(:find_open_ip).never
-      @model.expects(:address_bound?).never
-      @model.expects(:addresses_bound?).never
+      @container.expects(:address_bound?).never
+      @container.expects(:addresses_bound?).never
 
       cart = mock()
       cart.stubs(:directory).returns("/nowhere")
@@ -260,8 +260,8 @@ module OpenShift
 
       @container.expects(:add_env_var).times(7)
 
-      @model.expects(:addresses_bound?).returns(true)
-      @model.expects(:address_bound?).returns(true).times(5)
+      @container.expects(:addresses_bound?).returns(true)
+      @container.expects(:address_bound?).returns(true).times(5)
 
       assert_raise(RuntimeError) do
         @model.create_private_endpoints(@mock_cartridge)
