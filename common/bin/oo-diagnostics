@@ -1122,13 +1122,13 @@ class OODiag
       do_match_check = false
     end
 
-    broker = `ls /etc/openshift/plugins.d/*auth*.conf | grep -v -- '-dev.conf$'`.split
+    broker = `ls /var/www/openshift/broker/httpd/conf.d/*auth*.conf | grep -v -- '-dev.conf$'`.split
     #Make sure there is only 1 conf file for the broker
     if(broker.size > 1)
       do_match_check = false
       do_warn <<-BROKER
         There is more than one authentication configuration file for the
-        broker in /etc/openshift/plugins.d
+        broker in /var/www/openshift/console/httpd/conf.d
         Authentication configuration files:
         #{broker.join "\n\t"}
       BROKER
