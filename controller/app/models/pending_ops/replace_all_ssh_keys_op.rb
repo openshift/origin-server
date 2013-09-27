@@ -11,9 +11,11 @@ class ReplaceAllSshKeysOp < PendingAppOp
 
   def addParallelExecuteJob(handle)
     gear = get_gear()
-    job = gear.get_fix_authorized_ssh_keys_job(keys_attrs)
-    tag = { "op_id" => self._id.to_s }
-    RemoteJob.add_parallel_job(handle, tag, gear, job)
+    unless gear.node_removed
+      job = gear.get_fix_authorized_ssh_keys_job(keys_attrs)
+      tag = { "op_id" => self._id.to_s }
+      RemoteJob.add_parallel_job(handle, tag, gear, job)
+    end
   end
 
 end
