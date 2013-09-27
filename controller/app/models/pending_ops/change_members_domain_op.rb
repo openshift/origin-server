@@ -4,7 +4,7 @@ class ChangeMembersDomainOp < PendingDomainOps
   field :members_removed, type: Array
   field :roles_changed, type: Array
 
-  def execute(skip_node_ops=false)
+  def execute
     self.domain.applications.select do |a|
       a.change_member_roles(roles_changed || [], [:domain])
       a.remove_members(members_removed || [], [:domain])

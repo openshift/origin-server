@@ -10,7 +10,7 @@ class TrackUsageOp < PendingAppOp
   field :gear_size, type: String
   field :cart_name, type: String
 
-  def execute(skip_node_ops=false)
+  def execute
     unless parent_user_id
       storage_usage_type = ( usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb] )
       tracked_storage = nil
@@ -25,7 +25,7 @@ class TrackUsageOp < PendingAppOp
     end
   end
   
-  def rollback(skip_node_ops=false)
+  def rollback
     unless parent_user_id
       storage_usage_type = (usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb])
       tracked_storage = nil
