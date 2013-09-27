@@ -10,7 +10,7 @@
 
 Summary:       OpenShift NodeJS Websocket frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.1.6
+Version: 0.1.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 0.1.7-1
+- Verify theres a record before trying to use it. (rmillner@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 0.1.6-1
 - Enable idler in websocket plugin. (rmillner@redhat.com)
 
