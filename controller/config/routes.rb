@@ -32,7 +32,7 @@ Rails.application.routes.draw do
         resource :dns_resolvable, :only => :show, :controller => :dns_resolvable
         resources :aliases, :only => [:index, :show, :create, :update, :destroy], :controller => :alias, :id => id_with_format
         resources :members, :only => :index, :controller => :application_members, :id => id_with_format
-        resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
+        resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
       end
 
       # Allow restful update of the domain name via the standard id parameter
@@ -54,7 +54,7 @@ Rails.application.routes.draw do
           resource :dns_resolvable, :only => :show, :controller => :dns_resolvable
           resources :aliases, :only => [:index, :show, :create, :update, :destroy], :controller => :alias, :id => id_with_format
           resources :members, :only => :index, :controller => :application_members, :id => id_with_format
-          resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
+          resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
         end
       end
     end

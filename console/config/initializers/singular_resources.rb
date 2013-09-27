@@ -29,11 +29,15 @@ class ActionDispatch::Routing::Mapper
     RESOURCE_OPTIONS << :singular_resource
     class Resource
       def member_scope
-        @options[:singular_resource] ? "#{singular}/:id" : "#{path}/:id"
+        @options[:singular_resource] ? "#{singular_path}/:id" : "#{path}/:id"
       end
 
       def nested_scope
-        @options[:singular_resource] ? "#{singular}/:#{singular}_id" : "#{path}/:#{singular}_id"
+        @options[:singular_resource] ? "#{singular_path}/:#{singular}_id" : "#{path}/:#{singular}_id"
+      end
+
+      def singular_path
+        @singular_path ||= path.to_s.singularize
       end
     end
 
