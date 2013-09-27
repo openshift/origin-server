@@ -5,7 +5,7 @@ $monoFontFamily:      Menlo, Monaco, "Liberation Mono", Consolas, monospace !def
 $baseLineHeight:          20px;
 $baseFontSize:						14px;
 $leadLineHeight:          $baseLineHeight * 1.5;
-$leadFontSize:            20px;
+$leadFontSize:            17px;
 $largeLineHeight:         $baseLineHeight * 1.2;
 $largeFontSize:           17px;
 $smallFontSize:           13.5px;
@@ -46,7 +46,7 @@ $openshiftDarkBackgroundGray:   #333; /* From screenshots, background of sign in
 $openshiftAlmostBlack:          #030303;
 $openshiftSeriouslyAlmostBlack: #010101;
 $openshiftLinkGray:             #909090; /* Used on the signup link */
-$openshiftBorderGray:           #b4b4b2; /* From screenshots */
+$openshiftBorderGray:           #eee;
 $genericLightGreen:             #d4e16b;
 
 $preBackground:                 #eff1f1;
@@ -54,7 +54,7 @@ $preBorder:                     rgba(120, 120, 120, 0.35);
 $preColor:                      #484848;
 $codeColor:                     #3B3B3B;
 
-$consolePreBackground:          #e0e0e0;
+$consolePreBackground:          #fefefe;
 
 $breadcrumbDividerColor:        $openshiftDarkRed;
 $breadcrumbTextColor:           $openshiftMediumBackgroundGray; 
@@ -100,7 +100,7 @@ $grayMedium:                    #505050;
 $grayDark:                      #2f2f2f;
 $grayDarker:                    #202020;
 $primaryButtonBackground:       #B1E5F2;
-$orange:                        #d39d00;
+$orange:                        #DB880B;
 $linkColor:                     #069;
 $white:                         #fff;
 
@@ -115,7 +115,7 @@ $warningBackground:       #ffd24e;
 $warningBorder:           darken(adjust-hue($warningBackground, -10), 3%);
 
 $errorText:               white;
-$errorBackground:         #CD1E25;
+$errorBackground:         #bc1c29;
 $errorBorder:             darken(adjust-hue($errorBackground, -10), 3%);
 
 $successText:             #222;
@@ -144,7 +144,7 @@ $inputBorder:                   #ccc !default;
 $inputBorderRadius:             3px;
 $inputDisabledBackground:       #eee !default;
 $inputDisabledBorder:           #222 !default;
-$inputAddOnBackground:          #eee !default;
+$inputAddOnBackground:          #efefef !default;
 $horizontalComponentOffset:     180px !default; /* Horizontal forms & lists */
 
 // Input placeholder text color

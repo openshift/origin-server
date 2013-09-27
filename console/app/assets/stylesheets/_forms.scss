@@ -73,7 +73,7 @@ input,
   font-size: floor($baseFontSize);
   line-height: $baseLineHeight;
   color: $grayDark;
-  @include border-radius(3px);
+  @include border-radius(1px);
 }
 
 // Reset appearance properties for textual inputs and textarea
@@ -456,7 +456,6 @@ textarea:focus:required:valid {
   display: inline-block;
   @include ie7-inline-block();
   vertical-align: middle;
-  padding-left: 5px;
   margin-bottom: 9px;
 }
 
@@ -783,10 +782,10 @@ textarea[readonly] {
   .control-label { margin-left: 15px; text-align: left; color: #666; }
   .error > .control-label { color: $errorBackground; }
 
-  .help-block { color: #949494 !important; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; font-size: $smallFontSize;}
+  .help-block { color: #888 !important; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; font-size: $tinyFontSize;}
   .alert { max-width: 500px; }
 
-  h3 .font-icon {margin-left: 25px}
+  h3 .font-icon {margin-left: 10px}
 }
 
 @media (max-width: 767px) {

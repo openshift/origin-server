@@ -58,10 +58,26 @@ h5 {font-weight: normal;}
 }
 
 .action-more:before {
-  content: '\2192 ';
+  content: '\2192';
+  margin: 0 5px 0 0;
   position: relative;
   top: -3px;
 }
+a.action-more {
+  position: relative;
+  margin-left: 18px;
+  .lead & {
+    margin-left: 24px;
+  }
+  &:before {
+    position: absolute;
+    left: -18px;
+    .lead & {
+      left: -24px;
+    }
+  }
+}
+
 
 // Disabled and read-only inputs
 /*input[disabled],
@@ -82,10 +98,9 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
 */
 
 .platform {
-  background: #f4f4f4;
-  border-left: 1px solid #f0f0f0;
-  border-top: 1px solid #f0f0f0;
-  @include box-shadow(1px 1px 2px rgba(0,0,0,.1));  min-height: 20px;
+  background: #fafafa;
+  @include panel_default_boxshadow;  
+  min-height: 20px;
   padding: 19px;
   margin: 20px 0;
   blockquote {
@@ -94,6 +109,19 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
   }
 }
 
+.important-list {
+  font-size: 15px;
+  > li > p.smaller {
+    font-size: 13px;
+    font-weight: 300;
+    > strong {
+      font-weight: 500;
+    }
+  }
+  p:first-child {
+    margin-bottom: 6px;
+  }
+}
 
 ol.wizard {
   border-bottom: 1px solid #eaeaea;
@@ -196,9 +224,6 @@ ol.wizard {
   ol.wizard li {
     display: block;
   }
-  .row > .section-header {
-    padding: 0;
-  }
 }
 
 figure {
@@ -291,16 +316,6 @@ aside .header-bar {
 .sidebar {
   border-bottom: 1px dotted #ccc;
   margin-bottom: $baseLineHeight; 	
-}
-
-@media (max-width: 767px) {
-  .section-header {
-    margin-left: 0;
-  }
-  .row > .section-header {
-    margin-top: 3px;
-    @include expand_for_phone();
-  }
 }
 
 #app-list {
@@ -483,9 +498,6 @@ a.cap-link:hover {
     margin-left: 0;
     }
   .row {
-    h1 {
-      margin-top: 20px;
-    }
     > strong {
       display: block;
       float: none;
@@ -515,11 +527,7 @@ a.cap-link:hover {
     display:block;
     }
 }
-@media (max-width: 480px) {
-  .row > .section-header {
-    padding: 0;
-  }
-}
+
 
 @media (min-width: 768px) and (max-width: 979px) {
   .total-cost {
@@ -537,7 +545,7 @@ a.cap-link:hover {
   > .search-query {
   	padding-left:8px;
   	padding-right:0;
-    border-radius: 3px;
+    @include border-radius(1px);
   }
   > .search {
     position: absolute;
