@@ -37,6 +37,11 @@ pre,
   overflow: auto;
   font-family: $monoFontFamily !important;
 
+  #flash & {
+    background-color: #F7FCF7;
+    border-left-color: green;
+  }
+
   // Make prettyprint styles more spaced out for readability
   &.prettyprint {
     margin-bottom: $baseLineHeight;
