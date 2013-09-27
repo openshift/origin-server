@@ -51,6 +51,7 @@ class DeploymentTest < ActiveSupport::TestCase
     # activation must be integers
     assert Deployment.new(ref: "mybranch", activations: ["hello", "world"]).invalid?
     assert !Deployment.new(ref: "mybranch", activations: [1, 2]).invalid?
+    assert !Deployment.new(ref: "mybranch", activations: [1.0, 2.0]).invalid?
   end
 
   test "activate deployment" do

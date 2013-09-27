@@ -275,7 +275,10 @@ module OpenShift
             deployments.push({
               :id => deployment_metadata.id,
               :ref => deployment_metadata.git_ref,
-              :created_at => Time.parse(deployment_datetime).to_i
+              :git_sha1 => deployment_metadata.git_sha1,
+              :force_clean_build => deployment_metadata.force_clean_build,
+              :hot_deploy => deployment_metadata.hot_deploy,
+              :created_at => Time.parse(deployment_datetime).to_f
             })
           end
           deployments
