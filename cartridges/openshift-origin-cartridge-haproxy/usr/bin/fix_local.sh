@@ -1,28 +1,36 @@
 #!/bin/bash
 # Script to disable the local serving gear after either atleast
 # one remote gear is visible to haproxy or 30 seconds have passed.
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 set -x
 rm -f /tmp/fix_local*
 exec &> /tmp/fix_local.$$
 
-prim_cart=$(grep "Cartridge-Short-Name" $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/metadata/manifest.yml | cut -d: -f2 | xargs)
+prim_cart=$(primary_cartridge_short_name)
 prim_cart_ip="OPENSHIFT_${prim_cart}_IP"
 prim_cart_port="OPENSHIFT_${prim_cart}_PORT"
+
 eval local_ip=\$${prim_cart_ip}
+
 if [ -z "$local_ip" ]; then
-    first_ip_in_manifest=$(grep Endpoints: $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/metadata/manifest.yml -A 5 | grep Private-IP-Name | cut -d":" -f2  | xargs)
+    first_ip_in_manifest=$(primary_cartridge_private_ip_name)
     prim_cart_ip="OPENSHIFT_${prim_cart}_${first_ip_in_manifest}"
     eval local_ip=\$${prim_cart_ip}
 fi
+
 eval local_port=\$${prim_cart_port}
+
 if [ -z "$local_port" ]; then
-    first_port_in_manifest=$(grep Endpoints: $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/metadata/manifest.yml -A 5 | grep Private-Port-Name | cut -d":" -f2  | xargs)
+    first_port_in_manifest=$(primary_cartridge_private_port_name)
     prim_cart_port="OPENSHIFT_${prim_cart}_${first_port_in_manifest}"
     eval local_port=\$${prim_cart_port}
 fi
 local_ep=$local_ip:$local_port
 
 haproxy_cfg=$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
+
 iter=0
 
 while (( $iter < 30 )); do
