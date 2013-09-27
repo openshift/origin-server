@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.4
+Version: 1.15.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
+- Force resolving domains to avoid double query (jliggitt@redhat.com)
+- Membership changes (jliggitt@redhat.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+
 * Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
 - Merge pull request #3707 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
