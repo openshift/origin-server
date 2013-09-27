@@ -25,6 +25,7 @@ class Deployment
   self.field :hot_deploy, type: Boolean, default: false
   self.field :force_clean_build, type: Boolean, default: false
   self.field :ref, type: String
+  self.field :sha1, type: String
   self.field :artifact_url, type: String
   self.field :activations, type: Array, default: []
 
@@ -33,6 +34,7 @@ class Deployment
 
   validates :state, :inclusion => { :in => DEPLOYMENT_STATES.map { |s| s.to_s }, :message => "%{value} is not a valid state. Valid states are #{DEPLOYMENT_STATES.join(", ")}." }
   validates :ref, :allow_blank => true, length: {maximum: 256}
+  validates :sha1, :allow_blank => true, length: {maximum: 256}
   validate  :validate_activations
   validate  :validate_deployment
 
@@ -61,7 +63,7 @@ class Deployment
   def to_hash
     {
       "deployment_id" => deployment_id, "created_at" => created_at, "state" => state, "hot_deploy" => hot_deploy,
-      "force_clean_build" => force_clean_build, "ref" => ref, "artifact_url" => artifact_url, 'activations' => activations
+      "force_clean_build" => force_clean_build, "ref" => ref, "sha1" => sha1, "artifact_url" => artifact_url, 'activations' => activations
       }
   end
 end
