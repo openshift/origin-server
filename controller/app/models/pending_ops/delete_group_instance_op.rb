@@ -2,7 +2,7 @@ class DeleteGroupInstanceOp < PendingAppOp
 
   field :group_instance_id, type: String
 
-  def execute(skip_node_ops=false)
+  def execute
     begin
       group_instance = get_group_instance()
       group_instance.delete

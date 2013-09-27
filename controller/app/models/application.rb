@@ -112,7 +112,6 @@ class Application
   attr_accessor :user_agent
   attr_accessor :downloaded_cartridges
   attr_accessor :connections
-  attr_accessor :skip_node_ops
 
   #
   # Return a count of the gears for each application identified by the current query.  Returns
@@ -183,7 +182,7 @@ class Application
   # @return [Application] Application object
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
   def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[],
-                      init_git_url=nil, user_agent=nil, community_cart_urls=[], builder_id=nil, user_env_vars=nil, skip_node_ops=false)
+                      init_git_url=nil, user_agent=nil, community_cart_urls=[], builder_id=nil, user_env_vars=nil)
     default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
     app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap, builder_id: builder_id)
@@ -212,7 +211,7 @@ class Application
         elsif framework_cartridges.length > 1
           raise OpenShift::UserException.new("Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.", 109, "cartridge")
         end
-        add_feature_result = app.add_features(features, group_overrides, init_git_url, user_env_vars, skip_node_ops)
+        add_feature_result = app.add_features(features, group_overrides, init_git_url, user_env_vars)
         result_io.append add_feature_result
       rescue Exception => e
         unless app.group_instances.present? or app.component_instances.present?
@@ -329,14 +328,13 @@ class Application
   # @param keys [Array<SshKey>] Array of keys to add to the application.
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
-  def add_ssh_keys(user_id, keys, parent_op=nil, skip_node_ops=false)
+  def add_ssh_keys(user_id, keys, parent_op=nil)
     return if keys.empty?
     keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
       return unless user_id.nil? || Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
       #op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"add_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, parent_op: parent_op, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -351,14 +349,13 @@ class Application
   # @param keys [Array<SshKey>] Array of keys to remove from the application.
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
-  def remove_ssh_keys(user_id, keys, parent_op=nil, skip_node_ops=false)
+  def remove_ssh_keys(user_id, keys, parent_op=nil)
     return if keys.empty?
     keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
       return unless user_id.nil? || Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
       #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, parent_op: parent_op, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -371,7 +368,7 @@ class Application
   # @param user_id [String] The ID of the user associated with the keys. If the user ID is nil, then the key is assumed to be a system generated key
   # @param keys [Array<SshKey>] Array of keys to add to the application.
   # @return [ResultIO] Output from cartridges
-  def fix_gear_ssh_keys(skip_node_ops=false)
+  def fix_gear_ssh_keys
     Application.run_in_application_lock(self) do
       # reload the application to get the latest data
       self.reload
@@ -382,7 +379,6 @@ class Application
 
       #op_group = PendingAppOpGroup.new(op_type: :replace_all_ssh_keys,  args: {"keys_attrs" => ssh_keys}, user_agent: self.user_agent)
       op_group = ReplaceAllSshKeysOpGroup.new(keys_attrs: ssh_keys, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -395,11 +391,10 @@ class Application
   # @param vars [Array<Hash>] List of environment variables. Each entry must contain key and value
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
-  def add_env_variables(vars, parent_op=nil, skip_node_ops=false)
+  def add_env_variables(vars, parent_op=nil)
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_env_vars" => vars}, parent_op: parent_op, user_agent: self.user_agent)
       op_group = UpdateAppConfigOpGroup.new(add_env_vars: vars, parent_op: parent_op, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -412,11 +407,10 @@ class Application
   # @param vars [Array<Hash>] List of environment variables. Each entry must contain key and value
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
-  def remove_env_variables(vars, parent_op=nil, skip_node_ops=false)
+  def remove_env_variables(vars, parent_op=nil)
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_vars" => vars}, parent_op: parent_op, user_agent: self.user_agent)
       op_group = UpdateAppConfigOpGroup.new(remove_env_vars: vars, parent_op: parent_op, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -428,11 +422,10 @@ class Application
   # Add or Update or Delete user defined environment variables to all gears on the application.
   # @param vars [Array<Hash>] User environment variables. Each entry contains name and/or value
   # @return [ResultIO] Output from node platform
-  def patch_user_env_variables(vars, skip_node_ops=false)
+  def patch_user_env_variables(vars)
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :patch_user_env_vars, args: {"user_env_vars" => vars}, user_agent: self.user_agent)
       op_group = PatchUserEnvVarsOpGroup.new(user_env_vars: vars, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -509,7 +502,7 @@ class Application
   # @param init_git_url [String] URL to git repository to retrieve application code
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be added into the Application
-  def add_features(features, group_overrides=[], init_git_url=nil, user_env_vars=nil, skip_node_ops=false)
+  def add_features(features, group_overrides=[], init_git_url=nil, user_env_vars=nil)
     ssl_endpoint = Rails.application.config.openshift[:ssl_endpoint]
     cart_name_map = {}
 
@@ -603,7 +596,6 @@ class Application
       
       op_group = AddFeaturesOpGroup.new(features: features, group_overrides: group_overrides, init_git_url: init_git_url,
                                         user_env_vars: user_env_vars, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
     end
@@ -626,7 +618,7 @@ class Application
   #        If set to true, this ignores the features argument
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be removed from the Application
-  def remove_features(features, group_overrides=[], force=false, remove_all_features=false, skip_node_ops=false)
+  def remove_features(features, group_overrides=[], force=false, remove_all_features=false)
     installed_features = self.requires
     result_io = ResultIO.new
 
@@ -655,7 +647,6 @@ class Application
               Application.run_in_application_lock(uapp) do
                 #uapp.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => [feature_name], "group_overrides" => uapp.group_overrides}, user_agent: uapp.user_agent)
                 op_group = RemoveFeaturesOpGroup.new(features: [feature_name], group_overrides: uapp.group_overrides, user_agent: uapp.user_agent)
-                op_group.skip_node_ops = true if skip_node_ops
                 uapp.pending_op_groups.push op_group
                 client_result_io = ResultIO.new
                 uapp.run_jobs(client_result_io)
@@ -673,7 +664,6 @@ class Application
     Application.run_in_application_lock(self) do
       #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides, "remove_all_features" => remove_all_features}, user_agent: self.user_agent)
       op_group = RemoveFeaturesOpGroup.new(features: features, group_overrides: group_overrides, remove_all_features: remove_all_features, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
     end
@@ -691,24 +681,23 @@ class Application
   # @note {#run_jobs} must be called in order to perform the updates
   # This operation will trigger deletion of any applications listed in {#domain_requires}
   # @return [ResultIO] Output from cartridges
-  def destroy_app(skip_node_ops=false)
+  def destroy_app
     result_io = ResultIO.new
     self.domain.applications.each { |app|
       app.domain_requires.each { |app_id|
         if app_id==self._id
           # now we have to worry if apps have a circular dependency among them or not
           # assuming not for now or else stack overflow
-          result_io.append(app.destroy_app(skip_node_ops))
+          result_io.append(app.destroy_app)
           break
         end
       }
     }
     # specifying the remove_all_features flag as true to ensure removal of all features
-    result_io.append(self.remove_features(self.requires, [], true, true, skip_node_ops))
+    result_io.append(self.remove_features(self.requires, [], true, true))
     Application.run_in_application_lock(self) do
       #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :delete_app, user_agent: self.user_agent)
       op_group = DeleteAppOpGroup.new(user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
@@ -719,11 +708,10 @@ class Application
   # Updates the component grouping overrides of the application and create tasks to perform the update
   # @param group_overrides [Array] list of group overrides
   # @return [ResultIO] Output from cartridges
-  def set_group_overrides(group_overrides, skip_node_ops=false)
+  def set_group_overrides(group_overrides)
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :add_features, args: {"features" => [], "group_overrides" => group_overrides}, created_at: Time.new, user_agent: self.user_agent)
       op_group = AddFeaturesOpGroup.new(features: [], group_overrides: group_overrides, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       pending_op_groups.push op_group
       self.save
       result_io = ResultIO.new
@@ -735,7 +723,7 @@ class Application
   ##
   # Update the application's group overrides such that a scalable application becomes HA
   # This broadly means setting the 'min' of web_proxy sparse cart to 2
-  def make_ha(skip_node_ops=false)
+  def make_ha
     raise OpenShift::UserException.new("This feature ('High Availability') is currently disabled. Enable it in OpenShift's config options.") if not Rails.configuration.openshift[:allow_ha_applications]
     raise OpenShift::UserException.new("'High Availability' is not an allowed feature for the account ('#{self.domain.owner.login}')") if not self.domain.owner.ha
     raise OpenShift::UserException.new("Only scalable applications can be made 'HA'") if not self.scalable
@@ -758,7 +746,7 @@ class Application
       scale_up_needed = web_ci.group_instance.gears.length>1 
       self.update_component_limits(web_ci, 2, nil, nil)
       if scale_up_needed
-        self.scale_by(component_instance.group_instance._id, 1, skip_node_ops)
+        self.scale_by(component_instance.group_instance._id, 1)
       end
     end
 
@@ -769,7 +757,6 @@ class Application
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :make_ha, args: {}, created_at: Time.new, user_agent: self.user_agent)
       op_group = MakeAppHaOpGroup.new(user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       pending_op_groups.push op_group
       self.save
       result_io = ResultIO.new
@@ -786,7 +773,7 @@ class Application
   # @param additional_filesystem_gb [Integer] Gb of disk storage required beyond is default in the gear size
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if request cannot be completed
-  def update_component_limits(component_instance, scale_from, scale_to, additional_filesystem_gb, skip_node_ops=false)
+  def update_component_limits(component_instance, scale_from, scale_to, additional_filesystem_gb)
     if additional_filesystem_gb && additional_filesystem_gb != 0
       max_storage = self.domain.owner.max_storage
       raise OpenShift::UserException.new("You are not allowed to request additional gear storage", 164) if max_storage == 0
@@ -796,7 +783,6 @@ class Application
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :update_component_limits, args: {"comp_spec" => component_instance.to_hash, "min"=>scale_from, "max"=>scale_to, "additional_filesystem_gb"=>additional_filesystem_gb}, created_at: Time.new, user_agent: self.user_agent)
       op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_hash, min: scale_from, max: scale_to, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       pending_op_groups.push op_group
       self.save
       result_io = ResultIO.new
@@ -812,7 +798,7 @@ class Application
   #   A postive value will trigger a scale up and a negative value a scale down
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if request cannot be completed
-  def scale_by(group_instance_id, scale_by, skip_node_ops=false)
+  def scale_by(group_instance_id, scale_by)
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
 
     ginst = group_instances_with_scale.select {|gi| gi._id === group_instance_id}.first
@@ -822,7 +808,6 @@ class Application
     Application.run_in_application_lock(self) do
       #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :scale_by, args: {"group_instance_id" => group_instance_id, "scale_by" => scale_by}, user_agent: self.user_agent)
       op_group = ScaleOpGroup.new(group_instance_id: group_instance_id, scale_by: scale_by, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -884,7 +869,7 @@ class Application
   # Start an application of feature
   # @param feature [String, #optional] Optional feature name to start. If nil, it will trigger start on all features in the application
   # @return [ResultIO] Output from cartridges
-  def start(feature=nil, skip_node_ops=false)
+  def start(feature=nil)
     result_io = ResultIO.new
     op_group = nil
     if feature.nil?
@@ -894,7 +879,6 @@ class Application
       #op_group = PendingAppOpGroup.new(op_type: :start_feature, args: {"feature" => feature}, user_agent: self.user_agent)
       op_group = StartFeatureOpGroup.new(feature: feature, user_agent: self.user_agent)
     end
-    op_group.skip_node_ops = true if skip_node_ops
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
@@ -902,19 +886,18 @@ class Application
     end
   end
 
-  def start_component(component_name, cartridge_name, skip_node_ops=false)
+  def start_component(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       #op_group = PendingAppOpGroup.new(op_type: :start_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}}, user_agent: self.user_agent)
       op_group = StartCompOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
     end
   end
 
-  def stop(feature=nil, force=false, skip_node_ops=false)
+  def stop(feature=nil, force=false)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       op_group = nil
@@ -925,26 +908,24 @@ class Application
         #op_group = PendingAppOpGroup.new(op_type: :stop_feature, args: {"feature" => feature, "force" => force }, user_agent: self.user_agent)
         op_group = StopFeatureOpGroup.new(feature: feature, force: force, user_agent: self.user_agent)
       end
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
     end
   end
 
-  def stop_component(component_name, cartridge_name, force=false, skip_node_ops=false)
+  def stop_component(component_name, cartridge_name, force=false)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       #op_group = PendingAppOpGroup.new(op_type: :stop_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}, "force" => force}, user_agent: self.user_agent)
       op_group = StopCompOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, force: force, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
     end
   end
 
-  def restart(feature=nil, skip_node_ops=false)
+  def restart(feature=nil)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       op_group = nil
@@ -955,26 +936,24 @@ class Application
         #op_group = PendingAppOpGroup.new(op_type: :restart_feature, args: {"feature" => feature}, user_agent: self.user_agent)
         op_group = RestartFeatureOpGroup.new(feature: feature, user_agent: self.user_agent)
       end
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
     end
   end
 
-  def restart_component(component_name, cartridge_name, skip_node_ops=false)
+  def restart_component(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       #op_group = PendingAppOpGroup.new(op_type: :restart_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}}, user_agent: self.user_agent)
       op_group = RestartCompOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
     end
   end
 
-  def reload_config(feature=nil, skip_node_ops=false)
+  def reload_config(feature=nil)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       op_group = nil
@@ -985,7 +964,6 @@ class Application
         #op_group = PendingAppOpGroup.new(op_type: :reload_feature_config, args: {"feature" => feature}, user_agent: self.user_agent)
         op_group = ReloadFeatureConfigOpGroup.new(feature: feature, user_agent: self.user_agent)
       end
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
@@ -1005,11 +983,10 @@ class Application
     result_io
   end
 
-  def reload_component_config(component_name, cartridge_name, skip_node_ops=false)
+  def reload_component_config(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :reload_component_config, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}}, user_agent: self.user_agent)
       op_group = ReloadCompConfigOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -1017,12 +994,11 @@ class Application
     end
   end
 
-  def tidy(skip_node_ops=false)
+  def tidy
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       #op_group = PendingAppOpGroup.new(op_type: :tidy_app, user_agent: self.user_agent)
       op_group = TidyAppOpGroup.new(user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
@@ -1034,13 +1010,12 @@ class Application
     raise "noimpl"
   end
 
-  def remove_gear(gear_id, skip_node_ops=false)
+  def remove_gear(gear_id)
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
     raise OpenShift::UserException.new("Gear for removal not specified") if gear_id.nil?
     Application.run_in_application_lock(self) do
       #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_gear, args: {"gear_id" => gear_id}, user_agent: self.user_agent)
       op_group = RemoveGearOpGroup.new(gear_id: gear_id, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -1084,7 +1059,7 @@ class Application
   #
   # == Raises:
   # OpenShift::UserException if the alias is already been associated with an application.
-  def add_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase="", skip_node_ops=false)
+  def add_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase="")
     # Server aliases validate as DNS host names in accordance with RFC
     # 1123 and RFC 952.  Additionally, OpenShift does not allow an
     # Alias to be an IP address or a host in the service domain.
@@ -1106,12 +1081,10 @@ class Application
       raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140, "id") if Application.where("aliases.fqdn" => server_alias).count > 0
       #op_group = PendingAppOpGroup.new(op_type: :add_alias, args: {"fqdn" => server_alias}, user_agent: self.user_agent)
       op_group = AddAliasOpGroup.new(fqdn: server_alias, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       if ssl_certificate.present?
         #op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => server_alias, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
         op_group = AddSslCertOpGroup.new(fqdn: server_alias, ssl_certificate: ssl_certificate, private_key: private_key, pass_phrase: pass_phrase, user_agent: self.user_agent)
-        op_group.skip_node_ops = true if skip_node_ops
         self.pending_op_groups.push op_group
       end
       result_io = ResultIO.new
@@ -1128,19 +1101,17 @@ class Application
   #
   # == Returns:
   # {PendingAppOps} object which tracks the progress of the operation.
-  def remove_alias(fqdn, skip_node_ops=false)
+  def remove_alias(fqdn)
     fqdn = fqdn.downcase if fqdn
     al1as = aliases.find_by(fqdn: fqdn)
     Application.run_in_application_lock(self) do
       if al1as.has_private_ssl_certificate
          #op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => al1as.fqdn}, user_agent: self.user_agent)
          op_group = RemoveSslCertOpGroup.new(fqdn: al1as.fqdn, user_agent: self.user_agent)
-         op_group.skip_node_ops = true if skip_node_ops
          self.pending_op_groups.push op_group
       end
       #op_group = PendingAppOpGroup.new(op_type: :remove_alias, args: {"fqdn" => al1as.fqdn}, user_agent: self.user_agent)
       op_group = RemoveAliasOpGroup.new(fqdn: al1as.fqdn, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -1148,7 +1119,7 @@ class Application
     end
   end
 
-  def update_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase="", skip_node_ops=false)
+  def update_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase="")
 
     validate_certificate(ssl_certificate, private_key, pass_phrase)
 
@@ -1159,14 +1130,12 @@ class Application
       if old_alias.has_private_ssl_certificate
          #op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => fqdn}, user_agent: self.user_agent)
          op_group = RemoveSslCertOpGroup.new(fqdn: fqdn, user_agent: self.user_agent)
-         op_group.skip_node_ops = true if skip_node_ops
          self.pending_op_groups.push op_group
       end
       #add new certificate
       if ssl_certificate.present?
         #op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => fqdn, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
         op_group = AddSslCertOpGroup.new(fqdn: fqdn, ssl_certificate: ssl_certificate, private_key: private_key, pass_phrase: pass_phrase, user_agent: self.user_agent)
-        op_group.skip_node_ops = true if skip_node_ops
         self.pending_op_groups.push op_group
       end
 
@@ -1176,11 +1145,10 @@ class Application
     end
   end
 
-  def run_connection_hooks(skip_node_ops=false)
+  def run_connection_hooks
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :execute_connections)
       op_group = ExecuteConnectionsOpGroup.new()
-      op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
 
       result_io = ResultIO.new
@@ -1374,7 +1342,7 @@ class Application
   # == Parameters:
   # result_io::
   #   {ResultIO} object with directives from cartridge hooks
-  def process_commands(result_io, component_id=nil, gear=nil, skip_node_ops=false)
+  def process_commands(result_io, component_id=nil, gear=nil)
     commands = result_io.cart_commands
     add_ssh_keys = []
 
@@ -1398,12 +1366,10 @@ class Application
         iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
         #op_group = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token }, user_agent: self.user_agent)
         op_group = AddBrokerAuthKeyOpGroup.new(iv: iv, token: token, user_agent: self.user_agent)
-        op_group.skip_node_ops = true if skip_node_ops
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp } })
       when "BROKER_KEY_REMOVE"
         #op_group = PendingAppOpGroup.new(op_type: :remove_broker_auth_key, args: { }, user_agent: self.user_agent)
         op_group = RemoveBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
-        op_group.skip_node_ops = true if skip_node_ops
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp } })
       when "NOTIFY_ENDPOINT_CREATE"
         if gear and component_id
@@ -1422,20 +1388,18 @@ class Application
       keys_attrs = get_updated_ssh_keys(nil, add_ssh_keys)
       #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
       op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, user_agent: self.user_agent)
-      op_group.skip_node_ops = true if skip_node_ops
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
     if remove_env_vars.length > 0
       #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_vars" => remove_env_vars})
       op_group = UpdateAppConfigOpGroup.new(remove_env_vars: remove_env_vars)
-      op_group.skip_node_ops = true if skip_node_ops
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }})
     end
 
     # Have to remember to run_jobs for the other apps involved at some point
     # run_jobs is called on the domain after all processing is done from add_features and remove_features
-    domain.add_system_ssh_keys(domain_keys_to_add, skip_node_ops) if !domain_keys_to_add.empty?
-    domain.add_env_variables(domain_env_vars_to_add, skip_node_ops) if !domain_env_vars_to_add.empty?
+    domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
+    domain.add_env_variables(domain_env_vars_to_add) if !domain_env_vars_to_add.empty?
     nil
   end
 
@@ -1456,10 +1420,9 @@ class Application
       while self.pending_op_groups.count > 0
         op_group = self.pending_op_groups.first
         self.user_agent = op_group.user_agent
-        self.skip_node_ops = op_group.skip_node_ops
 
         op_group.elaborate(self) if op_group.pending_ops.count == 0
-        op_group.execute(result_io, self.skip_node_ops)
+        op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
         
@@ -1472,7 +1435,7 @@ class Application
 
       #rollback
       begin
-        op_group.execute_rollback(result_io, self.skip_node_ops)
+        op_group.execute_rollback(result_io)
         op_group.delete
         num_gears_recovered = op_group.num_gears_added - op_group.num_gears_created + op_group.num_gears_rolled_back + op_group.num_gears_destroyed
         op_group.unreserve_gears(num_gears_recovered, self)
@@ -1573,11 +1536,10 @@ class Application
         keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
         #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
         op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
-        op_group.skip_node_ops = true if self.skip_node_ops
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       end
-      domain.remove_system_ssh_keys(comp_instance._id, self.skip_node_ops)
-      domain.remove_env_variables(comp_instance._id, self.skip_node_ops)
+      domain.remove_system_ssh_keys(comp_instance._id)
+      domain.remove_env_variables(comp_instance._id)
       #op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: gear_destroy_op_ids)
       op = DeleteCompOp.new(group_instance_id: group_instance._id.to_s, comp_spec: comp_spec, prereq: gear_destroy_op_ids)
       delete_comp_ops.push op
@@ -1914,11 +1876,10 @@ class Application
         keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
         #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
         op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
-        op_group.skip_node_ops = true if self.skip_node_ops
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       end
-      domain.remove_system_ssh_keys(component_instance._id, self.skip_node_ops)
-      domain.remove_env_variables(component_instance._id, self.skip_node_ops)
+      domain.remove_system_ssh_keys(component_instance._id)
+      domain.remove_env_variables(component_instance._id)
       #op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s})
       op = DeleteCompOp.new(group_instance_id: group_instance._id, comp_spec: comp_spec, prereq: ops.map{|o| o._id.to_s})
       ops.push op
