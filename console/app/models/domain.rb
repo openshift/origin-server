@@ -85,7 +85,6 @@ class Domain < RestApi::Base
     available_gears > 0
   end
 
-
   def can_rename?
     if readonly?
       false

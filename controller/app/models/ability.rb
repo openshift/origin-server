@@ -98,9 +98,6 @@ module Ability
       when :leave
         Role.in?(:view, role)
 
-      when :leave
-        Role.in?(:view, role) && Rails.configuration.openshift[:membership_enabled]
-
       when :change_gear_sizes, :destroy
         resource.owned_by?(actor_or_id)
 

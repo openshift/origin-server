@@ -7,7 +7,6 @@ module CapabilityAware
 
   def current_api_user
     @current_api_user ||= begin
-        Rails.logger.debug("Fetching current_api_user")
         @user_capabilities = nil
         session[:caps] = nil
         User.find :one, :as => current_user
