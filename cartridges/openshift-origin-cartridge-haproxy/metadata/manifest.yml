@@ -1,7 +1,7 @@
 ---
 Name: haproxy
 Cartridge-Short-Name: HAPROXY
-Display-Name: OpenShift Web Balancer
+Display-Name: Web Load Balancer
 Description: Acts as a load balancer for your web cartridge and will automatically
   scale up to handle incoming traffic. Is automatically added to scaled applications
   when they are created and cannot be removed or added to an application after the

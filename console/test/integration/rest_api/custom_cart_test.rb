@@ -8,7 +8,7 @@ class RestApiCustomCartTest < ActiveSupport::TestCase
     setup_domain
 
     assert_create_app({:include => :cartridges, :initial_git_url => 'empty', :cartridges => ['php-5.3', {:url => 'https://rediscart-claytondev.rhcloud.com'}]}, "Create an app with Redis") do |app|
-      loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
+      loaded_app = Application.find(:one, :params => {:name => app.name, :domain_id => @domain.id}, :as => @user)
       assert loaded_app.cartridges.map(&:name).one?{ |s| s =~ /smarterclayton-redis-/ }
     end
   end
@@ -18,7 +18,7 @@ class RestApiCustomCartTest < ActiveSupport::TestCase
     setup_domain
 
     assert_create_app({:include => :cartridges, :initial_git_url => 'empty', :cartridges => [{:url => 'https://cdk-claytondev.rhcloud.com'}]}, "Create an app based on the CDK") do |app|
-      loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
+      loaded_app = Application.find(:one, :params => {:name => app.name, :domain_id => @domain.id}, :as => @user)
       assert loaded_app.cartridges.map(&:name).one?{ |s| s =~ /smarterclayton-cdk-/ }
     end
   end

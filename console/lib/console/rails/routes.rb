@@ -12,6 +12,7 @@ module ActionDispatch::Routing
 
       def openshift_console_routes
         id_regex = /[^\/]+/
+
         match 'help' => 'console_index#help', :via => :get, :as => 'console_help'
         match 'unauthorized' => 'console_index#unauthorized', :via => :get, :as => 'unauthorized'
         match 'server_unavailable' => 'console_index#server_unavailable', :via => :get, :as => 'server_unavailable'
@@ -22,21 +23,23 @@ module ActionDispatch::Routing
         match 'applications/:application_id/aliases/:id' => 'aliases#show', :application_id => id_regex, :id => id_regex, :via => :get, :as => 'legacy_application_alias'
 
         # Application specific resources
-        resources :application_types, :only => [:show, :index], :id => id_regex, :singular_resource => true
-        resources :applications, :singular_resource => true do
+        resources :application_types, :only => [:show, :index], :id => id_regex, :singular_resource => true do
+          get :estimate, on: :member
+        end
+        resources :applications, :id => id_regex, :singular_resource => true do
           resources :cartridges, :only => [:show, :create, :index], :id => id_regex, :singular_resource => true
-          resources :aliases, :only => [:edit, :create, :new, :destroy, :update], :id => id_regex, :singular_resource => true do
-            get :delete
+          resources :aliases, :only => [:index, :edit, :create, :new, :destroy, :update], :id => id_regex, :singular_resource => true do
+            get :delete, on: :member
           end
           resources :cartridge_types, :only => [:show, :index], :id => id_regex, :singular_resource => true
           resource :restart, :only => [:show, :update], :id => id_regex
 
-          resource :building, :controller => :building, :id => id_regex, :only => [:show, :new, :destroy, :create] do
-            get :delete
+          resource :building, :controller => :building, :only => [:show, :new, :destroy, :create] do
+            get :delete, on: :member
           end
 
           resource :scaling, :controller => :scaling, :only => [:show, :new] do
-            get :delete
+            get :delete, on: :member
             resources :cartridges, :controller => :scaling, :only => :update, :id => id_regex, :singular_resource => true, :format => false #, :format => /json|csv|xml|yaml/
           end
 
@@ -47,11 +50,16 @@ module ActionDispatch::Routing
           member do
             get :delete
             get :get_started
+            post :upload_key
           end
         end
         resource :settings, :only => :show
 
-        resource :domain, :id => id_regex, :only => [:new, :create, :edit, :update]
+        resources :domains, :id => id_regex, :only => [:new, :create, :edit, :update, :index, :show], :singular_resource => true do
+          resources :members, :only => [:index]
+          match 'members' => 'members#update', :via => :put
+          match 'leave' => 'members#leave', :via => [:get, :post]
+        end
         resources :keys, :id => id_regex, :only => [:new, :create, :destroy], :singular_resource => true
 
         resources :authorizations, :id => id_regex, :except => :index, :singular_resource => true

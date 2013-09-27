@@ -20,9 +20,12 @@ Options:
     Source of the login (optional)
 -n|--namespace <Namespace>
     Namespace for application(s) (alphanumeric - max 16 chars) (required)
+   --new_namespace <Namespace>
+    New namespace for application(s) (alphanumeric - max 16 chars) (required
+      for --comand update)
 -c|--command (create|update|delete|info|env_add|env_del)
 -s|--ssh_key <ssh key>
-    User's SSH key
+    User\'s SSH key
 -t|--key_type <ssh key type>
     User's SSH key type (ssh-rsa|ssh-dss|ssh-rsa-cert-v01@openssh.com|ssh-dss-cert-v01@openssh.com|ssh-rsa-cert-v00@openssh.com|ssh-dss-cert-v00@openssh.com)
 -k|--key_name <ssh key name>
@@ -38,14 +41,15 @@ end
 opts = GetoptLong.new(
     ["--login",            "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--provider",         "-p", GetoptLong::REQUIRED_ARGUMENT],
-    ["--namespace",        "-n", GetoptLong::REQUIRED_ARGUMENT],    
+    ["--namespace",        "-n", GetoptLong::REQUIRED_ARGUMENT],
     ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--ssh_key",          "-s", GetoptLong::REQUIRED_ARGUMENT],
     ["--key_type",         "-t", GetoptLong::REQUIRED_ARGUMENT],
     ["--key_name",         "-k", GetoptLong::REQUIRED_ARGUMENT],
     ["--env_name",         "-e", GetoptLong::REQUIRED_ARGUMENT],
     ["--env_value",        "-v", GetoptLong::REQUIRED_ARGUMENT],
-    ["--new_namespace"         , GetoptLong::REQUIRED_ARGUMENT],    
+    ["--new_namespace"         , GetoptLong::REQUIRED_ARGUMENT],
+    ["--allowed_gear_sizes"    , GetoptLong::REQUIRED_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -65,6 +69,7 @@ namespace = args["--namespace"]
 new_namespace = args["--new_namespace"]
 env_name = args["--env_name"]
 env_value = args["--env_value"]
+allowed_gear_sizes = args["--allowed_gear_sizes"]
 
 if login.nil? or args["--help"]
   usage
@@ -163,10 +168,11 @@ when "create"
   
   domain = Domain.new(namespace: namespace, owner: user)
   domain.save!
-  reply.resultIO << "Successfully created domain.\n"  
+  reply.resultIO << "Successfully created domain.\n"
+
 when "update"
-  if namespace.blank? || login.blank? || new_namespace.blank?
-    print "Please provide login, existing namespace, and new namespace to update the domain\n"
+  if namespace.blank? || login.blank? || (allowed_gear_sizes.nil? && new_namespace.blank?)
+    print "Please provide login, namespace, and either a new namespace (rename), or a set of allowed gear sizes, to update the domain\n"
     exit 1
   end
   user = nil
@@ -178,7 +184,7 @@ when "update"
     puts "User with login: #{login} not found"
     exit 1
   end
-  
+
   d = nil
   if user.domains.empty?
     puts "No domain exists for the user #{login}.  Please use the 'create' command instead."
@@ -186,7 +192,12 @@ when "update"
   else
     begin
       d = user.domains.find_by(canonical_namespace: namespace)
-      d.namespace = new_namespace
+      if new_namespace
+        d.namespace = new_namespace
+      end
+      if allowed_gear_sizes
+        d.allowed_gear_sizes = allowed_gear_sizes.split(',').map(&:strip)
+      end
       d.save_with_duplicate_check!
       reply.resultIO << "Successfully updated domain.\n"
     rescue OpenShift::UserException => e
@@ -260,19 +271,24 @@ else
     exit 1
   end
   reply.resultIO << "RHLogin: #{user.login}\n"
-  if user.domains.empty?
-    reply.resultIO << "Namespace: No namespace registered\n"
-  else
-    reply.resultIO << "Namespace: #{user.domains.first.namespace}\n"
-  end
-  reply.resultIO << "SSH keys:\n"
-  user.ssh_keys.each do |key|
-    reply.resultIO << "\t#{key.name}:\n#{key.content}\n\n"
-  end unless user.ssh_keys.nil?
-  reply.resultIO << "Applications:\n"
-  user.domains.each do |dom|
-    dom.applications.each do |app|
+  domains = user.domains.select{ |d| namespace.nil? || d.namespace.downcase == namespace.downcase }
+  domains.each do |domain|
+    reply.resultIO << "Namespace: #{domain.namespace}\n"
+    reply.resultIO << "SSH keys:\n"
+    user.ssh_keys.each do |key|
+      reply.resultIO << "\t#{key.name}:\n#{key.content}\n\n"
+    end unless user.ssh_keys.nil?
+    reply.resultIO << "Allowed gear sizes: #{domain.allowed_gear_sizes.join(', ')}\n"
+    reply.resultIO << "Applications:\n"
+    domain.applications.each do |app|
       reply.resultIO << app.as_json.to_yaml
+    end
+  end
+  if domains.empty?
+    if namespace
+      reply.resultIO << "No domains for #{login} match #{namespace}\n"
+    else
+      reply.resultIO << "No domains for #{login}\n"
     end
   end
 end

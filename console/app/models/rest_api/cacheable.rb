@@ -13,35 +13,73 @@ module RestApi
       # Return an equivalent to this class that will may cache the defined results
       #
       def cached
-        class_opts = cache_options
-        if @cacheable
-          self
-        else
+        @cacheable ||= define_subclass
+      end
+
+      protected
+        def cache_options
+          @cache_opts ||= {:expires_in => 5.minutes}
+        end
+        def caches
+          @caches ||= {}
+        end
+        def default_cache_timeout(time)
+          cache_options[:expires_in] = time
+        end
+        def cache_method(method, *args)
+          opts = args.extract_options!
+          caches[method.to_sym] = opts
+          opts[:cache_key] = args.length == 1 ? args.first : args if args.present?
+        end
+        def cache_find_method(symbol, key=[name, "find_#{symbol}"], opts={})
+          cache_method "find_#{symbol}", key, opts.reverse_merge!(:before => remove_authorization_from_model)
+        end
+        def remove_authorization_from_model
+          lambda { |e| Array(e).each { |c| c.as = nil } }
+        end
+
+      private
+        def define_subclass
           parent = self
-          Class.new(self) do
+          parent.parent.const_set("#{parent.name.demodulize}Cached", Class.new(self) do
             #FIXME: prone to breaks, needs to be cleaner
             self.element_name = parent.element_name
-            @cacheable = true
-            @cache_opts = parent.cache_options
+            @caches = parent.caches
 
+            def self.new(*args)
+              superclass.new(*args)
+            end
+
+            def self.cached
+              self
+            end
             def self.name
               superclass.name
             end
             def to_partial_path
               self.class.superclass._to_partial_path
             end
+            def self.cache_key_for(method, *args)
+              opts = @caches[method]
+              raise "Method #{method} is not cacheable #{caches.inspect}" unless opts
+              key = opts[:cache_key] || [self.name, method, *args]
+              key = key.call(*args) if key.is_a? Proc
+              key.map! { |k| k.respond_to?(:cache_key) ? k.cache_key : k } if key.is_a? Array
+              key
+            end
 
             eigenclass = (class << self; self; end)
-            class_opts[:caches].each_pair do |m, opts|
+            caches.each_pair do |m, opts|
               name = "#{m}_without_caching".to_sym
-              opts ||= {}
-              #puts "define method #{m} #{name}"
+              (opts ||= {}).merge!(parent.cache_options)
+
               eigenclass.class_eval do
+                alias_method name, m
                 define_method m do |*args, &blk|
                   key = cache_key_for(m, *args)
                   result = begin
-                    Rails.cache.fetch(key, class_opts.merge(opts)) do
-                      parent.send(m, *args, &blk).tap do |result|
+                    Rails.cache.fetch(key, opts) do
+                      send(name, *args, &blk).tap do |result|
                         opts[:before].call(result) if opts[:before]
                       end
                     end
@@ -54,37 +92,7 @@ module RestApi
                 end
               end
             end
-          end
-        end
-      end
-
-      protected
-        def cache_options
-          @cache_opts ||= {:expires_in => 5.minutes, :caches => {}}
-        end
-        def default_cache_timeout(time)
-          cache_options[:expires_in] = time
-        end
-        def cache_method(method, *args)
-          opts = args.extract_options!
-          cache_options[:caches][method.to_sym] = opts
-          opts[:cache_key] = args.length == 1 ? args.first : args if args.present?
-        end
-        def cache_key_for(method, *args)
-          opts = cache_options[:caches][method]
-          raise "Method #{method} is not cacheable #{cache_options.inspect}" unless opts
-          key = opts[:cache_key] || [self.superclass.name, method, *args]
-          #puts "key before #{key.inspect}"
-          key = key.call(*args) if key.is_a? Proc
-          key.map! { |k| k.respond_to?(:cache_key) ? k.cache_key : k } if key.is_a? Array
-          key
-        end
-
-        def cache_find_method(symbol, key=[name, "find_#{symbol}"], opts={})
-          cache_method "find_#{symbol}", key, opts.reverse_merge!(:before => remove_authorization_from_model)
-        end
-        def remove_authorization_from_model
-          lambda { |e| Array(e).each { |c| c.as = nil } }
+          end)
         end
     end
   end

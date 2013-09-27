@@ -1,0 +1,6 @@
+- breadcrumb_for_domain @domain, 'Confirm Leave'
+- content_for :title, 'Leave Domain'
+
+%h1 Leave Domain
+
+= render :partial => 'members/leave_domain_form', :locals => {:domain => @domain}

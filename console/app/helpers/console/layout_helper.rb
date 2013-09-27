@@ -118,7 +118,7 @@ module Console::LayoutHelper
       :link => 'application_types_path'
     },
     {
-      :name => 'Configure and deploy the application'
+      :name => 'Configure the application'
     },
     {
       :name => 'Next steps'
@@ -135,7 +135,7 @@ module Console::LayoutHelper
       :link => 'application_cartridge_types_path'
     },
     {
-      :name => 'Configure and deploy the cartridge'
+      :name => 'Configure the cartridge'
     },
     {
       :name => 'Next steps'
@@ -198,6 +198,13 @@ module Console::LayoutHelper
     breadcrumbs_for_each [
       link_to('My Applications', :applications, :action => :index),
       link_to(application.name, application),
+    ] + args
+  end
+
+  def breadcrumb_for_domain(domain, *args)
+    breadcrumbs_for_each [
+      link_to('Domains', :domains, :action => :index),
+      link_to(domain.name, domain),
     ] + args
   end
 

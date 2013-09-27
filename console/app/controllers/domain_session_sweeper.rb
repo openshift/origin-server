@@ -7,8 +7,8 @@ class DomainSessionSweeper < ActiveModel::Observer
   end
   def self.after(controller)
     if self.domain_changes?
-      controller.session[:domain] = nil
-      Rails.logger.debug "Session domain is reset"
+      Rails.cache.delete(controller.domains_cache_key)
+      Rails.logger.debug "Cached domains are reset"
     end
   end
 

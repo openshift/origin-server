@@ -16,5 +16,9 @@ class User < RestApi::Base
     attributes[:consumed_gears] || 0
   end
 
+  def max_domains
+    attributes[:max_domains] || 1
+  end
+
   include Capabilities
 end
