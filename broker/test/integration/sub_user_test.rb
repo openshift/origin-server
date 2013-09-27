@@ -4,7 +4,7 @@ require 'test_helper'
 class SubUserTest < ActionDispatch::IntegrationTest
   def setup
     @random = rand(1000000)
-
+    @trusted_header = "REMOTE_USER"
     @username = "parent#{@random}"
     @headers = {}
     @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@username}:password")
@@ -12,6 +12,9 @@ class SubUserTest < ActionDispatch::IntegrationTest
 
     if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
       `oo-register-user -l admin -p admin --username #{@username} --userpass password`
+    elsif File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
+      @trusted_header = Rails.application.config.auth[:trusted_header] if Rails.application.config.auth.has_key? :trusted_header
+      @headers[@trusted_header] = @username
     end
   end
 
@@ -57,6 +60,8 @@ class SubUserTest < ActionDispatch::IntegrationTest
     @headers2["Accept"] = "application/json"
     if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
       `oo-register-user -l admin -p admin --username "#{@username}x" --userpass password`
+    elsif File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
+      @headers2[@trusted_header] = "#{@username}x"
     end
 
     get "broker/rest/domains.json", nil, @headers2
@@ -95,6 +100,9 @@ class SubUserTest < ActionDispatch::IntegrationTest
     @headers2["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@username}:password")
     @headers2["Accept"] = "application/json"
     @headers2["X-Impersonate-User"] = subaccount_user
+    if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
+      @headers2[@trusted_header] = "#{@username}"
+    end
 
     get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
