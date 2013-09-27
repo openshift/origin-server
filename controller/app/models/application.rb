@@ -2952,10 +2952,10 @@ class Application
     end
   end
 
-  def deploy(deployment)
+  def deploy(hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
-      op_group = DeployOpGroup.new(hot_deploy: deployment.hot_deploy, force_clean_build: deployment.force_clean_build, ref: deployment.ref, artifact_url: deployment.artifact_url)
+      op_group = DeployOpGroup.new(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
     end
@@ -2966,7 +2966,7 @@ class Application
     if deployment_id.nil? and self.deployments.length > 0
       deployment_id =  self.deployments[self.deployments.length - 2].deployment_id
     end
-    raise OpenShift::UserException.new("There are no previous deployments to roll-back to", 126, "deployment_id") if deployment_id.nil?
+    raise OpenShift::UserException.new("There are no previous deployments to activate", 126, "deployment_id") if deployment_id.nil?
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
       op_group = ActivateOpGroup.new(deployment_id: deployment_id)

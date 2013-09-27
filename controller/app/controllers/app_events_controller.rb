@@ -103,7 +103,7 @@ class AppEventsController < BaseController
       if deployment_id.nil? and @application.deployments.length > 0
         deployment_id =  @application.deployments[@application.deployments.length -2].deployment_id
       end
-      return render_error(:unprocessable_entity, "There are no previous deployments to roll-back to", 126,
+      return render_error(:unprocessable_entity, "There are no previous deployments to activate to", 126,
                         "deployment_id") if deployment_id.nil? or deployment_id.to_s.empty?
       #TODO implement change_deployment or use change_state
       #authorize! :change_deployment, @application

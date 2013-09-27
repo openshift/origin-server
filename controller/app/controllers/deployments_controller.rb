@@ -30,15 +30,13 @@ class DeploymentsController < BaseController
     ref = params[:ref].presence
     artifact_url = params[:artifact_url].presence
 
-    deployment = Deployment.new(hot_deply: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
-    if deployment.invalid?
-      messages = get_error_messages(deployment)
-      return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
-    else
-      result = @application.deploy(deployment)
-      rest_deployment = get_rest_deployment(@application.deployments.last)
-      render_success(:created, "deployment", rest_deployment, "Added #{deployment.deployment_id} to application #{@application.name}", result)
-    end
+    return render_error(:unprocessable_entity, "Git ref must be less than 256 characters",
+                          105, "name") if ref && ref.length > 256
+
+    result = @application.deploy(hot_deploy, force_clean_build, ref, artifact_url)
+    deployment = @application.deployments.last
+    rest_deployment = get_rest_deployment(deployment)
+    render_success(:created, "deployment", rest_deployment, "Added #{deployment.deployment_id} to application #{@application.name}", result)
   end
 
   def update

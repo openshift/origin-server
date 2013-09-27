@@ -29,13 +29,9 @@ class DeploymentTest < ActiveSupport::TestCase
   end
 
   test "create and get deployment" do
-    d = Deployment.new(deployment_id: 1, ref: "mybranch")
     ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch"}])
-    @app.deploy(d)
+    @app.deploy
     assert_equal(1, @app.deployments.length)
-
-    d = Deployment.new(deployment_id: 2, artifact_url: "myurl")
-    @app.deploy(d)
 
     @app.refresh_deployments
   end
