@@ -27,7 +27,8 @@ Instead of a list of all class selectors,
 you can use the generic selector below, but it's slower:
 [class*="icon-"]:before {
 */
-.icon-lock:before, .icon-unlock:before, .icon-outgoing-link:before, .icon-arrow-sm-right:before, .icon-arrow-sm-left:before, .icon-arrow-sm-down:before, .icon-arrow-sm-up:before, .icon-arrow-lg-right:before, .icon-data-store-part1:before, .icon-data-store-part2:before, .icon-non-scalable-part1:before, .icon-non-scalable-part2:before, .icon-scalable-part1:before, .icon-scalable-part2:before, .icon-gear-lg:before, .icon-gear-lg-sans-circle:before, .icon-gear-number-circle:before, .icon-gear-sm:before, .icon-gear-sm-sans-circle:before, .icon-web-stack-lg:before, .icon-restart:before, .icon-cartridge-part1:before, .icon-cartridge-part2:before, .icon-ci-arrows:before, .icon-ci-x:before, .icon-ci-check:before, .icon-ci-disabled:before, .icon-management-part2:before, .icon-management-part1:before, .icon-quickstart:before, .icon-start:before, .icon-stop:before, .icon-calendar:before, .icon-warning-sign:before, .icon-question-sign:before, .icon-search:before, .icon-twitter:before, .icon-facebook:before, .icon-google-plus:before, .icon-info-sign:before, .icon-bubbles:before, .icon-stackoverflow:before, .icon-code:before, .icon-github:before, .icon-angle-down:before, .icon-angle-up:before, .icon-angle-right:before, .icon-angle-left:before, .icon-plus:before, .icon-minus:before, .icon-system-signal-lg:before, .icon-system-lg:before, .icon-pencil:before, .icon-remove-circle:before, .icon-ban-circle:before, .icon-ok:before, .icon-remove:before, .icon-check:before, .icon-check-empty:before, .icon-download-alt:before, .icon-cloud:before, .icon-cogs:before, .icon-star-empty:before, .icon-bolt:before, .icon-time:before, .icon-busy:before, .icon-list-ol:before {
+
+.icon-lock, .icon-unlock, .icon-outgoing-link, .icon-arrow-sm-right, .icon-arrow-sm-left, .icon-arrow-sm-down, .icon-arrow-sm-up, .icon-arrow-lg-right, .icon-data-store-part1, .icon-data-store-part2, .icon-non-scalable-part1, .icon-non-scalable-part2, .icon-scalable-part1, .icon-scalable-part2, .icon-gear-lg, .icon-gear-lg-sans-circle, .icon-gear-number-circle, .icon-gear-sm, .icon-gear-sm-sans-circle, .icon-globe, .icon-restart, .icon-cartridge-part1, .icon-cartridge-part2, .icon-ci-arrows, .icon-ci-x, .icon-ci-check, .icon-ci-disabled, .icon-management-part2, .icon-management-part1, .icon-quickstart, .icon-start, .icon-stop, .icon-system-signal-lg, .icon-system-lg, .icon-calendar, .icon-warning-sign, .icon-question-sign, .icon-search, .icon-twitter, .icon-facebook, .icon-google-plus, .icon-info-sign, .icon-bubbles, .icon-code, .icon-angle-down, .icon-angle-up, .icon-angle-right, .icon-angle-left, .icon-plus, .icon-minus, .icon-pencil, .icon-remove-circle, .icon-ban-circle, .icon-ok, .icon-remove, .icon-check, .icon-check-empty, .icon-cloud-upload, .icon-cloud-download, .icon-cloud, .icon-cogs, .icon-download-alt, .icon-bolt, .icon-star-empty, .icon-time, .icon-busy, .icon-list-ol, .icon-app-code, .icon-user, .icon-users, .icon-colocation2, .icon-tasks, .icon-equalizer, .icon-dollar, .icon-euro, .icon-credit, .icon-bug, .icon-domain2, .icon-dyi-hammer, .icon-copy-clipboard, .icon-app-box, .icon-database {
 	font-family: 'openshift-icon';
 	speak: none;
 	font-style: normal;
@@ -98,7 +99,7 @@ you can use the generic selector below, but it's slower:
 .icon-gear-sm-sans-circle:before {
 	content: "\e018";
 }
-.icon-web-stack-lg:before {
+.icon-globe:before {
 	content: "\e019";
 }
 .icon-restart:before {
@@ -137,6 +138,12 @@ you can use the generic selector below, but it's slower:
 .icon-stop:before {
 	content: "\e031";
 }
+.icon-system-signal-lg:before {
+	content: "\e032";
+}
+.icon-system-lg:before {
+	content: "\e033";
+}
 .icon-calendar:before {
 	content: "\ee00";
 }
@@ -164,14 +171,8 @@ you can use the generic selector below, but it's slower:
 .icon-bubbles:before {
 	content: "\ee08";
 }
-.icon-stackoverflow:before {
-	content: "\ee09";
-}
 .icon-code:before {
 	content: "\ee10";
-}
-.icon-github:before {
-	content: "\ee11";
 }
 .icon-angle-down:before {
 	content: "\ee12";
@@ -190,12 +191,6 @@ you can use the generic selector below, but it's slower:
 }
 .icon-minus:before {
 	content: "\ee17";
-}
-.icon-system-signal-lg:before {
-	content: "\e032";
-}
-.icon-system-lg:before {
-	content: "\e033";
 }
 .icon-pencil:before {
 	content: "\ee18";
@@ -218,27 +213,78 @@ you can use the generic selector below, but it's slower:
 .icon-check-empty:before {
 	content: "\ee24";
 }
-.icon-download-alt:before {
+.icon-cloud-upload:before {
 	content: "\ee25";
 }
-.icon-cloud:before {
+.icon-cloud-download:before {
 	content: "\ee26";
 }
-.icon-cogs:before {
+.icon-cloud:before {
 	content: "\ee27";
 }
-.icon-star-empty:before {
+.icon-cogs:before {
 	content: "\ee28";
 }
-.icon-bolt:before {
+.icon-download-alt:before {
 	content: "\ee29";
 }
-.icon-time:before {
+.icon-bolt:before {
 	content: "\ee30";
 }
-.icon-busy:before {
+.icon-star-empty:before {
 	content: "\ee31";
 }
-.icon-list-ol:before {
+.icon-time:before {
 	content: "\ee32";
+}
+.icon-busy:before {
+	content: "\ee33";
+}
+.icon-list-ol:before {
+	content: "\ee34";
+}
+.icon-app-code:before {
+	content: "\ee35";
+}
+.icon-user:before {
+	content: "\ee36";
+}
+.icon-users:before {
+	content: "\ee37";
+}
+.icon-colocation2:before {
+	content: "\ee38";
+}
+.icon-tasks:before {
+	content: "\ee39";
+}
+.icon-equalizer:before {
+	content: "\ee40";
+}
+.icon-dollar:before {
+	content: "\ee41";
+}
+.icon-euro:before {
+	content: "\ee42";
+}
+.icon-credit:before {
+	content: "\ee43";
+}
+.icon-bug:before {
+	content: "\ee44";
+}
+.icon-domain2:before {
+	content: "\ee45";
+}
+.icon-dyi-hammer:before {
+	content: "\ee46";
+}
+.icon-copy-clipboard:before {
+	content: "\ee47";
+}
+.icon-app-box:before {
+	content: "\ee48";
+}
+.icon-database:before {
+	content: "\ee49";
 }
