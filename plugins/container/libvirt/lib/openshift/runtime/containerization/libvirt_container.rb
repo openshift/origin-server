@@ -347,6 +347,23 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           raise ::OpenShift::Runtime::UserCreationException.new("Unable to teardown pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
         end
 
+        # Returns true if the given IP and port are currently bound
+        # according to lsof, otherwise false.
+        def address_bound?(ip, port, hourglass)
+          _, _, rc = @container.run_in_container_root_context("/usr/sbin/lsof -i @#{ip}:#{port}", timeout: hourglass.remaining)
+          rc == 0
+        end
+
+        def addresses_bound?(addresses, hourglass)
+          command = "/usr/sbin/lsof"
+          addresses.each do |addr|
+            command << " -i @#{addr[:ip]}:#{addr[:port]}"
+          end
+
+          _, _, rc = @container.run_in_container_root_context(command, timeout: hourglass.remaining)
+          rc == 0
+        end
+
         # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]
         #
         # Executes specified command and return its stdout, stderr and exit status.

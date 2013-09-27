@@ -814,10 +814,10 @@ module OpenShift
         # Validate all the allocations to ensure they aren't already bound. Batch up the initial check
         # for efficiency, then do individual checks to provide better reporting before we fail.
         address_list = allocated_endpoints.map { |e| {ip: allocated_ips[e.private_ip_name], port: e.private_port} }
-        if !address_list.empty? && addresses_bound?(address_list)
+        if !address_list.empty? && @container.addresses_bound?(address_list, @hourglass)
           failures = ''
           allocated_endpoints.each do |endpoint|
-            if address_bound?(allocated_ips[endpoint.private_ip_name], endpoint.private_port)
+            if @container.address_bound?(allocated_ips[endpoint.private_ip_name], endpoint.private_port, @hourglass)
               failures << "#{endpoint.private_ip_name}(#{endpoint.private_port})=#{allocated_ips[endpoint.private_ip_name]};"
             end
           end
@@ -859,23 +859,6 @@ module OpenShift
         end
 
         open_ip
-      end
-
-      # Returns true if the given IP and port are currently bound
-      # according to lsof, otherwise false.
-      def address_bound?(ip, port)
-        _, _, rc = @container.run_in_container_context("/usr/sbin/lsof -i @#{ip}:#{port}", timeout: @hourglass.remaining)
-        rc == 0
-      end
-
-      def addresses_bound?(addresses)
-        command = "/usr/sbin/lsof"
-        addresses.each do |addr|
-          command << " -i @#{addr[:ip]}:#{addr[:port]}"
-        end
-
-        _, _, rc = @container.run_in_container_context(command, timeout: @hourglass.remaining)
-        rc == 0
       end
 
       # Returns an array containing all currently allocated endpoint private
