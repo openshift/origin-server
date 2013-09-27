@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.4
+Version: 1.15.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -256,6 +256,17 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
+- Merge pull request #3720 from smarterclayton/origin_ui_72_membership
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3721 from mrunalp/dev/ipt-port-proxy
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into origin_ui_72_membership
+  (ccoleman@redhat.com)
+- Initial checkin of iptables port proxy script. (mrunalp@gmail.com)
+- remove admin_tool as a category (rchopra@redhat.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+
 * Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
 - Merge pull request #3707 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
