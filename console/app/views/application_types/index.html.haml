@@ -104,12 +104,3 @@
             - excluded_tags = common_tags_for(@custom_types)
             - @custom_types.sort!.each do |type|
               = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}
-
-
-
-- content_for :javascripts do
-  :javascript
-    jQuery('.tile-click').click(function() {
-      a = $('h3 > a', this)[0];
-      window.location = a.href
-    });

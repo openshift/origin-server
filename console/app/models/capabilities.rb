@@ -1,5 +1,5 @@
 module Capabilities
-  UnlimitedGears = 1.0/0
+  UnlimitedGears = Float::INFINITY
   extend ActiveSupport::Concern
 
   included do
@@ -13,6 +13,7 @@ module Capabilities
   def gear_sizes
     Array(capabilities[:gear_sizes]).map(&:to_sym)
   end
+  alias_method :allowed_gear_sizes, :gear_sizes
 
   module Helpers
     def gears_free?
@@ -38,16 +39,25 @@ module Capabilities
     #
     def self.from(obj)
       if obj.is_a? Array
-        new(*obj)
+        version = obj.first
+        raise "Mismatched serialized version" if version != -serialize_version
+        new(*obj[1..-1])
       elsif obj.respond_to? :[]
         new(*attrs.map{ |s| obj[s] || obj[s.to_s] })
-      else            
+      else
         new(*attrs.map{ |s| obj.send(s) })
       end if obj
     end
 
+    def self.serialize_version
+      1
+    end
+    def serialize_version
+      self.class.serialize_version
+    end
+
     # Changing this order will break serialization of cached data
-    cache_attribute :max_gears, :consumed_gears, :gear_sizes, :plan_id
+    cache_attribute :max_domains, :max_gears, :consumed_gears, :gear_sizes, :plan_id
 
     include Helpers
 
@@ -61,17 +71,25 @@ module Capabilities
       self.class.attrs.map{ |s| send(s) }.map!{ |v| v == UnlimitedGears ? nil : v }
     end
     def to_session
-      to_a
+      to_a.unshift(-self.serialize_version)
     end
 
     def gear_sizes
       Array(@gear_sizes).map(&:to_sym)
     end
+    alias_method :allowed_gear_sizes, :gear_sizes
+
     def max_gears
       @max_gears || UnlimitedGears
     end
+    def max_domains
+      @max_domains || UnlimitedGears
+    end
 
     protected
+      def max_domains=(i)
+        @max_domains = i ? Integer(i) : nil
+      end
       def max_gears=(i)
         @max_gears = i ? Integer(i) : nil
       end

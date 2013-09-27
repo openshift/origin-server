@@ -33,6 +33,8 @@
       other_carts = group.cartridges - [cartridge]
     .gear-group.tile
       %h2
+        - group.cartridges.each do |cartridge|
+          %a{name: cartridge.name}
         = cartridge.display_name
         %span.pull-right= scaled_cartridge_storage(cartridge)
 

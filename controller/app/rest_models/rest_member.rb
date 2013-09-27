@@ -1,9 +1,10 @@
 class RestMember < OpenShift::Model
-  attr_accessor :id, :type, :name, :role, :explicit_role, :from, :owner
+  attr_accessor :id, :type, :login, :role, :explicit_role, :from, :owner
   
   def initialize(member, owner, url, nolinks=false)
     self.type = to_type(member._type)
-    self.name = member.name || "#{type}:#{member.id}"
+    self.login = member.name || "#{type}:#{member.id}"
+    @name = member.name if member.name != login # only display name if it differs from login
     self.id = member._id
     self.role = member.role
     self.explicit_role = member.explicit_role

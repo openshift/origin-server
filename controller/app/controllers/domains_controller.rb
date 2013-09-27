@@ -54,17 +54,16 @@ class DomainsController < BaseController
     authorize! :create_domain, current_user
 
     namespace = (params[:name] || params[:id] || params[:namespace] || '').downcase
-    new_gear_sizes = params[:allowed_gear_sizes]
 
     allowed_domains = OpenShift::ApplicationContainerProxy.max_user_domains(current_user)
     allowed_domains = 1 if requested_api_version < 1.5
 
     @domain = domain = Domain.new(namespace: namespace, owner: current_user)
-    domain.allowed_gear_sizes = new_gear_sizes unless new_gear_sizes.nil?
+    domain.allowed_gear_sizes = Array(params[:allowed_gear_sizes]) if params.has_key? :allowed_gear_sizes
 
     unless pre_and_post_condition(
-             lambda{ Domain.where(owner: current_user).count < allowed_domains }, 
-             lambda{ Domain.where(owner: current_user).count <= allowed_domains }, 
+             lambda{ Domain.where(owner: current_user).count < allowed_domains },
+             lambda{ Domain.where(owner: current_user).count <= allowed_domains },
              lambda{ domain.save_with_duplicate_check! },
              lambda{ domain.destroy rescue nil }
            )
@@ -87,26 +86,32 @@ class DomainsController < BaseController
   def update
     id = params[:existing_name].presence || params[:existing_id].presence
 
-    new_gear_sizes = params[:allowed_gear_sizes]
     new_namespace = params[:name] || params[:id]
 
     domain = Domain.accessible(current_user).find_by(canonical_namespace: Domain.check_name!(id).downcase)
 
+    messages = []
+
     if !new_namespace.nil?
       domain.namespace = new_namespace.downcase
-      authorize!(:change_namespace, domain) if domain.namespace_changed?
+      if domain.namespace_changed?
+        authorize!(:change_namespace, domain)
+        messages << "Changed namespace to '#{domain.namespace}'."
+      end
     end
 
-    if !new_gear_sizes.nil?
-      domain.allowed_gear_sizes = new_gear_sizes
-      authorize!(:change_gear_sizes, domain) if domain.allowed_gear_sizes_changed?
+    if params.has_key? :allowed_gear_sizes
+      domain.allowed_gear_sizes = Array(params[:allowed_gear_sizes]).map(&:presence).compact
+      if domain.allowed_gear_sizes_changed?
+        authorize!(:change_gear_sizes, domain)
+        messages << "Updated allowed gear sizes."
+      end
     end
 
-    return render_error(:unprocessable_entity, "No changes specified to the domain.", 106) unless domain.changed?
+    return render_error(:unprocessable_entity, "No changes specified to the domain.", 133) unless domain.changed?
 
     domain.save_with_duplicate_check!
-
-    render_success(:ok, "domain", get_rest_domain(domain), "Updated domain #{domain.namespace}", domain)
+    render_success(:ok, "domain", get_rest_domain(domain), messages.join(" "), domain)
   end
 
   # Delete a domain for the user. Requires that domain be empty unless 'force' parameter is set.

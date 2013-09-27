@@ -207,7 +207,7 @@ class ApplicationType
   protected
     def self.find_single(id, *arguments)
       case (match = /^([^!]+)!(.+)/.match(id) || [])[1]
-      when 'quickstart'; from_quickstart(Quickstart.find match[2])
+      when 'quickstart'; from_quickstart(Quickstart.cached.find match[2])
       when 'cart'; from_cartridge_type(CartridgeType.cached.find match[2])
       else raise NotFound.new(id)
       end
@@ -223,13 +223,13 @@ class ApplicationType
         query = opts[:search].downcase
         types.concat CartridgeType.cached.standalone
         types.keep_if &LOCAL_SEARCH.curry[query]
-        types.concat Quickstart.search(query) rescue handle_error($!)
+        types.concat Quickstart.cached.search(query) rescue handle_error($!)
       when opts[:tag]
         tag = opts[:tag].to_sym rescue (return [])
         types.concat CartridgeType.cached.standalone
         if tag != :cartridge
           types.keep_if &TAG_FILTER.curry[[tag]]
-          types.concat Quickstart.search(tag.to_s) rescue handle_error($!)
+          types.concat Quickstart.cached.search(tag.to_s) rescue handle_error($!)
         end
       else
         types.concat CartridgeType.cached.standalone
@@ -258,7 +258,7 @@ class ApplicationType
     end
     def self.from_quickstart(type)
       attrs = { :id => "quickstart!#{type.id}", :source => :quickstart }
-      [:display_name, :tags, :description, :website, :initial_git_url, :initial_git_branch, :cartridges_spec, :priority, :scalable, :may_not_scale, :learn_more_url, :provider].each do |m|
+      [:display_name, :tags, :description, :website, :initial_git_url, :cartridges_spec, :priority, :scalable, :may_not_scale, :learn_more_url, :provider].each do |m|
         attrs[m] = type.send(m)
       end
 

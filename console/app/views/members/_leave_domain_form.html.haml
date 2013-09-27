@@ -1,0 +1,13 @@
+= form_tag domain_leave_path(domain), :method => :post do
+  %p
+    Once you remove yourself, you will not have access to this domain.
+  %p
+    Confirm leaving the domain
+    %strong
+      '#{@domain.name}'?
+
+  = hidden_field_tag(:id, domain.me.id)
+  = hidden_field_tag(:role, :none)
+  .form-actions
+    = link_to 'Cancel', domain_path(domain), :class => 'btn cancel'
+    = submit_tag "Leave Domain", :class => 'btn btn-danger'

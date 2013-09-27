@@ -38,6 +38,12 @@ class Member
     _id == other._id && (member_type === other || self.class == other.class)
   end
 
+  def clone
+    m = super
+    m._id = _id
+    m
+  end
+
   #
   # A membership is explicit if there are no implicit grants, or if an explicit_role
   # has been set.  If there are no implicit grants, the explicit_role value must be

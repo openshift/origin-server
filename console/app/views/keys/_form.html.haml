@@ -1,13 +1,24 @@
 - input_html = defined?(input_class) ? { :class => input_class } : {}
 
-= semantic_form_for key, :html => {:class => 'form-horizontal'} do |f|
+= semantic_form_for key do |f|
   = f.semantic_errors :except => [:name, :raw_content, :content, :type]
   = f.inputs do
-    = f.input :name, :label => 'Key name', :input_html => {:placeholder => 'A name for your key'}
-    = f.input :raw_content,
-              :as => :text,
-              :label => 'Paste the contents of your public key file',
-              :input_html => input_html.merge({:placeholder => 'The contents of your public key file', :title => "Your SSH key will start with a short prefix that describes its type, followed by a long string of numbers and characters.  Some keys have a bit of text at the end to describe who generated the key. Example:\n\nssh-rsa AAAAB3NzaC1yc....HcLJ bob@smith"})
+    .row
+      .span7
+        = f.input :name, :label => 'Key name', :input_html => {:placeholder => 'A name for your key', :autofocus => (defined?(focus) && focus ? true : nil)}
+        = f.input :raw_content,
+                  :as => :text,
+                  :label => 'Paste the contents of your public key file',
+                  :input_html => input_html.merge({:placeholder => 'The contents of your public key file', :title => "Your SSH key will start with a short prefix that describes its type, followed by a long string of numbers and characters.  Some keys have a bit of text at the end to describe who generated the key. Example:\n\nssh-rsa AAAAB3NzaC1yc....HcLJ bob@smith"})
+      .span5
+        %p
+          Before you can upload and download code, you need to upload a <strong>public key</strong>
+          to identify you to our servers. If this is your first time creating a public key 
+          #{link_to "read more about SSH keys and remote access", ssh_keys_help_path}.
+
+        %p
+          Each gear in your application will have a copy of your public key - this allows you to read and write to your Git repository as well as to access your application gears via SSH.
+
   = f.buttons do
     = link_to "Cancel", settings_path, :class => 'btn'
     = f.commit_button :label => 'Create'

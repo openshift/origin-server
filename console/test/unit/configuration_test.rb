@@ -132,26 +132,31 @@ class ConfigurationTest < ActiveSupport::TestCase
   end
 
   test 'Console.config.api sets api :external' do
-    expects_file_read(<<-FILE.strip_heredoc, '~/.openshift/console.conf')
-      BROKER_URL=foo
-      BROKER_API_SOURCE=ignored
-      BROKER_API_USER=bob
-      BROKER_API_SYMBOL=:foo
-      BROKER_API_TIMEOUT=0
-      BROKER_API_SSL_OPTIONS={:verify_mode => OpenSSL::SSL::VERIFY_NONE}
-      BROKER_PROXY_URL=proxy
-      CONSOLE_SECURITY=Console::Auth::None
-    FILE
-    (config = Console::Configuration.new).api = :external
-    assert_equal 'foo', config.api[:url]
-    assert_equal 'proxy', config.api[:proxy]
-    assert_equal 'bob', config.api[:user]
-    assert_equal :foo, config.api[:symbol]
-    assert_equal 0, config.api[:timeout]
-    assert_equal '~/.openshift/console.conf', config.api[:source]
-    assert_equal({'verify_mode' => OpenSSL::SSL::VERIFY_NONE}, config.api[:ssl_options])
-    assert_equal OpenSSL::SSL::VERIFY_NONE, config.api[:ssl_options][:verify_mode]
-    assert_nil config.security_controller # is ignored
+    old_env = ENV.delete('CONSOLE_CONFIG_FILE')
+    begin
+      expects_file_read(<<-FILE.strip_heredoc, '~/.openshift/console.conf')
+        BROKER_URL=foo
+        BROKER_API_SOURCE=ignored
+        BROKER_API_USER=bob
+        BROKER_API_SYMBOL=:foo
+        BROKER_API_TIMEOUT=0
+        BROKER_API_SSL_OPTIONS={:verify_mode => OpenSSL::SSL::VERIFY_NONE}
+        BROKER_PROXY_URL=proxy
+        CONSOLE_SECURITY=Console::Auth::None
+      FILE
+      (config = Console::Configuration.new).api = :external
+      assert_equal 'foo', config.api[:url]
+      assert_equal 'proxy', config.api[:proxy]
+      assert_equal 'bob', config.api[:user]
+      assert_equal :foo, config.api[:symbol]
+      assert_equal 0, config.api[:timeout]
+      assert_equal '~/.openshift/console.conf', config.api[:source]
+      assert_equal({'verify_mode' => OpenSSL::SSL::VERIFY_NONE}, config.api[:ssl_options])
+      assert_equal OpenSSL::SSL::VERIFY_NONE, config.api[:ssl_options][:verify_mode]
+      assert_nil config.security_controller # is ignored
+    ensure
+      ENV['CONSOLE_CONFIG_FILE'] = old_env
+    end
   end
 
   test 'Console.config.api accepts :local' do

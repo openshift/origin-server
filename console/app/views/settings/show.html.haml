@@ -2,7 +2,7 @@
 
 = flashes
 .row
-  - unless @domain
+  - unless @domains.present?
     .span12
       = render :partial => 'add_domain', :locals => {:domain => @domain}
 
@@ -17,9 +17,9 @@
 
   .span6
 
-    - if @domain
+    - if @domains.present?
       %section
-        = render :partial => 'domains', :locals => {:domain => @domain}
+        = render :partial => 'domains', :locals => {:domains => @domains, :capabilities => @capabilities}
 
     %section
       = render :partial => 'authorizations', :locals => {:authorizations => @authorizations}

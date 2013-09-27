@@ -1,14 +1,14 @@
-= semantic_form_for :domain, :url => domain_path, :simple => true, :html => {:id => 'new_domain', :class => 'control-group-important'} do |f|
+= semantic_form_for :domain, :url => domains_path, :simple => true, :html => {:id => 'new_domain', :class => 'control-group-important'} do |f|
   .control-group.control-group-important
     .controls.first
       .input-prepend.input-append.wrap
         %span.add-on> http://applicationname&ndash;
-        %label.invisible{:for => 'domain_name'} Namespace
-        = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => "domain_name"
+        %label.invisible{:for => 'domain_name'} Domain name
+        = f.text_field :name, :autofocus => true, :placeholder => 'Domain name', :class => "domain_name"
         %span.add-on>= ".#{RestApi.application_domain_suffix}"
       .row.control-group.error
         #app-errors.span
-      .help-block Your namespace must be letters or numbers with no spaces or symbols.
+      .help-block Your domain name must be letters or numbers with no spaces or symbols.
   .btn-toolbar
     = f.submit "Save", :class => 'btn btn-primary'
     = f.loading

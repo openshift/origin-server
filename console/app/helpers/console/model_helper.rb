@@ -1,8 +1,37 @@
 module Console::ModelHelper
-  def gear_group_states(states)
-    return states[0].to_s.humanize if states.uniq.length == 1
-    "#{states.count{ |s| s == :started }}/#{states.length} started"
+  def cartridge_info(cartridge, application)
+    case
+    when cartridge.jenkins_client?
+      [
+        link_to('See Jenkins Build jobs', application.build_job_url, :title => 'Jenkins is currently running builds for your application'),
+        link_to('(configure)', application_building_path(application), :title => 'Remove or change your Jenkins configuration'),
+      ].join(' ').html_safe
+    when cartridge.haproxy_balancer?
+      link_to "See HAProxy status page", application.scale_status_url
+    when cartridge.database?
+      name, _ = cartridge.data(:database_name)
+      if name
+        user, _ = cartridge.data(:username)
+        password, _ = cartridge.data(:password)
+        content_tag(:span,
+          if user && password
+            (@info_id ||= 0)
+            link_id = "db_link_#{@info_id += 1}"
+            span_id = "db_link_#{@info_id += 1}"
+            "Database: <strong>#{h name}</strong> (user <strong>#{h user}</strong>, <a href=\"javascript:;\" id=\"#{link_id}\" data-unhide=\"##{span_id}\" data-hide-parent=\"##{link_id}\">show password</a><span id=\"#{span_id}\" class=\"hidden\">password <strong>#{h password}</strong></span>)".html_safe
+          else
+            "Database: <strong>#{name}</strong>"
+          end
+        )
+      end
+    else
+      url, name = cartridge.data(:connection_url)
+      if url
+        link_to name, url, :target => '_blank'
+      end
+    end
   end
+
   def gear_group_state(states)
     css_class = if states.all? {|s| s == :started}
         'state_started'
@@ -21,6 +50,55 @@ module Console::ModelHelper
     end.to_sentence
   end
 
+  def available_gears_warning(writeable_domains)
+    if writeable_domains.present?
+      if !writeable_domains.find(&:allows_gears?)
+        has_shared = writeable_domains.find {|d| !d.owner? }
+        if has_shared
+          "The owners of the available domains have disabled all gear sizes from being created."
+        else
+          "You have disabled all gear sizes from being created."
+        end
+      elsif !writeable_domains.find(&:has_available_gears?)
+        "There are not enough free gears available to create a new application. You will either need to scale down or delete existing applications to free up resources."
+      end
+    end
+  end
+
+  def new_application_gear_sizes(writeable_domains, user_capabilities)
+    gear_sizes = user_capabilities.allowed_gear_sizes
+    if writeable_domains.present?
+      gear_sizes = writeable_domains.map(&:capabilities).map(&:allowed_gear_sizes).flatten.uniq
+    end
+    gear_sizes
+  end
+
+  def estimate_domain_capabilities(selected_domain_name, writeable_domains, can_create, user_capabilities)
+    if (selected_domain = writeable_domains.find {|d| d.name == selected_domain_name})
+      [selected_domain.capabilities, selected_domain.owner?]
+    elsif writeable_domains.length == 1
+      [writeable_domains.first.capabilities, writeable_domains.first.owner?]
+    elsif can_create and writeable_domains.length == 0
+      [user_capabilities, true]
+    else
+      [nil, nil]
+    end
+  end
+
+  def domains_for_select(domains)
+    domains.sort_by(&:name).map do |d|
+      capabilities = d.capabilities
+      if capabilities
+        [d.name, d.name, {
+          "data-gear-sizes" => capabilities.allowed_gear_sizes.join(','),
+          "data-gears-free" => capabilities.gears_free
+        }]
+      else
+        [d.name, d.name]
+      end
+    end
+  end
+
   def web_cartridge_scale_title(cartridge)
     if cartridge.current_scale == cartridge.scales_from
       'Your web cartridge is running on the minimum amount of gears and will scale up if needed'
@@ -29,6 +107,24 @@ module Console::ModelHelper
     else
       'Your web cartridge is running multiple copies to handle increased web traffic'
     end
+  end
+
+  def web_cartridge_scale_label(cartridge)
+    suffix = case
+      when cartridge.scales_from == cartridge.scales_to
+      when cartridge.current_scale == cartridge.scales_from
+        " (max #{cartridge.scales_to})"
+      when cartridge.current_scale == cartridge.scales_to
+        " (min #{cartridge.scales_from})"
+      else
+        " (min #{cartridge.scales_to}, max #{cartridge.scales_to})"
+      end
+    "Routing to #{pluralize(cartridge.current_scale, 'web gear')}#{suffix}"
+  end
+
+  def application_gear_count(application)
+    return 'None' if application.gear_count == 0
+    "#{application.gear_count} #{application.gear_profile.to_s.humanize.downcase}"
   end
 
   def cartridge_gear_group_count(group)
@@ -57,6 +153,15 @@ module Console::ModelHelper
     parts.join(' ').strip
   end
 
+  def scaling_max(*args)
+    args.unshift(1)
+    args.select{ |i| i != nil && i != -1 }.max
+  end
+  def scaling_min(*args)
+    args.unshift(1)
+    args.select{ |i| i != nil && i != -1 }.min
+  end
+
   def scale_range(from, to, max, max_choices)
     limit = to == -1 ? max : to
     return if limit > max_choices
@@ -78,7 +183,7 @@ module Console::ModelHelper
     end
   end
 
- def storage_options(min,max)
+  def storage_options(min,max)
     {:as => :select, :collection => (min..max), :include_blank => false}
   end
 
@@ -86,28 +191,20 @@ module Console::ModelHelper
     [['No scaling',false],['Scale with web traffic',true]]
   end
 
-  def can_scale_application_type(type, capabilities)
+  def can_scale_application_type(type, capabilities=nil)
     type.scalable?
   end
 
-  def cannot_scale_title(type, capabilities)
+  def cannot_scale_title(type, capabilities=nil)
     unless can_scale_application_type(type, capabilities)
       "This application shares filesystem resources and can't be scaled."
     end
   end
 
-  def warn_may_not_scale(type, capabilities)
+  def warn_may_not_scale(type, capabilities=nil)
     if type.may_not_scale?
       "This application may require additional work to scale. Please see the application's documentation for more information."
     end
-  end
-
-  def user_currency_symbol
-    "$"
-  end
-
-  def usage_rate_indicator
-    content_tag :span, user_currency_symbol, :class => "label label-premium", :title => 'May include additional usage fees at certain levels, see plan for details.'
   end
 
   def in_groups_by_tag(ary, tags)

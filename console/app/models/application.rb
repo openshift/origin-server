@@ -2,9 +2,17 @@
 # The REST API model object representing an application instance.
 #
 class Application < RestApi::Base
+  include Membership
+
+  class Member < ::Member
+    belongs_to :application
+    self.schema = ::Member.schema
+  end
+
+
   schema do
     string :name, :creation_time
-    string :uuid, :domain_id
+    string :id, :domain_id
     string :git_url, :app_url, :initial_git_url, :initial_git_branch
     string :server_identity
     string :gear_profile, :scale
@@ -12,9 +20,49 @@ class Application < RestApi::Base
     string :framework
   end
 
-  custom_id :name
-  def id #FIXME provided as legacy support for accessing .name via .id
-    name
+  # Override to append the name to UI urls
+  def to_param
+    "#{id}-#{name}".parameterize if id.present?
+  end
+
+  # Override the instance method to use the ID-only when calling the REST API, instead of to_param
+  def element_path(options = nil)
+    self.class.element_path(id, options || prefix_options)
+  end
+
+  # Override the class method to not use the :domain_id prefix option when searching by id
+  def self.element_path(id, prefix_options = {}, query_options = nil)
+    if id
+      prefix_options = prefix_options.dup.reject {|k| k == :domain_id } if prefix_options
+      super
+    elsif query_options and query_options[:name] and prefix_options and prefix_options[:domain_id]
+      super(query_options.delete(:name), prefix_options, query_options)
+    else
+      super
+    end
+  end
+
+  # Helper method to extract the ID from an ID param containing the name as well
+  def self.id_from_param(param)
+    param.to_s.gsub(/-.*/, '') if param
+  end
+
+  # Override to extract the real ID from the pretty ID before searching
+  def self.find(*args)
+    if args.first.is_a?(String)
+      args[0] = id_from_param(args[0])
+    end
+    super(*args)
+  end
+
+  def valid?
+    valid = super
+    if id.blank? and domain_name.blank? and errors[:domain_name].blank?
+      errors.add(:domain_name, 'Namespace is required')
+      false
+    else
+      valid
+    end
   end
 
   singular_resource
@@ -28,6 +76,8 @@ class Application < RestApi::Base
   has_many :gears
   has_many :gear_groups
   has_one  :embedded, :class_name => as_indifferent_hash
+
+  has_members :as => Application::Member
 
   attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch
 
@@ -60,6 +110,7 @@ class Application < RestApi::Base
   def gear_groups
     @gear_groups ||= GearGroup.find(:all, child_options)
   end
+  attr_writer :gear_groups
   def cartridge_gear_groups
     @cartridge_gear_groups ||= GearGroup.infer(cartridges, self)
   end
@@ -69,10 +120,20 @@ class Application < RestApi::Base
     response = post(:events, nil, {:event => :restart}.to_json)
     self.messages = extract_messages(response)
     true
+  rescue ActiveResource::ClientError => error
+    @remote_errors = error
+    load_remote_errors(@remote_errors, true)
+    false
   end
 
-  def aliases
-    Alias.find :all, child_options
+  def aliases(skip_cache=false)
+    attributes[:aliases] = begin
+      if skip_cache or !attributes[:aliases]
+        persisted? ? Alias.find(:all, child_options) : []
+      else
+        attributes[:aliases]
+      end
+    end
   end
   def find_alias(id)
     Alias.find id, child_options
@@ -91,6 +152,12 @@ class Application < RestApi::Base
 
   def web_url
     app_url
+  end
+
+  def web_uri(scheme=nil)
+    uri = URI.parse(app_url)
+    uri.scheme = scheme
+    uri
   end
 
   #FIXME would prefer this come from REST API
@@ -122,8 +189,22 @@ class Application < RestApi::Base
     scale
   end
 
+  def gear_ranges(account_max=Float::INFINITY)
+    cartridge_gear_groups.inject({}) do |h, group|
+      profile = (h[group.gear_profile] ||= [0, 0])
+      count, max = 0, 0
+      group.cartridges.each do |cart|
+        count = [cart.current_scale, count].max
+        max = [cart.will_scale_to(account_max), max].max
+      end
+      profile[0] += count
+      profile[1] = [profile[1] + max, account_max].max
+      h
+    end.map{ |k, (v, v2)| [k, v, v2] }.sort_by{ |a| [a[1], a[2], a[0]] }.reverse
+  end
+
   def scale_status_url
-    "#{web_url}haproxy-status/"
+    URI.join(web_url, "/haproxy-status/").to_s
   end
 
   def builds?
@@ -147,15 +228,12 @@ class Application < RestApi::Base
   end
 
   protected
-    def extract_messages(response)
-      RestApi::Base.format.decode(response.body)['messages'] || []
-    rescue
-      []
+    def child_prefix_options
+      {:application_id => id}
     end
 
     def child_options
-      { :params => { :domain_id => domain_id, :application_name => self.name},
-        :as => as }
+      { :params => child_prefix_options, :as => as }
     end
 
     def self.rescue_parent_missing(e, options=nil)
