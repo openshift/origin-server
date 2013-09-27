@@ -88,7 +88,7 @@ Rails.application.routes.draw do
         end
         resources :events, :controller => :app_events, :only => :create
         resource :dns_resolvable, :only => :show, :controller => :dns_resolvable
-        resources :aliases, :only => [:show, :update, :destroy], :controller => :alias, :id => id_with_format
+        resources :aliases, :only => [:index, :show, :create, :update, :destroy], :controller => :alias, :id => id_with_format
       end
     end
 

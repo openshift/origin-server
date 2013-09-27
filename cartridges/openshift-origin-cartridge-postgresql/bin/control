@@ -201,7 +201,8 @@ function reload {
   else
     # TODO: client_result is semantically incorrect, but for now,
     # we'll use it so that CLI can display it.
-    client_result "'reload' is valid only when the database is running"
+    client_error "'reload' is valid only when the database is running"
+    exit 1
   fi
 }
 
@@ -240,6 +241,6 @@ case "$1" in
     tidy
   ;;
   *)
-    echo 0
+    exit 0
   ;;
 esac

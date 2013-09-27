@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.0
+Version: 1.15.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,84 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
+- Force resolving domains to avoid double query (jliggitt@redhat.com)
+- Membership changes (jliggitt@redhat.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #3707 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3712 from teddythetwig/ssl_to_gear_tests
+  (dmcphers+openshiftbot@redhat.com)
+- add mappings support to routing spi, and add protocols to cart manifests
+  (rchopra@redhat.com)
+- Feature tests for ssl_to_gear, V3 of mock cart serves https at primary
+  endpoint on port 8123 (teddythetwig@gmail.com)
+- Fix for bug 1012138 (abhgupta@redhat.com)
+
+* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Merge pull request #3691 from BanzaiMan/idle_websockets
+  (dmcphers+openshiftbot@redhat.com)
+- Add Node.js 0.10 tests to runtime-cartridge-nodejs.feature
+  (asari.ruby@gmail.com)
+- Merge pull request #3693 from pravisankar/dev/ravi/card98
+  (dmcphers+openshiftbot@redhat.com)
+- Added skip_node_ops flag to app/domain/user/district models.
+  (rpenta@redhat.com)
+- typo fix (rchopra@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3696 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3647 from detiber/runtime_card_255
+  (dmcphers+openshiftbot@redhat.com)
+- endpoints included for rest call to gear_groups (rchopra@redhat.com)
+- <README.auth_plugin.md> Fixed typo (jolamb@redhat.com)
+- Card origin_runtime_255: Publish district uid limits to nodes
+  (jdetiber@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Merge pull request #3686 from rajatchopra/new_master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3682 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- routing spi changes (rchopra@redhat.com)
+- Fix for bug 1010632 (abhgupta@redhat.com)
+- Fixing AddCompOp code (abhgupta@redhat.com)
+- Fixes for pending_op changes (abhgupta@redhat.com)
+- Merge pull request #3673 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3667 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix indexing (rchopra@redhat.com)
+- optimize find all district scenarios (dmcphers@redhat.com)
+- Add index to district uuid (dmcphers@redhat.com)
+- Fix tests to use ruby193-mcollective only on RHEL. Fix nodejs cart to work on
+  F19 and RHEL. (kraman@gmail.com)
+- Merge pull request #3666 from jwhonce/wip/secret_token
+  (dmcphers+openshiftbot@redhat.com)
+- Creating the app secret token and sending to gear creation requests
+  (abhgupta@redhat.com)
+- Card origin_runtime_102 - Support OPENSHIFT_SECRET_TOKEN (jhonce@redhat.com)
+- Merge pull request #3578 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3656 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- First draft of changes to create subclasses for pending ops
+  (abhgupta@redhat.com)
+- Rescue OOException and include result_io in message (lnader@redhat.com)
+- Merge pull request #3654 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3646 from ironcladlou/dev/test-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Handle categories not used (dmcphers@redhat.com)
+- fix configure order calculation - bz1008609 (rchopra@redhat.com)
+- Fix mock cartridge verification in cuke tests (ironcladlou@gmail.com)
+- add index for created_at (rchopra@redhat.com)
+- add index for created_at field for clear-pending-ops (rchopra@redhat.com)
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.8-1
 - Merge pull request #3631 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)

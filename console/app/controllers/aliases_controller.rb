@@ -56,7 +56,7 @@ class AliasesController < ConsoleController
       message = "Alias '#{params[:id]}' has been removed"
       redirect_to @application, :flash => {:success => message.to_s}
     else
-      render :edit
+      render :delete
     end
   end
 

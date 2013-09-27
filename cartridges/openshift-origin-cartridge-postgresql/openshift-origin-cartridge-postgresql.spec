@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version:       1.15.1
+Version:       1.15.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -100,6 +100,25 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #3720 from smarterclayton/origin_ui_72_membership
+  (dmcphers+openshiftbot@redhat.com)
+- Initial checkin of iptables port proxy script. (mrunalp@gmail.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Merge pull request #3707 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3710 from jwhonce/bug/981780
+  (dmcphers+openshiftbot@redhat.com)
+- add mappings support to routing spi, and add protocols to cart manifests
+  (rchopra@redhat.com)
+- Bug 981780 - Fail reload if database is not running (jhonce@redhat.com)
+- Bug 982434 - remove extraneous set_app_info usage (jhonce@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Bug 980515 - Remove extraneous Conflicts element (jhonce@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - bump_minor_versions for sprint 34 (admiller@redhat.com)
 

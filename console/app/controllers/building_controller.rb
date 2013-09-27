@@ -1,5 +1,7 @@
 class BuildingController < ConsoleController
 
+  include CostAware
+  
   def show
     @application = Application.find(params[:application_id], :as => current_user)
     redirect_to new_application_building_path(@application) unless @application.builds?

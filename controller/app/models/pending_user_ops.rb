@@ -22,6 +22,7 @@ class PendingUserOps
   has_and_belongs_to_many :on_domains, class_name: Domain.name, inverse_of: nil
   has_and_belongs_to_many :completed_domains, class_name: Domain.name, inverse_of: nil
   field :on_completion_method, type: Symbol
+  field :skip_node_ops, type: Boolean
 
   # List of domains that are still pending
   #
@@ -34,7 +35,7 @@ class PendingUserOps
 
   # Returns true if all domains have been processed
   def completed?
-    (self.state == :completed) || (on_domains.length == completed_domains.length)
+    self.state == :completed
   end
 
   def close_op

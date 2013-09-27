@@ -192,7 +192,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert !app.errors.empty?
     assert app.errors[:gear_profile].present?, app.errors.to_hash.inspect
     assert_equal 1, app.errors[:gear_profile].length, app.errors.to_hash.inspect
-    assert app.errors[:gear_profile][0].include? 'Invalid size: foobar.'
+    assert app.errors[:gear_profile][0].include? "'foobar' is not valid"
   end
 
   test "should retrieve application list" do
@@ -211,6 +211,7 @@ class ApplicationsControllerTest < ActionController::TestCase
   end
 
   test "should retrieve application details" do
+    with_app.aliases.each{ |a| a.destroy }
     get :show, :id => with_app.to_param
     assert_response :success
     assert app = assigns(:application)
@@ -224,7 +225,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_select 'h1', /#{with_app.name}/
     assert_select '.section-header a', /#{with_app.domain_id}/
-    assert_select 'h1 a.url-alter', /\bchange\b/
+    assert_select 'h1 a.link-alter', /\bchange\b/
     with_app.cartridges.map(&:display_name).each do |name|
       assert_select 'h2', /#{name}/
     end
@@ -241,7 +242,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_select 'h1', /#{with_app.name}/
     assert css_select('h1') !=~ /#{with_app.domain_id}/
     assert_select 'h1 a', with_app.aliases.first.name
-    assert_select 'h1 a.url-alter', /\bchange alias\b/
+    assert_select 'h1 a.link-alter', /\bchange alias\b/
     with_app.cartridges.map(&:display_name).each do |name|
       assert_select 'h2', /#{name}/
     end
@@ -259,7 +260,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_select 'h1', /#{with_app.name}/
     assert css_select('h1') !=~ /#{with_app.domain_id}/
     assert_select 'h1 a', with_app.aliases.first.name
-    assert_select 'h1 a.url-alter', / 1 other alias\b/
+    assert_select 'h1 a.link-alter', / 1 other alias\b/
     with_app.cartridges.map(&:display_name).each do |name|
       assert_select 'h2', /#{name}/
     end
@@ -405,7 +406,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_response :success
     assert app = assigns(:application)
-    assert app.errors.messages[:gear_profile][0].include? 'Invalid size: medium.'
+    assert app.errors.messages[:gear_profile][0].include? "'medium' is not valid"
   end
 
   test 'should prevent scaled apps when not enough gears are available' do

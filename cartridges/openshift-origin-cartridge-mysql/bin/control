@@ -171,7 +171,7 @@ function post_restore {
     # Grant permissions to the current user
     run_sql "
     GRANT ALL ON *.* TO '$NEW_USER'@'$NEW_IP' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;
-    GRANT ALL ON *.* TO '$NEW_USER'@'localhost' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;
+    GRANT ALL ON *.* TO '$NEW_USER'@'%' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;
     " || error "Could not grant permissions for MySQL database" 187
 
     # Only run the following if the username is different

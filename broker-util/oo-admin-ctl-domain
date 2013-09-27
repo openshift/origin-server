@@ -20,6 +20,9 @@ Options:
     Source of the login (optional)
 -n|--namespace <Namespace>
     Namespace for application(s) (alphanumeric - max 16 chars) (required)
+   --new_namespace <Namespace>
+    New namespace for application(s) (alphanumeric - max 16 chars) (required
+      for --comand update)
 -c|--command (create|update|delete|info|env_add|env_del)
 -s|--ssh_key <ssh key>
     User\'s SSH key

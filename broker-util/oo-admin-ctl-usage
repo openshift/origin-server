@@ -90,6 +90,23 @@ def release_mongo_session(session)
   session.logout
 end
 
+def pretty_duration(hours)
+  secs  = (hours * 60 * 60).to_i
+  mins  = (hours * 60).to_i
+  hours = hours.to_i
+  days  = (hours / 24).to_i
+
+  if days > 0
+    "#{days} days and #{hours % 24} hours"
+  elsif hours > 0
+    "#{hours} hours and #{mins % 60} minutes"
+  elsif mins > 0
+    "#{mins} minutes and #{secs % 60} seconds"
+  elsif secs >= 0
+    "#{secs} seconds"
+  end
+end
+
 # Cache user_id->login, billing a/c# info
 def populate_user_info
   $session[:cloud_users].find.select(login: 1, usage_account_id: 1, plan_history: 1).no_timeout.each do |user|
@@ -130,7 +147,7 @@ def list_usage
       puts "User: #{srec['login']}" + billing_provider_str
       $prev_login = srec['login']
     end
-    puts "\tGear: #{srec['gear_id']}, UsageType: #{srec['usage_type']}, Usage: #{srec['usage']}"
+    puts "\tGear: #{srec['gear_id']}, UsageType: #{srec['usage_type']}, Usage: #{pretty_duration(srec['usage'])}"
   end 
 end
 

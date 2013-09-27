@@ -15,7 +15,7 @@
 
 Summary:       OpenShift Apache mod_rewrite frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.1.5
+Version: 0.1.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -49,7 +49,7 @@ BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
-Conflicts:     rubygem(openshift-frontend-apache-vhost)
+Conflicts:     rubygem(openshift-origin-frontend-apache-vhost)
 
 %description
 Provides the Apache mod_rewrite plugin for OpenShift web frontends
@@ -134,6 +134,10 @@ mv httpd/frontend-vhost-https-template.erb %{buildroot}%{appdir}/.httpd.d/fronte
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 0.1.6-1
+- Port ssl_to_gear changes to the frontend plugins. (rmillner@redhat.com)
+- Fix up conflicts in frontend plugins. (rmillner@redhat.com)
+
 * Tue Sep 17 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
 - fixing tito tags
 

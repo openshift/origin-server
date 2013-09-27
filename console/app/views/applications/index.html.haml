@@ -9,6 +9,26 @@
         = render :partial => 'account_state', :locals => {:capabilities => @capabilities}
         Applications
 
+:css
+  @media (max-width: 767px) {    
+    .popover {
+      bottom: 50% !important;
+      top: auto !important;
+      left: auto !important;
+      right: 25% !important;
+    }
+
+    .popover .arrow {
+      display: none;
+    }
+  }
+
+  @media (max-width: 590px) {
+    .popover {
+      right: 5px !important;
+    }
+  }
+
 %section#app-list
   %section
 
@@ -39,7 +59,7 @@
       %ul.unstyled
         - unless @has_key
           %li
-            #{link_to "Set a SSH key", new_key_path} to
+            #{link_to "Set an SSH key", new_key_path} to
             %ul
               %li
                 %a{href: 'javascript:;', title: 'Set your first key', 'data-content' => "<p>OpenShift uses the Secure Shell protocol to protect direct access to your application.  In order to upload or download source code from Git or to remotely access the gears in your app, you'll need to create and upload a public SSH key.</p>"} 
@@ -113,6 +133,11 @@
   :javascript
     var popups = '.application-suggestions [data-content]'
     $(popups).popover({placement:'left', html: true, trigger: 'manual'}).click(function(e) {
+      e.stopPropagation();
       $(popups).not(this).popover('hide');
-      $(this).popover('toggle', e);
+      $(this).popover('show', e);
+    });
+    $('html').click(function(e) {
+      if (!$(e.target).is('.popover *'))
+        $(popups).popover('hide');
     });

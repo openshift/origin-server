@@ -146,12 +146,6 @@ function _setProxyRequestHeaders(proxy_req, orig_req) {
  *  @api    private
  */
 function _requestHandler(proxy_server, req, res) {
-  var surrogate = new RequestSurrogate(req, res);
-
-  /*  Emit Surrogate Request and start events.  */
-  proxy_server.emit('surrogate.request', surrogate);
-  surrogate.emit('start');
-
   /*  Get the request/socket io timeout.  */
   var io_timeout = DEFAULT_IO_TIMEOUT;   /*  300 seconds.  */
   if (proxy_server.config.timeouts  &&  proxy_server.config.timeouts.io) {
@@ -177,9 +171,39 @@ function _requestHandler(proxy_server, req, res) {
     reqhost = req.headers.host.split(':')[0];
   }
 
-  proxy_server.debug()  &&  Logger.debug('Handling HTTP[S] request to ' +
-                                         reqhost);
+  var idled_container = proxy_server.getIdle(reqhost)
+  if (idled_container && 0 !== idled_container.length) {
+    var command = 'curl -s -k -L -w %{http_code} -o /dev/null http://' + reqhost
+    Logger.debug('Unidle command for http: ' + command);
 
+    child_process.exec(command, function (error, stdout, stderr) {
+      if (null != stderr) {
+        Logger.error('curl stderr: ' + stderr);
+      }
+
+      if (null != error) {
+        Logger.error('curl error: ' + error);
+      }
+
+      if ('200' == stdout) {
+        proxy_server.unIdle(reqhost);
+        finish_request(reqhost, reqport, proxy_server, req, res, io_timeout, keep_alive_timeout);
+      }
+    });
+  }
+  else {
+    finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, keep_alive_timeout);
+  }
+};  /*  End of function  requestHandler.  */
+
+function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, keep_alive_timeout) {
+  var surrogate = new RequestSurrogate(req, res);
+
+  /*  Emit Surrogate Request and start events.  */
+  proxy_server.emit('surrogate.request', surrogate);
+  surrogate.emit('start');
+
+  proxy_server.debug()  &&  Logger.debug('Handling HTTP[S] request to ' + reqhost);
 
   /*  Get the request URI.  */
   var request_uri = req.url ? req.url : '/';
@@ -213,9 +237,9 @@ function _requestHandler(proxy_server, req, res) {
 
   /*  Create a proxy request we need to send & set appropriate headers.  */
   var proxy_req = { host: ep_host, port: ep_port,
-                    method: req.method, path: request_uri,
-                    headers: req.headers
-                  };
+    method: req.method, path: request_uri,
+    headers: req.headers
+  };
   _setProxyRequestHeaders(proxy_req, req);
 
   var preq = http.request(proxy_req, function(pres) {
@@ -286,7 +310,9 @@ function _requestHandler(proxy_server, req, res) {
 
 
   /*  Handle the outgoing request error event.  */
-  preq.addListener('error', function() {
+  preq.addListener('error', function(error) {
+    Logger.error('io_timeout: ' + io_timeout)
+    Logger.error('Error listener on proxied request: ' + error.stack)
 
     /*  Finish the incoming request, return a 503 and emit event.  */
     res.statusCode = statuscodes.HTTP_SERVICE_UNAVAILABLE;
@@ -294,9 +320,7 @@ function _requestHandler(proxy_server, req, res) {
     res.end('');
     surrogate.emit('error', 'proxy.request.error');
   });
-
-};  /*  End of function  requestHandler.  */
-
+}
 
 /**
  *  Handler to process websockets traffic we receive and route to the
@@ -320,11 +344,6 @@ function _requestHandler(proxy_server, req, res) {
  *  @api    private
  */
 function _websocketHandler(proxy_server, ws) {
-  var surrogate = new WebSocketSurrogate(ws);
-
-  /*  Emit Surrogate Websocket and start events.  */
-  proxy_server.emit('surrogate.websocket', surrogate);
-  surrogate.emit('start');
 
   /*  Get websockets timeout.  */
   var websockets_timeout = DEFAULT_WEBSOCKETS_TIMEOUT;  /*  3600 secs.  */
@@ -336,6 +355,47 @@ function _websocketHandler(proxy_server, ws) {
   /*  Timeout is set in milliseconds, so convert from seconds.  */
   ws._socket.setTimeout(websockets_timeout * 1000);
 
+  /*  Get the original/upgraded HTTP request.  */
+  var upgrade_req = ws.upgradeReq  ||  { };
+  var upg_reqhost = '';
+
+  /*  Get the host, the original/upgraded HTTP request was sent to.  */
+  if (upgrade_req.headers  &&  upgrade_req.headers.host) {
+    upg_reqhost = upgrade_req.headers.host.split(':')[0];
+  }
+
+  var idled_container = proxy_server.getIdle(upg_reqhost)
+  if (idled_container && 0 !== idled_container.length) {
+    var command = 'curl -s -k -L -w %{http_code} -o /dev/null http://' + upg_reqhost
+    Logger.debug('Unidle command for ws: ' + command);
+
+    child_process.exec(command, function (error, stdout, stderr) {
+      if (null != stderr) {
+        Logger.error('curl stderr: ' + stderr);
+      }
+
+      if (null != error) {
+        Logger.error('curl error: ' + error);
+      }
+
+      if ('200' == stdout) {
+        proxy_server.unIdle(upg_reqhost);
+        finish_websocket (upg_reqhost, proxy_server, ws);
+      }
+    });
+  }
+  else {
+    finish_websocket (upg_reqhost, proxy_server, ws);
+  }
+
+};  /*  End of function  websocketHandler.  */
+
+function finish_websocket(upg_reqhost, proxy_server, ws) {
+  var surrogate = new WebSocketSurrogate(ws);
+
+  /*  Emit Surrogate Websocket and start events.  */
+  proxy_server.emit('surrogate.websocket', surrogate);
+  surrogate.emit('start');
 
   /*  Get the original/upgraded HTTP request.  */
   var upgrade_req = ws.upgradeReq  ||  { };
@@ -446,7 +506,6 @@ function _websocketHandler(proxy_server, ws) {
   });
 
 };  /*  End of function  websocketHandler.  */
-
 
 /**
  *  Asynchronously find the route files and invoke the specify callback to
@@ -759,6 +818,43 @@ ProxyServer.prototype.loadRoutes = function() {
 
 };  /*  End of function  loadRoutes.  */
 
+/**
+ *  Gets the idle gear UUID associated with the specified 'name' or ""
+ *  (port/virtual host/alias).
+ *
+ *  Examples:
+ *    var cfgfile      = '/etc/openshift/web-proxy.json'
+ *    var proxy_server = new ProxyServer.ProxyServer(cfgfile);
+ *    proxy_server.initServer();
+ *    proxy_server.getIdle('app1-ramr.rhcloud.com');
+ *    proxy_server.getIdle(35753);
+ *
+ *  @param   {String}  External route name/info (virtual host/alias name).
+ *  @return  {String}  Idled gear UUID or "" if not idled
+ *  @api     public
+ */
+ProxyServer.prototype.getIdle = function (dest) {
+  return((this.routes) ? this.routes.getIdle(dest) : "");
+};  /*  End of function  getIdle.  */
+
+
+/**
+ *  Mark gear UUID associated with the specified 'name' as unidled
+ *  (port/virtual host/alias).
+ *
+ *  Examples:
+ *    var cfgfile      = '/etc/openshift/web-proxy.json'
+ *    var proxy_server = new ProxyServer.ProxyServer(cfgfile);
+ *    proxy_server.initServer();
+ *    proxy_server.unIdle('app1-ramr.rhcloud.com');
+ *    proxy_server.unIdle(35753);
+ *
+ *  @param   {String}  External route name/info (virtual host/alias name).
+ *  @api     public
+ */
+ProxyServer.prototype.unIdle = function (dest) {
+  return((this.routes) ? this.routes.unIdle(dest) : "");
+};  /*  End of function  unIdle.  */
 
 /**
  *  Initializes this ProxyServer instance.

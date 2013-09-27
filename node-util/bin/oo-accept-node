@@ -24,6 +24,8 @@ require 'socket'
 require 'json'
 require 'etc'
 require 'safe_yaml'
+require 'facter'
+require 'set'
 
 $OPTIONS = {}
 
@@ -96,7 +98,7 @@ DEFAULT_PACKAGES="rubygem-openshift-origin-node openshift-origin-node-util \
 %x[/bin/rpm -q ruby193-mcollective &>/dev/null]
 scl_prefix = $?.exitstatus == 0 ? "ruby193-" : ""
 
-DEFAULT_SERVICES="#{scl_prefix}mcollective cgconfig cgred httpd openshift-port-proxy oddjobd"
+DEFAULT_SERVICES="#{scl_prefix}mcollective cgconfig cgred httpd oddjobd"
 DEFAULT_SERVICE_CONTEXTS="#{scl_prefix}mcollective='unconfined_u:system_r:openshift_initrc_t:s0-s0:c0.c1023' oddjobd='system_u:system_r:oddjob_t:s0-s0:c0.c1023'"
 DEFAULT_MINSEM=512
 V1_DIRECTORIES=%w(ruby-1.8 ruby-1.9 nodejs-0.6
@@ -230,6 +232,16 @@ def load_users
   $START_TIME=Time.now
   $TC_DATA = %x[/sbin/tc clas show dev #{$EXTERNAL_ETH_DEV}].split("\n").grep(/parent/)
   $ALL_QUOTAS = %x[/usr/sbin/repquota -a].split("\n")
+
+  # Aggregate per-user hash of lscgroup data. In some cases, multiple subsystems
+  # for a user are displayed on a single line. Other times, they are split.
+  # This handles both cases using Set merging.
+  $CGROUP_DATA = Hash.new{|hash, key| hash[key] = Set.new()}
+  %x["/bin/lscgroup"].split.each { |entry|
+    subsystems,uuid = entry.split(':')
+    uuid.match('/openshift/(.+)') { |m| $CGROUP_DATA[m[1]].merge(subsystems.split(',')) }
+  }
+
   $USERS=[]
   Etc.passwd { |u| $USERS << u if u.gecos == $CONF.get('GEAR_GECOS') }
 end
@@ -415,16 +427,24 @@ def check_cgroup_procs
     ### Gather current procs running ###
     min_uid = $CONF.get('GEAR_MIN_UID').to_i
     max_uid = $CONF.get('GEAR_MAX_UID').to_i
-    uid_range = (min_uid..max_uid)
 
-    # Need to collect 3 and 4 digit uids since a non-district host could have a 3 digit uid
-    all_user_procs = %x[/bin/ps -e -o uid,pid | /bin/egrep "^\s+[0-9]{3,4}"].split("\n")
+    district_uuid = Facter.[]('district_uuid').value
+    verbose("find district uuid: #{district_uuid}")
+
+    if district_uuid.casecmp("None") != 0
+      min_uid = Facter.[]('district_first_uid').value.to_i unless Facter.[]('district_first_uid').nil?
+      max_uid = Facter.[]('district_max_uid').value.to_i unless Facter.[]('district_max_uid').nil?
+    end
+
+    verbose("determining node uid range: #{min_uid} to #{max_uid}")
+
+    all_user_procs = %x[/bin/ps -e -o uid,pid].split("\n")
     ps_procs = Hash.new{|hash, key| hash[key] = Array.new}
     all_user_procs.each do |line|
         uid,pid = line.split[0,2]
         uid = uid.to_i
 
-        if uid_range.include?(uid)
+        if uid.between?(min_uid, max_uid)
             passwd_lines = $USERS.select { |u| u.uid == uid }
 
             if passwd_lines.empty?
@@ -546,27 +566,22 @@ end
 # Verify that the user has a cgroup in all subsystems and no others
 def check_user_cgroups(username)
   user_cgroup="/openshift/#{username}"
-  test_subsystems = ['cpu', 'cpuacct', 'memory', 'freezer', 'net_cls'].sort
-
-  # Create the list of cgroups to query
-  cmd =  "/bin/lscgroup " + test_subsystems.map {|s| "#{s}:#{user_cgroup}"}.join(' ')
-  reply = %x[#{cmd}]
-
-  # This is a horrible bit of cleverness
-  # each group is on one line.  split the lines to an array
-  # extract the subsystem list (before the colon) for each group
-  # split the subsystems on commas (in case there are joined subsystems)
-  # then flatten the list sort and remove duplicates
-  actual = reply.split.map {|s| s[/([^:]+)/,1] }.map {|g| g.split(',')}.flatten.uniq.sort
-
-  user_fail(username, "user #{username} must have all cgroup subsystems") if not (actual == test_subsystems)
-
+  test_subsystems = Set.new(['cpu', 'cpuacct', 'memory', 'freezer', 'net_cls'])
+  if not test_subsystems == $CGROUP_DATA[username]
+    user_fail(username, "user #{username} must have all cgroup subsystems.")
+  end
 end
 
 def check_system_httpd_configs
+  verbose("checking system httpd configs")
+
+  if $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS') == nil
+    do_fail("No frontend plugins configured in OPENSHIFT_FRONTEND_HTTP_PLUGINS")
+    return
+  end
+
   return unless $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').include?('openshift-origin-frontend-apache-mod-rewrite')
   return unless $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').include?('openshift-origin-frontend-nodejs-websocket')
-  verbose("checking system httpd configs")
 
   ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
     begin

@@ -39,6 +39,7 @@ Endpoints:
   Private-Port-Name: PORT
   Private-Port: 8080
   Public-Port-Name: PROXY_PORT
+  Protocols: [http]
   Mappings:
   - Frontend: /phpmyadmin
     Backend: /phpmyadmin

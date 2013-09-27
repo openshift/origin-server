@@ -2,8 +2,8 @@ class AddSystemSshKeysDomainOp < PendingDomainOps
 
   field :keys_attrs, type: Array, default: []
 
-  def execute()
+  def execute(skip_node_ops=false)
     ssh_keys = keys_attrs.map { |key_hash| SystemSshKey.new.to_obj(key_hash) } 
-    pending_apps.each { |app| app.add_ssh_keys(nil, ssh_keys, self) }
+    pending_apps.each { |app| app.add_ssh_keys(nil, ssh_keys, self, skip_node_ops) }
   end
 end

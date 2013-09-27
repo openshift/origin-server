@@ -4,35 +4,35 @@
   .leave .popover { width: 300px; }
   .leave .popover-inner, .leave .popover-content { width: auto; }
 
+  .js .hidden-scripted { display: none; }
+
 - content_for :page_style, 'highlight'
 - content_for :top do
   .grid-wrapper.section-header
     %nav.span12.applications
       %h1.tile
-        %span.pull-right
-          %span{:title => 'Applications'}= pluralize(@domain.application_count, 'application')
-          %span{:title => 'Gears'}= pluralize(@domain.gear_counts.values.sum, 'gear')
-          %span{:title => 'Members'}= pluralize(@domain.members.count, 'member')
-
         = "Domain #{@domain.name}"
         - if @domain.can_rename?
-          = surround '(',')' do
-            = link_to 'edit name', edit_domain_path(@domain)
+          = link_to 'change', edit_domain_path(@domain), :class => 'link-alter'
+
+        - count = @domain.gear_counts.values.sum
+        %span.pull-right{:title => "This domain is using #{pluralize(count, 'gear')} and can use up to #{@domain.available_gears} more", style: "cursor: default;"}
+          %span{style: 'font-weight: bold;'} #{count}
+          %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.4;'}
 
 %section#app-list
   %section
 
   .row
     .span8
-      %h2 Applications
-      - @domain.applications.each do |application|
-        = render :partial => 'applications/application2', :locals => {:application => application}
+      %h5 Applications
+      .tile-dark
+        - @domain.applications.each do |application|
+          = render :partial => 'applications/application2', :locals => {:application => application}
 
     .span4
       %section
         %h5 Settings
-
-        %h6 Allowed gear sizes
         - if @domain.owner?
           - field = 'domain[allowed_gear_sizes][]'
           = semantic_form_for @domain do |f|
@@ -41,21 +41,34 @@
             - @capabilities.gear_sizes.each do |size|
               %label.checkbox{:for => "#{field}_#{size}"}
                 = check_box_tag field, size, @domain.allowed_gear_sizes.include?(size), :id => "#{field}_#{size}"
-                = "#{size.to_s.humanize} gears"
-            = f.buttons do
-              = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
+                = "Allow #{size.to_s.humanize.downcase} gears"
+            = f.buttons :class => 'hidden-scripted' do
+              = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-mini btn-primary'}
               = f.loading
-        - else
-          - @domain.allowed_gear_sizes.each do |size|
-            %div= "#{size.to_s.humanize} gears"
 
-      %section
-        %h5 Members
-        = render :partial => 'members/members_form', :locals => {:domain => @domain, :members => @domain.members, :new_members => @new_members, :editable => @domain.admin?, :editing => @new_members.present?}
+            - content_for :javascripts do
+              :javascript
+                $(function() {
+                  $('##{f.options[:html][:id]} [type=checkbox]').change(function() {
+                    $('.hidden-scripted', $(this).closest('form')).removeClass('hidden-scripted');
+                  })
+                })
+
+        - else
+          - if @domain.allowed_gear_sizes.present?
+            %p Allows #{@domain.allowed_gear_sizes.map{ |s| s.to_s.humanize }.to_sentence} gears"
+          - else
+            %p The owner has disabled creation - no gear sizes allowed
+
+      %h5 Members
+      = render :partial => 'members/members_form', :locals => {:domain => @domain, :members => @domain.members, :new_members => @new_members, :editable => @domain.admin?, :editing => @new_members.present?}
 
       - unless @domain.owner?
-        %section
-          %span.leave.confirm-container
-            = link_to "Leave Domain", domain_leave_path(@domain), { :class => 'btn btn-small confirm-link', :title => 'Leave Domain', 'data-placement' => 'bottom'}
-            .confirm-popover.hide
-              = render :partial => 'members/leave_domain_form', :locals => {:domain => @domain}
+        %span.leave.confirm-container
+          = link_to "Leave Domain", domain_leave_path(@domain), { :class => 'btn btn-small confirm-link', :title => 'Leave Domain', 'data-placement' => 'bottom'}
+          .confirm-popover.hide
+            = render :partial => 'members/leave_domain_form', :locals => {:domain => @domain}
+
+      -#.btn-toolbar
+        = link_to 'Delete domain', delete_domain_path(@application), :class => 'btn btn-small'
+

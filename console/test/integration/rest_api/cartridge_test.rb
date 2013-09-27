@@ -55,5 +55,10 @@ class RestApiCartridgeTest < ActiveSupport::TestCase
 
     assert_equal base, cart.scales_from
     assert_equal base, cart.scales_to
+
+    # Reset
+    cart.scales_from = 1
+    cart.scales_to = 1
+    assert cart.save, "Unable to set reset scales_from/to to 1: #{cart.errors.full_messages}"
   end
 end

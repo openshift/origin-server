@@ -2,11 +2,16 @@ module Membership
   extend ActiveSupport::Concern
 
   def members
-    attributes[:members] || []
+    mems = attributes[:members] || []
+    @me ||= mems.find{ |m| m.id == api_identity_id } if api_identity_id
+    @me.me = true if @me
+    mems
   end
 
   def me
     @me ||= members.find{ |m| m.id == api_identity_id } if api_identity_id
+    @me.me = true if @me
+    @me
   end
 
   def owner?

@@ -37,8 +37,6 @@ Provides:
 - mariadb-5.5
 - mariadb
 - mariadb-singleton-master
-Conflicts:
-- postgresql
 Publishes:
   publish-db-connection-info:
     Type: ENV:NET_TCP:db:connection-info
@@ -50,6 +48,7 @@ Endpoints:
   Private-Port-Name: DB_PORT
   Private-Port: 3306
   Public-Port-Name: DB_PROXY_PORT
+  Protocols: [mysql]
 Install-Build-Required: false
 Compatible-Versions:
 - 0.2.0

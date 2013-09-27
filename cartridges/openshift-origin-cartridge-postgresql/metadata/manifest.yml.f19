@@ -35,9 +35,6 @@ Cart-Data:
 Provides:
 - postgresql-9.2
 - postgresql
-Conflicts:
-- mysql
-- mariadb
 Publishes:
   publish-db-connection-info:
     Type: ENV:NET_TCP:db:connection-info
@@ -49,4 +46,5 @@ Endpoints:
   Private-Port-Name: DB_PORT
   Private-Port: 5432
   Public-Port-Name: DB_PROXY_PORT
+  Protocols: [postgresql]
 Install-Build-Required: false

@@ -1,5 +1,4 @@
 module Console::ModelHelper
-
   def cartridge_info(cartridge, application)
     case
     when cartridge.jenkins_client?
@@ -49,6 +48,55 @@ module Console::ModelHelper
     types.keys.sort.map do |k|
       "#{types[k]} #{k.humanize.downcase}"
     end.to_sentence
+  end
+
+  def available_gears_warning(writeable_domains)
+    if writeable_domains.present?
+      if !writeable_domains.find(&:allows_gears?)
+        has_shared = writeable_domains.find {|d| !d.owner? }
+        if has_shared
+          "The owners of the available domains have disabled all gear sizes from being created."
+        else
+          "You have disabled all gear sizes from being created."
+        end
+      elsif !writeable_domains.find(&:has_available_gears?)
+        "There are not enough free gears available to create a new application. You will either need to scale down or delete existing applications to free up resources."
+      end
+    end
+  end
+
+  def new_application_gear_sizes(writeable_domains, user_capabilities)
+    gear_sizes = user_capabilities.allowed_gear_sizes
+    if writeable_domains.present?
+      gear_sizes = writeable_domains.map(&:capabilities).map(&:allowed_gear_sizes).flatten.uniq
+    end
+    gear_sizes
+  end
+
+  def estimate_domain_capabilities(selected_domain_name, writeable_domains, can_create, user_capabilities)
+    if (selected_domain = writeable_domains.find {|d| d.name == selected_domain_name})
+      [selected_domain.capabilities, selected_domain.owner?]
+    elsif writeable_domains.length == 1
+      [writeable_domains.first.capabilities, writeable_domains.first.owner?]
+    elsif can_create and writeable_domains.length == 0
+      [user_capabilities, true]
+    else
+      [nil, nil]
+    end
+  end
+
+  def domains_for_select(domains)
+    domains.sort_by(&:name).map do |d|
+      capabilities = d.capabilities
+      if capabilities
+        [d.name, d.name, {
+          "data-gear-sizes" => capabilities.allowed_gear_sizes.join(','),
+          "data-gears-free" => capabilities.gears_free
+        }]
+      else
+        [d.name, d.name]
+      end
+    end
   end
 
   def web_cartridge_scale_title(cartridge)
@@ -143,107 +191,20 @@ module Console::ModelHelper
     [['No scaling',false],['Scale with web traffic',true]]
   end
 
-  def can_scale_application_type(type, capabilities)
+  def can_scale_application_type(type, capabilities=nil)
     type.scalable?
   end
 
-  def cannot_scale_title(type, capabilities)
+  def cannot_scale_title(type, capabilities=nil)
     unless can_scale_application_type(type, capabilities)
       "This application shares filesystem resources and can't be scaled."
     end
   end
 
-  def warn_may_not_scale(type, capabilities)
+  def warn_may_not_scale(type, capabilities=nil)
     if type.may_not_scale?
       "This application may require additional work to scale. Please see the application's documentation for more information."
     end
-  end
-
-  def gear_increase_indicator(cartridges, scales, gear_type, existing, capabilities)
-    range = scales ? gear_estimate_for_scaled_app(cartridges) : (existing ? 0..0 : 1..1)
-    min = range.begin
-    max = range.end
-    increasing = (min > 0 || max > 0)
-
-    cost, title = 
-      if gear_increase_cost(min, capabilities)
-        [true, "This will add #{pluralize(min, 'gear')} to your account and will result in additional charges."]
-      elsif gear_increase_cost(max, capabilities)
-        [true, "This will add at least #{pluralize(min, 'gear')} to your account and may result in additional charges."]
-      elsif !increasing
-        [false, "No gears will be added to your account."]
-      else
-        [false, "This will add #{pluralize(min, 'gear')} to your account."]
-      end
-    if cartridges_premium(cartridges)
-      cost = true
-      title = "#{title} Additional charges may be accrued for premium cartridges."
-    end
-    if increasing && gear_types_with_cost.include?(gear_type)
-      cost = true
-      title = "#{title} The selected gear type will have additional hourly charges."
-    end
-
-    content_tag(:span, 
-      [
-        (if max == Float::INFINITY
-          "+#{min}-?"
-        elsif max != min
-          "+#{min}-#{max}"
-        else
-          "+#{min}"
-        end),
-        "<span data-icon=\"\ue014\" aria-hidden=\"true\"> </span>",
-        ("<span class=\"label label-premium\">#{user_currency_symbol}</span>" if cost),
-      ].compact.join(' ').html_safe, 
-      :class => 'indicator-gear-increase',
-      :title => title,
-    )
-  end
-
-  def cartridges_premium(cartridges)
-    false
-  end
-  def gear_increase_cost(count, capabilities)
-    false
-  end
-  def gear_types_with_cost
-    []
-  end
-  def gear_estimate_for_scaled_app(cartridges)
-    min = 0
-    max = 0
-    if cartridges.present?
-      cartridges.each_pair do |_, carts|
-        any = false
-        all = true
-        variable = false
-        carts.each do |cart|
-          if cart.service? || cart.web_framework?
-            any = true
-          elsif cart.custom?
-            variable = any = true
-          else
-            all = false
-            break if any
-          end
-        end
-        max += 1 if any
-        min += 1 if all && !variable
-      end
-    else
-      min = 1
-      max = Float::INFINITY
-    end
-    Range.new(min,max)
-  end
-
-  def user_currency_symbol
-    "$"
-  end
-
-  def usage_rate_indicator
-    content_tag :span, user_currency_symbol, :class => "label label-premium", :title => 'May include additional usage fees at certain levels, see plan for details.'
   end
 
   def in_groups_by_tag(ary, tags)

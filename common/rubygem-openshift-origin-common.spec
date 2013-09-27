@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version:       1.15.1
+Version:       1.15.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,23 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- add mappings support to routing spi, and add protocols to cart manifests
+  (rchopra@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3663 from dobbymoodge/oo-util-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Add support for cartridge protocol types in manifest (rchopra@redhat.com)
+- <oo-diagnostics> Improve regexes for tests on Origin (jolamb@redhat.com)
+- Fix type error, typos in oo-diagnostics test_auth_conf_files
+  (jolamb@redhat.com)
+- Merge pull request #3622 from brenton/ruby193-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- The mcollective logs need the scl prefix (bleanhar@redhat.com)
+- Adding oo-mco and updating oo-diagnostics to support the SCL'd mcollective
+  (bleanhar@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Bump up version (tdawson@redhat.com)
 

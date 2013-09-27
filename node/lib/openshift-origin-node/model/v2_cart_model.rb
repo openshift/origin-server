@@ -919,7 +919,7 @@ module OpenShift
         end
       end
 
-      def connect_frontend(cartridge)
+      def connect_frontend(cartridge, rebuild=false)
         frontend       = FrontendHttpServer.new(@container)
         gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         web_proxy_cart = web_proxy
@@ -937,7 +937,7 @@ module OpenShift
               end
 
               # Make sure that the mapping does not collide with the default web_proxy mapping
-              if mapping.frontend == "" and not cartridge.web_proxy? and web_proxy_cart
+              if mapping.frontend == "" and not cartridge.web_proxy? and web_proxy_cart and not rebuild
                 logger.info("Skipping default mapping as web proxy owns it for the application")
                 next
               end
@@ -948,6 +948,11 @@ module OpenShift
                 next
               end
 
+              # If the mapping contains the option ssl_to_gear, create an environment
+              if options["ssl_to_gear"]
+                @container.add_env_var("SSL_TO_GEAR", 1)
+                logger.debug("Adding SSL_TO_GEAR env var")
+              end
               logger.info("Connecting frontend mapping for #{@container.uuid}/#{cartridge.name}: "\
                       "[#{mapping.frontend}] => [#{backend_uri}] with options: #{mapping.options}")
               frontend.connect(mapping.frontend, backend_uri, options)

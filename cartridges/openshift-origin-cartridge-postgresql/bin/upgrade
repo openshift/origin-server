@@ -1,0 +1,5 @@
+#!/bin/bash -ue
+
+if ! grep "0.0.0.0/0" $OPENSHIFT_POSTGRESQL_DIR/data/pg_hba.conf; then
+    echo "host    all         all           0.0.0.0/0             md5" >> $OPENSHIFT_POSTGRESQL_DIR/data/pg_hba.conf
+fi

@@ -167,38 +167,47 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   end
 
   def owned_domain(name="owned")
-    Domain.new(
+    Domain.new({
       :name => name, 
       :api_identity_id => 'me',
       :members => [
         Member.new(:owner => true, :role => 'admin', :id => 'me')
       ],
-      :as => @controller.current_user
-    )
+      :as => @controller.current_user,
+      :gear_counts => {},
+      :allowed_gear_sizes => [:small],
+      :available_gears => 3
+    }, true)
   end
 
   def writeable_domain(name="shared")
-    Domain.new(
+    Domain.new({
       :name => name, 
       :api_identity_id => 'me',
       :members => [
         Member.new(:owner => true,  :role => 'admin', :id => 'you'),
         Member.new(:owner => false, :role => 'admin', :id => 'me')
       ],
-      :as => @controller.current_user
-    )
+      :as => @controller.current_user,
+      :gear_counts => {},
+      :allowed_gear_sizes => [:small],
+      :available_gears => 3
+    }, true)
   end
 
   def readable_domain(name="readable")
-    Domain.new(
+    Domain.new({
       :name => name, 
       :api_identity_id => 'me',
       :members => [
         Member.new(:owner => true,  :role => 'admin', :id => 'you'),
         Member.new(:owner => false, :role => 'read',  :id => 'me')
       ],
-      :as => @controller.current_user
-    )
+      :as => @controller.current_user,
+      :gear_counts => {},
+      :allowed_gear_sizes => [:small],
+      :available_gears => 3
+    }, true)
   end
 
   test "should show type page for cartridge" do
@@ -234,7 +243,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select '.alert.alert-error', /No cartridges are defined for this type/i
     assert_select 'h3 > span.text-warning', 'None'
     assert_select '.btn-primary[disabled=disabled]'
-    assert_select "input[name='application[initial_git_url]']", 0
+    assert_select "input[name='application[initial_git_url]']"
     assert_select ".indicator-gear-increase", "+1"
   end
 
@@ -331,22 +340,19 @@ class ApplicationTypesControllerTest < ActionController::TestCase
       :initial_git_url => 'http://foo.com',
       :initial_git_branch => 'bar'
     assert_response :success
-    assert_select 'h3 > a', 'http://foo.com'
+    assert_select "input[type='text'][value='http://foo.com']"
     #assert_select 'h3', /branch 'bar'/
   end
 
   test "should render advanced custom type" do
     with_unique_user
-    get :show, :id => 'custom', :advanced => true, :initial_git_url => 'http://foo.com', :initial_git_branch => 'bar'
+    get :show, :id => 'custom', :initial_git_url => 'http://foo.com', :initial_git_branch => 'bar'
     assert_response :success
-    assert assigns(:advanced)
     assert_select '.alert.alert-error', /No cartridges are defined for this type/i
     assert_select 'h3 > span.text-warning', 'None'
     assert_select '.btn-primary[disabled=disabled]'
     assert_select "select[name='application[scale]']"
-    assert_select "input[name='application[initial_git_url]']" do |inputs|
-      assert inputs.first['value'] == 'http://foo.com'
-    end
+    assert_select "input[name='application[initial_git_url]'][value='http://foo.com']"
     #assert_select "input[name='application[initial_git_branch]']" do |inputs|
     #  assert inputs.first['value'] == 'bar'
     #end
@@ -419,7 +425,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
 
   test "should render domain name field" do
     with_unique_user
-    get :show, :id => 'custom', :advanced => true, :domain_name => 'TestDomain'
+    get :show, :id => 'custom', :domain_name => 'TestDomain'
 
     assert_select 'input#application_domain_name', {:count=>1, :value => 'TestDomain'}
   end
