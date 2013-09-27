@@ -8,7 +8,6 @@ class RemoveCompOp < PendingAppOp
     gear = get_gear()
     component_instance = get_component_instance()
     result_io = gear.remove_component(component_instance)
-    gear.save! if component_instance.is_sparse?
     result_io
   end
 

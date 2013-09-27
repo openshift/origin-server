@@ -104,7 +104,7 @@ class District
 
   def server_identities_hash
     sih = {}
-    server_identities.each { |server_identity_info| sih[server_identity_info["name"]] = { "active" => server_identity_info["active"]} }
+    server_identities.each { |server_identity_info| sih[server_identity_info["name"]] = { "active" => server_identity_info["active"], "unresponsive" => server_identity_info["unresponsive"]} }
     sih
   end
 
@@ -112,11 +112,14 @@ class District
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
       unless server_map[server_identity]["active"]
-        container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-        capacity = container.get_capacity
-        if capacity == 0 or capacity == 0.0
-          container.set_district('NONE', false, first_uid, max_uid)
-          server_identities.delete({ "name" => server_identity, "active" => false} )
+        server_unresponsive = server_map[server_identity]["unresponsive"]
+        unless server_unresponsive
+          container = OpenShift::ApplicationContainerProxy.instance(server_identity)
+          capacity = container.get_capacity
+        end
+        if server_unresponsive or capacity == 0 or capacity == 0.0
+          container.set_district('NONE', false, first_uid, max_uid) unless server_unresponsive
+          server_identities.delete_if { |si| (si["name"] == server_identity) and (si["active"] == false) }
           if not self.save
             raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid}")
           end

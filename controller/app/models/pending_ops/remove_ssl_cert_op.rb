@@ -5,8 +5,9 @@ class RemoveSslCertOp < PendingAppOp
   field :gear_id, type: String
 
   def execute
+    result_io = ResultIO.new
     gear = get_gear()
-    result_io = gear.remove_ssl_cert(fqdn)
+    result_io = gear.remove_ssl_cert(fqdn) unless gear.node_removed
     begin
       a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn)
       a.has_private_ssl_certificate = false

@@ -6,9 +6,13 @@ class PostConfigureCompOp < PendingAppOp
   field :init_git_url, type: String
 
   def execute
+    result_io = ResultIO.new
     gear = get_gear()
-    component_instance = get_component_instance()
-    result_io = gear.post_configure_component(component_instance, init_git_url)
+    unless gear.node_removed
+      component_instance = get_component_instance()
+      result_io = gear.post_configure_component(component_instance, init_git_url)
+    end
+    result_io
   end
 
 end

@@ -1181,37 +1181,6 @@ class Application
     sub_pub_hash
   end
 
-  def unsubscribe_connections(sub_pub_hash)
-    if self.scalable and sub_pub_hash
-      Rails.logger.debug "Running unsubscribe connections"
-      handle = RemoteJob.create_parallel_job
-      sub_pub_hash.values.each do |to, from|
-        sub_inst = nil
-        begin
-          sub_inst = self.component_instances.find_by(cartridge_name: to["cart"], component_name: to["comp"])
-        rescue Mongoid::Errors::DocumentNotFound
-          #ignore
-        end
-        next if sub_inst.nil?
-        sub_ginst = self.group_instances.find(sub_inst.group_instance_id)
-        pub_cart_name = from["cart"]
-        tag = sub_inst._id.to_s
-
-        sub_ginst.get_gears(sub_inst).each do |gear|
-          job = gear.get_unsubscribe_job(sub_inst, pub_cart_name)
-          RemoteJob.add_parallel_job(handle, tag, gear, job)
-        end
-      end
-      RemoteJob.execute_parallel_jobs(handle)
-      RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
-        if status != 0
-          Rails.logger.error "Unsubscribe Connection event failed:: tag: #{tag}, gear_id: #{gear_id},"\
-                             "output: #{output}, status: #{status}"
-        end
-      end
-    end
-  end
-
   def execute_connections
     if self.scalable
       connections, new_group_instances, cleaned_group_overrides = elaborate(self.requires, self.group_overrides)
@@ -1228,8 +1197,10 @@ class Application
 
         pub_ginst.get_gears(pub_inst).each do |gear|
           input_args = [gear.name, self.domain.namespace, gear.uuid]
-          job = gear.get_execute_connector_job(pub_inst, conn.from_connector_name, conn.connection_type, input_args)
-          RemoteJob.add_parallel_job(handle, tag, gear, job)
+          unless gear.node_removed
+            job = gear.get_execute_connector_job(pub_inst, conn.from_connector_name, conn.connection_type, input_args)
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
+          end
         end
       end
       pub_out = {}
@@ -1265,8 +1236,10 @@ class Application
           Rails.logger.debug "Output of publisher - '#{pub_out}'"
           sub_ginst.get_gears(sub_inst).each do |gear|
             input_args = [gear.name, self.domain.namespace, gear.uuid, input_to_subscriber]
-            job = gear.get_execute_connector_job(sub_inst, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
-            RemoteJob.add_parallel_job(handle, tag, gear, job)
+            unless gear.node_removed
+              job = gear.get_execute_connector_job(sub_inst, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
+              RemoteJob.add_parallel_job(handle, tag, gear, job)
+            end
           end
         end
       end
@@ -1287,23 +1260,6 @@ class Application
       end
     end
     raise OpenShift::UserException.new("Gear containing application dns not found")
-  end
-
-  ##
-  # Retrieve list of internal ssh endpoint for all gears in the application.
-  #
-  # == Parameters:
-  # exclude_app_dns: when set, it will ignore app dns gear
-  # == Returns:
-  # @return [Array<String>] List of internal ssh endpoint for all gears
-  def get_gears_ssh_endpoint(exclude_app_dns=false) 
-    gears_endpoint = []
-    self.group_instances.each do |group_instance|
-      group_instance.gears.each do |gear|
-        gears_endpoint << "#{gear.uuid}@#{gear.server_identity}" unless gear.app_dns and exclude_app_dns
-      end
-    end
-    gears_endpoint
   end
 
   def deregister_routing_dns
