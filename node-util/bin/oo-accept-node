@@ -432,8 +432,8 @@ def check_cgroup_procs
     verbose("find district uuid: #{district_uuid}")
 
     if district_uuid.casecmp("None") != 0
-      min_uid = Facter.[]('district_first_uid').value.to_i
-      max_uid = Facter.[]('district_max_uid').value.to_i
+      min_uid = Facter.[]('district_first_uid').value.to_i unless Facter.[]('district_first_uid').nil?
+      max_uid = Facter.[]('district_max_uid').value.to_i unless Facter.[]('district_max_uid').nil?
     end
 
     verbose("determining node uid range: #{min_uid} to #{max_uid}")
