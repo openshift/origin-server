@@ -16,7 +16,7 @@ module OpenShift
           (env['OPENSHIFT_KEEP_DEPLOYMENTS'] || 1).to_i
         end
 
-        # Returns all the deployment directories
+        # Returns all the deployment directories, in no particular order
         def all_deployments
           deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
 

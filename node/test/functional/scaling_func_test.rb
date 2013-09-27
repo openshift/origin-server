@@ -126,8 +126,9 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
 
     framework = cartridges[0]
 
+    app_container = OpenShift::Runtime::ApplicationContainer.from_uuid(app_id)
+
     if scaling
-      app_container = OpenShift::Runtime::ApplicationContainer.from_uuid(app_id)
       gear_registry = OpenShift::Runtime::GearRegistry.new(app_container)
       entries = gear_registry.entries
       OpenShift::Runtime::NodeLogger.logger.info("Gear registry contents: #{entries}")
@@ -168,13 +169,16 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
       assert_equal 2, web_entries.keys.size
 
       # make sure the http content is good
-      web_entries.values.each do |entry| 
+      web_entries.values.each do |entry|
         OpenShift::Runtime::NodeLogger.logger.info("Checking title for #{entry.as_json}")
         assert_http_title_for_entry entry, DEFAULT_TITLE
       end
     else
       assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE
     end
+
+    deployment_metadata = app_container.deployment_metadata_for(app_container.current_deployment_datetime)
+    deployment_id = deployment_metadata.id
 
     # clone the git repo and make a change
     OpenShift::Runtime::NodeLogger.logger.info("Modifying the title and pushing the change")
@@ -204,18 +208,17 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
       # make sure the http content is good
       entries[:web].values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
 
-      #FIXME need to get the deployment id of the previous deployment so we can activate back to it
       # rollback
-      #OpenShift::Runtime::NodeLogger.logger.info("Rolling back")
-      #OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear rollback`
+      OpenShift::Runtime::NodeLogger.logger.info("Rolling back to #{deployment_id}")
+      OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id}`
 
       # make sure the http content is rolled back
-      #entries[:web].values.each { |entry| assert_http_title_for_entry entry, DEFAULT_TITLE }
+      entries[:web].values.each { |entry| assert_http_title_for_entry entry, DEFAULT_TITLE }
     else
       assert_http_title_for_app app_name, @namespace, CHANGED_TITLE
 
-      OpenShift::Runtime::NodeLogger.logger.info("Rolling back")
-      OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear rollback`
+      OpenShift::Runtime::NodeLogger.logger.info("Rolling back to #{deployment_id}")
+      OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id}`
 
       assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE      
     end

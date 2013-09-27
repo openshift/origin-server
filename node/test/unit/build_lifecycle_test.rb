@@ -86,8 +86,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
     git_sha1 = 'abcd1234'
     repository.expects(:get_sha1).with('master').returns(git_sha1)
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_sha1', git_sha1)
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_ref', 'master')
+
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+    metadata.expects(:git_sha1=).with(git_sha1)
+    metadata.expects(:git_ref=).with('master')
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
@@ -132,8 +135,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
     git_sha1 = 'abcd1234'
     repository.expects(:get_sha1).with('master').returns(git_sha1)
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_sha1', git_sha1)
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_ref', 'master')
+
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+    metadata.expects(:git_sha1=).with(git_sha1)
+    metadata.expects(:git_ref=).with('master')
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
@@ -173,8 +179,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
     git_sha1 = 'abcd1234'
     repository.expects(:get_sha1).with('master').returns(git_sha1)
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_sha1', git_sha1)
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_ref', 'master')
+
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+    metadata.expects(:git_sha1=).with(git_sha1)
+    metadata.expects(:git_ref=).with('master')
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
@@ -385,7 +394,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:activate_gear).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    
+
     web_proxy = mock()
     @cartridge_model.expects(:web_proxy).returns(mock)
 
@@ -429,27 +438,32 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   # no git template url specified
   # cartridge doesn't require build on install
   # not already DEPLOYED
-  # not web proxy
   def test_post_configure_defaults
     cart_name = 'mock-0.1'
     cartridge = mock()
     @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
     cartridge.expects(:install_build_required).returns(false)
+    cartridge.expects(:deployable?).returns(true)
     latest_deployment_datetime = "now"
     @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
-    @container.expects(:read_deployment_metadata).with(latest_deployment_datetime, 'state').returns(nil)
-    cartridge.expects(:web_proxy?).returns(false)
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(latest_deployment_datetime).returns(metadata)
+    metadata.expects(:activations).returns([])
     @container.expects(:prepare).with(deployment_datetime: latest_deployment_datetime)
+    metadata.expects(:load)
     @container.expects(:update_repo_symlink).with(latest_deployment_datetime)
-    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'state', 'DEPLOYED')
     git_sha1 = 'abcd1234'
     repository = mock()
     ::OpenShift::Runtime::ApplicationRepository.expects(:new).with(@container).returns(repository)
     repository.expects(:get_sha1).with('master').returns(git_sha1)
-    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'git_sha1', git_sha1)
-    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'git_ref', 'master')
+    metadata.expects(:git_sha1=).with(git_sha1)
+    metadata.expects(:git_ref=).with('master')
+
     @container.expects(:set_rw_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
     @container.expects(:reset_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
+
+    @container.expects(:record_deployment_activation).with(latest_deployment_datetime)
+
     @cartridge_model.expects(:post_configure).with(cart_name)
 
     @container.post_configure(cart_name)
@@ -458,25 +472,32 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   # new gear
   # empty git template url - should keep build from happening
   # not already DEPLOYED
-  # not web proxy
   def test_post_configure_empty_clone_spec_prevents_build
     cart_name = 'mock-0.1'
     cartridge = mock()
     @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
+    cartridge.expects(:deployable?).returns(true)
     latest_deployment_datetime = "now"
     @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
-    @container.expects(:read_deployment_metadata).with(latest_deployment_datetime, 'state').returns(nil)
-    cartridge.expects(:web_proxy?).returns(false)
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(latest_deployment_datetime).returns(metadata)
+    metadata.expects(:activations).returns([])
     @container.expects(:prepare).with(deployment_datetime: latest_deployment_datetime)
+    metadata.expects(:load)
     @container.expects(:update_repo_symlink).with(latest_deployment_datetime)
-    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'state', 'DEPLOYED')
     repository = mock()
     ::OpenShift::Runtime::ApplicationRepository.expects(:new).with(@container).returns(repository)
-    repository.expects(:get_sha1).with('master').returns('')
-    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'git_sha1', '').never
-    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'git_ref', 'master').never
+    git_sha1 = 'abcd1234'
+    repository.expects(:get_sha1).with('master').returns(git_sha1)
+
+    metadata.expects(:git_sha1=).with(git_sha1)
+    metadata.expects(:git_ref=).with('master')
+
     @container.expects(:set_rw_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
     @container.expects(:reset_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
+
+    @container.expects(:record_deployment_activation).with(latest_deployment_datetime)
+
     @cartridge_model.expects(:post_configure).with(cart_name)
 
     @container.post_configure(cart_name, 'empty')
@@ -586,18 +607,17 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   # new gear
   # no git template url specified
   # cartridge doesn't require build on install
-  # already DEPLOYED
-  def test_post_configure_already_deployed
+  # already have at least 1 activation
+  def test_post_configure_not_deployable
     cart_name = 'mock-0.1'
     cartridge = mock()
     @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
     cartridge.expects(:install_build_required).returns(false)
-    latest_deployment_datetime = "now"
-    @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
-    @container.expects(:read_deployment_metadata).with(latest_deployment_datetime, 'state').returns('DEPLOYED')
+    cartridge.expects(:deployable?).returns(false)
+    @container.expects(:latest_deployment_datetime).never
+    @container.expects(:deployment_metadata_for).never
     @container.expects(:prepare).never
     @container.expects(:update_repo_symlink).never
-    @container.expects(:write_deployment_metadata).never
     @container.expects(:set_rw_permission_R).never
     @container.expects(:reset_permission_R).never
     @cartridge_model.expects(:post_configure).with(cart_name)
@@ -608,20 +628,20 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   # new gear
   # no git template url specified
   # cartridge doesn't require build on install
-  # not DEPLOYED
-  # web proxy
-  def test_post_configure_web_proxy
+  # already have at least 1 activation
+  def test_post_configure_already_deployed
     cart_name = 'mock-0.1'
     cartridge = mock()
     @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
     cartridge.expects(:install_build_required).returns(false)
+    cartridge.expects(:deployable?).returns(true)
     latest_deployment_datetime = "now"
     @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
-    @container.expects(:read_deployment_metadata).with(latest_deployment_datetime, 'state').returns(nil)
-    cartridge.expects(:web_proxy?).returns(true)
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(latest_deployment_datetime).returns(metadata)
+    metadata.expects(:activations).returns([1])
     @container.expects(:prepare).never
     @container.expects(:update_repo_symlink).never
-    @container.expects(:write_deployment_metadata).never
     @container.expects(:set_rw_permission_R).never
     @container.expects(:reset_permission_R).never
     @cartridge_model.expects(:post_configure).with(cart_name)
@@ -640,10 +660,13 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                    {deployment_datetime: deployment_datetime})
                                              .returns("output from prepare hook\n")
 
-    deployment_id = 'abcd1234'  
+    deployment_id = 'abcd1234'
     @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
     @container.expects(:link_deployment_id).with(deployment_datetime, deployment_id)
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'id', deployment_id)
+
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+    metadata.expects(:id=).with(deployment_id)
 
     prepare_options = {deployment_datetime: deployment_datetime}
     output = @container.prepare(prepare_options)
@@ -661,10 +684,12 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                    {deployment_datetime: deployment_datetime})
                                              .returns("output from prepare hook\n")
 
-    deployment_id = 'abcd1234'  
+    deployment_id = 'abcd1234'
     @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
     @container.expects(:link_deployment_id).with(deployment_datetime, deployment_id)
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'id', deployment_id).raises(IOError.new('msg'))
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+    metadata.expects(:id=).with(deployment_id).raises(IOError.new('msg'))
     @container.expects(:unlink_deployment_id).with(deployment_id)
 
     prepare_options = {deployment_datetime: deployment_datetime}
@@ -689,12 +714,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                    prepare_options)
                                              .returns("output from prepare hook\n")
 
-    deployment_id = 'abcd1234'  
+    deployment_id = 'abcd1234'
     @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
 
     FileUtils.expects(:cd).with(File.join(@container.container_dir, 'app-deployments', 'by-id')).yields
     FileUtils.expects(:ln_s).with(File.join('..', deployment_datetime), deployment_id)
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'id', deployment_id)
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+    metadata.expects(:id=).with(deployment_id)
 
     output = @container.prepare(prepare_options)
 
@@ -1219,8 +1246,9 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
       @cartridge_model.expects(:post_install).never
     end
 
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'state', 'DEPLOYED')
-    @container.expects(:clean_up_deployments_before).with(deployment_datetime)
+    #FIXME update with DeploymentMetadata usage
+    #@container.expects(:write_deployment_metadata).with(deployment_datetime, 'state', 'DEPLOYED')
+    #@container.expects(:clean_up_deployments_before).with(deployment_datetime)
 
     web_proxy = options[:scalable] ? mock() : nil
     @cartridge_model.expects(:web_proxy).returns(web_proxy)

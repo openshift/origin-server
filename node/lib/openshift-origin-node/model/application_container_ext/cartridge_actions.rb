@@ -86,8 +86,10 @@ module OpenShift
               update_repo_symlink(deployment_datetime)
 
               application_repository = ApplicationRepository.new(self)
-              git_sha1 = application_repository.get_sha1('master')
+              git_ref = 'master'
+              git_sha1 = application_repository.get_sha1(git_ref)
               deployment_metadata.git_sha1 = git_sha1
+              deployment_metadata.git_ref = git_ref
 
               deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
               set_rw_permission_R(deployments_dir)
@@ -1069,7 +1071,7 @@ module OpenShift
                 end
 
                 # activate the current deployment on all the new gears
-                deployment_id = deployment_metadata_for(current_deployment_datetime)
+                deployment_id = deployment_metadata_for(current_deployment_datetime).id
 
                 # TODO this will activate in batches, based on the ratio defined in activate_many
                 # may want to consider activating all (limited concurrently to :in_threads) instead

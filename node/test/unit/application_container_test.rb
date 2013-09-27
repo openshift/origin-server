@@ -403,7 +403,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     ::OpenShift::Runtime::GearRegistry::Entry.expects(:new).never
     @container.expects(:run_in_container_context).never
     @container.expects(:current_deployment_datetime).never
-    @container.expects(:read_deployment_metadata).never
+    @container.expects(:deployment_metadata_for).never
     @container.expects(:activate).never
     @container.cartridge_model.expects(:do_control).never
 
@@ -533,7 +533,9 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.expects(:current_deployment_datetime).returns(current_deployment_datetime)
 
     deployment_id = 'abcd1234'
-    @container.expects(:read_deployment_metadata).with(current_deployment_datetime, 'id').returns(deployment_id)
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(current_deployment_datetime).returns(metadata)
+    metadata.expects(:id).returns(deployment_id)
 
     @container.expects(:activate).with(gears: [web_entry2, web_entry3].map { |e| "#{e.uuid}@#{e.proxy_hostname}" },
                                             deployment_id: deployment_id,

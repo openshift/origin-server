@@ -63,21 +63,20 @@ class DeploymentsTest < OpenShift::NodeTestCase
     assert_empty @container.all_deployments
   end
 
-  def test_all_deployments_populated_and_sorted
+  def test_all_deployments_populated
     %w(ccc bbb aaa).each { |d| FileUtils.mkdir_p File.join(@test_dir, 'app-deployments', d)}
-    expected = %w(aaa bbb ccc).map { |d| File.join(@test_dir, 'app-deployments', d)}
     all = @container.all_deployments
 
-    assert_equal expected, all
+    %w(aaa bbb ccc).each { |d| assert_includes all, File.join(@test_dir, 'app-deployments', d)}
+    refute_includes all, File.join(@test_dir, 'app-deployments', 'by-id')
   end
 
   def test_latest_deployment_datetime
     deployment_datetime1 = '2013-08-16_13-36-36.880'
     deployment_datetime2 = '2013-08-16_14-36-36.880'
     deployment_datetime3 = '2013-08-16_14-36-36.881'
-    [deployment_datetime1, deployment_datetime2, deployment_datetime3].each {|d| create_deployment_dir(d)}
-
-    assert_equal deployment_datetime3, @container.latest_deployment_datetime
+    @container.expects(:all_deployments_by_activation).returns([deployment_datetime2, deployment_datetime3, deployment_datetime1])
+    assert_equal deployment_datetime1, @container.latest_deployment_datetime
   end
 
   def test_move_dependencies
@@ -133,6 +132,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
     deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
     @container.expects(:set_rw_permission_R).with(deployment_dir)
     @container.expects(:current_deployment_datetime).returns(nil)
+    @container.expects(:prune_deployments)
 
     created_datetime = @container.create_deployment_dir
 
@@ -146,7 +146,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
     assert_equal 0o40750, File.stat(File.join(deployment_dir, 'dependencies')).mode
   end
 
-  def test_create_deployment_dir_keep_variable_undefined
+  def test_create_deployment_dir_keep_1
     deployment_datetime = Time.now
     deployment_datetime_s = time_to_s(deployment_datetime)
     Time.stubs(:now).returns(deployment_datetime)
@@ -154,13 +154,15 @@ class DeploymentsTest < OpenShift::NodeTestCase
     @container.expects(:set_rw_permission_R).with(deployment_dir)
 
     current = time_to_s(deployment_datetime - 1.day)
-    @container.expects(:current_deployment_datetime).returns(current).times(2)
+    @container.expects(:current_deployment_datetime).returns(current)
 
     gear_env = {}
     ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
 
+    @container.expects(:deployments_to_keep).with(gear_env).returns(1)
+
     @container.expects(:move_dependencies).with(deployment_datetime_s)
-    @container.expects(:clean_up_deployments_before).with(current)
+    @container.expects(:prune_deployments)
 
     created_datetime = @container.create_deployment_dir
 
@@ -187,6 +189,9 @@ class DeploymentsTest < OpenShift::NodeTestCase
     gear_env = {'OPENSHIFT_KEEP_DEPLOYMENTS' => "3"}
     ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
 
+    @container.expects(:deployments_to_keep).with(gear_env).returns(3)
+
+    @container.expects(:prune_deployments).times(2)
     @container.expects(:copy_dependencies).with(deployment_datetime_s)
 
     created_datetime = @container.create_deployment_dir
@@ -207,6 +212,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
     Time.stubs(:now).returns(deployment_datetime)
     deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
     @container.expects(:set_rw_permission_R).with(deployment_dir)
+    @container.expects(:prune_deployments)
 
     created_datetime = @container.create_deployment_dir(force_clean_build: true)
 
@@ -233,26 +239,6 @@ class DeploymentsTest < OpenShift::NodeTestCase
     id = @container.calculate_deployment_id(deployment_datetime_s)
 
     assert_equal "a1b2c3d4", id
-  end
-
-  def test_deployment_metadata
-    deployment_datetime = Time.now
-    deployment_datetime_s = time_to_s(deployment_datetime)
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
-    create_deployment_dir(deployment_datetime_s)
-
-    filename = 'myfile'
-    myfile = File.join(deployment_dir, 'metadata', filename)
-
-    data = 'mydata'
-
-    refute_path_exist myfile
-
-    @container.write_deployment_metadata(deployment_datetime_s, filename, data)
-
-    assert_path_exist myfile
-    assert_equal data, IO.read(myfile).chomp
-    assert_equal data, @container.read_deployment_metadata(deployment_datetime_s, filename).chomp
   end
 
   def test_get_deployment_datetime_for_deployment_id
@@ -333,66 +319,106 @@ class DeploymentsTest < OpenShift::NodeTestCase
     refute_path_exist File.join(by_id_dir, deployment_id)
   end
 
-  def test_clean_up_deployments_before_no_deployments
-    gear_env = {}
-    ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
-    @container.expects(:all_deployments).returns([]).times(2)
-
-    @container.clean_up_deployments_before(time_to_s(Time.now))
-  end
-
-  # make sure it only keeps 1 deployment if OPENSHIFT_KEEP_DEPLOYMENTS is not defined
-  def test_clean_up_deployments_before_keep_undefined
-    gear_env = {}
-    ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
-
-    deployment_datetime = Time.now
-    deployment_datetime_s = time_to_s(deployment_datetime)
-
-    deployments = %w(aaa bbb ccc).map {|e| "/var/lib/openshift/uuid/app-deployments/#{e}"}
-    @container.expects(:all_deployments).returns(deployments).times(2)
-    @container.expects(:read_deployment_metadata).returns('DEPLOYED').times(2)
-
-    @container.expects(:delete_deployment).with('aaa')
-    @container.expects(:delete_deployment).with('bbb')
-
-    @container.clean_up_deployments_before('ccc')
-  end
-
-  # make sure it only keeps # of deployments specified by OPENSHIFT_KEEP_DEPLOYMENTS
-  def test_clean_up_deployments_before_keep_defined
-    gear_env = {'OPENSHIFT_KEEP_DEPLOYMENTS' => "2"}
-    ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
-
-    deployment_datetime = Time.now
-    deployment_datetime_s = time_to_s(deployment_datetime)
-
-    deployments = %w(aaa bbb ccc).map {|e| "/var/lib/openshift/uuid/app-deployments/#{e}"}
-    @container.expects(:all_deployments).returns(deployments).times(2)
-    @container.expects(:read_deployment_metadata).returns('DEPLOYED').times(2)
-
-    @container.expects(:delete_deployment).with('aaa')
-
-    @container.clean_up_deployments_before('ccc')
-  end
-
   # make sure it doesn't delete any deployments if we're under the limit
-  def test_clean_up_deployments_under_keep_limit
+  def test_prune_deployments_no_op
     %w(3 4).each do |keep|
       gear_env = {'OPENSHIFT_KEEP_DEPLOYMENTS' => keep}
       ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
+      @container.expects(:deployments_to_keep).returns(keep.to_i)
 
       deployment_datetime = Time.now
       deployment_datetime_s = time_to_s(deployment_datetime)
 
       deployments = %w(aaa bbb ccc).map {|e| "/var/lib/openshift/uuid/app-deployments/#{e}"}
-      @container.expects(:all_deployments).returns(deployments).times(2)
-      @container.expects(:read_deployment_metadata).returns('DEPLOYED').times(2)
-
+      @container.expects(:all_deployments).returns(deployments)
+      @container.expects(:all_deployments_by_activation).never
+      @container.expects(:deployment_metadata_for).never
       @container.expects(:delete_deployment).never
+      @container.expects(:delete_activations_before).never
 
-      @container.clean_up_deployments_before('ccc')
+      @container.prune_deployments
     end
+  end
+
+  def test_prune_deployments_activation_cutoff_nil
+    gear_env = {'OPENSHIFT_KEEP_DEPLOYMENTS' => 2}
+    ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
+    @container.expects(:deployments_to_keep).returns(2)
+
+    deployment_datetime = Time.now
+    deployment_datetime_s = time_to_s(deployment_datetime)
+
+    deployments = %w(aaa bbb ccc ddd).map {|e| "/var/lib/openshift/uuid/app-deployments/#{e}"}
+    @container.expects(:all_deployments).returns(deployments)
+
+    deployments_by_activation = %w(aaa ccc bbb ddd).map {|e| "/var/lib/openshift/uuid/app-deployments/#{e}"}
+    @container.expects(:all_deployments_by_activation).with(deployments).returns(deployments_by_activation)
+
+    aaa_metadata = mock()
+    @container.expects(:deployment_metadata_for).with('aaa').returns(aaa_metadata)
+    aaa_metadata.expects(:activations).returns([])
+    @container.expects(:delete_deployment).with('aaa')
+
+    ccc_metadata = mock()
+    @container.expects(:deployment_metadata_for).with('ccc').returns(ccc_metadata)
+    ccc_metadata.expects(:activations).returns([])
+    @container.expects(:delete_deployment).with('ccc')
+
+    @container.expects(:delete_activations_before).never
+
+    @container.prune_deployments
+  end
+
+  def test_prune_deployments_activation_cutoff_present
+    gear_env = {'OPENSHIFT_KEEP_DEPLOYMENTS' => 2}
+    ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
+    @container.expects(:deployments_to_keep).returns(2)
+
+    deployment_datetime = Time.now
+    deployment_datetime_s = time_to_s(deployment_datetime)
+
+    deployments = %w(aaa bbb ccc).map {|e| "/var/lib/openshift/uuid/app-deployments/#{e}"}
+    @container.expects(:all_deployments).returns(deployments)
+
+    deployments_by_activation = %w(aaa ccc bbb).map {|e| "/var/lib/openshift/uuid/app-deployments/#{e}"}
+    @container.expects(:all_deployments_by_activation).with(deployments).returns(deployments_by_activation)
+
+    aaa_metadata = mock()
+    @container.expects(:deployment_metadata_for).with('aaa').returns(aaa_metadata)
+    aaa_metadata.expects(:activations).returns([1,2,3])
+    @container.expects(:delete_deployment).with('aaa')
+
+    @container.expects(:delete_activations_before).with(3)
+
+    @container.prune_deployments
+  end
+
+  def test_delete_activations_before
+    deployments = %w(aaa bbb ccc).map {|e| "/var/lib/openshift/uuid/app-deployments/#{e}"}
+    @container.expects(:all_deployments).returns(deployments)
+
+    aaa_metadata = mock()
+    @container.expects(:deployment_metadata_for).with('aaa').returns(aaa_metadata)
+    aaa_activations = [1,10,15]
+    aaa_metadata.expects(:activations).returns(aaa_activations)
+    aaa_metadata.expects(:save)
+
+    bbb_metadata = mock()
+    @container.expects(:deployment_metadata_for).with('bbb').returns(bbb_metadata)
+    bbb_activations = [2,11]
+    bbb_metadata.expects(:activations).returns(bbb_activations)
+    bbb_metadata.expects(:save)
+
+    ccc_metadata = mock()
+    @container.expects(:deployment_metadata_for).with('ccc').returns(ccc_metadata)
+    ccc_activations = [5,6,7,12]
+    ccc_metadata.expects(:activations).returns(ccc_activations)
+    ccc_metadata.expects(:save)
+
+    @container.delete_activations_before(9)
+    assert_equal [10,15], aaa_activations
+    assert_equal [11], bbb_activations
+    assert_equal [12], ccc_activations
   end
 
   def test_archive
@@ -432,19 +458,36 @@ class DeploymentsTest < OpenShift::NodeTestCase
     deployment_datetime1 = '2013-08-16_13-36-36.880'
     deployment_datetime2 = '2013-08-16_14-36-36.880'
     deployment_datetime3 = '2013-08-16_15-36-36.881'
-    @container.expects(:current_deployment_datetime).returns(deployment_datetime3)
-    @container.expects(:all_deployments).returns([deployment_datetime1, deployment_datetime2, deployment_datetime3])
-    @container.expects(:read_deployment_metadata).with(deployment_datetime3, 'id').returns("id3\n")
-    @container.expects(:read_deployment_metadata).with(deployment_datetime3, 'state').returns("DEPLOYED\n")
-    @container.expects(:read_deployment_metadata).with(deployment_datetime2, 'id').returns("id2\n")
-    @container.expects(:read_deployment_metadata).with(deployment_datetime2, 'state').returns(nil)
-    @container.expects(:read_deployment_metadata).with(deployment_datetime1, 'id').returns("id1\n")
-    @container.expects(:read_deployment_metadata).with(deployment_datetime1, 'state').returns("DEPLOYED\n")
+    @container.expects(:current_deployment_datetime).returns(deployment_datetime1)
+    @container.expects(:all_deployments_by_activation).returns([deployment_datetime2, deployment_datetime1, deployment_datetime3])
+
+    metadata1 = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime1).returns(metadata1)
+    metadata1.expects(:id).returns('id1')
+    metadata1.expects(:git_ref).returns('master')
+    metadata1.expects(:git_sha1).returns('1111111')
+    metadata1.expects(:activations).returns([1380241135.694962, 1380243935.694962])
+
+    metadata2 = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime2).returns(metadata2)
+    metadata2.expects(:id).returns('id2')
+    metadata2.expects(:git_ref).returns('master')
+    metadata2.expects(:git_sha1).returns('2222222')
+    metadata2.expects(:activations).returns([1380243535.694962])
+
+    metadata3 = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime3).returns(metadata3)
+    metadata3.expects(:id).returns('id3')
+    metadata3.expects(:git_ref).returns('master')
+    metadata3.expects(:git_sha1).returns('3333333')
+    metadata3.expects(:activations).returns([])
+
     output = @container.list_deployments
     expected = <<EOF
-2013-08-16_15-36-36.881 - id3 - DEPLOYED - ACTIVE
-2013-08-16_14-36-36.880 - id2 - NOT DEPLOYED
-2013-08-16_13-36-36.880 - id1 - DEPLOYED
+Activation time - Deployment ID - Git Ref - Git SHA1
+NEVER - id3 - master - 3333333
+2013-09-26 21:05:35 -0400 - id1 - master - 1111111 - ACTIVE
+2013-09-26 20:58:55 -0400 - id2 - master - 2222222
 EOF
     assert_equal expected.chomp, output
   end
