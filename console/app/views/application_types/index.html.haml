@@ -76,7 +76,7 @@
               %h3.divide
                 = title
                 - if link
-                  %small= link_to "(see all)", link, :class => 'pull-right'
+                  %small= link_to "see all", link, :class => 'pull-right'
               - excluded_tags = common_tags_for(types)
               - types.sort!.each do |type|
                 = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}

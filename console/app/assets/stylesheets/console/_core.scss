@@ -537,7 +537,7 @@ a.cap-link:hover {
   > .search-query {
   	padding-left:8px;
   	padding-right:0;
-    border-radius: 3px;
+    @include border-radius(1px);
   }
   > .search {
     position: absolute;
