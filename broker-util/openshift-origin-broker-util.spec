@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.15.3
+Version: 1.15.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,13 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #3720 from smarterclayton/origin_ui_72_membership
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1012264 - Pretty print usage duration in oo-admin-ctl-usage script
+  (rpenta@redhat.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+
 * Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - Add rake test for extended integration tests (rpenta@redhat.com)
 - oo-admin-repair fixes (rpenta@redhat.com)
