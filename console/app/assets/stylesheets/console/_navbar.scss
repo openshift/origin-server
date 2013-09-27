@@ -1,9 +1,27 @@
 .header.rcue {
   border-top: 0;
   @include header_border;
+  position: relative;
+  &:after {
+    background: -moz-linear-gradient(top, rgba(0,0,0,0.175) 0%, rgba(0,0,0,0) 5px); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0.175)), color-stop(5px,rgba(0,0,0,0))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, rgba(0,0,0,0.175) 0%,rgba(0,0,0,0) 5px); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, rgba(0,0,0,0.175) 0%,rgba(0,0,0,0) 5px); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, rgba(0,0,0,0.175) 0%,rgba(0,0,0,0) 5px); /* IE10+ */
+    background: linear-gradient(to bottom, rgba(0,0,0,0.175) 0%,rgba(0,0,0,0) 5px); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a6000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
+    content: '';
+    display: block;
+    height: 5px;
+    position: absolute;
+    bottom: -5px;
+    width: 100%;
+    z-index: -1;
+  }
   .brand {
     display: block;
     float: left;
+    margin: 0;
     position: relative;
     @include brand;
     @include brand_hover;
@@ -12,6 +30,9 @@
       img {
         display: none;
       }
+    }
+    img {
+      max-height: 100%; /* for IE */
     }
   }
   .container {
@@ -131,7 +152,21 @@
             color: #ffd24e !important;
             margin-bottom: 0;
             margin-top: 0;
+            position: relative;
             opacity: 1;
+            &:before {
+              content: '\ee01';
+              display: inline-block;
+              font-family: openshift-icon;
+              font-weight: normal;
+              font-style: normal;
+              height: 11px;
+              margin: 0 5px 0 0;
+              position: relative;
+              top: -1px;
+              text-decoration: inherit;
+              width: 11px;
+            }
             &:hover {
               text-decoration: underline;
             }
@@ -185,11 +220,11 @@
     background: none;
     border: 0;
     display: none;
-    margin: 0 20px 0 0;
-    padding: 3px 10px;
+    margin: 0 10px 0 0;
+    padding: 10px;
     position: absolute;
     right: 0;
-    top: 20px;
+    top: 13px;
     &:hover {
       background: none;
       box-shadow: none;
@@ -234,9 +269,6 @@
 
 @media (max-width: 767px) { 
   .header.rcue {
-    .brand {
-      margin-left: 12px;
-    }
     .navbar {
       &.primary .nav > li > a {
         padding: 12px 14px;
@@ -249,10 +281,19 @@
         }
       }
       &.utility .nav {
-        position: absolute;
-        right: 34px;
-        > li > a {
-          padding: 5px 0 0;
+        background: $warningBackground;
+        clear: left;
+        float: none;
+        font-weight: 600;
+        margin: 0 -20px 7px !important;
+        padding: 5px 0;
+        text-align: center;
+        > li {
+          float: none;
+          > a.alert {
+            color: #000 !important;
+            padding: 0;
+          }
         }
       }
       .btn-navbar {
@@ -274,9 +315,6 @@
 
 @media (max-width: 500px) {
   .header.rcue {
-    .brand {
-        margin-left: 10px;
-      }
     .navbar.primary .nav > li > a {
       padding: 10px 12px;
       &.username {
@@ -288,17 +326,37 @@
 
 @media (max-width: 420px) {
   .header.rcue {
-    .brand {
-      margin-left: 0;
-    }
-    .navbar.primary .nav > li {
-      float: none;
-      > a.username {
-          max-width: none;
+    .navbar.primary .nav {
+      padding: 10px 0;
+      > .active > a, > .active > a:hover, > .active > a:focus, > .open > a, > .open > a:hover, > .open > a:focus, > li > a:hover  {
+        background-color: transparent;
+        background-image: none;
+        border-top-color: transparent;
+      }
+      > .active > a, > .active > a:hover, > .active > a:focus {
+        text-decoration: underline;
+      }
+      > li {
+        float: none;
+        > a {
+          padding-left: 0;
+          &:hover {
+            color: #fff;
+          }
+          &.username {
+              max-width: none;
+          }
+        }
+      }
+      li.dropdown > .dropdown-toggle:hover .caret {
+        border-top-color: #fff;
+      }
+      li.dropdown > .dropdown-toggle:hover .caret:after, li.dropdown.open > .dropdown-toggle .caret:after {
+        border-top-color: #343434;
       }
     }
   }
   .navbar .btn-navbar {
-    top: 17px;
+    top: 10px;
   }
 }
