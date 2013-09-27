@@ -147,16 +147,15 @@ class Domain
     members.map{ |m| m.clone }
   end
 
-  def add_system_ssh_keys(ssh_keys, skip_node_ops=false)
+  def add_system_ssh_keys(ssh_keys)
     #keys_attrs = ssh_keys.map{|k| k.attributes.dup}
     #pending_op = PendingDomainOps.new(op_type: :add_domain_ssh_keys, arguments: { "keys_attrs" => keys_attrs }, on_apps: applications, created_at: Time.now, state: "init")
     keys_attrs = ssh_keys.map { |k| k.to_key_hash() }
     pending_op = AddSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
-    pending_op.skip_node_ops = true if skip_node_ops
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { system_ssh_keys: keys_attrs }})
   end
 
-  def remove_system_ssh_keys(remove_key, skip_node_ops=false)
+  def remove_system_ssh_keys(remove_key)
     if remove_key.is_a? Array
       ssh_keys = remove_key
     else
@@ -168,11 +167,10 @@ class Domain
     #pending_op = PendingDomainOps.new(op_type: :delete_domain_ssh_keys, arguments: {"keys_attrs" => keys_attrs}, on_apps: applications, created_at: Time.now, state: "init")
     keys_attrs = ssh_keys.map { |k| k.to_key_hash() }
     pending_op = RemoveSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
-    pending_op.skip_node_ops = true if skip_node_ops
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { system_ssh_keys: keys_attrs }})
   end
 
-  def add_env_variables(variables, skip_node_ops=false)
+  def add_env_variables(variables)
     env_vars_to_rm = []
     variables.each do |new_var|
       self.env_vars.each do |cur_var|
@@ -184,14 +182,13 @@ class Domain
 
     #pending_op = PendingDomainOps.new(op_type: :add_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
     pending_op = AddEnvVarsDomainOp.new(variables: variables, on_apps: applications)
-    pending_op.skip_node_ops = true if skip_node_ops
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { env_vars: variables }})
 
     # if this is an update to an existing environment variable, remove the previous ones
     Domain.where(_id: self.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) unless env_vars_to_rm.empty?
   end
 
-  def remove_env_variables(remove_key, skip_node_ops=false)
+  def remove_env_variables(remove_key)
     if remove_key.is_a? Array
       variables = remove_key
     else
@@ -200,7 +197,6 @@ class Domain
     return if variables.empty?
     #pending_op = PendingDomainOps.new(op_type: :remove_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
     pending_op = RemoveEnvVarsDomainOp.new(variables: variables, on_apps: applications)
-    pending_op.skip_node_ops = true if skip_node_ops
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { env_vars: variables }})
   end
 
@@ -234,7 +230,7 @@ class Domain
           next
         end
 
-        op.execute(op.skip_node_ops)
+        op.execute
 
         # reloading the op reloads the domain and then incorrectly reloads (potentially)
         # the op based on its position within the pending_ops list

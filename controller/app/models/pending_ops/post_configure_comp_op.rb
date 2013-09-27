@@ -5,10 +5,10 @@ class PostConfigureCompOp < PendingAppOp
   field :comp_spec, type: Hash, default: {}
   field :init_git_url, type: String
 
-  def execute(skip_node_ops=false)
+  def execute
     result_io = ResultIO.new
-    unless skip_node_ops
-      gear = get_gear()
+    gear = get_gear()
+    unless gear.node_removed
       component_instance = get_component_instance()
       result_io = gear.post_configure_component(component_instance, init_git_url)
     end

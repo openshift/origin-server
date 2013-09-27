@@ -5,7 +5,7 @@ class NewCompOp < PendingAppOp
   field :cartridge_vendor, type: String
   field :version, type: String
 
-  def execute(skip_node_ops=false)
+  def execute
     group_instance = get_group_instance()
     if comp_spec
       comp_name = comp_spec["comp"]
@@ -15,7 +15,7 @@ class NewCompOp < PendingAppOp
     end
   end
   
-  def rollback(skip_node_ops=false)
+  def rollback
     begin
       component_instance = get_component_instance()
       pending_app_op_group.application.component_instances.delete(component_instance)

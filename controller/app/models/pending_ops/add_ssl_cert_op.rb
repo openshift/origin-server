@@ -8,12 +8,10 @@ class AddSslCertOp < PendingAppOp
   field :group_instance_id, type: String
   field :gear_id, type: String
 
-  def execute(skip_node_ops=false)
+  def execute
     result_io = ResultIO.new
-    unless skip_node_ops
-      gear = get_gear()
-      result_io = gear.add_ssl_cert(ssl_certificate, private_key, fqdn, pass_phrase)
-    end
+    gear = get_gear()
+    result_io = gear.add_ssl_cert(ssl_certificate, private_key, fqdn, pass_phrase) unless gear.node_removed
     a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn)
     a.has_private_ssl_certificate = true
     a.certificate_added_at = Time.now
@@ -21,12 +19,10 @@ class AddSslCertOp < PendingAppOp
     result_io
   end
 
-  def rollback(skip_node_ops=false)
+  def rollback
     result_io = ResultIO.new
-    unless skip_node_ops
-      gear = get_gear()
-      result_io = gear.remove_ssl_cert(fqdn)
-    end
+    gear = get_gear()
+    result_io = gear.remove_ssl_cert(fqdn) unless gear.node_removed
     begin
       a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn)
       a.has_private_ssl_certificate = false

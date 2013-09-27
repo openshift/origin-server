@@ -5,18 +5,17 @@ class AddCompOp < PendingAppOp
   field :comp_spec, type: Hash, default: {}
   field :init_git_url, type: String
 
-  def execute(skip_node_ops=false)
+  def execute
     gear = get_gear()
     component_instance = get_component_instance()
-    result_io = gear.add_component(component_instance, init_git_url, skip_node_ops)
-    gear.save! if component_instance.is_sparse?
+    result_io = gear.add_component(component_instance, init_git_url)
     result_io
   end
   
-  def rollback(skip_node_ops=false)
+  def rollback
     gear = get_gear()
     component_instance = get_component_instance()
-    result_io = gear.remove_component(component_instance, skip_node_ops)
+    result_io = gear.remove_component(component_instance)
     result_io
   end
 
