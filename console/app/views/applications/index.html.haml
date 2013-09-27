@@ -61,7 +61,7 @@
       %ul.unstyled
         - unless @has_key
           %li
-            #{link_to "Set a SSH key", new_key_path} to
+            #{link_to "Set an SSH key", new_key_path} to
             %ul
               %li
                 %a{href: 'javascript:;', title: 'Set your first key', 'data-content' => "<p>OpenShift uses the Secure Shell protocol to protect direct access to your application.  In order to upload or download source code from Git or to remotely access the gears in your app, you'll need to create and upload a public SSH key.</p>"} 
