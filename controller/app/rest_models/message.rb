@@ -12,10 +12,11 @@
 class Message < OpenShift::Model
   attr_accessor :severity, :text, :exit_code, :field
 
-  def initialize(severity=:info, text=nil, exit_code=0, field=nil)
+  def initialize(severity=:info, text=nil, exit_code=0, field=nil, index=nil)
     self.severity = severity
     self.text = text
     self.exit_code = exit_code
     self.field = field
+    @index = index
   end
 end

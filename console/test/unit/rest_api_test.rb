@@ -68,15 +68,15 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_translate_api_error
-    (errors = mock).expects(:add).once.with(:base, 'test')
+    (errors = mock).expects(:add).once.with('base', 'test')
     RestApi::Base.translate_api_error(errors, nil, nil, 'test')
     (errors = mock).expects(:add).once.with(:test, 'test')
     RestApi::Base.translate_api_error(errors, nil, :test, 'test')
-    (errors = mock).expects(:add).once.with(:test, 'test')
-    RestApi::Base.translate_api_error(errors, nil, 'test', 'test')
-    (errors = mock).expects(:add).once.with(:test, I18n.t('116', :scope => [:rest_api, :errors]))
+    (errors = mock).expects(:add).once.with('test', 'other')
+    RestApi::Base.translate_api_error(errors, nil, 'test', 'other')
+    (errors = mock).expects(:add).once.with('test', I18n.t('116', :scope => [:rest_api, :errors]))
     RestApi::Base.translate_api_error(errors, '116', 'test', 'test')
-    (errors = mock).expects(:add).once.with(:base, I18n.t('116', :scope => [:rest_api, :errors]))
+    (errors = mock).expects(:add).once.with('base', I18n.t('116', :scope => [:rest_api, :errors]))
     RestApi::Base.translate_api_error(errors, '116', nil, nil)
   end
 
@@ -280,7 +280,7 @@ class RestApiTest < ActiveSupport::TestCase
     response = stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello', :exit_code => 125}]}))
     assert errors = RestApi::Base.remote_errors_for(response)
     assert_equal 1, errors.length
-    assert_equal [125, 'test', 'hello'], errors[0]
+    assert_equal [125, 'test', 'hello', nil], errors[0]
   end
 
   def test_save_handles_invalid_error
@@ -526,7 +526,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
   end
 
-  def test_find_single_raises_resource_not_found
+  def test_find_single_domain_raises_resource_not_found
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domain/foo.json', json_header, nil, 404
     end
@@ -536,23 +536,22 @@ class RestApiTest < ActiveSupport::TestCase
     rescue RestApi::ResourceNotFound => e
       assert_equal Domain, e.model
       assert_equal 'foo', e.id
-      assert !e.domain_missing?
+      assert e.domain_missing?
       assert e.to_s =~ /Domain 'foo' does not exist/
     end
   end
 
-  def test_find_single_raises_resource_not_found
+  def test_find_single_app_raises_resource_not_found
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domain/foo/application/bar.json', json_header, nil, 404
     end
     begin
-      Application.find 'bar', :as => @user, :params => {:domain_id => 'foo'}
+      Application.find :one, :as => @user, :params => {:name => 'bar', :domain_id => 'foo'}
       flunk "Expected to raise RestApi::ResourceNotFound"
     rescue RestApi::ResourceNotFound => e
       assert_equal Application, e.model
-      assert_equal 'bar', e.id
       assert !e.domain_missing?
-      assert e.to_s =~ /Application 'bar' does not exist/
+      assert e.to_s =~ /Application.*does not exist/, e.to_s
     end
   end
 
@@ -561,13 +560,12 @@ class RestApiTest < ActiveSupport::TestCase
       mock.get '/broker/rest/domain/foo/application/bar.json', json_header, {:messages => [{:exit_code => 127}]}.to_json, 404
     end
     begin
-      Application.find 'bar', :as => @user, :params => {:domain_id => 'foo'}
+      Application.find :one, :as => @user, :params => {:name => 'bar', :domain_id => 'foo'}
       flunk "Expected to raise RestApi::ResourceNotFound"
     rescue RestApi::ResourceNotFound => e
       assert_equal Application, e.model
-      assert_equal 'bar', e.id
       assert e.domain_missing?
-      assert e.to_s =~ /Application 'bar' does not exist/
+      assert e.to_s =~ /Application.*does not exist/, e.to_s
     end
   end
 
@@ -741,8 +739,8 @@ class RestApiTest < ActiveSupport::TestCase
   def test_app_reload
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
-      mock.get '/broker/rest/domain/a/applications.json', json_header, [{:name => 'a'}].to_json
-      mock.get '/broker/rest/domain/a/application/a.json', json_header, {:name => 'a', :git_url => 'test'}.to_json
+      mock.get '/broker/rest/domain/a/applications.json', json_header, [{:id => 'appid', :name => 'a'}].to_json
+      mock.get '/broker/rest/application/appid.json',     json_header,  {:id => 'appid', :name => 'a', :git_url => 'test'}.to_json
     end
     app = Domain.find(:one, :as => @user).applications.first
     assert_nil app.git_url
@@ -839,7 +837,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_domain_object_assignment_to_application
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domain/test3.json', json_header, { :id => 'test3' }.to_json()
+      mock.get '/broker/rest/domain/test3.json?include=application_info', json_header, { :id => 'test3' }.to_json()
     end
 
     app = Application.new :as => @user
@@ -855,8 +853,8 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal domain.name, domain.id
   end
 
-  def opts1() {:name => 'app1', :cartridge => 'php-5.3'} ; end
-  def opts2() {:name => 'app2', :cartridge => 'php-5.3'} ; end
+  def opts1() {:id => 'app1id', :name => 'app1', :cartridge => 'php-5.3'} ; end
+  def opts2() {:id => 'app2id', :name => 'app2', :cartridge => 'php-5.3'} ; end
   def app1() Application.new({:as => @user}.merge(opts1)) ; end
   def app2() Application.new({:as => @user}.merge(opts2)) ; end
 
@@ -968,8 +966,8 @@ class RestApiTest < ActiveSupport::TestCase
     app.assign_attributes(:cartridge_names => ['c','d'])
     assert_equal ['c','d'], app.attributes[:cartridges]
 
-    app = Application.new({:name => 'a', :domain_name => 'b'}, true)
-    Cartridge.expects(:find).once.with(:all, :as => nil, :params => {:application_name => 'a', :domain_id => 'b'}).returns([Cartridge.new({:name => 'test'}, true)])
+    app = Application.new({:id => 'appid', :name => 'a', :domain_name => 'b'}, true)
+    Cartridge.expects(:find).once.with(:all, :as => nil, :params => {:application_id => 'appid'}).returns([Cartridge.new({:name => 'test'}, true)])
     carts = app.cartridges
     assert_equal [Cartridge.new({:name => 'test'}, true)], carts
     assert_same carts.first, app.cartridges.first
@@ -1023,24 +1021,24 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_app_domain_object_assignment
     domain = Domain.new({:id => "1"}, true)
-    app = Application.new({:name => 'testapp1', :domain => domain}, true)
-    assert_equal 'testapp1', app.to_param
+    app = Application.new({:id => 'testappid', :name => 'testappname', :domain => domain}, true)
+    assert_equal 'testappid-testappname', app.to_param
     assert_equal domain.id, app.domain_id
-    assert_equal '/broker/rest/domain/1/application/testapp1.json', app.send(:element_path)
+    assert_equal '/broker/rest/application/testappid.json', app.send(:element_path)
 
-    app = Application.new({:name => 'testapp1'}, true)
+    app = Application.new({:id => 'testappid', :name => 'testappname'}, true)
     app.domain = domain
     assert_equal domain.id, app.domain_id
-    assert_equal '/broker/rest/domain/1/application/testapp1.json', app.send(:element_path)
+    assert_equal '/broker/rest/application/testappid.json', app.send(:element_path)
   end
 
   def test_app_custom_get_method
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domain/1/application/custom_app_get/gears.json', json_header, [
+      mock.get '/broker/rest/application/custom_app_id/gears.json', json_header, [
         { :uuid => 'abc', :components => [ { :name => 'ruby-1.8' } ] },
       ].to_json
     end
-    app = Application.new :name => 'custom_app_get', :domain => Domain.new(:id => '1', :as => @user)
+    app = Application.new :id => 'custom_app_id', :name => 'custom_app_get', :domain => Domain.new(:id => '1', :as => @user)
     assert_equal({:domain_id => '1'}, app.prefix_options)
     assert_equal 1, (gears = app.gears).length
     assert_equal 'abc', (gear = gears[0]).uuid
@@ -1158,21 +1156,22 @@ class RestApiTest < ActiveSupport::TestCase
   class CacheableRestApi < RestApi::Base
     include RestApi::Cacheable
 
-    @count = 0
     def self.find_single(*args)
-      #puts "find_single: #{caller.join("\n  ")}"
-      @count += 1
+      CacheableRestApi.increment
     end
     cache_method :find_single, lambda{ |id, *args| [CacheableRestApi.name, :item, id] }
 
     def self.find_every(*args)
-      #puts "find_every: #{caller.join("\n  ")}"
-      @count += 1
+      CacheableRestApi.increment
     end
     cache_method :find_every, [CacheableRestApi.name, :find_every]
 
     def self.count
-      @count
+      @count ||= 0
+    end
+    def self.increment
+      (@count ||= 0)
+      @count += 1
     end
   end
 
@@ -1189,7 +1188,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert !CacheableRestApi.equal?(cached)
     assert cached < CacheableRestApi
     assert_equal CacheableRestApi.name, cached.name
-    assert_equal [:find_every, :find_single], cached.send(:cache_options)[:caches].keys.map(&:to_s).sort.map(&:to_sym)
+    assert_equal [:find_every, :find_single], cached.send(:caches).keys.map(&:to_s).sort.map(&:to_sym)
 
     assert_same cached, cached.cached
 
@@ -1215,9 +1214,9 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_cacheable_key_for
-    assert_equal [CacheableRestApi.name, :item, 1], CacheableRestApi.send(:cache_key_for, :find_single, 1)
-    assert_equal [CacheableRestApi.name, :item, 2], CacheableRestApi.send(:cache_key_for, :find_single, 2)
-    assert_equal [CacheableRestApi.name, :find_every], CacheableRestApi.send(:cache_key_for, :find_every)
+    assert_equal [CacheableRestApi.name, :item, 1], CacheableRestApi.cached.send(:cache_key_for, :find_single, 1)
+    assert_equal [CacheableRestApi.name, :item, 2], CacheableRestApi.cached.send(:cache_key_for, :find_single, 2)
+    assert_equal [CacheableRestApi.name, :find_every], CacheableRestApi.cached.send(:cache_key_for, :find_every)
   end
 
   def test_cartridge_type_find_invalid
@@ -1318,7 +1317,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
 
     Rails.cache.clear
-    key = CartridgeType.send(:cache_key_for, :find_every)
+    key = CartridgeType.cached.send(:cache_key_for, :find_every)
     assert_nil Rails.cache.read(key)
 
     types = CartridgeType.embedded
@@ -1407,7 +1406,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def mock_complex_scaling_cartridges
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domain/test/application/test/cartridges.json', json_header, [
+      mock.get '/broker/rest/application/appid/cartridges.json', json_header, [
         {
           :name => 'mysql-5.1',
           :collocated_with => [],
@@ -1444,10 +1443,10 @@ class RestApiTest < ActiveSupport::TestCase
     mock_complex_scaling_cartridges
     mock_types
 
-    app = Application.new({:name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :ssh_url => 'ssh://a@foo.com', :as => @user}, true)
+    app = Application.new({:id => 'appid', :name => 'appname', :domain_id => 'domainid', :git_url => 'http://localhost', :ssh_url => 'ssh://a@foo.com', :as => @user}, true)
     assert groups = app.cartridge_gear_groups
     assert_equal 2, groups.length
-    assert_equal 1, groups.first.cartridges.length
+    assert_equal 2, groups.first.cartridges.length
     assert_equal 1, groups[1].cartridges.length
 
     assert php = groups.first.cartridges.first
@@ -1455,9 +1454,9 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal [true, 1, 3, 5],
                  [:scales?, :scales_from, :current_scale, :scales_to].map{ |s| php.send(s) }
 
-    assert_equal app.git_url, php.git_url
-    assert_equal app.ssh_url, php.ssh_url
-    assert_equal app.ssh_string, php.ssh_string
+    # assert_equal app.git_url, php.git_url
+    # assert_equal app.ssh_url, php.ssh_url
+    # assert_equal app.ssh_string, php.ssh_string
 
     assert mysql = groups[1].cartridges.first
     assert_equal 'mysql-5.1', mysql.name
@@ -1499,30 +1498,6 @@ class RestApiTest < ActiveSupport::TestCase
     assert c.buildable?
     t.tags.clear
     assert !c.buildable?
-  end
-
-  def test_gear_group_move_features
-    mock_types
-
-    gear1 = Gear.new :id => 1, :state => 'started'
-    cart_build = Cartridge.new :name => 'jenkins-client-1'
-    cart_web = Cartridge.new :name => 'php-5.3'
-    group1 = GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_build]}, :as => @user)
-
-    group2 = GearGroup.new(:cartridges => [cart_web])
-
-    assert !group1.send(:move_features, group1)
-
-    assert group1.send(:move_features, group2)
-    assert group1.gears.empty?
-    assert group1.cartridges.empty?
-    assert_equal 1, group2.gears.length
-    assert group2.cartridges[0].builds?
-    assert group2.cartridges[0].builds
-    assert_equal cart_build, group2.cartridges[0].builds.with
-    assert_equal group1.name, group2.cartridges[0].builds.on
-
-    assert group1.send(:move_features, group2) # nothing is moved, but group1 is still empty and should be purged
   end
 
   def a_quickstart(additional_tags=[])
@@ -1709,7 +1684,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
     types = CartridgeType.cached.all
     assert types.length > 0
-    assert Rails.cache.read(CartridgeType.send(:cache_key_for, :find_every))
+    assert Rails.cache.read(CartridgeType.cached.send(:cache_key_for, :find_every))
     types
   end
 

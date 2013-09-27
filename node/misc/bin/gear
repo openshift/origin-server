@@ -299,7 +299,7 @@ end
 command :restore do |c|
   c.syntax = "#{name} restore"
 
-  c.option "--restore-git-repo", "Rebuild the appliction as part of restoration"
+  c.option "--restore-git-repo", "Rebuild the application as part of restoration"
 
   c.description = "Restore an application"
   c.action do |args, options|

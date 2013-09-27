@@ -86,13 +86,14 @@
     margin-right: 20px;
   }
 
+  .tile-target:link,
+  .tile-target:visited {
+    color: white;
+  }
+
   > .tile-click {
     position: relative;
     margin-bottom: 3px;
-
-    .tile-target {
-      color:#c0c0c0;
-    }
 
     &:hover  {
       background: #000;
@@ -101,18 +102,9 @@
         opacity: 1;
       }
       .tile-target {
-        color: #f0f0f0;
+        text-decoration: underline;
+        color: #6DB3C7;
       }
-      .font-icon.tile-arrow {
-        color: $buttonBlueHover;
-      }
-    }
-    .font-icon.tile-arrow {
-      position: absolute;
-      font-size: 13.5px;
-      position: absolute;
-      right: 25px;
-      top: 25px;
     }
     .font-icon-block {
       position: absolute;
@@ -135,8 +127,5 @@
 @media (max-width: 767px) {
   .section-body .row > .tile-click {
     @include expand_for_phone();
-
   }
 }
-
-

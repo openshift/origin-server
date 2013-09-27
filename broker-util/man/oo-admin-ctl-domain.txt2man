@@ -21,7 +21,12 @@ OPTIONS
 
   --new_namespace name_space  
     The new namespace value when renaming a domain, alphanumeric, 16 
-    chars max. Required for --command update.
+    chars max. Optional for --command update.
+
+  --allowed_gear_sizes sizes  
+    The new gear sizes allowed for the domain.  A comma delimited list
+    of sizes.  Pass empty string to make sizes empty. Optional for 
+    --command update.
 
   -c|--command cmd  
     Command to enact upon the domain. Available commands are: create,

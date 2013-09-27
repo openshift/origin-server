@@ -1,5 +1,3 @@
-- lots_of_applications = @applications.length > 10
-
 - content_for :full_layout, true
 - content_for :dark_layout, true
 - content_for :footer do
@@ -7,49 +5,141 @@
 
 - content_for :top do
   .grid-wrapper.section-header
-    %nav.span12.span-flush-right
-      %h1 All Applications
+    %nav.span12.span-flush-right.applications
+      %h1.flow
+        Applications
+        = render :partial => 'account_state', :locals => {:capabilities => @capabilities}
+
+:css
+  @media (max-width: 767px) {    
+    .popover {
+      bottom: 50% !important;
+      top: auto !important;
+      left: auto !important;
+      right: 25% !important;
+    }
+
+    .popover .arrow {
+      display: none;
+    }
+  }
+
+  @media (max-width: 590px) {
+    .popover {
+      right: 5px !important;
+    }
+  }
+
+%section#app-list.span12
+  %section{style: 'margin-bottom: 20px;'}
+
+  .row
+    .span8
+      .tile-dark
+        - groups = @applications.sort_by{ |a| [a.owner? ? 0 : 1, a.creation_time] }.group_by{ |a| a.domain_id }
+        - groups.each_pair do |domain_id, apps|
+          %h4.domain
+            - if groups.length == 1
+              Applications in domain 
+            = link_to domain_id, domain_path(domain_id)
+            - if apps.first.owner?
+            - elsif owner = apps.first.members.find(&:owner)
+              (#{owner.name})
+
+          - apps.each do |application|
+            = render :partial => 'application2', :locals => {:application => application}
+
+        .btn-toolbar.base
+          = link_to application_types_path, :class => 'btn btn-primary btn-large' do
+            Add
+            %strong Application
+            %i.icon-add
+
+    .span4.application-suggestions
+      %h5 You may want to...
+
+      %ul.unstyled
+        - unless @has_key
+          %li
+            #{link_to "Set a SSH key", new_key_path} to
+            %ul
+              %li
+                %a{href: 'javascript:;', title: 'Set your first key', 'data-content' => "<p>OpenShift uses the Secure Shell protocol to protect direct access to your application.  In order to upload or download source code from Git or to remotely access the gears in your app, you'll need to create and upload a public SSH key.</p>"} 
+                  Access source code or SSH to your gears
+                %span{'data-icon' => "\uee02"}
+
+        - if empty_domains = @empty_owned_domains.presence
+          %li
+            Use an empty domain
+            %ul
+              - empty_domains.each do |d|
+                %li= link_to d.name, domain_path(d.name)
+
+        - elsif @user_owned_domains.length < @capabilities.max_domains
+          %li #{link_to "Create", new_domain_path} another domain
+
+        - if empty_domains = @empty_unowned_domains.presence
+          %li
+            Collaborate on someone else's domain
+            %ul
+              - empty_domains.each do |d|
+                %li= link_to d.name, domain_path(d.name)
+
+        - if @domains.length > 1
+          %li #{link_to "See all domains", domains_path}
+
+        - if @applications.length < 3 && @applications.none?{ |a| a.cartridges.any?(&:database?) }
+          %li
+            %a{href: 'javascript:;', title: 'Add a Database', 'data-content' => "<p>OpenShift supports several database types out of the box (MySQL, PostgreSQL, and MongoDB).</p><p>Click on your application, and then at the bottom of the list of cartridges on the next page you'll see databases you can add.</p>"} 
+              Add a database to an app
+            %span{'data-icon' => "\uee02"}
+
+        - if @applications.map{ |a| a.members.length }.max < 2
+          %li
+            %a{href: 'javascript:;', title: 'Membership', 'data-content' => '<p>You can give a collaborator access to your domains and applications.  Adding someone as an editor on a domain gives them the ability to create or update your applications.</p><p>To add a collaborator, click on a domain name, and then in the Members section enter the login of another OpenShift member.</p>'} 
+              Add a collaborator 
+            %span{'data-icon' => "\uee02"}
+
+        - if @applications.all?{ |a| a.aliases.blank? }
+          %li
+            %a{href: 'javascript:;', title: 'Customize your URL', 'data-content' => "<p>OpenShift gives you a public domain for each of your applications.  If you have your own domain name, you can set it as an <strong>alias</strong> on your application.</p><p>Click on your application name to the left, and then select the 'change' link next to the application URL at the top of the overview page.</p>"} 
+              Use your own domain name
+            %span{'data-icon' => "\uee02"}
 
 
-%section#app-list.span7
-  %header
-    %h3.invisible Application list
-  .row.tile-dark
-    - @applications.each do |application|
-      .grid-wrapper.tile-click
-        .span7.application-info
-          %h2.name= link_to application.name, application_path(application), :class => 'tile-target'
-          .url
-            %strong @
-            = link_to application.web_url, application.web_url
-          %span.tile-arrow.font-icon{"aria-hidden" => "true", "data-icon" => "\ue007"}
+        - if @applications.none?(&:scales?)
+          %li
+            %a{href: 'javascript:;', title: 'Scale with traffic', 'data-content' => "<p>Scalable applications can run multiple copies of your web code in parallel on different servers.  This allows you to handle more web traffic, and to react to changing levels of demand.</p><p>To create a scalable app, choose an application type to create and change the 'Scaling' option on the 'Create Application' page.</p>"} 
+              Create a scalable application
+            %span{'data-icon' => "\uee02"}
 
-  .btn-toolbar.base.right
-    = link_to application_types_path, :class => 'btn btn-primary btn-large' do
-      Add
-      %strong Application
-      %i.icon-add
-
-%section#account-digest.span5
-  .digest-bg
-    %aside#secondary
-      #assistance
-        %h5 OpenShift Help
+      - if @has_key
+        %h5 From the command line
+        The <code>rhc</code> client lets you:
         %ul.unstyled
-          - console_help_links.each do |l|
-            %li= link_to l[:name], l[:href]
-          %li= link_to 'More help »', console_help_path
-
-        %h5 Popular FAQs
-        %ul.unstyled
-          - console_faq_links.each do |l|
-            %li= link_to l[:name], l[:href]
-          %li= link_to 'More FAQs »', faq_url
+          %li
+            %a{href: 'javascript:;', title: 'Watching logs', 'data-content' => "<p>From the command line, run <code>rhc tail &lt;app_name&gt;</code> to view your logs in realtime.</p>"} 
+              Access logs
+            %span{'data-icon' => "\uee02"}
+          %li
+            %a{href: 'javascript:;', title: 'Backup and Restore', 'data-content' => "<p>Each application can be backed up by using the snapshot command - run <code>rhc save-snapshot &lt;app_name&gt;</code> to download a tar file containing your code, databases, and other relevant data.  Use <code>rhc restore-snapshot</code> to restore the state of an app.</p><p>Note that snapshot will stop your application as it runs.</p>"} 
+              Save and restore backups
+            %span{'data-icon' => "\uee02"}
+          %li
+            %a{href: 'javascript:;', title: 'Forwarding ports', 'data-content' => "<p>From the command line, run <code>rhc port-forward</code> to access databases or internal ports directly.</p>"} 
+              Connect directly to internal services
+            %span{'data-icon' => "\uee02"}
 
 -# FIXME: Refactor me into an unobtrusive javascript function
 - content_for :javascripts do
   :javascript
-    jQuery('.tile-click').click(function() {
-      a = $('h2 > a', this)[0];
-      window.location = a.href
+    var popups = '.application-suggestions [data-content]'
+    $(popups).popover({placement:'left', html: true, trigger: 'manual'}).click(function(e) {
+      e.stopPropagation();
+      $(popups).not(this).popover('hide');
+      $(this).popover('show', e);
+    });
+    $('html').click(function(e) {
+      if (!$(e.target).is('.popover *'))
+        $(popups).popover('hide');
     });

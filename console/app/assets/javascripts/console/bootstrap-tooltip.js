@@ -236,7 +236,7 @@
     }
 
   , toggle: function (e) {
-      var self = $(e.currentTarget)[this.type](this._options).data(this.type)
+      var self = e ? $(e.currentTarget)[this.type](this._options).data(this.type) : this // backported from Bootstrap 2.3.1
       self[self.tip().hasClass('in') ? 'hide' : 'show']()
     }
 

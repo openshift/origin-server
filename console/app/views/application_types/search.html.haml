@@ -72,11 +72,3 @@
     -#%p
       Can't find what you're looking for? #{link_to "Browse the Quickstarts", community_quickstarts_url} 
       on our community, or #{link_to "create your own!", create_quickstart_url}
-
-- content_for :javascripts do
-  :javascript
-    jQuery('.tile-click').click(function(evt) {
-      if (evt.target.type == 'a') return;
-      a = $('h3 > a', this)[0];
-      window.location = a.href
-    });

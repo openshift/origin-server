@@ -67,6 +67,10 @@ class Alias < RestApi::Base
     super ? Date.parse(super) : super
   end
 
+  def web_uri(scheme=nil)
+    URI::Generic.new(scheme, nil, id, nil, nil, nil, nil, nil, nil)
+  end
+
   def <=>(a)
     return self.name <=> a.name
   end

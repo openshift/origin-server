@@ -5,7 +5,7 @@ Cartridge-Short-Name: POSTGRESQL
 Cartridge-Version: 0.3.3
 Compatible-Versions: []
 Cartridge-Vendor: redhat
-Display-Name: PostgreSQL Database 9.2
+Display-Name: PostgreSQL 9.2
 Description: PostgreSQL is an advanced Object-Relational database management system
 Version: '9.2'
 Versions:
@@ -50,7 +50,7 @@ Endpoints:
   Protocols: [postgresql]
 Version-Overrides:
   '8.4':
-    Display-Name: PostgreSQL Database 8.4
+    Display-Name: PostgreSQL 8.4
     Provides:
     - postgresql-8.4
     - postgresql

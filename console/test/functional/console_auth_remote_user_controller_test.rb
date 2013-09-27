@@ -9,6 +9,10 @@ class ConsoleAuthRemoteUserControllerTest < ActionController::TestCase
 
     before_filter :authenticate_user!, :except => :unprotected
 
+    def unauthorized_path
+      "/unauthorized"
+    end
+
     def protected
       render :status => 200, :nothing => true
     end

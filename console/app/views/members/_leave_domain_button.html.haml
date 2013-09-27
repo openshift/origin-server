@@ -1,0 +1,8 @@
+:css
+  .leave .popover { width: 300px; }
+  .leave .popover-inner, .leave .popover-content { width: auto; }
+
+%span.leave.confirm-container
+  = link_to "Leave Domain", domain_leave_path(domain), { :class => 'btn btn-small confirm-link', :title => 'Leave Domain', 'data-placement' => 'bottom'}
+  .confirm-popover.hide
+    = render :partial => 'members/leave_domain_form', :locals => {:domain => domain}

@@ -77,7 +77,8 @@ module Ability
            :change_environment_variables
         Role.in?(:edit, role)
 
-      when :change_members
+      when :change_members,
+           :leave
         false
 
       end
@@ -92,7 +93,10 @@ module Ability
         Role.in?(:admin, role)
 
       when :change_members
-        Role.in?(:admin, role) && Rails.configuration.openshift[:membership_enabled]
+        Role.in?(:admin, role)
+
+      when :leave
+        Role.in?(:view, role)
 
       when :change_gear_sizes, :destroy
         resource.owned_by?(actor_or_id)
@@ -103,6 +107,7 @@ module Ability
       case permission
       when :create_key, :update_key, :destroy_key, :create_domain then resource === actor_or_id
       when :create_authorization, :update_authorization, :destroy_authorization then resource === actor_or_id
+      when :change_plan then resource === actor_or_id
       when :destroy then resource.parent_user_id.present? && resource === actor_or_id
       end
     end

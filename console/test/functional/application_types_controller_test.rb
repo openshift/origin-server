@@ -2,6 +2,8 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class ApplicationTypesControllerTest < ActionController::TestCase
 
+  with_clean_cache
+
   setup{ Quickstart.reset! }
 
   test 'should show index with proper title' do
@@ -65,7 +67,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert type = assigns(:application_type)
     assert_equal t.display_name, type.display_name
     assert assigns(:application)
-    assert assigns(:domain)
+    assert assigns(:domains)
     assert css_select('input#application_domain_name').present?
     if t.id == 'diy-0.1'
       # Sanity-check known non-scalable types
@@ -74,6 +76,138 @@ class ApplicationTypesControllerTest < ActionController::TestCase
       # Sanity-check a known scaling-capable type
       assert_equal true, t.scalable?
     end
+  end
+
+  def assert_hidden_domain_field(value)
+    assert_response :success
+    assert assigns(:domains)
+    assert input = css_select('input[type=hidden]#application_domain_name').first
+    assert_equal value.to_s, input.attributes["value"].to_s
+  end
+  def assert_text_domain_field(value)
+    assert_response :success
+    assert assigns(:domains)
+    assert input = css_select('input[type=text]#application_domain_name').first
+    assert_equal value.to_s, input.attributes["value"].to_s
+  end
+  def assert_select_domain_field(value)
+    assert_response :success
+    assert assigns(:domains)
+    assert select = css_select('select#application_domain_name').first
+
+    selected = ""
+    if option = css_select('select#application_domain_name option[selected=selected]').first
+      selected = option.attributes["value"]
+    end
+
+    assert_equal value.to_s, selected.to_s
+  end
+
+  def random_application_type_id
+    ApplicationType.all.select{ |t| t.cartridge? }.sample(1).first.id
+  end
+
+
+  test "should show text field for domain with no default" do
+    with_unique_user
+    get :show, :id => random_application_type_id
+    assert_text_domain_field("")
+  end
+
+  test "should show text field for domain with prefilled value" do
+    with_unique_user
+    get :show, {:id => random_application_type_id, :application => {:domain_name => "foo"}}
+    assert_text_domain_field("foo")
+  end
+
+  test "should show select field with no default for domain for shared domains" do
+    with_unique_user
+    Domain.expects(:find).returns([ writeable_domain("shared") ])
+    get :show, :id => random_application_type_id
+    assert_select_domain_field("")
+  end
+
+  test "should show select field with prefilled value for domain for shared domains" do
+    with_unique_user
+    Domain.expects(:find).returns([ writeable_domain("shared") ])
+    get :show, {:id => random_application_type_id, :application => {:domain_name => "shared"}}
+    assert_select_domain_field("shared")
+  end
+
+  test "should show select field with default for domain for owned and shared domains" do
+    with_unique_user
+    Domain.expects(:find).returns([ owned_domain("owned"), writeable_domain("shared") ])
+    get :show, :id => random_application_type_id
+    assert_select_domain_field("owned")
+  end
+
+  test "should show select field with prefilled value for domain for owned and shared domains" do
+    with_unique_user
+    Domain.expects(:find).returns([ owned_domain("owned"), writeable_domain("shared") ])
+    get :show, {:id => random_application_type_id, :application => {:domain_name => "shared"}}
+    assert_select_domain_field("shared")
+  end
+
+  test "should show hidden field for domain with owned domain" do
+    with_unique_user
+    Domain.expects(:find).returns([ owned_domain("owned") ])
+    User.any_instance.expects(:max_domains).returns(2)
+    get :show, {:id => random_application_type_id}
+    assert_hidden_domain_field("owned")
+    assert css_select("a.create_domain").present?
+  end
+
+  test "should show hidden field for domain with shared domain when cant create" do
+    user = with_unique_user
+    Domain.expects(:find).returns([ writeable_domain("shared") ])
+    User.any_instance.expects(:max_domains).returns(0)
+    get :show, {:id => random_application_type_id}
+    assert_hidden_domain_field("shared")
+    assert_equal [], css_select("a.create_domain")
+  end
+
+  def owned_domain(name="owned")
+    Domain.new({
+      :name => name, 
+      :api_identity_id => 'me',
+      :members => [
+        Member.new(:owner => true, :role => 'admin', :id => 'me')
+      ],
+      :as => @controller.current_user,
+      :gear_counts => {},
+      :allowed_gear_sizes => [:small],
+      :available_gears => 3
+    }, true)
+  end
+
+  def writeable_domain(name="shared")
+    Domain.new({
+      :name => name, 
+      :api_identity_id => 'me',
+      :members => [
+        Member.new(:owner => true,  :role => 'admin', :id => 'you'),
+        Member.new(:owner => false, :role => 'admin', :id => 'me')
+      ],
+      :as => @controller.current_user,
+      :gear_counts => {},
+      :allowed_gear_sizes => [:small],
+      :available_gears => 3
+    }, true)
+  end
+
+  def readable_domain(name="readable")
+    Domain.new({
+      :name => name, 
+      :api_identity_id => 'me',
+      :members => [
+        Member.new(:owner => true,  :role => 'admin', :id => 'you'),
+        Member.new(:owner => false, :role => 'read',  :id => 'me')
+      ],
+      :as => @controller.current_user,
+      :gear_counts => {},
+      :allowed_gear_sizes => [:small],
+      :available_gears => 3
+    }, true)
   end
 
   test "should show type page for cartridge" do
@@ -96,7 +230,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   test "should handle invalid quickstart page" do
     with_unique_user
     type = Quickstart.new(:id => 'test', :name => '', :cartridges => '[{')
-    Quickstart.expects(:find).returns(type)
+    Quickstart.cached.expects(:find).returns(type)
     type = ApplicationType.from_quickstart(type)
     get :show, :id => 'quickstart!test'
     assert_standard_show_type(type)
@@ -109,7 +243,8 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select '.alert.alert-error', /No cartridges are defined for this type/i
     assert_select 'h3 > span.text-warning', 'None'
     assert_select '.btn-primary[disabled=disabled]'
-    assert_select "input[name='application[initial_git_url]']", 0
+    assert_select "input[name='application[initial_git_url]']"
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom single cart type" do
@@ -119,6 +254,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select 'h3', 'Ruby 1.9'
     assert_select 'h3', 'From Scratch'
     assert_select "input[name='application[cartridges][]'][value=ruby-1.9]"
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom single cart type with url" do
@@ -129,15 +265,17 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select 'h3 > a', 'custom_cart'
     assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
     assert_select "input[type=hidden][name='application[cartridges][][url]'][value=http://foo.bar#custom_cart]"
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom single cart type with url unlocked" do
     with_unique_user
-    get :show, :id => 'custom', :application_type => {:cartridges => 'http://foo.bar#custom_cart'}, :unlock => true
+    get :show, :id => 'custom', :application_type => {:cartridges => 'http://foo.bar#custom_cart'}, :scale => true, :unlock => true
     assert_response :success
     assert_select 'h3', 'From Scratch'
     assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
     assert_select "input[type=text][name='application_type[cartridges]'][value=http://foo.bar#custom_cart]"
+    assert_select ".indicator-gear-increase", /\+1\-\?\s+\$/
   end
 
   test "should render custom cart type with a choice" do
@@ -146,6 +284,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_response :success
     assert_select "select[name='application[cartridges][]'] > option", 'Ruby 1.9'
     assert_select "select[name='application[cartridges][]'] > option", 'Ruby 1.8'
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom multiple carts" do
@@ -154,6 +293,25 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_response :success
     assert_select 'h3', /Ruby 1\.9/i
     assert_select 'h3', /MySQL/i
+    assert_select ".indicator-gear-increase", "+1"
+  end
+
+  test "should render custom multiple carts scaled" do
+    with_unique_user
+    get :show, :id => 'custom', :cartridges => ['ruby-1.9', 'mysql-5.1'], :scale => true
+    assert_response :success
+    assert_select 'h3', /Ruby 1\.9/i
+    assert_select 'h3', /MySQL/i
+    assert_select ".indicator-gear-increase", "+2"
+  end
+
+  test "should render custom multiple carts with alternate params" do
+    with_unique_user
+    get :show, :id => 'custom', :application => {:cartridges => ['ruby-1.9', 'mysql-5.1'], :scale => true}
+    assert_response :success
+    assert_select 'h3', /Ruby 1\.9/i
+    assert_select 'h3', /MySQL/i
+    assert_select ".indicator-gear-increase", "+2"
   end
 
   test "should not render custom valid JSON" do
@@ -182,22 +340,19 @@ class ApplicationTypesControllerTest < ActionController::TestCase
       :initial_git_url => 'http://foo.com',
       :initial_git_branch => 'bar'
     assert_response :success
-    assert_select 'h3 > a', 'http://foo.com'
+    assert_select "input[type='text'][value='http://foo.com']"
     #assert_select 'h3', /branch 'bar'/
   end
 
   test "should render advanced custom type" do
     with_unique_user
-    get :show, :id => 'custom', :advanced => true, :initial_git_url => 'http://foo.com', :initial_git_branch => 'bar'
+    get :show, :id => 'custom', :initial_git_url => 'http://foo.com', :initial_git_branch => 'bar'
     assert_response :success
-    assert assigns(:advanced)
     assert_select '.alert.alert-error', /No cartridges are defined for this type/i
     assert_select 'h3 > span.text-warning', 'None'
     assert_select '.btn-primary[disabled=disabled]'
     assert_select "select[name='application[scale]']"
-    assert_select "input[name='application[initial_git_url]']" do |inputs|
-      assert inputs.first['value'] == 'http://foo.com'
-    end
+    assert_select "input[name='application[initial_git_url]'][value='http://foo.com']"
     #assert_select "input[name='application[initial_git_branch]']" do |inputs|
     #  assert inputs.first['value'] == 'bar'
     #end
@@ -217,7 +372,8 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     get :show, :id => type.id
 
     # compare the session cache with expected values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps]).first(3)
+    assert_equal [user.max_domains, user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps])[1..4]
+    assert_equal user.max_domains, assigns(:capabilities).max_domains
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
@@ -231,13 +387,14 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     type = types[0]
 
     # seed the cache with values that will never be returned by the broker.
-    session[:caps] = ['test_value','test_value',['test_value','test_value'], 'test_value']
+    session[:caps] = [-1, 'test_value', 'test_value','test_value',['test_value','test_value'], 'test_value']
 
     # make the request
     get :show, :id => type.id
 
     # confirm that the assigned values match our cached values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps]).first(3)
+    assert_equal [user.max_domains, user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps])[1..4]
+    assert_equal user.max_domains, assigns(:capabilities).max_domains
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes
@@ -260,14 +417,15 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert type = assigns(:application_type)
     assert_equal t.display_name, type.display_name
     assert assigns(:application)
-    assert domain = assigns(:domain)
+    assert domains = assigns(:domains)
+    assert domain = domains.first
     assert_equal @domain.id, domain.id
-    assert css_select('input#application_domain_name').empty?
+    assert css_select('input#application_domain_name[type=hidden]').present?, response.body
   end
 
   test "should render domain name field" do
     with_unique_user
-    get :show, :id => 'custom', :advanced => true, :domain_name => 'TestDomain'
+    get :show, :id => 'custom', :domain_name => 'TestDomain'
 
     assert_select 'input#application_domain_name', {:count=>1, :value => 'TestDomain'}
   end
