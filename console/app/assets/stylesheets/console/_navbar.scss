@@ -16,11 +16,12 @@
     position: absolute;
     bottom: -5px;
     width: 100%;
-    z-index: 0;
+    z-index: -1;
   }
   .brand {
     display: block;
     float: left;
+    margin: 0;
     position: relative;
     @include brand;
     @include brand_hover;
@@ -219,11 +220,11 @@
     background: none;
     border: 0;
     display: none;
-    margin: 0 20px 0 0;
-    padding: 3px 10px;
+    margin: 0 10px 0 0;
+    padding: 10px;
     position: absolute;
     right: 0;
-    top: 20px;
+    top: 13px;
     &:hover {
       background: none;
       box-shadow: none;
@@ -268,9 +269,6 @@
 
 @media (max-width: 767px) { 
   .header.rcue {
-    .brand {
-      margin-left: 12px;
-    }
     .navbar {
       &.primary .nav > li > a {
         padding: 12px 14px;
@@ -317,9 +315,6 @@
 
 @media (max-width: 500px) {
   .header.rcue {
-    .brand {
-        margin-left: 10px;
-      }
     .navbar.primary .nav > li > a {
       padding: 10px 12px;
       &.username {
@@ -331,17 +326,37 @@
 
 @media (max-width: 420px) {
   .header.rcue {
-    .brand {
-      margin-left: 0;
-    }
-    .navbar.primary .nav > li {
-      float: none;
-      > a.username {
-          max-width: none;
+    .navbar.primary .nav {
+      padding: 10px 0;
+      > .active > a, > .active > a:hover, > .active > a:focus, > .open > a, > .open > a:hover, > .open > a:focus, > li > a:hover  {
+        background-color: transparent;
+        background-image: none;
+        border-top-color: transparent;
+      }
+      > .active > a, > .active > a:hover, > .active > a:focus {
+        text-decoration: underline;
+      }
+      > li {
+        float: none;
+        > a {
+          padding-left: 0;
+          &:hover {
+            color: #fff;
+          }
+          &.username {
+              max-width: none;
+          }
+        }
+      }
+      li.dropdown > .dropdown-toggle:hover .caret {
+        border-top-color: #fff;
+      }
+      li.dropdown > .dropdown-toggle:hover .caret:after, li.dropdown.open > .dropdown-toggle .caret:after {
+        border-top-color: #343434;
       }
     }
   }
   .navbar .btn-navbar {
-    top: 17px;
+    top: 10px;
   }
 }

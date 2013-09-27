@@ -6,13 +6,21 @@
   }
 }
 #copyright {
+  background-color: #292929;
+  color: #777;
   padding: 13px 0 10px;
-  color: #666;
-  background-color: #000;
     
   > .container {
   	> a {
   		float: left;
+      .ie6 &, .ie7 &, .ie8 & {
+        background: image-url('redhat.png') no-repeat;
+        height: 47px;
+        width: 128px;
+        img {
+          display: none;
+        }
+      }
   	}
   	> div {
   		margin-top: 15px;
