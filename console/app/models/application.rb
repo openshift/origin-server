@@ -55,6 +55,25 @@ class Application < RestApi::Base
     super(*args)
   end
 
+  def self.suggest_name_from(cartridges)
+    if cartridges.present?
+      cartridges.each_pair do |k,v|
+        if v.present?
+          if c = v.find(&:web_framework?)
+            return safe_name(c.suggest_name)
+          elsif c = v.find(&:custom?)
+            return safe_name(c.suggest_name)
+          end
+        end
+      end
+    end
+    nil
+  end
+
+  def self.safe_name(name)
+    name.downcase.gsub(/[^A-Za-z0-9]/,'')[0..32] if name
+  end
+
   def valid?
     valid = super
     if id.blank? and domain_name.blank? and errors[:domain_name].blank?
