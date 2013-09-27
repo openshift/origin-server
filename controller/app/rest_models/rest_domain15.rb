@@ -61,7 +61,7 @@ class RestDomain15 < OpenShift::Model
         ]),
         "LIST_MEMBERS" => Link.new("List members of this domain", "GET", URI::join(url, "domain/#{id}/members")),
         "LEAVE" => Link.new("Leave this domain", "DELETE", URI::join(url, "domain/#{id}/members/self")),
-        "UPDATE_MEMBERS" => Link.new("Add or remove one or more members to this domain.", "PATCH", URI::join(url, "domain/#{id}/members"),
+        "UPDATE_MEMBERS" => Link.new("Add or remove one or more members to this domain.", "POST", URI::join(url, "domain/#{id}/members"),
           [Param.new("role", "string", "The role the user should have on the domain", Role.all)],
           [OptionalParam.new("id", "string", "Unique identifier of the user"),
           OptionalParam.new("login", "string", "The user's login attribute")]
