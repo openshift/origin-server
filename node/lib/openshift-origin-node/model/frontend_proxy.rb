@@ -220,8 +220,8 @@ module OpenShift
       #     => [out, err, rc]
       def system_proxy_delete(*ports)
         if ports != nil && ports.length > 0
-          cmd = %{openshift-port-proxy-cfg setproxy}
-          ports.each { |port| cmd << " #{port} delete" }
+          cmd = %{oo-iptables-port-proxy removeproxy}
+          ports.each { |port| cmd << " #{port}" }
 
           out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           return out, err, rc
@@ -246,7 +246,7 @@ module OpenShift
       #     => [out, err, rc]
       def system_proxy_set(*mappings)
         if mappings != nil && mappings.length > 0
-          cmd = %{openshift-port-proxy-cfg setproxy}
+          cmd = %{oo-iptables-port-proxy addproxy}
           mappings.each { |mapping| cmd << %Q{ #{mapping[:proxy_port]} "#{mapping[:addr]}"} }
 
           out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
@@ -260,7 +260,7 @@ module OpenShift
       def system_proxy_show(proxy_port)
         raise "No proxy port specified" unless proxy_port != nil
 
-        target, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(%{openshift-port-proxy-cfg showproxy #{proxy_port} | awk '{ print $2 }'})
+        target, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(%{oo-iptables-port-proxy showproxy #{proxy_port} | awk '{ print $2 }'})
         target.chomp!
 
         return target.length > 0 ? target : nil

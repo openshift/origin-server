@@ -98,7 +98,7 @@ DEFAULT_PACKAGES="rubygem-openshift-origin-node openshift-origin-node-util \
 %x[/bin/rpm -q ruby193-mcollective &>/dev/null]
 scl_prefix = $?.exitstatus == 0 ? "ruby193-" : ""
 
-DEFAULT_SERVICES="#{scl_prefix}mcollective cgconfig cgred httpd openshift-port-proxy oddjobd"
+DEFAULT_SERVICES="#{scl_prefix}mcollective cgconfig cgred httpd oddjobd"
 DEFAULT_SERVICE_CONTEXTS="#{scl_prefix}mcollective='unconfined_u:system_r:openshift_initrc_t:s0-s0:c0.c1023' oddjobd='system_u:system_r:oddjob_t:s0-s0:c0.c1023'"
 DEFAULT_MINSEM=512
 V1_DIRECTORIES=%w(ruby-1.8 ruby-1.9 nodejs-0.6

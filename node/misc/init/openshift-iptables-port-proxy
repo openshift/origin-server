@@ -1,0 +1,47 @@
+#!/bin/bash
+# openshift-iptables-port-proxy
+#
+# chkconfig:  2345 09 93
+# description: Script to apply the openshift port proxy iptables rules.
+#
+### BEGIN INIT INFO
+# Provides: openshift-iptables-port-proxy
+# Required-Start:
+# Required-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description:  Script to apply the openshift port proxy iptables rules.
+# Description: Script to apply the openshift port proxy iptables rules.
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+case "$1" in
+    start)
+        if [ -f /etc/openshift/iptables.filter.rules ]; then
+           iptables-restore -n <(echo "*filter"; cat /etc/openshift/iptables.filter.rules; echo "COMMIT")
+        fi
+
+        if [ -f /etc/openshift/iptables.nat.rules ]; then
+           iptables-restore -n <(echo "*nat"; cat /etc/openshift/iptables.nat.rules; echo "COMMIT")
+        fi
+        ;;
+    stop)
+        ;;
+    restart)
+        ;;
+    reload)
+        ;;
+    status)
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|reload}"
+        exit 2
+esac
