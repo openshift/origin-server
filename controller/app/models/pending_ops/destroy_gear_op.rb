@@ -4,8 +4,10 @@ class DestroyGearOp < PendingAppOp
   field :group_instance_id, type: String
 
   def execute
+    result_io = ResultIO.new
     gear = get_gear()
-    result_io = gear.destroy_gear(true)
+    result_io = gear.destroy_gear(true) unless gear.node_removed
+    result_io
   end
 
 end
