@@ -707,6 +707,7 @@ class Application
       op_group.skip_node_ops = true if skip_node_ops
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
+      notify_observers(:after_destroy)
       result_io
     end
   end
