@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.15.3
+Version: 1.15.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- node-util: RHBZ#1012830 do not overrite the {min,max}_uid value if not
+  defined in facter (mmahut@redhat.com)
+- Initial checkin of iptables port proxy script. (mrunalp@gmail.com)
+
 * Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - Bug 1010723 - Only run lscgroup once for check_users (agrimm@redhat.com)
 
