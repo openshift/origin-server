@@ -186,8 +186,6 @@ class Gear
   # Performs the deploy steps for this gear.
   #
   # == Parameters:
-  # gear::
-  #   A {Gear} object
   # hot_deploy::
   #   Indicates whether this is a hot deploy
   # force_clean_build::

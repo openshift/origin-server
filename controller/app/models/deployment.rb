@@ -1,11 +1,9 @@
 ##
 # @api model
 
-# 
-# @!attribute [r] state
-#   @return [String] The state of deployment. i.e. active..
+#
 # @!attribute [r] created_at
-#   @return [Date] Timestamp of when the deployment was created
+#   @return [Float] Time in seconds of when the deployment was created
 # @!attribute [r] hot_deploy
 #   @return [Boolean]
 # @!attribute [r] force_clean_build
@@ -13,7 +11,11 @@
 # @!attribute [r] ref
 #   @return [String] The git ref to be used for this deployment
 # @!attribute [r] artifact_url
-#   @return [String] The URL where the deployment artifact can be downloaded from.
+#   @return [String] The URL where the deployment artifact can be downloaded from
+# @!sha1 [r] sha1
+#   @return [String] The sha of what was actually deployed
+# @!activations [r] activations
+#   @return [Array] Array of activation times in seconds
 
 class Deployment
   include Mongoid::Document
@@ -21,7 +23,6 @@ class Deployment
 
   self.field :deployment_id, type: String
   self.field :created_at, type: Float
-  self.field :state, type: String, default: "active"
   self.field :hot_deploy, type: Boolean, default: false
   self.field :force_clean_build, type: Boolean, default: false
   self.field :ref, type: String
@@ -29,12 +30,11 @@ class Deployment
   self.field :artifact_url, type: String
   self.field :activations, type: Array, default: []
 
-  #TODO define possible values?
-  DEPLOYMENT_STATES =[:active, :past, :prepared]
-
-  validates :state, :inclusion => { :in => DEPLOYMENT_STATES.map { |s| s.to_s }, :message => "%{value} is not a valid state. Valid states are #{DEPLOYMENT_STATES.join(", ")}." }
-  validates :ref, :allow_blank => true, length: {maximum: 256}
-  validates :sha1, :allow_blank => true, length: {maximum: 256}
+  validates :ref, presence: true, :allow_blank => false, length: {maximum: 256}
+  validates :sha1, presence: true, :allow_blank => false, length: {maximum: 256}
+  validates_presence_of :deployment_id
+  validates_presence_of :created_at
+  validates_presence_of :activations
   validate  :validate_activations
   validate  :validate_deployment
 
@@ -62,7 +62,7 @@ class Deployment
   # @return [Hash]
   def to_hash
     {
-      "deployment_id" => deployment_id, "created_at" => created_at, "state" => state, "hot_deploy" => hot_deploy,
+      "deployment_id" => deployment_id, "created_at" => created_at, "hot_deploy" => hot_deploy,
       "force_clean_build" => force_clean_build, "ref" => ref, "sha1" => sha1, "artifact_url" => artifact_url, 'activations' => activations
       }
   end

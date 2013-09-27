@@ -49,7 +49,7 @@ class DeploymentsControllerTest < ActionController::TestCase
     @domain.members.find(@user).role = :edit
     @domain.save; @domain.run_jobs
 
-    Application.any_instance.stubs(:deployments).returns([Deployment.new(ref: "mybranch", deployment_id: "1")])
+    ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch", :sha1 => "1234", :created_at => 1234.0, :activations => [1.0, 2.0]}])
     post :create, {"ref" => "mybranch", "application_id" => @app._id}
     assert_response :created
     assert json = JSON.parse(response.body)
@@ -58,7 +58,7 @@ class DeploymentsControllerTest < ActionController::TestCase
     get :show, {"id" => id, "application_id" => @app._id}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert_equal id, json['data']['id'] 
+    assert_equal id, json['data']['id']
 
     get :index , {"application_id" => @app._id}
     assert_response :success

@@ -46,10 +46,11 @@ class DeploymentsController < BaseController
       deploys = []
       deployments.each do |d|
         deploys.push(Deployment.new(deployment_id: d["id"],
-                                 state: d["state"],
                             created_at: d["created_at"],
                                    ref: d["ref"],
+                                  sha1: d["sha1"],
                           artifact_url: d["artifact_url"],
+                           activations: d["activations"],
                             hot_deploy: d["hot_deploy"] || false,
                      force_clean_build: d["force_clean_build"] || false))
       end
