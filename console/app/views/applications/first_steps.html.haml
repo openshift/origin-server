@@ -10,43 +10,20 @@
 %section
   %p.lead OpenShift helps you build and deploy web applications, mobile backends, service oriented architectures, and host your favorite services.
 
-  -#%p.larger 
-    An <strong>application</strong> in OpenShift has a public web address that sends incoming web traffic to code you write and upload. If you need to handle more traffic, you can run multiple copies of your web code through <strong>scaling</strong>.  Need a database?  Each application can get a private MySQL, MongoDB, and PostgreSQL database by adding a <strong>cartridge</strong>.
-
-:css
-  .important-list {
-    counter-reset:  li;
-    list-style: none;
-  }
-  .important-list > li {
-    position: relative;
-  }
-  .important-list > li:before {
-    content: counter(li);
-    counter-increment: li;
-    position: absolute;
-    left: -26px;
-    font-size: 24px;
-    top: 4px;
-  }
-
 %section.tile
-
-  -#%p.lead Create your first application now
-
   %ol.important-list
     %li
-      %h3 Choose a web framework or codebase to start from
-      %p.larger Try JBoss, PHP, Python, Ruby, Node.js, or create a new Drupal or Wordpress site instantly.
+      %p Choose a web framework or codebase to start from
+      %p.smaller Try JBoss, PHP, Python, Ruby, Node.js, or create a new Drupal or Wordpress site instantly.
 
     %li
-      %h3 Add cartridges like MySQL or MongoDB to your application
-      %p.larger OpenShift lets you add services and tools to your application through <strong>cartridges</strong> - including databases, cache servers, management tools, and continuous integration servers.
+      %p Add cartridges like MySQL or MongoDB to your application
+      %p.smaller OpenShift lets you add services and tools to your application through <strong>cartridges</strong> - including databases, cache servers, management tools, and continuous integration servers.
     %li
-      %h3 Upload your code to OpenShift via Git
-      %p.larger Your source code is stored with your application in a Git version control repository.
+      %p Upload your code to OpenShift via Git
+      %p.smaller Your source code is stored with your application in a Git version control repository.
 
-  %p.lead.action-more= link_to "Create your first application now", application_types_path
+  %p.lead= link_to "Create your first application now", application_types_path, :class => 'action-more'
 %section
-  %p.larger
+  %p.light
     For more about OpenShift, see the #{link_to "How it Works page", product_architecture_url}.

@@ -92,14 +92,6 @@ h6 {
   font-weight: 600;
 }
 
-@media (max-width:480px) {
-	h1 {font-size: 24px;line-height: $baseLineHeight * 1.5;}
-	h2 {font-size: 19.5px;line-height: $baseLineHeight * 1.25;}
-	h3 {font-size: 16.5px;}
-	h4 {font-size: 14px;}
-	h5 {font-size: 13px;}
-}
-
 footer h3 {
   text-transform:uppercase;
   margin-bottom: 0;
@@ -199,6 +191,9 @@ em {
 }
 .muted {
   color: $grayLight;
+}
+.light {
+  font-weight: 300;
 }
 
 // Abbreviations and acronyms
