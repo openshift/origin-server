@@ -21,7 +21,6 @@
   .brand {
     display: block;
     float: left;
-    margin: 0;
     position: relative;
     @include brand;
     @include brand_hover;

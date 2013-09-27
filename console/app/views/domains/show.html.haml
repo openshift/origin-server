@@ -43,7 +43,7 @@
                 = check_box_tag field, size, @domain.allowed_gear_sizes.include?(size), :id => "#{field}_#{size}"
                 = "Allow #{size.to_s.humanize.downcase} gears"
             = f.buttons :class => 'hidden-scripted' do
-              = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-mini btn-primary'}
+              = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small btn-primary'}
               = f.loading
 
             - content_for :javascripts do
