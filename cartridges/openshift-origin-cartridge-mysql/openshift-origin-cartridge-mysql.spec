@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version:       1.15.3
+Version:       1.15.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -40,6 +40,12 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #3720 from smarterclayton/origin_ui_72_membership
+  (dmcphers+openshiftbot@redhat.com)
+- Initial checkin of iptables port proxy script. (mrunalp@gmail.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+
 * Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - Merge pull request #3707 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
