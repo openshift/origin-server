@@ -49,7 +49,7 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert_equal t.name, type.name
     assert assigns(:cartridge)
     assert assigns(:application)
-    assert_select ".indicator-gear-increase", "+1"
+    assert_select ".indicator-gear-increase", /\+1\b/
   end
 
   test "should show custom url page" do
@@ -83,7 +83,7 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert_select 'span', 'https://foo.com#bar'
     assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
     assert_select 'a[href=https://foo.com#bar]', 'bar'
-    assert_select ".indicator-gear-increase", "+0-1"
+    assert_select ".indicator-gear-increase", /\+0\-1\b/
   end 
 
   test "should not raise on missing type" do
