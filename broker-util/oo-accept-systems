@@ -178,8 +178,11 @@ def check_nodes_cartridges
     api_carts = api_carts["data"].map {|cart| cart["name"]}
     verbose "API reports carts: #{api_carts.join '|'}"
 
-    cache_clear_command = "bundle exec rake tmp:clear"
-    cache_clear_command = "scl enable ruby193 \"#{cache_clear_command}\"" if ENV["X_SCLS"] =~ /ruby193/
+    cache_clear_command = "oo-admin-broker-cache --clear --console"
+
+    # Old way of clearing the cache
+    #cache_clear_command = "bundle exec rake tmp:clear"
+    #cache_clear_command = "scl enable ruby193 \"#{cache_clear_command}\"" if ENV["X_SCLS"] =~ /ruby193/
 
     do_fail <<-"MISMATCH" unless api_carts.sort == all_carts.sort
       The broker's list of cartridges does not match what is available on
