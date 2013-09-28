@@ -228,7 +228,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     OpenShift::Runtime::NodeLogger.logger.info("Creating app #{app_name} with cartridges: #{cartridges} with scaling: #{scaling}")
     # timeout is so high because creating a scalable python-3.3 app takes around 2.5 minutes
     # TODO: capture cart-specific timeouts / initial titles
-    response = RestClient::Request.execute(method: :post, url: "#{@url_base}/domains/#{@namespace}/applications", payload: {name: app_name, cartridges: cartridges, scale: scaling}, headers: {accept: :json}, timeout: 180)
+    response = RestClient::Request.execute(method: :post, url: "#{@url_base}/domain/#{@namespace}/applications", payload: {name: app_name, cartridges: cartridges, scale: scaling}, headers: {accept: :json}, timeout: 180)
     response = JSON.parse(response)
     app_id = response['data']['id']
     @created_app_ids << app_id

@@ -569,7 +569,7 @@ function primary_cartridge_private_ip_name() {
 
 function primary_cartridge_private_port_name() {
   ruby_sdk 'primary_cartridge_manifest["Endpoints"][0]["Private-Port-Name"]'
-
+}
 
 # Generate a random string from /dev/urandom
 # Arguments:

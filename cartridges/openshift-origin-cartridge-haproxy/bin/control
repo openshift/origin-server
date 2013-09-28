@@ -271,12 +271,11 @@ function update-cluster() {
 # main():
 #
 
-for f in ${OPENSHIFT_HAPROXY_DIR}/conf/{gear-registry.db,gear-registry.db.lock,haproxy.cfg}; do
-    if ! [ -f $f ]; then
-      client_error "HAProxy required configuration file \"$(basename $f)\" not found."
-      exit 129
-    fi
-done
+
+if ! [ -f ${OPENSHIFT_HAPROXY_DIR}/conf/haproxy.cfg ]; then
+  client_error "HAProxy required configuration file \"$(basename $f)\" not found."
+  exit 129
+fi
 
 # And then on the haproxy and haproxy_ctld.
 case "$1" in

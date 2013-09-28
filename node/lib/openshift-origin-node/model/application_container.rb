@@ -519,7 +519,7 @@ module OpenShift
         domain = gear_env['OPENSHIFT_NAMESPACE']
         app_name = gear_env['OPENSHIFT_APP_NAME']
         app_uuid = gear_env['OPENSHIFT_APP_UUID']
-        url = "https://#{broker_addr}/broker/rest/domains/#{domain}/applications/#{app_name}/deployments"
+        url = "https://#{broker_addr}/broker/rest/domain/#{domain}/application/#{app_name}/deployments"
 
         params = broker_auth_params
         if params
@@ -530,7 +530,7 @@ module OpenShift
           request = RestClient::Request.new(:method => :post,
                                             :url => url,
                                             :timeout => 30,
-                                            :headers => { :accept => 'application/json;version=1.0', :user_agent => 'OpenShift' },
+                                            :headers => { :accept => 'application/json;version=1.6', :user_agent => 'OpenShift' },
                                             :payload => params)
 
           response = request.execute
