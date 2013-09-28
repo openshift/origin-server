@@ -1,7 +1,7 @@
-ENV["TEST_NAME"] = "integration_unresponsive_app_cleanup_test"
+ENV["TEST_NAME"] = "integration_ext_removed_nodes_app_fixup_test"
 require 'test_helper'
 
-class UnresponsiveAppCleanupTest < ActionDispatch::IntegrationTest
+class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
 
   def setup
     @login = "user_" + gen_uuid
@@ -120,7 +120,7 @@ class UnresponsiveAppCleanupTest < ActionDispatch::IntegrationTest
     gear.server_identity = @unresponsive_server
     gear.save!
     
-    repair_unresponsive_apps
+    repair_apps
 
     #test_unscalable_app_down
     assert_equal(0, Application.where(canonical_name: @appnames[0].downcase).count)
@@ -192,8 +192,8 @@ class UnresponsiveAppCleanupTest < ActionDispatch::IntegrationTest
     assert_equal(2, Usage.where(user_id: @cu._id, app_name: @appnames[7]).count)
   end
 
-  def repair_unresponsive_apps(confirm=true)
-    output = `export RAILS_ENV=test; oo-admin-repair --unresponsive-apps --verbose --confirm #{confirm} 2>&1`
+  def repair_apps(confirm=true)
+    output = `export RAILS_ENV=test; oo-admin-repair --removed-nodes --verbose --confirm #{confirm} 2>&1`
     exit_code = $?.exitstatus
     puts output if exit_code != 0
   end
