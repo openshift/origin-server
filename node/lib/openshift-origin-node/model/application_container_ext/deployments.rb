@@ -28,6 +28,7 @@ module OpenShift
         # (i.e. oldest activation first)
         def all_deployments_by_activation(dirs = nil)
           deployments = dirs || all_deployments
+          count = 0
           deployments.sort_by do |d|
             latest_activation = deployment_metadata_for(File.basename(d)).activations.last
 
@@ -35,7 +36,8 @@ module OpenShift
             # TODO may want to revisit this later, but it allows prune to work by considering
             # dirs with no activations as newer than any other dir, so we can delete a dir
             # that actually has at least 1 activation
-            latest_activation || Float::MAX
+            count += 1
+            latest_activation || (Float::MAX - count)
           end
         end
 
