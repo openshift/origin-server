@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version:       1.15.3
+Version:       1.15.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #2950 from adelton/oo-diagnostics-test_auth_conf_files
+  (dmcphers+openshiftbot@redhat.com)
+- Compare config files in /var/www/openshift, not with /etc.
+  (jpazdziora@redhat.com)
+
 * Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - add mappings support to routing spi, and add protocols to cart manifests
   (rchopra@redhat.com)
