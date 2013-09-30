@@ -71,7 +71,7 @@ class Application < RestApi::Base
   end
 
   def self.safe_name(name)
-    name.downcase.gsub(/[^A-Za-z0-9]/,'')[0..32] if name
+    name.downcase.gsub(/[^A-Za-z0-9]/,'')[0,32] if name
   end
 
   def valid?
