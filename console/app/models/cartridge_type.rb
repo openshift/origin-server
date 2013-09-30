@@ -53,6 +53,14 @@ class CartridgeType < RestApi::Base
     @display_name ||= url_basename || name
   end
 
+  def suggest_name
+    if name.present?
+      name_prefix
+    elsif url.present?
+      url_basename
+    end
+  end
+
   def to_param
     url || name
   end
