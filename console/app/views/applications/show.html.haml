@@ -60,6 +60,68 @@
   .restart .popover.bottom {margin-left: -75px;}
   .restart .popover.bottom .arrow {margin-left: 70px;}
 
+-#:css
+  .gear-group .gear {
+  }
+  .gear-info .gear-icon {
+    border-left: 1px dotted transparent;
+    border-right: 1px dotted transparent;
+    padding: 0 1px;
+  }
+  .gear-icon > .gear-icon-text {
+    font-size: 10px;
+    line-height: 10px;
+    position: absolute;
+    top: -10px;
+    left: 0;
+    text-transform: uppercase;
+  }
+  .gear > .gear-count {
+    margin-left: 5px;
+    position: relative;
+  }
+  .gear > .gear-count > .gear-count-text {
+    font-size: 12px;
+    line-height: 12px;
+    opacity: 0.6;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -13px;
+    text-align: center;
+  }
+  .gear-icon.gear-max > .gear-icon-text {
+    right: 0;
+    left: auto;
+  }
+  .gear-icon.gear-max, .gear-icon.gear-min {
+    position: relative
+  }
+  .gear-icon.gear-max:after, .gear-icon.gear-min:after {
+    position: absolute;
+    border: 2px solid transparent;
+    top: 1px;
+    width: 0;
+    display: block;
+    content: "";
+  }
+  .gear-icon.gear-max:after {
+    border-color: white white transparent transparent;
+    right: 0;
+  }
+  .gear-icon.gear-min:after {
+    border-color: white transparent transparent white;
+    left: 0;
+  }
+
+- max_gears = @capabilities.max_gears
+
+:css
+  .restart .popover.bottom {margin-left: -75px;}
+  .restart .popover.bottom .arrow {margin-left: 70px;}
+  tr.borderless td, tr:first-of-type td {border-top: medium none !important;}
+  h5 aside {text-transform: none; font-size: 13px; font-weight: normal; opacity: 0.7;}
+
 - content_for :top do
   .grid-wrapper.section-header.span12
     %nav.tile.application
@@ -127,7 +189,7 @@
                   %h5.flow
                     .font-icon-block
                       %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021"}
-                      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue022"}
+                      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue022"}                  
                     .flow-block{:title => cartridge.name}= cartridge.display_name
 
                     .flow-block.right>
@@ -272,7 +334,7 @@
 
       .row-fluid
         - if databases
-          .span6
+          .span5
             %h5 Databases
             %ul.unstyled
               - databases.each do |c|
@@ -280,7 +342,7 @@
                   %span{:'data-icon' => "\uee09"}
                   = link_to "Add #{c.display_name}", application_cartridge_type_path(@application, c)
         - if jenkins.present? or builders.present?
-          .span6
+          .span5
             %h5 Continuous Integration
             %ul.unstyled
               - if jenkins.present?
@@ -293,7 +355,7 @@
                   = link_to "Add #{c.display_name}", application_cartridge_type_path(@application, c)
 
         - if useful
-          .span6
+          .span4
             %h5 Tools and Support
             %ul.unstyled
               - useful.each do |c|
@@ -307,35 +369,6 @@
         %p.larger= link_to "Show other cartridges you can add to this application", application_cartridge_types_path(@application)
 
   %aside.sidebar-dark.span4
-    -#%section#aliases.sidebar
-      %header.clearfix.header-bar
-        %h5
-          Aliases
-        .header-btn
-          = link_to new_application_alias_path(@application) do
-            %span.header-btn-title add alias
-      %ul.unstyled
-        - if @application.aliases.empty?
-          %li
-            %span No aliases set.
-            = link_to('Set one now', new_application_alias_path(@application))
-        - else
-          - alias_scheme = @application.web_url.split(':').first
-          - @application.aliases.sort.each do |a|
-            %li
-              - if a.has_private_ssl_certificate?
-                %span.icon-lock.font-icon-size-12.font-icon-white.pull-left{'aria-hidden' => true, :title => 'SSL certificate attached'}
-              - else
-                %span.icon-unlock.font-icon-size-12.font-icon-grey.pull-left{'aria-hidden' => true, :title => 'No SSL certificate'}
-              = link_to a.name, edit_application_alias_path(@application, a.name)
-              .pull-right.icon-pencil.font-icon-grey
-                = link_to 'edit', edit_application_alias_path(@application, a.name)
-
-      - if @application.initial_git_url.present?
-        %h5 Based On
-        %ul.unstyled
-          %li= link_to @application.initial_git_url, @application.initial_git_url
-
     #source-code
     - if @has_keys
       %h5 Source Code
@@ -384,8 +417,30 @@
         - if @application_type.help_topics and not @application_type.help_topics.empty?
           %h5= @application.framework_name + ' Help'
           %ul.unstyled
-          - @application_type.help_topics.each do |key, value|
-            %li= link_to key, value
+            %li= link_to 'OpenShift User Guide', user_guide_url
+            %li= link_to 'Sync your OpenShift repo with an existing Git repo', sync_git_with_remote_repo_knowledge_base_url 
+
+    - members = @application.members
+    - if members.size > 1
+      %h5
+        Members
+        %aside.pull-right
+          from 
+          = link_to "domain", domain_members_path(@application.domain_id)
+      %table.table.table-condensed
+        - if me = members.find(&:me)
+          %tr
+            %td.member{:title => me.name}
+              = me.name
+            %td 
+              = me.owner? ? "Owner" : Role.description_for(me.role)    
+
+        - members.reject(&:me).sort.each do |member|
+          %tr
+            %td.nowrap.member{:title => member.name}
+              = member.name
+            %td
+              = member.owner? ? "Owner" : Role.description_for(member.role)
 
     .btn-toolbar
       = link_to 'Delete this application', delete_application_path(@application), :class => 'btn btn-small'

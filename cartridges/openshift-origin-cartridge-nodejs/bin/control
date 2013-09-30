@@ -135,7 +135,8 @@ function start() {
         script_n_opts="$node_opts $node_app $node_app_args"
     fi
 
-    nodejs_context "nohup supervisor -e 'node|js|coffee' -- $script_n_opts  >> $logf 2>&1 &"
+    # TODO: supervisor resource usage fixed in version 0.5.4
+    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $script_n_opts  >> $logf 2>&1 &"
 
     retries=3
     while [ $retries -gt 0 ]; do

@@ -121,13 +121,14 @@ begin
   when 'rebuild'
     if confirmed or agree('Rebuild all web frontend configurations? (yes/no)')
       ::OpenShift::Runtime::ApplicationContainer.all.each do |container|
+        ::OpenShift::Runtime::FrontendHttpServer.new(container).create
         final_carts = []
         container.cartridge_model.each_cartridge do |cart|
           if cart.web_proxy?
             final_carts << cart
           else
             begin
-              container.cartridge_model.connect_frontend(cart)
+              container.cartridge_model.connect_frontend(cart, true)
             rescue Exception => e
               $stderr.puts("ERROR: Failed to rebuild frontend for gear: #{container.name} cart: #{cart.name}")
               $stderr.puts("ERROR: #{e.message}")
@@ -138,7 +139,7 @@ begin
 
         final_carts.each do |cart|
           begin
-            container.cartridge_model.connect_frontend(cart)
+            container.cartridge_model.connect_frontend(cart, true)
           rescue Exception => e
             $stderr.puts("ERROR: Failed to rebuild frontend for gear: #{container.name} cart: #{cart.name}")
             $stderr.puts("ERROR: #{e.message}")

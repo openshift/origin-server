@@ -38,8 +38,6 @@ Provides:
 - mysql-5.1
 - mysql
 - mysql-singleton-master
-Conflicts:
-- postgresql-8.4
 Publishes:
   publish-db-connection-info:
     Type: ENV:NET_TCP:db:connection-info
@@ -51,3 +49,4 @@ Endpoints:
   Private-Port-Name: DB_PORT
   Private-Port: 3306
   Public-Port-Name: DB_PROXY_PORT
+  Protocols: [mysql]

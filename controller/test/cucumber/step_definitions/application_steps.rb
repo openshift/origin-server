@@ -564,11 +564,9 @@ Then /^the application should not be accessible$/ do
   @app.is_inaccessible?.should be_true
 end
 
-
 Then /^the application should not be accessible via node\-web\-proxy$/ do
   @app.is_inaccessible?(60, 8000).should be_true
 end
-
 
 Then /^the application should be assigned to the supplementary groups? "([^\"]*)" as shown by the node's \/etc\/group$/ do | supplementary_groups|
   added_supplementary_group = supplementary_groups.split(",")

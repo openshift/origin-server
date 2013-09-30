@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.15.1
+Version:       1.15.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -154,6 +154,23 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
+- Failing unit tests due to last minute changes (ccoleman@redhat.com)
+- Membership changes (jliggitt@redhat.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+
+* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #3699 from jwforres/wrong_scale_arg_in_help
+  (dmcphers+openshiftbot@redhat.com)
+- Fix rhc command in not scalable help text (jforrest@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Allow for version 4.0.x of haml gem to be used (jforrest@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Remove the icon font shadow unless explicitly included with a class. Causes
+  problems with varied background colors. (jforrest@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Bump up version (tdawson@redhat.com)
 

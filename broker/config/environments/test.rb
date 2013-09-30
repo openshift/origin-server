@@ -51,7 +51,7 @@ Broker::Application.configure do
     :host_port => conf.get("MONGO_HOST_PORT", "localhost:27017"),
     :user => conf.get("MONGO_USER", "openshift"),
     :password => conf.get("MONGO_PASSWORD", "mooo"),
-    :db => conf.get("MONGO_DB", "openshift_broker_dev"),
+    :db => conf.get("MONGO_TEST_DB", "openshift_broker_test"),
     :ssl => conf.get_bool("MONGO_SSL", "false")
   }
 
@@ -86,7 +86,6 @@ Broker::Application.configure do
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration("session=1.days|2.days", 1.month),
     :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "true"),
     :ssl_endpoint => conf.get("SSL_ENDPOINT", "allow"),
-    :membership_enabled => conf.get_bool("MEMBERSHIP_ENABLED", "false"),
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
     :max_domains_per_user => conf.get('MAX_DOMAINS_PER_USER', '1').to_i,
     :allow_ha_applications => conf.get_bool('ALLOW_HA_APPLICATIONS', "false"),

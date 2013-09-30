@@ -120,6 +120,10 @@ class Application < RestApi::Base
     response = post(:events, nil, {:event => :restart}.to_json)
     self.messages = extract_messages(response)
     true
+  rescue ActiveResource::ClientError => error
+    @remote_errors = error
+    load_remote_errors(@remote_errors, true)
+    false
   end
 
   def aliases(skip_cache=false)

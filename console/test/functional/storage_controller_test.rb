@@ -96,7 +96,7 @@ class StorageControllerTest < ActionController::TestCase
   def clear_storage(app)
     Cartridge.all(app.send(:child_options)).each do |cart|
       cart.additional_gear_storage = 0
-      cart.save
+      cart.save!
     end
   end
 
@@ -105,7 +105,7 @@ class StorageControllerTest < ActionController::TestCase
       cart = Cartridge.new({:type => 'embedded', :name => 'mysql-5.1'})
       cart.application = app
       cart.as = app.as
-      cart.save
+      cart.save!
     end
   end
 end

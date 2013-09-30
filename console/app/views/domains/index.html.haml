@@ -14,7 +14,6 @@
   %section
 
   .span8
-    
     - groups = @domains.sort_by{ |d| [d.owner? ? 0 : 1, d.name] }.group_by{ |d| d.owner? }
     - groups.each_pair do |owned, domains|
       %h4.owner

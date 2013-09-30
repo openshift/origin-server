@@ -37,24 +37,26 @@ module OpenShift
       send_msg msg.to_yaml
     end
 
-    def notify_create_public_endpoint(app, endpoint_name, public_ip, public_port)
+    def notify_create_public_endpoint(app, endpoint_name, public_ip, public_port, protocols, types, mappings)
       msg = {
         :action => :add_gear,
         :app_name => app.name,
         :namespace => app.domain.namespace,
         :public_port_name => endpoint_name,
         :public_address => public_ip,
-        :public_port => public_port
+        :public_port => public_port,
+        :protocols => protocols,
+        :types => types,
+        :mappings => mappings
       }
       send_msg msg.to_yaml
     end
 
-    def notify_delete_public_endpoint(app, endpoint_name, public_ip, public_port)
+    def notify_delete_public_endpoint(app, public_ip, public_port)
       msg = {
         :action => :delete_gear,
         :app_name => app.name,
         :namespace => app.domain.namespace,
-        :public_port_name => endpoint_name,
         :public_address => public_ip,
         :public_port => public_port
       }

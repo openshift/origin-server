@@ -557,3 +557,21 @@ function has_web_proxy() {
     done
     return 1
 }
+
+# Wrapper for the OpenShift Ruby SDK
+#
+function ruby_sdk() {
+  oo-ruby -I/usr/lib/openshift/cartridge_sdk -rruby/sdk -e "include OpenShift::CartridgeSdk; puts $1"
+}
+
+function primary_cartridge_short_name() {
+  ruby_sdk "primary_cartridge_manifest['Cartridge-Short-Name']"
+}
+
+function primary_cartridge_private_ip_name() {
+  ruby_sdk 'primary_cartridge_manifest["Endpoints"][0]["Private-IP-Name"]'
+}
+
+function primary_cartridge_private_port_name() {
+  ruby_sdk 'primary_cartridge_manifest["Endpoints"][0]["Private-Port-Name"]'
+}

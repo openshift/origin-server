@@ -6,6 +6,7 @@
     %strong
       '#{@application.name}'?
 
+  = f.semantic_errors
   = f.buttons do
     = link_to 'Cancel', application_path(@application), :class => 'btn cancel'
     = f.commit_button 'Restart'

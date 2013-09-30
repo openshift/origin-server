@@ -24,5 +24,5 @@
     = link_to "Back", application_cartridge_types_path(@application), :class => 'btn'
     = f.commit_button("Add Cartridge")
     %span#gear_increase
-      = gear_increase_indicator({'1' => [@cartridge_type]}, @application.scales?, @application.gear_profile, true, @capabilities)
+      = gear_increase_indicator({'1' => [@cartridge_type]}, @application.scales?, @application.gear_profile, true, @application.domain.capabilities, @application.owner?)
     = f.loading

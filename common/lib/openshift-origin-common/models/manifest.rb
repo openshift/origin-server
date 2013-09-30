@@ -85,11 +85,13 @@ module OpenShift
 
           tag       = short_name.upcase
           errors    = []
+          endpoint_index =0
           endpoints = manifest['Endpoints'].each_with_object([]) do |entry, memo|
             unless entry.is_a? Hash
               errors << "Non-Hash endpoint entry: #{entry}"
               next
             end
+            endpoint_index += 1
 
             # TODO: validation
             begin
@@ -104,7 +106,7 @@ module OpenShift
 
               if entry['Protocols']
                 endpoint.protocols = entry['Protocols']
-              elsif categories.include?('web_framework')
+              elsif categories.include?('web_framework') and endpoint_index==1
                 endpoint.protocols = ['http', 'ws']
               else
                 endpoint.protocols = ['tcp']

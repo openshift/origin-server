@@ -153,12 +153,13 @@ end
 
 single_instance do
   source_file("/etc/openshift/node.conf")
-  ENV["GEAR_BASE_DIR"]             ||= "/var/lib/openshift"
-  ENV["APACHE_ACCESS_LOG"]         ||= "/var/log/httpd/openshift_log"
-  ENV["NODE_WEB_PROXY_ACCESS_LOG"] ||= "/var/log/node-web-proxy/access.log"
-  ENV["LAST_ACCESS_DIR"]           ||= "/var/lib/openshift/.last_access"
+  ENV["GEAR_BASE_DIR"]                 ||= "/var/lib/openshift"
+  ENV["APACHE_ACCESS_LOG"]             ||= "/var/log/httpd/openshift_log"
+  ENV["NODE_WEB_PROXY_ACCESS_LOG"]     ||= "/var/log/node-web-proxy/access.log"
+  ENV["NODE_WEB_PROXY_WEBSOCKETS_LOG"] ||= "/var/log/node-web-proxy/websockets.log"
+  ENV["LAST_ACCESS_DIR"]               ||= "/var/lib/openshift/.last_access"
 
-  logfiles = [ENV["APACHE_ACCESS_LOG"], ENV["NODE_WEB_PROXY_ACCESS_LOG"]]
+  logfiles = [ENV["APACHE_ACCESS_LOG"], ENV["NODE_WEB_PROXY_ACCESS_LOG"], ENV["NODE_WEB_PROXY_WEBSOCKETS_LOG"]]
   l = LastAccessUpdater.new(ENV["GEAR_BASE_DIR"], logfiles)
   l.load_addrs_ignore
   l.load_apps_data

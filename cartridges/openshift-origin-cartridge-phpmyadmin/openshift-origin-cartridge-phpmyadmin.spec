@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.15.0
+Version: 1.15.3
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -51,6 +51,22 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Merge remote-tracking branch 'origin/master' into origin_ui_72_membership
+  (ccoleman@redhat.com)
+- remove admin_tool as a category (rchopra@redhat.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3707 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- add mappings support to routing spi, and add protocols to cart manifests
+  (rchopra@redhat.com)
+- Bug 982434 - remove extraneous set_app_info usage (jhonce@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
 - Merge pull request #3629 from VojtechVitek/phpmyadmin_lock
   (dmcphers+openshiftbot@redhat.com)

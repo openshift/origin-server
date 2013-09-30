@@ -12,7 +12,7 @@ OpenShift Origin currently provides 2 modes of authentication:
 
 ## Building a new plugin
 
-An OpenShift Authtication plugin is a [Rails Engine](http://guides.rubyonrails.org/engines.html) which includes a library class which extends [OpenShift::AuthService](http://openshift.github.com/origin/broker/OpenShift/AuthService.html). The plugin class must implement either:
+An OpenShift Authentication plugin is a [Rails Engine](http://guides.rubyonrails.org/engines.html) which includes a library class which extends [OpenShift::AuthService](http://openshift.github.com/origin/broker/OpenShift/AuthService.html). The plugin class must implement either:
 
   * [authenticate(login, password)](http://openshift.github.com/origin/broker/OpenShift/AuthService.html#authenticate-instance_method). Refer to the [Mongo auth plugin](https://github.com/openshift/origin-server/blob/master/plugins/auth/mongo/lib/openshift/mongo_auth_service.rb#L19) for an example.
   * [authenticate_request(controller)](http://openshift.github.com/origin/broker/OpenShift/AuthService.html#authenticate_request-instance_method). Refer to the [Remote-user plugin](https://github.com/openshift/origin-server/blob/master/plugins/auth/remote-user/lib/openshift/remote_user_auth_service.rb#L6) for an example.

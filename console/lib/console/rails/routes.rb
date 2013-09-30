@@ -18,7 +18,7 @@ module ActionDispatch::Routing
         match 'server_unavailable' => 'console_index#server_unavailable', :via => :get, :as => 'server_unavailable'
 
         # Legacy plural paths
-        match 'application_types/:id'=> 'application_types#show', :id => id_regex, :via => :get, :as => 'legacy_application_typcdre'
+        match 'application_types/:id'=> 'application_types#show', :id => id_regex, :via => :get, :as => 'legacy_application_type'
         match 'applications/:id'=> 'applications#show', :id => id_regex, :via => :get, :as => 'legacy_application'
         match 'applications/:application_id/aliases/:id' => 'aliases#show', :application_id => id_regex, :id => id_regex, :via => :get, :as => 'legacy_application_alias'
 

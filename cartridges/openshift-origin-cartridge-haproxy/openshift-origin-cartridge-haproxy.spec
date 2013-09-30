@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version:       1.15.1
+Version:       1.15.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,27 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
+- Use the Ruby SDK functions in fix_local.sh in haproxy cart
+  (mfojtik@redhat.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Feature tests for ssl_to_gear, V3 of mock cart serves https at primary
+  endpoint on port 8123 (teddythetwig@gmail.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Merge pull request #3659 from mfojtik/bugzilla/1007455
+  (dmcphers+openshiftbot@redhat.com)
+- Added OpenShift::Cartridge::Sdk namespace and removed TODO
+  (mfojtik@redhat.com)
+- Bug 1007455 - Added primary_cartridge methods to Ruby SDK
+  (mfojtik@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Bug 980826 (dmcphers@redhat.com)
+- Add support for cartridge protocol types in manifest (rchopra@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - bump_minor_versions for sprint 34 (admiller@redhat.com)
 

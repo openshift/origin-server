@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.15.0
+Version: 1.15.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,45 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- node-util: RHBZ#1012830 do not overrite the {min,max}_uid value if not
+  defined in facter (mmahut@redhat.com)
+- Initial checkin of iptables port proxy script. (mrunalp@gmail.com)
+
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Bug 1010723 - Only run lscgroup once for check_users (agrimm@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3695 from jwhonce/wip/idle_websockets
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3647 from detiber/runtime_card_255
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1011459 - oo-last-access does not process node-web-proxy/websockets.log
+  (jhonce@redhat.com)
+- Merge pull request #3687 from mmahut/mmahut/oo_restorecon
+  (dmcphers+openshiftbot@redhat.com)
+- node-util: extend the oo-restorecon man pages (mmahut@redhat.com)
+- RHBZ#1005307 refactor oo-restorecon to accept files as arguments
+  (mmahut@redhat.com)
+- Card origin_runtime_255: Publish district uid limits to nodes
+  (jdetiber@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- node-util: RHBZ#1004512 oo-admin-ctl-gears gearstatus show locked status
+  (mmahut@redhat.com)
+- Report an error if there are no frontend plugins defined.
+  (rmillner@redhat.com)
+- <oo-accept-node> Fix polyinstantiation sebool detection (jolamb@redhat.com)
+- Merge pull request #3502 from rmillner/origin_runtime_245
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3622 from brenton/ruby193-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- Break out FrontendHttpServer class into plugin modules. (rmillner@redhat.com)
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+- oo-accept-node changes for ruby193-mcollective (bleanhar@redhat.com)
+- Adding oo-mco and updating oo-diagnostics to support the SCL'd mcollective
+  (bleanhar@redhat.com)
+
 * Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
 - I'm withdrawing this fix.  The deeper issue is that LANG appears to be messed
   up when the script is run and that needs to be diagnosed instead.

@@ -175,7 +175,7 @@ action "get_all_gears_sshkeys", :description => "get all sshkeys for all gears" 
            :display_as => "Exit Code"
 end
 
-action "set_district", :description => "run a cartridge action" do
+action "set_district", :description => "Set the District of a Node" do
     display :always
 
     input :uuid,
@@ -190,6 +190,46 @@ action "set_district", :description => "run a cartridge action" do
         :prompt         => "District active boolean",
         :description    => "District active boolean",
         :type           => :boolean,
+        :optional       => false
+
+    input :first_uid,
+        :prompt         => "First uid",
+        :description    => "First uid",
+        :type           => :integer,
+        :optional       => false
+
+    input :max_uid,
+        :prompt         => "Max uid",
+        :description    => "Max uid",
+        :type           => :integer,
+        :optional       => false
+
+    output  :time,
+            :description => "The time as a message",
+            :display_as => "Time"
+
+    output  :output,
+            :description => "Output from script",
+            :display_as => "Output"
+
+    output :exitcode,
+           :description => "Exit code",
+           :display_as => "Exit Code"
+end
+
+action "set_district_uid_limits", :description => "Set District uid limits for a Node" do
+    display :always
+
+    input :first_uid,
+        :prompt         => "First uid",
+        :description    => "First uid",
+        :type           => :integer,
+        :optional       => false
+
+    input :max_uid,
+        :prompt         => "Max uid",
+        :description    => "Max uid",
+        :type           => :integer,
         :optional       => false
 
     output  :time,
@@ -428,6 +468,15 @@ action "upgrade", :description => "upgrade a gear" do
         :validation     => '^[a-zA-Z0-9]+$',
         :optional       => false,
         :maxlength      => 32
+                
+    input :secret_token,
+        :prompt         => "Application secret token",
+        :description    => "Application secret token",
+        :type           => :string,
+        :validation     => '^[\w\-]+$',
+        :optional       => false,
+        :minlength      => 128,
+        :maxlength      => 128
                 
     input :namespace,
         :prompt         => "Namespace",

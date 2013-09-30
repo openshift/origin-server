@@ -107,15 +107,28 @@ module OpenShift
             add_env_var(endpoint.public_port_name, public_port)
 
             config = ::OpenShift::Config.new
-            if true   # FIXME : remove the old formatting as soon as broker is ready to consume the new format
-              output << "NOTIFY_ENDPOINT_CREATE: #{endpoint.public_port_name} #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port}\n" 
-            elsif cart.web_proxy?
-              output << "NOTIFY_ENDPOINT_CREATE: #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port} #{@cartridge_model.primary_cartridge.public_endpoints.first.protocols} load_balancer\n" 
+            endpoint_create_hash = { "external_address" => config.get('PUBLIC_IP'),
+                                     "external_port" => public_port,
+                                     "internal_address" => private_ip,
+                                     "internal_port" => endpoint.private_port,
+                                     "protocols" => endpoint.protocols,
+                                     "type" => []
+                                    }
+
+            if cart.web_proxy?
+              endpoint_create_hash['protocols'] = @cartridge_model.primary_cartridge.public_endpoints.first.protocols
+              endpoint_create_hash['type'] = ["load_balancer"]
             elsif cart.web_framework?
-              output << "NOTIFY_ENDPOINT_CREATE: #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port} #{endpoint.protocols} web_framework\n" 
+              endpoint_create_hash['type'] = ["web_framework"]
+            elsif cart.categories.include? "database"
+              endpoint_create_hash['type'] = ["database"]
+            elsif cart.categories.include? "plugin"
+              endpoint_create_hash['type'] = ["plugin"]
             else
-              output << "NOTIFY_ENDPOINT_CREATE: #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port} #{endpoint.protocols}\n" 
+              endpoint_create_hash['type'] = ["other"]
             end
+            endpoint_create_hash['mappings'] = endpoint.mappings.map { |m| { "frontend" => m.frontend, "backend" => m.backend } } if endpoint.mappings
+            output << "NOTIFY_ENDPOINT_CREATE: #{endpoint_create_hash.to_json}\n"
 
             logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
           "[#{endpoint.public_port_name}=#{public_port}]")
@@ -146,7 +159,7 @@ module OpenShift
 
             config = ::OpenShift::Config.new
             proxy_mappings.each { |p| 
-              output << "NOTIFY_ENDPOINT_DELETE: #{p[:public_port_name]} #{config.get('PUBLIC_IP')} #{p[:proxy_port]}\n" if p[:proxy_port]
+              output << "NOTIFY_ENDPOINT_DELETE: #{config.get('PUBLIC_IP')} #{p[:proxy_port]}\n" if p[:proxy_port]
             }
 
             logger.info("Deleted all public endpoints for cart #{cart.name} in gear #{@uuid}\n"\

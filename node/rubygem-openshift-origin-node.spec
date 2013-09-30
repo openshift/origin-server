@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.0
+Version: 1.15.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -138,6 +138,7 @@ mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{gem_docdir}/c
 %if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}/etc/rc.d/init.d/
 cp %{buildroot}%{gem_instdir}/misc/init/openshift-tc %{buildroot}/etc/rc.d/init.d/
+cp %{buildroot}%{gem_instdir}/misc/init/openshift-iptables-port-proxy %{buildroot}/etc/rc.d/init.d/
 %else
 mkdir -p %{buildroot}/etc/systemd/system
 mv %{buildroot}%{gem_instdir}/misc/services/openshift-tc.service %{buildroot}/etc/systemd/system/openshift-tc.service
@@ -180,6 +181,7 @@ fi
   systemctl enable openshift-tc.service || :
 %else
   /sbin/chkconfig --add openshift-tc || :
+  /sbin/chkconfig --add openshift-iptables-port-proxy || :
   service crond restart || :
 %endif
 
@@ -194,6 +196,7 @@ oo-admin-ctl-tc stop >/dev/null 2>&1 || :
   systemctl disable openshift-tc.service || :
 %else
   chkconfig --del openshift-tc || :
+  chkconfig --del openshift-iptables-port-proxy || :
 %endif
 
 fi
@@ -216,6 +219,8 @@ fi
 %attr(0744,-,-) %{openshift_lib}/cartridge_sdk/ruby/*
 %dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
+%config(noreplace) /etc/openshift/iptables.filter.rules
+%config(noreplace) /etc/openshift/iptables.nat.rules
 %config(noreplace) /etc/openshift/env/*
 %attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
 %dir %attr(0755,-,-) %{appdir}
@@ -223,6 +228,7 @@ fi
 
 %if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-) /etc/rc.d/init.d/openshift-tc
+%attr(0755,-,-) /etc/rc.d/init.d/openshift-iptables-port-proxy
 %else
 %attr(0750,-,-) /etc/systemd/system/openshift-tc.service
 %endif
@@ -250,6 +256,77 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
+- Merge pull request #3720 from smarterclayton/origin_ui_72_membership
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3721 from mrunalp/dev/ipt-port-proxy
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into origin_ui_72_membership
+  (ccoleman@redhat.com)
+- Initial checkin of iptables port proxy script. (mrunalp@gmail.com)
+- remove admin_tool as a category (rchopra@redhat.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+
+* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
+- Merge pull request #3707 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- add mappings support to routing spi, and add protocols to cart manifests
+  (rchopra@redhat.com)
+- Feature tests for ssl_to_gear, V3 of mock cart serves https at primary
+  endpoint on port 8123 (teddythetwig@gmail.com)
+- Merge pull request #3703 from mfojtik/bugzilla/1011721
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1011721- Fixed wrong namespace for Cartridge Ruby SDK
+  (mfojtik@redhat.com)
+
+* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
+- Merge pull request #3702 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3698 from rmillner/vhost_bugs
+  (dmcphers+openshiftbot@redhat.com)
+- typo fix (rchopra@redhat.com)
+- Bug 1008638 - The create step is needed on vhost and other plugins.
+  (rmillner@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Merge pull request #3659 from mfojtik/bugzilla/1007455
+  (dmcphers+openshiftbot@redhat.com)
+- Added OpenShift::Cartridge::Sdk namespace and removed TODO
+  (mfojtik@redhat.com)
+- Bug 1007455 - Added primary_cartridge methods to Ruby SDK
+  (mfojtik@redhat.com)
+
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- routing spi changes (rchopra@redhat.com)
+- Merge pull request #3662 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Creating the app secret token (abhgupta@redhat.com)
+- Bug 1008638 - needed a way to force rebuild the framework cart.
+  (rmillner@redhat.com)
+- Using the geardb was causing missed gears on delete, use the
+  ApplicationContainer object instead. (rmillner@redhat.com)
+- Merge pull request #3666 from jwhonce/wip/secret_token
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_runtime_102 - Support OPENSHIFT_SECRET_TOKEN (jhonce@redhat.com)
+- Add support for cartridge protocol types in manifest (rchopra@redhat.com)
+- Merge pull request #3644 from mmahut/mmahut/cron_dupl_msg
+  (dmcphers+openshiftbot@redhat.com)
+- use proper return codes in has_web_proxu() bash sdk (mmahut@redhat.com)
+- Bug 1008639 - the restore operation is required to put aliases and idler
+  state back. (rmillner@redhat.com)
+- node: adding bash sdk function has_web_proxy to check if the gear contains a
+  web_proxy cartridge (mmahut@redhat.com)
+- Mapping the plugin set at load time imposes unnecessary load order
+  requirements. (rmillner@redhat.com)
+- Functional tests for the frontend plugins. (rmillner@redhat.com)
+- Prelim documentation. (rmillner@redhat.com)
+- Change the plugin change procedure to use Backup->Nuke->Rebuild, more likely
+  to end up in the desired state at the end if the frontend configuration is
+  completely rebuilt. (rmillner@redhat.com)
+- Migration tool and fixes. (rmillner@redhat.com)
+- Break out FrontendHttpServer class into plugin modules. (rmillner@redhat.com)
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.7-1
 - Merge pull request #3552 from VojtechVitek/passenv
   (dmcphers+openshiftbot@redhat.com)

@@ -22,9 +22,13 @@ if File.exists?(district_conf)
   config_file = ParseConfig.new(district_conf)
   district_uuid = config_file['uuid'] ? config_file['uuid'] : 'NONE'
   district_active = config_file['active'] ? config_file['active'] == "true" : false
+  district_first_uid = config_file['first_uid'] ? config_file['first_uid'] : 1000
+  district_max_uid = config_file['max_uid'] ? config_file['max_uid'] : 6999
 end
 Facter.add(:district_uuid) { setcode { district_uuid } }
 Facter.add(:district_active) { setcode { district_active } }
+Facter.add(:district_first_uid) { setcode { district_first_uid } }
+Facter.add(:district_max_uid) { setcode { district_max_uid } }
 
 #
 # Pull public_ip and public_hostname out of the node_data config

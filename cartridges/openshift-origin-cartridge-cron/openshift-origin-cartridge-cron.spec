@@ -2,7 +2,7 @@
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron
-Version:       1.15.1
+Version:       1.15.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -37,6 +37,17 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
+- Revert "cartridges: display the cron install message only on the web_proxy
+  gear in a scaled environment" (dmcphers@redhat.com)
+- Revert "use proper return codes in has_web_proxu() bash sdk"
+  (dmcphers@redhat.com)
+- use proper return codes in has_web_proxu() bash sdk (mmahut@redhat.com)
+- cartridges: display the cron install message only on the web_proxy gear in a
+  scaled environment (mmahut@redhat.com)
+- cartridges: displaying the gear uuid to distinguish between gears in a cron
+  scaled environment (RHBZ#1006712) (mmahut@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - bump_minor_versions for sprint 34 (admiller@redhat.com)
 

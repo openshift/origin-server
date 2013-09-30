@@ -136,17 +136,18 @@ ProxyRoutes.prototype.clear = function() {
  *             [ '127.5.1.1:8080', '10.1.1.1:37540'],
  *             { 'connections': 20 }
  *            );
- *    rtab.add(37373, [ '127.5.1.1:3306' ], { 'connections': 3 } );
+ *    rtab.add(37373, [ '127.5.1.1:3306' ], { 'connections': 3 }, '528603231ae84681858491fb5e50739f');
  *
  *
  *  @param   {Integer|String}  External route name/info (external port or
  *                             virtual host/alias name).
  *  @param   {String|Array}    Single endpoint or an array of endpoints.
  *  @param   {Dict}            Usage limits.
+ *  @param   {String}          Container UUID, if idled.
  *  @return  {Dict}            The replaced route (if any).
  *  @api     public
  */
-ProxyRoutes.prototype.add = function(n, endpts, limits) {
+ProxyRoutes.prototype.add = function(n, endpts, limits, container_uuid) {
   /*  Scrub parameters and add the specified route.  */
   if (!n) {
     return { };
@@ -157,12 +158,13 @@ ProxyRoutes.prototype.add = function(n, endpts, limits) {
   if (('string' === typeof endpts)  ||  ('number' === typeof endpts)) {
     endpts = [ endpts ];
   }
+  container_uuid || (container_uuid = "");
 
   /*  Convert name to routing key.  */
   var rkey = _get_routing_key(n);
 
   /*  Add the route.  */
-  this.routes[rkey] = { 'endpoints': endpts, 'limits': limits };
+  this.routes[rkey] = { 'endpoints': endpts, 'limits': limits, 'idle': container_uuid };
 
   // Logger.debug("ProxyRoutes.add '" + n + "' => " + endpts);
   // Logger.debug("ProxyRoutes.add '" + n + "' limits => " + JSON.stringify(limits));
@@ -205,8 +207,8 @@ ProxyRoutes.prototype.remove = function(n) {
  *  Loads routes from the specified file (JSON format).
  *  The routes file should contain entries of the form:
  *  {
- *    <route-to>: {'endpoints': [ <list> ], 'limits': { <dict> }},
- *    <route-66>: {'endpoints': [ <list> ], 'limits': { <dict> }},
+ *    <route-to>: {'endpoints': [ <list> ], 'limits': { <dict> }, 'idle': 'container_uuid'},
+ *    <route-66>: {'endpoints': [ <list> ], 'limits': { <dict> }, 'idle': ''},
  *    <route-80>: {'endpoints': [ <list> ] }
  *  }
  *
@@ -215,6 +217,9 @@ ProxyRoutes.prototype.remove = function(n) {
  *    var rtab = new ProxyRoutes.ProxyRoutes();
  *    rtab.load(rj);
  *
+ *  Note:
+ *    If the 'idle' element is missing or empty the application is assumed to be running
+ *
  *  @param  {String}  JSON format file containing routing information.
  *  @api    public
  */
@@ -222,7 +227,7 @@ ProxyRoutes.prototype.load = function(f) {
   Logger.debug("Loading routes from file '" + f + "'. ");
   var zroutes = _load_routes(f);
   for (var d in zroutes) {
-    this.add(d, zroutes[d].endpoints, zroutes[d].limits);
+    this.add(d, zroutes[d].endpoints, zroutes[d].limits, zroutes[d].idle);
   }
 
   Logger.debug("Loaded routes from file '" + f + "'. ");
@@ -277,6 +282,56 @@ ProxyRoutes.prototype.getLimits = function(n) {
 
 };  /*  End of function  getLimits.  */
 
+
+/**
+ *  Get the idled container UUID associated with specified 'name' (port/vhost/alias).
+ *
+ *  Examples:
+ *    var rj   = '/var/lib/openshift/.httpd.d/$uuid_$ns_$app/route.json';
+ *    var rtab = new ProxyRoutes.ProxyRoutes();
+ *    rtab.load(rj);
+ *    rtab.getIdle('app1-ramr.rhcloud.com');
+ *
+ *
+ *  @param   {Integer|String}  External route name/info (external port or
+ *                             virtual host/alias name).
+ *  @return  {String}          Container UUID, if idled. Otherwise, ""
+ *  @api     public
+ */
+ProxyRoutes.prototype.getIdle = function(n) {
+  var rkey = _get_routing_key(n);
+  if (rkey  &&  this.routes[rkey])
+        return this.routes[rkey].idle;
+
+    return "";
+
+};  /*  End of function  getIdle.  */
+
+/**
+ *  Unidle container UUID associated with specified 'name' (port/vhost/alias).
+ *
+ *  Examples:
+ *    var rj   = '/var/lib/openshift/.httpd.d/$uuid_$ns_$app/route.json';
+ *    var rtab = new ProxyRoutes.ProxyRoutes();
+ *    rtab.load(rj);
+ *    rtab.unidle('app1-ramr.rhcloud.com');
+ *
+ *  Note: this does not update the disk version of the file.
+ *
+ *  @param   {Integer|String}  External route name/info (external port or
+ *                             virtual host/alias name).
+ *  @api     public
+ */
+ProxyRoutes.prototype.unIdle = function (n) {
+  var rkey = _get_routing_key(n);
+  if (rkey && this.routes[rkey]) {
+    var uuid = this.routes[rkey].idle
+    this.routes[rkey].idle = "";
+    return uuid;
+  }
+
+  return "";
+};  /*  End of function  getIdle.  */
 
 /**
  *  Get the max connections limit associated with the specified 'name'
