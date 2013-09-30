@@ -1,1 +1,4 @@
-mv data/ib_logfile* /tmp
+files=$(shopt -s nullglob; shopt -s dotglob; echo data/ib_logfile*)
+if [ ${#files} -gt 0 ]; then
+  mv data/ib_logfile* /tmp
+fi
