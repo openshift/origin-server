@@ -6,7 +6,6 @@ class District
   field :uuid, type: String, default: ""
   field :gear_size, type: String
   field :max_capacity, type: Integer
-  field :first_uid, type: Integer
   field :max_uid, type: Integer
   field :available_uids, type: Array, default: []
   field :available_capacity, type: Integer
@@ -31,17 +30,23 @@ class District
     return District.where(name: name)[0]
   end
 
+  # Since the DISTRICT_FIRST_UID in the msg_broker configuration can change after a district
+  # is created, provide a way to compute the first_uid for a give district.
+  def first_uid()
+    max_uid - max_capacity + 1
+  end
+
   def initialize(attrs = nil, options = nil)
     super
 
-    self.first_uid = Rails.configuration.msg_broker[:districts][:first_uid]
+    first_uid = Rails.configuration.msg_broker[:districts][:first_uid]
     num_uids = Rails.configuration.msg_broker[:districts][:max_capacity]
     self.server_identities = []
     self.available_uids = []
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.available_capacity = num_uids
-    self.available_uids = (self.first_uid...self.first_uid + num_uids).sort_by{rand}
-    self.max_uid = self.first_uid + num_uids - 1
+    self.available_uids = (first_uid...first_uid + num_uids).sort_by{rand}
+    self.max_uid = first_uid + num_uids - 1
     self.max_capacity = num_uids
     self.active_server_identities_size = 0
     save!
