@@ -22,6 +22,7 @@
     display: block;
     float: left;
     position: relative;
+    margin-left: 0;
     @include brand;
     @include brand_hover;
     .ie6 &, .ie7 &, .ie8 & {
@@ -92,13 +93,8 @@
           border-top-color: #373737;
         }
         .icon-user {
-          background-size: 100%;
-          display: block;
-          float: left;
-          margin: 1px 7px 0 0;
+          font-size: inherit;
           opacity: .8;
-          height: 11px;
-          width: 11px;
         }
         &:hover {
           .caret:after {
@@ -159,15 +155,15 @@
               font-family: openshift-icon;
               font-weight: normal;
               font-style: normal;
-              height: 11px;
               margin: 0 5px 0 0;
               position: relative;
-              top: -1px;
               text-decoration: inherit;
-              width: 11px;
             }
             &:hover {
               text-decoration: underline;
+              &:before {
+                text-decoration: none;
+              }
             }
           }
           &.dropdown-toggle .caret:after {
@@ -190,10 +186,20 @@
       margin-left: 0;
       margin-right: 0;
     }
-    li.dropdown > .dropdown-toggle .icon-user {
-      background-image: image-url('icon-user.svg') !important;
-      .ie6 &, .ie7 &, .ie8 & {
-        display: none;
+    .nav li.dropdown > .username {
+      padding-left: 27px;
+      position: relative;
+      .icon-user {
+        background: none !important;
+        color: #fff;
+        display: inline-block !important;
+        float: none !important;
+        font-size: 12px;
+        margin: 0 !important;
+        position: absolute;
+        left: 10px;
+        height: auto !important;
+        width: auto !important;
       }
     }
   }
@@ -273,10 +279,14 @@
         padding: 12px 14px;
         &.username {
           max-width: 175px;
+          padding-left: 31px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
           word-wrap: normal;
+          .icon-user {
+            left: 14px;
+          }
         }
       }
       &.utility .nav {
@@ -317,7 +327,11 @@
     .navbar.primary .nav > li > a {
       padding: 10px 12px;
       &.username {
-        max-width: 120px;
+        max-width: 100px;
+        padding-left: 27px;
+        .icon-user {
+            left: 10px;
+          }
       }
     }
   }
@@ -344,6 +358,10 @@
           }
           &.username {
               max-width: none;
+              padding-left: 17px;
+              .icon-user {
+                left: 0;
+              }
           }
         }
       }
