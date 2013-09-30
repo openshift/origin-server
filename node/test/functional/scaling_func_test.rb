@@ -21,8 +21,9 @@ require 'fileutils'
 require 'restclient/request'
 
 class ScalingFuncTest < OpenShift::NodeBareTestCase
-  DEFAULT_TITLE = "Welcome to OpenShift"
-  CHANGED_TITLE = "Test1"
+  DEFAULT_TITLE     = "Welcome to OpenShift"
+  CHANGED_TITLE     = "Test1"
+  JENKINS_ADD_TITLE = "JenkinsClient"
 
   CART_TO_INDEX = {
     'jbossas-7'    => 'src/main/webapp/index.html',
@@ -63,9 +64,6 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     RestClient.post("#{@url_base}/domains", {name: @namespace}, accept: :json)
     @created_domain_names << @namespace
     OpenShift::Runtime::NodeLogger.logger.info("Created domain #{@namespace} for user #{@login}")
-
-    # keep up to 3 deployments
-    `oo-admin-ctl-domain -l #{@login} -n #{@namespace} -c env_add -e OPENSHIFT_KEEP_DEPLOYMENTS -v 3`
   end
 
   def teardown
@@ -86,45 +84,60 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     end
   end
 
-  def test_unscaled
-    basic_build_test([@framework_cartridge], false)
-  end
-
-  def test_unscaled_jenkins
+  def test_unscaled_add_jenkins_no_keep()
     create_jenkins
-    basic_build_test([@framework_cartridge, 'jenkins-client-1'], false)
+    basic_build_test([@framework_cartridge], add_jenkins: true)
   end
 
-  def test_scaled
-    if @framework_cartridge == 'zend-5.6'
-      return
-    end
+  # def test_unscaled
+  #   basic_build_test([@framework_cartridge], keep_deployments: 3)
+  # end
 
-    basic_build_test([@framework_cartridge])
-  end
+  # def test_unscaled_jenkins
+  #   create_jenkins
+  #   basic_build_test([@framework_cartridge, 'jenkins-client-1'], keep_deployments: 3)
+  # end
 
-  def test_scaled_jenkins
-    if @framework_cartridge == 'zend-5.6'
-      return
-    end
+  # def test_scaled
+  #   if @framework_cartridge == 'zend-5.6'
+  #     return
+  #   end
 
-    up_gears
-    create_jenkins
-    basic_build_test([@framework_cartridge, 'jenkins-client-1'])
-  end
+  #   basic_build_test([@framework_cartridge], scaling: true, keep_deployments: 3)
+  # end
+
+  # def test_scaled_jenkins
+  #   if @framework_cartridge == 'zend-5.6'
+  #     return
+  #   end
+
+  #   up_gears
+  #   create_jenkins
+  #   basic_build_test([@framework_cartridge, 'jenkins-client-1'], scaling: true, keep_deployments: 3)
+  # end
 
   def create_jenkins
     app_name = "jenkins#{random_string}"
     create_application(app_name, %w(jenkins-1), false)
   end
 
-  def basic_build_test(cartridges, scaling = true)
+  def basic_build_test(cartridges, options = {})
+    scaling          = !!options[:scaling]
+    add_jenkins      = !!options[:add_jenkins]
+    keep_deployments = !!options[:keep_deployments]
+
     app_name = "app#{random_string}"
 
     app_id = create_application(app_name, cartridges, scaling)
     add_ssh_key(app_id, app_name)
 
     framework = cartridges[0]
+
+    if keep_deployments
+      keep = options[:keep_deployments]
+      # keep up to 3 deployments
+      `oo-admin-ctl-domain -l #{@login} -n #{@namespace} -c env_add -e OPENSHIFT_KEEP_DEPLOYMENTS -v #{keep}`
+    end
 
     app_container = OpenShift::Runtime::ApplicationContainer.from_uuid(app_id)
 
@@ -158,7 +171,6 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
       assert_equal local_hostname, entry.proxy_hostname
       assert_equal 0, entry.proxy_port.to_i
 
-
       # scale up to 2
       assert_scales_to app_name, framework, 2
 
@@ -180,47 +192,72 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     deployment_metadata = app_container.deployment_metadata_for(app_container.current_deployment_datetime)
     deployment_id = deployment_metadata.id
 
-    # clone the git repo and make a change
-    OpenShift::Runtime::NodeLogger.logger.info("Modifying the title and pushing the change")
+    clone_repo(app_id)
+    change_title(CHANGED_TITLE, app_name, app_id, framework)
+
+    if scaling
+      web_entries.values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
+
+      assert_scales_to app_name, framework, 3
+      gear_registry.load
+      entries = gear_registry.entries
+      assert_equal 3, entries[:web].size
+
+      entries[:web].values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
+    else
+      assert_http_title_for_app app_name, @namespace, CHANGED_TITLE
+    end
+
+    if add_jenkins
+      add_cartridge('jenkins-client-1', app_name)
+
+      change_title(JENKINS_ADD_TITLE, app_name, app_id, framework)
+
+      if scaling
+        entries = gear_registry.entries
+        entries[:web].values.each { |entry| assert_http_title_for_entry entry, JENKINS_ADD_TITLE }
+      else
+        assert_http_title_for_app app_name, @namespace, JENKINS_ADD_TITLE
+      end
+    end
+
+    # rollback
+    OpenShift::Runtime::NodeLogger.logger.info("Rolling back to #{deployment_id}")
+    OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id}`
+
+    if scaling
+      entries = gear_registry.entries
+      entries[:web].values.each { |entry| assert_http_title_for_entry entry, DEFAULT_TITLE }
+    else
+      assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE      
+    end
+  end
+
+  def add_cartridge(cartridge, app_name)
+    OpenShift::Runtime::NodeLogger.logger.info("Adding #{cartridge} to app #{app_name}")
+    response = RestClient::Request.execute(method: :post, url: "#{@url_base}/domain/#{@namespace}/application/#{app_name}/cartridges", payload: { name: cartridge, application_id: app_name, emb_cart: { name: cartridge }}, headers: { accept: :json }, timeout: 60)
+
+    assert_operator 300, :>, response.code
+  end
+
+  def clone_repo(app_id)
     Dir.chdir(@tmp_dir) do
       response = RestClient.get("#{@url_base}/applications/#{app_id}", accept: :json)
       response = JSON.parse(response)
       git_url = response['data']['git_url']
       `git clone #{git_url}`
+    end
+  end
+
+  def change_title(title, app_name, app_id, framework)
+      # clone the git repo and make a change
+    OpenShift::Runtime::NodeLogger.logger.info("Modifying the title to #{title} and pushing change")
+    Dir.chdir(@tmp_dir) do
       Dir.chdir(app_name) do
-        `sed -i "s,<title>.*</title>,<title>#{CHANGED_TITLE}</title>," #{CART_TO_INDEX[framework]}`
+        `sed -i "s,<title>.*</title>,<title>#{title}</title>," #{CART_TO_INDEX[framework]}`
         `git commit -am 'test1'`
         `git push`
       end
-    end
-
-    if scaling
-      # make sure the http content is updated
-      web_entries.values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
-
-      # scale up to 3
-      assert_scales_to app_name, framework, 3
-
-      gear_registry.load
-      entries = gear_registry.entries
-      assert_equal 3, entries[:web].size
-
-      # make sure the http content is good
-      entries[:web].values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
-
-      # rollback
-      OpenShift::Runtime::NodeLogger.logger.info("Rolling back to #{deployment_id}")
-      OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id} --all`
-
-      # make sure the http content is rolled back
-      entries[:web].values.each { |entry| assert_http_title_for_entry entry, DEFAULT_TITLE }
-    else
-      assert_http_title_for_app app_name, @namespace, CHANGED_TITLE
-
-      OpenShift::Runtime::NodeLogger.logger.info("Rolling back to #{deployment_id}")
-      OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id} --all`
-
-      assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE      
     end
   end
 

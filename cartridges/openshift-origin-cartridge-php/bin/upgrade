@@ -11,3 +11,8 @@ fi
 if [[ $curr =~ 0.0.4 ]]; then
   mkdir -p $OPENSHIFT_HOMEDIR/.drush
 fi
+
+if [[ $next =~ 0.0.6 ]]; then
+  mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/phplib
+  mv $OPENSHIFT_PHP_DIR/phplib/* $OPENSHIFT_DEPENDENCIES_DIR/phplib
+fi

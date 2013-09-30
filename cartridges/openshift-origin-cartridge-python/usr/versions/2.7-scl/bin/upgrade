@@ -58,4 +58,12 @@ EOF
         ;;
 esac
 
+case "$new_cart_version" in
+    '0.0.5')
+        mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/virtenv
+        mv $OPENSHIFT_PYTHON_DIR/virtenv/* $OPENSHIFT_DEPENDENCIES_DIR/virtenv/
+        ln -s $OPENSHIFT_DEPENDENCIES_DIR/virtenv $OPENSHIFT_PYTHON_DIR/virtenv
+        ;;
+esac
+
 exit 0

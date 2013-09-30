@@ -1,0 +1,10 @@
+#!/bin/bash -eu
+
+perl_version=$1
+curr=$2
+next=$3
+
+if [[ $next =~ 0.0.6 ]]; then
+  mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/.cpanm
+  mv $OPENSHIFT_PHP_DIR/.cpanm/* $OPENSHIFT_DEPENDENCIES_DIR/.cpanm
+fi
