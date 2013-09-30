@@ -147,17 +147,8 @@ class ActiveSupport::TestCase
   end
 end
 
-unless ActionController::TestCase.method_defined?(:omit)
-  class ActionController::TestCase
-    def omit(msg=nil)
-      puts "\nOmitted: #{msg}\n" if msg.present?
-      skip
-    end
-  end
-end
-
-unless ActionDispatch::IntegrationTest.method_defined?(:omit)
-  class ActionDispatch::IntegrationTest
+unless ActiveSupport::TestCase.method_defined?(:omit)
+  class ActiveSupport::TestCase
     def omit(msg=nil)
       puts "\nOmitted: #{msg}\n" if msg.present?
       skip
