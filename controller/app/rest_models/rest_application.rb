@@ -241,7 +241,7 @@ class RestApplication < OpenShift::Model
           Param.new("event", "string", "event", "activate"),
           Param.new("deployment_id", "string", "The deployment ID to activate the application"),
         ]),
-        "LIST_DEPLOYMENT" => Link.new("List all deployments", "GET", URI::join(url, "application/#{@id}/deployments")),
+        "LIST_DEPLOYMENTS" => Link.new("List all deployments", "GET", URI::join(url, "application/#{@id}/deployments")),
         "UPDATE" => Link.new("Update application", "PUT", URI::join(url, "application/#{@id}"), nil, [
           OptionalParam.new("auto_deploy", "boolean", "Indicates if OpenShift should build and deploy automatically whenever the user executes git push", [true, false]),
           OptionalParam.new("deployment_type", "string", "Indicates whether the app is setup for binary or git based deployments", ['git', 'binary']),
