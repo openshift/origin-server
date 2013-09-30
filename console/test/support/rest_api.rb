@@ -190,6 +190,7 @@ class ActiveSupport::TestCase
   # Needs to be an accessible web cart definition on devenv or public web
   DOWNLOADED_CART_URL = 'https://github.com/openshift/downloadable-mock/raw/master/metadata/manifest.yml'
   DOWNLOADED_CART_NAME = 'openshift-downloadable-mock-0.1'
+  DOWNLOADED_CART_DISPLAY_NAME = 'Downloadable Mock Cartridge 0.1'
 
   def with_app
     use_app(:readable_app) { Application.new({:id => "normalid", :name => "normal", :cartridge => 'ruby-1.8', :as => new_named_user('user_with_normal_app')}) }
