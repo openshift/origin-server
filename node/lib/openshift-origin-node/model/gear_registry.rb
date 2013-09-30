@@ -39,6 +39,10 @@ module OpenShift
         def as_json(options={})
           {namespace: @namespace, dns: @dns, proxy_hostname: @proxy_hostname, proxy_port: @proxy_port}
         end
+
+        def to_ssh_url
+          "#{@uuid}@#{@proxy_hostname}"
+        end
       end
 
       # Creates gear_registry.{lock,json} if they don't exist and sets the perms appropriately and

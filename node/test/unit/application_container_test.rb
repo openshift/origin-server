@@ -563,4 +563,280 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
     @container.update_cluster(proxy_arg, cluster_arg)
   end
+
+  def test_with_gear_rotation_no_proxy_no_all
+    count = 0
+    yielded_target_gear = nil
+    yielded_local_gear_env = nil
+
+    gear_env = {a: 1}
+    ::OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    @container.cartridge_model.expects(:web_proxy).returns(nil)
+
+    @container.expects(:calculate_batch_size).with(1, 0.2).returns(1)
+    Parallel.expects(:map).with([@container.uuid], :in_threads => 1).yields(@container.uuid)
+
+    with_gear_rotation_options = {b:2}
+    @container.expects(:rotate_and_yield).with(@container.uuid, gear_env, with_gear_rotation_options).yields(@container.uuid, gear_env, with_gear_rotation_options)
+
+    @container.with_gear_rotation(with_gear_rotation_options) do |target_gear, local_gear_env|
+      count += 1
+      yielded_target_gear = target_gear
+      yielded_local_gear_env = local_gear_env
+    end
+
+    assert_equal 1, count
+    assert_equal @container.uuid, yielded_target_gear
+    assert_equal gear_env, yielded_local_gear_env
+  end
+
+  def test_with_gear_rotation_with_proxy_no_all
+    count = 0
+    yielded_target_gear = nil
+    yielded_local_gear_env = nil
+
+    gear_env = {a: 1}
+    ::OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    proxy_cart = mock()
+    @container.cartridge_model.expects(:web_proxy).returns(proxy_cart)
+
+    gear_registry = mock()
+    @container.expects(:gear_registry).returns(gear_registry)
+    entry = mock()
+    entries = { :web => { @container.uuid => entry, 'a' => 'b' } }
+    gear_registry.expects(:entries).returns(entries)
+
+    @container.expects(:calculate_batch_size).with(1, 0.2).returns(1)
+    Parallel.expects(:map).with([entry], :in_threads => 1).yields(entry)
+
+    with_gear_rotation_options = {b:2}
+    @container.expects(:rotate_and_yield).with(entry, gear_env, with_gear_rotation_options).yields(entry, gear_env, with_gear_rotation_options)
+
+    @container.with_gear_rotation(with_gear_rotation_options) do |target_gear, local_gear_env|
+      count += 1
+      yielded_target_gear = target_gear
+      yielded_local_gear_env = local_gear_env
+    end
+
+    assert_equal 1, count
+    assert_equal entry, yielded_target_gear
+    assert_equal gear_env, yielded_local_gear_env
+  end
+
+  def test_with_gear_rotation_proxy_and_all
+    count = 0
+    yielded_target_gears = []
+    yielded_local_gear_envs = []
+
+    gear_env = {a: 1}
+    ::OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    proxy_cart = mock()
+    @container.cartridge_model.expects(:web_proxy).returns(proxy_cart)
+
+    gear_registry = mock()
+    @container.expects(:gear_registry).returns(gear_registry)
+    entry1 = mock()
+    entry2 = mock()
+    uuid2 = '5505'
+    entries = { :web => { @container.uuid => entry1, uuid2 => entry2 } }
+    gear_registry.expects(:entries).returns(entries)
+
+    @container.expects(:calculate_batch_size).with(2, 0.2).returns(1)
+    Parallel.expects(:map).with([entry1, entry2], :in_threads => 1).multiple_yields(entry1, entry2)
+
+    with_gear_rotation_options = {b:2, all: true}
+    @container.expects(:rotate_and_yield).with(entry1, gear_env, with_gear_rotation_options).yields(entry1, gear_env, with_gear_rotation_options)
+    @container.expects(:rotate_and_yield).with(entry2, gear_env, with_gear_rotation_options).yields(entry2, gear_env, with_gear_rotation_options)
+
+    @container.with_gear_rotation(with_gear_rotation_options) do |target_gear, local_gear_env|
+      count += 1
+      yielded_target_gears << target_gear
+      yielded_local_gear_envs << local_gear_env
+    end
+
+    assert_equal 2, count
+    assert_equal entry1, yielded_target_gears[0]
+    assert_equal gear_env, yielded_local_gear_envs[0]
+    assert_equal entry2, yielded_target_gears[1]
+    assert_equal gear_env, yielded_local_gear_envs[1]
+  end
+
+  def test_rotate_and_yield_no_proxy
+    options = {a: 1}
+    yielded_values = []
+    target_gear = mock()
+    local_gear_env = mock()
+
+    @container.expects(:update_proxy_status).never
+
+    @container.rotate_and_yield(target_gear, local_gear_env, options) { |*values| yielded_values = values}
+
+    assert_equal [target_gear, local_gear_env, options], yielded_values
+  end
+
+  def test_rotate_and_yield_proxy
+    proxy_cart = mock()
+    options = {a: 1, proxy_cart: proxy_cart}
+    yielded_values = []
+    target_gear = mock()
+    target_gear.expects(:uuid).returns('1234').times(2)
+    local_gear_env = mock()
+
+    @container.expects(:update_proxy_status).with(action: :disable, gear_uuid: '1234', cartridge: proxy_cart)
+    @container.expects(:update_proxy_status).with(action: :enable, gear_uuid: '1234', cartridge: proxy_cart)
+
+    @container.rotate_and_yield(target_gear, local_gear_env, options) { |*values| yielded_values = values}
+
+    assert_equal [target_gear, local_gear_env, options], yielded_values
+  end
+
+  def test_restart_success
+    options = {a: 1}
+    target_gear1 = mock()
+    target_gear2 = mock()
+    local_gear_env = mock()
+    cart_name = 'proxy_cart_name'
+
+    local_result = {
+      status: 'success',
+      target_gear_uuid: '1234',
+      messages: [],
+      errors: []
+    }
+
+    remote_result = {
+      status: 'success',
+      gear_results: {
+        '2345' => {
+          target_gear_uuid: '2345',
+          messages: [],
+          errors: [],
+          status: 'success'
+        }
+      }
+    }
+
+    @container.expects(:with_gear_rotation).multiple_yields([target_gear1, local_gear_env, options], [target_gear2, local_gear_env, options]).returns([local_result, remote_result])
+
+    @container.expects(:restart_gear).with(target_gear1, local_gear_env, cart_name, options).returns(local_result)
+    @container.expects(:restart_gear).with(target_gear2, local_gear_env, cart_name, options).returns(remote_result)
+
+    result = @container.restart(cart_name, options)
+    assert_equal 'success', result[:status]
+    assert_equal 2, result[:gear_results].size
+    assert_equal local_result, result[:gear_results]['1234']
+    assert_equal remote_result[:gear_results]['2345'], result[:gear_results]['2345']
+  end
+
+  def test_restart_failure
+    options = {a: 1}
+    target_gear = mock()
+    local_gear_env = mock()
+    cart_name = 'proxy_cart_name'
+
+    target_result = {
+      status: 'failure',
+      target_gear_uuid: '1234',
+      messages: [],
+      errors: []
+    }
+
+    @container.expects(:with_gear_rotation).yields(target_gear, local_gear_env, options).returns([target_result])
+
+    @container.expects(:restart_gear).with(target_gear, local_gear_env, cart_name, options).returns(target_result)
+
+    result = @container.restart(cart_name, options)
+    assert_equal 'failure', result[:status]
+    assert_equal 1, result[:gear_results].size
+    assert_equal target_result, result[:gear_results]['1234']
+  end
+
+  def test_restart_gear_string
+    target_gear = @container.uuid
+    local_gear_env = {a: 1}
+    cart_name = 'cart_name'
+    options = {b: 2}
+    restart_output = 'restart output'
+
+    @container.cartridge_model.expects(:start_cartridge).with('restart',
+                                                              cart_name,
+                                                              user_initiated: true,
+                                                              out: options[:out],
+                                                              err: options[:err]).returns(restart_output)
+
+    result = @container.restart_gear(target_gear, local_gear_env, cart_name, options)
+
+    assert_equal 'success', result[:status]
+    assert_equal target_gear, result[:target_gear_uuid]
+    assert_equal [restart_output], result[:messages]
+    assert_empty result[:errors]
+  end
+
+  def test_restart_gear_entry_success
+    target_gear = mock()
+    target_gear_uuid = 'uuid'
+    local_gear_env = {a: 1}
+    cart_name = 'cart_name'
+    options = {b: 2}
+    restart_output = {status: 'success', from_json: true}
+    restart_output_json = restart_output.to_json
+
+    target_gear.expects(:uuid).returns(target_gear_uuid)
+    target_gear_ssh_url = 'uuid@host'
+    target_gear.expects(:to_ssh_url).returns(target_gear_ssh_url)
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{target_gear_ssh_url} gear restart --cart #{cart_name} --as-json",
+                                                      env: local_gear_env,
+                                                      expected_exitstatus: 0).returns([restart_output_json, '', 0])
+
+    result = @container.restart_gear(target_gear, local_gear_env, cart_name, options)
+
+    restart_output.each_key { |k| assert_equal restart_output[k], result[k]}
+  end
+
+  def test_restart_gear_entry_nil_or_empty_output
+    [nil, ''].each do |output|
+      target_gear = mock()
+      target_gear_uuid = 'uuid'
+      local_gear_env = {a: 1}
+      cart_name = 'cart_name'
+      options = {b: 2}
+
+      target_gear.expects(:uuid).returns(target_gear_uuid)
+      target_gear_ssh_url = 'uuid@host'
+      target_gear.expects(:to_ssh_url).returns(target_gear_ssh_url)
+      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{target_gear_ssh_url} gear restart --cart #{cart_name} --as-json",
+                                                        env: local_gear_env,
+                                                        expected_exitstatus: 0).returns([output, '', 0])
+
+      result = @container.restart_gear(target_gear, local_gear_env, cart_name, options)
+      assert_equal 'failure', result[:status]
+      assert_match 'No result JSON was received from the remote gear restart call', result[:errors][0]
+    end
+  end
+
+  def test_restart_gear_entry_missing_status_in_result
+    [nil, ''].each do |output|
+      target_gear = mock()
+      target_gear_uuid = 'uuid'
+      local_gear_env = {a: 1}
+      cart_name = 'cart_name'
+      options = {b: 2}
+      restart_output = {from_json: true}
+      restart_output_json = restart_output.to_json
+
+      target_gear.expects(:uuid).returns(target_gear_uuid)
+      target_gear_ssh_url = 'uuid@host'
+      target_gear.expects(:to_ssh_url).returns(target_gear_ssh_url)
+      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{target_gear_ssh_url} gear restart --cart #{cart_name} --as-json",
+                                                        env: local_gear_env,
+                                                        expected_exitstatus: 0).returns([restart_output_json, '', 0])
+
+      result = @container.restart_gear(target_gear, local_gear_env, cart_name, options)
+      assert_equal 'failure', result[:status]
+      assert_match 'Invalid result JSON received from remote gear restart call:', result[:errors][0]
+    end
+  end
 end

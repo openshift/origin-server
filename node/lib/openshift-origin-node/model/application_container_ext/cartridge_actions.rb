@@ -887,17 +887,32 @@ module OpenShift
               err:            options[:err])
         end
 
-        # restart gear as supported by cartridges
-        def restart(cart_name, options={})
-          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+        # Perform a rolling gear rotation, yielding to the block in between
+        # the calls to rotate-out and rotate-in.
+        #
+        # If this is invoked in a gear that does not have a proxy cartridge,
+        # no rotation will happen and only the local gear will have the
+        # code in the block executed on it.
+        #
+        # If this is invoked in a gear that does have a web proxy cartridge,
+        # and options[:all] is set, the yielded action will be invoked for
+        # all web gears.
+        #
+        # @param [Hash] options
+        # @option options [Boolean] all invoke yielded action for all web gears
+        def with_gear_rotation(options={}, &block)
+          local_gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
           proxy_cart = options[:proxy_cart] = @cartridge_model.web_proxy
 
           gears = []
-          if proxy_cart and options[:all]
-            entries = gear_registry.entries[:web]
-            gears = entries.map { |gear_uuid, entry| "#{gear_uuid}@#{entry.proxy_hostname}" }
+          if proxy_cart
+            if options[:all]
+              gears = gear_registry.entries[:web].values
+            else
+              gears = [gear_registry.entries[:web][uuid]]
+            end
           else
-            gears = ["#{uuid}@unused"]
+            gears = [uuid]
           end
 
           parallel_concurrency_ratio = options[:parallel_concurrency_ratio] || PARALLEL_CONCURRENCY_RATIO
@@ -905,38 +920,126 @@ module OpenShift
           batch_size = calculate_batch_size(gears.size, parallel_concurrency_ratio)
           threads = [batch_size, MAX_THREADS].min
 
-          parallel_output = Parallel.map(gears, :in_threads => threads) do |gear|
-            restart_gear(gear, gear_env, cart_name, options)
+          parallel_output = Parallel.map(gears, :in_threads => threads) do |target_gear|
+            rotate_and_yield(target_gear, local_gear_env, options, &block)
           end
         end
 
-        def restart_gear(gear, gear_env, cart_name, options)
-          gear_uuid = gear.split('@')[0]
+        # If options[:proxy_cart] exists:
+        #
+        #   1. rotates-out the target gear
+        #   2. yields the target gear, local gear environment, and options hash
+        #   3. rotates-in the target gear
+        #
+        # Otherwise, just yields
+        #
+        def rotate_and_yield(target_gear, local_gear_env, options, &block)
           proxy_cart = options[:proxy_cart]
 
           if proxy_cart
             update_proxy_status(action: :disable,
-                                gear_uuid: gear_uuid,
+                                gear_uuid: target_gear.uuid,
                                 cartridge: proxy_cart)
           end
 
-          if gear_uuid == uuid
-            @cartridge_model.start_cartridge('restart',
-                                             cart_name,
-                                             user_initiated: true,
-                                             out: options[:out],
-                                             err: options[:err])
-          else
-            out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear} gear restart --cart #{cart_name}",
-                                                    env: gear_env,
-                                                    expected_exitstatus: 0)
-          end
+          result = yield(target_gear, local_gear_env, options)
 
           if proxy_cart
             update_proxy_status(action: :enable,
-                                gear_uuid: gear_uuid,
+                                gear_uuid: target_gear.uuid,
                                 cartridge: proxy_cart)
           end
+
+          result
+        end
+
+        # Restarts the specified cartridge.
+        #
+        # If options[:all] is specified and the local gear has a web proxy cartridge,
+        # rotates out, restarts, and rotates in each gear.
+        #
+        # Returns a result hash in the form:
+        #
+        #  {
+        #    status: 'success', # or 'failure'
+        #    gear_results: {
+        #      #{target_gear_uuid}: {
+        #        target_gear_uuid: #{target_gear_uuid},
+        #        status: 'success', # or 'failure',
+        #        messages: [], # strings
+        #        errors: [] # strings
+        #      }, ...
+        #    }
+        #  }
+        #
+        def restart(cart_name, options={})
+          result = {
+            status: 'success', # or 'failure'
+            gear_results: {}
+          }
+
+          parallel_results = with_gear_rotation(options) do |target_gear, local_gear_env, options|
+            target_result = restart_gear(target_gear, local_gear_env, cart_name, options)
+          end
+
+          parallel_results.each do |parallel_result|
+            local_result = parallel_result
+
+            # handle the case where we get output from 'gear restart'
+            if parallel_result.has_key?(:gear_results)
+              local_result = parallel_result[:gear_results].values[0]
+            end
+
+            target_gear_uuid = local_result[:target_gear_uuid]
+            result[:gear_results][target_gear_uuid] = local_result
+
+            result[:status] = 'failure' unless local_result[:status] == 'success'
+          end
+
+          result
+        end
+
+        # Restarts a single cartridge in a single gear. If the gear is local, perform the restart
+        # locally. Otherwise, SSH to the remote gear and invoke 'gear restart' to perform the
+        # restart.
+        #
+        # @param [String, OpenShift::Runtime::GearRegistry::Entry] target_gear the target gear to restart,
+        #   either a String (the uuid) or a GearRegistry Entry
+        def restart_gear(target_gear, local_gear_env, cart_name, options)
+          target_gear_uuid = target_gear.is_a?(String) ? target_gear : target_gear.uuid
+
+          result = {
+            status: 'success',
+            target_gear_uuid: target_gear_uuid,
+            messages: [],
+            errors: []
+          }
+
+          begin
+            # stay local (don't ssh) if the target gear is the local gear
+            if target_gear_uuid == uuid
+              result[:messages] << @cartridge_model.start_cartridge('restart',
+                                                                   cart_name,
+                                                                   user_initiated: true,
+                                                                   out: options[:out],
+                                                                   err: options[:err])
+            else
+              out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{target_gear.to_ssh_url} gear restart --cart #{cart_name} --as-json",
+                                                      env: local_gear_env,
+                                                      expected_exitstatus: 0)
+
+              raise "No result JSON was received from the remote gear restart call" if out.nil? || out.empty?
+
+              result = HashWithIndifferentAccess.new(JSON.load(out))
+
+              raise "Invalid result JSON received from remote gear restart call: #{result.inspect}" unless result.has_key?(:status)
+            end
+          rescue => e
+            result[:status] = 'failure'
+            result[:errors] = ["An exception occured updating the proxy status: #{e.message}\n#{e.backtrace.join("\n")}"]
+          end
+
+          result
         end
 
         # reload gear as supported by cartridges
@@ -1169,7 +1272,7 @@ module OpenShift
           url = "#{entry.uuid}@#{entry.proxy_hostname}"
 
           command = "/usr/bin/oo-ssh #{url} gear rotate-#{direction} --gear #{target_gear} #{persist_option} --cart #{cartridge.name}-#{cartridge.version} --as-json"
-          
+
           begin
             out, err, rc = run_in_container_context(command,
                                                     env: gear_env,
@@ -1180,7 +1283,7 @@ module OpenShift
             result = HashWithIndifferentAccess.new(JSON.load(out))
 
             raise "Invalid result JSON received from remote proxy update call: #{result.inspect}" unless result.has_key?(:status)
-          rescue Exception => e
+          rescue => e
             result = {
               status: :failure,
               proxy_gear_uuid: proxy_gear,
@@ -1207,7 +1310,7 @@ module OpenShift
               messages: [],
               errors: []
             }
-          rescue Exception => e
+          rescue => e
             result = {
               status: :failure,
               proxy_gear_uuid: proxy_gear,
@@ -1241,7 +1344,7 @@ module OpenShift
         #      }, ...
         #    }
         #  }
-        #  
+        #
         def update_proxy_status(options)
           action = options[:action]
           raise ArgumentError.new("action must either be :enable or :disable") unless [:enable, :disable].include?(action)
