@@ -2,12 +2,13 @@
 // ----------------------------------
 
 .popover-inner {
+  font-weight: 300;
   padding: 0;
   width: 220px;
   overflow: hidden;
   background: $popoverColor;
   @include border-radius(0);
-  @include box-shadow(0 0 10px rgba(75, 75, 75, 0.5));
+  @include box-shadow(0 1px 7px rgba(0,0,0,.2));
 }
 .popover-title {
   border-bottom: 0;

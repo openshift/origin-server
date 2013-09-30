@@ -80,7 +80,7 @@
 // -------------------------
 // For tipsies and popovers
 @mixin popoverArrow-top($arrowWidth: 5px) {
-  bottom: -5px;
+  bottom: -$arrowWidth;
   left: 50%;
   margin-left: -$arrowWidth;
   border-left: $arrowWidth solid transparent;
@@ -89,14 +89,14 @@
 }
 @mixin popoverArrow-left($arrowWidth: 5px) {
   top: 50%;
-  right: 0;
+  right: -$arrowWidth;
   margin-top: -$arrowWidth;
   border-top: $arrowWidth solid transparent;
   border-bottom: $arrowWidth solid transparent;
   border-left: $arrowWidth solid $popoverColor;
 }
 @mixin popoverArrow-bottom($arrowWidth: 5px) {
-  top: -5px;
+  top: -$arrowWidth;
   left: 50%;
   margin-left: -$arrowWidth;
   border-left: $arrowWidth solid transparent;
@@ -105,7 +105,7 @@
 }
 @mixin popoverArrow-right($arrowWidth: 5px) {
   top: 50%;
-  left: 0;
+  left: -$arrowWidth;
   margin-top: -$arrowWidth;
   border-top: $arrowWidth solid transparent;
   border-bottom: $arrowWidth solid transparent;
