@@ -6,8 +6,20 @@ $cartridgeBorderWidth: 10px;
 
 .applications {
   .application {
-    .flow > .flow-block.right {
-      white-space: nowrap;
+    .flow {
+      margin-bottom: 0;
+      > .flow-block.right {
+        white-space: nowrap;
+        .application-state, .gear-icon {
+          margin-right: 12px;
+        }
+      }
+      + .created {
+        color: #888;
+        font-size: $tinyFontSize;
+        font-weight: 300;
+        margin-top: -5px;
+      }
     }
   }
 
@@ -44,43 +56,39 @@ $cartridgeBorderWidth: 10px;
       }
     }
     .url-alter {
-      font-size: $h5FontSize;
+      font-size: $tinyFontSize;
+      margin-left: 10px;
     }
   }
 
-  .name {
-    display: inline-block;
+  .cartridges {
+    font-weight: 300;
+    margin-top: -5px;
   }
-
-  .cartridges { margin-top: -10px; }
 
   .domain { position: absolute; top: 1px; }
-
-  .gear { 
-    opacity: 0.8; 
-    > .gear-icon:before {
-      opacity: 0.4;
-    }
-  }
 
   .flow-block {
     a:visited, a:link {
       color: inherit;
     }
+    a:hover {
+      color: $openshiftBrightRed;
+      text-decoration: none;
+    }
 
     > .gear { 
       display: inline-block;
-      margin-right: 30px;
-      min-width: 60px;
-      white-space: nowrap;
+      font-weight: 300;
+      margin-left: 30px;
       position: relative;
+      white-space: nowrap;
     }
     > .url { 
-      margin-right: 10px;
       position: relative;
       > .url-icon {
         position: relative;
-        bottom: -4px;
+        bottom: -3px;
       }
       a {
         color: #333;
@@ -191,9 +199,6 @@ $cartridgeBorderWidth: 10px;
 
 @media (max-width: 767px) {
   .application {
-    .cartridges {
-      margin-top: -5px;
-    }
 
     .flow-block {
       > .gear {
@@ -466,7 +471,6 @@ $cartridgeBorderWidth: 10px;
     }
 
   #app-cartridges {
-    @include expand_for_phone(false);
     header {
       padding-left: $gridGutterWidthPhone;
     }

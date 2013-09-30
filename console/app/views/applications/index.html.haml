@@ -18,7 +18,7 @@
       - groups.each_pair do |domain_id, apps|
         %h4.domain
           - if groups.length == 1
-            Applications in domain 
+            Available in domain 
           = link_to domain_id, domain_path(domain_id)
           - if apps.first.owner?
           - elsif owner = apps.first.members.find(&:owner)

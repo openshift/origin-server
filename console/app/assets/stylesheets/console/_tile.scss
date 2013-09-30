@@ -18,7 +18,7 @@
   background: $consolePanelColor;
   @include panel_default_boxshadow();
   color: $consoleTextColorDefault;
-  padding: 15px 25px; 
+  padding: 10px 20px 15px; 
   margin-bottom: 20px; 
   &.cartridge_type .warning {
     color: $orange;
@@ -32,16 +32,21 @@
   > ul.meta > li > label {
     display: inline;
   }
-  .application-info > h2, > h3 {
-    > a { 
-      text-decoration: none;
-    }
-  }
   h2 {
     @include clearfix();
   }
+  .gear-icon {
+    color: #ccc;
+  }
   .tile-featured h3 {
     margin-right: 20px;
+  }
+}
+
+h1.tile .gears.pull-right {
+  color: #7f7f7f;
+  .consumed {
+    color: #333;
   }
 }
 
@@ -54,13 +59,14 @@
   &:hover {
     background: #fff !important;
     @include panel_default_boxshadow_hover();
-    .application-info > h2, > h3 {
-      > a {
-        color: #ea0011;
-      }
-    }
     .font-icon-block {
       opacity: 1;
+    }
+    .tile-target {
+      color: $openshiftBrightRed;
+      &:hover {
+        text-decoration: none;
+      }
     }
   }
   .font-icon-block {

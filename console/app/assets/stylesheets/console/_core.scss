@@ -261,7 +261,6 @@ figure {
     display:table-cell;
     vertical-align:middle;
     margin: 0;
-    text-transform: uppercase;
   }
   .header-btn {
     vertical-align:middle;
@@ -320,10 +319,7 @@ aside .header-bar {
 
 #app-list {
  .application-suggestions span[data-icon] {
-  color: #aaa;
- }
- .row .span4 {
-  margin-top: 9px; 
+  color: #bbb;
  }
 }
 
@@ -496,6 +492,7 @@ a.cap-link:hover {
     float: none;
     display: block;
     margin-left: 0;
+    margin-bottom: 20px;
     }
   .row {
     > strong {

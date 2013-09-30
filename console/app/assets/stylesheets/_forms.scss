@@ -782,7 +782,7 @@ textarea[readonly] {
   .control-label { margin-left: 15px; text-align: left; color: #666; }
   .error > .control-label { color: $errorBackground; }
 
-  .help-block { color: #888 !important; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; font-size: $tinyFontSize;}
+  .help-block { max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; font-size: $tinyFontSize;}
   .alert { max-width: 500px; }
 
   h3 .font-icon {margin-left: 10px}
