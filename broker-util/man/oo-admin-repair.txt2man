@@ -2,7 +2,7 @@
   
 SYNOPSIS
   oo-admin-repair [-h|--help] [-v|--verbose] [-r|--report-only] 
-  [--consumed-gears] [--ssh-keys] [--district-uids] [--unresponsive-apps]
+  [--consumed-gears] [--ssh-keys] [--district-uids] [--removed-nodes]
 
 DESCRIPTION
   This utility checks and fixes various inconsistencies in mongo data
@@ -14,7 +14,7 @@ DESCRIPTION
       on the gear on the node
     - mismatch in available UIDs for a district and actual 
       UIDs used by the gears on the nodes within the district
-    - unresponsive apps due to server node down/decommissioned
+    - apps due to server node down/decommissioned
 
 OPTIONS
   -r|--report-only
@@ -27,8 +27,8 @@ OPTIONS
     for a gear
   --district-uids
     Fix mismatch in available UIDs for a district in mongo
-  --unresponsive-apps
-    Fix or cleanup unresponsive apps due to server node down/decommissioned
+  --removed-nodes
+    Fix or cleanup apps due to server node down/decommissioned
   -h|--help
     Display a simple help dialog.
   -v|--verbose

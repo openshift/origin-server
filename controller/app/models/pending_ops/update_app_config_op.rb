@@ -14,8 +14,10 @@ class UpdateAppConfigOp < PendingAppOp
 
   def addParallelExecuteJob(handle)
     gear = get_gear()
-    tag = { "op_id" => self._id.to_s }
-    gear.update_configuration(self, handle, tag)
+    unless gear.node_removed
+      tag = { "op_id" => self._id.to_s }
+      gear.update_configuration(self, handle, tag)
+    end
   end
 
 end

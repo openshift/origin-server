@@ -6,7 +6,7 @@ oo-admin-repair
 .nf
 .fam C
 \fBoo-admin-repair\fP [\fB-h\fP|\fB--help\fP] [\fB-v\fP|\fB--verbose\fP] [\fB-r\fP|\fB--report-only\fP] 
-[\fB--consumed-gears\fP] [\fB--ssh-keys\fP] [\fB--district-uids\fP] [\fB--unresponsive-apps\fP]
+[\fB--consumed-gears\fP] [\fB--ssh-keys\fP] [\fB--district-uids\fP] [\fB--removed-nodes\fP]
 
 .fam T
 .fi
@@ -17,7 +17,7 @@ This utility checks for any applications where the ssh keys in mongo
 do not match the ssh keys on the gear.
 It can also be used to fix the ssh keys inconsistencies by force replacing
 all ssh keys on the gear with those in the broker database.
-It can also find and fix unresponsive apps due to server node down/decommissioned.
+It can also find and fix apps caused by server node down/decommissioned.
 .SH OPTIONS
 \fB-r\fP|\fB--report-only\fP
 Only report the mismatches, don't fix them 
@@ -34,8 +34,8 @@ Fix
 mismatch in SSH keys between mongo and on the node for a gear
 \fB--district-uids\fP
 Fix mismatch in available UIDs for a district in mongo
-\fB--unresponsive-apps\fP
-Fix or cleanup unresponsive apps due to server node down/decommissioned
+\fB--removed-nodes\fP
+Fix or cleanup apps due to server node down/decommissioned
 \fB-h\fP|\fB--help\fP
 Display a simple help dialog.
 \fB-v\fP|\fB--verbose\fP

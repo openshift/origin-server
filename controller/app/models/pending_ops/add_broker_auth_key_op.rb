@@ -11,9 +11,11 @@ class AddBrokerAuthKeyOp < PendingAppOp
 
   def addParallelExecuteJob(handle)
     gear = get_gear()
-    job = gear.get_broker_auth_key_add_job(iv, token)
-    tag = { "op_id" => self._id.to_s }
-    RemoteJob.add_parallel_job(handle, tag, gear, job)
+    unless gear.node_removed
+      job = gear.get_broker_auth_key_add_job(iv, token)
+      tag = { "op_id" => self._id.to_s }
+      RemoteJob.add_parallel_job(handle, tag, gear, job)
+    end
   end
 
 end

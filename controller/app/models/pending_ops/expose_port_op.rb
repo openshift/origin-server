@@ -10,10 +10,13 @@ class ExposePortOp < PendingAppOp
 
   def addParallelExecuteJob(handle)
     gear = get_gear()
-    component_instance = get_component_instance()
-    job = gear.get_expose_port_job(component_instance)
-    tag = { "expose-ports" => component_instance._id.to_s, "op_id" => self._id.to_s }
-    RemoteJob.add_parallel_job(handle, tag, gear, job)
+    unless gear.node_removed
+      component_instance = get_component_instance()
+      return if component_instance.is_sparse? and not gear.sparse_carts.include? component_instance._id
+      job = gear.get_expose_port_job(component_instance)
+      tag = { "expose-ports" => component_instance._id.to_s, "op_id" => self._id.to_s }
+      RemoteJob.add_parallel_job(handle, tag, gear, job)
+    end
   end
 
 end
