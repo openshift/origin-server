@@ -197,7 +197,9 @@ function stop() {
 }  #  End of function stop.
 
 function restart() {
-    stop
+    if is_supervisor_running; then
+      stop
+    fi
     start
 
 }  #  End of function  restart.
