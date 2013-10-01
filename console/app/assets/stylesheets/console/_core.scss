@@ -59,9 +59,10 @@ h5 {font-weight: normal;}
 
 .action-more:before {
   content: '\2192';
+  line-height: 1;
   margin: 0 5px 0 0;
   position: relative;
-  top: -3px;
+  top: 1px;
 }
 a.action-more {
   position: relative;
@@ -111,6 +112,7 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
 
 .important-list {
   font-size: 15px;
+  margin-top: 10px;
   > li > p.smaller {
     font-size: 13px;
     font-weight: 300;
