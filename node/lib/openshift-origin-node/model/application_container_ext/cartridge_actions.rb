@@ -19,8 +19,8 @@ module OpenShift
         end
 
         def post_configure(cart_name, template_git_url=nil)
-          output = ''
-          cartridge = @cartridge_model.get_cartridge(cart_name)
+          output         = ''
+          cartridge      = @cartridge_model.get_cartridge(cart_name)
           cartridge_home = PathUtils.join(@container_dir, cartridge.directory)
 
           # Only perform an initial build if the manifest explicitly specifies a need,
@@ -31,29 +31,30 @@ module OpenShift
 
             begin
               ::OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
-              logger.info "Executing initial gear prereceive for #{@uuid}"
-              Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
-                             env:                 env,
-                             chdir:               @container_dir,
-                             uid:                 @uid,
-                             timeout:             @hourglass.remaining,
-                             expected_exitstatus: 0)
+                logger.info "Executing initial gear prereceive for #{@uuid}"
+                Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
+                               env:                 env,
+                               chdir:               @container_dir,
+                               uid:                 @uid,
+                               timeout:             @hourglass.remaining,
+                               expected_exitstatus: 0)
 
-              logger.info "Executing initial gear postreceive for #{@uuid}"
-              Utils.oo_spawn("gear postreceive >> #{build_log} 2>&1",
-                             env:                 env,
-                             chdir:               @container_dir,
-                             uid:                 @uid,
-                             timeout:             @hourglass.remaining,
-                             expected_exitstatus: 0)
+                logger.info "Executing initial gear postreceive for #{@uuid}"
+                Utils.oo_spawn("gear postreceive >> #{build_log} 2>&1",
+                               env:                 env,
+                               chdir:               @container_dir,
+                               uid:                 @uid,
+                               timeout:             @hourglass.remaining,
+                               expected_exitstatus: 0)
+
               end
             rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
               max_bytes = 10 * 1024
               out, _, _ = Utils.oo_spawn("tail -c #{max_bytes} #{build_log} 2>&1",
-                             env:                 env,
-                             chdir:               @container_dir,
-                             uid:                 @uid,
-                             timeout:             @hourglass.remaining)
+                                         env:     env,
+                                         chdir:   @container_dir,
+                                         uid:     @uid,
+                                         timeout: @hourglass.remaining)
 
               message = "The initial build for the application failed: #{e.message}\n\n.Last #{max_bytes/1024} kB of build output:\n#{out}"
 
@@ -61,7 +62,16 @@ module OpenShift
             end
           end
 
-          output = @cartridge_model.post_configure(cart_name)
+          output << @cartridge_model.post_configure(cart_name)
+
+          pattern   = Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
+          out, _, _ = Utils.oo_spawn("grep -E '#{pattern}' #{build_log}",
+                                     env:                 env,
+                                     chdir:               @container_dir,
+                                     uid:                 @uid,
+                                     timeout:             @hourglass.remaining)
+          output << out
+
           output
         end
 

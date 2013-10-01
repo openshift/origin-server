@@ -4,6 +4,8 @@ module OpenShift
   module Runtime
     module Utils
       class Sdk
+        CLIENT_OUTPUT_PREFIXES = %w(CLIENT_RESULT CLIENT_MESSAGE CLIENT_ERROR CLIENT_INTERNAL_ERROR CLIENT_DEBUG)
+
         # Public: Translates a ShellExecutionException into a new instance whose stdout, stderr,
         # and return code are suitable for returning to the client. Output is translated with
         # translate_out_for_client, and return codes < 100 are mapped to 157.
