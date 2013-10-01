@@ -18,8 +18,14 @@ echo "  - Created/Updated virtenv and activated it."
 if [ -f "${OPENSHIFT_REPO_DIR}setup.py" ]; then
    echo " - Found setup.py. Processing it ..."
 
-   if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`; then
-      mirror_opts="-i http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
+   if [ -n "$OPENSHIFT_PYPI_MIRROR_URL" ]; then
+      m=$OPENSHIFT_PYPI_MIRROR_URL
+      if curl -m 15 -f -s "$m" &>/dev/null
+      then
+          mirror_opts="-i $m"
+      else
+	  echo "  - PyPi mirror is not available."
+      fi
    fi
 
    pushd "$OPENSHIFT_REPO_DIR" > /dev/null
