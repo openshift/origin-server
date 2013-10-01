@@ -32,7 +32,6 @@
 - :name: zend-5.6
   :priority: -1
   :categories:
-  - :featured
 
 - :description: Ruby is a dynamic, reflective, general-purpose object-oriented programming language. We recommend using Ruby 1.9.3 for new applications.
   :name: ruby-1.8
