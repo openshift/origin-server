@@ -84,6 +84,10 @@ class KeysControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
     put :update, {"id" => "abcd", "type" => "ssh-rsa", "content" => "ABCD1234XYZ"}
     assert_response :not_found
+    post :create, {"name" => key_name + "%", "type" => "ssh-rsa", "content" => "ABCD1234"}
+    assert_response :unprocessable_entity
+    post :create, {"name" => "." + key_name, "type" => "ssh-rsa", "content" => "ABCD1234"}
+    assert_response :unprocessable_entity
     # not ending with json or xml
     post :create, {"name" => key_name + ".json", "type" => "ssh-rsa", "content" => "ABCD1234"}
     assert_response :unprocessable_entity
