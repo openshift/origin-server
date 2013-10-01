@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.6
+Version: 1.15.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,16 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 01 2013 Adam Miller <admiller@redhat.com> 1.15.7-1
+- Merge pull request #3746 from
+  jwforres/bug_998396_no_api_response_member_delete
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3744 from detiber/bz1013788
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 998396 - member remove api doesnt return a message (jforrest@redhat.com)
+- Bug 1013788 - Remove first_uid from district model (jdetiber@redhat.com)
+- Bug 1013429 (asari.ruby@gmail.com)
+
 * Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.6-1
 - oo-admin-repair changes (rpenta@redhat.com)
 - Remove skip_node_ops flag from user/domain/app/district models.
