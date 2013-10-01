@@ -60,6 +60,16 @@ end
 usage if args["--help"]
 
 require "/var/www/openshift/broker/config/environment"
+ 
+# Reset the logging options. We want DEBUG level stuff.
+module Broker
+  class Application < Rails::Application
+    Mongoid.logger = Rails.logger
+    Moped.logger = Rails.logger
+    Mongoid.logger.level = Logger::DEBUG
+    Moped.logger.level = Logger::DEBUG
+  end
+end
 
 $count = 0
 def clean_app(a)
