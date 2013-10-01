@@ -57,18 +57,15 @@
 .applications, .domains {
   .section-body .row {
     .span4 {
-      font-weight: 300;
+      font-size: $tinyFontSize;
       > h2 {
         font-size: $h6FontSize;
         font-weight: 400;
         line-height: $h6LineHeight;
         margin-bottom: 5px;
       }
-      label {
-        font-weight: 300;
-      }
-      strong {
-        font-weight: 400;
+      label, p {
+        font-size: $tinyFontSize;
       }
     }
     .span8 {
