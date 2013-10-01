@@ -29,6 +29,19 @@ class DomainsControllerTest < ActionController::TestCase
     "d#{uuid[0..10]}%i"
   end
 
+  test "should display domain list" do
+    with_domain
+
+    get :index
+
+    assert domains = assigns(:domains)
+    assert domain = domains.first
+    assert_equal @domain, domain
+    assert domain.capabilities.present?
+    assert domain.members.present?
+    assert assigns(:can_create) != nil
+  end
+
   test "should display domain creation form" do
     get :new
 
@@ -43,6 +56,14 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert domain.errors.empty?, domain.errors.inspect
     assert_redirected_to settings_path
+  end
+
+  test "should create domain and redirect" do
+    post :create, {:domain => get_post_form, :then => '/redirect?param1=value1&param2=value2', :domain_param => 'param1'}
+
+    assert domain = assigns(:domain)
+    assert domain.errors.empty?, domain.errors.inspect
+    assert_redirected_to "/redirect?param1=#{domain.name}&param2=value2"
   end
 
   test "should clear domain session cache" do
@@ -115,6 +136,14 @@ class DomainsControllerTest < ActionController::TestCase
 
     get :edit
     assert_template :edit
+    assert_response :success
+  end
+
+  test "should show domain info page" do
+    with_domain
+
+    get :show, {:id => @domain.id}
+    assert_template :show
     assert_response :success
   end
 

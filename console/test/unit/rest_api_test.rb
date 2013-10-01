@@ -1074,6 +1074,73 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal '2', d.id
   end
 
+  def test_member_sort
+    result = [
+      Domain::Member.new(:name => 'A', :id => '0'),
+      Domain::Member.new(:name => 'b', :id => '1'),
+      Domain::Member.new(:name => 'a', :id => '2'),
+      Domain::Member.new(:name => 'B', :id => '3'),
+      Domain::Member.new(:name => 'A', :id => '4')
+    ].sort.map(&:id)
+
+    assert_equal ['0', '4','3','2','1'], result
+  end
+
+  def test_domain_leave_success
+    Domain.any_instance.expects(:delete).returns(Net::HTTPSuccess.new('', '200', ''))
+    d = Domain.new({:id => '1', :as => @user}, true)
+    assert d.leave
+  end
+
+  def test_domain_leave_failure
+    Domain.any_instance.expects(:delete).raises(ActiveResource::BadRequest.new(Net::HTTPBadRequest.new('', '400', 'You cannot leave')))
+    d = Domain.new({:id => '1', :as => @user}, true)
+    assert !d.leave
+  end
+
+  def test_domain_add_member
+    d = Domain.new({:id => '1', :as => @user}, true)
+
+    # No members
+    members = []
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domain/1/members.json', json_header(true), members.to_json
+    end
+    d.update_members(members)
+    assert_equal members.map(&:attributes), d.members.map(&:attributes)
+
+    # 1 member
+    members = [Domain::Member.new(:id => '123', :role => 'view')]
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domain/1/members.json', json_header(true), members.first.to_json
+    end
+    d.update_members(members)
+    assert_equal members.map(&:attributes), d.members.map(&:attributes)
+
+    # 2 members
+    members = [
+      Domain::Member.new(:id => '123', :role => 'view'),
+      Domain::Member.new(:id => '234', :role => 'edit')
+    ]
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domain/1/members.json', json_header(true), members.to_json
+    end
+    d.update_members(members)
+    assert_equal members.map(&:attributes), d.members.map(&:attributes)    
+
+    # 1 members, remove 1 member
+    members = [
+      Domain::Member.new(:id => '123', :role => 'view'),
+      Domain::Member.new(:id => '234', :role => 'none')
+    ]
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domain/1/members.json', json_header(true), members.select{|m| m.role != 'none'}.to_json
+    end
+    d.update_members(members)
+    assert_equal members.select{|m| m.role != 'none'}.map(&:attributes), d.members.map(&:attributes)    
+  end
+
+
   def test_cartridge_type_url_basename
     assert_nil CartridgeType.new.url_basename
     {
