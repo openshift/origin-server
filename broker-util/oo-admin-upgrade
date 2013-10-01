@@ -73,7 +73,6 @@ module OpenShift
     #
     class NodeQueueEntry < UpgradePersistable
       attr_accessor :server_identity,
-                    :ignore_cartridge_version,
                     :active_gear_length,
                     :inactive_gear_length,
                     :gears_length,
@@ -97,7 +96,6 @@ module OpenShift
     class GearQueueEntry < UpgradePersistable
       attr_accessor :server_identity,
                     :version,
-                    :ignore_cartridge_version,
                     :gear_uuid,
                     :gear_name,
                     :app_name,
@@ -250,7 +248,6 @@ class Upgrader
                             upgrade_position: upgrade_position,
                             num_upgraders: num_upgraders,
                             version: version,
-                            ignore_cartridge_version: ignore_cartridge_version,
                             gear_whitelist: gear_whitelist)
     end
 
@@ -306,7 +303,7 @@ class Upgrader
 
           # perform the node upgrade
           begin
-            upgrade_node(node.server_identity, active_only)
+            upgrade_node(node.server_identity, active_only, ignore_cartridge_version)
           rescue Exception => e
             puts e.message
             puts e.backtrace.join("\n")
@@ -386,7 +383,6 @@ class Upgrader
     upgrade_position = opts[:upgrade_position]
     num_upgraders = opts[:num_upgraders]
     version = opts[:version]
-    ignore_cartridge_version = opts[:ignore_cartridge_version]
     gear_whitelist = opts[:gear_whitelist]
 
     metadata = OpenShift::Upgrader::ClusterMetadata.new
@@ -482,7 +478,6 @@ class Upgrader
       node = OpenShift::Upgrader::NodeQueueEntry.new({
         server_identity: server_identity,
         version: version,
-        ignore_cartridge_version: ignore_cartridge_version,
         active_gear_length: 0,
         inactive_gear_length: 0
       })
@@ -544,7 +539,6 @@ class Upgrader
       queue_entry = OpenShift::Upgrader::GearQueueEntry.new({
         server_identity: node.server_identity,
         version: node.version,
-        ignore_cartridge_version: node.ignore_cartridge_version,
         gear_uuid: gear[:uuid],
         gear_name: gear[:name],
         app_name: gear[:app_name],
@@ -562,7 +556,7 @@ class Upgrader
   # The upgrade logic will continue or retry failures depending on the presence of the appropriate
   # gear queue files, and will do nothing if there are no queues to process.
   #
-  def upgrade_node(server_identity, active_only)
+  def upgrade_node(server_identity, active_only, ignore_cartridge_version = false)
     raise "No server identity specified" unless server_identity
 
     gear_queue_file = gear_queue_path(server_identity)
@@ -592,6 +586,9 @@ class Upgrader
     # fork the call to +upgrade_node_from_gear_queue_file+ (TODO: revisit this later; the
     # fork is apparently used to work around long-forgotten MCollective threading issues)
     upgrade_node_cmd = "#{__FILE__} upgrade-from-file --upgrade-file '#{gear_queue_file}' --active-only #{active_only}"
+
+    upgrade_node_cmd += " --ignore-cartridge-version" if ignore_cartridge_version
+
     execute_script(upgrade_node_cmd)
   end
 
@@ -612,7 +609,7 @@ class Upgrader
   # This method returns nothing; callers must inspect the result file contents for
   # upgrade details.
   #
-  def upgrade_node_from_gear_queue_file(file, active_only = false)
+  def upgrade_node_from_gear_queue_file(file, active_only = false, ignore_cartridge_version = false)
     File.open(file, 'r').each_line do |queue_entry_json|
       next if queue_entry_json.nil? || queue_entry_json.empty?
 
@@ -631,7 +628,7 @@ class Upgrader
       num_tries = 2
       (1..num_tries).each do |i|
         # perform the upgrade
-        gear_result = upgrade_gear(gear.login, gear.app_name, gear.gear_uuid, gear.version, gear.ignore_cartridge_version)
+        gear_result = upgrade_gear(gear.login, gear.app_name, gear.gear_uuid, gear.version, ignore_cartridge_version)
 
         # write the results if all is well
         if gear_result.errors.empty?
@@ -989,9 +986,10 @@ class UpgraderCli < Thor
   desc "upgrade-from-file", "Upgrades gears from a gear queue file"
   method_option :upgrade_file, :type => :string, :required => true, :desc => "The gear queue file to upgrade from"
   method_option :active_only, :type => :boolean, :default => false, :desc => "Skip inactive gears when processing the file"
+  method_option :ignore_cartridge_version, :type => :boolean, :default => false, :desc => "Force cartridge upgrade even if cartridge versions match"
   def upgrade_from_file
     with_upgrader do |upgrader|
-      upgrader.upgrade_node_from_gear_queue_file(options.upgrade_file, options.active_only?)
+      upgrader.upgrade_node_from_gear_queue_file(options.upgrade_file, options.active_only?, options.ignore_cartridge_version?)
     end
   end
 
