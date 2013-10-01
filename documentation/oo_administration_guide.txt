@@ -472,7 +472,7 @@ deployment, in order to search and navigate OpenShift entities and make
 reasonable inferences about adding new capacity.
 Consult the Deployment Guide for instructions on enabling the admin console.
 
-Note: in this first iteration, the admin console is read-only, and does not enable making any changes to any settings or data.
+Note: in this first iteration, the admin console is read-only, and does not enable making any changes to settings or data.
 
 === Configuration
 The admin console is configured via the _/etc/openshift/plugins.d/openshift-origin-admin-console.conf_ file (which can be overridden in a development environment with settings in the _-dev.conf_ version of that file). The example file installed with the plugin contains lengthy comments on the available settings which we need not repeat here.
@@ -512,8 +512,8 @@ One of the goals for the admin console is to expose OpenShift system data for us
 ----
 
 * _/admin-console/capacity/profiles.json_ - this returns all profile summaries from the Admin Stats library (the same library used by oo-stats). Add the _?reload=1_ parameter to ensure the data is fresh rather than cached.
-* _/admin-console/capacity/gears_per_user.json_ - this returns frequency data for gears owned by a user
-* _/admin-console/capacity/apps_per_domain.json_ - this returns frequency data for apps belonging to a domain
-* _/admin-console/capacity/domains_per_user.json_ - this returns frequency data for domains owned by a user
+* _/admin-console/stats/gears_per_user.json_ - this returns frequency data for gears owned by a user
+* _/admin-console/stats/apps_per_domain.json_ - this returns frequency data for apps belonging to a domain
+* _/admin-console/stats/domains_per_user.json_ - this returns frequency data for domains owned by a user
 
 
