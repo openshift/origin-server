@@ -101,11 +101,6 @@
     .cartridge-inset {
       padding: 15px 20px;
     }
-    .data .gear-icon {
-      color: #bbb;
-      font-size: 11px;
-      margin-right: 3px;
-    }
     .flow-block.right > span {
       font-weight: 300;
       strong {
@@ -143,6 +138,11 @@
       margin-top: $baseLineHeight*0.25;
       margin-bottom: 0;
     }
+    ul.inline > li {
+      margin-bottom: 0;
+      padding-left: 15px;
+      padding-right: 0;
+    }
     .warning {
       color: #EB0011;
     }
@@ -167,6 +167,14 @@
   @include truncate();
   max-width: 65%;
   //display: inline-block; // makes empty array unbalanced
+}
+
+.domain .flow .flow-block.right {
+  font-size: $baseFontSize;
+  font-weight: 300;
+  span {
+    margin-left: 15px;
+  }
 }
 
 .form-search {

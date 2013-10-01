@@ -103,7 +103,10 @@
                           %h4 Gears
                           %div.data
                             = link_to cartridge_gear_group_count(group), application_scaling_path(@application, :anchor => cartridge.name), :title => gear_group_count_title(group.gears.length)
-                            %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
+
+                        %li.top
+                          %h4 Storage
+                          %div.data
                             = link_to cartridge_storage(cartridge), application_storage_path(@application, :anchor => cartridge.name), :title => "Each gear is allocated disk space.  Click to change."
 
                 - else
@@ -192,10 +195,8 @@
     - members = @application.members
     - if members.size > 1
       %h2
-        Members
-        %aside.pull-right
-          from 
-          = link_to "domain", domain_members_path(@application.domain_id)
+        Members from 
+        =link_to "domain", domain_members_path(@application.domain_id)
       %table.table.table-condensed
         - if me = members.find(&:me)
           %tr
