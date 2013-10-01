@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.5
+Version: 1.15.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -258,6 +258,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Oct 01 2013 Adam Miller <admiller@redhat.com> 1.15.6-1
+- Merge pull request #3737 from mfojtik/bugzilla/1013653
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1013653 - Remove '.to_i' in oo-su command to avoid wrong user id
+  (mfojtik@redhat.com)
+- Bug 1012348 - Adding unixODBC dependencies to the node gem for compatibility
+  with Online (bleanhar@redhat.com)
+
 * Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
 - Merge pull request #3720 from smarterclayton/origin_ui_72_membership
   (dmcphers+openshiftbot@redhat.com)
