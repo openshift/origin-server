@@ -20,6 +20,20 @@ $h4FontSize:              $baseFontSize * 1.10;
 $h5FontSize:              $baseFontSize;
 $h6FontSize:              $baseFontSize * .9;
 
+$h1LineHeight:              $baseLineHeight * 2;
+$h2LineHeight:              $baseLineHeight * 1.75;
+$h3LineHeight:              $baseLineHeight * 1.5;
+$h4LineHeight:              $baseLineHeight;
+$h5LineHeight:              $baseLineHeight;
+$h6LineHeight:              $baseLineHeight;
+
+$h1MarginBottom:              $baseLineHeight - 8;
+$h2MarginBottom:              $baseLineHeight / 3.5;
+$h3MarginBottom:              $baseLineHeight / 3.5;
+$h4MarginBottom:              $baseLineHeight / 3;
+$h5MarginBottom:              $baseLineHeight / 3;
+
+
 $bodyBackground:          #fff !default;
 
 $responsivePhone:         480px;

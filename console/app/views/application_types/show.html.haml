@@ -187,7 +187,8 @@
 
       .controls
         - if warn = warn_may_not_scale(@application_type, @domain_capabilities)
-          %span.text-warning= warn
+          %p.help-block
+            %span.text-warning= warn
         %p.help-block
           OpenShift automatically routes web requests to your web gear.
           - if can_scale

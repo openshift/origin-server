@@ -5,11 +5,12 @@
 - content_for :top do
   .grid-wrapper.section-header
     %nav.span12.applications
-      %h1.tile
-        = render :partial => 'account_state', :locals => {:capabilities => @capabilities}
-        Applications
+      .tile
+        %h1.flow
+          Applications
+          = render :partial => 'account_state', :locals => {:capabilities => @capabilities}
 
-:css
+-#:css
   @media (max-width: 767px) {    
     .popover {
       bottom: 20px !important;
@@ -36,7 +37,7 @@
     .span8
       - groups = @applications.sort_by{ |a| [a.owner? ? 0 : 1, a.creation_time] }.group_by{ |a| a.domain_id }
       - groups.each_pair do |domain_id, apps|
-        %h4.domain
+        %h2.domain
           - if groups.length == 1
             Available in domain 
           = link_to domain_id, domain_path(domain_id)
@@ -54,7 +55,7 @@
           %i.icon-add
 
     .span4.application-suggestions
-      %h5 You may want to...
+      %h2 You may want to...
 
       %ul.unstyled
         - unless @has_key
@@ -112,7 +113,7 @@
             %span{'data-icon' => "\uee02"}
 
       - if @has_key
-        %h5 From the command line
+        %h3 From the command line
         The <code>rhc</code> client lets you:
         %ul.unstyled
           %li

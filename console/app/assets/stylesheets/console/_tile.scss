@@ -32,6 +32,40 @@
   > ul.meta > li > label {
     display: inline;
   }
+  .flow {
+    > .flow-block.right {
+      white-space: nowrap;
+      .count, .restart {
+        margin-left: 20px;
+      }
+      .gear-icon, {
+        font-size: 20px;
+      }
+      .restart {
+        &.confirm-container {
+          display: inline-block;
+          position: relative; 
+          text-align: left !important;
+          white-space: normal;
+          strong {
+            font-weight: 400;
+          }
+        }
+        .font-icon {
+          font-size: 20px;
+        }
+      }
+    }
+    + .created {
+      color: #888;
+      font-size: $tinyFontSize;
+      font-weight: 300;
+      margin-top: -6px;
+    }
+  }
+  h1.flow {
+    margin-bottom: 0;
+  }
   h2 {
     @include clearfix();
   }
@@ -40,13 +74,6 @@
   }
   .tile-featured h3 {
     margin-right: 20px;
-  }
-}
-
-h1.tile .gears.pull-right {
-  color: #7f7f7f;
-  .consumed {
-    color: #333;
   }
 }
 

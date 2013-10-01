@@ -54,39 +54,39 @@ h3 + h4, h3 + h5, h4 + h5 {
 //}
 h1 {
   font-size: $h1FontSize;
-  line-height: $baseLineHeight * 2;
-  margin-bottom: $baseLineHeight - 8;
+  line-height: $h1LineHeight;
+  margin-bottom: $h1MarginBottom;
 }
 h2 {
   font-size: $h2FontSize;
-  line-height: $baseLineHeight * 1.75;
-  margin-bottom: $baseLineHeight / 3.5;
+  line-height: $h2LineHeight;
+  margin-bottom: $h2MarginBottom;
 }
 h3 {
   font-size: $h3FontSize;
-  line-height: $baseLineHeight * 1.5;
-  margin-bottom: $baseLineHeight / 3.5;
+  line-height: $h3LineHeight;
+  margin-bottom: $h3MarginBottom;
   small {
     font-size: $baseFontSize;
   }
 }
 h4 {
   font-size: $h4FontSize;
-  line-height: $baseLineHeight;
-  margin-bottom: $baseLineHeight / 3;
+  line-height: $h4LineHeight;
+  margin-bottom: $h4MarginBottom;
   small {
     font-size: $baseFontSize * .88;
   }
 }
 h5 {
   font-size: $h5FontSize;
-  line-height: $baseLineHeight;
-  margin-bottom: $baseLineHeight / 3;
+  line-height: $h5LineHeight;
+  margin-bottom: $h5MarginBottom;
   font-weight: 600;
 }
 h6 {
   font-size: $h6FontSize;
-  line-height: $baseLineHeight;
+  line-height: $h6LineHeight;
   font-weight: 600;
 }
 
@@ -146,6 +146,12 @@ ul.unstyled,
 ol.unstyled {
   margin-left: 0;
   list-style: none;
+  li > [data-icon]:first-child {
+    color: #999;
+    font-size: 12px;
+    margin-left: 1px;
+    margin-right: 3px;
+  }
 }
 ul.spaced-items > li, ol.spaced-items > li {
   margin-bottom: 13px;

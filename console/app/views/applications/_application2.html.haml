@@ -1,5 +1,5 @@
 .tile.tile-click.application{ :class => application.owner? ? 'application-owned' : nil }
-  %h2.flow
+  %h3.flow
     - if application.aliases.present?
       = link_to application_path(application), :class => 'tile-target flow-block name' do
         = application.name
@@ -9,10 +9,11 @@
       = link_to application.name, application_path(application), :class => 'tile-target'
 
     %span.flow-block.right
-      = link_to application.web_url, :target => '_blank', :class => 'url', :title => "Go to the application's web page" do
-        %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
+      %span.url
+        = link_to application.web_url, :target => '_blank', :title => "Go to the application's web page" do
+          %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
 
-      %span.gear{:title => application_gear_count(application)}
+      %span.count{:title => application_gear_count(application)}
         = application.gear_count
         %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
         - if (scales = application.cartridges.select(&:scales?)) and scales.present?

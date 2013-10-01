@@ -115,7 +115,7 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
     font-size: 13px;
     font-weight: 300;
     > strong {
-      font-weight: 500;
+      font-weight: 600;
     }
   }
   p:first-child {
@@ -313,7 +313,6 @@ aside .header-bar {
 }
 
 .sidebar {
-  border-bottom: 1px dotted #ccc;
   margin-bottom: $baseLineHeight; 	
 }
 
@@ -449,22 +448,6 @@ a.cap-link {
 }
 a.cap-link:hover {
   color: #bebebe;
-}
-
-
-.btn-console-header {
-  height: 36px;
-  padding: 2px;
-  position: relative;
-  width: 33px;
-  border: 1px solid transparent;
-  opacity: .75;
-  &:hover, &.highlight {
-    opacity: 1;
-  }
-  &:active {
-    border-color: #B1E5F2;
-  }
 }
 
 #secondary {

@@ -1,40 +1,37 @@
-:css
-  span.flow-block > span {margin: 0 10px; font-size: 12px; font-weight: normal; text-transform: uppercase; opacity: .75;}
-  .domains .owner { padding-bottom: 5px; margin-bottom: 8px; border-bottom: 4px solid #222; }  
-  .domain + .owner { margin-top: 20px; }
-
 - content_for :page_style, 'highlight'
 - content_for :top do
   .grid-wrapper.section-header
-    %nav.span12.span-flush-right.applications
-      %h1
-        Domains
+    %nav.span12.domains
+      .tile
+        %h1.flow
+          Domains
 
-%section#app-list.span12
+%section#app-list
   %section
 
-  .span8
-    - groups = @domains.sort_by{ |d| [d.owner? ? 0 : 1, d.name] }.group_by{ |d| d.owner? }
-    - groups.each_pair do |owned, domains|
-      %h4.owner
-        - if owned
-          Your domains
-        - else
-          Domains shared with you
+  .row
+    .span8
+      - groups = @domains.sort_by{ |d| [d.owner? ? 0 : 1, d.name] }.group_by{ |d| d.owner? }
+      - groups.each_pair do |owned, domains|
+        %h2.owner
+          - if owned
+            Your domains
+          - else
+            Domains shared with you
 
-      - domains.each do |domain|
-        .tile.tile-click.domain
-          %h2.flow
-            = link_to domain.name, domain_path(domain), :class => 'tile-target'
+        - domains.each do |domain|
+          .tile.tile-click.domain
+            %h3.flow
+              = link_to domain.name, domain_path(domain), :class => 'tile-target'
 
-            %span.flow-block.right
-              %span{:title => 'Applications'}= pluralize(domain.application_count, 'application')
-              %span{:title => 'Gears'}= pluralize(domain.gear_counts.values.sum, 'gear')
-              %span{:title => 'Members'}= pluralize(domain.members.count, 'member')
+              %span.flow-block.right
+                %span{:title => 'Applications'}= pluralize(domain.application_count, 'application')
+                %span{:title => 'Gears'}= pluralize(domain.gear_counts.values.sum, 'gear')
+                %span{:title => 'Members'}= pluralize(domain.members.count, 'member')
 
-    - if @can_create
-      .btn-toolbar.base
-        = link_to new_domain_path, :class => 'btn btn-primary' do
-          Add
-          %strong Domain
-          %i.icon-add
+      - if @can_create
+        .btn-toolbar.base
+          = link_to new_domain_path, :class => 'btn btn-primary' do
+            Add
+            %strong Domain
+            %i.icon-add

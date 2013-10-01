@@ -2,278 +2,174 @@
 * Application standard layouts
 */
 
-$cartridgeBorderWidth: 10px;
-
-.applications {
-  .application {
-    .flow {
-      margin-bottom: 0;
-      > .flow-block.right {
-        white-space: nowrap;
-        .application-state, .gear-icon {
-          margin-right: 12px;
-        }
-      }
-      + .created {
-        color: #888;
-        font-size: $tinyFontSize;
-        font-weight: 300;
-        margin-top: -5px;
-      }
-    }
-  }
-
-  .application + .domain {
-    margin-top: 20px;
-  }
-
-  .domain {
-    padding-bottom: 5px; 
-  }  
-}
-
 .application {
 	position: relative;
-
-  a:hover, a:active {
-    opacity: 1;
-  }
-
   &.warning {
-  	border-left: 2px dashed #bb161c;
+  	border-left: 2px solid #bb161c;
 	}
-
   > h1 {
-    .url {
+    .name {
+      display: inline-block;
+    }
+    .url-default .name {
+      display: inline;
     }
     .url-alias {
-    }
-    .url-default {
-      > .name {
-        margin-right: 0;
-      }
-      > .url {
-      }
+      margin-left: 10px;
     }
     .url-alter {
       font-size: $tinyFontSize;
       margin-left: 10px;
     }
   }
-
   .cartridges {
+    font-size: $tinyFontSize;
     font-weight: 300;
-    margin-top: -5px;
   }
-
-  .domain { position: absolute; top: 1px; }
-
   .flow-block {
-    a:visited, a:link {
-      color: inherit;
-    }
-    a:hover {
-      color: $openshiftBrightRed;
-      text-decoration: none;
-    }
-
-    > .gear { 
-      display: inline-block;
-      font-weight: 300;
-      margin-left: 30px;
-      position: relative;
-      white-space: nowrap;
-    }
-    > .url { 
-      position: relative;
-      > .url-icon {
-        position: relative;
-        bottom: -3px;
+    #app-list & {
+      .count {
+        font-weight: 300;
+        .gear-icon {
+          font-size: 16px;
+        }
       }
-      a {
-        color: #333;
+    }
+    span > {
+      a:visited, a:link {
+        color: inherit;
       }
+      a:hover, a:active {
+        color: $openshiftBrightRed;
+        text-decoration: none;
+      }
+    }
+    .url-icon {
+      bottom: -5px;
+      position: relative;
     }
   }
-
 	.gear-numbers {
 		color: #bcbdbc;
 	}
-  .emblem {
-  	vertical-align: middle;
-  	padding: 2px 0;
-
-    margin-right: 15px;
-    margin-top: 6px;
-    img {
-  		margin-right: 7px;
-		  vertical-align: middle;
-  	}
-  }
 }
 
-.gauge-vertical {
-  line-height: 7px;
-  position: absolute;
-  top: -3px;
-  right: -6px;
-  font-size: 36px;
-  width: 1px;
-  white-space: normal;
-
-  > .empty { 
-    opacity: 0.5;
-  }
-  > .fill  { 
-    opacity: 1.0;
-  }
-}
-
-.section-header > .application {
-
-  > .url {
-    line-height: 36px; // chosen to match h1
-    font-size: $largeFontSize;
-  }
-
-  // move these under .application
-	.emblem {	
-    img {
-      vertical-align: middle;
-      margin-right: 13px;
-      margin-bottom: 3px;
+.applications, .domains {
+  .section-body .row {
+    .span4 {
+      font-weight: 300;
+      > h2 {
+        font-size: $h6FontSize;
+        font-weight: 400;
+        line-height: $h6LineHeight;
+        margin-bottom: 5px;
+      }
+      label {
+        font-weight: 300;
+      }
+      strong {
+        font-weight: 400;
+      }
+    }
+    .span8 {
+      > h2 {
+        font-size: $h4FontSize;
+        line-height: $h4LineHeight;
+        margin-bottom: $h4MarginBottom;
+      }
+      .span4 > h3, .span5 > h3 {
+        font-size: $h5FontSize;
+        line-height: $h5LineHeight;
+        margin-bottom: $h5MarginBottom;
+      }
+      .tile h3 {
+        font-size: $h2FontSize;
+        line-height: $h2LineHeight;
+        margin-bottom: -5px;
+      }
     }
   }
-	.total-cost {	
-		font-size: 32px; //FIXME
-		font-weight: 300;
-		margin-top: 10px;
-		padding-right: 30px;
-    text-align: right;
-	}
 }
 
-.application_type.tile {
-  margin-bottom: 10px;
+.application-suggestions {
+  font-size: $tinyFontSize;
+}
+
+#app-cartridges {
+  .cartridge-block {
+    position: relative;
+    &.cartridge-embedded {
+      border-top: 1px dashed $consolePanelBorderColor;
+    }
+    .cartridge-inset {
+      padding: 15px 20px;
+    }
+    .data .gear-icon {
+      color: #bbb;
+      font-size: 11px;
+      margin-right: 3px;
+    }
+    .flow-block.right > span {
+      font-weight: 300;
+      strong {
+        font-weight: 400;
+      }
+    }
+    h3, h4 {
+      line-height: 1;
+      margin-bottom: 0;
+    }
+    h3 {
+      font-size: $h4FontSize;
+      .font-icon {
+        color: #bbb;
+        font-size: 13px;
+        margin-right: 4px;
+      }
+    }
+    h4 {
+      font-size: $h6FontSize;
+      font-weight: 300;
+      margin-bottom: 3px;
+    }
+    input {
+      border: 1px dotted #444;
+      @include border-radius(0);
+      color: #BABBBC;
+      background-color: inherit;
+      cursor: inherit;
+      @include box-sizing(border-box);
+      width: 100%;
+      height: 28px; 
+    }
+    p {
+      margin-top: $baseLineHeight*0.25;
+      margin-bottom: 0;
+    }
+    .warning {
+      color: #EB0011;
+    }
+  }
+  .gear-group { /* mimic tile */
+    background: $consolePanelColor;
+    @include panel_default_boxshadow();
+    color: $consoleTextColorDefault;
+    margin-bottom: 20px;
+    .cartridge-block.cartridge-error .cartridge-border:before {
+      position: absolute;
+      border-left: 6px solid $openshiftBrightRed;
+      height: 100%;
+      top: 0;
+      left: 0;
+      content: "";
+    }
+  }
 }
 
 #aliases li > a {
   @include truncate();
   max-width: 65%;
   //display: inline-block; // makes empty array unbalanced
-}
-
-@media (max-width: 480px) {
-  .application {
-    > .url,
-    > .name {
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      width: 70%;
-    }
-  }
-}
-
-
-@media (min-width: 480px) and (max-width: 767px) {
-  .section-header > .application {
-    margin-right: 0;
-    left: 0;
-    padding-left: $gridGutterWidthTablet - $cartridgeBorderWidth;
-    padding-right: $gridGutterWidthTablet - $cartridgeBorderWidth;
-  }
-  .application {
-    > .url,
-    > .name {
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      max-width: 70%;
-    }
-    .emblem {
-      margin-right: 7px;
-    }
-  }
-}
-
-@media (max-width: 767px) {
-  .application {
-
-    .flow-block {
-      > .gear {
-        display: inline;
-        margin-right: 6px;
-        min-width: auto;
-      }
-      > .url {
-        margin-right: 5px;
-      }
-    }
-  }
-}
-
-@media (min-width: 768px) and (max-width: 979px) {
-  .application {
-    > .url,
-    > .name {
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      //max-width: 375px;
-    }
-  }
-}
-
-@media (min-width: 980px) and (max-width: 1199px) {
-  .console.index .application {
-    > .url,
-    > .name {
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      //max-width: 475px;
-    }
-  }
-}
-
-
-@media (min-width: 1200px) {
-  .console.index .application {
-    > .url,
-    > .name {
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      max-width: 565px;
-    }
-  }
-}
-
-.indicator-gear-increase {
-  display: inline-block;
-  font-weight: 600;
-  padding: 3px 6px;
-  cursor: default;
-}
-
-#new_application {
-  .application_type {
-    margin-bottom: 0;
-  }
-  ol.spaced-items > li {
-    line-height: 28px; // match SELECT
-    margin-bottom: 3px;
-  }
-  .tile-align {
-    margin-bottom: 5px;
-  }
-  select {
-    vertical-align: baseline;
-    margin-bottom: auto;
-    width: auto;
-    max-width: -moz-available;
-  } // refactor me to a marker class
 }
 
 .form-search {
@@ -294,15 +190,59 @@ $cartridgeBorderWidth: 10px;
   }
 }
 
-#new_application .controls {
-  select.domain_name {
-    height: 38px;
-    vertical-align: middle;
+.gauge-vertical {
+  line-height: 7px;
+  position: absolute;
+  top: -3px;
+  right: -6px;
+  font-size: 36px;
+  width: 1px;
+  white-space: normal;
+  > .empty { 
+    opacity: 0.5;
+  }
+  > .fill  { 
+    opacity: 1.0;
   }
 }
 
-@media (max-width: 479px) {
+.indicator-gear-increase {
+  display: inline-block;
+  font-weight: 600;
+  padding: 3px 6px;
+  cursor: default;
+  [data-icon] {
+    font-size: 12px;
+    color: #999;
+  }
+}
 
+#new_application {
+  .application_type {
+    margin-bottom: 0;
+  }
+  .controls {
+    select.domain_name {
+      height: 38px;
+      vertical-align: middle;
+    }
+  }
+  ol.spaced-items > li {
+    line-height: 28px; // match SELECT
+    margin-bottom: 3px;
+  }
+  .tile-align {
+    margin-bottom: 5px;
+  }
+  select {
+    vertical-align: baseline;
+    margin-bottom: auto;
+    width: auto;
+    max-width: -moz-available;
+  } // refactor me to a marker class
+}
+
+@media (max-width: 479px) {
   #new_application .controls {
     .add-on, .add-on {
       clear: left;
@@ -322,181 +262,5 @@ $cartridgeBorderWidth: 10px;
       vertical-align: bottom;
       width: 100%;
     }
-  }  
-}
-
-
-#app-cartridges {
-  header {
-    a {display: none}
-    /*
-    .btn-add-cart {
-      display: inline-block;
-      padding: 9px 8px 8px 20px;
-      position: relative;
-      width: 130px;
-      color: #9a9b9c;
-      text-decoration: none;
-      font-size: $tinyFontSize;
-      text-transform: uppercase;
-      font-family: $headerFontFamily;
-      border-left: 2px solid transparent;
-
-      span.sprite {
-        background-position: 10px -50px;
-        background-color: #1d1d1d;
-        width: 35px;
-        height: 35px;
-        position: absolute;
-        right: 0;
-        top: 0;
-      }
-
-      &:hover {
-        color: #fff;
-        background: #1c1c1c;
-        border-color: black;
-        span {
-          background-color: #b1e5f2;
-          background-position:-26px -50px;
-        }
-      }
-    }*/
   }
-
-  .gear-group { /* mimic tile */
-    background: $consolePanelColor;
-    @include panel_default_boxshadow();
-    color: $consoleTextColorDefault;
-    .cartridge-block.cartridge-error .cartridge-border:before {
-      position: absolute;
-      border-left: 6px solid $openshiftBrightRed;
-      height: 100%;
-      top: 0;
-      left: 0;
-      content: "";
-    }
-  }
-  .cartridge-block {
-    position: relative;
-    &.cartridge-embedded {
-      border-top: 1px dashed $consolePanelBorderColor;
-    }
-    .cartridge-inset {
-      background-color: $consolePanelColor;
-      padding: 25px;
-    }
-    .font-icon-block {
-      font-size: 24px;
-      color: #888;
-      margin-right: 5px;
-      :last-child {
-        color: #e7e7e7;
-      }
-    }
-
-    h2, h3, h4 {
-      margin-bottom: 0;
-      line-height: 1;
-      //text-overflow: ellipsis;
-      //overflow: hidden;
-      //white-space: nowrap;
-    }
-
-    p {
-      margin-top: $baseLineHeight*0.25;
-      margin-bottom: 0;
-    }
-
-    /* &.warning { border-left: 2px dashed red; }*/
-    .warning {
-      color: #EB0011;
-    }
-
-    input {
-      border: 1px dotted #444;
-      @include border-radius(0);
-      color: #BABBBC;
-      background-color: inherit;
-      //@include font-family-monospace();
-      cursor: inherit;
-      @include box-sizing(border-box);
-      width: 100%;
-      height: 28px; // border-box height
-      //width: -moz-available;
-    }
-  }
-
-  .cartridge-block.cartridge-embedded .cartridge-inset {
-    padding-top: 15px;
-    padding-bottom: 15px;
-  }
-}
-
-
-@media (min-width: 1200px) {
-}
-@media (min-width: 980px) and (max-width: 1199px) {
-}
-@media (max-width: 979px) {
-  .cartridge-block {
-    .font-icon-block {
-      font-size: 24px;
-      color: #888;
-      margin-right: 5px;
-      :last-child {
-        color: #e7e7e7;
-      }
-    }
-  }
-}
-@media (max-width: 767px) {
-  #app-cartridges {
-    header {
-    }
-    .cartridge-block {
-      .font-icon-block {
-        font-size: 20px;
-      }
-      .cartridge-inset {
-        padding-left: $gridGutterWidthTablet - $cartridgeBorderWidth;
-        padding-right: $gridGutterWidthTablet - $cartridgeBorderWidth;
-      }
-    }
-  }
-}
-@media (max-width: 480px) {
-  .embedded .view-cart-details {
-    position: inherit;
-    }
-
-  #app-cartridges {
-    header {
-      padding-left: $gridGutterWidthPhone;
-    }
-    .cartridge-block {
-      .font-icon-block {
-        font-size: 16px;
-      }
-      .cartridge-inset {
-        padding-left: $gridGutterWidthPhone - $cartridgeBorderWidth;
-        padding-right: $gridGutterWidthPhone - $cartridgeBorderWidth;
-      }
-    }
-  }
-  .tile {
-    padding-left: $gridGutterWidthPhone - $cartridgeBorderWidth;
-    padding-right: $gridGutterWidthPhone - $cartridgeBorderWidth;
-  }
-}
-
-
-.cartridge_type.installed,
-.cartridge_type.inactive {
-  color: #888;
-}
-.cartridge_type.inactive,
-.cartridge_type.installed {
-  background-color: rgba(255, 255, 255, 0.05);
-  cursor: default;
 }

@@ -12,6 +12,7 @@
 }
 .popover-title {
   border-bottom: 0;
+  font-size: $h5FontSize;
   padding: 14px 15px 0;
   margin-bottom: 0;
   line-height: 1;
@@ -19,14 +20,17 @@
   @include border-radius(0);
 }
 .popover-content {
-  padding: 14px 14px 5px;
   background-color: $popoverColor;
   @include border-radius(0);
   @include background-clip(padding-box);
+  padding: 14px 14px 5px;
   p, ul, ol {
+    font-size: $tinyFontSize;
     line-height: $baseLineHeight;
-    //margin-bottom: 0;
     margin-bottom: $baseLineHeight / 1.5;
+    strong {
+      font-weight: 500;
+    }
   }
 
   form {

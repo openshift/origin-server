@@ -18,7 +18,7 @@ module Console::ModelHelper
             (@info_id ||= 0)
             link_id = "db_link_#{@info_id += 1}"
             span_id = "db_link_#{@info_id += 1}"
-            "Database: <strong>#{h name}</strong> (user <strong>#{h user}</strong>, <a href=\"javascript:;\" id=\"#{link_id}\" data-unhide=\"##{span_id}\" data-hide-parent=\"##{link_id}\">show password</a><span id=\"#{span_id}\" class=\"hidden\">password <strong>#{h password}</strong></span>)".html_safe
+            "Database: <strong>#{h name}</strong>, User: <strong>#{h user}</strong>, Password: <a href=\"javascript:;\" id=\"#{link_id}\" data-unhide=\"##{span_id}\" data-hide-parent=\"##{link_id}\">show</a><span id=\"#{span_id}\" class=\"hidden\"> <strong>#{h password}</strong></span>".html_safe
           else
             "Database: <strong>#{name}</strong>"
           end
