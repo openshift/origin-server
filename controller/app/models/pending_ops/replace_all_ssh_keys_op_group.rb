@@ -5,10 +5,8 @@ class ReplaceAllSshKeysOpGroup < PendingAppOpGroup
   def elaborate(app)
     if keys_attrs
       app.group_instances.each do |group_instance|
-        group_instance_id = group_instance._id.to_s
         group_instance.gears.each do |gear|
-          gear_id = gear._id.to_s
-          pending_ops.push(ReplaceAllSshKeysOp.new(keys_attrs: keys_attrs))
+          pending_ops.push(ReplaceAllSshKeysOp.new(group_instance_id: group_instance.id.to_s, gear_id: gear.id.to_s, keys_attrs: keys_attrs))
         end
       end
     end

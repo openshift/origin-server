@@ -267,15 +267,18 @@ def analyze_app(app, unresponsive_servers)
   elsif !framework[:available] and db[:available]
     db[:backup_available] = true
     framework[:backup_available] = true if framework[:scaled]
-  elsif framework[:available] and !db[:available]
+  elsif framework[:available]
     app_recoverable = true
     carts = []
+    skip_gears = []
     db[:unresponsive_gears].each do |gear|
-      carts += gear.group_instance.all_component_instances.map { |ci| ci.to_hash['cart'] }
+      if (gear.group_instance.gears - db[:unresponsive_gears]).empty?
+        carts += gear.group_instance.all_component_instances.map { |ci| ci.cartridge_name }
+        skip_gears << gear
+      end
     end
     db[:remove_features] = carts.uniq
-  else # framework[:available] and db[:available]
-    app_recoverable = true
+    db[:unresponsive_gears] -= skip_gears
   end
 
   return  app_recoverable, framework, db
@@ -300,10 +303,8 @@ def recover_app(app, framework, db)
     unless db[:remove_features].empty?
       app.remove_features(db[:remove_features])
       puts "Removed features: #{db[:remove_features].join(',')} from application with id: #{app._id}." if $verbose
-      framework[:unresponsive_gears].each { |gear| app.remove_gear(gear._id.to_s) }
-    else
-      (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear._id.to_s) }
     end
+    (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear._id.to_s) }
     puts "Application with id: #{app._id} fixed." if $verbose
   rescue Exception => e
     error_msg = "Failed to recover application with id: #{app._id}, error: #{e.message}"
