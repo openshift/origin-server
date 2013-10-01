@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.15.6
+Version:       1.15.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -154,6 +154,16 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 01 2013 Adam Miller <admiller@redhat.com> 1.15.7-1
+- Merge pull request #3729 from smarterclayton/suggest_app_name
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3738 from jwforres/bug_1012342_delete_alias_fails
+  (dmcphers+openshiftbot@redhat.com)
+- Fix tests (dmcphers@redhat.com)
+- Should use up to, not inclusive, review comment (ccoleman@redhat.com)
+- Bug 1012342 - delete alias on aliases page fails (jforrest@redhat.com)
+- Suggest an application name if possible (ccoleman@redhat.com)
+
 * Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.6-1
 - Merge pull request #3727 from smarterclayton/fix_environment_variable_routes
   (dmcphers+openshiftbot@redhat.com)
