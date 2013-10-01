@@ -1310,7 +1310,8 @@ class Application
       when "SYSTEM_SSH_KEY_ADD"
         domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0], component_id: component_id))
       when "APP_SSH_KEY_ADD"
-        add_ssh_keys << ApplicationSshKey.new(name: command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now, component_id: component_id)
+        id = component_id || gear._id rescue nil
+        add_ssh_keys << ApplicationSshKey.new(name: command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now, component_id: id)
       when "APP_ENV_VAR_REMOVE"
         remove_env_vars.push({"key" => command_item[:args][0]})
       when "ENV_VAR_ADD"
@@ -1624,6 +1625,15 @@ class Application
                           usage_type: UsageRecord::USAGE_TYPES[:gear_usage], prereq: [delete_gear_op._id.to_s])
 
       ops = [destroy_gear_op, deregister_dns_op, unreserve_uid_op, delete_gear_op, track_usage_op]
+
+      remove_ssh_keys = self.app_ssh_keys.find_by(component_id: gear_id) rescue []
+      remove_ssh_keys = [remove_ssh_keys].flatten
+      if remove_ssh_keys.length > 0
+        keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
+        op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
+      end
+
       pending_ops.push *ops
       if additional_filesystem_gb != 0
         #track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
