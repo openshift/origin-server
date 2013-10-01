@@ -104,7 +104,7 @@ class CloudUserTest < ActiveSupport::TestCase
     assert caps['max_gears']
 
     assert caps2 = c.capabilities
-    assert_same caps, caps2
+    assert_not_same caps, caps2
 
     c.capabilities = nil
     assert_nil c.capabilities
