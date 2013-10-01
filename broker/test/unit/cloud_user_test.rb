@@ -4,8 +4,6 @@ require 'mocha/setup'
 
 class CloudUserTest < ActiveSupport::TestCase
   def setup
-    #setup test user auth on the mongo db
-    system "/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser(\"openshift\", \"mooo\")' 2>&1 > /dev/null"
     @login = "user" + gen_uuid[0..9]
   end
 

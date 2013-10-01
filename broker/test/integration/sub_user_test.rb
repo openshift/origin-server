@@ -11,7 +11,11 @@ class SubUserTest < ActionDispatch::IntegrationTest
     @headers["Accept"] = "application/json"
 
     if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
-      `oo-register-user -l admin -p admin --username #{@username} --userpass password`
+      credentials = Base64.encode64("admin:admin")
+      headers = {}
+      headers["HTTP_ACCEPT"] = "application/json"
+      headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
+      post "/broker/rest/accounts.json", {"username" => @username, "password" => "password"}, headers
     elsif File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
       @trusted_header = Rails.application.config.auth[:trusted_header] if Rails.application.config.auth.has_key? :trusted_header
       @headers[@trusted_header] = @username
@@ -59,7 +63,11 @@ class SubUserTest < ActionDispatch::IntegrationTest
     @headers2["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@username}x:password")
     @headers2["Accept"] = "application/json"
     if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
-      `oo-register-user -l admin -p admin --username "#{@username}x" --userpass password`
+      credentials = Base64.encode64("admin:admin")
+      headers = {}
+      headers["HTTP_ACCEPT"] = "application/json"
+      headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
+      post "/broker/rest/accounts.json", {"username" => "#{@username}x", "password" => "password"}, headers
     elsif File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
       @headers2[@trusted_header] = "#{@username}x"
     end

@@ -3,7 +3,6 @@ require 'rake'
 require 'rake/testtask'
 
 Rake::TestTask.new(:test) do |t|
-  sh "/usr/bin/mongo localhost/openshift_origin_broker_test --eval 'db.addUser(\"openshift\", \"mooo\")'"
   t.libs << 'test'
   t.warning = false
   t.verbose = true

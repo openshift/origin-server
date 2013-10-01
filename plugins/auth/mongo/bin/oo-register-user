@@ -67,17 +67,17 @@ module ActiveResource
   end
 end
 
-$hostname = "localhost"
-begin
-  if File.exists?("/etc/openshift/node.conf")
-    config = ParseConfig.new("/etc/openshift/node.conf")
-    val = config["PUBLIC_HOSTNAME"].gsub(/[ \t]*#[^\n]*/,"")
-    val = val[1..-2] if val.start_with? "\""
-    $hostname = val
-  end
-rescue
-  puts "Unable to determine hostname. Defaulting to localhost\n"
-end
+$hostname = "127.0.0.1"
+#begin
+#  if File.exists?("/etc/openshift/node.conf")
+#    config = ParseConfig.new("/etc/openshift/node.conf")
+#    val = config["PUBLIC_HOSTNAME"].gsub(/[ \t]*#[^\n]*/,"")
+#    val = val[1..-2] if val.start_with? "\""
+#    $hostname = val
+#  end
+#rescue
+#  puts "Unable to determine hostname. Defaulting to localhost\n"
+#end
 
 $options = opt
 class Account < ActiveResource::Base
