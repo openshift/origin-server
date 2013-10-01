@@ -3,6 +3,22 @@ require 'rake'
 require 'rake/clean'
 require 'rake/testtask'
 
+merge_path_functionals = [
+  'test/functional/application_container_func_test.rb',
+  'test/functional/application_repository_func_test.rb',
+  'test/functional/application_state_func_test.rb',
+  'test/functional/bash_sdk_test.rb',
+  'test/functional/cartridge_repository_func_test.rb',
+  'test/functional/cartridge_repository_web_func_test.rb',
+  'test/functional/node_func_test.rb',
+  'test/functional/oo_trap_user_func_test.rb',
+  'test/functional/path_utils_test.rb',
+  'test/functional/shell_exec_func_test.rb',
+  'test/functional/unix_user_func_test.rb',
+  'test/functional/v2_cart_model_func_test.rb',
+  'test/functional/version_func_test.rb',
+]
+
 desc "Print environment to run from checkout - eval $( rake local_env | tail -n +1 )"
 task :local_env do
   pwd = Dir.pwd
@@ -33,6 +49,28 @@ Rake::TestTask.new(:test) do |t|
   t.libs << File.expand_path('../lib', __FILE__)
   t.libs << File.expand_path('../../common/lib', __FILE__)
   t.pattern = 'test/**/*_test.rb'
+end
+
+desc "Merge-path tests"
+Rake::TestTask.new(:mergepath) do |t|
+  t.verbose = true
+  t.libs << File.expand_path('../../common/lib', __FILE__)
+  files = [ 'test/unit/*_test.rb' ]
+  files.add(merge_path_functionals)
+  t.test_files = files
+end
+
+desc "Extended functional tests"
+Rake::TestTask.new(:ext_func_test) do |t|
+  t.verbose = true
+  t.libs << File.expand_path('../../common/lib', __FILE__)
+  files = [ 'test/unit/*_test.rb' ]
+
+  all_functionals = Dir.glob('test/functional/*_test.rb')
+  extended_functionals = all_functionals - merge_path_functionals
+  files.add(extended_functionals)
+
+  t.test_files = files
 end
 
 desc "Generate RDoc"

@@ -25,6 +25,7 @@ require 'digest/sha1'
 
 require_relative '../lib/openshift-origin-node'
 require_relative '../lib/openshift-origin-node/utils/logger/stdout_logger'
+require_relative 'support/support'
 
 module OpenShift
 

@@ -20,14 +20,12 @@ require 'net/http'
 require 'fileutils'
 require 'restclient/request'
 
-class ScalingFuncTest < OpenShift::NodeBareTestCase
-
+class PlatformDeployExtTest < OpenShift::NodeBareTestCase
+  DEFAULT_TITLE     = "Welcome to OpenShift"
+  CHANGED_TITLE     = "Test1"
+  JENKINS_ADD_TITLE = "JenkinsClient"
 
   def setup
-    log_config = mock()
-    log_config.stubs(:get).with("PLATFORM_LOG_CLASS").returns("StdoutLogger")
-    ::OpenShift::Runtime::NodeLogger.stubs(:load_config).returns(log_config)
-
     @tester = ::OpenShift::Runtime::DeploymentTester.new
     @tester.setup
 
@@ -44,31 +42,31 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
   #   basic_build_test([@framework_cartridge], add_jenkins: true)
   # end
 
-  def test_unscaled
-    @tester.basic_build_test([@framework_cartridge], keep_deployments: 3)
-  end
+  # def test_unscaled
+  #   @tester.basic_build_test([@framework_cartridge], keep_deployments: 3)
+  # end
 
-  def test_unscaled_jenkins
-    @tester.create_jenkins
-    @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'], keep_deployments: 3)
-  end
+  # def test_unscaled_jenkins
+  #   @tester.create_jenkins
+  #   @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'], keep_deployments: 3)
+  # end
 
-  def test_scaled
-    if @framework_cartridge == 'zend-5.6'
-      return
-    end
+  # def test_scaled
+  #   if @framework_cartridge == 'zend-5.6'
+  #     return
+  #   end
 
-    @tester.basic_build_test([@framework_cartridge], scaling: true, keep_deployments: 3)
-  end
+  #   basic_build_test([@framework_cartridge], scaling: true, keep_deployments: 3)
+  # end
 
-  def test_scaled_jenkins
-    if @framework_cartridge == 'zend-5.6'
-      return
-    end
+  # def test_scaled_jenkins
+  #   if @framework_cartridge == 'zend-5.6'
+  #     return
+  #   end
 
-    @tester.up_gears
-    @tester.create_jenkins
-    @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'], scaling: true, keep_deployments: 3)
-  end
+  #   @api.up_gears
+  #   create_jenkins
+  #   basic_build_test([@framework_cartridge, 'jenkins-client-1'], scaling: true, keep_deployments: 3)
+  # end
 
 end
