@@ -52,6 +52,10 @@
         text-decoration: none;
       }
     }
+    .url + a {
+      font-weight: 300;
+      margin-left: 15px;
+    }
     .url-icon {
       bottom: -5px;
       font-size: 20px;

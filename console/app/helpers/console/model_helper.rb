@@ -3,11 +3,11 @@ module Console::ModelHelper
     case
     when cartridge.jenkins_client?
       [
-        link_to('See Jenkins Build jobs', application.build_job_url, :title => 'Jenkins is currently running builds for your application'),
-        link_to('(configure)', application_building_path(application), :title => 'Remove or change your Jenkins configuration'),
+        "<span class=\"url\"><a href=\"#{application.build_job_url}\" target=\"_blank\" title=\"Go to Jenkins Build jobs\" class=\"font-icon-link\"><span class=\"font-icon url-icon\" aria-hidden=\"true\" data-icon=\"\ue002\"></span></a></span>",
+        link_to('configure', application_building_path(application), :title => 'Remove or change your Jenkins configuration')
       ].join(' ').html_safe
     when cartridge.haproxy_balancer?
-      link_to "See HAProxy status page", application.scale_status_url
+      "<span class=\"url\"><a href=\"#{application.scale_status_url}\" target=\"_blank\" title=\"Go to HAProxy status page\" class=\"font-icon-link\"><span class=\"font-icon url-icon\" aria-hidden=\"true\" data-icon=\"\ue002\"></span></a></span>".html_safe
     when cartridge.database?
       name, _ = cartridge.data(:database_name)
       if name
