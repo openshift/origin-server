@@ -39,15 +39,14 @@ class DeploymentTest < ActiveSupport::TestCase
   test "create deployment with bad inputs" do
 
     # conflicting deployment info
-    assert Deployment.new(ref: "mybranch", sha1: "1234", deployment_id: "1234", created_at: 1234.0, activations: [1.0, 2.0], artifact_url: "myurl").invalid?
+    assert Deployment.new(ref: "mybranch", sha1: "1234", deployment_id: "1234", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f], artifact_url: "myurl").invalid?
 
     # git commit id length
-    assert Deployment.new(ref: "0" * 257, sha1: "1234", deployment_id: "1234", created_at: 1234.0, activations: [1.0, 2.0]).invalid?
+    assert Deployment.new(ref: "0" * 257, sha1: "1234", deployment_id: "1234", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f]).invalid?
 
     # activation must be integers
-    assert Deployment.new(ref: "mybranch", sha1: "1234", deployment_id: "1234", created_at: 1234.0, activations: ["hello", "world"]).invalid?
-    assert !Deployment.new(ref: "mybranch", sha1: "1234", deployment_id: "1234", created_at: 1234.0, activations: [1, 2]).invalid?
-    assert !Deployment.new(ref: "mybranch", sha1: "1234", deployment_id: "1234", created_at: 1234.0, activations: [1.0, 2.0]).invalid?
+    assert Deployment.new(ref: "mybranch", sha1: "1234", deployment_id: "1234", created_at: Time.now, activations: ["hello", "world"]).invalid?
+    assert !Deployment.new(ref: "mybranch", sha1: "1234", deployment_id: "1234", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f]).invalid?
   end
 
   test "activate deployment" do
@@ -56,7 +55,7 @@ class DeploymentTest < ActiveSupport::TestCase
 
     deployments = []
     for i in 1..5
-      @app.deployments.push(Deployment.new(deployment_id: i.to_s, ref: "tag_#{i}", sha1: "1234", created_at: 1234.0, activations: [1.0, 2.0]))
+      @app.deployments.push(Deployment.new(deployment_id: i.to_s, ref: "tag_#{i}", sha1: "1234", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f]))
     end
 
     @app.activate
@@ -68,7 +67,7 @@ class DeploymentTest < ActiveSupport::TestCase
   test "batch update deployments" do
     deployments = []
     for i in 1..5
-      deployments.push(Deployment.new(deployment_id: i.to_s, ref: "tag_#{i}", sha1: "1234", created_at: 1234.0, activations: [1.0, 2.0]))
+      deployments.push(Deployment.new(deployment_id: i.to_s, ref: "tag_#{i}", sha1: "1234", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f]))
     end
     @app.update_deployments(deployments)
     @app.reload

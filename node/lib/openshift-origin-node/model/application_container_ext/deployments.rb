@@ -280,8 +280,8 @@ module OpenShift
               :sha1 => deployment_metadata.git_sha1,
               :force_clean_build => deployment_metadata.force_clean_build,
               :hot_deploy => deployment_metadata.hot_deploy,
-              :created_at => Time.parse(deployment_datetime).to_f,
-              :activations => deployment_metadata.activations,
+              :created_at => Time.strptime(deployment_datetime, DEPLOYMENT_DATETIME_FORMAT).to_f,
+              :activations => deployment_metadata.activations
             })
           end
           deployments

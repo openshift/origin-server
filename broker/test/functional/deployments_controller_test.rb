@@ -49,7 +49,7 @@ class DeploymentsControllerTest < ActionController::TestCase
     @domain.members.find(@user).role = :edit
     @domain.save; @domain.run_jobs
 
-    ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch", :sha1 => "1234", :created_at => 1234.0, :activations => [1.0, 2.0]}])
+    ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch", :sha1 => "1234", :created_at => Time.now, :activations => [Time.now, Time.now]}])
     post :create, {"ref" => "mybranch", "application_id" => @app._id}
     assert_response :created
     assert json = JSON.parse(response.body)

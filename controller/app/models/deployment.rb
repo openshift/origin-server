@@ -22,7 +22,7 @@ class Deployment
   embedded_in :application, class_name: Application.name
 
   self.field :deployment_id, type: String
-  self.field :created_at, type: Float
+  self.field :created_at, type: Time
   self.field :hot_deploy, type: Boolean, default: false
   self.field :force_clean_build, type: Boolean, default: false
   self.field :ref, type: String
@@ -47,7 +47,7 @@ class Deployment
   def validate_activations
     self.activations.each do |activation|
       unless activation.is_a? Numeric
-        self.errors[:activations] << "Activations must be numeric representing time in seconds."
+        self.errors[:activations] << "Activations must a numeric representing time in seconds."
         break
       end
     end
