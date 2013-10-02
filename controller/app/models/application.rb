@@ -2484,6 +2484,22 @@ class Application
     [connections, group_instances, cleaned_overrides]
   end
 
+  def enforce_system_order(order, categories)
+    web_carts = categories['web_frameworks'] || []
+    service_carts = (categories['service'] || [])-web_carts
+    plugin_carts = (categories['plugin'] || [])-service_carts
+    web_carts.each { |w| 
+      (service_carts+plugin_carts).each { |sp| 
+        order.add_component_order([w,sp])
+      }
+    }
+    service_carts.each { |s|
+      plugin_carts.each { |p|
+        order.add_component_order([s,p])
+      }
+    }
+  end
+
   # Returns the configure order specified in the application descriptor or processes the configure
   # orders for each component and returns the final order (topological sort).
   # @note This is calculates separately from start/stop order as this function is usually used to
@@ -2534,13 +2550,7 @@ class Application
     end
 
     # enforce system order of components (web_framework first etc)
-    system_order = []
-    ['web_framework','service','plugin'].each { |c|
-      if categories[c]
-        categories[c].each { |ci| system_order << ci if ci and not system_order.include?(ci) }
-      end
-    }
-    configure_order.add_component_order(system_order)
+    enforce_system_order(configure_order, categories)
 
     #calculate configure order using tsort
     if self.component_configure_order.empty?
@@ -2594,14 +2604,8 @@ class Application
     end
 
     # enforce system order of components (web_framework first etc)
-    system_order = []
-    ['web_framework','service','plugin'].each { |c|
-      if categories[c]
-        categories[c].each { |ci| system_order << ci if ci and not system_order.include?(ci) }
-      end
-    }
-    start_order.add_component_order(system_order)
-    stop_order.add_component_order(system_order.dup)
+    enforce_system_order(start_order, categories)
+    enforce_system_order(stop_order, categories)
 
     #calculate start order using tsort
     if self.component_start_order.empty?
