@@ -44,6 +44,8 @@ class SshKey
   validates :content,
     presence: {message:  "Key content is required and cannot be blank."},
     format:   {with: /\A[A-Za-z0-9\+\/=]+\z/, message: "Invalid key content."}
+    
+  validate :does_not_start_with_dot
 
   ##
   # Returns error codes associated with validation failures
@@ -53,6 +55,10 @@ class SshKey
   # * 108: Key content is invalid
   def self.validation_map
     {name: 117, type: 116, content: 108}
+  end
+  
+  def does_not_start_with_dot
+    errors.add(:name, "Invalid key name. Name cannot start with \".\"") unless self.name !~ /^\./
   end
 
   ##
