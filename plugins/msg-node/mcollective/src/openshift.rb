@@ -300,7 +300,11 @@ module MCollective
         begin
           container = get_app_container_from_args(args)
           yield(container, output)
-          return 0, output
+          if args['--report-deployments'] && args['--cart-name'] && container.cartridge_model.get_cartridge(args['--cart-name']).deployable?
+            return 0, output, {:deployments => container.calculate_deployments}
+          else
+            return 0, output
+          end
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
           report_exception e
           return e.rc, "#{e.message}\n#{e.stdout}\n#{e.stderr}"
@@ -862,10 +866,12 @@ module MCollective
       def oo_post_configure(args)
         cart_name = args['--cart-name']
         template_git_url = args['--with-template-git-url']
+        args['--report-deployments'] = true
 
         with_container_from_args(args) do |container, output|
           output << container.post_configure(cart_name, template_git_url)
         end
+
       end
 
       def oo_deconfigure(args)

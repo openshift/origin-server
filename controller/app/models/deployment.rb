@@ -63,7 +63,7 @@ class Deployment
   def to_hash
     {
       "deployment_id" => deployment_id, "created_at" => created_at, "hot_deploy" => hot_deploy,
-      "force_clean_build" => force_clean_build, "ref" => ref, "sha1" => sha1, "artifact_url" => artifact_url, 'activations' => activations
-      }
+      "force_clean_build" => force_clean_build, "ref" => ref, "sha1" => sha1, "artifact_url" => artifact_url, "activations" => activations
+    }
   end
 end

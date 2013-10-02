@@ -178,6 +178,7 @@ class Gear
   def post_configure_component(component, init_git_url=nil)
     result_io = get_proxy.post_configure_component(self, component, init_git_url)
     component.process_properties(result_io)
+    app.update_deployments_from_result(result_io)
     app.process_commands(result_io, component._id, self)
     raise OpenShift::NodeException.new("Unable to post-configure component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io

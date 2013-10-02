@@ -2990,9 +2990,10 @@ class Application
       result_io.deployments.each do |d|
         deploys.push(Deployment.new(deployment_id: d[:id],
                                             state: d[:state],
-                                       created_at: d[:created_at],  #TODO:  Need to figure out the transfer format here.  time_in_millis is probably best
+                                       created_at: Time.at(d[:created_at].to_f),
                                               ref: d[:ref],
                                      artifact_url: d[:artifact_url],
+                                      activations: d[:activations] ? d[:activations].map(&:to_f) : [],
                                        hot_deploy: d[:hot_deploy] || false,
                                 force_clean_build: d[:force_clean_build] || false))
       end
