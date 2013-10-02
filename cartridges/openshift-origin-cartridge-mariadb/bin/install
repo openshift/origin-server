@@ -17,11 +17,10 @@ echo "$username" > $OPENSHIFT_MARIADB_DIR/env/OPENSHIFT_MYSQL_DB_USERNAME
 echo "$password" > $OPENSHIFT_MARIADB_DIR/env/OPENSHIFT_MYSQL_DB_PASSWORD
 echo "mysql://$username:$password@$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT/" > $OPENSHIFT_MARIADB_DIR/env/OPENSHIFT_MYSQL_DB_URL
 
-
-echo 'Installing mysqld'
+echo 'Installing mariadb'
 
 # Must be invoked with absolute path to avoid a mariadb bug involving my_print_defaults
-/usr/bin/mysql_install_db --datadir=$OPENSHIFT_MARIADB_DIR/data || error 'Failed to create database', 119
+/usr/bin/mysql_install_db --datadir=$OPENSHIFT_MARIADB_DIR/data || error 'Failed to create mariadb', 119
 
 client_result ""
 client_result "MySQL 5.1 database added.  Please make note of these credentials:"

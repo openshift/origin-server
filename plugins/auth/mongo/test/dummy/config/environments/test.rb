@@ -32,22 +32,23 @@ Dummy::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
-  
+
+  conf = OpenShift::Config.new(File.join(OpenShift::Config::CONF_DIR, 'broker-dev.conf'))  
   config.ss = {
-    :domain_suffix => "example.com",
-    :default_max_gears => 5
+    :domain_suffix => conf.get("CLOUD_DOMAIN", "example.com"),
+    :default_max_gears => (conf.get("DEFAULT_MAX_GEARS", "100")).to_i,
   }
-  
+
   config.auth = {
-    :salt => "salt_salt_salt",
-    :mongo_host_port => "localhost:27017",
-    :mongo_user => "openshift",
-    :mongo_password => "mooo",
-    :mongo_db => "openshift_origin_broker_test",
-    :privkeyfile => File.dirname(__FILE__) + "/../server_priv.pem",
-    :privkeypass => "foo",
-    :pubkeyfile => File.dirname(__FILE__) + "/../server_pub.pem",
-    :ssl => "false"
+    :salt => conf.get("AUTH_SALT", "salt_salt_salt"),
+    :mongo_host_port => conf.get("MONGO_HOST_PORT", "localhost:27017"),
+    :mongo_user => conf.get("MONGO_USER", "openshift"),
+    :mongo_password => conf.get("MONGO_PASSWORD", "mooo"),
+    :mongo_db => conf.get("MONGO_TEST_DB", "openshift_broker_test"),
+    :privkeyfile => conf.get("AUTH_PRIV_KEY_FILE", "/var/www/openshift/broker/config/server_priv.pem"),
+    :privkeypass => conf.get("AUTH_PRIV_KEY_PASS", ""),
+    :pubkeyfile => conf.get("AUTH_PUB_KEY_FILE", "/var/www/openshift/broker/config/server_pub.pem"),
+    :ssl => conf.get_bool("MONGO_SSL", "false")
   }
 
  config.user_action_logging = {

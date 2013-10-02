@@ -25,9 +25,18 @@ $password = 'nopass'
 $credentials = Base64.encode64("#{$user}:#{$password}")
 $default_timeout = 120 # 120 secs
 
-def register_user
+def register_user(prod_env=false)
   if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
-    cmd = "oo-register-user -l admin -p admin --username #{$user} --userpass #{$password}"
+    if prod_env
+      `oo-register-user -l admin -p admin --username #{$user} --userpass #{$password}`
+    else #test env
+      uri = "/accounts"
+      credentials = Base64.encode64("admin:admin")
+      headers = {}
+      headers["HTTP_ACCEPT"] = "application/json"
+      headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
+      request_via_redirect(:post, "/broker/rest" + uri, {"username" => $user, "password" => $password}, headers)
+    end
   elsif File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
     cmd = "/usr/bin/htpasswd -b /etc/openshift/htpasswd #{$user} #{$password}"
   else

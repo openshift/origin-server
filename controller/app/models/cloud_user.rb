@@ -268,8 +268,7 @@ class CloudUser
   alias_method :_capabilities, :capabilities
   def capabilities
     if caps = _capabilities
-      @capability_proxy = nil if caps != @capability_proxy
-      @capability_proxy ||= CapabilityProxy.new(caps, inherited_capabilities)
+      CapabilityProxy.new(caps, inherited_capabilities)
     end
   end
 

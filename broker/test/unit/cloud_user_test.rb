@@ -4,8 +4,6 @@ require 'mocha/setup'
 
 class CloudUserTest < ActiveSupport::TestCase
   def setup
-    #setup test user auth on the mongo db
-    system "/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser(\"openshift\", \"mooo\")' 2>&1 > /dev/null"
     @login = "user" + gen_uuid[0..9]
   end
 
@@ -106,7 +104,7 @@ class CloudUserTest < ActiveSupport::TestCase
     assert caps['max_gears']
 
     assert caps2 = c.capabilities
-    assert_same caps, caps2
+    assert_not_same caps, caps2
 
     c.capabilities = nil
     assert_nil c.capabilities

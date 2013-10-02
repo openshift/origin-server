@@ -1,0 +1,6 @@
+#!/bin/bash -e
+$OPENSHIFT_MARIADB_DIR/bin/control start
+
+echo "
+grant all on *.* to '$OPENSHIFT_MARIADB_DB_USERNAME'@'%' identified by '$OPENSHIFT_MARIADB_DB_PASSWORD' with grant option;
+flush privileges; " | /usr/bin/mysql -h $OPENSHIFT_MARIADB_DB_HOST -P $OPENSHIFT_MARIADB_DB_PORT -u $OPENSHIFT_MARIADB_DB_USERNAME --password="$OPENSHIFT_MARIADB_DB_PASSWORD" --skip-column-names

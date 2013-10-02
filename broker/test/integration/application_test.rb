@@ -6,9 +6,6 @@ class ApplicationTest < ActiveSupport::TestCase
 
   def setup
     super
-
-    #setup test user auth on the mongo db
-    system "/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser(\"openshift\", \"mooo\")' 2>&1 > /dev/null"
   end
 
   test "create find update delete application" do
