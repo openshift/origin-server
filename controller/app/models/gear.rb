@@ -16,7 +16,7 @@ class Gear
   field :uid, type: Integer
   field :name, type: String, default: ""
   field :quarantined, type: Boolean, default: false
-  field :node_removed, type: Boolean
+  field :removed, type: Boolean
   field :host_singletons, type: Boolean, default: false
   field :app_dns, type: Boolean, default: false
   field :sparse_carts, type: Array, default: []
@@ -101,7 +101,7 @@ class Gear
 
   def create_gear
     result_io = ResultIO.new
-    unless self.node_removed
+    unless self.removed
       result_io = get_proxy.create(self)
       app.process_commands(result_io, nil, self)
     end
@@ -110,7 +110,7 @@ class Gear
 
   def destroy_gear(keep_uid=false)
     result_io = ResultIO.new
-    unless self.node_removed
+    unless self.removed
       result_io = get_proxy.destroy(self, keep_uid)
       app.process_commands(result_io, nil, self)
     end
@@ -159,7 +159,7 @@ class Gear
   # @raise [OpenShift::NodeException] on failure
   def add_component(component, init_git_url=nil)
     result_io = ResultIO.new
-    unless self.node_removed
+    unless self.removed
       result_io = get_proxy.add_component(self, component, init_git_url)
       component.process_properties(result_io)
       app.process_commands(result_io, component._id, self)
@@ -184,7 +184,7 @@ class Gear
   # @raise [OpenShift::NodeException] on failure
   def post_configure_component(component, init_git_url=nil)
     result_io = ResultIO.new
-    unless self.node_removed
+    unless self.removed
       result_io = get_proxy.post_configure_component(self, component, init_git_url)
       component.process_properties(result_io)
       app.process_commands(result_io, component._id, self)
@@ -205,7 +205,7 @@ class Gear
   # @raise [OpenShift::NodeException] on failure
   def remove_component(component)
     result_io = ResultIO.new
-    unless self.node_removed
+    unless self.removed
       result_io = get_proxy.remove_component(self, component)
       app.process_commands(result_io, component._id, self)
     end
@@ -310,7 +310,7 @@ class Gear
   end
 
   def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")
-    unless self.node_removed
+    unless self.removed
       base_filesystem_gb = Gear.base_filesystem_gb(self.group_instance.gear_size)
       base_file_limit = Gear.base_file_limit(self.group_instance.gear_size)
       total_fs_gb = additional_filesystem_gb + base_filesystem_gb

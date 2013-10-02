@@ -7,7 +7,7 @@ class RemoveSslCertOp < PendingAppOp
   def execute
     result_io = ResultIO.new
     gear = get_gear()
-    result_io = gear.remove_ssl_cert(fqdn) unless gear.node_removed
+    result_io = gear.remove_ssl_cert(fqdn) unless gear.removed
     begin
       a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn)
       a.has_private_ssl_certificate = false

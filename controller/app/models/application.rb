@@ -1198,7 +1198,7 @@ class Application
 
         pub_ginst.get_gears(pub_inst).each do |gear|
           input_args = [gear.name, self.domain.namespace, gear.uuid]
-          unless gear.node_removed
+          unless gear.removed
             job = gear.get_execute_connector_job(pub_inst, conn.from_connector_name, conn.connection_type, input_args)
             RemoteJob.add_parallel_job(handle, tag, gear, job)
           end
@@ -1237,7 +1237,7 @@ class Application
           Rails.logger.debug "Output of publisher - '#{pub_out}'"
           sub_ginst.get_gears(sub_inst).each do |gear|
             input_args = [gear.name, self.domain.namespace, gear.uuid, input_to_subscriber]
-            unless gear.node_removed
+            unless gear.removed
               job = gear.get_execute_connector_job(sub_inst, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
               RemoteJob.add_parallel_job(handle, tag, gear, job)
             end

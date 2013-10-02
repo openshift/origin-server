@@ -11,7 +11,7 @@ class SetAddtlFsGbOp < PendingAppOp
 
   def addParallelExecuteJob(handle)
     gear = get_gear()
-    unless gear.node_removed
+    unless gear.removed
       tag = { "op_id" => self._id.to_s }
       gear.set_addtl_fs_gb(addtl_fs_gb, handle, tag)
     end
@@ -19,7 +19,7 @@ class SetAddtlFsGbOp < PendingAppOp
 
   def addParallelRollbackJob(handle)
     gear = get_gear()
-    unless gear.node_removed
+    unless gear.removed
       tag = { "op_id" => self._id.to_s }
       gear.set_addtl_fs_gb(saved_addtl_fs_gb, handle, tag)
     end

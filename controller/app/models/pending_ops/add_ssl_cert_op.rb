@@ -11,7 +11,7 @@ class AddSslCertOp < PendingAppOp
   def execute
     result_io = ResultIO.new
     gear = get_gear()
-    result_io = gear.add_ssl_cert(ssl_certificate, private_key, fqdn, pass_phrase) unless gear.node_removed
+    result_io = gear.add_ssl_cert(ssl_certificate, private_key, fqdn, pass_phrase) unless gear.removed
     a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn)
     a.has_private_ssl_certificate = true
     a.certificate_added_at = Time.now
@@ -22,7 +22,7 @@ class AddSslCertOp < PendingAppOp
   def rollback
     result_io = ResultIO.new
     gear = get_gear()
-    result_io = gear.remove_ssl_cert(fqdn) unless gear.node_removed
+    result_io = gear.remove_ssl_cert(fqdn) unless gear.removed
     begin
       a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn)
       a.has_private_ssl_certificate = false
