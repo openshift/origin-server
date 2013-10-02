@@ -200,7 +200,7 @@ def get_user_info(user)
           "ssh_keys" => user_ssh_keys}
 end
 
-def mark_node_removed(unresponsive_servers)
+def mark_gear_removed(unresponsive_servers)
   db = OpenShift::DataStore.db(:primary)
   
   gi_idx = 0
@@ -210,7 +210,7 @@ def mark_node_removed(unresponsive_servers)
     gear_search_count = 1
     while gear_search_count > 0
       filter = {"group_instances.#{gi_idx}.gears.#{gear_idx}.server_identity" => {"$in" => unresponsive_servers}}
-      update_query = {'$set' => {"group_instances.#{gi_idx}.gears.#{gear_idx}.node_removed" => true}}
+      update_query = {'$set' => {"group_instances.#{gi_idx}.gears.#{gear_idx}.removed" => true}}
       db["applications"].update(filter, update_query, { :multi => true })
       gear_idx += 1
       gear_search_count = db["applications"].find({"group_instances.#{gi_idx}.gears.#{gear_idx}" => {"$exists" => true}}).count
@@ -231,7 +231,7 @@ def analyze_app(app, unresponsive_servers)
   app.group_instances.each_with_index do |gi, group_idx|
     gi.gears.each_with_index do |gear, gear_idx|
       unless unresponsive_servers.include?(gear.server_identity)
-        raise Exception.new "Server identity: #{gear.server_identity} not in unresponsive servers but node_removed is set for Gear: #{gear._id.to_s}" if gear.node_removed and !$report_only
+        raise Exception.new "Server identity: #{gear.server_identity} not in unresponsive servers but 'removed' is set for Gear: #{gear._id.to_s}" if gear.removed and !$report_only
         if group_idx == 0
           if gear_idx == 0
             framework[:available] = true
@@ -252,7 +252,7 @@ def analyze_app(app, unresponsive_servers)
           db[:responsive_gears] << gear
         end
       else
-        raise Exception.new "Server identity: #{gear.server_identity} is in unresponsive servers but node_removed is not set for Gear: #{gear._id.to_s}" if !gear.node_removed and !$report_only
+        raise Exception.new "Server identity: #{gear.server_identity} is in unresponsive servers but 'removed' is not set for Gear: #{gear._id.to_s}" if !gear.removed and !$report_only
         if group_idx == 0
           framework[:unresponsive_gears] << gear
         else
@@ -776,12 +776,12 @@ unless unresponsive_servers.empty?
     end
   end
 
-  # Mark node_removed = true on all gears that are unresponsive
+  # Mark removed = true on all gears that are unresponsive
   unless $report_only
     begin
-      mark_node_removed(unresponsive_servers)
+      mark_gear_removed(unresponsive_servers)
     rescue Exception => e
-      puts "Failed marking node_removed field in gear, error: #{e.message}"
+      puts "Failed marking 'removed' field in gear, error: #{e.message}"
       puts e.backtrace.inspect
       exit 1
     end

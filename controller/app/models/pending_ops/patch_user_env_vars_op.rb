@@ -8,7 +8,7 @@ class PatchUserEnvVarsOp < PendingAppOp
     result_io = ResultIO.new
     app = pending_app_op_group.application
     gear = app.get_app_dns_gear
-    unless gear.node_removed
+    unless gear.removed
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
       if user_env_vars.present?
         # save overlapped user env vars for rollback
@@ -31,7 +31,7 @@ class PatchUserEnvVarsOp < PendingAppOp
     result_io = ResultIO.new
     app = pending_app_op_group.application
     gear = app.get_app_dns_gear
-    unless gear.node_removed
+    unless gear.removed
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
       gears_endpoint = get_gears_ssh_endpoint(app) 
       result_io = gear.unset_user_env_vars(set_vars, gears_endpoint) if set_vars.present?
@@ -44,7 +44,7 @@ class PatchUserEnvVarsOp < PendingAppOp
     gears_endpoint = []
     app.group_instances.each do |group_instance|
       group_instance.gears.each do |gear|
-        unless gear.node_removed
+        unless gear.removed
           gears_endpoint << "#{gear.uuid}@#{gear.server_identity}" unless gear.app_dns #skip app dns
         end
       end

@@ -7,7 +7,7 @@ class RemoveAliasOp < PendingAppOp
   def execute
     result_io = ResultIO.new
     gear = get_gear()
-    result_io = gear.remove_alias(fqdn) unless gear.node_removed
+    result_io = gear.remove_alias(fqdn) unless gear.removed
     a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn)
     pending_app_op_group.application.aliases.delete(a)
     pending_app_op_group.application.save
@@ -17,7 +17,7 @@ class RemoveAliasOp < PendingAppOp
   def rollback
     result_io = ResultIO.new
     gear = get_gear()
-    result_io = gear.add_alias(fqdn) unless gear.node_removed
+    result_io = gear.add_alias(fqdn) unless gear.removed
     a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn) rescue nil
     unless a
       pending_app_op_group.application.aliases.push(Alias.new(fqdn: fqdn))
