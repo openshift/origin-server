@@ -581,7 +581,8 @@ module OpenShift
           end
 
           pwents.each do |pwent|
-            env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
+            # The path is a performance hack to load only the variables we need
+            env = ::OpenShift::Runtime::Utils::Environ.load(File.join(pwent.dir, '.env', 'OPENSHIFT_{APP,GEAR}_{UUID,NAME,DNS}*'))
             if env['OPENSHIFT_GEAR_DNS'] == nil
               namespace = nil
             else
