@@ -350,6 +350,7 @@ module OpenShift
             deployment_metadata.git_sha1 = git_sha1
             deployment_metadata.git_ref = git_ref
 
+            options[:out].puts "Building git ref '#{git_ref}', commit #{git_sha1}" if options[:out]
             build(options)
 
             prepare(options)
