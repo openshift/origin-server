@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.7
+Version: 1.15.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,19 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 02 2013 Adam Miller <admiller@redhat.com> 1.15.8-1
+- Merge pull request #3756 from pravisankar/dev/ravi/rename-node-removed
+  (dmcphers+openshiftbot@redhat.com)
+- Renamed field 'node_removed' to 'removed' in gear model (rpenta@redhat.com)
+- Merge pull request #3742 from pravisankar/dev/ravi/misc-bugfixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3748 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz1012709 - remove gear's ssh keys. add debugging to admin-clear-pending-
+  ops (rchopra@redhat.com)
+- Bug 1012970 - Fix pending op group: ReplaceAllSshKeysOpGroup.
+  (rpenta@redhat.com)
+
 * Tue Oct 01 2013 Adam Miller <admiller@redhat.com> 1.15.7-1
 - Merge pull request #3746 from
   jwforres/bug_998396_no_api_response_member_delete
