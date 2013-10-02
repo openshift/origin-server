@@ -35,23 +35,30 @@
         }
       }
     }
-    span > {
-      a:visited, a:link {
+  }
+	.gear-numbers {
+		color: #bcbdbc;
+	}
+}
+
+.application, #app-cartridges {
+  .flow-block {
+    .font-icon-link {
+      &:visited, &:link {
         color: inherit;
       }
-      a:hover, a:active {
+      &:hover, &:active {
         color: $openshiftBrightRed;
         text-decoration: none;
       }
     }
     .url-icon {
       bottom: -5px;
+      font-size: 20px;
       position: relative;
+      top: auto;
     }
   }
-	.gear-numbers {
-		color: #bcbdbc;
-	}
 }
 
 .applications, .domains {
@@ -73,6 +80,16 @@
         font-size: $h4FontSize;
         line-height: $h4LineHeight;
         margin-bottom: $h4MarginBottom;
+        .flow-block.right {
+          color: #666;
+          font-weight: 300;
+          font-size: $smallFontSize;
+          padding-right: 5px;
+          .gear-icon {
+            font-size: 12px;
+            color: #aaa;
+          }
+        }
       }
       .span4 > h3, .span5 > h3 {
         font-size: $h5FontSize;
@@ -137,6 +154,9 @@
     p {
       margin-top: $baseLineHeight*0.25;
       margin-bottom: 0;
+      &.created {
+        font-size: $tinyFontSize;
+      }
     }
     ul.inline > li {
       margin-bottom: 0;
@@ -169,11 +189,18 @@
   //display: inline-block; // makes empty array unbalanced
 }
 
-.domain .flow .flow-block.right {
-  font-size: $baseFontSize;
-  font-weight: 300;
-  span {
-    margin-left: 15px;
+.domain {
+  .flow .flow-block.right {
+    font-weight: 300;
+  }
+  &.tile-click {
+    .flow .flow-block.right {
+      font-size: $baseFontSize;
+      font-weight: 300;
+      span {
+        margin-left: 20px;
+      }
+    }
   }
 }
 

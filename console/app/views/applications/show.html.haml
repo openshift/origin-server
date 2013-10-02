@@ -6,7 +6,6 @@
   .restart .popover.bottom {margin-left: -75px;}
   .restart .popover.bottom .arrow {margin-left: 70px;}
   .restart .popover.bottom .arrow:before {border: 7px solid transparent; border-bottom-color: rgba(0,0,0,.2); content:''; height: 0; left: -7px; position: absolute; top: -7px; width: 0; z-index: -1;}
-  tr.borderless td, tr:first-of-type td {border-top: medium none !important;}
 
 - content_for :top do
   .grid-wrapper.section-header.span12
@@ -16,9 +15,9 @@
           .name= @application.name
           = link_to @application.aliases.first.name, URI::HTTP.new('http', nil, @application.aliases.first.name, nil, nil, nil, nil, nil, nil).to_s, :class => 'url url-alias'
           - if @application.aliases.length > 1
-            = link_to "\u2026 #{pluralize(@application.aliases.length - 1, 'other alias')}", application_aliases_path(@application), :class => 'url-alter'
+            = link_to "#{pluralize(@application.aliases.length - 1, 'other alias')}", application_aliases_path(@application), :class => 'url-alter'
           - else
-            = link_to "\u2026 change alias", application_aliases_path(@application), :class => 'url-alter'
+            = link_to "change alias", application_aliases_path(@application), :class => 'url-alter'
 
         - else
           = link_to @application.web_url, :class => 'url-default' do
@@ -42,7 +41,7 @@
           %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
 
           %span.restart.confirm-container
-            = link_to application_restart_path(@application), { 'data-placement' => 'bottom', :class => 'confirm-link', :title => 'Restart Application'} do
+            = link_to application_restart_path(@application), { 'data-placement' => 'bottom', :class => 'font-icon-link confirm-link', :title => 'Restart Application'} do
               %span.font-icon{:alt => 'Restart', :title =>"Restart application", "aria-hidden" => "true", "data-icon" => "\ue020"}
             .confirm-popover.hide
               = render 'restarts/form'
@@ -117,7 +116,7 @@
                       .flow-block.right= info
 
                 - if cartridge.custom?
-                  %p Created from #{link_to cartridge.url, cartridge.url}
+                  %p.created Created from #{link_to cartridge.url, cartridge.url}
 
                 - if primary && (info = cartridge_info(cartridge, @application))
                   %p= info

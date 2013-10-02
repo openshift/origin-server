@@ -18,16 +18,16 @@ module Console::ModelHelper
             (@info_id ||= 0)
             link_id = "db_link_#{@info_id += 1}"
             span_id = "db_link_#{@info_id += 1}"
-            "Database: <strong>#{h name}</strong>, User: <strong>#{h user}</strong>, Password: <a href=\"javascript:;\" id=\"#{link_id}\" data-unhide=\"##{span_id}\" data-hide-parent=\"##{link_id}\">show</a><span id=\"#{span_id}\" class=\"hidden\"> <strong>#{h password}</strong></span>".html_safe
+            "Database: <strong>#{h name}</strong>, User: <strong>#{h user}</strong>, Password: <strong><a href=\"javascript:;\" id=\"#{link_id}\" data-unhide=\"##{span_id}\" data-hide-parent=\"##{link_id}\">show</a><span id=\"#{span_id}\" class=\"hidden\"> #{h password}</span></strong>".html_safe
           else
-            "Database: <strong>#{name}</strong>"
+            "Database: <strong>#{h name}</strong>"
           end
         )
       end
     else
       url, name = cartridge.data(:connection_url)
       if url
-        link_to name, url, :target => '_blank'
+        "<span class=\"url\"><a href=\"#{url}\" target=\"_blank\" title=\"Go to #{h name}\" class=\"font-icon-link\"><span class=\"font-icon url-icon\" aria-hidden=\"true\" data-icon=\"\ue002\"></span></a></span>".html_safe
       end
     end
   end
