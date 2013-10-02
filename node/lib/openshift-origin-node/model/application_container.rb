@@ -668,6 +668,14 @@ module OpenShift
       def set_rw_permission(paths)
         @container_plugin.set_rw_permission(paths)
       end
+
+      def address_bound?(ip, port, hourglass)
+        @container_plugin.address_bound?(ip, port, hourglass)
+      end
+
+      def addresses_bound?(addresses, hourglass)
+        @container_plugin.addresses_bound?(addresses, hourglass)
+      end
     end
   end
 end
