@@ -54,7 +54,7 @@
 
       - else
         - if @domain.allowed_gear_sizes.present?
-          %p Allows #{@domain.allowed_gear_sizes.map{ |s| s.to_s.humanize }.to_sentence} gears"
+          %p Allows #{@domain.allowed_gear_sizes.map{ |s| s.to_s.humanize }.to_sentence} gears
         - else
           %p The owner has disabled creation - no gear sizes allowed
 
