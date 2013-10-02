@@ -8,10 +8,10 @@ SYNOPSIS
 
 DESCRIPTION
   oo-admin-cartridge provides OpenShift Operators the ability to update and maintain a Cartridge Repository
-  on an OpenShift Node.  Because multiple versions of a given cartridge can be installed on the system at once
+  on an OpenShift Node. Because multiple versions of a given cartridge can be installed on the system at once
   simple RPM's are not viable.
 
-  This command is used for repair and development work.  Restarting the mcollectived openshift agent will cause
+  This command is used for repair and development work. Restarting the mcollectived openshift agent will cause
   all the cartridge in /var/libexec/openshift/cartridges to be installed in the cartridge repository.
 
 OPTIONS
@@ -28,23 +28,25 @@ COMMANDS
             to determine the version of the cartridge is not being used in any gear.
     list    list the cartridge versions installed in the cartridge repository
 
-  --recursive
+  --recursive  
     The source directory provided contains cartridge source directories, rather than pointing to one cartridge
 
-  --mco
+  --mco  
     Use the mcollective mco agent to update the cartridge repository.
 
-  --name NAME --version VERSION --cartridge_version VERSION
+  --name NAME --version VERSION --cartridge_version VERSION  
     When erasing a cartridge from the cartridge repository you must provide the exact version to remove.
 
 CONFIGURATION
-  /usr/libexec/openshift/cartridges: default source directory
-  /var/lib/openshift/.cartridge_repository: directory for storing cartridge repository
-  
+  /usr/libexec/openshift/cartridges  
+    default source directory
+  /var/lib/openshift/.cartridge_repository  
+    directory for storing cartridge repository
+
 EXAMPLE
-  # oo-admin-cartridge --action install --recursive --source /var/libexec/openshift/cartridges
+  # oo-admin-cartridge --action install --recursive --source /var/libexec/openshift/cartridges  
     Install all current cartridges into cartridge repository
-  # oo-admin-cartridge --action list
+  # oo-admin-cartridge --action list  
     List all versions of all cartridges install in cartridge repository
   
 SEE ALSO
