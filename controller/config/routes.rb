@@ -20,7 +20,7 @@ Rails.application.routes.draw do
         match 'authorizations' => 'authorizations#destroy_all', :via => :delete
       end
 
-      resources :applications, :only => [:index, :show, :create, :destroy], :id => id_with_format do
+      resources :applications, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format do
         resource :descriptor, :only => :show
         resources :gear_groups, :id => id_with_format, :only => [:index, :show]
         resources :gears, :only => [:index, :show], :id => id_with_format
