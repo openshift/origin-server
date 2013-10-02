@@ -1,3 +1,11 @@
+# WARNING: Changes to this file will be lost on every restart/upgrade.  Configurable values can be set with environment variables through rhc env set...
+#
+# Ex: rhc env set OPENSHIFT_MARIADB_LOWER_CASE_TABLE_NAMES=1 -a myapp && rhc cartridge restart -c mariadb-5.5 -a myapp
+#
+# Configurable Values:
+# lower_case_table_names -> OPENSHIFT_MARIADB_LOWER_CASE_TABLE_NAMES
+# default-storage-engine -> OPENSHIFT_MARIADB_DEFAULT_STORAGE_ENGINE
+
 [mysqld]
 datadir=<%= ENV['OPENSHIFT_MARIADB_DIR'] %>/data/
 socket=<%= ENV['OPENSHIFT_MARIADB_DB_SOCKET'] %>
@@ -7,26 +15,28 @@ symbolic-links=0
 key_buffer_size = 16K
 max_allowed_packet = 200M
 table_open_cache = 4
-sort_buffer_size = 64K
+sort_buffer_size = 128K
 read_buffer_size = 256K
 read_rnd_buffer_size = 256K
 net_buffer_length = 2K
 thread_stack = 256K
+lower_case_table_names = <%= ENV['OPENSHIFT_MARIADB_LOWER_CASE_TABLE_NAMES'] ? ENV['OPENSHIFT_MARIADB_LOWER_CASE_TABLE_NAMES'] : '0' %>
 
+<%= ENV['OPENSHIFT_MARIADB_DEFAULT_STORAGE_ENGINE'] ? "default-storage-engine = #{ENV['OPENSHIFT_MARIADB_DEFAULT_STORAGE_ENGINE']}" : '' %>
 
 #INNODB
 # You can set .._buffer_pool_size up to 50 - 80 %
 # of RAM but beware of setting memory usage too high
-innodb_buffer_pool_size = 16M
+innodb_buffer_pool_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 16 : 96 %>M
 innodb_additional_mem_pool_size = 2M
 # Set .._log_file_size to 25 % of buffer pool size
-innodb_log_file_size = 5M
-innodb_log_buffer_size = 8M
+innodb_log_file_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 8 : 24 %>M
+innodb_log_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 8 : 24 %>M
 innodb_flush_log_at_trx_commit = 1
 innodb_lock_wait_timeout = 50
 
 [mysqld_safe]
-log-error=<%= ENV['OPENSHIFT_MARIADB_DB_LOG_DIR'] %>/mysql_error.log
+log-error=<%= ENV['OPENSHIFT_MARIADB_DB_LOG_DIR'] %>/mariadb_error.log
 pid-file=<%= ENV['OPENSHIFT_MARIADB_DIR'] %>/pid/mariadb.pid
 
 [mysqldump]
