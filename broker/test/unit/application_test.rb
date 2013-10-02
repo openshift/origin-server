@@ -5,8 +5,6 @@ require 'helpers/rest/api'
 
 class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
   def setup
-    #setup test user auth on the mongo db
-    system "/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser(\"openshift\", \"mooo\")' 2>&1 > /dev/null"
     register_user
     @namespace = "domain" + gen_uuid[0..9]
     @user = CloudUser.new(login: $user)
@@ -63,6 +61,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
     app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+
     @user.capabilities["max_untracked_addtl_storage_per_gear"] = 5
     @user.save
     app.reload

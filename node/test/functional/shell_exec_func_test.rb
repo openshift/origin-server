@@ -24,10 +24,14 @@ module OpenShift
       # be found by the regular check scripts since using /tmp and
       # /var/tmp causes problems with polyinstantiation.
       @homedir = "/var/lib/openshift/.homedir-#{@uid}"
+      
+      # Origin Pam policies rely on shell to indicate if user is owned
+      # by OpenShift or not.
+      @shell = "/usr/bin/oo-trap-user"
 
       FileUtils.rm_r @homedir if File.exist?(@homedir)
       FileUtils.mkdir_p @homedir
-      %x{useradd -m -u #@uid -d #@homedir #@uid 1>/dev/null 2>&1}
+      %x{useradd -m -u #@uid -d #@homedir #@uid -s #{@shell} 1>/dev/null 2>&1}
     end
 
     def teardown

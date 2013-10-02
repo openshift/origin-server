@@ -1,0 +1,30 @@
+#!/bin/bash
+# openshift-iptables-port-proxy
+#
+### BEGIN INIT INFO
+# Short-Description:  Script to apply the openshift port proxy iptables rules.
+# Description: Script to apply the openshift port proxy iptables rules.
+### END INIT INFO
+
+case "$1" in
+    start)
+        if [ -f /etc/openshift/iptables.filter.rules ]; then
+           iptables-restore -n <(echo "*filter"; cat /etc/openshift/iptables.filter.rules; echo "COMMIT")
+        fi
+
+        if [ -f /etc/openshift/iptables.nat.rules ]; then
+           iptables-restore -n <(echo "*nat"; cat /etc/openshift/iptables.nat.rules; echo "COMMIT")
+        fi
+        ;;
+    stop)
+        ;;
+    restart)
+        ;;
+    reload)
+        ;;
+    status)
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|reload}"
+        exit 2
+esac

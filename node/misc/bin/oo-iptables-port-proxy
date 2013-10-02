@@ -3,7 +3,7 @@
 source /etc/openshift/node.conf
 nat_rules_file=/etc/openshift/iptables.nat.rules
 filter_rules_file=/etc/openshift/iptables.filter.rules
-lock_file=/etc/openshift/iptables.rules.lock
+lock_file=/var/lock/oo-iptables-port-proxy.rules.lock
 
 function help() {
     echo "Usage: $0 addproxy|removeproxy|showproxies"

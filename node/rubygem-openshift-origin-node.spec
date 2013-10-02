@@ -144,6 +144,7 @@ cp %{buildroot}%{gem_instdir}/misc/init/openshift-iptables-port-proxy %{buildroo
 %else
 mkdir -p %{buildroot}/etc/systemd/system
 mv %{buildroot}%{gem_instdir}/misc/services/openshift-tc.service %{buildroot}/etc/systemd/system/openshift-tc.service
+mv %{buildroot}%{gem_instdir}/misc/services/openshift-iptables-port-proxy.service %{buildroot}/etc/systemd/system/openshift-iptables-port-proxy.service
 %endif
 
 # Don't install or package what's left in the misc directory
@@ -181,6 +182,7 @@ fi
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
   systemctl restart  crond.service || :
   systemctl enable openshift-tc.service || :
+  systemctl enable openshift-iptables-port-proxy || :
 %else
   /sbin/chkconfig --add openshift-tc || :
   /sbin/chkconfig --add openshift-iptables-port-proxy || :
@@ -233,6 +235,7 @@ fi
 %attr(0755,-,-) /etc/rc.d/init.d/openshift-iptables-port-proxy
 %else
 %attr(0750,-,-) /etc/systemd/system/openshift-tc.service
+%attr(0750,-,-) /etc/systemd/system/openshift-iptables-port-proxy.service
 %endif
 
 %if 0%{?fedora} >= 15

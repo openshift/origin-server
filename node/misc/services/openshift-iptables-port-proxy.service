@@ -1,0 +1,13 @@
+[Unit]
+Description=OpenShift IPTables Port Proxy
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/oo-admin-ctl-iptables-port-proxy start
+ExecStop=/usr/sbin/oo-admin-ctl-iptables-port-proxy stop
+Restart=no
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
