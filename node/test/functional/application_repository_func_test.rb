@@ -30,7 +30,7 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     @config.stubs(:get).with("GEAR_GECOS").returns('Functional Test')
     @config.stubs(:get).with("CREATE_APP_SYMLINKS").returns('0')
     @config.stubs(:get).with("GEAR_SKEL_DIR").returns(nil)
-    @config.stubs(:get).with("GEAR_SHELL").returns(nil)
+    @config.stubs(:get).with("GEAR_SHELL").returns('/usr/bin/oo-trap-user')
     @config.stubs(:get).with("CLOUD_DOMAIN").returns('example.com')
     @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns('/etc/httpd/conf.d/openshift')
     @config.stubs(:get).with("PORT_BEGIN").returns(nil)
