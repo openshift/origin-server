@@ -10,7 +10,7 @@
 }
 
 /* Use the following CSS code if you want to use data attributes for inserting your icons */
-.foo[data-icon]:before {
+.logo[data-icon]:before {
 	font-family: 'openshift-logos-icon';
 	content: attr(data-icon);
 	speak: none;

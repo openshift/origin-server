@@ -32,6 +32,10 @@
   > ul.meta > li > label {
     display: inline;
   }
+  &.inactive {
+    background-color: #f2f2f2;
+    opacity: .75;
+  }
   .flow {
     > .flow-block.right {
       white-space: nowrap;
@@ -66,7 +70,6 @@
   h1.flow {
     margin-bottom: 0;
   }
-
   h2 {
     @include clearfix();
   }
@@ -75,21 +78,6 @@
   }
   .tile-featured h3 {
     margin-right: 20px;
-}
-
-.label-tags {
-  a.label {
-    color: #666;
-    background-color: transparent;
-    text-decoration: none;
-    margin-right: 5px;
-    text-shadow: none;
-
-    &:hover {
-      color: #111;
-      background-color: #fff !important;
-      border: 1px solid #ccc;
-    }
   }
 }
 
