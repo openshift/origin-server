@@ -102,9 +102,8 @@ EOFZ
     begin
       response = RestClient::Request.execute(method: :post,
                                              url: "#{@url_base}/domain/#{@namespace}/application/#{app_name}/cartridges",
-                                             payload: JSON.dump({name: cartridge, application_id: app_name, emb_cart: { name: cartridge }}),
-                                             content_type: 'application/json',
-                                             headers: { accept: :json },
+                                             payload: JSON.dump(name: cartridge, application_id: app_name, emb_cart: { name: cartridge }),
+                                             headers: { content_type: :json, accept: :json },
                                              timeout: 60)
     rescue RestClient::Exception => e
       response = e.response
@@ -119,9 +118,8 @@ EOFZ
     begin
       response = RestClient::Request.execute(method: :post,
                                              url: "#{@url_base}/domain/#{@namespace}/application/#{app_name}/environment-variables",
-                                             payload: JSON.dump({environment_variables: vars}),
-                                             content_type: 'application/json',
-                                             headers: { accept: :json },
+                                             payload: JSON.dump(environment_variables: vars),
+                                             headers: { content_type: :json, accept: :json },
                                              timeout: 60)
     rescue RestClient::Exception => e
       response = e.response

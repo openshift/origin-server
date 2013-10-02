@@ -58,7 +58,7 @@ class OpenShift::Runtime::DeploymentTester
 
       gear_env = OpenShift::Runtime::Utils::Environ.for_gear(app_container.container_dir)
 
-      assert_equal keep, gear_env['OPENSHIFT_KEEP_DEPLOYMENTS'], "Keep deployments value was not actually updated"
+      assert_equal keep.to_s, gear_env['OPENSHIFT_KEEP_DEPLOYMENTS'], "Keep deployments value was not actually updated"
     end
 
     if scaling
