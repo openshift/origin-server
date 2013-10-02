@@ -56,7 +56,7 @@ Rake::TestTask.new(:mergepath) do |t|
   t.verbose = true
   t.libs << File.expand_path('../../common/lib', __FILE__)
   files = [ 'test/unit/*_test.rb' ]
-  files.add(merge_path_functionals)
+  files.push(merge_path_functionals)
   t.test_files = files
 end
 
@@ -68,7 +68,7 @@ Rake::TestTask.new(:ext_func_test) do |t|
 
   all_functionals = Dir.glob('test/functional/*_test.rb')
   extended_functionals = all_functionals - merge_path_functionals
-  files.add(extended_functionals)
+  files.push(extended_functionals)
 
   t.test_files = files
 end
