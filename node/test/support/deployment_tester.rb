@@ -10,6 +10,7 @@ end
 
 class OpenShift::Runtime::DeploymentTester
   include Test::Unit::Assertions
+  include OpenShift::Runtime::NodeLogger
 
   DEFAULT_TITLE     = "Welcome to OpenShift"
   CHANGED_TITLE     = "Test1"
@@ -47,18 +48,23 @@ class OpenShift::Runtime::DeploymentTester
 
     framework = cartridges[0]
 
+    app_container = OpenShift::Runtime::ApplicationContainer.from_uuid(app_id)
+
     if keep_deployments
       keep = options[:keep_deployments]
-      # keep up to 3 deployments
-      `oo-admin-ctl-domain -l #{@login} -n #{@namespace} -c env_add -e OPENSHIFT_KEEP_DEPLOYMENTS -v #{keep}`
-    end
+      # keep up to #{keep} deployments
+      logger.info "Setting OPENSHIFT_KEEP_DEPLOYMENTS to #{keep} for #{@namespace}"
+      @api.add_env_vars(app_name, [{name: 'OPENSHIFT_KEEP_DEPLOYMENTS', value: "#{keep}"}])
 
-    app_container = OpenShift::Runtime::ApplicationContainer.from_uuid(app_id)
+      gear_env = OpenShift::Runtime::Utils::Environ.for_gear(app_container.container_dir)
+
+      assert_equal keep, gear_env['OPENSHIFT_KEEP_DEPLOYMENTS'], "Keep deployments value was not actually updated"
+    end
 
     if scaling
       gear_registry = OpenShift::Runtime::GearRegistry.new(app_container)
       entries = gear_registry.entries
-      OpenShift::Runtime::NodeLogger.logger.info("Gear registry contents: #{entries}")
+      logger.info("Gear registry contents: #{entries}")
       assert_equal 2, entries.keys.size
 
       web_entries = entries[:web]
@@ -96,7 +102,7 @@ class OpenShift::Runtime::DeploymentTester
 
       # make sure the http content is good
       web_entries.values.each do |entry|
-        OpenShift::Runtime::NodeLogger.logger.info("Checking title for #{entry.as_json}")
+        logger.info("Checking title for #{entry.as_json}")
         assert_http_title_for_entry entry, DEFAULT_TITLE
       end
     else
@@ -136,8 +142,8 @@ class OpenShift::Runtime::DeploymentTester
     end
 
     # rollback
-    OpenShift::Runtime::NodeLogger.logger.info("Rolling back to #{deployment_id}")
-    OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id} --all`
+    logger.info("Rolling back to #{deployment_id}")
+    logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id} --all`
 
     if scaling
       entries = gear_registry.entries

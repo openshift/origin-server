@@ -2,6 +2,7 @@ require 'test/unit/assertions'
 require 'restclient/request'
 require 'fileutils'
 require 'net/http'
+require 'json'
 
 class FunctionalApi
   include OpenShift::Runtime::NodeLogger
@@ -97,9 +98,36 @@ EOFZ
 
   def add_cartridge(cartridge, app_name)
     logger.info("Adding #{cartridge} to app #{app_name}")
-    response = RestClient::Request.execute(method: :post, url: "#{@url_base}/domain/#{@namespace}/application/#{app_name}/cartridges", payload: { name: cartridge, application_id: app_name, emb_cart: { name: cartridge }}, headers: { accept: :json }, timeout: 60)
 
-    assert_operator 300, :>, response.code
+    begin
+      response = RestClient::Request.execute(method: :post,
+                                             url: "#{@url_base}/domain/#{@namespace}/application/#{app_name}/cartridges",
+                                             payload: JSON.dump({name: cartridge, application_id: app_name, emb_cart: { name: cartridge }}),
+                                             content_type: 'application/json',
+                                             headers: { accept: :json },
+                                             timeout: 60)
+    rescue RestClient::Exception => e
+      response = e.response
+    end
+
+    assert_operator 300, :>, response.code, "Invalid response received: #{response}"
+  end
+
+  def add_env_vars(app_name, vars)
+    logger.info("Adding environment variables to app #{app_name}: #{vars}")
+    
+    begin
+      response = RestClient::Request.execute(method: :post,
+                                             url: "#{@url_base}/domain/#{@namespace}/application/#{app_name}/environment-variables",
+                                             payload: JSON.dump({environment_variables: vars}),
+                                             content_type: 'application/json',
+                                             headers: { accept: :json },
+                                             timeout: 60)
+    rescue RestClient::Exception => e
+      response = e.response
+    end
+
+    assert_operator 300, :>, response.code, "Invalid response received: #{response}"
   end
 
   def change_title(title, app_name, app_id, framework)
