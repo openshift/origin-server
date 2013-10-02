@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.6
+Version: 1.15.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -258,6 +258,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Oct 02 2013 Adam Miller <admiller@redhat.com> 1.15.7-1
+- Merge pull request #3751 from jwhonce/bug/1012981
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1012981 - Parse post-configure output for client messages
+  (jhonce@redhat.com)
+
 * Tue Oct 01 2013 Adam Miller <admiller@redhat.com> 1.15.6-1
 - Merge pull request #3737 from mfojtik/bugzilla/1013653
   (dmcphers+openshiftbot@redhat.com)
