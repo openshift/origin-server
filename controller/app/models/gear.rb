@@ -100,20 +100,14 @@ class Gear
   end
 
   def create_gear
-    result_io = ResultIO.new
-    unless self.removed
-      result_io = get_proxy.create(self)
-      app.process_commands(result_io, nil, self)
-    end
+    result_io = get_proxy.create(self)
+    app.process_commands(result_io, nil, self)
     result_io
   end
 
   def destroy_gear(keep_uid=false)
-    result_io = ResultIO.new
-    unless self.removed
-      result_io = get_proxy.destroy(self, keep_uid)
-      app.process_commands(result_io, nil, self)
-    end
+    result_io = get_proxy.destroy(self, keep_uid)
+    app.process_commands(result_io, nil, self)
     result_io
   end
  
@@ -183,12 +177,9 @@ class Gear
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
   def post_configure_component(component, init_git_url=nil)
-    result_io = ResultIO.new
-    unless self.removed
-      result_io = get_proxy.post_configure_component(self, component, init_git_url)
-      component.process_properties(result_io)
-      app.process_commands(result_io, component._id, self)
-    end
+    result_io = get_proxy.post_configure_component(self, component, init_git_url)
+    component.process_properties(result_io)
+    app.process_commands(result_io, component._id, self)
     raise OpenShift::NodeException.new("Unable to post-configure component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
@@ -310,13 +301,11 @@ class Gear
   end
 
   def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")
-    unless self.removed
-      base_filesystem_gb = Gear.base_filesystem_gb(self.group_instance.gear_size)
-      base_file_limit = Gear.base_file_limit(self.group_instance.gear_size)
-      total_fs_gb = additional_filesystem_gb + base_filesystem_gb
-      total_file_limit = (total_fs_gb * base_file_limit) / base_filesystem_gb
-      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, total_file_limit.to_i))
-    end
+    base_filesystem_gb = Gear.base_filesystem_gb(self.group_instance.gear_size)
+    base_file_limit = Gear.base_file_limit(self.group_instance.gear_size)
+    total_fs_gb = additional_filesystem_gb + base_filesystem_gb
+    total_file_limit = (total_fs_gb * base_file_limit) / base_filesystem_gb
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, total_file_limit.to_i))
   end
 
   def server_identities
