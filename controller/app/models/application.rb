@@ -2992,6 +2992,7 @@ class Application
                                             state: d[:state],
                                        created_at: Time.at(d[:created_at].to_f),
                                               ref: d[:ref],
+                                             sha1: d[:sha1],
                                      artifact_url: d[:artifact_url],
                                       activations: d[:activations] ? d[:activations].map(&:to_f) : [],
                                        hot_deploy: d[:hot_deploy] || false,
