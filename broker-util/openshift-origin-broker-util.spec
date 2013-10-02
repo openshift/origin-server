@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.15.5
+Version: 1.15.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,20 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Oct 02 2013 Adam Miller <admiller@redhat.com> 1.15.6-1
+- Merge pull request #3756 from pravisankar/dev/ravi/rename-node-removed
+  (dmcphers+openshiftbot@redhat.com)
+- Renamed field 'node_removed' to 'removed' in gear model (rpenta@redhat.com)
+- Merge pull request #3742 from pravisankar/dev/ravi/misc-bugfixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3750 from ironcladlou/bz/1008645
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1008645: Fix --ignore-cartridge-version update option
+  (ironcladlou@gmail.com)
+- fix bz1012709 - remove gear's ssh keys. add debugging to admin-clear-pending-
+  ops (rchopra@redhat.com)
+- Bug 1012264 : oo-admin-repair --removed-nodes fixes (rpenta@redhat.com)
+
 * Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
 - Merge pull request #3733 from pravisankar/dev/ravi/bug1012782
   (dmcphers+openshiftbot@redhat.com)
