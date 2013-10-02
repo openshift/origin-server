@@ -6,7 +6,7 @@ class DestroyGearOp < PendingAppOp
   def execute
     result_io = ResultIO.new
     gear = get_gear()
-    result_io = gear.destroy_gear(true) unless gear.node_removed
+    result_io = gear.destroy_gear(true) unless gear.removed
     result_io
   end
 

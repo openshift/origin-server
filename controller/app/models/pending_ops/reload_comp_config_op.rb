@@ -11,7 +11,7 @@ class ReloadCompConfigOp < PendingAppOp
 
   def addParallelExecuteJob(handle)
     gear = get_gear()
-    unless gear.node_removed
+    unless gear.removed
       component_instance = get_component_instance()
       job = gear.get_reload_job(component_instance)
       tag = { "op_id" => self._id.to_s }

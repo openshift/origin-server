@@ -12,7 +12,7 @@ class StopCompOp < PendingAppOp
 
   def addParallelExecuteJob(handle)
     gear = get_gear()
-    unless gear.node_removed
+    unless gear.removed
       component_instance = get_component_instance()
 
       tag = { "op_id" => self._id.to_s }
