@@ -43,7 +43,7 @@ Rails.application.routes.draw do
         match 'members' => 'domain_members#create', :via => :patch
         match 'members' => 'domain_members#destroy_all', :via => :delete
         match 'members/self' => 'domain_members#leave', :via => :delete
-        resources :applications, :controller => :applications, :only => [:index, :show, :create, :destroy], :id => id_with_format do
+        resources :applications, :controller => :applications, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format do
           resource :descriptor, :only => :show
           resources :gear_groups, :id => id_with_format, :only => [:index, :show]
           resources :gears, :only => [:index, :show]
