@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.7
+Version: 1.15.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -261,6 +261,22 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.8-1
+- Merge pull request #3763 from rmillner/speed_up_env
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3759 from kraman/test_case_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1014768 - Loading the environ dominated the cost to enumerate
+  ApplicationContainers.  Narrowing down the list of files to load shaves 50%%.
+  (rmillner@redhat.com)
+- Fix shell_exec_func_test to set shell when creating test user.
+  (kraman@gmail.com)
+- Fix for application_repository_func_test.rb   - gear shell needs to be oo-
+  trap-user for Origin/OSE pam namespace rules to work (kraman@gmail.com)
+- Extract common functionality into admin script and add service file for
+  openshift-iptables-port-proxy. Fix location of lock file. (kraman@gmail.com)
+- Move addresses_bound/address_bound? into container plugin (kraman@gmail.com)
+
 * Wed Oct 02 2013 Adam Miller <admiller@redhat.com> 1.15.7-1
 - Merge pull request #3751 from jwhonce/bug/1012981
   (dmcphers+openshiftbot@redhat.com)
