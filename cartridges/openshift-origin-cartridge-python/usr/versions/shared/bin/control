@@ -112,9 +112,8 @@ function tidy() {
 }
 
 function build() {
-    if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
-    then
-        m="http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
+    if [ -n "$OPENSHIFT_PYPI_MIRROR_URL" ]; then
+        m=$OPENSHIFT_PYPI_MIRROR_URL
         if curl -m 15 -f -s "$m" &>/dev/null
         then
             OPENSHIFT_PYTHON_MIRROR="-i $m"
