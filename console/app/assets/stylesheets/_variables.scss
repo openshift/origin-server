@@ -138,7 +138,7 @@ $successBorder:           darken(adjust-hue($successBackground, -10), 5%);
 
 $infoText:                #222;
 $infoBackground:          #c8ddf3;
-$infoBorder:              darken(adjust-hue($infoBackground, -10), 7%);
+$infoBorder:              darken($infoBackground, 2%);
 /* END */
 
 $hrBorder:                $openshiftBorderGray;
@@ -156,9 +156,11 @@ $pollBarColor:                  $openshiftDarkRed;
 $inputBackground:               #fff !default;
 $inputBorder:                   #ccc !default;
 $inputBorderRadius:             3px;
+
 $inputDisabledBackground:       #eee !default;
 $inputDisabledBorder:           #222 !default;
 $inputAddOnBackground:          #efefef !default;
+
 $horizontalComponentOffset:     180px !default; /* Horizontal forms & lists */
 
 // Input placeholder text color

@@ -6,7 +6,7 @@
 // --------------------------------------------------
 
 // Core
-.btn {
+.btn, a.btn {
   display: inline-block;
   padding: 5px 18px;
   margin-bottom: 0; // For input.btn
@@ -37,7 +37,7 @@
 
 // Hover state
 .btn:hover {
-  color: #000;
+  color: #000 !important;
   border-color: rgba(0,0,0,0.15) rgba(0,0,0,0.35) rgba(0,0,0,0.5);
   text-decoration: none;
   @include box-shadow(0 1px 2px rgba(0,0,0,.15));
