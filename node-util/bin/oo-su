@@ -74,7 +74,7 @@ end
 passwd         = Etc.getpwnam(uuid)
 env            = OpenShift::Runtime::Utils::Environ.for_gear(passwd.dir)
 env['HOME']    = passwd.dir
-mcs            = OpenShift::Runtime::Utils::SELinux.get_mcs_label(passwd.uid)
+mcs            = OpenShift::Runtime::Utils::SELinux.get_mcs_label(uuid)
 context        = %Q{unconfined_u:system_r:openshift_t:#{mcs}}
 
 command = %Q{/sbin/runuser -m -s /bin/sh #{passwd.name} -c "exec /usr/bin/runcon '#{context}' #{command}"}
