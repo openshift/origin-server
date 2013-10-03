@@ -138,7 +138,7 @@ $successBorder:           darken(adjust-hue($successBackground, -10), 5%);
 
 $infoText:                #222;
 $infoBackground:          #c8ddf3;
-$infoBorder:              darken(adjust-hue($infoBackground, -10), 7%);
+$infoBorder:              darken($infoBackground, 2%);
 /* END */
 
 $hrBorder:                $openshiftBorderGray;

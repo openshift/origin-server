@@ -110,16 +110,15 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
 }
 
 .important-list {
-  font-size: 15px;
-  > li > p.smaller {
-    font-size: 13px;
-    font-weight: 300;
-    > strong {
-      font-weight: 600;
+  > li > p {
+    font-size: $largeFontSize - 1 ;
+    &.smaller {
+      font-size: $smallFontSize;
     }
   }
   p:first-child {
     margin-bottom: 6px;
+    font-weight: 600;
   }
 }
 
