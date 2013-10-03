@@ -23,6 +23,7 @@ class CartridgeTypesController < ConsoleController
   def show
     name = params[:id].presence
     url = params[:url].presence
+    @wizard = !params[:direct].present?
 
     @capabilities = user_capabilities
     @application = Application.find(params[:application_id], :as => current_user)

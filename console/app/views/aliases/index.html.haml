@@ -1,6 +1,7 @@
 - content_for :page_title, "Aliases for #{@application.name}"
 
-%h1 Aliases for #{@application.name}
+%h1 Aliases for #{link_to @application.name, application_path(@application)}
+
 =flashes
 
 %p.larger
@@ -48,10 +49,9 @@
             = link_to a.web_uri(a.has_private_ssl_certificate? ? 'https' : 'http').to_s, title: "Go to the application's web page", target: "_blank", class: 'url' do
               %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
 
-    %tfooter
       %tr
         %td
-        %td= link_to "Add a new alias now", new_application_alias_path(@application)
+        %td= link_to "Add alias", new_application_alias_path(@application)
         %td{colspan: 2} 
         %td
 

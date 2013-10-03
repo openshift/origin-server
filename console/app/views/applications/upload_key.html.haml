@@ -6,11 +6,11 @@
 %h1.invisible Next Steps
 
 %section
-  %h2 Will you be changing the code of this application?
+  %h2.center Will you be changing the code of this application?
 
 %section.row.row-position
   .span6
-    %h3
+    %h3.center
       %a{:class => 'expand', :data => {:toggle => 'collapse', :target => '#ssh'}, :href => "javascript:;"} Yes, help me get started
     #ssh{:class => @key.errors.size > 0 ? "" : "collapse"}
       %p
@@ -23,7 +23,7 @@
       %p
         Note: You can also #{link_to "install the RHC command line tool", client_tools_install_help_url} and run <code>rhc setup</code> to generate and upload your key automatically.
 
-  .span5.offset1
+  .span6.center
     %h3= link_to "No, continue", application_path(@application)
 
     %p Or #{link_to "visit app in the browser", @application.web_url, :target => '_blank'}

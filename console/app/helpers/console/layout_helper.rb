@@ -85,7 +85,7 @@ module Console::LayoutHelper
     when :info
       'alert alert-info'
     when :info_pre
-      'cli'
+      'alert alert-success alert-cli'
     else
       Rails.logger.debug "Handling alert key #{key.inspect}"
       'alert'
