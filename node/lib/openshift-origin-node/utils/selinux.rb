@@ -80,7 +80,7 @@ module OpenShift
           begin
             uid = Etc.getpwnam(name.to_s).uid
           rescue ArgumentError, TypeError, NoMethodError
-            uid = name
+            uid = name.to_i
           end
 
           if uid < uid_offset + group_size - 1
