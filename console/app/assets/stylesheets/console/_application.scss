@@ -17,10 +17,6 @@
     .url-alias {
       margin-left: 10px;
     }
-    .url-alter {
-      font-size: $tinyFontSize;
-      margin-left: 10px;
-    }
   }
   .cartridges {
     font-size: $tinyFontSize;
@@ -64,6 +60,13 @@
       top: auto;
     }
   }
+}
+
+.application, .domain {
+    .url-alter {
+      font-size: $tinyFontSize;
+      margin-left: 10px;
+    }
 }
 
 .applications, .domains {
