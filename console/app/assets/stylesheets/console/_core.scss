@@ -10,9 +10,9 @@
   text-shadow: none;
 }
 
-.label-new { color: #101010 !important; background-color: #FFB02E !important; }
-.label-premium { color: #101010 !important; background-color: #A6C911 !important; }
-.label-popular { color: #101010 !important; background-color: #BFDCE8 !important; }
+.label-new { color: #101010 !important; background-color: $warningBackground !important; }
+.label-premium { color: #101010 !important; background-color: $successBackground !important; }
+.label-popular { color: #101010 !important; background-color: $infoBackground !important; }
 
 h3 .label { font-size: inherit; margin: 0 0 0 10px; }
 h5 {font-weight: normal;}
