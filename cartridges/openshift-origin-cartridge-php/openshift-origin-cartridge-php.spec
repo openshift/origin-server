@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version:       1.15.2
+Version:       1.15.3
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -76,6 +76,12 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.3-1
+- Fix PHP cartridge to wait upto 5 sec for Apache to start and create a pid
+  file before returning. This is needed because Apache 2.4 on F19 does a
+  reverse DNS lookup on the server hostname and causes a race condition in
+  runtime-cartridge-php.feature testcase. (kraman@gmail.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
 - Add support for cartridge protocol types in manifest (rchopra@redhat.com)
 
