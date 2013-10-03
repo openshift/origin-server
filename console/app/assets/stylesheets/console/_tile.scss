@@ -43,6 +43,9 @@
       }
       .gear-icon {
         font-size: 20px;
+        #scaling-gear-groups & {
+          font-size: 16px;
+        }
       }
       .restart {
         &.confirm-container {

@@ -30,6 +30,8 @@
     #app-list & {
       .count {
         font-weight: 300;
+        position: relative;
+        margin-right: 10px;
         .gear-icon {
           font-size: 16px;
         }
@@ -228,15 +230,15 @@
 }
 
 .gauge-vertical {
-  line-height: 7px;
+  line-height: 5px;
   position: absolute;
-  top: -3px;
-  right: -6px;
+  top: -6px;
+  right: -5px;
   font-size: 36px;
   width: 1px;
   white-space: normal;
   > .empty { 
-    opacity: 0.5;
+    opacity: 0.3;
   }
   > .fill  { 
     opacity: 1.0;

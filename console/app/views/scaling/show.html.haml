@@ -1,3 +1,4 @@
+- content_for :page_style, 'highlight'
 - content_for :page_title, 'Scale your Application'
 
 %h1 Scale your Application
@@ -5,11 +6,14 @@
 %section#scaling-gear-groups
   - @cartridges.each do |cartridge|
     .gear-group.tile
-      %h2
+      %h2.flow
         %a{name: cartridge.name}
         = cartridge.display_name
         - if cartridge.scales?
-          %span.pull-right Using #{pluralize(cartridge.current_scale, 'gear')}
+          .flow-block.right
+            using 
+            = cartridge.current_scale
+            %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
 
       - if cartridge.scales?
         = semantic_form_for cartridge,
@@ -61,7 +65,7 @@
           %p
             For status information about traffic to your application, see the HAProxy status page:
 
-          %p.application-url.larger
+          %p.application-url
             = link_to @application.scale_status_url, @application.scale_status_url, :target => '_blank'
 
       - elsif cartridge.tags.include? :scales
