@@ -128,6 +128,30 @@ EOFZ
     assert_operator 300, :>, response.code, "Invalid response received: #{response}"
   end
 
+  def gears_for_app(app_name)
+    begin
+      response = RestClient::Request.execute(method: :get,
+                                             url: "#{@url_base}/domain/#{@namespace}/application/#{app_name}/gear_groups",
+                                             headers: { accept: :json },
+                                             timeout: 15)
+    rescue RestClient::Exception => e
+      response = e.response
+    end
+
+    logger.info("Response from gear GET for app: #{response}")
+
+    assert_operator 300, :>, response.code, "Invalid response received: #{response}"
+
+    gear_groups = JSON.load(response)
+
+    gears = []
+    gear_groups['data'].each do |group|
+      group['gears'].each {|gear| gears << gear['id']}
+    end
+
+    gears.uniq
+  end
+
   def change_title(title, app_name, app_id, framework)
     # clone the git repo and make a change
     logger.info("Modifying the title to #{title} and pushing change")
@@ -176,8 +200,18 @@ EOFZ
   end
 
   def assert_scales_to(app_name, cartridge, count)
-    logger.info("Scaling to #{count}")
-    response = RestClient::Request.execute(method: :put, url: "#{@url_base}/domains/#{@namespace}/applications/#{app_name}/cartridges/#{cartridge}", payload: {scales_from: count}, headers: {accept: :json}, timeout: 180)
+    logger.info("Scaling #{cartridge} in #{app_name} to #{count}")
+
+    begin
+      response = RestClient::Request.execute(method: :put,
+                                             url: "#{@url_base}/domains/#{@namespace}/applications/#{app_name}/cartridges/#{cartridge}",
+                                             payload: JSON.dump(scales_from: count),
+                                             headers: {content_type: :json, accept: :json},
+                                             timeout: 180)
+    rescue RestClient::Exception => e
+      raise "Exception scaling up: #{e.response}"
+    end
+
     response = JSON.parse(response)
     assert_equal count, response['data']['current_scale']
   end

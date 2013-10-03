@@ -61,6 +61,8 @@ class OpenShift::Runtime::DeploymentTester
       assert_equal keep.to_s, gear_env['OPENSHIFT_KEEP_DEPLOYMENTS'], "Keep deployments value was not actually updated"
     end
 
+    assert_gear_deployment_consistency(@api.gears_for_app(app_name))
+
     if scaling
       gear_registry = OpenShift::Runtime::GearRegistry.new(app_container)
       entries = gear_registry.entries
@@ -94,6 +96,8 @@ class OpenShift::Runtime::DeploymentTester
       # scale up to 2
       @api.assert_scales_to app_name, framework, 2
 
+      assert_gear_deployment_consistency(@api.gears_for_app(app_name))
+
       gear_registry.load
       entries = gear_registry.entries
       assert_equal 2, entries.keys.size
@@ -115,10 +119,15 @@ class OpenShift::Runtime::DeploymentTester
     @api.clone_repo(app_id)
     @api.change_title(CHANGED_TITLE, app_name, app_id, framework)
 
+    assert_gear_deployment_consistency(@api.gears_for_app(app_name))
+
     if scaling
       web_entries.values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
 
       @api.assert_scales_to app_name, framework, 3
+
+      assert_gear_deployment_consistency(@api.gears_for_app(app_name))
+
       gear_registry.load
       entries = gear_registry.entries
       assert_equal 3, entries[:web].size
@@ -133,6 +142,8 @@ class OpenShift::Runtime::DeploymentTester
 
       @api.change_title(JENKINS_ADD_TITLE, app_name, app_id, framework)
 
+      assert_gear_deployment_consistency(@api.gears_for_app(app_name))
+
       if scaling
         entries = gear_registry.entries
         entries[:web].values.each { |entry| assert_http_title_for_entry entry, JENKINS_ADD_TITLE }
@@ -144,6 +155,8 @@ class OpenShift::Runtime::DeploymentTester
     # rollback
     logger.info("Rolling back to #{deployment_id}")
     logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id} --all`
+
+    assert_gear_deployment_consistency(@api.gears_for_app(app_name))
 
     if scaling
       entries = gear_registry.entries
@@ -161,5 +174,23 @@ class OpenShift::Runtime::DeploymentTester
   def assert_http_title_for_app(app_name, namespace, expected)
     url = "http://#{app_name}-#{@namespace}.dev.rhcloud.com"
     @api.assert_http_title(url, expected)
+  end
+
+  def assert_gear_deployment_consistency(gears)
+    errors = []
+
+    gears.each do |gear|
+      container = OpenShift::Runtime::ApplicationContainer.from_uuid(gear)
+      logger.info "Validating deployments for #{gear}"
+
+      container.all_deployments.each do |deployment|
+        %w(dependencies build-dependencies repo).each do |dir|
+          path = File.join(deployment, dir)
+          errors << "Broken or missing dir #{path}" unless File.exists?(path)
+        end
+      end
+    end
+
+    assert_equal 0, errors.length, "Corrupted deployment directories:\n#{errors.join("\n")}"
   end
 end
