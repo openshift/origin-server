@@ -27,7 +27,6 @@ class PendingDomainOps
   has_and_belongs_to_many :on_apps, class_name: Application.name, inverse_of: nil
   has_and_belongs_to_many :completed_apps, class_name: Application.name, inverse_of: nil
   field :on_completion_method, type: Symbol
-  field :skip_node_ops, type: Boolean
 
   def pending_apps
     pending_apps = on_apps - completed_apps

@@ -132,7 +132,7 @@ class MembersController < BaseController
         if m = members.detect{ |m| m._id === id }
           render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:info, "The member #{m.name} is no longer directly granted a role.", 132))
         else
-          render_success(:no_content, nil, nil, "Removed member.")
+          render_success(requested_api_version <= 1.4 ? :no_content : :ok, nil, nil, "Removed member.")
         end
       else
         render_error(:unprocessable_entity, "The member could not be removed due to an error.", nil, nil, nil, get_error_messages(membership))

@@ -16,6 +16,7 @@ class Gear
   field :uid, type: Integer
   field :name, type: String, default: ""
   field :quarantined, type: Boolean, default: false
+  field :node_removed, type: Boolean
   field :host_singletons, type: Boolean, default: false
   field :app_dns, type: Boolean, default: false
   field :sparse_carts, type: Array, default: []
@@ -87,7 +88,7 @@ class Gear
 
   def unreserve_uid
     get_proxy.unreserve_uid(self.uid) if get_proxy
-    
+  
     failure_message = "Failed to unset UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
     updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
       Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => nil, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => nil }})
@@ -99,14 +100,20 @@ class Gear
   end
 
   def create_gear
-    result_io = get_proxy.create(self)
-    app.process_commands(result_io, nil, self)
+    result_io = ResultIO.new
+    unless self.node_removed
+      result_io = get_proxy.create(self)
+      app.process_commands(result_io, nil, self)
+    end
     result_io
   end
 
   def destroy_gear(keep_uid=false)
-    result_io = get_proxy.destroy(self, keep_uid)
-    app.process_commands(result_io, nil, self)
+    result_io = ResultIO.new
+    unless self.node_removed
+      result_io = get_proxy.destroy(self, keep_uid)
+      app.process_commands(result_io, nil, self)
+    end
     result_io
   end
  
@@ -150,14 +157,14 @@ class Gear
   # Exit codes:
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
-  def add_component(component, init_git_url=nil, skip_node_ops=false)
+  def add_component(component, init_git_url=nil)
     result_io = ResultIO.new
-    unless skip_node_ops
+    unless self.node_removed
       result_io = get_proxy.add_component(self, component, init_git_url)
       component.process_properties(result_io)
       app.process_commands(result_io, component._id, self)
-      raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     end
+    raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     if component.is_sparse?
       self.sparse_carts << component._id
       self.save!
@@ -176,9 +183,12 @@ class Gear
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
   def post_configure_component(component, init_git_url=nil)
-    result_io = get_proxy.post_configure_component(self, component, init_git_url)
-    component.process_properties(result_io)
-    app.process_commands(result_io, component._id, self)
+    result_io = ResultIO.new
+    unless self.node_removed
+      result_io = get_proxy.post_configure_component(self, component, init_git_url)
+      component.process_properties(result_io)
+      app.process_commands(result_io, component._id, self)
+    end
     raise OpenShift::NodeException.new("Unable to post-configure component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
@@ -193,9 +203,9 @@ class Gear
   # Exit codes:
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
-  def remove_component(component, skip_node_ops=false)
+  def remove_component(component)
     result_io = ResultIO.new
-    unless skip_node_ops
+    unless self.node_removed
       result_io = get_proxy.remove_component(self, component)
       app.process_commands(result_io, component._id, self)
     end
@@ -300,11 +310,13 @@ class Gear
   end
 
   def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")
-    base_filesystem_gb = Gear.base_filesystem_gb(self.group_instance.gear_size)
-    base_file_limit = Gear.base_file_limit(self.group_instance.gear_size)
-    total_fs_gb = additional_filesystem_gb + base_filesystem_gb
-    total_file_limit = (total_fs_gb * base_file_limit) / base_filesystem_gb
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, total_file_limit.to_i))
+    unless self.node_removed
+      base_filesystem_gb = Gear.base_filesystem_gb(self.group_instance.gear_size)
+      base_file_limit = Gear.base_file_limit(self.group_instance.gear_size)
+      total_fs_gb = additional_filesystem_gb + base_filesystem_gb
+      total_file_limit = (total_fs_gb * base_file_limit) / base_filesystem_gb
+      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, total_file_limit.to_i))
+    end
   end
 
   def server_identities

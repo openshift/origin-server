@@ -1394,19 +1394,125 @@ If the operation was a success, you should see output similar to the following:
 demo:$apr1$Q7yO3MF7$rmSZ7SI.vITfEiLtkKSMZ/
 ----
 
-=== Verify the Ruby Bundler
-The broker Rails application depends on several gem files in order to operate correctly. You need to ensure that the Ruby bundler can find the appropriate gem files.
+=== Configure the Administrative Console
+_RubyGem: openshift-origin-admin-console_
 
+The optional OpenShift Origin administrative console (a.k.a. "admin console")
+enables OpenShift administrators an at-a-glance view of an OpenShift
+deployment, in order to search and navigate OpenShift entities and make
+reasonable inferences about adding new capacity.
+
+==== Running the Admin Console
+The administrative console runs as a plugin to the OpenShift broker application.
+Installing the rubygem-openshift-origin-admin-console RPM should install both
+the gem and its configuration file:
+
+----
+yum install rubygem-openshift-origin-admin-console
+----
+
+The broker will load the plugin if the gem is installed and its configuration
+file is placed at `/etc/openshift/plugins.d/openshift-origin-admin-console.conf`
+(or `...-dev.conf` for specifying development-mode settings) which the RPM does
+by default. Edit the configuration file as needed; options are commented, and
+discussed more fully in the Administration Guide.
+
+==== Adding to an existing deployment
+
+If you are adding this plugin to an existing deployment, as opposed to during the
+initial install, you may have some extra steps. As above, install the plugin with:
+
+----
+yum install rubygem-openshift-origin-admin-console
+----
+
+.RHEL6
+After installation, restart the openshift-broker service to load the plugin, or to reload a changed admin console config file.
+
+.Fedora
+You will need to regenerate the broker's Gemfile.lock manually as follows:
+
+----
+cd /var/www/openshift/broker
+rm Gemfile.lock
+bundle --local
+----
+
+Then restart the openshift-broker service. You will also need to restart
+the broker in order to load changes in the admin console config file.
+
+==== Browsing to the Admin Console
+Even when the admin console is included in the broker app, standard broker host
+httpd proxy configuration does not allow external access to its URI
+(which you can change in the config file; by default it is /admin-console).
+This is a security feature to avoid publicly exposing the console by accident.
+
+In order to access the console, you can either forward the server's port for
+local viewing or modify the proxy configuration.
+
+===== Port forwarding
+You can view the admin console without exposing it externally by forwarding
+its port to your local host for viewing with a browser. For instance,
+
+----
+$ ssh -f user@broker.openshift.example.com -L 8080:localhost:8080 -N
+----
+
+This connects via ssh to `user@broker.openshift.example.com` and attaches your local
+port 8080 (the first number) to the remote server's local port 8080, which is
+where the broker application is listening behind the host proxy.
+
+Now just browse to `http://localhost:8080/admin-console` to view.
+
+===== Modifying proxy configuration
+To enable external access via the broker host, you will need to configure the
+broker host httpd proxy. The relevant configuration file for the broker is
+`/etc/httpd/conf.d/000002_openshift_origin_broker_proxy.conf` inside the
+`<VirtualHost *:443>` section. Add an extra ProxyPass for the admin console
+and its static assets (images, etc.) after the existing one for the broker:
+
+----
+ProxyPass /broker http://127.0.0.1:8080/broker
+ProxyPass /admin-console http://127.0.0.1:8080/admin-console
+ProxyPass /assets http://127.0.0.1:8080/assets
+ProxyPassReverse / http://127.0.0.1:8080/
+----
+
+You can also add any httpd access controls you deem necessary to prevent
+unauthorized viewers from reaching the admin console.
+Then restart the httpd service to load the new configuration.
+
+If you have an OpenShift node installed on your broker host (not advised
+for production but often done in development), some extra steps may be
+necessary. You may need to add an exception for the `/admin-console` and
+`/assets` paths in `/var/lib/openshift/.httpd.d/nodes.txt` and restart httpd.
+
+
+=== Run the Ruby Bundler
+The broker Rails application depends on many gem files in order to operate correctly. You need to ensure that the Ruby bundler can find the appropriate gem files.
+
+.RHEL6
+This will happen automatically when the broker is started, so skip this section.
+Actually, doing this as root will keep the broker from properly regenerating the
+Gemfile.lock as needed.
+
+.Fedora
 ----
 cd /var/www/openshift/broker
 bundle --local
 ----
+
+This checks that the gem dependencies specified in the broker's Gemfile are satisfied by the gems installed on the system and records the versions used in Gemfile.lock so that the same versions will be used reliably each time the broker is restarted.
 
 You should see a lot of information scroll by letting you know what gem files the system is actually using. The last line of output should be:
 
 ----
 Your bundle is complete! Use `bundle show [gemname]` to see where a bundled gem is installed.
 ----
+
+Whenever the versions of the gems installed change (either due to updated RPMs, or a new install from source) or the Gemfile is updated, you will need to remove the existing Gemfile.lock and run the commands above again.
+
+It is possible to have bundler resolve dependencies by installing gems downloaded from rubygems.org; however, this may have unpredictable results. We recommend using RPM-supplied gems unless you are developer and understand the consequences.
 
 === Set Services to Start on Boot
 The last step in configuring our broker application is to ensure that all of the necessary services are started and that they are configured to start upon system boot.
@@ -2143,9 +2249,13 @@ systemctl enable openshift-node-web-proxy.service
 * quotacheck
 * augtool
 
+This section describes how to configure the node host for multi-tenant gears.
+
+It may be a little surprising that the parameters of a node profile (a.k.a "gear profile" or "gear size") are not actually defined centrally, but rather on each individual node host. The broker knows profiles only as labels (e.g. "small"); a node host must present a profile in order for the broker to place gears for that profile on it. By convention, we expect node hosts to specify resource constraints (on RAM, CPU, etc.) uniformly across the profile, but there is nothing to actually enforce that (other than good sense). It is also perfectly reasonable to partition nodes via multiple profiles with identical resource constraints but different names.
+
 === Install augeas tools
 
-Augeas is a very useful toolset to perform scripts updates to configuration files. Run the following to install it:
+Augeas is a very useful toolset to perform scripted updates to configuration files. Run the following to install it:
 
 ----
 yum install -y augeas
