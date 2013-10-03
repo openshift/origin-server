@@ -6,7 +6,7 @@ module OpenShift
       class Plugin
         include OpenShift::Runtime::NodeLogger
 
-        attr_reader :gear_shell, :mcs_label
+        attr_reader :gear_shell
 
         def self.container_dir(container)
           File.join(container.base_dir, container.uuid)
@@ -15,8 +15,19 @@ module OpenShift
         def initialize(application_container)
           @container  = application_container
           @config     = ::OpenShift::Config.new
-          @mcs_label  = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid) if @container.uid
           @gear_shell = @config.get("GEAR_SHELL")    || "/bin/bash"
+        end
+
+        # Public
+        #
+        # Lazy load the MCS label only when its needed
+        def mcs_label
+          if not @mcs_label
+            if @container.uid
+              @mcs_label = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
+            end
+          end
+          @mcs_label
         end
 
         # Public: Create an empty gear.
@@ -55,8 +66,6 @@ module OpenShift
             raise ::OpenShift::Runtime::UserCreationException.new(
                       "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
-
-            @mcs_label  = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
 
             set_ro_permission(@container.container_dir)
             FileUtils.chmod 0o0750, @container.container_dir
@@ -314,38 +323,38 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           options[:unsetenv_others] = true
           options[:uid] = @container.uid
           options[:gid] = @container.gid
-          options[:selinux_context] = ::OpenShift::Runtime::Utils::SELinux.context_from_defaults(@mcs_label)
+          options[:selinux_context] = ::OpenShift::Runtime::Utils::SELinux.context_from_defaults(mcs_label)
           ::OpenShift::Runtime::Utils::oo_spawn(command, options)
         end
 
         def reset_permission(paths)
           ::OpenShift::Runtime::Utils::SELinux.clear_mcs_label(paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, paths)
         end
 
         def reset_permission_R(paths)
           ::OpenShift::Runtime::Utils::SELinux.clear_mcs_label_R(paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, paths)
         end
 
         def set_ro_permission_R(paths)
           PathUtils.oo_chown_R(0, @container.gid, paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, paths)
         end
 
         def set_ro_permission(paths)
           PathUtils.oo_chown(0, @container.gid, paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, paths)
         end
 
         def set_rw_permission_R(paths)
           PathUtils.oo_chown_R(@container.uid, @container.gid, paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, paths)
         end
 
         def set_rw_permission(paths)
           PathUtils.oo_chown(@container.uid, @container.gid, paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, paths)
         end
 
         private

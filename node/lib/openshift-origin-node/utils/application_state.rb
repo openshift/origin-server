@@ -43,7 +43,6 @@ module OpenShift
           @container = container
           @uuid = @container.uuid
 
-          config      = ::OpenShift::Config.new
           @state_file = File.join(@container.container_dir, "app-root", "runtime", ".state")
         end
 

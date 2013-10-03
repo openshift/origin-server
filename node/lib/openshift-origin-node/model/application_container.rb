@@ -93,15 +93,19 @@ module OpenShift
         @namespace        = namespace
         @quota_blocks     = quota_blocks
         @quota_files      = quota_files
-        @uid              = user_uid
-        @gid              = user_uid
         @base_dir         = @config.get("GEAR_BASE_DIR")
         @skel_dir         = @config.get("GEAR_SKEL_DIR") || DEFAULT_SKEL_DIR
         @supplementary_groups = @config.get("GEAR_SUPPLEMENTARY_GROUPS")
         @hourglass        = hourglass || ::OpenShift::Runtime::Utils::Hourglass.new(3600)
 
         begin
-          user_info         = Etc.getpwnam(@uuid)
+          user_info = user_uid
+          [:uid, :gid, :gecos, :dir].each do |meth|
+            if not user_info.respond_to?(meth)
+              user_info = Etc.getpwnam(@uuid)
+              break
+            end
+          end
           @uid              = user_info.uid
           @gid              = user_info.gid
           @gecos            = user_info.gecos
@@ -590,7 +594,7 @@ module OpenShift
             end
 
             begin
-              a=ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], pwent.name, pwent.uid, env["OPENSHIFT_APP_NAME"],
+              a=ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], pwent.name, pwent, env["OPENSHIFT_APP_NAME"],
                                          env["OPENSHIFT_GEAR_NAME"], namespace, nil, nil, hourglass)
             rescue => e
               NodeLogger.logger.error("Failed to instantiate ApplicationContainer for uid #{pwent.uid}/uuid #{env["OPENSHIFT_APP_UUID"]}: #{e}")
