@@ -148,6 +148,18 @@ class Domain
   end
 
   def add_system_ssh_keys(ssh_keys)
+    ssh_keys_to_rm = []
+    ssh_keys.each do |new_key|
+      self.system_ssh_keys.each do |cur_key|
+        if cur_key.name == new_var.name
+          ssh_keys_to_rm << cur_key.to_key_hash()
+        end
+      end
+    end
+
+    # if an ssh key being added has the same name as an existing key, then remove the previous keys first
+    Domain.where(_id: self.id).update_all({ "$pullAll" => { system_ssh_keys: ssh_keys_to_rm }}) unless ssh_keys_to_rm.empty?
+
     #keys_attrs = ssh_keys.map{|k| k.attributes.dup}
     #pending_op = PendingDomainOps.new(op_type: :add_domain_ssh_keys, arguments: { "keys_attrs" => keys_attrs }, on_apps: applications, created_at: Time.now, state: "init")
     keys_attrs = ssh_keys.map { |k| k.to_key_hash() }
@@ -174,18 +186,18 @@ class Domain
     env_vars_to_rm = []
     variables.each do |new_var|
       self.env_vars.each do |cur_var|
-        if cur_var["key"] == new_var["key"] && cur_var["value"] != new_var["value"]
+        if cur_var["key"] == new_var["key"]
           env_vars_to_rm << cur_var.dup
         end
       end
     end
 
+    # if this is an update to an existing environment variable, remove the previous ones first
+    Domain.where(_id: self.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) unless env_vars_to_rm.empty?
+
     #pending_op = PendingDomainOps.new(op_type: :add_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
     pending_op = AddEnvVarsDomainOp.new(variables: variables, on_apps: applications)
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { env_vars: variables }})
-
-    # if this is an update to an existing environment variable, remove the previous ones
-    Domain.where(_id: self.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) unless env_vars_to_rm.empty?
   end
 
   def remove_env_variables(remove_key)
