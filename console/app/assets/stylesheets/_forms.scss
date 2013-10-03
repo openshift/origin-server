@@ -517,6 +517,9 @@ textarea:focus:required:valid {
   .btn:first-child {
     @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
   }
+  select {
+    height: 30px;
+  }
 }
 .input-append {
   input,
