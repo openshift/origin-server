@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.8
+Version: 1.15.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,26 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.9-1
+- Merge pull request #3298 from Miciah/bug-993440-restapplication-initialize-
+  check-if-cart-is-nil (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3757 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3759 from kraman/test_case_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- fix cart order calculations (rchopra@redhat.com)
+- Add and use find_cartridge_or_raise_exception (miciah.masters@gmail.com)
+- Bug 980306 (lnader@redhat.com)
+- Remove gear removed checks which were added before just for extra safety.
+  (rpenta@redhat.com)
+- Have CloudUser create a new CapabilityProxy every time to fix
+  application_test.rb#test_scaling_and_storage_events_on_application on F19.
+  (kraman@gmail.com)
+- Fix PHP cartridge to wait upto 5 sec for Apache to start and create a pid
+  file before returning. This is needed because Apache 2.4 on F19 does a
+  reverse DNS lookup on the server hostname and causes a race condition in
+  runtime-cartridge-php.feature testcase. (kraman@gmail.com)
+
 * Wed Oct 02 2013 Adam Miller <admiller@redhat.com> 1.15.8-1
 - Merge pull request #3756 from pravisankar/dev/ravi/rename-node-removed
   (dmcphers+openshiftbot@redhat.com)
