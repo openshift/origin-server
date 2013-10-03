@@ -82,6 +82,11 @@ EOF
 
 if args["--gss-tsig"]
   system "nsupdate -g <<EOF\n#{command}\nEOF"
-else
+elsif args["--key-file"] or File.exists? key
+  # We were explicitly told to use a keyfile, or a keyfile exists at the
+  # default location.
   system "nsupdate -k #{key} <<EOF\n#{command}\nEOF"
+else
+  # Try to do an unauthenticated update.
+  system "nsupdate <<EOF\n#{command}\nEOF"
 end
