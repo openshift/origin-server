@@ -32,6 +32,10 @@
   > ul.meta > li > label {
     display: inline;
   }
+  &.inactive {
+    background-color: #f2f2f2;
+    opacity: .75;
+  }
   .flow {
     > .flow-block.right {
       white-space: nowrap;
@@ -88,6 +92,9 @@
     @include panel_default_boxshadow_hover();
     .font-icon-block {
       opacity: 1;
+    }
+    .btn {
+      color: #000 !important;
     }
     .tile-target {
       color: $openshiftBrightRed;

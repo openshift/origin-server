@@ -24,7 +24,6 @@
   }
   .cartridges {
     font-size: $tinyFontSize;
-    font-weight: 300;
   }
   .flow-block {
     #app-list & {
@@ -57,7 +56,6 @@
 .applications, .domains {
   .section-body .row {
     .span4 {
-      font-weight: 300;
       > h2 {
         font-size: $h6FontSize;
         font-weight: 400;
