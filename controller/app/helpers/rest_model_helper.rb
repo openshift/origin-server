@@ -17,6 +17,8 @@ module RestModelHelper
   def get_rest_domain(domain)
     if requested_api_version == 1.0
       RestDomain10.new(domain, get_url, nolinks)
+    elsif requested_api_version <= 1.2
+      RestDomain12.new(domain, get_url, nolinks)
     elsif requested_api_version <= 1.5
       RestDomain15.new(domain, get_url, nolinks)
     else
