@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version:       1.15.3
+Version:       1.15.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -41,6 +41,10 @@ Provides mongodb cartridge support to OpenShift
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.4-1
+- Bug 980721 - Fix mongodb password and db name on restore.
+  (rmillner@redhat.com)
+
 * Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - Origin UI 72 - Membership (ccoleman@redhat.com)
 
