@@ -38,8 +38,7 @@ pre,
   font-family: $monoFontFamily !important;
 
   #flash & {
-    background-color: #F7FCF7;
-    border-left-color: green;
+    background-color: $successBackground;
   }
 
   // Make prettyprint styles more spaced out for readability

@@ -10,9 +10,9 @@
   text-shadow: none;
 }
 
-.label-new { color: #101010 !important; background-color: #FFB02E !important; }
+.label-new { color: #101010 !important; background-color: $warningBackground !important; }
 .label-premium { color: #43B443 !important; background-color: transparent !important; padding: 0; font-size: 100%; }
-.label-popular { color: #101010 !important; background-color: #BFDCE8 !important; }
+.label-popular { color: #101010 !important; background-color: $infoBackground !important; }
 
 h3 .label { font-size: inherit; margin: 0 0 0 10px; }
 h5 {font-weight: normal;}
