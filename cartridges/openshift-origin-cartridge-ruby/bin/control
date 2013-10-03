@@ -69,10 +69,6 @@ function pre-repo-archive() {
   popd 1>/dev/null
 }
 
-function pre-build() {
-  rails_app_name_check
-}
-
 function build() {
     echo "Building Ruby cartridge"
     update-configuration $OPENSHIFT_RUBY_VERSION
@@ -181,20 +177,6 @@ function _threaddump() {
   fi
 }
 
-function rails_app_name_check() {
-  # Rails does not work if the application name starts with a number
-  pushd ${OPENSHIFT_REPO_DIR} >/dev/null
-  if [ -f Gemfile.lock ]; then
-    if grep -q ' rails ' Gemfile.lock; then
-      if $(echo "$OPENSHIFT_APP_NAME" | grep '^[0-9]' >/dev/null); then
-        client_error "Invalid Rails application name. Please delete this application and re-create it with a name which does not start with numbers"
-        exit 1
-      fi
-    fi
-  fi
-  popd > /dev/null
-}
-
 case "$1" in
   start)             start ;;
   stop)              stop ;;
@@ -202,7 +184,6 @@ case "$1" in
   status)            status ;;
   tidy)              tidy ;;
   pre-repo-archive)  pre-repo-archive ;;
-  pre-build)         pre-build ;;
   build)             build ;;
   deploy)            deploy ;;
   post-deploy)       post-deploy ;;
