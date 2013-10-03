@@ -126,6 +126,7 @@ function pre_snapshot {
    creds="-u $OPENSHIFT_MONGODB_DB_USERNAME -p \"$OPENSHIFT_MONGODB_DB_PASSWORD\" --port $OPENSHIFT_MONGODB_DB_PORT"
    if mongodump -h $OPENSHIFT_MONGODB_DB_HOST $creds --directoryperdb > /dev/null 2>&1; then
       #  Dump ok - now create a gzipped tarball.
+      echo "$OPENSHIFT_APP_NAME" > $OPENSHIFT_DATA_DIR/mongodb_dump_old_db_name.txt
       if tar -zcf $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz . ; then
          #  Created dump snapshot - restore previous dir and remove temp dir.
          popd > /dev/null
@@ -142,6 +143,7 @@ function pre_snapshot {
    popd > /dev/null
    /bin/rm -rf $dumpdir
    /bin/rm -f  $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz
+   /bin/rm -f  $OPENSHIFT_DATA_DIR/mongodb_dump_old_db_name.txt
    die 0 "WARNING" "Could not dump MongoDB databases ${err_details}!"
    stop
 }
@@ -205,6 +207,25 @@ function restore_from_mongodb_snapshot {
        die 0 "WARNING" "Could not restore MongoDB databases - mongorestore failed!"
    fi
 
+   old_name_file="$OPENSHIFT_DATA_DIR/mongodb_dump_old_db_name.txt"
+   if [ -f "$old_name_file" ]
+   then
+       read old_name < "$old_name_file"
+       if [ "$old_name" != "" -a "$old_name" != "$OPENSHIFT_APP_NAME" ]
+       then
+           echo "use $OPENSHIFT_APP_NAME
+                 db.dropDatabase()
+                 db.copyDatabase(\"$old_name\", \"$OPENSHIFT_APP_NAME\")
+                 db.addUser(\"admin\", \"$OPENSHIFT_MONGODB_DB_PASSWORD\")
+                 db.openshift.update({ application: \"$old_name\" },
+                   { application: \"$OPENSHIFT_APP_NAME\", dbhost: \"$OPENSHIFT_MONGODB_DB_HOST\" })
+                 use $old_name
+                 db.dropDatabase() " | \
+                     mongo --username $OPENSHIFT_MONGODB_DB_USERNAME \
+                     --password "$OPENSHIFT_MONGODB_DB_PASSWORD" \
+                     "${OPENSHIFT_MONGODB_DB_HOST}:${OPENSHIFT_MONGODB_DB_PORT}/admin"
+       fi
+   fi
 
    #  Restore previous dir and clean up temporary dir.
    popd > /dev/null
