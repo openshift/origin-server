@@ -18,6 +18,7 @@ commands_map = {
     "git-upload-pack": "/usr/bin/git-upload-pack",
     "snapshot": "/bin/bash",
     "restore": "/bin/bash",
+    "binary-deploy": "/bin/bash",
     "tail": "/usr/bin/tail",
     "rhcsh": "/bin/bash",
     "true": "/bin/true",
@@ -170,6 +171,8 @@ if __name__ == '__main__':
         allargs = ['oo-restore']
         if include_git:
             allargs.append('INCLUDE_GIT')
+    if basecmd in ('binary-deploy',):
+        allargs = ['oo-binary-deploy']
     elif basecmd in ('rhcsh',):
         os.environ["PS1"] = "rhcsh> "
         if len(allargs) < 2:

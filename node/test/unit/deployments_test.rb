@@ -425,7 +425,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
     current = time_to_s(Time.now)
     @container.expects(:current_deployment_datetime).returns(current)
     deployment_dir = PathUtils.join(@container.container_dir, 'app-deployments', current)
-    @container.expects(:run_in_container_context).with("tar zcf - --exclude metadata .", 
+    @container.expects(:run_in_container_context).with("tar zcf - --exclude metadata.json .",
                                                        has_entries(
                                                          chdir: deployment_dir,
                                                          expected_exitstatus: 0,
@@ -441,7 +441,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
   def test_archive_param
     current = time_to_s(Time.now)
     deployment_dir = PathUtils.join(@container.container_dir, 'app-deployments', current)
-    @container.expects(:run_in_container_context).with("tar zcf - --exclude metadata .", 
+    @container.expects(:run_in_container_context).with("tar zcf - --exclude metadata.json .",
                                                        has_entries(
                                                          chdir: deployment_dir,
                                                          expected_exitstatus: 0,
@@ -494,23 +494,27 @@ EOF
 
   def test_determine_extract_command_tar_gz
     %w(/tmp/foo.tar.gz /tmp/foo.tAr.Gz /tmp/FOO.TAR.GZ).each do |filename|
-      assert_equal "/bin/tar xf #{filename}", @container.determine_extract_command(filename)
+      assert_equal "/bin/tar xf #{filename}", @container.determine_extract_command(file: filename)
     end
   end
 
   def test_determine_extract_command_tar
     filename = '/tmp/foo.tar'
-    assert_equal "/bin/tar xf #{filename}", @container.determine_extract_command(filename)
+    assert_equal "/bin/tar xf #{filename}", @container.determine_extract_command(file: filename)
   end
 
   def test_determine_extract_command_zip
     filename = '/tmp/foo.zip'
-    assert_equal "/usr/bin/unzip -q #{filename}", @container.determine_extract_command(filename)
+    assert_equal "/usr/bin/unzip -q #{filename}", @container.determine_extract_command(file: filename)
+  end
+
+  def test_determine_extract_command_stdin
+    assert_equal "/bin/tar -xz", @container.determine_extract_command(stdin: true)
   end
 
   def test_determine_extract_command_invalid
     filename = '/tmp/foo.bar'
-    err = assert_raises(RuntimeError) { @container.determine_extract_command(filename)}
+    err = assert_raises(RuntimeError) { @container.determine_extract_command(file: filename)}
     assert_equal "Unable to determine file type for '#{filename}' - unable to deploy", err.message
   end
 
@@ -519,17 +523,20 @@ EOF
 
     File.expects(:exist?).with(file_path).returns(true)
 
-    @container.expects(:determine_extract_command).with(file_path).returns('extract')
+    @container.expects(:determine_extract_command).with(has_entries(file: file_path)).returns('extract')
 
     gear_env = {'a' => 'b'}
     destination = '/bar'
 
     @container.expects(:run_in_container_context).with('extract',
+                                                       in: nil,
+                                                       out: $stderr,
+                                                       err: $stderr,
                                                        env: gear_env,
                                                        chdir: destination,
                                                        expected_exitstatus: 0)
 
-    @container.extract_deployment_archive(gear_env, file_path, destination)
+    @container.extract_deployment_archive(gear_env, file: file_path, destination: destination)
   end
 
   def test_extract_deployment_archive_invalid_file
@@ -542,7 +549,7 @@ EOF
     @container.expects(:determine_extract_command).never
     @container.expects(:run_in_container_context).never
 
-    err = assert_raises(RuntimeError) { @container.extract_deployment_archive(gear_env, file_path, destination) }
+    err = assert_raises(RuntimeError) { @container.extract_deployment_archive(gear_env, file: file_path, destination: destination) }
     assert_equal "Specified file '#{file_path}' does not exist.", err.message
   end
 end

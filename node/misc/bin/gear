@@ -369,14 +369,22 @@ command :deploy do |c|
   end
 end
 
-command :archive do |c|
-  c.syntax = "#{name} archive"
-  c.description = "Archive the current deployment so it can be used as a binary deployment artifact"
-  c.option "--file FILE", "The path to the file to create"
+command :binary_deploy do |c|
+  c.syntax = "#{name} binary-deploy"
+
+  c.description = "Deploy a binary artifact"
   c.action do |args, options|
-    do_command(c, options) do
-      File.open(options.file, "w") { |f| f.write @container.archive }
-    end
+    options = { stdin: $stdin }
+
+    deployment_datetime = @container.create_deployment_dir(force_clean_build: true)
+    options[:deployment_datetime] = deployment_datetime
+
+    @container.prepare(options)
+    @container.distribute(options)
+
+    options[:all]                = true
+    options[:report_deployments] = true
+    @container.activate(options)
   end
 end
 
