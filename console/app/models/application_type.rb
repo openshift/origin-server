@@ -270,7 +270,6 @@ class ApplicationType
       nil
     end
 
-  protected
     LOCAL_SEARCH = lambda do |query, t|
       t.description.downcase.include?(query) or
         t.display_name.downcase.include?(query) or

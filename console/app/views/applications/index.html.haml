@@ -8,7 +8,7 @@
       %h1 Applications
 
 :css
-  @media (max-width: 767px) {    
+  @media (max-width: 767px) {
     .popover {
       left: auto !important;
       right: 10% !important;
@@ -28,7 +28,7 @@
       - groups.each_pair do |domain_id, apps|
         %h2.flow.domain
           - if groups.length == 1
-            Available in domain 
+            Available in domain
           = link_to domain_id, domain_path(domain_id)
           - if apps.first.owner?
             = render :partial => 'account_state', :locals => {:capabilities => @capabilities}

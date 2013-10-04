@@ -46,7 +46,7 @@ class AliasesController < ConsoleController
 
   def delete
     @application = Application.find(params[:application_id], :as => current_user)
-    @alias = params[:alias_id].presence || params[:id].presence
+    @alias = @application.find_alias(params[:alias_id].presence || params[:id].presence)
   end
 
   def destroy

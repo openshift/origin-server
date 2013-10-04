@@ -11,29 +11,32 @@
     %span.flow-block.right
       %span.url
         = link_to application.web_url, :target => '_blank', :title => "Go to the application's web page", :class => "font-icon-link" do
-          %span.font-icon.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
+          %span.font-icon.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"}
 
-      %span.count{:title => application_gear_count(application)}
+      - type, title = application_gear_title(application)
+      %span.count{:title => title}
         = application.gear_count
         %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
-        - if (scales = application.cartridges.select(&:scales?)) and scales.present?
+        - case type
+        - when :max
           .gauge-vertical>
-            - if scales.any?(&:has_scale_range?)
-              - if scales.none?(&:can_scale_up?)
-                %span.gauge-tick.fill>  .
-                %span.gauge-tick.fill>  .
-                %span.gauge-tick.fill>  .
-              - elsif scales.none?(&:can_scale_down?)
-                %span.gauge-tick.empty> .
-                %span.gauge-tick.empty> .
-                %span.gauge-tick.fill>  .
-              - else
-                %span.gauge-tick.empty> .
-                %span.gauge-tick.fill>  .
-                %span.gauge-tick.fill>  .
-            - else
-              %span.gauge-tick.fill> .
-              %span.gauge-tick.fill> .
-              %span.gauge-tick.fill> .
+            %span.gauge-tick.fill>  .
+            %span.gauge-tick.fill>  .
+            %span.gauge-tick.fill>  .
+        - when :min
+          .gauge-vertical>
+            %span.gauge-tick.empty> .
+            %span.gauge-tick.empty> .
+            %span.gauge-tick.fill>  .
+        - when :middle
+          .gauge-vertical>
+            %span.gauge-tick.empty> .
+            %span.gauge-tick.fill>  .
+            %span.gauge-tick.fill>  .
+        - when :fixed
+          .gauge-vertical>
+            %span.gauge-tick.fill> .
+            %span.gauge-tick.fill> .
+            %span.gauge-tick.fill> .
 
   .cartridges= application.cartridges.map(&:display_name).join(', ')

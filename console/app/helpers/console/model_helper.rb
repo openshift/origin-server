@@ -123,8 +123,9 @@ module Console::ModelHelper
   end
 
   def application_gear_count(application)
-    return 'None' if application.gear_count == 0
-    "#{application.gear_count} #{application.gear_profile.to_s.humanize.downcase}"
+    count = application.gear_count
+    return 'no gears' if count == 0
+    "#{count} #{application.gear_profile.to_s.humanize.downcase} #{count == 1 ? 'gear' : 'gears'}"
   end
 
   def cartridge_gear_group_count(group)
@@ -142,6 +143,25 @@ module Console::ModelHelper
 
   def scaled_cartridge_storage(cart)
     storage_string(cart.total_storage, cart.current_scale)
+  end
+
+  def application_gear_title(application)
+    count = application.gear_count
+    if (scales = application.cartridges.select(&:scales?)) and scales.present?
+      if scales.any?(&:has_scale_range?)
+        if scales.none?(&:can_scale_up?)
+          [:max, "#{pluralize(scales.count, 'cartridge')} at maximum scale in this application.  Currently using #{application_gear_count(application)}."]
+        elsif scales.none?(&:can_scale_down?)
+          [:min, "#{pluralize(scales.count, 'cartridge')} at minimum scale in this application.  Currently using #{application_gear_count(application)}."]
+        else
+          [:mid, "#{pluralize(scales.count, 'cartridge')} above minimum scale in this application.  Currently using #{application_gear_count(application)}."]
+        end
+      else
+        [:fixed, "This application running at a fixed scale ratio, and is using #{application_gear_count(application)}."]
+      end
+    else
+      [nil, "Unscaled application using #{application_gear_count(application)}"]
+    end
   end
 
   def storage_string(quota,multiplier = 0)

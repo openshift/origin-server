@@ -6,7 +6,7 @@
 %h1.invisible Next Steps
 
 %section
-  %h2 Will you be changing the code of this application?
+  %h2.center Will you be changing the code of this application?
 
 %section
   %h3
@@ -23,5 +23,4 @@
       Note: You can also #{link_to "install the RHC command line tool", client_tools_install_help_url} and run <code>rhc setup</code> to generate and upload your key automatically.
 
   %h3= link_to "No, continue", application_path(@application)
-
   %p Or #{link_to "visit app in the browser", @application.web_url, :target => '_blank'}

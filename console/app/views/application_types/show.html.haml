@@ -77,6 +77,10 @@
       .controls.first
         - here = application_type_path(@application_type.id, params)
         - create_domain_url = new_domain_path({:then => here, :domain_param => 'application[domain_name]'})
+        - if @suggesting_name
+          - content_for :javascripts do
+            :javascript
+              $(function() { $('[autofocus]').select() })
         -# TODO JTL: Remove
         - if params[:test]
           - mine = [Domain.new(:name => 'me1'), Domain.new(:name => 'me2')]

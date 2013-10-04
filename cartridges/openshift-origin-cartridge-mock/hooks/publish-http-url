@@ -13,4 +13,4 @@ fi
 #
 # Publish this gear's HTTP URL/endpoint.
 #
-echo "${OPENSHIFT_GEAR_DNS}|${gip}:${OPENSHIFT_MOCK_EXAMPLE_PORT1}"
+echo "${OPENSHIFT_GEAR_DNS}|${gip}:${OPENSHIFT_MOCK_EXAMPLE_PUBLIC_PORT1}"

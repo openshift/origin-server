@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version:       1.15.5
+Version:       1.15.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,12 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.6-1
+- Merge pull request #3730 from jwhonce/bug/1012812
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1012812 - Report error if configuration files are missing
+  (jhonce@redhat.com)
+
 * Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
 - Use the Ruby SDK functions in fix_local.sh in haproxy cart
   (mfojtik@redhat.com)

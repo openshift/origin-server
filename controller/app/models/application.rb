@@ -647,7 +647,7 @@ class Application
                 client_result_io = ResultIO.new
                 uapp.run_jobs(client_result_io)
                 if client_result_io.exitcode == 0
-                  client_result_io.resultIO.string = "Removed corresponding client: #{feature_name}"
+                  client_result_io.resultIO.string = "Removed #{feature_name} from #{uapp.name}\n"
                 end
                 result_io.append(client_result_io)
                 result_io
