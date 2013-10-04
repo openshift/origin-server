@@ -21,10 +21,25 @@ class MultiHaFuncTest < OpenShift::NodeBareTestCase
   def setup
     @api = FunctionalApi.new
     @namespace = @api.create_domain
+
+    @api.up_gears
+    @api.enable_ha
+
+    @framework_cartridge = ENV['CART_TO_TEST'] || 'mock-0.1'
+    logger.info("Using framework cartridge: #{@framework_cartridge}")
   end
 
   def teardown
-    @tester.teardown unless @tester.nil?
+    @api.delete_domain unless @api.nil? || ENV['PRESERVE']
+  end
+
+  def test_ha_enable
+    app_name = "app#{@api.random_string}"
+
+    app_id = @api.create_application(app_name, [@framework_cartridge], true)
+
+    logger.info "Enabling HA for #{app_name}"
+    @api.make_ha(app_name)
   end
 
 end

@@ -165,7 +165,27 @@ EOFZ
   end
 
   def up_gears
-    `oo-admin-ctl-user -l #{@login} --setmaxgears 5`
+    logger.info "Upping gears for #{@login}"
+    logger.info `oo-admin-ctl-user -l #{@login} --setmaxgears 5`
+  end
+
+  def enable_ha
+    logger.info "Enabling HA for test user #{@login}"
+    logger.info `oo-admin-ctl-user -l #{@login} --allowha true`
+  end
+
+  def make_ha(app_name)
+    begin
+      response = RestClient::Request.execute(method: :post,
+                                             url: "#{@url_base}/domains/#{@namespace}/applications/#{app_name}/events",
+                                             payload: JSON.dump(event: 'make-ha'),
+                                             headers: {content_type: :json, accept: :json},
+                                             timeout: 180)
+    rescue RestClient::Exception => e
+      response = e.response
+    end
+
+    assert_operator 300, :>, response.code, "Invalid response received: #{response}"
   end
 
   def assert_http_title(url, expected)
