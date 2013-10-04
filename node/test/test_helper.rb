@@ -24,6 +24,7 @@ require 'securerandom'
 require 'digest/sha1'
 
 require_relative '../lib/openshift-origin-node'
+require_relative '../lib/openshift-origin-node/utils/node_logger'
 require_relative '../lib/openshift-origin-node/utils/logger/stdout_logger'
 require_relative 'support/support'
 
@@ -32,7 +33,15 @@ module OpenShift
   # A bare test case class for tests which need to start
   # without any previous stubs or setup
   class NodeBareTestCase < MiniTest::Unit::TestCase
+    include Test::Unit::Assertions
+    include OpenShift::Runtime::NodeLogger
+
     alias assert_raise assert_raises
+
+    def before_setup
+      OpenShift::Runtime::NodeLogger.set_logger(OpenShift::Runtime::NodeLogger::StdoutLogger.new)
+      super
+    end
 
     def assert_path_exist(path, message=nil)
       assert File.exist?(path), "#{path} expected to exist #{message}"
@@ -45,10 +54,6 @@ module OpenShift
 
   class NodeTestCase < NodeBareTestCase
     def before_setup
-      log_config = mock()
-      log_config.stubs(:get).with("PLATFORM_LOG_CLASS").returns("StdoutLogger")
-      ::OpenShift::Runtime::NodeLogger.stubs(:load_config).returns(log_config)
-
       @config = mock('OpenShift::Config')
       @config.stubs(:get).returns(nil)
       @config.stubs(:get).with("CONTAINERIZATION_PLUGIN").returns('openshift-origin-container-selinux')

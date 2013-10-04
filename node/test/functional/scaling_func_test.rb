@@ -21,18 +21,12 @@ require 'fileutils'
 require 'restclient/request'
 
 class ScalingFuncTest < OpenShift::NodeBareTestCase
-
-
   def setup
-    log_config = mock()
-    log_config.stubs(:get).with("PLATFORM_LOG_CLASS").returns("StdoutLogger")
-    ::OpenShift::Runtime::NodeLogger.stubs(:load_config).returns(log_config)
-
     @tester = ::OpenShift::Runtime::DeploymentTester.new
     @tester.setup
 
     @framework_cartridge = ENV['CART_TO_TEST'] || 'mock-0.1'
-    OpenShift::Runtime::NodeLogger.logger.info("Using framework cartridge: #{@framework_cartridge}")
+    logger.info("Using framework cartridge: #{@framework_cartridge}")
   end
 
   def teardown
@@ -70,5 +64,4 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     @tester.create_jenkins
     @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'], scaling: true, keep_deployments: 3)
   end
-
 end
