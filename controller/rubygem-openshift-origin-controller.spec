@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.9
+Version: 1.15.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,14 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 1.15.10-1
+- Merge pull request #3768 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3739 from smarterclayton/move_new_domain_fields_to_api_13
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1014837 (abhgupta@redhat.com)
+- Isolate new domain attributes to API 1.3 and above (ccoleman@redhat.com)
+
 * Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.9-1
 - Merge pull request #3298 from Miciah/bug-993440-restapplication-initialize-
   check-if-cart-is-nil (dmcphers+openshiftbot@redhat.com)
