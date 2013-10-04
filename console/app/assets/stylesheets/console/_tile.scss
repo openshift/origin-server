@@ -42,8 +42,14 @@
       .count, .restart {
         margin-left: 20px;
       }
-      .gear-icon, {
+      .text-warning + .count {
+        margin-left: 0;
+      }
+      .gear-icon {
         font-size: 20px;
+        #scaling-gear-groups & {
+          font-size: 16px;
+        }
       }
       .restart {
         &.confirm-container {

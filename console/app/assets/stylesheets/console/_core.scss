@@ -10,9 +10,9 @@
   text-shadow: none;
 }
 
-.label-new { color: #101010 !important; background-color: #FFB02E !important; }
-.label-premium { color: #101010 !important; background-color: #A6C911 !important; }
-.label-popular { color: #101010 !important; background-color: #BFDCE8 !important; }
+.label-new { color: #101010 !important; background-color: $warningBackground !important; }
+.label-premium { color: #43B443 !important; background-color: transparent !important; padding: 0; font-size: 100%; }
+.label-popular { color: #101010 !important; background-color: $infoBackground !important; }
 
 h3 .label { font-size: inherit; margin: 0 0 0 10px; }
 h5 {font-weight: normal;}
@@ -59,9 +59,10 @@ h5 {font-weight: normal;}
 
 .action-more:before {
   content: '\2192';
+  line-height: 1;
   margin: 0 5px 0 0;
   position: relative;
-  top: -3px;
+  top: 1px;
 }
 a.action-more {
   position: relative;
@@ -110,15 +111,17 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
 }
 
 .important-list {
-  > li > p {
-    font-size: $largeFontSize - 1 ;
-    &.smaller {
-      font-size: $smallFontSize;
+  font-size: 15px;
+  margin-top: 10px;
+  > li > p.smaller {
+    font-size: 13px;
+    font-weight: 300;
+    > strong {
+      font-weight: 600;
     }
   }
   p:first-child {
     margin-bottom: 6px;
-    font-weight: 600;
   }
 }
 
@@ -135,7 +138,11 @@ ol.wizard {
     color: #888;
   }
   &:after {
-    @include background-image(radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%));
+    background-image: -moz-radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%);
+    background-image: -ms-radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%);
+    background-image: -o-radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%);
+    background-image: -webkit-radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%);
+    background-image: radial-gradient(50% 0,ellipse farthest-side,rgba(0,0,0,0.065) 0%,rgba(0,0,0,0) 100%);
     content: '';
     display: block;
     height: 5px;
@@ -634,3 +641,6 @@ a.cap-link:hover {
 	border: 1px solid $errorBorder;
 }
 
+.well {
+  background-color: #fafafa;
+}

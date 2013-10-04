@@ -24,7 +24,7 @@
 
 // Use to set generic bottom margin between elements
 .gutter-bottom, .column-content section, .row-content  {
-  margin-bottom: $gridGutterWidth*1.5;
+  margin-bottom: $gridGutterWidth;
 }
 
 // Put content into a box with gutters compatible with the grid
@@ -73,6 +73,7 @@
         font-size: $tinyFontSize;
 
         > div {
+          margin-top: 2px;
           white-space: normal;
         }
       }

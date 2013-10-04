@@ -10,8 +10,8 @@
 
     %span.flow-block.right
       %span.url
-        = link_to application.web_url, :target => '_blank', :title => "Go to the application's web page" do
-          %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
+        = link_to application.web_url, :target => '_blank', :title => "Go to the application's web page", :class => "font-icon-link" do
+          %span.font-icon.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
 
       %span.count{:title => application_gear_count(application)}
         = application.gear_count

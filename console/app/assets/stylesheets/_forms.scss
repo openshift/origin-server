@@ -27,7 +27,7 @@ legend {
   line-height: $baseLineHeight * 2;
   color: $grayDark;
   border: 0;
-  border-bottom: 1px solid $grayLighter;
+  border-bottom: 1px solid #ddd;
 
   // Small
   small {
@@ -517,6 +517,9 @@ textarea:focus:required:valid {
   .btn:first-child {
     @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
   }
+  select {
+    height: 30px;
+  }
 }
 .input-append {
   input,
@@ -740,7 +743,7 @@ legend + .control-group {
     padding-right: 0;
   }
   select {
-    height: 36px;
+    height: auto;
   }
 }
 
