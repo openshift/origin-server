@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.15.4
+Version: 1.15.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,14 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 1.15.5-1
+- Merge pull request #3758 from mfojtik/bugzilla/998337
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1013653 - Fix oo-su command so it is not duplicating the getpwnam call
+  (mfojtik@redhat.com)
+- Bug 998337 - Fixed oo-admin-cartridge man page indentation
+  (mfojtik@redhat.com)
+
 * Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
 - node-util: RHBZ#1012830 do not overrite the {min,max}_uid value if not
   defined in facter (mmahut@redhat.com)
