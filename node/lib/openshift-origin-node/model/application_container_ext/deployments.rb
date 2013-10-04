@@ -29,7 +29,11 @@ module OpenShift
         def all_deployments_by_activation(dirs = nil)
           deployments = dirs || all_deployments
           count = 0
-          deployments.sort_by do |d|
+
+          # need to call sort before sort_by so the dirs are sorted by name (creation datetime)
+          # otherwise sorting by (Float::MAX - count) might be in the wrong order, which can
+          # result in prune_deployments deleting the wrong dir!
+          deployments.sort.sort_by do |d|
             latest_activation = deployment_metadata_for(File.basename(d)).activations.last
 
             # treat a deployment dir without any activations as the latest
