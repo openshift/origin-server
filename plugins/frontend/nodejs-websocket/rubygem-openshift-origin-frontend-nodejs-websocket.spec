@@ -10,7 +10,7 @@
 
 Summary:       OpenShift NodeJS Websocket frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.1.7
+Version: 0.2.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0

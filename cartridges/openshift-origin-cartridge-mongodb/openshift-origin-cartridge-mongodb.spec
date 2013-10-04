@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version:       1.15.4
+Version: 1.16.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
