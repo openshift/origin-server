@@ -3124,7 +3124,7 @@ module OpenShift
           rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('rpcutil', options)
           begin
             result = rpc_client.custom_request('get_fact', {:fact => fact}, @id, {'identity' => @id})[0]
-            if (result && defined? result.results && result.results.has_key?(:data))
+            if (result && (defined? result.results) && result.results.has_key?(:data))
               value = result.results[:data][:value]
             else
               raise OpenShift::NodeException.new("Node execution failure (error getting fact).", 143)
@@ -3161,7 +3161,7 @@ module OpenShift
           rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
           begin
             result = rpc_client.custom_request('get_facts', {:facts => facts}, @id, {'identity' => @id})[0]
-            if (result && defined? result.results && result.results.has_key?(:data))
+            if (result && (defined? result.results) && result.results.has_key?(:data))
               value = result.results[:data][:output]
             else
               raise OpenShift::NodeException.new("Node execution failure (error getting facts).", 143)
