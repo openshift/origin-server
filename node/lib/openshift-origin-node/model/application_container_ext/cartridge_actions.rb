@@ -725,7 +725,7 @@ module OpenShift
             out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear} gear activate #{options[:deployment_id]} --as-json #{hot_deploy_option}#{init_option}",
                                                     env: gear_env,
                                                     expected_exitstatus: 0)
-          
+
             raise "No result JSON was received from the remote activate call" if out.nil? || out.empty?
 
             activate_result = HashWithIndifferentAccess.new(JSON.load(out))
@@ -851,6 +851,10 @@ module OpenShift
             record_deployment_activation(deployment_datetime)
 
             prune_deployments
+
+            if options[:report_deployments] && gear_env['OPENSHIFT_APP_DNS'] == gear_env['OPENSHIFT_GEAR_DNS']
+              report_deployments(gear_env)
+            end
 
             result[:status] = 'success'
           rescue Exception => e

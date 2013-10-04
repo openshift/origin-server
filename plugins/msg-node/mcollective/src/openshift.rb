@@ -406,6 +406,7 @@ module MCollective
         deployment_id  = args['--with-deployment-id']
         out = StringIO.new
         err = StringIO.new
+        addtl_params = {}
 
         begin
           with_container_from_args(args) do |container|
@@ -420,7 +421,7 @@ module MCollective
           output = ''
           output << out.string
           output << err.string
-          return 0, output
+          return 0, output, addtl_params
         end
       end
 
