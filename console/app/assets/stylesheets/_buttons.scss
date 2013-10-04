@@ -94,9 +94,9 @@ input[type="submit"].btn {
 
 // Small
 .btn-small {
-  padding: 5px 10px;
+  padding: 3px 8px;
   font-size: $baseFontSize - 2px; // FIXME
-  line-height: $baseLineHeight - 2px;
+  line-height: 1.5;
 }
 .btn-small [class^="icon-"] {
   margin-top: -1px;
@@ -104,9 +104,9 @@ input[type="submit"].btn {
 
 // Mini
 .btn-mini {
-  padding: 2px 6px;
+  padding: 1px 4px;
   font-size: $baseFontSize - 2px; // FIXME
-  line-height: $baseFontSize;
+  line-height: 1.5;
 }
 
 
