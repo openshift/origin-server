@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.2.2
+Version: 0.2.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,12 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
+- Bug 1014768 - Performance improvements for node_utilization: Allow self.all
+  to pass the pwnam structure rather than having to call getpwnam each time.
+  Lazy load the MCS labels and get rid of an extraneous call to Config.
+  (rmillner@redhat.com)
+
 * Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
 - Move addresses_bound/address_bound? into container plugin (kraman@gmail.com)
 
