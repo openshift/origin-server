@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.8
+Version: 1.15.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -261,6 +261,16 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 1.15.9-1
+- Bug 1014768 - Performance improvements for node_utilization: Allow self.all
+  to pass the pwnam structure rather than having to call getpwnam each time.
+  Lazy load the MCS labels and get rid of an extraneous call to Config.
+  (rmillner@redhat.com)
+- Merge pull request #3766 from mfojtik/bugzilla/1013653
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1013653 - Fix oo-su command so it is not duplicating the getpwnam call
+  (mfojtik@redhat.com)
+
 * Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.8-1
 - Merge pull request #3763 from rmillner/speed_up_env
   (dmcphers+openshiftbot@redhat.com)
