@@ -77,10 +77,15 @@ module OpenShift
           uid_offset= (config.get("SELINUX_MCS_UID_OFFSET") || @@DEF_MCS_UID_OFFSET).to_i
           mls_num   = (config.get("SELINUX_MLS_NUM")        || @@DEF_MLS_NUM).to_i
 
+
           begin
-            uid = Etc.getpwnam(name.to_s).uid
+            if name.to_i.to_s == name.to_s
+              uid = name.to_i
+            else
+              uid = Etc.getpwnam(name.to_s).uid
+            end
           rescue ArgumentError, TypeError, NoMethodError
-            uid = name.to_i
+            raise ArgumentError, "Argument must be a numeric UID or existing username: #{name}"
           end
 
           if uid < uid_offset + group_size - 1
