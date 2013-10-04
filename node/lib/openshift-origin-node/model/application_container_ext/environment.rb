@@ -324,7 +324,7 @@ module OpenShift
                 retries  = 2
                 begin
                   command = "/usr/bin/rsync -rp0 --delete -e 'ssh -o StrictHostKeyChecking=no' #{source}/ #{fqdn}:#{target}"
-                  env = OpenShift::Runtime::Utils::Environ.for_gear(Etc.getpwnam(@uuid).dir)
+                  env = OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
                   ::OpenShift::Runtime::Utils::oo_spawn(command, expected_exitstatus: 0, uid: @uid, env: env)
                 rescue Exception => e
                   NodeLogger.logger.debug { "Push #{retries} #{source} exception #{e.message}" }
