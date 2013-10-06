@@ -667,12 +667,20 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
   def test_rotate_and_yield_no_proxy
     options = {a: 1}
     yielded_values = []
-    target_gear = mock()
+    target_gear = '1234'
     local_gear_env = mock()
 
     @container.expects(:update_proxy_status).never
 
-    @container.rotate_and_yield(target_gear, local_gear_env, options) { |*values| yielded_values = values}
+    @container.rotate_and_yield(target_gear, local_gear_env, options) do |*values|
+      yielded_values = values
+      {
+        status: 'success',
+        messages: %w(a b),
+        errors: %w(b c),
+        foo: 'bar'
+      }
+    end
 
     assert_equal [target_gear, local_gear_env, options], yielded_values
   end
@@ -682,19 +690,64 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     options = {a: 1, proxy_cart: proxy_cart}
     yielded_values = []
     target_gear = mock()
-    target_gear.expects(:uuid).returns('1234').times(2)
+    target_gear.expects(:uuid).returns('1234')
     local_gear_env = mock()
 
-    @container.expects(:update_proxy_status).with(action: :disable, gear_uuid: '1234', cartridge: proxy_cart)
-    @container.expects(:update_proxy_status).with(action: :enable, gear_uuid: '1234', cartridge: proxy_cart)
+    rotate_out_results = {
+      status: 'success',
+      target_gear_uuid: '1234',
+      proxy_results: {
+        '1234' => {
+          target_gear_uuid: '1234',
+          proxy_gear_uuid: '1234',
+          status: 'success',
+          messages: [1,2],
+          errors: [2,3]
+        }
+      }
+    }
+    @container.expects(:update_proxy_status).with(action: :disable, gear_uuid: '1234', cartridge: proxy_cart).returns(rotate_out_results)
 
-    @container.rotate_and_yield(target_gear, local_gear_env, options) { |*values| yielded_values = values}
+    rotate_in_results = {
+      status: 'success',
+      target_gear_uuid: '1234',
+      proxy_results: {
+        '1234' => {
+          target_gear_uuid: '1234',
+          proxy_gear_uuid: '1234',
+          status: 'success',
+          messages: [3,4],
+          errors: [4,5]
+        }
+      }
+    }
+    @container.expects(:update_proxy_status).with(action: :enable, gear_uuid: '1234', cartridge: proxy_cart).returns(rotate_in_results)
+
+    result = @container.rotate_and_yield(target_gear, local_gear_env, options) do |*values|
+      yielded_values = values
+      {
+        status: 'success',
+        messages: %w(a b),
+        errors: %w(b c),
+        foo: 'bar'
+      }
+    end
 
     assert_equal [target_gear, local_gear_env, options], yielded_values
+    expected_result = HashWithIndifferentAccess.new({
+      status: 'success',
+      foo: 'bar',
+      messages: ['Rotating out gear in proxies', 'a', 'b', 'Rotating in gear in proxies'],
+      errors: ['b', 'c'],
+      rotate_out_results: rotate_out_results,
+      rotate_in_results: rotate_in_results
+    })
+
+    assert_equal expected_result, result
   end
 
   def test_restart_success
-    options = {a: 1}
+    options = {a: 1, all:true}
     target_gear1 = mock()
     target_gear2 = mock()
     local_gear_env = mock()
@@ -708,15 +761,10 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     }
 
     remote_result = {
-      status: 'success',
-      gear_results: {
-        '2345' => {
-          target_gear_uuid: '2345',
-          messages: [],
-          errors: [],
-          status: 'success'
-        }
-      }
+      target_gear_uuid: '2345',
+      messages: [],
+      errors: [],
+      status: 'success'
     }
 
     @container.expects(:with_gear_rotation).multiple_yields([target_gear1, local_gear_env, options], [target_gear2, local_gear_env, options]).returns([local_result, remote_result])
@@ -728,7 +776,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     assert_equal 'success', result[:status]
     assert_equal 2, result[:gear_results].size
     assert_equal local_result, result[:gear_results]['1234']
-    assert_equal remote_result[:gear_results]['2345'], result[:gear_results]['2345']
+    assert_equal remote_result, result[:gear_results]['2345']
   end
 
   def test_restart_failure
@@ -749,9 +797,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.expects(:restart_gear).with(target_gear, local_gear_env, cart_name, options).returns(target_result)
 
     result = @container.restart(cart_name, options)
-    assert_equal 'failure', result[:status]
-    assert_equal 1, result[:gear_results].size
-    assert_equal target_result, result[:gear_results]['1234']
+    assert_equal target_result, result
   end
 
   def test_restart_gear_string

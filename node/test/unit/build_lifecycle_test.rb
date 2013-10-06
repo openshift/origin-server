@@ -92,12 +92,16 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     metadata.expects(:git_sha1=).with(git_sha1)
     metadata.expects(:git_ref=).with('master')
 
-    @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    @container.expects(:activate_gear).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-
-    @container.expects(:distribute).never
-    @container.expects(:activate).never
+    options = {
+      out: $stdout,
+      err: $stderr,
+      deployment_datetime: deployment_datetime,
+      proxy_cart: nil
+    }
+    @container.expects(:build).with(options)
+    @container.expects(:prepare).with(options)
+    @container.expects(:distribute).with(options).returns(status: 'success')
+    @container.expects(:activate).with(options).returns(status: 'success')
 
     @container.expects(:report_build_analytics)
 
@@ -141,12 +145,16 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     metadata.expects(:git_sha1=).with(git_sha1)
     metadata.expects(:git_ref=).with('master')
 
-    @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    @container.expects(:activate_gear).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-
-    @container.expects(:distribute).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    @container.expects(:activate).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    options = {
+      out: $stdout,
+      err: $stderr,
+      deployment_datetime: deployment_datetime,
+      proxy_cart: proxy_cart
+    }
+    @container.expects(:build).with(options)
+    @container.expects(:prepare).with(options)
+    @container.expects(:distribute).with(options).returns(status: 'success')
+    @container.expects(:activate).with(options).returns(status: 'success')
 
     @container.expects(:report_build_analytics)
 
@@ -185,12 +193,17 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     metadata.expects(:git_sha1=).with(git_sha1)
     metadata.expects(:git_ref=).with('master')
 
-    @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
-    @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
-    @container.expects(:activate_gear).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
-
-    @container.expects(:distribute).never
-    @container.expects(:activate).never
+    options = {
+      out: $stdout,
+      err: $stderr,
+      deployment_datetime: deployment_datetime,
+      proxy_cart: nil,
+      hot_deploy: true
+    }
+    @container.expects(:build).with(options)
+    @container.expects(:prepare).with(options)
+    @container.expects(:distribute).with(options).returns(status: 'success')
+    @container.expects(:activate).with(options).returns(status: 'success')
 
     @container.expects(:report_build_analytics)
 
@@ -355,54 +368,34 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     output = @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
   end
 
-  def test_remote_deploy_nonscaled
-    primary = mock()
-    @cartridge_model.expects(:primary_cartridge).returns(primary)
-
-    @cartridge_model.expects(:do_control).with('update-configuration',
-                                               primary,
-                                               pre_action_hooks_enabled:  false,
-                                               post_action_hooks_enabled: false,
-                                               out:                       $stdout,
-                                               err:                       $stderr)
-                                          .returns('')
-
+  def test_remote_deploy_success
     deployment_datetime = "now"
 
-    [:prepare, :activate_gear].each do |method|
-      @container.expects(method).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    end
+    options = {
+      out: $stdout,
+      err: $stderr,
+      deployment_datetime: deployment_datetime
+    }
 
-    @cartridge_model.expects(:web_proxy).returns(nil)
+    @container.expects(:prepare).with(options)
 
-    @container.remote_deploy(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-  end
+    distribute_results = {
+      status: 'success'
+    }
+    @container.expects(:distribute).with(options).returns(distribute_results)
 
-  def test_remote_deploy_scaled
-    primary = mock()
-    @cartridge_model.expects(:primary_cartridge).returns(primary)
+    activate_results = {
+      status: 'success'
+    }
+    @container.expects(:activate).with(options).returns(activate_results)
 
-    @cartridge_model.expects(:do_control).with('update-configuration',
-                                               primary,
-                                               pre_action_hooks_enabled:  false,
-                                               post_action_hooks_enabled: false,
-                                               out:                       $stdout,
-                                               err:                       $stderr)
-                                          .returns('')
-
-    deployment_datetime = "now"
-
-    @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    @container.expects(:activate_gear).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-
-    web_proxy = mock()
-    @cartridge_model.expects(:web_proxy).returns(mock)
-
-    [:distribute, :activate].each do |method|
-      @container.expects(method).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
-    end
-
-    @container.remote_deploy(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    result = @container.remote_deploy(options)
+    expected_result = {
+      status: 'success',
+      distribute_result: distribute_results,
+      activate_result: activate_results
+    }
+    assert_equal expected_result, result
   end
 
   def test_deploy
@@ -837,7 +830,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_id = 'abcd1234'
     deployment_datetime = 'now'
     deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
-    
+
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).returns(gears)
 
@@ -845,7 +838,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     gears.each do |g|
-      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: 'success' })
+      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: 'success', gear_uuid: g.split('@')[0], messages:[], errors:[] })
     end
 
     result = @container.distribute(deployment_id: deployment_id)
@@ -860,7 +853,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_id = 'abcd1234'
     deployment_datetime = 'now'
     deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
-    
+
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).returns(gears)
 
@@ -868,8 +861,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    @container.expects(:distribute_to_gear).with('1234@localhost', gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: 'success' })
-    @container.expects(:distribute_to_gear).with('2345@localhost', gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: 'failure' })
+    @container.expects(:distribute_to_gear).with('1234@localhost', gear_env, deployment_dir, deployment_datetime, deployment_id).returns(gear_uuid: '1234', status: 'success', messages: [], errors: [])
+    @container.expects(:distribute_to_gear).with('2345@localhost', gear_env, deployment_dir, deployment_datetime, deployment_id).returns(gear_uuid: '2345', status: 'failure', messages: [], errors: [])
 
     result = @container.distribute(deployment_id: deployment_id)
 
@@ -891,7 +884,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     gears.each do |g|
-      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: 'success' })
+      @container.expects(:distribute_to_gear).with(g, gear_env, deployment_dir, deployment_datetime, deployment_id).returns({ status: 'success', gear_uuid: g.split('@')[0], messages:[], errors:[] })
     end
 
     result = @container.distribute(gears: gears, deployment_id: deployment_id)
@@ -903,36 +896,52 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_distribute_to_gear_success
-    gear = mock()
+    gear = '1234@node1.example.com'
     gear_env = mock()
     deployment_dir = mock()
     deployment_datetime = mock()
     deployment_id = mock()
 
-    @container.expects(:attempt_distribute_to_gear).with(gear, gear_env, deployment_dir, deployment_datetime, deployment_id).once()
+    expected_result = {
+      gear_uuid: '1234',
+      status: 'success',
+      messages: [],
+      errors: []
+    }
+    @container.expects(:attempt_distribute_to_gear).with(gear, gear_env, deployment_dir, deployment_datetime, deployment_id).returns(expected_result)
 
     result = @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
 
-    assert_equal 'success', result[:status]
+    assert_equal expected_result, result
   end
 
   def test_distribute_to_gear_retry_success
-    gear = mock()
+    gear = '1234@node1.example.com'
     gear_env = mock()
     deployment_dir = mock()
     deployment_datetime = mock()
     deployment_id = mock()
 
-    results = [ lambda { raise ::OpenShift::Runtime::Utils::ShellExecutionException.new('msg') }, lambda { return true } ]
-    @container.expects(:attempt_distribute_to_gear).with(gear, gear_env, deployment_dir, deployment_datetime, deployment_id).returns { lambda { results.shift.call }}
+    expected_result = {
+      gear_uuid: '1234',
+      status: 'success',
+      messages: [],
+      errors: []
+    }
+
+    @container.expects(:attempt_distribute_to_gear)
+              .with(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+              .times(2)
+              .raises(::OpenShift::Runtime::Utils::ShellExecutionException.new('msg'))
+              .then.returns(expected_result)
 
     result = @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
 
-    assert_equal 'success', result[:status]
+    assert_equal expected_result, result
   end
 
   def test_distribute_to_gear_retry_failure
-    gear = mock()
+    gear = '1234@node1.example.com'
     gear_env = mock()
     deployment_dir = mock()
     deployment_datetime = mock()
@@ -943,31 +952,37 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     result = @container.distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
 
-    assert_equal 'failure', result[:status]
-  end
-
-  def test_activate_not_elected_proxy
-    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => '123-ns.example.com'}
-
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
-    @container.expects(:child_gear_ssh_urls).never
-    @container.expects(:run_in_container_context).never
-
-    result = @container.activate(deployment_id: "123")
-
-    assert_equal 'success', result[:status]
-    assert_equal 0, result[:gear_results].size
+    expected_result = {
+      gear_uuid: '1234',
+      status: 'failure',
+      messages: [],
+      errors: []
+    }
+    assert_equal expected_result, result
   end
 
   def test_activate_no_child_gears
+    deployment_id = 'abcd1234'
+    activate_options = { deployment_id: deployment_id, all: true }
+
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
-
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
     @container.expects(:child_gear_ssh_urls).returns([])
+    all_gears = ["#{@container.uuid}@localhost"]
 
-    @container.expects(:activate_gear).with(deployment_id: "123", hot_deploy: nil, init: nil).returns(gear_uuid: @container.uuid, status: 'success', errors: [], messages: [])
+    @container.expects(:calculate_batch_size).with(1, 0.2).returns(1)
+    gear_result1 = { gear_uuid: @container.uuid, status: 'success', errors: [], messages: [] }
+    Parallel.expects(:map)
+            .with(all_gears, :in_threads => 1)
+            .multiple_yields(*all_gears)
+            .returns([gear_result1])
 
-    result = @container.activate(deployment_id: "123")
+    @container.expects(:rotate_and_yield).with(@container.uuid, gear_env, activate_options).yields(@container.uuid, gear_env, activate_options)
+
+    @container.expects(:activate_local_gear).with(deployment_id: deployment_id, hot_deploy: nil, init: nil)
+
+    result = @container.activate(activate_options)
 
     assert_equal 'success', result[:status]
     assert_equal 1, result[:gear_results].size
@@ -975,18 +990,33 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
   def test_activate_success
     deployment_id = 'abcd1234'
+    activate_options = { deployment_id: deployment_id, all: true }
 
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).returns(gears)
+    all_gears = ["#{@container.uuid}@localhost"] + gears
 
-    @container.expects(:activate_gear).with(deployment_id: deployment_id, hot_deploy: nil, init: nil).returns(gear_uuid: @container.uuid, status: 'success', errors: [], messages: [])
-    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '1234', status: 'success', errors: [], messages: [])
-    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '2345', status: 'success', errors: [], messages: [])
-    
-    result = @container.activate(deployment_id: deployment_id)
+    @container.expects(:calculate_batch_size).with(3, 0.2).returns(1)
+    gear_result1 = { gear_uuid: @container.uuid, status: 'success', errors: [], messages: [] }
+    gear_result2 = { gear_uuid: '1234', status: 'success', errors: [], messages: [] }
+    gear_result3 = { gear_uuid: '2345', status: 'success', errors: [], messages: [] }
+    Parallel.expects(:map)
+            .with(all_gears, :in_threads => 1)
+            .multiple_yields(*all_gears)
+            .returns([gear_result1, gear_result2, gear_result3])
+
+    @container.expects(:rotate_and_yield).with(@container.uuid, gear_env, activate_options).yields(@container.uuid, gear_env, activate_options)
+    @container.expects(:rotate_and_yield).with('1234', gear_env, activate_options).yields('1234', gear_env, activate_options)
+    @container.expects(:rotate_and_yield).with('2345', gear_env, activate_options).yields('2345', gear_env, activate_options)
+
+    @container.expects(:activate_local_gear).with(deployment_id: deployment_id, hot_deploy: nil, init: nil)
+    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, activate_options)
+    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, activate_options)
+
+    result = @container.activate(activate_options)
 
     assert_equal 'success', result[:status]
     assert_equal 3, result[:gear_results].size
@@ -994,18 +1024,33 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
   def test_activate_failure
     deployment_id = 'abcd1234'
-
-    gears = %w(1234@localhost 2345@localhost)
-    @container.expects(:child_gear_ssh_urls).returns(gears)
+    activate_options = { deployment_id: deployment_id, all: true }
 
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    @container.expects(:activate_gear).with(deployment_id: deployment_id, hot_deploy: nil, init: nil).returns(gear_uuid: @container.uuid, status: 'success', errors: [], messages: [])
-    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '1234', status: 'success', errors: [], messages: [])
-    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(gear_uuid: '2345', status: 'failure', errors: [], messages: [])
+    gears = %w(1234@localhost 2345@localhost)
+    @container.expects(:child_gear_ssh_urls).returns(gears)
+    all_gears = ["#{@container.uuid}@localhost"] + gears
 
-    result = @container.activate(deployment_id: deployment_id)
+    @container.expects(:calculate_batch_size).with(3, 0.2).returns(1)
+    gear_result1 = { gear_uuid: @container.uuid, status: 'success', errors: [], messages: [] }
+    gear_result2 = { gear_uuid: '1234', status: 'success', errors: [], messages: [] }
+    gear_result3 = { gear_uuid: '2345', status: 'failure', errors: [], messages: [] }
+    Parallel.expects(:map)
+            .with(all_gears, :in_threads => 1)
+            .multiple_yields(*all_gears)
+            .returns([gear_result1, gear_result2, gear_result3])
+
+    @container.expects(:rotate_and_yield).with(@container.uuid, gear_env, activate_options).yields(@container.uuid, gear_env, activate_options)
+    @container.expects(:rotate_and_yield).with('1234', gear_env, activate_options).yields('1234', gear_env, activate_options)
+    @container.expects(:rotate_and_yield).with('2345', gear_env, activate_options).yields('2345', gear_env, activate_options)
+
+    @container.expects(:activate_local_gear).with(deployment_id: deployment_id, hot_deploy: nil, init: nil)
+    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, activate_options)
+    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, activate_options)
+
+    result = @container.activate(activate_options)
 
     assert_equal 'failure', result[:status]
     assert_equal 3, result[:gear_results].size
@@ -1018,48 +1063,27 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     options = { deployment_id: deployment_id }
 
-    @container.expects(:update_proxy_status)
-              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: 'success', messages: [], errors: [])
-
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy",
+    remote_result = {
+      status: 'success',
+      gear_results: {
+        gear_uuid => {
+          gear_uuid: gear_uuid,
+          status: 'success',
+          messages: [],
+          errors: []
+        }
+      }
+    }
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy --no-rotation",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
-                                                 .returns(JSON.dump(status: 'success', gear_uuid: gear_uuid))
-
-    @container.expects(:update_proxy_status)
-              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: 'success', messages: [], errors: [])
+                                                 .returns(JSON.dump(remote_result))
 
     result = @container.activate_remote_gear(g, gear_env, options)
 
     assert_equal 'success', result[:status]
   end
 
-  def test_activate_remote_gear_proxy_disable_fails
-    deployment_id = 'abcd1234'
-    g = "1234@localhost"
-    gear_uuid = "1234"
-    gear_env = {}
-    options = { deployment_id: deployment_id }
-
-    @container.expects(:update_proxy_status)
-              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: 'failure', messages: [], errors: [])
-
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy",
-                                                       env: gear_env,
-                                                       expected_exitstatus: 0)
-                                                 .never
-
-    @container.expects(:update_proxy_status)
-              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-              .never
-
-    result = @container.activate_remote_gear(g, gear_env, options)
-
-    assert_equal 'failure', result[:status]
-  end
 
   def test_activate_remote_gear_activation_fails
     deployment_id = 'abcd1234'
@@ -1068,48 +1092,16 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     options = { deployment_id: deployment_id }
 
-    @container.expects(:update_proxy_status)
-              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: 'success', messages: [], errors: [])
-
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy --no-rotation",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
                                                  .raises(::OpenShift::Runtime::Utils::ShellExecutionException.new('msg'))
 
-    @container.expects(:update_proxy_status)
-              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-              .never
-
     result = @container.activate_remote_gear(g, gear_env, options)
 
     assert_equal 'failure', result[:status]
   end
 
-  def test_activate_remote_gear_proxy_enable_fails
-    deployment_id = 'abcd1234'
-    g = "1234@localhost"
-    gear_uuid = "1234"
-    gear_env = {}
-    options = { deployment_id: deployment_id }
-
-    @container.expects(:update_proxy_status)
-              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: 'success', messages: [], errors: [])
-
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy",
-                                                       env: gear_env,
-                                                       expected_exitstatus: 0)
-                                                 .returns(JSON.dump(status: 'success', gear_uuid: gear_uuid))
-
-    @container.expects(:update_proxy_status)
-              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: 'failure', messages: [], errors: [])
-
-    result = @container.activate_remote_gear(g, gear_env, options)
-
-    assert_equal 'failure', result[:status]
-  end
 
   def test_activate_remote_gear_hot_deploy
     deployment_id = 'abcd1234'
@@ -1118,18 +1110,21 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     options = { deployment_id: deployment_id, hot_deploy: true }
 
-    @container.expects(:update_proxy_status)
-              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .never
-
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --hot-deploy",
+    remote_result = {
+      status: 'success',
+      gear_results: {
+        gear_uuid => {
+          gear_uuid: gear_uuid,
+          status: 'success',
+          messages: [],
+          errors: []
+        }
+      }
+    }
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --hot-deploy --no-rotation",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
-                                                 .returns(JSON.dump(status: 'success', gear_uuid: gear_uuid))
-
-    @container.expects(:update_proxy_status)
-              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-              .never
+                                                 .returns(JSON.dump(remote_result))
 
     result = @container.activate_remote_gear(g, gear_env, options)
 
@@ -1143,18 +1138,22 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     options = { deployment_id: deployment_id, init: true }
 
-    @container.expects(:update_proxy_status)
-              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: 'success', messages: [], errors: [])
+    remote_result = {
+      status: 'success',
+      gear_results: {
+        gear_uuid => {
+          gear_uuid: gear_uuid,
+          status: 'success',
+          messages: [],
+          errors: []
+        }
+      }
+    }
 
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy --init",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-hot-deploy --init --no-rotation",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
-                                                 .returns(JSON.dump(status: 'success', gear_uuid: gear_uuid))
-
-    @container.expects(:update_proxy_status)
-              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-              .returns(status: 'success', messages: [], errors: [])
+                                                 .returns(JSON.dump(remote_result))
 
     result = @container.activate_remote_gear(g, gear_env, options)
 

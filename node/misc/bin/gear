@@ -36,6 +36,8 @@ STDERR.sync = true
 
 HOT_DEPLOY_MARKER = File.join(%w(.openshift markers hot_deploy))
 FORCE_CLEAN_BUILD_MARKER = File.join(%w(.openshift markers force_clean_build))
+RESULT_SUCCESS = 'success'
+RESULT_FAILURE = 'failure'
 
 OpenShift::Runtime::NodeLogger.disable
 
@@ -198,13 +200,39 @@ command :postreceive do |c|
         # - auto deployments are enabled
         repo_dir = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
         if !File.exist?(repo_dir) or (found_deployment_branch and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
-          @container.post_receive(out: $stdout,
-                                  err: $stderr,
-                                  hot_deploy: file_committed?(HOT_DEPLOY_MARKER),
-                                  branch: branch_to_deploy,
-                                  force_clean_build: file_committed?(FORCE_CLEAN_BUILD_MARKER),
-                                  report_deployments: true,
-                                  all: true)
+          result = @container.post_receive(out: $stdout,
+                                           err: $stderr,
+                                           hot_deploy: file_committed?(HOT_DEPLOY_MARKER),
+                                           branch: branch_to_deploy,
+                                           force_clean_build: file_committed?(FORCE_CLEAN_BUILD_MARKER),
+                                           report_deployments: true,
+                                           all: true)
+
+          puts "Result: #{result[:status]}"
+
+          if distribute_result = result[:distribute_result] and not distribute_result[:gear_results].empty?
+            distribute_status = distribute_result[:status]
+            puts "Distribution status: #{distribute_status}"
+
+            if distribute_status != RESULT_SUCCESS
+              puts "Distribution failed for the following gears:"
+              failures = distribute_result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+              puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+            end
+          end
+
+          if activate_result = result[:activate_result]
+            activate_status = activate_result[:status]
+            puts "Activation status: #{activate_status}"
+
+            if activate_status != RESULT_SUCCESS
+              puts "Activation failed for the following gears:"
+              failures = activate_result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+              puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+            end
+          end
+
+          puts "Deployment completed"
         end
       end
     end
@@ -310,12 +338,16 @@ command :remotedeploy do |c|
         hot_deploy_enabled = options.hot_deploy
       end
 
-      @container.remote_deploy(out: $stdout,
-                               err: $stderr,
-                               hot_deploy: hot_deploy_enabled,
-                               deployment_datetime: options.deployment_datetime,
-                               report_deployments: true,
-                               all: true)
+      result = @container.remote_deploy(out: $stdout,
+                                        err: $stderr,
+                                        hot_deploy: hot_deploy_enabled,
+                                        deployment_datetime: options.deployment_datetime,
+                                        report_deployments: true,
+                                        all: true)
+
+      if result[:status] != RESULT_SUCCESS
+        raise "Error deploying to gear"
+      end
     end
   end
 end

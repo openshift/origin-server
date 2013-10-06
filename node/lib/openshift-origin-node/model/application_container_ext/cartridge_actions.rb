@@ -8,6 +8,8 @@ module OpenShift
       module CartridgeActions
         PARALLEL_CONCURRENCY_RATIO = 0.2
         MAX_THREADS = 8
+        RESULT_SUCCESS = 'success'
+        RESULT_FAILURE = 'failure'
 
         # Add cartridge to gear.  This method establishes the cartridge model
         # to use, but does not mark the application.  Marking the application
@@ -312,6 +314,10 @@ module OpenShift
         #   :report_deployments : a boolean to toggle hot deploy for the operation (default: false)
         #
         def post_receive(options={})
+          result = {
+            status: RESULT_FAILURE
+          }
+
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
           if proxy_cart = options[:proxy_cart] = @cartridge_model.web_proxy
             options[:out].puts "Syncing git content to other proxy gears" if options[:out]
@@ -355,11 +361,11 @@ module OpenShift
 
             prepare(options)
 
-            distribute_result = distribute(options)
-            #TODO process/handle distribute_result
+            distribute_result = result[:distribute_result] = distribute(options)
+            return result unless distribute_result[:status] == RESULT_SUCCESS
 
-            activate_result = activate(options)
-            #TODO process/handle activate_result
+            activate_result = result[:activate_result] = activate(options)
+            return result unless activate_result[:status] == RESULT_SUCCESS
           end
 
           if options[:report_deployments]
@@ -367,6 +373,9 @@ module OpenShift
           end
 
           report_build_analytics
+
+          result[:status] = RESULT_SUCCESS
+          result
         end
 
         #
@@ -385,15 +394,22 @@ module OpenShift
         #   :deployment_datetime : string; the deployment datetime to deploy
         #
         def remote_deploy(options={})
+          result = {
+            status: RESULT_FAILURE
+          }
+
           repo_dir = PathUtils.join(@container_dir, 'app-deployments', options[:deployment_datetime], 'repo')
 
           prepare(options)
 
-          distribute_result = distribute(options)
-          #TODO process/handle distribute_result
+          distribute_result = result[:distribute_result] = distribute(options)
+          return result unless distribute_result[:status] == RESULT_SUCCESS
 
-          activate_result = activate(options)
-          #TODO process/handle activate_result
+          activate_result = result[:activate_result] = activate(options)
+          return result unless activate_result[:status] == RESULT_SUCCESS
+
+          result[:status] = RESULT_SUCCESS
+          result
         end
 
         #
@@ -487,6 +503,8 @@ module OpenShift
         # Returns the combined output of all actions as a +String+.
         #
         def prepare(options={})
+          options[:out].puts "Preparing build for deployment" if options[:out]
+
           deployment_datetime = options[:deployment_datetime]
 
           raise ArgumentError.new('deployment_datetime is required') unless deployment_datetime
@@ -547,40 +565,39 @@ module OpenShift
           raise ArgumentError.new("deployment_id must be supplied") unless deployment_id
 
           gears = options[:gears] || child_gear_ssh_urls
-          result = { status: 'success', gear_results: {}}
+          result = { status: RESULT_SUCCESS, gear_results: {}}
 
           return result if gears.empty?
+
+          options[:out].puts "Distributing deployment to child gears" if options[:out]
 
           deployment_datetime = get_deployment_datetime_for_deployment_id(deployment_id)
           deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
           gear_results = Parallel.map(gears, :in_threads => MAX_THREADS) do |gear|
-            gear_uuid = gear.split('@')[0]
             gear_result = distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
-            status = gear_result[:status]
-
-            { gear_uuid: gear_uuid, status: status}
           end
 
           gear_results.each do |gear_result|
             result[:gear_results][gear_result[:gear_uuid]] = gear_result
-
-            if gear_result[:status] == 'failure'
-              result[:status] = 'failure'
-            end
+            result[:status] = RESULT_FAILURE unless gear_result[:status] == RESULT_SUCCESS
           end
 
           result
         end
 
         def distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
-          status = 'failure'
+          result = {
+            gear_uuid: gear.split('@')[0],
+            status: RESULT_FAILURE,
+            messages: [],
+            errors: []
+          }
 
           3.times do
             begin
-              attempt_distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
-              status = 'success'
+              result = attempt_distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
             rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
               next
             end
@@ -588,20 +605,35 @@ module OpenShift
             break
           end
 
-          { status: status }
+          result
         end
 
         def attempt_distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+          result = {
+            gear_uuid: gear.split('@')[0],
+            status: RESULT_FAILURE,
+            messages: [],
+            errors: []
+          }
+
           out, err, rc = run_in_container_context("rsync -avz --rsh=/usr/bin/oo-ssh ./ #{gear}:app-deployments/#{deployment_datetime}/",
                                                   env: gear_env,
-                                                  chdir: deployment_dir,
-                                                  expected_exitstatus: 0)
+                                                  chdir: deployment_dir)
+
+          result[:messages] += out.split("\n") if out
+          result[:errors] += err.split("\n") if err
+          return result unless rc == 0
 
           # create by-id symlink
           out, err, rc = run_in_container_context("rsync -avz --rsh=/usr/bin/oo-ssh #{deployment_id} #{gear}:app-deployments/by-id/#{deployment_id}",
                                                   env: gear_env,
-                                                  chdir: PathUtils.join(@container_dir, 'app-deployments', 'by-id'),
-                                                  expected_exitstatus: 0)
+                                                  chdir: PathUtils.join(@container_dir, 'app-deployments', 'by-id'))
+
+          result[:messages] += out.split("\n") if out
+          result[:errors] += err.split("\n") if err
+          result[:status] = RESULT_SUCCESS if rc == 0
+
+          result
         end
 
         # For a given ratio and number of items, calculate the appropriate batch
@@ -629,7 +661,9 @@ module OpenShift
           deployment_id = options[:deployment_id]
           raise ArgumentError.new("deployment_id must be supplied") unless deployment_id
 
-          result = { status: 'success', gear_results: {}}
+          result = { status: RESULT_SUCCESS, gear_results: {}}
+
+          options[:out].puts "Activating deployment" if options[:out]
 
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
@@ -664,7 +698,7 @@ module OpenShift
           end
 
           result[:gear_results].each_value do |gear_result|
-            result[:status] = 'failure' unless gear_result[:status] == 'success'
+            result[:status] = RESULT_FAILURE unless gear_result[:status] == RESULT_SUCCESS
           end
 
           logger.info "Activation result for gears #{gears}: #{result}"
@@ -677,7 +711,7 @@ module OpenShift
           gear_uuid = gear.split('@')[0]
 
           result = {
-            status: 'failure',
+            status: RESULT_FAILURE,
             gear_uuid: gear_uuid,
             deployment_id: options[:deployment_id],
             messages: [],
@@ -704,7 +738,7 @@ module OpenShift
             result[:messages] += activate_result[:gear_results][gear_uuid][:messages]
             result[:errors] += activate_result[:gear_results][gear_uuid][:errors]
             result[:status] = activate_result[:gear_results][gear_uuid][:status]
-          rescue => e
+          rescue Exception => e
             result[:errors] << "Gear activation failed: #{e.message}\n#{e.backtrace.join("\n")}"
           end
 
@@ -724,7 +758,7 @@ module OpenShift
           deployment_id = options[:deployment_id]
 
           result = {
-            status: 'failure',
+            status: RESULT_FAILURE,
             gear_uuid: self.uuid,
             deployment_id: deployment_id,
             messages: [],
@@ -808,9 +842,9 @@ module OpenShift
               report_deployments(gear_env)
             end
 
-            result[:status] = 'success'
-          rescue => e
-            result[:status] = 'failure'
+            result[:status] = RESULT_SUCCESS
+          rescue Exception => e
+            result[:status] = RESULT_FAILURE
             result[:errors] << "Error activating gear: #{e.message}\n#{e.backtrace.join("\n")}"
           end
 
@@ -905,7 +939,7 @@ module OpenShift
         #
         def rotate_and_yield(target_gear, local_gear_env, options, &block)
           result = HashWithIndifferentAccess.new({
-            status: 'failure',
+            status: RESULT_FAILURE,
             messages: [],
             errors: []
           })
@@ -921,7 +955,7 @@ module OpenShift
                                                      cartridge: proxy_cart)
 
             result[:rotate_out_results] = rotate_out_results
-            if rotate_out_results[:status] != 'success'
+            if rotate_out_results[:status] != RESULT_SUCCESS
               result[:errors] << "Rotating out gear in proxies failed"
               return result
             end
@@ -940,7 +974,7 @@ module OpenShift
           result.merge!(yield_result)
 
           # short circuit if the yielded action failed
-          return result if yield_status != 'success'
+          return result if yield_status != RESULT_SUCCESS
 
           if options[:rotate] != false and proxy_cart and options[:hot_deploy] != true
             result[:messages] << "Rotating in gear in proxies"
@@ -949,13 +983,13 @@ module OpenShift
                                                     cartridge: proxy_cart)
 
             result[:rotate_in_results] = rotate_in_results
-            if rotate_in_results[:status] != 'success'
+            if rotate_in_results[:status] != RESULT_SUCCESS
               result[:errors] << "Rotating in gear in proxies failed"
               return result
             end
           end
 
-          result[:status] = 'success'
+          result[:status] = RESULT_SUCCESS
           result
         end
 
@@ -967,11 +1001,11 @@ module OpenShift
         # Returns a result hash in the form:
         #
         #  {
-        #    status: 'success', # or 'failure'
+        #    status: RESULT_SUCCESS, # or RESULT_FAILURE
         #    gear_results: {
         #      #{target_gear_uuid}: {
         #        target_gear_uuid: #{target_gear_uuid},
-        #        status: 'success', # or 'failure',
+        #        status: RESULT_SUCCESS, # or RESULT_FAILURE,
         #        messages: [], # strings
         #        errors: [] # strings
         #      }, ...
@@ -985,7 +1019,7 @@ module OpenShift
 
           if !!options[:all]
             result = {
-              status: 'success',
+              status: RESULT_SUCCESS,
               gear_results: {}
             }
 
@@ -993,7 +1027,7 @@ module OpenShift
               target_gear_uuid = parallel_result[:target_gear_uuid]
               result[:gear_results][target_gear_uuid] = parallel_result
 
-              result[:status] = 'failure' unless parallel_result[:status] == 'success'
+              result[:status] = RESULT_FAILURE unless parallel_result[:status] == RESULT_SUCCESS
             end
 
             return result
@@ -1013,7 +1047,7 @@ module OpenShift
           target_gear_uuid = target_gear.is_a?(String) ? target_gear : target_gear.uuid
 
           result = {
-            status: 'success',
+            status: RESULT_SUCCESS,
             target_gear_uuid: target_gear_uuid,
             messages: [],
             errors: []
@@ -1039,7 +1073,7 @@ module OpenShift
               raise "Invalid result JSON received from remote gear restart call: #{result.inspect}" unless result.has_key?(:status)
             end
           rescue => e
-            result[:status] = 'failure'
+            result[:status] = RESULT_FAILURE
             result[:errors] = ["An exception occured restarting the gear: #{e.message}\n#{e.backtrace.join("\n")}"]
           end
 
@@ -1290,7 +1324,7 @@ module OpenShift
             raise "Invalid result JSON received from remote proxy update call: #{result.inspect}" unless result.has_key?(:status)
           rescue => e
             result = {
-              status: 'failure',
+              status: RESULT_FAILURE,
               proxy_gear_uuid: proxy_gear.uuid,
               messages: [],
               errors: ["An exception occured updating the proxy status: #{e.message}\n#{e.backtrace.join("\n")}"]
@@ -1309,7 +1343,7 @@ module OpenShift
           begin
             output = update_proxy_status_for_gear(cartridge: cartridge, action: action, gear_uuid: target_gear, persist: persist)
             result = {
-              status: 'success',
+              status: RESULT_SUCCESS,
               proxy_gear_uuid: self.uuid,
               target_gear_uuid: target_gear,
               messages: [],
@@ -1317,7 +1351,7 @@ module OpenShift
             }
           rescue => e
             result = {
-              status: 'failure',
+              status: RESULT_FAILURE,
               proxy_gear_uuid: self.uuid,
               target_gear_uuid: target_gear,
               messages: [],
@@ -1339,12 +1373,12 @@ module OpenShift
         # Returns a result hash in the form:
         #
         #  {
-        #    status: 'success', # or 'failure'
+        #    status: RESULT_SUCCESS, # or RESULT_FAILURE
         #    target_gear_uuid: #{gear_uuid}
         #    proxy_results: {
         #      #{proxy_gear_uuid}: {
         #        proxy_gear_uuid: #{proxy_gear_uuid},
-        #        status: 'success', # or 'failure',
+        #        status: RESULT_SUCCESS, # or RESULT_FAILURE,
         #        messages: [], # strings
         #        errors: [] # strings
         #      }, ...
@@ -1366,7 +1400,7 @@ module OpenShift
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
           result = {
-            status: 'success', # or 'failure'
+            status: RESULT_SUCCESS, # or RESULT_FAILURE
             target_gear_uuid: gear_uuid,
             proxy_results: {},
           }
@@ -1403,7 +1437,7 @@ module OpenShift
 
           # if any results failed, consider the overall operation a failure
           result[:proxy_results].each_value do |proxy_result|
-            result[:status] = 'failure' unless proxy_result[:status] == 'success'
+            result[:status] = RESULT_FAILURE unless proxy_result[:status] == RESULT_SUCCESS
           end
 
           result
