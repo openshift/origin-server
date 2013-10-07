@@ -716,7 +716,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    @container.expects(:extract_deployment_archive).with(gear_env, filename, PathUtils.join(@container.container_dir, 'app-deployments', 'now'))
+    @container.expects(:extract_deployment_archive).with(gear_env, prepare_options)
     gear_env_with_repo_dir_override = {'OPENSHIFT_REPO_DIR' => File.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo')}
     @cartridge_model.expects(:do_action_hook).with('prepare',
                                                    gear_env_with_repo_dir_override,
@@ -738,21 +738,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal "output from prepare hook\nPrepared deployment artifacts in #{File.join(@container.container_dir, 'app-deployments', deployment_datetime)}\nDeployment id is #{deployment_id}", output
   end
 
-  def test_prepare_with_missing_file
-    deployment_datetime = 'now'
-    filename = 'test.tar.gz'
-
-    gear_env = {}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
-
-    @container.expects(:extract_deployment_archive).with(gear_env, filename, PathUtils.join(@container.container_dir, 'app-deployments', 'now')).raises(RuntimeError.new('msg'))
-
-    prepare_options = {deployment_datetime: deployment_datetime, file: filename}
-    assert_raises(RuntimeError, 'msg') { @container.prepare(prepare_options) }
-  end
-
   def test_prepare_no_datetime
-    assert_raises(ArgumentError, 'msg') { @container.prepare({}) }
+    assert_raises(ArgumentError, 'deployment_datetime is required') { @container.prepare({}) }
   end
 
   def test_child_gear_ssh_urls_no_web_proxy
@@ -996,7 +983,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:rotate_and_yield).with(@container.uuid, gear_env, activate_options).yields(@container.uuid, gear_env, activate_options)
 
-    @container.expects(:activate_local_gear).with(deployment_id: deployment_id, hot_deploy: nil, init: nil)
+    @container.expects(:activate_local_gear).with(activate_options)
 
     result = @container.activate(activate_options)
 
@@ -1028,7 +1015,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:rotate_and_yield).with('1234', gear_env, activate_options).yields('1234', gear_env, activate_options)
     @container.expects(:rotate_and_yield).with('2345', gear_env, activate_options).yields('2345', gear_env, activate_options)
 
-    @container.expects(:activate_local_gear).with(deployment_id: deployment_id, hot_deploy: nil, init: nil)
+    @container.expects(:activate_local_gear).with(activate_options)
     @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, activate_options)
     @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, activate_options)
 
@@ -1062,7 +1049,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:rotate_and_yield).with('1234', gear_env, activate_options).yields('1234', gear_env, activate_options)
     @container.expects(:rotate_and_yield).with('2345', gear_env, activate_options).yields('2345', gear_env, activate_options)
 
-    @container.expects(:activate_local_gear).with(deployment_id: deployment_id, hot_deploy: nil, init: nil)
+    @container.expects(:activate_local_gear).with(activate_options)
     @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, activate_options)
     @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, activate_options)
 
