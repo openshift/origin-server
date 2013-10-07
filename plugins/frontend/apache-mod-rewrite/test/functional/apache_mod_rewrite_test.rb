@@ -45,15 +45,15 @@ module OpenShift
 
       ::OpenShift::Runtime::Frontend::Http::Plugins.stubs(:reload_httpd)
 
-      @elements=[ ["", "1.2.3.4:5678", {}],
-                  ["/nosocket", "5.6.7.8:9012", {}],
-                  ["/gone", "", { "gone" => 1 }],
-                  ["/forbidden", "", { "forbidden" => 1 }],
-                  ["/noproxy", "", { "noproxy" => 1 }],
-                  ["/redirect", "/dest", { "redirect" => 1 }],
-                  ["/file", "/dest.html", { "file" => 1 }],
-                  ["/tohttps", "/dest", { "tohttps" => 1 }],
-                  ["/ssl_to_gear", "/dest", { "ssl_to_gear" => 1 }] ]
+      @elements=[ ["", "1.2.3.4:5678", { "protocols" => [ "http" ]}],
+                  ["/nosocket", "5.6.7.8:9012", {"protocols" => [ "http" ]}],
+                  ["/gone", "", { "gone" => 1, "protocols" => [ "http" ] }],
+                  ["/forbidden", "", { "forbidden" => 1, "protocols" => [ "http" ] }],
+                  ["/noproxy", "", { "noproxy" => 1, "protocols" => [ "http" ] }],
+                  ["/redirect", "/dest", { "redirect" => 1, "protocols" => [ "http" ] }],
+                  ["/file", "/dest.html", { "file" => 1, "protocols" => [ "http" ] }],
+                  ["/tohttps", "/dest", { "tohttps" => 1, "protocols" => [ "http" ] }],
+                  ["/ssl_to_gear", "/dest", { "ssl_to_gear" => 1, "protocols" => [ "http", "https" ] }] ]
 
       @nodes_expected = {
         "#{@fqdn}" => "1.2.3.4:5678",
@@ -66,7 +66,7 @@ module OpenShift
         "#{@fqdn}/tohttps" => "TOHTTPS:/dest",
         "#{@fqdn}/ssl_to_gear" => "SSL_TO_GEAR:/dest"
       }
-        
+
 
       @aliases=["foo.example.com", "bar.example.com"]
       @ssl_certs=[["SSL_CERT", "SSL_KEY", "bar.example.com"]]

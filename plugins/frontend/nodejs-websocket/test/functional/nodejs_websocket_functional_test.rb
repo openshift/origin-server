@@ -30,7 +30,8 @@ module OpenShift
       @elements=[["", "1.2.3.4:5678",
                    { "connections" => 3,
                      "bandwidth" => 2,
-                     "websocket" => 1 }]]
+                     "websocket" => 1,
+                     "protocols"=>["ws"] }]]
 
       @route_expected = {
         "endpoints" => [ "1.2.3.4:5678" ],

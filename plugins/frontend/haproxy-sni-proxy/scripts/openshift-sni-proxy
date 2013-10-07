@@ -1,0 +1,114 @@
+#!/bin/sh
+#
+# openshift-sni-proxy
+#
+# chkconfig:   345 85 15
+# description:  OpenShift SNI Proxy
+# processname: haproxy15
+# config:      /var/lib/openshift/sniproxy.cfg
+# pidfile:     /var/run/openshift-sni-proxy.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+if [ -f "/usr/sbin/haproxy15" ]
+then
+    exec="/usr/sbin/haproxy15"
+else
+    exec="/usr/sbin/haproxy"  # Hope its >= 1.5
+fi
+
+prog=$(basename $exec)
+svc="openshift-sni-proxy"
+cfgfile="/var/lib/openshift/.httpd.d/sniproxy.cfg"
+pidfile="/var/run/openshift-sni-proxy.pid"
+
+[ -e /etc/sysconfig/$svc ] && . /etc/sysconfig/$svc
+
+lockfile=/var/lock/subsys/$svc
+
+check() {
+    $exec -c -V -f $cfgfile
+}
+
+start() {
+    $exec -c -q -f $cfgfile
+    if [ $? -ne 0 ]; then
+        echo "Errors in configuration file, check with $prog check."
+        return 1
+    fi
+
+    echo -n $"Starting $prog: "
+    daemon $exec -D -f $cfgfile -p $pidfile
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    $exec -c -q -f $cfgfile
+    if [ $? -ne 0 ]; then
+        echo "Errors in configuration file, check with $prog check."
+        return 1
+    fi
+    stop
+    start
+}
+
+reload() {
+    $exec -c -q -f $cfgfile
+    if [ $? -ne 0 ]; then
+        echo "Errors in configuration file, check with $prog check."
+        return 1
+    fi
+    echo -n $"Reloading $prog: "
+    $exec -D -f $cfgfile -p $pidfile -sf $(cat $pidfile)
+    retval=$?
+    echo
+    return $retval
+}
+
+force_reload() {
+    restart
+}
+
+fdr_status() {
+    status $prog
+}
+
+case "$1" in
+    start|stop|restart|reload)
+        $1
+        ;;
+    force-reload)
+        force_reload
+        ;;
+    check)
+        check
+        ;;
+    status)
+        fdr_status
+        ;;
+    condrestart|try-restart)
+        [ ! -f $lockfile ] || restart
+	;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|try-restart|reload|force-reload}"
+        exit 2
+esac

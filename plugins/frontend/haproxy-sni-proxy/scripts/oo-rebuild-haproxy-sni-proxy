@@ -1,0 +1,12 @@
+#!/usr/bin/oo-ruby
+
+#
+# Rebuild the SNI proxy configuration file from the saved JSON data.
+#
+require 'rubygems'
+require 'openshift-origin-frontend-haproxy-sni-proxy'
+
+db_class = ::OpenShift::Runtime::Frontend::Http::Plugins::HaproxySNIProxyDB
+db_class.open(db_class::WRCREAT) do |d|
+  d.callout
+end

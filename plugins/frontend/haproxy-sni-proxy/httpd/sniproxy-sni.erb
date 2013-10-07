@@ -1,0 +1,2 @@
+       use-server <%= backend %> if { req_ssl_sni -i <%= sni_name %> }
+       server     <%= backend %> <%= backend %> weight 0
