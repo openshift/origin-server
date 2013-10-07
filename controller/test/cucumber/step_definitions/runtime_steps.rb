@@ -10,6 +10,8 @@ require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/shell_exec'
 require 'pty'
 require 'digest/md5'
+require 'openssl'
+require 'httpclient'
 
 # These are provided to reduce duplication of code in feature files.
 #   Scenario Outlines are not used as they interfer with the devenv retry logic (whole feature is retried no example line)
@@ -1029,20 +1031,21 @@ Then /^the haproxy.cfg file will( not)? be configured to proxy SSL to the backen
   assert_not_nil content.match(/option tcplog\n/)
 end
 
-When /^I send an (https?) request to the app$/ do |protocol|
-  uri = URI("#{protocol}://#{@app.name}-#{@app.namespace}.dev.rhcloud.com")
-  http = Net::HTTP.new(uri.host, uri.port)
-  if protocol == "https"
-    http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+When /^I send an (https?) request to the app( on port (\d+))?$/ do |protocol, onport, port|
+  urlstr = "#{protocol}://#{@app.name}-#{@app.namespace}.dev.rhcloud.com"
+  if port and (port.to_i > 0)
+    urlstr += ":#{port.to_i}"
   end
-  request = Net::HTTP::Get.new(uri.request_uri)
-  @response = http.request(request)
+  # httpclient set to TLSv1 is required for SNI support
+  http = HTTPClient.new()
+  http.ssl_config.verify_mode=OpenSSL::SSL::VERIFY_NONE
+  http.ssl_config.ssl_version="TLSv1"
+  @response = http.get(urlstr)
 end
 
 Then /^It will return ([^ ]+)($|\s.*)$/ do |check, value|
   if check == "redirect"
-    assert_equal "https://#{@app.hostname}", @response["location"]
+    assert_equal "https://#{@app.hostname}", @response.header["location"].first
   elsif check == "content"
     assert value, @response.body
   end
