@@ -20,6 +20,7 @@ def usage
 usage: oo-cgroup-read [-h|--help] <attrname>
 
 attrname: the name of the cgroup attribute requested
+          or "all" to list all attribute names.
 EOF
 
 end
@@ -63,6 +64,33 @@ def get_cgroup_attribute_nocgget(attribute, username)
   value
 end
 
+def get_cgroup_attribute_names_nocgget(username)
+  begin
+    names=[]
+    File.open('/proc/mounts', File::RDONLY) do |mounts|
+      mounts.each do |l|
+        if l =~ /^\S+\s+(\S+)\s+cgroup\s+/
+          begin
+            cgpath=File.join($1, "openshift", username)
+            Dir.entries(cgpath).select { |f|
+              not f.start_with?(".")
+            }.each { |name|
+              begin
+                File.open(File.join(cgpath, name), File::RDONLY) { |f| f.read }
+                names << name
+              rescue Errno::EACCES
+              end
+            }
+          rescue
+          end
+        end
+      end
+    end
+  end
+  names.sort.uniq
+end
+
+
 #
 # Call cgget to retrieve the value for the user.
 # cgget does not set a return flag on failure to find a value or error
@@ -87,9 +115,28 @@ def get_cgroup_attribute_cgget(attribute, username)
   value = stdout.read.strip
 end
 
+def get_cgroup_attribute_names_cgget(username)
+  names=[]
+
+  cmd = "cgget -n -a /openshift/#{username}"
+  pid, stdin, stdout, stderr = open4(cmd)
+
+  stdout.each do |l|
+    if l=~/^(\w+)\:/
+      names << $1
+    end
+  end
+
+  names.sort.uniq
+end
+
 # Set to the proper implementation for this platform
 def get_cgroup_attribute(*args)
   get_cgroup_attribute_nocgget(*args)
+end
+
+def get_cgroup_attribute_names(*args)
+  get_cgroup_attribute_names_nocgget(*args)
 end
 
 #
@@ -131,7 +178,10 @@ if attrname == nil then
 end
 
 scrub_input attrname
-
-value = get_cgroup_attribute attrname, username
-
-puts value
+if attrname=="all"
+  names = get_cgroup_attribute_names username
+  puts names.join("\n")
+else
+  value = get_cgroup_attribute attrname, username
+  puts value
+end
