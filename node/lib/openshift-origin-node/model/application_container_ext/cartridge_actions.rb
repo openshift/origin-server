@@ -38,7 +38,8 @@ module OpenShift
 
           # Only perform an initial build if the manifest explicitly specifies a need,
           # or if a template Git URL is provided and the cart is capable of builds or deploys.
-          if !OpenShift::Git.empty_clone_spec?(template_git_url) && (cartridge.install_build_required || template_git_url) && cartridge.buildable?
+          perform_initial_build = !OpenShift::Git.empty_clone_spec?(template_git_url) && (cartridge.install_build_required || template_git_url) && cartridge.buildable?
+          if perform_initial_build
             build_log = '/tmp/initial-build.log'
             env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
@@ -102,13 +103,15 @@ module OpenShift
 
           output << @cartridge_model.post_configure(cart_name)
 
-          pattern   = Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
-          out, _, _ = Utils.oo_spawn("grep -E '#{pattern}' #{build_log}",
-                                     env:                 env,
-                                     chdir:               @container_dir,
-                                     uid:                 @uid,
-                                     timeout:             @hourglass.remaining)
-          output << out
+          if perform_initial_build
+            pattern   = Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
+            out, _, _ = Utils.oo_spawn("grep -E '#{pattern}' #{build_log}",
+                                      env:                 env,
+                                      chdir:               @container_dir,
+                                      uid:                 @uid,
+                                      timeout:             @hourglass.remaining)
+            output << out
+          end
 
           output
         end
