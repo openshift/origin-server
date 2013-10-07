@@ -457,7 +457,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:record_deployment_activation).with(latest_deployment_datetime)
 
-    @cartridge_model.expects(:post_configure).with(cart_name)
+    @cartridge_model.expects(:post_configure).with(cart_name).returns('')
 
     @container.post_configure(cart_name)
   end
@@ -491,7 +491,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:record_deployment_activation).with(latest_deployment_datetime)
 
-    @cartridge_model.expects(:post_configure).with(cart_name)
+    @cartridge_model.expects(:post_configure).with(cart_name).returns('')
 
     @container.post_configure(cart_name, 'empty')
   end
@@ -524,7 +524,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                       timeout:             50,
                                                       expected_exitstatus: 0)
 
-    @cartridge_model.expects(:post_configure).with(cart_name)
+    @cartridge_model.expects(:post_configure).with(cart_name).returns('')
 
     @container.post_configure(cart_name)
   end
@@ -559,7 +559,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                  timeout:             50,
                                                  expected_exitstatus: 0)
 
-    @cartridge_model.expects(:post_configure).with(cart_name)
+    @cartridge_model.expects(:post_configure).with(cart_name).returns('')
 
     @container.post_configure(cart_name, 'url')
   end
@@ -613,7 +613,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:update_repo_symlink).never
     @container.expects(:set_rw_permission_R).never
     @container.expects(:reset_permission_R).never
-    @cartridge_model.expects(:post_configure).with(cart_name)
+    @cartridge_model.expects(:post_configure).with(cart_name).returns('')
 
     @container.post_configure(cart_name)
   end
@@ -637,7 +637,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:update_repo_symlink).never
     @container.expects(:set_rw_permission_R).never
     @container.expects(:reset_permission_R).never
-    @cartridge_model.expects(:post_configure).with(cart_name)
+    @cartridge_model.expects(:post_configure).with(cart_name).returns('')
 
     @container.post_configure(cart_name)
   end
