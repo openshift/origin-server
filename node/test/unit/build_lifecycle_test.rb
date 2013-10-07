@@ -509,7 +509,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     cgroups = mock()
     OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
     cgroups.expects(:boost).yields()
-    @hourglass.expects(:remaining).twice.returns(100, 50)
+    @hourglass.expects(:remaining).times(3).returns(100, 50, 49)
     OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive >> /tmp/initial-build.log 2>&1",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
@@ -525,6 +525,13 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                       expected_exitstatus: 0)
 
     @cartridge_model.expects(:post_configure).with(cart_name).returns('')
+    pattern = OpenShift::Runtime::Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("grep -E '#{pattern}' /tmp/initial-build.log",
+                                                      env:                 gear_env,
+                                                      chdir:               @container.container_dir,
+                                                      uid:                 @container.uid,
+                                                      timeout:             49)
+                                                .returns("pattern output")
 
     @container.post_configure(cart_name)
   end
@@ -544,7 +551,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     cgroups = mock()
     OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
     cgroups.expects(:boost).yields()
-    @hourglass.expects(:remaining).twice.returns(100, 50)
+    @hourglass.expects(:remaining).times(3).returns(100, 50, 49)
     OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive >> /tmp/initial-build.log 2>&1",
                                                  env:                 gear_env,
                                                  chdir:               @container.container_dir,
@@ -560,6 +567,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                  expected_exitstatus: 0)
 
     @cartridge_model.expects(:post_configure).with(cart_name).returns('')
+
+    pattern = OpenShift::Runtime::Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("grep -E '#{pattern}' /tmp/initial-build.log",
+                                                      env:                 gear_env,
+                                                      chdir:               @container.container_dir,
+                                                      uid:                 @container.uid,
+                                                      timeout:             49)
+                                                .returns("pattern output")
 
     @container.post_configure(cart_name, 'url')
   end
@@ -578,7 +593,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     cgroups = mock()
     OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
     cgroups.expects(:boost).yields()
-    @hourglass.expects(:remaining).twice.returns(100, 50)
+    @hourglass.expects(:remaining).times(2).returns(100, 50)
     OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive >> /tmp/initial-build.log 2>&1",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
@@ -594,7 +609,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                       timeout:             50)
                                                 .returns("some output")
 
-    assert_raises(RuntimeError, "CLIENT_ERROR: The initial build for the application failed: my error\nCLIENT_ERROR: \nCLIENT_ERROR: .Last 10 kB of build output:\nCLIENT_ERROR: some output\n") { @container.post_configure(cart_name, 'url') }
+    error = assert_raises(RuntimeError) { @container.post_configure(cart_name, 'url') }
+    assert_equal error.message, "CLIENT_ERROR: The initial build for the application failed: my error\nCLIENT_ERROR: \nCLIENT_ERROR: .Last 10 kB of build output:\nCLIENT_ERROR: some output"
   end
 
   # new gear
