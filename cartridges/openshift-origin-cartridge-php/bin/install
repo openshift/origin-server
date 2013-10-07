@@ -8,6 +8,14 @@ esac
 echo "$version" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_VERSION"
 echo "$OPENSHIFT_PHP_DIR/configuration/etc/php.ini" > "$OPENSHIFT_PHP_DIR/env/PHPRC"
 
+# Create dependencies symlink
+mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/phplib
+ln -sf ${OPENSHIFT_DEPENDENCIES_DIR}phplib phplib
+
+# Create additional directories required by PHP
+mkdir -p $OPENSHIFT_PHP_DIR/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
+mkdir -p $OPENSHIFT_PHP_DIR/{logs,run,tmp,sessions}
+
 rm -f $OPENSHIFT_PHP_DIR/modules $OPENSHIFT_PHP_DIR/conf/magic
 ln -s /usr/lib64/httpd/modules $OPENSHIFT_PHP_DIR/modules
 ln -s /etc/httpd/conf/magic $OPENSHIFT_PHP_DIR/conf/magic

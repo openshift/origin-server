@@ -10,6 +10,12 @@ source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
 
 echo "$version" > "$OPENSHIFT_JBOSSEWS_DIR/env/OPENSHIFT_JBOSSEWS_VERSION"
 
+mkdir -p ${OPENSHIFT_DEPENDENCIES_DIR}webapps
+ln -sf ${OPENSHIFT_DEPENDENCIES_DIR}webapps webapps
+
+mkdir -p ${OPENSHIFT_BUILD_DEPENDENCIES_DIR}/.m2
+ln -sf ${OPENSHIFT_BUILD_DEPENDENCIES_DIR}/.m2 ${OPENSHIFT_HOMEDIR}/.m2
+
 sed -i "s/{APP_NAME}/${OPENSHIFT_APP_NAME}/g" ${OPENSHIFT_JBOSSEWS_DIR}/template/pom.xml
 
 # Create and install the initial template WAR

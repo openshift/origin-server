@@ -819,7 +819,6 @@ module OpenShift
       #
       def post_configure_component(gear, component, template_git_url=nil)
         result_io = ResultIO.new
-        cart_data = nil
         cart = component.cartridge_name
 
         args = build_base_gear_args(gear)
@@ -838,6 +837,53 @@ module OpenShift
         component_details = result_io.appInfoIO.string.empty? ? '' : result_io.appInfoIO.string
         result_io.debugIO << "#{cart}: #{component_details}" unless component_details.blank?
 
+        return result_io
+      end
+
+      #
+      # Deploy a gear.
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * hot_deploy: indicates whether this is a hot deploy
+      # * force_clean_build: indicates whether this should be a clean build
+      # * ref: the ref to deploy
+      # * artifact_url: the url of the artifacts to deploy
+      #
+      # RETURNS
+      # ResultIO: the result of running post-configure on the cartridge
+      #
+      def deploy(gear, hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
+        result_io = ResultIO.new
+
+        args = build_base_gear_args(gear)
+
+        args['--with-hot-deploy'] = hot_deploy
+        args['--with-force-clean-build'] = force_clean_build
+        args['--with-ref'] = ref
+
+        result_io = run_cartridge_command(@@C_CONTROLLER, gear, "deploy", args)
+        return result_io
+      end
+
+      #
+      # Activate a deployment for a gear
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * deployment_id: a deployment id
+      #
+      # RETURNS
+      # ResultIO: the result of running post-configure on the cartridge
+      #
+      def activate(gear, deployment_id)
+        result_io = ResultIO.new
+
+        args = build_base_gear_args(gear)
+
+        args['--with-deployment-id'] = deployment_id
+
+        result_io = run_cartridge_command(@@C_CONTROLLER, gear, "activate", args)
         return result_io
       end
 
@@ -984,9 +1030,11 @@ module OpenShift
         run_cartridge_command_ignore_components(cart, gear, "restart", args)
       end
 
-      def get_restart_job(gear, component)
+      def get_restart_job(gear, component, all=false)
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
+        args['--all'] = all
+        args['--parallel_concurrency_ratio'] = 0.5
         RemoteJob.new('openshift-origin-node', 'restart', args)
       end
 
@@ -1398,7 +1446,6 @@ module OpenShift
       # INPUTS:
       # * gear: a Gear object
       # * key: an environment variable name
-      # * value: and environment variable value
       #
       # RETURNS:
       # * a RemoteJob object
@@ -1434,6 +1481,26 @@ module OpenShift
         args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-key-comment'] = comment if comment
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-add', args)
+        job
+      end
+
+      #
+      # Create a job to update gear configuration
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * config: a Hash of config to update
+      #
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      #
+      def get_update_configuration_job(gear, config)
+        args = build_base_gear_args(gear)
+        args['--with-config'] = config
+        job = RemoteJob.new('openshift-origin-node', 'update-configuration', args)
         job
       end
 
@@ -1484,8 +1551,8 @@ module OpenShift
       #
       # INPUTS:
       # * gear: a Gear object
-      # * iv: ??
-      # * token: ??
+      # * iv: String - Broker auth initialization vector
+      # * token: String - Broker auth token
       #
       # RETURNS:
       # * a RemoteJob object
@@ -1498,24 +1565,6 @@ module OpenShift
         args['--with-iv'] = iv
         args['--with-token'] = token
         job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-add', args)
-        job
-      end
-
-      #
-      # Create a job to remove a broker auth key
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      #
-      # RETURNS:
-      # * a RemoteJob object
-      #
-      # NOTES:
-      # * uses RemoteJob
-      #
-      def get_broker_auth_key_remove_job(gear)
-        args = build_base_gear_args(gear)
-        job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-remove', args)
         job
       end
 
@@ -1653,6 +1702,56 @@ module OpenShift
         job
       end
 
+      def build_update_cluster_args(options, args)
+        if options.has_key?(:rollback)
+          args['--rollback'] = options[:rollback]
+        else
+          proxy_args = []
+          options[:proxy_gears].each do |gear|
+            proxy_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname}"
+          end
+
+          args['--proxy-gears'] = proxy_args.join(' ')
+
+          web_args = []
+          options[:web_gears].each do |gear|
+            # TODO eventually support multiple ports
+            first_port_interface = gear.port_interfaces[0]
+
+            # uuid, name, namespace, proxy_hostname, proxy port
+            web_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname},#{first_port_interface.external_port}"
+          end
+
+          args['--web-gears'] = web_args.join(' ')
+        end
+
+        args
+      end
+
+      def update_cluster(gear, options)
+        args = build_base_gear_args(gear)
+        args = build_update_cluster_args(options, args)
+        result = execute_direct(@@C_CONTROLLER, 'update-cluster', args)
+        parse_result(result)
+      end
+
+      def get_update_cluster_job(gear, options)
+        args = build_base_gear_args(gear)
+        args = build_update_cluster_args(options, args)
+        RemoteJob.new(@@C_CONTROLLER, 'update-cluster', args)
+      end
+
+      # Enable/disable a target gear in the proxy component
+      def get_update_proxy_status_job(gear, options)
+        args = build_base_gear_args(gear)
+        #TODO support specifying the proxy component/cart?
+        #args = build_base_component_args(proxy_component, args)
+        args['--action'] = options[:action]
+        args['--gear_uuid'] = options[:gear_uuid]
+        args['--persist'] = options[:persist]
+        RemoteJob.new(@@C_CONTROLLER, 'update-proxy-status', args)
+      end
+
       #
       # Re-start a gear after migration
       #
@@ -1725,6 +1824,9 @@ module OpenShift
         source_container = gear.get_proxy
         gi_comps = gear.group_instance.all_component_instances.to_a
         start_order,stop_order = app.calculate_component_orders
+
+        app.update_proxy_status(action: :disable, gear_uuid: gear.uuid) if app.scalable
+
         stop_order.each { |cinst|
           next if not gi_comps.include? cinst
           next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
@@ -1856,6 +1958,10 @@ module OpenShift
             # start the gears again and change DNS entry
             reply.append move_gear_post(gear, destination_container, state_map)
             # app.elaborate_descriptor
+
+            # update all proxy gear registries and configs
+            app.update_cluster if app.scalable
+
             app.execute_connections
             if app.scalable
               # execute connections restart the haproxy service, so stop it explicitly if needed
@@ -1868,6 +1974,8 @@ module OpenShift
                   reply.append destination_container.stop(gear, cinst)
                 end
               end
+              
+              app.update_proxy_status(action: :enable, gear_uuid: gear.uuid)
             end
             app.save
 
@@ -1895,6 +2003,8 @@ module OpenShift
                 reply.append source_container.run_cartridge_command(cart, gear, "start", args, false)
               end
             end
+
+            app.update_proxy_status(action: :enable, gear_uuid: gear.uuid)
           ensure
             raise
           end
@@ -2575,9 +2685,13 @@ module OpenShift
 
         mcoll_result = mcoll_reply[0]
         output = nil
+        addtl_params = nil
         if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
           output = mcoll_result.results[:data][:output]
           result.exitcode = mcoll_result.results[:data][:exitcode]
+          if mcoll_result.results[:data][:addtl_params]
+            result.deployments = mcoll_result.results[:data][:addtl_params][:deployments]
+          end
         else
           server_identity = app ? MCollectiveApplicationContainerProxy.find_gear(gear.uuid) : nil
           if server_identity && @id != server_identity

@@ -10,7 +10,7 @@
 class SshKey
   include Mongoid::Document
   include AccessControlled
-  
+
   # This is the current regex for validations for new ssh keys 
   KEY_NAME_REGEX = /\A[\w\.\-@+]+\z/
   def self.check_name!(name)

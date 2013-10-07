@@ -15,5 +15,4 @@ locked_files:
 - env/OPENSHIFT_JBOSSAS_VERSION
 - env/M2_HOME
 processed_templates:
-- 'metadata/jenkins_shell_command.erb'
 - 'metadata/jenkins_artifacts_glob.erb'

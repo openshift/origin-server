@@ -3,7 +3,7 @@ alias rsync="rsync --exclude-from='${OPENSHIFT_PYTHON_DIR}/metadata/rsync.exclud
 upstream_ssh="<%= ENV['OPENSHIFT_GEAR_UUID'] %>@<%= ENV['OPENSHIFT_APP_NAME'] %>-${OPENSHIFT_NAMESPACE}.<%= ENV['OPENSHIFT_CLOUD_DOMAIN'] %>"
 
 # Sync any libraries
-rsync $upstream_ssh:'${OPENSHIFT_PYTHON_DIR}virtenv/venv/' ${OPENSHIFT_PYTHON_DIR}virtenv/venv/
+rsync $upstream_ssh:'${OPENSHIFT_DEPENDENCIES_DIR}' ${OPENSHIFT_DEPENDENCIES_DIR}
 
 # Build/update libs and run user pre_build and build
 gear build
@@ -14,11 +14,13 @@ gear build
 # Deploy new build
 
 # Stop app
-$GIT_SSH $upstream_ssh 'gear stop'
+$GIT_SSH $upstream_ssh 'gear stop --conditional --exclude-web-proxy'
+
+deployment_dir=`$GIT_SSH $upstream_ssh 'gear create_deployment_dir'`
 
 # Push content back to application
-rsync ${OPENSHIFT_PYTHON_DIR}virtenv/venv/ $upstream_ssh:'${OPENSHIFT_PYTHON_DIR}virtenv/venv/'
-rsync $WORKSPACE/ $upstream_ssh:'${OPENSHIFT_REPO_DIR}'
+rsync $WORKSPACE/ $upstream_ssh:app-deployments/$deployment_dir/repo/
+rsync $OPENSHIFT_HOMEDIR/app-root/runtime/dependencies/ $upstream_ssh:app-deployments/$deployment_dir/dependencies/
 
 # Configure / start app
-$GIT_SSH $upstream_ssh 'gear remotedeploy'
+$GIT_SSH $upstream_ssh "gear remotedeploy --deployment-datetime $deployment_dir"

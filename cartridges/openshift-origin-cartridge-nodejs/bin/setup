@@ -19,17 +19,10 @@ for dir in configuration etc; do
     cp -Lr $OPENSHIFT_NODEJS_DIR/versions/$version/$dir/* $OPENSHIFT_NODEJS_DIR/$dir 
 done
 
-# Bug 980102
-# The symlink $OPENSHIFT_REPO_DIR/../node_modules is wrong
-if [ -h "$OPENSHIFT_REPO_DIR/../node_modules" ]; then
-   rm $OPENSHIFT_REPO_DIR/../node_modules
-fi
-
-
 ###
 pushd $OPENSHIFT_NODEJS_DIR > /dev/null
 for dir in conf logs sessions run tmp; do
-	mkdir -p $dir
+    mkdir -p $dir
 done
 popd > /dev/null
 

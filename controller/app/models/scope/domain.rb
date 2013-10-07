@@ -33,7 +33,7 @@ class Scope::Domain < Scope::Parameterized
         resource._id === id && [:create_application, :create_builder_application].include?(permission)
       when Application
         return false unless resource.domain_id === id
-        return true if permission == :destroy
+        return true if [:destroy, :update_application].include?(permission)
         Scope::Application.authorize_action?(resource._id, :edit, permission, resource, other_resources, user)
       end
     end

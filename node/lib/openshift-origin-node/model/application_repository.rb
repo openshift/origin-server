@@ -170,15 +170,17 @@ module OpenShift
         configure
       end
 
-      def archive
+      def archive(destination, ref)
         return unless exist?
 
         # expose variables for ERB processing
         @application_name = @container.application_name
-        @target_dir       = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
+        @target_dir       = destination
 
         FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '*'))
         FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '.[^\.]*'))
+
+        @deployment_ref = ref
 
         @container.run_in_container_context(ERB.new(GIT_ARCHIVE).result(binding),
             chdir:               @path,
@@ -198,6 +200,20 @@ module OpenShift
             expected_exitstatus: 0)
 
         @container.run_in_container_context("/bin/rm -rf #{cache} &")
+      end
+
+      def get_sha1(ref)
+        @deployment_ref = ref
+
+        out, _, rc = @container.run_in_container_context(ERB.new(GIT_GET_SHA1).result(binding),
+                                                        chdir: @path)
+
+        if 0 == rc
+          out.chomp
+        else
+          # if the repo is empty (no commits) or the ref is invalid, the rc will be nonzero
+          ''
+        end
       end
 
       def destroy
@@ -303,7 +319,7 @@ shopt -s dotglob;
 if [ "$(#{COUNT_GIT_OBJECTS})" -eq "0" ]; then
   exit 0;
 fi
-git archive --format=tar HEAD | (cd <%= @target_dir %> && tar --warning=no-timestamp -xf -);
+git archive --format=tar <%= @deployment_ref %> | (cd <%= @target_dir %> && tar --warning=no-timestamp -xf -);
 }
 
       GIT_DESCRIPTION = %q{
@@ -315,6 +331,11 @@ git archive --format=tar HEAD | (cd <%= @target_dir %> && tar --warning=no-times
   name = OpenShift System User
 [gc]
   auto = 100
+}
+
+      GIT_GET_SHA1 = %Q{
+set -xe;
+git rev-parse --short <%= @deployment_ref %>
 }
 
       PRE_RECEIVE = %q{

@@ -66,7 +66,8 @@ class PendingAppOpGroup
 
           # set the pending_op state to queued
           op.set_state(:queued)
-          
+
+
           if op.isParallelExecutable()
             op.addParallelExecuteJob(handle)
             parallel_job_ops.push op
@@ -141,7 +142,7 @@ class PendingAppOpGroup
       raise e_orig
     end
   end
-  
+
   def execute_rollback(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
 

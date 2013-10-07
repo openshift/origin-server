@@ -8,7 +8,7 @@ class AppEventsController < BaseController
 
   ##
   # API to perform manage an application
-  #
+  # 
   # URL: /domains/:domain_id/applications/:application_id/events
   #
   # Action: POST
@@ -25,11 +25,12 @@ class AppEventsController < BaseController
   #   * tidy: Trigger garbage collection and cleanup of logs, git revisions
   #   * reload: Restart all application cartridges
   # @param [String] alias DNS alias for the application. Only applicable to add-alias and remove-alias events
-  # 
+  #
   # @return [RestReply<RestApplication>] Application object on which the event operates and messages returned for the event.
   def create
     event = params[:event].presence
     server_alias = params[:alias].presence
+    deployment_id = params[:deployment_id].presence
 
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
                         "alias") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
@@ -98,6 +99,16 @@ class AppEventsController < BaseController
       authorize! :change_cartridge_state, @application
       r = @application.reload_config
       msg = "Application #{@application.name} called reload"
+    when 'activate'
+      if deployment_id.nil? and @application.deployments.length > 0
+        deployment_id =  @application.deployments[@application.deployments.length -2].deployment_id
+      end
+      return render_error(:unprocessable_entity, "There are no previous deployments to activate to", 126,
+                        "deployment_id") if deployment_id.nil? or deployment_id.to_s.empty?
+      #TODO implement change_deployment or use change_state
+      #authorize! :change_deployment, @application
+      r = @application.activate(deployment_id)
+      msg = "Application #{@application.name} has been rolled back"
     else
       return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
                           126, "event")

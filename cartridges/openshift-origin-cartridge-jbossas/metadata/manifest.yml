@@ -60,10 +60,6 @@ Provides:
 - jbossas-standalone
 - jboss-as7-standalone
 Publishes:
-  publish-http-url:
-    Type: NET_TCP:httpd-proxy-info
-  publish-gear-endpoint:
-    Type: NET_TCP:gear-endpoint-info
   publish-jboss-cluster:
     Type: NET_TCP:jbossas-cluster-info
   publish-jboss-remoting:
@@ -91,6 +87,8 @@ Endpoints:
   Public-Port-Name: HTTP_PROXY_PORT
   WebSocket-Port-Name: WEBSOCKET_PORT
   WebSocket-Port: 8676
+  Options:
+    primary: true
   Mappings:
   - Frontend: ''
     Backend: ''

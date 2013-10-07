@@ -7,6 +7,7 @@ class Scope::Application < Scope::Parameterized
     :scale => nil,
     :edit => 'Grant edit access to a single application.',
     :admin => 'Grant full administrative access to a single application.',
+    :report_deployments => 'Grant permission to update the list of available deployments.'
   }.freeze
 
   def allows_action?(controller)
@@ -56,11 +57,14 @@ class Scope::Application < Scope::Parameterized
           :destroy_alias,
           :view_environment_variables,
           :change_environment_variables,
+          :create_deployment
           #:destroy,
           #:change_members,
         ].include?(permission)
     when :scale
       resource === Application && resource._id === app_id && :scale_cartridge == permission
+    when :report_deployments
+      resource === Application && resource._id === app_id && :update_deployments == permission
     end
   end
 

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+jboss_version="$1"
+old_cart_version="$2"
+new_cart_version="$3"
+
+if [[ $new_cart_version =~ 0.0.6 ]]; then
+  mkdir -p $OPENSHIFT_BUILD_DEPENDENCIES_DIR/.m2
+  mv $OPENSHIFT_HOMEDIR/.m2/* $OPENSHIFT_BUILD_DEPENDENCIES_DIR/
+  ln -s $OPENSHIFT_BUILD_DEPENDENCIES_DIR/.m2 $OPENSHIFT_HOMEDIR/.m2
+fi

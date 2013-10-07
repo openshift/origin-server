@@ -76,7 +76,7 @@ class Gear
     reserved_gear_uid = @container.reserve_uid
 
     failure_message = "Failed to set UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
-    
+
     updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
       Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => reserved_gear_uid, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => @container.id }})
     end
@@ -88,7 +88,6 @@ class Gear
 
   def unreserve_uid
     get_proxy.unreserve_uid(self.uid) if get_proxy
-  
     failure_message = "Failed to unset UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
     updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
       Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => nil, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => nil }})
@@ -110,7 +109,7 @@ class Gear
     app.process_commands(result_io, nil, self)
     result_io
   end
- 
+
   def publish_routing_info
     self.port_interfaces.each { |pi|
       pi.publish_endpoint(self.group_instance.application)
@@ -179,8 +178,48 @@ class Gear
   def post_configure_component(component, init_git_url=nil)
     result_io = get_proxy.post_configure_component(self, component, init_git_url)
     component.process_properties(result_io)
+    app.update_deployments_from_result(result_io)
     app.process_commands(result_io, component._id, self)
     raise OpenShift::NodeException.new("Unable to post-configure component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
+    result_io
+  end
+
+  # Performs the deploy steps for this gear.
+  #
+  # == Parameters:
+  # hot_deploy::
+  #   Indicates whether this is a hot deploy
+  # force_clean_build::
+  #   Indicates whether this should be a clean build
+  # ref::
+  #   The ref to deploy
+  # artifact_url::
+  #   The url of the artifacts to deploy
+  # == Returns:
+  # A {ResultIO} object with with output or error messages from the Node.
+  # Exit codes:
+  #   success = 0
+  # @raise [OpenShift::NodeException] on failure
+  def deploy(hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
+    result_io = get_proxy.deploy(self, hot_deploy, force_clean_build, ref, artifact_url)
+    app.update_deployments_from_result(result_io)
+    #app.process_commands(result_io, nil, self)
+    raise OpenShift::NodeException.new("Unable to deploy #{app.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
+    result_io
+  end
+
+  # Performs the activate steps for this gear.
+  #
+  # == Returns:
+  # A {ResultIO} object with with output or error messages from the Node.
+  # Exit codes:
+  #   success = 0
+  # @raise [OpenShift::NodeException] on failure
+  def activate(deployment_id)
+    result_io = get_proxy.activate(self, deployment_id)
+    app.update_deployments_from_result(result_io)
+    #app.process_commands(result_io, nil, self)
+    raise OpenShift::NodeException.new("Unable to activate #{deployment_id} for #{app.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
 
@@ -277,7 +316,7 @@ class Gear
       @container = OpenShift::ApplicationContainerProxy.instance(self.server_identity)
     elsif @container and @container.id!=self.server_identity 
       @container = OpenShift::ApplicationContainerProxy.instance(self.server_identity)
-    end    
+    end
 
     return @container
   end
@@ -287,12 +326,15 @@ class Gear
     remove_keys = op.remove_keys_attrs
     add_envs = op.add_env_vars
     remove_envs = op.remove_env_vars
+    config = op.config
 
     add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } if add_keys.present?      
     remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["name"])) } if remove_keys.present?
 
     add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(self, env["key"],env["value"]))} if add_envs.present?
     remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(self, env["key"]))} if remove_envs.present?
+
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_configuration_job(self, config)) unless config.nil? || config.empty?
   end
 
   # Convenience method to get the {Application}
@@ -345,7 +387,7 @@ class Gear
     unless success
       Rails.logger.error(failure_message)
     end
-    
+
     return current_gear
   end
 end

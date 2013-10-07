@@ -58,12 +58,11 @@ class PendingAppOp
   def addParallelExecuteJob(handle)
     Rails.logger.debug "Parallel execute not implemented: #{self.class.to_s}"
   end
-  
+
   def addParallelRollbackJob(handle)
     Rails.logger.debug "Parallel rollback not implemented: #{self.class.to_s}"
   end
-  
-  
+
   # the new_state needs to be a symbol
   def set_state(new_state)
     failure_message = "Failed to set pending_op #{self._id.to_s} state to #{new_state.to_s} for application #{self.pending_app_op_group.application.name}"
