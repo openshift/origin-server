@@ -1,5 +1,3 @@
-@runtime
-@runtime3
 Feature: V2 Platform Endpoint tests
 
   Scenario: SSL to Gear is specified in the cartridge's manifest.yml
