@@ -118,22 +118,16 @@
       .dropdown-menu {
         border: 0;
       }
-      &.pull-right {
-        margin-right: -4px;
-        .dropdown-menu {
-          right: 4px;
-          &:before {
-            border: 5px solid transparent;
-            border-bottom-color: #fff;
-            content: '';
-            display: block;
-            height: 0;
-            position: absolute;
-            right: 5px;
-            top: -8px;
-            width: 0;
-          }
-        }
+      &.pull-right .dropdown-menu:before {
+        border: 5px solid transparent;
+        border-bottom-color: #fff;
+        content: '';
+        display: block;
+        height: 0;
+        position: absolute;
+        right: 10px;
+        top: -8px;
+        width: 0;
       }
       > li {
         > a {
