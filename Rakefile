@@ -19,7 +19,6 @@ begin
       end
     end
   end
-rescue LoadError => e
-  print e.message
+rescue LoadError
   # YARD is not available
 end

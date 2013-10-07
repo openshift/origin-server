@@ -35,6 +35,36 @@ Rake::TestTask.new(:test) do |t|
   t.pattern = 'test/**/*_test.rb'
 end
 
+desc 'Syntax check of the cartridge manifests'
+task :test_cart_lint do
+  begin
+    require 'kwalify'
+    require 'yaml'
+  rescue LoadError
+    puts "The 'kwalify' gem is not installed, skipping cartridge manifest.yaml linst test"
+    exit(0)
+  end
+  schema_path = File.join(File.dirname(__FILE__), '..', 'util', 'manifest_schema.yml')
+  cart_directory = File.join(File.dirname(__FILE__), '..', 'cartridges', '*', 'metadata', 'manifest.yml*')
+  schema = Kwalify::Yaml.load_file(schema_path)
+  validator = Kwalify::Validator.new(schema)
+  return_code = 0
+  Dir[cart_directory].each do |path|
+    manifest = YAML::load_file(path)
+    pretty_path = path.split('/').slice(-3,3).join('/')
+    errors = validator.validate(manifest)
+    if errors.empty?
+      puts "[#{pretty_path}] VALID."
+    else
+      puts "#{pretty_path}: INVALID"
+      errors.each { |e| puts "  - [#{e.path}] #{e.message}" }
+      return_code = 1
+    end
+  end
+  exit(return_code)
+end
+
+
 desc "Generate RDoc"
 task :doc do
   sh "rdoc ."

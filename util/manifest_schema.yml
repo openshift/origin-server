@@ -1,0 +1,165 @@
+&manifest
+type: map
+required: yes
+mapping:
+  "Name":
+    required: yes
+  "Cartridge-Short-Name":
+    required: yes
+    pattern: /[A-Z_]+/
+  "Display-Name":
+    required: yes
+  "Architecture":
+    enum: [ 'noarch', 'i386', 'x86_64' ]
+  "Description":
+    required: yes
+  "Version":
+    required: yes
+    pattern: /^([\d\.]+)$/
+  "Versions":
+    type: seq
+    sequence:
+      - { unique: yes }
+  "License":
+    required: yes
+  "License-Url":
+    pattern: /^http(s?):\/\//
+  "Vendor":
+    required: yes
+  "Cartridge-Version":
+    required: yes
+    pattern: /[0-9][0-9\.]*/
+  "Compatible-Versions":
+    type: seq
+    sequence:
+      - { unique: yes, pattern: "/[0-9][0-9\.]*/" }
+  "Cartridge-Vendor":
+    required: yes
+  "Categories":
+    type: seq
+    required: yes
+    sequence:
+      - { unique: yes, required: true, pattern: "/[a-z][a-z_]*/" }
+  "Website":
+    pattern: /^http(s?):\/\//
+  "Help-Topics":
+    type: map
+    mapping:
+      "Developer Center":
+      "=": { type: str }
+  "Cart-Data":
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+          "Key":
+            required: true
+          "Type":
+            required: true
+            enum: [environment, cart_data]
+          "Description":
+            required: true
+  "Publishes": &publishes
+    type: map
+    mapping:
+      "=": 
+        type: map
+        mapping:
+          "Type":
+            pattern: /^(ENV|STRING|NET_TCP|NET_UDP|FILESYSTEM)\:/
+  "Subscribes": &subscribes
+    type: map
+    mapping:
+      "=":
+        type: map
+        mapping:
+          "Type":
+            pattern: /^(ENV|STRING|NET_TCP|NET_UDP|FILESYSTEM)\:/
+          "Required":
+            type: bool
+  "Scaling": &scaling
+    type: map
+    mapping:
+      "Min": &scale_type
+        type: int
+        range: { max: 10, min: -10 }
+      "Max": *scale_type
+      "Multiplier": *scale_type
+  "Provides":
+    type: seq
+    sequence:
+      - { unique: yes }
+  "Endpoints":
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+          "Private-IP-Name": { required: yes, pattern: "/[A-Z][A-Z_]+/" }
+          "Private-Port-Name": { required: yes, pattern: "/[A-Z][A-Z_]+/" }
+          "Private-Port": { type: int, range: { min-ex: 1024 } }
+          "Public-Port-Name": { unique: yes, pattern: "/[A-Z][A-Z_]+/" }
+          "WebSocket-Port": { type: int, range: { min-ex: 1024 } }
+          "WebSocket-Port-Name": { unique: yes, pattern: "/[A-Z][A-Z_]+/" }
+          "Protocols":
+            type: seq
+            sequence:
+              - { unique: yes }
+          "Options":
+            type: map
+            mapping:
+              "ssl_to_gear": {type: bool}
+          "Mappings":
+            type: seq
+            sequence:
+              - type: map
+                mapping:
+                  "Frontend": { required: yes }
+                  "Backend": { required: yes }
+                  "Options":
+                    type: map
+                    mapping:
+                      "websocket": { type: any, enum: [true, false, 1, 0] }
+                      "health": {type: any, enum: [true, false, 1,0] }
+                      "target_update": { type: any, enum: [true, false, 1, 0] }
+                      "connections": { type: int }
+                      "file": {type: any, enum: [true, false, 1, 0] }
+                      "tohttps": {type: any, enum: [true, false, 1, 0] }
+  "Additional-Control-Actions":
+    type: seq
+    sequence:
+      - { unique: yes, enum: [threaddump]  }
+  "Configure-Order":
+    type: seq
+    sequence:
+      - { unique: yes, pattern: "/[a-z-]+/" }
+  "Group-Overrides":
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+          "components":
+            type: seq
+            sequence:
+              - { type: str, unique: yes, pattern: "/[a-z-]+/" }
+  "Components":
+    type: map
+    mapping:
+      "=":
+        type: map
+        mapping:
+          "Publishes": *publishes
+          "Subscribes": *subscribes
+          "Scaling": *scaling
+  "Version-Overrides":
+    type: map
+    mapping:
+      "=":
+        type: map
+        mapping:
+          "=": { type: any }
+  "Suggests":
+    type: seq
+    sequence:
+      - { unique: yes }
+  "Install-Build-Required":
+    type: bool
