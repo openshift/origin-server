@@ -11,7 +11,7 @@ class AddCompOp < PendingAppOp
     result_io = gear.add_component(component_instance, init_git_url)
     result_io
   end
-  
+
   def rollback
     gear = get_gear()
     component_instance = get_component_instance()

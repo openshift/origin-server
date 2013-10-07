@@ -29,7 +29,7 @@ class ApplicationControllerTest < ActionController::TestCase
     end
   end
 
-  test "app create show list and destroy by domain and app name" do
+  test "app create show list update and destroy by domain and app name" do
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
     assert_response :created
@@ -39,9 +39,29 @@ class ApplicationControllerTest < ActionController::TestCase
     assert link = json['data']['links']['ADD_CARTRIDGE']
     assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'url' }
 
-    get :index , {"domain_id" => @domain.namespace}
+    get :index, {"domain_id" => @domain.namespace}
     assert_response :success
-    delete :destroy , {"id" => @app_name, "domain_id" => @domain.namespace}
+
+    put :update, {"id" => @app_name,
+                  "domain_id" => @domain.namespace,
+                  "auto_deploy" => false,
+                  "keep_deployments" => 2,
+                  "deployment_type" => 'binary',
+                  "deployment_branch" => 'stage'
+                 }
+    assert_response :success
+
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    #TODO uncomment once save to mongo is fixed
+    assert_equal json['data']['auto_deploy'], false 
+    assert_equal json['data']['keep_deployments'], 2
+    assert_equal json['data']['deployment_type'], 'binary'
+    assert_equal json['data']['deployment_branch'], 'stage'
+
+
+    delete :destroy, {"id" => @app_name, "domain_id" => @domain.namespace}
     assert_response :ok
   end
 
@@ -72,7 +92,7 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "attempt to create without create_application permission" do
+  test "attempt to create and update without create_application permission" do
     @app_name = "app#{@random}"
     scopes = Scope::Scopes.new
     CloudUser.any_instance.stubs(:scopes).returns(scopes << Scope::Read.new)
@@ -98,6 +118,19 @@ class ApplicationControllerTest < ActionController::TestCase
     @domain.save; @domain.run_jobs
 
     post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    assert_response :success
+
+    scopes.clear << Scope::Session.new
+    @domain.members.find(@user).role = :view
+    @domain.save; @domain.run_jobs
+
+    put :update, {"name" => @app_name, "domain_id" => @domain.namespace, "auto_deploy" => false}
+    assert_response :forbidden
+
+    @domain.members.find(@user).role = :edit
+    @domain.save; @domain.run_jobs
+
+    put :update, {"name" => @app_name, "domain_id" => @domain.namespace, "auto_deploy" => false}
     assert_response :success
   end
 
@@ -172,6 +205,41 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridges" => "mysql-5.1", "domain_id" => @domain.namespace}
     assert_response :unprocessable_entity
     post :create, {"name" => @app_name, "cartridges" => [PHP_VERSION, "ruby-1.9"], "domain_id" => @domain.namespace}
+    assert_response :unprocessable_entity
+  end
+
+  test "invalid updates" do
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    assert_response :created
+    
+    put :update, {"id" => @app_name,
+                  "domain_id" => @domain.namespace
+                 }
+    assert_response :unprocessable_entity
+    
+    put :update, {"id" => @app_name,
+                  "domain_id" => @domain.namespace,
+                  "auto_deploy" => 'blah'
+                 }
+    assert_response :unprocessable_entity
+
+    put :update, {"id" => @app_name,
+                  "domain_id" => @domain.namespace,
+                  "keep_deployments" => 'blah'
+                 }
+    assert_response :unprocessable_entity
+
+    put :update, {"id" => @app_name,
+                  "domain_id" => @domain.namespace,
+                  "deployment_type" => 'blah'
+                 }
+    assert_response :unprocessable_entity
+
+    put :update, {"id" => @app_name,
+                  "domain_id" => @domain.namespace,
+                  "deployment_branch" => 'abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghiabcdefghi'
+                 }
     assert_response :unprocessable_entity
   end
 

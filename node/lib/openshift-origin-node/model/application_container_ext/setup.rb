@@ -71,6 +71,16 @@ module OpenShift
           add_env_var("DATA_DIR", data_dir, true) {|v|
             FileUtils.mkdir_p(v, :verbose => @debug)
           }
+
+          deployments_dir = PathUtils.join(homedir, "app-deployments") + "/"
+          add_env_var("DEPLOYMENTS_DIR", deployments_dir, true) {|v|
+            FileUtils.mkdir_p("#{v}/by-id", :verbose => @debug)
+            set_rw_permission_R(deployments_dir)
+          }
+
+          # create initial deployment directory
+          create_deployment_dir
+
           add_env_var("HISTFILE", PathUtils.join(data_dir, ".bash_history"))
           profile = PathUtils.join(data_dir, ".bash_profile")
           File.open(profile, File::WRONLY|File::TRUNC|File::CREAT, 0600) {|file|
@@ -92,15 +102,23 @@ module OpenShift
           # Ensure HOME exists for git support
           add_env_var("HOME", homedir, false)
 
-          add_env_var("REPO_DIR", PathUtils.join(gearappdir, "runtime", "repo") + "/", true) {|v|
-            FileUtils.mkdir_p(v, :verbose => @debug)
+          FileUtils.mkdir_p(PathUtils.join(gearappdir, "runtime"), :verbose => @debug)
+
+          add_env_var("DEPENDENCIES_DIR", PathUtils.join(gearappdir, "runtime", "dependencies") + "/", true)
+          add_env_var("BUILD_DEPENDENCIES_DIR", PathUtils.join(gearappdir, "runtime", "build-dependencies") + "/", true)
+
+          add_env_var("REPO_DIR", PathUtils.join(gearappdir, "runtime", "repo") + "/", true) do |v|
+            # don't create the actual dir, since it's now a symlink
+            #FileUtils.mkdir_p(v, :verbose => @debug)
             FileUtils.cd gearappdir do |d|
               FileUtils.ln_s("runtime/repo", "repo", :verbose => @debug)
+              FileUtils.ln_s("runtime/dependencies", "dependencies", :verbose => @debug)
+              FileUtils.ln_s("runtime/build-dependencies", "build-dependencies", :verbose => @debug)
             end
             FileUtils.cd PathUtils.join(gearappdir, "runtime") do |d|
               FileUtils.ln_s("../data", "data", :verbose => @debug)
             end
-          }
+          end
 
           add_env_var("TMP_DIR", "/tmp/", true)
           add_env_var("TMP_DIR", "/tmp/", false)
@@ -108,10 +126,14 @@ module OpenShift
           add_env_var("TMP", "/tmp/", false)
 
           # Update all directory entries ~/app-root/*
-          Dir[gearappdir + "/*"].entries.reject{|e| [".", ".."].include? e}.each {|e|
+          Dir[gearappdir + "/*"].entries.reject{|e| ['.', '..', 'repo', 'dependencies', 'build-dependencies'].include?(File.basename(e))}.each {|e|
             FileUtils.chmod_R(0750, e, :verbose => @debug)
             set_rw_permission_R(e)
           }
+
+          # Change symlink ownership
+          PathUtils.oo_lchown(uid, gid, "#{gearappdir}/repo", "#{gearappdir}/dependencies", "#{gearappdir}/build-dependencies")
+
           set_ro_permission(gearappdir)
           raise "Failed to instantiate gear: missing application directory (#{gearappdir})" unless File.exist?(gearappdir)
 

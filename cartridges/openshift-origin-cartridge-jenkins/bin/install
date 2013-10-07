@@ -23,8 +23,6 @@ public_key=$(cat ${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa.pub)
 set -- $public_key
 add_domain_ssh_key "$2"
 
-add_broker_auth_key
-
 admin_password=$(generate_password)
 system_builder_password=$(generate_password)
 

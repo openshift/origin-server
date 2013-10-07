@@ -336,6 +336,25 @@ module OpenShift
       end
 
       #
+      # If the gear extension defines an upgrade method for the gear, run it.
+      #
+      def pre_cartridge_upgrade(itinerary)
+        if !gear_extension.nil? && gear_extension.respond_to(:upgrade_gear)
+          progress.step 'pre_cartridge_upgrade' do
+            gear_extension.pre_cartridge_upgrade(progress, itinerary)
+          end
+        end
+      end
+
+      def post_cartridge_upgrade(itinerary)
+        if !gear_extension.nil? && gear_extension.respond_to(:upgrade_gear)
+          progress.step 'post_cartridge_upgrade' do
+            gear_extension.post_cartridge_upgrade(progress, itinerary)
+          end
+        end
+      end
+
+      #
       # Gear-level upgrade script:
       #
       # 1. For each cartridge in the upgrade itinerary:
@@ -357,6 +376,8 @@ module OpenShift
           if itinerary.has_incompatible_upgrade?
             stop_gear
           end
+
+          pre_cartridge_upgrade(itinerary)
 
           OpenShift::Runtime::Utils::Cgroups.new(uuid).boost do
           Dir.chdir(container.container_dir) do
@@ -399,6 +420,8 @@ module OpenShift
             end
           end
           end
+
+          post_cartridge_upgrade(itinerary)
 
           if itinerary.has_incompatible_upgrade?
             restart_start_time = timestamp

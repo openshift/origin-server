@@ -118,7 +118,8 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     FileUtils.rm_rf template
     repo = OpenShift::Runtime::ApplicationRepository.new(@container)
     refute_path_exist template
-    repo.archive
+    runtime_repo = "#{@container.container_dir}/app-deployments/#{@container.latest_deployment_datetime}/repo"
+    repo.archive(runtime_repo, 'master')
   end
 
   def test_bare_repository_usr
@@ -251,9 +252,8 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
       assert_equal expected_path, repo.path
       assert_bare_repository(repo)
 
-      runtime_repo = "#{@container.container_dir}/app-root/runtime/repo"
-      FileUtils.mkpath(runtime_repo)
-      repo.archive
+      runtime_repo = "#{@container.container_dir}/app-deployments/#{@container.latest_deployment_datetime}/repo"
+      repo.archive(runtime_repo, 'master')
       assert_path_exist File.join(runtime_repo, 'perl', 'health_check.pl')
     rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
       puts %Q{
@@ -280,9 +280,8 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
       assert_equal expected_path, repo.path
       assert_bare_repository(repo)
 
-      runtime_repo = "#{@container.container_dir}/app-root/runtime/repo"
-      FileUtils.mkpath(runtime_repo)
-      repo.archive
+      runtime_repo = "#{@container.container_dir}/app-deployments/#{@container.latest_deployment_datetime}/repo"
+      repo.archive(runtime_repo, 'master')
       assert_path_exist File.join(runtime_repo, 'perl', 'health_check.pl')
     rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
       puts %Q{
@@ -307,9 +306,8 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
       assert_equal expected_path, repo.path
       assert_bare_repository(repo, true)
 
-      runtime_repo = "#{@container.container_dir}/app-root/runtime/repo"
-      FileUtils.mkpath(runtime_repo)
-      repo.archive
+      runtime_repo = "#{@container.container_dir}/app-deployments/#{@container.latest_deployment_datetime}/repo"
+      repo.archive(runtime_repo, 'master')
       assert_equal ['.', '..'].sort, Dir.entries(runtime_repo).sort
     rescue OpenShift::Runtime::Utils::ShellExecutionException => e
       puts %Q{
@@ -336,9 +334,8 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
       assert_equal expected_path, repo.path
       assert_bare_repository(repo)
 
-      runtime_repo = "#{@container.container_dir}/app-root/runtime/repo"
-      FileUtils.mkpath(runtime_repo)
-      repo.archive
+      runtime_repo = "#{@container.container_dir}/app-deployments/#{@container.latest_deployment_datetime}/repo"
+      repo.archive(runtime_repo, 'master')
       assert_path_exist File.join(runtime_repo, 'perl', 'health_check.pl')
       assert_path_exist File.join(runtime_repo, 'module001', 'README.md')
     rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
@@ -366,9 +363,8 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
       assert_equal expected_path, repo.path
       assert_bare_repository(repo)
 
-      runtime_repo = "#{@container.container_dir}/app-root/runtime/repo"
-      FileUtils.mkpath(runtime_repo)
-      repo.archive
+      runtime_repo = "#{@container.container_dir}/app-deployments/#{@container.latest_deployment_datetime}/repo"
+      repo.archive(runtime_repo, 'master')
       assert_path_exist File.join(runtime_repo, 'perl', 'health_check.pl')
       assert_path_exist File.join(runtime_repo, 'lib', 'module001', 'README.md')
       assert_path_exist File.join(runtime_repo, 'lib', 'module001', 'module002', 'README.md')

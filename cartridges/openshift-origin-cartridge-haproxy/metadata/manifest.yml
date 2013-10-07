@@ -29,12 +29,6 @@ Components:
       publish-haproxy-status-url:
         Type: NET_TCP:haproxy-status-info
     Subscribes:
-      set-proxy:
-        Type: NET_TCP:httpd-proxy-info
-        Required: false
-      set-gear-endpoints:
-        Type: NET_TCP:gear-endpoint-info
-        Required: false
       set-db-connection-info:
         Type: NET_TCP:db:connection-info
         Required: false

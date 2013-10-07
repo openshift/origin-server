@@ -8,5 +8,5 @@ class Scope::Read < Scope::Simple
   def limits_access(criteria)
     criteria.options[:visible] ||= !(Authorization === criteria.klass)
     criteria
-  end  
+  end
 end

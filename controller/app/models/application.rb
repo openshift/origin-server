@@ -53,6 +53,8 @@ end
 # @!attribute [r] aliases
 #   @return [Array<String>] Array of DNS aliases registered with this application.
 #     @see {Application#add_alias} and {Application#remove_alias}
+# @!attribute [r] deployments
+#   @return [Array<Deployment>] Array of deployment for this application
 class Application
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -63,6 +65,9 @@ class Application
 
   # Numeric representation for unlimited scaling
   MAX_SCALE = -1
+
+  # Available deployment types
+  DEPLOYMENT_TYPES = ['git', 'binary']
 
   # This is the current regex for validations for new applications
   APP_NAME_REGEX = /\A[A-Za-z0-9]+\z/
@@ -96,12 +101,16 @@ class Application
   field :init_git_url, type: String, default: ""
   field :analytics, type: Hash, default: {}
   field :secret_token, type: String
+  field :config, type: Hash, default: {'auto_deploy' => true, 'deployment_branch' => 'master', 'keep_deployments' => 1, 'deployment_type' => 'git'}
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
   embeds_many :aliases, class_name: Alias.name
+  embeds_many :deployments, class_name: Deployment.name
 
   has_members through: :domain, default_role: :admin
+
+  validates :config, presence: true, application_config: true
 
   index({'group_instances.gears.uuid' => 1}, {:unique => true, :sparse => true})
   index({'pending_op_groups.created_at' => 1})
@@ -176,7 +185,7 @@ class Application
   # @param scalable [Boolean] Indicates if the application should be scalable or host all cartridges on a single gear.
   #    If set to true, a "web_proxy" cartridge is automatically added to perform load-balancing for the web tier
   # @param result_io [ResultIO, #output] Object to log all messages and cartridge output
-  # @param group_overrides [Array] List of overrides to specify gear sizes, scaling limits, component colocation etc.
+  # @param group_overrides [Array] List of overrides to specify gear sizes, scaling limits, component collocation etc.
   # @param init_git_url [String] URL to git repository to retrieve application code
   # @param user_agent [String] user agent string of browser used for this rest API request
   # @return [Application] Application object
@@ -295,7 +304,7 @@ class Application
     self.app_ssh_keys = []
     #self.pending_op_groups = []
     self.analytics = {} if self.analytics.nil?
-    
+
     # the resultant string length is 4/3 times the number specified as the first argument
     # with 96 specified, the token is going to be 128 characters long
     self.secret_token = SecureRandom.urlsafe_base64(96, false)
@@ -353,6 +362,27 @@ class Application
       #op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
+  ##
+  # Updates the configuration of the application.
+  # @return [ResultIO] Output from cartridges
+  def update_configuration
+    if self.invalid?
+      messages = []
+      self.errors.messages[:config].each do |error|
+        messages.push(error[:message]) if error[:message]
+      end
+      raise OpenShift::UserException.new("Invalid application configuration: #{messages}", 1)
+    end
+    Application.run_in_application_lock(self) do
+      op_group = UpdateAppConfigOpGroup.new(config: self.config)
+      self.pending_op_groups.push op_group
+      self.save
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -589,10 +619,10 @@ class Application
     Application.run_in_application_lock(self) do
 #      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url" => init_git_url,
 #                                                        "user_env_vars" => user_env_vars}, user_agent: self.user_agent)
-      
       op_group = AddFeaturesOpGroup.new(features: features, group_overrides: group_overrides, init_git_url: init_git_url,
                                         user_env_vars: user_env_vars, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
+
       self.run_jobs(result_io)
     end
 
@@ -792,7 +822,7 @@ class Application
   # Trigger a scale up or scale down of a {GroupInstance}
   # @param group_instance_id [String] ID of the {GroupInstance}
   # @param scale_by [Integer] Number of gears to scale add/remove from the {GroupInstance}.
-  #   A postive value will trigger a scale up and a negative value a scale down
+  #   A positive value will trigger a scale up and a negative value a scale down
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if request cannot be completed
   def scale_by(group_instance_id, scale_by)
@@ -1142,6 +1172,93 @@ class Application
     end
   end
 
+  def get_web_framework_gears
+    [].tap do |gears|
+      component_instances.each do |ci|
+        gears << ci.group_instance.gears if ci.is_web_framework?
+      end
+    end.flatten.uniq
+  end
+
+  def get_web_proxy_gears
+    [].tap do |gears|
+      component_instances.each do |ci|
+        ci.group_instance.gears.each do |gear|
+          gears << gear if gear.sparse_carts.include?(ci._id) and ci.is_web_proxy?
+        end
+      end
+    end.flatten.uniq
+  end
+
+  # Updates the gear registry on all proxy gears and invokes each proxy cartridge's
+  # update-cluster control method so it can update its configuration as well.
+  #
+  # options may contain rollback:true to indicate this is a rollback
+  def update_cluster(options={})
+    web_proxy_gears = get_web_proxy_gears
+    return if web_proxy_gears.empty?
+
+    web_framework_gears = get_web_framework_gears
+
+    # we don't want to have all the proxies down at the same time, so do the
+    # first one by itself, wait for it to finish, and then do the rest in
+    # parallel
+    first_proxy = web_proxy_gears.first
+
+    if options[:rollback] != true
+      options[:proxy_gears] = web_proxy_gears
+      options[:web_gears] = web_framework_gears
+    end
+
+    first_proxy.update_cluster(options)
+
+    if web_proxy_gears.size > 1
+      # do the rest
+      handle = RemoteJob.create_parallel_job
+
+      web_proxy_gears[1..-1].each do |gear|
+        job = gear.get_update_cluster_job(options)
+        RemoteJob.add_parallel_job(handle, "", gear, job)
+      end
+
+      # TODO consider doing multiple batches of jobs in parallel, instead of 1 big
+      # parallel job
+      RemoteJob.execute_parallel_jobs(handle)
+
+      RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+        if status != 0
+          Rails.logger.error "Update cluster failed:: tag: #{tag}, gear_id: #{gear_id},"\
+                             "output: #{output}, status: #{status}"
+        end
+      end
+    end
+  end
+
+  # Enables or disables a target gear in all proxies
+  #
+  # options:
+  #  :action - :enable or :disable
+  #  :gear_uuid - target gear uuid to enable/disable
+  #  :persist - if true, update the proxy configuration on disk
+  def update_proxy_status(options)
+    web_proxy_gears = get_web_proxy_gears
+    return if web_proxy_gears.empty?
+
+    handle = RemoteJob.create_parallel_job
+    web_proxy_gears.each do |gear|
+      RemoteJob.add_parallel_job(handle, "", gear, gear.get_update_proxy_status_job(options))
+    end
+
+    RemoteJob.execute_parallel_jobs(handle)
+
+    RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+      if status != 0
+        Rails.logger.error "Update proxy status failed:: tag: #{tag}, gear_id: #{gear_id},"\
+                           "output: #{output}, status: #{status}"
+      end
+    end
+  end
+
   def run_connection_hooks
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :execute_connections)
@@ -1321,13 +1438,9 @@ class Application
         #op_group = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token }, user_agent: self.user_agent)
         op_group = AddBrokerAuthKeyOpGroup.new(iv: iv, token: token, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp } })
-      when "BROKER_KEY_REMOVE"
-        #op_group = PendingAppOpGroup.new(op_type: :remove_broker_auth_key, args: { }, user_agent: self.user_agent)
-        op_group = RemoveBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp } })
       when "NOTIFY_ENDPOINT_CREATE"
         if gear and component_id
-          pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args]) 
+          pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args])
           gear.port_interfaces.push(pi)
           pi.publish_endpoint(self) if self.ha
         end
@@ -1374,12 +1487,11 @@ class Application
       while self.pending_op_groups.count > 0
         op_group = self.pending_op_groups.first
         self.user_agent = op_group.user_agent
-
         op_group.elaborate(self) if op_group.pending_ops.count == 0
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
-        
+
         self.reload unless op_group.class == DeleteAppOpGroup
       end
       true
@@ -1516,6 +1628,8 @@ class Application
 
     gear_id_prereqs = {}
     maybe_notify_app_create_op = []
+    app_dns_group_instance_id = nil
+    app_dns_gear_id = nil
     gear_ids.each do |gear_id|
       host_singletons = (gear_id == deploy_gear_id)
       app_dns = (host_singletons && hosts_app_dns)
@@ -1523,20 +1637,23 @@ class Application
       if app_dns
         #notify_app_create_op = PendingAppOp.new(op_type: :notify_app_create)
         notify_app_create_op = NotifyAppCreateOp.new()
-        pending_ops.push(notify_app_create_op) 
+        pending_ops.push(notify_app_create_op)
         maybe_notify_app_create_op = [notify_app_create_op._id.to_s]
+
+        app_dns_group_instance_id = ginst_id.to_s
+        app_dns_gear_id = gear_id.to_s
       end
 
       #init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns}, prereq: maybe_notify_app_create_op)
       init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, host_singletons: host_singletons, app_dns: app_dns, prereq: maybe_notify_app_create_op)
       init_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
-      
+
       #reserve_uid_op = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
       reserve_uid_op = ReserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [init_gear_op._id.to_s])
 
       #create_gear_op = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
       create_gear_op = CreateGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
-      
+
       #track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
       #                 "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
       #                 "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage], "gear_size" => gear_size}, prereq: [create_gear_op._id.to_s])
@@ -1585,6 +1702,13 @@ class Application
     ops = calculate_update_new_configuration_ops({"add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, ginst_id, gear_id_prereqs)
     pending_ops.push(*ops)
 
+    if app_dns_group_instance_id && app_dns_gear_id
+      iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
+      prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [] : [gear_id_prereqs[app_dns_gear_id]]
+      add_broker_auth_op = AddBrokerAuthKeyOp.new(iv: iv, token: token, group_instance_id: app_dns_group_instance_id, gear_id: app_dns_gear_id, prereq: prereq)
+      pending_ops.push add_broker_auth_op
+    end
+
     # Add and/or push user env vars when this is not an app create or user_env_vars are specified
     user_vars_op_id = nil
     if maybe_notify_app_create_op.empty? || user_env_vars.present?
@@ -1596,6 +1720,7 @@ class Application
 
     ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, (user_vars_op_id || ginst_op_id), init_git_url)
     pending_ops.push(*ops)
+
     pending_ops
   end
 
@@ -1607,16 +1732,16 @@ class Application
       deleting_app = true if self.group_instances.find(ginst_id).gears.find(gear_id).app_dns
       #destroy_gear_op = PendingAppOp.new(op_type: :destroy_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id})
       destroy_gear_op = DestroyGearOp.new(group_instance_id: ginst_id, gear_id: gear_id)
-      
+
       #deregister_dns_op = PendingAppOp.new(op_type: :deregister_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [destroy_gear_op._id.to_s])
       deregister_dns_op = DeregisterDnsOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [destroy_gear_op._id.to_s])
-      
+
       #unreserve_uid_op = PendingAppOp.new(op_type: :unreserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [deregister_dns_op._id.to_s])
       unreserve_uid_op = UnreserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [deregister_dns_op._id.to_s])
-      
+
       #delete_gear_op = PendingAppOp.new(op_type: :delete_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [unreserve_uid_op._id.to_s])
       delete_gear_op = DeleteGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [unreserve_uid_op._id.to_s])
-      
+
       #track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
       #                    "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
       #                    "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage]}, prereq: [delete_gear_op._id.to_s])
@@ -2038,9 +2163,14 @@ class Application
     end
 
     unless pending_ops.empty? or ((pending_ops.length == 1) and (pending_ops[0].class == SetGroupOverridesOp))
-      execute_connection_op = nil
+
+      if scalable
+        all_ops_ids = pending_ops.map{ |op| op._id.to_s }
+        update_cluster_op = UpdateClusterOp.new(prereq: all_ops_ids)
+        pending_ops.push update_cluster_op
+      end
+
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
-      #execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
       execute_connection_op = ExecuteConnectionsOp.new(prereq: all_ops_ids)
       pending_ops.push execute_connection_op
     end
@@ -2819,6 +2949,56 @@ class Application
       if not [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA].include?(priv_key_clean.class)
         raise OpenShift::UserException.new("Key must be RSA or DSA for Apache mod_ssl",172, "private_key")
       end
+    end
+  end
+
+  def deploy(hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
+    result_io = ResultIO.new
+    Application.run_in_application_lock(self) do
+      op_group = DeployOpGroup.new(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+    end
+    return result_io
+  end
+
+  def activate(deployment_id=nil)
+    if deployment_id.nil? and self.deployments.length > 0
+      deployment_id =  self.deployments[self.deployments.length - 2].deployment_id
+    end
+    raise OpenShift::UserException.new("There are no previous deployments to activate", 126, "deployment_id") if deployment_id.nil?
+    result_io = ResultIO.new
+    Application.run_in_application_lock(self) do
+      op_group = ActivateOpGroup.new(deployment_id: deployment_id)
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+    end
+    return result_io
+  end
+
+  def refresh_deployments()
+    #TODO call node to get the latest deployments
+  end
+
+  def update_deployments(deployments)
+    self.set(:deployments, deployments.map{|d| d.to_hash})
+  end
+
+  def update_deployments_from_result(result_io)
+    if result_io.deployments
+      deploys = []
+      result_io.deployments.each do |d|
+        deploys.push(Deployment.new(deployment_id: d[:id],
+                                            state: d[:state],
+                                       created_at: Time.at(d[:created_at].to_f),
+                                              ref: d[:ref],
+                                             sha1: d[:sha1],
+                                     artifact_url: d[:artifact_url],
+                                      activations: d[:activations] ? d[:activations].map(&:to_f) : [],
+                                       hot_deploy: d[:hot_deploy] || false,
+                                force_clean_build: d[:force_clean_build] || false))
+      end
+      update_deployments(deploys)
     end
   end
 end

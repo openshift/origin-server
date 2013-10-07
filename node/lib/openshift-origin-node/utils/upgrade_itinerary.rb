@@ -26,6 +26,10 @@ module OpenShift
         @has_incompatible
       end
 
+      def has_entry_for?(cartridge_name)
+        !!@entries[cartridge_name]
+      end
+
       def each_cartridge
         @entries.each_pair do |name, upgrade_type|
           yield name, upgrade_type if block_given?

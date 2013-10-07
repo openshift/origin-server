@@ -9,6 +9,12 @@ esac
 
 echo "$version" > "$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_VERSION"
 
+mkdir -p ${OPENSHIFT_BUILD_DEPENDENCIES_DIR}/.m2
+ln -sf ${OPENSHIFT_BUILD_DEPENDENCIES_DIR}/.m2 ${OPENSHIFT_HOMEDIR}/.m2
+
+mkdir -p ${OPENSHIFT_DEPENDENCIES_DIR}deployments
+ln -sf ${OPENSHIFT_DEPENDENCIES_DIR}deployments standalone/deployments
+
 ln -s ${OPENSHIFT_JBOSSAS_DIR}/standalone/log ${OPENSHIFT_JBOSSAS_DIR}/logs
 
 shopt -s dotglob

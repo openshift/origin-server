@@ -27,6 +27,7 @@ Requires:      %{?scl:%scl_prefix}rubygem(commander)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(mocha)
 Requires:      %{?scl:%scl_prefix}rubygem(open4)
+Requires:      %{?scl:%scl_prefix}rubygem(parallel)
 %if 0%{?rhel} <= 6
 # non-scl open4 required for ruby 1.8 cartridge
 # Also see related bugs 924556 and 912215

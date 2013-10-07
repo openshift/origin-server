@@ -1,0 +1,21 @@
+#!/bin/bash -eu
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+python_version="$1"
+old_cart_version="$2"
+new_cart_version="$3"
+
+source $OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/lib/update-configuration
+source $OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/lib/python-context
+
+# Switch to SCL environment
+case "$new_cart_version" in
+    '0.0.6')
+        mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/virtenv
+        mv $OPENSHIFT_PYTHON_DIR/virtenv/* $OPENSHIFT_DEPENDENCIES_DIR/virtenv/
+        ln -s $OPENSHIFT_DEPENDENCIES_DIR/virtenv $OPENSHIFT_PYTHON_DIR/virtenv
+        ;;
+esac
+
+exit 0

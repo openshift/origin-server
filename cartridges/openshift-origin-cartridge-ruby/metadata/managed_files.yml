@@ -16,4 +16,3 @@ locked_files:
 - env/OPENSHIFT_RUBY_LOG_DIR
 processed_templates:
 - 'etc/conf.d/openshift.conf.erb'
-- 'metadata/jenkins_shell_command.erb'

@@ -40,7 +40,7 @@ class BrokerAuthTest < Test::Unit::TestCase
     assert auth = svc.validate_broker_key(iv,token)
     assert_equal user, auth[:user]
     assert_equal :broker_auth, auth[:auth_method]
-    assert_equal [Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :scale), Scope::DomainBuilder.new(app)], auth[:scopes]
+    assert_equal [Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :scale), Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :report_deployments), Scope::DomainBuilder.new(app)], auth[:scopes]
   end
 
   def test_broker_auth
@@ -49,7 +49,7 @@ class BrokerAuthTest < Test::Unit::TestCase
     assert auth = svc.validate_broker_key(iv,token)
     assert_equal user, auth[:user]
     assert_equal :broker_auth, auth[:auth_method]
-    assert_equal [Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :scale)], auth[:scopes]
+    assert_equal [Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :scale), Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :report_deployments)], auth[:scopes]
   end
 
 
@@ -77,7 +77,7 @@ class BrokerAuthTest < Test::Unit::TestCase
     assert auth = svc.validate_broker_key(iv,token)
     assert_equal user, auth[:user]
     assert_equal :broker_auth, auth[:auth_method]
-    assert_equal [Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :scale), Scope::DomainBuilder.new(app)], auth[:scopes]
+    assert_equal [Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :scale), Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :report_deployments), Scope::DomainBuilder.new(app)], auth[:scopes]
   end
 
   def test_authenticate_request_passes_through

@@ -90,7 +90,7 @@ class EmbCartController < BaseController
         colocate_component_instance = @application.component_instances.find_by(cartridge_name: colocate_with)
         colocate_component_instance = colocate_component_instance.first if colocate_component_instance.class == Array
       rescue Mongoid::Errors::DocumentNotFound
-        return render_error(:unprocessable_entity, "Invalid colocation specified. No component matches #{colocate_with}", 109, "cartridge")
+        return render_error(:unprocessable_entity, "Invalid collocation specified. No component matches #{colocate_with}", 109, "cartridge")
       end
     end
 

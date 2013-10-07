@@ -69,13 +69,22 @@
 #   @return [String] URI on the CI server which represents the build job
 # @!attribute [r] initial_git_url
 #   @return [String] URI which was used to initialize the GIT repository for this application
+# @!attribute [r] auto_deploy
+#   @return [Boolean] Boolean indicating whether auto deploy is enabled for this application
+# @!attribute [r] deployment_branch
+#   @return [String] The HEAD of the branch to deploy from by default
+# @!attribute [r] keep_deployments
+#   @return [Integer] The number of deployments to keep around including the active one
+# @!attribute [r] deployment_type
+#   @return [String] deployment_type The deployment type (binary|git)
 # @!attribute [r] scale_min
 #   @return [Integer] Minimum number of gears used by the web framework cartridge (Scalable applications only)
 # @!attribute [r] scale_max
 #   @return [Integer] Maximum number of gears used by the web framework cartridge (Scalable applications only)
 class RestApplication10 < OpenShift::Model
   attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url,
-   :building_with, :building_app, :build_job_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max, :cartridges
+   :building_with, :building_app, :build_job_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max, :cartridges,
+   :auto_deploy, :deployment_branch, :keep_deployments, :deployment_type
 
   def initialize(app, url, nolinks=false, applications=nil)
     self.embedded = {}
@@ -115,6 +124,11 @@ class RestApplication10 < OpenShift::Model
     self.building_with = nil
     self.building_app = nil
     self.build_job_url = nil
+
+    self.auto_deploy = app.config['auto_deploy']
+    self.deployment_branch = app.config['deployment_branch']
+    self.keep_deployments = app.config['keep_deployments']
+    self.deployment_type = app.config['deployment_type']
 
     app.component_instances.each do |component_instance|
       cart = CartridgeCache::find_cartridge_or_raise_exception(component_instance.cartridge_name, app)
@@ -198,12 +212,31 @@ class RestApplication10 < OpenShift::Model
         "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "thread-dump")
         ]),
-        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
           Param.new("cartridge", "string", "framework-type, e.g.: mongodb-2.2", carts)
         ]),
         "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
-        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable"))
+        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable")),
+        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment-variables")),
+        "DEPLOY" => Link.new("Deploy the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
+          Param.new("description", "string", "Description of deployment")],[
+          OptionalParam.new("ref", "string", "Git ref (tag, branch, commit id)", nil, "master"),
+          OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "Latest"),
+        ]),
+        "UPDATE_DEPLOYMENTS" => Link.new("Update deployments", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
+          Param.new("deployments", "array", "An Array of deployments")]),
+        "ACTIVATE" => Link.new("Roll-back application to a previous deployment", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+          Param.new("event", "string", "event", "activate"),
+          Param.new("deployment_id", "string", "The deployment ID to activate the application"),
+        ]),
+        "LIST_DEPLOYMENTS" => Link.new("List all deployments", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments")),
+        "UPDATE" => Link.new("Update application", "PUT", URI::join(url, "domains/#{@domain_id}/applications/#{@name}"), nil, [
+          OptionalParam.new("auto_deploy", "boolean", "Indicates if OpenShift should build and deploy automatically whenever the user executes git push", [true, false]),
+          OptionalParam.new("deployment_type", "string", "Indicates whether the app is setup for binary or git based deployments", ['git', 'binary']),
+          OptionalParam.new("deployment_branch", "string", "Indicates which branch should trigger an automatic deployment, if automatic deployment is enabled."),
+          OptionalParam.new("keep_deployments", "integer", "Indicates how many total deployments to preserve. Must be greater than 0"),
+        ]),
+        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}"))
       }
     end
   end

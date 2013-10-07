@@ -24,10 +24,6 @@ Cart-Data:
   Type: environment
   Description: An example environment variable using ERB processing
 Publishes:
-  publish-http-url:
-    Type: NET_TCP:httpd-proxy-info
-  publish-gear-endpoint:
-    Type: NET_TCP:gear-endpoint-info
 Subscribes:
   set-env:
     Type: ENV:*
@@ -37,6 +33,8 @@ Endpoints:
   Private-Port-Name: EXAMPLE_PORT1
   Private-Port: 8080
   Public-Port-Name: EXAMPLE_PUBLIC_PORT1
+  Options:
+    primary: true
   Mappings:
   - Frontend: ''
     Backend: ''

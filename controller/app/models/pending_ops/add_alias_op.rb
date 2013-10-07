@@ -24,6 +24,7 @@ class AddAliasOp < PendingAppOp
     rescue Mongoid::Errors::DocumentNotFound
       # ignore if alias is not found
     end
+
     result_io
   end
 

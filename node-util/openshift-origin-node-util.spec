@@ -40,10 +40,12 @@ mkdir -p %{buildroot}%{_bindir}
 cp -p bin/oo-* %{buildroot}%{_sbindir}/
 rm %{buildroot}%{_sbindir}/oo-snapshot
 rm %{buildroot}%{_sbindir}/oo-restore
+rm %{buildroot}%{_sbindir}/oo-gear-registry
 rm %{buildroot}%{_sbindir}/oo-config-eval
 cp -p bin/rhc-* %{buildroot}%{_bindir}/
 cp -p bin/oo-snapshot %{buildroot}%{_bindir}/
 cp -p bin/oo-restore %{buildroot}%{_bindir}/
+cp -p bin/oo-gear-registry %{buildroot}%{_bindir}/
 cp -p bin/oo-config-eval %{buildroot}%{_bindir}/
 cp -p bin/unidle_gear.sh %{buildroot}%{_bindir}/
 
@@ -113,6 +115,7 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0755,-,-) %{_bindir}/oo-restore
 %attr(0755,-,-) %{_bindir}/unidle_gear.sh
 %attr(0755,-,-) %{_bindir}/oo-config-eval
+%attr(0755,-,-) %{_bindir}/oo-gear-registry
 
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz

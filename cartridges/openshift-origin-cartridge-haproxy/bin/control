@@ -6,7 +6,7 @@ export STOPTIMEOUT=20
 HAPROXY_CART="haproxy-1.4"
 export HAPROXY_PID="${OPENSHIFT_HAPROXY_DIR}/run/haproxy.pid"
 
-if ! [ $# -eq 1 ]
+if ! [ $# -gt 0 ]
 then
     echo "Usage: \$0 [start|restart|stop|status|deploy]"
     exit 1
@@ -27,9 +27,8 @@ function isrunning() {
 
 function ping_server_gears() {
     #  Ping the server gears and wake 'em up on startup.
-    gear_registry=$OPENSHIFT_HAPROXY_DIR/conf/gear-registry.db
-    for geardns in $(cut -f 2 -d ';' "$gear_registry"); do
-        [ -z "$geardns" ]  ||  curl "http://$geardns/" > /dev/null 2>&1  ||  :
+    for geardns in $(web_gears | cut -f 3 -d ','); do
+          [ -z "$geardns" ]  ||  curl "http://$geardns/" > /dev/null 2>&1  ||  :
     done
 }
 
@@ -163,34 +162,130 @@ function status() {
     fi
 }
 
-function deploy() {
-    [ "${OPENSHIFT_GEAR_DNS}" != "${OPENSHIFT_APP_DNS}" ] && return 0
-    # Fix to get name of haproxy cartridge from environment
-    HAPROXY_CONF_DIR=$OPENSHIFT_HAPROXY_DIR/conf
-    HAPROXY_GEAR_REGISTRY=$HAPROXY_CONF_DIR/gear-registry.db
-    local gears=($(< "${HAPROXY_GEAR_REGISTRY}"))
-    sync_gear_repos "false" "${gears[@]}"
-    [ $? -eq 0 ] || exit $?
+# Disable the specified backend server in the proxy configuration, so
+# that it remains disabled on restart.
+function disable-server-in-config() {
+    haproxy_cfg=$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
+    if grep $1 $haproxy_cfg | grep -v disabled &> /dev/null; then
+        (
+        flock 200
+        cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
+        sed -i "/$1/ s#\$# disabled#g" /tmp/haproxy.cfg.$$
+        cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
+        rm -f /tmp/haproxy.cfg.$$
+        ) 200>${haproxy_cfg}.lock
+    fi
+}
+
+# Enable the specified backend server in the proxy configuration, so
+# that it remains disabled on restart.
+function enable-server-in-config() {
+    haproxy_cfg=$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
+    if grep $1 $haproxy_cfg | grep disabled &> /dev/null; then
+        (
+        flock 200
+        cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
+        sed -i "/$1/ s#disabled\$##g" /tmp/haproxy.cfg.$$
+        cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
+        rm -f /tmp/haproxy.cfg.$$
+        ) 200>${haproxy_cfg}.lock
+    fi
+}
+
+# Get the application domain from the app dns.
+function get-app-domain() {
+    dnsparts=(${OPENSHIFT_APP_DNS//./ })
+    appdomain=(${dnsparts[0]//-/ })
+    domain=${appdomain[1]}
+    echo $domain
+}
+
+# Disable the specified backend server from the proxy so that no traffic
+# is routed to it.
+function disable-server() {
+    shift
+
+    local persist="no"
+    if [ "$1" == "persist" ]; then
+        shift
+        persist="yes"
+    fi
+
+    for gear in $@; do
+        echo "Disabling server $1"
+        if [ "${gear}" == "${OPENSHIFT_GEAR_UUID}" ]; then
+            gearid="local-gear"
+        elif [ "${gear}" == "${OPENSHIFT_APP_UUID}" ]; then
+            domain=$(get-app-domain)
+            gearid="gear-${OPENSHIFT_APP_NAME}-${domain}"
+        else
+            domain=$(get-app-domain)
+            gearid="gear-${gear}-${domain}"
+        fi
+        set +e
+        echo "disable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats > /dev/null
+        if [ "$persist" == "yes" ]; then
+            disable-server-in-config $gearid
+        fi
+        set -e
+    done
+}
+
+# Enable the specified backend server in the proxy configuration, so
+# that traffic is routed to it.
+function enable-server() {
+    shift
+
+    local persist="no"
+    if [ "$1" == "persist" ]; then
+        shift
+        persist="yes"
+    fi
+
+    for gear in $@; do
+        echo "Enabling server $gear"
+        if [ "${gear}" == "${OPENSHIFT_GEAR_UUID}" ]; then
+            gearid="local-gear"
+        elif [ "${gear}" == "${OPENSHIFT_APP_UUID}" ]; then
+            domain=$(get-app-domain)
+            gearid="gear-${OPENSHIFT_APP_NAME}-${domain}"
+        else
+            domain=$(get-app-domain)
+            gearid="gear-${gear}-${domain}"
+        fi
+        set +e
+        echo "enable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats > /dev/null
+        if [ "$persist" == "yes" ]; then
+            enable-server-in-config $gearid
+        fi
+        set -e
+    done
+}
+
+function update-cluster() {
+    shift
+    ${OPENSHIFT_HAPROXY_DIR}/usr/bin/update-cluster "$@"
 }
 
 #
 # main():
 #
 
-for f in ${OPENSHIFT_HAPROXY_DIR}/conf/{gear-registry.db,gear-registry.db.lock,haproxy.cfg}; do
-    if ! [ -f $f ]; then
-      client_error "HAProxy required configuration file \"$(basename $f)\" not found."
-      exit 129
-    fi
-done
+
+if ! [ -f ${OPENSHIFT_HAPROXY_DIR}/conf/haproxy.cfg ]; then
+  client_error "HAProxy required configuration file \"$(basename $f)\" not found."
+  exit 129
+fi
 
 # And then on the haproxy and haproxy_ctld.
 case "$1" in
-    start)        start         ;;
-    stop)         stop          ;;
-    restart)      restart       ;;
-    reload)       reload        ;;
-    force-reload) force-reload  ;;
-    status)       status        ;;
-    deploy)       deploy        ;;
+    start)          start               ;;
+    stop)           stop                ;;
+    restart)        restart             ;;
+    reload)         reload              ;;
+    force-reload)   force-reload        ;;
+    status)         status              ;;
+    disable-server) disable-server "$@" ;;
+    enable-server)  enable-server  "$@" ;;
+    update-cluster) update-cluster "$@" ;;
 esac

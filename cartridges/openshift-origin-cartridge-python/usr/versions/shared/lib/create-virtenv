@@ -5,7 +5,7 @@
 function relative-virtenv {
     # Clean the lib64->lib symlink
     virtualenv --quiet --never-download --relocatable $OPENSHIFT_PYTHON_DIR/virtenv
-    symlinks -r -c -s $OPENSHIFT_PYTHON_DIR/virtenv >/dev/null
+    # symlinks -r -c -s $OPENSHIFT_PYTHON_DIR/virtenv >/dev/null
 }
 
 function create-virtenv {
