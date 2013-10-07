@@ -35,7 +35,6 @@ module OpenShift
         def post_configure(cart_name, template_git_url=nil)
           output         = ''
           cartridge      = @cartridge_model.get_cartridge(cart_name)
-          cartridge_home = PathUtils.join(@container_dir, cartridge.directory)
 
           # Only perform an initial build if the manifest explicitly specifies a need,
           # or if a template Git URL is provided and the cart is capable of builds or deploys.
