@@ -134,6 +134,12 @@ ol.wizard {
   padding: 0;
   position: relative;
   text-align: center;
+  .ie8 & {
+    border-bottom-color: #d5d5d5;
+  }
+  .ie9 & {
+    border-bottom-color: rgba(0,0,0,.07);
+  }
   .highlight & {
     color: #888;
   }
