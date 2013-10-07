@@ -61,6 +61,16 @@ module OpenShift
       !!(get(name, default) =~ /^(true|t|yes|y|1)$/i)
     end
 
+    def is_enabled?(name, default=true)
+      get_bool(name, default)
+    end
+
+    # Check if the value of config attr is explicitely disabled (eg. set to false)
+    #
+    def is_disabled?(name, default=true)
+      !is_enabled?(name, default)
+    end
+
     def get_group(name, default={})
       if @conf.groups.include?(name)
         self.class.new(nil, @conf[name])
