@@ -7,9 +7,10 @@ class MembersController < ConsoleController
   def update
     @domain = get_domain
 
-    # Support :members, :member, or loose params
-    members = Array(params[:members] || params[:member] || params.slice(:id, :login, :role)).map {|m| new_member(m) }
-
+    # Support :members as hash or array
+    p = params[:members] || []
+    p = [p] unless p.is_a? Array
+    members = p.map {|m| new_member(m) }
     # Ignore new member rows without a login specified
     members = members.select {|m| m.login.present? || m.id.present? }
 

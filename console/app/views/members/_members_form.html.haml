@@ -109,7 +109,7 @@
             .edit-only
               = link_to('&times;'.html_safe, 'javascript:;', :class => 'remove-member btn btn-mini')
 
-      - new_members = new_members || []
+      - new_members = (new_members || []).dup
       - new_members << Domain::Member.new(:role => :edit) if new_members.blank? and members.count == 1
       - new_members << (template = Domain::Member.new(:role => :edit))
       - new_members.each do |new_member|

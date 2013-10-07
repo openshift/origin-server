@@ -438,6 +438,23 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert css_select('input#application_domain_name[type=hidden]').present?, response.body
   end
 
+  test "should show estimate for existing domain" do
+    with_unique_user
+    with_unique_domain
+    get :estimate, {:id => 'custom', :application => {:scale => 'false', :domain_name => @domain.id}}
+    assert_response :success
+    assert css_select('span.indicator-gear-increase').present?, response.body
+    assert css_select('span[title*="This will add 1 gear to your account"]').present?, response.body
+  end
+
+  test "should show estimate for new domain" do
+    with_unique_user
+    get :estimate, {:id => 'custom', :application => {:scale => 'true', :domain_name => 'newdomain'}}
+    assert_response :success
+    assert css_select('span.indicator-gear-increase').present?, response.body
+    assert css_select('span[title*="This will add at least 1 gear to your account"]').present?, response.body
+  end
+
   test "should render domain name field" do
     with_unique_user
     get :show, :id => 'custom', :domain_name => 'TestDomain'
