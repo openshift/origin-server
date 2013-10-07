@@ -344,7 +344,7 @@
         background-image: none;
         border-top-color: transparent;
       }
-      > .active > a, > .active > a:hover, > .active > a:focus {
+      > .active > a, > .active > a:hover, > .active > a:focus, > .active a .username {
         text-decoration: underline;
       }
       > li {
