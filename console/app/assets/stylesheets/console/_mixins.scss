@@ -2,11 +2,6 @@
 }
 
 @mixin brand {
-  @media (max-width: 979px) {
-    height: 51px;
-    margin-top: 11px;
-    width: 125px;
-  }
 }
 
 @mixin brand_hover {
