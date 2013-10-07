@@ -14,7 +14,7 @@ Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
-Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/rubygem-%{gem_name}-%{version}.tar.gz
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{gem_name}-%{version}.gem
 %if 0%{?fedora} >= 19
 Requires:      ruby(release)
 %else
@@ -53,7 +53,9 @@ Summary:        OpenShift plugin for mongo auth service ri documentation
 OpenShift plugin for mongo auth service ri documentation
 
 %prep
-%setup -q
+gem unpack %{SOURCE0}
+%setup -q -D -T -n  %{gem_name}-%{version}
+gem spec %{SOURCE0} -l --ruby > %{gem_name}.gemspec
 
 %build
 %{?scl:scl enable %scl - << \EOF}
