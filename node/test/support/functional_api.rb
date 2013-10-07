@@ -219,6 +219,16 @@ EOFZ
     assert_equal expected, title
   end
 
+  def assert_http_title_for_entry(entry, expected)
+    url = "http://#{entry.dns}:#{entry.proxy_port}/"
+    assert_http_title(url, expected)
+  end
+
+  def assert_http_title_for_app(app_name, namespace, expected)
+    url = "http://#{app_name}-#{namespace}.dev.rhcloud.com"
+    assert_http_title(url, expected)
+  end
+
   def assert_scales_to(app_name, cartridge, count)
     logger.info("Scaling #{cartridge} in #{app_name} to #{count}")
 
@@ -234,5 +244,19 @@ EOFZ
 
     response = JSON.parse(response)
     assert_equal count, response['data']['current_scale']
+  end
+
+  def ssh_command(app_id, command)
+    `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost #{command}`
+  end
+
+  def archive_deployment(app_id)
+    ssh_command(app_id, "\"gear archive_deployment\" > #{@tmp_dir}/#{app_id}_archive.tar.gz")
+
+    "#{@tmp_dir}/#{app_id}_archive.tar.gz"
+  end
+
+  def deploy_artifact(app_id, file)
+    `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary_deploy`
   end
 end

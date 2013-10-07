@@ -516,8 +516,9 @@ module OpenShift
           deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
           env['OPENSHIFT_REPO_DIR'] = "#{deployment_dir}/repo"
 
-          if options[:file]
-            extract_deployment_archive(env, options[:file], deployment_dir)
+          if options[:stdin] || options[:file]
+            options[:destination] = deployment_dir
+            extract_deployment_archive(env, options)
           end
 
           buffer = ''
@@ -688,7 +689,7 @@ module OpenShift
             gear_uuid = gear.split('@')[0]
             rotate_and_yield(gear_uuid, gear_env, options) do |gear_uuid, gear_env, options|
               if gear_uuid == self.uuid
-                activate_local_gear(deployment_id: deployment_id, hot_deploy: options[:hot_deploy], init: options[:init])
+                activate_local_gear(options)
               else
                 activate_remote_gear(gear, gear_env, options)
               end

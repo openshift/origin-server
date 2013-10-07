@@ -264,7 +264,7 @@ module OpenShift
         def archive(deployment_datetime = nil)
           deployment_datetime ||= current_deployment_datetime
           deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
-          command = "tar zcf - --exclude metadata ."
+          command = "tar zcf - --exclude metadata.json ."
           out, err, rc = run_in_container_context(command,
                                                   chdir: deployment_dir,
                                                   expected_exitstatus: 0,
@@ -328,8 +328,13 @@ module OpenShift
           list.join("\n")
         end
 
-        def determine_extract_command(filename)
-          if filename =~ /\.tar\.gz$/i or filename =~ /\.tar$/i
+        def determine_extract_command(options)
+          use_stdin = !!options[:stdin]
+          filename  = options[:file]
+
+          if use_stdin
+            "/bin/tar -xz"
+          elsif filename =~ /\.tar\.gz$/i or filename =~ /\.tar$/i
             "/bin/tar xf #{filename}"
           elsif filename =~ /\.zip$/i
             "/usr/bin/unzip -q #{filename}"
@@ -338,13 +343,25 @@ module OpenShift
           end
         end
 
-        def extract_deployment_archive(env, file, destination)
-          raise "Specified file '#{file}' does not exist." unless File.exist?(file)
+        def extract_deployment_archive(env, options = {})
+          file        = options[:file]
+          destination = options[:destination]
 
-          extract_command = determine_extract_command(file)
+          if destination.nil?
+            raise "Destination must be supplied"
+          end
+
+          if file && !File.exist?(file)
+            raise "Specified file '#{file}' does not exist."
+          end
+
+          extract_command = determine_extract_command(options)
 
           # explode file
           out, err, rc = run_in_container_context(extract_command,
+                                                  in: options[:stdin],
+                                                  out: $stderr,
+                                                  err: $stderr,
                                                   env: env,
                                                   chdir: destination,
                                                   expected_exitstatus: 0)

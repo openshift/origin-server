@@ -81,7 +81,7 @@ class OpenShift::Runtime::DeploymentTester
       assert_equal local_hostname, entry.proxy_hostname
       assert_equal IO.read(File.join(app_container.container_dir, '.env', 'OPENSHIFT_LOAD_BALANCER_PORT')).chomp, entry.proxy_port
 
-      assert_http_title_for_entry entry, DEFAULT_TITLE
+      @api.assert_http_title_for_entry entry, DEFAULT_TITLE
 
       proxy_entries = entries[:proxy]
       assert_equal 1, proxy_entries.keys.size
@@ -107,10 +107,10 @@ class OpenShift::Runtime::DeploymentTester
       # make sure the http content is good
       web_entries.values.each do |entry|
         logger.info("Checking title for #{entry.as_json}")
-        assert_http_title_for_entry entry, DEFAULT_TITLE
+        @api.assert_http_title_for_entry entry, DEFAULT_TITLE
       end
     else
-      assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE
+      @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE
     end
 
     deployment_metadata = app_container.deployment_metadata_for(app_container.current_deployment_datetime)
@@ -134,7 +134,7 @@ class OpenShift::Runtime::DeploymentTester
 
       entries[:web].values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
     else
-      assert_http_title_for_app app_name, @namespace, CHANGED_TITLE
+      @api.assert_http_title_for_app app_name, @namespace, CHANGED_TITLE
     end
 
     if add_jenkins
@@ -148,13 +148,13 @@ class OpenShift::Runtime::DeploymentTester
         entries = gear_registry.entries
         entries[:web].values.each { |entry| assert_http_title_for_entry entry, JENKINS_ADD_TITLE }
       else
-        assert_http_title_for_app app_name, @namespace, JENKINS_ADD_TITLE
+        @api.assert_http_title_for_app app_name, @namespace, JENKINS_ADD_TITLE
       end
     end
 
     # rollback
     logger.info("Rolling back to #{deployment_id}")
-    logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear activate #{deployment_id} --all`
+    logger.info @api.ssh_command("gear activate #{deployment_id} --all")
 
     assert_gear_deployment_consistency(@api.gears_for_app(app_name))
 
@@ -162,18 +162,8 @@ class OpenShift::Runtime::DeploymentTester
       entries = gear_registry.entries
       entries[:web].values.each { |entry| assert_http_title_for_entry entry, DEFAULT_TITLE }
     else
-      assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE      
+      @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE      
     end
-  end
-
-  def assert_http_title_for_entry(entry, expected)
-    url = "http://#{entry.dns}:#{entry.proxy_port}/"
-    @api.assert_http_title(url, expected)
-  end
-
-  def assert_http_title_for_app(app_name, namespace, expected)
-    url = "http://#{app_name}-#{@namespace}.dev.rhcloud.com"
-    @api.assert_http_title(url, expected)
   end
 
   def assert_gear_deployment_consistency(gears)
