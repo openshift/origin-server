@@ -132,10 +132,10 @@ class CartridgeCache
   def self.download_from_url(url)
     cartridge_conf = Rails.application.config.downloaded_cartridges || {}
 
-    if cartridge_conf[:http_proxy]
-      client = HTTPClient.new(!cartridge_conf[:http_proxy].empty? ? cartridge_conf[:http_proxy] : nil)
+    client = if cartridge_conf[:http_proxy].present?
+      HTTPClient.new(cartridge_conf[:http_proxy])
     else
-      client = HTTPClient.new
+      HTTPClient.new
     end
 
     # Configuration
