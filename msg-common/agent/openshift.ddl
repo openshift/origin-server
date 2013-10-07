@@ -477,15 +477,6 @@ action "upgrade", :description => "upgrade a gear" do
         :optional       => false,
         :maxlength      => 32
 
-    input :secret_token,
-        :prompt         => "Application secret token",
-        :description    => "Application secret token",
-        :type           => :string,
-        :validation     => '^[\w\-]+$',
-        :optional       => false,
-        :minlength      => 128,
-        :maxlength      => 128
-
     input :namespace,
         :prompt         => "Namespace",
         :description    => "Namespace",
@@ -508,6 +499,22 @@ action "upgrade", :description => "upgrade a gear" do
         :type           => :list,
         :optional       => false,
         :list           => ["true", "false"]
+
+    input :auth_token,
+        :prompt         => "Broker auth token",
+        :description    => "Broker auth token",
+        :type           => :string,
+        :validation     => '^.+$',
+        :optional       => true,
+        :maxlength      => 128
+
+    input :auth_iv,
+        :prompt         => "Broker auth iv",
+        :description    => "Broker auth iv",
+        :type           => :string,
+        :validation     => '^.+$',
+        :optional       => true,
+        :maxlength      => 512
 
     output  :time,
             :description => "The time as a message",
