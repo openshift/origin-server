@@ -2,15 +2,28 @@ NAME
   oo-admin-move
   
 SYNOPSIS
-  oo-admin-move [-h|--help] [--gear_uuid gear-uuid] 
+  oo-admin-move --gear_uuid gear-uuid 
+  [--change_district]
   [--destination_district_uuid district-uuid]
   [-i|--target_server_identity server-identity]
   [-p|--node_profile node-profile] [-t|--timeout time-out]
-  [--allow_change_district true|false]
+
+  oo-admin-move -h|--help
 
 DESCRIPTION
-  Used to move a gear from one node in a district to another, or potentially
-  between districts.
+  Used to move a gear to a different node. With no options, an active
+  node in the same district is selected. Options specify different or
+  more specific destinations for the gear.
+
+  A gear's numeric UID can not be changed during a move. When moving
+  between districts or between undistricted nodes, the gear's numeric UID
+  must be available in the destination district or on the undistricted
+  node.
+
+  When moving within a district, use one of two methods: either specify
+  a destination host for the gear, or deactivate the source node in the
+  district to keep it from being selected as the destination (this is
+  useful for emptying a node that will be decommissioned).
 
 OPTIONS
   -h|--help  
@@ -19,20 +32,20 @@ OPTIONS
   --gear_uuid gear-uuid  
     Gear uuid to move. Alphanumeric, canonical way to identify the gear.
 
+  --change_district  
+    Move the gear to a district different from its current district.
+
   --destination_district_uuid district-uuid  
-    Destination district uuid the gear will be moved to.
+    Move the gear to a specific destination district with given uuid.
 
   -i|--target_server_identity server-identity  
-    Target server identity.
+    Move the gear to a specific server identity (hostname).
 
   -p|--node_profile node-profile  
-    Node profile.
+    Move the gear to a node with the given profile.
 
   -t|--timeout time-out  
     Timeout value for the move.
-
-  --allow_change_district true|false  
-    Allow or Disallow a gear to change districts.
 
 EXAMPLE
 
