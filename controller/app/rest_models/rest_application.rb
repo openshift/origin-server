@@ -232,15 +232,15 @@ class RestApplication < OpenShift::Model
         "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "application/#{@id}/environment-variables")),
         "DEPLOY" => Link.new("Deploy the application", "POST", URI::join(url, "application/#{@id}/deployments"), nil,[
           OptionalParam.new("ref", "string", "Git ref (tag, branch, commit id)", nil, "master"),
-          OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "N/A"),
+          #OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "N/A"),
           OptionalParam.new("hot_deploy", "boolean", "Indicates whether this is a hot deployment", "true or false", false),
           OptionalParam.new("force_clean_build", "string", "Indicates whether a clean build should be performed", "true or false", false),
         ]),
         "UPDATE_DEPLOYMENTS" => Link.new("Update deployments. Special permissions is required to update deployments", "POST", URI::join(url, "application/#{@id}/deployments"), [
           Param.new("deployments", "array", "An array of deployments")]),
         "ACTIVATE" => Link.new("Rectivate an application to a specific deployment", "POST", URI::join(url, "application/#{@id}/events"), [
-          Param.new("event", "string", "event", "activate")],[
-          OptionalParam.new("deployment_id", "string", "The deployment ID to activate the application. Defaults to latest if not provided"),
+          Param.new("event", "string", "event", "activate"),
+          Param.new("deployment_id", "string", "The deployment ID to activate the application")
         ]),
         "LIST_DEPLOYMENTS" => Link.new("List all deployments", "GET", URI::join(url, "application/#{@id}/deployments")),
         "UPDATE" => Link.new("Update application", "PUT", URI::join(url, "application/#{@id}"), nil, [

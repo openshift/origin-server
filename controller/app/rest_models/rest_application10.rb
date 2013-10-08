@@ -218,14 +218,17 @@ class RestApplication10 < OpenShift::Model
         "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
         "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable")),
         "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment-variables")),
-        "DEPLOY" => Link.new("Deploy the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
-          Param.new("description", "string", "Description of deployment")],[
+        "DEPLOY" => Link.new("Deploy the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), nil,[
           OptionalParam.new("ref", "string", "Git ref (tag, branch, commit id)", nil, "master"),
-          OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "Latest"),
+          #OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "N/A"),
+          OptionalParam.new("hot_deploy", "boolean", "Indicates whether this is a hot deployment", "true or false", false),
+          OptionalParam.new("force_clean_build", "string", "Indicates whether a clean build should be performed", "true or false", false),
         ]),
-        "ACTIVATE" => Link.new("Roll-back application to a previous deployment", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "UPDATE_DEPLOYMENTS" => Link.new("Update deployments (Special permissions is required to update deployments)", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
+          Param.new("deployments", "array", "An array of deployments")]),
+        "ACTIVATE" => Link.new("Rectivate an application to a specific deployment", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "activate"),
-          Param.new("deployment_id", "string", "The deployment ID to activate the application"),
+          Param.new("deployment_id", "string", "The deployment ID to activate the application")
         ]),
         "LIST_DEPLOYMENTS" => Link.new("List all deployments", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments")),
         "UPDATE" => Link.new("Update application", "PUT", URI::join(url, "domains/#{@domain_id}/applications/#{@name}"), nil, [
