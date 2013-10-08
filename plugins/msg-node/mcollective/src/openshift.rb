@@ -4,6 +4,7 @@ require 'pp'
 require 'json'
 require 'zlib'
 require 'base64'
+require 'etc'
 require 'openshift-origin-node'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-node/utils/hourglass'
@@ -1098,13 +1099,11 @@ module MCollective
         validate :uid, /^[0-9]+$/
         uid  = request[:uid].to_i
 
-        # FIXME: Etc.getpwuid() and Etc.getgrgid() would be much faster
-        uids = IO.readlines("/etc/passwd").map { |line| line.split(":")[2].to_i }
-        gids = IO.readlines("/etc/group").map { |line| line.split(":")[2].to_i }
-
-        if uids.include?(uid) || gids.include?(uid)
+        begin
+          Etc.getpwuid(uid)
+          Etc.getgrgid(uid)
           reply[:output] = true
-        else
+        rescue TypeError, ArgumentError
           reply[:output] = false
         end
         reply[:exitcode] = 0
