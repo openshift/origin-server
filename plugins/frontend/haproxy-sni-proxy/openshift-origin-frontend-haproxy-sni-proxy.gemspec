@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.files       = Dir[lib_dir] + Dir[conf_dir] + Dir[config_dir]
   s.test_files  = Dir[test_dir]
   s.executables   = Dir[bin_dir]
-  s.files       += %w(README.md Rakefile Gemfile rubygem-openshift-origin-frontend-haproxy-sni-proxy.spec openshift-origin-frontend-haproxy-sni-proxy.gemspec LICENSE COPYRIGHT)
+  s.files       += %w(README.md README.haproxy-sni-proxy.md Rakefile Gemfile rubygem-openshift-origin-frontend-haproxy-sni-proxy.spec openshift-origin-frontend-haproxy-sni-proxy.gemspec LICENSE COPYRIGHT)
   s.require_paths = ["lib"]
 
   s.add_dependency('openshift-origin-node')
