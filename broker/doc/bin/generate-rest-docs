@@ -59,73 +59,74 @@ def process_response(response, resource)
     links = result["data"]["links"]
   end
 
-    links.each do |key, value|
-      if key.include? "ADD"
-        new_resource = key.gsub("ADD_","")
-        puts "Adding............#{new_resource}.........."
-        payload = get_payload(new_resource, value)
-        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)   
-        response = process_resource(request, new_resource)  
-        #puts "Added............#{new_resource}.........."
-      elsif key == "GET" 
-        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+  links.each do |key, value|
+    if key.include? "ADD"
+      new_resource = key.gsub("ADD_","")
+      puts "Adding............#{new_resource}.........."
+      payload = get_payload(new_resource, value)
+      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)   
+      response = process_resource(request, new_resource)  
+      #puts "Added............#{new_resource}.........."
+    elsif key == "GET" 
+      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+      response = send_request(request)
+    elsif key == "UPDATE" 
+      puts "Updating............#{resource}.........."
+      payload = get_payload(resource, value)
+      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+      response = send_request(request)
+      #puts "Updated............#{resource}.........."
+    elsif key == "DELETE" 
+      puts "Deleting............#{resource}.........."
+      #special case for renamed domains
+      if resource == "DOMAIN"
+        request = RestClient::Request.new(:method => value["method"], :url => value["href"] + "X", :user => @user, :password => @password, :headers => @headers, :payload => payload)
         response = send_request(request)
-      elsif key == "UPDATE" 
-        puts "Updating............#{resource}.........."
-        payload = get_payload(resource, value)
-        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
-        response = send_request(request)
-        #puts "Updated............#{resource}.........."
-      elsif key == "DELETE" 
-        puts "Deleting............#{resource}.........."
-        #special case for renamed domains
-        if resource == "DOMAIN"
-          request = RestClient::Request.new(:method => value["method"], :url => value["href"] + "X", :user => @user, :password => @password, :headers => @headers, :payload => payload)
-          response = send_request(request)
-        else
-          request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
-          response = send_request(request)
-        end
-        #puts "Deleted............#{resource}.........."
-      elsif key.include? "GET_" 
-        new_resource = key.gsub("GET_", "")[0..-1]
-        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
-        response = process_resource(request, new_resource)
-      elsif key.include? "SHOW_" or key.include? "QUICKSTART" or key.include? "SET_UNSET_ENVIRONMENT_VARIABLES"
-        #skip for now 
-        #TODO FIXME
-        next
       else
-        payload = get_payload(resource, value)
         request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
         response = send_request(request)
       end
-      curl_command = "curl -X #{value["method"]} -u #{@user}:#{@password} #{value["href"]}"
-      curl_command = curl_command + " #{convert_payload_to_params(payload)}" if payload
-      value["curl"] = curl_command
+      #puts "Deleted............#{resource}.........."
+    elsif key.include? "GET_" 
+      new_resource = key.gsub("GET_", "")[0..-1]
+      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+      response = process_resource(request, new_resource)
+    elsif key.include? "SHOW_" or key.include? "QUICKSTART" or key.include? "SET_UNSET_ENVIRONMENT_VARIABLES"
+      #skip for now 
+      #TODO FIXME
+      next
+    else
+      puts "#{key} ............#{resource}.........."
+      payload = get_payload(resource, value)
+      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+      response = send_request(request)
+    end
+    curl_command = "curl -X #{value["method"]} -u #{@user}:#{@password} #{value["href"]}"
+    curl_command = curl_command + " #{convert_payload_to_params(payload)}" if payload
+    value["curl"] = curl_command
+    
+    if payload and !payload.empty?
+      value["payload"] = JSON.pretty_generate(payload)
+    end
+    if response
+      r = JSON.parse(response)
+      value["response"] = JSON.pretty_generate(r)
+      short_response = r.each {|k,v| v.delete("links") if k == "data" and !v.nil? and v.is_a? Hash}
       
-      if payload and !payload.empty?
-        value["payload"] = JSON.pretty_generate(payload)
-      end
-      if response
-        r = JSON.parse(response)
-        value["response"] = JSON.pretty_generate(r)
-        short_response = r.each {|k,v| v.delete("links") if k == "data" and !v.nil? and v.is_a? Hash}
-        
-        if r["data"].is_a? Array
-          data_without_links = []
-          r["data"].each do |d|
-            data_without_links.push(d.each {|k,v| v.delete("links") if k == "data" and !v.nil? and v.is_a? Hash})
-          end
-          r["data"] = data_without_links
-          short_response = r
+      if r["data"].is_a? Array
+        data_without_links = []
+        r["data"].each do |d|
+          data_without_links.push(d.each {|k,v| v.delete("links") if k == "data" and !v.nil? and v.is_a? Hash})
         end
-          
-        value["response-without-links"] = JSON.pretty_generate(short_response)
+        r["data"] = data_without_links
+        short_response = r
       end
-      
-      @link_map[resource] << {key => value}
-    end if links
+        
+      value["response-without-links"] = JSON.pretty_generate(short_response)
+    end
+    
+    @link_map[resource] << {key => value}
+  end if links
 end
 
 def process_error_response(request, response)
@@ -258,7 +259,7 @@ if __FILE__ == $0
     @headers = {:accept => "application/json"}
   end
   
-  @resources = ["API", "USER", "KEY", "AUTHORIZATION", "DOMAIN", "MEMBER", "APPLICATION", "CARTRIDGE", "ALIAS", "ENVIRONMENT_VARIABLE", "GEAR_GROUP", "DESCRIPTOR"]
+  @resources = ["API", "USER", "KEY", "AUTHORIZATION", "DOMAIN", "MEMBER", "APPLICATION", "CARTRIDGE", "ALIAS", "ENVIRONMENT_VARIABLE", "GEAR_GROUP", "DESCRIPTOR", "DEPLOYMENT"]
   @resources.each do |resource|
     @link_map[resource] = []
   end

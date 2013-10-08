@@ -4,10 +4,11 @@
     "allowed_gear_sizes": [
       "small"
     ],
-    "creation_time": "2013-08-27T00:51:35Z",
+    "creation_time": "2013-10-08T04:16:37Z",
+    "id": "52538725b78bba5fd0000017",
     "links": {
       "GET": {
-        "href": "https://openshift.redhat.com/broker/rest/domains/mydomain",
+        "href": "https://openshift.redhat.com/broker/rest/domain/mydomain",
         "method": "GET",
         "optional_params": [
 
@@ -18,7 +19,7 @@
         ]
       },
       "ADD_APPLICATION": {
-        "href": "https://openshift.redhat.com/broker/rest/domains/mydomain/applications",
+        "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/applications",
         "method": "POST",
         "optional_params": [
           {
@@ -28,6 +29,7 @@
             "type": "array",
             "valid_options": [
               "nodejs-0.6",
+              "nodejs-0.10",
               "python-3.3",
               "python-2.7",
               "python-2.6",
@@ -37,6 +39,8 @@
               "jenkins-1",
               "jbossews-2.0",
               "jbossews-1.0",
+              "mock-0.4",
+              "mock-0.3",
               "mock-0.2",
               "mock-0.1",
               "perl-5.10",
@@ -211,7 +215,7 @@
         ]
       },
       "LIST_APPLICATIONS": {
-        "href": "https://openshift.redhat.com/broker/rest/domains/mydomain/applications",
+        "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/applications",
         "method": "GET",
         "optional_params": [
 
@@ -222,7 +226,7 @@
         ]
       },
       "LIST_MEMBERS": {
-        "href": "https://openshift.redhat.com/broker/rest/domains/mydomain/members",
+        "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/members",
         "method": "GET",
         "optional_params": [
 
@@ -232,9 +236,9 @@
 
         ]
       },
-      "ADD_MEMBER": {
-        "href": "https://openshift.redhat.com/broker/rest/domains/mydomain/members",
-        "method": "POST",
+      "UPDATE_MEMBERS": {
+        "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/members",
+        "method": "PATCH",
         "optional_params": [
           {
             "default_value": null,
@@ -255,7 +259,7 @@
             ]
           }
         ],
-        "rel": "Add one or more members to this domain",
+        "rel": "Add or remove one or more members to this domain.",
         "required_params": [
           {
             "description": "The role the user should have on the domain",
@@ -272,8 +276,19 @@
           }
         ]
       },
+      "LEAVE": {
+        "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/members/self",
+        "method": "DELETE",
+        "optional_params": [
+
+        ],
+        "rel": "Remove yourself as a member of the domain",
+        "required_params": [
+
+        ]
+      },
       "UPDATE": {
-        "href": "https://openshift.redhat.com/broker/rest/domains/mydomain",
+        "href": "https://openshift.redhat.com/broker/rest/domain/mydomain",
         "method": "PUT",
         "optional_params": [
           {
@@ -282,7 +297,9 @@
             "name": "allowed_gear_sizes",
             "type": "array",
             "valid_options": [
-
+              "small",
+              "medium",
+              "c9"
             ]
           }
         ],
@@ -302,7 +319,7 @@
         ]
       },
       "DELETE": {
-        "href": "https://openshift.redhat.com/broker/rest/domains/mydomain",
+        "href": "https://openshift.redhat.com/broker/rest/domain/mydomain",
         "method": "DELETE",
         "optional_params": [
           {
@@ -331,8 +348,8 @@
             "role": "admin"
           }
         ],
-        "id": "521bf803656c674541000001",
-        "name": "first.last@mycompany.com",
+        "id": "52536a75b78bba4033000001",
+        "login": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
         "type": "user"
@@ -345,6 +362,7 @@
     {
       "exit_code": 0,
       "field": null,
+      "index": null,
       "severity": "info",
       "text": "Found domain mydomain"
     }

@@ -5,18 +5,21 @@
 
     ],
     "app_url": "http://myapplication-mydomain.dev.rhcloud.com/",
+    "auto_deploy": true,
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-27T00:51:36Z",
+    "creation_time": "2013-10-08T04:16:38Z",
+    "deployment_branch": "master",
+    "deployment_type": "git",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
       },
       "mysql-5.1": {
         "connection_url": "mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/",
-        "username": "adminzZu3vRW",
-        "password": "xE61v_vw6Vqh",
+        "username": "adminjk35VcX",
+        "password": "WZLNmas5ZLeG",
         "database_name": "myapplication",
         "info": "Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/"
       }
@@ -24,13 +27,14 @@
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://52538726b78bba5fd0000018@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "521bf818656c67309c000001",
+    "id": "52538726b78bba5fd0000018",
     "initial_git_url": null,
+    "keep_deployments": 1,
     "links": {
       "GET": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018",
         "method": "GET",
         "optional_params": [
 
@@ -41,7 +45,7 @@
         ]
       },
       "GET_DESCRIPTOR": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/descriptor",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/descriptor",
         "method": "GET",
         "optional_params": [
 
@@ -52,7 +56,7 @@
         ]
       },
       "GET_GEAR_GROUPS": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/gear_groups",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/gear_groups",
         "method": "GET",
         "optional_params": [
 
@@ -63,7 +67,7 @@
         ]
       },
       "START": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/events",
         "method": "POST",
         "optional_params": [
 
@@ -84,7 +88,7 @@
         ]
       },
       "STOP": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/events",
         "method": "POST",
         "optional_params": [
 
@@ -105,7 +109,7 @@
         ]
       },
       "FORCE_STOP": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/events",
         "method": "POST",
         "optional_params": [
 
@@ -126,7 +130,7 @@
         ]
       },
       "RESTART": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/events",
         "method": "POST",
         "optional_params": [
 
@@ -147,7 +151,7 @@
         ]
       },
       "SCALE_UP": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/events",
         "method": "POST",
         "optional_params": [
 
@@ -168,7 +172,7 @@
         ]
       },
       "SCALE_DOWN": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/events",
         "method": "POST",
         "optional_params": [
 
@@ -189,7 +193,7 @@
         ]
       },
       "TIDY": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/events",
         "method": "POST",
         "optional_params": [
 
@@ -210,7 +214,7 @@
         ]
       },
       "RELOAD": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/events",
         "method": "POST",
         "optional_params": [
 
@@ -231,7 +235,7 @@
         ]
       },
       "THREAD_DUMP": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/events",
         "method": "POST",
         "optional_params": [
 
@@ -252,7 +256,7 @@
         ]
       },
       "ADD_CARTRIDGE": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/cartridges",
         "method": "POST",
         "optional_params": [
           {
@@ -340,7 +344,7 @@
         ]
       },
       "LIST_CARTRIDGES": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/cartridges",
         "method": "GET",
         "optional_params": [
 
@@ -351,7 +355,7 @@
         ]
       },
       "DNS_RESOLVABLE": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/dns_resolvable",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/dns_resolvable",
         "method": "GET",
         "optional_params": [
 
@@ -362,7 +366,7 @@
         ]
       },
       "ADD_ALIAS": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/aliases",
         "method": "POST",
         "optional_params": [
           {
@@ -409,7 +413,7 @@
         ]
       },
       "LIST_ALIASES": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/aliases",
         "method": "GET",
         "optional_params": [
 
@@ -420,7 +424,7 @@
         ]
       },
       "LIST_MEMBERS": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/members",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/members",
         "method": "GET",
         "optional_params": [
 
@@ -431,8 +435,8 @@
         ]
       },
       "SET_UNSET_ENVIRONMENT_VARIABLES": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables",
-        "method": "POST",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/environment-variables",
+        "method": "PATCH",
         "optional_params": [
           {
             "default_value": null,
@@ -468,7 +472,7 @@
         ]
       },
       "ADD_ENVIRONMENT_VARIABLE": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/environment-variables",
         "method": "POST",
         "optional_params": [
 
@@ -500,7 +504,7 @@
         ]
       },
       "LIST_ENVIRONMENT_VARIABLES": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/environment-variables",
         "method": "GET",
         "optional_params": [
 
@@ -510,8 +514,163 @@
 
         ]
       },
+      "DEPLOY": {
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/deployments",
+        "method": "POST",
+        "optional_params": [
+          {
+            "default_value": "master",
+            "description": "Git ref (tag, branch, commit id)",
+            "name": "ref",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": "N/A",
+            "description": "URL where the deployment artifact can be downloaded from",
+            "name": "artifact_url",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": false,
+            "description": "Indicates whether this is a hot deployment",
+            "name": "hot_deploy",
+            "type": "boolean",
+            "valid_options": [
+              "true or false"
+            ]
+          },
+          {
+            "default_value": false,
+            "description": "Indicates whether a clean build should be performed",
+            "name": "force_clean_build",
+            "type": "string",
+            "valid_options": [
+              "true or false"
+            ]
+          }
+        ],
+        "rel": "Deploy the application",
+        "required_params": [
+
+        ]
+      },
+      "UPDATE_DEPLOYMENTS": {
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/deployments",
+        "method": "POST",
+        "optional_params": [
+
+        ],
+        "rel": "Update deployments",
+        "required_params": [
+          {
+            "description": "An Array of deployments",
+            "invalid_options": [
+
+            ],
+            "name": "deployments",
+            "type": "array",
+            "valid_options": [
+
+            ]
+          }
+        ]
+      },
+      "ACTIVATE": {
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/events",
+        "method": "POST",
+        "optional_params": [
+          {
+            "default_value": null,
+            "description": "The deployment ID to activate the application. Defaults to latest if not provided",
+            "name": "deployment_id",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          }
+        ],
+        "rel": "RActivate an application to a specific deployment",
+        "required_params": [
+          {
+            "description": "event",
+            "invalid_options": [
+
+            ],
+            "name": "event",
+            "type": "string",
+            "valid_options": [
+              "activate"
+            ]
+          }
+        ]
+      },
+      "LIST_DEPLOYMENTS": {
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018/deployments",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "List all deployments",
+        "required_params": [
+
+        ]
+      },
+      "UPDATE": {
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018",
+        "method": "PUT",
+        "optional_params": [
+          {
+            "default_value": null,
+            "description": "Indicates if OpenShift should build and deploy automatically whenever the user executes git push",
+            "name": "auto_deploy",
+            "type": "boolean",
+            "valid_options": [
+              true,
+              false
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Indicates whether the app is setup for binary or git based deployments",
+            "name": "deployment_type",
+            "type": "string",
+            "valid_options": [
+              "git",
+              "binary"
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Indicates which branch should trigger an automatic deployment, if automatic deployment is enabled.",
+            "name": "deployment_branch",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Indicates how many total deployments to preserve. Must be greater than 0",
+            "name": "keep_deployments",
+            "type": "integer",
+            "valid_options": [
+
+            ]
+          }
+        ],
+        "rel": "Update application",
+        "required_params": [
+
+        ]
+      },
       "DELETE": {
-        "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001",
+        "href": "https://openshift.redhat.com/broker/rest/application/52538726b78bba5fd0000018",
         "method": "DELETE",
         "optional_params": [
 
@@ -531,8 +690,8 @@
             "role": "admin"
           }
         ],
-        "id": "521bf803656c674541000001",
-        "name": "first.last@mycompany.com",
+        "id": "52536a75b78bba4033000001",
+        "login": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
         "type": "user"
@@ -540,12 +699,13 @@
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://52538726b78bba5fd0000018@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
       "exit_code": 0,
       "field": null,
+      "index": null,
       "severity": "info",
       "text": "Added reload on mysql-5.1 for application myapplication"
     }
