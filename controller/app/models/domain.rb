@@ -151,7 +151,7 @@ class Domain
     ssh_keys_to_rm = []
     ssh_keys.each do |new_key|
       self.system_ssh_keys.each do |cur_key|
-        if cur_key.name == new_var.name
+        if cur_key.name == new_key.name
           ssh_keys_to_rm << cur_key.to_key_hash()
         end
       end
