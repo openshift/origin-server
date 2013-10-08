@@ -1,7 +1,7 @@
 
 listen sniproxy-<%= port %>
        mode         tcp
-       bind         <%= bind_ip %>:<%= port %>
+       bind         <%= bind_addrs.join(",") %>
        log          global
        option       ssl-hello-chk
 

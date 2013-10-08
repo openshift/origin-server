@@ -34,6 +34,7 @@ Endpoints:
   Private-Port-Name: EXAMPLE_PORT1
   Private-Port: 8080
   Public-Port-Name: EXAMPLE_PUBLIC_PORT1
+  Protocols: [http, ws]
   Options:
     primary: true
   Mappings:
@@ -88,6 +89,7 @@ Version-Overrides:
       Private-Port-Name: EXAMPLE_PORT1
       Private-Port: 8123
       Public-Port-Name: EXAMPLE_PUBLIC_PORT1
+      Protocols: [https, wss]
       Mappings:
       - Frontend: ''
         Backend: ''
