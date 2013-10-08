@@ -29,3 +29,6 @@ if [ $version == '1.9' ]; then
     scl enable ruby193 "printenv LD_LIBRARY_PATH" > $OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH
     scl enable ruby193 "printenv MANPATH"         > $OPENSHIFT_RUBY_DIR/env/MANPATH
 fi
+
+cp versions/shared/etc/conf.d/performance.conf.erb conf/performance.conf.erb
+cp conf/performance.conf.erb conf/performance.conf.erb.hidden
