@@ -403,7 +403,7 @@ module OpenShift
             raise ooex if i == 10
 
             result = ooex.resultIO
-            if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
+            if result != nil && result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
               gear.uid = reserve_uid
               app.save
             else
