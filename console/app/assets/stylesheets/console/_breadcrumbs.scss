@@ -1,33 +1,19 @@
 .breadcrumb {
-  padding: 7px 0;
-  margin: 0;
-  text-transform: uppercase;
-  color: #939598;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: #404040;
   font-size: $tinyFontSize;
-  font-weight: 600;
-
-  li {
-    display: inline;
-  }
-
+  padding: 25px 0 15px;
+  margin: 0;
   a,
   a:hover,
   a:visited {
-    color: #C1C1C1;
+    color: #666;
     white-space: nowrap;
   }
-
   .divider {
-    color: #939598;
+    color: $openshiftBrightRed;
     padding: 0 5px;
   }
-}
-
-@media (max-width: 767px) {
-  .breadcrumb {
-      padding: 4px 0;
+  li {
+    display: inline;
   }
 }

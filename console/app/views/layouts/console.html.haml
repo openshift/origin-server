@@ -21,7 +21,7 @@
 
       - if content_for? :breadcrumbs
         .container
-          %nav.pull-right
+          %nav
             = yield :breadcrumbs 
 
       .section-console#content{:role => 'main'}
