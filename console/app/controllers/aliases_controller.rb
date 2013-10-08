@@ -79,4 +79,9 @@ class AliasesController < ConsoleController
       render :edit
     end
   end
+
+  protected
+    def active_tab
+      :applications
+    end
 end

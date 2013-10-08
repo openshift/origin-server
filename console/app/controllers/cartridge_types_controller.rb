@@ -53,4 +53,10 @@ class CartridgeTypesController < ConsoleController
     @installed.each { |c| return false if t.requires.include? c.name }
     return true
   end
+
+  
+  protected
+    def active_tab
+      :applications
+    end   
 end

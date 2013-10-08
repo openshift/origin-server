@@ -22,19 +22,21 @@ module Console::LayoutHelper
     content_tag(:ul, content, :class => 'nav')
   end
 
-  def navigation_tab(name, options={})
+  def navigation_tab(name, options={}, &block)
     action = options[:action]
+    classes = options[:classes] || []
     active = active_tab == name || (name.to_s == controller_name) && (action.nil? || action.to_s == controller.action_name)
+    classes << 'active' if active
     content_tag(
       :li,
       link_to(
-        options[:name] || ActiveSupport::Inflector.humanize(name),
+        options[:name] || (!block.nil? ? capture(&block) : nil) || ActiveSupport::Inflector.humanize(name),
         url_for({
           :action => action || :index,
           :controller => name
         })
       ),
-      active ? {:class => 'active'} : nil)
+      {:class => classes.compact.join(' ')})
   end
 
   #

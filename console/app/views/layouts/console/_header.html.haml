@@ -24,14 +24,13 @@
     .container
       .nav-collapse.collapse
         = navigation_tabs do
-          = navigation_tab :applications, :action => :index, :name => "Applications"
+          = navigation_tab :applications, :name => "Applications"
           = navigation_tab :settings, :action => :show, :name => "Settings"
           = navigation_tab :console_index, :action => :help, :name => "Help"
           - unless Console.config.disable_account
-            %li.account.visible-phone
-              = link_to account_path do
-                My Account (
-                %span.username #{current_user_id}
-                )
+            = navigation_tab :account, :action => :show, :classes => ["account", "visible-phone"] do
+              My Account (
+              %span.username #{current_user_id}
+              )
             - unless logout_path.nil?
               %li.visible-phone= link_to "Sign Out", logout_path, :class => "sign_out"
