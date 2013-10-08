@@ -67,6 +67,8 @@ if login.nil? or app_name.nil? or command.nil? or args["--help"]
 end
 
 require "/var/www/openshift/broker/config/environment"
+include AdminHelper
+
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
@@ -83,30 +85,6 @@ app = Application.find_by_user(user, app_name)
 unless app
   puts "Application #{app_name} for user #{login} not found."
   exit 1
-end
-
-def lock_user_without_app(user_id, timeout=30)
-  begin
-    now = Time.now.to_i
-    lock = Lock.find_or_create_by( :user_id => user_id )
-    query = {:user_id => user_id, "$or" => [{:locked => false}, {:timeout.lt => now}], "app_ids" => {}}
-    updates = {"$set" => { locked: true, timeout: (now + timeout) }}
-    lock = Lock.where(query).find_and_modify(updates, new: true)
-    return (not lock.nil?)
-  rescue Moped::Errors::OperationFailure
-    return false
-  end
-end
-
-def unlock_user_without_app(user_id)
-  begin
-    query = {:user_id => user_id, :locked => true}
-    updates = {"$set" => { "locked" => false }}
-    lock = Lock.where(query).find_and_modify(updates, new: true)
-    return (not lock.nil?)
-  rescue Moped::Errors::OperationFailure
-    return false
-  end
 end
 
 def check_user_response
@@ -154,11 +132,7 @@ begin
       app.destroy_app
     elsif command=="force-destroy"
       puts "Force deleting application #{app.name}..."
-      premium_carts = []
-      all_carts = CartridgeCache.cartridges
-      all_carts.each do |cart|
-        premium_carts.push(cart.name) if cart.is_premium?
-      end
+      premium_carts = get_premium_carts
       gear_count = 0
       # delete all gears, then delete app
       app.group_instances.each do |gi|
