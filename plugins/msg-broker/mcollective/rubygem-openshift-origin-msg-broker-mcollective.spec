@@ -1,6 +1,7 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
+    %global scl_root /opt/rh/ruby193/root
 %endif
 %{!?scl:%global pkg_name %{name}}
 %{?scl:%scl_package rubygem-%{gem_name}}
@@ -66,8 +67,8 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg-broker-mcollective.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
 
-%if 0%{?scl_build} > 0
-sed -e -i "s|\(/etc/mcollective/client.cfg\)|/opt/rh/ruby193/root/\1|" /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
+%if 0%{?rhel} <= 6
+sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
 %endif
 
 %files
@@ -81,7 +82,7 @@ sed -e -i "s|\(/etc/mcollective/client.cfg\)|/opt/rh/ruby193/root/\1|" /etc/open
 /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
 
 %defattr(-,root,apache,-)
-%attr(0644,-,-) %ghost /etc/mcollective/client.cfg
+%attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
 * Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
