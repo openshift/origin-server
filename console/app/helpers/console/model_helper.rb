@@ -3,11 +3,11 @@ module Console::ModelHelper
     case
     when cartridge.jenkins_client?
       [
-        link_to('See Jenkins Build jobs', application.build_job_url, :title => 'Jenkins is currently running builds for your application'),
-        link_to('(configure)', application_building_path(application), :title => 'Remove or change your Jenkins configuration'),
+        "<span class=\"url\"><a href=\"#{application.build_job_url}\" target=\"_blank\" title=\"Go to Jenkins Build jobs\" class=\"font-icon-link\"><span class=\"font-icon url-icon\" aria-hidden=\"true\" data-icon=\"\ue002\"></span></a></span>",
+        link_to('configure', application_building_path(application), :title => 'Remove or change your Jenkins configuration')
       ].join(' ').html_safe
     when cartridge.haproxy_balancer?
-      link_to "See HAProxy status page", application.scale_status_url
+      "<span class=\"url\"><a href=\"#{application.scale_status_url}\" target=\"_blank\" title=\"Go to HAProxy status page\" class=\"font-icon-link\"><span class=\"font-icon url-icon\" aria-hidden=\"true\" data-icon=\"\ue002\"></span></a></span>".html_safe
     when cartridge.database?
       name, _ = cartridge.data(:database_name)
       if name
@@ -18,16 +18,16 @@ module Console::ModelHelper
             (@info_id ||= 0)
             link_id = "db_link_#{@info_id += 1}"
             span_id = "db_link_#{@info_id += 1}"
-            "Database: <strong>#{h name}</strong>, User: <strong>#{h user}</strong>, Password: <a href=\"javascript:;\" id=\"#{link_id}\" data-unhide=\"##{span_id}\" data-hide-parent=\"##{link_id}\">show</a><span id=\"#{span_id}\" class=\"hidden\"> <strong>#{h password}</strong></span>".html_safe
+            "Database: <strong>#{h name}</strong>, User: <strong>#{h user}</strong>, Password: <strong><a href=\"javascript:;\" id=\"#{link_id}\" data-unhide=\"##{span_id}\" data-hide-parent=\"##{link_id}\">show</a><span id=\"#{span_id}\" class=\"hidden\"> #{h password}</span></strong>".html_safe
           else
-            "Database: <strong>#{name}</strong>"
+            "Database: <strong>#{h name}</strong>"
           end
         )
       end
     else
       url, name = cartridge.data(:connection_url)
       if url
-        link_to name, url, :target => '_blank'
+        "<span class=\"url\"><a href=\"#{url}\" target=\"_blank\" title=\"Go to #{h name}\" class=\"font-icon-link\"><span class=\"font-icon url-icon\" aria-hidden=\"true\" data-icon=\"\ue002\"></span></a></span>".html_safe
       end
     end
   end
@@ -123,8 +123,9 @@ module Console::ModelHelper
   end
 
   def application_gear_count(application)
-    return 'None' if application.gear_count == 0
-    "#{application.gear_count} #{application.gear_profile.to_s.humanize.downcase}"
+    count = application.gear_count
+    return 'no gears' if count == 0
+    "#{count} #{application.gear_profile.to_s.humanize.downcase} #{count == 1 ? 'gear' : 'gears'}"
   end
 
   def cartridge_gear_group_count(group)
@@ -142,6 +143,25 @@ module Console::ModelHelper
 
   def scaled_cartridge_storage(cart)
     storage_string(cart.total_storage, cart.current_scale)
+  end
+
+  def application_gear_title(application)
+    count = application.gear_count
+    if (scales = application.cartridges.select(&:scales?)) and scales.present?
+      if scales.any?(&:has_scale_range?)
+        if scales.none?(&:can_scale_up?)
+          [:max, "#{pluralize(scales.count, 'cartridge')} at maximum scale in this application.  Currently using #{application_gear_count(application)}."]
+        elsif scales.none?(&:can_scale_down?)
+          [:min, "#{pluralize(scales.count, 'cartridge')} at minimum scale in this application.  Currently using #{application_gear_count(application)}."]
+        else
+          [:mid, "#{pluralize(scales.count, 'cartridge')} above minimum scale in this application.  Currently using #{application_gear_count(application)}."]
+        end
+      else
+        [:fixed, "This application running at a fixed scale ratio, and is using #{application_gear_count(application)}."]
+      end
+    else
+      [nil, "Unscaled application using #{application_gear_count(application)}"]
+    end
   end
 
   def storage_string(quota,multiplier = 0)

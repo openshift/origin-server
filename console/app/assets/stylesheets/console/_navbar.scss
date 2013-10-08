@@ -118,22 +118,16 @@
       .dropdown-menu {
         border: 0;
       }
-      &.pull-right {
-        margin-right: -4px;
-        .dropdown-menu {
-          right: 4px;
-          &:before {
-            border: 5px solid transparent;
-            border-bottom-color: #fff;
-            content: '';
-            display: block;
-            height: 0;
-            position: absolute;
-            right: 5px;
-            top: -8px;
-            width: 0;
-          }
-        }
+      &.pull-right .dropdown-menu:before {
+        border: 5px solid transparent;
+        border-bottom-color: #fff;
+        content: '';
+        display: block;
+        height: 0;
+        position: absolute;
+        right: 10px;
+        top: -8px;
+        width: 0;
       }
       > li {
         > a {
@@ -170,7 +164,7 @@
             border-top-color: #333 !important;
           }
           &:hover, &:active {
-            background: transparent !important;
+            background: transparent;
             opacity: 1;
           }
         }
@@ -275,33 +269,40 @@
 @media (max-width: 767px) { 
   .header.rcue {
     .navbar {
-      &.primary .nav > li > a {
-        padding: 12px 14px;
-        &.username {
-          max-width: 175px;
-          padding-left: 31px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          word-wrap: normal;
-          .icon-user {
-            left: 14px;
+      &.primary .nav > li {
+        &.account {
+          > a {
+            padding-bottom: 9px;
+            .username {
+              display: inline-block;
+              font-weight: 300;
+              height: 16px;
+              max-width: 200px;
+              overflow: hidden;
+              position: relative;
+              text-overflow: ellipsis;
+              vertical-align: middle;
+              white-space: nowrap;
+              word-wrap: normal;
+            }
           }
+        }
+        > a {
+          padding: 12px 14px;
         }
       }
       &.utility .nav {
-        background: $warningBackground;
         clear: left;
         float: none;
         font-weight: 600;
-        margin: 0 -20px 7px !important;
-        padding: 5px 0;
         text-align: center;
         > li {
           float: none;
           > a.alert {
+            background: $warningBackground;
             color: #000 !important;
-            padding: 0;
+            margin: 0 -20px 7px !important;
+            padding: 5px 0;
           }
         }
       }
@@ -322,22 +323,13 @@
   }
 }
 
-@media (max-width: 500px) {
-  .header.rcue {
-    .navbar.primary .nav > li > a {
-      padding: 10px 12px;
-      &.username {
-        max-width: 100px;
-        padding-left: 27px;
-        .icon-user {
-            left: 10px;
-          }
-      }
-    }
+@media (max-width: 650px) {
+  .header.rcue .navbar.primary .nav > li.account > a .username {
+    max-width: 100px;
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 600px) {
   .header.rcue {
     .navbar.primary .nav {
       padding: 10px 0;
@@ -346,22 +338,18 @@
         background-image: none;
         border-top-color: transparent;
       }
-      > .active > a, > .active > a:hover, > .active > a:focus {
+      > .active > a, > .active > a:hover, > .active > a:focus, > .active a .username {
         text-decoration: underline;
       }
       > li {
         float: none;
+        &.account > a .username {
+          max-width: 200px;
+        }
         > a {
           padding-left: 0;
           &:hover {
             color: #fff;
-          }
-          &.username {
-              max-width: none;
-              padding-left: 17px;
-              .icon-user {
-                left: 0;
-              }
           }
         }
       }

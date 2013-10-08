@@ -1,9 +1,10 @@
 - content_for :page_title, "Aliases for #{@application.name}"
 
-%h1 Aliases for #{@application.name}
+%h1 Aliases for #{link_to @application.name, application_path(@application)}
+
 =flashes
 
-%p.larger
+%p
   Aliases allow you to use your own domain names for your applications on OpenShift.
 
 - if @application.aliases.empty?
@@ -16,7 +17,7 @@
       %tr
         %th
         %th{style: 'min-width: 200px;'} Name
-        %th{colspan: 2} 
+        %th{colspan: 2}
         %th
     %tbody
       - web_uri = @application.web_uri('http')
@@ -24,10 +25,10 @@
         %td
           %span.icon-lock{'aria-hidden' => true, :title => 'Uses the .rhcloud.com SSL certificate', style: 'opacity: 0.5'}
         %td= web_uri.hostname
-        %td{colspan: 2} 
+        %td{colspan: 2}
         %td
           = link_to web_uri.to_s, title: "Go to the application's web page", target: "_blank", class: 'url' do
-            %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
+            %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"}
 
 
       - @application.aliases.sort.each do |a|
@@ -46,15 +47,15 @@
               delete
           %td
             = link_to a.web_uri(a.has_private_ssl_certificate? ? 'https' : 'http').to_s, title: "Go to the application's web page", target: "_blank", class: 'url' do
-              %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
+              %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"}
 
-    %tfooter
+    %tfoot
       %tr
         %td
-        %td= link_to "Add a new alias now", new_application_alias_path(@application)
-        %td{colspan: 2} 
+        %td= link_to "Add alias", new_application_alias_path(@application)
+        %td{colspan: 2}
         %td
 
-  %p.larger
+  %p
 
 %p Note: In order to route traffic on your domain to OpenShift, you must #{link_to("set up a CNAME record with your DNS provider", alias_docs_url)}.

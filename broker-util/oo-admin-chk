@@ -401,7 +401,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
           if ci['cartridge_name'] == go_components['cart']
             gid = ci['group_instance_id'].to_s
             gi_hash[gid] = {} unless gi_hash[gid]
-            gi_hash[gid]['addtl_fs_gb'] = go['additional_filesystem_gb']
+            gi_hash[gid]['addtl_fs_gb'] = (go['additional_filesystem_gb'] - user_untracked_storage_limit)
             found = true
             break
           end

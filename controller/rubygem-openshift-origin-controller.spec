@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.5
+Version: 1.15.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,21 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.6-1
+- oo-admin-repair changes (rpenta@redhat.com)
+- Remove skip_node_ops flag from user/domain/app/district models.
+  (rpenta@redhat.com)
+- Bug 1012297 - Pass gear_id instead of gear_uuid to application remove_gear()
+  (rpenta@redhat.com)
+- Merge pull request #3732 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz1012901 - observer needs to be called (rchopra@redhat.com)
+- Merge pull request #3727 from smarterclayton/fix_environment_variable_routes
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz1012374 - extra check for expose port for sparse-carts
+  (rchopra@redhat.com)
+- Update singular routes to use singular_path (ccoleman@redhat.com)
+
 * Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
 - Force resolving domains to avoid double query (jliggitt@redhat.com)
 - Membership changes (jliggitt@redhat.com)

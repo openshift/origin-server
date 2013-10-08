@@ -7,13 +7,14 @@
   .js .hidden-scripted { display: none; }
 
 - content_for :page_style, 'highlight'
+- content_for :page_title, "Domain " + @domain.name
 - content_for :top do
   .grid-wrapper.section-header.span12
     %nav.domain.tile
       %h1.flow
         = "Domain #{@domain.name}"
         - if @domain.can_rename?
-          = link_to 'change', edit_domain_path(@domain), :class => 'link-alter'
+          = link_to 'change', edit_domain_path(@domain), :class => 'url-alter'
 
         - count = @domain.gear_counts.values.sum
         .flow-block.right{:title => "This domain is using #{pluralize(count, 'gear')} and can use up to #{@domain.available_gears} more"}
@@ -54,7 +55,7 @@
 
       - else
         - if @domain.allowed_gear_sizes.present?
-          %p Allows #{@domain.allowed_gear_sizes.map{ |s| s.to_s.humanize }.to_sentence} gears"
+          %p Allows #{@domain.allowed_gear_sizes.map{ |s| s.to_s.humanize }.to_sentence} gears
         - else
           %p The owner has disabled creation - no gear sizes allowed
 

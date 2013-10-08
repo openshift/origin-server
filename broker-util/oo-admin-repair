@@ -30,7 +30,7 @@ The following issues can be fixed with this script:
   - mismatch between user's consumed gears and actual gears across all domains/applications for the user
   - mismatch between the ssh keys in mongo and the ssh keys on the gear on the node
   - mismatch in available UIDs for a district and actual UIDs used by the gears on the nodes within the district
-  - unresponsive apps due to server node down/decommissioned
+  - apps due to server node down/decommissioned
 == Usage
 
 #{$0} OPTIONS
@@ -46,8 +46,8 @@ Options:
     Fix  mismatch in SSH keys between mongo and on the node for a gear
 --district-uids
     Fix mismatch in available UIDs for a district in mongo
---unresponsive-apps
-    Fix or cleanup unresponsive apps due to server node down/decommissioned
+--removed-nodes
+    Fix or cleanup apps due to server node down/decommissioned
 -h|--help
     Show Usage info
 USAGE
@@ -69,7 +69,7 @@ begin
     ["--ssh-keys",               GetoptLong::NO_ARGUMENT],
     ["--district-uids",          GetoptLong::NO_ARGUMENT],
     ["--consumed-gears",         GetoptLong::NO_ARGUMENT],
-    ["--unresponsive-apps",      GetoptLong::NO_ARGUMENT],
+    ["--removed-nodes",          GetoptLong::NO_ARGUMENT],
     ["--confirm",                GetoptLong::REQUIRED_ARGUMENT], # Only used for test automation
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
   )
@@ -80,19 +80,21 @@ end
 
 usage if args["--help"]
  
-verbose = args["--verbose"]
-report_only = args["--report-only"]
+$verbose = args["--verbose"]
+$report_only = args["--report-only"]
 fix_ssh_keys = args["--ssh-keys"]
 fix_district_uids = args["--district-uids"]
 fix_consumed_gears = args["--consumed-gears"]
-fix_unresponsive_apps = args["--unresponsive-apps"]
+fix_removed_nodes = args["--removed-nodes"]
 if args["--confirm"]
   auto_confirm = args["--confirm"].to_b
+elsif $report_only
+  auto_confirm = false
 else
   auto_confirm = nil
 end
 
-if fix_ssh_keys.nil? and fix_district_uids.nil? and fix_consumed_gears.nil? and fix_unresponsive_apps.nil?
+if fix_ssh_keys.nil? and fix_district_uids.nil? and fix_consumed_gears.nil? and fix_removed_nodes.nil?
   puts "You must specify at least one item to fix."
   usage
 end
@@ -100,16 +102,17 @@ end
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
-Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 2
-Rails.configuration.msg_broker[:rpc_options][:timeout] = 45
+Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
+Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
 
-summary = []
+$summary = []
 datastore_hash = {}
 user_hash = {}
 domain_hash = {}
 gear_uid_hash = {}
 district_hash = {}
 gear_sshkey_hash = {}
+error_ssh_keys_app_ids = []
 error_ssh_keys_app_uuids = []
 error_consumed_gears_user_ids = []
 error_unreserved_district_uid_map = {}
@@ -197,6 +200,26 @@ def get_user_info(user)
           "ssh_keys" => user_ssh_keys}
 end
 
+def mark_node_removed(unresponsive_servers)
+  db = OpenShift::DataStore.db(:primary)
+  
+  gi_idx = 0
+  gi_search_count = 1
+  while gi_search_count > 0 do
+    gear_idx = 0
+    gear_search_count = 1
+    while gear_search_count > 0
+      filter = {"group_instances.#{gi_idx}.gears.#{gear_idx}.server_identity" => {"$in" => unresponsive_servers}}
+      update_query = {'$set' => {"group_instances.#{gi_idx}.gears.#{gear_idx}.node_removed" => true}}
+      db["applications"].update(filter, update_query, { :multi => true })
+      gear_idx += 1
+      gear_search_count = db["applications"].find({"group_instances.#{gi_idx}.gears.#{gear_idx}" => {"$exists" => true}}).count
+    end
+    gi_idx += 1
+    gi_search_count = db["applications"].find({"group_instances.#{gi_idx}.gears.0" => {"$exists" => true}}).count
+  end
+end
+
 def analyze_app(app, unresponsive_servers)
   framework = { :available => false, :scaled =>false, :unresponsive_gears => [],
                 :responsive_gears => [], :backup_available => false }
@@ -208,6 +231,7 @@ def analyze_app(app, unresponsive_servers)
   app.group_instances.each_with_index do |gi, group_idx|
     gi.gears.each_with_index do |gear, gear_idx|
       unless unresponsive_servers.include?(gear.server_identity)
+        raise Exception.new "Server identity: #{gear.server_identity} not in unresponsive servers but node_removed is set for Gear: #{gear._id.to_s}" if gear.node_removed and !$report_only
         if group_idx == 0
           if gear_idx == 0
             framework[:available] = true
@@ -228,6 +252,7 @@ def analyze_app(app, unresponsive_servers)
           db[:responsive_gears] << gear
         end
       else
+        raise Exception.new "Server identity: #{gear.server_identity} is in unresponsive servers but node_removed is not set for Gear: #{gear._id.to_s}" if !gear.node_removed and !$report_only
         if group_idx == 0
           framework[:unresponsive_gears] << gear
         else
@@ -244,11 +269,11 @@ def analyze_app(app, unresponsive_servers)
     framework[:backup_available] = true if framework[:scaled]
   elsif framework[:available] and !db[:available]
     app_recoverable = true
-    unless db[:unresponsive_gears].empty?
-      gear = db[:unresponsive_gears][0]
-      carts = gear.group_instance.all_component_instances.map { |ci| ci.to_hash['cart'] }
-      db[:remove_features] = carts
+    carts = []
+    db[:unresponsive_gears].each do |gear|
+      carts += gear.group_instance.all_component_instances.map { |ci| ci.to_hash['cart'] }
     end
+    db[:remove_features] = carts.uniq
   else # framework[:available] and db[:available]
     app_recoverable = true
   end
@@ -256,21 +281,35 @@ def analyze_app(app, unresponsive_servers)
   return  app_recoverable, framework, db
 end
 
-def delete_app(app, framework, db, verbose)
-  (db[:responsive_gears] + framework[:responsive_gears]).each { |gear| app.remove_gear(gear.uuid) }
-  app.destroy_app(true)
-  puts "Application with id: #{app._id} deleted." if verbose
+def delete_apps(app_reports, app_ids)
+  app_ids.each do |app_id|
+    begin
+      app = app_reports[app_id][0]
+      app.destroy_app
+      puts "Application with id: #{app._id} deleted." if $verbose
+    rescue Exception => e
+      error_msg = "Failed to delete application with id: #{app_reports[app_id][0]._id}, error: #{e.message}"
+      puts error_msg
+      $summary << error_msg
+    end
+  end
 end
 
-def recover_app(app, framework, db, verbose)
-  unless db[:remove_features].empty?
-    app.remove_features(db[:remove_features], [], false, false, true)
-    puts "Removed features: #{db[:remove_features].join(',')} from application with id: #{app._id}." if verbose
-    framework[:unresponsive_gears].each { |gear| app.remove_gear(gear.uuid, true) }
-  else
-    (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear.uuid, true) }
+def recover_app(app, framework, db)
+  begin
+    unless db[:remove_features].empty?
+      app.remove_features(db[:remove_features])
+      puts "Removed features: #{db[:remove_features].join(',')} from application with id: #{app._id}." if $verbose
+      framework[:unresponsive_gears].each { |gear| app.remove_gear(gear._id.to_s) }
+    else
+      (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear._id.to_s) }
+    end
+    puts "Application with id: #{app._id} fixed." if $verbose
+  rescue Exception => e
+    error_msg = "Failed to recover application with id: #{app._id}, error: #{e.message}"
+    puts error_msg
+    $summary << error_msg
   end
-  puts "Application with id: #{app._id} fixed." if verbose
 end
 
 puts "Started at: #{Time.now}"
@@ -306,7 +345,7 @@ OpenShift::DataStore.find(:domains, {}, domain_selection) do |domain|
   system_ssh_keys = {}
   domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if domain["system_ssh_keys"]
   
-  if !user_hash[owner_id]
+  if owner_id.present? and !user_hash[owner_id]
     OpenShift::DataStore.find(:cloud_users, {"_id" => BSON::ObjectId(owner_id)}, user_selection_primary) do |user|
       user_hash[user["_id"].to_s] = get_user_info(user) 
     end
@@ -318,14 +357,14 @@ OpenShift::DataStore.find(:domains, {}, domain_selection) do |domain|
   end
 end
 
-if Rails.configuration.msg_broker[:districts][:enabled] and (fix_district_uids or fix_unresponsive_apps)
+if Rails.configuration.msg_broker[:districts][:enabled] and (fix_district_uids or fix_removed_nodes)
   OpenShift::DataStore.find(:districts, {}, {:timeout => false}) do |district|
     if fix_district_uids
       si_list =  district["server_identities"].map {|si| si["name"]}
       si_list.delete_if {|si| si.nil?}
       district_hash[district["uuid"]] = [ district["name"], district["max_capacity"], si_list, district["available_uids"] ]
     end
-    if fix_unresponsive_apps
+    if fix_removed_nodes
       # Find all available servers in the district
       district["server_identities"].each do |si|
         available_servers[si['name']] = (district['name'] || 'NONE')
@@ -361,7 +400,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
           gear_uid_hash[server_identity] << gear['uid'].to_i
         end
 
-        if fix_unresponsive_apps and server_identity.present? and !available_servers[server_identity]
+        if fix_removed_nodes and server_identity.present? and !available_servers[server_identity]
           available_servers[server_identity] = 'NONE'
         end 
       end if gi['gears'].present?
@@ -381,20 +420,20 @@ if fix_consumed_gears
     total_gears = 0
     owner_hash["domains"].each { |dom_id, domain_gear_count| total_gears += domain_gear_count }
 
-    print "Checking consumed gear count for user #{owner_hash['login']}...\t" if verbose
+    print "Checking consumed gear count for user #{owner_hash['login']}...\t" if $verbose
     if owner_hash['consumed_gears'] != total_gears
       user_consumed_gears, app_actual_gears = check_consumed_gears(owner_id)
       if user_consumed_gears != app_actual_gears
-        puts "FAIL" if verbose
+        puts "FAIL" if $verbose
         msg = "User #{owner_hash['login']} has a mismatch in consumed gears (#{user_consumed_gears}) and actual gears (#{app_actual_gears})"
-        summary << msg
+        $summary << msg
       
         # record the user id for fixing later
         error_consumed_gears_user_ids << owner_id
-      elsif verbose
+      elsif $verbose
         puts "OK"
       end
-    elsif verbose
+    elsif $verbose
       puts "OK"
     end
   end
@@ -413,7 +452,7 @@ if fix_ssh_keys
   current_time = Time.now
 
   # now check
-  puts "Checking application gears and ssh keys on corresponding nodes:" if verbose
+  puts "Checking application gears and ssh keys on corresponding nodes:" if $verbose
   datastore_hash.each do |gear_uuid, gear_info|
     login = gear_info[0]
     creation_time = gear_info[1]
@@ -421,15 +460,15 @@ if fix_ssh_keys
     app_id = gear_info[3]
     db_sshkeys = gear_info[4]
 
-    print "Checking ssh keys for gear: #{gear_uuid}...\t" if verbose
+    print "Checking ssh keys for gear: #{gear_uuid}...\t" if $verbose
     if (current_time - creation_time) > 600
       if gear_sshkey_hash.has_key? gear_uuid
         gear_sshkeys_list = gear_sshkey_hash[gear_uuid].keys.uniq.sort
         db_sshkeys_list = db_sshkeys.keys.uniq.sort
         if db_sshkeys_list == gear_sshkeys_list
-          puts "OK" if verbose
+          puts "OK" if $verbose
         else
-          puts "FAIL" if verbose
+          puts "FAIL" if $verbose
           
           # calculate the common ssh keys in mongo and on the node
           common_sshkeys = gear_sshkeys_list & db_sshkeys_list
@@ -437,22 +476,22 @@ if fix_ssh_keys
           # get the unmatched ssh keys for the gear from the node
           extra_gear_sshkeys = gear_sshkeys_list - common_sshkeys
           extra_gear_sshkeys.each do |key|
-            summary << "Gear '#{gear_uuid}' has  key with comment '#{gear_sshkey_hash[gear_uuid][key]}' on the node but not in mongo."
+            $summary << "Gear '#{gear_uuid}' has  key with comment '#{gear_sshkey_hash[gear_uuid][key]}' on the node but not in mongo."
           end
           
           # get the unmatched ssh keys for the gear in mongo
           extra_db_sshkeys = db_sshkeys_list - common_sshkeys
           extra_db_sshkeys.each do |key|
-            summary << "Gear '#{gear_uuid}' has key with name '#{db_sshkeys[key]}' in mongo but not on the node."
+            $summary << "Gear '#{gear_uuid}' has key with name '#{db_sshkeys[key]}' in mongo but not on the node."
           end
         
           # record the app _id for fixing later
           error_ssh_keys_app_ids << app_id
         end
-      elsif verbose
+      elsif $verbose
         puts "OK"
       end
-    elsif verbose
+    elsif $verbose
       puts "OK"
     end
   end
@@ -462,23 +501,23 @@ end
 if fix_district_uids and Rails.configuration.msg_broker[:districts][:enabled]
   # check for any unreserved uid in the district
   # these are uids that gears are using but are still present in the district's available_uids
-  puts "Checking for unreserved UIDs in the district:" if verbose
+  puts "Checking for unreserved UIDs in the district:" if $verbose
   gear_uid_hash.each do |server_identity, uid_list|
     district_hash.each do |district_uuid, district_info|
       if district_info[2].include?(server_identity)
         unreserved_uids = uid_list & district_info[3]
         unreserved_uids.each do |unreserved_uid|
           # re-checking unreserved UID in the database
-          print "Re-checking UID #{unreserved_uid} in district #{district_info[0]} in the database...\t" if verbose
+          print "Re-checking UID #{unreserved_uid} in district #{district_info[0]} in the database...\t" if $verbose
           if not datastore_has_gear_uid?(unreserved_uid, [server_identity])
             # the UID is no longer being used by any gear
-            puts "OK" if verbose
+            puts "OK" if $verbose
           elsif not district_has_available_uid?(district_uuid, unreserved_uid)
             # the UID is available in the district
-            puts "OK" if verbose
+            puts "OK" if $verbose
           else
-            puts "FAIL" if verbose
-            summary << "UID '#{unreserved_uid}' is available in district '#{district_info[0]}' but used by a gear on node '#{server_identity}'"
+            puts "FAIL" if $verbose
+            $summary << "UID '#{unreserved_uid}' is available in district '#{district_info[0]}' but used by a gear on node '#{server_identity}'"
             
             # record the UID for fixing later
             error_unreserved_district_uid_map[district_uuid] = [] unless error_unreserved_district_uid_map.has_key? district_uuid
@@ -492,7 +531,7 @@ if fix_district_uids and Rails.configuration.msg_broker[:districts][:enabled]
   
   # check for any unused uid in the district
   # these are uids that are reserved in the district, but no gear is using
-  puts "Checking for unused UIDs in the district:" if verbose 
+  puts "Checking for unused UIDs in the district:" if $verbose 
   district_used_uids = []
   district_hash.each do |district_uuid, district_info|
     # collect gear uids from all nodes with server identities within this district
@@ -507,16 +546,16 @@ if fix_district_uids and Rails.configuration.msg_broker[:districts][:enabled]
     
     district_unused_uids.each do |unused_uid|
       # re-checking unused UID in the database
-      print "Re-checking UID #{unused_uid} in district #{district_info[0]} in the database...\t" if verbose
+      print "Re-checking UID #{unused_uid} in district #{district_info[0]} in the database...\t" if $verbose
       if datastore_has_gear_uid?(unused_uid, district_info[2])
         # found a gear that uses this UID  
-        puts "OK" if verbose
+        puts "OK" if $verbose
       elsif district_has_available_uid?(district_uuid, unused_uid)
         # the UID is no longer reserved in the district
-        puts "OK" if verbose
+        puts "OK" if $verbose
       else
-        puts "FAIL" if verbose
-        summary << "UID '#{unused_uid}' is reserved in district '#{district_info[0]}' but not used by any gear"
+        puts "FAIL" if $verbose
+        $summary << "UID '#{unused_uid}' is reserved in district '#{district_info[0]}' but not used by any gear"
               
         # record the UID for fixing later
         error_unused_district_uid_map[district_uuid] = [] unless error_unused_district_uid_map.has_key? district_uuid
@@ -526,14 +565,17 @@ if fix_district_uids and Rails.configuration.msg_broker[:districts][:enabled]
   end
 end
 
-if fix_unresponsive_apps
-  print "Checking for unresponsive servers...\t" if verbose
+if fix_removed_nodes
+  print "Checking for unresponsive servers...\t" if $verbose
   responsive_servers = []
   message = "ping"
   options = OpenShift::MCollectiveApplicationContainerProxy.rpc_options
   unless auto_confirm.nil? # for test automation
     options[:disctimeout] = 1
     options[:timeout] = 1
+  else
+    options[:disctimeout] = 5
+    options[:timeout] = 45
   end
   OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', available_servers.keys, false, options) do |client|
     client.echo(:msg => message).each do |resp|
@@ -548,18 +590,22 @@ if fix_unresponsive_apps
 
   # Report unresponsive servers to the admin 
   unless unresponsive_servers.empty?
-    puts "FAIL" if verbose
+    puts "FAIL" if $verbose
     puts "Servers that are unresponsive:"
-    unresponsive_servers.each { |server| puts "\tServer: #{server} (district: #{available_servers[server]})" }
-    summary << "Some servers are unresponsive: #{unresponsive_servers.join(', ')}"
+    uservers = unresponsive_servers.dup
+    uservers.each do |server| 
+      puts "\tServer: #{server} (district: #{available_servers[server]}), Confirm [yes/no]: "
+      unresponsive_servers.delete(server) unless auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
+    end
+    $summary << "Some servers are unresponsive: #{unresponsive_servers.join(', ')}"
   else
-    puts "OK" if verbose
+    puts "OK" if $verbose
   end
 end
 
-puts summary.empty? ? "Success" : "Check failed.\n#{summary.join("\n")}"
+puts $summary.empty? ? "Success" : "Check failed.\n#{$summary.join("\n")}"
 
-puts "" unless summary.empty?
+puts "" unless $summary.empty?
 puts "Total #{error_ssh_keys_app_uuids.length} applications have ssh key mismatches." if error_ssh_keys_app_uuids.length > 0
 puts "Total #{error_consumed_gears_user_ids.length} users have consumed gear mismatches." if error_consumed_gears_user_ids.length > 0
 
@@ -576,26 +622,26 @@ unless error_unused_district_uid_map.empty?
   error_unused_district_uid_map.each { |district_uuid, uids| total_unused_uids += uids.length }
   puts "Total #{total_unused_uids} unused UIDs across #{total_affected_districts} districts."
 end
-puts "" unless summary.empty?
+puts "" unless $summary.empty?
 
 # check if we need to fix the ssh key mismatches
 fixed_app_count = 0
 failed_app_count = 0
-unless fix_ssh_keys.nil? or report_only or error_ssh_keys_app_ids.length == 0
+unless fix_ssh_keys.nil? or $report_only or error_ssh_keys_app_ids.length == 0
   puts "Fixing ssh key inconsistencies for all affected applications:"
   error_ssh_keys_app_ids.each do |app_id|
     begin
-      print "Fixing ssh keys for application: #{app_id}...\t" if verbose
+      print "Fixing ssh keys for application: #{app_id}...\t" if $verbose
       app = Application.find(app_id)
       app.fix_gear_ssh_keys()
-      puts "OK" if verbose
+      puts "OK" if $verbose
       fixed_app_count += 1
     rescue Mongoid::Errors::DocumentNotFound
-      puts "OK" if verbose
+      puts "OK" if $verbose
       puts "Application '#{app_id}' not found in the database"
       fixed_app_count += 1
     rescue Exception => ex
-      puts "FAIL" if verbose
+      puts "FAIL" if $verbose
       puts "Failed to fix ssh key mismatches for application '#{app_id}': #{ex.message}"
       failed_app_count += 1
     end
@@ -606,26 +652,26 @@ end
 # check if we need to fix the user's consumed gears mismatch
 fixed_user_count = 0
 failed_user_count = 0
-unless fix_consumed_gears.nil? or report_only or error_consumed_gears_user_ids.length == 0
+unless fix_consumed_gears.nil? or $report_only or error_consumed_gears_user_ids.length == 0
   puts "Fixing consumed gears count for all affected users:"
   error_consumed_gears_user_ids.each do |user_id|
     begin
-      print "Fixing consumed gears for user: #{user_id}...\t" if verbose
+      print "Fixing consumed gears for user: #{user_id}...\t" if $verbose
       success = reset_consumed_gears(user_id)
       if success
-        puts "OK" if verbose
+        puts "OK" if $verbose
         fixed_user_count += 1
       else
-        puts "FAIL" if verbose
+        puts "FAIL" if $verbose
         puts "Skipped fixing consumed gears mismatches for user '#{user_id}'"
         failed_user_count += 1
       end
     rescue Mongoid::Errors::DocumentNotFound
-      puts "OK" if verbose
+      puts "OK" if $verbose
       puts "User '#{user_id}' not found in the database"
       fixed_user_count += 1
     rescue Exception => ex
-      puts "FAIL" if verbose
+      puts "FAIL" if $verbose
       puts "Failed to fix consumed gears mismatches for user '#{user_id}': #{ex.message}"
       failed_user_count += 1
     end
@@ -636,12 +682,12 @@ end
 # check if we need to fix unreserved district UIDs
 fixed_unreserved_uid_count = 0
 failed_unreserved_uid_count = 0
-unless fix_district_uids.nil? or report_only or error_unreserved_district_uid_map.empty?
+unless fix_district_uids.nil? or $report_only or error_unreserved_district_uid_map.empty?
   puts "Fixing unreserved district UIDs for all affected districts:"
   error_unreserved_district_uid_map.each do |district_uuid, uids|
     uids.each do |gear_uid|
       district_info = district_hash[district_uuid]
-      print "Fixing unreserved UID: #{gear_uid} in district: #{district_info[0]}...\t" if verbose
+      print "Fixing unreserved UID: #{gear_uid} in district: #{district_info[0]}...\t" if $verbose
       si_list = district_info[2]
       query = {"group_instances.gears" => {"$elemMatch" => { "uid" => gear_uid, "server_identity" => {"$in" => si_list}}}}
       begin
@@ -653,21 +699,21 @@ unless fix_district_uids.nil? or report_only or error_unreserved_district_uid_ma
           if Application.where(verify_query).count > 0
             reserved_uid = District::reserve_uid(district_uuid, gear_uid)
             if reserved_uid.nil?
-              puts "FAIL" if verbose
+              puts "FAIL" if $verbose
               puts "Failed to reserve UID #{gear_uid} within district #{district_info[0]}"
               failed_unreserved_uid_count += 1
             else
-              puts "OK" if verbose
+              puts "OK" if $verbose
               fixed_unreserved_uid_count += 1
             end
           else
-            puts "OK" if verbose
+            puts "OK" if $verbose
             puts "Gear with UID #{gear_uid} not found within application with Id #{app._id} in mongo"
             fixed_unreserved_uid_count += 1
           end
         end
       rescue Mongoid::Errors::DocumentNotFound
-        puts "OK" if verbose
+        puts "OK" if $verbose
         puts "Gear with UID #{gear_uid} not found within district #{district_info[0]} in mongo"
         fixed_unreserved_uid_count += 1
       end
@@ -678,19 +724,19 @@ end
 
 # check if we need to fix unused district UIDs
 fixed_unused_uid_count = 0
-unless fix_district_uids.nil? or report_only or error_unused_district_uid_map.empty?
+unless fix_district_uids.nil? or $report_only or error_unused_district_uid_map.empty?
   puts "Fixing unused district UIDs for all affected districts:"
   error_unused_district_uid_map.each do |district_uuid, uids|
     uids.each do |gear_uid|
       district_info = district_hash[district_uuid]
-      print "Fixing unused UID: #{gear_uid} in district: #{district_info[0]}...\t" if verbose
+      print "Fixing unused UID: #{gear_uid} in district: #{district_info[0]}...\t" if $verbose
       if datastore_has_gear_uid?(gear_uid, district_info[2])
-        puts "OK" if verbose
+        puts "OK" if $verbose
         puts "Gear with UID #{gear_uid} was found within district #{district_info[0]} in mongo"
         fixed_unused_uid_count += 1
       else
         District::unreserve_uid(district_uuid, gear_uid)
-        puts "OK" if verbose
+        puts "OK" if $verbose
         fixed_unused_uid_count += 1
       end
     end
@@ -707,18 +753,37 @@ unless unresponsive_servers.empty?
         if available_servers[server] != 'NONE'
           begin
             district = District.find_by_name(available_servers[server])
-            district.remove_node(server, true)
-            puts "Server: #{server} removed from district: #{available_servers[server]}" if verbose
+            district.server_identities.each do |si|
+              if si['name'] == server
+                si['unresponsive'] = true
+                district.save!
+                break
+              end
+            end
+            district.deactivate_node(server)
+            district.remove_node(server)
+            puts "Server: #{server} removed from district: #{available_servers[server]}" if $verbose
           rescue Exception => e
             error_msg = "Unable to delete server: #{server} from district: #{available_servers[server]}, error: #{e.message}"
             puts error_msg
-            summary << error_msg
+            $summary << error_msg
           end
         end
       end
-      puts "Finished deleting unresponsive servers from their respective districts." if verbose
+      puts "Finished deleting unresponsive servers from their respective districts." if $verbose
     else
-      puts "Skipped deleting unresponsive servers from their respective districts." if verbose
+      puts "Skipped deleting unresponsive servers from their respective districts." if $verbose
+    end
+  end
+
+  # Mark node_removed = true on all gears that are unresponsive
+  unless $report_only
+    begin
+      mark_node_removed(unresponsive_servers)
+    rescue Exception => e
+      puts "Failed marking node_removed field in gear, error: #{e.message}"
+      puts e.backtrace.inspect
+      exit 1
     end
   end
 
@@ -744,38 +809,38 @@ unless unresponsive_servers.empty?
     if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
       unresponsive_unscalable_apps.each do |app_info|
         begin
-          Application.find_by(_id: Moped::BSON::ObjectId(app_info['_id'].to_s)).destroy_app(true)
-          puts "Application with id: #{app_info['_id']} deleted." if verbose
+          Application.find_by(_id: Moped::BSON::ObjectId(app_info['_id'].to_s)).destroy_app
+          puts "Application with id: #{app_info['_id']} deleted." if $verbose
         rescue Exception => e
           error_msg = "Unable to delete application with id: #{app_info['_id']}, error: #{e.message}"
           puts error_msg
-          summary << error_msg
+          $summary << error_msg
         end
       end
-      puts "Finished deleting unresponsive unscalable apps." if verbose
+      puts "Finished deleting unresponsive unscalable apps." if $verbose
     else
-      puts "Skipped deleting unresponsive unscalable apps." if verbose
+      puts "Skipped deleting unresponsive unscalable apps." if $verbose
     end
   end 
 
   unless unresponsive_scalable_apps.empty?
     # Analyze scalable apps
-    analyzed_app_reports = {}
+    app_reports = {}
     unresponsive_scalable_apps.each do |app_info|
       begin
         app_id = app_info['_id'].to_s
         app = Application.find_by(_id: Moped::BSON::ObjectId(app_id))
         recoverable, framework, db = analyze_app(app, unresponsive_servers)
-        analyzed_app_reports[app_id] = [app, recoverable, framework, db]
+        app_reports[app_id] = [app, recoverable, framework, db]
       rescue Exception => e
         error_msg = "Unable to analyze application with id: #{app_info['_id']}, error: #{e.message}"
         puts error_msg
-        summary << error_msg
+        $summary << error_msg
       end
     end
 
     apps_not_recoverable = []
-    analyzed_app_reports.each do |app_id, app_info|
+    app_reports.each do |app_id, app_info|
       app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
       if !recoverable and !framework[:backup_available] and !db[:backup_available]
         apps_not_recoverable << app_id
@@ -783,20 +848,16 @@ unless unresponsive_servers.empty?
     end
     unless apps_not_recoverable.empty?
       puts "Found #{apps_not_recoverable.size} unresponsive scalable apps that can not be recovered."
-      apps_not_recoverable.each { |app_id| puts "#{analyzed_app_reports[app_id][0].name} (id: #{app_id})" }
+      apps_not_recoverable.each { |app_id| puts "#{app_reports[app_id][0].name} (id: #{app_id})" }
       print "Do you want to delete all of them [yes/no]: "
       if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
-        apps_not_recoverable.each do |app_id|
-          app_info = analyzed_app_reports[app_id]
-          app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
-          delete_app(app, framework, db, verbose)
-        end
+        delete_apps(app_reports, apps_not_recoverable)
       end
-      analyzed_app_reports.delete_if { |k,v| apps_not_recoverable.include?(k) }
+      app_reports.delete_if { |k,v| apps_not_recoverable.include?(k) }
     end
 
     apps_to_backup = []
-    analyzed_app_reports.each do |app_id, app_info|
+    app_reports.each do |app_id, app_info|
       app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
       if !recoverable and (framework[:backup_available] or db[:backup_available])
         apps_to_backup << app_id
@@ -804,20 +865,21 @@ unless unresponsive_servers.empty?
     end
     unless apps_to_backup.empty?
       puts "Found #{apps_to_backup.size} unresponsive scalable apps that can not be recovered but framework/db backup available."
-      apps_to_backup.each { |app_id| puts "#{analyzed_app_reports[app_id][0].name} (id: #{app_id})" }
+      apps_to_backup.each do |app_id|
+        app_info = app_reports[app_id]
+        gear_ids = []
+        (app_info[2][:responsive_gears] + app_info[3][:responsive_gears]).each { |gear| gear_ids << gear._id.to_s }
+        puts "#{app_info[0].name} (id: #{app_id}, backup-gears: #{gear_ids.join(', ')})"
+      end
       print "Do you want to skip all of them [yes/no]:(Warning: entering 'no' will delete the apps) "
       if auto_confirm or (auto_confirm.nil? and !gets.chomp.to_b)
-        apps_to_backup.each do |app_id|
-          app_info = analyzed_app_reports[app_id]
-          app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
-          delete_app(app, framework, db, verbose)
-        end
+        delete_apps(app_reports, apps_to_backup)
       end
-      analyzed_app_reports.delete_if { |k,v| apps_to_backup.include?(k) }
+      app_reports.delete_if { |k,v| apps_to_backup.include?(k) }
     end
    
     apps_to_remove_features = []
-    analyzed_app_reports.each do |app_id, app_info|
+    app_reports.each do |app_id, app_info|
       app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
       if recoverable and !db[:remove_features].empty?
         apps_to_remove_features << app_id
@@ -825,37 +887,41 @@ unless unresponsive_servers.empty?
     end
     unless apps_to_remove_features.empty?
       puts "Found #{apps_to_remove_features.size} unresponsive scalable apps that are recoverable but some features/carts need to be removed."
-      apps_to_remove_features.each { |app_id| puts "#{analyzed_app_reports[app_id][0].name} (id: #{app_id})" }
-      print "Do you want to skip all of them [yes/no]:(Warning: entering 'no' will remove features from apps) "
-      if auto_confirm or (auto_confirm.nil? and !gets.chomp.to_b)
+      apps_to_remove_features.each do |app_id|
+        puts "#{app_reports[app_id][0].name} (id: #{app_id} features-to-remove: #{app_reports[app_id][3][:remove_features].join(', ')})"
+      end
+      print "Do you want to fix all of them [yes/no]:(Warning: entering 'yes' will remove features from apps) "
+      if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
         apps_to_remove_features.each do |app_id|
-          app_info = analyzed_app_reports[app_id]
+          app_info = app_reports[app_id]
           app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
-          recover_app(app, framework, db, verbose)
+          recover_app(app, framework, db)
         end
       end
-      analyzed_app_reports.delete_if { |k,v| apps_to_remove_features.include?(k) }
+      app_reports.delete_if { |k,v| apps_to_remove_features.include?(k) }
     end
 
-    unless analyzed_app_reports.empty?
-      if verbose
-        puts "Found #{analyzed_app_reports.size} unresponsive scalable apps that are recoverable."
-        analyzed_app_reports.each { |app_id, app_info| puts "#{app_info[0].name} (id: #{app_id})" }
+    unless app_reports.empty?
+      if $verbose
+        puts "Found #{app_reports.size} unresponsive scalable apps that are recoverable."
+        app_reports.each { |app_id, app_info| puts "#{app_info[0].name} (id: #{app_id})" }
       end
-      analyzed_app_reports.each do |app_id, app_info|
-        app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
-        if recoverable
-          recover_app(app, framework, db, verbose)
-        else
-          puts "Error: Not recoverable app found but not processed. Details framework: #{framework.inspect}, db: #{db.inspect}"
+      unless $report_only
+        app_reports.each do |app_id, app_info|
+          app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
+          if recoverable
+            recover_app(app, framework, db)
+          else
+            puts "Error: Found app that is not recoverable but not processed. Details framework: #{framework.inspect}, db: #{db.inspect}"
+          end
         end
       end
     end
-    puts "Finished fixing/deleting unresponsive scalable apps." if verbose
+    puts "Finished fixing/deleting unresponsive scalable apps." if $verbose and !$report_only
   end
 end
 
-puts "" unless summary.empty? or report_only
+puts "" unless $summary.empty? or $report_only
 puts "Fixed ssh key mismatches for #{fixed_app_count} applications." if fixed_app_count > 0
 puts "Failed to fix ssh key mismatches for #{failed_app_count} applications." if failed_app_count > 0
 
@@ -866,9 +932,9 @@ puts "Fixed #{fixed_unreserved_uid_count} unreserved UIDs across all districts."
 puts "Failed to fix #{failed_unreserved_uid_count} unreserved UIDs across all districts." if failed_unreserved_uid_count > 0
 
 puts "Fixed #{fixed_unused_uid_count} unused UIDs across all districts." if fixed_unused_uid_count > 0
-puts "" unless summary.empty? or report_only
+puts "" unless $summary.empty? or $report_only
 
 total_time = (Time.now.to_f * 1000).to_i - start_time
 puts "Total time: #{total_time.to_f/1000}s"
 puts "Finished at: #{Time.now}"
-exit (summary.empty? ? 0 : 1)
+exit ($summary.empty? ? 0 : 1)

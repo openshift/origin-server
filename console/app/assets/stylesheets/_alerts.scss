@@ -11,6 +11,9 @@
   > p:last-child {
     margin-bottom: 0;
   }
+  #flash & {
+    margin-top: 0;
+  }
 }
 .alert,
 .alert-heading {

@@ -86,10 +86,15 @@ class ApplicationTypesController < ConsoleController
       @disabled = @missing_cartridges.present? || @cartridges.blank?
     end
 
+    if @application.name.blank? && (suggest = Application.suggest_name_from(@cartridges))
+      @application.name = suggest
+      @suggesting_name = true
+    end
+
     if (create_warning = available_gears_warning(@user_writeable_domains))
       flash.now[:error] = create_warning
     end
-    
+
     user_default_domain rescue nil
   end
 
@@ -118,4 +123,9 @@ class ApplicationTypesController < ConsoleController
   rescue => e
     render :inline => e.message, :status => 500
   end
+
+  protected
+    def active_tab
+      :applications
+    end  
 end

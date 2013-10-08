@@ -17,10 +17,6 @@
     .url-alias {
       margin-left: 10px;
     }
-    .url-alter {
-      font-size: $tinyFontSize;
-      margin-left: 10px;
-    }
   }
   .cartridges {
     font-size: $tinyFontSize;
@@ -29,23 +25,12 @@
     #app-list & {
       .count {
         font-weight: 300;
+        position: relative;
+        margin-right: 10px;
         .gear-icon {
           font-size: 16px;
         }
       }
-    }
-    span > {
-      a:visited, a:link {
-        color: inherit;
-      }
-      a:hover, a:active {
-        color: $openshiftBrightRed;
-        text-decoration: none;
-      }
-    }
-    .url-icon {
-      bottom: -5px;
-      position: relative;
     }
   }
 	.gear-numbers {
@@ -53,20 +38,49 @@
 	}
 }
 
+.application, #app-cartridges {
+  .flow-block {
+    .font-icon-link {
+      &:visited, &:link {
+        color: inherit;
+      }
+      &:hover, &:active {
+        color: $openshiftBrightRed;
+        text-decoration: none;
+      }
+    }
+    .url + a {
+      font-weight: 300;
+      margin-left: 15px;
+    }
+    .url-icon {
+      bottom: -5px;
+      font-size: 20px;
+      position: relative;
+      top: auto;
+    }
+  }
+}
+
+.application, .domain {
+    .url-alter {
+      font-size: $tinyFontSize;
+      margin-left: 10px;
+    }
+}
+
 .applications, .domains {
   .section-body .row {
     .span4 {
+      font-size: $tinyFontSize;
       > h2 {
         font-size: $h6FontSize;
         font-weight: 400;
         line-height: $h6LineHeight;
         margin-bottom: 5px;
       }
-      label {
-        font-weight: 300;
-      }
-      strong {
-        font-weight: 400;
+      label, p {
+        font-size: $tinyFontSize;
       }
     }
     .span8 {
@@ -74,6 +88,16 @@
         font-size: $h4FontSize;
         line-height: $h4LineHeight;
         margin-bottom: $h4MarginBottom;
+        .flow-block.right {
+          color: #666;
+          font-weight: 300;
+          font-size: $smallFontSize;
+          padding-right: 5px;
+          .gear-icon {
+            font-size: 12px;
+            color: #aaa;
+          }
+        }
       }
       .span4 > h3, .span5 > h3 {
         font-size: $h5FontSize;
@@ -102,11 +126,6 @@
     .cartridge-inset {
       padding: 15px 20px;
     }
-    .data .gear-icon {
-      color: #bbb;
-      font-size: 11px;
-      margin-right: 3px;
-    }
     .flow-block.right > span {
       font-weight: 300;
       strong {
@@ -118,7 +137,6 @@
       margin-bottom: 0;
     }
     h3 {
-      font-size: $h4FontSize;
       .font-icon {
         color: #bbb;
         font-size: 13px;
@@ -143,6 +161,14 @@
     p {
       margin-top: $baseLineHeight*0.25;
       margin-bottom: 0;
+      &.created {
+        font-size: $tinyFontSize;
+      }
+    }
+    ul.inline > li {
+      margin-bottom: 0;
+      padding-left: 15px;
+      padding-right: 0;
     }
     .warning {
       color: #EB0011;
@@ -170,6 +196,21 @@
   //display: inline-block; // makes empty array unbalanced
 }
 
+.domain {
+  .flow .flow-block.right {
+    font-weight: 300;
+  }
+  &.tile-click {
+    .flow .flow-block.right {
+      font-size: $baseFontSize;
+      font-weight: 300;
+      span {
+        margin-left: 20px;
+      }
+    }
+  }
+}
+
 .form-search {
   .btn:first-child {
     border-radius: 0;
@@ -189,15 +230,15 @@
 }
 
 .gauge-vertical {
-  line-height: 7px;
+  line-height: 5px;
   position: absolute;
-  top: -3px;
-  right: -6px;
+  top: -6px;
+  right: -5px;
   font-size: 36px;
   width: 1px;
   white-space: normal;
   > .empty { 
-    opacity: 0.5;
+    opacity: 0.3;
   }
   > .fill  { 
     opacity: 1.0;

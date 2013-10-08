@@ -4,9 +4,11 @@ class PatchUserEnvVarsOp < PendingAppOp
   field :saved_user_env_vars, type: Array, default: []
   field :push_vars, type: Boolean, default: false
 
-  def execute(skip_node_ops=false)
+  def execute
     result_io = ResultIO.new
-    unless skip_node_ops
+    app = pending_app_op_group.application
+    gear = app.get_app_dns_gear
+    unless gear.node_removed
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
       if user_env_vars.present?
         # save overlapped user env vars for rollback
@@ -17,21 +19,37 @@ class PatchUserEnvVarsOp < PendingAppOp
         overlapped_keys.each {|key| saved_vars << {'name' => key, 'value' => existing_vars[key]}}
         self.set(:saved_user_env_vars, saved_vars) unless saved_vars.empty?
       end
-    
-      result_io = pending_app_op_group.application.get_app_dns_gear.unset_user_env_vars(unset_vars, pending_app_op_group.application.get_gears_ssh_endpoint(true)) if unset_vars.present?
-      result_io.append pending_app_op_group.application.get_app_dns_gear.set_user_env_vars(set_vars, pending_app_op_group.application.get_gears_ssh_endpoint(true)) if set_vars.present? or push_vars
+ 
+      gears_endpoint = get_gears_ssh_endpoint(app) 
+      result_io = gear.unset_user_env_vars(unset_vars, gears_endpoint) if unset_vars.present?
+      result_io.append gear.set_user_env_vars(set_vars, gears_endpoint) if set_vars.present? or push_vars
     end
     result_io
   end
 
-  def rollback(skip_node_ops=false)
+  def rollback
     result_io = ResultIO.new
-    unless skip_node_ops
+    app = pending_app_op_group.application
+    gear = app.get_app_dns_gear
+    unless gear.node_removed
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
-      result_io = pending_app_op_group.application.get_app_dns_gear.unset_user_env_vars(set_vars, pending_app_op_group.application.get_gears_ssh_endpoint(true)) if set_vars.present?
-      result_io.append pending_app_op_group.application.get_app_dns_gear.set_user_env_vars(saved_user_env_vars, pending_app_op_group.application.get_gears_ssh_endpoint(true)) if saved_user_env_vars.present?
+      gears_endpoint = get_gears_ssh_endpoint(app) 
+      result_io = gear.unset_user_env_vars(set_vars, gears_endpoint) if set_vars.present?
+      result_io.append gear.set_user_env_vars(saved_user_env_vars, gears_endpoint) if saved_user_env_vars.present?
     end
     result_io
+  end
+
+  def get_gears_ssh_endpoint(app)
+    gears_endpoint = []
+    app.group_instances.each do |group_instance|
+      group_instance.gears.each do |gear|
+        unless gear.node_removed
+          gears_endpoint << "#{gear.uuid}@#{gear.server_identity}" unless gear.app_dns #skip app dns
+        end
+      end
+    end
+    gears_endpoint
   end
 
 end

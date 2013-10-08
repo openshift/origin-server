@@ -1,4 +1,5 @@
 .gears.flow-block.right{:title => "You are using #{capabilities.consumed_gears} of the #{capabilities.max_gears} gears allowed for your account"}
+  using  
   %span.consumed{style: 'color: red;'} #{capabilities.consumed_gears}
   %span.total of #{capabilities.max_gears} 
   %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}

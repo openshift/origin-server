@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.15.5
+Version:       1.15.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -154,6 +154,17 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.6-1
+- Merge pull request #3727 from smarterclayton/fix_environment_variable_routes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3726 from jwforres/grammar_fix
+  (dmcphers+openshiftbot@redhat.com)
+- Update singular routes to use singular_path (ccoleman@redhat.com)
+- Merge pull request #3723 from jwforres/membership_plus_console
+  (dmcphers+openshiftbot@redhat.com)
+- Grammar fix in applications list page help links (jforrest@redhat.com)
+- Show members on the application page (jforrest@redhat.com)
+
 * Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
 - Failing unit tests due to last minute changes (ccoleman@redhat.com)
 - Membership changes (jliggitt@redhat.com)

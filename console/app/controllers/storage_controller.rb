@@ -18,6 +18,11 @@ class StorageController < ConsoleController
     end
   end
 
+  protected
+    def active_tab
+      :applications
+    end  
+
   private
   def user_information
     @user = User.find :one, :as => current_user

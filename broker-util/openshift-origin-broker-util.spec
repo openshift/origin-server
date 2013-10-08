@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.15.4
+Version: 1.15.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,16 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.5-1
+- Merge pull request #3733 from pravisankar/dev/ravi/bug1012782
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1012782 - oo-admin-chk fix (rpenta@redhat.com)
+- oo-admin-repair changes (rpenta@redhat.com)
+- Bug 1012297 - Pass gear_id instead of gear_uuid to application remove_gear()
+  (rpenta@redhat.com)
+- Bug 1012264 - Remove all unresponsive db features + misc bug fixes
+  (rpenta@redhat.com)
+
 * Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
 - Merge pull request #3720 from smarterclayton/origin_ui_72_membership
   (dmcphers+openshiftbot@redhat.com)
