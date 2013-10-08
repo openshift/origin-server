@@ -68,14 +68,15 @@ module OpenShift
         raise "#{gear_extension_path} exists and failed to load" unless @@gear_extension_present
       end
 
-      attr_reader :uuid, :application_uuid, :secret_token, :namespace, :version, :hostname, 
+      attr_reader :uuid, :application_uuid, :auth_token, :auth_iv, :namespace, :version, :hostname, 
                   :ignore_cartridge_version, :gear_home, :gear_env, :progress, :container, 
                   :gear_extension, :config, :hourglass
 
-      def initialize(uuid, application_uuid, secret_token, namespace, version, hostname, ignore_cartridge_version, hourglass = nil)
+      def initialize(uuid, application_uuid, auth_token, auth_iv, namespace, version, hostname, ignore_cartridge_version, hourglass = nil)
         @uuid = uuid
         @application_uuid = application_uuid
-        @secret_token = secret_token
+        @auth_token = auth_token
+        @auth_iv = auth_iv
         @namespace = namespace
         @version = version
         @hostname = hostname

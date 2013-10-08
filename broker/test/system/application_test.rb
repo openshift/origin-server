@@ -115,6 +115,12 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 105)
 
+    # create an application - and specify reserved name
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "openshift", :cartridge => "php-5.3"}, @headers)
+    assert_response :unprocessable_entity
+    body = JSON.parse(@response.body)
+    assert_equal(body["messages"][0]["exit_code"], 105)
+
     # create an application - and specify empty name
     request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "", :cartridge => "php-5.3"}, @headers)
     assert_response :unprocessable_entity
@@ -199,6 +205,90 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     assert_response :not_found
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 101)
+  end
+
+  def test_app_update
+    ns = "ns#{@random}"
+
+    # create domain
+    request_via_redirect(:post, DOMAIN_COLLECTION_URL, {:name => ns}, @headers)
+    assert_response :created
+
+    # create an application under the domain
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => "php-5.3"}, @headers)
+    assert_response :created
+
+    #update application making sure only what is updated is changed
+    request_via_redirect(:put, APP_URL_FORMAT % [ns, "app1"], {:name => "app1", :deployment_branch => "stage"}, @headers)
+    assert_response :ok
+    request_via_redirect(:get, APP_URL_FORMAT % [ns, "app1"], {}, @headers)
+    assert_response :ok
+    body = JSON.parse(@response.body)
+    assert_equal(body["data"]["auto_deploy"], true)
+    assert_equal(body["data"]["deployment_branch"], "stage")
+    assert_equal(body["data"]["keep_deployments"], 1)
+    assert_equal(body["data"]["deployment_type"], "git")
+
+    #update application making sure only what is updated is changed
+    request_via_redirect(:put, APP_URL_FORMAT % [ns, "app1"], {:name => "app1", :keep_deployments => 3}, @headers)
+    assert_response :ok
+    request_via_redirect(:get, APP_URL_FORMAT % [ns, "app1"], {}, @headers)
+    assert_response :ok
+    body = JSON.parse(@response.body)
+    assert_equal(body["data"]["auto_deploy"], true)
+    assert_equal(body["data"]["deployment_branch"], "stage")
+    assert_equal(body["data"]["keep_deployments"], 3)
+    assert_equal(body["data"]["deployment_type"], "git")
+
+    #update application making sure only what is updated is changed
+    request_via_redirect(:put, APP_URL_FORMAT % [ns, "app1"], {:name => "app1", :deployment_type => "binary"}, @headers)
+    assert_response :ok
+    request_via_redirect(:get, APP_URL_FORMAT % [ns, "app1"], {}, @headers)
+    assert_response :ok
+    body = JSON.parse(@response.body)
+    assert_equal(body["data"]["auto_deploy"], true)
+    assert_equal(body["data"]["deployment_branch"], "stage")
+    assert_equal(body["data"]["keep_deployments"], 3)
+    assert_equal(body["data"]["deployment_type"], "binary")
+
+    #update application making sure only what is updated is changed
+    request_via_redirect(:put, APP_URL_FORMAT % [ns, "app1"], {:name => "app1", :auto_deploy => false}, @headers)
+    assert_response :ok
+    request_via_redirect(:get, APP_URL_FORMAT % [ns, "app1"], {}, @headers)
+    assert_response :ok
+    body = JSON.parse(@response.body)
+    assert_equal(body["data"]["auto_deploy"], false)
+    assert_equal(body["data"]["deployment_branch"], "stage")
+    assert_equal(body["data"]["keep_deployments"], 3)
+    assert_equal(body["data"]["deployment_type"], "binary")
+
+    #update application to default values
+    request_via_redirect(:put, APP_URL_FORMAT % [ns, "app1"], {:name => "app1", :auto_deploy => true, :deployment_branch => "master", :keep_deployments => 1, :deployment_type => "git"}, @headers)
+    assert_response :ok
+
+    request_via_redirect(:get, APP_URL_FORMAT % [ns, "app1"], {}, @headers)
+    assert_response :ok
+    body = JSON.parse(@response.body)
+    assert_equal(body["data"]["auto_deploy"], true)
+    assert_equal(body["data"]["deployment_branch"], "master")
+    assert_equal(body["data"]["keep_deployments"], 1)
+    assert_equal(body["data"]["deployment_type"], "git")
+
+    #test update application with bad input
+    request_via_redirect(:put, APP_URL_FORMAT % [ns, "app1"], {}, @headers)
+    assert_response :unprocessable_entity
+
+    request_via_redirect(:put, APP_URL_FORMAT % [ns, "app1"], {:name => "app1", :auto_deploy => "bogus", :deployment_branch => "stage", :keep_deployments => 3, :deployment_type => "binary"}, @headers)
+    assert_response :unprocessable_entity
+
+    request_via_redirect(:put, APP_URL_FORMAT % [ns, "app1"], {:name => "app1", :auto_deploy => false, :deployment_branch => "0" * 999, :keep_deployments => 3, :deployment_type => "binary"}, @headers)
+    assert_response :unprocessable_entity
+
+    request_via_redirect(:put, APP_URL_FORMAT % [ns, "app1"], {:name => "app1", :auto_deploy => false, :deployment_branch => "stage", :keep_deployments => 0, :deployment_type => "binary"}, @headers)
+    assert_response :unprocessable_entity
+
+    request_via_redirect(:put, APP_URL_FORMAT % [ns, "app1"], {:name => "app1", :auto_deploy => false, :deployment_branch => "stage", :keep_deployments => 3, :deployment_type => "bogus"}, @headers)
+    assert_response :unprocessable_entity
   end
 
 end
