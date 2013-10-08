@@ -52,7 +52,7 @@ Rake::TestTask.new(:test) do |t|
 end
 
 desc "Merge-path tests"
-Rake::TestTask.new(:test_essentials) do |t|
+Rake::TestTask.new(:essentials_test) do |t|
   t.verbose = true
   t.libs << File.expand_path('../../common/lib', __FILE__)
   files = [ 'test/unit/*_test.rb' ]
