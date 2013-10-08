@@ -110,6 +110,10 @@ module Console::LayoutHelper
     end
   end
 
+  def breadcrumb_divider
+    content_tag(:span, '/', :class => 'divider')
+  end 
+
   AppWizardStepsCreate = [
     {
       :name => 'Choose a type of application',

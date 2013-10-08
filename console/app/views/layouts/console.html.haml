@@ -19,6 +19,11 @@
       %header.header.rcue
         = render 'layouts/console/header'
 
+      - if content_for? :breadcrumbs
+        .container
+          %nav.pull-right
+            = yield :breadcrumbs 
+
       .section-console#content{:role => 'main'}
         .container
           .row-console

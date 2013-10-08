@@ -468,6 +468,11 @@ a.cap-link:hover {
   }
 }
 
+// When breadcrumb is present
+.container + .section-console {
+  margin-top: -34px;
+}
+
 .section-console h6 {
   font-weight: normal;
   }
