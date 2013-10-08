@@ -45,23 +45,23 @@ module OpenShift
         end
       end
 
-      # Creates gear_registry.{lock,json} if they don't exist and sets the perms appropriately and
+      # Creates gear-registry.{lock,json} if they don't exist and sets the perms appropriately and
       # loads the gear registry from disk
       def initialize(container)
         @container = container
 
-        base_dir = PathUtils.join(@container.container_dir, 'gear_registry')
+        base_dir = PathUtils.join(@container.container_dir, 'gear-registry')
         FileUtils.mkdir_p(base_dir)
 
-        @registry_file = PathUtils.join(base_dir, 'gear_registry.json')
+        @registry_file = PathUtils.join(base_dir, 'gear-registry.json')
         unless File.exist?(@registry_file)
           File.new(@registry_file, "w", 0o0644)
           @container.set_ro_permission(@registry_file)
         end
 
-        @backup_file = PathUtils.join(base_dir, 'gear_registry.json.bak')
+        @backup_file = PathUtils.join(base_dir, 'gear-registry.json.bak')
 
-        @lock_file = PathUtils.join(base_dir, 'gear_registry.lock')
+        @lock_file = PathUtils.join(base_dir, 'gear-registry.lock')
         unless File.exist?(@lock_file)
           File.new(@lock_file, "w", 0o0644)
           # needs to be rw so the gear user can obtain the lock for reading
