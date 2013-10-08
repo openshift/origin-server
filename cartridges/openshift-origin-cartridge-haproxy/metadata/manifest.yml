@@ -63,6 +63,7 @@ Endpoints:
 - Private-IP-Name: STATUS_IP
   Private-Port-Name: STATUS_PORT
   Private-Port: 8080
+  Protocols: [http]
   Mappings:
   - Frontend: /haproxy-status
     Backend: /
