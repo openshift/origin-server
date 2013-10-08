@@ -174,8 +174,33 @@ module OpenShift
 
                 proxy_cfg = ::OpenShift::Config.new(CONFIG_PATH)
 
-                ports = (proxy_cfg.get("PROXY_PORTS") or DEFAULT_SNI_PROXY_PORTS).split(",").map { |p| p.to_i }
+                # Go through contortions to bind to just the external IP address.
+                # This can be obtained in the following ways:
+                # 1. The BIND_IP setting in our own module configuration.
+                # 2. Reading the first IP address off of EXTERNAL_ETH_DEV
+                # 3. The route that points to PUBLIC_IP (on some clouds, PUBLIC_IP isn't local).
+                # 4. If all of those fail, bind to any addr
                 bind_ip = (proxy_cfg.get("BIND_IP") or "")
+
+                if bind_ip == ""
+                  config    = ::OpenShift::Config.new
+                  test_iface = config.get("EXTERNAL_ETH_DEV")
+                  test_public = config.get("PUBLIC_IP")
+
+                  if test_iface
+                    out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("ip -o -4 addr show dev #{test_iface}")
+                    if out=~/inet (\d+\.\d+\.\d+\.\d+)/
+                      bind_ip=$1
+                    end
+                  elsif test_public
+                    out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("ip -o -4 route get #{test_public}")
+                    if out=~/src (\d+\.\d+\.\d+\.\d+)/
+                      bind_ip=$1
+                    end
+                  end
+                end
+
+                ports = (proxy_cfg.get("PROXY_PORTS") or DEFAULT_SNI_PROXY_PORTS).split(",").map { |p| p.to_i }
                 haproxy_user = (proxy_cfg.get("HAPROXY_USER") or "haproxy")
                 haproxy_run_path = (proxy_cfg.get("HAPROXY_RUN_PATH") or "/var/lib/haproxy")
 
@@ -183,6 +208,12 @@ module OpenShift
                   f.write(cfg_template.result(binding))
 
                   ports.each do |port|
+                    bind_addrs=[]
+                    if (bind_ip != "") and (bind_ip!="127.0.0.1")
+                      bind_addrs << "127.0.0.1:#{port}"
+                    end
+                    bind_addrs << "#{bind_ip}:#{port}"
+
                     f.write(listen_template.result(binding))
                     self.each do |fqdn, entry|
                       entry["connections"].select { |p, b| p.to_i == port }.each do |p, backend|
