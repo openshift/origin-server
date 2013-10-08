@@ -7,10 +7,10 @@ class RestEnvironmentVariable < OpenShift::Model
     app_id = app.uuid
     unless nolinks      
       self.links = {
-        "GET" => Link.new("Get environment variable", "GET", URI::join(url, "applications/#{app_id}/environment-variables/#{self.name}")),
-        "UPDATE" => Link.new("Update environment variable", "PUT", URI::join(url, "applications/#{app_id}/environment-variables/#{self.name}"),
+        "GET" => Link.new("Get environment variable", "GET", URI::join(url, "application/#{app_id}/environment-variable/#{self.name}")),
+        "UPDATE" => Link.new("Update environment variable", "PUT", URI::join(url, "application/#{app_id}/environment-variable/#{self.name}"),
           [Param.new("value", "string", "Value of the environment variable")]), 
-        "DELETE" => Link.new("Delete environment variable", "DELETE", URI::join(url, "applications/#{app_id}/environment-variables/#{self.name}"))
+        "DELETE" => Link.new("Delete environment variable", "DELETE", URI::join(url, "application/#{app_id}/environment-variable/#{self.name}"))
       }
     end
   end
