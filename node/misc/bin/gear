@@ -121,48 +121,49 @@ command :prereceive do |c|
     do_command(c, options) do
       if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] == 'binary'
         puts "OPENSHIFT_DEPLOYMENT_TYPE is 'binary' - git-based deployments are disabled."
-      else
-        marker_added     = false
-        marker_deleted   = false
-        marker_committed = file_committed?(HOT_DEPLOY_MARKER)
+        exit 255
+      end
 
-        # determine the branch to deploy, in order of priority:
-        # - if $OPENSHIFT_DEPLOYMENT_BRANCH is set, use that
-        # - fallback to master
-        branch_to_deploy = ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
-        found_deployment_branch = false
+      marker_added     = false
+      marker_deleted   = false
+      marker_committed = file_committed?(HOT_DEPLOY_MARKER)
 
-        $stdin.each_line do |str|
-          arr  = str.split
-          refs = arr[2].split('/')
+      # determine the branch to deploy, in order of priority:
+      # - if $OPENSHIFT_DEPLOYMENT_BRANCH is set, use that
+      # - fallback to master
+      branch_to_deploy = ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
+      found_deployment_branch = false
 
-          old_rev  = arr[0]  # SHA
-          new_rev  = arr[1]  # SHA
-          ref_name = refs[2..-1].join('/') # develop, 1.4, dev/mybranch etc.
+      $stdin.each_line do |str|
+        arr  = str.split
+        refs = arr[2].split('/')
 
-          next unless branch_to_deploy == ref_name
+        old_rev  = arr[0]  # SHA
+        new_rev  = arr[1]  # SHA
+        ref_name = refs[2..-1].join('/') # develop, 1.4, dev/mybranch etc.
 
-          found_deployment_branch = true
+        next unless branch_to_deploy == ref_name
 
-          case latest_status(old_rev, new_rev, HOT_DEPLOY_MARKER)
-          when "A"
-            marker_added = true
-          when "D"
-            marker_deleted = true
-          end
+        found_deployment_branch = true
 
-          break
+        case latest_status(old_rev, new_rev, HOT_DEPLOY_MARKER)
+        when "A"
+          marker_added = true
+        when "D"
+          marker_deleted = true
         end
 
-        hot_deploy = marker_added || (marker_committed && !marker_deleted)
+        break
+      end
 
-        # only call pre_receive if
-        # - this is the first build ever, i.e. app-root/runtime/repo doesn't exist, OR
-        # - auto deployments are enabled
-        repo_dir = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
-        if !File.exist?(repo_dir) or (found_deployment_branch and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
-          @container.pre_receive(out: $stdout, err: $stderr, hot_deploy: hot_deploy)
-        end
+      hot_deploy = marker_added || (marker_committed && !marker_deleted)
+
+      # only call pre_receive if
+      # - this is the first build ever, i.e. app-root/runtime/repo doesn't exist, OR
+      # - auto deployments are enabled
+      repo_dir = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
+      if !File.exist?(repo_dir) or (found_deployment_branch and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
+        @container.pre_receive(out: $stdout, err: $stderr, hot_deploy: hot_deploy)
       end
     end
   end
@@ -176,64 +177,65 @@ command :postreceive do |c|
     do_command(c, options) do
       if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] == 'binary'
         puts "OPENSHIFT_DEPLOYMENT_TYPE is 'binary' - git-based deployments are disabled."
-      else
-        # determine the branch to deploy, in order of priority:
-        # - if $OPENSHIFT_DEPLOYMENT_BRANCH is set, use that
-        # - fallback to master
-        branch_to_deploy = ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
+        exit 255
+      end
 
-        found_deployment_branch = false
+      # determine the branch to deploy, in order of priority:
+      # - if $OPENSHIFT_DEPLOYMENT_BRANCH is set, use that
+      # - fallback to master
+      branch_to_deploy = ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
 
-        $stdin.each_line do |str|
-          arr  = str.split
-          refs = arr[2].split('/')
-          ref_name = refs[2..-1].join('/') # develop, 1.4, dev/mybranch etc.
+      found_deployment_branch = false
 
-          next unless branch_to_deploy == ref_name
+      $stdin.each_line do |str|
+        arr  = str.split
+        refs = arr[2].split('/')
+        ref_name = refs[2..-1].join('/') # develop, 1.4, dev/mybranch etc.
 
-          found_deployment_branch = true
-          break
+        next unless branch_to_deploy == ref_name
+
+        found_deployment_branch = true
+        break
+      end
+
+      # only call post_receive if
+      # - this is the first build ever, i.e. app-root/runtime/repo doesn't exist, OR
+      # - auto deployments are enabled
+      repo_dir = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
+      if !File.exist?(repo_dir) or (found_deployment_branch and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
+        result = @container.post_receive(out: $stdout,
+                                         err: $stderr,
+                                         hot_deploy: file_committed?(HOT_DEPLOY_MARKER),
+                                         branch: branch_to_deploy,
+                                         force_clean_build: file_committed?(FORCE_CLEAN_BUILD_MARKER),
+                                         report_deployments: true,
+                                         all: true)
+
+        puts "Result: #{result[:status]}"
+
+        if distribute_result = result[:distribute_result] and not distribute_result[:gear_results].empty?
+          distribute_status = distribute_result[:status]
+          puts "Distribution status: #{distribute_status}"
+
+          if distribute_status != RESULT_SUCCESS
+            puts "Distribution failed for the following gears:"
+            failures = distribute_result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+            puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+          end
         end
 
-        # only call post_receive if
-        # - this is the first build ever, i.e. app-root/runtime/repo doesn't exist, OR
-        # - auto deployments are enabled
-        repo_dir = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
-        if !File.exist?(repo_dir) or (found_deployment_branch and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
-          result = @container.post_receive(out: $stdout,
-                                           err: $stderr,
-                                           hot_deploy: file_committed?(HOT_DEPLOY_MARKER),
-                                           branch: branch_to_deploy,
-                                           force_clean_build: file_committed?(FORCE_CLEAN_BUILD_MARKER),
-                                           report_deployments: true,
-                                           all: true)
+        if activate_result = result[:activate_result]
+          activate_status = activate_result[:status]
+          puts "Activation status: #{activate_status}"
 
-          puts "Result: #{result[:status]}"
-
-          if distribute_result = result[:distribute_result] and not distribute_result[:gear_results].empty?
-            distribute_status = distribute_result[:status]
-            puts "Distribution status: #{distribute_status}"
-
-            if distribute_status != RESULT_SUCCESS
-              puts "Distribution failed for the following gears:"
-              failures = distribute_result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
-              puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
-            end
+          if activate_status != RESULT_SUCCESS
+            puts "Activation failed for the following gears:"
+            failures = activate_result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+            puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
           end
-
-          if activate_result = result[:activate_result]
-            activate_status = activate_result[:status]
-            puts "Activation status: #{activate_status}"
-
-            if activate_status != RESULT_SUCCESS
-              puts "Activation failed for the following gears:"
-              failures = activate_result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
-              puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
-            end
-          end
-
-          puts "Deployment completed"
         end
+
+        puts "Deployment completed"
       end
     end
   end
@@ -374,17 +376,42 @@ command :binary_deploy do |c|
 
   c.description = "Deploy a binary artifact"
   c.action do |args, options|
+    if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] != 'binary'
+        puts "OPENSHIFT_DEPLOYMENT_TYPE is 'git' - binary deployments are disabled."
+        exit 255
+    end
+
+    puts "Beginning binary deployment"
+
     options = { stdin: $stdin }
 
     deployment_datetime = @container.create_deployment_dir(force_clean_build: true)
     options[:deployment_datetime] = deployment_datetime
 
     @container.prepare(options)
-    @container.distribute(options)
+    result = @container.distribute(options)
+    distribute_status = result[:status]
+    puts "Distribution status: #{distribute_status}"
+
+    if distribute_status != RESULT_SUCCESS
+      puts "Distribution failed for the following gears:"
+      failures = result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+      puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+    end
 
     options[:all]                = true
     options[:report_deployments] = true
-    @container.activate(options)
+    result = @container.activate(options)
+    activate_status = result[:status]
+    puts "Activation status: #{activate_status}"
+
+    if activate_status != RESULT_SUCCESS
+      puts "Activation failed for the following gears:"
+      failures = result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+      puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+    end
+
+    puts 'Deployment completed'
   end
 end
 
