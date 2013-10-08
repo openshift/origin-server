@@ -122,7 +122,7 @@ class OpenShift::Runtime::DeploymentTester
     assert_gear_deployment_consistency(@api.gears_for_app(app_name))
 
     if scaling
-      web_entries.values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
+      web_entries.values.each { |entry| @api.assert_http_title_for_entry entry, CHANGED_TITLE }
 
       @api.assert_scales_to app_name, framework, 3
 
@@ -132,7 +132,7 @@ class OpenShift::Runtime::DeploymentTester
       entries = gear_registry.entries
       assert_equal 3, entries[:web].size
 
-      entries[:web].values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
+      entries[:web].values.each { |entry| @api.assert_http_title_for_entry entry, CHANGED_TITLE }
     else
       @api.assert_http_title_for_app app_name, @namespace, CHANGED_TITLE
     end
@@ -146,7 +146,7 @@ class OpenShift::Runtime::DeploymentTester
 
       if scaling
         entries = gear_registry.entries
-        entries[:web].values.each { |entry| assert_http_title_for_entry entry, JENKINS_ADD_TITLE }
+        entries[:web].values.each { |entry| @api.assert_http_title_for_entry entry, JENKINS_ADD_TITLE }
       else
         @api.assert_http_title_for_app app_name, @namespace, JENKINS_ADD_TITLE
       end
@@ -154,13 +154,13 @@ class OpenShift::Runtime::DeploymentTester
 
     # rollback
     logger.info("Rolling back to #{deployment_id}")
-    logger.info @api.ssh_command("gear activate #{deployment_id} --all")
+    logger.info @api.ssh_command(app_id, "gear activate #{deployment_id} --all")
 
     assert_gear_deployment_consistency(@api.gears_for_app(app_name))
 
     if scaling
       entries = gear_registry.entries
-      entries[:web].values.each { |entry| assert_http_title_for_entry entry, DEFAULT_TITLE }
+      entries[:web].values.each { |entry| @api.assert_http_title_for_entry entry, DEFAULT_TITLE }
     else
       @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE      
     end
