@@ -12,7 +12,7 @@
         - field = 'authorization[scopes][]'
         - unmatched_scopes = @authorization.scopes - @simple_scopes.map{ |s| s[:id] }
         = hidden_field_tag field, ''
-        %table.table
+        %table.table.table-hover.table-condensed
           %thead
             %tr
               %th.nowrap{:scope => 'col'} Scope
@@ -21,20 +21,20 @@
             - @simple_scopes.each do |scope|
               - scope_id = sanitize_to_id("#{field}#{scope[:id]}")
               %tr
-                %td{:scope => 'row'}
+                %td.span3{:scope => 'row'}
                   %label.checkbox{:for => scope_id}
                     = check_box_tag field, scope[:id], @authorization.scopes.include?(scope[:id]), :id => scope_id
                     %span.nowrap= scope[:name]
                     - if scope[:default]
-                      %span.small.nowrap (default)
+                      %span.tiny-size.nowrap (default)
                 %td= scope[:description]
         - if @parameter_scopes.present?
           %p Or, you can enter scopes directly for those that require a parameter.  Separate multiple scopes with a space or comma.
-          %table.table
+          %table.table.table-condensed
             %tbody
               - @parameter_scopes.each do |scope|
                 %tr
-                  %td= scope[:id]
+                  %td.span3= scope[:id]
                   %td= scope[:description]
 
           = text_field_tag field, unmatched_scopes.join(' '), :class => 'span6'

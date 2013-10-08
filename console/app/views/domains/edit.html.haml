@@ -1,6 +1,7 @@
 - content_for :title, "Change your Namespace"
 %h1 Change your Namespace
 .alert.alert-warning
-  %strong Warning
-  Changing your domain name will alter the public URLs of your applications.  If you change your domain name you will need to update any bookmarks or external links to your applications.
+	%span.icon-warning-sign.font-icon-size-18
+	%strong Warning - 
+	Changing your domain name will alter the public URLs of your applications.  If you change your domain name you will need to update any bookmarks or external links to your applications.
 = render :partial => 'form', :locals => { :domain => @domain }

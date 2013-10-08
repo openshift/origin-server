@@ -5,7 +5,7 @@
     text-decoration: none;
     margin-right: 10px;
     margin-top: -5px;
-    margin-left: -6px;
+    margin-left: -4px;
     text-shadow: none;
     &:hover {
       color: #111;
@@ -13,7 +13,6 @@
     }
   }
 }
-
 .tile {
   background: $consolePanelColor;
   @include panel_default_boxshadow();
@@ -42,8 +41,14 @@
       .count, .restart {
         margin-left: 20px;
       }
-      .gear-icon, {
+      .text-warning + .count {
+        margin-left: 0;
+      }
+      .gear-icon {
         font-size: 20px;
+        #scaling-gear-groups & {
+          font-size: 16px;
+        }
       }
       .restart {
         &.confirm-container {
@@ -79,69 +84,20 @@
   .tile-featured h3 {
     margin-right: 20px;
   }
-  &.tile-table {
-    display: table;
-    height: 75px;
-    width: 100%;
-    background-color: #fefefe;
-    margin-bottom: 20px;
-    padding: 10px 0;
-    @include box-sizing(border-box);
-    .tile-table-cell {
-      display: table-cell;
-      vertical-align: middle;
-      &:last-child {
-        width:83%;
-      }
-    }
-    &:hover {
-      .font-icon.logo, > .tile-table-cell > .font-icon {
-        opacity: .75;
-      }
-    }
-    .font-icon.logo, .font-icon {
-      font-size: 39px;
-      text-shadow: 0 0 4px #FFFFFF;
-      opacity: .38;
-      vertical-align: bottom;
-    }
-  }
-}
-.tile-featured {
-  .tile-table {
-    display: table;
-    width: 100%;
-    margin-bottom: 10px;
-    height: 55px;
-    .tile-table-cell {
-      display: table-cell;
-      vertical-align: bottom;
-      &:last-child {
-        text-align: right;
-        vertical-align: middle;
-        width: 30%;
-      }
-      .font-icon {
-        font-size: 50px;
-        opacity: 0.30;
-      }
-    }
-  }
-  &:hover .tile-table .tile-table-cell .font-icon {
-    opacity: .7;
-  }
-  h3 {
-    line-height: 1.2;
-    margin-bottom: 0;
-  }
 }
 
 .tile-click {
   cursor: pointer;
   position: relative;
+  h3 {
+    margin-right: 10px;
+  }
   &:hover {
     background: #fff !important;
     @include panel_default_boxshadow_hover();
+    .font-icon-block {
+      opacity: 1;
+    }
     .btn {
       color: #000 !important;
     }
@@ -152,13 +108,24 @@
       }
     }
   }
+  .font-icon-block {
+    position: absolute;
+    right: 25px;
+    top: 37%;
+    font-size: $largeFontSize; 
+    color: #666;
+    opacity: .3;
+  }
+  &.tile-featured .font-icon-block {
+    top: 20px;
+  }
 }
 
 .tile-compact {
   padding-right: 35px;
   h3 {
     margin-right: 10px;
-    margin-bottom: -2px;
+    margin-bottom: 0;
   }
   a.label {
     display: inline-block;
