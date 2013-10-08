@@ -28,13 +28,10 @@
           = navigation_tab :settings, :action => :show, :name => "Settings"
           = navigation_tab :console_index, :action => :help, :name => "Help"
           - unless Console.config.disable_account
-            %li.dropdown.visible-phone
-              = link_to account_path, :class => "dropdown-toggle username", "data-target" => "#", "data-toggle" => "dropdown" do
-                %span.icon-user.icon-white
-                = current_user_id
-                %b.caret
-              %ul.dropdown-menu
-                %li= link_to "My Account", account_path
-                - unless logout_path.nil?
-                  %li.divider
-                  %li= link_to "Sign Out", logout_path, :class => "sign_out"
+            %li.account.visible-phone
+              = link_to account_path do
+                My Account (
+                %span.username #{current_user_id}
+                )
+            - unless logout_path.nil?
+              %li.visible-phone= link_to "Sign Out", logout_path, :class => "sign_out"
