@@ -19,10 +19,10 @@ Color palette
 */
 
 html {
-  background: #f2f2f2;
+  background: $consoleBody;
   height: 100%;
   &.highlight {
-    background: #e5e5e5;
+    background: darken( $consoleBody, 5%);
   }
 }
 
