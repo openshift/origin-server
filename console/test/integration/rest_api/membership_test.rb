@@ -93,6 +93,56 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert_equal [@user.login], @domain.reload.members.map(&:login)
   end
 
+  def test_unable_to_rename_domain_as_admin
+    setup_domain
+
+    assert @domain.update_members([Member.new(:id => other_user.id, :role => 'admin')])
+
+    # other user has admin access and can view domain
+    assert d = Domain.find(@domain.id, :as => other_user)
+    assert !d.owner?
+    assert  d.admin?
+    assert  d.editor?
+    assert !d.readonly?
+
+    d.name = 'modified'
+    assert !d.save, "Was able to rename as non-owner admin"
+    assert Array(d.errors[:base]).any?{ |s| s =~ /You are not permitted to perform.*change_namespace on domain.*/ }, d.errors.full_messages.join(' ')
+  end
+
+  def test_unable_to_change_domain_gear_sizes_as_admin
+    setup_domain
+    
+    assert @domain.update_members([Member.new(:id => other_user.id, :role => 'admin')])
+
+    # other user has admin access and can view domain
+    assert d = Domain.find(@domain.id, :as => other_user)
+    assert !d.owner?
+    assert  d.admin?
+    assert  d.editor?
+    assert !d.readonly?
+
+    d.allowed_gear_sizes = []
+    assert !d.save, "Was able to change domain gear sizes as non-owner admin"
+    assert Array(d.errors[:base]).any?{ |s| s =~ /You are not permitted to perform.*change_gear_sizes on domain.*/ }, d.errors.full_messages.join(' ')
+  end
+
+  def test_unable_to_delete_domain_as_admin
+    setup_domain
+    
+    assert @domain.update_members([Member.new(:id => other_user.id, :role => 'admin')])
+
+    # other user has admin access and can view domain
+    assert d = Domain.find(@domain.id, :as => other_user)
+    assert !d.owner?
+    assert  d.admin?
+    assert  d.editor?
+    assert !d.readonly?
+
+    assert !d.destroy, "Was able to delete domain as non-owner admin"
+    assert Array(d.errors[:base]).any?{ |s| s =~ /You are not permitted to perform.*destroy on domain.*/ }, d.errors.full_messages.join(' ')
+  end
+
   def test_able_to_add_other_members_as_admin
     setup_domain
 
