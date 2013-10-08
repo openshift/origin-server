@@ -134,7 +134,7 @@ table {
     td {
       border-top: 0;
     }
-    tr:hover {
+    tr:hover td {
       background-color: darken($consolePanelColor, 3%);
     }
   }
