@@ -28,7 +28,7 @@ Instead of a list of all class selectors,
 you can use the generic selector below, but it's slower:
 [class*="icon-"]:before {
 */
-.icon-github, .icon-git, .icon-java, .icon-rails, .icon-php, .icon-ruby, .icon-django, .icon-nodejs, .icon-jenkins, .icon-python, .icon-go-gopher, .icon-perl, .icon-zend, .icon-jboss, .icon-tomcat, .icon-spring, .icon-mysql-dolphin, .icon-postgresql, .icon-mongodb, .icon-mariadb, .icon-wordpress, .icon-drupal, .icon-codeigniter, .icon-shadowman, .icon-stackoverflow, .icon-aerogear, .icon-capedwarf {
+.icon-github, .icon-git, .icon-java, .icon-rails, .icon-php, .icon-ruby, .icon-django, .icon-nodejs, .icon-jenkins, .icon-python, .icon-go-gopher, .icon-perl, .icon-zend, .icon-jboss, .icon-tomcat, .icon-spring, .icon-mysql-dolphin, .icon-postgresql, .icon-mongodb, .icon-mariadb, .icon-wordpress, .icon-drupal, .icon-codeigniter, .icon-shadowman, .icon-stackoverflow, .icon-aerogear, .icon-capedwarf, .icon-redis {
 	font-family: 'openshift-logos-icon';
 	speak: none;
 	font-style: normal;
@@ -123,5 +123,8 @@ you can use the generic selector below, but it's slower:
 }
 .icon-capedwarf:before {
 	content: "\f127";
+}
+.icon-redis:before {
+	content: "\f128";
 }
 

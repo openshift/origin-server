@@ -170,8 +170,9 @@ $placeholderText:         $grayLight !default;
 // Console
 // -------------------------
 
-$consoleBackground:              #1F1F1F;
-$consoleTableBorderColor:        #383838;
+$consoleBody:					#f2f2f2;
+
+$consoleTableBorderColor:        #d8d8d8;
 $consoleTableStriped:            rgba(255,255,255,0.02);
 $consoleTableStripedHover:       rgba(255,255,255,0.04);
 

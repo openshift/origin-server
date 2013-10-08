@@ -68,6 +68,7 @@ h3 {
   margin-bottom: $h3MarginBottom;
   small {
     font-size: $baseFontSize;
+    margin-left: 5px;
   }
 }
 h4 {
@@ -76,6 +77,7 @@ h4 {
   margin-bottom: $h4MarginBottom;
   small {
     font-size: $baseFontSize * .88;
+    margin-left: 5px;
   }
 }
 h5 {
@@ -270,7 +272,8 @@ cite {
   font-style: normal;
 }
 
-.smaller {font-size: $smallFontSize ;}
+.smaller {font-size: $smallFontSize;}
+.tiny-size {font-size:$tinyFontSize;}
 
 a.external:after { 
   content: "\279A";
