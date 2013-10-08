@@ -475,16 +475,15 @@ def check_cgroup_procs
     ps_procs.each do |uuid,procs|
         cgroup_procs.each do |controller,controller_procs|
             missing = procs - controller_procs[uuid]
-            if missing.length > 0
-                missing.each do |pid|
-                    proc_data = %x[/bin/ps -p #{pid} -o uid,pid,ppid,etime,cmd].split("\n")
-
-                    # ensure the process is still running and not defunct before failing
-                    # this fixes both the transient process and the defunct process
-                    # detection problems
-                    if proc_data.size > 1 && !proc_data.last.strip.end_with?('<defunct>')
+            missing.each do |pid|
+                # ensure the process is still running and not defunct before failing
+                # this fixes both the transient process and the defunct process
+                # detection problems
+                begin
+                    if File.read("/proc/#{pid}/status") !~ /^State:\s+Z/
                         user_fail(uuid, "#{uuid} has a process missing from cgroups: #{pid} cgroups controller: #{controller}")
                     end
+                rescue Errno::ENOENT
                 end
             end
         end
