@@ -324,7 +324,7 @@
 }
 
 @media (max-width: 650px) {
-  .header.rcue .navbar.primary .nav > li > a .username{
+  .header.rcue .navbar.primary .nav > li.account > a .username {
     max-width: 100px;
   }
 }
@@ -343,13 +343,13 @@
       }
       > li {
         float: none;
+        &.account > a .username {
+          max-width: 200px;
+        }
         > a {
           padding-left: 0;
           &:hover {
             color: #fff;
-          }
-          .username {
-            max-width: 200px;
           }
         }
       }
