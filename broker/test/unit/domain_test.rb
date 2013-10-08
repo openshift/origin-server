@@ -66,10 +66,23 @@ class DomainTest < ActiveSupport::TestCase
     @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
     
     key = SystemSshKey.new(name: "key1", type: "ssh-rsa", content: "ABCD")
-    
+
     @domain.add_system_ssh_keys([key])
     @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
     assert_equal(1, @domain.system_ssh_keys.length)
+
+    k = @domain.system_ssh_keys[0]
+    assert_equal(key.name, k.name)
+    assert_equal(key.type, k.type)
+    assert_equal(key.content, k.content)
+
+    # Check logic to avoid duplicates
+    key = SystemSshKey.new(name: "key1", type: "ssh-rsa", content: "EFGH")
+
+    @domain.add_system_ssh_keys([key])
+    @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
+    assert_equal(1, @domain.system_ssh_keys.length)
+
     k = @domain.system_ssh_keys[0]
     assert_equal(key.name, k.name)
     assert_equal(key.type, k.type)
@@ -100,6 +113,12 @@ class DomainTest < ActiveSupport::TestCase
     assert_equal(2, @domain.env_vars.length)
     assert @domain.env_vars.each_cons(env_vars.size).include? env_vars
     
+    # Check logic to avoid duplicates
+    @domain.add_env_variables(env_vars)
+    @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
+    assert_equal(2, @domain.env_vars.length)
+    assert @domain.env_vars.each_cons(env_vars.size).include? env_vars
+
     @domain.remove_env_variables(env_vars)
     @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
     assert_equal(0, @domain.env_vars.length)
