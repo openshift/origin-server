@@ -89,16 +89,13 @@ module Ability
            :create_builder_application
         Role.in?(:edit, role)
 
-      when :change_namespace
-        Role.in?(:admin, role)
-
       when :change_members
         Role.in?(:admin, role)
 
       when :leave
         Role.in?(:view, role)
 
-      when :change_gear_sizes, :destroy
+      when :change_namespace, :change_gear_sizes, :destroy
         resource.owned_by?(actor_or_id)
 
       end
