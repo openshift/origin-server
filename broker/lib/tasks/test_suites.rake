@@ -49,7 +49,7 @@ namespace :test do
 
   Rake::TestTask.new :application_system_test => ['test:prepare'] do |t|
     t.libs << "test"
-    t.test_files = FileList['test/system/app_events_test.rb', 'test/system/application_test.rb', 'test/system/alias_test.rb']
+    t.test_files = FileList['test/system/app_events_test.rb', 'test/system/application_test.rb', 'test/system/alias_test.rb', 'test/system/deployment_test.rb']
     t.verbose = true
   end
 
