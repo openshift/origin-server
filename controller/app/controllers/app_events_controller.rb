@@ -9,8 +9,6 @@ class AppEventsController < BaseController
   ##
   # API to perform manage an application
   #
-  # URL: /application/:application_id/events
-  #
   # Action: POST
   # @param [String] event Application event to create. Supported types include
   #   * start: Start all application cartridges
@@ -101,7 +99,7 @@ class AppEventsController < BaseController
       msg = "Application #{@application.name} called reload"
     when 'activate'
       if deployment_id.nil? and @application.deployments.length > 0
-        deployment_id =  @application.deployments[@application.deployments.length -2].deployment_id
+        deployment_id =  @application.deployments.last.deployment_id
       end
       return render_error(:unprocessable_entity, "There are no previous deployments to activate to", 126,
                         "deployment_id") if deployment_id.nil? or deployment_id.to_s.empty?

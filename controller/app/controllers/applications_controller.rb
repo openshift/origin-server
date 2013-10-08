@@ -27,8 +27,6 @@ class ApplicationsController < BaseController
   ##
   # Retrieve a specific application
   #
-  # URL: /application/:id
-  #
   # Action: GET
   # @return [RestReply<RestApplication>] Application object
   def show
@@ -38,8 +36,6 @@ class ApplicationsController < BaseController
 
   ##
   # Create a new application
-  #
-  # URL: /domain/:domain_name/applications
   #
   # Action: POST
   # @param [String] name Application name
@@ -145,8 +141,6 @@ class ApplicationsController < BaseController
   ##
   # Update an application
   #
-  # URL: /domains/:domain_id/applications/:id
-  #
   # Action: PUT
   # @param [Boolean] auto_deploy Boolean indicating whether auto deploy is enabled (Default: true)
   # @param [String] deployment_branch The HEAD of the branch to deploy from by default (Default: master)
@@ -192,8 +186,6 @@ class ApplicationsController < BaseController
 
   ##
   # Delete an application
-  #
-  # URL: /application/:id
   #
   # Action: DELETE
   def destroy

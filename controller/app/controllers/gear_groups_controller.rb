@@ -5,7 +5,6 @@ class GearGroupsController < BaseController
   # We need to ensure backward compatibility for fetches
   GROUP_INSTANCE_ID_COMPATIBILITY_REGEX = /\A[A-Za-z0-9]+\z/
 
-  # GET /application/[application_id]/gear_groups
   def index
     gear_states = @application.get_gear_states()
     include_endpoints = (params[:include] == "endpoints")
@@ -13,7 +12,6 @@ class GearGroupsController < BaseController
     render_success(:ok, "gear_groups", group_instances, "Showing gear groups for application '#{@application.name}' with domain '#{@application.domain_namespace}'")
   end
 
-  # GET /application/[application_id]/gear-group/[id]
   def show
     gear_group_id = params[:id].presence
     include_endpoints = (params[:include] == "endpoints")
