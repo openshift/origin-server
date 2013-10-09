@@ -1,22 +1,18 @@
-- content_for :full_layout, true
-- content_for :dark_layout, true
+- content_for :page_style, 'highlight'
+- content_for :page_title, 'Applications'
 - content_for :footer do
   = render :partial => 'applications/footer'
 
 - content_for :top do
   .grid-wrapper.section-header
-    %nav.span12.span-flush-right.applications
-      %h1.flow
-        Applications
-        = render :partial => 'account_state', :locals => {:capabilities => @capabilities}
+    %nav.span12.applications
+      %h1 Applications
 
 :css
-  @media (max-width: 767px) {    
+  @media (max-width: 767px) {
     .popover {
-      bottom: 50% !important;
-      top: auto !important;
       left: auto !important;
-      right: 25% !important;
+      right: 10% !important;
     }
 
     .popover .arrow {
@@ -24,39 +20,34 @@
     }
   }
 
-  @media (max-width: 590px) {
-    .popover {
-      right: 5px !important;
-    }
-  }
-
-%section#app-list.span12
-  %section{style: 'margin-bottom: 20px;'}
+%section#app-list
+  %section
 
   .row
     .span8
-      .tile-dark
-        - groups = @applications.sort_by{ |a| [a.owner? ? 0 : 1, a.creation_time] }.group_by{ |a| a.domain_id }
-        - groups.each_pair do |domain_id, apps|
-          %h4.domain
-            - if groups.length == 1
-              Applications in domain 
-            = link_to domain_id, domain_path(domain_id)
-            - if apps.first.owner?
-            - elsif owner = apps.first.members.find(&:owner)
-              (#{owner.name})
+      - groups = @applications.sort_by{ |a| [a.owner? ? 0 : 1, a.creation_time] }.group_by{ |a| a.domain_id }
+      - groups.each_pair do |domain_id, apps|
+        %h2.flow.domain
+          - if groups.length == 1
+            Available in domain
+          = link_to domain_id, domain_path(domain_id)
+          - if apps.first.owner?
+            = render :partial => 'account_state', :locals => {:capabilities => @capabilities}
+          - elsif owner = apps.first.members.find(&:owner)
+            .flow-block.right
+              %span.owner shared by #{owner.name}
 
-          - apps.each do |application|
-            = render :partial => 'application2', :locals => {:application => application}
+        - apps.each do |application|
+          = render :partial => 'application2', :locals => {:application => application}
 
-        .btn-toolbar.base
-          = link_to application_types_path, :class => 'btn btn-primary btn-large' do
-            Add
-            %strong Application
-            %i.icon-add
+      .btn-toolbar.base
+        = link_to application_types_path, :class => 'btn btn-primary' do
+          Add
+          %strong Application
+          %i.icon-add
 
     .span4.application-suggestions
-      %h5 You may want to...
+      %h2 You may want to...
 
       %ul.unstyled
         - unless @has_key
@@ -114,7 +105,7 @@
             %span{'data-icon' => "\uee02"}
 
       - if @has_key
-        %h5 From the command line
+        %h2 From the command line
         The <code>rhc</code> client lets you:
         %ul.unstyled
           %li

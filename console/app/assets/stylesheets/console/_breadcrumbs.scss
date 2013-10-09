@@ -1,32 +1,19 @@
 .breadcrumb {
-  padding: 7px 0;
+  color: #404040;
+  font-size: $tinyFontSize;
+  padding: 25px 0 15px;
   margin: 0;
-  text-transform: uppercase;
-  color: #939598;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  li {
-    text-shadow: -1px 0 1px rgba(0, 0, 0, 0.5);
-    display: inline;
-  }
-
   a,
   a:hover,
   a:visited {
-    color: #d9d9da;
+    color: #666;
     white-space: nowrap;
   }
-
   .divider {
-    color: #939598;
+    color: $openshiftBrightRed;
     padding: 0 5px;
   }
-}
-
-@media (max-width: 767px) {
-	.breadcrumb {
-    padding: 4px 0;
-	}
+  li {
+    display: inline;
+  }
 }

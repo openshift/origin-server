@@ -1,6 +1,7 @@
+- content_for :page_title, "Create a New Application"
+
 %h1.invisible Configure New Application
 = app_wizard_steps_create 1
-= breadcrumb_for_create_application(@application_type.persisted? ? "Based on '#{@application_type.display_name}'" : "From scratch")
 = flashes
 
 :css
@@ -53,6 +54,7 @@
           %p.help-block
             - case @application_type.support_type
             - when :openshift
+              %span.icon-star-empty{"aria-hidden" => "true"}
               %span.label-support.label-support-openshift{:title => 'Updated and maintained by the OpenShift team'} OpenShift maintained
             - when :partner
               %span.label-support.label-support-openshift{:title => 'Updated and maintained by a partner'} Partner created
@@ -62,9 +64,6 @@
             - unless @application_type.automatic_updates?
               %span.text-warning{:title => 'When you create a QuickStart or a community cartridge, you are copying code from another repository. You are responsible for applying security fixes and updates.'}
                 =" / Does not receive automatic security updates"
-
-
-          %p.help-block.label-tags= application_type_tags(@application_type.tags)
 
         - else
           %p.help-block 
@@ -178,7 +177,8 @@
           capability to your code.  All applications must have a web cartridge.
 
         - if @unlock_cartridges or (@cartridges and @cartridges.any?{ |(name, carts)| carts.any?{ |c| c.url } })
-          %span.text-warning Downloaded cartridges do not receive updates automatically.
+          %p.help-block
+            %span.text-warning Downloaded cartridges do not receive updates automatically.
 
     .control-group.control-group-important
       %h3.control-label Scaling
@@ -193,7 +193,8 @@
 
       .controls
         - if warn = warn_may_not_scale(@application_type, @domain_capabilities)
-          %span.text-warning= warn
+          %p.help-block
+            %span.text-warning= warn
         %p.help-block
           OpenShift automatically routes web requests to your web gear.
           - if can_scale

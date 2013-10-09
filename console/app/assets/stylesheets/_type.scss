@@ -3,6 +3,11 @@
 // ----------------------------------------------------------------------------------------
 
 
+// LINKS
+// -----
+
+a:hover {color: $linkColorBlueHover; }
+
 // BODY TEXT
 // ---------
 
@@ -18,7 +23,7 @@ p {
 .lead {
   margin-bottom: $baseLineHeight;
   font-size: $leadFontSize;
-  font-weight: 200;
+  font-weight: 300;
   line-height: $leadLineHeight;
 }
 p.larger,
@@ -34,11 +39,13 @@ h1, h2, h3, h4, h5, h6 {
   font-family: $headerFontFamily;
   font-weight: normal;
   color: #000;
-  text-rendering: optimizelegibility; // Fix the character spacing for headings
   small {
     font-weight: normal;
     color: $grayLight;
   }
+}
+h1 {
+  font-weight: 300;
 }
 h3 + h4, h3 + h5, h4 + h5 {
   padding-top: $baseLineHeight / 3;
@@ -47,50 +54,42 @@ h3 + h4, h3 + h5, h4 + h5 {
 //}
 h1 {
   font-size: $h1FontSize;
-  line-height: $baseLineHeight * 2;
-  margin-bottom: $baseLineHeight - 8;
+  line-height: $h1LineHeight;
+  margin-bottom: $h1MarginBottom;
 }
 h2 {
   font-size: $h2FontSize;
-  line-height: $baseLineHeight * 1.75;
-  margin-bottom: $baseLineHeight / 3.5;
+  line-height: $h2LineHeight;
+  margin-bottom: $h2MarginBottom;
 }
 h3 {
   font-size: $h3FontSize;
-  line-height: $baseLineHeight * 1.5;
-  margin-bottom: $baseLineHeight / 3.5;
+  line-height: $h3LineHeight;
+  margin-bottom: $h3MarginBottom;
   small {
     font-size: $baseFontSize;
+    margin-left: 5px;
   }
 }
 h4 {
   font-size: $h4FontSize;
-  line-height: $baseLineHeight;
-  margin-bottom: $baseLineHeight / 3;
+  line-height: $h4LineHeight;
+  margin-bottom: $h4MarginBottom;
   small {
     font-size: $baseFontSize * .88;
+    margin-left: 5px;
   }
 }
 h5 {
   font-size: $h5FontSize;
-  line-height: $baseLineHeight;
-  margin-bottom: $baseLineHeight / 3;
-  text-transform: uppercase;
-  font-weight: bold;
+  line-height: $h5LineHeight;
+  margin-bottom: $h5MarginBottom;
+  font-weight: 600;
 }
 h6 {
   font-size: $h6FontSize;
-  line-height: $baseLineHeight;
-  text-transform: uppercase;
-  font-weight: bold;
-}
-
-@media (max-width:480px) {
-	h1 {font-size: 24px;line-height: $baseLineHeight * 1.5;}
-	h2 {font-size: 19.5px;line-height: $baseLineHeight * 1.25;}
-	h3 {font-size: 16.5px;}
-	h4 {font-size: 14px;}
-	h5 {font-size: 13px;}
+  line-height: $h6LineHeight;
+  font-weight: 600;
 }
 
 footer h3 {
@@ -105,7 +104,7 @@ footer h3 {
 // ASIDE
 // -----
 aside, aside p {
-    font-size: $smallFontSize;
+    font-size: $tinyFontSize;
 }
 
 // TABLES
@@ -149,6 +148,12 @@ ul.unstyled,
 ol.unstyled {
   margin-left: 0;
   list-style: none;
+  li > [data-icon]:first-child {
+    color: #999;
+    font-size: 12px;
+    margin-left: 1px;
+    margin-right: 3px;
+  }
 }
 ul.spaced-items > li, ol.spaced-items > li {
   margin-bottom: 13px;
@@ -166,7 +171,7 @@ dd {
   line-height: $baseLineHeight;
 }
 dt {
-  font-weight: bold;
+  font-weight: 600;
 }
 dd {
   margin: 0 0 10px 10px;
@@ -185,13 +190,16 @@ hr {
 
 // Emphasis
 strong {
-  font-weight: bold;
+  font-weight: 600;
 }
 em {
   font-style: italic;
 }
 .muted {
   color: $grayLight;
+}
+.light {
+  font-weight: 300;
 }
 
 // Abbreviations and acronyms
@@ -264,7 +272,8 @@ cite {
   font-style: normal;
 }
 
-.smaller {font-size: $smallFontSize ;}
+.smaller {font-size: $smallFontSize;}
+.tiny-size {font-size:$tinyFontSize;}
 
 a.external:after { 
   content: "\279A";
@@ -326,7 +335,7 @@ ul.unstyled-flat {
   }
 }
 
-.headline, .nav, .section-top, .btn-navbar {
+.headline, .section-top {
 	font-family: $headerFontFamily;
   font-weight: normal;
 }

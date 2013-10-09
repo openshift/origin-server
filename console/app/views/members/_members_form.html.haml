@@ -9,10 +9,16 @@
     margin-bottom: 0px;
     table-layout: fixed;
   }
-  .members table td {
+  .members table tr:hover td {
+  background-color: transparent;
+  }
+  .members .table td {
+    border-top: 0;
+    padding-left: 0;
     vertical-align: middle;
   }
   .members table td.member {
+    max-width: 50px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -20,10 +26,15 @@
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-  }
+  }  
   .members table select { 
     margin-bottom: 0;
+    white-space: nowrap;
     width: 100%;
+  }
+  .members table input[type="text"] {
+    width: 100%;
+    height: auto;
   }
 
   .members table a.remove-member,
@@ -33,11 +44,9 @@
     height: 20px;
   }
 
-  .members table .form-actions a {
-    font-size: 14px;
+  .members aside {
+    margin-top: 16px
   }
-
-  .members aside { margin-top: 20px }
 
   .members tr.error-row td   { padding-top: 0px; }
   .members tr.error-row td p { margin-top: 0; }
@@ -83,13 +92,13 @@
 
     %table.table.table-condensed
       %colgroup
-        %col
+        %col{:width => "45%"}
         %col{:width => "45%"}
         %col.script-only{:width => "30"}
 
       %tr
         - owner = members.find(&:owner)
-        %td.member{:title => owner.name}
+        %td.nowrap.member{:title => owner.name}
           = owner.name
         %td Owner
         %td.script-only
@@ -118,7 +127,7 @@
           %td
             -# Always start with a common field to make param hashes group correctly
             = hidden_field_tag('members[][x]', 0)
-            = text_field_tag('members[][login]', new_member.login, {:placeholder => 'User Login', :title => 'User Login', :style => "width: 100%;", :autocomplete => 'off', :class => ('error' if error)})
+            = text_field_tag('members[][login]', new_member.login, {:placeholder => 'User Login', :title => 'User Login', :autocomplete => 'off', :class => ('error' if error)})
           %td
             = select_tag('members[][role]', options_for_select(Role.role_descriptions(false), new_member.role))
           %td.script-only
@@ -136,8 +145,8 @@
             = link_to "Edit members...", "javascript:;", :class => 'edit-members'
 
     .form-actions.edit-only
-      = link_to "Cancel", domain_path(@domain), :class => 'btn btn-mini cancel script-only'
-      = submit_tag "Save", :class => 'btn btn-primary-when-dirty btn-mini'
+      = link_to "Cancel", domain_path(@domain), :class => 'btn btn-small cancel script-only'
+      = submit_tag "Save", :class => 'btn btn-primary-when-dirty btn-small'
 
     .edit-only
       %h6 What can members do?

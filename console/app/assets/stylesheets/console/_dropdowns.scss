@@ -1,63 +1,34 @@
 /******************************************************
 * Customizations
 */
-
+.dropdown {
+  display: inline-block;
+}
+.dropdown.open .dropdown-toggle {
+  background-color: #E7E7E7;
+  color: inherit;
+}
 .dropdown-menu {
-	background-color: #333;
-  background-color:rgba(60, 60, 60, 0.9);
-  @include box-shadow(0 0 1px rgba(255, 255, 255, 0.25) inset);
-  @include border-radius($radius: 0 0 3px 3px);
-
+  @include box-shadow(0 5px 5px rgba(0, 0, 0, 0.2));
+  border: 0;
+  @include border-radius(0);
+  font-size: $tinyFontSize;
   a {
-    color: #cacbcc;
+    line-height: 22px;
+    padding: 0 10px;
   }
-  > li > a:hover {
-    border-radius: 0px;
-    background-color: #5a5b5c;
+  .active > a, .active > a:hover, li > a:hover {
+    background-color: #0072ac;
+    background-image: -moz-linear-gradient(top, #08c, #007bb9);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#08c), to(#007bb9));
+    background-image: -webkit-linear-gradient(top, #08c, #007bb9);
+    background-image: -o-linear-gradient(top, #08c, #007bb9);
+    background-image: linear-gradient(to bottom, #08c, #007bb9);
   }
-
   hr {
-    margin: 9px 0;
+    margin: 4px 0;
   }
-}
-
-#utility-nav > li.dropdown,
-#utility-nav > li:last-child {
-	margin-left: 15px;
-}
-#utility-nav .dropdown-menu {
-  position: relative;
-  min-width: 1px;
-  width:100%;
-  float: none;
-  border:none;
-}
-@media (max-width:767px) {
-	#utility-nav .dropdown-menu {position:absolute;}
-}
-#utility-nav .dropdown.open .dropdown-toggle {
-  color: #CACBCC;
-	background-color: #444;
-  background:rgba(70, 70, 70, 0.75) image-url("console/arrow-down.png") 95% 15px no-repeat;
-  @include border-radius($radius: 3px 3px 0 0);
-  
-  &:hover, &:active {
-  	color: #fff;
-  }
-}
-#utility-nav .dropdown-toggle {
-	background-color: #444;
-  background:rgba(70, 70, 70, 0.25) image-url("console/arrow-down.png") 95% 15px no-repeat;
-  padding: 0 25px 0 10px;
-  color: #CACBCC;
-  white-space: nowrap;
-	line-height: 30px;
-  text-decoration: none !important;
-  display: block;
-  @include box-shadow(0 1px rgba(255, 255, 255, 0.05) inset, 0 -1px rgba(255, 255, 255, 0.15) inset, 0 10px 20px rgba(255, 255, 255, 0.125) inset, 0 3px 1px rgba(0, 0, 0, 0.5) inset);
-  @include border-radius($radius: 3px);
-  
-  &:hover, &:active {
-  	color: #fff;
+  li {
+    margin-bottom: 0;
   }
 }

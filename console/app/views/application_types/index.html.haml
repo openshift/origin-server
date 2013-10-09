@@ -1,5 +1,7 @@
+- content_for :page_style, 'highlight'
+- content_for :page_title, "Create a New Application"
+
 %h1.invisible Create a New Application
-= breadcrumb_for_create_application
 = app_wizard_steps_create 0
 = flashes
 
@@ -8,8 +10,8 @@
     %p.larger
       Choose a web programming cartridge or kick the tires with a
       quickstart. After you create the application 
-      you can add <strong>cartridges</strong> to enable additional 
-      capabilities like databases, metrics, and continuous build 
+      you can <strong>add cartridges to enable additional 
+      capabilities</strong> like databases, metrics, and continuous build 
       support with Jenkins.
   
     %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
@@ -18,7 +20,7 @@
       %button.search.font-icon{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"}
     - if @browse_tags.present?
       %span.dropdown
-        %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
+        %button.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
           Browse by tag...
           %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee12"}
         %ul.dropdown-menu#tag-filter
@@ -47,7 +49,7 @@
     %h3.divide Featured
     .row-fluid
       - @featured_types.each do |type|
-        %div{:class => @featured_types.length > 2 ? 'span4 tile-dark' : 'span6 tile-dark'}
+        %div{:class => @featured_types.length > 2 ? 'span4' : 'span6'}
           = render :partial => 'application_type', :object => type, :locals => {:excluded_tags => []}
 
 %section
@@ -62,7 +64,7 @@
     .row
       - in_columns_of(2, types).each do |types|
         .span6
-          .section.tile-dark
+          .section
             - types.sort!.each do |type|
               = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}
 
@@ -71,11 +73,11 @@
       - in_balanced_columns_of(2, @type_groups).each do |groups|
         .span6
           - groups.each do |(title, types, link)|
-            .section.tile-dark
+            .section
               %h3.divide
                 = title
                 - if link
-                  %small= link_to "(see all)", link, :class => 'pull-right'
+                  %small= link_to "see all", link, :class => 'pull-right'
               - excluded_tags = common_tags_for(types)
               - types.sort!.each do |type|
                 = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}
@@ -100,7 +102,6 @@
           
         .span6
           %p Want to build your own cartridge? Get started with the DIY cart.
-          .tile-dark
-            - excluded_tags = common_tags_for(@custom_types)
-            - @custom_types.sort!.each do |type|
-              = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}
+          - excluded_tags = common_tags_for(@custom_types)
+          - @custom_types.sort!.each do |type|
+            = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}

@@ -1,11 +1,11 @@
-$baseFontFamily:      "Helvetica Neue", Helvetica, "Liberation Sans", Arial, sans-serif !default;
-$headerFontFamily:    "Helvetica Neue", Helvetica, Arial, sans-serif !default;
+$baseFontFamily:     "Open Sans", "Helvetica Neue", Helvetica, "Liberation Sans", Arial, sans-serif !default;
+$headerFontFamily:   "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 $monoFontFamily:      Menlo, Monaco, "Liberation Mono", Consolas, monospace !default;
 
-$baseLineHeight:          20.5px;
-$baseFontSize:						14.5px;
+$baseLineHeight:          20px;
+$baseFontSize:						14px;
 $leadLineHeight:          $baseLineHeight * 1.5;
-$leadFontSize:            20px;
+$leadFontSize:            17px;
 $largeLineHeight:         $baseLineHeight * 1.2;
 $largeFontSize:           17px;
 $smallFontSize:           13.5px;
@@ -13,12 +13,26 @@ $tinyFontSize:            12px;
 $extraTinyFontSize:       10.75px;
 
 // For matching header sizes exactly
-$h1FontSize:              $baseFontSize * 2.25;
-$h2FontSize:              $baseFontSize * 1.62;
-$h3FontSize:              $baseFontSize * 1.38;
-$h4FontSize:              $baseFontSize * 1.18;
+$h1FontSize:              $baseFontSize * 1.65;
+$h2FontSize:              $baseFontSize * 1.38;
+$h3FontSize:              $baseFontSize * 1.24;
+$h4FontSize:              $baseFontSize * 1.10;
 $h5FontSize:              $baseFontSize;
-$h6FontSize:              $baseFontSize * .85;
+$h6FontSize:              $baseFontSize * .9;
+
+$h1LineHeight:              $baseLineHeight * 2;
+$h2LineHeight:              $baseLineHeight * 1.75;
+$h3LineHeight:              $baseLineHeight * 1.5;
+$h4LineHeight:              $baseLineHeight;
+$h5LineHeight:              $baseLineHeight;
+$h6LineHeight:              $baseLineHeight;
+
+$h1MarginBottom:              $baseLineHeight - 8;
+$h2MarginBottom:              $baseLineHeight / 3.5;
+$h3MarginBottom:              $baseLineHeight / 3.5;
+$h4MarginBottom:              $baseLineHeight / 3;
+$h5MarginBottom:              $baseLineHeight / 3;
+
 
 $bodyBackground:          #fff !default;
 
@@ -27,20 +41,16 @@ $responsiveTablet:        768px;
 $responsiveDefault:       980px;
 $responsiveLarge:         1200px;
 
-$gridGutterWidth:         28px;
-$gridColumnWidth:         50px; // 80 * 12 = 960
+$gridGutterWidth:         25px;
+$gridColumnWidth:         55px; // 80 * 12 = 960
 
 $gridGutterWidthPhone:    20px; // replaces padding
 
 $gridGutterWidthTablet:   20px;
-$gridColumnWidthTablet:   42.5px; // 62 * 12 = 744 and 12px gutters
+$gridColumnWidthTablet:   42px; // 62 * 12 = 744 and 20px gutters
 
 $gridGutterWidthLarge:    40px;
 $gridColumnWidthLarge:    58.5px;
-
-$logoHeight:      91px;
-$logoWidth:       91px;
-$logoSeparation:  10px;
 
 $openshiftRed:                  #CD202C; /* From style guide */
 $openshiftBrightRed:            #EA0011;
@@ -50,18 +60,15 @@ $openshiftDarkBackgroundGray:   #333; /* From screenshots, background of sign in
 $openshiftAlmostBlack:          #030303;
 $openshiftSeriouslyAlmostBlack: #010101;
 $openshiftLinkGray:             #909090; /* Used on the signup link */
-$openshiftBorderGray:           #b4b4b2; /* From screenshots */
+$openshiftBorderGray:           #eee;
 $genericLightGreen:             #d4e16b;
 
 $preBackground:                 #eff1f1;
 $preBorder:                     rgba(120, 120, 120, 0.35);
 $preColor:                      #484848;
-$cliColor:                      #D0E57B;
 $codeColor:                     #3B3B3B;
 
-$consolePreBackground:          #222;
-$consolePreBorder:              #000;
-$consolePreColor:               #babbbc;
+$consolePreBackground:          #fefefe;
 
 $breadcrumbDividerColor:        $openshiftDarkRed;
 $breadcrumbTextColor:           $openshiftMediumBackgroundGray; 
@@ -90,6 +97,7 @@ $linkColorBlue:                 #069;
 $linkColorBlueHover:            $openshiftBrightRed;
 $linkColorBlueOnDark:           #42a0bf;
 $buttonBlueHover:               #B1E5F2;
+$highlightBlue:					#E7F6F9;
 
 $textColor:                     #404040;
 
@@ -106,7 +114,7 @@ $grayMedium:                    #505050;
 $grayDark:                      #2f2f2f;
 $grayDarker:                    #202020;
 $primaryButtonBackground:       #B1E5F2;
-$orange:                        #ffb02e;
+$orange:                        #DB880B;
 $linkColor:                     #069;
 $white:                         #fff;
 
@@ -121,16 +129,16 @@ $warningBackground:       #ffd24e;
 $warningBorder:           darken(adjust-hue($warningBackground, -10), 3%);
 
 $errorText:               white;
-$errorBackground:         #CD1E25;
+$errorBackground:         $openshiftRed;
 $errorBorder:             darken(adjust-hue($errorBackground, -10), 3%);
 
 $successText:             #222;
-$successBackground:       #8ACA1A;
+$successBackground:       #C4E5C5;
 $successBorder:           darken(adjust-hue($successBackground, -10), 5%);
 
 $infoText:                #222;
-$infoBackground:          #7FC3E1;
-$infoBorder:              darken(adjust-hue($infoBackground, -10), 7%);
+$infoBackground:          #bfd9f5;
+$infoBorder:              darken($infoBackground, 2%);
 /* END */
 
 $hrBorder:                $openshiftBorderGray;
@@ -145,11 +153,14 @@ $stripesHover:                  #ccc;
 
 $pollBarColor:                  $openshiftDarkRed;
 
-$inputBackground:               #fafafa !default;
+$inputBackground:               #fff !default;
 $inputBorder:                   #ccc !default;
 $inputBorderRadius:             3px;
-$inputDisabledBackground:       #444 !default;
+
+$inputDisabledBackground:       #eee !default;
 $inputDisabledBorder:           #222 !default;
+$inputAddOnBackground:          #efefef !default;
+
 $horizontalComponentOffset:     180px !default; /* Horizontal forms & lists */
 
 // Input placeholder text color
@@ -159,12 +170,18 @@ $placeholderText:         $grayLight !default;
 // Console
 // -------------------------
 
-$consoleBackground:              #1F1F1F;
-$consoleTableBorderColor:        #383838;
+$consoleBody:					#f2f2f2;
+
+$consoleTableBorderColor:        #d8d8d8;
 $consoleTableStriped:            rgba(255,255,255,0.02);
 $consoleTableStripedHover:       rgba(255,255,255,0.04);
 
 $consoleHeaderColor:             #fafbfc;
+$consoleTextColorDefault:		 #303030;
+
+$consolePanelColor:				#fefefe;
+$consolePanelColorDisabled:		rgba(255, 255, 255, 0.45);
+$consolePanelBorderColor:		#ddd;
 
 
 // Navbar
@@ -175,5 +192,9 @@ $navbarText:                              #e0e0e0 !default;
 $navbarLinkColor:                         $navbarText !default;
 
 $navbarBrandColor:                        $navbarLinkColor !default;
+
+// Popover
+// -------
+$popoverColor:      			$consolePanelColor;
 
 
