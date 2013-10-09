@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.9
+Version: 1.15.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -261,6 +261,13 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Oct 09 2013 Adam Miller <admiller@redhat.com> 1.15.10-1
+- Fix perms for the config files. (mrunalp@gmail.com)
+- Bug 1014768 - Audit additional uses of password calls. (rmillner@redhat.com)
+- Bug 1014768 - the previous logic could not properly distinguish usernames
+  that begin with numbers and called Etc.getpwnam too often.
+  (rmillner@redhat.com)
+
 * Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 1.15.9-1
 - Bug 1014768 - Performance improvements for node_utilization: Allow self.all
   to pass the pwnam structure rather than having to call getpwnam each time.
