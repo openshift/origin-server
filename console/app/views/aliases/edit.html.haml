@@ -1,7 +1,6 @@
-- breadcrumb_for_application @application, "Alias '#{@alias.name}'"
 - content_for :page_title, "Alias '#{@alias.name}'"
 
-%h1= "Alias '#{@alias.name}'"
+%h1 Alias '#{@alias.name}' from #{link_to @application.name, application_path(@application)}
 =flashes
 
 %section

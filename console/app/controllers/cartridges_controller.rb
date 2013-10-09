@@ -23,9 +23,9 @@ class CartridgesController < ConsoleController
       @wizard = true
 
       message = @cartridge.remote_results
-      flash.now[:info_pre] = message
+      flash[:info_pre] = message
 
-      render :next_steps
+      redirect_to application_path(@application)
     else
       Rails.logger.debug @cartridge.errors.inspect
       @application_id = @application.id
