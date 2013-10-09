@@ -24,6 +24,7 @@ Rails.application.routes.draw do
       resources :applications, :only => [:index, :show, :create, :destroy], :id => id_with_format do
         resource :descriptor, :only => :show
         resources :gear_groups, :only => [:index, :show], :id => id_with_format, :path => 'gear-groups'
+        resources :gear_groups, :only => [:index, :show], :id => id_with_format
         resources :gears, :only => [:index, :show], :id => id_with_format
         resources :cartridges, :controller => :emb_cart, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format do
           resources :events, :controller => :emb_cart_events, :only => :create
@@ -33,6 +34,7 @@ Rails.application.routes.draw do
         resources :aliases, :only => [:index, :show, :create, :update, :destroy], :controller => :alias, :id => id_with_format
         resources :members, :only => :index, :controller => :application_members, :id => id_with_format
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
+        resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
       end
 
       # Allow restful update of the domain name via the standard id parameter
@@ -46,6 +48,7 @@ Rails.application.routes.draw do
         resources :applications, :controller => :applications, :only => [:index, :show, :create, :destroy], :id => id_with_format do
           resource :descriptor, :only => :show
           resources :gear_groups, :only => [:index, :show], :id => id_with_format, :path => 'gear-groups'
+          resources :gear_groups, :only => [:index, :show], :id => id_with_format
           resources :gears, :only => [:index, :show]
           resources :cartridges, :controller => :emb_cart, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format do
               resources :events, :controller => :emb_cart_events, :only => :create
@@ -55,6 +58,7 @@ Rails.application.routes.draw do
           resources :aliases, :only => [:index, :show, :create, :update, :destroy], :controller => :alias, :id => id_with_format
           resources :members, :only => :index, :controller => :application_members, :id => id_with_format
           resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
+          resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
         end
       end
     end
@@ -71,8 +75,8 @@ Rails.application.routes.draw do
       resources :authorizations, :only => [:show, :destroy, :update], :id => id_with_format
     end
     resources :applications, :only => [:show, :destroy], :id => id_with_format do
-      resources :gear_groups, :only => [:index, :show], :id => id_with_format
       resources :gear_groups, :only => [:index, :show], :id => id_with_format, :path => 'gear-groups'
+      resources :gear_groups, :only => [:index, :show], :id => id_with_format
       resources :gears, :only => [:show], :id => id_with_format
       resources :cartridges, :controller => :emb_cart, :only => [:show, :update, :destroy], :id => id_with_format
       resource  :dns_resolvable, :only => :show, :controller => :dns_resolvable
@@ -82,8 +86,8 @@ Rails.application.routes.draw do
     resources :domains, :only => [:show, :update, :destroy], :id => id_with_format do
       resources :applications, :only => [:index, :show, :create, :destroy], :id => id_with_format do
         resource :descriptor, :only => :show
-        resources :gear_groups, :only => [:index, :show], :id => id_with_format
         resources :gear_groups, :only => [:index, :show], :id => id_with_format, :path => 'gear-groups'
+        resources :gear_groups, :only => [:index, :show], :id => id_with_format
         resources :gears, :only => [:index, :show], :id => id_with_format
         resources :cartridges, :controller => :emb_cart, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format do
           resources :events, :controller => :emb_cart_events, :only => :create
