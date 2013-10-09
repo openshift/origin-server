@@ -340,7 +340,7 @@ module OpenShift
       # If the gear extension defines an upgrade method for the gear, run it.
       #
       def pre_cartridge_upgrade(itinerary)
-        if !gear_extension.nil? && gear_extension.respond_to(:upgrade_gear)
+        if !gear_extension.nil? && gear_extension.respond_to?(:upgrade_gear)
           progress.step 'pre_cartridge_upgrade' do
             gear_extension.pre_cartridge_upgrade(progress, itinerary)
           end
@@ -348,7 +348,7 @@ module OpenShift
       end
 
       def post_cartridge_upgrade(itinerary)
-        if !gear_extension.nil? && gear_extension.respond_to(:upgrade_gear)
+        if !gear_extension.nil? && gear_extension.respond_to?(:upgrade_gear)
           progress.step 'post_cartridge_upgrade' do
             gear_extension.post_cartridge_upgrade(progress, itinerary)
           end
