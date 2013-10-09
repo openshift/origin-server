@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.15.5
+Version: 1.15.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,10 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Oct 09 2013 Adam Miller <admiller@redhat.com> 1.15.6-1
+- Characters were observed in prod causing unicode evaluation errors.
+  (rmillner@redhat.com)
+
 * Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 1.15.5-1
 - Merge pull request #3758 from mfojtik/bugzilla/998337
   (dmcphers+openshiftbot@redhat.com)
