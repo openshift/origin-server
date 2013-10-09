@@ -21,6 +21,7 @@ class AppCartridgeEventsTest < ActionDispatch::IntegrationTest
     @password = "password"
     @headers = {}
     @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:#{@password}")
+    @headers['REMOTE_USER'] = @login
     @headers["HTTP_ACCEPT"] = "application/json"
     register_user(@login, @password)
 

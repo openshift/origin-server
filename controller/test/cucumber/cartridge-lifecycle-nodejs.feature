@@ -1,7 +1,6 @@
 @runtime_extended3
 @cartridge_nodejs
 @runtime_extended
-@not-enterprise
 @not-fedora-19
 Feature: Cartridge Lifecycle NodeJS Verification Tests
   Scenario Outline: Application Creation
@@ -27,10 +26,15 @@ Feature: Cartridge Lifecycle NodeJS Verification Tests
     Then the application should not be accessible
 
     @rhel-only
-    Scenarios: RHEL scenarios
+    Scenarios: RHEL SCL scenarios
+      |  cart_name  |
+      | nodejs-0.10 |
+
+    @rhel-only 
+    @not-enterprise
+    Scenarios: RHEL non-SCL scenarios
       |  cart_name  |
       | nodejs-0.6  |
-      | nodejs-0.10 |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios

@@ -19,6 +19,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     @headers = {}
     @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @headers["HTTP_ACCEPT"] = "application/json"
+    @headers['REMOTE_USER'] = @login
     register_user(@login, @password)
 
     https!

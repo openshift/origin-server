@@ -1,6 +1,5 @@
 @runtime
 @runtime_extended1
-@not-enterprise
 Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenario Outline: Application Creation
   #Given a new <cart_name> application, verify its availability

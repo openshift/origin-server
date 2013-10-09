@@ -14,6 +14,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     @headers = {}
     @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @headers["HTTP_ACCEPT"] = "application/json"
+    @headers['REMOTE_USER'] = @login
     register_user(@login, @password)
 
     https!
@@ -156,6 +157,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     @new_headers = {}
     @new_headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("new#{@login}:password")
     @new_headers["HTTP_ACCEPT"] = "application/json"
+    @new_headers['REMOTE_USER'] = "new#{@login}"
     register_user("new#{@login}","password")
     request_via_redirect(:put, DOMAIN_COLLECTION_URL + "/#{ns}", {:name => new_ns}, @new_headers)
     assert_response :not_found
@@ -218,6 +220,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     @new_headers = {}
     @new_headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("new#{@login}:password")
     @new_headers["HTTP_ACCEPT"] = "application/json"
+    @new_headers['REMOTE_USER'] = "new#{@login}"
     register_user("new#{@login}","password")
     request_via_redirect(:delete, DOMAIN_COLLECTION_URL + "/#{ns}", {}, @new_headers)
     assert_response :not_found

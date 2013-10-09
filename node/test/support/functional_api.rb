@@ -31,6 +31,7 @@ class FunctionalApi
 
   def initialize
     @login = "user#{random_string}"
+    register_user(@login,"password")
     @namespace = "ns#{random_string}"
     @url_base = "https://#{@login}:password@localhost/broker/rest"
     @tmp_dir = "/var/tmp-tests/#{Time.now.to_i}"
@@ -45,6 +46,14 @@ class FunctionalApi
       print "Unknown auth plugin. Not registering user #{$user}/#{$password}."
       print "Modify #{__FILE__}#initialize if user registration is required."
       cmd = nil
+    end
+  end
+
+  def register_user(login=nil, password=nil)
+    if ENV['REGISTER_USER']
+      if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
+        `/usr/bin/htpasswd -b /etc/openshift/htpasswd #{login} #{password}`
+      end
     end
   end
 
