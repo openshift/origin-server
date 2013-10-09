@@ -61,7 +61,8 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
     app_name2 = "#{app_name}2"
     app_id2 = @api.create_application(app_name2, cartridges, scaling)
     @api.add_ssh_key(app_id2, app_name2)
-    @api.deploy_artifact(app_id2, artifact_path)
+    @api.set_deployment_type(app_name2, 'binary')
+    @api.deploy_artifact(app_id2, app_name2, artifact_path)
 
     @api.assert_http_title_for_app(app_name2, @namespace, CHANGED_TITLE)
   end
