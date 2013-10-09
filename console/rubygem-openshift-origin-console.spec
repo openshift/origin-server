@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.15.7
+Version:       1.15.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -154,6 +154,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 09 2013 Adam Miller <admiller@redhat.com> 1.15.8-1
+- Fix bug 1016432 - restrict domain rename to owner (jliggitt@redhat.com)
+
 * Tue Oct 01 2013 Adam Miller <admiller@redhat.com> 1.15.7-1
 - Merge pull request #3729 from smarterclayton/suggest_app_name
   (dmcphers+openshiftbot@redhat.com)
