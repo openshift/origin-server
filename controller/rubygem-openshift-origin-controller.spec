@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.10
+Version: 1.15.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,21 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 09 2013 Adam Miller <admiller@redhat.com> 1.15.11-1
+- Merge pull request #3822 from
+  smarterclayton/to_stage_bug_1017000_fix_more_routes
+  (dmcphers+openshiftbot@redhat.com)
+- Expose both versions of routes (gear-groups and gear_groups)
+  (ccoleman@redhat.com)
+- Allow API versions >= 1.2 to create multiple domains (ccoleman@redhat.com)
+- Bug 1017000 - Expose correct form of gear-groups (ccoleman@redhat.com)
+- Update REST API objects to point to singular routes (ccoleman@redhat.com)
+- Merge pull request #3794 from
+  liggitt/bug_1016432_rename_domain_as_admin_stage
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1016432 - restrict domain rename to owner (jliggitt@redhat.com)
+- Fix typos and NPE discovered in newrelic logs (jliggitt@redhat.com)
+
 * Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 1.15.10-1
 - Merge pull request #3768 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
