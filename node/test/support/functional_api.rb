@@ -174,6 +174,11 @@ EOFZ
     logger.info `oo-admin-ctl-user -l #{@login} --allowha true`
   end
 
+  def set_deployment_type(app_name, type)
+    logger.info "Setting deployment type for #{app_name} to #{type}"
+    add_env_vars(app_name, [ { name: 'OPENSHIFT_DEPLOYMENT_TYPE', value: type }])
+  end
+
   def make_ha(app_name)
     begin
       response = RestClient::Request.execute(method: :post,
@@ -256,7 +261,8 @@ EOFZ
     "#{@tmp_dir}/#{app_id}_archive.tar.gz"
   end
 
-  def deploy_artifact(app_id, file)
-    `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary_deploy`
+  def deploy_artifact(app_id, app_name, file)
+    logger.info("Deploying #{file} to app #{app_name}")
+    logger.info `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary_deploy`
   end
 end

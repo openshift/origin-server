@@ -2,4 +2,4 @@
 
 cd ~
 
-gear binary-deploy
+gear binary_deploy
