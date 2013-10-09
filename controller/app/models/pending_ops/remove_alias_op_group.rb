@@ -11,6 +11,7 @@ class RemoveAliasOpGroup < PendingAppOpGroup
         break
       end
     end
+    pending_ops.push NotifyAliasRemoveOp(fqdn: fqdn)
   end
 
 end
