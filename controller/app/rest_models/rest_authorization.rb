@@ -8,11 +8,11 @@ class RestAuthorization < OpenShift::Model
     self.identity = auth.identity_id
 
     self.links = {
-      "GET" => Link.new("Get authorization", "GET", URI::join(url, "user/authorizations/#{id}")),
-      "UPDATE" => Link.new("Update authorization", "PUT", URI::join(url, "user/authorizations/#{id}"), [
+      "GET" => Link.new("Get authorization", "GET", URI::join(url, "user/authorization/#{id}")),
+      "UPDATE" => Link.new("Update authorization", "PUT", URI::join(url, "user/authorization/#{id}"), [
         Param.new("note", "string", "A note to remind you what this token is for."),
       ]),
-      "DELETE" => Link.new("Delete authorization", "DELETE", URI::join(url, "user/authorizations/#{id}"))
+      "DELETE" => Link.new("Delete authorization", "DELETE", URI::join(url, "user/authorization/#{id}"))
     } unless nolinks
   end
 
