@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.15.2
+Version: 1.15.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,9 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed Oct 09 2013 Adam Miller <admiller@redhat.com> 1.15.3-1
+- Bug 1014768 - Audit additional uses of password calls. (rmillner@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
 - Merge pull request #3647 from detiber/runtime_card_255
   (dmcphers+openshiftbot@redhat.com)
