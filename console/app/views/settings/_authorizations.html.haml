@@ -3,13 +3,12 @@
   Allow clients and 3rd parties to access your account via a secret token.
 
 - if authorizations.present?
-  %table.table.table-condensed.table-bordered
+  %table.table
     %thead
       %tr
         %th.nowrap{:scope => 'col'} Note
         %th.nowrap{:scope => 'col'} Scope
         %th.nowrap{:scope => 'col'} Expires in
-    %tbody
     - authorizations.each do |authorization|
       %tr{:id => "#{authorization.id}_auth"}
         %td{:scope => 'row'}= link_to authorization.note.presence || "<none>", authorization_path(authorization)
