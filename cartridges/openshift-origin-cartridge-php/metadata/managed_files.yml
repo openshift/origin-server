@@ -4,7 +4,7 @@ locked_files:
 - bin/
 - bin/*
 - conf/
-- conf/*
+- conf/performance.conf.erb.hidden
 - configuration/
 - configuration/etc/
 - configuration/etc/conf/
