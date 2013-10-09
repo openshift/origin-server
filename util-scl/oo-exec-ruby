@@ -3,4 +3,4 @@
 # If it did we would use:  exec scl enable ruby193 "$@"
 
 COMMAND="$(printf "%q " "$@")"
-exec scl enable ruby193 "$COMMAND"
+X_SCLS="${X_SCLS//ruby193 }" exec scl enable ruby193 "$COMMAND"
