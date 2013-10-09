@@ -196,8 +196,8 @@
     - members = @application.members
     - if members.size > 1
       %h2
-        Members from 
-        =link_to "domain", domain_members_path(@application.domain_id)
+        Members from domain
+        #{link_to @application.domain_id, domain_path(@application.domain_id)}
       %table.table.table-condensed
         - if me = members.find(&:me)
           %tr
