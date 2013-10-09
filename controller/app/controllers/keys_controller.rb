@@ -49,7 +49,7 @@ class KeysController < BaseController
     render_success(:created, "key", ssh_key, "Created SSH key #{name}", result, nil, 'IP' => request.remote_ip)
   end
 
-  #PUT /user/keys/<id>
+  #PUT /user/key/[name]
   def update
     id = params[:id].presence
     content = params[:content].presence
@@ -72,7 +72,7 @@ class KeysController < BaseController
     render_success(:ok, "key", ssh_key, "Updates SSH key #{id} for user #{@cloud_user.login}", result, nil, 'IP' => request.remote_ip)
   end
 
-  #DELETE /user/keys/<id>
+  #DELETE /user/key/[name]
   def destroy
     id = params[:id].presence
 

@@ -4,7 +4,9 @@ class EmbCartEventsController < BaseController
   action_log_tag_resource :cartridge
   before_filter :get_application
 
-  # POST /domain/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]/events
+  # URL: /application/:application_id/cartridge/:name/events
+  #
+  # Action: POST
   def create
     cartid = params[:cartridge_id].downcase if params[:cartridge_id].presence
     event = params[:event].downcase if params[:event].presence
