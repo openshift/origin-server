@@ -44,10 +44,9 @@ NAME_PLUGINS="bind"
 MESG_PLUGINS="mcollective"
 
 DEFAULT_PACKAGES="
-  ruby
   rubygem-openshift-origin-common
   rubygem-openshift-origin-controller
-  openshift-origin-broker 
+  openshift-origin-broker
 "
 
 DEFAULT_SERVICES="openshift-broker"
@@ -83,12 +82,19 @@ function safe_bundle() {
     bundle exec "$@"
 }
 
+function safe_ruby() {
+    ruby "$@"
+}
+
 USE_SCL=""
 
 if which scl 1> /dev/null 2> /dev/null && scl -l | grep -q '^ruby193$' ; then
     USE_SCL="TRUE"
     function safe_bundle() {
         scl enable ruby193 "bundle exec \"$@\""
+    }
+    function safe_ruby() {
+        scl enable ruby193 "ruby \"$@\""
     }
 
     PACKAGES+="  ruby193-rubygem-rails
@@ -149,12 +155,12 @@ function check_ruby_requirements() {
     verbose checking ruby requirements
     if [ -z "${USE_SCL}" -a ! -x /usr/bin/ruby ]
     then
-	  fail ruby is not installed or not executable
+	  fail "ruby is not installed or not executable"
 	  return
     fi
     if ! /usr/bin/which oo-ruby 1> /dev/null 2> /dev/null
     then
-      fail oo-ruby wrapper is not in path
+      fail "oo-ruby wrapper is not in path"
       return
     fi
     for OSO_RUBY_LIB in $*
@@ -301,7 +307,7 @@ function run_ruby_rails_command() {
       fail OSO_ENVIRONMENT is unset.  Cannot load app configuration
       exit $STATUS
   fi
-  if which ruby 2>/dev/null >/dev/null
+  if which oo-ruby 2>/dev/null >/dev/null
   then
       pushd /var/www/openshift/broker > /dev/null
       safe_bundle "ruby -I ${OSO_BROKER_ROOT} -r rubygems --" <<EOF 2>&1
@@ -318,7 +324,7 @@ EOF
       popd > /dev/null
       return $RETVAL
   else
-      fail ruby is not installed or not executable
+      fail "oo-ruby is not installed or not executable"
       exit $STATUS
   fi
 }
