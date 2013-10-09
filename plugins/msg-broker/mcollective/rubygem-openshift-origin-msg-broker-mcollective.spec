@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.15.3
+Version: 1.15.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,9 @@ sed -e -i "s|\(/etc/mcollective/client.cfg\)|/opt/rh/ruby193/root/\1|" /etc/open
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Oct 09 2013 Adam Miller <admiller@redhat.com> 1.15.4-1
+- Fix typos and NPE discovered in newrelic logs (jliggitt@redhat.com)
+
 * Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - Added skip_node_ops flag to app/domain/user/district models.
   (rpenta@redhat.com)
