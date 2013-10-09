@@ -19,4 +19,5 @@ else if [ ! -f $OPENSHIFT_POSTGRESQL_DIR/env/OPENSHIFT_POSTGRESQL_VERSION ]
   fi
 fi
 
+publish_gear_max_memory_in_mb $OPENSHIFT_POSTGRESQL_DIR/env
 update_configuration $version

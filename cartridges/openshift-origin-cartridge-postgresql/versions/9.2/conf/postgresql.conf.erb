@@ -31,14 +31,14 @@ unix_socket_permissions = 0700
 
 # - Memory -
 
-shared_buffers = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 16 : 64 %>MB
+shared_buffers = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 16 : (ENV['OPENSHIFT_GEAR_MAX_MEMORY_IN_MB'].to_i / 8) %>MB
 temp_buffers = 1MB
 work_mem = 3MB
 
 #------------------------------------------------------------------------------
 # QUERY TUNING
 #------------------------------------------------------------------------------
-effective_cache_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 40 : 186 %>MB
+effective_cache_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 40 : (ENV['OPENSHIFT_GEAR_MAX_MEMORY_IN_MB'].to_i * 0.35).to_i %>MB
 
 #------------------------------------------------------------------------------
 # ERROR REPORTING AND LOGGING
