@@ -30,6 +30,7 @@ class EmbCartController < BaseController
     scales_from = Integer(params[:scales_from].presence) rescue nil
     scales_to = Integer(params[:scales_to].presence) rescue nil
     additional_storage = Integer(params[:additional_storage].presence) rescue nil
+    gear_size = params[:gear_size] rescue nil 
 
     user_env_vars = params[:environment_variables].presence
     Application.validate_user_env_variables(user_env_vars, true)
@@ -42,16 +43,20 @@ class EmbCartController < BaseController
       cart_urls = [params[:url]]
     # :cartridge param is deprecated because it isn't consistent with
     # the rest of the apis which take :name. Leave it here because
-    # some tools may still use it
-    elsif params[:cartridge].is_a? Hash 
-      # unlikely that any client tool will use this format. nevertheless..
-      cart_urls = [params[:cartridge][:url]] if params[:cartridge][:url].is_a? String
-      name = params[:cartridge][:name] if params[:cartridge][:name].is_a? String
+    # some tools may still use it 
     elsif params[:cartridge].is_a? String
       name = params[:cartridge]
     else
       return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109)
     end
+
+    valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & @application.domain.allowed_gear_sizes & @application.domain.owner.allowed_gear_sizes
+
+    return render_error(:forbidden, "The owner of the domain #{@application.domain.namespace} has disabled all gear sizes from being created.  You will not be able to add any cartridge in this domain.",
+                        134) if valid_sizes.empty?
+
+    return render_error(:unprocessable_entity, "The gear size: #{gear_size} is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.",
+                        134, "gear_size") if gear_size and !valid_sizes.include?(gear_size)
 
     if cart_urls.length > 0
       begin
@@ -114,11 +119,12 @@ class EmbCartController < BaseController
       unless colocate_component_instance.nil?
         group_overrides << {"components" => [colocate_component_instance.to_hash, comp_spec]}
       end
-      if !scales_to.nil? or !scales_from.nil? or !additional_storage.nil?
+      if !scales_to.nil? or !scales_from.nil? or !additional_storage.nil? or !gear_size.nil?
         group_override = {"components" => [comp_spec]}
         group_override["min_gears"] = scales_from unless scales_from.nil?
         group_override["max_gears"] = scales_to unless scales_to.nil?
         group_override["additional_filesystem_gb"] = additional_storage unless additional_storage.nil?
+        group_override["gear_size"] = gear_size unless gear_size.nil?
         group_overrides << group_override
       end
 
@@ -140,7 +146,7 @@ class EmbCartController < BaseController
       when OpenShift::GearLimitReachedException
         render_error(:unprocessable_entity, "Unable to add cartridge: #{ex.message}", 104)
       when OpenShift::UserException
-        render_error(:unprocessable_entity, ex.message, 109, "cartridge")
+        render_error(:unprocessable_entity, ex.message, ex.code)
       else
         raise
       end

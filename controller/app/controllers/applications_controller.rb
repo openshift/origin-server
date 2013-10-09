@@ -50,16 +50,22 @@ class ApplicationsController < BaseController
     app_name = params[:name].downcase if params[:name].presence
     features = []
     downloaded_cart_urls = []
+    gear_size_map = {}
+    default_gear_size = params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]
+    default_gear_size.downcase! if default_gear_size
     cart_params = [(params[:cartridges].presence || params[:cartridge].presence)].flatten
     cart_params.each do |c|
       if c.is_a?(Hash)
         if c[:name]
           features << c[:name]
+          gear_size_map[c[:name]] = (c[:gear_size] || default_gear_size)
         elsif c[:url]
           downloaded_cart_urls << c[:url]
+          gear_size_map[c[:url]] = (c[:gear_size] || default_gear_size)
         end
       else
         features << c
+        gear_size_map[c] = default_gear_size
       end
     end
 
@@ -73,15 +79,14 @@ class ApplicationsController < BaseController
                           216, "initial_git_url") unless repo_spec
     end
 
-    default_gear_size = params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]
-    default_gear_size.downcase! if default_gear_size
+    app_gear_sizes = gear_size_map.values.uniq
     valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & @domain.allowed_gear_sizes & @domain.owner.allowed_gear_sizes
     builder_id = nil
 
     if not authorized?(:create_application, @domain)
       if authorized?(:create_builder_application, @domain, {
             :cartridges => cart_params, 
-            :gear_size => default_gear_size, 
+            :gear_sizes => app_gear_sizes,
             :valid_gear_sizes => valid_sizes,
             :domain_id => @domain._id
           })
@@ -99,8 +104,8 @@ class ApplicationsController < BaseController
     return render_error(:forbidden, "The owner of the domain #{@domain.namespace} has disabled all gear sizes from being created.  You will not be able to create an application in this domain.",
                         134) if valid_sizes.empty?
 
-    return render_error(:unprocessable_entity, "The gear size '#{default_gear_size}' is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.",
-                        134, "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
+    return render_error(:unprocessable_entity, "App gear sizes: #{app_gear_sizes.to_sentence} is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.",
+                        134, "gear_size") unless (app_gear_sizes - valid_sizes).empty?
 
 
     #auto_deploy = get_bool(params[:auto_deploy]) if params[:auto_deploy].presence || false
@@ -139,7 +144,7 @@ class ApplicationsController < BaseController
     begin
       result = ResultIO.new
       scalable = get_bool(params[:scale])
-      @application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls, builder_id, user_env_vars)
+      @application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls, builder_id, user_env_vars, gear_size_map)
 
     rescue OpenShift::UnfulfilledRequirementException => e
       return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")
