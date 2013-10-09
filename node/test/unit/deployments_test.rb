@@ -226,21 +226,6 @@ class DeploymentsTest < OpenShift::NodeTestCase
     assert_equal 0o40750, File.stat(File.join(deployment_dir, 'dependencies')).mode
   end
 
-  def test_calculate_deployment_id
-    deployment_datetime = Time.now
-    deployment_datetime_s = time_to_s(deployment_datetime)
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
-
-    @container.expects(:run_in_container_context).with("tar c . | tar xO | sha1sum | cut -f 1 -d ' '",
-                                                       chdir: deployment_dir,
-                                                       expected_exitstatus: 0)
-                                                 .returns("a1b2c3d4e5f6")
-
-    id = @container.calculate_deployment_id(deployment_datetime_s)
-
-    assert_equal "a1b2c3d4", id
-  end
-
   def test_get_deployment_datetime_for_deployment_id
     deployment_datetime = Time.now
     deployment_datetime_s = time_to_s(deployment_datetime)
