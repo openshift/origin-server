@@ -238,14 +238,6 @@
       padding-right: 0;
     }
   }
-  
-  // For use in inlined elements in combination with existing padding
-  .gutter { 
-    margin-left: $gridGutterWidthPhone;
-  }
-  .gutter-right {
-    margin-right: 0;
-  }
 
   // Put content into a box with gutters compatible with the grid
   .box-content {

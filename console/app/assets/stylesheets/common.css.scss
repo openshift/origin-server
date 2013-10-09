@@ -38,7 +38,7 @@
 //@import "twitter/forms";
 @import "forms";
 //@import "input-prepend-append";
-@import "twitter/tables";
+//@import "twitter/tables";
 
 // Components: common
 //@import "twitter/sprites";
@@ -47,7 +47,7 @@
 @import "twitter/close";
 
 // Components: Buttons & Alerts
-@import "buttons";
+//@import "buttons";
 @import "twitter/button-groups";
 @import "alerts"; // Note: alerts share common CSS with buttons and thus have styles in buttons.scss
 
@@ -82,4 +82,5 @@
 
 @import "custom";
 @import "openshift-icon";
+@import "openshift-logos-icon";
 @import "iconfont";

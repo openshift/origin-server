@@ -1,5 +1,6 @@
 - content_for :page_title, 'Settings'
 
+%h1 Settings
 = flashes
 .row
   - unless @domains.present?
@@ -11,11 +12,11 @@
       = render :partial => 'add_key', :locals => {:keys => @keys}
 
   - if @keys.present?
-    .span6
+    .span12
       %section
         = render :partial => 'keys', :locals => {:keys => @keys}
 
-  .span6
+  .span12
 
     - if @domains.present?
       %section

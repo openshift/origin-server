@@ -80,36 +80,36 @@
 // -------------------------
 // For tipsies and popovers
 @mixin popoverArrow-top($arrowWidth: 5px) {
-  bottom: -5px;
+  bottom: -$arrowWidth;
   left: 50%;
   margin-left: -$arrowWidth;
   border-left: $arrowWidth solid transparent;
   border-right: $arrowWidth solid transparent;
-  border-top: $arrowWidth solid $subtleTextDarkBackground;
+  border-top: $arrowWidth solid $popoverColor;
 }
 @mixin popoverArrow-left($arrowWidth: 5px) {
   top: 50%;
-  right: 0;
+  right: -$arrowWidth;
   margin-top: -$arrowWidth;
   border-top: $arrowWidth solid transparent;
   border-bottom: $arrowWidth solid transparent;
-  border-left: $arrowWidth solid $subtleTextDarkBackground;
+  border-left: $arrowWidth solid $popoverColor;
 }
 @mixin popoverArrow-bottom($arrowWidth: 5px) {
-  top: -5px;
+  top: -$arrowWidth;
   left: 50%;
   margin-left: -$arrowWidth;
   border-left: $arrowWidth solid transparent;
   border-right: $arrowWidth solid transparent;
-  border-bottom: $arrowWidth solid $subtleTextDarkBackground;
+  border-bottom: $arrowWidth solid $popoverColor;
 }
 @mixin popoverArrow-right($arrowWidth: 5px) {
   top: 50%;
-  left: 0;
+  left: -$arrowWidth;
   margin-top: -$arrowWidth;
   border-top: $arrowWidth solid transparent;
   border-bottom: $arrowWidth solid transparent;
-  border-right: $arrowWidth solid $subtleTextDarkBackground;
+  border-right: $arrowWidth solid $popoverColor;
 }
 
 @mixin tab-focus() {
@@ -121,7 +121,7 @@
 }
 
 
-@mixin icon-text-shadow($color: rgba(0, 0, 0, 0.75)) {
+@mixin icon-text-shadow($color: rgba(255, 255, 255, 0.5)) {
   text-shadow: 0 1px 0 $color;
 }
 

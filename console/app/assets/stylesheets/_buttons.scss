@@ -11,9 +11,8 @@
   padding: 5px 18px;
   margin-bottom: 0; // For input.btn
   font-size: $baseFontSize;
-  line-height: $baseLineHeight - 2px;
+  line-height: $baseLineHeight;
   color: rgba($grayDark, 0.9);
-  font-weight: 500;
   text-align: center;
   text-shadow: 0 1px 0 rgba(255,255,255,0.7);
   vertical-align: middle;
@@ -41,7 +40,7 @@
   color: #000;
   border-color: rgba(0,0,0,0.15) rgba(0,0,0,0.35) rgba(0,0,0,0.5);
   text-decoration: none;
-  @include box-shadow(0 1px 2px rgba(0,0,0,.25));
+  @include box-shadow(0 1px 2px rgba(0,0,0,.15));
 }
 
 // Focus state for keyboard and accessibility
@@ -52,7 +51,7 @@
 }
 
 // Active state
-.btn:active {
+.btn:active, .dropdown.open .dropdown-toggle:active {
   background-image: none;
   background-color: #ececec;
   outline: 0;
@@ -76,7 +75,6 @@
 }
 
 input[type="submit"].btn {
-  @include box-shadow(none);
   margin-right: 12px;
 }
 
@@ -96,9 +94,9 @@ input[type="submit"].btn {
 
 // Small
 .btn-small {
-  padding: 5px 10px;
+  padding: 3px 8px;
   font-size: $baseFontSize - 2px; // FIXME
-  line-height: $baseLineHeight - 2px;
+  line-height: 1.5;
 }
 .btn-small [class^="icon-"] {
   margin-top: -1px;
@@ -106,9 +104,9 @@ input[type="submit"].btn {
 
 // Mini
 .btn-mini {
-  padding: 2px 6px;
+  padding: 1px 4px;
   font-size: $baseFontSize - 2px; // FIXME
-  line-height: $baseFontSize;
+  line-height: 1.5;
 }
 
 
@@ -152,6 +150,13 @@ input[type="button"] {
   color: $white;
   &:hover {
     color: $white;
+    border-color: rgba(0, 0, 0, 0.35) rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.75);
+    @include box-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+  }
+  &:active {
+    color: $white;
+    //border-color: rgba(0, 0, 0, 0.35) rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.75);
+    @include box-shadow(none);
   }
 }
 .btn-success,
@@ -162,8 +167,7 @@ input[type="button"] {
 
 .btn-primary:hover,
 .btn-success:hover,
-.btn-info:hover,
-.btn-primary:hover {
+.btn-info:hover {
 	color: #000;
 	text-shadow: 0 1px 0 rgba(255,255,255,0.6);
 }
@@ -195,7 +199,6 @@ input[type="submit"].btn-primary:active,
 .btn-primary.disabled,
 .btn-primary[disabled] { 
   background-color: #c1daf4;
-  box-shadow: none;
 }
 // Warning appears are orange
 .btn-warning {
