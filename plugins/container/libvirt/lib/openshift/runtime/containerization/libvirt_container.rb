@@ -439,6 +439,11 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
         end
 
+        # retrieve the default maximum memory limit
+        def memory_in_bytes(uuid)
+          OpenShift::Runtime::Utils::Cgroups.new(uuid).templates[:default]['memory.limit_in_bytes'].to_i
+        end
+
         private
 
         def set_default_route
