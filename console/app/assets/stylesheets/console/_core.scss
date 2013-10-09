@@ -111,17 +111,17 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
 }
 
 .important-list {
-  font-size: 15px;
   margin-top: 10px;
-  > li > p.smaller {
-    font-size: 13px;
-    font-weight: 300;
+  > li > p {
+    margin-bottom: 25px;
     > strong {
-      font-weight: 600;
+      font-weight: 700;
     }
   }
   p:first-child {
     margin-bottom: 6px;
+    font-size: 15px;
+    font-weight: 600;
   }
 }
 

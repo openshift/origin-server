@@ -9,7 +9,7 @@
 
 table {
   max-width: 100%;
-  border-collapse: collapse;
+  //border-collapse: collapse;
   border-spacing: 0;
 }
 
@@ -117,25 +117,16 @@ table {
 // ------------
 // Placed here since it has to come after the potential zebra striping
 .table.table-hover {
-  border-collapse: separate;
-}
-.table.table-hover {
-  tr {
-    &:hover {
-      td {
-        background-color: #fdfdfd;
-      }
-    }
+  tr:hover {
     td {
-      border-top:1px solid $consoleTableBorderColor;
+      background-color: #fdfdfd;
     }
   }
   &.table-tile {
-    td {
-      border-top: 0;
-    }
-    tr:hover td {
-      background-color: darken($consolePanelColor, 3%);
+    tr:hover {
+      td {
+        background-color: darken($consolePanelColor, 3%);
+      }
     }
   }
 }
