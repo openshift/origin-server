@@ -589,14 +589,3 @@ function random_string {
   echo $(echo "${rnd}" | head -n1)
 
 }
-
-# Make gear's maximum memory limit available to the gear and scripts
-# via environment variable
-# Argument: directory into which the file is dropped
-function publish_gear_max_memory_in_mb() {
-  local env_dir=$1
-  local max_memory_bytes=$(oo-cgroup-read memory.limit_in_bytes)
-  local max_memory_mb=$(expr $max_memory_bytes / 1048576)
-  set_env_var 'OPENSHIFT_GEAR_MAX_MEMORY_IN_MB' $max_memory_mb $env_dir
-  export OPENSHIFT_GEAR_MAX_MEMORY_IN_MB=$max_memory_mb
-}
