@@ -612,7 +612,7 @@ module OpenShift
 
         env  = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir, directory)
 
-        env['OPENSHIFT_GEAR_MAX_MEMORY_IN_MB'] = (gear_max_memory_in_bytes / 1024**2).to_s
+        env['OPENSHIFT_GEAR_MAX_MEMORY_IN_MB'] = (gear_max_memory_in_bytes.to_i / 1024**2).to_s
 
         erbs = @container.processed_templates(cartridge).map { |x| PathUtils.join(@container.container_dir, x) }
         erbs.delete_if do |erb_file|
@@ -1424,7 +1424,7 @@ module OpenShift
       end
 
       def gear_max_memory_in_bytes
-        OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).fetch('memory.limit_in_bytes').to_i
+        OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).fetch('memory.limit_in_bytes')
       end
     end
   end
