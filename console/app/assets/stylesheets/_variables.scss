@@ -126,19 +126,19 @@ $smallText:											11px;
 /* FIXME: Need to resolve these colors with _custom.scss */
 $warningText:             #222;
 $warningBackground:       #ffd24e;
-$warningBorder:           darken(adjust-hue($warningBackground, -10), 3%);
+$warningBorder:           darken($warningBackground, 3%);
 
 $errorText:               white;
 $errorBackground:         $openshiftRed;
-$errorBorder:             darken(adjust-hue($errorBackground, -10), 3%);
+$errorBorder:             darken($errorBackground, 3%);
 
 $successText:             #222;
 $successBackground:       #C4E5C5;
-$successBorder:           darken(adjust-hue($successBackground, -10), 5%);
+$successBorder:           darken($successBackground, 3%);
 
 $infoText:                #222;
 $infoBackground:          #bfd9f5;
-$infoBorder:              darken($infoBackground, 2%);
+$infoBorder:              darken($infoBackground, 3%);
 /* END */
 
 $hrBorder:                $openshiftBorderGray;

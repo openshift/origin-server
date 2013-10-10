@@ -94,6 +94,19 @@ table {
 }
 
 
+// NO BORDERS
+// ----------
+
+.table-no-borders {
+  td {
+    border: 0;
+    &:first-child {
+      padding-left: 0;
+    }
+  }
+}
+
+
 // ZEBRA-STRIPING
 // --------------
 

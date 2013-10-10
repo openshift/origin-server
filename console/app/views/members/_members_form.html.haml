@@ -26,13 +26,6 @@
     height: auto;
   }
 
-  .members table a.remove-member,
-  .members table a.remove-new-member {
-    font-size: 20px;
-    font-weight: bold;
-    height: 20px;
-  }
-
   .members aside {
     margin-top: 16px
   }
@@ -79,7 +72,7 @@
 
   = form_tag domain_members_path(domain), :method => :put, :class => "members warn-dirty #{'editing' if editing || members.count <= 1} #{'hidden-scripted' if !editing && members.count <= 1} #{'dirty' if new_members.present?}" do
 
-    %table.table.table-condensed
+    %table.table.table-condensed.table-no-borders
       %colgroup
         %col{:width => "45%"}
         %col{:width => "45%"}
@@ -105,7 +98,8 @@
               = select_tag('members[][role]', options_for_select(Role.role_descriptions(true), {:selected => member.role}))
           %td.script-only
             .edit-only
-              = link_to('&times;'.html_safe, 'javascript:;', :class => 'remove-member btn btn-mini')
+              = link_to('javascript:;', :class => 'remove-new-member btn btn-mini') do
+                %span.icon-remove{'aria-hidden'=>"true"}
 
       - new_members = (new_members || []).dup
       - new_members << Domain::Member.new(:role => :edit) if new_members.blank? and members.count == 1
@@ -120,7 +114,8 @@
           %td
             = select_tag('members[][role]', options_for_select(Role.role_descriptions(false), new_member.role))
           %td.script-only
-            = link_to('&times;'.html_safe, 'javascript:;', :class => 'remove-new-member btn btn-mini')
+            = link_to('javascript:;', :class => 'remove-new-member btn btn-mini') do
+              %span.icon-remove{'aria-hidden'=>"true"}
         - if error
           %tr.edit-only.control-group.error.error-row.borderless
             %td{:colspan => 3}
@@ -135,7 +130,7 @@
 
     .form-actions.edit-only
       = link_to "Cancel", domain_path(@domain), :class => 'btn btn-small cancel script-only'
-      = submit_tag "Save", :class => 'btn btn-primary-when-dirty btn-small'
+      = button_tag "Save", :type => :submit, :class => 'btn btn-primary-when-dirty btn-small'
 
     .edit-only
       %h6 What can members do?
