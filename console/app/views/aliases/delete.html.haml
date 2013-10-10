@@ -1,6 +1,6 @@
-- breadcrumb_for_application @application, 'Delete Alias'
+- content_for :page_title, "Delete Alias from " + @application.name
 
-%h1= 'Delete Alias'
+%h1 Delete Alias from #{link_to @application.name, application_path(@application)}
 =flashes
 
 - url = application_alias_path(@alias, :application_id => @application.id)

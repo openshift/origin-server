@@ -77,4 +77,9 @@ class BuildingController < ConsoleController
       render :delete
     end
   end
+
+  protected
+    def active_tab
+      :applications
+    end  
 end

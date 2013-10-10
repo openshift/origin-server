@@ -2,16 +2,6 @@
 ------------------------------------------------ 
 ------------------------------------------------ */
 
-.column-content {
-  section {
-    margin-bottom: 25px;
-  }
-}
-
-.row-content {
-  margin-bottom: 30px;
-}
-
 #content {
 	min-height: 400px;
 	}
@@ -54,7 +44,7 @@ textarea:focus {
 	}
   p, .p {
     font-size: 18px; // special case
-    font-weight: 200;
+    font-weight: 300;
     line-height: 27px;
     margin-bottom: $baseLineHeight;
 	}
@@ -67,7 +57,7 @@ textarea:focus {
 	}  
 .wizard-steps li {
   font-size: $tinyFontSize;
-  font-weight: bold;
+  font-weight: 600;
   float: left;
   padding: 3px 21px;
   text-align: center;
