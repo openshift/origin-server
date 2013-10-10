@@ -373,6 +373,10 @@ command :deploy do |c|
   c.syntax = "#{name} deploy"
 
   c.description = "Run the deploy steps"
+  c.option "--[no-]hot-deploy", "Perform hot deployment according to the specified "\
+    "argument rather than checking for the presence of the hot_deploy marker in the application Git repo"
+  c.option "--[no-]force-clean-build", "Perform a clean build according to the specified "\
+    "argument rather than checking for the presence of the force_clean_build marker in the application Git repo"
   c.action do |args, options|
     do_command(c, options) do
       # determine the ref to deploy, in order of priority:
@@ -381,7 +385,19 @@ command :deploy do |c|
       # - fallback to master
       ref_to_deploy = args[0] || ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
 
-      @container.deploy(hot_deploy: file_committed?(HOT_DEPLOY_MARKER), force_clean_build: false, ref: ref_to_deploy, out: $stdout, err: $stderr, report_deployments: true)
+      if options.hot_deploy.nil?
+        hot_deploy_enabled = file_committed?(HOT_DEPLOY_MARKER)
+      else
+        hot_deploy_enabled = options.hot_deploy
+      end
+
+      if options.force_clean_build.nil?
+        force_clean_build_enabled = file_committed?(FORCE_CLEAN_BUILD_MARKER)
+      else
+        force_clean_build_enabled = options.force_clean_build
+      end
+
+      @container.deploy(hot_deploy: hot_deploy_enabled, force_clean_build: force_clean_build_enabled, ref: ref_to_deploy, out: $stdout, err: $stderr, report_deployments: true)
     end
   end
 end

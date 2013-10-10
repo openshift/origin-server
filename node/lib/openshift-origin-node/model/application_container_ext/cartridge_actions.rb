@@ -357,6 +357,8 @@ module OpenShift
             deployment_metadata = deployment_metadata_for(options[:deployment_datetime])
             deployment_metadata.git_sha1 = git_sha1
             deployment_metadata.git_ref = git_ref
+            deployment_metadata.hot_deploy = options[:hot_deploy]
+            deployment_metadata.force_clean_build = options[:force_clean_build]
 
             options[:out].puts "Building git ref '#{git_ref}', commit #{git_sha1}" if options[:out]
             build(options)
