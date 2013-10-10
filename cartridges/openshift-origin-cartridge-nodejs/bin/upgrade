@@ -12,8 +12,10 @@ if [[ $old_cart_version =~ 0.0.[0-4] ]]; then
   echo "$nodejs_version" > $OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_VERSION
   update-configuration $nodejs_version
 elif [[ $old_cart_version =~ 0.0.6 ]]; then
-  mkdir $OPENSHIFT_DEPENDENCIES_DIR/node_modules
-  mv $OPENSHIFT_NODEJS_DIR/node_modules/* $OPENSHIFT_DEPENDENCIES_DIR/node_modules
-  ln -s $OPENSHIFT_DEPENDENCIES_DIR/node_modules $OPENSHIFT_NODEJS_DIR/node_modules
-  ln -s $OPENSHIFT_DEPENDENCIES_DIR/node_modules $OPENSHIFT_HOMEDIR/.node_modules
+  if [ ! $OPENSHIFT_NODEJS_DIR/node_modules -ef $OPENSHIFT_DEPENDENCIES_DIR/node_modules ]; then
+    mkdir $OPENSHIFT_DEPENDENCIES_DIR/node_modules
+    mv $OPENSHIFT_NODEJS_DIR/node_modules/* $OPENSHIFT_DEPENDENCIES_DIR/node_modules
+    ln -s $OPENSHIFT_DEPENDENCIES_DIR/node_modules $OPENSHIFT_NODEJS_DIR/node_modules
+    ln -s $OPENSHIFT_DEPENDENCIES_DIR/node_modules $OPENSHIFT_HOMEDIR/.node_modules
+  fi
 fi
