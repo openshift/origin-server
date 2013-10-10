@@ -6,9 +6,9 @@ require 'mocha/setup'
 class ApplicationTest < ActionDispatch::IntegrationTest
 
   DOMAIN_COLLECTION_URL = "/broker/rest/domains"
-  APP_COLLECTION_URL_FORMAT = "/broker/rest/domains/%s/applications"
-  APP_URL_FORMAT = "/broker/rest/domains/%s/applications/%s"
-  APP_EVENTS_URL_FORMAT = "/broker/rest/domains/%s/applications/%s/events"
+  APP_COLLECTION_URL_FORMAT = "/broker/rest/domain/%s/applications"
+  APP_URL_FORMAT = "/broker/rest/domain/%s/application/%s"
+  APP_EVENTS_URL_FORMAT = "/broker/rest/domain/%s/application/%s/events"
 
   def setup
     @random = rand(1000000000)
@@ -111,12 +111,6 @@ class ApplicationTest < ActionDispatch::IntegrationTest
 
     # create an application - and specify invalid name
     request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app_name", :cartridge => "php-5.3"}, @headers)
-    assert_response :unprocessable_entity
-    body = JSON.parse(@response.body)
-    assert_equal(body["messages"][0]["exit_code"], 105)
-
-    # create an application - and specify reserved name
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "openshift", :cartridge => "php-5.3"}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 105)
