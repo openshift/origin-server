@@ -948,7 +948,7 @@ module OpenShift
               if reported_urls
                 reported_urls.each do |url|
                   # This is a short-term solution until the direct broker call to expose mappings is available.
-                  output << "CLIENT_RESULT: Cartridge #{cartridge.name} exposed URL #{url}"
+                  output << "CLIENT_RESULT: Cartridge #{cartridge.name} exposed URL #{url}\n"
                 end
               end
             end

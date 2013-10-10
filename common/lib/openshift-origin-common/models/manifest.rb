@@ -115,8 +115,13 @@ module OpenShift
               if entry['Mappings'].respond_to?(:each)
                 endpoint.mappings = entry['Mappings'].each_with_object([]) do |mapping_entry, mapping_memo|
                   mapping          = Endpoint::Mapping.new
-                  mapping.frontend = prepend_slash mapping_entry['Frontend']
-                  mapping.backend  = prepend_slash mapping_entry['Backend']
+                  if not (endpoint.protocols - [ 'http', 'https', 'ws', 'wss' ]).empty?
+                    mapping.frontend = mapping_entry['Frontend']
+                    mapping.backend  = mapping_entry['Backend']
+                  else
+                    mapping.frontend = prepend_slash mapping_entry['Frontend']
+                    mapping.backend  = prepend_slash mapping_entry['Backend']
+                  end
                   mapping.options  = mapping_entry['Options']
 
                   mapping_memo << mapping
