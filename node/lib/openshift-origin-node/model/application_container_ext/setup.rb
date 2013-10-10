@@ -125,6 +125,8 @@ module OpenShift
           add_env_var("TMPDIR", "/tmp/", false)
           add_env_var("TMP", "/tmp/", false)
 
+          add_env_var('GEAR_MEMORY_MB', (memory_in_bytes() / 1024**2).to_s, true)
+
           # Update all directory entries ~/app-root/*
           Dir[gearappdir + "/*"].entries.reject{|e| ['.', '..', 'repo', 'dependencies', 'build-dependencies'].include?(File.basename(e))}.each {|e|
             FileUtils.chmod_R(0750, e, :verbose => @debug)
