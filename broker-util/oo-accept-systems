@@ -178,17 +178,13 @@ def check_nodes_cartridges
     api_carts = api_carts["data"].map {|cart| cart["name"]}
     verbose "API reports carts: #{api_carts.join '|'}"
 
-    cache_clear_command = "bundle exec rake tmp:clear"
-    cache_clear_command = "scl enable ruby193 \"#{cache_clear_command}\"" if ENV["X_SCLS"] =~ /ruby193/
-
     do_fail <<-"MISMATCH" unless api_carts.sort == all_carts.sort
       The broker's list of cartridges does not match what is available on
-      the node hosts. The broker probably has cached an old list.
+      the node hosts.
       Broker is missing: #{(all_carts - api_carts).join ", "}
       Broker has extra: #{(api_carts - all_carts).join ", "}
-      Clear the cache by executing:
-        # cd /var/www/openshift/broker
-        # #{cache_clear_command}
+      The broker may have cached an old list. Clear the cache by executing:
+        # oo-admin-broker-cache --console
     MISMATCH
   rescue StandardError => e
     do_fail "Couldn't retrieve cartridge list from broker: #{e}"
