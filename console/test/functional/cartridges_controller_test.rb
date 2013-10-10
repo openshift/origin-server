@@ -64,8 +64,8 @@ class CartridgesControllerTest < ActionController::TestCase
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
     assert cart.errors.empty?, cart.errors.to_hash.inspect
-    assert_response :success
-    assert_template :next_steps
+    assert_redirected_to application_path(with_testable_app)
+    assert flash[:info_pre].any?{|m| m =~ /Root User:/}, "Flash did not include credentials"
 
     post(:create, get_post_form)
     assert_response :success

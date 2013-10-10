@@ -206,8 +206,8 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert apps.length > 0
     assert apps.any?{ |a| a.name == app.name }
     assert_response :success
-    assert_select 'h2 > a', /#{app.name}/
-    assert_select 'h1 > .right', /#{caps.consumed_gears}\sof #{caps.max_gears}/m
+    assert_select 'h3 > a', /#{app.name}/
+    assert_select 'h2 > .right', /#{caps.consumed_gears}\sof #{caps.max_gears}/m
   end
 
   test "should retrieve application details" do
@@ -225,9 +225,9 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_select 'h1', /#{with_app.name}/
     assert_select '.section-header a', /#{with_app.domain_id}/
-    assert_select 'h1 a.link-alter', /\bchange\b/
+    assert_select 'h1 a.url-alter', /\bchange\b/
     with_app.cartridges.map(&:display_name).each do |name|
-      assert_select 'h2', /#{name}/
+      assert_select 'h3', /#{name}/
     end
   end
 
@@ -242,9 +242,9 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_select 'h1', /#{with_app.name}/
     assert css_select('h1') !=~ /#{with_app.domain_id}/
     assert_select 'h1 a', with_app.aliases.first.name
-    assert_select 'h1 a.link-alter', /\bchange alias\b/
+    assert_select 'h1 a.url-alter', /\bchange alias\b/
     with_app.cartridges.map(&:display_name).each do |name|
-      assert_select 'h2', /#{name}/
+      assert_select 'h3', /#{name}/
     end
   end
 
@@ -260,9 +260,9 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_select 'h1', /#{with_app.name}/
     assert css_select('h1') !=~ /#{with_app.domain_id}/
     assert_select 'h1 a', with_app.aliases.first.name
-    assert_select 'h1 a.link-alter', / 1 other alias\b/
+    assert_select 'h1 a.url-alter', '1 other alias'
     with_app.cartridges.map(&:display_name).each do |name|
-      assert_select 'h2', /#{name}/
+      assert_select 'h3', /#{name}/
     end
   end
 
@@ -278,7 +278,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_select 'p', /Created from/ do |p|
       assert_select 'a', :href => cart.url
     end
-    assert_select 'h2', /#{cart.name}/
+    assert_select 'h3', /#{cart.name}/
   end
 
   test "should retrieve application details with has_sshkey cache set" do
