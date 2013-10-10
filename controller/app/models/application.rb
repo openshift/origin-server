@@ -1314,7 +1314,6 @@ class Application
       Rails.logger.debug "Running publishers"
       handle = RemoteJob.create_parallel_job
       #publishers
-      sub_jobs = []
       self.connections.each do |conn|
         pub_inst = self.component_instances.find(conn.from_comp_inst_id)
         pub_ginst = self.group_instances.find(pub_inst.group_instance_id)

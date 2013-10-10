@@ -1174,7 +1174,27 @@ module MCollective
            endpoints = []
            cont.cartridge_model.each_cartridge do |cart|
              cart.public_endpoints.each do |ep|
-               endpoints << { "cartridge_name" => cart.name+'-'+cart.version, "external_address" => pub_ip, "external_port" => env[ep.public_port_name], "internal_address" => env[ep.private_ip_name], "internal_port" => ep.private_port }
+               endpoint_create_hash = { "cartridge_name" => cart.name+'-'+cart.version, 
+                          "external_port" => env[ep.public_port_name], 
+                          "internal_address" => env[ep.private_ip_name], 
+                          "internal_port" => ep.private_port ,
+                          "protocols" => ep.protocols,
+                          "type" => []
+                          }
+               if cart.web_proxy?
+                 endpoint_create_hash['protocols'] = cont.cartridge_model.primary_cartridge.public_endpoints.first.protocols
+                 endpoint_create_hash['type'] = ["load_balancer"]
+               elsif cart.web_framework?
+                 endpoint_create_hash['type'] = ["web_framework"]
+               elsif cart.categories.include? "database"
+                 endpoint_create_hash['type'] = ["database"]
+               elsif cart.categories.include? "plugin"
+                 endpoint_create_hash['type'] = ["plugin"]
+               else
+                 endpoint_create_hash['type'] = ["other"]
+               end
+               endpoint_create_hash['mappings'] = ep.mappings.map { |m| { "frontend" => m.frontend, "backend" => m.backend } } if ep.mappings
+               endpoints << endpoint_create_hash
              end
            end
            gear_map[gear_uuid] = endpoints.dup if endpoints.length > 0
