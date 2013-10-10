@@ -16,7 +16,7 @@ attributes:
     description: Array of support cartridges running in this application
   -name: aliases
     type: Array
-    description: Array of DNS aliases assocaited with this application
+    description: Array of DNS aliases associated with this application
   -name: gear_count
     type: Integer 
     description: Number of gears used by this application
