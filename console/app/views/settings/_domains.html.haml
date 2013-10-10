@@ -14,9 +14,8 @@
 
 - if @domains.length > 3
   %p= link_to "See other domains", domains_path
-- elsif @domains.length == 1
-  - if @capabilities.max_domains > 1
-    %p= link_to "Create another domain", new_domain_path
+- elsif @domains.length < @capabilities.max_domains
+  %p= link_to "Create another domain", new_domain_path
 
 -#.btn-toolbar
   = link_to "Change your namespace...", edit_domain_path(@domain), :class => 'btn btn-small'
