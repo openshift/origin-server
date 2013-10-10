@@ -148,8 +148,6 @@ class RestApplication13 < OpenShift::Model
           OptionalParam.new("ref", "string", "Git ref (tag, branch, commit id)", nil, "master"),
           OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "Latest"),
         ]),
-        "UPDATE_DEPLOYMENTS" => Link.new("Update deployments", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/deployments"), [
-          Param.new("deployments", "array", "An Array of deployments")]),
         "ACTIVATE" => Link.new("Roll-back application to a previous deployment", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "activate"),
           Param.new("deployment_id", "string", "The deployment ID to activate the application"),
