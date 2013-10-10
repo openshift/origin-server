@@ -88,6 +88,9 @@ ln -sf %{appdir}/.httpd.d %{buildroot}/etc/httpd/conf.d/openshift
 
 echo '{}' > "%{buildroot}%{appdir}/.httpd.d/geardb.json"
 
+mkdir -p %{buildroot}/etc/httpd/conf.d
+mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
+
 
 
 %files
@@ -95,6 +98,7 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/geardb.json"
 %{gem_instdir}
 %{gem_spec}
 %{gem_cache}
+%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
 %attr(0750,-,-) /etc/httpd/conf.d/openshift
 %dir %attr(0750,root,apache) %{appdir}/.httpd.d
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/geardb.json

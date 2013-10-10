@@ -34,7 +34,7 @@ module OpenShift
 
           class ApacheModRewrite < PluginBaseClass
 
-            TEMPLATE_HTTPS = "frontend-vhost-https-template.erb"
+            TEMPLATE_HTTPS = "frontend-mod-rewrite-https-template.erb"
 
             def initialize(container_uuid, fqdn, container_name, namespace)
               @config = ::OpenShift::Config.new
