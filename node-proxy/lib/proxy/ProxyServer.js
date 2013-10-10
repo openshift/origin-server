@@ -320,6 +320,11 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
     res.end('');
     surrogate.emit('error', 'proxy.request.error');
   });
+
+  res.addListener('close', function() {
+    Logger.debug("Client closed the connection");
+    preq.abort();
+  });
 }
 
 /**
