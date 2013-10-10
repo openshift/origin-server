@@ -27,11 +27,11 @@ lower_case_table_names = <%= ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] ? ENV
 #INNODB
 # You can set .._buffer_pool_size up to 50 - 80 %
 # of RAM but beware of setting memory usage too high
-innodb_buffer_pool_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 16 : 96 %>M
+innodb_buffer_pool_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 16 : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.2).to_i %>M
 innodb_additional_mem_pool_size = 2M
 # Set .._log_file_size to 25 % of buffer pool size
-innodb_log_file_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 8 : 24 %>M
-innodb_log_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 8 : 24 %>M
+innodb_log_file_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 8 : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.05).to_i %>M
+innodb_log_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 8 : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.05).to_i %>M
 innodb_flush_log_at_trx_commit = 1
 innodb_lock_wait_timeout = 50
 
