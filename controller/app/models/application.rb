@@ -1175,7 +1175,11 @@ class Application
   def get_web_framework_gears
     [].tap do |gears|
       component_instances.each do |ci|
-        gears << ci.group_instance.gears if ci.is_web_framework?
+        ci.group_instance.gears.each do |gear|
+          unless gear.removed
+            gears << gear if ci.is_web_framework?
+          end
+        end
       end
     end.flatten.uniq
   end
@@ -1184,7 +1188,9 @@ class Application
     [].tap do |gears|
       component_instances.each do |ci|
         ci.group_instance.gears.each do |gear|
-          gears << gear if gear.sparse_carts.include?(ci._id) and ci.is_web_proxy?
+          unless gear.removed
+            gears << gear if gear.sparse_carts.include?(ci._id) and ci.is_web_proxy?
+          end
         end
       end
     end.flatten.uniq
