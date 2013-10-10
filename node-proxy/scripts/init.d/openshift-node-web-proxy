@@ -40,8 +40,14 @@ start() {
     chown apache.apache /var/log/node-web-proxy/*.log >/dev/null 2>&1 || :
     export NODE_PATH="$nodesysmodulespath"
     nohup scl enable nodejs010 "$cmd" &> $logfile &
-    pgrep -u 0 -f bin/node-supervisor > $pidfile
-    retval=$?
+
+    for i in {1..30}; do
+      pgrep -u 0 -f bin/node-supervisor > $pidfile
+      retval=$?
+      [ $retval -eq 0 ] && break
+      sleep 1
+    done
+
     [ $retval -eq 0 ] && touch $lockfile && echo_success
     echo
     return $retval
