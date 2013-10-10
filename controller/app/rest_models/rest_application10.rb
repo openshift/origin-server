@@ -44,7 +44,7 @@
 # @!attribute [r] embedded
 #   @return [Array<RestEmbeddedCartridge10>] Array of support cartridges running in this application
 # @!attribute [r] aliases
-#   @return [Array<String>] Array of DNS aliases assocaited with this application
+#   @return [Array<String>] Array of DNS aliases associated with this application
 # @!attribute [r] gear_count
 #   @return [Integer] Number of gears used by this application
 # @!attribute [r] domain_id
@@ -223,8 +223,6 @@ class RestApplication10 < OpenShift::Model
           OptionalParam.new("ref", "string", "Git ref (tag, branch, commit id)", nil, "master"),
           OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "Latest"),
         ]),
-        "UPDATE_DEPLOYMENTS" => Link.new("Update deployments", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
-          Param.new("deployments", "array", "An Array of deployments")]),
         "ACTIVATE" => Link.new("Roll-back application to a previous deployment", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "activate"),
           Param.new("deployment_id", "string", "The deployment ID to activate the application"),

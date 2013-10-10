@@ -34,7 +34,7 @@ class DeploymentsController < BaseController
                           105, "name") if ref && ref.length > 256
 
     result = @application.deploy(hot_deploy, force_clean_build, ref, artifact_url)
-    deployment = @application.deployments.last
+    deployment = @application.deployments.sort_by {|deployment| deployment.activations.last ? deployment.activations.last : 0 }.last
     rest_deployment = get_rest_deployment(deployment)
     render_success(:created, "deployment", rest_deployment, "Added #{deployment.deployment_id} to application #{@application.name}", result)
   end

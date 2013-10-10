@@ -1,6 +1,6 @@
 ##
 # @api REST
-# Describes an SSH Key assocaited with a user
+# Describes an SSH Key associated with a user
 # @see RestUser
 #
 # Example:
