@@ -151,6 +151,8 @@ def get_payload(resource, link)
       payload[param["name"]] = File.read("../assets/ssh-key.txt")
     elsif resource.downcase.include? "cartridge" and param["name"] == "name"
       payload[param["name"]] = "mysql-5.1" 
+    elsif resource.downcase.include? "application" and param["name"] == "deployment_id"
+      payload[param["name"]] = "f36f59c0" 
     elsif param["valid_options"] and !param["valid_options"].empty?
       payload[param["name"]] = param["valid_options"][0]
     elsif resource.downcase.include? "alias" 
@@ -186,6 +188,8 @@ def get_payload(resource, link)
     #handle special cases
     if resource.downcase.include? "application" and param["name"] == "cartridges"
       payload[param["name"]] = "ruby-1.9"
+    elsif resource.downcase.include? "application" and param["name"] == "deployments"
+      payload[param["name"]] = []
     elsif resource.downcase.include? "cartridge" and param["name"] == "additional_gear_storage"
       payload[param["name"]] = 10
     elsif resource.downcase.include? "alias" 
