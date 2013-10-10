@@ -21,10 +21,10 @@ require 'fileutils'
 class GearRegistryTest < OpenShift::NodeTestCase
   def setup
     @test_dir = File.join('/tmp', time_to_s(Time.now))
-    FileUtils.mkpath(File.join(@test_dir, 'gear_registry'))
+    FileUtils.mkpath(File.join(@test_dir, 'gear-registry'))
 
-    @registry_file = File.join(@test_dir, 'gear_registry', 'gear_registry.json')
-    @registry_lock_file = File.join(@test_dir, 'gear_registry', 'gear_registry.lock')
+    @registry_file = File.join(@test_dir, 'gear-registry', 'gear-registry.json')
+    @registry_lock_file = File.join(@test_dir, 'gear-registry', 'gear-registry.lock')
 
     @container = mock('container')
     @sample_json = <<EOF
