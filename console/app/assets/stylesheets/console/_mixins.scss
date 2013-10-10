@@ -1,14 +1,22 @@
-@mixin console_background {
+@mixin header_border {
 }
 
-@mixin console_background_ie9 {
+@mixin brand {
 }
 
-@mixin navbar_background {
+@mixin brand_hover {
 }
 
-@mixin brand_image {
+@mixin brand_ie {
+  background: image-url('logo-origin.png') no-repeat 0 50%;
+  height: 55px;
+  width: 133px;
 }
 
-@mixin account_background {
+@mixin panel_default_boxshadow {
+  @include box-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
+}
+
+@mixin panel_default_boxshadow_hover {
+  @include box-shadow(0 1px 3px rgba(0,0,0,.35));
 }

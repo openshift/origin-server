@@ -1,5 +1,5 @@
 .help-block {
-  color: #cfcfcf;
+  color: #666;
 }
 
 .help-block-multiple {
@@ -33,7 +33,20 @@
 #help a {
   font-size: $h2FontSize;
   color: #EB0011;
-  font-weight: 200;
+}
+
+.row-help {
+  a {
+    font-weight: 600;
+    &.btn {
+      font-weight: 400;
+    }
+  }
+  .subhead {
+    color: #888;
+    font-size: $smallFontSize;
+    margin-top: -6px;
+  }
 }
 
 @media (max-width: 479px) {

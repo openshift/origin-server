@@ -1,7 +1,6 @@
-- breadcrumb_for_application @application, 'New Alias'
 - content_for :page_title, 'New Alias'
 
-%h1 New Alias
+%h1 New Alias for #{link_to @application.name, application_path(@application)}
 =flashes
 
 %section
@@ -11,7 +10,7 @@
       Aliases allow you to use your own domain names for your apps on OpenShift. To set up your own domain name for app 
       %strong= @application.name
     %ol
-      %li= link_to('Set up the CNAME record with your DNS provider', alias_docs_url)
+      %li= link_to 'Set up the CNAME record with your DNS provider', alias_docs_url, :target => '_blank', :class => 'external'
       %li Tell us about your alias using the form on this page
     - e = @alias.errors
     = f.semantic_errors :except => [:id, :name, :certificate_file, :certificate_chain_file, :certificate_private_key_file]

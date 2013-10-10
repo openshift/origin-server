@@ -37,4 +37,9 @@ class ScalingController < ConsoleController
     # commit form parameters to a cartridge on an application
   #  redirect_to application_scaling_path
   #end
+  
+  protected
+    def active_tab
+      :applications
+    end  
 end

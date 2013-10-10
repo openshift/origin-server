@@ -1,8 +1,11 @@
-- breadcrumb_for_application @application, 'Add a Cartridge'
+- content_for :page_style, 'highlight'
 - content_for :page_title, 'Add a Cartridge'
 
-%h1.invisible Configure New Application
-= cartridge_wizard_steps_create 1
+- if @wizard
+  %h1.invisible Add a Cartridge
+  = cartridge_wizard_steps_create 1
+- else
+  %h1 Add Cartridge to #{link_to @application.name, application_path(@application)}
 
 = render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true, :application => @application}
 
@@ -21,7 +24,7 @@
         = @cartridge_type.display_name
     cartridge to your application?
   = f.buttons do
-    = link_to "Back", application_cartridge_types_path(@application), :class => 'btn'
+    = link_to "Back", @wizard ? application_cartridge_types_path(@application) : application_path(@application), :class => 'btn'
     = f.commit_button("Add Cartridge")
     %span#gear_increase
       = gear_increase_indicator({'1' => [@cartridge_type]}, @application.scales?, @application.gear_profile, true, @application.domain.capabilities, @application.owner?)

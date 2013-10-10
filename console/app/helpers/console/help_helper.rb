@@ -34,6 +34,10 @@ module Console::HelpHelper
     community_base_url 'products/architecture'
   end
 
+  def products_url
+    community_base_url 'products'
+  end
+
   def cartridge_list_url
     community_base_url 'developers/technologies'
   end

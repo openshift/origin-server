@@ -24,8 +24,7 @@ class CartridgesControllerTest < ActionController::TestCase
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
     assert cart.errors.empty?, cart.errors.to_hash.inspect
-    assert_response :success
-    assert_template :next_steps
+    assert_redirected_to application_path(with_testable_app)
   end
 
   test "should submit with a URL" do
@@ -36,8 +35,7 @@ class CartridgesControllerTest < ActionController::TestCase
 
     assert cart = assigns(:cartridge)
     assert cart.errors.empty?, cart.errors.to_hash.inspect
-    assert_response :success
-    assert_template :next_steps
+    assert_redirected_to application_path(with_testable_app)
 
     assert_equal 'https://foo.com', cart.url
     assert_nil cart.name
@@ -49,8 +47,7 @@ class CartridgesControllerTest < ActionController::TestCase
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
     assert cart.errors.empty?, cart.errors.to_hash.inspect
-    assert_response :success
-    assert_template :next_steps
+    assert_redirected_to application_path(with_testable_app)
 
     post_form = get_post_form
     post_form[:cartridge][:name] = 'cron-1.4'
@@ -58,8 +55,7 @@ class CartridgesControllerTest < ActionController::TestCase
     assert cart = assigns(:cartridge)
     assert cart.errors.empty?, cart.errors.to_hash.inspect
 
-    assert_response :success
-    assert_template :next_steps
+    assert_redirected_to application_path(with_testable_app)
   end
 
   test "should error out if cartridge is installed" do
@@ -68,8 +64,8 @@ class CartridgesControllerTest < ActionController::TestCase
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
     assert cart.errors.empty?, cart.errors.to_hash.inspect
-    assert_response :success
-    assert_template :next_steps
+    assert_redirected_to application_path(with_testable_app)
+    assert flash[:info_pre].any?{|m| m =~ /Root User:/}, "Flash did not include credentials"
 
     post(:create, get_post_form)
     assert_response :success

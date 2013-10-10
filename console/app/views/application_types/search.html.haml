@@ -1,5 +1,7 @@
+- content_for :page_style, 'highlight'
+- content_for :page_title, "Create a New Application"
+
 %h1.invisible Create a New Application
-= breadcrumb_for_create_application(@type_groups[0][0])
 = app_wizard_steps_create 0, :active => true
 = flashes
 
@@ -8,8 +10,8 @@
     %p.larger
       Choose a web programming cartridge or kick the tires with a
       quickstart. After you create the application 
-      you can add <strong>cartridges</strong> to enable additional 
-      capabilities like databases, metrics, and continuous build 
+      you can <strong>add cartridges to enable additional 
+      capabilities</strong> like databases, metrics, and continuous build 
       support with Jenkins.
 
     %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
@@ -19,7 +21,7 @@
 
     - if @browse_tags.present?
       %span.dropdown
-        %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
+        %button.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
           Browse by tag...
           %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee12"}
         %ul.dropdown-menu#tag-filter
@@ -53,7 +55,7 @@
         %small= link_to '(show all)', application_types_path
     .row
       - in_columns_of(2, types).each do |types|
-        .span6.tile-dark
+        .span6
           = render :partial => 'application_type', :collection => types, :locals => {:excluded_tags => []}
 
   - else

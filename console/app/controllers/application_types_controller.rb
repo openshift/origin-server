@@ -123,4 +123,9 @@ class ApplicationTypesController < ConsoleController
   rescue => e
     render :inline => e.message, :status => 500
   end
+
+  protected
+    def active_tab
+      :applications
+    end  
 end
