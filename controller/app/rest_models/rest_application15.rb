@@ -234,9 +234,9 @@ class RestApplication15 < OpenShift::Model
           OptionalParam.new("hot_deploy", "boolean", "Indicates whether this is a hot deployment", "true or false", false),
           OptionalParam.new("force_clean_build", "string", "Indicates whether a clean build should be performed", "true or false", false),
         ]),
-        "UPDATE_DEPLOYMENTS" => Link.new("Update deployments. Special permissions is required to update deployments", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
+        "UPDATE_DEPLOYMENTS" => Link.new("Update deployments (Special permissions is required to update deployments)", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
           Param.new("deployments", "array", "An array of deployments")]),
-        "ACTIVATE" => Link.new("Rectivate an application to a specific deployment", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "ACTIVATE" => Link.new("Activate a specific deployment of the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "activate"),
           Param.new("deployment_id", "string", "The deployment ID to activate the application")
         ]),
