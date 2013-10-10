@@ -43,7 +43,7 @@
 # @!attribute [r] embedded
 #   @return [Array<RestEmbeddedCartridge>] Array of support cartridges running in this application
 # @!attribute [r] aliases
-#   @return [Array<String>] Array of DNS aliases assocaited with this application
+#   @return [Array<String>] Array of DNS aliases associated with this application
 # @!attribute [r] gear_count
 #   @return [Integer] Number of gears used by this application
 # @!attribute [r] domain_id
