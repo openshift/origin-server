@@ -38,6 +38,7 @@ HOT_DEPLOY_MARKER = File.join(%w(.openshift markers hot_deploy))
 FORCE_CLEAN_BUILD_MARKER = File.join(%w(.openshift markers force_clean_build))
 RESULT_SUCCESS = 'success'
 RESULT_FAILURE = 'failure'
+NO_COMMIT_REV = '0'*32
 
 OpenShift::Runtime::NodeLogger.disable
 
@@ -78,7 +79,7 @@ end
 # branch of the repository, otherwise +false+.
 def file_committed?(filename)
   Dir.chdir(@repo.path) do
-    return (not `git ls-tree #{ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'} -- #{filename}`.chomp.strip.empty?)
+    return (not `git ls-tree #{ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'} -- #{filename} 2>/dev/null`.chomp.strip.empty?)
   end
 end
 
@@ -141,6 +142,8 @@ command :prereceive do |c|
         old_rev  = arr[0]  # SHA
         new_rev  = arr[1]  # SHA
         ref_name = refs[2..-1].join('/') # develop, 1.4, dev/mybranch etc.
+
+        break if old_rev == NO_COMMIT_REV
 
         next unless branch_to_deploy == ref_name
 
