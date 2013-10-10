@@ -10,6 +10,9 @@ OpenShift cartridges provide the necessary command and control for the functiona
 
 Cartridge configuration and setup is convention based, with an emphasis on minimizing external dependencies in your cartridge code.
 
+== Hierarchy
+In some cases, multiple cartridges can be co-located or combined in the same gear.  To support these scenarios, cartridges enforce a hierarchy that must consist of a single, `primary` cartridge and any number of `embedded` cartridges.  The `primary` cartridge controls the build lifecycle, responds to scaling events and is the cartridge responsible for providing some external network accessibility.  `embedded` cartridges play a supporting role to the primary cartridge, adding capabilities in a more limited fashion.  One example of a `primary` and `embedded` cartridge relationship is between the `jenkins` cartridge and the `jenkins-client` cartridge.  The `jenkins` cartridge provides a fully functional Jenkins service that can be accessed via a web browser.  The `jenkins-client` on the other hand needs to be embedded with an existing web application as it's role it to simply offload builds to an existing Jenkins service.  The client by itself provides no value without being combined with an existing primary cartridge.
+
 == Cartridge Directory Structure
 This is an example structure to which your cartridge is expected to conform when written to disk. Failure to meet these expectations will cause your cartridge to not function when either installed or used on OpenShift. You may have additional directories or files as required to meet the needs of the software you are packaging and the application developers using your cartridge.
 
@@ -182,6 +185,39 @@ Version: '5.3'
 ----
 Versions: ['5.3']
 ----
+
+=== Categories
+`Categories` represent a list of classifications for a given cartridge.  Categories are broken into two distinct groups:
+
+<1> `system` categories have special meaning to the platform and influence system behavior.
+<2> `descriptive` categories are arbitrary classifications used to improve searching for cartridges in the web console and client tools.
+
+==== System Categories
+`system` categories consist of the following reserved terms:
+
+* web_framework
+* service
+* embedded
+
+===== Web Framework Category
+The `web_framework` category is used to describe a primary cartridge that accepts inbound HTTP and HTTPS requests.  When this category is added to a cartridge, whenever the cartridge scales beyond a single gear, a web proxy cartridge is added that will automatically route to the end point described by the `Public-Port-Name` with a value of `PROXY_PORT`.  The web proxy will also be automatically updated with routing rules to address the new gears over HTTP as they are added.  Lastly, when using a `web_framework` category, SSL termination occurs at the platform layer, before the cartridge interaction takes place and the original inbound protocol is passed using the `X-Forwarded-Proto` header to the cartridge.
+
+===== Service Category
+The `service` category is used to describe a primary cartridge that is not necessarily HTTP-based.  This means that the cartridge can scale independently but is not necessarily addressible outside of the platform.  Because of this, when creating an application in OpenShift, there the restriction that at least one `web_framework` cartridge be present in the application so that the DNS registration for the application contains at least one well known addressible endpoint for the application over HTTP.  However, in many cases, an application might need to consist of a `web_framework` cartridge and other `service` cartridges such as MySQL.  By using the category of `service` for a cartridge like MySQL, it will install the cartridge on separate gears from the `web_framework` cartridge and allow it to scale independently as well.
+
+===== Embedded Category
+The `embedded` category is used to describe whether a cartridge can be co-located with a `primary` cartridge.  When used by itself, this category allows the cartridge to always be co-located or installed with any other `primary` cartridge.  An example of this would be the Jenkins client cartridge which can always be combined with any web application cartridge to offload the builds to a Jenkins service.
+
+When this category is combined with the `service` category, it has a slightly different meaning.  If both the `service` and `embedded` categories are used, the cartridge will be co-located with the `primary` cartridge in a non-scalable application, but when deploying a scaled application, they will be installed on separate gears.  This is helpful to describe combinations that can be installed on a single gear when scaling isn't an issue and gear capacity is limited.
+
+==== Descriptive Categories
+The `descriptive` categories are primarily used in the OpenShift web console and the `rhc` client tools to improve the user experience.  In the web console, `descriptive` categories show up as tags which allow users to search and quickly filter the available cartridges.  When using the client tools, these categories are used to apply matching logic on cartridge related operations.  For example, if a user ran:
+
+----
+rhc add-cartridge php
+----
+
+The `descriptive` categories will be searched in addition to the names of the cartridges.
 
 === Source-Url
 `Source-Url` is used when you self-distribute your cartridges. They are downloaded at the time the application is created.
