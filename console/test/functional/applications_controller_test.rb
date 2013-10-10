@@ -278,7 +278,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_select 'p', /Created from/ do |p|
       assert_select 'a', :href => cart.url
     end
-    assert_select 'h2', /#{cart.name}/
+    assert_select 'h2', /#{cart.display_name}/
   end
 
   test "should retrieve application details with has_sshkey cache set" do
