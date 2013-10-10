@@ -86,6 +86,7 @@ def set_max_gears(user, maxgears)
         puts "Done."
     else
         puts "An error occurred saving the user."
+        puts "Errors: #{user.errors.messages}"
         exit 6
     end
 end
@@ -103,6 +104,7 @@ def set_max_tracked_storage(user, maxtrackedstorage)
         puts "Done."
     else
         puts "An error occurred saving the user."
+        puts "Errors: #{user.errors.messages}"
         exit 6
     end
 end
@@ -120,6 +122,7 @@ def set_max_untracked_storage(user, maxuntrackedstorage)
         puts "Done."
     else
         puts "An error occurred saving the user."
+        puts "Errors: #{user.errors.messages}"
         exit 6
     end
 end
@@ -154,6 +157,7 @@ def allow_sub_accounts(user, allow)
         puts "Done."
     else
         puts "An error occurred modifying the user capabilities."
+        puts "Errors: #{user.errors.messages}"
         exit 6
     end
 end
@@ -172,6 +176,7 @@ def allow_private_ssl_certificates(user, allow)
         puts "Done."
     else
         puts "An error occurred modifying the user capabilities."
+        puts "Errors: #{user.errors.messages}"
         exit 6
     end
 end
@@ -189,6 +194,7 @@ def allow_plan_upgrade(user, allow)
         puts "Done."
     else
         puts "An error occurred modifying the user capabilities."
+        puts "Errors: #{user.errors.messages}"
         exit 6
     end
 end
@@ -224,6 +230,7 @@ def add_sub_account(user, subaccount_login)
         puts "Done."
     else
         puts "An error occurred adding the sub account #{subaccount_login}."
+        puts "Errors: #{child_user.errors.messages}"
         exit 6
     end
     Lock.create_lock(child_user)
@@ -269,17 +276,21 @@ def add_gear_size(user, gear_size)
     end
     if !user.save
         puts "An error occurred adding the gear size #{gear_size} to user #{user.login}."
+        puts "Errors: #{user.errors.messages}"
         exit 6
     end
     puts "Done."
 
     print "Adding gear size #{gear_size} for domains of user #{user.login}... "
     user.domains.each do |d|
-        d.allowed_gear_sizes << gear_size
+      if (user.allowed_gear_sizes - d.allowed_gear_sizes) == [gear_size]
+        d.allowed_gear_sizes = user.allowed_gear_sizes
         if !d.save
-            puts "An error occurred adding the gear size #{gear_size} to domain #{d.namespace} for user #{user.login}."
-            exit 7
+          puts "An error occurred adding the gear size #{gear_size} to domain #{d.namespace} for user #{user.login}."
+          puts "Errors: #{d.errors.messages}"
+          exit 7
         end
+      end
     end
     puts "Done."
 end
@@ -295,7 +306,19 @@ def remove_gear_size(user, gear_size)
     end
     if !user.save
         puts "An error occurred removing the gear size #{gear_size} from user #{user.login}."
+        puts "Errors: #{user.errors.messages}"
         exit 6
+    end
+    puts "Done."
+
+    print "Removing gear size #{gear_size} for domains of user #{user.login}... "
+    user.domains.each do |d|
+      d.allowed_gear_sizes = (user.allowed_gear_sizes & d.allowed_gear_sizes)
+      if !d.save
+        puts "An error occurred removing the gear size #{gear_size} from domain #{d.namespace} for user #{user.login}."
+        puts "Errors: #{d.errors.messages}"
+        exit 7
+      end
     end
     puts "Done."
 end
@@ -321,6 +344,7 @@ def inherit_on_subaccounts(user, allow, capability, cap_name)
         puts "Done."
     else
         puts "An error occurred modifying the user capabilities."
+        puts "Errors: #{user.errors.messages}"
         exit 6
     end
 end
@@ -342,6 +366,7 @@ def allow_ha(user, allow)
         puts "Done."
     else
         puts "An error occurred modifying the user capabilities."
+        puts "Errors: #{user.errors.messages}"
         exit 6
     end
 end
