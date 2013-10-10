@@ -730,14 +730,14 @@ module OpenShift
       # none
       #
       # RETURNS:
-      # * String: the "quota blocks" of a node
+      # * Integer: the "quota blocks" of a node
       #
       # NOTES:
       # * method on Node
       # * calls rpc_get_fact_direct
       #
       def get_quota_blocks
-        rpc_get_fact_direct('quota_blocks')
+        rpc_get_fact_direct('quota_blocks').to_i
       end
 
       # <<accessor>>
@@ -750,14 +750,14 @@ module OpenShift
       # none
       #
       # RETURNS:
-      # * String: the "quota files" of a node
+      # * Integer: the "quota files" of a node
       #
       # NOTES:
       # * method on Node
       # * calls rpc_get_fact_direct
       #
       def get_quota_files
-        rpc_get_fact_direct('quota_files')
+        rpc_get_fact_direct('quota_files').to_i
       end
 
       #
