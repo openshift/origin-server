@@ -657,12 +657,19 @@ class Application
         end
       end
     end
+    feature_comps = features.map { |f| 
+      cart = CartridgeCache.find_cartridge(f, self)
+      self.component_instances.find_by(cartridge_name: cart.name)._id.to_s rescue nil
+    }
+    valid_domain_jobs = ((self.domain.system_ssh_keys.any? { |k| feature_comps.include? k.component_id.to_s }) || (self.domain.env_vars.any? { |e| feature_comps.include? e['component_id'].to_s })) rescue true
     Application.run_in_application_lock(self) do
       #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides, "remove_all_features" => remove_all_features}, user_agent: self.user_agent)
       op_group = RemoveFeaturesOpGroup.new(features: features, group_overrides: group_overrides, remove_all_features: remove_all_features, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
     end
+
+    return result_io if !valid_domain_jobs
 
     # removing this feature may have caused pending_ops to be created on the domain
     # for removing env vars and ssh keys
