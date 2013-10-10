@@ -42,7 +42,7 @@ class Gear
   def self.base_filesystem_gb(gear_size)
     CacheHelper.get_cached(gear_size + "_quota_blocks", :expires_in => 1.day) {
       proxy = OpenShift::ApplicationContainerProxy.find_one(gear_size)
-      quota_blocks = Integer(proxy.get_quota_blocks)
+      quota_blocks = proxy.get_quota_blocks.to_i
       # calculate the minimum storage in GB - blocks are 1KB each
       quota_blocks / 1024 / 1024
     }
