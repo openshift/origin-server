@@ -320,7 +320,7 @@ command :activate do |c|
   end
 end
 
-command :archive_deployment do |c|
+command :'archive-deployment' do |c|
   c.syntax = "#{name} archive-deployment"
 
   c.option "--deployment-id ID", "Deployment ID to archive"
@@ -402,7 +402,7 @@ command :deploy do |c|
   end
 end
 
-command :binary_deploy do |c|
+command :'binary-deploy' do |c|
   c.syntax = "#{name} binary-deploy"
 
   c.description = "Deploy a binary artifact"

@@ -256,13 +256,13 @@ EOFZ
   end
 
   def archive_deployment(app_id)
-    ssh_command(app_id, "\"gear archive_deployment\" > #{@tmp_dir}/#{app_id}_archive.tar.gz")
+    ssh_command(app_id, "\"gear archive-deployment\" > #{@tmp_dir}/#{app_id}_archive.tar.gz")
 
     "#{@tmp_dir}/#{app_id}_archive.tar.gz"
   end
 
   def deploy_artifact(app_id, app_name, file)
     logger.info("Deploying #{file} to app #{app_name}")
-    logger.info `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary_deploy`
+    logger.info `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary-deploy`
   end
 end
