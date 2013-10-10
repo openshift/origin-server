@@ -41,18 +41,11 @@ module OpenShift
             end
 
             def create
-              HaproxySNIProxyDB.open(HaproxySNIProxyDB::WRCREAT) do |d|
-                if not d.has_key?(@fqdn)
-                  d[@fqdn]={
-                    "aliases" => [],
-                    "connections" => {}
-                  }
-                end
-              end
+              with_create
             end
 
             def destroy
-              HaproxySNIProxyDB.open(HaproxySNIProxyDB::WRCREAT) do |d|
+              writer_if_exists do |d|
                 d.delete(@fqdn)
               end
             end
@@ -60,7 +53,7 @@ module OpenShift
 
             def connect(*elements)
               reported_urls=[]
-              HaproxySNIProxyDB.open(HaproxySNIProxyDB::WRCREAT) do |d|
+              with_create do |d|
                 elements.each do |path, uri, options|
 
                   next unless options["protocols"] and options["protocols"].include?("tls")
@@ -94,17 +87,18 @@ module OpenShift
             end
 
             def connections
-              HaproxySNIProxyDB.open(HaproxySNIProxyDB::READER) do |d|
+              reader_if_exists do |d|
                 return d[@fqdn]["connections"].select { |port, backend|
                   backend.to_s != ""
                 }.map { |port, backend|
                   ["TLS_PORT_#{@sni_ports.index(port)+1}", backend, { "protocols"=>["tls"] } ]
                 }
               end
+              []
             end
 
             def disconnect(*paths)
-              HaproxySNIProxyDB.open(HaproxySNIProxyDB::WRCREAT) do |d|
+              writer_if_exists do |d|
                 paths.each do |path|
                   reqport = path
                   if path=~/^TLS_PORT_(\d+)$/
@@ -119,24 +113,58 @@ module OpenShift
             end
 
             def aliases
-              HaproxySNIProxyDB.open(HaproxySNIProxyDB::READER) do |d|
-                begin
-                  return d[@fqdn]["aliases"].clone
-                rescue NoMethodError
-                end
+              reader_if_exists do |d|
+                return d[@fqdn]["aliases"].clone
               end
               nil
             end
 
             def add_alias(name)
-              HaproxySNIProxyDB.open(HaproxySNIProxyDB::WRCREAT) do |d|
+              with_create do |d|
                 d[@fqdn]["aliases"] << name
               end
             end
 
             def remove_alias(name)
-              HaproxySNIProxyDB.open(HaproxySNIProxyDB::WRCREAT) do |d|
+              writer_if_exists do |d|
                 d[@fqdn]["aliases"].delete(name)
+              end
+            end
+
+
+            private
+
+            # Private: Create the database entry if it does not already exist.
+            def with_create
+              HaproxySNIProxyDB.open(HaproxySNIProxyDB::WRCREAT) do |d|
+                if not d.has_key?(@fqdn)
+                  d[@fqdn]={
+                    "aliases" => [],
+                    "connections" => {}
+                  }
+                end
+                if block_given?
+                  yield(d)
+                end
+              end
+            end
+
+            # Private: Yield the provided block if the record exists
+            def reader_if_exists
+              HaproxySNIProxyDB.open(HaproxySNIProxyDB::READER) do |d|
+                if block_given? and d.has_key?(@fqdn)
+                  yield(d)
+                end
+              end
+            end
+
+            # Private: Yield the provided block if the record exists
+            # and allow modifications.
+            def writer_if_exists
+              HaproxySNIProxyDB.open(HaproxySNIProxyDB::WRCREAT) do |d|
+                if block_given? and d.has_key?(@fqdn)
+                  yield(d)
+                end
               end
             end
 
