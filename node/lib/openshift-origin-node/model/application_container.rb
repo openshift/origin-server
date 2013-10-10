@@ -710,6 +710,10 @@ module OpenShift
         @container_plugin.set_rw_permission(paths)
       end
 
+      def memory_in_bytes
+        @container_plugin.memory_in_bytes(@uuid)
+      end
+
       def address_bound?(ip, port, hourglass)
         @container_plugin.address_bound?(ip, port, hourglass)
       end

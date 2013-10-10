@@ -19,7 +19,6 @@
     - Array(@application_type.cartridges).each do |c|
       = hidden_field_tag 'application_type[cartridges][]', c
     = hidden_field_tag 'application_type[initial_git_url]', @application_type.initial_git_url
-    -#= hidden_field_tag 'application_type[initial_git_branch]', @application_type.initial_git_branch
 
   - e = @application.errors
   = f.semantic_errors :except => [:initial_git_url, :initial_git_branch, :name, :domain_name, :cartridges, :gear_profile]

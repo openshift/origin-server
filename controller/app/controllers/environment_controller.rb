@@ -2,7 +2,9 @@ class EnvironmentController < BaseController
 
   skip_before_filter :authenticate_user!
 
-  # GET /environment 
+  # URL: /environment
+  #
+  # Action: GET
   def show
     environment = {}
     environment['domain_suffix'] = Rails.application.config.openshift[:domain_suffix] 

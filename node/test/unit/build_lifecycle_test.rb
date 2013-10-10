@@ -91,6 +91,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
     metadata.expects(:git_sha1=).with(git_sha1)
     metadata.expects(:git_ref=).with('master')
+    metadata.expects(:hot_deploy=).with(nil)
+    metadata.expects(:force_clean_build=).with(nil)
 
     options = {
       out: $stdout,
@@ -144,6 +146,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
     metadata.expects(:git_sha1=).with(git_sha1)
     metadata.expects(:git_ref=).with('master')
+    metadata.expects(:hot_deploy=).with(nil)
+    metadata.expects(:force_clean_build=).with(nil)
 
     options = {
       out: $stdout,
@@ -192,6 +196,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
     metadata.expects(:git_sha1=).with(git_sha1)
     metadata.expects(:git_ref=).with('master')
+    metadata.expects(:hot_deploy=).with(true)
+    metadata.expects(:force_clean_build=).with(nil)
 
     options = {
       out: $stdout,

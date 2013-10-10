@@ -1,5 +1,6 @@
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/hash'
+require 'securerandom'
 
 module OpenShift
   module Runtime
@@ -136,14 +137,7 @@ module OpenShift
         end
 
         def calculate_deployment_id(deployment_datetime)
-          deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
-
-          # TODO use a better algorithm
-          out, err, rc = run_in_container_context("tar c . | tar xO | sha1sum | cut -f 1 -d ' '",
-                                                  chdir: deployment_dir,
-                                                  expected_exitstatus: 0)
-
-          deployment_id = out[0..7]
+          SecureRandom.hex(4)
         end
 
         def link_deployment_id(deployment_datetime, deployment_id)

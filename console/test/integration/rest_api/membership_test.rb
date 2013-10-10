@@ -26,6 +26,13 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     @fourth_user ||= new_named_api_user('fourth_other')
   end
 
+  def with_ssh_key(user)
+    Key.new(:type => 'ssh-rsa', :name => "key_#{user.login}", :content => "value#{user.login.gsub(/[^a-zA-Z\d]/, '')}", :as => user).save!
+    user
+  rescue Key::DuplicateName
+    user
+  end
+
   def test_retrieve_membership
     setup_domain
     assert members = @domain.members
@@ -40,6 +47,34 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert @domain.owner?
     assert @domain.admin?
     assert_equal [{'type' => 'owner', 'role' => 'admin'}], m.from, m.from.inspect
+  end
+
+  def test_application_correctly_inherits_members
+    setup_domain
+
+    assert @domain.update_members([Member.new(:id => with_ssh_key(second_user).id, :role => 'admin')])
+    app = Application.new({
+      :domain => @domain,
+      :name => 'test2',
+      :cartridges => ['php-5.3'],
+      :as => @user,
+    })
+    assert app.save, app.errors.inspect
+    assert a = Application.find(app.id, :as => second_user)
+    assert_equal a.id, app.id
+
+    assert @domain.update_members([Member.new(:id => with_ssh_key(other_user).id, :role => 'admin')])
+    assert a = Application.find(app.id, :as => other_user)
+    assert_equal a.id, app.id
+    assert a.has_role?('admin')
+
+    assert @domain.update_members([Member.new(:id => other_user.id, :role => 'view')]), @domain.errors.inspect
+    assert a = Application.find(app.id, :as => other_user)
+    assert a.has_role?('view')
+
+    assert @domain.update_members([Member.new(:id => other_user.id, :role => 'edit')])
+    assert a = Application.find(app.id, :as => other_user)
+    assert a.has_role?('edit')
   end
 
   def test_server_rejects_invalid_members

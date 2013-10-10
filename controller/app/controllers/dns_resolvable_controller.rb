@@ -7,7 +7,7 @@ class DnsResolvableController < BaseController
   ##
   # Support API to check if application DNS entry is available
   #
-  # URL: /domains/:domain_id/applications/:application_id/dns_resolvable
+  # URL: /application/:application_id/dns_resolvable
   #
   # Action: GET
   #

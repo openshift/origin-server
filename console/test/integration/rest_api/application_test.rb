@@ -76,6 +76,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     app = @domain.find_application('test2')
     assert_equal DOWNLOADED_CART_URL, app.cartridges.first.url
     assert_equal DOWNLOADED_CART_NAME, app.cartridges.first.name
+    assert_equal DOWNLOADED_CART_DISPLAY_NAME, app.cartridges.first.display_name
   end
 
   def test_retrieve_cartridges

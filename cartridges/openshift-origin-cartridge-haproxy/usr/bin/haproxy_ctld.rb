@@ -11,7 +11,6 @@ CONFIG_VALIDATION_CHECK_INTERVAL = 300
 FLAP_PROTECTION_TIME_SECONDS = 600
 HAPROXY_CONF_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "conf")
 HAPROXY_RUN_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "run")
-GEAR_REGISTRY_DB=File.join(ENV['OPENSHIFT_HOMEDIR'], "gear_registry.txt")
 HAPROXY_CONFIG=File.join(HAPROXY_CONF_DIR, "haproxy.cfg")
 HAPROXY_STATUS_URLS_CONFIG=File.join(HAPROXY_CONF_DIR, "app_haproxy_status_urls.conf")
 
@@ -100,7 +99,7 @@ class Haproxy
 
         begin
           @socket = UNIXSocket.open(@stats_sock)
-          @socket.puts("show stat\n") 
+          @socket.puts("show stat\n")
           while(line = @socket.gets) do
             pxname=line.split(',')[0]
             svname=line.split(',')[1]
@@ -342,7 +341,7 @@ end
 begin
   data_dir = ENV['OPENSHIFT_DATA_DIR']
   scale_file = "#{data_dir}/scale_limits.txt"
-  File.delete(scale_file) if File.exists?(scale_file) 
+  File.delete(scale_file) if File.exists?(scale_file)
   ha = Haproxy.new("#{HAPROXY_RUN_DIR}/stats", opt['debug'])
   if opt['up']
     ha.add_gear(true)

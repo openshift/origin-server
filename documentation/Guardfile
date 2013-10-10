@@ -4,7 +4,7 @@ require 'haml'
 require 'tilt'
 
 guard 'shell' do
-  watch(/^.*\.txt$/) {|m|
+  watch(/^.*\.adoc$/) {|m|
     Asciidoctor.render_file m[0], :in_place => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=./images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
   }
 end

@@ -357,6 +357,8 @@ module OpenShift
             deployment_metadata = deployment_metadata_for(options[:deployment_datetime])
             deployment_metadata.git_sha1 = git_sha1
             deployment_metadata.git_ref = git_ref
+            deployment_metadata.hot_deploy = options[:hot_deploy]
+            deployment_metadata.force_clean_build = options[:force_clean_build]
 
             options[:out].puts "Building git ref '#{git_ref}', commit #{git_sha1}" if options[:out]
             build(options)
@@ -792,15 +794,19 @@ module OpenShift
             @cartridge_model.do_control('update-configuration',
                                         @cartridge_model.primary_cartridge,
                                         pre_action_hooks_enabled:  false,
-                                        post_action_hooks_enabled: false)
+                                        post_action_hooks_enabled: false,
+                                        out:                       options[:out],
+                                        err:                       options[:err])
 
             msg = "Starting application #{application_name}\n"
             result[:messages] << msg
 
-            output = start_gear(secondary_only: true,
-                                user_initiated: true,
+            output = start_gear(secondary_only:    true,
+                                user_initiated:    true,
                                 exclude_web_proxy: true,
-                                hot_deploy:     options[:hot_deploy])
+                                hot_deploy:        options[:hot_deploy],
+                                out:               options[:out],
+                                err:               options[:err])
 
             result[:messages] << output unless output.empty?
 
@@ -809,21 +815,27 @@ module OpenShift
             output = @cartridge_model.do_control('deploy',
                                                   @cartridge_model.primary_cartridge,
                                                   pre_action_hooks_enabled: false,
-                                                  prefix_action_hooks:      false)
+                                                  prefix_action_hooks:      false,
+                                                  out:                      options[:out],
+                                                  err:                      options[:err])
 
             result[:messages] << output unless output.empty?
 
-            output = start_gear(primary_only:   true,
-                                user_initiated: true,
+            output = start_gear(primary_only:      true,
+                                user_initiated:    true,
                                 exclude_web_proxy: true,
-                                hot_deploy:     options[:hot_deploy])
+                                hot_deploy:        options[:hot_deploy],
+                                out:               options[:out],
+                                err:               options[:err])
 
             result[:messages] << output unless output.empty?
 
             output = @cartridge_model.do_control('post-deploy',
                                                   @cartridge_model.primary_cartridge,
                                                   pre_action_hooks_enabled: false,
-                                                  prefix_action_hooks:      false)
+                                                  prefix_action_hooks:      false,
+                                                  out:                      options[:out],
+                                                  err:                      options[:err])
 
             result[:messages] << output unless output.empty?
 

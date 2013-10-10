@@ -5,10 +5,10 @@ require 'openshift-origin-controller'
 class DeploymentTest < ActionDispatch::IntegrationTest
 
   DOMAIN_COLLECTION_URL = "/broker/rest/domains"
-  APP_COLLECTION_URL_FORMAT = "/broker/rest/domains/%s/applications"
-  APP_URL_FORMAT = "/broker/rest/domains/%s/applications/%s"
-  APP_DEPLOYMENT_COLLECTION_URL_FORMAT = "/broker/rest/domains/%s/applications/%s/deployments"
-  APP_DEPLOYMENT_URL_FORMAT = "/broker/rest/domains/%s/applications/%s/deployments/%s"
+  APP_COLLECTION_URL_FORMAT = "/broker/rest/domain/%s/applications"
+  APP_URL_FORMAT = "/broker/rest/domain/%s/application/%s"
+  APP_DEPLOYMENT_COLLECTION_URL_FORMAT = "/broker/rest/domain/%s/application/%s/deployments"
+  APP_DEPLOYMENT_URL_FORMAT = "/broker/rest/domain/%s/application/%s/deployment/%s"
 
   def setup
     @random = rand(1000000000)
@@ -50,14 +50,14 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     request_via_redirect(:get, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {}, @headers)
     assert_response :ok
     body = JSON.parse(@response.body)
-    assert_equal(body["data"].length, 0)
+    assert_equal(1, body["data"].length)
 
     # query non-existent deployment
     request_via_redirect(:get, APP_DEPLOYMENT_URL_FORMAT % [@ns, @app, "bogus"], {}, @headers)
     assert_response :not_found
 
     #try to create deployment with bad inputs
-    request_via_redirect(:post, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {:ref => "master", :artifact_url => "myurl"}, @headers)
+    request_via_redirect(:post, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {:ref => "a" * 300}, @headers)
     assert_response :unprocessable_entity
 
     #create deployment
@@ -65,7 +65,6 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     assert_response :created
     body = JSON.parse(@response.body)
     first_id = body["data"]["id"]
-    assert_equal("active" , body["data"]["state"], "deployment state is #{body["data"]["state"]} where it should be active")
     assert_equal(false , body["data"]["hot_deploy"], "hot_deploy is #{body["data"]["hot_deploy"]} where it should be false")
     assert_equal(false , body["data"]["force_clean_build"], "force_clean_build is #{body["data"]["force_clean_build"]} where it should be false")
 
@@ -74,7 +73,6 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(body["data"]["id"], first_id)
-    assert_equal("active" , body["data"]["state"], "deployment state is #{body["data"]["state"]} where it should be active")
     assert_equal(false , body["data"]["hot_deploy"], "hot_deploy is #{body["data"]["hot_deploy"]} where it should be false")
     assert_equal(false , body["data"]["force_clean_build"], "force_clean_build is #{body["data"]["force_clean_build"]} where it should be false")
 
@@ -83,17 +81,15 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     assert_response :created
     body = JSON.parse(@response.body)
     second_id = body["data"]["id"]
-    assert_equal("active" , body["data"]["state"], "deployment state is #{body["data"]["state"]} where it should be active")
-    assert_equal(true , body["data"]["hot_deploy"], "hot_deploy is #{body["data"]["hot_deploy"]} where it should be false")
+    assert_equal(true , body["data"]["hot_deploy"], "hot_deploy is #{body["data"]["hot_deploy"]} where it should be true")
     assert_equal(true , body["data"]["force_clean_build"], "force_clean_build is #{body["data"]["force_clean_build"]} where it should be true")
 
     #get created deployment
-    request_via_redirect(:get, APP_DEPLOYMENT_URL_FORMAT % [@ns, @app, id], {}, @headers)
+    request_via_redirect(:get, APP_DEPLOYMENT_URL_FORMAT % [@ns, @app, second_id], {}, @headers)
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(body["data"]["id"], second_id)
-    assert_equal("active" , body["data"]["state"], "deployment state is #{body["data"]["state"]} where it should be active")
-    assert_equal(true , body["data"]["hot_deploy"], "hot_deploy is #{body["data"]["hot_deploy"]} where it should be false")
+    assert_equal(true , body["data"]["hot_deploy"], "hot_deploy is #{body["data"]["hot_deploy"]} where it should be true")
     assert_equal(true , body["data"]["force_clean_build"], "force_clean_build is #{body["data"]["force_clean_build"]} where it should be true")
 
     #get all deployments
@@ -101,26 +97,11 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(2, body["data"].length)
-    deployments = body["data"]
-    assert deployments.find{|d| d["state"] == "active"}.length == 1, "There should be one and only one active deployment"
 
     # rollback application
     APP_EVENTS_URL_FORMAT = "/broker/rest/domains/%s/applications/%s/events"
-    request_via_redirect(:post, APP_EVENTS_URL_FORMAT % [@ns, @app], {:event => "rollback"}, @headers)
+    request_via_redirect(:post, APP_EVENTS_URL_FORMAT % [@ns, @app], {:event => "activate", :deployment_id => first_id}, @headers)
     assert_response :ok
-
-    #check to see if rollback happened
-    request_via_redirect(:get, APP_DEPLOYMENT_URL_FORMAT % [@ns, @app, id], {}, @headers)
-    assert_response :ok
-    body = JSON.parse(@response.body)
-    assert_equal(body["data"]["id"], first_id)
-    assert_equal("active" , body["data"]["state"], "deployment state is #{body["data"]["state"]} where it should be active")
-
-    request_via_redirect(:get, APP_DEPLOYMENT_URL_FORMAT % [@ns, @app, second_id], {}, @headers)
-    assert_response :ok
-    body = JSON.parse(@response.body)
-    assert_equal(body["data"]["id"], second_id)
-    refute_equal("active" , body["data"]["state"], 'deployment state is #{body["data"]["state"]} where it should NOT be active')
 
     #get all deployments after rollback
     request_via_redirect(:get, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {}, @headers)
@@ -128,28 +109,19 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     body = JSON.parse(@response.body)
     assert_equal(2, body["data"].length)
     deployments = body["data"]
-    assert deployments.find{|d| d["state"] == "active"}.length == 1, "There should be one and only one active deployment"
-
-    # try rolling back application again
-    APP_EVENTS_URL_FORMAT = "/broker/rest/domains/%s/applications/%s/events"
-    request_via_redirect(:post, APP_EVENTS_URL_FORMAT % [@ns, @app], {:event => "rollback"}, @headers)
-    assert_response :unprocessable_entity
 
     #rollback to the latest deployment
     APP_EVENTS_URL_FORMAT = "/broker/rest/domains/%s/applications/%s/events"
-    request_via_redirect(:post, APP_EVENTS_URL_FORMAT % [@ns, @app], {:event => "rollback", :develpment_id => second_id}, @headers)
+    request_via_redirect(:post, APP_EVENTS_URL_FORMAT % [@ns, @app], {:event => "activate", :deployment_id => second_id}, @headers)
     assert_response :ok
     request_via_redirect(:get, APP_DEPLOYMENT_URL_FORMAT % [@ns, @app, second_id], {}, @headers)
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(body["data"]["id"], second_id)
-    assert_equal("active" , body["data"]["state"], 'deployment state is #{body["data"]["state"]} where it should be active')
     request_via_redirect(:get, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {}, @headers)
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(2, body["data"].length)
-    deployments = body["data"]
-    assert deployments.find{|d| d["state"] == "active"}.length == 1, "There should be one and only one active deployment"
 
     #create more deployments and test to see only 3 deployments are kept
     request_via_redirect(:post, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {:ref => "master"}, @headers)
@@ -160,8 +132,6 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(3, body["data"].length, "There should only be 3 deployments kept")
-    deployments = body["data"]
-    assert deployments.find{|d| d["state"] == "active"}.length == 1, "There should be one and only one active deployment"
 
   end
 

@@ -133,6 +133,10 @@ function post_restore {
   if [ -f $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz ]; then
     start
 
+    # The following call is necessary due to race conditions that can arise if mysql
+    # is recovering from a force-stop
+    wait_for_mysqld_availability true
+
     # Restore stashed variables and get current variables
     OLD_IP=$(< $OPENSHIFT_DATA_DIR/mysql_db_host)
     NEW_IP=$OPENSHIFT_MYSQL_DB_HOST

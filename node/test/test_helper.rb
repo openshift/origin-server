@@ -68,6 +68,7 @@ module OpenShift
       @cgroups_mock.stubs(:freeze).yields(:frozen)
       @cgroups_mock.stubs(:thaw).yields(:thawed)
       @cgroups_mock.stubs(:processes).returns([])
+      @cgroups_mock.stubs(:templates).returns({default: {'memory.limit_in_bytes' => '536870912'}})
 
       @tc_mock = mock('OpenShift::Runtime::Utils::TC')
       OpenShift::Runtime::Utils::TC.stubs(:new).returns(@tc_mock)

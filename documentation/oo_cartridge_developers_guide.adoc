@@ -359,10 +359,10 @@ The sub-directory `.openshift/markers` may contain example files for the applica
 |Marker |Action
 
 |force_clean_build
-|Previous output from `bundle install --deployment` will be removed and all gems will be reinstalled according to the current Gemfile/Gemfile.lock.
+|Remove and previously built artifacts (gems/maven artifacts/etc) before starting the next build.  Note: Turning off auto deploy on your application and specify force_clean_build on a per deploy basis is generally preferred over this option.
 
 |hot_deploy
-|Will prevent the apache process from being restarted during build/deployment. Note that mod_passenger will respawn the Rack worker processes if any code has been modified.
+|Perform the minimal restart to pick up code changes.  Skips any non required packaging steps such as bundle installing gems.  Note: Turning off auto deploy on your application and specify hot_deploy on a per deploy basis is generally preferred over this option.
 
 |disable_auto_scaling
 |Will prevent scalable applications from scaling up or down according to application load.
@@ -1049,46 +1049,45 @@ During the `build` phase:
 1.  The application is stopped.
 2.  The primary cartridge `pre-receive` control action is executed.
 3.  The primary cartridge `pre-repo-archive` control action is executed.
-4.  The newly committed application source code is copied to `$OPENSHIFT_REPO_DIR`. _This step is the only time the application source code is copied by OpenShift during this lifecycle._
-5.  The primary cartridge `update-configuration` control action is executed.
-6.  The primary cartridge `pre-build` control action is executed.
-7.  The `pre-build` user action hook is executed, if present.
-8.  The primary cartridge `build` control action is executed.
-9.  The `build` user action hook is executed.
+4.  A new deployment directory `$OPENSHIFT_HOMEDIR/app-deployments/$date_$time` is created with repo and dependencies subdirectories.
+    * The dependencies directory can be referred to as `$OPENSHIFT_DEPENDENCIES_DIR` in any of the cartridge scripts including setup/install/post_install.  Contents placed in this directory are synced to additional gears (both for CI and for scale-up).  If your cartridge requires a particular directory structure for dependencies, you should symlink your cartridge directory structure into `$OPENSHIFT_DEPENDENCIES_DIR`.
+    * There is also an `$OPENSHIFT_BUILD_DEPENDENCIES_DIR` which is the appropriate place to put build time only dependencies such as maven artifacts.
+5.  All dependencies from the active deployment (`$OPENSHIFT_HOMEDIR/app-root/runtime/dependencies`) are copied (or moved if `$OPENSHIFT_KEEP_DEPLOYMENTS` == 1) to `$OPENSHIFT_HOMEDIR/app-deployments/$date_$time/dependencies`
+6.  Starting with the oldest deployment, previous deployments are removed until the number of deployments in app-deployments <= the value of `$OPENSHIFT_KEEP_DEPLOYMENTS` (if necessary)
+7.  The contents of the git repo for the current deployment branch are unpacked into `$OPENSHIFT_HOMEDIR/app-deployments/$date_$time/repo`. _This step is the only time the application source code is copied by OpenShift during this lifecycle._
+8.  The primary cartridge `pre-build` control action is executed.
+9.  The `pre-build` user action hook is executed, if present.
+10. The primary cartridge `build` control action is executed.
+11. The `build` user action hook is executed.
 
-Next, during the `deploy` phase:
+Next, during the `prepare` phase:
 
-1.  All secondary cartridges in the application are started.
-2.  The primary cartridge `deploy` control action is executed.
-3.  The `deploy` user action hook is executed, if present.
-4.  The primary cartridge is started (the application is now fully started).
-5.  The primary cartridge `post-deploy` control action is executed.
-6.  The `post-deploy` user action hook is executed, if present.
+1.  The `prepare` user action hook is executed, if present.
+2.  The deployment id and checksum of deployment contents are calculated
+3.  `$OPENSHIFT_HOMEDIR/app-deployments/by-id/$deployment_id` is created and points to `../app-deployments/$date_time`
+
+Next, during the `distribute` phase:
+
+1.  If the app is scalable, the new deployment will be synced to all child gears
+
+Next, during the `activate` phase:
+
+1.  `$OPENSHIFT_HOMEDIR/app-root/runtime/repo` is updated to point at `../../app-deployments/$date_$time/repo`
+2.  `$OPENSHIFT_HOMEDIR/app-root/runtime/dependencies` is updated to point at `../../app-deployments/$date_$time/dependencies`
+3.  The primary cartridge `update-configuration` control action is executed.
+4.  All secondary cartridges in the application are started.
+5.  The primary cartridge `deploy` control action is executed.
+6.  The `deploy` user action hook is executed, if present.
+7.  The primary cartridge is started (the application is now fully started).
+8.  The primary cartridge `post-deploy` control action is executed.
+9.  The `post-deploy` user action hook is executed, if present.
+10.  If the app is scalable, SSH to each child gear and execute `gear activate $deployment_id` which performs all the actvation steps (except this one)
+11.  Write activation time to `$OPENSHIFT_HOMEDIR/app-deployments/$date_$time/metadata.json`
 
 At this point, the application has been fully built and restarted.
 
-=== Default Scaling Build Lifecycle
-A scalable application build proceeds exactly the same way as a regular application during the `build` phase on the head gear (i.e. the primary gear on which the web_proxy runs).
-
-The difference in behavior comes during the `deploy` phase:
-
-. All secondary cartridges in the application are started on the head gear.
-. The web_proxy cartridge `deploy` hook is executed on the head gear; it is responsible for distributing the code/build artifacts to the other gears and run the `deploy` steps on them as well.
-. The following steps are executed by the default web_proxy, i.e. haproxy:
-.. The secondary gears are stopped.
-.. The code/build artifacts from the head gear are synced to secondary gears.
-.. The primary cartridge `update-configuration` control action is called on secondary gears.
-.. All secondary cartridges in the application are started on secondary gears.
-.. The primary cartridge `deploy` control action is executed on secondary gears.
-.. The `deploy` user action hook is executed, if present, on secondary gears.
-.. The primary cartridge is started (the application is now fully started) on secondary gears.
-.. The primary cartridge `post-deploy` control action is executed on secondary gears.
-.. The `post-deploy` user action hook is executed, if present, on secondary gears.
-. The primary cartridge `deploy` control action is executed on the head gear.
-. The `deploy` user action hook is executed, if present, on the head gear.
-. The primary cartridge is started (the application is now fully started) on the head gear.
-. The primary cartridge `post-deploy` control action is executed on the head gear.
-. The `post-deploy` user action hook is executed, if present, on the head gear.
+=== Binary Deploy
+From a cartridge perspective, binary deploy is very similar to build and deploy without the build.  Instead the built artifacts and dependencies are provided and the deploy steps start at `prepare`.
 
 === Builder Cartridge Lifecycle
 If a builder cartridge is present in the application, changes pushed to the application Git repository will execute using an alternate build lifecycle which hands over operations to the builder cartridge. In this lifecycle, OpenShift provides no specific behavior for the build beyond giving the builder cartridge the opportunity to perform work. The sequence of events follows:
