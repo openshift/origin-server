@@ -8,7 +8,7 @@ class CartridgesController < BaseController
   ##
   # Retrieve details for specific cartridge
   # 
-  # URL: /cartridges/:id
+  # URL: /cartridge/:name
   #
   # @note This method may or may not require authenticated access depending on the authentication plugin that is configured.  
   #

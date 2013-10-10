@@ -8,8 +8,8 @@ class AppEventsController < BaseController
 
   ##
   # API to perform manage an application
-  # 
-  # URL: /domains/:domain_id/applications/:application_id/events
+  #
+  # URL: /application/:application_id/events
   #
   # Action: POST
   # @param [String] event Application event to create. Supported types include

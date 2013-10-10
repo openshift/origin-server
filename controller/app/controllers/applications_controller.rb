@@ -8,7 +8,7 @@ class ApplicationsController < BaseController
   ##
   # List all applications
   #
-  # URL: /domains/:domain_id/applications
+  # URL: /applications
   # @param [String] include Comma separated list of sub-objects to include in reply. Only "cartridges" is supported at the moment.
   #
   # Action: GET
@@ -27,7 +27,7 @@ class ApplicationsController < BaseController
   ##
   # Retrieve a specific application
   #
-  # URL: /domains/:domain_id/applications/:id
+  # URL: /application/:id
   #
   # Action: GET
   # @return [RestReply<RestApplication>] Application object
@@ -39,7 +39,7 @@ class ApplicationsController < BaseController
   ##
   # Create a new application
   #
-  # URL: /domains/:domain_id/applications
+  # URL: /domain/:domain_name/applications
   #
   # Action: POST
   # @param [String] name Application name
@@ -193,7 +193,7 @@ class ApplicationsController < BaseController
   ##
   # Delete an application
   #
-  # URL: /domains/:domain_id/applications/:id
+  # URL: /application/:id
   #
   # Action: DELETE
   def destroy
