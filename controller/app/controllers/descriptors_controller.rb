@@ -6,7 +6,7 @@ class DescriptorsController < BaseController
   ##
   # Retrieve application descriptor
   #
-  # URL: /domains/:domain_id/applications/:application_id/descriptor
+  # URL: /application/:application_id/descriptor
   #
   # Action: GET
   #

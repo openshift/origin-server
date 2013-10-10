@@ -27,7 +27,7 @@ class DomainsController < BaseController
 
   # Retuns domain for the current user that match the given parameters.
   #
-  # URL: /domains/:name
+  # URL: /domain/:name
   #
   # Action: GET
   #
@@ -75,7 +75,7 @@ class DomainsController < BaseController
 
   # Create a new domain for the user
   #
-  # URL: /domains/:existing_name
+  # URL: /domain/:existing_name
   #
   # Action: PUT
   #
@@ -116,7 +116,7 @@ class DomainsController < BaseController
 
   # Delete a domain for the user. Requires that domain be empty unless 'force' parameter is set.
   #
-  # URL: /domains/:name
+  # URL: /domain/:name
   #
   # Action: DELETE
   #

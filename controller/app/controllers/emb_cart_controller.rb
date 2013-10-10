@@ -3,13 +3,17 @@ class EmbCartController < BaseController
   before_filter :get_application
   action_log_tag_resource :app_cartridge
 
-  # GET /domains/[domain_id]/applications/[application_id]/cartridges
+  # URL: /application/:id/cartridges
+  #
+  # Action: GET
   def index
     cartridges = get_application_rest_cartridges(@application) 
     render_success(:ok, "cartridges", cartridges, "Listing cartridges for application #{@application.name} under domain #{@application.domain_namespace}")
   end
 
-  # GET /domains/[domain_id]/applications/[application_id]/cartridges/[id]
+  # URL: /application/:application_id/cartridge/:name
+  #
+  # Action: GET
   def show
     id = params[:id].presence
     status_messages = !params[:include].nil? and params[:include].split(",").include?("status_messages")
@@ -20,7 +24,9 @@ class EmbCartController < BaseController
     render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@application.domain_namespace}")
   end
 
-  # POST /domains/[domain_id]/applications/[application_id]/cartridges
+  # URL: /application/:application_id/cartridges
+  #
+  # Action: POST
   def create
 
     if @application.quarantined
@@ -150,7 +156,9 @@ class EmbCartController < BaseController
     end
   end
 
-  # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[id]
+  # URL: /application/:application_id/cartridge/:name
+  #
+  # Action: DELETE
   def destroy
     if @application.quarantined
       return render_upgrade_in_progress
@@ -169,7 +177,9 @@ class EmbCartController < BaseController
     render_success(status, nil, nil, "Removed #{cartridge} from application #{@application.name}", result)
   end
 
-  # PUT /domains/[domain_id]/applications/[application_id]/cartridges/[id]
+  # URL: /application/:application_id/cartridge/:name
+  #
+  # Action: PUT
   def update
     id = ComponentInstance.check_name!(params[:id].presence)
     scales_from = Integer(params[:scales_from].presence) rescue nil
