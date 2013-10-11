@@ -43,7 +43,6 @@ BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
-Conflicts:     rubygem(openshift-origin-frontend-apache-mod-rewrite)
 
 %description
 Provides the Apache Virtual Hosts plugin for OpenShift web frontends
@@ -86,14 +85,13 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-frontend-apache-vhost.conf.
 
 %if 0%{?fedora} >= 18
   #patch for apache 2.4
-  sed -i 's/include /IncludeOptional /g' httpd/000001_openshift_origin_node.conf
+  sed -i 's/include /IncludeOptional /g' httpd/000001_openshift_origin_frontend_vhost.conf
 %endif
 
 
 
 mkdir -p %{buildroot}/etc/httpd/conf.d/openshift
-mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
-mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
+mv httpd/000001_openshift_origin_frontend_vhost.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/frontend-vhost-https-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
 mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
 
@@ -103,8 +101,7 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshif
 %{gem_instdir}
 %{gem_spec}
 %{gem_cache}
-%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
-%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
+%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_frontend_vhost.conf
 %config(noreplace) /etc/httpd/conf.d/openshift/frontend-vhost-http-template.erb
 %config(noreplace) /etc/httpd/conf.d/openshift/frontend-vhost-https-template.erb
 /etc/openshift/node-plugins.d/
