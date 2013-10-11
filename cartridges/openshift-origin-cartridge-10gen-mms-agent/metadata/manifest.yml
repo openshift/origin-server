@@ -6,10 +6,11 @@ Description: MongoDB Monitoring Service (MMS) instruments MongoDB and provides i
   about current and historical operational metrics of your system.
 Version: '0.1'
 License-Url: https://mms.10gen.com/links/terms-of-service
-Cartridge-Version: 0.0.3
+Cartridge-Version: 0.0.4
 Compatible-Versions:
 - 0.0.1
 - 0.0.2
+- 0.0.3
 Cartridge-Vendor: redhat
 Vendor: 10gen.com
 Categories:
