@@ -9,7 +9,7 @@ Version: '6'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
-Cartridge-Version: 0.0.6
+Cartridge-Version: 0.0.7
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -120,5 +120,4 @@ Endpoints:
   Private-Port: 9990
 Additional-Control-Actions:
 - threaddump
-Compatible-Versions:
-- 0.0.5
+Compatible-Versions: []
