@@ -162,7 +162,7 @@ class OpenShift::Runtime::DeploymentTester
         entries = gear_registry.entries
         entries[:web].values.each { |entry| @api.assert_http_title_for_entry entry, DEFAULT_TITLE }
       else
-        @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE      
+        @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE
       end
     end
   end

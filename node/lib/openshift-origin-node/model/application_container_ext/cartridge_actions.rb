@@ -97,7 +97,8 @@ module OpenShift
               set_rw_permission_R(deployments_dir)
               reset_permission_R(deployments_dir)
 
-              record_deployment_activation(deployment_datetime)
+              deployment_metadata.record_activation
+              deployment_metadata.save
             end
           end
 
@@ -342,11 +343,7 @@ module OpenShift
                                         post_action_hooks_enabled: false)
 
             # need to add the entry to the options hash, as it's used in build, prepare, distribute, and activate below
-            if options[:hot_deploy]
-              options[:deployment_datetime] = current_deployment_datetime
-            else
-              options[:deployment_datetime] = create_deployment_dir
-            end
+            options[:deployment_datetime] = create_deployment_dir
 
             repo_dir = PathUtils.join(@container_dir, 'app-deployments', options[:deployment_datetime], 'repo')
             application_repository = ApplicationRepository.new(self)
@@ -359,6 +356,7 @@ module OpenShift
             deployment_metadata.git_ref = git_ref
             deployment_metadata.hot_deploy = options[:hot_deploy]
             deployment_metadata.force_clean_build = options[:force_clean_build]
+            deployment_metadata.save
 
             options[:out].puts "Building git ref '#{git_ref}', commit #{git_sha1}" if options[:out]
             build(options)
@@ -401,8 +399,6 @@ module OpenShift
           result = {
             status: RESULT_FAILURE
           }
-
-          repo_dir = PathUtils.join(@container_dir, 'app-deployments', options[:deployment_datetime], 'repo')
 
           prepare(options)
 
@@ -450,26 +446,26 @@ module OpenShift
             buffer << @cartridge_model.do_control('update-configuration',
                                                   @cartridge_model.primary_cartridge,
                                                   pre_action_hooks_enabled:  false,
-                post_action_hooks_enabled: false,
-                env_overrides:             overrides,
-                out:                       options[:out],
-                err:                       options[:err])
+                                                  post_action_hooks_enabled: false,
+                                                  env_overrides:             overrides,
+                                                  out:                       options[:out],
+                                                  err:                       options[:err])
 
             buffer << @cartridge_model.do_control('pre-build',
                                                   @cartridge_model.primary_cartridge,
                                                   pre_action_hooks_enabled: false,
-                prefix_action_hooks:      false,
-                env_overrides:            overrides,
-                out:                      options[:out],
-                err:                      options[:err])
+                                                  prefix_action_hooks:      false,
+                                                  env_overrides:            overrides,
+                                                  out:                      options[:out],
+                                                  err:                      options[:err])
 
             buffer << @cartridge_model.do_control('build',
                                                   @cartridge_model.primary_cartridge,
                                                   pre_action_hooks_enabled: false,
-                prefix_action_hooks:      false,
-                env_overrides:            overrides,
-                out:                      options[:out],
-                err:                      options[:err])
+                                                  prefix_action_hooks:      false,
+                                                  env_overrides:            overrides,
+                                                  out:                      options[:out],
+                                                  err:                      options[:err])
           rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
             buffer << "Encountered a failure during build: #{e.message}"
             buffer << "Backtrace: #{e.backtrace.join("\n")}"
@@ -538,6 +534,7 @@ module OpenShift
           begin
             deployment_metadata = deployment_metadata_for(deployment_datetime)
             deployment_metadata.id = deployment_id
+            deployment_metadata.save
 
             # this is needed so the distribute and activate steps down the line can work
             options[:deployment_id] = deployment_id
@@ -687,6 +684,13 @@ module OpenShift
           batch_size = calculate_batch_size(gears.size, PARALLEL_CONCURRENCY_RATIO)
           threads = [batch_size, MAX_THREADS].min
 
+          deployment_datetime = get_deployment_datetime_for_deployment_id(deployment_id)
+          deployment_metadata = deployment_metadata_for(deployment_datetime)
+          options[:hot_deploy] = deployment_metadata.hot_deploy
+
+          # if it's a new gear via scale-up, force hot_deploy to false
+          options[:hot_deploy] = false if options[:init]
+
           gear_results = Parallel.map(gears, :in_threads => threads) do |gear|
             gear_uuid = gear.split('@')[0]
             rotate_and_yield(gear_uuid, gear_env, options) do |gear_uuid, gear_env, options|
@@ -723,14 +727,13 @@ module OpenShift
             errors: [],
           }
 
-          hot_deploy_option = (options[:hot_deploy] == true) ? '--hot-deploy' : '--no-hot-deploy'
           init_option = (options[:init] == true) ? ' --init' : ''
 
           # call activate_gear on the remote gear
-          result[:messages] << "Activating gear #{gear_uuid}, deployment id: #{options[:deployment_id]}, #{hot_deploy_option},#{init_option}\n"
+          result[:messages] << "Activating gear #{gear_uuid}, deployment id: #{options[:deployment_id]},#{init_option}\n"
 
           begin
-            out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear} gear activate #{options[:deployment_id]} --as-json #{hot_deploy_option}#{init_option} --no-rotation",
+            out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear} gear activate #{options[:deployment_id]} --as-json#{init_option} --no-rotation",
                                                     env: gear_env,
                                                     expected_exitstatus: 0)
 
@@ -845,13 +848,14 @@ module OpenShift
               ident                = primary_cart_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
               _, _, version, _     = Runtime::Manifest.parse_ident(primary_cart_env[ident.first])
 
-              @cartridge_model.post_install(@cartridge_model.primary_cartridge,
-                                            version)
+              @cartridge_model.post_install(@cartridge_model.primary_cartridge, version)
 
             end
 
             # append this activation time to the metadata
-            record_deployment_activation(deployment_datetime)
+            deployment_metadata = deployment_metadata_for(deployment_datetime)
+            deployment_metadata.record_activation
+            deployment_metadata.save
 
             if options[:report_deployments] && gear_env['OPENSHIFT_APP_DNS'] == gear_env['OPENSHIFT_GEAR_DNS']
               report_deployments(gear_env)
@@ -1233,8 +1237,8 @@ module OpenShift
                 # may want to consider activating all (limited concurrently to :in_threads) instead
                 # of in batches
 
-                # since the gears are new, set init to true and hot_deploy to false
-                activate(gears: ssh_urls, deployment_id: deployment_id, init: true, hot_deploy: false)
+                # since the gears are new, set init to true
+                activate(gears: ssh_urls, deployment_id: deployment_id, init: true)
               end
 
               old_proxy_gears = old_registry[:proxy]

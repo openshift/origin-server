@@ -29,9 +29,11 @@ module OpenShift
 
         define_method("#{attr_name}=") do |value|
           @metadata[attr_name] = value
-          save
-          @metadata[attr_name]
         end
+      end
+
+      def record_activation
+        self.activations << Time.now.to_f
       end
 
       # Creates a new DeploymentMetadata instance for the given deployment_datetime.

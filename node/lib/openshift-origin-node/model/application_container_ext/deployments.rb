@@ -56,12 +56,6 @@ module OpenShift
           File.exist?(PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id))
         end
 
-        def record_deployment_activation(deployment_datetime)
-          deployment_metadata = deployment_metadata_for(deployment_datetime)
-          deployment_metadata.activations << Time.now.to_f
-          deployment_metadata.save
-        end
-
         def move_dependencies(deployment_datetime)
           # move the dependencies from the previous deployment to the one we're about to build
           out, err, rc = run_in_container_context("set -x; shopt -s dotglob; /bin/mv app-root/runtime/dependencies/* app-deployments/#{deployment_datetime}/dependencies",

@@ -539,8 +539,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
     @container.expects(:activate).with(gears: [web_entry2, web_entry3].map { |e| "#{e.uuid}@#{e.proxy_hostname}" },
                                             deployment_id: deployment_id,
-                                            init: true,
-                                            hot_deploy: false)
+                                            init: true)
 
     @container.expects(:run_in_container_context).with("rsync -avz --delete --exclude hooks --rsh=/usr/bin/oo-ssh git/#{@app_name}.git/ #{proxy_entry3.uuid}@#{proxy_entry3.proxy_hostname}:git/#{@app_name}.git/",
                                                         env: gear_env,
