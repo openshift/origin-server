@@ -7,7 +7,7 @@ Description: MySQL is a multi-user, multi-threaded SQL database server.
 Version: '5.1'
 Versions:
 - '5.1'
-Cartridge-Version: 0.2.3
+Cartridge-Version: 0.2.4
 Compatible-Versions: []
 Cartridge-Vendor: redhat
 License: GPL
@@ -49,4 +49,5 @@ Endpoints:
   Private-Port-Name: DB_PORT
   Private-Port: 3306
   Public-Port-Name: DB_PROXY_PORT
-  Protocols: [mysql]
+  Protocols:
+  - mysql
