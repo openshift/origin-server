@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version:       1.15.3
+Version:       1.15.4
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -115,6 +115,9 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Oct 11 2013 Adam Miller <admiller@redhat.com> 1.15.4-1
+- Bump cartridge versions (fotios@redhat.com)
+
 * Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.3-1
 - Bug 1014339 - Support for setting $OPENSHIFT_PYPI_MIRROR_URL
   (bleanhar@redhat.com)
