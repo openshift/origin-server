@@ -109,7 +109,7 @@ class ApplicationsController < BaseController
     #keep_deployments = params[:keep_deployments].presence || 1
     #deployment_type = params[:deployment_type].downcase if params[:deployment_type].presence || "git"
     #deployment_type = deployment_type.downcase
-    
+
     #return render_error(:unprocessable_entity, "Invalid deployment type: #{deployment_type}. Acceptable values are: #{Application::DEPLOYMENT_TYPES.join(", ")}",
     #                    1, "deployment_type") if deployment_type and !Application::DEPLOYMENT_TYPES.include?(deployment_type)
 
@@ -118,7 +118,7 @@ class ApplicationsController < BaseController
 
     #return render_error(:unprocessable_entity, "Invalid deployment_branch: #{deployment_branch}. Deployment branches are limited to 256 characters",
     #                    1, "deployment_branch") if deployment_branch and deployment_branch.length > 256
-                        
+
 
     if Application.where(domain: @domain, canonical_name: app_name.downcase).present?
       return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "name")
