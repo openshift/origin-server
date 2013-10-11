@@ -86,7 +86,6 @@ input[type="submit"].btn {
 .btn-large {
   padding: 8px 18px;
   font-size: $baseFontSize + .5px; // FIXME
-  line-height: normal;
 }
 .btn-large [class^="icon-"] {
   margin-top: 1px;
@@ -94,9 +93,8 @@ input[type="submit"].btn {
 
 // Small
 .btn-small {
-  padding: 3px 8px;
+  padding: 3px 9px;
   font-size: $baseFontSize - 2px; // FIXME
-  line-height: 1.5;
 }
 .btn-small [class^="icon-"] {
   margin-top: -1px;
@@ -104,9 +102,8 @@ input[type="submit"].btn {
 
 // Mini
 .btn-mini {
-  padding: 1px 4px;
-  font-size: $baseFontSize - 2px; // FIXME
-  line-height: 1.5;
+  padding: 0 5px;
+  font-size: $baseFontSize - 3px; // FIXME
 }
 
 
@@ -253,6 +250,15 @@ input[type="submit"].btn-primary:active,
 .btn-link[disabled]:focus {
   color: $grayDark;
   text-decoration: none;
+}
+
+
+// Icon buttons
+// --------------------------------------------------
+
+.btn [class*="icon-"] {
+  position: relative;
+  top: 1px;
 }
 
 

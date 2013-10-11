@@ -7,6 +7,7 @@
   clear: left;
   margin: 15px 0;
   padding: 6px 18px;
+  border: 1px solid;
   @include border-radius(2px);
   > p:last-child {
     margin-bottom: 0;

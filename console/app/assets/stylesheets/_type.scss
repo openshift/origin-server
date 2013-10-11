@@ -272,8 +272,8 @@ cite {
   font-style: normal;
 }
 
-.smaller {font-size: $smallFontSize;}
-.tiny-size {font-size:$tinyFontSize;}
+.smaller {font-size: $smallFontSize; line-height: 1.4;}
+.tiny-size {font-size:$tinyFontSize; line-height: 1.4;}
 
 a.external:after { 
   content: "\279A";
