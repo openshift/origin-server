@@ -68,6 +68,12 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     assert_equal(false , body["data"]["hot_deploy"], "hot_deploy is #{body["data"]["hot_deploy"]} where it should be false")
     assert_equal(false , body["data"]["force_clean_build"], "force_clean_build is #{body["data"]["force_clean_build"]} where it should be false")
 
+    # query deployment list
+    request_via_redirect(:get, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {}, @headers)
+    assert_response :ok
+    body = JSON.parse(@response.body)
+    assert_equal(2, body["data"].length)
+
     #get created deployment
     request_via_redirect(:get, APP_DEPLOYMENT_URL_FORMAT % [@ns, @app, first_id], {}, @headers)
     assert_response :ok
@@ -96,10 +102,10 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     request_via_redirect(:get, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {}, @headers)
     assert_response :ok
     body = JSON.parse(@response.body)
-    assert_equal(2, body["data"].length)
+    assert_equal(3, body["data"].length)
 
     # rollback application
-    APP_EVENTS_URL_FORMAT = "/broker/rest/domains/%s/applications/%s/events"
+    APP_EVENTS_URL_FORMAT = "/broker/rest/domain/%s/application/%s/events"
     request_via_redirect(:post, APP_EVENTS_URL_FORMAT % [@ns, @app], {:event => "activate", :deployment_id => first_id}, @headers)
     assert_response :ok
 
@@ -107,11 +113,10 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     request_via_redirect(:get, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {}, @headers)
     assert_response :ok
     body = JSON.parse(@response.body)
-    assert_equal(2, body["data"].length)
+    assert_equal(3, body["data"].length)
     deployments = body["data"]
 
     #rollback to the latest deployment
-    APP_EVENTS_URL_FORMAT = "/broker/rest/domains/%s/applications/%s/events"
     request_via_redirect(:post, APP_EVENTS_URL_FORMAT % [@ns, @app], {:event => "activate", :deployment_id => second_id}, @headers)
     assert_response :ok
     request_via_redirect(:get, APP_DEPLOYMENT_URL_FORMAT % [@ns, @app, second_id], {}, @headers)
@@ -121,7 +126,7 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     request_via_redirect(:get, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {}, @headers)
     assert_response :ok
     body = JSON.parse(@response.body)
-    assert_equal(2, body["data"].length)
+    assert_equal(3, body["data"].length)
 
     #create more deployments and test to see only 3 deployments are kept
     request_via_redirect(:post, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {:ref => "master"}, @headers)
