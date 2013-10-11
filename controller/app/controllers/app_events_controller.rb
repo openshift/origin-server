@@ -33,7 +33,7 @@ class AppEventsController < BaseController
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
                         "alias") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
     return render_error(:unprocessable_entity, "Reached gear limit of #{@cloud_user.max_gears}", 104) if (event == 'scale-up') && (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-    
+
     return render_error(:unprocessable_entity, "Deployment ID must be provided for activate.", 126,
                         "deployment_id") if event == "activate" && (deployment_id.nil? or deployment_id.to_s.empty?)
 
