@@ -49,36 +49,26 @@ def gear_cartridge_names
   cartridge_names
 end
 
+
 ##
-# Walks through the commits between +old_rev+ and +new_rev+ in reverse chrono order,
-# returning the latest detected status for the given +filename+. Status will be one
-# of the values returned by Git's +diff-filter+ option, or +nil+ if +filename+ does
-# not appear in the commits list.
-def latest_status(old_rev, new_rev, filename)
-  latest = nil
-
-  Dir.chdir(@repo.path) do
-    commits = `git rev-list #{old_rev}..#{new_rev}`.split("\n")
-    commits.each do |commit|
-      # extract an array [status, filename] from the commit
-      object = `git show --pretty="format:" --name-status --diff-filter=[AD] #{commit} -- #{filename}`.chomp.strip.split("\t")
-
-      if object.length > 0
-        latest = object[0]
-        break
-      end
-    end
-  end
-
-  latest
+# Returns the git ref to use when deploying. The ref will be whichever is not empty, in this order:
+#
+# +input+
+# $OPENSHIFT_DEPLOYMENT_BRANCH
+# 'master'
+def determine_deployment_ref(input=nil)
+  ref = input
+  ref = ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] if ref.nil? or ref.empty?
+  ref = 'master' if ref.nil? or ref.empty?
+  ref
 end
 
 ##
-# Returns +true+ if the given +filename+ is committed to the $OPENSHIFT_DEPLOYMENT_BRANCH (or master if not specified)
-# branch of the repository, otherwise +false+.
-def file_committed?(filename)
+# Returns +true+ if the given +filename+ exists in the tree for the git ref +ref+
+# of the repository, otherwise +false+.
+def file_exists?(filename, ref)
   Dir.chdir(@repo.path) do
-    return (not `git ls-tree #{ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'} -- #{filename}`.chomp.strip.empty?)
+    return (not `git ls-tree #{ref} -- #{filename}`.chomp.strip.empty?)
   end
 end
 
@@ -124,15 +114,10 @@ command :prereceive do |c|
         exit 255
       end
 
-      marker_added     = false
-      marker_deleted   = false
-      marker_committed = file_committed?(HOT_DEPLOY_MARKER)
+      ref_to_deploy = determine_deployment_ref()
 
-      # determine the branch to deploy, in order of priority:
-      # - if $OPENSHIFT_DEPLOYMENT_BRANCH is set, use that
-      # - fallback to master
-      branch_to_deploy = ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
-      found_deployment_branch = false
+      found_deployment_ref = false
+      hot_deploy = false
 
       $stdin.each_line do |str|
         arr  = str.split
@@ -142,27 +127,19 @@ command :prereceive do |c|
         new_rev  = arr[1]  # SHA
         ref_name = refs[2..-1].join('/') # develop, 1.4, dev/mybranch etc.
 
-        next unless branch_to_deploy == ref_name
+        next unless ref_to_deploy == ref_name
 
-        found_deployment_branch = true
-
-        case latest_status(old_rev, new_rev, HOT_DEPLOY_MARKER)
-        when "A"
-          marker_added = true
-        when "D"
-          marker_deleted = true
-        end
+        found_deployment_ref = true
+        hot_deploy = file_exists?(HOT_DEPLOY_MARKER, new_rev)
 
         break
       end
-
-      hot_deploy = marker_added || (marker_committed && !marker_deleted)
 
       # only call pre_receive if
       # - this is the first build ever, i.e. app-root/runtime/repo doesn't exist, OR
       # - auto deployments are enabled
       repo_dir = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
-      if !File.exist?(repo_dir) or (found_deployment_branch and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
+      if !File.exist?(repo_dir) or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
         @container.pre_receive(out: $stdout, err: $stderr, hot_deploy: hot_deploy)
       end
     end
@@ -180,21 +157,17 @@ command :postreceive do |c|
         exit 255
       end
 
-      # determine the branch to deploy, in order of priority:
-      # - if $OPENSHIFT_DEPLOYMENT_BRANCH is set, use that
-      # - fallback to master
-      branch_to_deploy = ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
+      ref_to_deploy = determine_deployment_ref()
 
-      found_deployment_branch = false
+      found_deployment_ref = false
 
       $stdin.each_line do |str|
         arr  = str.split
         refs = arr[2].split('/')
         ref_name = refs[2..-1].join('/') # develop, 1.4, dev/mybranch etc.
+        next unless ref_to_deploy == ref_name
 
-        next unless branch_to_deploy == ref_name
-
-        found_deployment_branch = true
+        found_deployment_ref = true
         break
       end
 
@@ -202,12 +175,12 @@ command :postreceive do |c|
       # - this is the first build ever, i.e. app-root/runtime/repo doesn't exist, OR
       # - auto deployments are enabled
       repo_dir = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
-      if !File.exist?(repo_dir) or (found_deployment_branch and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
+      if !File.exist?(repo_dir) or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
         result = @container.post_receive(out: $stdout,
                                          err: $stderr,
-                                         hot_deploy: file_committed?(HOT_DEPLOY_MARKER),
-                                         branch: branch_to_deploy,
-                                         force_clean_build: file_committed?(FORCE_CLEAN_BUILD_MARKER),
+                                         hot_deploy: file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy),
+                                         ref: ref_to_deploy,
+                                         force_clean_build: file_exists?(FORCE_CLEAN_BUILD_MARKER, ref_to_deploy),
                                          report_deployments: true,
                                          all: true)
 
@@ -283,8 +256,6 @@ command :activate do |c|
 
   c.description = "Activate a build"
   c.option "--init", "Run post_install for new gears"
-  c.option "--[no-]hot-deploy", "Perform hot deployment according to the specified "\
-           "argument rather than checking for the presence of the hot_deploy marker in the application Git repo"
   c.option "--as-json", "Render the results as JSON to stdout"
   c.option "--all", "Activate all gears in the application (only applicable if executed from a proxy gear)"
   c.option "--no-rotation", "Don't rotate gears out/in"
@@ -292,12 +263,6 @@ command :activate do |c|
   c.action do |args, options|
     # TODO make sure there is a deployment id arg
     do_command(c, options) do
-      if options.hot_deploy.nil?
-        hot_deploy_enabled = file_committed?(HOT_DEPLOY_MARKER)
-      else
-        hot_deploy_enabled = options.hot_deploy
-      end
-
       if options.as_json.nil?
         out = $stdout
         err = $stderr
@@ -307,8 +272,7 @@ command :activate do |c|
       end
 
       result = @container.activate(deployment_id: args[0],
-                                   hot_deploy: hot_deploy_enabled,
-                                   init: options.init,
+                                   init: !!options.init,
                                    all: !!options.all,
                                    rotate: !!!options.no_rotation,
                                    report_deployments: true,
@@ -339,21 +303,17 @@ command :create_deployment_dir do |c|
   end
 end
 
+# This should only ever be called by a CI builder gear to deploy the code it built back to the upstream gear
 command :remotedeploy do |c|
   c.syntax = "#{name} remotedeploy [options]"
 
   c.description = "Run the remotedeploy steps"
-  c.option "--[no-]hot-deploy", "Perform hot deployment according to the specified "\
-           "argument rather than checking for the presence of the hot_deploy marker in the application Git repo"
   c.option "--deployment-datetime NAME" "Datetime to deploy"
 
   c.action do |args, options|
     do_command(c, options) do
-      if options.hot_deploy.nil?
-        hot_deploy_enabled = file_committed?(HOT_DEPLOY_MARKER)
-      else
-        hot_deploy_enabled = options.hot_deploy
-      end
+      ref_to_deploy = determine_deployment_ref()
+      hot_deploy_enabled = file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy)
 
       result = @container.remote_deploy(out: $stdout,
                                         err: $stderr,
@@ -373,29 +333,13 @@ command :deploy do |c|
   c.syntax = "#{name} deploy"
 
   c.description = "Run the deploy steps"
-  c.option "--[no-]hot-deploy", "Perform hot deployment according to the specified "\
-    "argument rather than checking for the presence of the hot_deploy marker in the application Git repo"
-  c.option "--[no-]force-clean-build", "Perform a clean build according to the specified "\
-    "argument rather than checking for the presence of the force_clean_build marker in the application Git repo"
+  c.option "--hot-deploy", "Perform hot deployment"
+  c.option "--force-clean-build", "Perform a clean build"
   c.action do |args, options|
     do_command(c, options) do
-      # determine the ref to deploy, in order of priority:
-      # - args[0], which would mean the user did "gear deploy mybranch"
-      # - if $OPENSHIFT_DEPLOYMENT_BRANCH is set, use that
-      # - fallback to master
-      ref_to_deploy = args[0] || ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
-
-      if options.hot_deploy.nil?
-        hot_deploy_enabled = file_committed?(HOT_DEPLOY_MARKER)
-      else
-        hot_deploy_enabled = options.hot_deploy
-      end
-
-      if options.force_clean_build.nil?
-        force_clean_build_enabled = file_committed?(FORCE_CLEAN_BUILD_MARKER)
-      else
-        force_clean_build_enabled = options.force_clean_build
-      end
+      ref_to_deploy = determine_deployment_ref(args[0])
+      hot_deploy_enabled = options.hot_deploy || false
+      force_clean_build_enabled = options.force_clean_build || false
 
       @container.deploy(hot_deploy: hot_deploy_enabled, force_clean_build: force_clean_build_enabled, ref: ref_to_deploy, out: $stdout, err: $stderr, report_deployments: true)
     end
@@ -478,7 +422,8 @@ command :stop do |c|
   c.syntax = "#{name} stop"
 
   c.option "--cart CART", "The cart to stop"
-  c.option "--conditional", "Skip the gear stop if the hot deploy marker is present in the application Git repo"
+  c.option "--conditional", "Skip the gear stop if the hot deploy marker is present in the application Git repo in the commit specified by --git-ref"
+  c.option "--git-ref REF", "The git ref to use when checking for the presence of the hot deploy marker file"
   c.option "--exclude-web-proxy", "Skip stopping the web proxy, if it exists"
 
   c.description = "Stop the gear/cart"
@@ -487,7 +432,7 @@ command :stop do |c|
       if options.cart
         @container.stop(options.cart, out: $stdout, err: $stderr)
       else
-        if options.conditional && file_committed?(HOT_DEPLOY_MARKER)
+        if options.conditional and options.git_ref and file_exists?(HOT_DEPLOY_MARKER, options.git_ref)
           puts "Skipping gear stop due to presence of hot deploy marker"
         else
           puts "Stopping gear..."
