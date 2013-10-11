@@ -7,10 +7,6 @@ class DnsResolvableController < BaseController
   ##
   # Support API to check if application DNS entry is available
   #
-  # URL: /application/:application_id/dns_resolvable
-  #
-  # Action: GET
-  #
   # @return [RestReply<Boolean>] Returns true when DNS entry is resolvable
   def show
     name = @application.fqdn

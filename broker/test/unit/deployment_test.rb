@@ -51,14 +51,14 @@ class DeploymentTest < ActiveSupport::TestCase
 
   test "activate deployment" do
 
-    assert_raise(OpenShift::UserException){@app.activate}
+    assert_raise(Mongoid::Errors::DocumentNotFound){@app.activate(nil)}
 
     deployments = []
     for i in 1..5
       @app.deployments.push(Deployment.new(deployment_id: i.to_s, ref: "tag_#{i}", sha1: "1234", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f]))
     end
 
-    @app.activate
+    @app.activate(2.to_s)
 
     deployment_id = @app.deployments.last.deployment_id
     @app.activate(deployment_id)

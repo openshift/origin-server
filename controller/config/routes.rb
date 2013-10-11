@@ -75,17 +75,18 @@ Rails.application.routes.draw do
       resources :keys, :only => [:show, :update, :destroy], :id => id_with_format
       resources :authorizations, :only => [:show, :destroy, :update], :id => id_with_format
     end
-    resources :applications, :only => [:show, :destroy], :id => id_with_format do
+    resources :applications, :only => [:show, :destroy, :create, :update, :destroy], :id => id_with_format do
       resources :gear_groups, :only => [:index, :show], :id => id_with_format, :path => 'gear-groups'
       resources :gear_groups, :only => [:index, :show], :id => id_with_format
       resources :gears, :only => [:show], :id => id_with_format
       resources :cartridges, :controller => :emb_cart, :only => [:show, :update, :destroy], :id => id_with_format
       resource  :dns_resolvable, :only => :show, :controller => :dns_resolvable
       resources :aliases, :only => [:show, :update, :destroy], :controller => :alias, :id => id_with_format
+      resources :deployments, :only => [:index, :show, :create], :controller => :deployments, :id => id_with_format
     end
     match "domains/:existing_id" => "domains#update", :via => :put, :existing_id => id_with_format
     resources :domains, :only => [:show, :update, :destroy], :id => id_with_format do
-      resources :applications, :only => [:index, :show, :create, :destroy], :id => id_with_format do
+      resources :applications, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format do
         resource :descriptor, :only => :show
         resources :gear_groups, :only => [:index, :show], :id => id_with_format, :path => 'gear-groups'
         resources :gear_groups, :only => [:index, :show], :id => id_with_format
@@ -96,6 +97,7 @@ Rails.application.routes.draw do
         resources :events, :controller => :app_events, :only => :create
         resource :dns_resolvable, :only => :show, :controller => :dns_resolvable
         resources :aliases, :only => [:index, :show, :create, :update, :destroy], :controller => :alias, :id => id_with_format
+        resources :deployments, :only => [:index, :show, :create], :controller => :deployments, :id => id_with_format
       end
     end
 

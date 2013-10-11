@@ -16,7 +16,7 @@
         },
         {
           "name": "haproxy-1.4",
-          "display_name": "OpenShift Web Balancer",
+          "display_name": "Web Load Balancer",
           "tags": [
             "web_proxy",
             "scales",
@@ -27,23 +27,13 @@
       "gear_profile": "small",
       "gears": [
         {
-          "id": "521bf818656c67309c000001",
+          "id": "5255b678b78bba421d000008",
           "state": "started",
-          "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com",
-          "port_interfaces": [
-            {
-              "_id": "521bf82b656c674541000028",
-              "cartridge_name": "ruby-1.9",
-              "external_address": "54.243.5.227",
-              "external_port": "35536",
-              "internal_address": "127.0.250.129",
-              "internal_port": "8080"
-            }
-          ]
+          "ssh_url": "ssh://5255b678b78bba421d000008@myapplication-mydomain.dev.rhcloud.com"
         }
       ],
-      "id": "521bf818656c674541000015",
-      "name": "521bf818656c674541000015",
+      "id": "5255b678b78bba421d00000a",
+      "name": "5255b678b78bba421d00000a",
       "scales_from": 1,
       "scales_to": -1
     }
@@ -52,6 +42,7 @@
     {
       "exit_code": 0,
       "field": null,
+      "index": null,
       "severity": "info",
       "text": "Showing gear groups for application 'myapplication' with domain 'mydomain'"
     }

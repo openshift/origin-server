@@ -12,6 +12,7 @@
       "name": "mock-plugin-0.1",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -37,11 +38,13 @@
       "license_url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
       "name": "cron-1.4",
       "scales_from": 1,
-      "scales_to": 1,
+      "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
-      "supported_scales_to": 1,
+      "supported_scales_to": -1,
       "tags": [
-        "embedded"
+        "embedded",
+        "plugin"
       ],
       "type": "embedded",
       "usage_rates": [
@@ -52,8 +55,8 @@
     },
     {
       "current_scale": 0,
-      "description": "Web based MySQL admin tool. Requires the MySQL cartridge to be installed first.",
-      "display_name": "phpMyAdmin 4",
+      "description": "Web based MySQL admin tool. Requires the MySQL cartridge to be installed",
+      "display_name": "phpMyAdmin 4.0",
       "help_topics": {
       },
       "license": "GPLv2",
@@ -61,16 +64,18 @@
       "name": "phpmyadmin-4",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
-        "embedded"
+        "embedded",
+        "service"
       ],
       "type": "embedded",
       "usage_rates": [
 
       ],
-      "version": "3",
+      "version": "4",
       "website": "http://www.phpmyadmin.net/"
     },
     {
@@ -85,6 +90,7 @@
       "name": "nodejs-0.6",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -102,6 +108,34 @@
     },
     {
       "current_scale": 0,
+      "description": "Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js is perfect for data-intensive real-time applications that run across distributed devices.",
+      "display_name": "Node.js 0.10",
+      "help_topics": {
+        "Developer Center": "https://www.openshift.com/developers"
+      },
+      "license": "MIT License",
+      "license_url": "https://raw.github.com/joyent/node/v0.10/LICENSE",
+      "name": "nodejs-0.10",
+      "scales_from": 1,
+      "scales_to": -1,
+      "scales_with": "haproxy-1.4",
+      "supported_scales_from": 1,
+      "supported_scales_to": -1,
+      "tags": [
+        "service",
+        "javascript",
+        "nodejs",
+        "web_framework"
+      ],
+      "type": "standalone",
+      "usage_rates": [
+
+      ],
+      "version": "0.10",
+      "website": "http://www.nodejs.org/"
+    },
+    {
+      "current_scale": 0,
       "description": "Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.",
       "display_name": "RockMongo 1.1",
       "help_topics": {
@@ -112,6 +146,7 @@
       "name": "rockmongo-1.1",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -136,12 +171,14 @@
       "name": "python-3.3",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
         "service",
         "python",
-        "web_framework"
+        "web_framework",
+        "community"
       ],
       "type": "standalone",
       "usage_rates": [
@@ -162,6 +199,7 @@
       "name": "python-2.7",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -188,6 +226,7 @@
       "name": "python-2.6",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -214,6 +253,7 @@
       "name": "switchyard-0",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -238,6 +278,7 @@
       "name": "zend-5.6",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -264,6 +305,7 @@
       "name": "ruby-1.9",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -290,6 +332,7 @@
       "name": "ruby-1.8",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -316,6 +359,7 @@
       "name": "jenkins-1",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -342,6 +386,7 @@
       "name": "metrics-0.1",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -366,6 +411,7 @@
       "name": "jbossews-2.0",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -395,6 +441,7 @@
       "name": "jbossews-1.0",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -424,6 +471,7 @@
       "name": "10gen-mms-agent-0.1",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -440,7 +488,7 @@
     {
       "current_scale": 0,
       "description": "MySQL is a multi-user, multi-threaded SQL database server.",
-      "display_name": "MySQL Database 5.1",
+      "display_name": "MySQL 5.1",
       "help_topics": {
         "Building with MySQL": "http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html"
       },
@@ -449,6 +497,7 @@
       "name": "mysql-5.1",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -466,6 +515,58 @@
     {
       "current_scale": 0,
       "description": "A mock cartridge for development use only.",
+      "display_name": "Mock Cartridge 0.4",
+      "help_topics": {
+      },
+      "license": "ASL 2.0",
+      "license_url": "",
+      "name": "mock-0.4",
+      "scales_from": 1,
+      "scales_to": -1,
+      "scales_with": "haproxy-1.4",
+      "supported_scales_from": 1,
+      "supported_scales_to": -1,
+      "tags": [
+        "service",
+        "mock",
+        "web_framework"
+      ],
+      "type": "standalone",
+      "usage_rates": [
+
+      ],
+      "version": "0.4",
+      "website": ""
+    },
+    {
+      "current_scale": 0,
+      "description": "A mock cartridge for development use only.",
+      "display_name": "Mock Cartridge 0.3",
+      "help_topics": {
+      },
+      "license": "ASL 2.0",
+      "license_url": "",
+      "name": "mock-0.3",
+      "scales_from": 1,
+      "scales_to": -1,
+      "scales_with": "haproxy-1.4",
+      "supported_scales_from": 1,
+      "supported_scales_to": -1,
+      "tags": [
+        "service",
+        "mock",
+        "web_framework"
+      ],
+      "type": "standalone",
+      "usage_rates": [
+
+      ],
+      "version": "0.3",
+      "website": ""
+    },
+    {
+      "current_scale": 0,
+      "description": "A mock cartridge for development use only.",
       "display_name": "Mock Cartridge 0.2",
       "help_topics": {
       },
@@ -474,6 +575,7 @@
       "name": "mock-0.2",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -499,6 +601,7 @@
       "name": "mock-0.1",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -525,6 +628,7 @@
       "name": "perl-5.10",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -551,6 +655,7 @@
       "name": "php-5.3",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -577,6 +682,7 @@
       "name": "jbosseap-6",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -602,7 +708,7 @@
     {
       "current_scale": 0,
       "description": "Acts as a load balancer for your web cartridge and will automatically scale up to handle incoming traffic. Is automatically added to scaled applications when they are created and cannot be removed or added to an application after the fact.",
-      "display_name": "OpenShift Web Balancer",
+      "display_name": "Web Load Balancer",
       "help_topics": {
       },
       "license": "GPLv2+",
@@ -610,6 +716,7 @@
       "name": "haproxy-1.4",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -627,7 +734,7 @@
     {
       "current_scale": 0,
       "description": "PostgreSQL is an advanced Object-Relational database management system",
-      "display_name": "PostgreSQL Database 9.2",
+      "display_name": "PostgreSQL 9.2",
       "help_topics": {
         "Building with PostGreSQL": "http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html"
       },
@@ -636,6 +743,7 @@
       "name": "postgresql-9.2",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -653,7 +761,7 @@
     {
       "current_scale": 0,
       "description": "PostgreSQL is an advanced Object-Relational database management system",
-      "display_name": "PostgreSQL Database 8.4",
+      "display_name": "PostgreSQL 8.4",
       "help_topics": {
         "Building with PostGreSQL": "http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html"
       },
@@ -662,6 +770,7 @@
       "name": "postgresql-8.4",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -679,7 +788,7 @@
     {
       "current_scale": 0,
       "description": "MongoDB is a scalable, high-performance, open source NoSQL database.",
-      "display_name": "MongoDB NoSQL Database 2.2",
+      "display_name": "MongoDB 2.2",
       "help_topics": {
         "Building with MongoDB": "https://www.openshift.com/developers/mongodb"
       },
@@ -688,6 +797,7 @@
       "name": "mongodb-2.2",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -715,6 +825,7 @@
       "name": "diy-0.1",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -740,6 +851,7 @@
       "name": "jbossas-7",
       "scales_from": 1,
       "scales_to": -1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": -1,
       "tags": [
@@ -768,6 +880,7 @@
       "name": "jenkins-client-1",
       "scales_from": 1,
       "scales_to": 1,
+      "scales_with": "haproxy-1.4",
       "supported_scales_from": 1,
       "supported_scales_to": 1,
       "tags": [
@@ -786,6 +899,7 @@
     {
       "exit_code": 0,
       "field": null,
+      "index": null,
       "severity": "info",
       "text": "List all cartridges"
     }

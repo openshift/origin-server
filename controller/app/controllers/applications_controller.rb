@@ -27,8 +27,6 @@ class ApplicationsController < BaseController
   ##
   # Retrieve a specific application
   #
-  # URL: /application/:id
-  #
   # Action: GET
   # @return [RestReply<RestApplication>] Application object
   def show
@@ -38,8 +36,6 @@ class ApplicationsController < BaseController
 
   ##
   # Create a new application
-  #
-  # URL: /domain/:domain_name/applications
   #
   # Action: POST
   # @param [String] name Application name
@@ -106,11 +102,28 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "The gear size '#{default_gear_size}' is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.",
                         134, "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
 
+
+    #auto_deploy = get_bool(params[:auto_deploy]) if params[:auto_deploy].presence || false
+    #auto_deploy = get_bool(auto_deploy)
+    #deployment_branch = params[:deployment_branch].presence || "master"
+    #keep_deployments = params[:keep_deployments].presence || 1
+    #deployment_type = params[:deployment_type].downcase if params[:deployment_type].presence || "git"
+    #deployment_type = deployment_type.downcase
+    
+    #return render_error(:unprocessable_entity, "Invalid deployment type: #{deployment_type}. Acceptable values are: #{Application::DEPLOYMENT_TYPES.join(", ")}",
+    #                    1, "deployment_type") if deployment_type and !Application::DEPLOYMENT_TYPES.include?(deployment_type)
+
+    #return render_error(:unprocessable_entity, "Invalid number of deployments to keep: #{params[:keep_deployments]}. Keep deployments must be greater than 0.",
+    #                    1, "keep_deployments") if keep_deployments and keep_deployments < 1
+
+    #return render_error(:unprocessable_entity, "Invalid deployment_branch: #{deployment_branch}. Deployment branches are limited to 256 characters",
+    #                    1, "deployment_branch") if deployment_branch and deployment_branch.length > 256
+                        
+
     if Application.where(domain: @domain, canonical_name: app_name.downcase).present?
       return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "name")
     end
 
-    Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
     return render_error(:unprocessable_entity, 
                         "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
                         104) if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
@@ -144,8 +157,6 @@ class ApplicationsController < BaseController
 
   ##
   # Update an application
-  #
-  # URL: /domains/:domain_id/applications/:id
   #
   # Action: PUT
   # @param [Boolean] auto_deploy Boolean indicating whether auto deploy is enabled (Default: true)
@@ -192,8 +203,6 @@ class ApplicationsController < BaseController
 
   ##
   # Delete an application
-  #
-  # URL: /application/:id
   #
   # Action: DELETE
   def destroy
