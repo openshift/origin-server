@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version:       1.15.5
+Version:       1.15.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -40,6 +40,9 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Oct 11 2013 Adam Miller <admiller@redhat.com> 1.15.6-1
+- Bump cartridge versions (fotios@redhat.com)
+
 * Thu Oct 10 2013 Adam Miller <admiller@redhat.com> 1.15.5-1
 - Bug 1017642: Wait for mysql to start before accesing during restore
   (ironcladlou@gmail.com)
