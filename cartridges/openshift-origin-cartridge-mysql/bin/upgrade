@@ -1,6 +1,5 @@
 #!/bin/bash -e
-$OPENSHIFT_MYSQL_DIR/bin/control start
-
-echo "
-grant all on *.* to '$OPENSHIFT_MYSQL_DB_USERNAME'@'%' identified by '$OPENSHIFT_MYSQL_DB_PASSWORD' with grant option;
-flush privileges; " | /usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names
+files=$(shopt -s nullglob; shopt -s dotglob; echo data/ib_logfile*)
+if [ ${#files} -gt 0 ]; then
+  mv data/ib_logfile* /tmp
+fi
