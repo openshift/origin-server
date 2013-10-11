@@ -206,6 +206,7 @@ module OpenShift
           ps_tree[pp.to_i] << p.to_i
         }
         Process.kill("KILL", *(ps_tree[pid].flatten))
+        Process.detach(pid)
       end
     end
   end
