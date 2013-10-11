@@ -44,11 +44,11 @@ module OpenShift
     end
 
     def self.notify_ssl_cert_add(app, fqdn, ssl_cert, private_key, passphrase)
-      notify_providers :notify_ssl_cert_add(app, fqdn, ssl_cert, private_key, passphrase)
+      notify_providers :notify_ssl_cert_add,app, fqdn, ssl_cert, private_key, passphrase
     end
 
     def self.notify_ssl_cert_remove(app, fqdn)
-      notify_providers :notify_ssl_cert_add(app, fqdn)
+      notify_providers :notify_ssl_cert_add,app, fqdn
     end
 
     def self.notify_add_alias(app, alias_str)
