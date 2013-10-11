@@ -132,13 +132,14 @@ class CartridgeCache
     max_file_size = (Rails.application.config.downloaded_cartridges[:max_cart_size] rescue 20480) || 20480
     max_redirs = (Rails.application.config.downloaded_cartridges[:max_download_redirects] rescue 2) || 2
     rate_limit = (Rails.application.config.downloaded_cartridges[:max_download_rate] rescue "100k") || "100k" 
+    connect_timeout = (Rails.application.config.downloaded_cartridges[:connection_timeout] rescue 2) || 2
     manifest = ""
 
     uri_obj = URI.parse(url)
     if uri_obj.kind_of? URI::HTTP or uri_obj.kind_of? URI::FTP
       rout,wout = IO.pipe
       rerr,werr = IO.pipe
-      pid = Process.spawn("curl", "-H", "X-OpenShift-Cartridge-Download:1", "--max-time", max_dl_time.to_s, "--limit-rate", rate_limit.to_s, "--connect-timeout", "2", "--location", "--max-redirs", max_redirs.to_s, "--max-filesize", max_file_size.to_s, "-k", url, :out => wout, :err => werr)
+      pid = Process.spawn("curl", "-H", "X-OpenShift-Cartridge-Download:1", "--max-time", max_dl_time.to_s, "--limit-rate", rate_limit.to_s, "--connect-timeout", connect_timeout, "--location", "--max-redirs", max_redirs.to_s, "--max-filesize", max_file_size.to_s, "-k", url, :out => wout, :err => werr)
       begin
         Timeout::timeout(max_dl_time) {
           p,status = Process.waitpid2(pid)
