@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.10
+Version: 1.15.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -261,6 +261,13 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Oct 11 2013 Adam Miller <admiller@redhat.com> 1.15.11-1
+- Merge pull request #3863 from BanzaiMan/dev/hasari/bz1016917
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1018009 - spawn a separate thread to waitpid after killing.
+  (rmillner@redhat.com)
+- Bug 1016917 (asari.ruby@gmail.com)
+
 * Wed Oct 09 2013 Adam Miller <admiller@redhat.com> 1.15.10-1
 - Fix perms for the config files. (mrunalp@gmail.com)
 - Bug 1014768 - Audit additional uses of password calls. (rmillner@redhat.com)
