@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.12
+Version: 1.15.13
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Oct 11 2013 Adam Miller <admiller@redhat.com> 1.15.13-1
+- Merge pull request #3849 from rajatchopra/stg34
+  (dmcphers+openshiftbot@redhat.com)
+- do not run domain jobs if not needed (rchopra@redhat.com)
+
 * Thu Oct 10 2013 Adam Miller <admiller@redhat.com> 1.15.12-1
 - Bug 1016171 - Fix domain allowed_gear_sizes  in oo-admin-ctl-user
   (rpenta@redhat.com)
