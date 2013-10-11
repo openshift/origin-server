@@ -26,7 +26,10 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     @tester.setup
 
     @framework_cartridge = ENV['CART_TO_TEST'] || 'mock-0.1'
+    @keep_deployments = ENV['KEEP_DEPLOYMENTS'].to_i || 3
+
     logger.info("Using framework cartridge: #{@framework_cartridge}")
+    logger.info("Deployments to keep: #{@keep_deployments}")
   end
 
   def teardown
@@ -39,12 +42,12 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
   # end
 
   def test_unscaled
-    @tester.basic_build_test([@framework_cartridge], keep_deployments: 3)
+    @tester.basic_build_test([@framework_cartridge], keep_deployments: @keep_deployments)
   end
 
   def test_unscaled_jenkins
     @tester.create_jenkins
-    @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'], keep_deployments: 3)
+    @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'], keep_deployments: @keep_deployments)
   end
 
   def test_scaled
@@ -52,7 +55,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
       return
     end
 
-    @tester.basic_build_test([@framework_cartridge], scaling: true, keep_deployments: 3)
+    @tester.basic_build_test([@framework_cartridge], scaling: true, keep_deployments: @keep_deployments)
   end
 
   def test_scaled_jenkins
@@ -62,6 +65,6 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
 
     @tester.up_gears
     @tester.create_jenkins
-    @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'], scaling: true, keep_deployments: 3)
+    @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'], scaling: true, keep_deployments: @keep_deployments)
   end
 end
