@@ -2,15 +2,15 @@ $baseFontFamily:     "Open Sans", "Helvetica Neue", Helvetica, "Liberation Sans"
 $headerFontFamily:   "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 $monoFontFamily:      Menlo, Monaco, "Liberation Mono", Consolas, monospace !default;
 
-$baseLineHeight:          20px;
-$baseFontSize:						14px;
-$leadLineHeight:          $baseLineHeight * 1.5;
-$leadFontSize:            18px;
-$largeLineHeight:         $baseLineHeight * 1.2;
-$largeFontSize:           16px;
-$smallFontSize:           13.5px;
-$tinyFontSize:            12px;
-$extraTinyFontSize:       10.75px;
+$baseLineHeight:          	20px;
+$baseFontSize:				14px;
+$leadLineHeight:          	$baseLineHeight * 1.5;
+$leadFontSize:            	18px;
+$largeLineHeight:         	$baseLineHeight * 1.2;
+$largeFontSize:           	$baseFontSize + 2;
+$smallFontSize:           	$baseFontSize - 1;
+$tinyFontSize:            	$baseFontSize - 2;
+$extraTinyFontSize:       	$baseFontSize - 3.25;
 
 // For matching header sizes exactly
 $h1FontSize:              $baseFontSize * 1.7;
