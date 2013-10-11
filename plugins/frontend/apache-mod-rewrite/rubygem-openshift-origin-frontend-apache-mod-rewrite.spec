@@ -49,7 +49,6 @@ BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
-Conflicts:     rubygem(openshift-origin-frontend-apache-vhost)
 
 %description
 Provides the Apache mod_rewrite plugin for OpenShift web frontends
@@ -109,10 +108,9 @@ done
 
 mkdir -p %{buildroot}/etc/httpd/conf.d
 mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
-mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
 
-mv httpd/frontend-vhost-https-template.erb %{buildroot}%{appdir}/.httpd.d/frontend-vhost-https-template.erb
+mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/frontend-mod-rewrite-https-template.erb
 
 %files
 %doc %{gem_docdir}
@@ -120,9 +118,8 @@ mv httpd/frontend-vhost-https-template.erb %{buildroot}%{appdir}/.httpd.d/fronte
 %{gem_spec}
 %{gem_cache}
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
-%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
 %config(noreplace) /etc/httpd/conf.d/openshift_route.include
-%attr(0644,root,root)   %config(noreplace) %{appdir}/.httpd.d/frontend-vhost-https-template.erb
+%attr(0644,root,root)   %config(noreplace) %{appdir}/.httpd.d/frontend-mod-rewrite-https-template.erb
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.txt
