@@ -32,7 +32,8 @@ Requires:      %{?scl:%scl_prefix}postgresql-contrib
 Requires:      %{?scl:%scl_prefix}postgresql-plperl
 Requires:      %{?scl:%scl_prefix}postgresql-plpython
 Requires:      %{?scl:%scl_prefix}postgresql-pltcl
-Requires:      postgresql92-postgis
+Requires:      %{?scl:%scl_prefix}postgis
+Requires:      %{?scl:%scl_prefix}pgRouting
 %endif
 %if 0%{?fedora} >= 19
 Requires:      postgresql >= 9.2
