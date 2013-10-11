@@ -7,8 +7,9 @@ Description: Web based MySQL admin tool. Requires the MySQL cartridge to be inst
 Version: '3'
 License: GPLv2
 Vendor: Red Hat
-Cartridge-Version: 0.0.5
-Compatible-Versions: []
+Cartridge-Version: 0.0.6
+Compatible-Versions:
+- 0.0.5
 Cartridge-Vendor: redhat
 Website: http://www.phpmyadmin.net/
 Categories:
@@ -39,7 +40,8 @@ Endpoints:
   Private-Port-Name: PORT
   Private-Port: 8080
   Public-Port-Name: PROXY_PORT
-  Protocols: [http]
+  Protocols:
+  - http
   Mappings:
   - Frontend: /phpmyadmin
     Backend: /phpmyadmin

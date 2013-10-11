@@ -2,7 +2,7 @@
 Name: postgresql
 Architecture: noarch
 Cartridge-Short-Name: POSTGRESQL
-Cartridge-Version: 0.3.3
+Cartridge-Version: 0.3.4
 Compatible-Versions: []
 Cartridge-Vendor: redhat
 Display-Name: PostgreSQL 9.2
@@ -47,7 +47,8 @@ Endpoints:
   Private-Port-Name: DB_PORT
   Private-Port: 5432
   Public-Port-Name: DB_PROXY_PORT
-  Protocols: [postgresql]
+  Protocols:
+  - postgresql
 Version-Overrides:
   '8.4':
     Display-Name: PostgreSQL 8.4

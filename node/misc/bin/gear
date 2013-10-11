@@ -331,7 +331,7 @@ command :'archive-deployment' do |c|
   end
 end
 
-command :create_deployment_dir do |c|
+command :'create-deployment-dir' do |c|
   c.syntax = "#{name} create_deployment_dir"
   c.description = "Create a deployment directory and force a clean build. Should only be used by CI builders"
   c.action do |args, options|
