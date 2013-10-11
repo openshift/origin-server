@@ -46,27 +46,27 @@ class PlatformDeployExtTest < OpenShift::NodeBareTestCase
   #   @tester.basic_build_test([@framework_cartridge], keep_deployments: 3)
   # end
 
-  # def test_unscaled_jenkins
-  #   @tester.create_jenkins
-  #   @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'], keep_deployments: 3)
-  # end
+  def test_unscaled_jenkins_keep_deployments_unset
+     @tester.create_jenkins
+     @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'])
+  end
 
-  # def test_scaled
-  #   if @framework_cartridge == 'zend-5.6'
-  #     return
-  #   end
+  def test_scaled_keep_deployments_unset
+    if @framework_cartridge == 'zend-5.6'
+      return
+    end
 
-  #   basic_build_test([@framework_cartridge], scaling: true, keep_deployments: 3)
-  # end
+    @tester.basic_build_test([@framework_cartridge], scaling: true)
+  end
 
-  # def test_scaled_jenkins
-  #   if @framework_cartridge == 'zend-5.6'
-  #     return
-  #   end
+  def test_scaled_jenkins_keep_deployments_unset
+    if @framework_cartridge == 'zend-5.6'
+      return
+    end
 
-  #   @api.up_gears
-  #   create_jenkins
-  #   basic_build_test([@framework_cartridge, 'jenkins-client-1'], scaling: true, keep_deployments: 3)
-  # end
+    @tester.up_gears
+    @tester.create_jenkins
+    @tester.basic_build_test([@framework_cartridge, 'jenkins-client-1'], scaling: true)
+  end
 
 end

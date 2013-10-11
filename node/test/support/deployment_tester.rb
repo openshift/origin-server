@@ -39,7 +39,7 @@ class OpenShift::Runtime::DeploymentTester
   def basic_build_test(cartridges, options = {})
     scaling          = !!options[:scaling]
     add_jenkins      = !!options[:add_jenkins]
-    keep_deployments = !!options[:keep_deployments]
+    keep_deployments = options[:keep_deployments]
 
     app_name = "app#{@api.random_string}"
 
@@ -51,10 +51,9 @@ class OpenShift::Runtime::DeploymentTester
     app_container = OpenShift::Runtime::ApplicationContainer.from_uuid(app_id)
 
     if keep_deployments
-      keep = options[:keep_deployments]
       # keep up to #{keep} deployments
       logger.info "Setting OPENSHIFT_KEEP_DEPLOYMENTS to #{keep} for #{@namespace}"
-      @api.add_env_vars(app_name, [{name: 'OPENSHIFT_KEEP_DEPLOYMENTS', value: "#{keep}"}])
+      @api.add_env_vars(app_name, [{name: 'OPENSHIFT_KEEP_DEPLOYMENTS', value: "#{keep_deployments}"}])
 
       gear_env = OpenShift::Runtime::Utils::Environ.for_gear(app_container.container_dir)
 
@@ -152,17 +151,19 @@ class OpenShift::Runtime::DeploymentTester
       end
     end
 
-    # rollback
-    logger.info("Rolling back to #{deployment_id}")
-    logger.info @api.ssh_command(app_id, "gear activate #{deployment_id} --all")
+    if !keep_deployments.nil? && keep_deployments > 1
+      # rollback
+      logger.info("Rolling back to #{deployment_id}")
+      logger.info @api.ssh_command(app_id, "gear activate #{deployment_id} --all")
 
-    assert_gear_deployment_consistency(@api.gears_for_app(app_name))
+      assert_gear_deployment_consistency(@api.gears_for_app(app_name))
 
-    if scaling
-      entries = gear_registry.entries
-      entries[:web].values.each { |entry| @api.assert_http_title_for_entry entry, DEFAULT_TITLE }
-    else
-      @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE      
+      if scaling
+        entries = gear_registry.entries
+        entries[:web].values.each { |entry| @api.assert_http_title_for_entry entry, DEFAULT_TITLE }
+      else
+        @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE      
+      end
     end
   end
 
