@@ -11,5 +11,6 @@ class RemoveSslCertOpGroup < PendingAppOpGroup
         break
       end
     end
+    pending_ops.push NotifySslCertRemoveOp.new(fqdn: fqdn)
   end
 end
