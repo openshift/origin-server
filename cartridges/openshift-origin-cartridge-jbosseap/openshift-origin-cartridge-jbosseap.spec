@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.9.2
+Version: 2.9.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,9 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Oct 11 2013 Adam Miller <admiller@redhat.com> 2.9.3-1
+- Bump cartridge versions (fotios@redhat.com)
+
 * Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 2.9.2-1
 - Merge pull request #3518 from a13m/bugzilla/989276
   (dmcphers+openshiftbot@redhat.com)
