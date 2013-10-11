@@ -17,7 +17,7 @@
       "license_url": "http://www.ruby-lang.org/en/about/license.txt",
       "links": {
         "GET": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/ruby-1.9",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/ruby-1.9",
           "method": "GET",
           "optional_params": [
 
@@ -28,7 +28,7 @@
           ]
         },
         "UPDATE": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/ruby-1.9",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/ruby-1.9",
           "method": "PUT",
           "optional_params": [
             {
@@ -64,29 +64,8 @@
 
           ]
         },
-        "START": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/ruby-1.9/events",
-          "method": "POST",
-          "optional_params": [
-
-          ],
-          "rel": "Start cartridge",
-          "required_params": [
-            {
-              "description": "event",
-              "invalid_options": [
-
-              ],
-              "name": "event",
-              "type": "string",
-              "valid_options": [
-                "start"
-              ]
-            }
-          ]
-        },
         "STOP": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/ruby-1.9/events",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/ruby-1.9/events",
           "method": "POST",
           "optional_params": [
 
@@ -106,8 +85,29 @@
             }
           ]
         },
+        "START": {
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/ruby-1.9/events",
+          "method": "POST",
+          "optional_params": [
+
+          ],
+          "rel": "Start cartridge",
+          "required_params": [
+            {
+              "description": "event",
+              "invalid_options": [
+
+              ],
+              "name": "event",
+              "type": "string",
+              "valid_options": [
+                "start"
+              ]
+            }
+          ]
+        },
         "RESTART": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/ruby-1.9/events",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/ruby-1.9/events",
           "method": "POST",
           "optional_params": [
 
@@ -128,7 +128,7 @@
           ]
         },
         "RELOAD": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/ruby-1.9/events",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/ruby-1.9/events",
           "method": "POST",
           "optional_params": [
 
@@ -149,7 +149,7 @@
           ]
         },
         "DELETE": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/ruby-1.9",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/ruby-1.9",
           "method": "DELETE",
           "optional_params": [
 
@@ -235,7 +235,7 @@
       ],
       "current_scale": 1,
       "description": "Acts as a load balancer for your web cartridge and will automatically scale up to handle incoming traffic. Is automatically added to scaled applications when they are created and cannot be removed or added to an application after the fact.",
-      "display_name": "OpenShift Web Balancer",
+      "display_name": "Web Load Balancer",
       "gear_profile": "small",
       "help_topics": {
       },
@@ -243,7 +243,7 @@
       "license_url": "http://www.gnu.org/licenses/gpl-2.0.html",
       "links": {
         "GET": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/haproxy-1.4",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/haproxy-1.4",
           "method": "GET",
           "optional_params": [
 
@@ -254,7 +254,7 @@
           ]
         },
         "UPDATE": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/haproxy-1.4",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/haproxy-1.4",
           "method": "PUT",
           "optional_params": [
             {
@@ -290,29 +290,8 @@
 
           ]
         },
-        "START": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/haproxy-1.4/events",
-          "method": "POST",
-          "optional_params": [
-
-          ],
-          "rel": "Start cartridge",
-          "required_params": [
-            {
-              "description": "event",
-              "invalid_options": [
-
-              ],
-              "name": "event",
-              "type": "string",
-              "valid_options": [
-                "start"
-              ]
-            }
-          ]
-        },
         "STOP": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/haproxy-1.4/events",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/haproxy-1.4/events",
           "method": "POST",
           "optional_params": [
 
@@ -332,8 +311,29 @@
             }
           ]
         },
+        "START": {
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/haproxy-1.4/events",
+          "method": "POST",
+          "optional_params": [
+
+          ],
+          "rel": "Start cartridge",
+          "required_params": [
+            {
+              "description": "event",
+              "invalid_options": [
+
+              ],
+              "name": "event",
+              "type": "string",
+              "valid_options": [
+                "start"
+              ]
+            }
+          ]
+        },
         "RESTART": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/haproxy-1.4/events",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/haproxy-1.4/events",
           "method": "POST",
           "optional_params": [
 
@@ -354,7 +354,7 @@
           ]
         },
         "RELOAD": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/haproxy-1.4/events",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/haproxy-1.4/events",
           "method": "POST",
           "optional_params": [
 
@@ -375,7 +375,7 @@
           ]
         },
         "DELETE": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/haproxy-1.4",
+          "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridge/haproxy-1.4",
           "method": "DELETE",
           "optional_params": [
 
@@ -414,6 +414,7 @@
     {
       "exit_code": 0,
       "field": null,
+      "index": null,
       "severity": "info",
       "text": "Listing cartridges for application myapplication under domain mydomain"
     }

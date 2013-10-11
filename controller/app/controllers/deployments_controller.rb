@@ -28,8 +28,9 @@ class DeploymentsController < BaseController
     hot_deploy = params[:hot_deploy].presence || false
     force_clean_build = params[:force_clean_build].presence || false
     ref = params[:ref].presence
-    artifact_url = params[:artifact_url].presence
-
+    #disabling artifact_url for now
+    #artifact_url = params[:artifact_url].presence
+    artifact_url = nil
     return render_error(:unprocessable_entity, "Git ref must be less than 256 characters",
                           105, "name") if ref && ref.length > 256
 

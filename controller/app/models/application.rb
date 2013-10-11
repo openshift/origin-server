@@ -191,10 +191,14 @@ class Application
   # @return [Application] Application object
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
   def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[],
-                      init_git_url=nil, user_agent=nil, community_cart_urls=[], builder_id=nil, user_env_vars=nil)
+                      init_git_url=nil, user_agent=nil, community_cart_urls=[], builder_id=nil, user_env_vars=nil)#, auto_deploy=false, deployment_branch="master", keep_deployments=1, deployment_type="git")
     default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
     app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap, builder_id: builder_id)
+    #app.config['auto_deploy'] = auto_deploy
+    #app.config['deployment_branch'] = deployment_branch
+    #app.config['keep_deployments'] = keep_deployments
+    #app.config['deployment_type'] = deployment_type
     app.user_agent = user_agent
     app.init_git_url = OpenShift::Git.persistable_clone_spec(init_git_url)
     app.analytics['user_agent'] = user_agent
@@ -2974,11 +2978,8 @@ class Application
     return result_io
   end
 
-  def activate(deployment_id=nil)
-    if deployment_id.nil? and self.deployments.length > 0
-      deployment_id =  self.deployments[self.deployments.length - 2].deployment_id
-    end
-    raise OpenShift::UserException.new("There are no previous deployments to activate", 126, "deployment_id") if deployment_id.nil?
+  def activate(deployment_id)
+    deployment = self.deployments.find_by(deployment_id: deployment_id)
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
       op_group = ActivateOpGroup.new(deployment_id: deployment_id)
@@ -3001,7 +3002,6 @@ class Application
       deploys = []
       result_io.deployments.each do |d|
         deploys.push(Deployment.new(deployment_id: d[:id],
-                                            state: d[:state],
                                        created_at: Time.at(d[:created_at].to_f),
                                               ref: d[:ref],
                                              sha1: d[:sha1],

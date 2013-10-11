@@ -9,8 +9,6 @@ class AppEventsController < BaseController
   ##
   # API to perform manage an application
   #
-  # URL: /application/:application_id/events
-  #
   # Action: POST
   # @param [String] event Application event to create. Supported types include
   #   * start: Start all application cartridges
@@ -35,6 +33,10 @@ class AppEventsController < BaseController
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
                         "alias") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
     return render_error(:unprocessable_entity, "Reached gear limit of #{@cloud_user.max_gears}", 104) if (event == 'scale-up') && (@cloud_user.consumed_gears >= @cloud_user.max_gears)
+    
+    return render_error(:unprocessable_entity, "Deployment ID must be provided for activate.", 126,
+                        "deployment_id") if event == "activate" && (deployment_id.nil? or deployment_id.to_s.empty?)
+
 
     if @application.quarantined && ['scale-up', 'scale-down'].include?(event)
       return render_upgrade_in_progress
@@ -100,15 +102,8 @@ class AppEventsController < BaseController
       r = @application.reload_config
       msg = "Application #{@application.name} called reload"
     when 'activate'
-      if deployment_id.nil? and @application.deployments.length > 0
-        deployment_id =  @application.deployments[@application.deployments.length -2].deployment_id
-      end
-      return render_error(:unprocessable_entity, "There are no previous deployments to activate to", 126,
-                        "deployment_id") if deployment_id.nil? or deployment_id.to_s.empty?
-      #TODO implement change_deployment or use change_state
-      #authorize! :change_deployment, @application
       r = @application.activate(deployment_id)
-      msg = "Application #{@application.name} has been rolled back"
+      msg = "Deployment ID #{deployment_id} on application #{@application.name} has been activated"
     else
       return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
                           126, "event")

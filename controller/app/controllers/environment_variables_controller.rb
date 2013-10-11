@@ -3,8 +3,6 @@ class EnvironmentVariablesController < BaseController
   before_filter :get_application
   action_log_tag_resource :environment_variable
 
-  # GET /application/[id]/environment-variables
-  # GET /domain/[domain_name]/application/[application_name]/environment-variables
   def index
     authorize! :view_environment_variables, @application
 
@@ -15,8 +13,6 @@ class EnvironmentVariablesController < BaseController
     render_success(:ok, "environment-variables", rest_env_vars, "Listing environment variables for application #{@application.name}")
   end
 
-  # GET /application/[application_id]/environment-variable/[name]
-  # GET /domain/[domain_name]/application/[application_name]/environment-variable/[name]
   def show
     authorize! :view_environment_variables, @application
 
@@ -29,8 +25,6 @@ class EnvironmentVariablesController < BaseController
                    "Showing environment variable '#{name}' for application #{@application.name}")
   end
 
-  # POST /application/[application_id]/environment-variables
-  # POST /domain/[domain_name]/application/[application_name]/environment-variables
   def create
     authorize! :change_environment_variables, @application
 
@@ -61,8 +55,6 @@ class EnvironmentVariablesController < BaseController
     end
   end
 
-  # PUT /application/[application_id]/environment-variable/[name]
-  # PUT /domain/[domain_name]/application/[application_name]/environment-variable/[name]
   def update
     authorize! :change_environment_variables, @application
 
@@ -79,8 +71,6 @@ class EnvironmentVariablesController < BaseController
     render_success(:ok, "environment-variable", rest_env_var, "Updated environment variable '#{name}' in application #{@application.name}", result)
   end
 
-  # DELETE /application/[application_id]/environment-variable/[name]
-  # DELETE /domain/[domain_name]/application/[application_name]/environment-variable/[name]
   def destroy
     authorize! :change_environment_variables, @application
 
