@@ -105,11 +105,9 @@ if [ -z "$local_port" ]; then
 fi
 local_ep=$local_ip:$local_port
 
-# Enable local endpoint based on number of serving gears.
-if [ $(grep -E "server\s*gear" /tmp/haproxy.cfg.$$ | wc -l) -le 1 ]; then
-    sed -i "/\s*server\s*local-gear\s.*/d" /tmp/haproxy.cfg.$$
-    echo "    server local-gear $local_ep check fall 2 rise 3 inter 2000 cookie local-$OPENSHIFT_GEAR_UUID" >> /tmp/haproxy.cfg.$$
-fi
+# Add the local gear
+sed -i "/\s*server\s*local-gear\s.*/d" /tmp/haproxy.cfg.$$
+echo "    server local-gear $local_ep check fall 2 rise 3 inter 2000 cookie local-$OPENSHIFT_GEAR_UUID" >> /tmp/haproxy.cfg.$$
 
 cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
 rm -f /tmp/haproxy.cfg.$$
@@ -118,6 +116,20 @@ flock -u 200
 uuid=$3
 /usr/bin/gear reload --cart haproxy-$OPENSHIFT_HAPROXY_VERSION
 appctl_exitcode=$?
+
+info=($(app_web_to_proxy_ratio_and_colocated_gears))
+ratio=${info[0]}
+
+unset info[0]
+
+echo "Web/Proxy gears ratio $ratio"
+if [ "$ratio" -ge 3 ]; then
+    echo "Disabling colocated gears ${info[@]}"
+    nohup $OPENSHIFT_HAPROXY_DIR/usr/bin/disable-colocated-gears ${info[@]} &
+else
+    echo "No disabling required"
+fi
+
 
 # Pass the appropriate exit code back.
 [ $exitcode -ne 0 ]  &&  exit $exitcode

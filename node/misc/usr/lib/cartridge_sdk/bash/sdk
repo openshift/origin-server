@@ -447,6 +447,10 @@ function primary_cartridge_private_port_name() {
   ruby_sdk 'primary_cartridge_manifest["Endpoints"][0]["Private-Port-Name"]'
 }
 
+function app_web_to_proxy_ratio_and_colocated_gears() {
+  ruby_sdk 'app_web_to_proxy_ratio_and_colocated_gears'
+}
+
 # Generate a random string from /dev/urandom
 # Arguments:
 #  - Desired length (optional)

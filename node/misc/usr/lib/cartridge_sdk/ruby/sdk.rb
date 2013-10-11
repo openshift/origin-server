@@ -30,6 +30,14 @@ module OpenShift
       primary_cartridge.manifest
     end
 
+    def app_web_to_proxy_ratio_and_colocated_gears
+      container = OpenShift::Runtime::ApplicationContainer.from_uuid(ENV['OPENSHIFT_GEAR_UUID'])
+      gr = container.gear_registry
+      w = gr.entries[:web].keys.length
+      p = gr.entries[:proxy].keys.length
+      "#{(w/p.to_f).round} #{(gr.entries[:web].keys & gr.entries[:proxy].keys).join(" ")}"
+    end
+
   end
 end
 
