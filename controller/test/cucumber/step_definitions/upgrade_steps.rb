@@ -362,6 +362,16 @@ module OpenShift
       touch_marker('pre')
     end
 
+    def pre_cartridge_upgrade(progress, itinerary)
+      progress.log("Creating pre-cartridge-upgrade marker")
+      touch_marker('pre_cartridge')
+    end
+
+    def post_cartridge_upgrade(progress, itinerary)
+      progress.log("Creating post-cartridge-upgrade marker")
+      touch_marker('post_cartridge')
+    end
+
     def post_upgrade(progress)
       progress.log("Creating post-upgrade marker")
       touch_marker('post')
@@ -403,6 +413,16 @@ module OpenShift
       touch_marker('pre')
     end
 
+    def pre_cartridge_upgrade(progress, itinerary)
+      progress.log("Creating pre-cartridge-upgrade marker")
+      touch_marker('pre_cartridge')
+    end
+
+    def post_cartridge_upgrade(progress, itinerary)
+      progress.log("Creating post-cartridge-upgrade marker")
+      touch_marker('post_cartridge')
+    end
+
     def post_upgrade(progress)
       progress.log("Creating post-upgrade marker")
       touch_marker('post')
@@ -431,6 +451,8 @@ end
 
 Then /^the invocation markers from the gear upgrade should exist$/ do
   assert_file_exist File.join($home_root, @app.uid, %w(app-root data .gear_upgrade_pre))
+  assert_file_exist File.join($home_root, @app.uid, %w(app-root data .gear_upgrade_pre_cartridge))
+  assert_file_exist File.join($home_root, @app.uid, %w(app-root data .gear_upgrade_post_cartridge))
   assert_file_exist File.join($home_root, @app.uid, %w(app-root data .gear_upgrade_post))
 end
 
