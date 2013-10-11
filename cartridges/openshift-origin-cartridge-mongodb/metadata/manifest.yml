@@ -2,14 +2,15 @@
 Name: mongodb
 Cartridge-Short-Name: MONGODB
 Architecture: noarch
-Display-Name: MongoDB 2.2 
+Display-Name: MongoDB 2.2
 Description: MongoDB is a scalable, high-performance, open source NoSQL database.
 Version: '2.2'
 Versions:
 - '2.2'
-Cartridge-Version: 0.2.3
+Cartridge-Version: 0.2.4
 Compatible-Versions:
 - 0.2.2
+- 0.2.3
 Cartridge-Vendor: redhat
 License: ASL 2.0
 Vendor: 10gen
@@ -52,4 +53,5 @@ Endpoints:
   Private-Port-Name: DB_PORT
   Private-Port: 27017
   Public-Port-Name: DB_PROXY_PORT
-  Protocols: [mongodb]
+  Protocols:
+  - mongodb
