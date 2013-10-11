@@ -471,8 +471,8 @@ class DeploymentsTest < OpenShift::NodeTestCase
     expected = <<EOF
 Activation time - Deployment ID - Git Ref - Git SHA1
 NEVER - id3 - master - 3333333
-2013-09-26 21:05:35 -0400 - id1 - master - 1111111 - ACTIVE
-2013-09-26 20:58:55 -0400 - id2 - master - 2222222
+#{Time.at(1380243935.694962)} - id1 - master - 1111111 - ACTIVE
+#{Time.at(1380243535.694962)} - id2 - master - 2222222
 EOF
     assert_equal expected.chomp, output
   end
