@@ -91,7 +91,7 @@ module OpenShift
                 return d[@fqdn]["connections"].select { |port, backend|
                   backend.to_s != ""
                 }.map { |port, backend|
-                  ["TLS_PORT_#{@sni_ports.index(port)+1}", backend, { "protocols"=>["tls"] } ]
+                  ["TLS_PORT_#{@sni_ports.index(port.to_i).to_i+1}", backend, { "protocols"=>["tls"] } ]
                 }
               end
               []
@@ -199,6 +199,8 @@ module OpenShift
                 cfg_template     = ERB.new(File.read(@filename + "-cfg.erb"))
                 listen_template  = ERB.new(File.read(@filename + "-listen.erb"))
                 sni_template     = ERB.new(File.read(@filename + "-sni.erb"))
+                server_template  = ERB.new(File.read(@filename + "-server.erb"))
+
 
                 proxy_cfg = ::OpenShift::Config.new(CONFIG_PATH)
 
@@ -250,6 +252,7 @@ module OpenShift
                         entry["aliases"].each do |sni_name|
                           f.write(sni_template.result(binding))
                         end
+                        f.write(server_template.result(binding))
                       end
                     end
                   end
