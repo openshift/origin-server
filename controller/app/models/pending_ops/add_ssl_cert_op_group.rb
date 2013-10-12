@@ -16,6 +16,7 @@ class AddSslCertOpGroup < PendingAppOpGroup
         break
       end
     end
+    pending_ops.push NotifySslCertAddOp.new(fqdn: fqdn, ssl_certificate: ssl_certificate, private_key: private_key, pass_phrase: pass_phrase)
   end
 
 end

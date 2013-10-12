@@ -16,7 +16,51 @@ module OpenShift
     end
 
     def send_msg(msg)
+      # msg = encrypt_msg(msg, key)
       @conn.publish @topic, msg
+    end
+
+    def notify_ssl_cert_add(app, fqdn, ssl_cert, pvt_key, passphrase)
+      msg = {
+        :action => :add_ssl,
+        :app_name => app.name,
+        :namespace => app.domain.namespace,
+        :alias => fqdn,
+        :ssl => ssl_cert,
+        :private_key => pvt_key,
+        :pass_phrase => passphrase
+      }
+      send_msg msg.to_yaml
+    end
+
+    def notify_ssl_cert_remove(app, fqdn)
+      msg = {
+        :action => :remove_ssl,
+        :app_name => app.name,
+        :namespace => app.domain.namespace,
+        :alias => fqdn
+      }
+      send_msg msg.to_yaml
+    end
+
+    def notify_add_alias(app, alias_str)
+      msg = {
+        :action => :add_alias,
+        :app_name => app.name,
+        :namespace => app.domain.namespace,
+        :alias => alias_str
+      }
+      send_msg msg.to_yaml
+    end
+
+    def notify_remove_alias(app, alias)
+      msg = {
+        :action => :remove_alias,
+        :app_name => app.name,
+        :namespace => app.domain.namespace,
+        :alias => alias
+      }
+      send_msg msg.to_yaml
     end
 
     def notify_create_application(app)

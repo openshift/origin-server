@@ -11,6 +11,7 @@ class AddAliasOpGroup < PendingAppOpGroup
         break
       end
     end
+    pending_ops.push NotifyAliasAddOp.new(fqdn: fqdn)
   end
 
 end
