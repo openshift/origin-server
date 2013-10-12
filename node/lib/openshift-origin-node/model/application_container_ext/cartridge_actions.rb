@@ -663,26 +663,7 @@ module OpenShift
           deployment_id = options[:deployment_id]
           raise ArgumentError.new("deployment_id must be supplied") unless deployment_id
 
-          result = { status: RESULT_SUCCESS, gear_results: {}}
-
           options[:out].puts "Activating deployment" if options[:out]
-
-          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
-
-          if options[:all]
-            gears = (["#{self.uuid}@localhost"] + child_gear_ssh_urls)
-          elsif options[:gears]
-            gears = options[:gears]
-          else
-            gears = ["#{self.uuid}@localhost"]
-          end
-
-          # TODO should we make PARALLEL_CONCURRENCY_RATIO configurable
-          # TODO should we make MAX_THREADS configurable?
-          # work on a percentage of the app's gears at a time, or 8, whichever is smaller
-          # (i.e. don't want to use too many threads)
-          batch_size = calculate_batch_size(gears.size, PARALLEL_CONCURRENCY_RATIO)
-          threads = [batch_size, MAX_THREADS].min
 
           deployment_datetime = get_deployment_datetime_for_deployment_id(deployment_id)
           deployment_metadata = deployment_metadata_for(deployment_datetime)
@@ -691,33 +672,47 @@ module OpenShift
           # if it's a new gear via scale-up, force hot_deploy to false
           options[:hot_deploy] = false if options[:init]
 
-          gear_results = Parallel.map(gears, :in_threads => threads) do |gear|
-            gear_uuid = gear.split('@')[0]
-            rotate_and_yield(gear_uuid, gear_env, options) do |gear_uuid, gear_env, options|
-              if gear_uuid == self.uuid
-                activate_local_gear(options)
-              else
-                activate_remote_gear(gear, gear_env, options)
-              end
+          parallel_results = with_gear_rotation(options) do |target_gear, local_gear_env, options|
+            target_gear_uuid = target_gear.is_a?(String) ? target_gear : target_gear.uuid
+            if target_gear_uuid == self.uuid
+              activate_local_gear(options)
+            else
+              activate_remote_gear(target_gear, local_gear_env, options)
             end
           end
 
-          gear_results.each do |gear_result|
-            result[:gear_results][gear_result[:gear_uuid]] = gear_result
+          activated_gear_uuids = []
+
+          if options[:all] || options[:gears]
+            result = { status: RESULT_SUCCESS, gear_results: {}}
+
+            parallel_results.each do |gear_result|
+              gear_uuid = gear_result[:gear_uuid]
+              activated_gear_uuids << gear_uuid
+              result[:gear_results][gear_uuid] = gear_result
+              result[:status] = RESULT_FAILURE unless gear_result[:status] == RESULT_SUCCESS
+            end
+          else
+            activated_gear_uuids = [self.uuid]
+
+            # neither options[:all] or options[:gears] was set, so just return the first (and what should be the only) result
+            result = parallel_results[0]
           end
 
-          result[:gear_results].each_value do |gear_result|
-            result[:status] = RESULT_FAILURE unless gear_result[:status] == RESULT_SUCCESS
-          end
-
-          logger.info "Activation result for gears #{gears}: #{result}"
+          logger.info "Activation result for gears #{activated_gear_uuids.join(", ")}: #{result}"
 
           result
         end
 
+        # Activates a remote gear
+        #
+        # @param [OpenShift::Runtime::GearRegistry::Entry] gear the remote gear to activate
+        # @param [Hash] gear_env the environment for the local gear
+        # @param [Hash] options activation options
+        # @option options [String] :deployment_id the deployment ID to activate
+        # @option options [Boolean] :init if true, run the post-install hook during activation
         def activate_remote_gear(gear, gear_env, options={})
-          # TODO: refactor to hashes for gear info
-          gear_uuid = gear.split('@')[0]
+          gear_uuid = gear.uuid
 
           result = {
             status: RESULT_FAILURE,
@@ -733,7 +728,7 @@ module OpenShift
           result[:messages] << "Activating gear #{gear_uuid}, deployment id: #{options[:deployment_id]},#{init_option}\n"
 
           begin
-            out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear} gear activate #{options[:deployment_id]} --as-json#{init_option} --no-rotation",
+            out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear.to_ssh_url} gear activate #{options[:deployment_id]} --as-json#{init_option} --no-rotation",
                                                     env: gear_env,
                                                     expected_exitstatus: 0)
 
@@ -743,9 +738,9 @@ module OpenShift
 
             raise "Invalid result JSON received from remote activate call: #{activate_result.inspect}" unless activate_result.has_key?(:status)
 
-            result[:messages] += activate_result[:gear_results][gear_uuid][:messages]
-            result[:errors] += activate_result[:gear_results][gear_uuid][:errors]
-            result[:status] = activate_result[:gear_results][gear_uuid][:status]
+            result[:messages] += activate_result[:messages]
+            result[:errors] += activate_result[:errors]
+            result[:status] = activate_result[:status]
           rescue Exception => e
             result[:errors] << "Gear activation failed: #{e.message}\n#{e.backtrace.join("\n")}"
           end
@@ -931,8 +926,12 @@ module OpenShift
           if proxy_cart
             if options[:all]
               gears = gear_registry.entries[:web].values
+            elsif options[:gears]
+              gears = gear_registry.entries[:web].values.select { |e| options[:gears].include?(e.uuid) }
             else
-              gears = [gear_registry.entries[:web][uuid]]
+              # it's possible the gear registry hasn't been populated yet (scale-up that adds a new proxy cart)
+              # so if gear_registry.entries[:web] is nil, just use [uuid] instea
+              gears = [gear_registry.entries[:web][uuid]] rescue [uuid]
             end
           else
             gears = [uuid]
@@ -1238,7 +1237,8 @@ module OpenShift
                 # of in batches
 
                 # since the gears are new, set init to true
-                activate(gears: ssh_urls, deployment_id: deployment_id, init: true)
+                activate_result = activate(gears: new_web_gears.map(&:uuid), deployment_id: deployment_id, init: true)
+                raise "Activation of new gears failed: #{activate_result[:errors].join("\n")}" unless activate_result[:status] == RESULT_SUCCESS
               end
 
               old_proxy_gears = old_registry[:proxy]

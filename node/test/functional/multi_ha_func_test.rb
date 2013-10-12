@@ -38,8 +38,31 @@ class MultiHaFuncTest < OpenShift::NodeBareTestCase
 
     app_id = @api.create_application(app_name, [@framework_cartridge], true)
 
+    app_container = OpenShift::Runtime::ApplicationContainer.from_uuid(app_id)
+    gear_registry = OpenShift::Runtime::GearRegistry.new(app_container)
+
+    entries = gear_registry.entries
+    logger.info("Gear registry contents: #{entries}")
+
+    web_entries = entries[:web]
+    assert_equal 1, web_entries.keys.size
+
+    proxy_entries = entries[:proxy]
+    assert_equal 1, proxy_entries.keys.size
+
     logger.info "Enabling HA for #{app_name}"
     @api.make_ha(app_name)
+
+    gear_registry.load
+    entries = gear_registry.entries
+    logger.info("Gear registry contents: #{entries}")
+
+    web_entries = entries[:web]
+    assert_equal 2, web_entries.keys.size
+
+    proxy_entries = entries[:proxy]
+    assert_equal 2, proxy_entries.keys.size
+
   end
 
 end

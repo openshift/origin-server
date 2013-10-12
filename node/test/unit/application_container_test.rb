@@ -537,9 +537,10 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.expects(:deployment_metadata_for).with(current_deployment_datetime).returns(metadata)
     metadata.expects(:id).returns(deployment_id)
 
-    @container.expects(:activate).with(gears: [web_entry2, web_entry3].map { |e| "#{e.uuid}@#{e.proxy_hostname}" },
-                                            deployment_id: deployment_id,
-                                            init: true)
+    @container.expects(:activate).with(gears: [uuid2, uuid3],
+                                       deployment_id: deployment_id,
+                                       init: true)
+                                 .returns(status: 'success')
 
     @container.expects(:run_in_container_context).with("rsync -avz --delete --exclude hooks --rsh=/usr/bin/oo-ssh git/#{@app_name}.git/ #{proxy_entry3.uuid}@#{proxy_entry3.proxy_hostname}:git/#{@app_name}.git/",
                                                         env: gear_env,
