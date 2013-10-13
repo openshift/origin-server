@@ -365,7 +365,7 @@ function check_packages() {
     do
 	verbose checking package $PKGNAME
 	PKGSTATUS=`rpm -q $PKGNAME`
-	if echo $PKGSTATUS | grep "not installed" >/dev/null
+	if [[ $? == "1" ]]
 	then
 	    fail "package $PKGNAME is not installed"
 	fi 
@@ -558,8 +558,10 @@ function check_datastore_mongo() {
         fi
 
         # check service enabled
-	if (service mongod status 2>/dev/null | grep enabled 2>&1 >/dev/null \
-            || chkconfig --list 2>/dev/null | grep '^mongod.*2:on.*3:on.*4:on.*5:on' 2>&1 >/dev/null)
+	if (service mongod status 2>&1 >/dev/null \
+		|| ( chkconfig --level 2 mongod && chkconfig --level 3 mongod \
+		&& chkconfig --level 4 mongod && chkconfig --level 5 mongod  ) )
+
         then
 	    verbose "LOCAL: mongod service enabled"
         else
