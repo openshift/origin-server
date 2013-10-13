@@ -15,9 +15,11 @@ class AppEventsTest < ActionDispatch::IntegrationTest
   def setup
     @random = rand(1000000000)
     @login = "user#{@random}"
+    @password = "password"
     @headers = {}
-    @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:password")
+    @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @headers["HTTP_ACCEPT"] = "application/json"
+    register_user(@login, @password)
 
     https!
   end
@@ -41,7 +43,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     assert_equal(body["messages"][0]["exit_code"], 101)
 
     # create application
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => "php-5.3"}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
     assert_response :created
 
     # do not specify event
@@ -71,7 +73,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create application
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => "php-5.3"}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
     assert_response :created
 
     # check the application state
@@ -125,7 +127,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(body["data"]["name"], "app1")
-    assert_equal(body["data"]["framework"], "php-5.3")
+    assert_equal(body["data"]["framework"], PHP_VERSION)
     assert_equal(body["data"]["domain_id"], ns)
   end
 
@@ -137,7 +139,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create application
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => "php-5.3"}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
     assert_response :created
 
     # expose-port application
@@ -157,7 +159,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(body["data"]["name"], "app1")
-    assert_equal(body["data"]["framework"], "php-5.3")
+    assert_equal(body["data"]["framework"], PHP_VERSION)
     assert_equal(body["data"]["domain_id"], ns)
   end
 
@@ -181,7 +183,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create application
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => "php-5.3"}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
     assert_response :created
 
     # add-alias application - do not specify alias
@@ -211,7 +213,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(body["data"]["name"], "app1")
-    assert_equal(body["data"]["framework"], "php-5.3")
+    assert_equal(body["data"]["framework"], PHP_VERSION)
     assert_equal(body["data"]["aliases"].length, 1)
     assert_equal(body["data"]["aliases"][0], "alias.#{@random}")
 
@@ -228,7 +230,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(body["data"]["name"], "app1")
-    assert_equal(body["data"]["framework"], "php-5.3")
+    assert_equal(body["data"]["framework"], PHP_VERSION)
     assert_equal(body["data"]["domain_id"], ns)
     assert_equal(body["data"]["aliases"].length, 0)
   end
@@ -240,8 +242,11 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     request_via_redirect(:post, DOMAIN_COLLECTION_URL, {:name => ns}, @headers)
     assert_response :created
 
+    #set gear limit
+    system "oo-admin-ctl-user -l #{@login} --setmaxgears 3"
+
     # create non-scalable application
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "appnoscale", :cartridge => "php-5.3"}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "appnoscale", :cartridge => PHP_VERSION}, @headers)
     assert_response :created
 
     # scale-up application
@@ -249,7 +254,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
 
     # create scalable application
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => "php-5.3", :scale => true}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION, :scale => true}, @headers)
     assert_response :created
 
     # scale-up application

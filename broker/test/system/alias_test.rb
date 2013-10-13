@@ -13,12 +13,14 @@ class AliasTest < ActionDispatch::IntegrationTest
   def setup
     @random = rand(1000000000)
     @login = "user#{@random}"
+    @password = "password"
     @user = CloudUser.new(login: @login)
     @user.save
     Lock.create_lock(@user)
     @headers = {}
-    @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:password")
+    @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @headers["HTTP_ACCEPT"] = "application/json"
+    register_user(@login, @password)
 
     ssl_certificate_data
 
@@ -41,7 +43,7 @@ class AliasTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create an application under the user's domain
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [@ns], {:name => @app, :cartridge => "php-5.3"}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [@ns], {:name => @app, :cartridge => PHP_VERSION}, @headers)
     assert_response :created
 
     #create alias with certificate
@@ -80,7 +82,7 @@ class AliasTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create an application under the user's domain
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [@ns], {:name => @app, :cartridge => "php-5.3"}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [@ns], {:name => @app, :cartridge => PHP_VERSION}, @headers)
     assert_response :created
 
     # query alias list
