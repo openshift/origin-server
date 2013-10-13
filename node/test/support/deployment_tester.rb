@@ -75,7 +75,8 @@ class OpenShift::Runtime::DeploymentTester
       entry = web_entries[app_id]
       assert_equal app_id, entry.uuid
       assert_equal @namespace, entry.namespace
-      assert_equal "#{app_name}-#{@namespace}.dev.rhcloud.com", entry.dns
+      domain = `facter domain`.chomp
+      assert_equal "#{app_name}-#{@namespace}.#{domain}", entry.dns
       local_hostname = `facter public_hostname`.chomp
       assert_equal local_hostname, entry.proxy_hostname
       assert_equal IO.read(File.join(app_container.container_dir, '.env', 'OPENSHIFT_LOAD_BALANCER_PORT')).chomp, entry.proxy_port
@@ -88,7 +89,7 @@ class OpenShift::Runtime::DeploymentTester
       entry = proxy_entries[app_id]
       assert_equal app_id, entry.uuid
       assert_equal @namespace, entry.namespace
-      assert_equal "#{app_name}-#{@namespace}.dev.rhcloud.com", entry.dns
+      assert_equal "#{app_name}-#{@namespace}.#{domain}", entry.dns
       assert_equal local_hostname, entry.proxy_hostname
       assert_equal 0, entry.proxy_port.to_i
 

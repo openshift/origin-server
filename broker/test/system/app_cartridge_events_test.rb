@@ -18,9 +18,11 @@ class AppCartridgeEventsTest < ActionDispatch::IntegrationTest
   def setup
     @random = rand(1000000000)
     @login = "user#{@random}"
+    @password = "password"
     @headers = {}
-    @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:password")
+    @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @headers["HTTP_ACCEPT"] = "application/json"
+    register_user(@login, @password)
 
     https!
   end
@@ -38,23 +40,23 @@ class AppCartridgeEventsTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # stop application cartridge - without creating application
-    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", "mysql-5.1"], {:event => "stop"}, @headers)
+    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", MYSQL_VERSION], {:event => "stop"}, @headers)
     assert_response :not_found
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 101)
 
     # create application
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => "php-5.3"}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
     assert_response :created
 
     # stop application cartridge - without embedding cartridge
-    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", "mysql-5.1"], {:event => "stop"}, @headers)
+    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", MYSQL_VERSION], {:event => "stop"}, @headers)
     assert_response :not_found
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 129)
 
     # embed mysql-5.1 into the application
-    request_via_redirect(:post, APP_CARTRIDGES_URL_FORMAT % [ns, "app1"], {:name => "mysql-5.1"}, @headers)
+    request_via_redirect(:post, APP_CARTRIDGES_URL_FORMAT % [ns, "app1"], {:name => MYSQL_VERSION}, @headers)
     assert_response :created
 
     # stop a different application cartridge
@@ -64,7 +66,7 @@ class AppCartridgeEventsTest < ActionDispatch::IntegrationTest
     assert_equal(body["messages"][0]["exit_code"], 129)
 
     # specify an invalid cartridge event
-    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", "mysql-5.1"], {:event => "invalid"}, @headers)
+    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", MYSQL_VERSION], {:event => "invalid"}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 126)
@@ -78,34 +80,34 @@ class AppCartridgeEventsTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create application
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => "php-5.3"}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
     assert_response :created
 
     # embed mysql-5.1 into the application
-    request_via_redirect(:post, APP_CARTRIDGES_URL_FORMAT % [ns, "app1"], {:name => "mysql-5.1"}, @headers)
+    request_via_redirect(:post, APP_CARTRIDGES_URL_FORMAT % [ns, "app1"], {:name => MYSQL_VERSION}, @headers)
     assert_response :created
 
     # stop mysql
-    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", "mysql-5.1"], {:event => "stop"}, @headers)
+    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", MYSQL_VERSION], {:event => "stop"}, @headers)
     assert_response :ok
 
     # start mysql
-    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", "mysql-5.1"], {:event => "start"}, @headers)
+    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", MYSQL_VERSION], {:event => "start"}, @headers)
     assert_response :ok
 
     # restart mysql
-    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", "mysql-5.1"], {:event => "restart"}, @headers)
+    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", MYSQL_VERSION], {:event => "restart"}, @headers)
     assert_response :ok
 
     # reload mysql
-    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", "mysql-5.1"], {:event => "reload"}, @headers)
+    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", MYSQL_VERSION], {:event => "reload"}, @headers)
     assert_response :ok
 
     # query application cartridge after all events
-    request_via_redirect(:get, APP_CARTRIDGE_URL_FORMAT % [ns, "app1", "mysql-5.1"], {}, @headers)
+    request_via_redirect(:get, APP_CARTRIDGE_URL_FORMAT % [ns, "app1", MYSQL_VERSION], {}, @headers)
     assert_response :ok
     body = JSON.parse(@response.body)
-    assert_equal(body["data"]["name"], "mysql-5.1")
+    assert_equal(body["data"]["name"], MYSQL_VERSION)
     assert_equal(body["data"]["type"], "embedded")
   end
 

@@ -10,9 +10,11 @@ class DomainTest < ActionDispatch::IntegrationTest
   def setup
     @random = rand(1000000000)
     @login = "user#{@random}"
+    @password = "password"
     @headers = {}
-    @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:password")
+    @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @headers["HTTP_ACCEPT"] = "application/json"
+    register_user(@login, @password)
 
     https!
   end
@@ -154,6 +156,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     @new_headers = {}
     @new_headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("new#{@login}:password")
     @new_headers["HTTP_ACCEPT"] = "application/json"
+    register_user("new#{@login}","password")
     request_via_redirect(:put, DOMAIN_COLLECTION_URL + "/#{ns}", {:name => new_ns}, @new_headers)
     assert_response :not_found
 
@@ -177,7 +180,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create an application under the user's domain
-    request_via_redirect(:post, DOMAIN_COLLECTION_URL + "/#{ns}/applications", {:name => "app1", :cartridge => "php-5.3", :nolinks => true}, @headers)
+    request_via_redirect(:post, DOMAIN_COLLECTION_URL + "/#{ns}/applications", {:name => "app1", :cartridge => PHP_VERSION, :nolinks => true}, @headers)
     assert_response :created
 
     # update domain name
@@ -215,6 +218,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     @new_headers = {}
     @new_headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("new#{@login}:password")
     @new_headers["HTTP_ACCEPT"] = "application/json"
+    register_user("new#{@login}","password")
     request_via_redirect(:delete, DOMAIN_COLLECTION_URL + "/#{ns}", {}, @new_headers)
     assert_response :not_found
 
@@ -242,7 +246,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create an application under the user's domain
-    request_via_redirect(:post, DOMAIN_COLLECTION_URL + "/#{ns}/applications", {:name => "app1", :cartridge => "php-5.3", :nolinks => true}, @headers)
+    request_via_redirect(:post, DOMAIN_COLLECTION_URL + "/#{ns}/applications", {:name => "app1", :cartridge => PHP_VERSION, :nolinks => true}, @headers)
     assert_response :created
 
     # delete the domain without force option

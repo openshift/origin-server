@@ -33,6 +33,17 @@ class FunctionalApi
     @url_base = "https://#{@login}:password@localhost/broker/rest"
     @tmp_dir = "/var/tmp-tests/#{Time.now.to_i}"
     FileUtils.mkdir_p(@tmp_dir)
+
+    if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
+      `oo-register-user -l admin -p admin --username #{@login} --userpass password`
+    elsif File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
+      system "/usr/bin/htpasswd -b /etc/openshift/htpasswd #{@login} password"
+    else
+      #ignore
+      print "Unknown auth plugin. Not registering user #{$user}/#{$password}."
+      print "Modify #{__FILE__}:37 if user registration is required."
+      cmd = nil
+    end
   end
 
   def random_string(len = 8)
@@ -87,9 +98,10 @@ class FunctionalApi
   def add_ssh_key(app_id, app_name)
     ssh_key = IO.read(File.expand_path('~/.ssh/id_rsa.pub')).chomp.split[1]
     `oo-devel-node authorized-ssh-key-add -c #{app_id} -k #{ssh_key} -T ssh-rsa -m default`
+    domain = `facter domain`.chomp
     File.open(File.expand_path('~/.ssh/config'), 'a', 0o0600) do |f|
       ssh_config = <<EOFZ
-Host #{app_name}-#{@namespace}.dev.rhcloud.com
+Host #{app_name}-#{@namespace}.#{domain}
   StrictHostKeyChecking no
 EOFZ
       f.write ssh_config      
@@ -230,7 +242,8 @@ EOFZ
   end
 
   def assert_http_title_for_app(app_name, namespace, expected)
-    url = "http://#{app_name}-#{namespace}.dev.rhcloud.com"
+    domain = `facter domain`.chomp
+    url = "http://#{app_name}-#{namespace}.#{domain}"
     assert_http_title(url, expected)
   end
 
