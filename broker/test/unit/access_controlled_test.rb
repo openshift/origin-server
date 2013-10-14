@@ -155,6 +155,12 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert !d.has_member_changes?
   end
 
+  # the oo-admin-repair and oo-admin-chk scripts provide a nil resource for
+  # checking the permission as a workaround since the resource is ignored for this role 
+  def test_resource_for_ssh_to_gear_role
+    assert Ability.has_permission?('test', :ssh_to_gears, Application, :edit, nil)
+  end
+  
   def test_user_access_controllable
     CloudUser.where(:login => 'propagate_test').delete
     u = CloudUser.create(:login => 'propagate_test')
