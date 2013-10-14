@@ -1,0 +1,38 @@
+#!/usr/bin/env oo-ruby
+# -*- ruby -*-
+
+# Simple SSL Server example that echoes the environment.
+
+require 'socket'
+require 'openssl'
+
+subject = "/C=XX/ST=NoWhere/L=NoWhere/O=Red Hat/OU=OpenShift/CN=*"
+key = OpenSSL::PKey::RSA.new(1024)
+cert = OpenSSL::X509::Certificate.new
+cert.subject = cert.issuer = OpenSSL::X509::Name.parse(subject)
+cert.not_before = Time.now
+cert.not_after = cert.not_before + 60 * 24 * 3600 # 60 days
+cert.public_key = key
+cert.serial = 0x1
+cert.version = 2
+
+exten = OpenSSL::X509::ExtensionFactory.new
+exten.subject_certificate = exten.issuer_certificate = cert
+cert.extensions = [ exten.create_extension("basicConstraints","CA:TRUE", true) ]
+cert.sign(key, OpenSSL::Digest::SHA1.new)
+
+ctxt = OpenSSL::SSL::SSLContext.new("TLSv1_server")
+ctxt.key = key
+ctxt.cert = cert
+
+tcpsrv = TCPServer.new(ENV["OPENSHIFT_MOCK_PLUGIN_EXAMPLE_IP1"], ENV["OPENSHIFT_MOCK_PLUGIN_EXAMPLE_PORT1"].to_i)
+sslsrv = OpenSSL::SSL::SSLServer.new(tcpsrv, ctxt)
+
+$stdout.puts "Use this command to connect to the server:"
+$stdout.puts "openssl s_client -servername #{ENV["OPENSHIFT_GEAR_DNS"]} -connect localhost:2303"
+$stdout.puts ""
+conn = sslsrv.accept
+$stdout.puts "Got connection"
+conn.puts "============ ENVIRONMENT FROM #{ENV["OPENSHIFT_GEAR_DNS"]} ============"
+conn.puts ENV.map { |k,v| "#{k}: #{v}" }.join("\n")
+$stdout.puts "Finished"
