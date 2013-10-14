@@ -148,6 +148,7 @@ module OpenShift
         end
 
         def startuser_impl(uuid, pwent, netclass, f)
+          return false if tc_exists?(netclass)
           # Select what type of user.  Note that a user can high bandwidth
           # normally but throttled for a specific and temporary reason.
           if File.exists?("#{@tc_user_dir}/#{uuid}_throttle")
@@ -178,6 +179,11 @@ module OpenShift
           f.puts("class del dev #{@tc_if} parent 1:1 classid 1:#{netclass}")
         end
 
+        def tc_exists?(netclass)
+          out, _, _ = ::OpenShift::Runtime::Utils.oo_spawn("tc -s class show dev #{@tc_if} classid 1:#{netclass}", :chdir=>"/")
+          !out.empty?
+        end
+
         def with_tc_loaded
           out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc qdisc show dev #{@tc_if}", :chdir=>"/")
           if out.include?("qdisc htb 1:")
@@ -190,8 +196,7 @@ module OpenShift
         end
 
         def statususer(uuid, pwent, netclass)
-          out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc -s class show dev #{@tc_if} classid 1:#{netclass}", :chdir=>"/")
-          if out.empty?
+          if !tc_exists?(netclass)
             raise ArgumentError, "tc not configured for user #{uuid}"
           else
             @output << out
