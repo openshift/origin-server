@@ -931,13 +931,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     inner_options = { deployment_id: deployment_id, all: true, hot_deploy: false }
 
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
-
-    @container.expects(:child_gear_ssh_urls).returns([])
-    all_gears = ["#{@container.uuid}@localhost"]
-
-    @container.expects(:calculate_batch_size).with(1, 0.2).returns(1)
-
     deployment_datetime = 'now'
     @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
     deployment_metadata = mock()
@@ -945,12 +938,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_metadata.expects(:hot_deploy).returns(false)
 
     gear_result1 = { gear_uuid: @container.uuid, status: 'success', errors: [], messages: [] }
-    Parallel.expects(:map)
-            .with(all_gears, :in_threads => 1)
-            .multiple_yields(*all_gears)
-            .returns([gear_result1])
-
-    @container.expects(:rotate_and_yield).with(@container.uuid, gear_env, inner_options).yields(@container.uuid, gear_env, inner_options)
+    @container.expects(:with_gear_rotation)
+              .with(inner_options)
+              .yields(@container.uuid, gear_env, inner_options)
+              .returns([gear_result1])
 
     @container.expects(:activate_local_gear).with(inner_options)
 
@@ -958,6 +949,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     assert_equal 'success', result[:status]
     assert_equal 1, result[:gear_results].size
+    assert_equal gear_result1, result[:gear_results][@container.uuid]
   end
 
   def test_activate_success
@@ -966,13 +958,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     inner_options = { deployment_id: deployment_id, all: true, hot_deploy: false }
 
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    gears = %w(1234@localhost 2345@localhost)
-    @container.expects(:child_gear_ssh_urls).returns(gears)
-    all_gears = ["#{@container.uuid}@localhost"] + gears
-
-    @container.expects(:calculate_batch_size).with(3, 0.2).returns(1)
+    gear_uuids = [@container.uuid, '1234', '2345']
+    entry1 = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: gear_uuids[0], proxy_hostname: 'node1.example.com')
+    entry2 = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: gear_uuids[1], proxy_hostname: 'node1.example.com')
+    entry3 = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: gear_uuids[2], proxy_hostname: 'node1.example.com')
 
     deployment_datetime = 'now'
     @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
@@ -980,26 +970,27 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(deployment_metadata)
     deployment_metadata.expects(:hot_deploy).returns(false)
 
-    gear_result1 = { gear_uuid: @container.uuid, status: 'success', errors: [], messages: [] }
-    gear_result2 = { gear_uuid: '1234', status: 'success', errors: [], messages: [] }
-    gear_result3 = { gear_uuid: '2345', status: 'success', errors: [], messages: [] }
-    Parallel.expects(:map)
-            .with(all_gears, :in_threads => 1)
-            .multiple_yields(*all_gears)
-            .returns([gear_result1, gear_result2, gear_result3])
-
-    @container.expects(:rotate_and_yield).with(@container.uuid, gear_env, inner_options).yields(@container.uuid, gear_env, inner_options)
-    @container.expects(:rotate_and_yield).with('1234', gear_env, inner_options).yields('1234', gear_env, inner_options)
-    @container.expects(:rotate_and_yield).with('2345', gear_env, inner_options).yields('2345', gear_env, inner_options)
+    gear_result1 = { gear_uuid: gear_uuids[0], status: 'success', errors: [], messages: [] }
+    gear_result2 = { gear_uuid: gear_uuids[1], status: 'success', errors: [], messages: [] }
+    gear_result3 = { gear_uuid: gear_uuids[2], status: 'success', errors: [], messages: [] }
+    @container.expects(:with_gear_rotation)
+              .with(inner_options)
+              .multiple_yields([entry1, gear_env, inner_options],
+                               [entry2, gear_env, inner_options],
+                               [entry3, gear_env, inner_options])
+              .returns([gear_result1, gear_result2, gear_result3])
 
     @container.expects(:activate_local_gear).with(inner_options)
-    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, inner_options)
-    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, inner_options)
+    @container.expects(:activate_remote_gear).with(entry2, gear_env, inner_options)
+    @container.expects(:activate_remote_gear).with(entry3, gear_env, inner_options)
 
     result = @container.activate(activate_options)
 
     assert_equal 'success', result[:status]
     assert_equal 3, result[:gear_results].size
+    assert_equal gear_result1, result[:gear_results][gear_uuids[0]]
+    assert_equal gear_result2, result[:gear_results][gear_uuids[1]]
+    assert_equal gear_result3, result[:gear_results][gear_uuids[2]]
   end
 
   def test_activate_failure
@@ -1008,13 +999,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     inner_options = { deployment_id: deployment_id, all: true, hot_deploy: false }
 
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    gears = %w(1234@localhost 2345@localhost)
-    @container.expects(:child_gear_ssh_urls).returns(gears)
-    all_gears = ["#{@container.uuid}@localhost"] + gears
-
-    @container.expects(:calculate_batch_size).with(3, 0.2).returns(1)
+    gear_uuids = [@container.uuid, '1234', '2345']
+    entry1 = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: gear_uuids[0], proxy_hostname: 'node1.example.com')
+    entry2 = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: gear_uuids[1], proxy_hostname: 'node1.example.com')
+    entry3 = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: gear_uuids[2], proxy_hostname: 'node1.example.com')
 
     deployment_datetime = 'now'
     @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
@@ -1022,47 +1011,45 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(deployment_metadata)
     deployment_metadata.expects(:hot_deploy).returns(false)
 
-    gear_result1 = { gear_uuid: @container.uuid, status: 'success', errors: [], messages: [] }
-    gear_result2 = { gear_uuid: '1234', status: 'success', errors: [], messages: [] }
-    gear_result3 = { gear_uuid: '2345', status: 'failure', errors: [], messages: [] }
-    Parallel.expects(:map)
-            .with(all_gears, :in_threads => 1)
-            .multiple_yields(*all_gears)
-            .returns([gear_result1, gear_result2, gear_result3])
-
-    @container.expects(:rotate_and_yield).with(@container.uuid, gear_env, inner_options).yields(@container.uuid, gear_env, inner_options)
-    @container.expects(:rotate_and_yield).with('1234', gear_env, inner_options).yields('1234', gear_env, inner_options)
-    @container.expects(:rotate_and_yield).with('2345', gear_env, inner_options).yields('2345', gear_env, inner_options)
+    gear_result1 = { gear_uuid: gear_uuids[0], status: 'success', errors: [], messages: [] }
+    gear_result2 = { gear_uuid: gear_uuids[1], status: 'success', errors: [], messages: [] }
+    gear_result3 = { gear_uuid: gear_uuids[2], status: 'failure', errors: [], messages: [] }
+    @container.expects(:with_gear_rotation)
+              .with(inner_options)
+              .multiple_yields([entry1, gear_env, inner_options],
+                               [entry2, gear_env, inner_options],
+                               [entry3, gear_env, inner_options])
+              .returns([gear_result1, gear_result2, gear_result3])
 
     @container.expects(:activate_local_gear).with(inner_options)
-    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, inner_options)
-    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, inner_options)
+    @container.expects(:activate_remote_gear).with(entry2, gear_env, inner_options)
+    @container.expects(:activate_remote_gear).with(entry3, gear_env, inner_options)
 
     result = @container.activate(activate_options)
 
     assert_equal 'failure', result[:status]
     assert_equal 3, result[:gear_results].size
+    assert_equal gear_result1, result[:gear_results][gear_uuids[0]]
+    assert_equal gear_result2, result[:gear_results][gear_uuids[1]]
+    assert_equal gear_result3, result[:gear_results][gear_uuids[2]]
   end
 
   def test_activate_remote_gear_success
     deployment_id = 'abcd1234'
-    g = "1234@localhost"
+    g = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: '1234', proxy_hostname: 'node.example.com')
     gear_uuid = "1234"
     gear_env = {}
     options = { deployment_id: deployment_id }
 
     remote_result = {
       status: 'success',
-      gear_results: {
-        gear_uuid => {
-          gear_uuid: gear_uuid,
-          status: 'success',
-          messages: [],
-          errors: []
-        }
-      }
+      gear_uuid: gear_uuid,
+      status: 'success',
+      messages: [],
+      errors: []
     }
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-rotation",
+
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g.to_ssh_url} gear activate #{deployment_id} --as-json --no-rotation",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
                                                  .returns(JSON.dump(remote_result))
@@ -1075,12 +1062,12 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
   def test_activate_remote_gear_activation_fails
     deployment_id = 'abcd1234'
-    g = "1234@localhost"
+    g = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: '1234', proxy_hostname: 'node.example.com')
     gear_uuid = "1234"
     gear_env = {}
     options = { deployment_id: deployment_id }
 
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --no-rotation",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g.to_ssh_url} gear activate #{deployment_id} --as-json --no-rotation",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
                                                  .raises(::OpenShift::Runtime::Utils::ShellExecutionException.new('msg'))
@@ -1092,24 +1079,20 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
   def test_activate_remote_gear_init
     deployment_id = 'abcd1234'
-    g = "1234@localhost"
+    g = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: '1234', proxy_hostname: 'node.example.com')
     gear_uuid = "1234"
     gear_env = {}
     options = { deployment_id: deployment_id, init: true }
 
     remote_result = {
       status: 'success',
-      gear_results: {
-        gear_uuid => {
-          gear_uuid: gear_uuid,
-          status: 'success',
-          messages: [],
-          errors: []
-        }
-      }
+      gear_uuid: gear_uuid,
+      status: 'success',
+      messages: [],
+      errors: []
     }
 
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --as-json --init --no-rotation",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g.to_ssh_url} gear activate #{deployment_id} --as-json --init --no-rotation",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
                                                  .returns(JSON.dump(remote_result))
