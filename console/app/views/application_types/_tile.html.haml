@@ -1,18 +1,38 @@
+:css 
+  // shrink to normalize with logo set
+  .tile .tile-table .font-icon[title="Cartridge"],
+  .tile .tile-table .font-icon[title="QuickStart"]  {
+    font-size: 28px;
+  }
+
 = div_for type, :class => "tile tile-click tile-compact label-tags application_type_#{type.source}", :title => type.description do
-  %h3
-    = link_to type.display_name, application_type_path(type), :class => 'tile-target'
+  .tile-table
+    .tile-table-cell
+      //%span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
+      - if type.cartridge?
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
+      - elsif type.quickstart?
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
+    .tile-table-cell
+      %h3
+        = link_to type.display_name, application_type_path(type), :class => 'tile-target'
 
-    - if type.usage_rates?
-      = usage_rate_indicator
+        - if type.usage_rates?
+          = usage_rate_indicator
 
-  .font-icon-block
-    - if type.cartridge?
-      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
-    - elsif type.quickstart?
-      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
+      = application_type_tags(type.tags - excluded_tags)
 
-  = application_type_tags(type.tags - excluded_tags)
+      - if type.tags.include?(:in_development)
+        %p This type is in development and will not be visible in production.
 
-  - if type.tags.include?(:in_development)
-    %p This type is in development and will not be visible in production.
+    -#  .font-icon-block
+        - if type.cartridge?
+          %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
+        - elsif type.quickstart?
+          %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
+
+      = application_type_tags(type.tags - excluded_tags)
+
+      - if type.tags.include?(:in_development)
+        %p This type is in development and will not be visible in production.
 

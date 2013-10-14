@@ -1,16 +1,44 @@
+:css
+  .tile .tile-table .font-icon[title="Cartridge"],
+  .tile .tile-table .font-icon[title="QuickStart"]  {
+    font-size: 28px;
+  }
+  .tile-featured .tile-table .font-icon[title="Cartridge"],
+  .tile-featured .tile-table .font-icon[title="QuickStart"]  {
+    font-size: 40px;
+  }
+
 - type = application_type
 = div_for type, :class => 'tile tile-click tile-featured label-tags' do
-  %h3
-    = link_to type.display_name, application_type_path(type), :class => 'tile-target'
+  .tile-table
+    .tile-table-cell
+      - if type.cartridge?
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
+      - elsif type.quickstart?
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
 
-    - if type.usage_rates?
-      = usage_rate_indicator
 
-  .font-icon-block  
-    - if type.cartridge?
-      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
-    - elsif type.quickstart?
-      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
+    .tile-table-cell
+      %h3
+        = link_to type.display_name, application_type_path(type), :class => 'tile-target'
+
+        - if type.usage_rates?
+          = usage_rate_indicator
+
+    
+
+      -#  .font-icon-block  
+          - if type.cartridge?
+            %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
+          - elsif type.quickstart?
+            %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
+
+        = show_description type.description
+
+        - if type.learn_more_url
+          %p.help-block= link_to "Learn more", type.learn_more_url
+        - elsif type.website
+          %p.help-block= link_to type.website, type.website
 
   = show_description type.description
 
