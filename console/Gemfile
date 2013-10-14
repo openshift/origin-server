@@ -29,6 +29,8 @@ group :test, :development do
   gem 'konacha',       '~> 2.6.0'
 end
 
+# NON-RUNTIME END
+
 group :assets do
   gem 'compass-rails', '~> 1.0.3'
   gem 'sass-rails',    '~> 3.2.5'
@@ -39,4 +41,3 @@ group :assets do
   gem 'sass-twitter-bootstrap',  '2.0.1'
 end
 
-# NON-RUNTIME END
