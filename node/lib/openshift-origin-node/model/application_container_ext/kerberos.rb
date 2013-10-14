@@ -1,6 +1,8 @@
 #
 # Manage Kerberos5 k5login entries for a gear
 #
+require 'set'
+
 module OpenShift
   module Runtime
     module ApplicationContainerExt
@@ -21,12 +23,14 @@ module OpenShift
         # Examples
         #   k = K5login.new(username)
         #
-        #   k.add_principal('user1@EXAMPLE.COM')
-        #   k.del_principal('user2@EXAMPLE.COM')
+        #   k.add_principal('user1@EXAMPLE.COM', id=nil)
+        #   k.del_principal('user2@EXAMPLE.COM', id=nil)
         #
         #   allowed = k.principals
         #
-        #   k.principals = ['user3@EXAMPLE.COM', 'user4@EXAMPLE.COM']
+        #   k.principals = { 'user3@EXAMPLE.COM' => [<idlist], 
+        #                    'user4@EXAMPLE.COM' => [<idlist]
+        #                  }
         class K5login
 
           attr_reader :username, :config_file, :filename
@@ -97,10 +101,14 @@ module OpenShift
           # key_name: String - an identifier to manage duplicate principals
           #                    from different users
           #                    currently discarded pending additional work
-          def add_principal(principal, key_name=nil)
+          def add_principal(principal, id=nil)
             modify do |_principals|
-              if not _principals.member? principal
-                _principals << principal 
+              if _principals.member? principal
+                # add an id to the existing principal (dup safe for sets)
+                principals[principal] << id if not id == nil
+              else 
+                # add the principal # id set is empty if id is nil
+                _principals.merge!({principal => Set.new(id ? [id] : [])})
               end
             end
           end
@@ -111,9 +119,12 @@ module OpenShift
           # key_name: String - an identifier to manage duplicate principals
           #                    from different users
           #                    currently discarded pending additional work
-          def remove_principal(principal, key_name=nil)
+          def remove_principal(principal, id=nil)
             modify do |_principals|
-              _principals.select! {|p| not p == principal }
+              _principals.select! do |p, idset|
+                # keep non-match or matches with non-empty id sets
+                p != principal or idset.delete(id).length > 0
+              end
             end
           end
 
@@ -151,7 +162,8 @@ module OpenShift
           # users as well as to establish system wide shared locks.
           # 
           def modify
-            _principals = []
+
+            _principals = {}
             @@mutex.synchronize do
 
               # prevent external race conditions/collisions
@@ -168,7 +180,28 @@ module OpenShift
                   mode = 0640
 
                   File.open(@filename, flags, mode) do | file |
-                    _principals += file.readlines.map {|line| line.chomp }
+
+                    id_set = Set.new
+
+                    file.readlines.each do |line|
+                      line.strip!
+
+                      # skip empty lines
+                      next if line.length == 0
+
+                      # build up principal "ids" who have placed this principal
+                      m = line.match /#\s*id\s*:\s*(.*)$/
+                      if m
+                        id_set << m[1]
+                        next
+                      end
+
+                      # add the principal to the hash
+                      _principals[line] = id_set
+                      # and reset for the next iteration
+                      id_set = Set.new
+  
+                    end
 
                     if block_given?
                       old_principals = _principals.clone
@@ -177,8 +210,15 @@ module OpenShift
                       
                       if old_principals != _principals
                         file.seek(0, IO::SEEK_SET)
-                        file.write(_principals.join("\n")+"\n")
-                        file.truncate(file.tell)
+                        # write all of the ids and then the principal string
+                        _principals.each {|principal, id_list|
+                          id_list.each {|id|
+                            file.write "# id: #{id}\n"
+                          }
+                          file.write principal + "\n\n"
+                        }
+                        # remove the extra newline
+                        file.truncate(file.tell - 1)
                       end
                     end
                   end
