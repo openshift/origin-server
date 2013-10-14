@@ -327,7 +327,16 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       summary << "Application '#{app['name']}' for domain '#{domain_id}' has a denormalized domain_namespace of '#{app['domain_namespace']}' instead of the correct canonical namespace '#{domain_namespace}' in mongo."
     end
 
-    if app['members'].nil? or app['members'].empty?
+    if app['members'].present?
+      # add the member ssh keys
+      app['members'].each do |m|
+        # we are passsing the resource as nil for now since we don't have the mongoid object 
+        # and the resource is ignored for :ssh_to_gears 
+        if Ability.has_permission?(m["_id"], :ssh_to_gears, Application, m["r"], nil)
+          app_ssh_keys.merge! user_hash[m["_id"].to_s]["ssh_keys"] unless user_hash[m["_id"].to_s].nil?
+        end
+      end
+    else
       summary << "Application '#{app['name']}' for domain '#{domain_id}' has no members in mongo."
     end
 
