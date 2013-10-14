@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version:       1.15.4
+Version:       1.15.5
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -115,6 +115,9 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 14 2013 Adam Miller <admiller@redhat.com> 1.15.5-1
+- cartridges: manage distribute_setup.py locally (mmahut@redhat.com)
+
 * Fri Oct 11 2013 Adam Miller <admiller@redhat.com> 1.15.4-1
 - Bump cartridge versions (fotios@redhat.com)
 
