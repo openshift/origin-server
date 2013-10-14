@@ -67,8 +67,8 @@ h3 {
   line-height: $h3LineHeight;
   margin-bottom: $h3MarginBottom;
   small {
-    font-size: $baseFontSize;
-    margin-left: 5px;
+    font-size: $smallFontSize;
+    margin-right: 15px;
   }
 }
 h4 {
@@ -76,7 +76,7 @@ h4 {
   line-height: $h4LineHeight;
   margin-bottom: $h4MarginBottom;
   small {
-    font-size: $baseFontSize * .88;
+    font-size: $tinyFontSize;
     margin-left: 5px;
   }
 }
