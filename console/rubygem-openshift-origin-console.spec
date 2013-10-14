@@ -27,20 +27,11 @@ Requires:      %{?scl:%scl_prefix}rubygem(rdiscount)
 Requires:      %{?scl:%scl_prefix}rubygem(formtastic)
 Requires:      %{?scl:%scl_prefix}rubygem(net-http-persistent)
 Requires:      %{?scl:%scl_prefix}rubygem(haml)
-Requires:      %{?scl:%scl_prefix}rubygem(ci_reporter)
 Requires:      %{?scl:%scl_prefix}rubygem(coffee-rails)
 Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
 Requires:      %{?scl:%scl_prefix}rubygem(jquery-rails)
-Requires:      %{?scl:%scl_prefix}rubygem(mocha)
 Requires:      %{?scl:%scl_prefix}rubygem(sass-rails)
-Requires:      %{?scl:%scl_prefix}rubygem(simplecov)
-Requires:      %{?scl:%scl_prefix}rubygem(test-unit)
 Requires:      %{?scl:%scl_prefix}rubygem(uglifier)
-Requires:      %{?scl:%scl_prefix}rubygem(webmock)
-Requires:      %{?scl:%scl_prefix}rubygem(poltergeist)
-Requires:      %{?scl:%scl_prefix}rubygem(konacha)
-Requires:      %{?scl:%scl_prefix}rubygem(minitest)
-Requires:      %{?scl:%scl_prefix}rubygem(rspec-core)
 Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
 
 %if 0%{?fedora}%{?rhel} <= 6
@@ -49,27 +40,20 @@ BuildRequires: scl-utils-build
 %endif
 
 BuildRequires: %{?scl:%scl_prefix}rubygem(coffee-rails)
-BuildRequires: %{?scl:%scl_prefix}rubygem(sass-rails)
-BuildRequires: %{?scl:%scl_prefix}rubygem(jquery-rails)
-BuildRequires: %{?scl:%scl_prefix}rubygem(uglifier)
-BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(compass-rails)
-BuildRequires: %{?scl:%scl_prefix}rubygem(mocha)
-BuildRequires: %{?scl:%scl_prefix}rubygem(simplecov)
-BuildRequires: %{?scl:%scl_prefix}rubygem(test-unit)
-BuildRequires: %{?scl:%scl_prefix}rubygem(ci_reporter)
-BuildRequires: %{?scl:%scl_prefix}rubygem(webmock)
-BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
-BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
 BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
-BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
-BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
-BuildRequires: %{?scl:%scl_prefix}rubygem(poltergeist)
-BuildRequires: %{?scl:%scl_prefix}rubygem(konacha)
+BuildRequires: %{?scl:%scl_prefix}rubygem(jquery-rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
-BuildRequires: %{?scl:%scl_prefix}rubygem(rspec-core)
+BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
+BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sass-rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
+BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
+BuildRequires: %{?scl:%scl_prefix}rubygem(uglifier)
+
 
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 %if 0%{?fedora} >= 19
@@ -101,6 +85,10 @@ mkdir -p .%{gem_dir}
 
 %if 0%{?fedora}%{?rhel} <= 6
 rm -f Gemfile.lock
+
+# Remove dependencies not needed at runtime
+sed -i -e '/NON-RUNTIME BEGIN/,/NON-RUNTIME END/d' Gemfile
+
 bundle install --local
 
 mkdir -p %{buildroot}%{_var}/log/openshift/console/

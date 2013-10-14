@@ -39,7 +39,6 @@ Requires:      %{?scl:%scl_prefix}mod_passenger
 Requires:      %{?scl:%scl_prefix}rubygem-bson_ext
 Requires:      %{?scl:%scl_prefix}rubygem-json
 Requires:      %{?scl:%scl_prefix}rubygem-json_pure
-Requires:      %{?scl:%scl_prefix}rubygem-minitest
 # This gem is required by oo-admin-chk, oo-admin-fix-sshkeys, and
 # oo-stats, for OpenShift::DataStore API support
 Requires:      %{?scl:%scl_prefix}rubygem-mongo
@@ -52,7 +51,6 @@ Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
 Requires:      %{?scl:%scl_prefix}rubygem-rails
 Requires:      %{?scl:%scl_prefix}rubygem-regin
 Requires:      %{?scl:%scl_prefix}rubygem-rest-client
-Requires:      %{?scl:%scl_prefix}rubygem-simplecov
 Requires:      %{?scl:%scl_prefix}rubygem-systemu
 Requires:      %{?scl:%scl_prefix}rubygem-xml-simple
 
@@ -67,11 +65,9 @@ Requires:      %{?scl:%scl_prefix}rubygem-bigdecimal
 Requires:      %{?scl:%scl_prefix}rubygem-bson
 Requires:      %{?scl:%scl_prefix}rubygem-builder
 Requires:      %{?scl:%scl_prefix}rubygem-bundler
-Requires:      %{?scl:%scl_prefix}rubygem-cucumber
 Requires:      %{?scl:%scl_prefix}rubygem-diff-lcs
 Requires:      %{?scl:%scl_prefix}rubygem-dnsruby
 Requires:      %{?scl:%scl_prefix}rubygem-erubis
-Requires:      %{?scl:%scl_prefix}rubygem-gherkin
 Requires:      %{?scl:%scl_prefix}rubygem-hike
 Requires:      %{?scl:%scl_prefix}rubygem-i18n
 Requires:      %{?scl:%scl_prefix}rubygem-journey
@@ -79,7 +75,6 @@ Requires:      %{?scl:%scl_prefix}rubygem-json
 Requires:      %{?scl:%scl_prefix}rubygem-mail
 Requires:      %{?scl:%scl_prefix}rubygem-metaclass
 Requires:      %{?scl:%scl_prefix}rubygem-mime-types
-Requires:      %{?scl:%scl_prefix}rubygem-mocha
 Requires:      %{?scl:%scl_prefix}rubygem-moped
 Requires:      %{?scl:%scl_prefix}rubygem-multi_json
 Requires:      %{?scl:%scl_prefix}rubygem-origin
@@ -90,11 +85,8 @@ Requires:      %{?scl:%scl_prefix}rubygem-rack-ssl
 Requires:      %{?scl:%scl_prefix}rubygem-rack-test
 Requires:      %{?scl:%scl_prefix}rubygem-rails
 Requires:      %{?scl:%scl_prefix}rubygem-railties
-Requires:      %{?scl:%scl_prefix}rubygem-rake
 Requires:      %{?scl:%scl_prefix}rubygem-rdoc
 Requires:      %{?scl:%scl_prefix}rubygem-regin
-Requires:      %{?scl:%scl_prefix}rubygem-simplecov
-Requires:      %{?scl:%scl_prefix}rubygem-simplecov-html
 Requires:      %{?scl:%scl_prefix}rubygem-sprockets
 Requires:      %{?scl:%scl_prefix}rubygem-state_machine
 Requires:      %{?scl:%scl_prefix}rubygem-stomp
@@ -195,6 +187,9 @@ mv %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf %{buildroot}%{brokerdi
 %else
 rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %endif
+
+# Remove dependencies not needed at runtime
+sed -i -e '/NON-RUNTIME BEGIN/,/NON-RUNTIME END/d' %{buildroot}%{brokerdir}/Gemfile
 
 %files
 %doc LICENSE COPYRIGHT
