@@ -811,7 +811,7 @@ class Application
   # @param additional_filesystem_gb [Integer] Gb of disk storage required beyond is default in the gear size
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if request cannot be completed
-  def update_component_limits(component_instance, scale_from, scale_to, additional_filesystem_gb)
+  def update_component_limits(component_instance, scale_from, scale_to, additional_filesystem_gb, multiplier=nil)
     if additional_filesystem_gb && additional_filesystem_gb != 0
       max_storage = self.domain.owner.max_storage
       raise OpenShift::UserException.new("You are not allowed to request additional gear storage", 164) if max_storage == 0
@@ -820,7 +820,7 @@ class Application
     raise OpenShift::UserException.new("Cannot set the max gear limit to '1' if the application is HA (highly available)") if self.ha and scale_to==1
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :update_component_limits, args: {"comp_spec" => component_instance.to_hash, "min"=>scale_from, "max"=>scale_to, "additional_filesystem_gb"=>additional_filesystem_gb}, created_at: Time.new, user_agent: self.user_agent)
-      op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_hash, min: scale_from, max: scale_to, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
+      op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_hash, min: scale_from, max: scale_to, multiplier: multiplier, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
       pending_op_groups.push op_group
       self.save
       result_io = ResultIO.new

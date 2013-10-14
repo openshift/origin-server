@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'getoptlong'
 
-CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear|remove-cartridge|run-connection-hooks)"
+CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear|remove-cartridge|run-connection-hooks|set-multiplier)"
 
 def usage
   puts <<USAGE
@@ -28,6 +28,8 @@ Options:
     Gear uuid to operate on
 --cartridge
     Cartridge to operate on
+--multiplier
+    Multiplier factor to be set for the cartridge
 -h|--help
     Show Usage info
 USAGE
@@ -40,6 +42,7 @@ opts = GetoptLong.new(
     ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--gear_uuid",              GetoptLong::REQUIRED_ARGUMENT],
     ["--cartridge",              GetoptLong::REQUIRED_ARGUMENT],
+    ["--multiplier",             GetoptLong::REQUIRED_ARGUMENT],
     ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
@@ -57,6 +60,7 @@ command  = args['--command']
 bypass   = args['--bypass']
 gear_uuid = args['--gear_uuid']
 cartridge = args['--cartridge']
+multiplier = args['--multiplier']
 
 if login.nil? or app_name.nil? or command.nil? or args["--help"]
   usage
@@ -179,6 +183,21 @@ begin
     app.remove_gear(gear_id)
   when "run-connection-hooks"
     app.run_connection_hooks
+  when "set-multiplier"
+    unless cartridge
+      puts "Cartridge is required to remove-dependency"
+      exit 1
+    end
+    unless multiplier
+      puts "Multiplier factor is a required argument"
+      exit 1
+    end
+    ci = app.component_instances.find_by(cartridge_name: cartridge)
+    unless ci.is_sparse?
+      puts "Cannot set multiplier factor. Cartridge #{cartridge} needs to be a sparse cart."
+      exit 1
+    end
+    app.update_component_limits(ci, nil, nil, nil, multiplier)
   else
     puts "Command must be one of: #{CTL_APP_COMMANDS}"
     usage
