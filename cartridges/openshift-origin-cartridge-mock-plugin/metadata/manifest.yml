@@ -4,6 +4,9 @@ Cartridge-Short-Name: MOCK_PLUGIN
 Display-Name: Mock Plugin Cartridge 0.1
 Description: A mock plugin cartridge for development use only.
 Version: '0.1'
+Versions:
+- '0.1'
+- '0.2'
 License: ASL 2.0
 Vendor: Red Hat
 Cartridge-Version: 0.0.1
@@ -30,3 +33,18 @@ Endpoints:
   Private-Port: 8080
   Public-Port-Name: EXAMPLE_PUBLIC_PORT1
   Protocols: [tcp]
+Version-Overrides:
+  '0.2':
+    Display-Name: Mock Plugin Cartridge 0.2
+    Provides:
+    - mock-plugin-0.2
+    - mock-plugin
+    Endpoints:
+    - Private-IP-Name: EXAMPLE_IP1
+      Private-Port-Name: EXAMPLE_PORT1
+      Private-Port: 8123
+      Public-Port-Name: EXAMPLE_PUBLIC_PORT1
+      Protocols: [tls]
+      Mappings:
+      - Frontend: '2303'
+        Backend: ''
