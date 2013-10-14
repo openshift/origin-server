@@ -22,7 +22,7 @@ require 'active_support/core_ext/hash'
 module OpenShift
   module Runtime
     class DeploymentMetadata
-      [:git_ref, :git_sha1, :id, :hot_deploy, :force_clean_build, :activations].each do |attr_name|
+      [:git_ref, :git_sha1, :id, :hot_deploy, :force_clean_build, :activations, :checksum].each do |attr_name|
         define_method(attr_name) do
           @metadata[attr_name]
         end
@@ -73,7 +73,8 @@ module OpenShift
           id: @metadata[:id],
           hot_deploy: @metadata[:hot_deploy],
           force_clean_build: @metadata[:force_clean_build],
-          activations: @metadata[:activations]
+          activations: @metadata[:activations],
+          checksum: @metadata[:checksum]
         }
       end
 
@@ -86,7 +87,8 @@ module OpenShift
           id: nil,
           hot_deploy: nil,
           force_clean_build: nil,
-          activations: []
+          activations: [],
+          checksum: nil
         }
       end
     end
