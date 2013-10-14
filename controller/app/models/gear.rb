@@ -301,15 +301,17 @@ class Gear
         gear_states[gear.uuid.to_s] = "unknown"
       end
     }
+    result_io = ResultIO.new
     RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
       if status != 0
         Rails.logger.error("Error getting application state from gear: '#{gear}' with status: '#{status}' and output: #{output}")
         gear_states[gear] = 'unknown'
       else
-        gear_states[gear] = output
+        result_io.parse_output(output, gear)
+        gear_states[gear] = output.split("\n").select{|i| i.start_with? 'CLIENT_RESULT'}.first.split(":")[1] rescue "unknown"
       end
     }
-    gear_states
+    [gear_states, result_io]
   end
 
   # Retrieves the instance of {OpenShift::ApplicationContainerProxy} that backs this gear
