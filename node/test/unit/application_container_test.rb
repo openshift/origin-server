@@ -155,7 +155,6 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     proxy.expects(:add).with(@user_uid.to_i, "127.0.0.2", 9090).returns(@ports_begin+3)
 
     @container.expects(:add_env_var).with('OPENSHIFT_MOCK_EXAMPLE_PUBLIC_PORT1', @ports_begin)
-    @container.expects(:add_env_var).with('LOAD_BALANCER_PORT', @ports_begin, true)
     @container.expects(:add_env_var).with('OPENSHIFT_MOCK_EXAMPLE_PUBLIC_PORT2', @ports_begin+1)
     @container.expects(:add_env_var).with('OPENSHIFT_MOCK_EXAMPLE_PUBLIC_PORT3', @ports_begin+2)
     @container.expects(:add_env_var).with('OPENSHIFT_MOCK_EXAMPLE_PUBLIC_PORT4', @ports_begin+3)

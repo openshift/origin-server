@@ -79,7 +79,6 @@ class OpenShift::Runtime::DeploymentTester
       assert_equal "#{app_name}-#{@namespace}.#{domain}", entry.dns
       local_hostname = `facter public_hostname`.chomp
       assert_equal local_hostname, entry.proxy_hostname
-      assert_equal IO.read(File.join(app_container.container_dir, '.env', 'OPENSHIFT_LOAD_BALANCER_PORT')).chomp, entry.proxy_port
 
       @api.assert_http_title_for_entry entry, DEFAULT_TITLE
 

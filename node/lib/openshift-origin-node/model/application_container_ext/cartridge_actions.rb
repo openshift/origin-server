@@ -163,12 +163,6 @@ module OpenShift
             public_port = create_public_endpoint(private_ip, endpoint.private_port)
             add_env_var(endpoint.public_port_name, public_port)
 
-            # Write the load balancer env var if primary option is set
-            if endpoint.options and endpoint.options["primary"]
-              logger.info("primary option set for the endpoint")
-              add_env_var('LOAD_BALANCER_PORT', public_port, true)
-            end
-
             config = ::OpenShift::Config.new
             endpoint_create_hash = { "external_address" => config.get('PUBLIC_IP'),
                                      "external_port" => public_port,
