@@ -12,17 +12,18 @@ socket=<%= ENV['OPENSHIFT_MYSQL_DB_SOCKET'] %>
 bind-address=<%= ENV['OPENSHIFT_MYSQL_DB_HOST'] %>
 # Disabling symbolic-links is recommended to prevent assorted security risks
 symbolic-links=0
-key_buffer_size = 16K
+key_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? '16' : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.1).to_i %>M
 max_allowed_packet = 200M
 table_open_cache = 4
 sort_buffer_size = 128K
-read_buffer_size = 256K
+read_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? '4' : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.05).to_i %>M
 read_rnd_buffer_size = 256K
 net_buffer_length = 2K
 thread_stack = 256K
 lower_case_table_names = <%= ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] ? ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] : '0' %>
 
 <%= ENV['OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE'] ? "default-storage-engine = #{ENV['OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE']}" : '' %>
+myisam_sort_buffer_size = 2M
 
 #INNODB
 # You can set .._buffer_pool_size up to 50 - 80 %
