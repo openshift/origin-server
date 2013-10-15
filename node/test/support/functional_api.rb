@@ -3,6 +3,7 @@ require 'restclient/request'
 require 'fileutils'
 require 'net/http'
 require 'json'
+require 'openshift-origin-common/config'
 
 class FunctionalApi
   include OpenShift::Runtime::NodeLogger
@@ -98,10 +99,9 @@ class FunctionalApi
   def add_ssh_key(app_id, app_name)
     ssh_key = IO.read(File.expand_path('~/.ssh/id_rsa.pub')).chomp.split[1]
     `oo-devel-node authorized-ssh-key-add -c #{app_id} -k #{ssh_key} -T ssh-rsa -m default`
-    domain = `facter domain`.chomp
     File.open(File.expand_path('~/.ssh/config'), 'a', 0o0600) do |f|
       ssh_config = <<EOFZ
-Host #{app_name}-#{@namespace}.#{domain}
+Host #{app_name}-#{@namespace}.#{cloud_domain}
   StrictHostKeyChecking no
 EOFZ
       f.write ssh_config      
@@ -221,6 +221,9 @@ EOFZ
       rescue SocketError => e
         logger.info("DNS lookup failure; retrying #{url}")
         next
+      rescue Errno::ECONNREFUSED => e
+        logger.info("connection refused; retrying #{url}")
+        next
       end
 
       content =~ /<title>(.+)<\/title>/
@@ -242,8 +245,7 @@ EOFZ
   end
 
   def assert_http_title_for_app(app_name, namespace, expected)
-    domain = `facter domain`.chomp
-    url = "http://#{app_name}-#{namespace}.#{domain}"
+    url = "http://#{app_name}-#{namespace}.#{cloud_domain}"
     assert_http_title(url, expected)
   end
 
@@ -277,5 +279,9 @@ EOFZ
   def deploy_artifact(app_id, app_name, file)
     logger.info("Deploying #{file} to app #{app_name}")
     logger.info `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary-deploy`
+  end
+
+  def cloud_domain
+    ::OpenShift::Config.new.get('CLOUD_DOMAIN')
   end
 end
