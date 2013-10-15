@@ -41,6 +41,9 @@ body.simple {
       background-color: #aaa;
       padding: 25px 35px;
       color: #303030;
+      .announcement + .announcement {
+        margin-top: 15px;
+      }
       &.outage {
         background-color: #FFD24E;
       }
@@ -50,9 +53,6 @@ body.simple {
         &:hover {
           border-bottom: 1px solid;
         }
-      }
-      .timestamp {
-        font-size: $smallFontSize;
       }
     }
     &.primary {
