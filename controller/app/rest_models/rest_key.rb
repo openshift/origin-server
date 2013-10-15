@@ -32,7 +32,7 @@ class RestKey < OpenShift::Model
     self.links = {
       "GET" => Link.new("Get SSH key", "GET", URI::join(url, "user/keys/#{name}")),
       "UPDATE" => Link.new("Update SSH key", "PUT", URI::join(url, "user/keys/#{name}"), [
-        Param.new("type", "string", "Type of Key", SshKey::VALID_SSH_KEY_TYPES),
+        Param.new("type", "string", "Type of Key", SshKey.get_valid_ssh_key_types),
         Param.new("content", "string", "The key portion of an rsa key (excluding ssh key type and comment)"),
       ]),
       "DELETE" => Link.new("Delete SSH key", "DELETE", URI::join(url, "user/keys/#{name}"))

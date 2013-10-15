@@ -42,6 +42,20 @@ class KeysControllerTest < ActionController::TestCase
     assert_response :ok
   end
 
+  test "key create show list update and destroy for kerberos" do
+    key_name = "key#{@random}"
+    post :create, {"name" => key_name, "type" => "krb5-principal", "content" => "ABCD@1234"}
+    assert_response :created
+    get :show, {"id" => key_name}
+    assert_response :success
+    get :index , {}
+    assert_response :success
+    put :update, {"id" => key_name, "type" => "krb5-principal", "content" => "ABCD@1234XYZ"}
+    assert_response :success
+    delete :destroy , {"id" => key_name}
+    assert_response :ok
+  end
+
   test "no key id or bad id" do
     post :create, {"type" => "ssh-rsa", "content" => "ABCD1234"}
     assert_response :unprocessable_entity
@@ -75,6 +89,15 @@ class KeysControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
     post :create, {"name" => key_name, "type" => "abcd", "content" => "ABCD1234"}
     assert_response :unprocessable_entity
+
+    # Invalid content
+    post :create, {"id" => key_name, "type" => "ssh-rsa", "content" => "ABCD@1234"}
+    assert_response :unprocessable_entity
+    post :create, {"id" => key_name, "type" => "krb5-principal", "content" => "# Testing"}
+    assert_response :unprocessable_entity
+    post :create, {"id" => key_name, "type" => "krb5-principal", "content" => "ABCD\nDEFG"}
+    assert_response :unprocessable_entity
+
     #now try update
     post :create, {"name" => key_name, "type" => "ssh-rsa", "content" => "ABCD1234"}
     assert_response :success

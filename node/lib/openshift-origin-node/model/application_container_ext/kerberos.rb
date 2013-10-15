@@ -144,9 +144,8 @@ module OpenShift
             if File.exists? config_file
 
               krb5_config = ParseConfig.new config_file
-
-              if krb5_config['k5login_directory']
-                return krb5_config['k5login_directory'] + "/" + @username
+              if (libdefaults = krb5_config['libdefaults']) and (k5login_directory = libdefaults['k5login_directory'])
+                return k5login_directory + "/" + @username
               end
 
             end

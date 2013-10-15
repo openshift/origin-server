@@ -24,9 +24,10 @@ class SshKey
   KEY_NAME_MAX_LENGTH = 256 unless defined? KEY_NAME_MAX_LENGTH
   # Minimum length of valid SSH key name  
   KEY_NAME_MIN_LENGTH = 1 unless defined? KEY_NAME_MIN_LENGTH
-  # List of valid SSH key types  
-  VALID_SSH_KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
-                         'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com']
+  # Default valid SSH key types if Rails.configuration.openshift[:valid_ssh_key_types] is nil
+  DEFAULT_VALID_SSH_KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
+                                 'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com',
+                                 'krb5-principal']
 
   field :name, type: String
   field :type, type: String, default: "ssh-rsa"
@@ -41,9 +42,15 @@ class SshKey
     presence: {message: "Key type is required and cannot be blank."},
     key_type: true
 
-  validates :content,
-    presence: {message:  "Key content is required and cannot be blank."},
-    format:   {with: /\A[A-Za-z0-9\+\/=]+\z/, message: "Invalid key content."}
+  validates_presence_of :content, :message => "Key content is required and cannot be blank."
+  validates_format_of :content,
+                      :with => /\A[A-Za-z0-9\+\/=]+\z/,
+                      :message => 'Invalid key content.',
+                      :if => :is_ssh?
+  validates_format_of :content,
+                      :with => /\A[^#\r\n][^\r\n]*\z/,
+                      :message => 'Invalid key content.',
+                      :if => :is_kerberos?
     
   validate :does_not_start_with_dot
 
@@ -63,9 +70,8 @@ class SshKey
 
   ##
   # Returns list of valid SSH key types
-  # @see SshKey::VALID_SSH_KEY_TYPES
-  def self.get_valid_ssh_key_types()
-    return VALID_SSH_KEY_TYPES
+  def self.get_valid_ssh_key_types
+    Rails.configuration.openshift[:valid_ssh_key_types] || DEFAULT_VALID_SSH_KEY_TYPES
   end
 
   # This method should be overridden in the subclasses, if required
@@ -85,4 +91,13 @@ class SshKey
     key_hash["_type"] = self.class.to_s
     key_hash
   end
+
+  def is_ssh?
+    type != 'krb5-principal'
+  end
+
+  def is_kerberos?
+    type == 'krb5-principal'
+  end
+
 end
