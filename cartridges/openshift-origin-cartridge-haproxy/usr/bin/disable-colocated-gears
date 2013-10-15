@@ -1,0 +1,41 @@
+#!/bin/bash
+# Script to disable the local serving gears after either atleast
+# one remote gear is visible to haproxy or 30 seconds have passed.
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+set -x
+rm -f /tmp/disable_local*
+exec &> /tmp/disable_local.$$
+
+# Gear id for the head gear
+dnsparts=(${OPENSHIFT_APP_DNS//./ })
+appdomain=(${dnsparts[0]//-/ })
+domain=${appdomain[1]}
+gearid="gear-${OPENSHIFT_APP_NAME}-${domain}"
+
+iter=0
+while (( $iter < 30 )); do
+    echo "$iter: Checking if any remote gears are up."
+
+    # Get the gear status from haproxy
+    gear_status=$(curl -sS "$OPENSHIFT_HAPROXY_STATUS_IP:$OPENSHIFT_HAPROXY_STATUS_PORT/haproxy-status/;csv" | grep gear- | grep UP | grep -v $gearid)
+
+    # Filter out the gears that are about to be disabled
+    for g in $@; do
+        gear_status=$(echo "$gear_status" | grep -v $g)
+    done
+
+    # Make sure that atleast one other gear is UP
+    if [ $(echo "$gear_status" | wc -l) -ge 1 ]; then
+        echo "Atleast one remote gear is UP."
+        break;
+    else
+        sleep 1
+        iter=$((iter + 1))
+    fi
+done
+
+# Disable the gears
+$OPENSHIFT_HAPROXY_DIR/bin/control disable-server persist $@
+/usr/bin/gear reload --cart haproxy-$OPENSHIFT_HAPROXY_VERSION
