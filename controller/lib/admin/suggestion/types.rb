@@ -10,6 +10,9 @@ module Admin
 
       # Actual suggestions are just value objects to be consumed by callers
 
+      # enable JSON serialization which doesn't record object class
+      attr_reader :type
+
       # String - profile affected
       attr_accessor :profile
 
@@ -36,6 +39,7 @@ module Admin
       def initialize(attrs)
         attrs[:scope] ||= "profile" # most common
         attrs.each_pair {|attr,value| self.send("#{attr}=", value)}
+        @type = self.class.to_s
       end
 
       def self.important?
