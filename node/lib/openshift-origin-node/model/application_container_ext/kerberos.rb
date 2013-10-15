@@ -33,7 +33,7 @@ module OpenShift
         #                  }
         class K5login
 
-          attr_reader :username, :config_file, :filename
+          attr_reader :container, :username, :config_file, :filename
 
           @@mutex = Mutex.new
 
@@ -58,7 +58,7 @@ module OpenShift
             @container = container
             @username = container.uuid
             @config_file = File.expand_path config_file
-            @filename = k5login_file
+            @filename = filename ? File.expand_path(filename) : k5login_file
           end
           
           # Public: Determine the location of the user's k5login file
