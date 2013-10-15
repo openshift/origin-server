@@ -24,6 +24,7 @@ function wait_for_postgres_availability {
 function start {
   if ! _is_running; then
     echo "Starting Postgres cartridge"
+    erb conf/postgresql.conf.erb.hidden > conf/postgresql.conf
 
     postgresql_context "pg_ctl start"
     wait_for_postgres_availability || error "Could not start Postgres" 70
