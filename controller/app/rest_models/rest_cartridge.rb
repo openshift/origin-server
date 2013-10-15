@@ -102,9 +102,12 @@ class RestCartridge < OpenShift::Model
     self.type = "standalone"
     self.type = "embedded" if cart.is_embeddable?
     scale = cart.components_in_profile(nil).first.scaling
-    unless scale.nil?
+    if not scale.nil?
       self.scales_from = self.supported_scales_from = scale.min
       self.scales_to = self.supported_scales_to = scale.max
+    else
+      self.scales_from = self.supported_scales_from = 1
+      self.scales_to = self.supported_scales_to = -1
     end
     self.current_scale = 0
     scaling_cart = CartridgeCache.find_cartridge_by_category("scales")[0]
