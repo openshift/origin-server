@@ -90,6 +90,7 @@ Broker::Application.configure do
     :max_domains_per_user => conf.get('MAX_DOMAINS_PER_USER', '1').to_i,
     :allow_ha_applications => conf.get_bool('ALLOW_HA_APPLICATIONS', "false"),
     :router_hostname => conf.get('ROUTER_HOSTNAME', "www.example.com"),
+    :valid_ssh_key_types => OpenShift::Controller::Configuration.parse_list(conf.get('VALID_SSH_KEY_TYPES', nil))
   }
 
   config.auth = {
