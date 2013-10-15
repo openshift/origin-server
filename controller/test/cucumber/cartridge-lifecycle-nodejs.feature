@@ -2,6 +2,7 @@
 @cartridge_nodejs
 @runtime_extended
 @not-enterprise
+@not-fedora-19
 Feature: Cartridge Lifecycle NodeJS Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
