@@ -1482,11 +1482,19 @@ You can also add any httpd access controls you deem necessary to prevent
 unauthorized viewers from reaching the admin console.
 Then restart the httpd service to load the new configuration.
 
-If you have an OpenShift node installed on your broker host (not advised
-for production but often done in development), some extra steps may be
-necessary. You may need to add an exception for the `/admin-console` and
-`/assets` paths in `/var/lib/openshift/.httpd.d/nodes.txt` and restart httpd.
+*If you have an OpenShift node installed on your broker host* (not advised
+for production usage but often done in development), some extra steps will be
+necessary.
 
+First, add an exception for the `/admin-console` and `/assets` paths in `/var/lib/openshift/.httpd.d/nodes.txt`.
+
+Then, compile this into the machine-readable route database with:
+
+----
+httxt2dbm -f DB -i /var/lib/openshift/.httpd.d/nodes.txt -o /var/lib/openshift/.httpd.d/nodes.db
+----
+
+Note: This compiling process only adds, never removes routing entries from the `nodes.db` file. If you need to remove entries, recreate the file with a different name, make sure its permissions and SELinux context match the original, and `mv` it over the original.
 
 === Run the Ruby Bundler
 The broker Rails application depends on many gem files in order to operate correctly. You need to ensure that the Ruby bundler can find the appropriate gem files.
