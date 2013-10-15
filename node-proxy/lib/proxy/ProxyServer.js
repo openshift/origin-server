@@ -976,17 +976,18 @@ ProxyServer.prototype.start = function() {
     Logger.info('Starting protocol handler for ' + pname + ' ...');
 
     this.config.servers[pname].ports.forEach(function(port) {
+      var host = self.config.servers[pname].host;
       try {
-        self.proto_servers[pname].listen(port, undefined, function() {
+        self.proto_servers[pname].listen(port, host, function() {
           /*  Listen succeeded - write pid file.  */
-          Logger.info(pname + ' listening on port ' + port);
+          Logger.info(pname + ' listening on ' + host + ':' + port);
           fs.writeFileSync(self.config.pidfile, process.pid);
           lcnt += 1;
           (lcnt == nlisteners)  &&  switchUser();
         });
 
       } catch(err) {
-        Logger.error(pname + ' failed to listen to port ' + port);
+        Logger.error(pname + ' failed to listen on '  + host + ':' + port);
       }
 
     });
