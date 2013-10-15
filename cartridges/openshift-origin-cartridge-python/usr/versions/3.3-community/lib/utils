@@ -1,6 +1,5 @@
 #!/bin/bash
 cartridge_type="python-3.3"
-distribute_setup_uri="http://python-distribute.org/distribute_setup.py"
 
 #  Setup variables.
 python33_dir=${OPENSHIFT_PYTHON_DIR}
@@ -21,10 +20,10 @@ export LD_LIBRARY_PATH="${python33_dir}/opt/lib:${LD_LIBRARY_PATH}"
 function install_setup_tools() {
    pushd "$venv_dir" > /dev/null
 
-   # Activate virtual env, dowload distribute_setup and run it.
+   # Activate virtual env.
    source bin/activate
-   curl -L -O "$distribute_setup_uri"
-   python distribute_setup.py
+   # Run distribute_setup.
+   python ${OPENSHIFT_PYTHON_DIR}/usr/versions/3.3/lib/distribute_setup.py
 
    # Activate virtual env so as to get access to easy_install and install pip.
    source bin/activate
