@@ -629,12 +629,15 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                              .returns("output from prepare hook\n")
 
     deployment_id = 'abcd1234'
+    checksum = 'abcd'
     @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
+    @container.stubs(:calculate_deployment_checksum).with(deployment_id).returns(checksum)
     @container.expects(:link_deployment_id).with(deployment_datetime, deployment_id)
 
     metadata = mock()
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
     metadata.expects(:id=).with(deployment_id)
+    metadata.expects(:checksum=).with(checksum)
     metadata.expects(:save)
 
     prepare_options = {deployment_datetime: deployment_datetime}
@@ -684,13 +687,16 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                              .returns("output from prepare hook\n")
 
     deployment_id = 'abcd1234'
+    checksum = 'abcd'
     @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
+    @container.stubs(:calculate_deployment_checksum).with(deployment_id).returns(checksum)
 
     FileUtils.expects(:cd).with(File.join(@container.container_dir, 'app-deployments', 'by-id')).yields
     FileUtils.expects(:ln_s).with(File.join('..', deployment_datetime), deployment_id)
     metadata = mock()
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
     metadata.expects(:id=).with(deployment_id)
+    metadata.expects(:checksum=).with(checksum)
     metadata.expects(:save)
 
     output = @container.prepare(prepare_options)

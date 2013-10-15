@@ -528,6 +528,7 @@ module OpenShift
           begin
             deployment_metadata = deployment_metadata_for(deployment_datetime)
             deployment_metadata.id = deployment_id
+            deployment_metadata.checksum = calculate_deployment_checksum(deployment_id)
             deployment_metadata.save
 
             # this is needed so the distribute and activate steps down the line can work

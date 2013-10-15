@@ -134,6 +134,17 @@ module OpenShift
           SecureRandom.hex(4)
         end
 
+        def calculate_deployment_checksum(deployment_id)
+          deployment_dir = PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id)
+
+          # TODO use a better algorithm
+          out, err, rc = run_in_container_context("tar c . | tar xO | sha1sum | cut -f 1 -d ' '",
+                                                  chdir: deployment_dir,
+                                                  expected_exitstatus: 0)
+
+          out.chomp
+        end
+
         def link_deployment_id(deployment_datetime, deployment_id)
           FileUtils.cd(PathUtils.join(@container_dir, 'app-deployments', 'by-id')) do
             FileUtils.ln_s(PathUtils.join('..', deployment_datetime), deployment_id)
