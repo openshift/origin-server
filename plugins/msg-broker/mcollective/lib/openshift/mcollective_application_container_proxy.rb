@@ -1510,6 +1510,7 @@ module OpenShift
       # INPUTS:
       # * gear: a Gear object
       # * ssh_key: String - SSH public key string
+      # * key_type: String
       # * comment: String
       #
       # RETURNS:
@@ -1518,9 +1519,10 @@ module OpenShift
       # NOTES:
       # * uses RemoteJob
       #
-      def get_remove_authorized_ssh_key_job(gear, ssh_key, comment=nil)
+      def get_remove_authorized_ssh_key_job(gear, ssh_key, key_type=nil, comment=nil)
         args = build_base_gear_args(gear)
         args['--with-ssh-key'] = ssh_key
+        args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-comment'] = comment if comment
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-remove', args)
         job

@@ -221,7 +221,7 @@ end
 
 command :'authorized-ssh-key-remove' do |c|
   c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID \\
-     --with-ssh-key KEY --with-ssh-key-comment COMMENT"
+     --with-ssh-key KEY --with-ssh-key-type TYPE --with-ssh-key-comment COMMENT"
   c.description = 'Removes an authorized ssh key from the application'
 
   c.option '-k', '--with-ssh-key KEY', 'User provided ssh for application'
