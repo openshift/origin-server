@@ -19,4 +19,8 @@ else if [ ! -f $OPENSHIFT_POSTGRESQL_DIR/env/OPENSHIFT_POSTGRESQL_VERSION ]
   fi
 fi
 
+# copy files to places where `control` would need
+cp versions/$version/conf/postgresql.conf.erb conf/postgresql.conf.erb
+cp conf/postgresql.conf.erb conf/postgresql.conf.erb.hidden
+
 update_configuration $version
