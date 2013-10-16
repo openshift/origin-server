@@ -53,12 +53,12 @@ module OpenShift
       send_msg msg.to_yaml
     end
 
-    def notify_remove_alias(app, alias)
+    def notify_remove_alias(app, alias_str)
       msg = {
         :action => :remove_alias,
         :app_name => app.name,
         :namespace => app.domain.namespace,
-        :alias => alias
+        :alias => alias_str
       }
       send_msg msg.to_yaml
     end
