@@ -98,7 +98,7 @@
               = select_tag('members[][role]', options_for_select(Role.role_descriptions(true), {:selected => member.role}))
           %td.script-only
             .edit-only
-              = link_to('javascript:;', :class => 'remove-new-member btn btn-mini') do
+              = link_to('javascript:;', :class => 'remove-member btn btn-mini') do
                 %span.icon-remove{'aria-hidden'=>"true"}
 
       - new_members = (new_members || []).dup
