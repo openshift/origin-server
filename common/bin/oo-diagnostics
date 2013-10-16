@@ -1012,14 +1012,15 @@ class OODiag
   end
 
   def test_altered_package_owned_configs
-     mlocate = `rpm -q mlocate`
-     if mlocate.empty?
+     `rpm -q mlocate`
+     have_mlocate_pkg = 0 == $?.to_i
+     unless have_mlocate_pkg
        do_warn <<-WARN
           The mlocate package is not installed. mlocate is not a required runtime package; however,
           you may install mlocate to enable further diagnostics checking.
        WARN
      end
-     unless mlocate.empty?
+     if have_mlocate_pkg
         `updatedb`
         out = `locate --regex \\.rpmsave\$ \\.rpmnew\$`
 
