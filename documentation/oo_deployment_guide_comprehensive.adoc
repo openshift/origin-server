@@ -609,7 +609,7 @@ a document data storage system that uses JavaScript for the command syntax and s
 In order to use MongoDB, you will need to install the mongod server:
 
 ----
-yum install -y mongodb-server
+yum install -y mongodb-server mongodb
 ----
 
 At the time of this writing, you should see the following packages being installed:
@@ -622,7 +622,6 @@ boost-program-options  x86_64  1.41.0-11.el6_1.2  rhel-6-server-rpms            
 boost-thread           x86_64  1.41.0-11.el6_1.2  rhel-6-server-rpms            105 k
 libmongodb             x86_64  1.41.0-11.el6_1.2  rhel-6-server-rpms             41 k
 boost-program-options  x86_64  2.0.2-2.el6op      rhel-server-ose-infra-6-rpms  531 k
-mongodb                x86_64  2.0.2-2.el6op      rhel-server-ose-infra-6-rpms   21 M
 ----
 
 .Fedora
