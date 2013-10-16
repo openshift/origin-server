@@ -169,6 +169,7 @@ module OpenShift
                                      "internal_address" => private_ip,
                                      "internal_port" => endpoint.private_port,
                                      "protocols" => endpoint.protocols,
+                                     "description" => endpoint.description,
                                      "type" => []
                                     }
 

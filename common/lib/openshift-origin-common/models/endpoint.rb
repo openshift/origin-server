@@ -23,6 +23,7 @@ module OpenShift
 
     attr_accessor :private_ip_name, :private_port_name, :private_port, :public_port_name
     attr_accessor :websocket_port_name, :websocket_port, :mappings, :options
+    attr_accessor :description
 
     def from_descriptor(spec_hash = {})
       self.private_ip_name     = spec_hash['Private-IP-Name']
@@ -32,6 +33,7 @@ module OpenShift
       self.websocket_port_name = spec_hash['WebSocket-Port-Name']
       self.websocket_port      = spec_hash['WebSocket-Port']
       self.options             = spec_hash['Options']
+      self.description         = spec_hash['Description']
 
       self.mappings = []
       if spec_hash.has_key?('Mappings') and spec_hash['Mappings'].respond_to?(:each)
@@ -52,6 +54,7 @@ module OpenShift
       h['WebSocket-Port-Name'] = self.websocket_port_name if self.websocket_port_name
       h['WebSocket-Port']      = self.websocket_port      if self.websocket_port
       h['Options']             = self.options             if self.options
+      h['Description']         = self.description         if self.description
 
       if self.mappings.length > 0
         h['Mappings'] = self.mappings.map { |m| m.to_descriptor }
