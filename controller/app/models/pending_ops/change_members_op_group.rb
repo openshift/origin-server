@@ -5,7 +5,7 @@ class ChangeMembersOpGroup < PendingAppOpGroup
   field :roles_changed, type: Array
 
   def elaborate(app)
-    added_ids = (members_added || []).select{ |id| (role = app.role_for(id)) and Ability.has_permission?(id, :ssh_to_gears, Application, role, app) }
+    added_ids = (members_added || []).select{ |(id, *_)| (role = app.role_for(id)) and Ability.has_permission?(id, :ssh_to_gears, Application, role, app) }.map(&:first)
     removed_ids = (members_removed || []).dup
     (roles_changed || []).each do |(id, from, to)|
       was = Ability.has_permission?(id, :ssh_to_gears, Application, from || app.default_role, app)
