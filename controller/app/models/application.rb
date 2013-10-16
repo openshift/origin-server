@@ -191,7 +191,7 @@ class Application
   # @return [Application] Application object
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
   def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[],
-                      init_git_url=nil, user_agent=nil, community_cart_urls=[], builder_id=nil, user_env_vars=nil)#, auto_deploy=false, deployment_branch="master", keep_deployments=1, deployment_type="git")
+                      init_git_url=nil, user_agent=nil, community_cart_urls=[], builder_id=nil, user_env_vars=nil, gear_size_map={})#, auto_deploy=false, deployment_branch="master", keep_deployments=1, deployment_type="git")
     default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
     app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap, builder_id: builder_id)
@@ -206,7 +206,8 @@ class Application
     features << "web_proxy" if scalable
     if app.valid?
       begin
-        app.downloaded_cartridges.each { |cname,c| features << c.name }
+        downloaded_cartridges = app.downloaded_cartridges(gear_size_map)
+        downloaded_cartridges.each { |cname,c| features << c.name }
         framework_carts = CartridgeCache.cartridge_names("web_framework", app)
         framework_cartridges = []
         features.each do |feature|
@@ -224,6 +225,28 @@ class Application
         elsif framework_cartridges.length > 1
           raise OpenShift::UserException.new("Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.", 109, "cartridge")
         end
+        framework_gear_size = gear_size_map[framework_cartridges[0]]
+        if framework_gear_size and (framework_gear_size != default_gear_size)
+          app.default_gear_size = framework_gear_size
+          app.save!
+        end
+        gear_size_map.each do |name, gear_size|
+          cart = CartridgeCache.find_cartridge(name, app)
+          if cart.nil?
+            carts = CartridgeCache.cartridge_names("embedded", app)
+            raise OpenShift::UserException.new("Invalid cartridge. Valid values are (#{carts.join(', ')})", 109, "cartridge")
+          end
+
+          profs = cart.profile_for_feature(name)
+          profile = (profs.is_a? Array) ? profs.first : profs
+          comp = profile.components.first
+          comp_spec = {"cart" => cart.name, "comp" => comp.name}
+
+          group_override = {"components" => [comp_spec]}
+          group_override["gear_size"] = gear_size
+          group_overrides << group_override
+        end
+
         add_feature_result = app.add_features(features, group_overrides, init_git_url, user_env_vars)
         result_io.append add_feature_result
       rescue Exception => e
@@ -251,7 +274,7 @@ class Application
     false
   end
 
-  def downloaded_cartridges
+  def downloaded_cartridges(gear_size_map={})
     cmap = self.downloaded_cart_map
     return @downloaded_cartridges if @downloaded_cartridges and cmap.length==@downloaded_cartridges.length
     # download the content of the url
@@ -259,7 +282,8 @@ class Application
     # parse the manifest and store the cartridge
     begin
       @downloaded_cartridges = {}
-      cmap.each { |cartname, cartdata|
+      cmap.each do |cartname, cartdata|
+        gear_size = gear_size_map[cartdata['url']]
         manifest_str = cartdata["original_manifest"]
         CartridgeCache.foreach_cart_version(manifest_str, cartdata["version"]) do |chash,name,version,vendored_name|
           cart = OpenShift::Cartridge.new.from_descriptor(chash)
@@ -267,8 +291,10 @@ class Application
             Rails.logger.error("Duplicate community cartridge exists for application '#{self.name}'! Overwriting..")
           end
           @downloaded_cartridges[cart.name] = cart
+          gear_size_map[cart.name] = gear_size if gear_size
         end
-      }
+        gear_size_map.delete(cartdata['url'])
+      end
     rescue Exception =>e
       Rails.logger.error(e.message)
       raise e
@@ -1564,6 +1590,9 @@ class Application
     current_group_instances = self.group_instances.map { |gi| gi.to_hash }
     changes, moves = compute_diffs(current_group_instances, new_group_instances)
 
+    if moves.size > 0
+      raise OpenShift::UserException.new("Requested operation is not supported")
+    end
     calculate_ops(changes, moves, connections, cleaned_group_overrides, init_git_url, user_env_vars)
   end
 
@@ -2396,6 +2425,7 @@ class Application
       cleaned_override["min_gears"] = group_override["min_gears"] if group_override.has_key?("min_gears")
       cleaned_override["max_gears"] = group_override["max_gears"] if group_override.has_key?("max_gears")
       cleaned_override["additional_filesystem_gb"] = group_override["additional_filesystem_gb"] if group_override.has_key?("additional_filesystem_gb")
+      cleaned_override["gear_size"] = group_override["gear_size"] if group_override.has_key?("gear_size")
       cleaned_overrides << cleaned_override if group_override["components"] and group_override["components"].count > 0
     end
 
@@ -2469,9 +2499,12 @@ class Application
     return_go["max_gears"] = [fmax,smax].min if first["max_gears"] or second["max_gears"]
     return_go["max_gears"] = -1 if return_go["max_gears"]==10000
 
-    fi = Rails.application.config.openshift[:gear_sizes].index(first["gear_size"]) || 0
-    si = Rails.application.config.openshift[:gear_sizes].index(second["gear_size"]) || 0
-    return_go["gear_size"] = Rails.application.config.openshift[:gear_sizes][[fi,si].max] if first["gear_size"] or second["gear_size"]
+    return_go["gear_size"] = (first["gear_size"] || second["gear_size"]) if first["gear_size"] or second["gear_size"]
+    if first["gear_size"] and second["gear_size"] and (first["gear_size"] != second["gear_size"])
+      carts = []
+      return_go['components'].each {|comp| carts << comp['cart']}
+      raise OpenShift::UserException.new("Incompatible gear sizes: #{first["gear_size"]} and #{second["gear_size"]} for components: #{carts.uniq.to_sentence} that will reside on the same gear.", 142)
+    end
     return_go
   end
 
