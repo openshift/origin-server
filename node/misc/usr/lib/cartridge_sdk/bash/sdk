@@ -319,7 +319,7 @@ function ensure_valid_httpd_process() {
 
 # application developer has requested a hot deploy, 0 == true, 1 == false
 function hot_deploy_marker_is_present() {
-    marker_present hot_deploy
+    hot_deploy_enabled_for_latest_deployment
 }
 
 # return 'start' instead of restart if the HTTPD pid file is corrupted and the
@@ -449,6 +449,26 @@ function primary_cartridge_private_port_name() {
 
 function app_web_to_proxy_ratio_and_colocated_gears() {
   ruby_sdk 'app_web_to_proxy_ratio_and_colocated_gears'
+}
+
+function hot_deploy_enabled_for_latest_deployment() {
+  enabled=$(ruby_sdk 'latest_deployment_metadata.hot_deploy')
+
+  if [ $enabled == "true" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function force_clean_build_enabled_for_latest_deployment() {
+  enabled=$(ruby_sdk 'latest_deployment_metadata.force_clean_build')
+
+  if [ $enabled == "true" ]; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 # Generate a random string from /dev/urandom

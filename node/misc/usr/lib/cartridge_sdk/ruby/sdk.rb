@@ -38,6 +38,11 @@ module OpenShift
       "#{(w/p.to_f).round} #{(gr.entries[:web].keys & gr.entries[:proxy].keys).join(" ")}"
     end
 
+    def latest_deployment_metadata
+      container = OpenShift::Runtime::ApplicationContainer.from_uuid(ENV['OPENSHIFT_GEAR_UUID'])
+      container.deployment_metadata_for(container.latest_deployment_datetime)
+    end
+
   end
 end
 

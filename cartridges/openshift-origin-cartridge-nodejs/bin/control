@@ -29,7 +29,7 @@ node_pid(){
 }
 
 function check_hot_deploy_marker() {
-  if marker_present "hot_deploy"; then
+  if hot_deploy_enabled_for_latest_deployment; then
     echo "hot_deploy marker found. Switching to using supervisor. Subsequent pushes won't require restart until the marker is removed."
   fi
 }
@@ -211,8 +211,8 @@ function build() {
         rm -rf "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules"
     fi
 
-    if marker_present "force_clean_build"; then
-      echo "force_clean_build marker found!  Recreating npm modules" 1>&2
+    if force_clean_build_enabled_for_latest_deployment; then
+      echo "Force-clean builds are enabled. Recreating npm modules" 1>&2
       # These are directories we want to remove modules from
       clean_dirs=(
         "${OPENSHIFT_NODEJS_DIR}/node_modules"
@@ -293,7 +293,7 @@ function post-deploy() {
     check_hot_deploy_marker
 
     # Check if supervisor is already running. If not do a restart.
-    if marker_present "hot_deploy" && ! is_supervisor_running ; then
+    if hot_deploy_enabled_for_latest_deployment && ! is_supervisor_running ; then
       restart
     fi
 }
