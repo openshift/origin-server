@@ -167,6 +167,7 @@ class RestApplication < OpenShift::Model
     end
 
     unless nolinks
+      allowed_gear_sizes = (app.domain.allowed_gear_sizes & app.domain.owner.allowed_gear_sizes)
       carts = CartridgeCache.find_cartridge_by_category("embedded", app).map{ |c| c.name }
 
       self.links = {
@@ -201,12 +202,13 @@ class RestApplication < OpenShift::Model
           Param.new("event", "string", "event", "thread-dump")
         ]),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "application/#{@id}/cartridges"),[
-            Param.new("name", "string", "Name of the cartridge, e.g. mongodb-2.2", carts)
+            Param.new("name", "string", "Name of the cartridge.", carts)
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
             OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),
             OptionalParam.new("scales_to", "integer", "Maximum number of gears to run the component on."),
             OptionalParam.new("additional_storage", "integer", "Additional GB of space to request on all gears running this component."),
+            OptionalParam.new("gear_size", "string", "Gear size for the cartridge.", allowed_gear_sizes, allowed_gear_sizes[0]),
             (OptionalParam.new("url", "string", "A URL to a downloadable cartridge.") if Rails.application.config.openshift[:download_cartridges_enabled]),
             OptionalParam.new("environment_variables", "array", "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]")
           ].compact
