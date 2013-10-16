@@ -127,8 +127,8 @@ module Console
 
       def error_list(errors, options = {}) #:nodoc:
         error_class = options[:error_class] || default_inline_error_class
-        remove_dot = lambda { |s| s.chomp('.').strip }
-        template.content_tag(:p, errors.flatten.map { |e| remove_dot.call(e) }.join.untaint, :class => error_class)
+        ensure_dot = lambda { |s| s.strip!; s << '.' unless s.end_with?('.'); s }
+        template.content_tag(:p, errors.flatten.map(&ensure_dot).join(' ').untaint, :class => error_class)
       end
 
       def inputs(*args, &block)
