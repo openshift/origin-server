@@ -4,10 +4,12 @@
 // Base alert styles
 .alert {
   background-color: $warningBackground;
+  position: relative;
   clear: left;
   margin: 15px 0;
   padding: 6px 18px;
-  border: 1px solid $warningBorder;
+  overflow: visible;
+  line-height: 1.5;
   @include border-radius(2px);
   > p:last-child {
     margin-bottom: 0;
@@ -60,7 +62,7 @@
 .alert-error .alert-heading {
   color: $errorText !important;
 }
-.alert-info {
+.alert-info, .alert-status {
   background-color: $infoBackground;
   border-color: $infoBorder;
   a {
@@ -88,4 +90,55 @@
 }
 .alert-block p + p {
   margin-top: 5px;
+}
+
+
+// Alert icon blocks
+// -----------------------
+
+.section-console {
+  .alert {
+    border-left: 32px solid $warningBorder;
+  }
+  .alert.alert-info, .alert.alert-status {
+    border-left: 32px solid $infoBorder;
+  }
+  .alert.alert-success {
+    border-left: 32px solid $successBorder;
+  }
+  .alert.alert-error {
+    border-left: 32px solid $errorBorder;
+  }
+  .alert:before,
+  .alert.alert-success:before,
+  .alert.alert-error:before,
+  .alert.alert-info:before {
+    font-family: 'openshift-icon';
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 1);
+    color: #fff;
+    position: absolute;
+    left: -23px;
+    top: 9px;
+    opacity: .75;
+  }
+  .alert.alert-success:before {
+    content: "\ee21";
+  }
+  .alert.alert-info:before,
+  .alert.alert-status:before {
+    content: "\ee07";
+    left: -22px
+  }
+  .alert:before,
+  .alert.alert-error:before {
+    content: "\ee01";
+  }
 }

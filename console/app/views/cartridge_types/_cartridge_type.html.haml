@@ -11,10 +11,18 @@
   - if not inactive and cartridge_type.tags.include? :experimental
     %span.label.pull-right Experimental
 
-  %h3
-    = cartridge_type.display_name
-    - if cartridge_type.usage_rates?
-      = usage_rate_indicator
+  .tile-table
+    .tile-table-cell
+      %span.font-icon{'data-icon' => "\ue021", 'aria-hidden'=>"true"}
+    .tile-table-cell
+      %h3
+        - if hide_link or inactive
+          = cartridge_type.display_name
+        - else
+          = link_to cartridge_type.display_name, application_cartridge_type_path(application, cartridge_type), :class => 'tile-target'
+        
+        - if cartridge_type.usage_rates?
+          = usage_rate_indicator
 
   - if cartridge_type.custom?
     %p
@@ -71,7 +79,4 @@
       .warning Conflicts with #{cartridge_type.conflicts.join(',')}
     - when :blocked
       .warning Cannot be added to #{application.framework_name}
-
-  - unless hide_link or inactive
-    = link_to "Select »", application_cartridge_type_path(application, cartridge_type), :class => 'btn tile-target'
 
