@@ -30,7 +30,7 @@ if marker_present "skip_maven_build"; then
   exit 0
 fi
 
-if marker_present "force_clean_build"; then
+if force_clean_build_enabled_for_latest_deployment; then
   echo "force_clean_build marker found; removing Maven dependencies."
   rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
 fi
