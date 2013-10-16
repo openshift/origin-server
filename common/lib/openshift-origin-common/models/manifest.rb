@@ -68,7 +68,8 @@ module OpenShift
       # Class to support Manifest +Endpoint+ elements
       class Endpoint
         attr_accessor :private_ip_name, :private_port_name, :private_port, :public_port_name,
-                      :websocket_port_name, :websocket_port, :mappings, :protocols, :options
+                      :websocket_port_name, :websocket_port, :mappings, :protocols, :options,
+                      :description
 
         class Mapping
           attr_accessor :frontend, :backend, :options
@@ -103,6 +104,7 @@ module OpenShift
               endpoint.websocket_port_name = build_name(tag, entry['WebSocket-Port-Name'])
               endpoint.websocket_port      = entry['WebSocket-Port'].to_i if entry['WebSocket-Port']
               endpoint.options             = entry['Options']
+              endpoint.description         = entry['Description']
 
               if entry['Protocols']
                 endpoint.protocols = entry['Protocols']

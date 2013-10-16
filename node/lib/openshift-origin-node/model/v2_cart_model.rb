@@ -920,10 +920,7 @@ module OpenShift
                 options["websocket_port"] = endpoint.websocket_port
               end
 
-              begin
-                options["protocols"]=endpoint.protocols
-              rescue NoMethodError
-              end
+              options["protocols"]=endpoint.protocols
 
               # Make sure that the mapping does not collide with the default web_proxy mapping
               if mapping.frontend == "" and not cartridge.web_proxy? and web_proxy_cart and not rebuild
@@ -947,8 +944,12 @@ module OpenShift
               reported_urls = frontend.connect(mapping.frontend, backend_uri, options)
               if reported_urls
                 reported_urls.each do |url|
-                  # This is a short-term solution until the direct broker call to expose mappings is available.
-                  output << "CLIENT_RESULT: Cartridge #{cartridge.name} exposed URL #{url}\n"
+                  outstr = "Cartridge #{cartridge.name} exposed URL #{url}"
+                  if endpoint.description
+                    outstr << " for #{endpoint.description}"
+                  end
+                  output << "CLIENT_RESULT: #{outstr}\n"
+                  output << "NOTIFY_MAPPING_CREATE #{outstr}\n"
                 end
               end
             end
