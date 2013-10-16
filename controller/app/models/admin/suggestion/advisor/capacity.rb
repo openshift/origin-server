@@ -116,15 +116,13 @@ module Admin
                                               node_capacity, active_gear_pct)
             s[:nodes_creatable] = open_dists.inject(0) {|sum,dist| sum += dist.space}
 
-            # if existing districts lack the space, create new district(s)
-            nodes_still_needed = s[:nodes_needed]
-            if s[:nodes_creatable] < s[:nodes_needed]
-              suggestions << (dsug = add_district(s))
-              nodes_still_needed -= dsug.node_quantity
-            end
+            # fill existing districts first
+            suggestions += add_node(s, open_dists, s[:nodes_needed])
 
-            # now fill remaining need from existing districts
-            suggestions += add_node(s, open_dists, nodes_still_needed)
+            # if existing districts lack the space, create new district(s)
+            if s[:nodes_creatable] < s[:nodes_needed]
+              suggestions += add_district(s, s[:nodes_needed] - s[:nodes_creatable])
+            end
 
             suggestion.contents = suggestions
             return suggestion
@@ -151,25 +149,31 @@ module Admin
           #
           # Returns: Add::District
           #
-          def self.add_district(s)
+          def self.add_district(s, nodes_needed)
+            sugs = Container.new
             # First, decide how many nodes a new district would take...
             target_nodes = suggested_nodes_per_district(s[:max_active_gears],
                                                         s[:active_gear_pct])
-            nodes_per = target_nodes / 2 # only add half of target to begin with,
-            nodes_per = [s[:nodes_needed], nodes_per].min # but not more than we need,
-            nodes_per = [1, nodes_per].max #... and at least 1
 
             # Then, decide how many districts of that size to suggest.
-            d_quantity = 0
-            d_quantity += 1 until d_quantity * nodes_per >=
-                                  s[:nodes_needed] - s[:nodes_creatable]
-            # Finally, create the suggestion for that.
-            return C::Add::District.new(
-              s.merge( district_quantity: d_quantity,
-                       nodes_per_district: nodes_per,
-                       node_quantity: nodes_per * d_quantity,
-                       district_nodes_target: target_nodes,
-              ))
+            if (d_quantity = nodes_needed / target_nodes) > 0
+              sugs << C::Add::District.new(
+                s.merge( district_quantity: d_quantity,
+                         nodes_per_district: target_nodes,
+                         node_quantity: target_nodes * d_quantity,
+                         district_nodes_target: target_nodes,
+                ))
+            end
+            # and a district for remainder if needed
+            if (nodes_needed %= target_nodes) > 0
+              sugs << C::Add::District.new(
+                s.merge( district_quantity: 1,
+                         nodes_per_district: nodes_needed,
+                         node_quantity: nodes_needed,
+                         district_nodes_target: target_nodes,
+                ))
+            end
+            return sugs
           end
 
           #
@@ -222,14 +226,21 @@ module Admin
 
             # now add nodes and districts
             s[:profile] = self.test_profile + "2"
-            s[:nodes_needed] = 6
+            s[:nodes_needed] = 19
+            s[:gears_needed] = 950
             suggestions << multi_add = C::Add.new(s.merge(contents: Container.new))
             2.times { multi_add.contents << C::Add::Node.new(s.merge(districts.shift).
-                         merge(node_quantity: 1, scope: "district", nodes_creatable: 1))}
+                         merge(node_quantity: 1, scope: "district", nodes_creatable: 2))}
             multi_add.contents << C::Add::District.new(
               s.merge( district_quantity: 2,
-                       nodes_per_district: 2,
-                       node_quantity: 4,
+                       nodes_per_district: 4,
+                       node_quantity: 16,
+                       district_nodes_target: 4,
+              ))
+            multi_add.contents << C::Add::District.new(
+              s.merge( district_quantity: 1,
+                       nodes_per_district: 1,
+                       node_quantity: 1,
                        district_nodes_target: 4,
               ))
             return suggestions

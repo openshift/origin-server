@@ -336,23 +336,27 @@ class AdminSuggestionTest < ActiveSupport::TestCase
           nodes_needed: 4,
           nodes_creatable: 3,
         }
-    assert_not_nil (dist_sug = add.add_district(s)), "should get a suggestion"
+    assert_not_nil (dist_sug = add.add_district(s,1)[0]), "should get a suggestion"
     assert_kind_of SC::Add::District, dist_sug, "should get a district suggestion"
     assert_equal 1, dist_sug.district_quantity, "suggest one district"
-    assert_equal 4, dist_sug.node_quantity, "suggest district with 4 nodes"
-    assert_equal 4, dist_sug.nodes_per_district, "suggest district with 4 nodes"
+    assert_equal 1, dist_sug.node_quantity, "suggest district with 1 node"
+    assert_equal 1, dist_sug.nodes_per_district, "suggest district with 1 node"
     s[:active_gear_pct] = 10
     assert_equal 6, add.suggested_nodes_per_district(100, 10), "lower district target"
-    assert_not_nil (dist_sug = add.add_district(s)), "should get a suggestion"
+    assert_not_nil (dist_sug = add.add_district(s, 6)[0]), "should get a suggestion"
     assert_equal 1, dist_sug.district_quantity, "suggest one district"
-    assert_equal 3, dist_sug.node_quantity, "suggest district with 6/2=3 nodes"
+    assert_equal 6, dist_sug.node_quantity, "suggest district with 6 nodes"
     s[:active_gear_pct] = 7
     s[:nodes_needed] = 6
     assert_equal 4, add.suggested_nodes_per_district(100, 7), "lower district target"
-    assert_not_nil (dist_sug = add.add_district(s)), "should get a suggestion"
+    assert_not_nil (dist_sug = add.add_district(s,8)[0]), "should get a suggestion"
     assert_equal 2, dist_sug.district_quantity, "suggest multiple districts"
-    assert_equal 2, dist_sug.nodes_per_district, "suggest district with 4/2=2 nodes"
-    assert_equal 4, dist_sug.node_quantity, "suggest 2 districts with 2 nodes"
+    assert_equal 4, dist_sug.nodes_per_district, "suggest district with 4 nodes"
+    assert_equal 8, dist_sug.node_quantity, "suggest 2 districts with 4 nodes"
+    dist_sug = add.add_district(s,9)
+    assert_equal 2, dist_sug.size, "should get 2 suggestions"
+    assert_equal 8, dist_sug[0].node_quantity, "suggest 2 districts with 4 nodes"
+    assert_equal 1, dist_sug[1].node_quantity, "suggest 1 districts with 1 node"
   end
 
   test "when there's a need to add capacity" do
@@ -403,10 +407,10 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     assert_equal 1, sugs.for_profile('prof1').size,
       "should suggest adding capacity for profile 'prof1'\n#{psugs}"
     adds = sugs.for_profile('prof1').first.contents
-    assert_equal 3, adds.size,
-      "should suggest adding nodes in districts (one new) for profile 'prof1'\n#{psugs}"
+    assert_equal 4, adds.size,
+      "should suggest adding nodes in districts (two new) for profile 'prof1'\n#{psugs}"
     sugdist = adds.select {|s| s.district_uuid.nil?}
-    assert_equal 1, sugdist.size, "suggest new districts in 'prof1'\n#{psugs}"
+    assert_equal 2, sugdist.size, "suggest 2 new districts in 'prof1'\n#{psugs}"
     assert_kind_of SC::Add::District, sugdist.first,
       "suggest new districts in 'prof1'\n#{psugs}"
     assert_ids_work(sugs)

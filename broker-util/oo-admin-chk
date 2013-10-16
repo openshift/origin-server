@@ -502,6 +502,9 @@ datastore_hash.each do |gear_uuid, gear_info|
       elsif verbose
         puts "OK"
       end
+    elsif server_identity != node_hash[gear_uuid][0]
+      puts "FAIL" if verbose
+      summary << "Gear #{gear_uuid} exists but node '#{node_hash[gear_uuid][0]}' does not match DB server_identity '#{server_identity}'"
     elsif verbose
       puts "OK"
     end
