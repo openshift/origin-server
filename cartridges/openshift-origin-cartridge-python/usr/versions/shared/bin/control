@@ -120,8 +120,8 @@ function build() {
         fi
     fi
 
-    if marker_present 'force_clean_build'; then
-        echo ".openshift/markers/force_clean_build found!" 1>&2
+    if force_clean_build_enabled_for_latest_deployment; then
+        echo "Force-clean builds are enabled" 1>&2
         rm -rf $VIRTUAL_ENV/*
     fi
 
