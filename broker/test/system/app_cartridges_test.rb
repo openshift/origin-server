@@ -160,6 +160,11 @@ class AppCartridgesTest < ActionDispatch::IntegrationTest
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 136)
 
+    # set the max gear limit for the user to 3, if it isn't already so
+    unless CloudUser.find_by(login: @login ).max_gears == 3
+      system("oo-admin-ctl-user -l #{@login} --setmaxgears 3")
+    end
+    
     # embed mysql cartridge into the scalable app
     # since the cartridge will reside on a separate gear and with the gear limit of 3 reached, this should fail
     request_via_redirect(:post, APP_CARTRIDGES_URL_FORMAT % [ns, "appscale"], {:name => MYSQL_VERSION}, @headers)
