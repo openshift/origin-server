@@ -75,7 +75,9 @@ class OpenShift::Runtime::DeploymentTester
       entry = web_entries[app_id]
       assert_equal app_id, entry.uuid
       assert_equal @namespace, entry.namespace
-      domain = `facter domain`.chomp
+
+      domain = @api.cloud_domain
+
       assert_equal "#{app_name}-#{@namespace}.#{domain}", entry.dns
       local_hostname = `facter public_hostname`.chomp
       assert_equal local_hostname, entry.proxy_hostname

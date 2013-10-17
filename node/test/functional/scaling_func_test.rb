@@ -26,7 +26,11 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     @tester.setup
 
     @framework_cartridge = ENV['CART_TO_TEST'] || 'mock-0.1'
-    @keep_deployments = ENV['KEEP_DEPLOYMENTS'].to_i || 3
+    @keep_deployments = if ENV['KEEP_DEPLOYMENTS']
+      ENV['KEEP_DEPLOYMENTS'].to_i
+    else
+      3
+    end
 
     logger.info("Using framework cartridge: #{@framework_cartridge}")
     logger.info("Deployments to keep: #{@keep_deployments}")
