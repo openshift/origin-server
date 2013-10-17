@@ -193,8 +193,7 @@ function build() {
       OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.rhcloud.xml"
   fi
 
-  max_memory_bytes=$(oo-cgroup-read memory.limit_in_bytes)
-  max_memory_mb=$(expr $max_memory_bytes / 1048576)
+  max_memory_mb=${OPENSHIFT_GEAR_MEMORY_MB}
 
   # If hot deploy is enabled, we need to restrict the Maven memory size to fit
   # alongside the running application server. For now, just hard-code it to 64

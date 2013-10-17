@@ -5,12 +5,7 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 export_java_home
 
-max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
 max_threads=`ulimit -u`
-
-if ! [[ "$max_memory_bytes" =~ ^[0-9]+$ ]] ; then
-  max_memory_bytes=536870912
-fi
 
 if ! [[ "$max_threads" =~ ^[0-9]+$ ]] ; then
   max_threads=1024
@@ -23,7 +18,7 @@ if [ -z "$JVM_PERMGEN_RATIO" ]; then
 	JVM_PERMGEN_RATIO=0.2
 fi
 
-max_memory_mb=`expr $max_memory_bytes / 1048576`
+max_memory_mb=${OPENSHIFT_GEAR_MEMORY_MB}
 max_heap=$( echo "$max_memory_mb * $JVM_HEAP_RATIO" | bc | awk '{print int($1+0.5)}')
 max_permgen=$( echo "$max_memory_mb * $JVM_PERMGEN_RATIO" | bc | awk '{print int($1+0.5)}')
 
