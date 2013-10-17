@@ -11,6 +11,9 @@ shopt -s dotglob
 mkdir -p $OPENSHIFT_PHP_DIR/configuration/etc/
 cp -Hr $OPENSHIFT_PHP_DIR/versions/shared/configuration/etc/* $OPENSHIFT_PHP_DIR/configuration/etc/
 
-
 # Create/truncate Apache PassEnv configuration file
 echo > $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/passenv.conf
+echo > $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/performance.conf
+
+cp versions/shared/configuration/etc/conf.d/performance.conf.erb conf/performance.conf.erb
+cp conf/performance.conf.erb conf/performance.conf.erb.hidden

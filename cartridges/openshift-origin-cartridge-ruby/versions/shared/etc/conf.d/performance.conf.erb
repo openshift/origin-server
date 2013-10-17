@@ -1,0 +1,5 @@
+# This will take 80% of the gear memory and devide it by the number
+# of average Passenger thread size. The result is a size of the Passeger
+# pool, where each worker is supposed to use 120 MB of RAM.
+#
+PassengerMaxPoolSize <%=((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i*0.75)/120).to_i%>

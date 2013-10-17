@@ -23,5 +23,3 @@ Alias /static "<%= ENV['OPENSHIFT_REPO_DIR'] %>wsgi/static/"
 WSGIPassAuthorization On
 
 WSGIProcessGroup <%= ENV['OPENSHIFT_GEAR_UUID'] %>
-WSGIDaemonProcess <%= ENV['OPENSHIFT_GEAR_UUID'] %> user=<%= ENV['OPENSHIFT_GEAR_UUID'] %> group=<%= ENV['OPENSHIFT_GEAR_UUID'] %> processes=2 threads=25 python-path="<%= ENV['OPENSHIFT_REPO_DIR'] %>/libs:<%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi:<%= ENV['OPENSHIFT_PYTHON_DIR'] %>/virtenv/lib/python/"
-
