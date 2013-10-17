@@ -1,6 +1,0 @@
-#!/bin/bash
-# Utility functions for use in the cartridge scripts
-
-# Set the 'memory_limit' than PHP script can allocated to gear memory size - 20%
-# (left for the database/cron/etc...)
-#
