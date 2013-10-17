@@ -62,16 +62,13 @@
 .font-icon-size-44      {font-size: 44px !important;}
 
 
-h1[class*="icon-"]:before,
-h2[class*="icon-"]:before {
-  left: -8px;
-  margin-left: 8px;
+h1 .font-icon {
+  margin-right: 4px;
+  color: #aaa;
+  @include icon-text-shadow($color: rgba(255, 255, 255, 1));
 }
-h3[class*="icon-"]:before,
-h4[class*="icon-"]:before,
-h5[class*="icon-"]:before {
-  left: -6px;
-  margin-left: 6px;
+h1 .font-icon {
+  font-size: $h1FontSize - 3; 
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -138,7 +135,3 @@ dl.font-icon-legend {
     font-size: $leadFontSize;
   }
 }
-
-
-
- 

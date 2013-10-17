@@ -6,7 +6,9 @@
 - content_for :top do
   .grid-wrapper.section-header
     %nav.span12.applications
-      %h1 Applications
+      %h1.applications
+        %span.font-icon{:'data-icon' => "\uee48", 'aria-hidden'=>"true"}
+        Applications
 
 :css
   @media (max-width: 767px) {
