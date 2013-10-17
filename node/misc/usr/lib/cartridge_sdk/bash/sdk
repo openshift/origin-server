@@ -454,7 +454,7 @@ function app_web_to_proxy_ratio_and_colocated_gears() {
 function hot_deploy_enabled_for_latest_deployment() {
   enabled=$(ruby_sdk 'latest_deployment_metadata.hot_deploy')
 
-  if [ $enabled == "true" ]; then
+  if [ "$enabled" == "true" ]; then
     return 0
   else
     return 1
@@ -464,7 +464,7 @@ function hot_deploy_enabled_for_latest_deployment() {
 function force_clean_build_enabled_for_latest_deployment() {
   enabled=$(ruby_sdk 'latest_deployment_metadata.force_clean_build')
 
-  if [ $enabled == "true" ]; then
+  if [ "$enabled" == "true" ]; then
     return 0
   else
     return 1
