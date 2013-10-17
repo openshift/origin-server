@@ -72,6 +72,12 @@ def file_exists?(filename, ref)
   end
 end
 
+def valid_git_ref?(ref)
+  Dir.chdir(@repo.path) do
+    system "git show-ref #{ref} >/dev/null 2>&1"
+  end
+end
+
 @container = OpenShift::Runtime::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
 @repo = OpenShift::Runtime::ApplicationRepository.new(@container)
 
@@ -340,6 +346,10 @@ command :deploy do |c|
       ref_to_deploy = determine_deployment_ref(args[0])
       hot_deploy_enabled = options.hot_deploy || false
       force_clean_build_enabled = options.force_clean_build || false
+
+      unless valid_git_ref?(ref_to_deploy)
+        raise "Git ref #{ref_to_deploy} is invalid"
+      end
 
       @container.deploy(hot_deploy: hot_deploy_enabled, force_clean_build: force_clean_build_enabled, ref: ref_to_deploy, out: $stdout, err: $stderr, report_deployments: true)
     end
