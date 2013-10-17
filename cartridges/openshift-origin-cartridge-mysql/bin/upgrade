@@ -1,6 +1,23 @@
-#!/bin/bash -e
-$OPENSHIFT_MYSQL_DIR/bin/control start
+#!/bin/bash -x
+primary_cart=$(basename $OPENSHIFT_PRIMARY_CARTRIDGE_DIR)
+if [ "$primary_cart" != "mysql" ]; then
+    exit 0
+else
+    $OPENSHIFT_MYSQL_DIR/bin/control start
+    if [ $? -ne 0 ]; then
+        echo "Failed to start mysql"
+        exit 1
+    fi
 
-echo "
-grant all on *.* to '$OPENSHIFT_MYSQL_DB_USERNAME'@'%' identified by '$OPENSHIFT_MYSQL_DB_PASSWORD' with grant option;
-flush privileges; " | /usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names
+    echo "
+    grant all on *.* to '$OPENSHIFT_MYSQL_DB_USERNAME'@'%' identified by '$OPENSHIFT_MYSQL_DB_PASSWORD' with grant option;
+    flush privileges; " | /usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names
+    ret_code=$?
+    if [ $ret_code -ne 0 ]; then
+        echo "Failed to upgrade mysql"
+        $OPENSHIFT_MYSQL_DIR/bin/control stop
+        exit $ret_code
+    fi
+
+    $OPENSHIFT_MYSQL_DIR/bin/control stop
+fi
