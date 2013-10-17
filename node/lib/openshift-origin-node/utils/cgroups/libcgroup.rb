@@ -263,17 +263,17 @@ module OpenShift
 
           # Public: Distribute this user's processes into their cgroup
           def classify_processes
-            procs = []
-            processes_foreach do |pid, name, puid, pgid|
+            threads = []
+            threads_foreach do |tid, pid, name, puid, pgid|
               if puid == uid
-                procs << pid
+                threads << tid
               end
             end
 
             cgroup_paths.each do |subsys, path|
               begin
                 File.open(File.join(path, "tasks"), File::WRONLY | File::SYNC) do |t|
-                  procs.each do |pid|
+                  threads.each do |pid|
                     begin
                       t.syswrite "#{pid}\n"
                     rescue
@@ -337,7 +337,19 @@ module OpenShift
             end
           end
 
-          # Private: List of processes and threads on the system
+          # Private: List of threads on the system
+          def threads_foreach
+            processes_foreach do |pid, name, uid, gid|
+              begin
+                Dir.foreach("/proc/#{pid}/task") do |tid|
+                  yield(tid, pid, name, uid, gid)
+                end
+              rescue
+              end
+            end
+          end
+
+          # Private: List of processes on the system
           def processes_foreach
             Dir.foreach('/proc') do |procent|
               begin
