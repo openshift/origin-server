@@ -36,8 +36,7 @@ if force_clean_build_enabled_for_latest_deployment; then
 fi
 
 # Calculate build heap size
-max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
-max_memory_mb=`expr $max_memory_bytes / 1048576`
+max_memory_mb=${OPENSHIFT_GEAR_MEMORY_MB}
 MAVEN_JVM_HEAP_RATIO=0.75
 max_heap=$( echo "$max_memory_mb * $MAVEN_JVM_HEAP_RATIO" | bc | awk '{print int($1+0.5)}')
 OPENSHIFT_MAVEN_XMX="-Xmx${max_heap}m"
