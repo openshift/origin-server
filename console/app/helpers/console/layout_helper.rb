@@ -327,4 +327,12 @@ module Console::LayoutHelper
   def asset(path)
     Rails.application.assets.find_asset(path)
   end
+
+  def logo_data_icon_for(item)
+    {
+      :class => "font-icon",
+      :title => item.cartridge?  || item.class.name == "CartridgeType" ? "Cartridge" : "Quickstart",
+      :data_icon => item.cartridge? || item.class.name == "CartridgeType" ? "\ue021" : "\ue029"
+    }
+  end
 end

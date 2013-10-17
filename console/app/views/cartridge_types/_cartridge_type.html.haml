@@ -13,7 +13,8 @@
 
   .tile-table
     .tile-table-cell
-      %span.font-icon{'data-icon' => "\ue021", 'aria-hidden'=>"true"}
+      - opts = logo_data_icon_for cartridge_type
+      %span{"aria-hidden" => "true", "class" => opts[:class], "data-icon" => opts[:data_icon].html_safe, "title" => opts[:title]}
     .tile-table-cell
       %h3
         - if hide_link or inactive

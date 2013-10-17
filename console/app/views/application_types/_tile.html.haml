@@ -2,10 +2,8 @@
 = div_for type, :class => "tile tile-click tile-compact label-tags application_type_#{type.source}", :title => type.description do
   .tile-table
     .tile-table-cell
-      - if type.cartridge?
-        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
-      - elsif type.quickstart?
-        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
+      - opts = logo_data_icon_for type
+      %span{"aria-hidden" => "true", "class" => opts[:class], "data-icon" => opts[:data_icon].html_safe, "title" => opts[:title]}
     .tile-table-cell
       %h3
         = link_to type.display_name, application_type_path(type), :class => 'tile-target'
