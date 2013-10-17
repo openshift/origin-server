@@ -44,6 +44,11 @@ class EmbCartController < BaseController
     # :cartridge param is deprecated because it isn't consistent with
     # the rest of the apis which take :name. Leave it here because
     # some tools may still use it 
+    elsif params[:cartridge].is_a? Hash 
+      # format used by java client
+      cart_urls = [params[:cartridge][:url]] if params[:cartridge][:url].is_a? String
+      name = params[:cartridge][:name] if params[:cartridge][:name].is_a? String 
+      gear_size = params[:cartridge][:gear_size] if params[:cartridge][:gear_size].is_a? String 
     elsif params[:cartridge].is_a? String
       name = params[:cartridge]
     else
