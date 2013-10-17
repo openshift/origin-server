@@ -104,7 +104,7 @@ class FunctionalApi
 Host #{app_name}-#{@namespace}.#{cloud_domain}
   StrictHostKeyChecking no
 EOFZ
-      f.write ssh_config      
+      f.write ssh_config
     end
   end
 
@@ -126,7 +126,7 @@ EOFZ
 
   def add_env_vars(app_name, vars)
     logger.info("Adding environment variables to app #{app_name}: #{vars}")
-    
+
     begin
       response = RestClient::Request.execute(method: :post,
                                              url: "#{@url_base}/domain/#{@namespace}/application/#{app_name}/environment-variables",
@@ -220,9 +220,11 @@ EOFZ
         content = Net::HTTP.get(uri)
       rescue SocketError => e
         logger.info("DNS lookup failure; retrying #{url}")
+        sleep 1
         next
       rescue Errno::ECONNREFUSED => e
         logger.info("connection refused; retrying #{url}")
+        sleep 1
         next
       end
 

@@ -13,3 +13,7 @@ locked_files:
 - env/M2_HOME
 processed_templates:
 - 'metadata/jenkins_artifacts_glob.erb'
+dependency_dirs:
+- webapps
+build_dependency_dirs:
+- ~/.m2

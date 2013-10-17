@@ -15,3 +15,5 @@ locked_files:
 - etc/conf.d/openshift.conf
 processed_templates:
 - '**/*.erb'
+dependency_dirs:
+- .cpanm

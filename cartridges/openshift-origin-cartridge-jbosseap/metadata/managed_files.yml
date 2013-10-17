@@ -17,3 +17,7 @@ processed_templates:
 - 'metadata/jenkins_artifacts_glob.erb'
 setup_rewritten:
 - versions/*
+dependency_dirs:
+- standalone/deployments: deployments
+build_dependency_dirs:
+- ~/.m2

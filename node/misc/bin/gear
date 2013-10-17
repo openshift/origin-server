@@ -208,7 +208,9 @@ command :postreceive do |c|
           end
         end
 
-        puts "Deployment completed"
+        puts "Deployment completed with status: #{result[:status]}"
+
+        raise "postreceive failed" unless result[:status] == RESULT_SUCCESS
       end
     end
   end

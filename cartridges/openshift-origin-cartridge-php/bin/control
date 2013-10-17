@@ -71,11 +71,9 @@ function tidy() {
 
 function build() {
     echo "Building PHP cartridge"
-    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]
-    then
-        echo ".openshift/markers/force_clean_build found!  Recreating pear libs" 1>&2
-        rm -rf "${OPENSHIFT_PHP_DIR}"/phplib/pear/*
-        mkdir -p "${OPENSHIFT_PHP_DIR}"/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
+    if force_clean_build_enabled_for_latest_deployment; then
+      echo "force_clean_build enabled - recreating pear libs" 1>&2
+      mkdir -p "${OPENSHIFT_PHP_DIR}"/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
     fi
 
     if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]

@@ -30,6 +30,16 @@ module OpenShift
       # Turn blacklist into regexes
       FILENAME_BLACKLIST = %r{^\.(ssh|sandbox|tmp|env)}
 
+      def make_relative(root, cart_directory, entry)
+        abs_entry = entry.start_with?('~/') ? entry : PathUtils.join('~/',cart_directory, entry)
+        # Ensure that any patterns that try to traverse upward are exposed
+        abs_entry = File.expand_path(abs_entry.sub(/^~\//, root))
+        if entry.end_with?('/') && !abs_entry.end_with?('/')
+          abs_entry = "#{abs_entry}/"
+        end
+        abs_entry
+      end
+
       # Obtain values for an entry in a cartridge's managed_files.yml file
       #
       # cart - the cartridge you wish to query
@@ -65,31 +75,45 @@ module OpenShift
 
         # Ensure the this works with symbols or strings in yml file or argument
         file_patterns = YAML.load_file(managed_files, :safe => true, :deserialize_symbols => true).values_at(*[type.to_s,type.to_sym])
-        .flatten.compact      # Remove any nils
-        .map(&:strip)         # Remove leading/trailing whitespace
-        .delete_if(&:empty?)  # Remove any empty patterns
-
+        .flatten.compact                                        # Remove any nils
+        .each do |entry|                                        # Remove leading/trailing whitespace
+          if entry.is_a?(String)
+            entry.strip!
+          elsif entry.is_a?(Hash)
+            key = entry.keys[0]
+            value = entry.delete(key).strip
+            entry[key.strip] = value
+          end
+        end
+        .delete_if { |e| e.respond_to?(:empty?) and e.empty?}   # Remove any empty patterns
 
         # Specify whether or not to do extra processing
         if process_files
           # If the file isn't ~/ make it relative to the cart directory
-          file_patterns.map! do |line|
-            abs_line = line.start_with?('~/') ? line : PathUtils.join('~/',cart.directory,line)
-            # Ensure that any patterns that try to traverse upward are exposed
-            abs_line = File.expand_path(abs_line.sub(/^~\//,root))
-            if line.end_with?('/') && !abs_line.end_with?('/')
-              abs_line = "#{abs_line}/"
+          file_patterns.map! do |entry|
+            if entry.is_a?(String)
+              make_relative(root, cart.directory, entry)
+            elsif entry.is_a?(Hash)
+              key = make_relative(root, cart.directory, entry.keys[0])
+              value = make_relative(root, cart.directory, entry.values[0])
+              {key => value}
             end
-            abs_line
           end
 
           # Ensure the file patterns are in the root
-          (good_patterns, bad_patterns) = file_patterns.partition{|x| x.start_with?(root)}
+          (good_patterns, bad_patterns) = file_patterns.partition do |x|
+            if x.is_a?(String)
+              x.start_with?(root)
+            elsif x.is_a?(Hash)
+              x.keys[0].start_with?(root) and x.values[0].start_with?(root)
+            end
+          end
+
           # Log bad file paths
           bad_patterns.each{|line| logger.info "#{cart.directory} #{type} includes out-of-bounds entry [#{line}]" }
 
           wanted_files = good_patterns.map do |pattern|
-            if pattern =~ /\*/
+            if pattern.is_a?(String) and pattern =~ /\*/
               # Ensure only files are globbed and not dirs
               Dir.glob(pattern, File::FNM_DOTMATCH).select do |f|
                 wanted_types.include?( File.ftype(f) ) &&
@@ -103,11 +127,21 @@ module OpenShift
 
           IMMUTABLE_FILES.each do |name|
             name.gsub!('*', cart.short_name)
-            wanted_files.delete(PathUtils.join(root, cart.directory, name))
+            wanted_files.delete_if do |entry|
+              file = PathUtils.join(root, cart.directory, name)
+              (entry.is_a?(String) and entry == file) or
+              (entry.is_a?(Hash) and (entry.keys[0] == file or entry.values[0] == file))
+            end
           end
 
           # Return files as relative to root
-          wanted_files.map{|x| x[root.length..-1]}
+          wanted_files.map do |x|
+            if x.is_a?(String)
+              x[root.length..-1]
+            elsif x.is_a?(Hash)
+              {x.keys[0][root.length..-1] => x.values[0][root.length..-1]}
+            end
+          end
         else
           file_patterns
         end
@@ -176,6 +210,24 @@ module OpenShift
       # Returns an array of matching file entries.
       def processed_templates(cartridge)
         managed_files(cartridge, :processed_templates, @container_dir)
+      end
+
+      # Obtain the 'dependency_dirs' entry from the managed_Files.yml file
+      #
+      # cartridge - the cartridge you wish to query
+      #
+      # Returns an array of matching file entries.
+      def dependency_dirs(cartridge)
+        managed_files(cartridge, :dependency_dirs, @container_dir)
+      end
+
+      # Obtain the 'build_dependency_dirs' entry from the managed_Files.yml file
+      #
+      # cartridge - the cartridge you wish to query
+      #
+      # Returns an array of matching file entries.
+      def build_dependency_dirs(cartridge)
+        managed_files(cartridge, :build_dependency_dirs, @container_dir)
       end
     end
   end

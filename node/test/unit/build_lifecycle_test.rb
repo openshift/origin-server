@@ -364,10 +364,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
   def test_configure_defaults
     cart_name = 'mock-0.1'
-    latest_deployment_datetime = "now"
-    @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
-    @container.expects(:update_dependencies_symlink).with(latest_deployment_datetime)
-    @container.expects(:update_build_dependencies_symlink).with(latest_deployment_datetime)
     @cartridge_model.expects(:configure).with(cart_name, nil, nil)
     @container.configure(cart_name)
   end
@@ -376,10 +372,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     cart_name = 'mock-0.1'
     template_git_url = 'url'
     manifest = 'manifest'
-    latest_deployment_datetime = "now"
-    @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
-    @container.expects(:update_dependencies_symlink).with(latest_deployment_datetime)
-    @container.expects(:update_build_dependencies_symlink).with(latest_deployment_datetime)
     @cartridge_model.expects(:configure).with(cart_name, template_git_url, manifest)
     @container.configure(cart_name, template_git_url, manifest)
   end

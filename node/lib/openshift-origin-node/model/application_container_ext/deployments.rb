@@ -108,7 +108,14 @@ module OpenShift
           set_rw_permission_R(full_path)
 
           current = current_deployment_datetime
-          unless options[:force_clean_build] or current.nil?
+          if options[:force_clean_build] or current.nil?
+            # force clean build is true or no active deployment
+
+            # create the dependency directories for each cartridge
+            @cartridge_model.each_cartridge do |cartridge|
+              @cartridge_model.create_dependency_directories(cartridge)
+            end
+          else
             gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
             to_keep = deployments_to_keep(gear_env)
 
@@ -152,7 +159,7 @@ module OpenShift
         end
 
         def unlink_deployment_id(deployment_id)
-          FileUtils.unlink(PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id))
+          FileUtils.rm_f(PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id))
         end
 
 
@@ -165,31 +172,26 @@ module OpenShift
           File.basename(deployment_dir_link)
         end
 
-        def update_repo_symlink(deployment_datetime)
-          runtime = PathUtils.join(@container_dir, 'app-root', 'runtime')
-          FileUtils.cd(runtime) do |d|
-            FileUtils.rm_f('repo')
-            FileUtils.ln_s("../../app-deployments/#{deployment_datetime}/repo", 'repo')
-            PathUtils.oo_lchown(uid, gid, "repo")
+        def update_symlink(deployment_datetime, name)
+          link = PathUtils.join(@container_dir, 'app-root', 'runtime', name)
+          if not File.exist?(link) or File.readlink(link).split('/')[-2] != deployment_datetime
+            target = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime, name)
+            FileUtils.rm_f(link)
+            FileUtils.ln_s(target, link)
+            PathUtils.oo_lchown(uid, gid, link)
           end
+        end
+
+        def update_repo_symlink(deployment_datetime)
+          update_symlink(deployment_datetime, 'repo')
         end
 
         def update_dependencies_symlink(deployment_datetime)
-          runtime = PathUtils.join(@container_dir, 'app-root', 'runtime')
-          FileUtils.cd(runtime) do |d|
-            FileUtils.rm_f('dependencies')
-            FileUtils.ln_s("../../app-deployments/#{deployment_datetime}/dependencies", 'dependencies')
-            PathUtils.oo_lchown(uid, gid, "dependencies")
-          end
+          update_symlink(deployment_datetime, 'dependencies')
         end
 
         def update_build_dependencies_symlink(deployment_datetime)
-          runtime = PathUtils.join(@container_dir, 'app-root', 'runtime')
-          FileUtils.cd(runtime) do |d|
-            FileUtils.rm_f('build-dependencies')
-            FileUtils.ln_s("../../app-deployments/#{deployment_datetime}/build-dependencies", 'build-dependencies')
-            PathUtils.oo_lchown(uid, gid, "build-dependencies")
-          end
+          update_symlink(deployment_datetime, 'build-dependencies')
         end
 
         def delete_deployment(deployment_datetime)
