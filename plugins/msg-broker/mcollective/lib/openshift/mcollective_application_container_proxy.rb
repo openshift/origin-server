@@ -2683,7 +2683,7 @@ module OpenShift
         app = gear.app unless gear.nil?
         result = ResultIO.new
 
-        mcoll_result = mcoll_reply[0]
+        mcoll_result = mcoll_reply ? mcoll_reply[0] : nil
         output = nil
         addtl_params = nil
         if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)

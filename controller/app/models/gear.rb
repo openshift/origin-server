@@ -259,6 +259,11 @@ class Gear
   def method_missing(sym, *args, &block)
     sym = :reload if sym == :reload_config
     new_args = args.dup.unshift(self)
+
+    if get_proxy.nil? and self.server_identity.nil?
+      raise OpenShift::OOException.new("The node to create the gear on has not yet been identified")
+    end
+
     return get_proxy.send(sym, *new_args) if get_proxy.respond_to?(sym, false)
     super(sym, *args, &block)
   end
