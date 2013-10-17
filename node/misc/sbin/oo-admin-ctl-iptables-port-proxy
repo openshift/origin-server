@@ -9,11 +9,11 @@
 case "$1" in
     start)
         if [ -f /etc/openshift/iptables.filter.rules ]; then
-           iptables-restore -n <(echo "*filter"; cat /etc/openshift/iptables.filter.rules; echo "COMMIT")
+          { echo "*filter"; cat /etc/openshift/iptables.filter.rules; echo "COMMIT"; } | iptables-restore -n
         fi
 
         if [ -f /etc/openshift/iptables.nat.rules ]; then
-           iptables-restore -n <(echo "*nat"; cat /etc/openshift/iptables.nat.rules; echo "COMMIT")
+          { echo "*nat"; cat /etc/openshift/iptables.nat.rules; echo "COMMIT"; } | iptables-restore -n
         fi
         ;;
     stop)
