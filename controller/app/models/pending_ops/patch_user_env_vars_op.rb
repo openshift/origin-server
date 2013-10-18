@@ -30,8 +30,17 @@ class PatchUserEnvVarsOp < PendingAppOp
   def rollback
     result_io = ResultIO.new
     app = pending_app_op_group.application
-    gear = app.get_app_dns_gear
-    unless gear.removed
+    gear = nil
+    
+    begin 
+      gear = app.get_app_dns_gear
+    rescue OpenShift::UserException
+      # if the head gear is missing, do not perform any operations and just return
+      Rails.logger.info "DNS gear not found. Skipping rollback for PatchUserEnvVarsOp."
+      return result_io
+    end
+    
+    unless gear.nil? or gear.removed
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
       gears_endpoint = get_gears_ssh_endpoint(app) 
       result_io = gear.unset_user_env_vars(set_vars, gears_endpoint) if set_vars.present?
