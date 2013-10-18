@@ -108,8 +108,8 @@ module OpenShift
 
               if entry['Protocols']
                 endpoint.protocols = entry['Protocols']
-              elsif categories.include?('web_framework') and endpoint_index==1
-                endpoint.protocols = ['http', 'ws']
+              elsif entry['Mappings']
+                endpoint.protocols = ['http']
               else
                 endpoint.protocols = ['tcp']
               end
