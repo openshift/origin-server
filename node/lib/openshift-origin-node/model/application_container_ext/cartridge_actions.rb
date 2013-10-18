@@ -24,11 +24,6 @@ module OpenShift
         # @param template_git_url  URL for template application source/bare repository
         # @param manifest          Broker provided manifest
         def configure(cart_name, template_git_url=nil,  manifest=nil)
-          deployment_datetime = latest_deployment_datetime
-          # this is necessary so certain cartridge install scripts function properly
-          update_dependencies_symlink(deployment_datetime)
-          update_build_dependencies_symlink(deployment_datetime)
-
           @cartridge_model.configure(cart_name, template_git_url, manifest)
         end
 
@@ -338,7 +333,7 @@ module OpenShift
                                         post_action_hooks_enabled: false)
 
             # need to add the entry to the options hash, as it's used in build, prepare, distribute, and activate below
-            options[:deployment_datetime] = create_deployment_dir
+            options[:deployment_datetime] = create_deployment_dir(options)
 
             repo_dir = PathUtils.join(@container_dir, 'app-deployments', options[:deployment_datetime], 'repo')
             application_repository = ApplicationRepository.new(self)
@@ -738,7 +733,8 @@ module OpenShift
             result[:errors] += activate_result[:errors]
             result[:status] = activate_result[:status]
           rescue Exception => e
-            result[:errors] << "Gear activation failed: #{e.message}\n#{e.backtrace.join("\n")}"
+            result[:errors] << "Gear activation failed: #{e.message}"
+            result[:errors] += e.backtrace
           end
 
           result
@@ -855,7 +851,8 @@ module OpenShift
             result[:status] = RESULT_SUCCESS
           rescue Exception => e
             result[:status] = RESULT_FAILURE
-            result[:errors] << "Error activating gear: #{e.message}\n#{e.backtrace.join("\n")}"
+            result[:errors] << "Error activating gear: #{e.message}"
+            result[:errors] += e.backtrace
           end
 
           result
@@ -1088,7 +1085,9 @@ module OpenShift
             end
           rescue => e
             result[:status] = RESULT_FAILURE
-            result[:errors] = ["An exception occured restarting the gear: #{e.message}\n#{e.backtrace.join("\n")}"]
+            result[:errors] ||= []
+            result[:errors] << "An exception occured restarting the gear: #{e.message}"
+            result[:errors] += e.backtrace
           end
 
           result

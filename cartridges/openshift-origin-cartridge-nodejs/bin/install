@@ -10,24 +10,21 @@ case "$1" in
     version="$2"
 esac
 
+ln -s ${OPENSHIFT_DEPENDENCIES_DIR}nodejs/node_modules ${OPENSHIFT_HOMEDIR}.node_modules
+
 ## npm link
 pushd $OPENSHIFT_NODEJS_DIR > /dev/null
   npmgl=$OPENSHIFT_NODEJS_DIR/versions/$version/configuration/npm_global_module_list
   module_list=$(perl -ne 'print if /^\s*[^#\s]/' "$npmgl" | tr '\n' ' ')
   npm link $module_list >/dev/null 2>&1
-  mv node_modules $OPENSHIFT_DEPENDENCIES_DIR/node_modules
-  ln -s ${OPENSHIFT_DEPENDENCIES_DIR}node_modules node_modules
-  ln -s ${OPENSHIFT_DEPENDENCIES_DIR}node_modules ${OPENSHIFT_HOMEDIR}.node_modules
 popd > /dev/null
 
 # npm keeps per-user config in ~/.npmrc and cache in ~/.npm/  and
 # node-gyp (add-on build tool) uses ~/.node-gyp
 # Create files/directories, change ownership and SELinux file security context.
 touch "$OPENSHIFT_HOMEDIR"/.npmrc
-mkdir "$OPENSHIFT_HOMEDIR"/.npm
 mkdir "$OPENSHIFT_HOMEDIR"/.node-gyp
-chown `id -u $OPENSHIFT_GEAR_UUID` -R "$OPENSHIFT_HOMEDIR"/.npm "$OPENSHIFT_HOMEDIR"/.npmrc  \
-                            "$OPENSHIFT_HOMEDIR"/.node-gyp
+chown `id -u $OPENSHIFT_GEAR_UUID` -R "$OPENSHIFT_HOMEDIR"/.npmrc "$OPENSHIFT_HOMEDIR"/.node-gyp
 nodejs_context "npm config set tmp $OPENSHIFT_TMP_DIR"
 
 echo "$version" > $OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_VERSION

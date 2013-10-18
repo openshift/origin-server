@@ -52,7 +52,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
   end
 
   def create_deployment_dir(deployment_datetime)
-    %w(repo dependencies).each {|d| FileUtils.mkdir_p File.join(@test_dir, 'app-deployments', deployment_datetime, d)}
+    %w(repo dependencies build-dependencies).each {|d| FileUtils.mkdir_p File.join(@test_dir, 'app-deployments', deployment_datetime, d)}
   end
 
   def time_to_s(time)
@@ -241,8 +241,27 @@ class DeploymentsTest < OpenShift::NodeTestCase
     assert_equal deployment_datetime_s, @container.get_deployment_datetime_for_deployment_id(deployment_id)
   end
 
+  def test_update_repo_symlink
+    deployment_datetime = 'now'
+    @container.expects(:update_symlink).with(deployment_datetime, 'repo')
+    @container.update_repo_symlink(deployment_datetime)
+  end
+
+  def test_update_dependencies_symlink
+    deployment_datetime = 'now'
+    @container.expects(:update_symlink).with(deployment_datetime, 'dependencies')
+    @container.update_dependencies_symlink(deployment_datetime)
+  end
+
+  def test_update_build_dependencies_symlink
+    deployment_datetime = 'now'
+    @container.expects(:update_symlink).with(deployment_datetime, 'build-dependencies')
+    @container.update_build_dependencies_symlink(deployment_datetime)
+  end
+
+
   def test_update_symlinks
-    %w(repo dependencies).each do |dir|
+    %w(repo dependencies build-dependencies).each do |dir|
       # make sure the link doesn't exist at first
       path = File.join(@runtime_dir, dir)
       refute_path_exist path
@@ -254,12 +273,12 @@ class DeploymentsTest < OpenShift::NodeTestCase
         deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
         create_deployment_dir(deployment_datetime_s)
 
-        @container.send("update_#{dir}_symlink".to_sym, deployment_datetime_s)
+        @container.send("update_#{dir.gsub(/-/, '_')}_symlink".to_sym, deployment_datetime_s)
 
         assert_path_exist path
 
         link_value = File.readlink(path)
-        assert_equal "../../app-deployments/#{deployment_datetime_s}/#{dir}", link_value
+        assert_equal "#{@container.container_dir}app-deployments/#{deployment_datetime_s}/#{dir}", link_value
 
         stat = File.lstat(path)
         assert_equal @user_uid, stat.uid.to_s

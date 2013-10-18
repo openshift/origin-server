@@ -79,7 +79,7 @@ module OpenShift
           }
 
           # create initial deployment directory
-          create_deployment_dir
+          deployment_datetime = create_deployment_dir
 
           add_env_var("HISTFILE", PathUtils.join(data_dir, ".bash_history"))
           profile = PathUtils.join(data_dir, ".bash_profile")
@@ -108,8 +108,6 @@ module OpenShift
           add_env_var("BUILD_DEPENDENCIES_DIR", PathUtils.join(gearappdir, "runtime", "build-dependencies") + "/", true)
 
           add_env_var("REPO_DIR", PathUtils.join(gearappdir, "runtime", "repo") + "/", true) do |v|
-            # don't create the actual dir, since it's now a symlink
-            #FileUtils.mkdir_p(v, :verbose => @debug)
             FileUtils.cd gearappdir do |d|
               FileUtils.ln_s("runtime/repo", "repo", :verbose => @debug)
               FileUtils.ln_s("runtime/dependencies", "dependencies", :verbose => @debug)
@@ -132,6 +130,9 @@ module OpenShift
             FileUtils.chmod_R(0750, e, :verbose => @debug)
             set_rw_permission_R(e)
           }
+
+          update_build_dependencies_symlink(deployment_datetime)
+          update_dependencies_symlink(deployment_datetime)
 
           # Change symlink ownership
           PathUtils.oo_lchown(uid, gid, "#{gearappdir}/repo", "#{gearappdir}/dependencies", "#{gearappdir}/build-dependencies")

@@ -273,6 +273,8 @@ module OpenShift
             unlock_gear(cartridge) do |c|
               expected_entries = Dir.glob(PathUtils.join(@container.container_dir, '*'))
 
+              create_dependency_directories(cartridge)
+
               output << cartridge_action(cartridge, 'setup', software_version, true)
               output << process_erb_templates(c)
               output << cartridge_action(cartridge, 'install', software_version)
@@ -531,6 +533,99 @@ module OpenShift
 
         logger.info("Created cartridge directory #{@container.uuid}/#{cartridge.directory}")
         nil
+      end
+
+      # Creates cartridge dependency directories listed in managed_files.yml.
+      #
+      # The directories are created  in ~/app-deployments/#{deployment_datetime}/dependencies.
+      #
+      # This method also creates symlinks from the cartridge directory to the appropriate
+      # symlink in ~/app-root/runtime/dependencies. For example:
+      #
+      # ~/php/phplib -> ~/app-root/runtime/dependencies/php/phplib
+      def create_dependency_directories(cartridge)
+        cartridge_directory = PathUtils.join(@container.container_dir, cartridge.name)
+
+        %w(build-dependencies dependencies).each do |dependencies_dir_name|
+          if dependencies_dir_name == 'build-dependencies'
+            dirs = @container.build_dependency_dirs(cartridge)
+          else
+            dirs = @container.dependency_dirs(cartridge)
+          end
+
+          dirs.each do |entry|
+            if entry.is_a?(String)
+              # e.g. phplib
+              link = target = entry
+            else
+              # e.g. jbossas/deployments
+              link = entry.keys[0]
+
+              # e.g. jbossas/standalone/deployments
+              target = entry.values[0]
+            end
+
+            # create the target dir inside the deps dir
+            dependencies_dir = PathUtils.join(@container.container_dir, 'app-deployments', @container.latest_deployment_datetime, dependencies_dir_name)
+
+            FileUtils.mkdir_p(PathUtils.join(dependencies_dir, target))
+
+            full_link = PathUtils.join(@container.container_dir, link)
+
+            # if the link is something like foo/bar/baz or jbossas/standalone/deployments,
+            # need to mkdir -p everything up to the link (foo/bar or jbossas/standalone)
+            #
+            # also need to chown -R the first directory in the path that is new, e.g.
+            # if jbossas exists but standalone is new, chown -R standalone
+            if link.count('/') > 0
+              parts = link.split('/')
+
+              # start the path at the home dir
+              path = @container.container_dir
+
+              parts.each do |part|
+                # check each segment of the link
+                path = PathUtils.join(path, part)
+
+                # if the path exists, skip to the next one
+                next if File.exist?(path)
+
+                # if the path doesn't exist, exit the loop
+                #
+                # path is now either the first dir in the link's path that doesn't exist
+                # or it's the link itself
+                break
+              end
+
+              # now that we've figured out the portion of the link path that doesn't exist
+              # go ahead and create all the parent dirs for the link
+              FileUtils.mkdir_p(PathUtils.join(@container.container_dir, parts[0..-2]))
+
+              # if the path != the full link, we need to change ownership for the new
+              # dir and below
+              if path != full_link
+                PathUtils.oo_chown_R(@container.uid, @container.gid, path)
+              end
+            end
+
+            full_target = PathUtils.join(@container.container_dir, 'app-root', 'runtime', dependencies_dir_name, target)
+
+            # the link only needs to be created when the cartridge is installed,
+            # which means it's running via mcollective as root
+            #
+            # once the link exists, it should never need to change and does not
+            # need to be recreated during a clean build
+            if !File.exist?(full_link)
+              FileUtils.ln_s(full_target, full_link)
+
+              # make sure the symlink is owned by the gear user
+              PathUtils.oo_lchown(@container.uid, @container.gid, full_link)
+            end
+
+            # in case anything was created below the dependencies dir, correct its ownership
+            PathUtils.oo_chown_R(@container.uid, @container.gid, dependencies_dir)
+          end
+        end
       end
 
       def secure_cartridge(short_name, uid, gid=uid, cartridge_home)
