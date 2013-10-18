@@ -1,16 +1,28 @@
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 alias rsync="rsync --delete-after -azO -e '$GIT_SSH'"
 
 upstream_ssh="<%= ENV['OPENSHIFT_GEAR_UUID'] %>@<%= ENV['OPENSHIFT_APP_NAME'] %>-${OPENSHIFT_NAMESPACE}.<%= ENV['OPENSHIFT_CLOUD_DOMAIN'] %>"
 
-# Sync any libraries
-# don't fail if these rsyncs fail
-set +e
-rsync $upstream_ssh:'$OPENSHIFT_BUILD_DEPENDENCIES_DIR' $OPENSHIFT_BUILD_DEPENDENCIES_DIR
-rsync $upstream_ssh:'${OPENSHIFT_DEPENDENCIES_DIR}' ${OPENSHIFT_DEPENDENCIES_DIR}
-set -e
+# Create a new deployment dir
+# NOTE: the deployment dir's repo dir will remain empty and
+# ~/app-root/runtime/repo will be used instead
+local_deployment_dir=`gear create-deployment-dir`
+
+# Set up symlinks
+ln -nsf $OPENSHIFT_HOMEDIR/app-deployments/$local_deployment_dir/build-dependencies $OPENSHIFT_HOMEDIR/app-root/runtime/build-dependencies
+ln -nsf $OPENSHIFT_HOMEDIR/app-deployments/$local_deployment_dir/dependencies $OPENSHIFT_HOMEDIR/app-root/runtime/dependencies
+
+if ! marker_present "force_clean_build"; then
+  # don't fail if these rsyncs fail
+  set +e
+  rsync $upstream_ssh:'$OPENSHIFT_BUILD_DEPENDENCIES_DIR' $OPENSHIFT_BUILD_DEPENDENCIES_DIR
+  rsync $upstream_ssh:'$OPENSHIFT_DEPENDENCIES_DIR' $OPENSHIFT_DEPENDENCIES_DIR
+  set -e
+fi
 
 # Build/update libs and run user pre_build and build
-gear build
+gear build --git-ref $GIT_BRANCH
 
 # Run tests
 # python ${OPENSHIFT_REPO_DIR}setup.py test
@@ -23,6 +35,7 @@ $GIT_SSH $upstream_ssh "gear stop --conditional --exclude-web-proxy --git-ref $G
 deployment_dir=`$GIT_SSH $upstream_ssh 'gear create-deployment-dir'`
 
 # Push content back to application
+rsync $OPENSHIFT_HOMEDIR/app-deployments/$local_deployment_dir/metadata.json $upstream_ssh:app-deployments/$deployment_dir/metadata.json
 rsync $WORKSPACE/ $upstream_ssh:app-deployments/$deployment_dir/repo/
 rsync $OPENSHIFT_BUILD_DEPENDENCIES_DIR $upstream_ssh:app-deployments/$deployment_dir/build-dependencies/
 rsync $OPENSHIFT_DEPENDENCIES_DIR $upstream_ssh:app-deployments/$deployment_dir/dependencies/

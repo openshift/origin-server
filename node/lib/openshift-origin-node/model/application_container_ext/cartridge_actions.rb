@@ -340,15 +340,6 @@ module OpenShift
             git_ref = options[:ref] || 'master'
             application_repository.archive(repo_dir, git_ref)
 
-            git_sha1 = application_repository.get_sha1(git_ref)
-            deployment_metadata = deployment_metadata_for(options[:deployment_datetime])
-            deployment_metadata.git_sha1 = git_sha1
-            deployment_metadata.git_ref = git_ref
-            deployment_metadata.hot_deploy = options[:hot_deploy]
-            deployment_metadata.force_clean_build = options[:force_clean_build]
-            deployment_metadata.save
-
-            options[:out].puts "Building git ref '#{git_ref}', commit #{git_sha1}" if options[:out]
             build(options)
 
             prepare(options)
@@ -427,7 +418,22 @@ module OpenShift
             update_build_dependencies_symlink(options[:deployment_datetime])
           end
 
+          application_repository = options[:git_repo] || ApplicationRepository.new(self)
+
+          git_ref = options[:ref]
+          deployment_datetime = options[:deployment_datetime] || latest_deployment_datetime
+          git_sha1 = application_repository.get_sha1(git_ref)
+          deployment_metadata = deployment_metadata_for(deployment_datetime)
+          deployment_metadata.git_sha1 = git_sha1
+          deployment_metadata.git_ref = git_ref
+          deployment_metadata.hot_deploy = options[:hot_deploy]
+          deployment_metadata.force_clean_build = options[:force_clean_build]
+          deployment_metadata.save
+
           buffer = ''
+          message = "Building git ref '#{git_ref}', commit #{git_sha1}"
+          options[:out].puts message if options[:out]
+          buffer << message
 
           env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
           deployments_to_keep = deployments_to_keep(env)

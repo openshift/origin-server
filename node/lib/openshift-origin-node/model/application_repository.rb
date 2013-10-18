@@ -38,9 +38,18 @@ module OpenShift
       # Creates a new application Git repository from a template
       #
       # +container+ is of type +ApplicationContainer+
-      def initialize(container)
+      def initialize(container, path = nil)
         @container = container
-        @path = PathUtils.join(@container.container_dir, 'git', "#{@container.application_name}.git")
+        @path = path || PathUtils.join(@container.container_dir, 'git', "#{@container.application_name}.git")
+      end
+
+      ##
+      # Returns +true+ if the given +filename+ exists in the tree for the git ref +ref+
+      # of the repository, otherwise +false+.
+      def file_exists?(filename, ref)
+        Dir.chdir(@path) do
+          return (not `git ls-tree #{ref} -- #{filename}`.chomp.strip.empty?)
+        end
       end
 
       def empty?

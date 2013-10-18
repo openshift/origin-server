@@ -84,16 +84,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:create_deployment_dir).returns(deployment_datetime)
 
     repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
-    git_sha1 = 'abcd1234'
-    repository.expects(:get_sha1).with('master').returns(git_sha1)
-
-    metadata = mock()
-    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
-    metadata.expects(:git_sha1=).with(git_sha1)
-    metadata.expects(:git_ref=).with('master')
-    metadata.expects(:hot_deploy=).with(nil)
-    metadata.expects(:force_clean_build=).with(nil)
-    metadata.expects(:save)
 
     options = {
       out: $stdout,
@@ -140,16 +130,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:create_deployment_dir).returns(deployment_datetime)
 
     repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
-    git_sha1 = 'abcd1234'
-    repository.expects(:get_sha1).with('master').returns(git_sha1)
-
-    metadata = mock()
-    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
-    metadata.expects(:git_sha1=).with(git_sha1)
-    metadata.expects(:git_ref=).with('master')
-    metadata.expects(:hot_deploy=).with(nil)
-    metadata.expects(:force_clean_build=).with(nil)
-    metadata.expects(:save)
 
     options = {
       out: $stdout,
@@ -196,6 +176,21 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:update_dependencies_symlink).with(deployment_datetime)
     @container.expects(:update_build_dependencies_symlink).with(deployment_datetime)
 
+    repository = mock()
+    OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
+
+    git_ref = 'master'
+    git_sha1 = 'abcd1234'
+    repository.expects(:get_sha1).with('master').returns(git_sha1)
+
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+    metadata.expects(:git_sha1=).with(git_sha1)
+    metadata.expects(:git_ref=).with(git_ref)
+    metadata.expects(:hot_deploy=).with(false)
+    metadata.expects(:force_clean_build=).with(false)
+    metadata.expects(:save)
+
     @container.expects(:deployments_to_keep).with(anything()).returns(2)
 
     primary = mock()
@@ -230,9 +225,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                env_overrides:            env_overrides)
                                            .returns('build')
 
-    output = @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    output = @container.build(out: $stdout,
+                              err: $stderr,
+                              deployment_datetime: deployment_datetime,
+                              ref: git_ref,
+                              hot_deploy: false,
+                              force_clean_build: false)
 
-    assert_equal "update-configuration|pre-build|build", output
+    assert_equal "Building git ref 'master', commit abcd1234update-configuration|pre-build|build", output
   end
 
   def test_build_failure_keep_one_deployment
@@ -241,6 +241,21 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_datetime = "abc"
     @container.expects(:update_dependencies_symlink).with(deployment_datetime)
     @container.expects(:update_build_dependencies_symlink).with(deployment_datetime)
+
+    repository = mock()
+    OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
+
+    git_ref = 'master'
+    git_sha1 = 'abcd1234'
+    repository.expects(:get_sha1).with('master').returns(git_sha1)
+
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+    metadata.expects(:git_sha1=).with(git_sha1)
+    metadata.expects(:git_ref=).with(git_ref)
+    metadata.expects(:hot_deploy=).with(false)
+    metadata.expects(:force_clean_build=).with(false)
+    metadata.expects(:save)
 
     @container.expects(:deployments_to_keep).with(anything()).returns(1)
 
@@ -276,7 +291,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                env_overrides:            env_overrides)
                                            .never()
 
-    assert_raises(OpenShift::Runtime::Utils::ShellExecutionException) { @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime) }
+    assert_raises(OpenShift::Runtime::Utils::ShellExecutionException) { @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, ref: git_ref, hot_deploy: false, force_clean_build: false) }
   end
 
   def test_build_failure_keep_multiple_deployments
@@ -285,6 +300,21 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_datetime = "abc"
     @container.expects(:update_dependencies_symlink).with(deployment_datetime)
     @container.expects(:update_build_dependencies_symlink).with(deployment_datetime)
+
+    repository = mock()
+    OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
+
+    git_ref = 'master'
+    git_sha1 = 'abcd1234'
+    repository.expects(:get_sha1).with('master').returns(git_sha1)
+
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+    metadata.expects(:git_sha1=).with(git_sha1)
+    metadata.expects(:git_ref=).with(git_ref)
+    metadata.expects(:hot_deploy=).with(false)
+    metadata.expects(:force_clean_build=).with(false)
+    metadata.expects(:save)
 
     @container.expects(:deployments_to_keep).with(anything()).returns(2)
 
@@ -320,9 +350,9 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                env_overrides:            env_overrides)
                                            .never()
 
-    @container.expects(:start_gear).with(has_entries(user_initiated: true, hot_deploy: nil, exclude_web_proxy: true, out: $stdout, err: $stderr)).returns("bar")
+    @container.expects(:start_gear).with(has_entries(user_initiated: true, hot_deploy: false, exclude_web_proxy: true, out: $stdout, err: $stderr)).returns("bar")
 
-    assert_raises(OpenShift::Runtime::Utils::ShellExecutionException) { @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime) }
+    assert_raises(OpenShift::Runtime::Utils::ShellExecutionException) { @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, ref: git_ref, hot_deploy: false, force_clean_build: false) }
   end
 
   def test_remote_deploy_success
