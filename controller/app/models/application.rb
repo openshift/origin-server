@@ -63,6 +63,7 @@ class Application
 
   # Numeric representation for unlimited scaling
   MAX_SCALE = -1
+  MAX_SCALE_NUM = 100000
 
   # This is the current regex for validations for new applications
   APP_NAME_REGEX = /\A[A-Za-z0-9]+\z/
@@ -455,6 +456,13 @@ class Application
       override_spec = group_instance.get_group_override
       group_instance.min = override_spec["min_gears"]
       group_instance.max = override_spec["max_gears"]
+      group_instance.min = group_instance.component_instances.map { |ci| ci.min }.max if group_instance.min.nil?
+      group_instance.min = group_instance.sparse_components.map { |ci| ci.min }.max if group_instance.min.nil?
+      if group_instance.max.nil?
+        max = group_instance.component_instances.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min
+        max = group_instance.sparse_components.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min if max.nil?
+        group_instance.max = (max==MAX_SCALE_NUM ? -1 : max)
+      end
       group_instance
     end
   end
