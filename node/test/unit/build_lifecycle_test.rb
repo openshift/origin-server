@@ -276,7 +276,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                env_overrides:            env_overrides)
                                            .never()
 
-    output = @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    assert_raises(OpenShift::Runtime::Utils::ShellExecutionException) { @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime) }
   end
 
   def test_build_failure_keep_multiple_deployments
@@ -322,7 +322,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @container.expects(:start_gear).with(has_entries(user_initiated: true, hot_deploy: nil, exclude_web_proxy: true, out: $stdout, err: $stderr)).returns("bar")
 
-    output = @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    assert_raises(OpenShift::Runtime::Utils::ShellExecutionException) { @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime) }
   end
 
   def test_remote_deploy_success

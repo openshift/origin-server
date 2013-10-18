@@ -468,6 +468,9 @@ module OpenShift
                                    out:                options[:out],
                                    err:                options[:err])
             end
+
+            # need to reraise so the build is seen as a failure
+            raise
           end
 
           buffer
