@@ -65,6 +65,7 @@ class Application
 
   # Numeric representation for unlimited scaling
   MAX_SCALE = -1
+  MAX_SCALE_NUM = 1000000
 
   # Available deployment types
   DEPLOYMENT_TYPES = ['git', 'binary']
@@ -515,6 +516,13 @@ class Application
       override_spec = group_instance.get_group_override
       group_instance.min = override_spec["min_gears"]
       group_instance.max = override_spec["max_gears"]
+      group_instance.min = group_instance.component_instances.map { |ci| ci.min }.max if group_instance.min.nil?
+      group_instance.min = group_instance.sparse_components.map { |ci| ci.min }.max if group_instance.min.nil?
+      if group_instance.max.nil?
+        max = group_instance.component_instances.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min
+        max = group_instance.sparse_components.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min if max.nil?
+        group_instance.max = (max==MAX_SCALE_NUM ? -1 : max)
+      end
       group_instance
     end
   end
@@ -2050,7 +2058,8 @@ class Application
     # Create group instances and gears in preparation for move or add component operations
     create_ginst_changes = changes.select{ |change| change[:from].nil? }
     create_ginst_changes.each do |change|
-      ginst_scale = change[:to_scale][:current] || 1
+      ginst_scale = (change[:to_scale][:current] || change[:to_scale][:min]) || 1
+      ginst_scale = 1 if not self.scalable
       ginst_id    = change[:to]
       gear_size = change[:to_scale][:gear_size] || self.default_gear_size
       additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb] || 0
@@ -2494,10 +2503,10 @@ class Application
     end
     return_go["min_gears"] = [first["min_gears"]||1, second["min_gears"]||1].max if first["min_gears"] or second["min_gears"]
     return_go["additional_filesystem_gb"] = [first["additional_filesystem_gb"]||0, second["additional_filesystem_gb"]||0].max if first["additional_filesystem_gb"] or second["additional_filesystem_gb"]
-    fmax = (first["max_gears"].nil? or first["max_gears"]==-1) ? 10000 : first["max_gears"]
-    smax = (second["max_gears"].nil? or second["max_gears"]==-1) ? 10000 : second["max_gears"]
+    fmax = (first["max_gears"].nil? or first["max_gears"]==-1) ? MAX_SCALE_NUM : first["max_gears"]
+    smax = (second["max_gears"].nil? or second["max_gears"]==-1) ? MAX_SCALE_NUM : second["max_gears"]
     return_go["max_gears"] = [fmax,smax].min if first["max_gears"] or second["max_gears"]
-    return_go["max_gears"] = -1 if return_go["max_gears"]==10000
+    return_go["max_gears"] = -1 if return_go["max_gears"]==MAX_SCALE_NUM
 
     return_go["gear_size"] = (first["gear_size"] || second["gear_size"]) if first["gear_size"] or second["gear_size"]
     if first["gear_size"] and second["gear_size"] and (first["gear_size"] != second["gear_size"])
