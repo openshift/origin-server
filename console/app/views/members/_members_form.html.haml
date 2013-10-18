@@ -7,7 +7,6 @@
     vertical-align: middle;
   }
   .members table td.member {
-    max-width: 50px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -51,19 +50,24 @@
     .members .read-only { display: none; }
 
 - if not editable
-  %table.table.table-condensed
-    %tr
-      - owner = members.find(&:owner)
-      %td.member{:title => owner.name}
-        = owner.name
-      %td Owner
+  .members
+    %table.table.table-condensed
+      %colgroup
+        %col{:width => "50%"}
+        %col{:width => "50%"}
 
-    - members.reject(&:owner).sort.each do |member|
       %tr
-        %td.nowrap.member{:title => member.name}
-          = member.name
-        %td
-          = Role.description_for(member.role)
+        - owner = members.find(&:owner)
+        %td.nowrap.member{:title => owner.name}
+          = owner.name
+        %td Owner
+
+      - members.reject(&:owner).sort.each do |member|
+        %tr
+          %td.nowrap.member{:title => member.name}
+            = member.name
+          %td
+            = Role.description_for(member.role)
 
 - else
   - if members.count <= 1 && !editing

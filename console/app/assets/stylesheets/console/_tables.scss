@@ -38,7 +38,7 @@ table {
     border-top: 1px solid $consoleTableBorderColor;
     border-right: 1px solid inherit;
   }
-  th {
+  thead th, thead td {
     font-weight: 600;
     border-bottom: 1px solid $consoleTableBorderColor;
   }

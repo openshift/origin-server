@@ -7,6 +7,11 @@
   .restart .popover.bottom {margin-left: -75px;}
   .restart .popover.bottom .arrow {margin-left: 70px;}
   .restart .popover.bottom .arrow:before {border: 7px solid transparent; border-bottom-color: rgba(0,0,0,.2); content:''; height: 0; left: -7px; position: absolute; top: -7px; width: 0; z-index: -1;}
+  table td.member {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
 
 - content_for :top do
   .grid-wrapper.section-header.span12
@@ -199,9 +204,13 @@
         Members from domain
         #{link_to @application.domain_id, domain_path(@application.domain_id)}
       %table.table.table-condensed
+        %colgroup
+          %col{:width => "50%"}
+          %col{:width => "50%"}
+
         - if me = members.find(&:me)
           %tr
-            %td.member{:title => me.name}
+            %td.nowrap.member{:title => me.name}
               = me.name
             %td 
               = me.owner? ? "Owner" : Role.description_for(me.role)    
