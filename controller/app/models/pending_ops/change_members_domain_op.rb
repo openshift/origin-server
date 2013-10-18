@@ -9,7 +9,7 @@ class ChangeMembersDomainOp < PendingDomainOps
       a.change_member_roles(roles_changed || [], [:domain])
       a.remove_members(members_removed || [], [:domain])
       a.add_members((members_added || []).map{ |m| Domain.to_member(m) }, [:domain])
-      if a.changed?
+      if a.has_member_changes?
         a.save!
       end
     end.each do |app|
@@ -18,5 +18,4 @@ class ChangeMembersDomainOp < PendingDomainOps
     end
     set_state(:completed)
   end
-  
 end
