@@ -17,9 +17,10 @@
 require 'fileutils'
 require 'etc'
 require 'pathname'
+require 'openshift-origin-common/utils/etc_utils'
 
 module PathUtils
-  def self.private_module_function(name)   #:nodoc:
+  def self.private_module_function(name) #:nodoc:
     module_function name
     private_class_method name
   end
@@ -79,14 +80,8 @@ module PathUtils
 
   def pu_get_uid(user)
     return nil unless user
-    case user
-      when Integer
-        user < 4294967296 ? user : Etc.getpwnam(user.to_s).uid
-      when /\A\d{1,10}\z/
-        user.to_i
-      else
-        Etc.getpwnam(user).uid
-    end
+
+    EtcUtils.getpwnam(user).uid
   end
 
   private_module_function :pu_get_uid
@@ -94,14 +89,7 @@ module PathUtils
   def pu_get_gid(group)
     return nil unless group
 
-    case group
-      when Integer
-        group < 4294967296 ? group : Etc.getgrnam(group.to_s).gid
-      when /\A\d{1,10}\z/
-        group.to_i
-      else
-        Etc.getgrnam(group).gid
-    end
+    EtcUtils.getgrnam(group).gid
   end
 
   private_module_function :pu_get_gid

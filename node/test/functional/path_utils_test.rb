@@ -31,16 +31,16 @@ class PathUtilsTest < OpenShift::NodeTestCase
   end
 
   def test_oo_chown
-    Etc.stubs(:getpwnam).never
-    Etc.stubs(:getgrnam).never
+    Etc.stubs(:getpwnam).with(kind_of(Integer)).returns(@stat).once
+    Etc.stubs(:getgrnam).with(kind_of(Integer)).returns(@stat).once
     FileUtils.stubs(:chown).with(@uid, @uid, '/mocked/a', {}).returns(nil).once
 
     PathUtils.oo_chown(@uid, @uid, '/mocked/a')
   end
 
   def test_oo_chown_R
-    Etc.stubs(:getpwnam).never
-    Etc.stubs(:getgrnam).never
+    Etc.stubs(:getpwnam).with(kind_of(Integer)).returns(@stat).once
+    Etc.stubs(:getgrnam).with(kind_of(Integer)).returns(@stat).once
     FileUtils.stubs(:chown_R).with(@uid, @uid, '/mocked/a', {}).returns(nil).once
 
     PathUtils.oo_chown_R(@uid, @uid, '/mocked/a')
