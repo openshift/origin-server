@@ -39,6 +39,6 @@
 - content_for :javascripts do
   :javascript
     jQuery('.cartridge_type').click(function() {
-      a = $('a.btn', this)[0];
+      a = $('a.tile-target', this)[0];
       window.location = a.href
     });

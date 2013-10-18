@@ -2,11 +2,7 @@
 = div_for type, :class => 'tile tile-click tile-featured label-tags' do
   .tile-table
     .tile-table-cell
-      - if type.cartridge?
-        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
-      - elsif type.quickstart?
-        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
-
+      = logo_for type
 
     .tile-table-cell
       %h3
