@@ -79,11 +79,7 @@ module OpenShift
 
 
           begin
-            if name.to_i.to_s == name.to_s
-              uid = name.to_i
-            else
-              uid = Etc.getpwnam(name.to_s).uid
-            end
+              uid = EtcUtils.getpwnam(name).uid
           rescue ArgumentError, TypeError, NoMethodError
             raise ArgumentError, "Argument must be a numeric UID or existing username: #{name}"
           end
