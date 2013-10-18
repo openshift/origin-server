@@ -83,7 +83,7 @@ module OpenShift
         def current_deployment_datetime
           repo_link = PathUtils.join(@container_dir, 'app-root', 'runtime', 'repo')
 
-          return nil unless File.exist?(repo_link)
+          return nil unless File.symlink?(repo_link)
 
           # will be something like ../../app-deployments/2013-07-29_12-13-14/repo
           link = File.readlink(repo_link)

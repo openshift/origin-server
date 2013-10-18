@@ -63,15 +63,6 @@ def determine_deployment_ref(input=nil)
   ref
 end
 
-##
-# Returns +true+ if the given +filename+ exists in the tree for the git ref +ref+
-# of the repository, otherwise +false+.
-def file_exists?(filename, ref)
-  Dir.chdir(@repo.path) do
-    return (not `git ls-tree #{ref} -- #{filename}`.chomp.strip.empty?)
-  end
-end
-
 def valid_git_ref?(ref)
   Dir.chdir(@repo.path) do
     system "git show-ref #{ref} >/dev/null 2>&1"
@@ -136,7 +127,7 @@ command :prereceive do |c|
         next unless ref_to_deploy == ref_name
 
         found_deployment_ref = true
-        hot_deploy = file_exists?(HOT_DEPLOY_MARKER, new_rev)
+        hot_deploy = @repo.file_exists?(HOT_DEPLOY_MARKER, new_rev)
 
         break
       end
@@ -184,9 +175,9 @@ command :postreceive do |c|
       if !File.exist?(repo_dir) or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
         result = @container.post_receive(out: $stdout,
                                          err: $stderr,
-                                         hot_deploy: file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy),
+                                         hot_deploy: @repo.file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy),
                                          ref: ref_to_deploy,
-                                         force_clean_build: file_exists?(FORCE_CLEAN_BUILD_MARKER, ref_to_deploy),
+                                         force_clean_build: @repo.file_exists?(FORCE_CLEAN_BUILD_MARKER, ref_to_deploy),
                                          report_deployments: true,
                                          all: true)
 
@@ -226,9 +217,23 @@ command :build do |c|
   c.syntax = "#{name} build"
 
   c.description = "Run the build steps"
+  c.option "--git-ref REF", "Git ref to record in metadata"
   c.action do |args, options|
     do_command(c, options) do
-      @container.build(out: $stdout, err: $stderr)
+      git_ref  = options.git_ref
+      repo_dir = PathUtils.join(ENV['OPENSHIFT_REPO_DIR'], '.git')
+      @repo = ::OpenShift::Runtime::ApplicationRepository.new(@container, repo_dir)
+
+      options = {
+        out: $stdout,
+        err: $stderr,
+        ref: options.git_ref,
+        hot_deploy: @repo.file_exists?(HOT_DEPLOY_MARKER, git_ref),
+        force_clean_build: @repo.file_exists?(FORCE_CLEAN_BUILD_MARKER, git_ref),
+        git_repo: @repo
+      }
+
+      @container.build(options)
     end
   end
 end
@@ -307,7 +312,7 @@ command :'create-deployment-dir' do |c|
   c.syntax = "#{name} create_deployment_dir"
   c.description = "Create a deployment directory and force a clean build. Should only be used by CI builders"
   c.action do |args, options|
-    puts @container.create_deployment_dir
+    puts @container.create_deployment_dir(force_clean_build: true)
   end
 end
 
@@ -321,7 +326,7 @@ command :remotedeploy do |c|
   c.action do |args, options|
     do_command(c, options) do
       ref_to_deploy = determine_deployment_ref()
-      hot_deploy_enabled = file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy)
+      hot_deploy_enabled = @repo.file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy)
 
       result = @container.remote_deploy(out: $stdout,
                                         err: $stderr,
@@ -444,7 +449,7 @@ command :stop do |c|
       if options.cart
         @container.stop(options.cart, out: $stdout, err: $stderr)
       else
-        if options.conditional and options.git_ref and file_exists?(HOT_DEPLOY_MARKER, options.git_ref)
+        if options.conditional and options.git_ref and @repo.file_exists?(HOT_DEPLOY_MARKER, options.git_ref)
           puts "Skipping gear stop due to presence of hot deploy marker"
         else
           puts "Stopping gear..."
