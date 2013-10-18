@@ -335,4 +335,9 @@ module Console::LayoutHelper
       :data_icon => item.cartridge? || item.class.name == "CartridgeType" ? "\ue021" : "\ue029"
     }
   end
+
+  def logo_for(item)
+    opts = logo_data_icon_for item
+    content_tag :span, "", :class => opts[:class], "data-icon" => opts[:data_icon].html_safe, :title => opts[:title], "aria-hidden" => "true"
+  end
 end
