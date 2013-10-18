@@ -120,7 +120,7 @@ def clean_app(a)
     a.save
     a.pending_op_groups.each { |op|
       if op.created_at.nil? or op.created_at < $t 
-        next if op.op_type.nil?
+        next if op._type.nil?
         puts
         puts "Failed to clear op for app (#{a.uuid}) - #{op.inspect} "
       end
