@@ -69,9 +69,35 @@
     }
 }
 
-.applications, .domains {
-  .section-body .row {
-    .span4 {
+.section-body {
+  #app-list,
+  #app-cartridges {
+    > h2 {
+      font-size: $h4FontSize;
+      line-height: $h4LineHeight;
+      margin-bottom: $h4MarginBottom;
+      .flow-block.right {
+        color: #666;
+        font-weight: 300;
+        font-size: $smallFontSize;
+        padding-right: 5px;
+        .gear-icon {
+          font-size: 12px;
+          color: #aaa;
+        }
+      }
+    }
+    .span4 > h3, .span5 > h3 {
+      font-size: $h5FontSize;
+      line-height: $h5LineHeight;
+      margin-bottom: $h5MarginBottom;
+    }
+    .tile h3 {
+      font-size: $h2FontSize;
+      line-height: $h2LineHeight;
+      margin-bottom: -5px;
+    }
+    + .sidebar {
       font-size: $tinyFontSize;
       > h2 {
         font-size: $h6FontSize;
@@ -82,39 +108,11 @@
       label, p {
         font-size: $tinyFontSize;
       }
-    }
-    .span8 {
-      > h2 {
-        font-size: $h4FontSize;
-        line-height: $h4LineHeight;
-        margin-bottom: $h4MarginBottom;
-        .flow-block.right {
-          color: #666;
-          font-weight: 300;
-          font-size: $smallFontSize;
-          padding-right: 5px;
-          .gear-icon {
-            font-size: 12px;
-            color: #aaa;
-          }
-        }
-      }
-      .span4 > h3, .span5 > h3 {
-        font-size: $h5FontSize;
-        line-height: $h5LineHeight;
-        margin-bottom: $h5MarginBottom;
-      }
-      .tile h3 {
-        font-size: $h2FontSize;
-        line-height: $h2LineHeight;
-        margin-bottom: -5px;
+      span[data-icon] {
+        color: #bbb; 
       }
     }
   }
-}
-
-.application-suggestions {
-  font-size: $tinyFontSize;
 }
 
 #app-cartridges {

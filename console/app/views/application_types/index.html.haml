@@ -40,12 +40,12 @@
         %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029"}
         QuickStart
       %dd 
-        An quick way to try out a new technology with code and libraries preconfigured. You are 
+        A quick way to try out a new technology with code and libraries preconfigured. You are 
         responsible for updating core libraries for security updates.
 
 
 - if @featured_types.present?
-  %section
+  %section.tiles-featured
     %h3.divide Featured
     .row-fluid
       - @featured_types.each do |type|

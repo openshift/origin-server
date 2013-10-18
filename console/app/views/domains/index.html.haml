@@ -7,11 +7,11 @@
         %span.font-icon{:'data-icon' => "\uee45", 'aria-hidden'=>"true"}
         Domains
 
-%section#app-list
+%section
   %section
 
   .row
-    .span8
+    .span8#app-list
       - groups = @domains.sort_by{ |d| [d.owner? ? 0 : 1, d.name] }.group_by{ |d| d.owner? }
       - groups.each_pair do |owned, domains|
         %h2.owner
