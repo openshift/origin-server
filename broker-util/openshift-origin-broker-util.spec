@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.15.8
+Version: 1.15.9
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,9 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Sat Oct 19 2013 Adam Miller <admiller@redhat.com> 1.15.9-1
+- Fixing admin clear pending ops script (abhgupta@redhat.com)
+
 * Mon Oct 14 2013 Adam Miller <admiller@redhat.com> 1.15.8-1
 - Fix for bug 1018450 (abhgupta@redhat.com)
 
