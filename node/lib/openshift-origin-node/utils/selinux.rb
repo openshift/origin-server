@@ -77,13 +77,8 @@ module OpenShift
           uid_offset= (config.get("SELINUX_MCS_UID_OFFSET") || @@DEF_MCS_UID_OFFSET).to_i
           mls_num   = (config.get("SELINUX_MLS_NUM")        || @@DEF_MLS_NUM).to_i
 
-
           begin
-            if name.to_i.to_s == name.to_s
-              uid = name.to_i
-            else
-              uid = Etc.getpwnam(name.to_s).uid
-            end
+              uid = EtcUtils.uid(name)
           rescue ArgumentError, TypeError, NoMethodError
             raise ArgumentError, "Argument must be a numeric UID or existing username: #{name}"
           end
