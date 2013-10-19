@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version:       1.15.4
+Version:       1.15.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Sat Oct 19 2013 Adam Miller <admiller@redhat.com> 1.15.5-1
+- Bug 1020966 - the pre protocols behaviour was to assume http if there was a
+  mapping defined.  Do that by default. (rmillner@redhat.com)
+
 * Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
 - Merge pull request #2950 from adelton/oo-diagnostics-test_auth_conf_files
   (dmcphers+openshiftbot@redhat.com)
