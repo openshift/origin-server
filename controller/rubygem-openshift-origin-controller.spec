@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.14
+Version: 1.15.15
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Sat Oct 19 2013 Adam Miller <admiller@redhat.com> 1.15.15-1
+- fix bz 1020517 - rescue missing min/max (rchopra@redhat.com)
+
 * Fri Oct 18 2013 Adam Miller <admiller@redhat.com> 1.15.14-1
 - Bug 1019980 - SSH keys not distributed on membership changes
   (ccoleman@redhat.com)
