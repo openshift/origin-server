@@ -1,5 +1,6 @@
 require 'mcollective'
 require 'open-uri'
+require 'timeout'
 
 include MCollective::RPC
 
@@ -3201,12 +3202,22 @@ module OpenShift
 
         Rails.logger.debug("DEBUG: rpc_get_fact: fact=#{fact}")
         rpc_exec('rpcutil', servers, force_rediscovery, options) do |client|
-          client.get_fact(:fact => fact) do |response|
-            next unless Integer(response[:body][:statuscode]) == 0
-
-            # Yield the sender and the value to the block
-            result = rvalue(response)
-            yield response[:senderid], result if result
+          begin
+            # in some cases, the get_fact mcollective call gets stuck and never returns
+            # to handle these siturations, we are using the ruby Timeout moddule as a safety net
+            # and setting the timer duration as a reasonable multiple of the mcollective timeout value 
+            failsafe_timeout = Rails.configuration.msg_broker[:fact_timeout] * 3
+            Timeout::timeout(failsafe_timeout) do
+              client.get_fact(:fact => fact) do |response|
+                next unless Integer(response[:body][:statuscode]) == 0
+    
+                # Yield the sender and the value to the block
+                result = rvalue(response)
+                yield response[:senderid], result if result
+              end
+            end
+          rescue Timeout::Error
+            raise OpenShift::NodeUnavailableException.new("Timed out while trying to fetch information from the nodes")
           end
         end
 
