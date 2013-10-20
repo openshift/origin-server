@@ -12,9 +12,10 @@ source $OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/lib/python-context
 # Switch to SCL environment
 case "$new_cart_version" in
     '0.0.6')
-        mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/virtenv
-        mv $OPENSHIFT_PYTHON_DIR/virtenv/* $OPENSHIFT_DEPENDENCIES_DIR/virtenv/
-        ln -s $OPENSHIFT_DEPENDENCIES_DIR/virtenv $OPENSHIFT_PYTHON_DIR/virtenv
+        mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/python/virtenv
+        mv $OPENSHIFT_PYTHON_DIR/virtenv/* $OPENSHIFT_DEPENDENCIES_DIR/python/virtenv/
+        rm -rf $OPENSHIFT_PYTHON_DIR/virtenv
+        ln -s $OPENSHIFT_DEPENDENCIES_DIR/virtenv $OPENSHIFT_PYTHON_DIR/python/virtenv
         ;;
 esac
 
