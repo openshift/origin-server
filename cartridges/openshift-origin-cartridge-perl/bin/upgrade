@@ -5,6 +5,8 @@ curr=$2
 next=$3
 
 if [[ $next =~ 0.0.6 ]]; then
-  mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/.cpanm
-  mv $OPENSHIFT_PHP_DIR/.cpanm/* $OPENSHIFT_DEPENDENCIES_DIR/.cpanm
+  mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/perl/.cpanm
+  mv $OPENSHIFT_PERL_DIR/.cpanm/* $OPENSHIFT_DEPENDENCIES_DIR/perl/.cpanm
+  rm -rf $OPENSHIFT_PERL_DIR/.cpanm
+  ln -s $OPENSHIFT_DEPENDENCIES_DIR/perl/.cpanm $OPENSHIFT_PERL_DIR/.cpanm
 fi
