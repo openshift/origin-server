@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,152 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- fix bz1020169 - fix notify remove ssl cert (rchopra@redhat.com)
+- Merge pull request #3923 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3915 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz 1020517 - rescue missing min/max; new group instances should respect
+  min_gears limit (rchopra@redhat.com)
+- Fix for bug 1019876 (abhgupta@redhat.com)
+- Fix broker extended tests (rpenta@redhat.com)
+- Merge pull request #3907 from smarterclayton/bug_1019980_keys_not_distributed
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3883 from pravisankar/dev/ravi/card22
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1019980 - SSH keys not distributed on membership changes
+  (ccoleman@redhat.com)
+- <capacity suggestions> bug 1004686 (lmeyer@redhat.com)
+- <suggestions> record type as attr too (lmeyer@redhat.com)
+- Allow gear_size parameter during application creation and cartridge addition.
+  (rpenta@redhat.com)
+- Merge pull request #3892 from mrunalp/bugs/re_test_fix
+  (dmcphers+openshiftbot@redhat.com)
+- Fix app cont proxy test. (mrunalp@gmail.com)
+- Temporarily disabling test due to upstream bug. (mrunalp@gmail.com)
+- Merge pull request #3868 from rajatchopra/multiplier
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3810 from rajatchopra/routing
+  (dmcphers+openshiftbot@redhat.com)
+- set multiplier of a sparse cart through admin command (rchopra@redhat.com)
+- typo fix (rchopra@redhat.com)
+- Fix deployment test (dmcphers@redhat.com)
+- Merge pull request #3809 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3847 from pmorie/bugs/1017719
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3850 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3845 from pravisankar/dev/ravi/fix-update-cluster
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3811 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 995460 (dmcphers@redhat.com)
+- fixed routing (lnader@redhat.com)
+- Required deployment_id for activate (lnader@redhat.com)
+- disable artifact_url (lnader@redhat.com)
+- corrected plural links and general code clean-up (lnader@redhat.com)
+- Merge pull request #3840 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1017719: run all stages of gear upgrade extension (pmorie@gmail.com)
+- Merge pull request #3826 from pravisankar/dev/ravi/bug1016171
+  (dmcphers+openshiftbot@redhat.com)
+- Fix update_cluster op to handle 'removed' flag in framework/web-proxy gears.
+  (rpenta@redhat.com)
+- Merge pull request #3827 from rajatchopra/fix_bz997008
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1016171 - Fix domain allowed_gear_sizes  in oo-admin-ctl-user
+  (rpenta@redhat.com)
+- Fix typo (dmcphers@redhat.com)
+- ensure you return the last activated deployment (dmcphers@redhat.com)
+- Merge pull request #3832 from smarterclayton/bug_1013293_fix_doc_links
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3829 from mrunalp/bugs/test_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- do not run domain jobs if not needed (rchopra@redhat.com)
+- Mark test not valid for F19. (mrunalp@gmail.com)
+- Merge pull request #3821 from smarterclayton/bug_1017000_fix_more_routes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3773 from
+  smarterclayton/to_stage_error_on_changing_members
+  (dmcphers+openshiftbot@redhat.com)
+- Expose both versions of routes (gear-groups and gear_groups)
+  (ccoleman@redhat.com)
+- Bug 1013293 - Docs for link changes (ccoleman@redhat.com)
+- Allow API versions >= 1.2 to create multiple domains (ccoleman@redhat.com)
+- Bug 1017000 - Expose correct form of gear-groups (ccoleman@redhat.com)
+- routing endpoint migration for gears (rchopra@redhat.com)
+- add alias and ssl cert in routing notifiers (rchopra@redhat.com)
+- Merge pull request #3797 from smarterclayton/fix_remaining_singular_routes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3792 from liggitt/new_relic_bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Update REST API objects to point to singular routes (ccoleman@redhat.com)
+- Fix typos and NPE discovered in newrelic logs (jliggitt@redhat.com)
+- Fix bug 1016432 - restrict domain rename to owner (jliggitt@redhat.com)
+- Adding deploy migration for broker auth (dmcphers@redhat.com)
+- Revert "This test has started to fail.  Disable to allow other builds to go
+  through until it can be diagnosed." (dmcphers@redhat.com)
+- This test has started to fail.  Disable to allow other builds to go through
+  until it can be diagnosed. (rmillner@redhat.com)
+- Job error when changing members of app (ccoleman@redhat.com)
+- Merge pull request #3747 from rmillner/frontend-sni-proxy
+  (dmcphers+openshiftbot@redhat.com)
+- Create HAProxy SNI proxy plugin package and use endpoint protocols
+  (rmillner@redhat.com)
+- Deploy WIP - applications under domains resource must also support update
+  (contact@fabianofranz.com)
+- Add sha1 (dmcphers@redhat.com)
+- Handle reporting deployment for initial app create (dmcphers@redhat.com)
+- store and return times as times (dmcphers@redhat.com)
+- Reenabled routes for deployments under application (contact@fabianofranz.com)
+- Reenabled route for UPDATE application (contact@fabianofranz.com)
+- fixed LIST_DEPLOYMENTS (lnader@redhat.com)
+- Fix merge (dmcphers@redhat.com)
+- Making links consistent (dmcphers@redhat.com)
+- Fixing tests and resolving remaining communication between broker and node
+  for deployments (dmcphers@redhat.com)
+- Stop using a deployment as a creation mechanism for a deployment
+  (dmcphers@redhat.com)
+- add sha to deployment (dmcphers@redhat.com)
+- Allow for floats with time storage (dmcphers@redhat.com)
+- fixed typo (lnader@redhat.com)
+- bug fixes (lnader@redhat.com)
+- activation validations (dmcphers@redhat.com)
+- Adding activations to deployments (dmcphers@redhat.com)
+- rollback -> activate (dmcphers@redhat.com)
+- Rolling restart from the broker (dmcphers@redhat.com)
+- Update move gear for build-deploy changes (andy.goldstein@gmail.com)
+- Add broker auth as permanent fixture of every app (dmcphers@redhat.com)
+- update_cluster fixes (andy.goldstein@gmail.com)
+- Don't send empty config on app create (dmcphers@redhat.com)
+- add update deployments scope (dmcphers@redhat.com)
+- Fixing tests (dmcphers@redhat.com)
+- Adjusting to pending op changes (dmcphers@redhat.com)
+- Fix bson hash error (dmcphers@redhat.com)
+- Rollback to last deployment and tests (lnader@redhat.com)
+- Fixing tests and squashing bugs (dmcphers@redhat.com)
+- Fixing tests (dmcphers@redhat.com)
+- Persist app config changes in mongo (dmcphers@redhat.com)
+- Pass back deployments in new param from deploy called through the rest api
+  (dmcphers@redhat.com)
+- Add oo-gear-registry and change haproxy to use platform gear registry
+  (pmorie@gmail.com)
+- Deploy WIP (dmcphers@redhat.com)
+- Added deployment links to older rest models (lnader@redhat.com)
+- Deploy WIP (dmcphers@redhat.com)
+- Add structure to gear registry (andy.goldstein@gmail.com)
+- Deploy WIP (dmcphers@redhat.com)
+- collapse the git refs into 1 (dmcphers@redhat.com)
+- Deploy WIP (dmcphers@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Added tests and links for application config update (lnader@redhat.com)
+- Adding application config WIP (dmcphers@redhat.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Broker Build and Deployment (lnader@redhat.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 1.15.10-1
 - Merge pull request #3768 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
