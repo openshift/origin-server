@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -125,6 +125,15 @@ fi
 %doc README
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Cart origin_runtime_179 - Bind node-web-proxy to one IP address
+  (jhonce@redhat.com)
+- Merge pull request #3812 from danbev/node-proxy-chunked-issue
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1016986 - Wait for node-web-proxy startup (jhonce@redhat.com)
+- Adding a listener for response close events. (daniel.bevenius@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
 - Merge pull request #3697 from kraman/f19_fixes
   (dmcphers+openshiftbot@redhat.com)
