@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -149,6 +149,22 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Standardize gear command names (dmcphers@redhat.com)
+- Merge pull request #3804 from pmorie/dev/binary-deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Add error handing to gear binary_deploy (pmorie@gmail.com)
+- Fix filtering in oo-gear-registry (ironcladlou@gmail.com)
+- Merge pull request #3783 from rmillner/strange_unicode_errors
+  (dmcphers+openshiftbot@redhat.com)
+- Characters were observed in prod causing unicode evaluation errors.
+  (rmillner@redhat.com)
+- Add gear binary-deploy (pmorie@gmail.com)
+- WIP error handling for proxy updates (ironcladlou@gmail.com)
+- Add oo-gear-registry and change haproxy to use platform gear registry
+  (pmorie@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 1.15.5-1
 - Merge pull request #3758 from mfojtik/bugzilla/998337
   (dmcphers+openshiftbot@redhat.com)
