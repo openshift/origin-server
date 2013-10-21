@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,29 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Merge pull request #3934 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing admin clear pending ops script (abhgupta@redhat.com)
+- add scalable field to the export (rchopra@redhat.com)
+- <oo-admin-chk> test for node hostname changes (lmeyer@redhat.com)
+- Merge pull request #3878 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1018450 (abhgupta@redhat.com)
+- set multiplier of a sparse cart through admin command (rchopra@redhat.com)
+- Merge pull request #3826 from pravisankar/dev/ravi/bug1016171
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1016171 - Fix domain allowed_gear_sizes  in oo-admin-ctl-user
+  (rpenta@redhat.com)
+- <oo-accept-systems> prefer oo-admin-broker-cache command (lmeyer@redhat.com)
+- <oo-accept-broker> smarter checks for ruby (lmeyer@redhat.com)
+- <oo-admin-move> follow options change on man page (lmeyer@redhat.com)
+- Adding deploy migration for broker auth (dmcphers@redhat.com)
+- Merge pull request #3767 from Miciah/bug-1015255-oo-accept-broker-and-oo-
+  register-dns-unauthenticated-DNS-updates (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+- oo-accept-broker, oo-register-dns: unauth'd DNS (miciah.masters@gmail.com)
+
 * Wed Oct 02 2013 Adam Miller <admiller@redhat.com> 1.15.6-1
 - Merge pull request #3756 from pravisankar/dev/ravi/rename-node-removed
   (dmcphers+openshiftbot@redhat.com)
