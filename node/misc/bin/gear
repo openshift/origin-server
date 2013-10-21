@@ -65,7 +65,7 @@ end
 
 def valid_git_ref?(ref)
   Dir.chdir(@repo.path) do
-    system "git show-ref #{ref} >/dev/null 2>&1"
+    system "git rev-parse --quiet --verify #{ref} >/dev/null 2>&1"
   end
 end
 
