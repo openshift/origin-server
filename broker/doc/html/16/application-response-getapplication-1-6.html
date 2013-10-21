@@ -9,7 +9,7 @@
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-10-09T20:03:04Z",
+    "creation_time": "2013-10-17T22:46:55Z",
     "deployment_branch": "master",
     "deployment_type": "git",
     "domain_id": "mydomain",
@@ -20,14 +20,14 @@
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://5255b678b78bba421d000008@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://526068dfbd524a30ee000021@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "5255b678b78bba421d000008",
+    "id": "526068dfbd524a30ee000021",
     "initial_git_url": null,
     "keep_deployments": 1,
     "links": {
       "GET": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021",
         "method": "GET",
         "optional_params": [
 
@@ -38,7 +38,7 @@
         ]
       },
       "GET_DESCRIPTOR": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/descriptor",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/descriptor",
         "method": "GET",
         "optional_params": [
 
@@ -49,7 +49,7 @@
         ]
       },
       "GET_GEAR_GROUPS": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/gear_groups",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/gear_groups",
         "method": "GET",
         "optional_params": [
 
@@ -60,7 +60,7 @@
         ]
       },
       "START": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/events",
         "method": "POST",
         "optional_params": [
 
@@ -81,7 +81,7 @@
         ]
       },
       "STOP": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/events",
         "method": "POST",
         "optional_params": [
 
@@ -102,7 +102,7 @@
         ]
       },
       "FORCE_STOP": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/events",
         "method": "POST",
         "optional_params": [
 
@@ -123,7 +123,7 @@
         ]
       },
       "RESTART": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/events",
         "method": "POST",
         "optional_params": [
 
@@ -144,7 +144,7 @@
         ]
       },
       "SCALE_UP": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/events",
         "method": "POST",
         "optional_params": [
 
@@ -165,7 +165,7 @@
         ]
       },
       "SCALE_DOWN": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/events",
         "method": "POST",
         "optional_params": [
 
@@ -186,7 +186,7 @@
         ]
       },
       "TIDY": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/events",
         "method": "POST",
         "optional_params": [
 
@@ -207,7 +207,7 @@
         ]
       },
       "RELOAD": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/events",
         "method": "POST",
         "optional_params": [
 
@@ -228,7 +228,7 @@
         ]
       },
       "THREAD_DUMP": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/events",
         "method": "POST",
         "optional_params": [
 
@@ -249,7 +249,7 @@
         ]
       },
       "ADD_CARTRIDGE": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridges",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/cartridges",
         "method": "POST",
         "optional_params": [
           {
@@ -290,6 +290,15 @@
             ]
           },
           {
+            "default_value": "small",
+            "description": "Gear size for the cartridge.",
+            "name": "gear_size",
+            "type": "string",
+            "valid_options": [
+              "small"
+            ]
+          },
+          {
             "default_value": null,
             "description": "A URL to a downloadable cartridge.",
             "name": "url",
@@ -311,13 +320,14 @@
         "rel": "Add embedded cartridge",
         "required_params": [
           {
-            "description": "Name of the cartridge, e.g. mongodb-2.2",
+            "description": "Name of the cartridge.",
             "invalid_options": [
 
             ],
             "name": "name",
             "type": "string",
             "valid_options": [
+              "mock-plugin-0.2",
               "mock-plugin-0.1",
               "cron-1.4",
               "phpmyadmin-4",
@@ -336,7 +346,7 @@
         ]
       },
       "LIST_CARTRIDGES": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/cartridges",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/cartridges",
         "method": "GET",
         "optional_params": [
 
@@ -347,7 +357,7 @@
         ]
       },
       "DNS_RESOLVABLE": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/dns_resolvable",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/dns_resolvable",
         "method": "GET",
         "optional_params": [
 
@@ -358,7 +368,7 @@
         ]
       },
       "ADD_ALIAS": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/aliases",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/aliases",
         "method": "POST",
         "optional_params": [
           {
@@ -405,7 +415,7 @@
         ]
       },
       "LIST_ALIASES": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/aliases",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/aliases",
         "method": "GET",
         "optional_params": [
 
@@ -416,7 +426,7 @@
         ]
       },
       "LIST_MEMBERS": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/members",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/members",
         "method": "GET",
         "optional_params": [
 
@@ -427,7 +437,7 @@
         ]
       },
       "SET_UNSET_ENVIRONMENT_VARIABLES": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/environment-variables",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/environment-variables",
         "method": "PATCH",
         "optional_params": [
           {
@@ -464,7 +474,7 @@
         ]
       },
       "ADD_ENVIRONMENT_VARIABLE": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/environment-variables",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/environment-variables",
         "method": "POST",
         "optional_params": [
 
@@ -496,7 +506,7 @@
         ]
       },
       "LIST_ENVIRONMENT_VARIABLES": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/environment-variables",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/environment-variables",
         "method": "GET",
         "optional_params": [
 
@@ -507,7 +517,7 @@
         ]
       },
       "DEPLOY": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/deployments",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/deployments",
         "method": "POST",
         "optional_params": [
           {
@@ -544,7 +554,7 @@
         ]
       },
       "UPDATE_DEPLOYMENTS": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/deployments",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/deployments",
         "method": "POST",
         "optional_params": [
 
@@ -565,7 +575,7 @@
         ]
       },
       "ACTIVATE": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/events",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/events",
         "method": "POST",
         "optional_params": [
 
@@ -597,7 +607,7 @@
         ]
       },
       "LIST_DEPLOYMENTS": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008/deployments",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021/deployments",
         "method": "GET",
         "optional_params": [
 
@@ -608,7 +618,7 @@
         ]
       },
       "UPDATE": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021",
         "method": "PUT",
         "optional_params": [
           {
@@ -656,7 +666,7 @@
         ]
       },
       "DELETE": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5255b678b78bba421d000008",
+        "href": "https://openshift.redhat.com/broker/rest/application/526068dfbd524a30ee000021",
         "method": "DELETE",
         "optional_params": [
 
@@ -676,7 +686,7 @@
             "role": "admin"
           }
         ],
-        "id": "52536a75b78bba4033000001",
+        "id": "526059aebd524afabc000001",
         "login": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -685,7 +695,7 @@
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://5255b678b78bba421d000008@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://526068dfbd524a30ee000021@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
