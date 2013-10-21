@@ -10,7 +10,7 @@
 
 Summary:       OpenShift NodeJS Websocket frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.2.0
+Version: 0.2.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- Create HAProxy SNI proxy plugin package and use endpoint protocols
+  (rmillner@redhat.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 0.1.7-1
 - Verify theres a record before trying to use it. (rmillner@redhat.com)
 
