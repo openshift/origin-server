@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,9 @@ then
 fi
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.2-1
 - Updating tests to register mongo-auth based user in the correct database
   based on Rails environment. (kraman@gmail.com)
