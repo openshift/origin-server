@@ -308,7 +308,7 @@ class Gear
         gear_states[gear] = 'unknown'
       else
         result_io.parse_output(output, gear)
-        gear_states[gear] = output.split("\n").select{|i| i.start_with? 'CLIENT_RESULT'}.first.split(":")[1] rescue "unknown"
+        gear_states[gear] = output.split("\n").select{|i| i.start_with? 'CLIENT_RESULT'}.first.split(":")[1].strip rescue "unknown"
       end
     }
     [gear_states, result_io]
