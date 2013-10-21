@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.3.0
+Version: 0.3.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,11 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
+- WIP Node Platform - Add support for OPENSHIFT_GEAR_MEMORY_MB
+  (jhonce@redhat.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
 - Bug 1014768 - Performance improvements for node_utilization: Allow self.all
   to pass the pwnam structure rather than having to call getpwnam each time.
