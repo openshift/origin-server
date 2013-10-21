@@ -10,7 +10,7 @@
 
 Summary:       OpenShift HAProxy SNI Proxy frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.1.6
+Version: 0.1.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -113,6 +113,14 @@ fi
 %attr(0644,root,root) %config(noreplace) /etc/openshift/node-plugins.d/openshift-origin-frontend-haproxy-sni-proxy.conf
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.1.7-1
+- Bug 1017661 - Dont add a leading slash in non-http based mappings.  Other
+  fixes. (rmillner@redhat.com)
+- Bug 1017878 - Do not fail if the module was not initialized.
+  (rmillner@redhat.com)
+- Add documentation. (rmillner@redhat.com)
+- Find the appropriate ethernet address to bind to. (rmillner@redhat.com)
+
 * Mon Oct 07 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
 - fix tito tags
 
