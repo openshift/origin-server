@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -75,6 +75,27 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Fix cartridge dependency dir paths in upgrades (andy.goldstein@gmail.com)
+- Merge pull request #3913 from ncdc/bz1018387
+  (dmcphers+openshiftbot@redhat.com)
+- Add dependency dirs to managed_files.yml (andy.goldstein@gmail.com)
+- Removed empty lib/util file from PHP cartridge (mfojtik@redhat.com)
+- Updated Cartridge-Version in all affected cart (mfojtik@redhat.com)
+- Update MaxClient and ServerLimit according to the gear memory in PHP
+  (mfojtik@redhat.com)
+- Bump cartridge versions (fotios@redhat.com)
+- Explicitly set protocols on endpoints that provide a frontend mapping
+  (rmillner@redhat.com)
+- Audit install/setup for framework cartridges (pmorie@gmail.com)
+- First pass at cartridge upgrade scripts and changes to scaling_func_test.
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Use OPENSHIFT_DEPENDENCIES_DIR in jenkins_shell_command for php
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.3-1
 - Fix PHP cartridge to wait upto 5 sec for Apache to start and create a pid
   file before returning. This is needed because Apache 2.4 on F19 does a
