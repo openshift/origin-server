@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -46,6 +46,29 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Changes to disable local gear for scalable apps. (mrunalp@gmail.com)
+- Bump cartridge versions (fotios@redhat.com)
+- Merge pull request #3795 from ncdc/gear-registry-dash
+  (dmcphers+openshiftbot@redhat.com)
+- Explicitly set protocols on endpoints that provide a frontend mapping
+  (rmillner@redhat.com)
+- Use dash instead of underscore in gear-registry (andy.goldstein@gmail.com)
+- Reenable haproxy-status (andy.goldstein@gmail.com)
+- Fixing merges (dmcphers@redhat.com)
+- Add oo-gear-registry and change haproxy to use platform gear registry
+  (pmorie@gmail.com)
+- Use public_hostname instead of ip in gear registry (andy.goldstein@gmail.com)
+- Remove blank line echo for haproxy enable/disable-server
+  (andy.goldstein@gmail.com)
+- Add persistance support to enable/disable server. (mrunalp@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Add support for enabling/disabling backend servers in haproxy configuration.
+  (mrunalp@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.6-1
 - Merge pull request #3730 from jwhonce/bug/1012812
   (dmcphers+openshiftbot@redhat.com)
