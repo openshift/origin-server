@@ -152,11 +152,13 @@ class CartridgeCache
         Timeout.timeout(client.receive_timeout) do
           client.get_content(url) do |chunk|
             manifest << chunk
-            raise "Manifest file too big" if manifest.length > client.read_block_size
+            if manifest.length > client.read_block_size
+              raise OpenShift::UnfulfilledRequirementException.new(url)
+            end
           end
         end
       rescue Timeout::Error
-        raise "Manifest download timed out"
+        raise OpenShift::UnfulfilledRequirementException.new(url)
       end
     end
 
