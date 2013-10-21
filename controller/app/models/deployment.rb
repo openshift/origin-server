@@ -31,7 +31,8 @@ class Deployment
   self.field :activations, type: Array, default: []
 
   validates :ref, presence: true, :allow_blank => false, length: {maximum: 256}
-  validates :sha1, presence: true, :allow_blank => false, length: {maximum: 256}
+  #for binary deployments sha1 will be blank
+  validates :sha1, presence: true, :allow_blank => true, length: {maximum: 256}
   validates_presence_of :deployment_id
   validates_presence_of :created_at
   validates_presence_of :activations
