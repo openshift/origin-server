@@ -68,8 +68,9 @@ function run_user_scheduled_jobs() {
    [ 0 -ge ${njobs:-0} ]  &&  return 0
 
    # Ensure scripts are executable
-   chmod +x -R "$GEAR_BASE_DIR/$uuid/app-root/repo/.openshift/cron/$freq/"
-
+   for script in "$GEAR_BASE_DIR/$uuid/app-root/repo/.openshift/cron/$freq/*"; do
+       [ -x $script ] || chmod +x $script
+   done
 
    cron_runjob="$USER_CRON_INSTANCE_DIR/bin/cron_runjobs.sh"
    cmd="$cron_runjob $freq"
