@@ -7,7 +7,7 @@
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -49,6 +49,24 @@ Provides plugin jenkins client support. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Sync deployment metadata from jenkins builder (andy.goldstein@gmail.com)
+- Merge pull request #3861 from ncdc/deploy-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Deploy fixes (andy.goldstein@gmail.com)
+- Merge pull request #3860 from fotioslindiakos/latest_versions_master
+  (dmcphers+openshiftbot@redhat.com)
+- Bump cartridge versions (fotios@redhat.com)
+- More command consistency (dmcphers@redhat.com)
+- Fix Jenkins build failures (andy.goldstein@gmail.com)
+- Add --exclude-web-proxy option to gear stop command Update
+  jenkins_shell_command template to call gear stop --conditional --exclude-web-
+  proxy Update scaling functional test (pmorie@gmail.com)
+- Use OPENSHIFT_DEPENDENCIES_DIR in jenkins_shell_command for php
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
 - Bug 982434 - remove extraneous set_app_info usage (jhonce@redhat.com)
 
