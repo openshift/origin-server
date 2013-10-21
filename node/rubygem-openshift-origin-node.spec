@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -264,6 +264,215 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Merge pull request #3938 from jwhonce/bug/1020997
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1020997 - Introduce etc_utils.rb (jhonce@redhat.com)
+- Sync deployment metadata from jenkins builder (andy.goldstein@gmail.com)
+- Bug 1018665 (andy.goldstein@gmail.com)
+- Merge pull request #3913 from ncdc/bz1018387
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3922 from Miciah/bug-1020391-openshift-iptables-port-
+  proxy-service-doesnt-start-because-of-selinux
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3916 from ironcladlou/bz/1020365
+  (dmcphers+openshiftbot@redhat.com)
+- Add dependency dirs to managed_files.yml (andy.goldstein@gmail.com)
+- Merge pull request #3891 from Miciah/resource_limits.conf-remove-
+  apache_bandwidth-and-related-settings (dmcphers+openshiftbot@redhat.com)
+- oo-admin-ctl-iptables-port-proxy: SELinux fix (miciah.masters@gmail.com)
+- Bug 1019646: Check if specified git ref is valid during deploy
+  (asari.ruby@gmail.com)
+- Merge pull request #3909 from ironcladlou/dev/build-deploy-metadata
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3910 from rmillner/BZ1020029
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3894 from pmorie/dev/fix-tests
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1020029 - needed to enumerate all threads in the task dir.
+  (rmillner@redhat.com)
+- Fix string comparison in marker checks (ironcladlou@gmail.com)
+- Merge pull request #3905 from ironcladlou/dev/build-deploy-metadata
+  (dmcphers+openshiftbot@redhat.com)
+- Use deployment metadata for build related marker lookups
+  (ironcladlou@gmail.com)
+- Add description field to endpoints so that TLS urls can report what they are
+  for. (rmillner@redhat.com)
+- Fix extended tests (pmorie@gmail.com)
+- resource_limits: Delete settings for httpd (miciah.masters@gmail.com)
+- Merge pull request #3876 from ironcladlou/build-deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3882 from mrunalp/dev/ha_local
+  (dmcphers+openshiftbot@redhat.com)
+- Persist deployment checksum to deployment metadata file
+  (ironcladlou@gmail.com)
+- Changes to disable local gear for scalable apps. (mrunalp@gmail.com)
+- Merge pull request #3869 from ncdc/bz1018082
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3874 from brenton/remove_test_deps3
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3870 from ncdc/master (dmcphers+openshiftbot@redhat.com)
+- Removing test dependencies from Broker/Console build and runtime.
+  (bleanhar@redhat.com)
+- Bug 1018082 (andy.goldstein@gmail.com)
+- Bug 999884 - Check if 'tc' already exists in oo-admin-ctl-tc
+  (mfojtik@redhat.com)
+- Test case fixes for Origin: (kraman@gmail.com)
+- Remove unused code (andy.goldstein@gmail.com)
+- Merge pull request #3861 from ncdc/deploy-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1018009 - spawn a separate thread to waitpid after killing.
+  (rmillner@redhat.com)
+- Deploy fixes (andy.goldstein@gmail.com)
+- Merge pull request #3858 from ironcladlou/build-deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Fix keep_deployments handling in deploy tests (ironcladlou@gmail.com)
+- More command consistency (dmcphers@redhat.com)
+- Merge pull request #3852 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3846 from pmorie/dev/test-coverage
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3847 from pmorie/bugs/1017719
+  (dmcphers+openshiftbot@redhat.com)
+- Standardize gear command names (dmcphers@redhat.com)
+- Merge pull request #3853 from mrunalp/bug/origin_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix list deployment test to be timezone agnostic. (mrunalp@gmail.com)
+- Bug 1017661 - Dont add a leading slash in non-http based mappings.  Other
+  fixes. (rmillner@redhat.com)
+- Fix bug 1017719: run all stages of gear upgrade extension (pmorie@gmail.com)
+- Merge pull request #3839 from ncdc/remove-unused-sdk-sync
+  (dmcphers+openshiftbot@redhat.com)
+- Add tests for keep deployments = 1 (pmorie@gmail.com)
+- Merge pull request #3795 from ncdc/gear-registry-dash
+  (dmcphers+openshiftbot@redhat.com)
+- Remove dead code (andy.goldstein@gmail.com)
+- Fixing extended tests (dmcphers@redhat.com)
+- WIP Node Platform - Update tests for new cgroups call (jhonce@redhat.com)
+- WIP Node Platform - Add support for OPENSHIFT_GEAR_MEMORY_MB
+  (jhonce@redhat.com)
+- Merge pull request #3804 from pmorie/dev/binary-deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3805 from ironcladlou/dev/build-deploy/id-handling
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3817 from ironcladlou/bz/1016977
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1016977: Support stream output during interactive activation
+  (ironcladlou@gmail.com)
+- Fix upgrade extension detection (ironcladlou@gmail.com)
+- Add error handing to gear binary_deploy (pmorie@gmail.com)
+- Make deployment ids unique rather than checksum based (ironcladlou@gmail.com)
+- Merge pull request #3799 from mrunalp/bugs/1016431
+  (dmcphers+openshiftbot@redhat.com)
+- Fix perms for the config files. (mrunalp@gmail.com)
+- Fix scaling_func_test (pmorie@gmail.com)
+- Use dash instead of underscore in gear-registry (andy.goldstein@gmail.com)
+- Adding deploy migration for broker auth (dmcphers@redhat.com)
+- Merge pull request #3778 from pmorie/build-deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3775 from rmillner/cgroup_read_all
+  (dmcphers+openshiftbot@redhat.com)
+- Add gear binary-deploy (pmorie@gmail.com)
+- Merge pull request #3747 from rmillner/frontend-sni-proxy
+  (dmcphers+openshiftbot@redhat.com)
+- Allow "all" parameter to list all cgroup names that the script has
+  permissions to access. (rmillner@redhat.com)
+- Only grep for post_configure output when building (andy.goldstein@gmail.com)
+- Create HAProxy SNI proxy plugin package and use endpoint protocols
+  (rmillner@redhat.com)
+- Fix mock post_configure calls in build unit tests (ironcladlou@gmail.com)
+- Remove unused variable (andy.goldstein@gmail.com)
+- Better info and error handling (andy.goldstein@gmail.com)
+- Add multi-ha tests (ironcladlou@gmail.com)
+- Fix rake tasks (pmorie@gmail.com)
+- Various fixes (andy.goldstein@gmail.com)
+- Node test cleanup (ironcladlou@gmail.com)
+- Fix activation reporting (dmcphers@redhat.com)
+- Add deployment dir consistency checks in function test
+  (ironcladlou@gmail.com)
+- Deploy test fixes (ironcladlou@gmail.com)
+- Deploy test fixes (ironcladlou@gmail.com)
+- store and return times as times (dmcphers@redhat.com)
+- Fix node Rask task syntax error (ironcladlou@gmail.com)
+- Add mergepath and ext_func_test targets to node RakeFile Extract functional
+  api and tester from scaling_func_test (pmorie@gmail.com)
+- Display git info during build (andy.goldstein@gmail.com)
+- First pass at cartridge upgrade scripts and changes to scaling_func_test.
+  (pmorie@gmail.com)
+- Consolidate activate/activate_gear (ironcladlou@gmail.com)
+- Add with_gear_rotation helper (andy.goldstein@gmail.com)
+- Use deployment order when activation time is null for multiple entries
+  (dmcphers@redhat.com)
+- Fixing merges (dmcphers@redhat.com)
+- Fixing tests and resolving remaining communication between broker and node
+  for deployments (dmcphers@redhat.com)
+- Fix broken tests (andy.goldstein@gmail.com)
+- Allow for floats with time storage (dmcphers@redhat.com)
+- Combine multiple metadata files to 1 (andy.goldstein@gmail.com)
+- Fix JSON handling in remote proxy update (ironcladlou@gmail.com)
+- Build-deploy upgrade changes (pmorie@gmail.com)
+- Add parallel concurrency ratio of .5 when called from the broker
+  (dmcphers@redhat.com)
+- Modify 'gear restart' to do all cart instances (andy.goldstein@gmail.com)
+- Minor prepare changes (pmorie@gmail.com)
+- Fix unit tests related to activation (ironcladlou@gmail.com)
+- Fix failing tests (pmorie@gmail.com)
+- WIP error handling for proxy updates (ironcladlou@gmail.com)
+- Add broker auth as permanent fixture of every app (dmcphers@redhat.com)
+- update_cluster fixes (andy.goldstein@gmail.com)
+- Fix bson hash error (dmcphers@redhat.com)
+- Implement contract for distribute (pmorie@gmail.com)
+- Sync git repo to all proxy gears in post_receive (andy.goldstein@gmail.com)
+- Add error handling (pmorie@gmail.com)
+- Pass back deployments in new param from deploy called through the rest api
+  (dmcphers@redhat.com)
+- Fix call to extract_deployment_archive (andy.goldstein@gmail.com)
+- Remove app-archives directory (andy.goldstein@gmail.com)
+- Default archive deployment_datetime arg to nil (andy.goldstein@gmail.com)
+- Coordinated drain across proxy gears on git push (andy.goldstein@gmail.com)
+- Add oo-gear-registry and change haproxy to use platform gear registry
+  (pmorie@gmail.com)
+- Use public_hostname instead of ip in gear registry (andy.goldstein@gmail.com)
+- Store git info with deployment metadata (andy.goldstein@gmail.com)
+- Cleanup (pmorie@gmail.com)
+- Fix tests and add gear archive_deployment (pmorie@gmail.com)
+- Fix tests (dmcphers@redhat.com)
+- Deploy WIP (dmcphers@redhat.com)
+- Skip scaling tests for zend (pmorie@gmail.com)
+- Add zend to scaling func test (pmorie@gmail.com)
+- Add structure to gear registry (andy.goldstein@gmail.com)
+- Deploy WIP (dmcphers@redhat.com)
+- Set RestClient timeout correctly (pmorie@gmail.com)
+- Add retries to scaling_functional_test and fixes for python
+  (pmorie@gmail.com)
+- Fix path for perl in test (pmorie@gmail.com)
+- Correct brittle hard-coded deployment id expectation
+  (andy.goldstein@gmail.com)
+- Fix deployment unit tests (pmorie@gmail.com)
+- Update test to use oo-devel-node (andy.goldstein@gmail.com)
+- Adding application config WIP (dmcphers@redhat.com)
+- Fix build-dependencies Fix scaling_functional_test (pmorie@gmail.com)
+- Fix unit tests (andy.goldstein@gmail.com)
+- WIP support for multiple web proxies (andy.goldstein@gmail.com)
+- poor-man's test parameterization (pmorie@gmail.com)
+- Add --exclude-web-proxy option to gear stop command Update
+  jenkins_shell_command template to call gear stop --conditional --exclude-web-
+  proxy Update scaling functional test (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Delete all applications in domain (including jenkins builders) Add primary
+  option to main jbossas endpoint (pmorie@gmail.com)
+- Generalize scaling functional test (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Use OPENSHIFT_DEPENDENCIES_DIR in jenkins_shell_command for php
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Bug 1014768 - Audit additional uses of password calls. (rmillner@redhat.com)
+- Bug 1014768 - the previous logic could not properly distinguish usernames
+  that begin with numbers and called Etc.getpwnam too often.
+  (rmillner@redhat.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 1.15.9-1
 - Bug 1014768 - Performance improvements for node_utilization: Allow self.all
   to pass the pwnam structure rather than having to call getpwnam each time.
