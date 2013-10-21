@@ -453,7 +453,7 @@ Then /^the application should display default content for deployed artifacts on 
   result = run("grep 'Artifacts deployed:' " + @app.get_log("git_push_multiartifact"), output)
   result.should == 0
 
-  artifacts=output[0].split(':')[3].split(' ')
+  artifacts=output[0].split(':')[2].split(' ')
   
   # Verify content for each artifact (ROOT.war should be / others should be /<artifact name>
   artifacts.each do |artifact|
