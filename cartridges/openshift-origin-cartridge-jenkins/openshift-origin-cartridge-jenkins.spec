@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.15.1
+Version: 1.15.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,11 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.15.2-1
+- Explicitly set protocols on endpoints that provide a frontend mapping
+  (rmillner@redhat.com)
+- Add broker auth as permanent fixture of every app (dmcphers@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - bump_minor_versions for sprint 34 (admiller@redhat.com)
 
