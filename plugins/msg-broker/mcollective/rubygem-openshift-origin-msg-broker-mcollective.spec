@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,37 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Fix for bug 997008 (abhgupta@redhat.com)
+- Fix for bug 1019880 (abhgupta@redhat.com)
+- Bug 995460 (dmcphers@redhat.com)
+- Merge pull request #3792 from liggitt/new_relic_bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Fix typos and NPE discovered in newrelic logs (jliggitt@redhat.com)
+- Fixing rubygem-openshift-origin-msg-broker-mcollective's example config
+  (bleanhar@redhat.com)
+- Merge pull request #3505 from danmcp/build-deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3755 from Miciah/rpc_get_facts_direct-and-
+  rpc_get_fact_direct-fix-parentheses (dmcphers+openshiftbot@redhat.com)
+- rollback -> activate (dmcphers@redhat.com)
+- Add parallel concurrency ratio of .5 when called from the broker
+  (dmcphers@redhat.com)
+- Rolling restart from the broker (dmcphers@redhat.com)
+- Update move gear for build-deploy changes (andy.goldstein@gmail.com)
+- Add broker auth as permanent fixture of every app (dmcphers@redhat.com)
+- update_cluster fixes (andy.goldstein@gmail.com)
+- Pass back deployments in new param from deploy called through the rest api
+  (dmcphers@redhat.com)
+- Use public_hostname instead of ip in gear registry (andy.goldstein@gmail.com)
+- Add structure to gear registry (andy.goldstein@gmail.com)
+- collapse the git refs into 1 (dmcphers@redhat.com)
+- Deploy WIP (dmcphers@redhat.com)
+- Adding application config WIP (dmcphers@redhat.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+- Fix check in rpc_get_fact{,s}_direct (miciah.masters@gmail.com)
+
 * Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
 - Added skip_node_ops flag to app/domain/user/district models.
   (rpenta@redhat.com)
