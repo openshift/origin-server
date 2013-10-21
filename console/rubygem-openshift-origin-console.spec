@@ -20,19 +20,21 @@ Requires:      ruby(release)
 %else
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
-Requires:      %{?scl:%scl_prefix}rubygems
-Requires:      %{?scl:%scl_prefix}rubygem(rails)
-Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
-Requires:      %{?scl:%scl_prefix}rubygem(rdiscount)
-Requires:      %{?scl:%scl_prefix}rubygem(formtastic)
-Requires:      %{?scl:%scl_prefix}rubygem(net-http-persistent)
-Requires:      %{?scl:%scl_prefix}rubygem(haml)
 Requires:      %{?scl:%scl_prefix}rubygem(coffee-rails)
 Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(formtastic)
+Requires:      %{?scl:%scl_prefix}rubygem(haml)
 Requires:      %{?scl:%scl_prefix}rubygem(jquery-rails)
+# Bz1017671
+Requires:      %{?scl:%scl_prefix}rubygem(minitest)
+Requires:      %{?scl:%scl_prefix}rubygem(net-http-persistent)
+Requires:      %{?scl:%scl_prefix}rubygem(rails)
+Requires:      %{?scl:%scl_prefix}rubygem(rdiscount)
+Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(sass-rails)
-Requires:      %{?scl:%scl_prefix}rubygem(uglifier)
 Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
+Requires:      %{?scl:%scl_prefix}rubygem(uglifier)
 
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
