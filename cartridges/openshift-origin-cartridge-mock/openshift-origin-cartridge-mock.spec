@@ -2,7 +2,7 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -37,6 +37,18 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Explicitly set protocols on endpoints that provide a frontend mapping
+  (rmillner@redhat.com)
+- Merge pull request #3747 from rmillner/frontend-sni-proxy
+  (dmcphers+openshiftbot@redhat.com)
+- Create HAProxy SNI proxy plugin package and use endpoint protocols
+  (rmillner@redhat.com)
+- Fix build-dependencies Fix scaling_functional_test (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Tue Oct 01 2013 Adam Miller <admiller@redhat.com> 1.15.4-1
 - Bug 1013334 - Was exposing the wrong port. (rmillner@redhat.com)
 
