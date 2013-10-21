@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,28 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Merge pull request #3938 from jwhonce/bug/1020997
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1020997 - Introduce etc_utils.rb (jhonce@redhat.com)
+- Bug 1020966 - the pre protocols behaviour was to assume http if there was a
+  mapping defined.  Do that by default. (rmillner@redhat.com)
+- Merge pull request #3904 from Miciah/oo-diagnostics-fix-
+  test_services_enabled-for-openshift-iptables-port-proxy
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3902 from Miciah/oo-diagnostics-fix-
+  test_altered_package_owned_configs-mlocate-check
+  (dmcphers+openshiftbot@redhat.com)
+- oo-diagnostics: openshift-iptables-port-proxy (miciah.masters@gmail.com)
+- oo-diagnostics: Fix check for mlocate package (miciah.masters@gmail.com)
+- Add description field to endpoints so that TLS urls can report what they are
+  for. (rmillner@redhat.com)
+- Bug 1017661 - Dont add a leading slash in non-http based mappings.  Other
+  fixes. (rmillner@redhat.com)
+- Adding application config WIP (dmcphers@redhat.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Mon Sep 30 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
 - Merge pull request #2950 from adelton/oo-diagnostics-test_auth_conf_files
   (dmcphers+openshiftbot@redhat.com)
