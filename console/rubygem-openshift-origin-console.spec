@@ -33,6 +33,8 @@ Requires:      %{?scl:%scl_prefix}rubygem(jquery-rails)
 Requires:      %{?scl:%scl_prefix}rubygem(sass-rails)
 Requires:      %{?scl:%scl_prefix}rubygem(uglifier)
 Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
+# Bz1017671
+Requires:      %{?scl:%scl_prefix}rubygem(minitest)
 
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
