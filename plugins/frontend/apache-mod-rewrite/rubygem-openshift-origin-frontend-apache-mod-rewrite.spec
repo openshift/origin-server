@@ -15,7 +15,7 @@
 
 Summary:       OpenShift Apache mod_rewrite frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.2.0
+Version: 0.2.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -131,6 +131,13 @@ mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- Make the vhost and mod_rewrite RPMs non-conflict even if their functionality
+  still conflicts. (rmillner@redhat.com)
+- Create HAProxy SNI proxy plugin package and use endpoint protocols
+  (rmillner@redhat.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 0.1.6-1
 - Port ssl_to_gear changes to the frontend plugins. (rmillner@redhat.com)
 - Fix up conflicts in frontend plugins. (rmillner@redhat.com)
