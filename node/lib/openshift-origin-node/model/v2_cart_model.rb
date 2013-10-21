@@ -161,7 +161,7 @@ module OpenShift
           ident_path     = Dir.glob(PathUtils.join(cartridge_path, 'env', "OPENSHIFT_*_IDENT")).first
 
           raise "Cartridge manifest not found: #{manifest_path} missing" unless File.exists?(manifest_path)
-          raise "Cartridge Ident not found: #{ident_path} missing" unless File.exists?(ident_path)
+          raise "Cartridge Ident not found in #{cartridge_path}" unless ident_path
 
           _, _, version, _ = Runtime::Manifest.parse_ident(IO.read(ident_path))
 
