@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,39 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Fix cartridge dependency dir paths in upgrades (andy.goldstein@gmail.com)
+- Sync deployment metadata from jenkins builder (andy.goldstein@gmail.com)
+- Add dependency dirs to managed_files.yml (andy.goldstein@gmail.com)
+- Merge pull request #3786 from mfojtik/card_293
+  (dmcphers+openshiftbot@redhat.com)
+- Updated Cartridge-Version in all affected cart (mfojtik@redhat.com)
+- Set the 'stack-size' for WSGI python application based on the gear size
+  (mfojtik@redhat.com)
+- Use deployment metadata for build related marker lookups
+  (ironcladlou@gmail.com)
+- cartridges: manage distribute_setup.py locally (mmahut@redhat.com)
+- Merge pull request #3861 from ncdc/deploy-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Deploy fixes (andy.goldstein@gmail.com)
+- Merge pull request #3860 from fotioslindiakos/latest_versions_master
+  (dmcphers+openshiftbot@redhat.com)
+- Bump cartridge versions (fotios@redhat.com)
+- More command consistency (dmcphers@redhat.com)
+- Explicitly set protocols on endpoints that provide a frontend mapping
+  (rmillner@redhat.com)
+- First pass at cartridge upgrade scripts and changes to scaling_func_test.
+  (pmorie@gmail.com)
+- Add retries to scaling_functional_test and fixes for python
+  (pmorie@gmail.com)
+- Change python install script to use ln -sf (pmorie@gmail.com)
+- Fixes for python-2.6 (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Use OPENSHIFT_DEPENDENCIES_DIR in jenkins_shell_command for php
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.3-1
 - Bug 1014339 - Support for setting $OPENSHIFT_PYPI_MIRROR_URL
   (bleanhar@redhat.com)
