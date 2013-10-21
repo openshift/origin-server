@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,23 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
+- Fix cartridge dependency dir paths in upgrades (andy.goldstein@gmail.com)
+- Add dependency dirs to managed_files.yml (andy.goldstein@gmail.com)
+- Use deployment metadata for build related marker lookups
+  (ironcladlou@gmail.com)
+- Bump cartridge versions (fotios@redhat.com)
+- Bug 1017721: Fix nodejs upgrade mv operation (ironcladlou@gmail.com)
+- Explicitly set protocols on endpoints that provide a frontend mapping
+  (rmillner@redhat.com)
+- First pass at cartridge upgrade scripts and changes to scaling_func_test.
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Use OPENSHIFT_DEPENDENCIES_DIR in jenkins_shell_command for php
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Wed Oct 02 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Bug 1012757 - Make sure the restart will succeed for force-stopped Node
   cartridge (mfojtik@redhat.com)
