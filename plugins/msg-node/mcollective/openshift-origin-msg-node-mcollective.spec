@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,34 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Merge pull request #3811 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- routing endpoint migration for gears (rchopra@redhat.com)
+- Adding deploy migration for broker auth (dmcphers@redhat.com)
+- Fix activation reporting (dmcphers@redhat.com)
+- Handle reporting deployment for initial app create (dmcphers@redhat.com)
+- Combine multiple metadata files to 1 (andy.goldstein@gmail.com)
+- rollback -> activate (dmcphers@redhat.com)
+- Add parallel concurrency ratio of .5 when called from the broker
+  (dmcphers@redhat.com)
+- Rolling restart from the broker (dmcphers@redhat.com)
+- Fix unit tests related to activation (ironcladlou@gmail.com)
+- Update move gear for build-deploy changes (andy.goldstein@gmail.com)
+- update_cluster fixes (andy.goldstein@gmail.com)
+- Fix bson hash error (dmcphers@redhat.com)
+- Pass back deployments in new param from deploy called through the rest api
+  (dmcphers@redhat.com)
+- Deploy WIP (dmcphers@redhat.com)
+- Add structure to gear registry (andy.goldstein@gmail.com)
+- Deploy WIP (dmcphers@redhat.com)
+- collapse the git refs into 1 (dmcphers@redhat.com)
+- Deploy WIP (dmcphers@redhat.com)
+- Adding application config WIP (dmcphers@redhat.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Bug 1014768 - Audit additional uses of password calls. (rmillner@redhat.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
 - Merge pull request #3647 from detiber/runtime_card_255
   (dmcphers+openshiftbot@redhat.com)
