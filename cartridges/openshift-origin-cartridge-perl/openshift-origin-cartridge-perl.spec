@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version:       1.15.1
+Version:       1.15.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -71,6 +71,19 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.15.2-1
+- Fix cartridge dependency dir paths in upgrades (andy.goldstein@gmail.com)
+- Add dependency dirs to managed_files.yml (andy.goldstein@gmail.com)
+- Explicitly set protocols on endpoints that provide a frontend mapping
+  (rmillner@redhat.com)
+- Audit install/setup for framework cartridges (pmorie@gmail.com)
+- First pass at cartridge upgrade scripts and changes to scaling_func_test.
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Use OPENSHIFT_DEPENDENCIES_DIR in jenkins_shell_command for php
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - bump_minor_versions for sprint 34 (admiller@redhat.com)
 
