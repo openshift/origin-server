@@ -48,13 +48,8 @@
       margin-top: 3px;
     }
   }
-  &.tile-featured {
+  .tiles-featured & {
     padding: 15px 20px;
-    h3 {
-      margin-right: 20px;
-      margin-bottom: 0;
-      line-height: 1.2;
-    }
     p {
       font-size: inherit;
     }
@@ -160,11 +155,12 @@
   }
   h3 {
     margin-bottom: -2px;
+    line-height: 1.2;
   }
   a.label {
     display: inline-block;
     vertical-align: middle;
-    margin-top: -5px;
+    margin-top: 0;
   }
 } 
 

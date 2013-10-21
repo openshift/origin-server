@@ -96,7 +96,8 @@
 // Alert icon blocks
 // -----------------------
 
-.section-console {
+.section-console,
+.column-content {
   .alert {
     border-left: 32px solid $warningBorder;
   }
@@ -140,5 +141,6 @@
   .alert:before,
   .alert.alert-error:before {
     content: "\ee01";
+    top: 8px;
   }
 }

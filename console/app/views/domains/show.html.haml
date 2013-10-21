@@ -21,11 +21,11 @@
           %span.count #{count}
           %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
 
-%section#app-list
+%section
   %section
 
   .row
-    .span8
+    .span8#app-list
       %h2 Applications
       - @domain.applications.each do |application|
         = render :partial => 'applications/application2', :locals => {:application => application}
