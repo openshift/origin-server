@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,26 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Merge pull request #3786 from mfojtik/card_293
+  (dmcphers+openshiftbot@redhat.com)
+- Updated Cartridge-Version in all affected cart (mfojtik@redhat.com)
+- Set the PassengerMaxPoolSize according to the current gear memory in Ruby
+  cart (mfojtik@redhat.com)
+- Use deployment metadata for build related marker lookups
+  (ironcladlou@gmail.com)
+- Bump cartridge versions (fotios@redhat.com)
+- Explicitly set protocols on endpoints that provide a frontend mapping
+  (rmillner@redhat.com)
+- Add --exclude-web-proxy option to gear stop command Update
+  jenkins_shell_command template to call gear stop --conditional --exclude-web-
+  proxy Update scaling functional test (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Use OPENSHIFT_DEPENDENCIES_DIR in jenkins_shell_command for php
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Thu Oct 03 2013 Adam Miller <admiller@redhat.com> 1.15.2-1
 - Allow numeric-only Rails app names (asari.ruby@gmail.com)
 
