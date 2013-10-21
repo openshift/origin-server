@@ -8,6 +8,8 @@ esac
 # Copy the version specific files to perl directory
 shopt -s dotglob
 mkdir -p $OPENSHIFT_PERL_DIR/etc
+mkdir -p $OPENSHIFT_HOMEDIR/.cpanm
+
 cp -r $OPENSHIFT_PERL_DIR/versions/$version/etc/* $OPENSHIFT_PERL_DIR/etc
 
 # Create/truncate Apache PassEnv configuration file
