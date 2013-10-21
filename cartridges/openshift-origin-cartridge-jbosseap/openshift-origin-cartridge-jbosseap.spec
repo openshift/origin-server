@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.10.0
+Version: 2.10.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,31 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 2.10.1-1
+- Fix cartridge dependency dir paths in upgrades (andy.goldstein@gmail.com)
+- Merge pull request #3913 from ncdc/bz1018387
+  (dmcphers+openshiftbot@redhat.com)
+- Add dependency dirs to managed_files.yml (andy.goldstein@gmail.com)
+- Updated JBoss cartridges to use OPENSHIFT_GEAR_MEMORY_MB for memory
+  calculations (fotios@redhat.com)
+- Use deployment metadata for build related marker lookups
+  (ironcladlou@gmail.com)
+- Fix jboss upgrade scripts (pmorie@gmail.com)
+- Bump cartridge versions (fotios@redhat.com)
+- Explicitly set protocols on endpoints that provide a frontend mapping
+  (rmillner@redhat.com)
+- Audit install/setup for framework cartridges (pmorie@gmail.com)
+- First pass at cartridge upgrade scripts and changes to scaling_func_test.
+  (pmorie@gmail.com)
+- Add --exclude-web-proxy option to gear stop command Update
+  jenkins_shell_command template to call gear stop --conditional --exclude-web-
+  proxy Update scaling functional test (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- Use OPENSHIFT_DEPENDENCIES_DIR in jenkins_shell_command for php
+  (pmorie@gmail.com)
+- Build & deployment improvements (andy.goldstein@gmail.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 2.9.2-1
 - Merge pull request #3518 from a13m/bugzilla/989276
   (dmcphers+openshiftbot@redhat.com)
