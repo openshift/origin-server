@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -142,6 +142,101 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Merge pull request #3927 from liggitt/ui_tweaks
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3917 from jwforres/tile_logos
+  (dmcphers+openshiftbot@redhat.com)
+- UI tweaks (jliggitt@redhat.com)
+- Pull logo haml generation into a helper (jforrest@redhat.com)
+- Adding application and domain icon to their respective page heading
+  Adjustments to icon-text-shadow mixin to optimize contrast of icon on light
+  background, which was currently unused (sgoodwin@redhat.com)
+- Add helper for icons on quickstart and cartridge tiles (jforrest@redhat.com)
+- Bug fix where footer is one pixel too tall (causing a vertical scroll bar
+  when none is needed) and vertically centering logo and copyright
+  (rhamilto@redhat.com)
+- Merge pull request #3901 from sg00dwin/console_light_theme_dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3883 from pravisankar/dev/ravi/card22
+  (dmcphers+openshiftbot@redhat.com)
+- Remove alert border Adjust variable border colors which will be used behind
+  the alert icon Label margin left reduced to align with tile title Refactoring
+  of tile-table scss with adjustments to support add cart tiles with icons
+  Remove commented haml from _tile.html.haml and _application_type.html.haml
+  (sgoodwin@redhat.com)
+- Merge pull request #3887 from jwforres/bug_1019132_remove_member_not_saved
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3890 from liggitt/bug_987758_formtastic_errors
+  (dmcphers@redhat.com)
+- Allow gear_size parameter during application creation and cartridge addition.
+  (rpenta@redhat.com)
+- Merge pull request #3877 from rhamilto/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 987758 - formtastic error rendering (jliggitt@redhat.com)
+- Merge pull request #3525 from mmahut/mmahut/formtastic_dots
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1019132 - removed member is not saved (jforrest@redhat.com)
+- Merge pull request #3874 from brenton/remove_test_deps3
+  (dmcphers+openshiftbot@redhat.com)
+- Removing test dependencies from Broker/Console build and runtime.
+  (bleanhar@redhat.com)
+- BZ 1018656:  adjustments so the letter "e" doesn't close up when rendered by
+  IE (rhamilto@redhat.com)
+- Change set: Fix default alert border Smaller copyright text, should have been
+  done with site release Make "see all" cart link smaller and tuck in over
+  groupings Fine tune app tile text .flow-block.right > span Make popover text
+  font-weight normal. General note - text below 13px shouldn't be thin because
+  it renders fuzzy and breaks apart on non-retina displays.
+  (sgoodwin@redhat.com)
+- Remove custom line-heights from individual button sizes Tweak padding and
+  sizing Create +.btn [class*="icon-"] style to position icon exact vertical
+  center Remove default left offset from icon class rule  - this was to add
+  space btw icon and text, but it causes issues when icons used within .btn  -
+  will have to add &nbsp; or come up with another option Alert borders weren't
+  showing b/c no border style & width set. Fixed it. - also simplified their
+  color function to just darken Introduced .table-no-borders class which is
+  used on the domain members table Fixed "delete" x button
+  (sgoodwin@redhat.com)
+- Changes: icons should have line-height mozilla specific font smoothing add
+  line-height in ems to small and tiny sizes variablize large, small, tiny,
+  extratiny (sgoodwin@redhat.com)
+- Make table-consdensed (sgoodwin@redhat.com)
+- Merge pull request #3825 from jwforres/console_light_theme_squash
+  (dmcphers+openshiftbot@redhat.com)
+- Merge branch 'master' into console_light_theme_squash (jforrest@redhat.com)
+- Fix bug 1016463 - either show create domain link or link to see other domains
+  (jliggitt@redhat.com)
+- Updated testcases for the console light theme (jforrest@redhat.com)
+- Merge pull request #3735 from smarterclayton/display_custom_cart_name
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3773 from
+  smarterclayton/to_stage_error_on_changing_members
+  (dmcphers+openshiftbot@redhat.com)
+- Making Members tables consistent between app/show and domain/show
+  (rhamilto@redhat.com)
+- Changes: Differentiate lead and large font sizes H1 1px larger so that
+  offsets the 1px increase in lead Make important-list slightly more important
+  (size) .table-hover was incorrect Make link in help_helper for signin page
+  (sgoodwin@redhat.com)
+- Test failure (ccoleman@redhat.com)
+- Unifying table styles for /settings (rhamilto@redhat.com)
+- Console light theme, aliases layout updates (ccoleman@redhat.com)
+- Console light theme, active states on tab navigation (jforrest@redhat.com)
+- Console light theme, updated logos (sgoodwin@redhat.com)
+- Light theme for console, new nav header, remove breadcrumbs
+  (rhamilto@redhat.com)
+- Fix bug 1016432 - restrict domain rename to owner (jliggitt@redhat.com)
+- console: fixing a bug in pull request #3525 (mmahut@redhat.com)
+- Test estimate method (jliggitt@redhat.com)
+- Job error when changing members of app (ccoleman@redhat.com)
+- Fix typo in gear sizes, parse members params correctly (jliggitt@redhat.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+- Display the cart name for custom carts (ccoleman@redhat.com)
+- console: fixing the joint in the form builder (mmahut@redhat.com)
+- console: do not add a dot at the end of the error message if it already
+  exists (mmahut@redhat.com)
+
 * Tue Oct 01 2013 Adam Miller <admiller@redhat.com> 1.15.7-1
 - Merge pull request #3729 from smarterclayton/suggest_app_name
   (dmcphers+openshiftbot@redhat.com)
