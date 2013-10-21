@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 1.16.0
+Version: 1.16.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -101,6 +101,19 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
+- Merge pull request #3835 from BanzaiMan/dev/hasari/c18
+  (dmcphers+openshiftbot@redhat.com)
+- Use oo-erb instead of erb (asari.ruby@gmail.com)
+- Merge pull request #3857 from maxamillion/admiller/enable_pgRouting
+  (dmcphers+openshiftbot@redhat.com)
+- Bump up memory for standalone cartridges (asari.ruby@gmail.com)
+- Process postgresql.conf on each cartridge startup (asari.ruby@gmail.com)
+- Tune postgres memory usage based on available mem (asari.ruby@gmail.com)
+- Bump cartridge versions (fotios@redhat.com)
+- enable postgresql92-pgRouting (admiller@redhat.com)
+- bump_minor_versions for sprint 35 (admiller@redhat.com)
+
 * Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
 - Merge pull request #3720 from smarterclayton/origin_ui_72_membership
   (dmcphers+openshiftbot@redhat.com)
