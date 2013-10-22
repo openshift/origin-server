@@ -62,12 +62,12 @@
 .font-icon-size-44      {font-size: 44px !important;}
 
 
-h1 .font-icon {
+h1.icon-heading .font-icon {
   margin-right: 4px;
   color: #aaa;
   @include icon-text-shadow($color: rgba(255, 255, 255, 1));
 }
-h1 .font-icon {
+h1.icon-heading .font-icon {
   font-size: $h1FontSize - 3; 
 }
 

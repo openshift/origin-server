@@ -33,16 +33,13 @@
       }
     }
   }
-	.gear-numbers {
-		color: #bcbdbc;
-	}
 }
 
 .application, #app-cartridges {
   .flow-block {
     .font-icon-link {
       &:visited, &:link {
-        color: inherit;
+        color: $grayLight;
       }
       &:hover, &:active {
         color: $openshiftBrightRed;
