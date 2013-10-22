@@ -430,12 +430,8 @@ class Application
       # reload the application to get the latest data
       self.reload
 
-      ssh_keys = self.app_ssh_keys.map {|k| k.to_key_hash }
-      ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
-      ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
-
       #op_group = PendingAppOpGroup.new(op_type: :replace_all_ssh_keys,  args: {"keys_attrs" => ssh_keys}, user_agent: self.user_agent)
-      op_group = ReplaceAllSshKeysOpGroup.new(keys_attrs: ssh_keys, user_agent: self.user_agent)
+      op_group = ReplaceAllSshKeysOpGroup.new(keys_attrs: self.get_all_updated_ssh_keys, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -517,10 +513,10 @@ class Application
       group_instance.min = override_spec["min_gears"]
       group_instance.max = override_spec["max_gears"]
       group_instance.min = group_instance.component_instances.map { |ci| ci.min }.max if group_instance.min.nil?
-      group_instance.min = group_instance.sparse_components.map { |ci| ci.min }.max if group_instance.min.nil?
+      group_instance.min = group_instance.sparse_instances.map { |ci| ci.min }.max if group_instance.min.nil?
       if group_instance.max.nil?
         max = group_instance.component_instances.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min
-        max = group_instance.sparse_components.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min if max.nil?
+        max = group_instance.sparse_instances.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min if max.nil?
         group_instance.max = (max==MAX_SCALE_NUM ? -1 : max)
       end
       group_instance
@@ -1746,14 +1742,15 @@ class Application
       gear_id_prereqs[gear_id] = register_dns_op._id.to_s
     end
 
-    ssh_keys = self.app_ssh_keys.map{|k| k.to_key_hash } #FIXME Why am i not a standard key class?
-    ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
-    ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
-
     env_vars = self.domain.env_vars
 
-    ops = calculate_update_new_configuration_ops({"add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, ginst_id, gear_id_prereqs)
-    pending_ops.push(*ops)
+    gear_id_prereqs.each_key do |gear_id|
+      prereq = gear_id_prereqs[gear_id].nil? ? [] : [gear_id_prereqs[gear_id]]
+      #ops.push(PendingAppOp.new(op_type: :update_configuration, args: args.dup, prereq: prereq))
+      pending_ops.push(UpdateAppConfigOp.new(group_instance_id: ginst_id, gear_id: gear_id, 
+                                             prereq: prereq, recalculate_sshkeys: true, 
+                                             add_env_vars: env_vars))
+    end 
 
     if app_dns_group_instance_id && app_dns_gear_id
       iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
@@ -2673,7 +2670,7 @@ class Application
   end
 
   def enforce_system_order(order, categories)
-    web_carts = categories['web_frameworks'] || []
+    web_carts = categories['web_framework'] || []
     service_carts = (categories['service'] || [])-web_carts
     plugin_carts = (categories['plugin'] || [])-service_carts
     web_carts.each { |w| 
@@ -2881,6 +2878,16 @@ class Application
 
     group_overrides
   end
+
+  def get_all_updated_ssh_keys
+    ssh_keys = []
+    ssh_keys = self.app_ssh_keys.map {|k| k.to_key_hash } # the app_ssh_keys already have their name "updated"
+    ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
+    ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
+    
+    ssh_keys
+  end
+
 
   # The ssh key names are used as part of the ssh key comments on the application's gears
   # Do not change the format of the key name, otherwise it may break key removal code on the node
