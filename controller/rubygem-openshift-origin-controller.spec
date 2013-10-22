@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.15.15
+Version: 1.15.16
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 22 2013 Troy Dawson <tdawson@redhat.com> 1.15.16-1
+- Fix for bug 1021467, 1020440, 1021041 (abhgupta@redhat.com)
+
 * Sat Oct 19 2013 Adam Miller <admiller@redhat.com> 1.15.15-1
 - fix bz 1020517 - rescue missing min/max (rchopra@redhat.com)
 
