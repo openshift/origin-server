@@ -2,6 +2,8 @@
 }
 
 @mixin brand {
+  position: relative;
+  top: 10px;
 }
 
 @mixin brand_hover {

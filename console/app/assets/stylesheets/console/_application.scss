@@ -115,6 +115,7 @@
 #app-cartridges {
   .cartridge-block {
     position: relative;
+    min-height: 58px;
     &.cartridge-embedded {
       border-top: 1px dashed $consolePanelBorderColor;
     }
