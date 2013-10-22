@@ -1000,6 +1000,12 @@ remote: http://mirror1.ops.rhcloud.com/mirror/ruby/
 ....
 
 === Rails 3.0
+
+There are several approaches how to speed up deployment of yours Rails application to OpenShift.
+
+==== Gem installation
+
+
 There are two options for deploying a Rails application to OpenShift.
 
 *Method 1 (Recommended)* +
@@ -1007,6 +1013,30 @@ There are two options for deploying a Rails application to OpenShift.
 
 *Method 2* +
 `git add` your `.bundle` and `vendor/bundle` directories after running `bundle install --deployment` locally. Be sure to exclude any gems that have native code or ensure they can run on RHEL x86_64.
+
+==== Asset pipeline
+
+To prevent a long and unnecessary compilation of assets on application initial deployment and re-deployments, these two steps must be done.
+
+Step 1* +
+It's necessary to install `sprockets` gem by adding the line `gem 'turbo-sprockets-rails3'` into your Gemfile and run `bundle install`.
+
+*Step 2* +
+After `sprockets` gem is installed you need to precompile all your assets locally by `rake assets:precompile`, which compiles all the assets into `public/assets`. When compiling the assets the sprocket gem creates a file called `sources_manifest.yml`, located also in `public/assets`. This manifest contains names of all assets files together with their hash values. This file ensures that only changed assets will be recompiled on re-deployment.
+
+==== Load database schema
+
+If your Rails application contains a large amount of migrations it's a good to use `db:schema:load` on initial deploy and `db:migrate` on re-deploymnets. You can do this by looking into the database and checking whether one of the DB tables exists.
+
+This example checks, in the deploy hook, if the `spree_activators` table is present in the database.
+....
+if [ echo "use $OPENSHIFT_APP_NAME; show tables" | mysql | grep spree_activators ]
+then
+    bundle exec rake db:schema:load RAILS_ENV="production"
+else
+    bundle exec rake db:migrate RAILS_ENV="production"
+fi
+....
 
 === Environment Variables
 The `ruby` cartridge provides several environment variables to reference for ease of use:
