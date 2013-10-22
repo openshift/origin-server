@@ -1,4 +1,8 @@
-# Set the stack-size based on the memory available in gear and based on the
-# number of processes and threads
+# The number of thread depends on the gear memory size.
 #
-WSGIDaemonProcess <%= ENV['OPENSHIFT_GEAR_UUID'] %> user=<%= ENV['OPENSHIFT_GEAR_UUID'] %> group=<%= ENV['OPENSHIFT_GEAR_UUID'] %> processes=2 threads=25 stack-size=<%= (((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.8)/25) * 1024).to_i/2 %> python-path="<%= ENV['OPENSHIFT_REPO_DIR'] %>/libs:<%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi:<%= ENV['OPENSHIFT_PYTHON_DIR'] %>/virtenv/lib/python/"
+# Gear size:    Memory:         threads:
+# small          512MB             5
+# medium        1024MB            10
+# large         2048MB            20
+#
+WSGIDaemonProcess <%= ENV['OPENSHIFT_GEAR_UUID'] %> user=<%= ENV['OPENSHIFT_GEAR_UUID'] %> group=<%= ENV['OPENSHIFT_GEAR_UUID'] %> processes=2 threads=<%=((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.8)/80).to_i%> python-path="<%= ENV['OPENSHIFT_REPO_DIR'] %>/libs:<%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi:<%= ENV['OPENSHIFT_PYTHON_DIR'] %>/virtenv/lib/python/"
