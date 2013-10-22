@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version:       1.15.2
+Version:       1.15.3
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -71,6 +71,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Tue Oct 22 2013 Adam Miller <admiller@redhat.com> 1.15.3-1
+- Bug 1021356 (andy.goldstein@gmail.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.15.2-1
 - Fix cartridge dependency dir paths in upgrades (andy.goldstein@gmail.com)
 - Add dependency dirs to managed_files.yml (andy.goldstein@gmail.com)
