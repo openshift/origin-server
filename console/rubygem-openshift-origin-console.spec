@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,23 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 22 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
+- Adding a specific class for icons associated with h1 headings so as to not
+  effect all icons within h1. e.g. application/show Remove old style .gear-
+  numbers which is no longer used Change "external link" icon color to grey
+  instead of black Remove inadvertant dupulication of font-size on .gear-icon
+  (sgoodwin@redhat.com)
+- commented out test on console (lnader@redhat.com)
+- Bug 892899 (lnader@redhat.com)
+- I reworked the page markup so that app-list and app-cartridges are only
+  wrapping "main" column. Then change scss to style appropriately.
+  (sgoodwin@redhat.com)
+- Merge pull request #3942 from brenton/BZ1017671
+  (dmcphers+openshiftbot@redhat.com)
+- Sorting Requires for the console gem (bleanhar@redhat.com)
+- Bug 1017671 - Minitest is required by parts of activesupport for the console
+  gem (bleanhar@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - Merge pull request #3927 from liggitt/ui_tweaks
   (dmcphers+openshiftbot@redhat.com)
