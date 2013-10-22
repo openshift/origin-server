@@ -6,12 +6,12 @@
 
   = link_to "Learn more about SSH keys.", ssh_keys_help_path
 
-%table.table.table-fixed
+%table.table.table-condensed.table-fixed
   %thead
     %tr
       %th.nowrap{:scope => 'col'} Key name
       %th.nowrap{:scope => 'col'} Contents
-      %td
+      %th
   - keys.each do |key|
     %tr{:id => "#{key.name}_sshkey"}
       %td.sshkey-name{:scope => 'row'}= key.name

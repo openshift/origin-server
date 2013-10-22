@@ -1,7 +1,6 @@
 :css
   .members table { 
     margin-bottom: 0px;
-    table-layout: fixed;
   }
   .members .table td {
     vertical-align: middle;
@@ -51,7 +50,7 @@
 
 - if not editable
   .members
-    %table.table.table-condensed
+    %table.table.table-condensed.table-fixed
       %colgroup
         %col{:width => "50%"}
         %col{:width => "50%"}
@@ -76,7 +75,7 @@
 
   = form_tag domain_members_path(domain), :method => :put, :class => "members warn-dirty #{'editing' if editing || members.count <= 1} #{'hidden-scripted' if !editing && members.count <= 1} #{'dirty' if new_members.present?}" do
 
-    %table.table.table-condensed.table-no-borders
+    %table.table.table-condensed.table-no-borders.table-fixed
       %colgroup
         %col{:width => "45%"}
         %col{:width => "45%"}
