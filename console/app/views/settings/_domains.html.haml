@@ -3,7 +3,7 @@
   See the #{link_to 'User Guide', add_domains_user_guide_topic_url, :class => 'external'}
   for information about adding your own domain names to an application.
 
-%table.table
+%table.table.table-condensed.table-fixed
   - @domains.first(3).each do |d|
     %tr
       %td= link_to d.name, domain_path(d)

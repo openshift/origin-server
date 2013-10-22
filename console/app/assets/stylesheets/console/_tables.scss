@@ -144,6 +144,12 @@ table {
   }
 }
 
+// FIXED
+// ------------
+// Use when you need long, unbroken strings to wrap inside the table cell
+.table-fixed {
+  table-layout: fixed;
+}
 
 
 // TABLE CELL SIZING
