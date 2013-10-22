@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,11 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Tue Oct 22 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
+- <msg-node> Update openshift-facts for ruby193 scl if RHEL
+  (jdetiber@redhat.com)
+- Bug 994419 (lnader@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - Merge pull request #3811 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
