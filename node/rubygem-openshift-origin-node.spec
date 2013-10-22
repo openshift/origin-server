@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -264,6 +264,13 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Oct 22 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
+- Bug 1021583 - Stop chmod'ing all cron scripts (jhonce@redhat.com)
+- Merge pull request #3943 from BanzaiMan/dev/hasari/bz1021355
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1021355 (asari.ruby@gmail.com)
+- Fix bug 1021016 (pmorie@gmail.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - Merge pull request #3938 from jwhonce/bug/1020997
   (dmcphers+openshiftbot@redhat.com)
