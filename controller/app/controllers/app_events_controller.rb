@@ -5,7 +5,7 @@ class AppEventsController < BaseController
   include RestModelHelper
   before_filter :get_application
   action_log_tag_resource :application
-
+  EVENT_REGEX = /\A[a-z]+(-[a-z]+)*\z/
   ##
   # API to perform manage an application
   #
@@ -29,6 +29,9 @@ class AppEventsController < BaseController
     event = params[:event].presence
     server_alias = params[:alias].presence
     deployment_id = params[:deployment_id].presence
+    
+    return render_error(:unprocessable_entity, "Event can only contain lowercase a-z and '-' characters", 126,
+                        "event") if event !~ EVENT_REGEX
 
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
                         "alias") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)

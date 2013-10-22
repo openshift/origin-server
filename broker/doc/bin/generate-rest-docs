@@ -64,9 +64,10 @@ def process_response(response, resource)
       new_resource = key.gsub("ADD_","")
       puts "Adding............#{new_resource}.........."
       payload = get_payload(new_resource, value)
+      puts payload
       request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)   
       response = process_resource(request, new_resource)  
-      #puts "Added............#{new_resource}.........."
+      puts "Added............#{new_resource}.........."
     elsif key == "GET" 
       request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
       response = send_request(request)
@@ -186,10 +187,14 @@ def get_payload(resource, link)
   optional_params = link["optional_params"]
   optional_params.each do |param|
     #handle special cases
-    if resource.downcase.include? "application" and param["name"] == "cartridges"
-      payload[param["name"]] = "ruby-1.9"
-    elsif resource.downcase.include? "application" and param["name"] == "deployments"
-      payload[param["name"]] = []
+    if resource.downcase.include? "application" and link["method"] == "POST"
+      if param["name"] == "cartridges"
+        payload[param["name"]] = "ruby-1.9"
+      elsif param["name"] == "scale"
+        payload[param["name"]] = "true"
+      elsif param["name"] == "deployments"
+        payload[param["name"]] = []
+      end
     elsif resource.downcase.include? "cartridge" and param["name"] == "additional_gear_storage"
       payload[param["name"]] = 10
     elsif resource.downcase.include? "alias" 
@@ -200,8 +205,6 @@ def get_payload(resource, link)
       elsif param["name"] == "pass_phrase"
         payload[param["name"]] = "abcd"
       end
-    elsif resource.downcase.include? "application" and param["name"] == "scale"
-      payload[param["name"]] = "true"
     elsif resource.downcase.include? "authorization" and param["name"] == "note"
       payload[param["name"]] = "This is my UPDATED note to myself"
     elsif resource.downcase.include? "member" and param["name"] == "login"

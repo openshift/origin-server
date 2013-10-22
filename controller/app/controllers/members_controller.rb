@@ -27,7 +27,8 @@ class MembersController < BaseController
       end
     end
     if errors.present?
-      return render_error(:bad_request, errors.first.text, nil, nil, nil, errors.first) if singular
+      Rails.logger.error errors
+      return render_error(:bad_request, errors.first.text, nil, nil, nil, errors) if singular
       return render_error(:bad_request, "The provided members are not valid.", nil, nil, nil, errors)
     end
     return render_error(:unprocessable_entity, "You must provide at least a single member that exists.") unless ids.present? || logins.present?
@@ -36,7 +37,7 @@ class MembersController < BaseController
     new_members = changed_members_for(ids, logins, errors)
     remove = removed_ids(ids, logins, errors)
     if errors.present?
-      return render_error(:not_found, errors.first.text, nil, nil, nil, [errors.first]) if singular
+      return render_error(:not_found, errors.first.text, nil, nil, nil, errors) if singular
       return render_error(:not_found, "Not all provided members exist.", nil, nil, nil, errors)
     end
 

@@ -564,7 +564,7 @@ module MCollective
         app_uuid = args['--with-app-uuid'].to_s if args['--with-app-uuid']
 
         with_container_from_args(args) do |container, output|
-          output << container.state.value
+          output << "\nCLIENT_RESULT: #{container.state.value}\n"
         end
       end
 

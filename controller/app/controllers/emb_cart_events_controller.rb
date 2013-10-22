@@ -3,11 +3,15 @@ class EmbCartEventsController < BaseController
   before_filter :get_application
   action_log_tag_resource :cartridge
   before_filter :get_application
+    EVENT_REGEX = /\A[a-z]+(-[a-z]+)*\z/
 
   def create
     cartid = params[:cartridge_id].downcase if params[:cartridge_id].presence
     event = params[:event].downcase if params[:event].presence
     cartridge = CartridgeCache.find_cartridge(cartid, @application).name rescue nil
+    
+    return render_error(:unprocessable_entity, "Event can only contain characters and '-'", 126,
+                        "event") if event !~ EVENT_REGEX
 
     return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{@application.name}", 129) if !@application.requires.include?(cartridge)
 

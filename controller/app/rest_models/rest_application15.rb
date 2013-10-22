@@ -230,15 +230,15 @@ class RestApplication15 < OpenShift::Model
           OptionalParam.new("environment_variables", "array", "Add/Update/Delete application environment variables, e.g. Add/Update: [{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}], Delete: [{'name':'FOO'}, {'name':'BAR'}]")
         ]),
         "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/environment-variables")),
-        "DEPLOY" => Link.new("Deploy the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), nil,[
+        "DEPLOY" => Link.new("Deploy the application", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/deployments"), nil,[
           OptionalParam.new("ref", "string", "Git ref (tag, branch, commit id)", nil, "master"),
           #OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "N/A"),
           OptionalParam.new("hot_deploy", "boolean", "Indicates whether this is a hot deployment", "true or false", false),
           OptionalParam.new("force_clean_build", "string", "Indicates whether a clean build should be performed", "true or false", false),
         ]),
-        "UPDATE_DEPLOYMENTS" => Link.new("Update deployments (Special permissions is required to update deployments)", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
+        "UPDATE_DEPLOYMENTS" => Link.new("Update deployments (Special permissions is required to update deployments)", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/deployments"), [
           Param.new("deployments", "array", "An array of deployments")]),
-        "ACTIVATE" => Link.new("Activate a specific deployment of the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "ACTIVATE" => Link.new("Activate a specific deployment of the application", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/events"), [
           Param.new("event", "string", "event", "activate"),
           Param.new("deployment_id", "string", "The deployment ID to activate the application")
         ]),

@@ -4,8 +4,8 @@
     "allowed_gear_sizes": [
       "small"
     ],
-    "creation_time": "2013-10-09T20:03:00Z",
-    "id": "5255b674b78bba421d000007",
+    "creation_time": "2013-10-17T22:46:55Z",
+    "id": "526068dfbd524a30ee000020",
     "links": {
       "GET": {
         "href": "https://openshift.redhat.com/broker/rest/domain/mydomain",
@@ -77,6 +77,43 @@
             "valid_options": [
               "",
               "empty"
+            ]
+          },
+          {
+            "default_value": null,
+            "description": "Name of the cartridge.",
+            "name": "cartridges[][name]",
+            "type": "string",
+            "valid_options": [
+              "nodejs-0.6",
+              "nodejs-0.10",
+              "python-3.3",
+              "python-2.7",
+              "python-2.6",
+              "zend-5.6",
+              "ruby-1.9",
+              "ruby-1.8",
+              "jenkins-1",
+              "jbossews-2.0",
+              "jbossews-1.0",
+              "mock-0.4",
+              "mock-0.3",
+              "mock-0.2",
+              "mock-0.1",
+              "perl-5.10",
+              "php-5.3",
+              "jbosseap-6",
+              "diy-0.1",
+              "jbossas-7"
+            ]
+          },
+          {
+            "default_value": "small",
+            "description": "Gear size for the cartridge.",
+            "name": "cartridges[][gear_size]",
+            "type": "string",
+            "valid_options": [
+              "small"
             ]
           },
           {
@@ -299,6 +336,7 @@
             "valid_options": [
               "small",
               "medium",
+              "large",
               "c9"
             ]
           }
@@ -348,7 +386,7 @@
             "role": "admin"
           }
         ],
-        "id": "52536a75b78bba4033000001",
+        "id": "526059aebd524afabc000001",
         "login": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",

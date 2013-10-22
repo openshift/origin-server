@@ -913,7 +913,8 @@ class Application
   # Retrieves the gear state for all gears within the application.
   # @return [Hash<String, String>] Map of {Gear} ID to state
   def get_gear_states
-    Gear.get_gear_states(group_instances.map{|g| g.gears}.flatten)
+    gear_states, result_io = Gear.get_gear_states(group_instances.map{|g| g.gears}.flatten)
+    [gear_states, result_io]
   end
 
   ##

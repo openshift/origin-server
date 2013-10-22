@@ -2,6 +2,7 @@ class EmbCartController < BaseController
   include RestModelHelper
   before_filter :get_application
   action_log_tag_resource :app_cartridge
+  CART_NAME_REGEX = /\A[a-z0-9]+(-[a-z0-9]+)*((-[0-9]+)(\.[0-9]+)*)*\z/
 
   def index
     cartridges = get_application_rest_cartridges(@application) 
@@ -10,6 +11,9 @@ class EmbCartController < BaseController
 
   def show
     id = params[:id].presence
+    return render_error(:unprocessable_entity, "Invalid cartridge ID. It can only contain alphanumeric characters, dashes(-) and dots(.)", 109,
+                        "id") if id and id !~ CART_NAME_REGEX
+                        
     status_messages = !params[:include].nil? and params[:include].split(",").include?("status_messages")
 
     cartname = CartridgeCache.find_cartridge(id, @application).name rescue id
@@ -54,6 +58,9 @@ class EmbCartController < BaseController
     else
       return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109)
     end
+    
+    return render_error(:unprocessable_entity, "Invalid cartridge name. It can only contain alphanumeric characters, dashes(-) and dots(.)", 109,
+                        "name") if name and name !~ CART_NAME_REGEX
 
     valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & @application.domain.allowed_gear_sizes & @application.domain.owner.allowed_gear_sizes
 
@@ -165,19 +172,26 @@ class EmbCartController < BaseController
 
     authorize! :destroy_cartridge, @application
 
-    cartridge = params[:id].presence
+    id = params[:id].presence
+    
+    return render_error(:not_found, "Invalid cartridge ID. It can only contain alphanumeric characters, dashes(-) and dots(.)", 109,
+                        "id") if id and id !~ CART_NAME_REGEX
 
-    comp = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(cartridge))
+    comp = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(id))
     feature = comp.cartridge_name #@application.get_feature(comp.cartridge_name, comp.component_name)  
-    raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, nil, [cartridge]) if feature.nil?
+    raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, nil, [id]) if feature.nil?
     result = @application.remove_features([feature])
     status = requested_api_version <= 1.4 ? :no_content : :ok
 
-    render_success(status, nil, nil, "Removed #{cartridge} from application #{@application.name}", result)
+    render_success(status, nil, nil, "Removed #{id} from application #{@application.name}", result)
   end
 
   def update
     id = ComponentInstance.check_name!(params[:id].presence)
+    
+    return render_error(:not_found, "Invalid cartridge ID. It can only contain alphanumeric characters, dashes(-) and dots(.)", 109,
+                        "id") if id and id !~ CART_NAME_REGEX
+                        
     scales_from = Integer(params[:scales_from].presence) rescue nil
     scales_to = Integer(params[:scales_to].presence) rescue nil
     additional_storage = params[:additional_gear_storage].presence
