@@ -457,10 +457,10 @@ class Application
       group_instance.min = override_spec["min_gears"]
       group_instance.max = override_spec["max_gears"]
       group_instance.min = group_instance.component_instances.map { |ci| ci.min }.max if group_instance.min.nil?
-      group_instance.min = group_instance.sparse_components.map { |ci| ci.min }.max if group_instance.min.nil?
+      group_instance.min = group_instance.sparse_instances.map { |ci| ci.min }.max if group_instance.min.nil?
       if group_instance.max.nil?
         max = group_instance.component_instances.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min
-        max = group_instance.sparse_components.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min if max.nil?
+        max = group_instance.sparse_instances.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min if max.nil?
         group_instance.max = (max==MAX_SCALE_NUM ? -1 : max)
       end
       group_instance
@@ -2500,7 +2500,7 @@ class Application
   end
 
   def enforce_system_order(order, categories)
-    web_carts = categories['web_frameworks'] || []
+    web_carts = categories['web_framework'] || []
     service_carts = (categories['service'] || [])-web_carts
     plugin_carts = (categories['plugin'] || [])-service_carts
     web_carts.each { |w| 
