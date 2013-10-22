@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,20 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 22 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
+- Bug 1021371 (lnader@redhat.com)
+- Bug 1019109 (lnader@redhat.com)
+- fixed routing for events for backward compatibility (lnader@redhat.com)
+- remove whitespaces from gear status (lnader@redhat.com)
+- Bug 892899 (lnader@redhat.com)
+- Bug 1016782 (lnader@redhat.com)
+- Bug 994419 (lnader@redhat.com)
+- changed links to singular (lnader@redhat.com)
+- Fix for bug 1020440, 1021041, 1021462, 1021467, and a typo
+  (abhgupta@redhat.com)
+- <runtime extended> Fix output parsing for deployed artifacts
+  (jdetiber@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - fix bz1020169 - fix notify remove ssl cert (rchopra@redhat.com)
 - Merge pull request #3923 from rajatchopra/master
