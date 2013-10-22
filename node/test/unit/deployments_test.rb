@@ -28,7 +28,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
     @namespace = 'jwh201204301647'
     @gear_ip   = "127.0.0.1"
 
-    @test_dir = File.join('/tmp', time_to_s(Time.now))
+    @test_dir = PathUtils.join('/tmp', time_to_s(Time.now))
 
     Etc.stubs(:getpwnam).returns(
       OpenStruct.new(
@@ -40,8 +40,8 @@ class DeploymentsTest < OpenShift::NodeTestCase
     )
 
     @container = OpenShift::Runtime::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid, @app_name, @gear_uuid, @namespace, nil, nil, nil)
-    FileUtils.mkdir_p File.join(@test_dir, 'app-deployments', 'by-id')
-    @runtime_dir = File.join(@test_dir, 'app-root', 'runtime')
+    FileUtils.mkdir_p PathUtils.join(@test_dir, 'app-deployments', 'by-id')
+    @runtime_dir = PathUtils.join(@test_dir, 'app-root', 'runtime')
     FileUtils.mkdir_p @runtime_dir
   end
 
@@ -52,7 +52,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
   end
 
   def create_deployment_dir(deployment_datetime)
-    %w(repo dependencies build-dependencies).each {|d| FileUtils.mkdir_p File.join(@test_dir, 'app-deployments', deployment_datetime, d)}
+    %w(repo dependencies build-dependencies).each {|d| FileUtils.mkdir_p PathUtils.join(@test_dir, 'app-deployments', deployment_datetime, d)}
   end
 
   def time_to_s(time)
@@ -64,11 +64,11 @@ class DeploymentsTest < OpenShift::NodeTestCase
   end
 
   def test_all_deployments_populated
-    %w(ccc bbb aaa).each { |d| FileUtils.mkdir_p File.join(@test_dir, 'app-deployments', d)}
+    %w(ccc bbb aaa).each { |d| FileUtils.mkdir_p PathUtils.join(@test_dir, 'app-deployments', d)}
     all = @container.all_deployments
 
-    %w(aaa bbb ccc).each { |d| assert_includes all, File.join(@test_dir, 'app-deployments', d)}
-    refute_includes all, File.join(@test_dir, 'app-deployments', 'by-id')
+    %w(aaa bbb ccc).each { |d| assert_includes all, PathUtils.join(@test_dir, 'app-deployments', d)}
+    refute_includes all, PathUtils.join(@test_dir, 'app-deployments', 'by-id')
   end
 
   def test_latest_deployment_datetime
@@ -83,15 +83,15 @@ class DeploymentsTest < OpenShift::NodeTestCase
 =begin
     deployment_datetime1 = '2013-08-16_13-36-36.880'
     deployment_datetime2 = '2013-08-16_14-36-36.880'
-    FileUtils.mkdir_p File.join(@test_dir, 'app-deployments', deployment_datetime1, 'dependencies')
+    FileUtils.mkdir_p PathUtils.join(@test_dir, 'app-deployments', deployment_datetime1, 'dependencies')
     Dir.chdir(@runtime_dir) do
-      FileUtils.ln_s(File.join(%W(.. .. app-deployments #{deployment_datetime1} dependencies)), 'dependencies')
+      FileUtils.ln_s(PathUtils.join(%W(.. .. app-deployments #{deployment_datetime1} dependencies)), 'dependencies')
     end
-    FileUtils.mkdir_p File.join(@test_dir, 'app-deployments', deployment_datetime2, 'dependencies')
-    File.new(File.join(@test_dir, 'app-deployments', deployment_datetime1, 'dependencies', 'abc'), "w")
+    FileUtils.mkdir_p PathUtils.join(@test_dir, 'app-deployments', deployment_datetime2, 'dependencies')
+    File.new(PathUtils.join(@test_dir, 'app-deployments', deployment_datetime1, 'dependencies', 'abc'), "w")
     @container.move_dependencies(deployment_datetime2)
-    refute_file_exist File.join(@test_dir, 'app-deployments', deployment_datetime1, 'dependencies', 'abc')
-    assert_file_exist File.join(@test_dir, 'app-deployments', deployment_datetime2, 'dependencies', 'abc')
+    refute_file_exist PathUtils.join(@test_dir, 'app-deployments', deployment_datetime1, 'dependencies', 'abc')
+    assert_file_exist PathUtils.join(@test_dir, 'app-deployments', deployment_datetime2, 'dependencies', 'abc')
   end
 =end
     @container.expects(:run_in_container_context).with("set -x; shopt -s dotglob; /bin/mv app-root/runtime/dependencies/* app-deployments/2013-08-16_13-36-36.880/dependencies",
@@ -118,183 +118,79 @@ class DeploymentsTest < OpenShift::NodeTestCase
   def test_current_deployment_datetime
     deployment_datetime = '2013-08-16_14-36-36.881'
     create_deployment_dir(deployment_datetime)
-    Dir.chdir(@runtime_dir) do
-      FileUtils.ln_s(File.join(%W(.. .. app-deployments #{deployment_datetime} repo)), 'repo')
-    end
+    FileUtils.ln_s(deployment_datetime, PathUtils.join(@container.container_dir, 'app-deployments', 'current'))
 
     assert_equal deployment_datetime, @container.current_deployment_datetime
   end
 
-  def test_create_deployment_dir_no_current_deployment_no_force_clean_build
+  def test_create_deployment_dir
     deployment_datetime = Time.now
     deployment_datetime_s = time_to_s(deployment_datetime)
     Time.stubs(:now).returns(deployment_datetime)
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
+    deployment_dir = PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
     @container.expects(:set_rw_permission_R).with(deployment_dir)
-    @container.expects(:current_deployment_datetime).returns(nil)
-    @container.expects(:prune_deployments)
 
     created_datetime = @container.create_deployment_dir
 
     assert_equal created_datetime, deployment_datetime_s
     assert_path_exist deployment_dir
-    assert_path_exist File.join(deployment_dir, 'repo')
-    assert_path_exist File.join(deployment_dir, 'dependencies')
+    assert_path_exist PathUtils.join(deployment_dir, 'repo')
+    assert_path_exist PathUtils.join(deployment_dir, 'dependencies')
+    assert_path_exist PathUtils.join(deployment_dir, 'build-dependencies')
 
     assert_equal 0o40750, File.stat(deployment_dir).mode
-    assert_equal 0o40750, File.stat(File.join(deployment_dir, 'repo')).mode
-    assert_equal 0o40750, File.stat(File.join(deployment_dir, 'dependencies')).mode
-  end
-
-  def test_create_deployment_dir_keep_1
-    deployment_datetime = Time.now
-    deployment_datetime_s = time_to_s(deployment_datetime)
-    Time.stubs(:now).returns(deployment_datetime)
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
-    @container.expects(:set_rw_permission_R).with(deployment_dir)
-
-    current = time_to_s(deployment_datetime - 1.day)
-    @container.expects(:current_deployment_datetime).returns(current)
-
-    gear_env = {}
-    ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
-
-    @container.expects(:deployments_to_keep).with(gear_env).returns(1)
-
-    @container.expects(:move_dependencies).with(deployment_datetime_s)
-    @container.expects(:prune_deployments)
-
-    created_datetime = @container.create_deployment_dir
-
-    assert_equal created_datetime, deployment_datetime_s
-    assert_path_exist deployment_dir
-    assert_path_exist File.join(deployment_dir, 'repo')
-    assert_path_exist File.join(deployment_dir, 'dependencies')
-
-    assert_equal 0o40750, File.stat(deployment_dir).mode
-    assert_equal 0o40750, File.stat(File.join(deployment_dir, 'repo')).mode
-    assert_equal 0o40750, File.stat(File.join(deployment_dir, 'dependencies')).mode
-  end
-
-  def test_create_deployment_dir_keep_multiple
-    deployment_datetime = Time.now
-    deployment_datetime_s = time_to_s(deployment_datetime)
-    Time.stubs(:now).returns(deployment_datetime)
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
-    @container.expects(:set_rw_permission_R).with(deployment_dir)
-
-    current = time_to_s(deployment_datetime - 1.day)
-    @container.expects(:current_deployment_datetime).returns(current)
-
-    gear_env = {'OPENSHIFT_KEEP_DEPLOYMENTS' => "3"}
-    ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
-
-    @container.expects(:deployments_to_keep).with(gear_env).returns(3)
-
-    @container.expects(:prune_deployments).times(2)
-    @container.expects(:copy_dependencies).with(deployment_datetime_s)
-
-    created_datetime = @container.create_deployment_dir
-
-    assert_equal created_datetime, deployment_datetime_s
-    assert_path_exist deployment_dir
-    assert_path_exist File.join(deployment_dir, 'repo')
-    assert_path_exist File.join(deployment_dir, 'dependencies')
-
-    assert_equal 0o40750, File.stat(deployment_dir).mode
-    assert_equal 0o40750, File.stat(File.join(deployment_dir, 'repo')).mode
-    assert_equal 0o40750, File.stat(File.join(deployment_dir, 'dependencies')).mode
-  end
-
-  def test_create_deployment_dir_force_clean_build
-    deployment_datetime = Time.now
-    deployment_datetime_s = time_to_s(deployment_datetime)
-    Time.stubs(:now).returns(deployment_datetime)
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
-    @container.expects(:set_rw_permission_R).with(deployment_dir)
-    @container.expects(:prune_deployments)
-
-    created_datetime = @container.create_deployment_dir(force_clean_build: true)
-
-    assert_equal created_datetime, deployment_datetime_s
-    assert_path_exist deployment_dir
-    assert_path_exist File.join(deployment_dir, 'repo')
-    assert_path_exist File.join(deployment_dir, 'dependencies')
-
-    assert_equal 0o40750, File.stat(deployment_dir).mode
-    assert_equal 0o40750, File.stat(File.join(deployment_dir, 'repo')).mode
-    assert_equal 0o40750, File.stat(File.join(deployment_dir, 'dependencies')).mode
+    assert_equal 0o40750, File.stat(PathUtils.join(deployment_dir, 'repo')).mode
+    assert_equal 0o40750, File.stat(PathUtils.join(deployment_dir, 'dependencies')).mode
+    assert_equal 0o40750, File.stat(PathUtils.join(deployment_dir, 'build-dependencies')).mode
   end
 
   def test_get_deployment_datetime_for_deployment_id
     deployment_datetime = Time.now
     deployment_datetime_s = time_to_s(deployment_datetime)
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
+    deployment_dir = PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
     create_deployment_dir(deployment_datetime_s)
 
     deployment_id = 'abc12345'
 
-    Dir.chdir(File.join(@test_dir, 'app-deployments', 'by-id')) do
-      FileUtils.ln_s(File.join('..', deployment_datetime_s), deployment_id)
+    Dir.chdir(PathUtils.join(@test_dir, 'app-deployments', 'by-id')) do
+      FileUtils.ln_s(PathUtils.join('..', deployment_datetime_s), deployment_id)
     end
 
     assert_equal deployment_datetime_s, @container.get_deployment_datetime_for_deployment_id(deployment_id)
   end
 
-  def test_update_repo_symlink
-    deployment_datetime = 'now'
-    @container.expects(:update_symlink).with(deployment_datetime, 'repo')
-    @container.update_repo_symlink(deployment_datetime)
-  end
-
-  def test_update_dependencies_symlink
-    deployment_datetime = 'now'
-    @container.expects(:update_symlink).with(deployment_datetime, 'dependencies')
-    @container.update_dependencies_symlink(deployment_datetime)
-  end
-
-  def test_update_build_dependencies_symlink
-    deployment_datetime = 'now'
-    @container.expects(:update_symlink).with(deployment_datetime, 'build-dependencies')
-    @container.update_build_dependencies_symlink(deployment_datetime)
-  end
-
-
-  def test_update_symlinks
+  def test_sync_runtime_to_deployment
     %w(repo dependencies build-dependencies).each do |dir|
-      # make sure the link doesn't exist at first
-      path = File.join(@runtime_dir, dir)
-      refute_path_exist path
+      deployment_datetime = 'now'
+      from = PathUtils.join(@container.container_dir, 'app-root', 'runtime', dir)
+      to = PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, dir)
+      command = "/usr/bin/rsync -av --delete #{from}/ #{to}/"
+      @container.expects(:run_in_container_context).with(command, expected_exitstatus: 0)
 
-      # loop a few times to make sure the link is updated correctly
-      3.times do
-        deployment_datetime = Time.now
-        deployment_datetime_s = time_to_s(deployment_datetime)
-        deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
-        create_deployment_dir(deployment_datetime_s)
+      @container.send("sync_runtime_#{dir.gsub(/-/, '_')}_dir_to_deployment".to_sym, deployment_datetime)
+    end
+  end
 
-        @container.send("update_#{dir.gsub(/-/, '_')}_symlink".to_sym, deployment_datetime_s)
+  def test_sync_deployment_to_runtime
+    %w(repo dependencies build-dependencies).each do |dir|
+      deployment_datetime = 'now'
+      from = PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, dir)
+      to = PathUtils.join(@container.container_dir, 'app-root', 'runtime', dir)
+      command = "/usr/bin/rsync -av --delete #{from}/ #{to}/"
+      @container.expects(:run_in_container_context).with(command, expected_exitstatus: 0)
 
-        assert_path_exist path
-
-        link_value = File.readlink(path)
-        assert_equal "#{@container.container_dir}app-deployments/#{deployment_datetime_s}/#{dir}", link_value
-
-        stat = File.lstat(path)
-        assert_equal @user_uid, stat.uid.to_s
-        assert_equal @user_uid, stat.gid.to_s
-      end
+      @container.send("sync_deployment_#{dir.gsub(/-/, '_')}_dir_to_runtime".to_sym, deployment_datetime)
     end
   end
 
   def test_delete_deployment_without_by_id_symlink
     deployment_datetime = Time.now
     deployment_datetime_s = time_to_s(deployment_datetime)
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
+    deployment_dir = PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
     create_deployment_dir(deployment_datetime_s)
 
     assert_path_exist deployment_dir
-    assert_empty Dir["#{File.join(@test_dir, 'app-deployments', 'by-id')}/*"]
+    assert_empty Dir["#{PathUtils.join(@test_dir, 'app-deployments', 'by-id')}/*"]
 
     @container.delete_deployment(deployment_datetime_s)
 
@@ -304,23 +200,23 @@ class DeploymentsTest < OpenShift::NodeTestCase
   def test_delete_deployment_with_by_id_symlink
     deployment_datetime = Time.now
     deployment_datetime_s = time_to_s(deployment_datetime)
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
+    deployment_dir = PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime_s)
     create_deployment_dir(deployment_datetime_s)
 
     deployment_id = 'abc12345'
 
-    by_id_dir = File.join(@test_dir, 'app-deployments', 'by-id')
+    by_id_dir = PathUtils.join(@test_dir, 'app-deployments', 'by-id')
     Dir.chdir(by_id_dir) do
-      FileUtils.ln_s(File.join('..', deployment_datetime_s), deployment_id)
+      FileUtils.ln_s(PathUtils.join('..', deployment_datetime_s), deployment_id)
     end
 
     assert_path_exist deployment_dir
-    assert_path_exist File.join(by_id_dir, deployment_id)
+    assert_path_exist PathUtils.join(by_id_dir, deployment_id)
 
     @container.delete_deployment(deployment_datetime_s)
 
     refute_path_exist deployment_dir
-    refute_path_exist File.join(by_id_dir, deployment_id)
+    refute_path_exist PathUtils.join(by_id_dir, deployment_id)
   end
 
   # make sure it doesn't delete any deployments if we're under the limit

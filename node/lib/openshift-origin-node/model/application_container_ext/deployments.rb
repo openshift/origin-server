@@ -21,7 +21,7 @@ module OpenShift
         def all_deployments
           deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
 
-          Dir[deployments_dir + "/*"].entries.reject { |e| File.basename(e) == 'by-id' }
+          Dir[deployments_dir + "/*"].entries.reject { |e| %w(by-id current).include?(File.basename(e)) }
         end
 
         # Returns all the date/time based deployment directories (full paths),
@@ -80,24 +80,33 @@ module OpenShift
 
         end
 
+        def clean_dependencies
+          out, err, rc = run_in_container_context("shopt -s dotglob; /bin/rm -rf app-root/runtime/dependencies/* app-root/runtime/build-dependencies/*",
+                                                    chdir: @container_dir,
+                                                    expected_exitstatus: 0)
+        end
+
         def current_deployment_datetime
-          repo_link = PathUtils.join(@container_dir, 'app-root', 'runtime', 'repo')
+          file = PathUtils.join(@container_dir, 'app-deployments', 'current')
+          if File.exist?(file)
+            File.readlink(file)
+          else
+            nil
+          end
+        end
 
-          return nil unless File.symlink?(repo_link)
-
-          # will be something like ../../app-deployments/2013-07-29_12-13-14/repo
-          link = File.readlink(repo_link)
-
-          # dirname gets ../../app-deployments/2013-07-29_12-13-14
-          # basename of the dirname therefore yields the datetime
-          File.basename(File.dirname(link))
+        def update_current_deployment_datetime_symlink(deployment_datetime)
+          file = PathUtils.join(@container_dir, 'app-deployments', 'current')
+          FileUtils.rm_f(file)
+          FileUtils.ln_s(deployment_datetime, file)
+          PathUtils.oo_lchown(uid, gid, file)
         end
 
         # Creates a deployment directory in app-root/deployments with a name like
         # 2013-07-19_09-37-03.431
         #
         # returns the name of the newly created directory (just the date and time, not the full path)
-        def create_deployment_dir(options={})
+        def create_deployment_dir()
           deployment_datetime = Time.now.strftime(DEPLOYMENT_DATETIME_FORMAT)
           full_path = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
           FileUtils.mkdir_p(full_path)
@@ -107,31 +116,6 @@ module OpenShift
           FileUtils.chmod_R(0o0750, full_path, :verbose => @debug)
           set_rw_permission_R(full_path)
 
-          current = current_deployment_datetime
-          if options[:force_clean_build] or current.nil?
-            # force clean build is true or no active deployment
-
-            # create the dependency directories for each cartridge
-            @cartridge_model.each_cartridge do |cartridge|
-              @cartridge_model.create_dependency_directories(cartridge)
-            end
-          else
-            gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
-            to_keep = deployments_to_keep(gear_env)
-
-            if to_keep == 1
-              # move deps from the current deployment to this new one
-              # current deployment will be deleted by prune_deployments below
-              move_dependencies(deployment_datetime)
-            else
-              # calling prune here to delete the oldest to save on disk space
-              prune_deployments
-
-              copy_dependencies(deployment_datetime)
-            end
-          end
-
-          # need to call this regardless of force_clean_build above so we always stay <= deployments_to_keep
           prune_deployments
 
           deployment_datetime
@@ -153,9 +137,9 @@ module OpenShift
         end
 
         def link_deployment_id(deployment_datetime, deployment_id)
-          FileUtils.cd(PathUtils.join(@container_dir, 'app-deployments', 'by-id')) do
-            FileUtils.ln_s(PathUtils.join('..', deployment_datetime), deployment_id)
-          end
+          target = PathUtils.join('..', deployment_datetime)
+          link = PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id)
+          FileUtils.ln_s(target, link)
         end
 
         def unlink_deployment_id(deployment_id)
@@ -172,26 +156,45 @@ module OpenShift
           File.basename(deployment_dir_link)
         end
 
-        def update_symlink(deployment_datetime, name)
-          link = PathUtils.join(@container_dir, 'app-root', 'runtime', name)
-          if not File.exist?(link) or File.readlink(link).split('/')[-2] != deployment_datetime
-            target = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime, name)
-            FileUtils.rm_f(link)
-            FileUtils.ln_s(target, link)
-            PathUtils.oo_lchown(uid, gid, link)
-          end
+        def sync_files(from, to)
+          out, err, rc = run_in_container_context("/usr/bin/rsync -av --delete #{from}/ #{to}/",
+                                                  expected_exitstatus: 0)
         end
 
-        def update_repo_symlink(deployment_datetime)
-          update_symlink(deployment_datetime, 'repo')
+        def sync_deployment_dir_to_runtime(deployment_datetime, name)
+          from = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime, name)
+          to = PathUtils.join(@container_dir, 'app-root', 'runtime', name)
+          sync_files(from, to)
         end
 
-        def update_dependencies_symlink(deployment_datetime)
-          update_symlink(deployment_datetime, 'dependencies')
+        def sync_deployment_repo_dir_to_runtime(deployment_datetime)
+          sync_deployment_dir_to_runtime(deployment_datetime, 'repo')
         end
 
-        def update_build_dependencies_symlink(deployment_datetime)
-          update_symlink(deployment_datetime, 'build-dependencies')
+        def sync_deployment_dependencies_dir_to_runtime(deployment_datetime)
+          sync_deployment_dir_to_runtime(deployment_datetime, 'dependencies')
+        end
+
+        def sync_deployment_build_dependencies_dir_to_runtime(deployment_datetime)
+          sync_deployment_dir_to_runtime(deployment_datetime, 'build-dependencies')
+        end
+
+        def sync_runtime_dir_to_deployment(deployment_datetime, name)
+          from = PathUtils.join(@container_dir, 'app-root', 'runtime', name)
+          to = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime, name)
+          sync_files(from, to)
+        end
+
+        def sync_runtime_repo_dir_to_deployment(deployment_datetime)
+          sync_runtime_dir_to_deployment(deployment_datetime, 'repo')
+        end
+
+        def sync_runtime_dependencies_dir_to_deployment(deployment_datetime)
+          sync_runtime_dir_to_deployment(deployment_datetime, 'dependencies')
+        end
+
+        def sync_runtime_build_dependencies_dir_to_deployment(deployment_datetime)
+          sync_runtime_dir_to_deployment(deployment_datetime, 'build-dependencies')
         end
 
         def delete_deployment(deployment_datetime)

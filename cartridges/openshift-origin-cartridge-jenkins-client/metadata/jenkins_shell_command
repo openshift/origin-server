@@ -4,14 +4,8 @@ alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 
 upstream_ssh="UPSTREAM_SSH"
 
-# Create a new deployment dir
-# NOTE: the deployment dir's repo dir will remain empty and
-# ~/app-root/runtime/repo will be used instead
-local_deployment_dir=`gear create-deployment-dir`
-
-# Set up symlinks
-ln -nsf $OPENSHIFT_HOMEDIR/app-deployments/$local_deployment_dir/build-dependencies $OPENSHIFT_HOMEDIR/app-root/runtime/build-dependencies
-ln -nsf $OPENSHIFT_HOMEDIR/app-deployments/$local_deployment_dir/dependencies $OPENSHIFT_HOMEDIR/app-root/runtime/dependencies
+# remove previous metadata, if any
+rm -f $OPENSHIFT_HOMEDIR/app-deployments/current/metadata.json
 
 if ! marker_present "force_clean_build"; then
   # don't fail if these rsyncs fail
@@ -34,10 +28,10 @@ $GIT_SSH $upstream_ssh "gear stop --conditional --exclude-web-proxy --git-ref $G
 deployment_dir=`$GIT_SSH $upstream_ssh 'gear create-deployment-dir'`
 
 # Push content back to application
-rsync $OPENSHIFT_HOMEDIR/app-deployments/$local_deployment_dir/metadata.json $upstream_ssh:app-deployments/$deployment_dir/metadata.json
-rsync $WORKSPACE/ $upstream_ssh:app-deployments/$deployment_dir/repo/
-rsync $OPENSHIFT_BUILD_DEPENDENCIES_DIR $upstream_ssh:app-deployments/$deployment_dir/build-dependencies/
-rsync $OPENSHIFT_DEPENDENCIES_DIR $upstream_ssh:app-deployments/$deployment_dir/dependencies/
+rsync $OPENSHIFT_HOMEDIR/app-deployments/current/metadata.json $upstream_ssh:app-deployments/$deployment_dir/metadata.json
+rsync $WORKSPACE/ $upstream_ssh:app-root/runtime/repo/
+rsync $OPENSHIFT_BUILD_DEPENDENCIES_DIR $upstream_ssh:app-root/runtime/build-dependencies/
+rsync $OPENSHIFT_DEPENDENCIES_DIR $upstream_ssh:app-root/runtime/dependencies/
 
 # Configure / start app
 $GIT_SSH $upstream_ssh "gear remotedeploy --deployment-datetime $deployment_dir"

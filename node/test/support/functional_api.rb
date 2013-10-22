@@ -18,6 +18,7 @@ class FunctionalApi
     'jbossews-2.0' => 'src/main/webapp/index.html',
     'mock-0.1'     => 'index.html',
     'nodejs-0.6'   => 'index.html',
+    'nodejs-0.10'   => 'index.html',
     'perl-5.10'    => 'perl/index.pl',
     'php-5.3'      => 'php/index.php',
     'python-2.6'   => 'wsgi/application',

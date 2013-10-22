@@ -104,15 +104,16 @@ module OpenShift
 
           FileUtils.mkdir_p(PathUtils.join(gearappdir, "runtime"), :verbose => @debug)
 
-          add_env_var("DEPENDENCIES_DIR", PathUtils.join(gearappdir, "runtime", "dependencies") + "/", true)
-          add_env_var("BUILD_DEPENDENCIES_DIR", PathUtils.join(gearappdir, "runtime", "build-dependencies") + "/", true)
+          add_env_var("DEPENDENCIES_DIR", PathUtils.join(gearappdir, "runtime", "dependencies") + "/", true) do |d|
+            FileUtils.mkdir_p(d, :verbose => @debug)
+          end
+
+          add_env_var("BUILD_DEPENDENCIES_DIR", PathUtils.join(gearappdir, "runtime", "build-dependencies") + "/", true) do |d|
+            FileUtils.mkdir_p(d, :verbose => @debug)
+          end
 
           add_env_var("REPO_DIR", PathUtils.join(gearappdir, "runtime", "repo") + "/", true) do |v|
-            FileUtils.cd gearappdir do |d|
-              FileUtils.ln_s("runtime/repo", "repo", :verbose => @debug)
-              FileUtils.ln_s("runtime/dependencies", "dependencies", :verbose => @debug)
-              FileUtils.ln_s("runtime/build-dependencies", "build-dependencies", :verbose => @debug)
-            end
+            FileUtils.mkdir_p(v, :verbose => @debug)
             FileUtils.cd PathUtils.join(gearappdir, "runtime") do |d|
               FileUtils.ln_s("../data", "data", :verbose => @debug)
             end
@@ -126,16 +127,10 @@ module OpenShift
           add_env_var('GEAR_MEMORY_MB', (memory_in_bytes() / 1024**2).to_s, true)
 
           # Update all directory entries ~/app-root/*
-          Dir[gearappdir + "/*"].entries.reject{|e| ['.', '..', 'repo', 'dependencies', 'build-dependencies'].include?(File.basename(e))}.each {|e|
+          Dir[gearappdir + "/*"].entries.reject{|e| ['.', '..'].include?(File.basename(e))}.each do |e|
             FileUtils.chmod_R(0750, e, :verbose => @debug)
             set_rw_permission_R(e)
-          }
-
-          update_build_dependencies_symlink(deployment_datetime)
-          update_dependencies_symlink(deployment_datetime)
-
-          # Change symlink ownership
-          PathUtils.oo_lchown(uid, gid, "#{gearappdir}/repo", "#{gearappdir}/dependencies", "#{gearappdir}/build-dependencies")
+          end
 
           set_ro_permission(gearappdir)
           raise "Failed to instantiate gear: missing application directory (#{gearappdir})" unless File.exist?(gearappdir)
