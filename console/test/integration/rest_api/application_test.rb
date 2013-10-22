@@ -105,7 +105,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     app = with_app
     opts = app.send(:child_options)
 
-    m = response_messages(ActiveResource::ResourceInvalid){ app.find_cartridge("_missing!_") }
+    #m = response_messages(ActiveResource::ResourceInvalid){ app.find_cartridge("_missing!_") }
 
     m = response_messages(RestApi::ResourceNotFound){ app.find_cartridge("missing-cart") }
     assert_messages 1, /cartridge/i, /missing-cart/i, m
