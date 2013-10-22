@@ -609,7 +609,7 @@ a document data storage system that uses JavaScript for the command syntax and s
 In order to use MongoDB, you will need to install the mongod server:
 
 ----
-yum install -y mongodb-server mongodb
+yum install -y mongodb-server mongodb libmongodb
 ----
 
 At the time of this writing, you should see the following packages being installed:
