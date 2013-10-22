@@ -269,6 +269,20 @@ def add_gear_size(user, gear_size)
     print "Adding gear size #{gear_size} for user #{user.login}... "
 
     begin
+      if Rails.configuration.respond_to?('billing')
+        billing_config = Rails.configuration.billing
+        allowed_gears = []
+        billing_config[:plans].each do |plan_id, plan_info|
+          allowed_gears += plan_info[:capabilities]['gear_sizes']
+        end
+        allowed_gears.uniq!
+        unless allowed_gears.include?(gear_size)
+          if (user.plan_id != billing_config[:default_plan].to_s) or user.usage_account_id.present?
+            puts "Error: User is not allowed to use gear size #{gear_size}."
+            exit 5
+          end
+        end
+      end
       user.add_gear_size(gear_size)
     rescue Exception=>e
       puts e.message
