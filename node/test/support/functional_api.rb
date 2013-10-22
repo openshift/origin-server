@@ -31,28 +31,21 @@ class FunctionalApi
 
   def initialize
     @login = "user#{random_string}"
-    register_user(@login,"password")
     @namespace = "ns#{random_string}"
     @url_base = "https://#{@login}:password@localhost/broker/rest"
     @tmp_dir = "/var/tmp-tests/#{Time.now.to_i}"
     FileUtils.mkdir_p(@tmp_dir)
-
-    if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
-      `oo-register-user -l admin -p admin --username #{@login} --userpass password`
-    elsif File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
-      system "/usr/bin/htpasswd -b /etc/openshift/htpasswd #{@login} password"
-    else
-      #ignore
-      print "Unknown auth plugin. Not registering user #{$user}/#{$password}."
-      print "Modify #{__FILE__}#initialize if user registration is required."
-      cmd = nil
-    end
   end
 
   def register_user(login=nil, password=nil)
     if ENV['REGISTER_USER']
       if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
         `/usr/bin/htpasswd -b /etc/openshift/htpasswd #{login} #{password}`
+      elsif File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
+        `oo-register-user -l admin -p admin --username #{login} --userpass #{password}`
+      else
+        print "Unknown auth plugin. Not registering user #{$user}/#{$password}."
+        print "Modify #{__FILE__}:37 if user registration is required."
       end
     end
   end
@@ -64,6 +57,7 @@ class FunctionalApi
   end
 
   def create_domain
+    register_user(@login,"password")
     RestClient.post("#{@url_base}/domains", {name: @namespace}, accept: :json)
     logger.info("Created domain #{@namespace} for user #{@login}")
 
