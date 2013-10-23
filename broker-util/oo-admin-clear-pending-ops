@@ -94,15 +94,15 @@ def clean_app(a)
             raise Exception.new("Op already being rolled back.. continuing.")
           end
           op.execute 
-          a.unreserve_gears(op.num_gears_removed)
+          op.unreserve_gears(op.num_gears_removed, a)
           success = true
-          delete_app = true if op.class == DeleteAppOpGroup
+          delete_app = true if (op.class == DeleteAppOpGroup) or (op.class == RemoveFeaturesOpGroup and op.remove_all_features)
         rescue Exception => e
           print "Execution failed. Rolling back.."
           begin
             op.execute_rollback
             num_gears_recovered = op.num_gears_added - op.num_gears_created + op.num_gears_rolled_back + op.num_gears_destroyed
-            a.unreserve_gears(num_gears_recovered)
+            op.unreserve_gears(num_gears_recovered, a)
             success = true
             puts " complete."
           rescue Exception=>ex

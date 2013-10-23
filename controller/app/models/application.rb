@@ -762,14 +762,8 @@ class Application
     }
     # specifying the remove_all_features flag as true to ensure removal of all features
     result_io.append(self.remove_features(self.requires, [], true, true))
-    Application.run_in_application_lock(self) do
-      #self.pending_op_groups.push PendingAppOpGroup.new(op_type: :delete_app, user_agent: self.user_agent)
-      op_group = DeleteAppOpGroup.new(user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
-      self.run_jobs(result_io)
-      notify_observers(:after_destroy)
-      result_io
-    end
+    notify_observers(:after_destroy)
+    result_io
   end
 
   ##
@@ -1535,11 +1529,19 @@ class Application
         op_group = self.pending_op_groups.first
         self.user_agent = op_group.user_agent
         op_group.elaborate(self) if op_group.pending_ops.count == 0
+
+        if op_group.pending_ops.where(:state => :rolledback).count > 0
+          raise Exception.new("Op group is being rolled back.")
+        end
+
+        Rails.logger.debug "Executing #{op_group.class.to_s}: #{op_group.inspect}"
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
 
-        self.reload unless op_group.class == DeleteAppOpGroup
+        unless (op_group.class == DeleteAppOpGroup) or (op_group.class == RemoveFeaturesOpGroup and op_group.remove_all_features)
+          self.reload
+        end
       end
       true
     rescue Exception => e_orig
@@ -2319,51 +2321,6 @@ class Application
     end
 
     [changes, moves]
-  end
-
-  # Persists change operation only if the additional number of gears requested are available on the domain owner
-  #
-  # == Parameters:
-  # num_gears::
-  #   Number of gears to add or remove
-  #
-  # ops::
-  #   Array of pending operations.
-  #   @see {PendingAppOps}
-  def try_reserve_gears(num_gears_added, num_gears_removed, op_group, ops)
-    owner = self.domain.owner
-    begin
-      until Lock.lock_user(owner, self)
-        sleep 1
-      end
-      owner.reload
-      if owner.consumed_gears + num_gears_added > owner.max_gears and num_gears_added > 0
-        raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.max_gears} limit and this application requires #{num_gears_added} additional gears.")
-      end
-      owner.consumed_gears += num_gears_added
-      op_group.pending_ops.push ops
-      op_group.num_gears_added = num_gears_added
-      op_group.num_gears_removed = num_gears_removed
-      op_group.save
-      owner.save
-    ensure
-      Lock.unlock_user(owner, self)
-    end
-  end
-
-  def unreserve_gears(num_gears_removed)
-    return if num_gears_removed == 0
-    owner = self.domain.owner
-    begin
-      until Lock.lock_user(owner, self)
-        sleep 1
-      end
-      owner.reload
-      owner.consumed_gears -= num_gears_removed
-      owner.save
-    ensure
-      Lock.unlock_user(owner, self)
-    end
   end
 
   def process_group_overrides(component_instances, group_overrides)
