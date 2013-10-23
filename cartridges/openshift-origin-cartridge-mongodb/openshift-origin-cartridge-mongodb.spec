@@ -31,6 +31,19 @@ Provides mongodb cartridge support to OpenShift
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
+%__mkdir -p %{buildroot}%{cartridgedir}/usr/journal-cache
+
+
+%post
+%{cartridgedir}/bin/mkjournal %{cartridgedir}/usr/journal-cache/journal.tar.gz
+
+
+%preun
+if [ $1 -eq 0 ]; then
+  %__rm -f %{cartridgedir}/usr/journal-cache/journal.tar.gz
+fi
+
+
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/

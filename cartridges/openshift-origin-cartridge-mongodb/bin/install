@@ -7,6 +7,13 @@ esac
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
+# install premade journal
+mkdir -p $OPENSHIFT_MONGODB_DIR/data
+if [ -e $OPENSHIFT_MONGODB_DIR/usr/journal-cache/journal.tar.gz ]; then
+    echo 'Unpacking premade journal'
+    tar -C $OPENSHIFT_MONGODB_DIR/data -xzf $OPENSHIFT_MONGODB_DIR/usr/journal-cache/journal.tar.gz
+fi
+
 # generate password and setup env vars
 echo 'Generating username and password'
 
