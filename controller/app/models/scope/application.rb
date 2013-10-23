@@ -7,7 +7,7 @@ class Scope::Application < Scope::Parameterized
     :scale => nil,
     :edit => 'Grant edit access to a single application.',
     :admin => 'Grant full administrative access to a single application.',
-    :report_deployments => 'Grant permission to update the list of available deployments.'
+    :report_deployments => nil
   }.freeze
 
   def allows_action?(controller)
