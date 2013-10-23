@@ -1,3 +1,9 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+%{!?scl:%global pkg_name %{name}}
+%{?scl:%scl_package rubygem-%{gem_name}}
 %global gem_name openshift-origin-dns-avahi
 %global rubyabi 1.9.1
 
@@ -14,8 +20,8 @@ Requires:      ruby(release)
 %else
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
-Requires:      rubygems
-Requires:      rubygem(json)
+Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      rubygem(openshift-origin-common)
 Requires:      openshift-origin-broker
 Requires:      selinux-policy-targeted
@@ -25,8 +31,8 @@ BuildRequires: ruby(release)
 %else
 BuildRequires: %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
-BuildRequires: rubygems
-BuildRequires: rubygems-devel
+BuildRequires: %{?scl:%scl_prefix}rubygems
+BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
 
