@@ -35,6 +35,7 @@ Dummy::Application.configure do
   
   config.ss = {
     :domain_suffix => "example.com",
+    :default_max_domains => 1,
     :default_max_gears => 5
   }
   

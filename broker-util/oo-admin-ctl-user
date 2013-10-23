@@ -24,6 +24,8 @@ def usage
 Options:
   -l|--login <login_name>
     Login with OpenShift access (required)
+  --setmaxdomains <number>
+    Set the maximum number of domains a user is allowed to use
   --setmaxgears <number>
     Set the maximum number of gears a user is allowed to use
   --setmaxtrackedstorage <number>
@@ -70,6 +72,24 @@ class String
         return true if self.to_s.strip =~ /^(true|t|yes|y|1)$/i
 
         return false
+    end
+end
+
+def set_max_domains(user, maxdomains)
+    caps = user.capabilities
+    if caps["max_domains"] == maxdomains
+        puts "User already has max_domains set to #{user.max_domains}"
+        return
+    end
+
+    print "Setting max_domains to #{maxdomains}... "
+    caps["max_domains"] = maxdomains
+    if user.save
+        puts "Done."
+    else
+        puts "An error occurred saving the user."
+        puts "Errors: #{user.errors.messages}"
+        exit 6
     end
 end
 
@@ -553,6 +573,8 @@ caps = user.capabilities
 # print out the user's current settings
 puts "User #{user.login}:"
 puts "                            plan: #{user.plan_id}"
+puts "                consumed domains: #{user.domains.count}"
+puts "                     max domains: #{user.max_domains}"
 puts "                  consumed gears: #{user.consumed_gears}"
 puts "                       max gears: #{caps['max_gears']}"
 puts "    max tracked storage per gear: #{caps['max_tracked_addtl_storage_per_gear'] || 0}"

@@ -135,7 +135,7 @@ class SubUserTest < ActionDispatch::IntegrationTest
     assert_equal 200, status
 
     u = CloudUser.find_by login: "#{@username}"
-    u.capabilities = {"subaccounts"=>true, "gear_sizes"=>Rails.configuration.openshift[:gear_sizes], "max_gears"=>3, "inherit_on_subaccounts"=>["gear_sizes"]}
+    u.capabilities = {"subaccounts"=>true, "gear_sizes"=>Rails.configuration.openshift[:gear_sizes], "max_domains" => 1, "max_gears"=>3, "inherit_on_subaccounts"=>["gear_sizes"]}
     u.save
 
     user = CloudUser.find_by(login: @username)
@@ -150,7 +150,7 @@ class SubUserTest < ActionDispatch::IntegrationTest
     assert_equal Rails.configuration.openshift[:gear_sizes].sort, capabilities["gear_sizes"].sort
 
     u = CloudUser.find_by login: "#{@username}"
-    u.capabilities = {"subaccounts"=>true, "gear_sizes"=>Rails.configuration.openshift[:default_gear_capabilities], "max_gears"=>3, "inherit_on_subaccounts"=>["gear_sizes"]}
+    u.capabilities = {"subaccounts"=>true, "gear_sizes"=>Rails.configuration.openshift[:default_gear_capabilities], "max_domains" => 1, "max_gears"=>3, "inherit_on_subaccounts"=>["gear_sizes"]}
     u.save
 
     subuser = CloudUser.find_by(login: "subuser#{@random}")
@@ -158,7 +158,7 @@ class SubUserTest < ActionDispatch::IntegrationTest
     assert_equal Rails.configuration.openshift[:default_gear_capabilities].sort, capabilities["gear_sizes"].sort
 
     u = CloudUser.find_by login: "#{@username}"
-    u.capabilities = {"subaccounts"=>true, "gear_sizes"=>Rails.configuration.openshift[:default_gear_capabilities], "max_gears"=>3, "inherit_on_subaccounts"=>[]}
+    u.capabilities = {"subaccounts"=>true, "gear_sizes"=>Rails.configuration.openshift[:default_gear_capabilities], "max_domains" => 1, "max_gears"=>3, "inherit_on_subaccounts"=>[]}
     u.save
 
     subuser = CloudUser.find_by(login: "subuser#{@random}")

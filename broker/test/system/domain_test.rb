@@ -93,7 +93,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     request_via_redirect(:post, DOMAIN_COLLECTION_URL, {:name => ns, :nolinks => true}, @headers)
     assert_response :created
 
-    OpenShift::ApplicationContainerProxy.stubs(:max_user_domains).returns(2)
+    CloudUser.any_instance.stubs(:max_domains).returns(2)
 
     # domain creation should fail because namespace is not available
     request_via_redirect(:post, DOMAIN_COLLECTION_URL, {:name => ns, :nolinks => true}, @headers)
@@ -101,7 +101,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 103)
 
-    OpenShift::ApplicationContainerProxy.stubs(:max_user_domains).returns(1)
+    CloudUser.any_instance.stubs(:max_domains).returns(1)
 
     # domain creation should fail because user already has a domain
     request_via_redirect(:post, DOMAIN_COLLECTION_URL, {:name => new_ns, :nolinks => true}, @headers)

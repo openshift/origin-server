@@ -89,7 +89,7 @@ class DomainsControllerTest < ActionController::TestCase
     #try name that exists
     namespace = "ns#{@random}"
 
-    OpenShift::ApplicationContainerProxy.stubs(:max_user_domains).returns(2)
+    CloudUser.any_instance.stubs(:max_domains).returns(2)
     post :create, {"name" => namespace}
     assert_response :created
     post :create, {"name" => namespace}
@@ -102,7 +102,7 @@ class DomainsControllerTest < ActionController::TestCase
     put :update , {"existing_name" => namespace, "name" => "ns#{@random}"}
     assert_response :unprocessable_entity
 
-    OpenShift::ApplicationContainerProxy.stubs(:max_user_domains).returns(1)
+    CloudUser.any_instance.stubs(:max_domains).returns(1)
 
     #try more than one domain
     namespace = "ns#{@random}X"
@@ -111,7 +111,7 @@ class DomainsControllerTest < ActionController::TestCase
   end
 
   test "user can create multiple domains" do
-    OpenShift::ApplicationContainerProxy.stubs(:max_user_domains).returns(2)
+    CloudUser.any_instance.stubs(:max_domains).returns(2)
 
     assert_difference("Domain.count", 1) do
       post :create, {"name" => "ns1#{@random}"}
