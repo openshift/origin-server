@@ -246,6 +246,12 @@ function enable-server() {
         echo "Enabling server $gear"
         if [ "${gear}" == "${OPENSHIFT_GEAR_UUID}" ]; then
             gearid="local-gear"
+            info=($(app_web_to_proxy_ratio_and_colocated_gears))
+            ratio=${info[0]}
+            if [ "$ratio" -ge 3 ]; then
+                echo "Not enabling local gear since web/proxy ratio is $ratio"
+                return 0
+            fi
         elif [ "${gear}" == "${OPENSHIFT_APP_UUID}" ]; then
             domain=$(get-app-domain)
             gearid="gear-${OPENSHIFT_APP_NAME}-${domain}"
