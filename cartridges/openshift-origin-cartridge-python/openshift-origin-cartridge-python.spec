@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,11 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Merge pull request #3955 from ncdc/copy-on-activate
+  (dmcphers+openshiftbot@redhat.com)
+- Various deploy fixes (andy.goldstein@gmail.com)
+
 * Tue Oct 22 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Bug 1020841 - Tune python cartridge by increasing number of threads instead
   of stack-size (mfojtik@redhat.com)
