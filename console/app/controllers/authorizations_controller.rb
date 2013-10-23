@@ -12,7 +12,7 @@ class AuthorizationsController < ConsoleController
     scope_definitions
 
     if @authorization.save
-      redirect_to authorization_path(@authorization)
+      redirect_to authorization_path(@authorization), :flash => {:success => 'New authorization token created'}
     else
       render :new
     end

@@ -8,7 +8,7 @@
 
     .control-group{:class => @authorization.errors[:scope].present? ? 'error' : ''}
       .controls
-        %p Select which rights you want to allow clients to have. You may select multiple scopes, or if you select none the server will choose a default scope.
+        %p Select which rights you want to allow clients to have. You may select multiple scopes, or if you select none the server will choose a default scope. Note: If you select several scopes, you'll be able to perform actions that any of your scopes allow, but your token will expire after the shortest scope expires.
         - field = 'authorization[scopes][]'
         - unmatched_scopes = @authorization.scopes - @simple_scopes.map{ |s| s[:id] }
         = hidden_field_tag field, ''
@@ -30,19 +30,18 @@
                 %td= scope[:description]
         - if @parameter_scopes.present?
           %p Or, you can enter scopes directly for those that require a parameter.  Separate multiple scopes with a space or comma.
-          %table.table.table-condensed
+
+          = text_field_tag field, unmatched_scopes.join(' '), :class => 'span8'
+          = f.inline_errors_for :scope
+
+          %table.table.table-condensed.table-no-borders
             %tbody
               - @parameter_scopes.each do |scope|
                 %tr
                   %td.span3= scope[:id]
                   %td= scope[:description]
 
-          = text_field_tag field, unmatched_scopes.join(' '), :class => 'span6'
-          = f.inline_errors_for :scope
-
-    %p If you select several scopes, you'll be able to perform actions that any of your scopes allow, but your token will expire after the shortest scope expires.
-
-    = f.input :note, :as => :text, :label => 'Add a reminder about what this authorization is for', :input_html => {:class => 'span6', :rows => 2}
+    = f.input :note, :as => :text, :label => 'Description of what this authorization is for', :input_html => {:class => 'span8', :rows => 2}
 
   = f.buttons do
     = link_to "Cancel", settings_path, :class => 'btn'
