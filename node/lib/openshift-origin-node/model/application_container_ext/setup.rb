@@ -114,6 +114,11 @@ module OpenShift
 
           add_env_var("REPO_DIR", PathUtils.join(gearappdir, "runtime", "repo") + "/", true) do |v|
             FileUtils.mkdir_p(v, :verbose => @debug)
+            FileUtils.cd gearappdir do |d|
+              FileUtils.ln_s("runtime/repo", "repo", :verbose => @debug)
+              FileUtils.ln_s("runtime/dependencies", "dependencies", :verbose => @debug)
+              FileUtils.ln_s("runtime/build-dependencies", "build-dependencies", :verbose => @debug)
+            end
             FileUtils.cd PathUtils.join(gearappdir, "runtime") do |d|
               FileUtils.ln_s("../data", "data", :verbose => @debug)
             end
