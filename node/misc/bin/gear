@@ -41,6 +41,8 @@ RESULT_FAILURE = 'failure'
 
 OpenShift::Runtime::NodeLogger.disable
 
+class UsageException < Exception; end
+
 def gear_cartridge_names
   cartridge_names = []
   @container.cartridge_model.each_cartridge do |c|
@@ -78,18 +80,21 @@ def do_command(command, options)
   rescue SystemExit, Interrupt
     puts
     exit 1
-    rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-      $stderr.puts "An error occurred executing 'gear #{command.name}' (exit code: #{e.rc})"
-      $stderr.puts "Error message: #{e.message}" if e.message.is_a? String
-      $stderr.puts "stdout: #{e.stdout}" if e.stdout.is_a? String
-      $stderr.puts "stderr: #{e.stderr}" if e.stderr.is_a? String
-      $stderr.puts ""
-      if options.trace
-        $stderr.puts e.backtrace.join("\n")
-      else
-        $stderr.puts "For more details about the problem, try running the command again with the '--trace' option."
-      end
-      exit -1
+  rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+    $stderr.puts "An error occurred executing 'gear #{command.name}' (exit code: #{e.rc})"
+    $stderr.puts "Error message: #{e.message}" if e.message.is_a? String
+    $stderr.puts "stdout: #{e.stdout}" if e.stdout.is_a? String
+    $stderr.puts "stderr: #{e.stderr}" if e.stderr.is_a? String
+    $stderr.puts ""
+    if options.trace
+      $stderr.puts e.backtrace.join("\n")
+    else
+      $stderr.puts "For more details about the problem, try running the command again with the '--trace' option."
+    end
+    exit -1
+  rescue UsageException => e
+    $stderr.puts e.message
+    exit 255
   rescue Exception => e
     $stderr.puts e.message
     exit -1
@@ -108,8 +113,7 @@ command :prereceive do |c|
   c.action do |args, options|
     do_command(c, options) do
       if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] == 'binary'
-        puts "OPENSHIFT_DEPLOYMENT_TYPE is 'binary' - git-based deployments are disabled."
-        exit 255
+        raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'binary' - git-based deployments are disabled.")
       end
 
       ref_to_deploy = determine_deployment_ref()
@@ -151,8 +155,7 @@ command :postreceive do |c|
   c.action do |args, options|
     do_command(c, options) do
       if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] == 'binary'
-        puts "OPENSHIFT_DEPLOYMENT_TYPE is 'binary' - git-based deployments are disabled."
-        exit 255
+        raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'binary' - git-based deployments are disabled.")
       end
 
       ref_to_deploy = determine_deployment_ref()
@@ -219,6 +222,7 @@ command :build do |c|
   c.description = "Run the build steps"
   c.action do |args, options|
     do_command(c, options) do
+      archive = false
 
       # Jenkins builder gears place the git repo in $OPENSHIFT_REPO_DIR/.git.
       # Use that if it exists. Otherwise, repo_dir will be nil and the default
@@ -233,8 +237,8 @@ command :build do |c|
         # determine the git ref we're building
         git_ref = determine_deployment_ref(args[0])
 
-        # we need to archive the contents to $OPENSHIFT_REPO_DIR
-        @repo.archive(ENV['OPENSHIFT_REPO_DIR'], git_ref)
+        # make sure we archive
+        archive = true
       else
         # repo_dir isn't nil, so we're using $OPENSHIFT_REPO_DIR/.git
         #
@@ -244,6 +248,17 @@ command :build do |c|
         # get the git ref from ENV
         git_ref = ENV['GIT_BRANCH']
       end
+
+      unless valid_git_ref?(git_ref)
+        raise UsageException.new("Git ref #{git_ref} is invalid")
+      end
+
+      if archive
+        # we need to archive the contents to $OPENSHIFT_REPO_DIR
+        @repo.archive(ENV['OPENSHIFT_REPO_DIR'], git_ref)
+      end
+
+
 
       options = {
         out: $stdout,
@@ -395,8 +410,7 @@ command :'binary-deploy' do |c|
   c.description = "Deploy a binary artifact"
   c.action do |args, options|
     if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] != 'binary'
-        puts "OPENSHIFT_DEPLOYMENT_TYPE is 'git' - binary deployments are disabled."
-        exit 255
+        raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'git' - binary deployments are disabled.")
     end
 
     puts "Beginning binary deployment"
