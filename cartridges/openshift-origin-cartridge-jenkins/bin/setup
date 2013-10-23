@@ -9,3 +9,5 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 # Create additional directories required by JENKINS
 mkdir -p ${OPENSHIFT_JENKINS_DIR}/{logs,data}
+mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
+
