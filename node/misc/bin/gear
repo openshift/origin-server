@@ -270,7 +270,7 @@ command :activate do |c|
   c.option "--init", "Run post_install for new gears"
   c.option "--as-json", "Render the results as JSON to stdout"
   c.option "--all", "Activate all gears in the application (only applicable if executed from a proxy gear)"
-  c.option "--no-rotation", "Don't rotate gears out/in"
+  c.option "--[no-]rotation", "Rotate gears out/in (defaults to true)"
 
   c.action do |args, options|
     # TODO make sure there is a deployment id arg
@@ -283,10 +283,15 @@ command :activate do |c|
         err = nil
       end
 
+      rotate = true
+      if !options.rotation.nil?
+        rotate = options.rotation
+      end
+
       result = @container.activate(deployment_id: args[0],
                                    init: !!options.init,
                                    all: !!options.all,
-                                   rotate: !!!options.no_rotation,
+                                   rotate: rotate,
                                    report_deployments: true,
                                    out: out,
                                    err: err)

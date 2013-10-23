@@ -1240,7 +1240,9 @@ module OpenShift
                 # of in batches
 
                 # since the gears are new, set init to true
-                activate_result = activate(gears: new_web_gears.map(&:uuid), deployment_id: deployment_id, init: true)
+                # also set rotate to false because there's no need to rotate out/in these new gears
+                # (nor will it work if the new gear is also a proxy gear)
+                activate_result = activate(gears: new_web_gears.map(&:uuid), deployment_id: deployment_id, init: true, rotate: false)
                 raise "Activation of new gears failed: #{activate_result[:errors].join("\n")}" unless activate_result[:status] == RESULT_SUCCESS
               end
 
