@@ -3,6 +3,8 @@
 - # can_create: true or false
 - # create_domain_url: nil or url to create and return to the current page with params embedded
 
+- show_first = false
+- show_create = false
 .input-prepend.input-append
   %span.add-on http://
 
@@ -16,12 +18,10 @@
 
   - if domains.length == 1 and (can_create == false or domains.first.owner?)
     -# Readonly
-    %span.add-on> -#{domains.first.name}.#{RestApi.application_domain_suffix}
     = form.hidden_field :domain_name, :value => domains.first.name
+    %span.add-on> -#{domains.first.name}.#{RestApi.application_domain_suffix}
 
-    - if can_create and create_domain_url
-      %p.help-block
-        %span= "You can also #{link_to "create a new domain", create_domain_url, {:class => 'create_domain', :data => {:submit_domain => true}}}.".html_safe
+    - show_create = can_create and create_domain_url
 
   - elsif domains.present?
     -# Select
@@ -32,9 +32,7 @@
       {:class => "domain_name #{'error' if application.errors.include? :domain_name}"}
     %span.add-on>= ".#{RestApi.application_domain_suffix}"
 
-    - if can_create and create_domain_url
-      %p.help-block
-        %span= "You can also #{link_to "create a new domain", create_domain_url, {:class => 'create_domain', :data => {:submit_domain => true}}}.".html_safe
+    - show_create = can_create and create_domain_url
 
   - elsif can_create
     -# Text
@@ -45,8 +43,15 @@
       :class => "domain_name #{'error' if application.errors.include? :domain_name}"
     %span.add-on>= ".#{RestApi.application_domain_suffix}"
 
-    %p.help-block
-      %span.text-warning.wrap Because this is your first application, you need to provide a domain under which your applications will be grouped
+    - show_first = true
   - else
     -# Error
     %span.add-on> Error, can't create domain
+
+- if show_first
+  %p.help-block
+    %span.text-warning.wrap Because this is your first application, you need to provide a domain under which your applications will be grouped
+
+- if show_create
+  %p.help-block
+    %span= "You can also #{link_to "create a new domain", create_domain_url, {:class => 'create_domain', :data => {:submit_domain => true}}}.".html_safe
