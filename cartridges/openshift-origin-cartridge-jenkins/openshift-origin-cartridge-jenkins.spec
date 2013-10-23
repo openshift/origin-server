@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.15.2
+Version: 1.15.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,9 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.15.3-1
+- Bug 1021722 - Create ~/.m2 for all jenkins gears (jhonce@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.15.2-1
 - Explicitly set protocols on endpoints that provide a frontend mapping
   (rmillner@redhat.com)
