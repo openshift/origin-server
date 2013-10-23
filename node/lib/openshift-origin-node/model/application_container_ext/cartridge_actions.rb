@@ -41,7 +41,7 @@ module OpenShift
             begin
               ::OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
                 logger.info "Executing initial gear prereceive for #{@uuid}"
-                Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
+                Utils.oo_spawn("gear prereceive --first-time >> #{build_log} 2>&1",
                                env:                 env,
                                chdir:               @container_dir,
                                uid:                 @uid,
@@ -49,7 +49,7 @@ module OpenShift
                                expected_exitstatus: 0)
 
                 logger.info "Executing initial gear postreceive for #{@uuid}"
-                Utils.oo_spawn("gear postreceive >> #{build_log} 2>&1",
+                Utils.oo_spawn("gear postreceive --first-time >> #{build_log} 2>&1",
                                env:                 env,
                                chdir:               @container_dir,
                                uid:                 @uid,
@@ -80,8 +80,6 @@ module OpenShift
               # prepare modifies the deployment metadata - need to reload
               deployment_metadata.load
 
-              update_repo_symlink(deployment_datetime)
-
               application_repository = ApplicationRepository.new(self)
               git_ref = 'master'
               git_sha1 = application_repository.get_sha1(git_ref)
@@ -94,6 +92,8 @@ module OpenShift
 
               deployment_metadata.record_activation
               deployment_metadata.save
+
+              update_current_deployment_datetime_symlink(deployment_datetime)
             end
           end
 
@@ -333,9 +333,9 @@ module OpenShift
                                         post_action_hooks_enabled: false)
 
             # need to add the entry to the options hash, as it's used in build, prepare, distribute, and activate below
-            options[:deployment_datetime] = create_deployment_dir(options)
+            options[:deployment_datetime] = create_deployment_dir
 
-            repo_dir = PathUtils.join(@container_dir, 'app-deployments', options[:deployment_datetime], 'repo')
+            repo_dir = PathUtils.join(@container_dir, 'app-root', 'runtime', 'repo')
             application_repository = ApplicationRepository.new(self)
             git_ref = options[:ref] || 'master'
             application_repository.archive(repo_dir, git_ref)
@@ -411,13 +411,6 @@ module OpenShift
         def build(options={})
           @state.value = ::OpenShift::Runtime::State::BUILDING
 
-          overrides = {}
-          if options[:deployment_datetime]
-            overrides['OPENSHIFT_REPO_DIR'] = PathUtils.join(@container_dir, 'app-deployments', options[:deployment_datetime], 'repo') + "/"
-            update_dependencies_symlink(options[:deployment_datetime])
-            update_build_dependencies_symlink(options[:deployment_datetime])
-          end
-
           application_repository = options[:git_repo] || ApplicationRepository.new(self)
 
           git_ref = options[:ref]
@@ -431,6 +424,20 @@ module OpenShift
           deployment_metadata.save
 
           buffer = ''
+
+          if options[:force_clean_build]
+            message = "Force clean build enabled - cleaning dependencies"
+            options[:out].puts message if options[:out]
+            buffer << message
+
+            clean_dependencies
+
+            # create the dependency directories for each cartridge
+            @cartridge_model.each_cartridge do |cartridge|
+              @cartridge_model.create_dependency_directories(cartridge)
+            end
+          end
+
           message = "Building git ref '#{git_ref}', commit #{git_sha1}"
           options[:out].puts message if options[:out]
           buffer << message
@@ -443,7 +450,6 @@ module OpenShift
                                                   @cartridge_model.primary_cartridge,
                                                   pre_action_hooks_enabled:  false,
                                                   post_action_hooks_enabled: false,
-                                                  env_overrides:             overrides,
                                                   out:                       options[:out],
                                                   err:                       options[:err])
 
@@ -451,7 +457,6 @@ module OpenShift
                                                   @cartridge_model.primary_cartridge,
                                                   pre_action_hooks_enabled: false,
                                                   prefix_action_hooks:      false,
-                                                  env_overrides:            overrides,
                                                   out:                      options[:out],
                                                   err:                      options[:err])
 
@@ -459,7 +464,6 @@ module OpenShift
                                                   @cartridge_model.primary_cartridge,
                                                   pre_action_hooks_enabled: false,
                                                   prefix_action_hooks:      false,
-                                                  env_overrides:            overrides,
                                                   out:                      options[:out],
                                                   err:                      options[:err])
           rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
@@ -510,11 +514,11 @@ module OpenShift
 
           env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
-          deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
-          env['OPENSHIFT_REPO_DIR'] = "#{deployment_dir}/repo"
-
           if options[:stdin] || options[:file]
-            options[:destination] = deployment_dir
+            options[:destination] = PathUtils.join(@container_dir, 'app-root', 'runtime')
+
+            clean_dependencies
+
             extract_deployment_archive(env, options)
           end
 
@@ -539,14 +543,13 @@ module OpenShift
             # this is needed so the distribute and activate steps down the line can work
             options[:deployment_id] = deployment_id
 
-            out = "Prepared deployment artifacts in #{deployment_dir}\n"
-
-            buffer << out
-            options[:out].puts(out) if options[:out]
-
             out = "Deployment id is #{deployment_id}"
             buffer << out
             options[:out].puts(out) if options[:out]
+
+            sync_runtime_repo_dir_to_deployment(deployment_datetime)
+            sync_runtime_dependencies_dir_to_deployment(deployment_datetime)
+            sync_runtime_build_dependencies_dir_to_deployment(deployment_datetime)
           rescue IOError => e
             out = "Error preparing deployment #{deployment_id}; "
             buffer << out
@@ -786,9 +789,11 @@ module OpenShift
               result[:messages] << output unless output.empty?
             end
 
-            update_repo_symlink(deployment_datetime)
-            update_dependencies_symlink(deployment_datetime)
-            update_build_dependencies_symlink(deployment_datetime)
+            sync_deployment_repo_dir_to_runtime(deployment_datetime)
+            sync_deployment_dependencies_dir_to_runtime(deployment_datetime)
+            sync_deployment_build_dependencies_dir_to_runtime(deployment_datetime)
+
+            update_current_deployment_datetime_symlink(deployment_datetime)
 
             @cartridge_model.do_control('update-configuration',
                                         @cartridge_model.primary_cartridge,
@@ -878,17 +883,11 @@ module OpenShift
         #   :report_deployments  : report the deployments back to the broker
         #   :out           : an IO to which any stdout should be written (default: nil)
         #   :err           : an IO to which any stderr should be written (default: nil)
+        #   :all           : indicates whether to deploy to all gears or just the local one
         #
         def deploy(options={})
-          hot_deploy = options[:hot_deploy]
-          force_clean_build = options[:force_clean_build]
-          ref = options[:ref]
-          artifact_url = options[:artifact_url]
-          out = options[:out]
-          err = options[:err]
-          report_deployments = options[:report_deployments]
-          pre_receive(out: out, err: err, hot_deploy: hot_deploy)
-          post_receive(out: out, err: err, hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, report_deployments: report_deployments)
+          pre_receive(options)
+          post_receive(options)
         end
 
         # === Cartridge control methods

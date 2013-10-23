@@ -537,10 +537,11 @@ module OpenShift
 
       # Creates cartridge dependency directories listed in managed_files.yml.
       #
-      # The directories are created  in ~/app-deployments/#{deployment_datetime}/dependencies.
+      # The directories are created in ~/app-root/runtime/dependencies and/or
+      # ~/app-root/runtime/build-dependencies.
       #
       # This method also creates symlinks from the cartridge directory to the appropriate
-      # symlink in ~/app-root/runtime/dependencies. For example:
+      # symlink in ~/app-root/runtime/{dependencies,build-dependencies}. For example:
       #
       # ~/php/phplib -> ~/app-root/runtime/dependencies/php/phplib
       def create_dependency_directories(cartridge)
@@ -558,15 +559,15 @@ module OpenShift
               # e.g. phplib
               link = target = entry
             else
-              # e.g. jbossas/deployments
+              # e.g. jbossas/standalone/deployments
               link = entry.keys[0]
 
-              # e.g. jbossas/standalone/deployments
+              # e.g. jbossas/deployments
               target = entry.values[0]
             end
 
-            # create the target dir inside the deps dir
-            dependencies_dir = PathUtils.join(@container.container_dir, 'app-deployments', @container.latest_deployment_datetime, dependencies_dir_name)
+            # create the target dir inside the runtime dir
+            dependencies_dir = PathUtils.join(@container.container_dir, 'app-root', 'runtime', dependencies_dir_name)
 
             FileUtils.mkdir_p(PathUtils.join(dependencies_dir, target))
 
@@ -691,7 +692,7 @@ module OpenShift
         end
 
         if repo.exist?
-          repo.archive(PathUtils.join(@container.container_dir, 'app-deployments', @container.latest_deployment_datetime, "repo"), 'master')
+          repo.archive(PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo'), 'master')
         end
         ""
       end

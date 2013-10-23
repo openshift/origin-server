@@ -83,7 +83,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_datetime = "abc"
     @container.expects(:create_deployment_dir).returns(deployment_datetime)
 
-    repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
+    repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo'), 'master')
 
     options = {
       out: $stdout,
@@ -129,7 +129,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_datetime = "abc"
     @container.expects(:create_deployment_dir).returns(deployment_datetime)
 
-    repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
+    repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo'), 'master')
 
     options = {
       out: $stdout,
@@ -173,8 +173,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @state.expects(:value=).with(OpenShift::Runtime::State::BUILDING)
 
     deployment_datetime = "abc"
-    @container.expects(:update_dependencies_symlink).with(deployment_datetime)
-    @container.expects(:update_build_dependencies_symlink).with(deployment_datetime)
 
     repository = mock()
     OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
@@ -196,15 +194,12 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     primary = mock()
     @cartridge_model.expects(:primary_cartridge).returns(primary).times(3)
 
-    env_overrides = {'OPENSHIFT_REPO_DIR' => PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo') + "/"}
-
     @cartridge_model.expects(:do_control).with('update-configuration',
                                                primary,
                                                pre_action_hooks_enabled:  false,
                                                post_action_hooks_enabled: false,
                                                out:                       $stdout,
-                                               err:                       $stderr,
-                                               env_overrides:             env_overrides)
+                                               err:                       $stderr)
                                           .returns('update-configuration|')
 
     @cartridge_model.expects(:do_control).with('pre-build',
@@ -212,8 +207,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                pre_action_hooks_enabled: false,
                                                prefix_action_hooks:      false,
                                                out:                      $stdout,
-                                               err:                      $stderr,
-                                               env_overrides:            env_overrides)
+                                               err:                      $stderr)
                                           .returns('pre-build|')
 
     @cartridge_model.expects(:do_control).with('build',
@@ -221,8 +215,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                pre_action_hooks_enabled: false,
                                                prefix_action_hooks:      false,
                                                out:                      $stdout,
-                                               err:                      $stderr,
-                                               env_overrides:            env_overrides)
+                                               err:                      $stderr)
                                            .returns('build')
 
     output = @container.build(out: $stdout,
@@ -235,12 +228,74 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal "Building git ref 'master', commit abcd1234update-configuration|pre-build|build", output
   end
 
+  def test_build_success_force_clean_build
+    @state.expects(:value=).with(OpenShift::Runtime::State::BUILDING)
+
+    deployment_datetime = "abc"
+
+    repository = mock()
+    OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
+
+    git_ref = 'master'
+    git_sha1 = 'abcd1234'
+    repository.expects(:get_sha1).with('master').returns(git_sha1)
+
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+    metadata.expects(:git_sha1=).with(git_sha1)
+    metadata.expects(:git_ref=).with(git_ref)
+    metadata.expects(:hot_deploy=).with(false)
+    metadata.expects(:force_clean_build=).with(true)
+    metadata.expects(:save)
+
+    @container.expects(:clean_dependencies)
+    cart1 = mock()
+    cart2 = mock()
+    @cartridge_model.expects(:each_cartridge).multiple_yields(cart1, cart2)
+    @cartridge_model.expects(:create_dependency_directories).with(cart1)
+    @cartridge_model.expects(:create_dependency_directories).with(cart2)
+
+    @container.expects(:deployments_to_keep).with(anything()).returns(2)
+
+    primary = mock()
+    @cartridge_model.expects(:primary_cartridge).returns(primary).times(3)
+
+    @cartridge_model.expects(:do_control).with('update-configuration',
+                                               primary,
+                                               pre_action_hooks_enabled:  false,
+                                               post_action_hooks_enabled: false,
+                                               out:                       $stdout,
+                                               err:                       $stderr)
+                                          .returns('update-configuration|')
+
+    @cartridge_model.expects(:do_control).with('pre-build',
+                                               primary,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks:      false,
+                                               out:                      $stdout,
+                                               err:                      $stderr)
+                                          .returns('pre-build|')
+
+    @cartridge_model.expects(:do_control).with('build',
+                                               primary,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks:      false,
+                                               out:                      $stdout,
+                                               err:                      $stderr)
+                                           .returns('build')
+
+    output = @container.build(out: $stdout,
+                              err: $stderr,
+                              deployment_datetime: deployment_datetime,
+                              ref: git_ref,
+                              hot_deploy: false,
+                              force_clean_build: true)
+  end
+
   def test_build_failure_keep_one_deployment
     @state.expects(:value=).with(OpenShift::Runtime::State::BUILDING)
 
     deployment_datetime = "abc"
-    @container.expects(:update_dependencies_symlink).with(deployment_datetime)
-    @container.expects(:update_build_dependencies_symlink).with(deployment_datetime)
 
     repository = mock()
     OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
@@ -262,15 +317,12 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     primary = mock()
     @cartridge_model.expects(:primary_cartridge).returns(primary).times(2)
 
-    env_overrides = {'OPENSHIFT_REPO_DIR' => PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo') + "/"}
-
     @cartridge_model.expects(:do_control).with('update-configuration',
                                                primary,
                                                pre_action_hooks_enabled:  false,
                                                post_action_hooks_enabled: false,
                                                out:                       $stdout,
-                                               err:                       $stderr,
-                                               env_overrides:             env_overrides)
+                                               err:                       $stderr)
                                           .returns('update-configuration|')
 
     @cartridge_model.expects(:do_control).with('pre-build',
@@ -278,8 +330,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                pre_action_hooks_enabled: false,
                                                prefix_action_hooks:      false,
                                                out:                      $stdout,
-                                               err:                      $stderr,
-                                               env_overrides:            env_overrides)
+                                               err:                      $stderr)
                                           .raises(OpenShift::Runtime::Utils::ShellExecutionException.new('foo'))
 
     @cartridge_model.expects(:do_control).with('build',
@@ -287,8 +338,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                pre_action_hooks_enabled: false,
                                                prefix_action_hooks:      false,
                                                out:                      $stdout,
-                                               err:                      $stderr,
-                                               env_overrides:            env_overrides)
+                                               err:                      $stderr)
                                            .never()
 
     assert_raises(OpenShift::Runtime::Utils::ShellExecutionException) { @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, ref: git_ref, hot_deploy: false, force_clean_build: false) }
@@ -298,8 +348,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @state.expects(:value=).with(OpenShift::Runtime::State::BUILDING)
 
     deployment_datetime = "abc"
-    @container.expects(:update_dependencies_symlink).with(deployment_datetime)
-    @container.expects(:update_build_dependencies_symlink).with(deployment_datetime)
 
     repository = mock()
     OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
@@ -321,15 +369,12 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     primary = mock()
     @cartridge_model.expects(:primary_cartridge).returns(primary).times(2)
 
-    env_overrides = {'OPENSHIFT_REPO_DIR' => PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo') + "/"}
-
     @cartridge_model.expects(:do_control).with('update-configuration',
                                                primary,
                                                pre_action_hooks_enabled:  false,
                                                post_action_hooks_enabled: false,
                                                out:                       $stdout,
-                                               err:                       $stderr,
-                                               env_overrides:             env_overrides)
+                                               err:                       $stderr)
                                           .returns('update-configuration|')
 
     @cartridge_model.expects(:do_control).with('pre-build',
@@ -337,8 +382,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                pre_action_hooks_enabled: false,
                                                prefix_action_hooks:      false,
                                                out:                      $stdout,
-                                               err:                      $stderr,
-                                               env_overrides:            env_overrides)
+                                               err:                      $stderr)
                                           .raises(OpenShift::Runtime::Utils::ShellExecutionException.new('foo'))
 
     @cartridge_model.expects(:do_control).with('build',
@@ -346,8 +390,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                pre_action_hooks_enabled: false,
                                                prefix_action_hooks:      false,
                                                out:                      $stdout,
-                                               err:                      $stderr,
-                                               env_overrides:            env_overrides)
+                                               err:                      $stderr)
                                            .never()
 
     @container.expects(:start_gear).with(has_entries(user_initiated: true, hot_deploy: false, exclude_web_proxy: true, out: $stdout, err: $stderr)).returns("bar")
@@ -386,10 +429,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_deploy
-    @container.expects(:pre_receive).with(out: $stdout, err: $stderr, hot_deploy: true).returns(nil)
-    @container.expects(:post_receive).with(out: $stdout, err: $stderr, hot_deploy: true, force_clean_build: false, ref: nil, report_deployments: nil).returns(nil)
+    options = { a: 1 }
+    @container.expects(:pre_receive).with(options)
+    @container.expects(:post_receive).with(options)
 
-    @container.deploy(out: $stdout, err: $stderr, hot_deploy: true, force_clean_build: false)
+    @container.deploy(options)
   end
 
   def test_configure_defaults
@@ -423,7 +467,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     metadata.expects(:activations).returns([])
     @container.expects(:prepare).with(deployment_datetime: latest_deployment_datetime)
     metadata.expects(:load)
-    @container.expects(:update_repo_symlink).with(latest_deployment_datetime)
     git_sha1 = 'abcd1234'
     repository = mock()
     ::OpenShift::Runtime::ApplicationRepository.expects(:new).with(@container).returns(repository)
@@ -436,6 +479,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     metadata.expects(:record_activation)
     metadata.expects(:save)
+
+    @container.expects(:update_current_deployment_datetime_symlink).with(latest_deployment_datetime)
 
     @cartridge_model.expects(:post_configure).with(cart_name).returns('')
 
@@ -457,7 +502,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     metadata.expects(:activations).returns([])
     @container.expects(:prepare).with(deployment_datetime: latest_deployment_datetime)
     metadata.expects(:load)
-    @container.expects(:update_repo_symlink).with(latest_deployment_datetime)
     repository = mock()
     ::OpenShift::Runtime::ApplicationRepository.expects(:new).with(@container).returns(repository)
     git_sha1 = 'abcd1234'
@@ -471,6 +515,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     metadata.expects(:record_activation)
     metadata.expects(:save)
+
+    @container.expects(:update_current_deployment_datetime_symlink).with(latest_deployment_datetime)
 
     @cartridge_model.expects(:post_configure).with(cart_name).returns('')
 
@@ -491,14 +537,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
     cgroups.expects(:boost).yields()
     @hourglass.expects(:remaining).times(3).returns(100, 50, 49)
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive >> /tmp/initial-build.log 2>&1",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive --first-time >> /tmp/initial-build.log 2>&1",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
                                                       uid:                 @container.uid,
                                                       timeout:             100,
                                                       expected_exitstatus: 0)
 
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear postreceive >> /tmp/initial-build.log 2>&1",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear postreceive --first-time >> /tmp/initial-build.log 2>&1",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
                                                       uid:                 @container.uid,
@@ -533,14 +579,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
     cgroups.expects(:boost).yields()
     @hourglass.expects(:remaining).times(3).returns(100, 50, 49)
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive >> /tmp/initial-build.log 2>&1",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive --first-time >> /tmp/initial-build.log 2>&1",
                                                  env:                 gear_env,
                                                  chdir:               @container.container_dir,
                                                  uid:                 @container.uid,
                                                  timeout:             100,
                                                  expected_exitstatus: 0)
 
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear postreceive >> /tmp/initial-build.log 2>&1",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear postreceive --first-time >> /tmp/initial-build.log 2>&1",
                                                  env:                 gear_env,
                                                  chdir:               @container.container_dir,
                                                  uid:                 @container.uid,
@@ -575,7 +621,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
     cgroups.expects(:boost).yields()
     @hourglass.expects(:remaining).times(2).returns(100, 50)
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive >> /tmp/initial-build.log 2>&1",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive --first-time >> /tmp/initial-build.log 2>&1",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
                                                       uid:                 @container.uid,
@@ -642,11 +688,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   def test_prepare_without_file_success
     deployment_datetime = 'now'
 
-    gear_env = {}
+    gear_env = {a:1}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
     @cartridge_model.expects(:do_action_hook).with('prepare',
-                                                   {'OPENSHIFT_REPO_DIR' => File.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo')},
+                                                   gear_env,
                                                    {deployment_datetime: deployment_datetime})
                                              .returns("output from prepare hook\n")
 
@@ -662,19 +708,23 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     metadata.expects(:checksum=).with(checksum)
     metadata.expects(:save)
 
+    @container.expects(:sync_runtime_repo_dir_to_deployment).with(deployment_datetime)
+    @container.expects(:sync_runtime_dependencies_dir_to_deployment).with(deployment_datetime)
+    @container.expects(:sync_runtime_build_dependencies_dir_to_deployment).with(deployment_datetime)
+
     prepare_options = {deployment_datetime: deployment_datetime}
     output = @container.prepare(prepare_options)
 
     assert_equal deployment_id, prepare_options[:deployment_id]
-    assert_equal "output from prepare hook\nPrepared deployment artifacts in #{File.join(@container.container_dir, 'app-deployments', deployment_datetime)}\nDeployment id is #{deployment_id}", output
   end
 
   def test_prepare_without_file_failure
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns({})
+    gear_env = {a:1}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
     deployment_datetime = 'now'
     @cartridge_model.expects(:do_action_hook).with('prepare',
-                                                   {'OPENSHIFT_REPO_DIR' => File.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo')},
+                                                   gear_env,
                                                    {deployment_datetime: deployment_datetime})
                                              .returns("output from prepare hook\n")
 
@@ -698,13 +748,13 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     file_path = File.join(@container.container_dir, 'app-archives', filename)
     prepare_options = {deployment_datetime: deployment_datetime, file: filename}
 
-    gear_env = {}
+    gear_env = {a:1}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
+    @container.expects(:clean_dependencies)
     @container.expects(:extract_deployment_archive).with(gear_env, prepare_options)
-    gear_env_with_repo_dir_override = {'OPENSHIFT_REPO_DIR' => File.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo')}
     @cartridge_model.expects(:do_action_hook).with('prepare',
-                                                   gear_env_with_repo_dir_override,
+                                                   gear_env,
                                                    prepare_options)
                                              .returns("output from prepare hook\n")
 
@@ -713,18 +763,21 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
     @container.stubs(:calculate_deployment_checksum).with(deployment_id).returns(checksum)
 
-    FileUtils.expects(:cd).with(File.join(@container.container_dir, 'app-deployments', 'by-id')).yields
-    FileUtils.expects(:ln_s).with(File.join('..', deployment_datetime), deployment_id)
+    link = PathUtils.join(@container.container_dir, 'app-deployments', 'by-id', deployment_id)
+    FileUtils.expects(:ln_s).with(PathUtils.join('..', deployment_datetime), link)
     metadata = mock()
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
     metadata.expects(:id=).with(deployment_id)
     metadata.expects(:checksum=).with(checksum)
     metadata.expects(:save)
 
+    @container.expects(:sync_runtime_repo_dir_to_deployment).with(deployment_datetime)
+    @container.expects(:sync_runtime_dependencies_dir_to_deployment).with(deployment_datetime)
+    @container.expects(:sync_runtime_build_dependencies_dir_to_deployment).with(deployment_datetime)
+
     output = @container.prepare(prepare_options)
 
     assert_equal deployment_id, prepare_options[:deployment_id]
-    assert_equal "output from prepare hook\nPrepared deployment artifacts in #{File.join(@container.container_dir, 'app-deployments', deployment_datetime)}\nDeployment id is #{deployment_id}", output
   end
 
   def test_prepare_no_datetime

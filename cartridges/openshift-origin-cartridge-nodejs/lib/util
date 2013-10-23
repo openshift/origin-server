@@ -72,4 +72,13 @@ function parse_args {
   done
 }
 
+function link_global_modules {
+  version=$1
+  pushd $OPENSHIFT_NODEJS_DIR > /dev/null
+    npmgl=$OPENSHIFT_NODEJS_DIR/versions/$version/configuration/npm_global_module_list
+    module_list=$(perl -ne 'print if /^\s*[^#\s]/' "$npmgl" | tr '\n' ' ')
+    npm link $module_list >/dev/null 2>&1
+  popd > /dev/null
+}
+
 # vim: ft=sh

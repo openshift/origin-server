@@ -104,6 +104,7 @@ command :prereceive do |c|
   c.syntax = "#{name} prereceive"
 
   c.description = "Run the git prereceive steps"
+  c.option "--first-time", "Proceed even if the git ref to deploy isn't found. Used by post_configure"
   c.action do |args, options|
     do_command(c, options) do
       if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] == 'binary'
@@ -133,10 +134,9 @@ command :prereceive do |c|
       end
 
       # only call pre_receive if
-      # - this is the first build ever, i.e. app-root/runtime/repo doesn't exist, OR
-      # - auto deployments are enabled
-      repo_dir = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
-      if !File.exist?(repo_dir) or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
+      # - this is the first build ever (--first-time) or
+      # - auto deployments are enabled and the appropriate git ref was pushed
+      if options.first_time or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
         @container.pre_receive(out: $stdout, err: $stderr, hot_deploy: hot_deploy)
       end
     end
@@ -147,6 +147,7 @@ command :postreceive do |c|
   c.syntax = "#{name} postreceive"
 
   c.description = "Run the git postreceive steps"
+  c.option "--first-time", "Proceed even if the git ref to deploy isn't found. Used by post_configure"
   c.action do |args, options|
     do_command(c, options) do
       if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] == 'binary'
@@ -169,10 +170,9 @@ command :postreceive do |c|
       end
 
       # only call post_receive if
-      # - this is the first build ever, i.e. app-root/runtime/repo doesn't exist, OR
-      # - auto deployments are enabled
-      repo_dir = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
-      if !File.exist?(repo_dir) or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
+      # - this is the first build ever, i.e. --first-time or
+      # - auto deployments are enabled and the appropriate git ref was pushed
+      if options.first_time or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
         result = @container.post_receive(out: $stdout,
                                          err: $stderr,
                                          hot_deploy: @repo.file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy),
@@ -245,8 +245,7 @@ command :prepare do |c|
   c.action do |args, options|
     # TODO make sure there is a file arg
     do_command(c, options) do
-      # pass force_clean_build:true so we don't move/copy dependencies from any prior deployment
-      deployment_datetime = @container.create_deployment_dir(force_clean_build: true)
+      deployment_datetime = @container.create_deployment_dir
       @container.prepare(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, file: args[0])
     end
   end
@@ -310,9 +309,9 @@ end
 
 command :'create-deployment-dir' do |c|
   c.syntax = "#{name} create_deployment_dir"
-  c.description = "Create a deployment directory and force a clean build. Should only be used by CI builders"
+  c.description = "Create a deployment directory. Should only be used by CI builders"
   c.action do |args, options|
-    puts @container.create_deployment_dir(force_clean_build: true)
+    puts @container.create_deployment_dir
   end
 end
 
@@ -358,7 +357,13 @@ command :deploy do |c|
         raise "Git ref #{ref_to_deploy} is invalid"
       end
 
-      @container.deploy(hot_deploy: hot_deploy_enabled, force_clean_build: force_clean_build_enabled, ref: ref_to_deploy, out: $stdout, err: $stderr, report_deployments: true)
+      @container.deploy(hot_deploy: hot_deploy_enabled,
+                        force_clean_build: force_clean_build_enabled,
+                        ref: ref_to_deploy,
+                        out: $stdout,
+                        err: $stderr,
+                        report_deployments: true,
+                        all: true)
     end
   end
 end
@@ -377,7 +382,7 @@ command :'binary-deploy' do |c|
 
     options = { stdin: $stdin }
 
-    deployment_datetime = @container.create_deployment_dir(force_clean_build: true)
+    deployment_datetime = @container.create_deployment_dir
     options[:deployment_datetime] = deployment_datetime
 
     @container.prepare(options)
