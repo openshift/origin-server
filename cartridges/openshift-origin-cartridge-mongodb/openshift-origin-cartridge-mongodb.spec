@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -31,6 +31,19 @@ Provides mongodb cartridge support to OpenShift
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
+%__mkdir -p %{buildroot}%{cartridgedir}/usr/journal-cache
+
+
+%post
+%{cartridgedir}/bin/mkjournal %{cartridgedir}/usr/journal-cache/journal.tar.gz
+
+
+%preun
+if [ $1 -eq 0 ]; then
+  %__rm -f %{cartridgedir}/usr/journal-cache/journal.tar.gz
+fi
+
+
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
@@ -41,6 +54,10 @@ Provides mongodb cartridge support to OpenShift
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Bug 1021726 - Create the mongo journal ahead of time and copy it into the
+  gear for speed. (rmillner@redhat.com)
+
 * Tue Oct 22 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Bug 1009384 - it was observed that mongodb now preallocates the journal which
   takes over 30 seconds. (rmillner@redhat.com)

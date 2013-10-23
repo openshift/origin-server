@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,14 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
+- Merge pull request #3966 from pravisankar/dev/ravi/restrict-large-gear-
+  support (dmcphers+openshiftbot@redhat.com)
+- Fix oo-admin-ctl-user: Restrict large gears to free users with no billing
+  account (rpenta@redhat.com)
+- Fix oo-admin-ctl-app: Record 'end' usage records and update user's consumed
+  gear count (rpenta@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - Merge pull request #3934 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)

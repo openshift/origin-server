@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,22 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Merge pull request #3963 from sg00dwin/console_light_theme_dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3961 from rhamilto/bug-1021853
+  (dmcphers+openshiftbot@redhat.com)
+- Various fine tuning and cleanup Reduce space btw table and .btn-toolbar
+  Remove alert max-width because it's not needed. Make .cartridge-block have a
+  min-height so they are consistent by defaul Mixin rules target origin logo to
+  position vertically @import new _tables partial since common no longer
+  references the vendor default Remove cartridge icon from app details. Looks
+  better and embedded don't have specific icon so it was looking off. Apply
+  .row-content class to <sections> which apply default margin bottoms
+  (sgoodwin@redhat.com)
+- Bug 1021853: adding .table-fixed to address the bug and adding it to the
+  needed tables, misc table cleanup (rhamilto@redhat.com)
+
 * Tue Oct 22 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Adding a specific class for icons associated with h1 headings so as to not
   effect all icons within h1. e.g. application/show Remove old style .gear-

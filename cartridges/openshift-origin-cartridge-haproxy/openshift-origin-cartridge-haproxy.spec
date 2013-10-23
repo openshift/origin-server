@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -46,6 +46,10 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
+- Bug 1022015: Don't enable a disabled local gear on a git push.
+  (mrunalp@gmail.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - Changes to disable local gear for scalable apps. (mrunalp@gmail.com)
 - Bump cartridge versions (fotios@redhat.com)

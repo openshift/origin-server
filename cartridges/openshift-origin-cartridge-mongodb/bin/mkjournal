@@ -1,0 +1,74 @@
+#!/bin/bash
+
+#
+# Save time on the cartridge install by pre-building the journal.
+#
+# Note: If this script fails it will cause mongodb to take approx 30
+# seconds longer to install and start running in a gear but will not
+# otherwise cause it to fail.  Because of that, failures in this
+# script beyond argument checking are considered soft.
+#
+
+timeout=60
+
+destfile="$1"
+
+tmpfile=$(mktemp "${destfile}.XXXXXX" )
+[ -f "$tmpfile" ] || exit 1
+
+tmpdir=$(mktemp -d)
+[ -d "$tmpdir" ] || exit 0
+
+
+trap "rm -rf $tmpdir $tmpfile" EXIT
+
+touch $tmpdir/mongodb.conf
+/usr/bin/mongod \
+    --dbpath $tmpdir \
+    --journal \
+    --noprealloc \
+    --smallfiles \
+    --bind_ip 127.0.0.2 \
+    --port 27017 \
+    -f $tmpdir/mongodb.conf 2>&1 > $tmpdir/mongodb.log &
+
+mongopid=$!
+
+# Cap startup and shutdown run time
+i=0
+stage="start"
+while [ "$i" -lt $timeout ]
+do
+    case $stage in
+        'start')
+            if (netstat -tln |grep -q "127.0.0.2:27017")
+            then
+                kill $mongopid >/dev/null 2>&1
+                stage='term'
+            fi
+            ;;
+        'term')
+            kill -0 $mongopid >/dev/null 2>&1 || break
+            ;;
+    esac
+
+    i=$(( $i + 1 ))
+    sleep 1
+done
+
+
+# If we have to SIGKILL mongo then the journal is likely corrupt
+kill -KILL $mongopid >/dev/null 2>&1 && exit 0
+
+
+if [ -d ${tmpdir}/journal ]
+then
+    tar -C $tmpdir -czf "$tmpfile" journal
+    if [ $? -eq 0 ]
+    then
+        chmod 644 "$tmpfile"
+        mv -f "$tmpfile" "$destfile"
+        echo "MongoDB starting journal saved: $destfile"
+    fi
+fi
+exit 0

@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -264,6 +264,16 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Merge pull request #3955 from ncdc/copy-on-activate
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3964 from jwhonce/bug/1021462
+  (dmcphers+openshiftbot@redhat.com)
+- Restore app-root symlinks (andy.goldstein@gmail.com)
+- Bug 1021462 - Pushing user variables failing if haproxy not installed
+  (jhonce@redhat.com)
+- Various deploy fixes (andy.goldstein@gmail.com)
+
 * Tue Oct 22 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Bug 1021583 - Stop chmod'ing all cron scripts (jhonce@redhat.com)
 - Merge pull request #3943 from BanzaiMan/dev/hasari/bz1021355
