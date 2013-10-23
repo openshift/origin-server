@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.15.11
+Version: 1.15.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -261,6 +261,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Oct 23 2013 Troy Dawson <tdawson@redhat.com> 1.15.12-1
+- Bug 1021462 - Pushing user variables failing if haproxy not installed
+  (jhonce@redhat.com)
+
 * Fri Oct 11 2013 Adam Miller <admiller@redhat.com> 1.15.11-1
 - Merge pull request #3863 from BanzaiMan/dev/hasari/bz1016917
   (dmcphers+openshiftbot@redhat.com)
