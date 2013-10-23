@@ -78,6 +78,11 @@ input[type="submit"].btn {
   margin-right: 12px;
 }
 
+.table {
+  + .btn-toolbar {
+    margin-top: -10px;
+  }
+}
 
 // Button Sizes
 // --------------------------------------------------
