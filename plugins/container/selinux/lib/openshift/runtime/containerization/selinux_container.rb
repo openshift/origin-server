@@ -178,8 +178,8 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         #
         # Raises exception on error.
         #
-        def stop
-          @container.kill_procs
+        def stop(options={})
+          @container.kill_procs(options)
         end
 
         def start

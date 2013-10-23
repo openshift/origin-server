@@ -283,33 +283,58 @@ module OpenShift
       # termination of all gear processes.
       #
       # TODO: exception handling
-      def force_stop
+      def force_stop(options={})
         @state.value = State::STOPPED
         @cartridge_model.create_stop_lock
-        @container_plugin.stop
+        @container_plugin.stop(options)
       end
 
       #
       # Kill processes belonging to this app container.
       #
-      def kill_procs
+      def kill_procs(options={})
         # Give it a good try to delete all processes.
         # This abuse is necessary to release locks on polyinstantiated
         #    directories by pam_namespace.
-        out = err = rc = nil
-        10.times do |i|
-          ::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/pkill -9 -u #{uid}})
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/pgrep -u #{uid}})
-          break unless 0 == rc
 
-          logger.error "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{uid}(#{rc}): stdout: #{out} stderr: #{err}"
-          sleep 0.5
+        procfilter="-u #{uid}"
+        if options[:init_owned]
+          procfilter << " -P 1"
         end
 
-        # looks backwards but 0 implies processes still existed
-        if 0 == rc
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("ps -u #{uid} -o state,pid,ppid,cmd")
-          logger.error "ERROR: failed to kill all processes for #{uid}(#{rc}): stdout: #{out} stderr: #{err}"
+        # If the terminate delay is specified, try to terminate processes nicely
+        # first and wait for them to die.
+        if options[:term_delay]
+          ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/pkill #{procfilter}")
+          etime = Time.now + options[:term_delay].to_i
+          while (Time.now <= etime)
+            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/pgrep #{procfilter}")
+            break unless rc == 0
+            sleep 0.5
+          end
+        end
+
+        oldproclist=""
+        stuckcount=0
+        while stuckcount <= 10
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/pkill -9 #{procfilter}")
+          break unless rc == 0
+
+          sleep 0.5
+
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/pgrep #{procfilter}")
+          if oldproclist == out
+            stuckcount += 1
+          else
+            oldproclist = out
+            stuckcount = 0
+          end
+        end
+
+        out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/pgrep #{procfilter}")
+        if rc == 0
+          procset = out.split.join(' ')
+          logger.error "ERROR: failed to kill all processes for #{uid}: PIDs #{procset}"
         end
       end
 
@@ -369,7 +394,7 @@ module OpenShift
           frontend = FrontendHttpServer.new(self)
           frontend.idle
           begin
-            output = stop_gear
+            output = stop_gear(force: true, term_delay: 30, init_owned: true)
           ensure
             state.value = State::IDLE
           end
@@ -423,6 +448,9 @@ module OpenShift
         unless buffer.empty?
           buffer.chomp!
           buffer << "\n"
+        end
+        if options[:force]
+          kill_procs(options)
         end
         buffer << stopped_status_attr
         buffer
