@@ -85,10 +85,34 @@ unless app
   exit 1
 end
 
+def lock_user_without_app(user_id, timeout=30)
+  begin
+    now = Time.now.to_i
+    lock = Lock.find_or_create_by( :user_id => user_id )
+    query = {:user_id => user_id, "$or" => [{:locked => false}, {:timeout.lt => now}], "app_ids" => {}}
+    updates = {"$set" => { locked: true, timeout: (now + timeout) }}
+    lock = Lock.where(query).find_and_modify(updates, new: true)
+    return (not lock.nil?)
+  rescue Moped::Errors::OperationFailure
+    return false
+  end
+end
+
+def unlock_user_without_app(user_id)
+  begin
+    query = {:user_id => user_id, :locked => true}
+    updates = {"$set" => { "locked" => false }}
+    lock = Lock.where(query).find_and_modify(updates, new: true)
+    return (not lock.nil?)
+  rescue Moped::Errors::OperationFailure
+    return false
+  end
+end
+
 def check_user_response
   begin
     agree = gets.chomp
-    if agree != 'y'
+    unless agree.to_s.strip =~ /^(true|t|yes|y|1)$/i
       puts "\n"
       exit 217
     end
@@ -129,16 +153,53 @@ begin
     if command=="destroy"
       app.destroy_app
     elsif command=="force-destroy"
-      puts "Force deleting application #{app.name}.. user's consumed_gear count may get skewed"
+      puts "Force deleting application #{app.name}..."
+      premium_carts = []
+      all_carts = CartridgeCache.cartridges
+      all_carts.each do |cart|
+        premium_carts.push(cart.name) if cart.is_premium?
+      end
+      gear_count = 0
       # delete all gears, then delete app
-      app.group_instances.each { |gi| 
-        gi.gears.each { |g| 
+      app.group_instances.each do |gi| 
+        gi.gears.each do |g|
+          gear_count += 1
           g.deregister_dns rescue nil
           g.destroy_gear rescue nil 
-          UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:gear_usage],
-                                        g.group_instance.gear_size, nil, nil) rescue nil
-        } if gi.gears
-      } if app.group_instances
+          begin
+            UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:gear_usage], gi.gear_size)
+            addtl_fs_gb = gi.addtl_fs_gb
+            UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:addtl_fs_gb], nil, addtl_fs_gb) if addtl_fs_gb > 0
+            component_instances = gi.component_instances + g.sparse_carts.map {|s| gi.application.component_instances.find_by(_id: s) }
+            carts = component_instances.map { |ci| ci.cartridge_name }.uniq
+            carts.each do |cart|
+              UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:premium_cart], nil, nil, cart) if premium_carts.include?(cart)
+            end
+          rescue Exception => e
+            puts e.message
+            puts e.backtrace.inspect
+          end
+        end if gi.gears
+      end if app.group_instances
+      
+      owner = app.domain.owner
+      begin
+        retries = 5
+        until lock_user_without_app(owner.id)
+          sleep 1
+          retries -= 1
+          if retries < 0
+            puts "Unable to acquire user lock. User's consumed gear count will be skewed."
+            raise
+          end
+        end
+        owner.consumed_gears -= gear_count
+        owner.save
+      rescue Exception
+        #ignore
+      ensure
+        unlock_user_without_app(owner.id)
+      end      
       app.delete
     end
     reply.resultIO << "Successfully deleted application: #{app.name}" if reply.resultIO.string.empty?
