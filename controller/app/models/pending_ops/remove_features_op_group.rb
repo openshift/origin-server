@@ -11,4 +11,14 @@ class RemoveFeaturesOpGroup < PendingAppOpGroup
     ops, add_gear_count, rm_gear_count = app.update_requirements(final_features, final_group_overrides)
     try_reserve_gears(add_gear_count, rm_gear_count, app, ops)
   end
+  
+  def execute(result_io=nil)
+    super(result_io)
+    
+    if remove_all_features
+      self.application.delete
+      self.application.pending_op_groups.clear
+    end
+  end
+
 end
