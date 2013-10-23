@@ -16,7 +16,7 @@ if ! marker_present "force_clean_build"; then
 fi
 
 # Build/update libs and run user pre_build and build
-gear build --git-ref $GIT_BRANCH
+gear build
 
 # Run tests here
 
@@ -29,7 +29,7 @@ deployment_dir=`$GIT_SSH $upstream_ssh 'gear create-deployment-dir'`
 
 # Push content back to application
 rsync $OPENSHIFT_HOMEDIR/app-deployments/current/metadata.json $upstream_ssh:app-deployments/$deployment_dir/metadata.json
-rsync $WORKSPACE/ $upstream_ssh:app-root/runtime/repo/
+rsync --exclude .git $WORKSPACE/ $upstream_ssh:app-root/runtime/repo/
 rsync $OPENSHIFT_BUILD_DEPENDENCIES_DIR $upstream_ssh:app-root/runtime/build-dependencies/
 rsync $OPENSHIFT_DEPENDENCIES_DIR $upstream_ssh:app-root/runtime/dependencies/
 

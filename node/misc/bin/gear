@@ -217,17 +217,38 @@ command :build do |c|
   c.syntax = "#{name} build"
 
   c.description = "Run the build steps"
-  c.option "--git-ref REF", "Git ref to record in metadata"
   c.action do |args, options|
     do_command(c, options) do
-      git_ref  = options.git_ref
-      repo_dir = PathUtils.join(ENV['OPENSHIFT_REPO_DIR'], '.git')
+
+      # Jenkins builder gears place the git repo in $OPENSHIFT_REPO_DIR/.git.
+      # Use that if it exists. Otherwise, repo_dir will be nil and the default
+      # (normal) path to the git repo will be used.
+      ci_repo_path = PathUtils.join(ENV['OPENSHIFT_REPO_DIR'], '.git')
+      repo_dir = ci_repo_path if File.exist?(ci_repo_path)
       @repo = ::OpenShift::Runtime::ApplicationRepository.new(@container, repo_dir)
+
+      if repo_dir.nil?
+        # if repo_dir is nil, it means we're using the default git repo location
+
+        # determine the git ref we're building
+        git_ref = determine_deployment_ref(args[0])
+
+        # we need to archive the contents to $OPENSHIFT_REPO_DIR
+        @repo.archive(ENV['OPENSHIFT_REPO_DIR'], git_ref)
+      else
+        # repo_dir isn't nil, so we're using $OPENSHIFT_REPO_DIR/.git
+        #
+        # no need to archive as Jenkins will have already checked out the
+        # correct branch to $OPENSHIFT_REPO_DIR
+        #
+        # get the git ref from ENV
+        git_ref = ENV['GIT_BRANCH']
+      end
 
       options = {
         out: $stdout,
         err: $stderr,
-        ref: options.git_ref,
+        ref: git_ref,
         hot_deploy: @repo.file_exists?(HOT_DEPLOY_MARKER, git_ref),
         force_clean_build: @repo.file_exists?(FORCE_CLEAN_BUILD_MARKER, git_ref),
         git_repo: @repo
