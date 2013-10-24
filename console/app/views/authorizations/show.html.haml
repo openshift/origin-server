@@ -22,6 +22,9 @@
               %tr
                 %td.nowrap{:scope => 'row'}= scope[:id]
                 %td= scope[:description]
+            - else
+              %tr
+                %td{:scope => 'row', :colspan => 2}= s
 
       %p
         = @authorization.note || "<no description>"
