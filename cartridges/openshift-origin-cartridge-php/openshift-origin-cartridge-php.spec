@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -75,6 +75,12 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
+- Bug 1022439 - Restore missing httpd.pid when restarting PHP cart
+  (mfojtik@redhat.com)
+- Added absolute path to the performance.conf.erb.hidden in cartridges
+  (mfojtik@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - Fix cartridge dependency dir paths in upgrades (andy.goldstein@gmail.com)
 - Merge pull request #3913 from ncdc/bz1018387
