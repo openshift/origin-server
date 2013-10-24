@@ -23,6 +23,7 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(state_machine)
 Requires:      %{?scl:%scl_prefix}rubygem(dnsruby)
+Requires:      %{?scl:%scl_prefix}rubygem(httpclient)
 Requires:      rubygem(openshift-origin-common)
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
