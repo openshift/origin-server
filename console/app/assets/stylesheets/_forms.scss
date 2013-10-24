@@ -514,6 +514,7 @@ textarea:focus:required:valid {
     margin-right: -1px;
   }
   .add-on:first-child,
+  span.add-on:first-of-type,
   .btn:first-child {
     @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
   }
@@ -532,6 +533,7 @@ textarea:focus:required:valid {
     margin-left: -1px;
   }
   .add-on:last-child,
+  span.add-on:last-of-type,
   .btn:last-child {
     @include border-radius(0 $inputBorderRadius $inputBorderRadius 0);
   }
@@ -544,11 +546,13 @@ textarea:focus:required:valid {
     @include border-radius(0);
   }
   .add-on:first-child,
+  span.add-on:first-of-type,
   .btn:first-child {
     margin-right: -1px;
     @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
   }
   .add-on:last-child,
+  span.add-on:last-of-type,
   .btn:last-child {
     margin-left: -1px;
     @include border-radius(0 $inputBorderRadius $inputBorderRadius 0);
