@@ -407,6 +407,7 @@ end
 
 opts = GetoptLong.new(
     ["--login",          "-l", GetoptLong::REQUIRED_ARGUMENT],
+    ["--setmaxdomains",    GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxgears",      GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxtrackedstorage", GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxuntrackedstorage", GetoptLong::REQUIRED_ARGUMENT],
@@ -436,6 +437,14 @@ allowsubaccounts = args["--allowsubaccounts"].to_b if args["--allowsubaccounts"]
 allowprivatesslcertificates = args["--allowprivatesslcertificates"].to_b if args["--allowprivatesslcertificates"]
 inheritgearsizes = args["--inheritgearsizes"].to_b if args["--inheritgearsizes"]
 allowha = args["--allowha"].to_b if args["--allowha"]
+
+if args["--setmaxdomains"]
+  unless args["--setmaxdomains"] =~ /^[0-9]+$/
+    puts "ERROR: Max domains must be a positive integer"
+    exit 1
+  end
+  maxdomains = args["--setmaxdomains"].to_i
+end
 
 if args["--setmaxgears"]
   unless args["--setmaxgears"] =~ /^[0-9]+$/
@@ -494,6 +503,11 @@ end
 
 changed_user = false
 subaccount_list = []
+
+unless maxdomains.nil?
+    set_max_domains(user, maxdomains)
+    changed_user = true
+end
 
 unless maxgears.nil?
     set_max_gears(user, maxgears)
