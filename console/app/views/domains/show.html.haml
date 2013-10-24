@@ -68,3 +68,6 @@
           .confirm-popover.hide
             = render :partial => 'members/leave_domain_form', :locals => {:domain => @domain}
 
+      - if @domain.owner?
+        .btn-toolbar
+          = link_to 'Delete this domain', delete_domain_path(@domain), :class => 'btn btn-small'

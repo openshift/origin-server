@@ -1,0 +1,17 @@
+- content_for :page_title, "Delete Application"
+
+%h1 Delete Domain
+
+= semantic_form_for @domain, :html => {:method => :delete, :class => 'form'} do |f|
+  %p 
+    Are you sure you want to delete the domain
+    <strong>'#{@domain.name}'?</strong>
+
+  %p 
+    This cannot be undone. Make sure this is something you really want to do!
+
+  = f.semantic_errors
+  = f.buttons do
+    = link_to 'Cancel', @referer || domain_path(@domain), :class => 'btn'
+    = f.commit_button :label => "Delete", :button_html => {:class => 'btn btn-danger'}
+    = f.loading
