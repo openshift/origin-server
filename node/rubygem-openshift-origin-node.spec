@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.3
+Version: 1.16.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -264,6 +264,23 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
+- kerberos work for broker and console (jliggitt@redhat.com)
+- abstract ssh "key" manangement and add support for k5login
+  (mlamouri@redhat.com)
+- Merge pull request #3977 from rmillner/BZ1020555
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3976 from ncdc/no-rotation-on-scale-up
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1020555 - Add better process termination control to kill_procs and
+  include it as the last step in idle. (rmillner@redhat.com)
+- Fix unit test (andy.goldstein@gmail.com)
+- Merge pull request #3971 from ncdc/bz1022361
+  (dmcphers+openshiftbot@redhat.com)
+- Fix failure when adding new proxy gear (andy.goldstein@gmail.com)
+- Improve error handling in gear script (andy.goldstein@gmail.com)
+- Restore 'gear build' functionality on normal gears (andy.goldstein@gmail.com)
+
 * Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Merge pull request #3955 from ncdc/copy-on-activate
   (dmcphers+openshiftbot@redhat.com)
