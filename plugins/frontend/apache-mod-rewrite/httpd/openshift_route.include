@@ -33,9 +33,9 @@ RewriteRule ^.*$ - [E=X_CLIENT_IP:%1]
 RequestHeader set X-Client-IP %{X_CLIENT_IP}e
 
 # Resolve aliases
-RewriteCond ${lowercase:%{HTTP_HOST}} ^(.+)$
+RewriteCond ${lowercase:%{HTTP_HOST}} ^([^:]+)
 RewriteCond ${openshift-aliases:%1} ^(.+)$    [OR]
-RewriteCond ${lowercase:%{HTTP_HOST}} ^(.+)$
+RewriteCond ${lowercase:%{HTTP_HOST}} ^([^:]+)
 RewriteRule ^.*$ - [E=V_MATCH_HOST:%1,NS]
 
 # Provides the ability to override the HTTP_HOST header
