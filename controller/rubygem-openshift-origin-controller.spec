@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.16.3
+Version: 1.16.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,19 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
+- kerberos work for broker and console (jliggitt@redhat.com)
+- Merge pull request #3770 from mfojtik/bugzilla/1015187
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3973 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Modifications to app delete and pending op execution (abhgupta@redhat.com)
+- Use UnfulfilledRequirementException when manifest.yml is too big
+  (mfojtik@redhat.com)
+- Use .present? to check if the :http_proxy is configured (mfojtik@redhat.com)
+- Bug 1015187: Replace curl with httpclient when downloading cartridges
+  (mfojtik@redhat.com)
+
 * Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Hide report deployments desc (dmcphers@redhat.com)
 
