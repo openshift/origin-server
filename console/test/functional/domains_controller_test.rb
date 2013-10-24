@@ -134,13 +134,17 @@ class DomainsControllerTest < ActionController::TestCase
   test "should show edit domain page" do
     with_domain
 
-    get :edit
+    Domain.expects(:find).with() {|id, *args| id == @domain.id }.returns(@domain)
+
+    get :edit, {:id => @domain.id}
     assert_template :edit
     assert_response :success
   end
 
   test "should show domain info page" do
     with_domain
+
+    Domain.expects(:find).with() {|id, *args| id == @domain.id }.returns(@domain)
 
     get :show, {:id => @domain.id}
     assert_template :show
@@ -150,7 +154,9 @@ class DomainsControllerTest < ActionController::TestCase
   test "should update domain" do
     with_particular_user
 
-    put :update, {:domain => {:name => unique_name}}
+    Domain.expects(:find).with() {|id, *args| id == @domain.id }.returns(@domain)
+
+    put :update, {:id => @domain.id, :domain => {:name => unique_name}}
 
     assert domain = assigns(:domain)
     assert domain.errors.empty?, domain.errors.inspect
@@ -161,7 +167,7 @@ class DomainsControllerTest < ActionController::TestCase
     with_particular_user
     Rails.cache.write(@controller.domains_cache_key, [])
 
-    put :update, {:domain => {:name => unique_name}}
+    put :update, {:id => @domain.id, :domain => {:name => unique_name}}
 
     assert domain = assigns(:domain)
     assert domain.errors.empty?, domain.errors.inspect
@@ -172,7 +178,7 @@ class DomainsControllerTest < ActionController::TestCase
   test "update should assign errors on empty name" do
     with_particular_user
 
-    put :update, {:domain => {:name => ''}}
+    put :update, {:id => @domain.id, :domain => {:name => ''}}
 
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
@@ -185,7 +191,7 @@ class DomainsControllerTest < ActionController::TestCase
   test "update should assign errors on long name" do
     with_particular_user
 
-    put :update, {:domain => {:name => 'aoeu'*2000}}
+    put :update, {:id => @domain.id, :domain => {:name => 'aoeu'*2000}}
 
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
@@ -197,7 +203,7 @@ class DomainsControllerTest < ActionController::TestCase
   test "update should assign errors on invalid name" do
     with_particular_user
 
-    put :update, {:domain => {:name => '@@@@'}}
+    put :update, {:id => @domain.id, :domain => {:name => '@@@@'}}
 
     assert domain = assigns(:domain)
     assert !domain.errors.empty?, domain.inspect
@@ -210,7 +216,7 @@ class DomainsControllerTest < ActionController::TestCase
     with_particular_user
     assert (domain = Domain.new(get_post_form.merge(:name => "d#{new_uuid[0..12]}", :as => unique_user))).save, domain.errors.inspect
 
-    put :update, {:domain => {:name => domain.name}}
+    put :update, {:id => @domain.id, :domain => {:name => domain.name}}
 
     assert domain = assigns(:domain)
     assert !domain.errors.empty?

@@ -32,11 +32,11 @@ class DomainsController < ConsoleController
   end
 
   def edit
-    @domain = Domain.find(:one, :as => current_user) rescue redirect_to(new_domain_path)
+    @domain = Domain.find(params[:id].to_s, :as => current_user)
   end
 
   def update
-    @domain = Domain.find(:one, :as => current_user)
+    @domain = Domain.find(params[:id].to_s, :as => current_user)
     @domain.attributes.merge!(params[:domain]) if params[:domain]
 
     if @domain.save or @domain.has_exit_code?(133)
