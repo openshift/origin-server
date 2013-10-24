@@ -62,11 +62,16 @@ module OpenShift
         end
       end
 
-      def stop
+      def stop(force=false)
         p_runner do |gear|
           syslog_pass_fail("Stopped", "Failed to stop", gear) do
             output_pass_fail("Stopping", gear) do
-              gear.stop_gear(user_initiated: false)
+              options={ :user_initiated => false }
+              if force
+                options[:force]=true
+                options[:term_delay]=10
+              end
+              gear.stop_gear(options)
             end
           end
         end
@@ -485,6 +490,11 @@ begin
       OpenShift::Runtime::AdminGearsControl.new.stop
     }
 
+  when 'forcestopall'
+    exitval = unlock_if_good {
+      OpenShift::Runtime::AdminGearsControl.new.stop(true)
+    }
+
   when 'restartall'
     exitval = lock_if_good {
       OpenShift::Runtime::AdminGearsControl.new.restart
@@ -512,6 +522,10 @@ begin
   when 'stopgear'
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
     exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).stop
+
+  when 'forcestopgear'
+    raise "Requires a gear uuid." if ARGV[1..-1].nil?
+    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).stop(true)
 
   when 'restartgear'
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
@@ -543,7 +557,7 @@ begin
 
 
   else
-    raise "Usage: #{$0} {startall|stopall|status|restartall|waited-startall|condrestartall|startgear [uuid]|stopgear [uuid]|restartgear [uuid]|idlegear [gear]|unidlegear [gear]|list|listidle}"
+    raise "Usage: #{$0} {startall|stopall|forcestopall|status|restartall|waited-startall|condrestartall|startgear [uuid]|stopgear [uuid]|forcestopgear [uuid]|restartgear [uuid]|idlegear [gear]|unidlegear [gear]|list|listidle}"
   end
 
 rescue => e
