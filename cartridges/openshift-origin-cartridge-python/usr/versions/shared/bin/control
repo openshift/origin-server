@@ -25,7 +25,7 @@ function start_apache() {
 
 function start() {
     echo "Starting PYTHON cart"
-    oo-erb conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
+    oo-erb ${OPENSHIFT_PYTHON_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
     if [ -f "$OPENSHIFT_REPO_DIR/app.py" ]
     then
         start_app
@@ -77,7 +77,7 @@ function restart() {
         start
     else
         stop_app
-        oo-erb conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
+        oo-erb ${OPENSHIFT_PYTHON_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
         write_httpd_passenv $HTTPD_PASSENV_FILE
         ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
         /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
