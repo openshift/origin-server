@@ -128,6 +128,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     @user.capabilities["max_untracked_addtl_storage_per_gear"] = 5
     @user.save
     app.reload
+    app.owner.reload
     component_instance = app.component_instances.find_by(cartridge_name: PHP_VERSION)
     group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
     app.update_component_limits(component_instance, nil, nil, 2)
