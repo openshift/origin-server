@@ -262,11 +262,11 @@ function build() {
 function deploy() {
   echo "Deploying $cartridge_type cartridge"
 
-  if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
+  # if repo/deployments has any files in it, sync them to $JBOSSEAP_DEPLOYMENTS_DIR
+  # and delete any files in $JBOSSEAP_DEPLOYMENTS_DIR that don't exist in
+  # repo/deployments
+  if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments 2>/dev/null)" ]; then
     rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ $JBOSSEAP_DEPLOYMENTS_DIR
-  else
-    rm -rf ${OPENSHIFT_JBOSSEAP_DIR}/standalone/deployments/*
-    rm -rf ${JBOSSEAP_DEPLOYMENTS_DIR}/*
   fi
 }
 

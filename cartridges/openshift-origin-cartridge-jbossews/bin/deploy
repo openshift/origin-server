@@ -12,8 +12,9 @@ if [ -d $tmp ]; then
   done
 fi
 
-if [ -d ${OPENSHIFT_REPO_DIR}/webapps ]; then
+# if repo/webapps has any files in it, sync them to $OPENSHIFT_JBOSSEWS_DIR/webapps
+# and delete any files in $OPENSHIFT_JBOSSEWS_DIR/webapps that don't exist in
+# repo/webapps
+if [ "$(ls ${OPENSHIFT_REPO_DIR}/webapps 2>/dev/null)" ]; then
   rsync -r --delete ${OPENSHIFT_REPO_DIR}/webapps/ ${OPENSHIFT_JBOSSEWS_DIR}/webapps/
-else
-  rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/webapps/*
 fi
