@@ -702,15 +702,15 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.stubs(:calculate_deployment_checksum).with(deployment_id).returns(checksum)
     @container.expects(:link_deployment_id).with(deployment_datetime, deployment_id)
 
+    @container.expects(:sync_runtime_repo_dir_to_deployment).with(deployment_datetime)
+    @container.expects(:sync_runtime_dependencies_dir_to_deployment).with(deployment_datetime)
+    @container.expects(:sync_runtime_build_dependencies_dir_to_deployment).with(deployment_datetime)
+
     metadata = mock()
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
     metadata.expects(:id=).with(deployment_id)
     metadata.expects(:checksum=).with(checksum)
     metadata.expects(:save)
-
-    @container.expects(:sync_runtime_repo_dir_to_deployment).with(deployment_datetime)
-    @container.expects(:sync_runtime_dependencies_dir_to_deployment).with(deployment_datetime)
-    @container.expects(:sync_runtime_build_dependencies_dir_to_deployment).with(deployment_datetime)
 
     prepare_options = {deployment_datetime: deployment_datetime}
     output = @container.prepare(prepare_options)
@@ -731,6 +731,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_id = 'abcd1234'
     @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
     @container.expects(:link_deployment_id).with(deployment_datetime, deployment_id)
+
+    @container.expects(:sync_runtime_repo_dir_to_deployment).with(deployment_datetime)
+    @container.expects(:sync_runtime_dependencies_dir_to_deployment).with(deployment_datetime)
+    @container.expects(:sync_runtime_build_dependencies_dir_to_deployment).with(deployment_datetime)
+
     metadata = mock()
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
     metadata.expects(:id=).with(deployment_id).raises(IOError.new('msg'))

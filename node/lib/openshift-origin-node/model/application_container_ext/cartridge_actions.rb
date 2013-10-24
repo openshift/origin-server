@@ -534,6 +534,10 @@ module OpenShift
           link_deployment_id(deployment_datetime, deployment_id)
 
           begin
+            sync_runtime_repo_dir_to_deployment(deployment_datetime)
+            sync_runtime_dependencies_dir_to_deployment(deployment_datetime)
+            sync_runtime_build_dependencies_dir_to_deployment(deployment_datetime)
+
             deployment_metadata = deployment_metadata_for(deployment_datetime)
             deployment_metadata.id = deployment_id
             deployment_metadata.checksum = calculate_deployment_checksum(deployment_id)
@@ -545,10 +549,6 @@ module OpenShift
             out = "Deployment id is #{deployment_id}"
             buffer << out
             options[:out].puts(out) if options[:out]
-
-            sync_runtime_repo_dir_to_deployment(deployment_datetime)
-            sync_runtime_dependencies_dir_to_deployment(deployment_datetime)
-            sync_runtime_build_dependencies_dir_to_deployment(deployment_datetime)
           rescue IOError => e
             out = "Error preparing deployment #{deployment_id}; "
             buffer << out
