@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.4
+Version: 1.16.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -264,6 +264,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.5-1
+- Merge pull request #3980 from ncdc/bz1022868
+  (dmcphers+openshiftbot@redhat.com)
+- Start web proxy cartridge in activate (andy.goldstein@gmail.com)
+
 * Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
 - kerberos work for broker and console (jliggitt@redhat.com)
 - abstract ssh "key" manangement and add support for k5login
