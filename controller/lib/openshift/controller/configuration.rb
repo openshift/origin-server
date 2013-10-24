@@ -15,5 +15,15 @@ module OpenShift::Controller
         h
       end
     end
+
+    # Parses a comma-separated string to an array, removing extra whitespace and empty elements. Nil input returns nil. Empty input returns empty array.
+    def self.parse_list(list)
+      if list.nil?
+        nil
+      else
+        list.split(',').map(&:strip).map(&:presence).compact
+      end
+    end
+    
   end
 end

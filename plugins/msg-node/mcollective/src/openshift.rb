@@ -437,10 +437,11 @@ module MCollective
 
       def oo_authorized_ssh_key_remove(args)
         ssh_key = args['--with-ssh-key']
+        key_type = args['--with-ssh-key-type']
         comment = args['--with-ssh-comment']
 
         with_container_from_args(args) do |container|
-          container.remove_ssh_key(ssh_key, comment)
+          container.remove_ssh_key(ssh_key, key_type, comment)
         end
       end
 

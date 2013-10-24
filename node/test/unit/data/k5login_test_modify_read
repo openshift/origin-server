@@ -1,0 +1,20 @@
+# id: testuser1
+principal1@EXAMPLE.COM
+
+# id: testuser4
+#       id:    testuser5    
+# id: testuser6   
+#id:testuser7
+principal2@EXAMPLE.COM
+
+# comments that don't matter
+# spaces that don't matter
+
+# the next principal is un-owned
+
+notowned@EXAMPLE.COM
+
+# id: testuser2
+# id: testuser4
+# id: testuser6
+principal3@EXAMPLE.COM

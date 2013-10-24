@@ -54,6 +54,22 @@ class RestApiKeyTest < ActiveSupport::TestCase
     assert key.errors[:name].include? 'Key name is required and cannot be blank.' 
     assert key.errors[:content].include? 'Key content is required and cannot be blank.'
     assert key.errors[:type].first =~ /Your SSH public key appears to be invalid/
+
+    key = Key.new :type => 'ssh-rsa', :content => 'ABC@DEF', :as => @user
+    assert !key.save(:validate => false) # don't check client validations
+    assert (key.errors[:content] || []).include? 'Invalid key content.'
+
+    key = Key.new :type => 'krb5-principal', :content => "#Test", :as => @user
+    assert !key.save(:validate => false) # don't check client validations
+    assert (key.errors[:content] || []).include? 'Invalid key content.'
+
+    key = Key.new :type => 'krb5-principal', :content => "ABC\nDEF", :as => @user
+    assert !key.save(:validate => false) # don't check client validations
+    assert (key.errors[:content] || []).include? 'Invalid key content.'
+
+    key = Key.new :type => 'krb5-principal', :content => "ABC\rDEF", :as => @user
+    assert !key.save(:validate => false) # don't check client validations
+    assert (key.errors[:content] || []).include? 'Invalid key content.'
   end
 
   def test_key_delete
