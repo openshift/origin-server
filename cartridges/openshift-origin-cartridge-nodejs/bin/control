@@ -202,20 +202,32 @@ function restart() {
 
 function build() {
     echo "Building NodeJS cartridge"
-    if [ -d "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules" ]; then
-        node_modules_dir="${OPENSHIFT_REPO_DIR}node_modules/"
-        for d in `ls -a ${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules`; do
-            [ -e "${node_modules_dir}$d" ]  ||  \
-                mv "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules/$d" "$node_modules_dir"
-        done
-        rm -rf "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules"
-    fi
+    node_modules_dir="${OPENSHIFT_REPO_DIR}node_modules/"
+    saved_modules_dir="${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules"
+
+    # Ensure that we have the node_modules directory.
+    mkdir -p $node_modules_dir
 
     if force_clean_build_enabled_for_latest_deployment; then
-      echo "Force-clean builds are enabled. Recreating npm modules" 1>&2
-      #TODO see if we need to clean out $OPENSHIFT_REPO_DIR/node_modules
+        echo "Force-clean builds are enabled. Recreating npm modules" 1>&2
 
-      link_global_modules $OPENSHIFT_NODEJS_VERSION
+        # Remove saved modules, if any.
+        rm -rf $saved_modules_dir
+
+        # Clean the npm cache. (This will clean the ~/.npm directory).
+        npm cache clean
+
+        # Link back the global modules.
+        link_global_modules $OPENSHIFT_NODEJS_VERSION
+    else
+        # Restore the saved node_modules from prior builds.
+        if [ -d "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules" ]; then
+            for d in `ls -a ${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules`; do
+                [ -e "${node_modules_dir}$d" ]  ||  \
+                  mv "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules/$d" "$node_modules_dir"
+            done
+            rm -rf "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules"
+        fi
     fi
 
     #  Newer versions of Node set tmp to $HOME/tmp, which is not available
