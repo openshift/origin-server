@@ -474,7 +474,6 @@ module OpenShift
               buffer << "Restarting application"
               buffer << start_gear(user_initiated:     true,
                                    hot_deploy:         options[:hot_deploy],
-                                   exclude_web_proxy:  true,
                                    out:                options[:out],
                                    err:                options[:err])
             end
@@ -795,19 +794,21 @@ module OpenShift
 
             update_current_deployment_datetime_symlink(deployment_datetime)
 
+            # look this up once instead of multiple times
+            primary_cartridge = @cartridge_model.primary_cartridge
+
             @cartridge_model.do_control('update-configuration',
-                                        @cartridge_model.primary_cartridge,
+                                        primary_cartridge,
                                         pre_action_hooks_enabled:  false,
                                         post_action_hooks_enabled: false,
                                         out:                       options[:out],
                                         err:                       options[:err])
 
-            msg = "Starting application #{application_name}\n"
+            msg = "Starting application #{application_name}"
             result[:messages] << msg
 
             output = start_gear(secondary_only:    true,
                                 user_initiated:    true,
-                                exclude_web_proxy: true,
                                 hot_deploy:        options[:hot_deploy],
                                 out:               options[:out],
                                 err:               options[:err])
@@ -817,7 +818,7 @@ module OpenShift
             @state.value = ::OpenShift::Runtime::State::DEPLOYING
 
             output = @cartridge_model.do_control('deploy',
-                                                  @cartridge_model.primary_cartridge,
+                                                  primary_cartridge,
                                                   pre_action_hooks_enabled: false,
                                                   prefix_action_hooks:      false,
                                                   out:                      options[:out],
@@ -827,7 +828,6 @@ module OpenShift
 
             output = start_gear(primary_only:      true,
                                 user_initiated:    true,
-                                exclude_web_proxy: true,
                                 hot_deploy:        options[:hot_deploy],
                                 out:               options[:out],
                                 err:               options[:err])
@@ -835,7 +835,7 @@ module OpenShift
             result[:messages] << output unless output.empty?
 
             output = @cartridge_model.do_control('post-deploy',
-                                                  @cartridge_model.primary_cartridge,
+                                                  primary_cartridge,
                                                   pre_action_hooks_enabled: false,
                                                   prefix_action_hooks:      false,
                                                   out:                      options[:out],
@@ -844,12 +844,12 @@ module OpenShift
             result[:messages] << output unless output.empty?
 
             if options[:init]
-              primary_cart_env_dir = PathUtils.join(@container_dir, @cartridge_model.primary_cartridge.directory, 'env')
+              primary_cart_env_dir = PathUtils.join(@container_dir, primary_cartridge.directory, 'env')
               primary_cart_env     = ::OpenShift::Runtime::Utils::Environ.load(primary_cart_env_dir)
               ident                = primary_cart_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
               _, _, version, _     = Runtime::Manifest.parse_ident(primary_cart_env[ident.first])
 
-              @cartridge_model.post_install(@cartridge_model.primary_cartridge, version)
+              @cartridge_model.post_install(primary_cartridge, version)
 
             end
 
