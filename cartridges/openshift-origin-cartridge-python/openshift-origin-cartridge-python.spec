@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.16.3
+Version: 1.16.4
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,13 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
+- Added absolute path to the performance.conf.erb.hidden in cartridges
+  (mfojtik@redhat.com)
+- Merge pull request #3971 from ncdc/bz1022361
+  (dmcphers+openshiftbot@redhat.com)
+- Restore 'gear build' functionality on normal gears (andy.goldstein@gmail.com)
+
 * Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Merge pull request #3955 from ncdc/copy-on-activate
   (dmcphers+openshiftbot@redhat.com)
