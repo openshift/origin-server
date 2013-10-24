@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,11 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Merge pull request #3973 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Modifications to app delete and pending op execution (abhgupta@redhat.com)
+
 * Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Merge pull request #3966 from pravisankar/dev/ravi/restrict-large-gear-
   support (dmcphers+openshiftbot@redhat.com)
