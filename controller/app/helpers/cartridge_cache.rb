@@ -150,7 +150,7 @@ class CartridgeCache
       begin
         Rails.logger.debug("Downloading #{url}...")
         Timeout.timeout(client.receive_timeout) do
-          client.get_content(url) do |chunk|
+          client.get_content(url, nil, {"X-OpenShift-Cartridge-Download"=>""}) do |chunk|
             manifest << chunk
             if manifest.length > client.read_block_size
               raise OpenShift::UnfulfilledRequirementException.new(url)
