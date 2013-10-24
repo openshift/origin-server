@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.16.3
+Version: 1.16.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,15 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
+- kerberos work for broker and console (jliggitt@redhat.com)
+- Merge branch 'master' into console_light_theme_dev (sgoodwin@redhat.com)
+- Adding alert-success for successful auth token creation Adding .help-inline
+  class to align text with input correctly UI adjustments to the
+  authorization/new page so the creation options are more understandable to new
+  users Adding section.row-content for spacing between setting types
+  (sgoodwin@redhat.com)
+
 * Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Merge pull request #3963 from sg00dwin/console_light_theme_dev
   (dmcphers+openshiftbot@redhat.com)
