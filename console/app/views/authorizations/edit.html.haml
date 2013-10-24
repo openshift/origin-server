@@ -21,6 +21,9 @@
               %tr
                 %td.nowrap{:scope => 'row'}= scope[:id]
                 %td= scope[:description]
+            - else
+              %tr
+                %td{:scope => 'row', :colspan => 2}= s
 
       = f.input :note, :as => :text, :label => 'Change the description of this authorization token', :input_html => {:class => 'span6', :rows => 2}
 
