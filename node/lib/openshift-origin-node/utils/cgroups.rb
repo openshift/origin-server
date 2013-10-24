@@ -153,6 +153,8 @@ module OpenShift
         end
 
         # Public: Distribute this user's processes into their cgroup
+        #
+        # Returns: A hash PID => exception for failures.
         def classify_processes
           @impl.classify_processes
         end

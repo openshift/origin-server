@@ -16,6 +16,7 @@
 
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
+require 'openshift-origin-node/utils/node_logger'
 require 'fileutils'
 require 'etc'
 
@@ -263,6 +264,8 @@ module OpenShift
 
           # Public: Distribute this user's processes into their cgroup
           def classify_processes
+            errors = {}
+
             threads = []
             threads_foreach do |tid, pid, name, puid, pgid|
               if puid == uid
@@ -276,13 +279,20 @@ module OpenShift
                   threads.each do |pid|
                     begin
                       t.syswrite "#{pid}\n"
-                    rescue
+                    rescue Errno::ESRCH       # The thread went away or is a zombie
+                    rescue Errno::ENOMEM => e # Cannot allocate memory (cgroup is full)
+                      errors[pid]="The cgroup is full"
+                      NodeLogger.logger.error("Error classifying #{@uuid} #{pid}: The cgroup is full")
+                    rescue => e
+                      errors[pid]=e.message
+                      NodeLogger.logger.error("Error classifying #{@uuid} #{pid}: #{e.message}")
                     end
                   end
                 end
               rescue Errno::ENOENT
               end
             end
+            errors
           end
 
           # Public: List processes in a cgroup regardless of what UID owns them
@@ -342,7 +352,9 @@ module OpenShift
             processes_foreach do |pid, name, uid, gid|
               begin
                 Dir.foreach("/proc/#{pid}/task") do |tid|
-                  yield(tid, pid, name, uid, gid)
+                  if not tid.start_with?('.')
+                    yield(tid, pid, name, uid, gid)
+                  end
                 end
               rescue
               end
