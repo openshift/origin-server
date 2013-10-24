@@ -214,6 +214,7 @@ sed -i -e '/NON-RUNTIME BEGIN/,/NON-RUNTIME END/d' %{buildroot}%{brokerdir}/Gemf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000002_openshift_origin_broker_proxy.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000002_openshift_origin_broker_servername.conf
 %config(noreplace) %{_sysconfdir}/openshift/broker.conf
+%config(noreplace) %{_sysconfdir}/openshift/broker-dev.conf
 %doc %{_sysconfdir}/openshift/plugins.d/README
 %dir %{_sysconfdir}/openshift/plugins.d
 %config(noreplace) %{_sysconfdir}/openshift/quickstarts.json
