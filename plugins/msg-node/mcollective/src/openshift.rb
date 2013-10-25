@@ -1286,13 +1286,13 @@ module MCollective
         dir              = "/var/lib/openshift/"
         filelist         = Dir.foreach(dir) do |gear_file|
           if File.directory?(dir + gear_file) and not File.symlink?(dir + gear_file) and not gear_file[0] == '.'
-            gear_map[gear_file] = {}
+            gear_map[gear_file] = []
             authorized_keys_file = File.join(dir, gear_file, ".ssh", "authorized_keys")
             if File.exists?(authorized_keys_file) and not File.directory?(authorized_keys_file)
               File.open(authorized_keys_file, File::RDONLY) do |key_file|
                 key_file.each_line do |line|
                   begin
-                    gear_map[gear_file][Digest::MD5.hexdigest(line.split[-2].chomp)] = line.split[-1].chomp
+                    gear_map[gear_file] << "#{line.split[-1].chomp}::#{Digest::MD5.hexdigest(line.split[-2].chomp)}"
                   rescue
                   end
                 end

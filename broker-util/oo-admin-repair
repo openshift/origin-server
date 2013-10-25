@@ -105,6 +105,7 @@ Rails.configuration.analytics[:enabled] = false
 Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
 
+SSH_KEY_COMMENT_DELIMITER = "::"
 $summary = []
 datastore_hash = {}
 user_hash = {}
@@ -192,8 +193,8 @@ def district_has_available_uid?(district_uuid, gear_uid)
 end
 
 def get_user_info(user)
-  user_ssh_keys = {}
-  user["ssh_keys"].each { |k| user_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if user["ssh_keys"]
+  user_ssh_keys = []
+  user["ssh_keys"].each { |k| user_ssh_keys << "#{user['_id'].to_s}-#{k['name']}#{SSH_KEY_COMMENT_DELIMITER}#{Digest::MD5.hexdigest(k['content'])}" if k["content"] } if user["ssh_keys"]
   return {"login" => user["login"], 
           "consumed_gears" => user["consumed_gears"], 
           "domains" => {}, 
@@ -344,8 +345,8 @@ domain_selection = {:fields => ["owner_id", "system_ssh_keys.name", "system_ssh_
 OpenShift::DataStore.find(:domains, {}, domain_selection) do |domain|
   owner_id = domain["owner_id"].to_s
   domain_hash[domain["_id"].to_s] = owner_id
-  system_ssh_keys = {}
-  domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if domain["system_ssh_keys"]
+  system_ssh_keys = []
+  domain["system_ssh_keys"].each { |k| system_ssh_keys << "domain-#{k['name']}::#{Digest::MD5.hexdigest(k['content'])}" if k["content"] } if domain["system_ssh_keys"]
   
   if owner_id.present? and !user_hash[owner_id]
     OpenShift::DataStore.find(:cloud_users, {"_id" => BSON::ObjectId(owner_id)}, user_selection_primary) do |user|
@@ -354,7 +355,7 @@ OpenShift::DataStore.find(:domains, {}, domain_selection) do |domain|
   end
 
   if user_hash[owner_id]
-    user_hash[owner_id]["ssh_keys"].merge! system_ssh_keys
+    user_hash[owner_id]["ssh_keys"] |= system_ssh_keys
     user_hash[owner_id]["domains"][domain["_id"].to_s] = 0
   end
 end
@@ -381,14 +382,14 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   login = nil
   creation_time = app['created_at']
   domain_id = app['domain_id'].to_s
-  app_ssh_keys = {}
-  app['app_ssh_keys'].each { |k| app_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if app['app_ssh_keys']
+  app_ssh_keys = []
+  app['app_ssh_keys'].each { |k| app_ssh_keys << "#{k['name']}::#{Digest::MD5.hexdigest(k['content'])}" if k["content"] } if app['app_ssh_keys']
 
   owner_id = domain_hash[domain_id]
 
   unless owner_id.nil? or user_hash[owner_id].nil?
     login = user_hash[owner_id]["login"]
-    app_ssh_keys.merge! user_hash[owner_id]["ssh_keys"]
+    app_ssh_keys |= user_hash[owner_id]["ssh_keys"]
 
     if app['members'].present?
       # add the member ssh keys
@@ -396,7 +397,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
         # we are passsing the resource as nil for now since we don't have the mongoid object 
         # and the resource is ignored for :ssh_to_gears 
         if Ability.has_permission?(m["_id"], :ssh_to_gears, Application, m["r"], nil)
-          app_ssh_keys.merge! user_hash[m["_id"].to_s]["ssh_keys"] unless user_hash[m["_id"].to_s].nil?
+          app_ssh_keys |= user_hash[m["_id"].to_s]["ssh_keys"] unless user_hash[m["_id"].to_s].nil?
         end
       end
     end
@@ -476,8 +477,8 @@ if fix_ssh_keys
     print "Checking ssh keys for gear: #{gear_uuid}...\t" if $verbose
     if (current_time - creation_time) > 600
       if gear_sshkey_hash.has_key? gear_uuid
-        gear_sshkeys_list = gear_sshkey_hash[gear_uuid].keys.uniq.sort
-        db_sshkeys_list = db_sshkeys.keys.uniq.sort
+        gear_sshkeys_list = gear_sshkey_hash[gear_uuid].uniq.sort
+        db_sshkeys_list = db_sshkeys.uniq.map! {|key| "OPENSHIFT-#{gear_uuid}-#{key}"}.sort
         if db_sshkeys_list == gear_sshkeys_list
           puts "OK" if $verbose
         else
@@ -489,13 +490,14 @@ if fix_ssh_keys
           # get the unmatched ssh keys for the gear from the node
           extra_gear_sshkeys = gear_sshkeys_list - common_sshkeys
           extra_gear_sshkeys.each do |key|
-            $summary << "Gear '#{gear_uuid}' has  key with comment '#{gear_sshkey_hash[gear_uuid][key]}' on the node but not in mongo."
+            $summary << "Gear '#{gear_uuid}' has key with hash '#{key.split(SSH_KEY_COMMENT_DELIMITER)[1]}' and comment '#{key.split(SSH_KEY_COMMENT_DELIMITER)[0]}' on the node but not in mongo."
           end
           
           # get the unmatched ssh keys for the gear in mongo
           extra_db_sshkeys = db_sshkeys_list - common_sshkeys
           extra_db_sshkeys.each do |key|
-            $summary << "Gear '#{gear_uuid}' has key with name '#{db_sshkeys[key]}' in mongo but not on the node."
+            remove_str = "OPENSHIFT-#{gear_uuid}-"
+            $summary << "Gear '#{gear_uuid}' has key with hash '#{key.split(SSH_KEY_COMMENT_DELIMITER)[1]}' and updated name '#{key.split(SSH_KEY_COMMENT_DELIMITER)[0].sub(remove_str, '')}' in mongo but not on the node."
           end
         
           # record the app _id for fixing later

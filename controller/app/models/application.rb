@@ -1531,10 +1531,9 @@ class Application
         op_group.elaborate(self) if op_group.pending_ops.count == 0
 
         if op_group.pending_ops.where(:state => :rolledback).count > 0
-          raise Exception.new("Op group is being rolled back.")
+          raise Exception.new("Op group is already being rolled back.")
         end
 
-        Rails.logger.debug "Executing #{op_group.class.to_s}: #{op_group.inspect}"
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
