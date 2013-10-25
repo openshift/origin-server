@@ -111,8 +111,8 @@ def district_has_available_uid?(district_id, gear_uid, false_positive_response=t
 end
 
 def get_user_info(user, level=0)
-  user_ssh_keys = {}
-  user["ssh_keys"].each { |k| user_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if user["ssh_keys"]
+  user_ssh_keys = []
+  user["ssh_keys"].each { |k| user_ssh_keys << "#{user['_id'].to_s}-#{k['name']}#{SSH_KEY_COMMENT_DELIMITER}#{Digest::MD5.hexdigest(k["content"])}" if k["content"] } if user["ssh_keys"]
   user_info = {"consumed_gears" => user["consumed_gears"], "domains" => {}, "login" => user["login"], "ssh_keys" => user_ssh_keys,
                "max_untracked_addtl_storage_per_gear" => user["capabilities"]["max_untracked_addtl_storage_per_gear"],
                "plan_id" => user["plan_id"], "plan_state" => user["plan_state"], "usage_account_id" => user["usage_account_id"],
@@ -205,6 +205,7 @@ def process_usage_hash(gear_hash, storage_hash, cart_hash)
 end
 
 FALSE_POSITIVE_CHECK_LIMIT = 4000
+SSH_KEY_COMMENT_DELIMITER = "::"
 $false_positive_check_cnt = 0
 $premium_carts = nil
 $districts_enabled = Rails.configuration.msg_broker[:districts][:enabled]
@@ -246,8 +247,8 @@ if level >= 1
     owner_id = domain["owner_id"].to_s
     domain_hash[domain["_id"].to_s] = owner_id
     domain_namespace_hash[domain["_id"].to_s] = domain['canonical_namespace']
-    system_ssh_keys = {}
-    domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if domain["system_ssh_keys"]
+    system_ssh_keys = []
+    domain["system_ssh_keys"].each { |k| system_ssh_keys << "domain-#{k['name']}#{SSH_KEY_COMMENT_DELIMITER}#{Digest::MD5.hexdigest(k["content"])}" if k["content"] } if domain["system_ssh_keys"]
 
     if !user_hash[owner_id]
       OpenShift::DataStore.find(:cloud_users, {"_id" => domain["owner_id"]}, user_selection_primary) do |user|
@@ -261,7 +262,7 @@ if level >= 1
 
     if user_hash[owner_id]
       user_hash[owner_id]["domains"][domain["_id"].to_s] = 0
-      user_hash[owner_id]["ssh_keys"].merge! system_ssh_keys
+      user_hash[owner_id]["ssh_keys"] |= system_ssh_keys
     else
       summary << "User '#{owner_id}' for domain '#{domain['_id']}' does not exist in mongo."
     end
@@ -281,7 +282,7 @@ if level >= 1 and $districts_enabled
   end
 end
 
-app_selection = {:fields => ["name", "created_at", "domain_id", "group_instances.gears._id",
+app_selection = {:fields => ["name", "created_at", "domain_id", "group_instances.gears._id", "group_instances.gears.app_dns",
                              "group_instances.gears.uuid", "group_instances.gears.uid", "group_instances.gears.server_identity",
                              "group_instances._id", "component_instances._id", "component_instances.cartridge_name",
                              "component_instances.group_instance_id", "app_ssh_keys.name", "app_ssh_keys.content",
@@ -293,10 +294,12 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   gear_count = 0
   owner_id = nil
   login = nil
+  has_gears = false
+  has_dns_gear = false
   creation_time = app['created_at']
   domain_id = app['domain_id'].to_s
-  app_ssh_keys = {}
-  app['app_ssh_keys'].each { |k| app_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if app['app_ssh_keys']
+  app_ssh_keys = []
+  app['app_ssh_keys'].each { |k| app_ssh_keys << "#{k['name']}#{SSH_KEY_COMMENT_DELIMITER}#{Digest::MD5.hexdigest(k["content"])}" if k["content"] } if app['app_ssh_keys']
 
   if level >= 1
     owner_id = domain_hash[domain_id]
@@ -311,7 +314,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       end
     else
       login = user_hash[owner_id]["login"]
-      app_ssh_keys.merge! user_hash[owner_id]["ssh_keys"]
+      app_ssh_keys |= user_hash[owner_id]["ssh_keys"]
 
       if app['owner_id'].nil?
         summary << "Application '#{app['name']}' for domain '#{domain_id}' does not have the denormalized owner_id set in mongo."
@@ -333,7 +336,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
         # we are passsing the resource as nil for now since we don't have the mongoid object 
         # and the resource is ignored for :ssh_to_gears 
         if Ability.has_permission?(m["_id"], :ssh_to_gears, Application, m["r"], nil)
-          app_ssh_keys.merge! user_hash[m["_id"].to_s]["ssh_keys"] unless user_hash[m["_id"].to_s].nil?
+          app_ssh_keys |= user_hash[m["_id"].to_s]["ssh_keys"] unless user_hash[m["_id"].to_s].nil?
         end
       end
     else
@@ -370,6 +373,9 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       gear_count += 1
       datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["_id"].to_s, app_ssh_keys ]
 
+      has_gears = true
+      has_dns_gear = true if gear["app_dns"]
+      
       if level >= 1 and $districts_enabled
         # record all used uid values for each node to match later with the district
         gear_uid_hash[gear['server_identity']] = [] unless gear_uid_hash.has_key?(gear['server_identity'])
@@ -377,6 +383,12 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       end
     end
   end
+  
+  # if there are no gears, it will be caught by the check to detect missing group_instances / gears
+  if has_gears and !has_dns_gear
+    summary << "Application '#{app['name']}' with Id '#{app['_id']}' has DNS gear missing."
+  end 
+  
   user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1 and user_hash[owner_id]
 
   if level >= 1 and $billing_enabled and owner_id and user_hash[owner_id] and !user_hash[owner_id]['parent_user_id']
@@ -516,8 +528,8 @@ datastore_hash.each do |gear_uuid, gear_info|
     print "Checking ssh keys for gear: #{gear_uuid}...\t" if verbose
     if (current_time - creation_time) > 600
       if gear_sshkey_hash.has_key? gear_uuid
-        gear_sshkeys_list = gear_sshkey_hash[gear_uuid].keys.uniq.sort
-        db_sshkeys_list = db_sshkeys.keys.uniq.sort
+        gear_sshkeys_list = gear_sshkey_hash[gear_uuid].uniq.sort
+        db_sshkeys_list = db_sshkeys.uniq.map! {|key| "OPENSHIFT-#{gear_uuid}-#{key}"}.sort
         if db_sshkeys_list == gear_sshkeys_list
           puts "OK" if verbose
         else
@@ -529,13 +541,14 @@ datastore_hash.each do |gear_uuid, gear_info|
           # get the unmatched ssh keys for the gear from the node
           extra_gear_sshkeys = gear_sshkeys_list - common_sshkeys
           extra_gear_sshkeys.each do |key|
-            summary << "Gear '#{gear_uuid}' has  key with comment '#{gear_sshkey_hash[gear_uuid][key]}' on the node but not in mongo."
+            summary << "Gear '#{gear_uuid}' has key with hash '#{key.split(SSH_KEY_COMMENT_DELIMITER)[1]}' and comment '#{key.split(SSH_KEY_COMMENT_DELIMITER)[0]}' on the node but not in mongo."
           end
           
           # get the unmatched ssh keys for the gear in mongo
           extra_db_sshkeys = db_sshkeys_list - common_sshkeys
           extra_db_sshkeys.each do |key|
-            summary << "Gear '#{gear_uuid}' has key with name '#{db_sshkeys[key]}' in mongo but not on the node."
+            remove_str = "OPENSHIFT-#{gear_uuid}-"
+            summary << "Gear '#{gear_uuid}' has key with hash '#{key.split(SSH_KEY_COMMENT_DELIMITER)[1]}' and updated name '#{key.split(SSH_KEY_COMMENT_DELIMITER)[0].sub(remove_str, '')}' in mongo but not on the node."
           end
         end
       elsif verbose
