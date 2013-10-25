@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.17.2
+Version: 1.17.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
+- Bug 1022273: Handle force clean build for nodejs. (mrunalp@gmail.com)
+
 * Wed Oct 23 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
 - Various deploy fixes (andy.goldstein@gmail.com)
 
