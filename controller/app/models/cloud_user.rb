@@ -223,6 +223,7 @@ class CloudUser
       "ha" => false,
       "subaccounts" => false,
       "gear_sizes" => Rails.application.config.openshift[:default_gear_capabilities],
+      "max_domains" => Rails.application.config.openshift[:default_max_domains],
       "max_gears" => Rails.application.config.openshift[:default_max_gears],
     }
   end
@@ -285,7 +286,11 @@ class CloudUser
   end
 
   def max_domains
-    OpenShift::ApplicationContainerProxy.max_user_domains(self)
+    capabilities["max_domains"] || Rails.application.config.openshift[:default_max_domains]
+  end
+
+  def max_domains=(m)
+    capabilities["max_domains"] = m
   end
 
   def allowed_gear_sizes

@@ -36,6 +36,7 @@ Dummy::Application.configure do
   conf = OpenShift::Config.new(File.join(OpenShift::Config::CONF_DIR, 'broker-dev.conf'))  
   config.ss = {
     :domain_suffix => conf.get("CLOUD_DOMAIN", "example.com"),
+    :default_max_domains => (conf.get("DEFAULT_MAX_DOMAINS", "10")).to_i,
     :default_max_gears => (conf.get("DEFAULT_MAX_GEARS", "100")).to_i,
   }
 

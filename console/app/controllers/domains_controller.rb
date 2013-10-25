@@ -1,6 +1,7 @@
 class DomainsController < ConsoleController
   def index
-    @domains = Domain.find(:all, :params => {:include => :application_info}, :as => current_user) rescue redirect_to(new_domain_path)
+    @domains = Domain.find(:all, :params => {:include => :application_info}, :as => current_user)
+    redirect_to(new_domain_path) and return if @domains.blank?
     @capabilities = user_capabilities :refresh => true
     @can_create = @capabilities.max_domains > user_owned_domains.length
   end
@@ -43,6 +44,23 @@ class DomainsController < ConsoleController
       redirect_to domain_path(@domain), :flash => {:success => @domain.messages.first.presence || "The domain '#{@domain.name}' has been updated."}
     else
       render :edit
+    end
+  end
+
+  def delete
+    @domain = Domain.find(params[:id].to_s, :params => {:include => :application_info}, :as => current_user)
+    if @domain.application_count > 0
+      flash[:info] = "All applications must be removed from this domain before it can be deleted"
+      redirect_to domain_path(@domain)
+    end
+  end
+
+  def destroy
+    @domain = Domain.find(params[:id].to_s, :params => {:include => :application_info}, :as => current_user)
+    if @domain.destroy
+      redirect_to settings_path, :flash => {:success => "The domain '#{@domain.name}' has been deleted"}
+    else
+      render :delete
     end
   end
 

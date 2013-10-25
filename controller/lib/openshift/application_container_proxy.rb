@@ -10,14 +10,6 @@ module OpenShift
       return Rails.configuration.openshift[:gear_sizes]
     end
 
-    def self.max_user_domains(user)
-      @proxy_provider.max_user_domains_impl(user)
-    end
-
-    def self.max_user_domains_impl(user)
-      [user.max_gears || 1, Rails.configuration.openshift[:max_domains_per_user]].min
-    end
-
     def self.provider=(provider_class)
       @proxy_provider = provider_class
     end

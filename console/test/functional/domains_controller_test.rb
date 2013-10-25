@@ -225,6 +225,36 @@ class DomainsControllerTest < ActionController::TestCase
     assert_template :edit
   end
 
+  test "should show delete page" do
+    with_particular_user
+
+    get :delete, {:id => @domain.id}
+
+    assert_response :success
+    assert_template :delete
+    assert domain = assigns(:domain)
+  end
+
+  test "should not show delete page for domain with applications" do
+    with_particular_user
+    Domain.any_instance.expects(:application_count).returns(1)
+
+    get :delete, {:id => @domain.id}
+
+    assert_redirected_to domain_path(@domain)
+    assert flash[:info] =~ /removed/, "Expected a message about removing applications"
+  end
+
+  test "should delete domain successfully" do
+    with_particular_user
+
+    delete :destroy, {:id => @domain.id}
+
+    assert_redirected_to settings_path
+    assert flash[:success] =~ /deleted/, "Expected a message about removing applications"
+    assert_raises(RestApi::ResourceNotFound) { Domain.find(@domain.id, :as => unique_user) }
+  end
+
   def get_post_form
     {:name => "d#{uuid[0..12]}"}
   end

@@ -55,7 +55,7 @@ class DomainsController < BaseController
 
     namespace = (params[:name] || params[:id] || params[:namespace] || '').downcase
 
-    allowed_domains = OpenShift::ApplicationContainerProxy.max_user_domains(current_user)
+    allowed_domains = current_user.max_domains
     allowed_domains = 1 if requested_api_version < 1.2
 
     @domain = domain = Domain.new(namespace: namespace, owner: current_user)
