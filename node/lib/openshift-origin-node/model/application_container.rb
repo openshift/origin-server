@@ -292,6 +292,15 @@ module OpenShift
       #
       # Kill processes belonging to this app container.
       #
+      # Options:
+      #    init_owned:   Only kill processes trees that start with a daemon (rooted in init).
+      #    term_delay:   Send SIGTERM first, wait term_delay seconds then send SIGKILL.
+      #
+      # Note: The init_owned and term_delay parameters are combined to
+      # safely kill daemons running in the gear without touching
+      # processes being run from outside the gear (ex: git push, cron,
+      # node API).
+      #
       def kill_procs(options={})
         # Give it a good try to delete all processes.
         # This abuse is necessary to release locks on polyinstantiated
@@ -431,6 +440,10 @@ module OpenShift
       ##
       # Sets the application state to +STOPPED+ and stops the gear. Gear stop implementation
       # is model specific, but +options+ is provided to the implementation.
+      #
+      # Options:
+      #    force    Forcibly kill gear processes after cartridges have been stopped.
+      #
       def stop_gear(options={})
         buffer = ''
         if proxy_cartridge = @cartridge_model.web_proxy

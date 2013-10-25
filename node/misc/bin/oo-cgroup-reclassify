@@ -78,12 +78,22 @@ end
 
 
 begin
+  errors = {}
   if all_containers
     OpenShift::Runtime::ApplicationContainer.all.each do |c|
-      OpenShift::Runtime::Utils::Cgroups.new(c.uuid).classify_processes
+      errs = OpenShift::Runtime::Utils::Cgroups.new(c.uuid).classify_processes
+      errors.merge!(errs)
     end
   else
-    OpenShift::Runtime::Utils::Cgroups.new(container_uuid.to_s).classify_processes
+    errs = OpenShift::Runtime::Utils::Cgroups.new(container_uuid.to_s).classify_processes
+    errors.merge!(errs)
+  end
+
+  if not errors.empty?
+    $stderr.puts("Errors classifying processes")
+    errors.each do |pid, msg|
+      $stderr.puts("    #{pid}: #{msg}")
+    end
   end
 rescue Exception => e
   $stderr.puts(e.message)
