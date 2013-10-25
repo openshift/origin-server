@@ -15,7 +15,7 @@
 
 Summary:       OpenShift Apache mod_rewrite frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.2.1
+Version: 0.2.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -131,6 +131,10 @@ mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Bug 1022956 - Strip trailing port number off the host header.
+  (rmillner@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - Make the vhost and mod_rewrite RPMs non-conflict even if their functionality
   still conflicts. (rmillner@redhat.com)
