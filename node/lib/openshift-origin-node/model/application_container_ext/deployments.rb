@@ -128,8 +128,9 @@ module OpenShift
         def calculate_deployment_checksum(deployment_id)
           deployment_dir = PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id)
 
-          # TODO use a better algorithm
-          out, err, rc = run_in_container_context("tar c . | tar xO | sha1sum | cut -f 1 -d ' '",
+          command = "tar -c --exclude metadata.json . | tar -xO | sha1sum | cut -f 1 -d ' '"
+
+          out, err, rc = run_in_container_context(command,
                                                   chdir: deployment_dir,
                                                   expected_exitstatus: 0)
 
