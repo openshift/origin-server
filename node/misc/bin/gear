@@ -176,9 +176,18 @@ command :postreceive do |c|
       # - this is the first build ever, i.e. --first-time or
       # - auto deployments are enabled and the appropriate git ref was pushed
       if options.first_time or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
+        if options.first_time
+          # if this is an initial build from post_configure, we shouldn't be hot deploying
+          # as that will keep things from starting up properly
+          hot_deploy = false
+        else
+          # otherwise, check the repo for the marker
+          hot_deploy = @repo.file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy)
+        end
+
         result = @container.post_receive(out: $stdout,
                                          err: $stderr,
-                                         hot_deploy: @repo.file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy),
+                                         hot_deploy: hot_deploy,
                                          ref: ref_to_deploy,
                                          force_clean_build: @repo.file_exists?(FORCE_CLEAN_BUILD_MARKER, ref_to_deploy),
                                          report_deployments: true,
