@@ -423,58 +423,60 @@ command :'binary-deploy' do |c|
 
   c.description = "Deploy a binary artifact"
   c.action do |args, options|
-    if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] != 'binary'
-        raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'git' - binary deployments are disabled.")
+    do_command(c, options) do
+      if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] != 'binary'
+          raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'git' - binary deployments are disabled.")
+      end
+
+      puts "Beginning binary deployment"
+
+      options = { stdin: $stdin }
+
+      puts "Stopping gear"
+      @container.stop_gear(user_initiated: true,
+                          exclude_web_proxy: true,
+                          out: $stdout,
+                          err: $stderr)
+
+      puts "Creating new deployment directory"
+      deployment_datetime = @container.create_deployment_dir
+      options[:deployment_datetime] = deployment_datetime
+
+      puts "Preparing deployment"
+      @container.prepare(options)
+
+      puts "Distributing deployment"
+      result = @container.distribute(options)
+      distribute_status = result[:status]
+      puts "Distribution status: #{distribute_status}"
+
+      if distribute_status != RESULT_SUCCESS
+        puts "Distribution failed for the following gears:"
+        failures = result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+        puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+      end
+
+      options[:all]                = true
+      options[:report_deployments] = true
+      puts "Activating deployment"
+      result = @container.activate(options)
+      activate_status = result[:status]
+      puts "Activation status: #{activate_status}"
+
+      if activate_status != RESULT_SUCCESS
+        puts "Activation failed for the following gears:"
+        failures = result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+        puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+      end
+
+      if distribute_status == RESULT_SUCCESS and activate_status == RESULT_SUCCESS
+        deployment_status = 'success'
+      else
+        deployment_status = 'failure'
+      end
+
+      puts "Deployment status: #{deployment_status}"
     end
-
-    puts "Beginning binary deployment"
-
-    options = { stdin: $stdin }
-
-    puts "Stopping gear"
-    @container.stop_gear(user_initiated: true,
-                         exclude_web_proxy: true,
-                         out: $stdout,
-                         err: $stderr)
-
-    puts "Creating new deployment directory"
-    deployment_datetime = @container.create_deployment_dir
-    options[:deployment_datetime] = deployment_datetime
-
-    puts "Preparing deployment"
-    @container.prepare(options)
-
-    puts "Distributing deployment"
-    result = @container.distribute(options)
-    distribute_status = result[:status]
-    puts "Distribution status: #{distribute_status}"
-
-    if distribute_status != RESULT_SUCCESS
-      puts "Distribution failed for the following gears:"
-      failures = result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
-      puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
-    end
-
-    options[:all]                = true
-    options[:report_deployments] = true
-    puts "Activating deployment"
-    result = @container.activate(options)
-    activate_status = result[:status]
-    puts "Activation status: #{activate_status}"
-
-    if activate_status != RESULT_SUCCESS
-      puts "Activation failed for the following gears:"
-      failures = result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
-      puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
-    end
-
-    if distribute_status == RESULT_SUCCESS and activate_status == RESULT_SUCCESS
-      deployment_status = 'success'
-    else
-      deployment_status = 'failure'
-    end
-
-    puts "Deployment status: #{deployment_status}"
   end
 end
 
