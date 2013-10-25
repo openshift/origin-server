@@ -103,50 +103,6 @@ module OpenShift
         output
       end
 
-      # This won't be updated for v2 because it's going away soon.
-      def self.get_cartridge_info(cart_name, porcelain = false, oo_debug = false)
-        output = ""
-        cart_found = false
-
-        cartridge_path = OpenShift::Config.new.get("CARTRIDGE_BASE_PATH")
-        Dir.foreach(cartridge_path) do |cart_dir|
-          next if [".", "..", "embedded", "abstract", "abstract-httpd", "haproxy-1.4", "mysql-5.1", "mongodb-2.2", "postgresql-8.4"].include? cart_dir
-          path = PathUtils.join(cartridge_path, cart_dir, "info", "manifest.yml")
-          begin
-            cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path), :safe => true))
-            if cart.name == cart_name
-              output << "CLIENT_RESULT: "
-              output << cart.to_descriptor.to_json
-              cart_found = true
-              break
-            end
-          rescue Exception => e
-            print "ERROR\n" if oo_debug
-            print "#{e.message}\n#{e.backtrace.inspect}\n" unless porcelain
-          end
-        end
-
-        embedded_cartridge_path = PathUtils.join(cartridge_path, "embedded")
-        if (! cart_found) and File.directory?(embedded_cartridge_path)
-          Dir.foreach(embedded_cartridge_path) do |cart_dir|
-            next if [".",".."].include? cart_dir
-            path = PathUtils.join(embedded_cartridge_path, cart_dir, "info", "manifest.yml")
-            begin
-              cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path), :safe => true))
-              if cart.name == cart_name
-                output << "CLIENT_RESULT: "
-                output << cart.to_descriptor.to_json
-                break
-              end
-            rescue Exception => e
-              print "ERROR\n" if oo_debug
-              print "#{e.message}\n#{e.backtrace.inspect}\n" unless porcelain
-            end
-          end
-        end
-        output
-      end
-
       def self.get_quota(uuid)
         begin
           Etc.getpwnam(uuid)
