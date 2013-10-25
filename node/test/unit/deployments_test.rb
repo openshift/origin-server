@@ -452,4 +452,72 @@ EOF
     err = assert_raises(RuntimeError) { @container.extract_deployment_archive(gear_env, file: file_path, destination: destination) }
     assert_equal "Specified file '#{file_path}' does not exist.", err.message
   end
+
+  def test_clean_runtime_dirs_empty_options
+    @container.expects(:run_in_container_context).never
+    @container.clean_runtime_dirs({})
+  end
+
+  def test_clean_runtime_dirs_unexpected_dir
+    @container.expects(:run_in_container_context).never
+    @container.clean_runtime_dirs(foo: 1)
+  end
+
+  def test_clean_runtime_dirs_dependencies_true
+    command = "shopt -s dotglob; rm -rf app-root/runtime/dependencies/*"
+
+    @container.expects(:run_in_container_context)
+              .with(command, chdir: @container.container_dir, expected_exitstatus: 0)
+
+    @container.clean_runtime_dirs(dependencies: true)
+  end
+
+  def test_clean_runtime_dirs_dependencies_not_true
+    @container.expects(:run_in_container_context).never
+    @container.clean_runtime_dirs(dependencies: false)
+    @container.clean_runtime_dirs(dependencies: 1)
+    @container.clean_runtime_dirs(dependencies: 'abc')
+  end
+
+  def test_clean_runtime_dirs_build_dependencies_true
+    command = "shopt -s dotglob; rm -rf app-root/runtime/build-dependencies/*"
+
+    @container.expects(:run_in_container_context)
+              .with(command, chdir: @container.container_dir, expected_exitstatus: 0)
+
+    @container.clean_runtime_dirs(build_dependencies: true)
+  end
+
+  def test_clean_runtime_dirs_build_dependencies_not_true
+    @container.expects(:run_in_container_context).never
+    @container.clean_runtime_dirs(build_dependencies: false)
+    @container.clean_runtime_dirs(build_dependencies: 1)
+    @container.clean_runtime_dirs(build_dependencies: 'abc')
+  end
+
+  def test_clean_runtime_dirs_repo_true
+    command = "shopt -s dotglob; rm -rf app-root/runtime/repo/*"
+
+    @container.expects(:run_in_container_context)
+              .with(command, chdir: @container.container_dir, expected_exitstatus: 0)
+
+    @container.clean_runtime_dirs(repo: true)
+  end
+
+  def test_clean_runtime_dirs_repo_not_true
+    @container.expects(:run_in_container_context).never
+    @container.clean_runtime_dirs(repo: false)
+    @container.clean_runtime_dirs(repo: 1)
+    @container.clean_runtime_dirs(repo: 'abc')
+  end
+
+  def test_clean_runtime_dirs_all_dirs
+    command = "shopt -s dotglob; rm -rf app-root/runtime/dependencies/* app-root/runtime/build-dependencies/* app-root/runtime/repo/*"
+
+    @container.expects(:run_in_container_context)
+              .with(command, chdir: @container.container_dir, expected_exitstatus: 0)
+
+    @container.clean_runtime_dirs(repo: true, build_dependencies: true, dependencies: true)
+
+  end
 end

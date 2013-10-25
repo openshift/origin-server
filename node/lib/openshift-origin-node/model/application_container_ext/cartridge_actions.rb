@@ -430,7 +430,7 @@ module OpenShift
             options[:out].puts message if options[:out]
             buffer << message
 
-            clean_dependencies
+            clean_runtime_dirs(dependencies: true, build_dependencies: true)
 
             # create the dependency directories for each cartridge
             @cartridge_model.each_cartridge do |cartridge|
@@ -516,7 +516,7 @@ module OpenShift
           if options[:stdin] || options[:file]
             options[:destination] = PathUtils.join(@container_dir, 'app-root', 'runtime')
 
-            clean_dependencies
+            clean_runtime_dirs(dependencies: true, build_dependencies: true, repo: true)
 
             extract_deployment_archive(env, options)
           end

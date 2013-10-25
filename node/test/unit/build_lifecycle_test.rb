@@ -248,7 +248,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     metadata.expects(:force_clean_build=).with(true)
     metadata.expects(:save)
 
-    @container.expects(:clean_dependencies)
+    @container.expects(:clean_runtime_dirs).with(dependencies:true, build_dependencies:true)
     cart1 = mock()
     cart2 = mock()
     @cartridge_model.expects(:each_cartridge).multiple_yields(cart1, cart2)
@@ -756,7 +756,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {a:1}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    @container.expects(:clean_dependencies)
+    @container.expects(:clean_runtime_dirs).with(dependencies:true, build_dependencies:true, repo:true)
     @container.expects(:extract_deployment_archive).with(gear_env, prepare_options)
     @cartridge_model.expects(:do_action_hook).with('prepare',
                                                    gear_env,

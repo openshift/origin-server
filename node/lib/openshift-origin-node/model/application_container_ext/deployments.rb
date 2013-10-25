@@ -80,8 +80,23 @@ module OpenShift
 
         end
 
-        def clean_dependencies
-          out, err, rc = run_in_container_context("shopt -s dotglob; /bin/rm -rf app-root/runtime/dependencies/* app-root/runtime/build-dependencies/*",
+        # Removes all files from app-root/runtime/<dirs>
+        #
+        # options for dirs to delete (all default to false):
+        #  :dependencies
+        #  :build_dependencies
+        #  :repo
+        def clean_runtime_dirs(options)
+          dirs = []
+          %w(dependencies build_dependencies repo).each do |dir|
+            dirs << dir if options[dir.to_sym] == true
+          end
+
+          return if dirs.empty?
+
+          dirs.map! { |dir| "app-root/runtime/#{dir.gsub(/_/, '-')}/*" }
+
+          out, err, rc = run_in_container_context("shopt -s dotglob; rm -rf #{dirs.join(' ')}",
                                                     chdir: @container_dir,
                                                     expected_exitstatus: 0)
         end
