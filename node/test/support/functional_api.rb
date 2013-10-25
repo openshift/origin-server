@@ -43,7 +43,7 @@ class FunctionalApi
     else
       #ignore
       print "Unknown auth plugin. Not registering user #{$user}/#{$password}."
-      print "Modify #{__FILE__}:37 if user registration is required."
+      print "Modify #{__FILE__}#initialize if user registration is required."
       cmd = nil
     end
   end

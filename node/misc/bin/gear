@@ -604,10 +604,33 @@ command :restore do |c|
   c.syntax = "#{name} restore"
 
   c.option "--restore-git-repo", "Rebuild the application as part of restoration"
+  c.option "--no-report-deployments", "Do not report a deployment after restoration"
 
   c.description = "Restore an application"
   c.action do |args, options|
-    @container.restore(options.restore_git_repo)
+    result = @container.restore(options.restore_git_repo, !options.no_report_deployments)
+
+    if distribute_result = result[:distribute_result] and not distribute_result[:gear_results].empty?
+      distribute_status = distribute_result[:status]
+      $stderr.puts "Distribution status: #{distribute_status}"
+
+      if distribute_status != RESULT_SUCCESS
+        $stderr.puts "Distribution failed for the following gears:"
+        failures = distribute_result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+        $stderr.puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+      end
+    end
+
+    if activate_result = result[:activate_result]
+      activate_status = activate_result[:status]
+      $stderr.puts "Activation status: #{activate_status}"
+
+      if activate_status != RESULT_SUCCESS
+        $stderr.puts "Activation failed for the following gears:"
+        failures = activate_result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+        $stderr.puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+      end
+    end
   end
 end
 
