@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.16.4
+Version: 1.16.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,23 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 1.16.5-1
+- Merge pull request #3972 from liggitt/bug_1020009_max_domains_capability
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3986 from liggitt/bug_1023138_show_custom_scopes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3983 from liggitt/bug_1022436_edit_domain
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3978 from liggitt/application_create_name
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1023138 - show custom scopes in UI (jliggitt@redhat.com)
+- Add tests for domain delete in UI (jliggitt@redhat.com)
+- Add ability to delete domains from the UI (jliggitt@redhat.com)
+- Fix bug 1022436 - domain edit and update methods always use user's first
+  domain (jliggitt@redhat.com)
+- Move items away from %%span.add-on to make border radius rules work
+  (jliggitt@redhat.com)
+
 * Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
 - kerberos work for broker and console (jliggitt@redhat.com)
 - Merge branch 'master' into console_light_theme_dev (sgoodwin@redhat.com)
