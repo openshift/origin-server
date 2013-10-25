@@ -12,3 +12,12 @@ if [[ $old_cart_version =~ 0.0.[0-4] ]]; then
   echo "$nodejs_version" > $OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_VERSION
   update-configuration $nodejs_version
 fi
+
+if [ "${nodejs_version}" == "0.10" ]; then
+    express_path=$(readlink $OPENSHIFT_NODEJS_DIR/node_modules/express)
+    if [ "$express_path" != "/opt/rh/nodejs010/root/usr/lib/node_modules/express" ]; then
+        shopt -s dotglob
+        rm -rf $OPENSHIFT_NODEJS_DIR/node_modules/*
+        link_global_modules ${nodejs_version}
+    fi
+fi
