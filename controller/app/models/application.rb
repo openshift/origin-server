@@ -103,6 +103,7 @@ class Application
   field :analytics, type: Hash, default: {}
   field :secret_token, type: String
   field :config, type: Hash, default: {'auto_deploy' => true, 'deployment_branch' => 'master', 'keep_deployments' => 1, 'deployment_type' => 'git'}
+  field :meta, type: Hash
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
@@ -112,6 +113,7 @@ class Application
   has_members through: :domain, default_role: :admin
 
   validates :config, presence: true, application_config: true
+  validates :meta, application_metadata: true
 
   index({'group_instances.gears.uuid' => 1}, {:unique => true, :sparse => true})
   index({'pending_op_groups.created_at' => 1})

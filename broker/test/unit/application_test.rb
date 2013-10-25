@@ -94,6 +94,33 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     
   end
 
+  test "app metadata validation" do
+    @appname = "test"
+    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+
+    [nil, {}, {'bar' => 1}, {'bar' => '1'}, {'bar' => []}, {'bar' => ['1']}, {'bar' => [1]}].each do |value|
+      app.meta = value
+      assert app.valid?, "Value #{value.inspect} should be allowed"
+    end
+
+    app.meta = {:bar => 1}
+    assert app.invalid?, "meta validation failed"
+    assert_equal ['Key bar is not a string'], app.errors.messages[:meta]
+
+    app.meta = {'bar' => :baz}
+    assert app.invalid?, "meta validation failed"
+    assert_equal ['Value for \'bar\' must be a string, number, or list of strings and numbers'], app.errors.messages[:meta]
+
+    app.meta = {'bar' => [:baz]}
+    assert app.invalid?, "meta validation failed"
+    assert_equal ['The array of values provided for \'bar\' must be strings or numbers'], app.errors.messages[:meta]
+
+    app.meta = {'bar' => ['baz'*5000]}
+    assert app.invalid?, "meta validation failed"
+    assert_equal ['Application metadata may not be larger than 10KB - currently 14KB'], app.errors.messages[:meta]
+  end
+
   test "scalable application events" do
     @appname = "test"
     app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
