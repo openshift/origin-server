@@ -10,8 +10,6 @@ case "$1" in
     version="$2"
 esac
 
-ln -s ${OPENSHIFT_DEPENDENCIES_DIR}nodejs/node_modules ${OPENSHIFT_HOMEDIR}.node_modules
-
 ## npm link
 link_global_modules $version
 
