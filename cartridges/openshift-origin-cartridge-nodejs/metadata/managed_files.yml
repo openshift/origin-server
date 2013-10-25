@@ -18,3 +18,4 @@ setup_rewritten:
 dependency_dirs:
 - ~/.npm
 - node_modules
+- ~/.node_modules: node_modules
