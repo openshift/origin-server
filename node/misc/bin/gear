@@ -399,6 +399,10 @@ command :deploy do |c|
   c.option "--force-clean-build", "Perform a clean build"
   c.action do |args, options|
     do_command(c, options) do
+      if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] == 'binary'
+        raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'binary' - git-based deployments are disabled.")
+      end
+
       ref_to_deploy = determine_deployment_ref(args[0])
       hot_deploy_enabled = options.hot_deploy || false
       force_clean_build_enabled = options.force_clean_build || false
