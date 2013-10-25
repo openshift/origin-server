@@ -56,6 +56,18 @@ class AuthorizationsController < ConsoleController
       @simple_scopes ||= begin
           @scope_definitions = RestApi.info.scopes
           @parameter_scopes, s = @scope_definitions.partition{ |s| s[:parameterized] }
+
+          @parameter_scope_values = {}
+          @parameter_scopes.each do |s|
+            name = s[:id] || ''
+            if name.start_with?('domain/')
+              @domains ||= user_domains
+              @parameter_scope_values[name] = @domains.map {|d| ["#{d.name}", name.gsub(':id', d.id)] }
+            elsif name.start_with?('application/')
+              @applications ||= Application.find :all, :as => current_user
+              @parameter_scope_values[name] = @applications.map {|a| ["#{a.name}", name.gsub(':id', a.id)] }
+            end
+          end
           s
         end
     end

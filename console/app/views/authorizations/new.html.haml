@@ -39,6 +39,12 @@
               - @parameter_scopes.each do |scope|
                 %tr
                   %td.span3= scope[:id]
+                  %td.span3
+                    - if possible_values = @parameter_scope_values[scope[:id]]
+                      - possible_values.each do |label, id|
+                        %label.checkbox{:for => id}
+                          = check_box_tag field, id, @authorization.scopes.include?(id), :id => id
+                          %span.nowrap= label
                   %td= scope[:description]
 
     = f.input :note, :as => :text, :label => 'Description of what this authorization is for', :input_html => {:class => 'span8', :rows => 2}

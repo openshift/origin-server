@@ -11,6 +11,7 @@ class Domain < RestApi::Base
 
   schema do
     string :id
+    string :name
     string :suffix
     integer :application_count
     integer :available_gears
@@ -26,7 +27,6 @@ class Domain < RestApi::Base
   on_exit_code(103, :on_invalid => (Domain::AlreadyExists = Class.new(ActiveResource::ResourceInvalid)))
 
   custom_id :id, true # domain id is mutable, FIXME rename method to primary_key
-  alias_attribute :name, :id
 
   singular_resource
 
