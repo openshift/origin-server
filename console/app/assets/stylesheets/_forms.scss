@@ -44,12 +44,14 @@ select,
 textarea {
   @include font-shorthand(); // Set size, weight, line-height here
 }
+
 input,
 button,
 select,
 textarea {
-  font-family: $baseFontFamily;
+  font-family: $inputFontFamily;
 }
+
 
 // Identify controls by their labels
 label {
@@ -107,7 +109,7 @@ input[type="image"],
   background-color: $inputBackground;
   border: 1px solid $inputBorder;
   @include box-shadow(inset 0 1px 1px rgba(0,0,0,.075));
-  height: $baseLineHeight; /* IE needs an explicit height */
+  min-height: $baseLineHeight; /* IE needs min-height */
   line-height: $baseLineHeight; /* IE needs an explicit line-height */
   $transition: border linear .2s, box-shadow linear .2s;
   @include transition($transition);
@@ -785,11 +787,20 @@ textarea[readonly] {
   .control-label { margin-left: 15px; text-align: left; color: #666; }
   .error > .control-label { color: $errorBackground; }
 
-  .help-block { max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; font-size: $tinyFontSize;}
+  .help-block, .help-inline { max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; font-size: $tinyFontSize;}
 
   h3 .font-icon {margin-left: 10px}
 }
-
+@media (max-width:979px) {
+  .form-important {
+    .controls {
+      margin-left: $horizontalComponentOffset - 40;
+    }
+    .control-label {
+      width: $horizontalComponentOffset - 60; // .controls - 20
+    }
+  }
+}
 @media (max-width: 767px) {
   .form-important {
     .control-label { margin-left: 0; }
@@ -798,6 +809,13 @@ textarea[readonly] {
     .alert { max-width: inherit; }
     .controls > h3 { display: inline-block; margin-top: 0; }
     .form-actions { padding-left: 0; }
+  }
+  .control-group-important {
+    .input-large, .input-xlarge, .input-xxlarge,
+    input[class*="span"], select[class*="span"], textarea[class*="span"], 
+    .uneditable-input {
+      min-height: 38px; // increase heights
+    }
   }
 }
 
