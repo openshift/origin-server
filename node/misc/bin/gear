@@ -380,7 +380,7 @@ command :remotedeploy do |c|
       result = @container.remote_deploy(out: $stdout,
                                         err: $stderr,
                                         hot_deploy: hot_deploy_enabled,
-                                        deployment_datetime: options.deployment_datetime,
+                                        deployment_datetime: options.deployment_datetime || @container.current_deployment_datetime,
                                         report_deployments: true,
                                         all: true)
 
