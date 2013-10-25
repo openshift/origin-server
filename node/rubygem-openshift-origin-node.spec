@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.5
+Version: 1.16.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -264,6 +264,18 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 1.16.6-1
+- Ignore hot_deploy for initial from-code build (andy.goldstein@gmail.com)
+- Merge pull request #3991 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3982 from rmillner/misc_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Removing leftover v1 cart code (dmcphers@redhat.com)
+- Report errors back to oo-cgroup-reclassify and log them.
+  (rmillner@redhat.com)
+- Add useful comments for the new parameters. (rmillner@redhat.com)
+- Exclude metadata.json from deployment checksum (andy.goldstein@gmail.com)
+
 * Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.5-1
 - Merge pull request #3980 from ncdc/bz1022868
   (dmcphers+openshiftbot@redhat.com)
