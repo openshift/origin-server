@@ -48,7 +48,7 @@ module OpenShift
               end
             end
           when :list
-            return repository.to_s
+            return options.verbose ? repository.inspect : repository.to_s
           when :erase
             begin
               repository.erase(options.name, options.version, options.cartridge_version)

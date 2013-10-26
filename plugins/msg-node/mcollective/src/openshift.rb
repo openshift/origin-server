@@ -33,9 +33,8 @@ module MCollective
           lock.flock(File::LOCK_EX)
 
           @@cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
-          @@cartridge_repository.clear
 
-          Dir.glob(PathUtils.join('/usr/libexec/openshift/cartridges', '*')).each do |path|
+          Dir.glob(PathUtils.join(@@config.get('CARTRIDGE_BASE_PATH'), '*')).each do |path|
             begin
               manifest = @@cartridge_repository.install(path)
               Log.instance.info("Installed cartridge (#{manifest.cartridge_vendor}, #{manifest.name}, #{manifest.version}, #{manifest.cartridge_version}) from #{path}")
