@@ -2,7 +2,7 @@
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy
-Version:       1.15.2
+Version:       1.15.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -38,6 +38,9 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.15.3-1
+- Bug 1021042 (asari.ruby@gmail.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.15.2-1
 - Explicitly set protocols on endpoints that provide a frontend mapping
   (rmillner@redhat.com)
