@@ -121,6 +121,8 @@ command :prereceive do |c|
       found_deployment_ref = false
       hot_deploy = false
 
+      new_rev = nil
+
       $stdin.each_line do |str|
         arr  = str.split
         refs = arr[2].split('/')
@@ -132,7 +134,6 @@ command :prereceive do |c|
         next unless ref_to_deploy == ref_name
 
         found_deployment_ref = true
-        hot_deploy = @repo.file_exists?(HOT_DEPLOY_MARKER, new_rev)
 
         break
       end
@@ -141,7 +142,23 @@ command :prereceive do |c|
       # - this is the first build ever (--first-time) or
       # - auto deployments are enabled and the appropriate git ref was pushed
       if options.first_time or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
-        @container.pre_receive(out: $stdout, err: $stderr, hot_deploy: hot_deploy)
+        if options.first_time
+          # if this is an initial build from post_configure, we shouldn't be hot deploying
+          # as that will keep things from starting up properly
+          hot_deploy = false
+        else
+          # otherwise, check the repo for the marker
+          hot_deploy = @repo.file_exists?(HOT_DEPLOY_MARKER, new_rev)
+        end
+
+        force_clean_build = @repo.file_exists?(FORCE_CLEAN_BUILD_MARKER, new_rev)
+
+        @container.pre_receive(out: $stdout,
+                               err: $stderr,
+                               hot_deploy: hot_deploy,
+                               force_clean_build: force_clean_build,
+                               ref: ref_to_deploy,
+                               git_sha1: new_rev)
       end
     end
   end
@@ -176,20 +193,10 @@ command :postreceive do |c|
       # - this is the first build ever, i.e. --first-time or
       # - auto deployments are enabled and the appropriate git ref was pushed
       if options.first_time or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
-        if options.first_time
-          # if this is an initial build from post_configure, we shouldn't be hot deploying
-          # as that will keep things from starting up properly
-          hot_deploy = false
-        else
-          # otherwise, check the repo for the marker
-          hot_deploy = @repo.file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy)
-        end
 
         result = @container.post_receive(out: $stdout,
                                          err: $stderr,
-                                         hot_deploy: hot_deploy,
                                          ref: ref_to_deploy,
-                                         force_clean_build: @repo.file_exists?(FORCE_CLEAN_BUILD_MARKER, ref_to_deploy),
                                          report_deployments: true,
                                          all: true)
 
@@ -604,10 +611,33 @@ command :restore do |c|
   c.syntax = "#{name} restore"
 
   c.option "--restore-git-repo", "Rebuild the application as part of restoration"
+  c.option "--no-report-deployments", "Do not report a deployment after restoration"
 
   c.description = "Restore an application"
   c.action do |args, options|
-    @container.restore(options.restore_git_repo)
+    result = @container.restore(options.restore_git_repo, !options.no_report_deployments)
+
+    if distribute_result = result[:distribute_result] and not distribute_result[:gear_results].empty?
+      distribute_status = distribute_result[:status]
+      $stderr.puts "Distribution status: #{distribute_status}"
+
+      if distribute_status != RESULT_SUCCESS
+        $stderr.puts "Distribution failed for the following gears:"
+        failures = distribute_result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+        $stderr.puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+      end
+    end
+
+    if activate_result = result[:activate_result]
+      activate_status = activate_result[:status]
+      $stderr.puts "Activation status: #{activate_status}"
+
+      if activate_status != RESULT_SUCCESS
+        $stderr.puts "Activation failed for the following gears:"
+        failures = activate_result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+        $stderr.puts failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+      end
+    end
   end
 end
 
