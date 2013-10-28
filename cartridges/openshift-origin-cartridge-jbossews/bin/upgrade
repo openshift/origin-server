@@ -5,15 +5,3 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 jboss_version="$1"
 old_cart_version="$2"
 new_cart_version="$3"
-
-if [[ $new_cart_version =~ 0.0.6 ]]; then
-  mkdir -p $OPENSHIFT_BUILD_DEPENDENCIES_DIR/.m2
-  mv $OPENSHIFT_HOMEDIR/.m2/* $OPENSHIFT_BUILD_DEPENDENCIES_DIR/.m2
-  rm -rf $OPENSHIFT_HOMEDIR/.m2
-  ln -s $OPENSHIFT_BUILD_DEPENDENCIES_DIR/.m2 $OPENSHIFT_HOMEDIR/.m2
-
-  mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/jbossews/webapps
-  mv $OPENSHIFT_JBOSSEWS_DIR/webapps/* $OPENSHIFT_DEPENDENCIES_DIR/jbossews/webapps
-  rm -rf $OPENSHIFT_JBOSSEWS_DIR/webapps
-  ln -s $OPENSHIFT_DEPENDENCIES_DIR/jbossews/webapps $OPENSHIFT_JBOSSEWS_DIR/webapps
-fi
