@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.16.3
+Version: 1.16.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,13 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
+- Don't use app_dns == gear_dns with update_cluster (andy.goldstein@gmail.com)
+- Merge pull request #4004 from jwhonce/bug/1023588
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1023588 - Build cartridge index from cache (jhonce@redhat.com)
+- Fix for bug 1022370, 1023207 (abhgupta@redhat.com)
+
 * Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - kerberos work for broker and console (jliggitt@redhat.com)
 
