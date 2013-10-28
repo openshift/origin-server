@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.16.4
+Version: 1.16.5
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,12 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.5-1
+- Merge pull request #4015 from ironcladlou/bz/1021472
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1021042 (asari.ruby@gmail.com)
+- Bug 1021472: Correctly migrate cart dependency dirs (ironcladlou@gmail.com)
+
 * Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
 - Added absolute path to the performance.conf.erb.hidden in cartridges
   (mfojtik@redhat.com)
