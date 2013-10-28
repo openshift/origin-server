@@ -18,6 +18,7 @@ require 'json'
 require 'openshift-origin-node/utils/node_logger'
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/hash'
+require 'active_support/core_ext/file/atomic'
 
 module OpenShift
   module Runtime
@@ -129,7 +130,10 @@ module OpenShift
       # Writes the gear registry to disk
       def save
         with_lock do
-          File.open(@registry_file, "w") { |f| f.write JSON.dump(self) }
+          File.atomic_write(@registry_file) do |file|
+            file.write(JSON.dump(self))
+            file.fsync
+          end
         end
       end
 
