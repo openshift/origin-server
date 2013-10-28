@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.16.3
+Version: 1.16.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,12 @@ fi
 
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
+- Merge pull request #4015 from ironcladlou/bz/1021472
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1021042 (asari.ruby@gmail.com)
+- Bug 1021472: Correctly migrate cart dependency dirs (ironcladlou@gmail.com)
+
 * Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Bug 1022982 (andy.goldstein@gmail.com)
 
