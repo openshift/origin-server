@@ -13,6 +13,10 @@ function load_env {
     export $key="$(< $1)"
 }
 
+if [ -n "$OPENSHIFT_UMASK" ]; then
+    umask $OPENSHIFT_UMASK
+fi
+
 for f in /etc/openshift/env/* ~/.env/* ~/.env/.uservars/* ~/*/env/*
 do
   load_env $f
