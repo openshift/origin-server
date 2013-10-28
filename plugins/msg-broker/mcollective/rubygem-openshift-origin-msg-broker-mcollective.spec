@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Don't use app_dns == gear_dns with update_cluster (andy.goldstein@gmail.com)
+
 * Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - kerberos work for broker and console (jliggitt@redhat.com)
 
