@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.10.3
+Version: 2.10.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,9 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 2.10.4-1
+- Bug 1021472: Correctly migrate cart dependency dirs (ironcladlou@gmail.com)
+
 * Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 2.10.3-1
 - Bug 1022982 (andy.goldstein@gmail.com)
 
