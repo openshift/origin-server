@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.16.4
+Version: 1.16.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,9 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.5-1
+- Fix for bug 1022370, 1023207 (abhgupta@redhat.com)
+
 * Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
 - Merge pull request #3972 from liggitt/bug_1020009_max_domains_capability
   (dmcphers+openshiftbot@redhat.com)
