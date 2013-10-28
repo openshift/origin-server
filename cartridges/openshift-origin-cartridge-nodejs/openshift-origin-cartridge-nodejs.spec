@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.17.3
+Version: 1.17.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,15 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
+- Merge pull request #4015 from ironcladlou/bz/1021472
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1021042 (asari.ruby@gmail.com)
+- Bug 1021472: Correctly migrate cart dependency dirs (ironcladlou@gmail.com)
+- Merge pull request #3996 from ncdc/fix-nodejs-managed-files
+  (dmcphers+openshiftbot@redhat.com)
+- Add ~/.node_modules to dependency_dirs (andy.goldstein@gmail.com)
+
 * Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
 - Bug 1022273: Handle force clean build for nodejs. (mrunalp@gmail.com)
 
