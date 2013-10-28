@@ -134,6 +134,7 @@ module OpenShift
             file.write(JSON.dump(self))
             file.fsync
           end
+          @container.set_ro_permission(@registry_file)
         end
       end
 

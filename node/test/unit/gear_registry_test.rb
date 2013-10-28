@@ -203,6 +203,8 @@ EOF
     registry.add({type: :proxy}.merge(options_for_entry("3")))
     registry.add({type: :proxy}.merge(options_for_entry("4")))
 
+    @container.expects(:set_ro_permission).with(@registry_file)
+
     registry.save
     from_file = JSON.load(File.new(@registry_file))
     from_string = JSON.parse(@sample_json)
