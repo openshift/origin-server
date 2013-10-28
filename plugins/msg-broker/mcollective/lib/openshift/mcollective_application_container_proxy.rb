@@ -275,7 +275,7 @@ module OpenShift
               begin
                 district = District.find_by({"server_identities.name" => @id})
                 district_uuid = district.uuid
-              rescue Mongoid::Errors::DocumentNotFound 
+              rescue Mongoid::Errors::DocumentNotFound
                 district_uuid = 'NONE'
               end
             else
@@ -312,7 +312,7 @@ module OpenShift
               begin
                 district = District.find_by({"server_identities.name" => @id})
                 district_uuid = district.uuid
-              rescue Mongoid::Errors::DocumentNotFound 
+              rescue Mongoid::Errors::DocumentNotFound
                 district_uuid = 'NONE'
               end
             else
@@ -382,7 +382,7 @@ module OpenShift
         result = nil
         (1..10).each do |i|
           args = build_base_gear_args(gear, quota_blocks, quota_files)
-          
+
           # set the secret token for new gear creations
           # log an error if the application does not have its secret_token set
           if app.secret_token.present?
@@ -390,7 +390,7 @@ module OpenShift
           else
             Rails.logger.error "The application #{app.name} (#{app._id.to_s}) does not have its secret token set"
           end
-          
+
           mcoll_reply = execute_direct(@@C_CONTROLLER, 'app-create', args)
 
           begin
@@ -1709,6 +1709,10 @@ module OpenShift
         if options.has_key?(:rollback)
           args['--rollback'] = options[:rollback]
         else
+          if options[:sync_new_gears] == true
+            args['--sync-new-gears'] = true
+          end
+
           proxy_args = []
           options[:proxy_gears].each do |gear|
             proxy_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname}"
@@ -1917,12 +1921,12 @@ module OpenShift
 
         # get the application state
         idle, leave_stopped = get_app_status(app)
-        
+
         # get the quota blocks and files from the gear
         gear_quota = get_quota(gear)
         quota_blocks = Integer(gear_quota[3])
         quota_files = Integer(gear_quota[6])
-        
+
         gi = gear.group_instance
         gi.all_component_instances.each do |cinst|
           next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
@@ -1977,7 +1981,7 @@ module OpenShift
                   reply.append destination_container.stop(gear, cinst)
                 end
               end
-              
+
               app.update_proxy_status(action: :enable, gear_uuid: gear.uuid)
             end
             app.save
@@ -3207,12 +3211,12 @@ module OpenShift
           begin
             # in some cases, the get_fact mcollective call gets stuck and never returns
             # to handle these siturations, we are using the ruby Timeout moddule as a safety net
-            # and setting the timer duration as a reasonable multiple of the mcollective timeout value 
+            # and setting the timer duration as a reasonable multiple of the mcollective timeout value
             failsafe_timeout = Rails.configuration.msg_broker[:fact_timeout] * 3
             Timeout::timeout(failsafe_timeout) do
               client.get_fact(:fact => fact) do |response|
                 next unless Integer(response[:body][:statuscode]) == 0
-    
+
                 # Yield the sender and the value to the block
                 result = rvalue(response)
                 yield response[:senderid], result if result
@@ -3509,7 +3513,7 @@ module OpenShift
       end
 
       private
- 
+
       def mask_user_creds(str)
         str.gsub(/(User: |Password: |username=|password=).*/, '\1[HIDDEN]')
       end

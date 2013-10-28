@@ -74,7 +74,7 @@ class Application
   APP_NAME_REGEX = /\A[A-Za-z0-9]+\z/
   def self.check_name!(name)
     if name.blank? or name !~ APP_NAME_REGEX
-      raise Mongoid::Errors::DocumentNotFound.new(Application, nil, [name]) 
+      raise Mongoid::Errors::DocumentNotFound.new(Application, nil, [name])
     end
     name
   end
@@ -134,7 +134,7 @@ class Application
   #   'gears': hash of gear size strings to counts
   #
   def self.with_gear_counts
-    only(:_id, :domain_id, :default_gear_size, :"group_instances.gears.uuid", :"group_instances.gear_size").all.query.find.to_a.each do |a| 
+    only(:_id, :domain_id, :default_gear_size, :"group_instances.gears.uuid", :"group_instances.gear_size").all.query.find.to_a.each do |a|
       a['gears'] = (a['group_instances'] || []).inject({}) do |h, i|
         p = i['gear_size'] || a['default_gear_size']
         h[p] ||= 0
@@ -160,7 +160,7 @@ class Application
   end
 
   # Denormalize the domain namespace and the owner id
-  before_save prepend: true do 
+  before_save prepend: true do
     if has_domain?
       self.domain_namespace = domain.canonical_namespace if domain_namespace.blank? || domain_id_changed?
       self.owner_id = domain.owner_id if owner_id.blank? || domain_id_changed?
@@ -723,7 +723,7 @@ class Application
         end
       end
     end
-    feature_comps = features.map { |f| 
+    feature_comps = features.map { |f|
       cart = CartridgeCache.find_cartridge(f, self)
       self.component_instances.find_by(cartridge_name: cart.name)._id.to_s rescue nil
     }
@@ -793,21 +793,21 @@ class Application
     raise OpenShift::UserException.new("Only scalable applications can be made 'HA'") if not self.scalable
     raise OpenShift::UserException.new("Application is already HA") if self.ha
 
-    component_instance = self.component_instances.select { |ci| 
+    component_instance = self.component_instances.select { |ci|
       cats = CartridgeCache.find_cartridge(ci.cartridge_name, self).categories
       cats.include? "web_proxy"
     }.first
     raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.get_group_override('max_gears')==1
-    # set the web_proxy's min to 2 
+    # set the web_proxy's min to 2
     self.update_component_limits(component_instance, 2, nil, nil)
 
     # and the web_frameworks' min to 2 as well so that the app stays HA
-    web_ci = self.component_instances.select { |ci| 
+    web_ci = self.component_instances.select { |ci|
       cats = CartridgeCache.find_cartridge(ci.cartridge_name, self).categories
       cats.include? "web_framework"
     }.first
     if web_ci.min < 2
-      scale_up_needed = web_ci.group_instance.gears.length>1 
+      scale_up_needed = web_ci.group_instance.gears.length>1
       self.update_component_limits(web_ci, 2, nil, nil)
       if scale_up_needed
         self.scale_by(component_instance.group_instance._id, 1)
@@ -1254,7 +1254,7 @@ class Application
       options[:web_gears] = web_framework_gears
     end
 
-    first_proxy.update_cluster(options)
+    first_proxy.update_cluster(options.merge(sync_new_gears:true))
 
     if web_proxy_gears.size > 1
       # do the rest
@@ -1413,7 +1413,7 @@ class Application
 
   ##
   # Retrieve the gear with application dns.
-  # @return [Gear] gear object 
+  # @return [Gear] gear object
   def get_app_dns_gear
     self.group_instances.each do |group_instance|
       if group_instance.gears.where(app_dns: true).count > 0
@@ -1710,9 +1710,9 @@ class Application
       #track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
       #                 "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
       #                 "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage], "gear_size" => gear_size}, prereq: [create_gear_op._id.to_s])
-      track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: 
-                           self.domain.owner.parent_user_id, app_name: self.name, gear_id: gear_id, 
-                           event: UsageRecord::EVENTS[:begin], usage_type: UsageRecord::USAGE_TYPES[:gear_usage], 
+      track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id:
+                           self.domain.owner.parent_user_id, app_name: self.name, gear_id: gear_id,
+                           event: UsageRecord::EVENTS[:begin], usage_type: UsageRecord::USAGE_TYPES[:gear_usage],
                            gear_size: gear_size, prereq: [create_gear_op._id.to_s])
 
       #register_dns_op = PendingAppOp.new(op_type: :register_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
@@ -1738,7 +1738,7 @@ class Application
         #  "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [fs_op._id.to_s])
         track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                                              app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin],
-                                             usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb], 
+                                             usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
                                              additional_filesystem_gb: additional_filesystem_gb, prereq: [fs_op._id.to_s])
         pending_ops.push(track_usage_fs_op)
       end
@@ -1751,10 +1751,10 @@ class Application
     gear_id_prereqs.each_key do |gear_id|
       prereq = gear_id_prereqs[gear_id].nil? ? [] : [gear_id_prereqs[gear_id]]
       #ops.push(PendingAppOp.new(op_type: :update_configuration, args: args.dup, prereq: prereq))
-      pending_ops.push(UpdateAppConfigOp.new(group_instance_id: ginst_id, gear_id: gear_id, 
-                                             prereq: prereq, recalculate_sshkeys: true, 
+      pending_ops.push(UpdateAppConfigOp.new(group_instance_id: ginst_id, gear_id: gear_id,
+                                             prereq: prereq, recalculate_sshkeys: true,
                                              add_env_vars: env_vars))
-    end 
+    end
 
     if app_dns_group_instance_id && app_dns_gear_id
       iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
@@ -1819,7 +1819,7 @@ class Application
         #  "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
         #  "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [delete_gear_op._id.to_s])
         track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
-          app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb], 
+          app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
           additional_filesystem_gb: additional_filesystem_gb, prereq: [delete_gear_op._id.to_s])
         pending_ops.push(track_usage_fs_op)
       end
@@ -1832,7 +1832,7 @@ class Application
         #  "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
         #  "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [delete_gear_op._id.to_s]))
         pending_ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
-          app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], cart_name: comp_spec["cart"], 
+          app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], cart_name: comp_spec["cart"],
           usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: [delete_gear_op._id.to_s]))
       end if cartridge.is_premium?
     end
@@ -1840,7 +1840,7 @@ class Application
     if deleting_app
       #notify_app_delete_op = PendingAppOp.new(op_type: :notify_app_delete, prereq: [pending_ops.last._id.to_s])
       notify_app_delete_op = NotifyAppDeleteOp.new(prereq: [pending_ops.last._id.to_s])
-      pending_ops.push(notify_app_delete_op) 
+      pending_ops.push(notify_app_delete_op)
     end
 
     pending_ops
@@ -1870,13 +1870,13 @@ class Application
         # if its empty, then remove a gear which does not have any of sparse_components in them (non-sparse gears)
         if relevant_sparse_components.length > 0
           relevant_sparse_comp_ids = relevant_sparse_components.map { |sp_ci| ci._id }
-          gear = scaled_gears.find { |g| 
+          gear = scaled_gears.find { |g|
              (relevant_sparse_comp_ids - g.sparse_carts).empty?
           }
         else
           gear = scaled_gears.find { |g| g.sparse_carts.empty? }
         end
-        if gear.nil? 
+        if gear.nil?
           # this may mean that some sparse_component's min limit is being violated
           gear = scaled_gears.last
         end
@@ -1906,11 +1906,11 @@ class Application
 
     is_sparse = comp.is_sparse?
     if not is_sparse
-      if gi and gi.max 
+      if gi and gi.max
         if cur_total_gears > gi.max and gi.max>0
           return false
         end
-      elsif cur_total_gears > comp.scaling.max and comp.scaling.max!=-1 
+      elsif cur_total_gears > comp.scaling.max and comp.scaling.max!=-1
         return false
       end
       return true
@@ -1923,11 +1923,11 @@ class Application
     return true if cur_gears<min
 
     # if min is met, but multiplier is infinite, return false
-    return false if multiplier <= 0 
+    return false if multiplier <= 0
 
     # for max, and cases where multiplier has been changed in apps mid-life
     should_be_sparse_cart_count = [cur_total_gears/multiplier, (max==-1 ? (cur_total_gears/multiplier) : max)].min
-    return true if cur_gears < should_be_sparse_cart_count 
+    return true if cur_gears < should_be_sparse_cart_count
 
     return false
   end
@@ -2149,8 +2149,8 @@ class Application
                 #  "app_name" => self.name, "gear_ref" => gear._id.to_s,
                 #  "event" => UsageRecord::EVENTS[:end], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]}, prereq: usage_prereq)
                 track_usage_old_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
-                  app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end], 
-                  usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb], 
+                  app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end],
+                  usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
                   additional_filesystem_gb: change[:from_scale][:additional_filesystem_gb], prereq: usage_prereq)
                 usage_ops.push(track_usage_old_fs_op._id.to_s)
                 pending_ops.push(track_usage_old_fs_op)
@@ -2161,8 +2161,8 @@ class Application
               #    args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]},
               #    saved_values: {"additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]},
               #    prereq: (usage_ops.empty?? usage_prereq : usage_ops))
-              fs_op = SetAddtlFsGbOp.new(group_instance_id: group_instance._id.to_s, gear_id: gear._id.to_s, 
-                  addtl_fs_gb: change[:to_scale][:additional_filesystem_gb], 
+              fs_op = SetAddtlFsGbOp.new(group_instance_id: group_instance._id.to_s, gear_id: gear._id.to_s,
+                  addtl_fs_gb: change[:to_scale][:additional_filesystem_gb],
                   saved_addtl_fs_gb: change[:from_scale][:additional_filesystem_gb],
                   prereq: (usage_ops.empty? ? usage_prereq : usage_ops))
               pending_ops.push(fs_op)
@@ -2173,7 +2173,7 @@ class Application
                 #  "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, prereq: [fs_op._id.to_s])
                 track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                   app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:begin],
-                  usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb], 
+                  usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
                   additional_filesystem_gb: change[:to_scale][:additional_filesystem_gb], prereq: [fs_op._id.to_s])
                 pending_ops.push(track_usage_fs_op)
               end
@@ -2632,8 +2632,8 @@ class Application
     web_carts = categories['web_framework'] || []
     service_carts = (categories['service'] || [])-web_carts
     plugin_carts = (categories['plugin'] || [])-service_carts
-    web_carts.each { |w| 
-      (service_carts+plugin_carts).each { |sp| 
+    web_carts.each { |w|
+      (service_carts+plugin_carts).each { |sp|
         order.add_component_order([w,sp])
       }
     }
@@ -2689,7 +2689,7 @@ class Application
         if !categories[dep_cart] and !existing_categories[dep_cart]
           raise OpenShift::UserException.new("Cartridge '#{comp_spec[:cart].name}' can not be added without cartridge '#{dep_cart}'.", 185)
         end
-      end 
+      end
       configure_order.add_component_order(comp_spec[:prof].configure_order.map{|c| categories[c]}.flatten)
     end
 
@@ -2843,7 +2843,7 @@ class Application
     ssh_keys = self.app_ssh_keys.map {|k| k.to_key_hash } # the app_ssh_keys already have their name "updated"
     ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
     ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
-    
+
     ssh_keys
   end
 

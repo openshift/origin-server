@@ -997,7 +997,7 @@ module MCollective
 
       def oo_update_cluster(args)
         with_container_from_args(args) do |container|
-          container.update_cluster(args['--proxy-gears'], args['--web-gears'], args['--rollback'])
+          container.update_cluster(args['--proxy-gears'], args['--web-gears'], args['--rollback'], args['--sync-new-gears'])
         end
       end
 
@@ -1174,9 +1174,9 @@ module MCollective
            endpoints = []
            cont.cartridge_model.each_cartridge do |cart|
              cart.public_endpoints.each do |ep|
-               endpoint_create_hash = { "cartridge_name" => cart.name+'-'+cart.version, 
-                          "external_port" => env[ep.public_port_name], 
-                          "internal_address" => env[ep.private_ip_name], 
+               endpoint_create_hash = { "cartridge_name" => cart.name+'-'+cart.version,
+                          "external_port" => env[ep.public_port_name],
+                          "internal_address" => env[ep.private_ip_name],
                           "internal_port" => ep.private_port ,
                           "protocols" => ep.protocols,
                           "type" => []

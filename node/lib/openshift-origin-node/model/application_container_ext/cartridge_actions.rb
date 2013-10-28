@@ -1144,7 +1144,7 @@ module OpenShift
         # - if the current "master" gear, copies all app-deployments to all new gears (if any)
         # - if the current "master" gear, activates the current deployment on all new gears (if any)
         # - calls the web proxy cartridge's 'update-cluster' control method
-        def update_cluster(proxies, cluster, rollback = false)
+        def update_cluster(proxies, cluster, rollback, sync_new_gears)
           # currently there's no easy way to only target web proxy gears from the broker
           # via mcollective, so this is a temporary workaround
           return unless proxy_cart = @cartridge_model.web_proxy
@@ -1210,10 +1210,8 @@ module OpenShift
             logger.info "Retrieving updated gear registry #{uuid} entries"
             updated_entries = gear_registry.entries
 
-            # only rsync and activate if we're the currently elected proxy
-            # TODO the way we determine this needs to change so gears other than
-            # the initial proxy gear can be elected
-            if gear_env['OPENSHIFT_APP_DNS'] == gear_env['OPENSHIFT_GEAR_DNS']
+            # the broker will inform us if we are supposed to sync and activate new gears
+            if sync_new_gears == true
               old_web_gears = old_registry[:web]
               new_web_gears = updated_entries[:web].values.select do |entry|
                 entry.uuid != self.uuid and not old_web_gears.keys.include?(entry.uuid)
