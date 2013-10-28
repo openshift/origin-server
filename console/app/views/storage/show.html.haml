@@ -15,13 +15,12 @@
   %section
     %h3 Check Your Usage
     %p
-      You can check your usage by SSH-ing into your app and running the quota command.
+      You can check your usage with the RHC command line:
 
       %pre.cli
         = preserve do
           :escaped
-            $ ssh #{@application.ssh_string}
-            > quota
+            $ rhc show-app #{@application.name} --gears quota
 
   -# This will only render if we have this partial, like in Online or if an admin wants to provide information
   = render('increase_storage') unless @can_modify_storage
