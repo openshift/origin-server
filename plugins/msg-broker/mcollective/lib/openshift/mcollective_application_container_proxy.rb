@@ -2698,9 +2698,9 @@ module OpenShift
         else
           server_identity = app ? MCollectiveApplicationContainerProxy.find_gear(gear.uuid) : nil
           if server_identity && @id != server_identity
-            raise OpenShift::InvalidNodeException.new("Node execution failure (invalid  node).", 143, nil, server_identity)
+            raise OpenShift::InvalidNodeException.new("Your gear was not on the expected server #{@id}.  A retry was attempted but the problem persisted.  The administrator may be moving gears, try your request again later.", 143, nil, server_identity)
           else
-            raise OpenShift::NodeException.new("Node execution failure (error getting result from node).", 143)
+            raise OpenShift::NodeException.new("The server #{@id} that your application is running on failed to respond in time.  This may be due to a system restart.", 143)
           end
         end
 
@@ -2713,9 +2713,9 @@ module OpenShift
           if result.hasUserActionableError
             raise OpenShift::UserException.new(result.errorIO.string, result.exitcode, nil, result)
           elsif result.exitcode == 146
-            raise OpenShift::NodeException.new("Gear creation failed (chosen node capacity exceeded).", 146, result)
+            raise OpenShift::NodeException.new("Gear creation failed.  The server #{@id} that was chosen to run your gear has already exceeded its capacity.  Try your request again.", 146, result)
           else
-            raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).", 143, result)
+            raise OpenShift::NodeException.new("An invalid exit code (#{result.exitcode.nil? ? "nil" : result.exitcode}) was returned from the server #{@id}.  This indicates an unexpected problem during the execution of your request.", 143, result)
           end
         end
 
