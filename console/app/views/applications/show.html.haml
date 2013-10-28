@@ -79,6 +79,7 @@
                 - if primary
                   %h3.flow
                     .flow-block{:title => cartridge.name}
+                      = logo_for cartridge.cartridge_type
                       = cartridge.display_name
 
                     .flow-block.right>
@@ -117,6 +118,7 @@
                 - else
                   .flow
                     %h3.flow-block.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
+                      = logo_for cartridge.cartridge_type
                       = cartridge.display_name
                     - if info = cartridge_info(cartridge, @application)
                       .flow-block.right= info

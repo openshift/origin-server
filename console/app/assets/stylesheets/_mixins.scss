@@ -141,6 +141,13 @@
   font-family: openshift-icon;
 }
 
+@mixin iconfont-adjust($size-offset: 6, $left: 0, $margin-right: 0) {
+  font-size: $tileHeadingIconFontSize - $size-offset;
+  left: $left;
+  margin-right: $margin-right;
+  position: relative;
+}
+
 // Horizontal dividers
 // -------------------------
 // Dividers (basically an hr) within dropdowns and nav lists
