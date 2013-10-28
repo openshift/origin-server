@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -75,6 +75,12 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Merge pull request #4015 from ironcladlou/bz/1021472
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1021042 (asari.ruby@gmail.com)
+- Bug 1021472: Correctly migrate cart dependency dirs (ironcladlou@gmail.com)
+
 * Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Bug 1022439 - Restore missing httpd.pid when restarting PHP cart
   (mfojtik@redhat.com)
