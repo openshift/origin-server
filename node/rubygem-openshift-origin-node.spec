@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.6
+Version: 1.16.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -264,6 +264,23 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.7-1
+- Don't use app_dns == gear_dns with update_cluster (andy.goldstein@gmail.com)
+- Merge pull request #3997 from ncdc/bz1023372
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4003 from ncdc/bz1018343
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4000 from ncdc/bz1023512
+  (dmcphers+openshiftbot@redhat.com)
+- Use do_command with gear binary-deploy (andy.goldstein@gmail.com)
+- Fall back to current deployment dir for remotedeploy
+  (andy.goldstein@gmail.com)
+- Disallow 'gear deploy' if deployment type is binary
+  (andy.goldstein@gmail.com)
+- Merge pull request #3995 from ncdc/binary-prepare-clean-repo
+  (dmcphers+openshiftbot@redhat.com)
+- Binary deployment improvements (andy.goldstein@gmail.com)
+
 * Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 1.16.6-1
 - Ignore hot_deploy for initial from-code build (andy.goldstein@gmail.com)
 - Merge pull request #3991 from danmcp/master
