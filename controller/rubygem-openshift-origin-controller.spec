@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.16.5
+Version: 1.16.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,18 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.6-1
+- Fix for bug 1022948 (abhgupta@redhat.com)
+- Don't use app_dns == gear_dns with update_cluster (andy.goldstein@gmail.com)
+- Fix for bug 1022444 (abhgupta@redhat.com)
+- Merge pull request #4002 from smarterclayton/app_metadata_field
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4001 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1022370, 1023207 (abhgupta@redhat.com)
+- Add application metadata and validators (ccoleman@redhat.com)
+- fix bz1022948 add link to make_ha if platform allows it (rchopra@redhat.com)
+
 * Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 1.16.5-1
 - Merge pull request #3972 from liggitt/bug_1020009_max_domains_capability
   (dmcphers+openshiftbot@redhat.com)
