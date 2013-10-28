@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,12 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Merge pull request #4009 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1022271 (dmcphers@redhat.com)
+- Bug 1021042 (asari.ruby@gmail.com)
+
 * Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Added absolute path to the performance.conf.erb.hidden in cartridges
   (mfojtik@redhat.com)
