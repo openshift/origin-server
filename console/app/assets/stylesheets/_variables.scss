@@ -2,6 +2,11 @@ $baseFontFamily:     "Open Sans", "Helvetica Neue", Helvetica, "Liberation Sans"
 $headerFontFamily:   "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 $monoFontFamily:      Menlo, Monaco, "Liberation Mono", Consolas, monospace !default;
 
+// Needed because FF on Mac sets line-height based on font-family, ignoring form field explicit line-height, 
+// causing inputs next to span.input-append and/or span.input-prepend to have different heights when set to Open Sans.
+// Assigning "Lucida Grande" because it most closely resembles "Open Sans" and has wide use on mac, but not on IE and Lunix.
+$inputFontFamily:     "Lucida Grande", "Open Sans", "Lucida Sans Unicode", "Liberation Sans", Arial, sans-serif !default;	
+
 $baseLineHeight:          	20px;
 $baseFontSize:				14px;
 $leadLineHeight:          	$baseLineHeight * 1.5;
