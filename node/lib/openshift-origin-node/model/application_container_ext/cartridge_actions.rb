@@ -274,6 +274,15 @@ module OpenShift
                       exclude_web_proxy:  true,
                       out:                options[:out],
                       err:                options[:err])
+
+            deployment_datetime = create_deployment_dir
+
+            git_ref = options[:ref]
+            deployment_metadata = deployment_metadata_for(deployment_datetime)
+            deployment_metadata.git_ref = git_ref
+            deployment_metadata.hot_deploy = options[:hot_deploy]
+            deployment_metadata.force_clean_build = options[:force_clean_build]
+            deployment_metadata.save
           end
         end
 
@@ -301,9 +310,6 @@ module OpenShift
         # options: hash
         #   :out        : an IO to which any stdout should be written (default: nil)
         #   :err        : an IO to which any stderr should be written (default: nil)
-        #   :hot_deploy : a boolean to toggle hot deploy for the operation (default: false)
-        #   :ref     : the git ref to use
-        #   :force_clean_build : if true, don't copy the previous deployment's dependencies to the new one (default: false)
         #   :report_deployments : a boolean to toggle hot deploy for the operation (default: false)
         #
         def post_receive(options={})
@@ -333,11 +339,18 @@ module OpenShift
                                         post_action_hooks_enabled: false)
 
             # need to add the entry to the options hash, as it's used in build, prepare, distribute, and activate below
-            options[:deployment_datetime] = create_deployment_dir
+            options[:deployment_datetime] = latest_deployment_datetime
 
             repo_dir = PathUtils.join(@container_dir, 'app-root', 'runtime', 'repo')
             application_repository = ApplicationRepository.new(self)
-            git_ref = options[:ref] || 'master'
+
+            deployment_metadata = deployment_metadata_for(options[:deployment_datetime])
+
+            git_ref = deployment_metadata.git_ref
+            git_sha1 = application_repository.get_sha1(git_ref)
+            deployment_metadata.git_sha1 = git_sha1
+            deployment_metadata.save
+
             application_repository.archive(repo_dir, git_ref)
 
             build(options)
@@ -411,21 +424,26 @@ module OpenShift
         def build(options={})
           @state.value = ::OpenShift::Runtime::State::BUILDING
 
-          application_repository = options[:git_repo] || ApplicationRepository.new(self)
-
-          git_ref = options[:ref]
           deployment_datetime = options[:deployment_datetime] || latest_deployment_datetime
-          git_sha1 = application_repository.get_sha1(git_ref)
           deployment_metadata = deployment_metadata_for(deployment_datetime)
-          deployment_metadata.git_sha1 = git_sha1
-          deployment_metadata.git_ref = git_ref
-          deployment_metadata.hot_deploy = options[:hot_deploy]
-          deployment_metadata.force_clean_build = options[:force_clean_build]
-          deployment_metadata.save
+
+          unless options.has_key?(:deployment_datetime)
+            # this will execute if coming from a CI builder, since it doesn't
+            # specify :deployment_datetime in the options hash
+            application_repository = options[:git_repo]
+
+            git_ref = options[:ref]
+            git_sha1 = application_repository.get_sha1(git_ref)
+            deployment_metadata.git_sha1 = git_sha1
+            deployment_metadata.git_ref = git_ref
+            deployment_metadata.hot_deploy = options[:hot_deploy]
+            deployment_metadata.force_clean_build = options[:force_clean_build]
+            deployment_metadata.save
+          end
 
           buffer = ''
 
-          if options[:force_clean_build]
+          if deployment_metadata.force_clean_build
             message = "Force clean build enabled - cleaning dependencies"
             options[:out].puts message if options[:out]
             buffer << message
@@ -438,7 +456,7 @@ module OpenShift
             end
           end
 
-          message = "Building git ref '#{git_ref}', commit #{git_sha1}"
+          message = "Building git ref '#{deployment_metadata.git_ref}', commit #{deployment_metadata.git_sha1}"
           options[:out].puts message if options[:out]
           buffer << message
 
@@ -446,22 +464,24 @@ module OpenShift
           deployments_to_keep = deployments_to_keep(env)
 
           begin
+            primary_cartridge = @cartridge_model.primary_cartridge
+
             buffer << @cartridge_model.do_control('update-configuration',
-                                                  @cartridge_model.primary_cartridge,
+                                                  primary_cartridge,
                                                   pre_action_hooks_enabled:  false,
                                                   post_action_hooks_enabled: false,
                                                   out:                       options[:out],
                                                   err:                       options[:err])
 
             buffer << @cartridge_model.do_control('pre-build',
-                                                  @cartridge_model.primary_cartridge,
+                                                  primary_cartridge,
                                                   pre_action_hooks_enabled: false,
                                                   prefix_action_hooks:      false,
                                                   out:                      options[:out],
                                                   err:                      options[:err])
 
             buffer << @cartridge_model.do_control('build',
-                                                  @cartridge_model.primary_cartridge,
+                                                  primary_cartridge,
                                                   pre_action_hooks_enabled: false,
                                                   prefix_action_hooks:      false,
                                                   out:                      options[:out],
@@ -473,7 +493,7 @@ module OpenShift
             if deployments_to_keep > 1
               buffer << "Restarting application"
               buffer << start_gear(user_initiated:     true,
-                                   hot_deploy:         options[:hot_deploy],
+                                   hot_deploy:         deployment_metadata.hot_deploy,
                                    out:                options[:out],
                                    err:                options[:err])
             end
