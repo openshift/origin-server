@@ -140,11 +140,13 @@ module OpenShift
 
       def backup
         FileUtils.copy(@registry_file, @backup_file)
+        @container.set_ro_permission(@backup_file)
       end
 
       def restore_from_backup
         raise 'Backup file does not exist' unless File.exist?(@backup_file)
         FileUtils.copy(@backup_file, @registry_file)
+        @container.set_ro_permission(@registry_file)
         load
       end
 
