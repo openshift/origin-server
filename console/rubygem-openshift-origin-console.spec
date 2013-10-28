@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.16.5
+Version: 1.16.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.6-1
+- Changes pertain to app creation page, specifically app name with namespace
+  input fields (sgoodwin@redhat.com)
+
 * Fri Oct 25 2013 Adam Miller <admiller@redhat.com> 1.16.5-1
 - Merge pull request #3972 from liggitt/bug_1020009_max_domains_capability
   (dmcphers+openshiftbot@redhat.com)
