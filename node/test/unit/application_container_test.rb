@@ -406,7 +406,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.expects(:activate).never
     @container.cartridge_model.expects(:do_control).never
 
-    @container.update_cluster("", "")
+    @container.update_cluster("", "", false, false)
   end
 
   def test_update_cluster_rollback
@@ -424,14 +424,14 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.expects(:generate_update_cluster_control_args).with(nil).returns(args)
 
     @container.cartridge_model.expects(:do_control).with('update-cluster', web_proxy, args: args)
-    @container.update_cluster("", "", true)
+    @container.update_cluster("", "", true, false)
   end
 
   def test_update_cluster_add_gears
     web_proxy = mock()
     @container.cartridge_model.expects(:web_proxy).returns(web_proxy)
 
-    gear_env = {'OPENSHIFT_APP_DNS' => 'foo-bar.example.com', 'OPENSHIFT_GEAR_DNS' => 'foo-bar.example.com'}
+    gear_env = {'OPENSHIFT_APP_DNS' => 'foo-bar.example.com', 'OPENSHIFT_GEAR_DNS' => '123-bar.example.com'}
     ::OpenShift::Runtime::Utils::Environ::expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
     gear_registry = mock()
@@ -561,7 +561,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
       "#{uuid},#{dns_entries[index]},bar,node1.example.com,#{ports[index]}"
     end.join(' ')
 
-    @container.update_cluster(proxy_arg, cluster_arg)
+    @container.update_cluster(proxy_arg, cluster_arg, false, true)
   end
 
   def test_with_gear_rotation_no_proxy_no_all
