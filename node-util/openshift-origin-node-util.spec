@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -149,6 +149,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Bug 1023588 - Build cartridge index from cache (jhonce@redhat.com)
+
 * Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Bug 1022370 - Add forcestopgear and forcestopall options to completely stop
   all processes owned by a gear. (rmillner@redhat.com)
