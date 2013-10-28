@@ -73,11 +73,19 @@ function parse_args {
 }
 
 function link_global_modules {
-  version=$1
+  OPENSHIFT_NODEJS_VERSION=$1
   pushd $OPENSHIFT_NODEJS_DIR > /dev/null
-    npmgl=$OPENSHIFT_NODEJS_DIR/versions/$version/configuration/npm_global_module_list
-    module_list=$(perl -ne 'print if /^\s*[^#\s]/' "$npmgl" | tr '\n' ' ')
-    npm link $module_list >/dev/null 2>&1
+    # Global modules good to have
+    npmgl=$(grep "^\s*[^#\s]" $OPENSHIFT_NODEJS_DIR/versions/$OPENSHIFT_NODEJS_VERSION/configuration/npm_global_module_list | sort -u)
+
+    # Available global modules; only match top-level npm packages
+    global_modules=$(nodejs_context "npm ls -g 2> /dev/null" | perl -ne 'print "$1\n" if /^\S+\s(\S+)\@[\d\.-]+/' | sort -u)
+
+    # List all modules in common
+    module_list=$(comm -12 <(echo "${global_modules}") <(echo "${npmgl}") | tr '\n' ' ')
+
+    # Link the modules
+    nodejs_context "npm link $module_list &> /dev/null"
   popd > /dev/null
 }
 
