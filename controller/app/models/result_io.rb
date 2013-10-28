@@ -12,7 +12,6 @@ class ResultIO
 
     @exitcode = exitcode || 0
     @cart_commands = []
-    @hasUserActionableError = false
     @properties = {}
     parse_output(output, gear_id) unless output.nil?
   end
