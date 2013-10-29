@@ -199,7 +199,7 @@ module OpenShift
           if !tc_exists?(netclass)
             raise ArgumentError, "tc not configured for user #{uuid}"
           else
-            @output << out
+            @output << "tc is active for the user #{uuid}"
           end
         end
 
