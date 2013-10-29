@@ -1261,7 +1261,13 @@ module OpenShift
                 # also set rotate to false because there's no need to rotate out/in these new gears
                 # (nor will it work if the new gear is also a proxy gear)
                 activate_result = activate(gears: new_web_gears.map(&:uuid), deployment_id: deployment_id, init: true, rotate: false)
-                raise "Activation of new gears failed: #{activate_result[:errors].join("\n")}" unless activate_result[:status] == RESULT_SUCCESS
+                if activate_result[:status] != RESULT_SUCCESS
+                  errors = []
+                  activate_result[:gear_results].each do |uuid, gear_result|
+                    errors << "#{uuid}: #{gear_result[:errors][0]}" if gear_result[:status] != RESULT_SUCCESS
+                  end
+                  raise "Activation of new gears failed: #{errors.join("\n")}" unless activate_result[:status] == RESULT_SUCCESS
+                end
               end
 
               old_proxy_gears = old_registry[:proxy]
