@@ -99,7 +99,7 @@
                           %h4 Status
                           - states = group.states.group_by(&:to_s)
                           - if states.length == 1
-                            %div.data{:class => (states.first[0] == 'started' ? '' : 'text-warning')}= states.first[0]
+                            %div.data{:class => (states.first[0] == 'started' ? '' : 'text-warning')}= states.first[0].capitalize
                           - else
                             - states.each do |status, at|
                               %div.data{:class => status == 'started' ? '' : 'text-warning'}= "#{at.length} #{status}"
@@ -195,7 +195,7 @@
 
       %h2 Remote Access
       %p.small
-        Requires a public key.
+        Requires a #{link_to "public key", new_key_path}.
 
     - members = @application.members
     - if members.size > 1
@@ -222,7 +222,7 @@
               = member.owner? ? "Owner" : Role.description_for(member.role)
 
     .btn-toolbar
-      = link_to 'Delete this application', delete_application_path(@application), :class => 'btn btn-small'
+      = link_to "Delete this application\u2026", delete_application_path(@application), :class => 'btn btn-small'
 
 - content_for :javascripts do
   :javascript
