@@ -3,8 +3,8 @@ module Console::ModelHelper
     case
     when cartridge.jenkins_client?
       [
-        "<span class=\"url\"><a href=\"#{application.build_job_url}\" target=\"_blank\" title=\"Go to Jenkins Build jobs\" class=\"font-icon-link\"><span class=\"font-icon url-icon\" aria-hidden=\"true\" data-icon=\"\ue002\"></span></a></span>",
-        link_to('configure', application_building_path(application), :title => 'Remove or change your Jenkins configuration')
+        link_to('configure', application_building_path(application), :title => 'Remove or change your Jenkins configuration'),
+        "<span class=\"url\"><a href=\"#{application.build_job_url}\" target=\"_blank\" title=\"Go to Jenkins Build jobs\" class=\"font-icon-link\"><span class=\"font-icon url-icon\" aria-hidden=\"true\" data-icon=\"\ue002\"></span></a></span>"
       ].join(' ').html_safe
     when cartridge.haproxy_balancer?
       "<span class=\"url\"><a href=\"#{application.scale_status_url}\" target=\"_blank\" title=\"Go to HAProxy status page\" class=\"font-icon-link\"><span class=\"font-icon url-icon\" aria-hidden=\"true\" data-icon=\"\ue002\"></span></a></span>".html_safe
@@ -18,7 +18,7 @@ module Console::ModelHelper
             (@info_id ||= 0)
             link_id = "db_link_#{@info_id += 1}"
             span_id = "db_link_#{@info_id += 1}"
-            "Database: <strong>#{h name}</strong>, User: <strong>#{h user}</strong>, Password: <strong><a href=\"javascript:;\" id=\"#{link_id}\" data-unhide=\"##{span_id}\" data-hide-parent=\"##{link_id}\">show</a><span id=\"#{span_id}\" class=\"hidden\"> #{h password}</span></strong>".html_safe
+            "Database: <strong>#{h name}</strong> User: <strong>#{h user}</strong> Password: <strong><a href=\"javascript:;\" id=\"#{link_id}\" data-unhide=\"##{span_id}\" data-hide-parent=\"##{link_id}\">show</a><span id=\"#{span_id}\" class=\"hidden\"> #{h password}</span></strong>".html_safe
           else
             "Database: <strong>#{h name}</strong>"
           end

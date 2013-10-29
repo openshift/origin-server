@@ -46,15 +46,14 @@
         text-decoration: none;
       }
     }
-    .url + a {
-      font-weight: 300;
-      margin-left: 15px;
+    &.right a {
+      font-size: $smallFontSize;
     }
     .url-icon {
-      bottom: -5px;
-      font-size: 20px;
+      font-size: 16px;
+      margin-left: 15px;
       position: relative;
-      top: auto;
+      vertical-align: middle;
     }
   }
 }
@@ -91,8 +90,7 @@
     }
     .tile h3 {
       font-size: $h2FontSize;
-      line-height: $h2LineHeight;
-      margin-bottom: -5px;
+      line-height: 2;
     }
     + .sidebar {
       font-size: $tinyFontSize;
@@ -115,18 +113,23 @@
 #app-cartridges {
   .cartridge-block {
     position: relative;
-    min-height: 58px;
     &.cartridge-embedded {
       border-top: 1px dashed $consolePanelBorderColor;
     }
     .cartridge-inset {
-      padding: 15px 20px;
+      padding: 15px 23px 15px 12px;
+    }
+    .flow-block {
+      line-height: 1.4;
     }
     .flow-block.right > span {
       font-weight: 300;
       font-size: $smallFontSize;
       strong {
-        font-weight: 400;
+        margin-right: 8px;
+        &:last-child {
+          margin-right: 0;
+        }
       }
     }
     h3, h4 {
@@ -135,9 +138,16 @@
     }
     h3 {
       .font-icon {
-        color: #bbb;
-        font-size: 13px;
-        margin-right: 4px;
+        font-size: $tileHeadingIconFontSize;
+        opacity: .38;
+        text-align: center;
+        vertical-align: middle;
+        width: 45px;
+        @include iconfont-adjust($margin-right: 5px,$size-offset: 5);
+        &[title="Quickstart"],
+        &[title="Cartridge"] {
+          @include iconfont-adjust($margin-right: 3px,$size-offset: 11)
+        }
       }
     }
     h4 {
@@ -156,10 +166,15 @@
       height: 28px; 
     }
     p {
-      margin-top: $baseLineHeight*0.25;
       margin-bottom: 0;
+      text-align: right;
       &.created {
         font-size: $tinyFontSize;
+        text-align: left;
+      }
+      span {
+        font-weight: 300;
+        font-size: $smallFontSize;
       }
     }
     ul.inline > li {
