@@ -27,7 +27,7 @@ Options:
 -s|--ssh_key <ssh key>
     User\'s SSH key
 -t|--key_type <ssh key type>
-    User's SSH key type (ssh-rsa|ssh-dss|ssh-rsa-cert-v01@openssh.com|ssh-dss-cert-v01@openssh.com|ssh-rsa-cert-v00@openssh.com|ssh-dss-cert-v00@openssh.com)
+    User's SSH key type (ssh-rsa|ssh-dss|ssh-rsa-cert-v01@openssh.com|ssh-dss-cert-v01@openssh.com|ssh-rsa-cert-v00@openssh.com|ssh-dss-cert-v00@openssh.com|krb5-principal)
 -k|--key_name <ssh key name>
     User's SSH key name
 -e|--env_name <env var name>
@@ -148,8 +148,8 @@ when "create"
     exit 1
   end
 
-  unless user.domains.empty?
-    puts "A domain already exists for the user #{login}.  Please use the 'update' command instead."
+  unless user.domains.count < user.max_domains
+    puts "The user #{login} cannot have more than #{user.max_domains} #{"domain".pluralize(user.max_domains)}.  Please use the 'update' command instead."
     exit 1
   end
   
