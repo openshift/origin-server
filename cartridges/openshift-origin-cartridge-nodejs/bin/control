@@ -103,6 +103,11 @@ NODE_EOF
 function start() {
     echo "Starting NodeJS cartridge"
 
+    if is_supervisor_running; then
+        echo "Application is already running"
+        return 0
+    fi
+
     envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
     logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
