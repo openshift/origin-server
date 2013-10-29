@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.16.6
+Version: 1.16.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 29 2013 Adam Miller <admiller@redhat.com> 1.16.7-1
+- Add logo icons to applications/show Create mixin to apply rules based on icon
+  location usage. Adjustments to cartidge-blocks Reorder configure and
+  "external icon" link to icons vertically line up down cartridges Fine tuning
+  needed for presentation on app details (sgoodwin@redhat.com)
+- Update storage quota command (ccoleman@redhat.com)
+
 * Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.6-1
 - Changes pertain to app creation page, specifically app name with namespace
   input fields (sgoodwin@redhat.com)
