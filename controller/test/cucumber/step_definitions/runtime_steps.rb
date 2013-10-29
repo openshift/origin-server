@@ -1032,7 +1032,7 @@ Then /^the haproxy.cfg file will( not)? be configured to proxy SSL to the backen
 end
 
 When /^I send an (https?) request to the app( on port (\d+))?$/ do |protocol, onport, port|
-  urlstr = "#{protocol}://#{@app.name}-#{@app.namespace}.dev.rhcloud.com"
+  urlstr = "#{protocol}://#{@app.name}-#{@app.namespace}.#{$cloud_domain}"
   if port and (port.to_i > 0)
     urlstr += ":#{port.to_i}"
   end
