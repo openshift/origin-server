@@ -116,6 +116,11 @@ module OpenShift
               end
             internal_error = false
 
+          when OpenShift::ApplicationValidationException
+            status = :unprocessable_entity
+            messages = get_error_messages(ex.app)
+            return render_error(status, nil, nil, nil, nil, messages)
+
           when OpenShift::UserException
             status = :unprocessable_entity
             internal_error = false
