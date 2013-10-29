@@ -98,7 +98,7 @@ module OpenShift
         end
 
         def get_interface_mtu(iface)
-          out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn(%Q[ip link show dev #{iface}], :chdir=>"/")
+          out, _, rc = ::OpenShift::Runtime::Utils.oo_spawn(%Q[ip link show dev #{iface}], :chdir=>"/")
           if rc != 0
             raise RuntimeError, "Unable to determine external network interface IP address."
           end
@@ -112,7 +112,7 @@ module OpenShift
         def parse_valid_user(uuid)
           pwent = Etc.getpwnam(uuid.to_s)
           if block_given?
-            yield(uuid, pwent, pwent.uid.to_s(16))
+            yield(pwent, pwent.uid.to_s(16))
           end
         end
 
@@ -138,7 +138,7 @@ module OpenShift
             end
             f.fsync
             # Can't directly send the file to TC in stdin due to selinux domains.
-            out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("cat #{f.path} | tc -force -batch", :chdir=>"/")
+            _, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("cat #{f.path} | tc -force -batch", :chdir=>"/")
             if rc != 0
               raise RuntimeError, err
             end
@@ -184,11 +184,9 @@ module OpenShift
         end
 
         def with_tc_loaded
-          out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc qdisc show dev #{@tc_if}", :chdir=>"/")
+          out, _, _ = ::OpenShift::Runtime::Utils.oo_spawn("tc qdisc show dev #{@tc_if}", :chdir=>"/")
           if out.include?("qdisc htb 1:")
-            if block_given?
-              yield
-            end
+            yield if block_given?
           else
             raise RuntimeError, "no htb qdisc on #{@tc_if}"
           end
@@ -257,7 +255,7 @@ module OpenShift
         def startuser(uuid)
           @output << "Starting tc for #{uuid}: "
           synchronized do
-            parse_valid_user(uuid) do |uuid, pwent, netclass|
+            parse_valid_user(uuid) do |pwent, netclass|
               if tc_exists?(netclass)
                 @output << "Throttling is already active for #{uuid}"
               else
@@ -272,7 +270,7 @@ module OpenShift
         def stopuser(uuid)
           @output << "Stopping tc for #{uuid}: "
           synchronized do
-            parse_valid_user(uuid) do |uuid, pwent, netclass|
+            parse_valid_user(uuid) do |pwent, netclass|
               with_tc_batch do |f|
                 stopuser_impl(uuid, pwent, netclass, f)
               end
@@ -283,7 +281,7 @@ module OpenShift
         def restartuser(uuid)
           @output << "Restarting user #{uuid}: "
           synchronized do
-            parse_valid_user(uuid) do |uuid, pwent, netclass|
+            parse_valid_user(uuid) do |pwent, netclass|
               begin
                 with_tc_batch { |f| stopuser_impl(uuid, pwent, netclass, f) }
               rescue RuntimeError, ArgumentError
@@ -296,7 +294,7 @@ module OpenShift
         def throttleuser(uuid)
           @output << "Throttling user #{uuid}: "
           synchronized do
-            parse_valid_user(uuid) do |uuid, pwent, netclass|
+            parse_valid_user(uuid) do |pwent, netclass|
               FileUtils.touch("#{@tc_user_dir}/#{uuid}_throttle")
               with_tc_batch do |f|
                 stopuser_impl(uuid, pwent, netclass, f)
@@ -309,7 +307,7 @@ module OpenShift
         def nothrottleuser(uuid)
           @output << "Unthrottling user #{uuid}: "
           synchronized do
-            parse_valid_user(uuid) do |uuid, pwent, netclass|
+            parse_valid_user(uuid) do |pwent, netclass|
               FileUtils.rm_f("#{@tc_user_dir}/#{uuid}_throttle")
               begin
                 with_tc_batch { |f| stopuser_impl(uuid, pwent, netclass, f) }
@@ -323,7 +321,7 @@ module OpenShift
         def deluser(uuid)
           @output << "Deleting user #{uuid}: "
           synchronized do
-            parse_valid_user(uuid) do |uuid, pwent, netclass|
+            parse_valid_user(uuid) do |pwent, netclass|
               FileUtils.rm_f(Dir.glob("#{@tc_user_dir}/#{uuid}_*"))
               with_tc_batch do |f|
                 stopuser_impl(uuid, pwent, netclass, f)
@@ -351,7 +349,7 @@ module OpenShift
           @output << "Bandwidth shaping status: "
           with_tc_loaded do
             if uuid
-              parse_valid_user(uuid) do |uuid, pwent, netclass|
+              parse_valid_user(uuid) do |pwent, netclass|
                 statususer(uuid, pwent, netclass)
               end
             else
