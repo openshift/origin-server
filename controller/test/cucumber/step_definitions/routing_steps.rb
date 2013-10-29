@@ -10,7 +10,7 @@ include Test::Unit::Assertions
 
 When /^the http host header is overridden with a valid host, ensure routing succeeds$/ do
   output = []
-  IO.popen("curl -s -w %{http_code} -k -H 'X-OpenShift-Host: #{@app.name}-#{@app.namespace}.dev.rhcloud.com' https://#{@app.name}-#{@app.namespace}.dev.rhcloud.com -o /dev/null | grep 200").each do |line|
+  IO.popen("curl -s -w %{http_code} -k -H 'X-OpenShift-Host: #{@app.name}-#{@app.namespace}.#{$cloud_domain}' https://#{@app.name}-#{@app.namespace}.#{$cloud_domain} -o /dev/null | grep 200").each do |line|
     p line.chomp
     output << line.chomp
   end
@@ -20,7 +20,7 @@ end
 
 When /^the http host header is overridden with an invalid host, ensure routing fails$/ do
   output = []
-  IO.popen("curl -s -w %{http_code} -k -H 'X-OpenShift-Host: blarg-#{@app.namespace}.dev.rhcloud.com' https://#{@app.name}-#{@app.namespace}.dev.rhcloud.com -o /dev/null | grep 302").each do |line|
+  IO.popen("curl -s -w %{http_code} -k -H 'X-OpenShift-Host: blarg-#{@app.namespace}.#{$cloud_domain}' https://#{@app.name}-#{@app.namespace}.#{$cloud_domain} -o /dev/null | grep 302").each do |line|
     p line.chomp
     output << line.chomp
   end
