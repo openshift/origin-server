@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.7
+Version: 1.16.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,29 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Oct 29 2013 Adam Miller <admiller@redhat.com> 1.16.8-1
+- Change snapshot/restore for changes to pre-receive (pmorie@gmail.com)
+- Merge pull request #4017 from ncdc/gear-registry-atomic-write-sync
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4010 from pmorie/bugs/1021917
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4011 from tkramer-
+  rh/dev/tkramer/security/umask_for_libra_user
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4013 from brenton/nodelogs1
+  (dmcphers+openshiftbot@redhat.com)
+- Fix gear registry file permissions during backup/restore
+  (andy.goldstein@gmail.com)
+- Ensure correct permissions on gear registry file (andy.goldstein@gmail.com)
+- Bug 1022271 (andy.goldstein@gmail.com)
+- Fix bug 1021917: update snapshot/restore for new build/deployment
+  (pmorie@gmail.com)
+- Safer writing of gear registry to disk (andy.goldstein@gmail.com)
+- rubygem-openshift-origin-node should own /var/log/openshift/node/*.log
+  (bleanhar@redhat.com)
+- Security - BZ982824 add umask env for libra users in rhcsh
+  (tkramer@redhat.com)
+
 * Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.7-1
 - Don't use app_dns == gear_dns with update_cluster (andy.goldstein@gmail.com)
 - Merge pull request #3997 from ncdc/bz1023372
