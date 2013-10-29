@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.17.4
+Version: 1.17.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Oct 29 2013 Adam Miller <admiller@redhat.com> 1.17.5-1
+- Merge pull request #4021 from mrunalp/bugs/1020553
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1024022 - cartridge allows two starts of supervisor (jhonce@redhat.com)
+- ug 1020553: Use the correct version of npm link for SCL Node.js.
+  (mrunalp@gmail.com)
+
 * Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
 - Merge pull request #4015 from ironcladlou/bz/1021472
   (dmcphers+openshiftbot@redhat.com)
