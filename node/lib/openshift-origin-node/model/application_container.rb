@@ -135,6 +135,8 @@ module OpenShift
       #
       def self.from_uuid(container_uuid, hourglass=nil)
 
+        raise ArgumentError, "container_uuid is required!" if container_uuid.nil? or container_uuid.empty?
+
         pwent = passwd_for(container_uuid)
 
         env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
@@ -144,6 +146,10 @@ module OpenShift
         else
           namespace = env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,"")
         end
+
+        raise "OPENSHIFT_APP_UUID is missing!" if env["OPENSHIFT_APP_UUID"].nil?
+        raise "OPENSHIFT_APP_NAME is missing!" if env["OPENSHIFT_APP_NAME"].nil?
+        raise "OPENSHIFT_GEAR_NAME is missing!" if env["OPENSHIFT_GEAR_NAME"].nil?
 
         ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], container_uuid, pwent.uid, env["OPENSHIFT_APP_NAME"],
                                  env["OPENSHIFT_GEAR_NAME"], namespace, nil, nil, hourglass)

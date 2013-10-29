@@ -163,7 +163,7 @@ module OpenShift
 
         # Could not infer from any source
         if (@fqdn.to_s == "") or (@container_name.to_s == "") or (@namespace.to_s == "")
-          raise FrontendHttpServerException.new("Could not determine gear information for:", @container_uuid)
+          raise FrontendHttpServerException.new("Could not determine gear information for: #{@container_uuid}", @container_uuid)
         end
 
         @plugins = self.class.plugins.map { |pl| pl.new(@container_uuid, @fqdn, @container_name, @namespace) }
