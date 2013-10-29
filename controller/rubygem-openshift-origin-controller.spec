@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.16.6
+Version: 1.16.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 29 2013 Adam Miller <admiller@redhat.com> 1.16.7-1
+- Merge pull request #4026 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Added missing routes (lnader@redhat.com)
+- Bug 1023304 (lnader@redhat.com)
+- remove extra set (dmcphers@redhat.com)
+
 * Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.6-1
 - Fix for bug 1022948 (abhgupta@redhat.com)
 - Don't use app_dns == gear_dns with update_cluster (andy.goldstein@gmail.com)
