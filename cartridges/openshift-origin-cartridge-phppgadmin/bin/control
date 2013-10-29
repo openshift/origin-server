@@ -4,31 +4,35 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 export PHPRC="${OPENSHIFT_PHPPGADMIN_DIR}conf/php.ini"
 
-httpd_config=${OPENSHIFT_PHPPGADMIN_DIR}conf/httpd_nolog.conf
-httpd_pid_file=${OPENSHIFT_PHPPGADMIN_DIR}run/httpd.pid
+HTTPD_CFG_FILE=${OPENSHIFT_PHPPGADMIN_DIR}conf/httpd_nolog.conf
+HTTPD_PASSENV_FILE=${OPENSHIFT_PHPPGADMIN_DIR}conf.d/passenv.conf
+HTTPD_PID_FILE=${OPENSHIFT_PHPPGADMIN_DIR}run/httpd.pid
 
 function start {
-  update_httpd_passenv $httpd_config
-  ensure_valid_httpd_process "$httpd_pid_file" "$httpd_config"
-  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPPGADMIN_DIR}conf.d/*.conf" -f $httpd_config -k start
+  echo "Starting phpPgAdmin cartridge"
+  write_httpd_passenv $HTTPD_PASSENV_FILE
+  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPPGADMIN_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
 }
 
 function stop {
-  ensure_valid_httpd_process "$httpd_pid_file" "$httpd_config"
-  if [ -f "$httpd_pid_file" ]; then
-      httpd_pid=`cat "$httpd_pid_file" 2> /dev/null`
+  echo "Stopping phpPgAdmin cartridge"
+  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+  if [ -f "$HTTPD_PID_FILE" ]; then
+      httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
   fi
-  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPPGADMIN_DIR}conf.d/*.conf" -f $httpd_config -k stop
+  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPPGADMIN_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
   wait_for_stop $httpd_pid
 }
 
 function restart {
-  update_httpd_passenv $httpd_config
-  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPPGADMIN_DIR}conf.d/*.conf" -f $httpd_config -k restart
+  echo "Restarting phpPgAdmin cartridge"
+  write_httpd_passenv $HTTPD_PASSENV_FILE
+  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPPGADMIN_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
 }
 
 function status {
-  if ps --no-headers --pid $(< $httpd_pid_file) > /dev/null; then
+  if ps --no-headers --pid $(< $HTTPD_PID_FILE) > /dev/null; then
     client_result 'phpPgAdmin is running'
   else
     client_result 'phpPgAdmin is either stopped or inaccessible'
