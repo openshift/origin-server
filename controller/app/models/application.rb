@@ -138,7 +138,7 @@ class Application
       a['gears'] = (a['group_instances'] || []).inject({}) do |h, i|
         p = i['gear_size'] || a['default_gear_size']
         h[p] ||= 0
-        h[p] += i['gears'].length
+        h[p] += i['gears'].length unless i['gears'].nil?
         h
       end
       a.delete 'group_instances'
