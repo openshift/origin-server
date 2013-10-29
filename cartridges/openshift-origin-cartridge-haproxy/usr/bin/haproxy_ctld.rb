@@ -121,6 +121,7 @@ class HAProxyAttr
 end
 
 class Haproxy
+
     #
     # MAX_SESSIONS_PER_GEAR = 16.0 (default)
     #
@@ -131,11 +132,12 @@ class Haproxy
     # increase this number.  If the backend process is doing heavy processing
     # and likely takes a while, you may want to lower this number.
     #
+    # To custom MAX_SESSIONS_PER_GEAR, create a max_sessions marker with the value
+    #
     # Note: This doesn't control how many requests go to a backend gear, this
     # simply tells haproxy_ctld.rb how many connections per gear we are
     # targeting so it can scale up and down to match that ratio.
     #
-    MAX_SESSIONS_PER_GEAR = 16.0
 
     attr_accessor :gear_count, :sessions, :sessions_per_gear, :session_capacity_pct, :gear_namespace, :last_scale_up_time, :last_scale_error_time
 
@@ -179,6 +181,7 @@ class Haproxy
         # below @remove_gear_pct.  
         @remove_count_threshold = 20
         @remove_count = 0
+        @max_sessions_per_gear = get_max_sessions_per_gear
         self.populate_status_urls
         self.refresh
         @log.info("Starting haproxy_ctld")
@@ -258,7 +261,7 @@ class Haproxy
 
         @log.debug("Got stats from #{num_remote_proxies} remote proxies.")
         @sessions_per_gear = @sessions.to_f / @gear_count
-        @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
+        @session_capacity_pct = (@sessions_per_gear / @max_sessions_per_gear ) * 100
     end
 
     def last_scale_up_time_seconds
@@ -318,6 +321,7 @@ class Haproxy
             seconds_left = 0
         end
         @log.debug("GEAR_INFO - capacity: #{session_capacity_pct}% gear_count: #{gear_count} sessions: #{sessions} up/remove_thresh: #{@gear_up_pct}%/#{@gear_remove_pct}% sec_left_til_remove: #{seconds_left} gear_remove_thresh: #{@remove_count}/#{@remove_count_threshold}")
+        @log.debug("MAX_SESSIONS_PER_GEAR - #{@max_sessions_per_gear}")
     end
 
 
@@ -499,6 +503,21 @@ class Haproxy
       end
       return min, max
     end
+
+    def get_max_sessions_per_gear
+      data_dir = ENV['OPENSHIFT_DATA_DIR']
+      sessions_file = "#{data_dir}/max_sessions.txt"
+      max_sessions = 16
+      if File.exists? sessions_file
+        sessions_data = File.read(sessions_file)
+        begin
+          max_sessions = sessions_data.to_i
+        rescue Exception => e
+          @@log.error("Unable to get gear's max sessions because of #{e.message}")
+        end
+      end
+      return max_sessions
+    end    
 
     def stats()
         @status
