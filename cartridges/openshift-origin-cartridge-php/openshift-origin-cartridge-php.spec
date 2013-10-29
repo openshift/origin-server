@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.16.3
+Version: 1.16.4
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -75,6 +75,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Tue Oct 29 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
+- Bug 1021472: Mark php 0.0.7 upgrade incompatible (ironcladlou@gmail.com)
+
 * Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Merge pull request #4015 from ironcladlou/bz/1021472
   (dmcphers+openshiftbot@redhat.com)
