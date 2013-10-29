@@ -180,8 +180,8 @@ module OpenShift
               activate_result = result[:activate_result] = activate(options)
               return result unless activate_result[:status] == RESULT_SUCCESS
             else
-              pre_receive(err: $stderr, out: $stdout)
-              result = post_receive(err: $stderr, out: $stdout, ref: 'master', hot_deploy: false, force_clean_build: true )
+              pre_receive(err: $stderr, out: $stdout, ref: 'master', hot_deploy: false, force_clean_build: true)
+              result = post_receive(err: $stderr, out: $stdout)
             end
 
             if report_deployment

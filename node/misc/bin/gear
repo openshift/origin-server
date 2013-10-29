@@ -97,6 +97,10 @@ def do_command(command, options)
     exit 255
   rescue Exception => e
     $stderr.puts e.message
+    if options.trace
+      $stderr.puts e.backtrace.join("\n")
+    end
+    
     exit -1
   else
     exit 0
