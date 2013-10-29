@@ -72,9 +72,9 @@ end
 def new_container(uuid, c)
   Etc.getpwnam(uuid)
   OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
-rescue
-  $stderr.puts("\n--with-container-uuid is missing or not a legal gear id: #{uuid}\n\n")
-  usage(c.syntax)
+rescue Exception => e
+  $stderr.puts("\n#{uuid} is missing or not a valid gear: #{e.message}\n")
+  exit! 1
 end
 
 
@@ -85,7 +85,7 @@ end
 def usage(message, details = nil)
   $stderr.puts details + "\n\n" if details
   $stderr.puts "Usage: #{message}"
-  exit! 3
+  exit! 255
 end
 
 command :'add-alias' do |c|
