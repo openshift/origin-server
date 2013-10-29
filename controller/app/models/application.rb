@@ -407,8 +407,14 @@ class Application
   def update_configuration
     if self.invalid?
       messages = []
-      self.errors.messages[:config].each do |error|
-        messages.push(error[:message]) if error[:message]
+      if self.errors.messages[:config]
+        self.errors.messages[:config].each do |error|
+          messages.push(error[:message]) if error[:message]
+        end
+      else
+        self.errors.messages.each do |key, value|
+          messages.push("#{key} #{value.join(",")}")
+        end
       end
       raise OpenShift::UserException.new("Invalid application configuration: #{messages}", 1)
     end
