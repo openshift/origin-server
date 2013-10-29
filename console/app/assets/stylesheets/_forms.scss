@@ -824,3 +824,8 @@ textarea[readonly] {
     h3 .font-icon {margin-left: 10px}
   }
 }
+
+// Add space between field label and the required indicator
+form label abbr[title="required"] {
+  padding-left: 3px;
+}
