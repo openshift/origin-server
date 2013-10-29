@@ -1705,7 +1705,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'php-5.3, mysql-5.1', q.cartridges_spec
     assert q.initial_git_url
     assert q.tags.include?(:blog)
-    assert q.updated > 1.year.ago
+    assert q.updated < 1.year.ago
   end
 
   def test_non_scalable_quickstarts
