@@ -1,7 +1,8 @@
 - content_for :page_style, 'highlight'
 - content_for :page_title, 'Scale your Application'
 
-%h1 Scale your Application
+%h1 Scale #{link_to @application.name, application_path(@application)}
+= flashes
 
 %section#scaling-gear-groups
   - @cartridges.each do |cartridge|
