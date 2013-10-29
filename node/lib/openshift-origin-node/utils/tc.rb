@@ -148,7 +148,6 @@ module OpenShift
         end
 
         def startuser_impl(uuid, pwent, netclass, f)
-          return false if tc_exists?(netclass)
           # Select what type of user.  Note that a user can high bandwidth
           # normally but throttled for a specific and temporary reason.
           if File.exists?("#{@tc_user_dir}/#{uuid}_throttle")
@@ -259,8 +258,12 @@ module OpenShift
           @output << "Starting tc for #{uuid}: "
           synchronized do
             parse_valid_user(uuid) do |uuid, pwent, netclass|
-              with_tc_batch do |f|
-                startuser_impl(uuid, pwent, netclass, f)
+              if tc_exists?(netclass)
+                @output << "Throttling is already active for #{uuid}"
+              else
+                with_tc_batch do |f|
+                  startuser_impl(uuid, pwent, netclass, f)
+                end
               end
             end
           end
