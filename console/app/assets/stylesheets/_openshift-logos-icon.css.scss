@@ -28,7 +28,7 @@ Instead of a list of all class selectors,
 you can use the generic selector below, but it's slower:
 [class*="icon-"]:before {
 */
-.icon-github, .icon-git, .icon-java, .icon-rails, .icon-php, .icon-ruby, .icon-django, .icon-nodejs, .icon-jenkins, .icon-python, .icon-go-gopher, .icon-perl, .icon-zend, .icon-jboss, .icon-tomcat, .icon-spring, .icon-mysql-dolphin, .icon-postgresql, .icon-mongodb, .icon-mariadb, .icon-wordpress, .icon-drupal, .icon-codeigniter, .icon-shadowman, .icon-stackoverflow, .icon-aerogear, .icon-capedwarf, .icon-redis {
+.icon-github, .icon-git, .icon-openjdk, .icon-rails, .icon-php, .icon-ruby, .icon-django, .icon-nodejs, .icon-jenkins, .icon-python, .icon-go-gopher, .icon-perl, .icon-zend, .icon-jboss, .icon-tomcat, .icon-spring, .icon-mysql-database, .icon-postgresql, .icon-mongodb, .icon-mariadb, .icon-wordpress, .icon-drupal, .icon-codeigniter, .icon-shadowman, .icon-stackoverflow, .icon-aerogear, .icon-capedwarf, .icon-redis, .icon-play, .icon-clojure, .icon-scala, .icon-grails, .icon-grails, .icon-beaker {
 	font-family: 'openshift-logos-icon';
 	speak: none;
 	font-style: normal;
@@ -46,7 +46,7 @@ you can use the generic selector below, but it's slower:
 .icon-git:before {
 	content: "\f102";
 }
-.icon-java:before {
+.icon-openjdk:before {
 	content: "\f103";
 }
 .icon-rails:before {
@@ -88,7 +88,7 @@ you can use the generic selector below, but it's slower:
 .icon-spring:before {
 	content: "\f116";
 }
-.icon-mysql-dolphin:before {
+.icon-mysql-database:before {
 	content: "\f117";
 }
 .icon-postgresql:before {
@@ -124,4 +124,18 @@ you can use the generic selector below, but it's slower:
 .icon-redis:before {
 	content: "\f128";
 }
-
+.icon-play:before {
+	content: "\f129";
+}
+.icon-clojure:before {
+	content: "\f130";
+}
+.icon-scala:before {
+	content: "\f131";
+}
+.icon-grails:before {
+	content: "\f132";
+}
+.icon-beaker:before {
+	content: "\f133";
+}
