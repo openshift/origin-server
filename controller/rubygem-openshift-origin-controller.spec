@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.16.7
+Version: 1.16.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,19 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.8-1
+- Merge pull request #3958 from detiber/fixTests
+  (dmcphers+openshiftbot@redhat.com)
+- Checking deployment validations for bug 1023381, 1023304
+  (abhgupta@redhat.com)
+- Fix for bug 1024493 (abhgupta@redhat.com)
+- Merge pull request #4036 from kraman/bugfix2
+  (dmcphers+openshiftbot@redhat.com)
+- <tests> Update test tags and enable REMOTE_USER auth for tests
+  (jdetiber@redhat.com)
+- Test updates to remove hardcoded dev.rhcloud.com and disable platform-
+  endpoints on origin due to missing dependencies. (kraman@gmail.com)
+
 * Tue Oct 29 2013 Adam Miller <admiller@redhat.com> 1.16.7-1
 - Merge pull request #4026 from lnader/master
   (dmcphers+openshiftbot@redhat.com)
