@@ -5,7 +5,7 @@ class FilterHashTest < ActiveSupport::TestCase
   F = '[FILTERED]'
 
   def test_filters
-    assert_equal ['password', 'secretkey'], FilterHash.send(:filters)
+    assert_equal ['password', 'secretkey', 'raw_content'], FilterHash.send(:filters)
   end
 
   def test_filter_defaults

@@ -36,7 +36,7 @@ module RailsApp
     config.encoding = "utf-8"
 
     # Configure sensitive parameters which will be filtered from the log file.
-    config.filter_parameters += [:password, :secretKey]
+    config.filter_parameters += [:password, :secretKey, :raw_content]
 
     # Enable the asset pipeline
     config.assets.enabled = true
