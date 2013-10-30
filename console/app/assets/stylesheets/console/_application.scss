@@ -46,9 +46,6 @@
         text-decoration: none;
       }
     }
-    &.right a {
-      font-size: $smallFontSize;
-    }
     .url-icon {
       font-size: 16px;
       margin-left: 15px;
@@ -117,14 +114,13 @@
       border-top: 1px dashed $consolePanelBorderColor;
     }
     .cartridge-inset {
-      padding: 15px 23px 15px 12px;
+      padding: 15px 20px;
     }
     .flow-block {
       line-height: 1.4;
     }
-    .flow-block.right > span {
-      font-weight: 300;
-      font-size: $smallFontSize;
+    .flow-block.right {
+      font-size: $tinyFontSize;
       strong {
         margin-right: 8px;
         &:last-child {
@@ -142,11 +138,11 @@
         opacity: .38;
         text-align: center;
         vertical-align: middle;
-        width: 45px;
-        @include iconfont-adjust($margin-right: 5px,$size-offset: 5);
+        width: 25px;
+        @include iconfont-adjust($margin-right: 15px,$size-offset: 11);
         &[title="Quickstart"],
         &[title="Cartridge"] {
-          @include iconfont-adjust($margin-right: 3px,$size-offset: 11)
+          @include iconfont-adjust($margin-right: 13px,$size-offset: 16)
         }
       }
     }
