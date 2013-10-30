@@ -39,6 +39,7 @@ module OpenShift
   #Not used removing class UserKeyException < OpenShift::OOException; end
   class AuthServiceException < OpenShift::OOException; end
   class UserValidationException < OpenShift::OOException; end
+  class UserTermsValidationException < UserValidationException; end
   class AccessDeniedException < UserValidationException; end
   class DNSException < OpenShift::OOException; end
   class DNSAlreadyExistsException < DNSException; end
