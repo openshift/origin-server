@@ -505,9 +505,9 @@ class Haproxy
     end
 
     def get_max_sessions_per_gear
-      data_dir = ENV['OPENSHIFT_DATA_DIR']
-      sessions_file = "#{data_dir}/max_sessions.txt"
-      max_sessions = 16
+      marker_dir = File.join(ENV['OPENSHIFT_REPO_DIR'], ".openshift/markers/")
+      sessions_file = File.join(marker_dir, "max_sessions")
+      max_sessions = 20
       if File.exists? sessions_file
         sessions_data = File.read(sessions_file)
         begin
