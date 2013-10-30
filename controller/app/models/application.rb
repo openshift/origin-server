@@ -1778,7 +1778,7 @@ class Application
       user_vars_op_id = op._id.to_s
     end
 
-    ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, (user_vars_op_id || ginst_op_id), init_git_url)
+    ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, (user_vars_op_id || ginst_op_id), init_git_url, app_dns_gear_id)
     pending_ops.push(*ops)
 
     pending_ops
@@ -1938,7 +1938,7 @@ class Application
     return false
   end
 
-  def calculate_add_component_ops(comp_specs, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil)
+  def calculate_add_component_ops(comp_specs, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil, app_dns_gear_id=nil)
     ops = []
 
     comp_specs.each do |comp_spec|
@@ -1967,7 +1967,7 @@ class Application
         component_ops[comp_spec][:adds].push add_component_op
         usage_op_prereq = [add_component_op._id.to_s]
 
-        unless is_scale_up and cartridge.is_deployable?
+        unless (gear_id != app_dns_gear_id) and cartridge.is_deployable?
           #post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
           post_configure_op = PostConfigureCompOp.new(group_instance_id: group_instance_id, gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, prereq: [add_component_op._id.to_s] + [prereq_id])
           ops.push post_configure_op
