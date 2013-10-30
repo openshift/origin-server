@@ -113,7 +113,7 @@ command :prereceive do |c|
   c.syntax = "#{name} prereceive"
 
   c.description = "Run the git prereceive steps"
-  c.option "--first-time", "Proceed even if the git ref to deploy isn't found. Used by post_configure"
+  c.option "--init", "Proceed even if the git ref to deploy isn't found. Used by post_configure"
   c.action do |args, options|
     do_command(c, options) do
       if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] == 'binary'
@@ -143,26 +143,26 @@ command :prereceive do |c|
       end
 
       # only call pre_receive if
-      # - this is the first build ever (--first-time) or
+      # - this is the first build ever (--init) or
       # - auto deployments are enabled and the appropriate git ref was pushed
-      if options.first_time or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
-        if options.first_time
+      if options.init or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
+        if options.init
           # if this is an initial build from post_configure, we shouldn't be hot deploying
           # as that will keep things from starting up properly
           hot_deploy = false
+          force_clean_build = false
         else
           # otherwise, check the repo for the marker
           hot_deploy = @repo.file_exists?(HOT_DEPLOY_MARKER, new_rev)
+          force_clean_build = @repo.file_exists?(FORCE_CLEAN_BUILD_MARKER, new_rev)
         end
-
-        force_clean_build = @repo.file_exists?(FORCE_CLEAN_BUILD_MARKER, new_rev)
 
         @container.pre_receive(out: $stdout,
                                err: $stderr,
                                hot_deploy: hot_deploy,
                                force_clean_build: force_clean_build,
                                ref: ref_to_deploy,
-                               git_sha1: new_rev)
+                               init: options.init)
       end
     end
   end
@@ -172,7 +172,7 @@ command :postreceive do |c|
   c.syntax = "#{name} postreceive"
 
   c.description = "Run the git postreceive steps"
-  c.option "--first-time", "Proceed even if the git ref to deploy isn't found. Used by post_configure"
+  c.option "--init", "Proceed even if the git ref to deploy isn't found. Used by post_configure"
   c.action do |args, options|
     do_command(c, options) do
       if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] == 'binary'
@@ -194,15 +194,16 @@ command :postreceive do |c|
       end
 
       # only call post_receive if
-      # - this is the first build ever, i.e. --first-time or
+      # - this is the first build ever, i.e. --init or
       # - auto deployments are enabled and the appropriate git ref was pushed
-      if options.first_time or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
+      if options.init or (found_deployment_ref and ENV['OPENSHIFT_AUTO_DEPLOY'] != 'false')
 
         result = @container.post_receive(out: $stdout,
                                          err: $stderr,
                                          ref: ref_to_deploy,
                                          report_deployments: true,
-                                         all: true)
+                                         all: true,
+                                         init: options.init)
 
         puts "Result: #{result[:status]}"
 
@@ -323,7 +324,7 @@ command :activate do |c|
   c.syntax = "#{name} activate <deployment id>"
 
   c.description = "Activate a build"
-  c.option "--init", "Run post_install for new gears"
+  c.option "--post-install", "Run post_install for new gears"
   c.option "--as-json", "Render the results as JSON to stdout"
   c.option "--all", "Activate all gears in the application (only applicable if executed from a proxy gear)"
   c.option "--[no-]rotation", "Rotate gears out/in (defaults to true)"
@@ -345,7 +346,7 @@ command :activate do |c|
       end
 
       result = @container.activate(deployment_id: args[0],
-                                   init: !!options.init,
+                                   post_install: !!options.post_install,
                                    all: !!options.all,
                                    rotate: rotate,
                                    report_deployments: true,

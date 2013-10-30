@@ -53,26 +53,33 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_pre_receive_default_builder
-    @cartridge_model.expects(:builder_cartridge).returns(nil)
+    [nil, true].each do |init|
+      @cartridge_model.expects(:builder_cartridge).returns(nil)
 
-    @container.expects(:stop_gear).with(user_initiated: true, hot_deploy: false, exclude_web_proxy: true, out: $stdout, err: $stderr)
+      @container.expects(:stop_gear).with(user_initiated: true,
+                                          hot_deploy: false,
+                                          exclude_web_proxy: true,
+                                          init: init,
+                                          out: $stdout,
+                                          err: $stderr)
 
-    deployment_datetime = 'now'
-    @container.expects(:create_deployment_dir).returns(deployment_datetime)
+      deployment_datetime = 'now'
+      @container.expects(:create_deployment_dir).returns(deployment_datetime)
 
-    metadata = mock()
-    @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+      metadata = mock()
+      @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
 
-    git_ref = 'ref'
-    hot_deploy = false
-    force_clean_build = true
-    metadata.expects(:git_ref=).with(git_ref)
-    metadata.expects(:hot_deploy=).with(hot_deploy)
-    metadata.expects(:force_clean_build=).with(force_clean_build)
-    metadata.expects(:save)
+      git_ref = 'ref'
+      hot_deploy = false
+      force_clean_build = true
+      metadata.expects(:git_ref=).with(git_ref)
+      metadata.expects(:hot_deploy=).with(hot_deploy)
+      metadata.expects(:force_clean_build=).with(force_clean_build)
+      metadata.expects(:save)
 
 
-    @container.pre_receive(out: $stdout, err: $stderr, ref: git_ref, hot_deploy: hot_deploy, force_clean_build: force_clean_build)
+      @container.pre_receive(out: $stdout, err: $stderr, ref: git_ref, hot_deploy: hot_deploy, force_clean_build: force_clean_build, init: init)
+    end
   end
 
   def test_post_receive_default_builder_nonscaled
@@ -609,14 +616,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
     cgroups.expects(:boost).yields()
     @hourglass.expects(:remaining).times(3).returns(100, 50, 49)
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive --first-time >> /tmp/initial-build.log 2>&1",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive --init >> /tmp/initial-build.log 2>&1",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
                                                       uid:                 @container.uid,
                                                       timeout:             100,
                                                       expected_exitstatus: 0)
 
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear postreceive --first-time >> /tmp/initial-build.log 2>&1",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear postreceive --init >> /tmp/initial-build.log 2>&1",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
                                                       uid:                 @container.uid,
@@ -651,14 +658,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
     cgroups.expects(:boost).yields()
     @hourglass.expects(:remaining).times(3).returns(100, 50, 49)
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive --first-time >> /tmp/initial-build.log 2>&1",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive --init >> /tmp/initial-build.log 2>&1",
                                                  env:                 gear_env,
                                                  chdir:               @container.container_dir,
                                                  uid:                 @container.uid,
                                                  timeout:             100,
                                                  expected_exitstatus: 0)
 
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear postreceive --first-time >> /tmp/initial-build.log 2>&1",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear postreceive --init >> /tmp/initial-build.log 2>&1",
                                                  env:                 gear_env,
                                                  chdir:               @container.container_dir,
                                                  uid:                 @container.uid,
@@ -693,7 +700,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
     cgroups.expects(:boost).yields()
     @hourglass.expects(:remaining).times(2).returns(100, 50)
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive --first-time >> /tmp/initial-build.log 2>&1",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive --init >> /tmp/initial-build.log 2>&1",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
                                                       uid:                 @container.uid,
@@ -1235,12 +1242,12 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal 'failure', result[:status]
   end
 
-  def test_activate_remote_gear_init
+  def test_activate_remote_gear_post_install
     deployment_id = 'abcd1234'
     g = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: '1234', proxy_hostname: 'node.example.com')
     gear_uuid = "1234"
     gear_env = {}
-    options = { deployment_id: deployment_id, init: true }
+    options = { deployment_id: deployment_id, post_install: true }
 
     remote_result = {
       status: 'success',
@@ -1250,7 +1257,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
       errors: []
     }
 
-    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g.to_ssh_url} gear activate #{deployment_id} --as-json --init --no-rotation",
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g.to_ssh_url} gear activate #{deployment_id} --as-json --post-install --no-rotation",
                                                        env: gear_env,
                                                        expected_exitstatus: 0)
                                                  .returns(JSON.dump(remote_result))
@@ -1417,11 +1424,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal deployment_id, result[:deployment_id]
   end
 
-  def test_activate_local_gear_with_init_option
+  def test_activate_local_gear_with_post_install_option
     deployment_id = 'abcd1234'
     deployment_datetime = 'now'
     deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
-    activate_options = {deployment_id: deployment_id, hot_deploy: true, init: true}
+    activate_options = {deployment_id: deployment_id, hot_deploy: true, post_install: true}
 
     @container.expects(:deployment_exists?).with(deployment_id).returns(true)
 

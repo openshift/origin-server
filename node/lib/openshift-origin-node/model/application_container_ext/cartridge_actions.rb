@@ -41,7 +41,7 @@ module OpenShift
             begin
               ::OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
                 logger.info "Executing initial gear prereceive for #{@uuid}"
-                Utils.oo_spawn("gear prereceive --first-time >> #{build_log} 2>&1",
+                Utils.oo_spawn("gear prereceive --init >> #{build_log} 2>&1",
                                env:                 env,
                                chdir:               @container_dir,
                                uid:                 @uid,
@@ -49,7 +49,7 @@ module OpenShift
                                expected_exitstatus: 0)
 
                 logger.info "Executing initial gear postreceive for #{@uuid}"
-                Utils.oo_spawn("gear postreceive --first-time >> #{build_log} 2>&1",
+                Utils.oo_spawn("gear postreceive --init >> #{build_log} 2>&1",
                                env:                 env,
                                chdir:               @container_dir,
                                uid:                 @uid,
@@ -272,6 +272,7 @@ module OpenShift
             stop_gear(user_initiated:     true,
                       hot_deploy:         options[:hot_deploy],
                       exclude_web_proxy:  true,
+                      init:               options[:init],
                       out:                options[:out],
                       err:                options[:err])
 
@@ -318,9 +319,14 @@ module OpenShift
           }
 
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
-          if proxy_cart = options[:proxy_cart] = @cartridge_model.web_proxy
-            options[:out].puts "Syncing git content to other proxy gears" if options[:out]
-            sync_git_repo(child_gear_ssh_urls(:proxy), gear_env)
+
+          # if init is set, we're being called prior to update-cluster, so we don't
+          # have a gear registry. git repo will be synced during update-cluster in this case
+          unless options[:init]
+            if proxy_cart = options[:proxy_cart] = @cartridge_model.web_proxy
+              options[:out].puts "Syncing git content to other proxy gears" if options[:out]
+              sync_git_repo(child_gear_ssh_urls(:proxy), gear_env)
+            end
           end
 
           builder_cartridge = @cartridge_model.builder_cartridge
@@ -386,7 +392,6 @@ module OpenShift
         # options: hash
         #   :out  : an IO to which any stdout should be written (default: nil)
         #   :err  : an IO to which any stderr should be written (default: nil)
-        #   :init : boolean; if true, post-install steps will be executed (default: false)
         #   :deployment_datetime : string; the deployment datetime to deploy
         #
         def remote_deploy(options={})
@@ -588,8 +593,13 @@ module OpenShift
           deployment_id = options[:deployment_id]
           raise ArgumentError.new("deployment_id must be supplied") unless deployment_id
 
-          gears = options[:gears] || child_gear_ssh_urls
           result = { status: RESULT_SUCCESS, gear_results: {}}
+
+          # initial build - don't do anything because we don't have a gear registry yet
+          # and distribution + activation will happen when update-cluster is called
+          return result if options[:init]
+
+          gears = options[:gears] || child_gear_ssh_urls
 
           return result if gears.empty?
 
@@ -692,7 +702,7 @@ module OpenShift
           options[:hot_deploy] = deployment_metadata.hot_deploy
 
           # if it's a new gear via scale-up, force hot_deploy to false
-          options[:hot_deploy] = false if options[:init]
+          options[:hot_deploy] = false if options[:post_install]
 
           parallel_results = with_gear_rotation(options) do |target_gear, local_gear_env, options|
             target_gear_uuid = target_gear.is_a?(String) ? target_gear : target_gear.uuid
@@ -732,7 +742,7 @@ module OpenShift
         # @param [Hash] gear_env the environment for the local gear
         # @param [Hash] options activation options
         # @option options [String] :deployment_id the deployment ID to activate
-        # @option options [Boolean] :init if true, run the post-install hook during activation
+        # @option options [Boolean] :post_install if true, run the post-install hook during activation
         def activate_remote_gear(gear, gear_env, options={})
           gear_uuid = gear.uuid
 
@@ -744,13 +754,13 @@ module OpenShift
             errors: [],
           }
 
-          init_option = (options[:init] == true) ? ' --init' : ''
+          post_install_option = (options[:post_install] == true) ? ' --post-install' : ''
 
           # call activate_gear on the remote gear
-          result[:messages] << "Activating gear #{gear_uuid}, deployment id: #{options[:deployment_id]},#{init_option}\n"
+          result[:messages] << "Activating gear #{gear_uuid}, deployment id: #{options[:deployment_id]},#{post_install_option}\n"
 
           begin
-            out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear.to_ssh_url} gear activate #{options[:deployment_id]} --as-json#{init_option} --no-rotation",
+            out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear.to_ssh_url} gear activate #{options[:deployment_id]} --as-json#{post_install_option} --no-rotation",
                                                     env: gear_env,
                                                     expected_exitstatus: 0)
 
@@ -776,7 +786,7 @@ module OpenShift
         #
         # options: hash
         #   :deployment_id : the id of the deployment to activate (required)
-        #   :init          : if true, run post_install after post-deploy (i.e. for a new gear on scale up)
+        #   :post_install  : if true, run post_install after post-deploy (i.e. for a new gear on scale up)
         #   :out           : an IO to which any stdout should be written (default: nil)
         #   :err           : an IO to which any stderr should be written (default: nil)
         #
@@ -863,7 +873,7 @@ module OpenShift
 
             result[:messages] << output unless output.empty?
 
-            if options[:init]
+            if options[:post_install]
               primary_cart_env_dir = PathUtils.join(@container_dir, primary_cartridge.directory, 'env')
               primary_cart_env     = ::OpenShift::Runtime::Utils::Environ.load(primary_cart_env_dir)
               ident                = primary_cart_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
@@ -944,14 +954,14 @@ module OpenShift
           proxy_cart = options[:proxy_cart] = @cartridge_model.web_proxy
 
           gears = []
-          if proxy_cart
+          if not options[:init] and proxy_cart
             if options[:all]
               gears = gear_registry.entries[:web].values
             elsif options[:gears]
               gears = gear_registry.entries[:web].values.select { |e| options[:gears].include?(e.uuid) }
             else
               # it's possible the gear registry hasn't been populated yet (scale-up that adds a new proxy cart)
-              # so if gear_registry.entries[:web] is nil, just use [uuid] instea
+              # so if gear_registry.entries[:web] is nil, just use [uuid] instead
               gears = [gear_registry.entries[:web][uuid]] rescue [uuid]
             end
           else
@@ -987,7 +997,7 @@ module OpenShift
 
           target_gear_uuid = target_gear.is_a?(String) ? target_gear : target_gear.uuid
 
-          if options[:rotate] != false and proxy_cart and options[:hot_deploy] != true
+          if not options[:init] and options[:rotate] != false and proxy_cart and options[:hot_deploy] != true
             result[:messages] << "Rotating out gear in proxies"
             rotate_out_results = update_proxy_status(action: :disable,
                                                      gear_uuid: target_gear_uuid,
@@ -1015,7 +1025,7 @@ module OpenShift
           # short circuit if the yielded action failed
           return result if yield_status != RESULT_SUCCESS
 
-          if options[:rotate] != false and proxy_cart and options[:hot_deploy] != true
+          if not options[:init] and options[:rotate] != false and proxy_cart and options[:hot_deploy] != true
             result[:messages] << "Rotating in gear in proxies"
             rotate_in_results = update_proxy_status(action: :enable,
                                                     gear_uuid: target_gear_uuid,
@@ -1233,8 +1243,18 @@ module OpenShift
             # the broker will inform us if we are supposed to sync and activate new gears
             if sync_new_gears == true
               old_web_gears = old_registry[:web]
-              new_web_gears = updated_entries[:web].values.select do |entry|
-                entry.uuid != self.uuid and not old_web_gears.keys.include?(entry.uuid)
+              if old_web_gears.nil?
+                # If the previous version of the registry had no web gears, it means that
+                # an application was created where the cartridge's manifest specified a
+                # minimum gear count >= 2. In this case, all gears are new and need syncing
+                # and activation (except for self).
+                new_web_gears = updated_entries[:web].values.reject { |entry| entry.uuid == self.uuid }
+              else
+                # The previous version of the registry had some web gears in it, so
+                # determine which ones are new.
+                new_web_gears = updated_entries[:web].values.select do |entry|
+                  entry.uuid != self.uuid and not old_web_gears.keys.include?(entry.uuid)
+                end
               end
 
               unless new_web_gears.empty?
@@ -1257,10 +1277,10 @@ module OpenShift
                 # may want to consider activating all (limited concurrently to :in_threads) instead
                 # of in batches
 
-                # since the gears are new, set init to true
+                # since the gears are new, set post_install to true
                 # also set rotate to false because there's no need to rotate out/in these new gears
                 # (nor will it work if the new gear is also a proxy gear)
-                activate_result = activate(gears: new_web_gears.map(&:uuid), deployment_id: deployment_id, init: true, rotate: false)
+                activate_result = activate(gears: new_web_gears.map(&:uuid), deployment_id: deployment_id, post_install: true, rotate: false)
                 if activate_result[:status] != RESULT_SUCCESS
                   errors = []
                   activate_result[:gear_results].each do |uuid, gear_result|
