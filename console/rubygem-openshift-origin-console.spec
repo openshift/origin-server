@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.16.8
+Version: 1.16.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,14 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.9-1
+- Merge pull request #4050 from sg00dwin/update-icon-set
+  (dmcphers+openshiftbot@redhat.com)
+- Update iconfont set with latest. - Replace MySQL and Java. Add Clojure,
+  Scala, Custom, Grails, Joomla, Jquery and Play - new icomoon app .json file
+  of set - Remove older openshift-logos-icon.dev.svg icomoon app file of set
+  (sgoodwin@redhat.com)
+
 * Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.8-1
 - Merge pull request #4046 from jwforres/remove_external_link
   (dmcphers+openshiftbot@redhat.com)
