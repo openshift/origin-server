@@ -3008,6 +3008,9 @@ class Application
   end
 
   def update_deployments(deployments)
+    # validate the deployments
+    deployments.each { |d| raise OpenShift::ApplicationValidationException.new(self) unless d.valid? }
+
     self.set(:deployments, deployments.map{|d| d.to_hash})
   end
 
