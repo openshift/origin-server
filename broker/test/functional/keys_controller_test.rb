@@ -15,6 +15,7 @@ class KeysControllerTest < ActionController::TestCase
     register_user(@login, @password)
 
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
+    @request.env['REMOTE_USER'] = @login
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
 

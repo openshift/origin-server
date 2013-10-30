@@ -104,6 +104,7 @@ def http_call(api, internal_test=false)
       headers = {}
       headers["HTTP_ACCEPT"] = "application/json" + (api.version ? "; version=#{api.version}" : "")
       headers["HTTP_AUTHORIZATION"] = "Basic #{$credentials}"
+      headers["REMOTE_USER"] = $user
       request_via_redirect(method, "/broker/rest" + api.uri, api.request, headers)
       return @response.body.strip
     end

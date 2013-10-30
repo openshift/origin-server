@@ -218,6 +218,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     headers = {}
     headers["HTTP_ACCEPT"] = "application/json"
     headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
+    headers["REMOTE_USER"] = $user
     request_via_redirect(:get, "/broker/rest/user", {}, headers)
     assert_equal @response.status, 200
   end
@@ -228,6 +229,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     headers = {}
     headers["HTTP_ACCEPT"] = "application/json"
     headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
+    headers["REMOTE_USER"] = $user
     request_via_redirect(method, "/broker/rest" + uri, params, headers)
     @response
   end

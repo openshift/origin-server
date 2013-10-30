@@ -1,6 +1,5 @@
 @runtime_extended3
 @cartridge_nodejs
-@not-enterprise
 Feature: V2 SDK Node.js Cartridge
 
   Scenario Outline: Add cartridge
@@ -14,9 +13,14 @@ Feature: V2 SDK Node.js Cartridge
     Then the application git repo will not exist
 
     @rhel-only
-    Scenarios: RHEL
+    Scenarios: RHEL SCL
       | nodejs_version |
       |  0.10          |
+
+    @rhel-only
+    @not-enterprise
+    Scenarios: RHEL non-SCL
+      | nodejs_version |
       |  0.6           |
 
     @fedora-only
@@ -30,9 +34,14 @@ Feature: V2 SDK Node.js Cartridge
     Then the application git repo will not exist
 
     @rhel-only
-    Scenarios: RHEL
+    Scenarios: RHEL SCL
       | nodejs_version |
       |  0.10          |
+
+    @rhel-only
+    @not-enterprise
+    Scenarios: RHEL non-SCL
+      | nodejs_version |
       |  0.6           |
       
     @fedora-only

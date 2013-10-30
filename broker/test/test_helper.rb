@@ -32,8 +32,12 @@ end
 
 def register_user(login=nil, password=nil)
   if ENV['REGISTER_USER']
-    accnt = UserAccount.new(user: login, password: password)
-    accnt.save
+    if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
+      `/usr/bin/htpasswd -b /etc/openshift/htpasswd #{login} #{password} > /dev/null 2>&1`
+    else
+      accnt = UserAccount.new(user: login, password: password)
+      accnt.save
+    end
   end
 end
 
