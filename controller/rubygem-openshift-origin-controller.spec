@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.16.8
+Version: 1.16.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.9-1
+- Merge pull request #4043 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- call expose port in configure order (rchopra@redhat.com)
+
 * Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.8-1
 - Merge pull request #3958 from detiber/fixTests
   (dmcphers+openshiftbot@redhat.com)
