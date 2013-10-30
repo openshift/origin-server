@@ -17,15 +17,15 @@ $ ->
     $link = $container.find('.confirm-link')
     $popover = $container.find('.confirm-popover')
 
-    $link.click( ->
-      $link.toggleClass('highlight')
-      $container.activateForms()
-      return false
-    ).popover({
+    $link.popover({
       html: true,
       content: ->
         return $popover.html()
-    })
+    }).click( ->
+      $link.toggleClass('highlight')
+      $container.activateForms()
+      return false
+    )
 
     $container.on('click', '.cancel', ->
       $link.popover('hide')
