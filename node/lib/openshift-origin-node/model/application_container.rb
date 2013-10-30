@@ -75,7 +75,7 @@ module OpenShift
                   :cartridge_model, :container_plugin, :hourglass
       attr_accessor :uid, :gid
 
-      containerization_plugin_gem = ::OpenShift::Config.new.get('CONTAINERIZATION_PLUGIN') 
+      containerization_plugin_gem = ::OpenShift::Config.new.get('CONTAINERIZATION_PLUGIN')
       containerization_plugin_gem ||= 'openshift-origin-container-selinux'
 
       begin
@@ -118,7 +118,7 @@ module OpenShift
           @container_plugin = Containerization::Plugin.new(self)
         rescue ArgumentError => e
           @uid              = user_uid
-          @gid              = user_uid 
+          @gid              = user_uid
           @gecos            = @config.get("GEAR_GECOS") || "OO application container"
           @container_dir    = Containerization::Plugin.container_dir(self)
           @container_plugin = nil
@@ -448,12 +448,14 @@ module OpenShift
       # is model specific, but +options+ is provided to the implementation.
       #
       # Options:
-      #    force    Forcibly kill gear processes after cartridges have been stopped.
+      #    force       Forcibly kill gear processes after cartridges have been stopped.
+      #    hot_deploy  if true, don't rotate-out from the web proxy
+      #    init        if true, don't rotate-out from the web proxy
       #
       def stop_gear(options={})
         buffer = ''
         if proxy_cartridge = @cartridge_model.web_proxy
-          unless options[:hot_deploy] == true
+          unless options[:hot_deploy] == true or options[:init]
             result = update_proxy_status(cartridge: proxy_cartridge,
                                          action: :disable,
                                          gear_uuid: self.uuid,

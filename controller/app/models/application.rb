@@ -2220,12 +2220,6 @@ class Application
 
     unless pending_ops.empty? or ((pending_ops.length == 1) and (pending_ops[0].class == SetGroupOverridesOp))
 
-      if scalable
-        all_ops_ids = pending_ops.map{ |op| op._id.to_s }
-        update_cluster_op = UpdateClusterOp.new(prereq: all_ops_ids)
-        pending_ops.push update_cluster_op
-      end
-
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
       execute_connection_op = ExecuteConnectionsOp.new(prereq: all_ops_ids)
       pending_ops.push execute_connection_op
@@ -2242,6 +2236,13 @@ class Application
           pending_ops.each { |op| op.prereq.delete_if { |prereq_id| prereq_id == pcop._id.to_s } }
         end
       end
+    end
+
+    # update-cluster has to run after all deployable carts have been post-configured
+    if scalable
+      all_ops_ids = pending_ops.map{ |op| op._id.to_s }
+      update_cluster_op = UpdateClusterOp.new(prereq: all_ops_ids)
+      pending_ops.push update_cluster_op
     end
 
     [pending_ops, add_gears, remove_gears]

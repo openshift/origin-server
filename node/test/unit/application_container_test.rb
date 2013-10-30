@@ -538,7 +538,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
     @container.expects(:activate).with(gears: [uuid2, uuid3],
                                        deployment_id: deployment_id,
-                                       init: true,
+                                       post_install: true,
                                        rotate: false)
                                  .returns(status: 'success')
 
@@ -546,6 +546,129 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
                                                         env: gear_env,
                                                         chdir: @container.container_dir,
                                                         expected_exitstatus: 0)
+
+    do_control_args = web_uuids.each_with_index.map do |uuid, index|
+      "#{dns_entries[index]}-bar.example.com|node1.example.com:#{ports[index]}"
+    end.join(' ')
+
+    @container.cartridge_model.expects(:do_control).with('update-cluster', web_proxy, args: do_control_args)
+
+    proxy_arg = proxy_uuids.each_with_index.map do |uuid, index|
+      "#{uuid},#{dns_entries[index]},bar,node1.example.com"
+    end.join(' ')
+
+    cluster_arg = web_uuids.each_with_index.map do |uuid, index|
+      "#{uuid},#{dns_entries[index]},bar,node1.example.com,#{ports[index]}"
+    end.join(' ')
+
+    @container.update_cluster(proxy_arg, cluster_arg, false, true)
+  end
+
+  def test_update_cluster_add_multiple_gears_first_time
+    web_proxy = mock()
+    @container.cartridge_model.expects(:web_proxy).returns(web_proxy)
+
+    gear_env = {'OPENSHIFT_APP_DNS' => 'foo-bar.example.com', 'OPENSHIFT_GEAR_DNS' => '123-bar.example.com'}
+    ::OpenShift::Runtime::Utils::Environ::expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gear_registry = mock()
+    @container.expects(:gear_registry).returns(gear_registry).at_least_once
+
+    uuid1 = @container.uuid
+    gear1 = {
+      uuid: uuid1,
+      namespace: 'bar',
+      dns: 'foo-bar.example.com',
+      proxy_hostname: 'node1.example.com',
+      proxy_port: '35561'
+    }
+    web_entry1 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear1)
+    proxy_entry1 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear1.merge(proxy_port: 0))
+
+    uuid2 = (@container.uuid.to_i + 1).to_s
+    gear2 = {
+      uuid: uuid2,
+      namespace: 'bar',
+      dns: "#{uuid2}-bar.example.com",
+      proxy_hostname: 'node1.example.com',
+      proxy_port: '35566'
+    }
+    web_entry2 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear2)
+
+    uuid3 = (@container.uuid.to_i + 2).to_s
+    gear3 = {
+      uuid: uuid3,
+      namespace: 'bar',
+      dns: "#{uuid3}-bar.example.com",
+      proxy_hostname: 'node1.example.com',
+      proxy_port: '35571'
+    }
+    web_entry3 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear3)
+
+    old_entries = {
+    }
+
+    updated_entries = {
+      :web => {
+        uuid1 => web_entry1,
+        uuid2 => web_entry2,
+        uuid3 => web_entry3
+      },
+      :proxy => {
+        uuid1 => proxy_entry1,
+      }
+    }
+
+    gear_registry.expects(:backup)
+    gear_registry.expects(:entries).times(2).returns(old_entries, updated_entries)
+    gear_registry.expects(:clear)
+
+    @config.expects(:get).with('CLOUD_DOMAIN').returns('example.com')
+    web_uuids = [uuid1, uuid2, uuid3]
+
+    dns_entries = %W(foo #{uuid2} #{uuid3})
+    ports = %w(35561 35566 35571)
+
+    web_uuids.each_with_index do |uuid, index|
+      gear_registry.expects(:add).with(type: :web,
+                                       uuid: uuid,
+                                       namespace: "bar",
+                                       dns: "#{dns_entries[index]}-bar.example.com",
+                                       proxy_hostname: "node1.example.com",
+                                       proxy_port: ports[index])
+    end
+
+    proxy_uuids = [uuid1]
+    proxy_uuids.each_with_index do |uuid, index|
+      gear_registry.expects(:add).with(type: :proxy,
+                                       uuid: uuid,
+                                       namespace: "bar",
+                                       dns: "#{dns_entries[index]}-bar.example.com",
+                                       proxy_hostname: "node1.example.com",
+                                       proxy_port: 0)
+    end
+
+    gear_registry.expects(:save)
+
+    [web_entry2, web_entry3].each do |new_entry|
+      @container.expects(:run_in_container_context).with("rsync -avz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{new_entry.uuid}@#{new_entry.proxy_hostname}:app-deployments/",
+                                                        env: gear_env,
+                                                        chdir: @container.container_dir,
+                                                        expected_exitstatus: 0)
+    end
+    current_deployment_datetime = '2013-08-16_13-36-36.880'
+    @container.expects(:current_deployment_datetime).returns(current_deployment_datetime)
+
+    deployment_id = 'abcd1234'
+    metadata = mock()
+    @container.expects(:deployment_metadata_for).with(current_deployment_datetime).returns(metadata)
+    metadata.expects(:id).returns(deployment_id)
+
+    @container.expects(:activate).with(gears: [uuid2, uuid3],
+                                       deployment_id: deployment_id,
+                                       post_install: true,
+                                       rotate: false)
+                                 .returns(status: 'success')
 
     do_control_args = web_uuids.each_with_index.map do |uuid, index|
       "#{dns_entries[index]}-bar.example.com|node1.example.com:#{ports[index]}"
@@ -884,5 +1007,50 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
       assert_equal 'failure', result[:status]
       assert_match 'Invalid result JSON received from remote gear restart call:', result[:errors][0]
     end
+  end
+
+  def test_stop_gear_no_proxy
+    options = {}
+    @container.cartridge_model.expects(:web_proxy).returns(nil)
+    @container.cartridge_model.expects(:stop_gear).with(options).returns('stop')
+    @container.expects(:stopped_status_attr).returns('attr')
+    @container.stop_gear(options)
+  end
+
+  def test_stop_gear_no_hot_deploy_no_init
+    options = {}
+    proxy_cart = mock()
+    @container.cartridge_model.expects(:web_proxy).returns(proxy_cart)
+    proxy_result = {
+      proxy_results: []
+    }
+    @container.expects(:update_proxy_status).with(cartridge: proxy_cart,
+                                                  action: :disable,
+                                                  gear_uuid: @container.uuid,
+                                                  persist: false)
+                                            .returns(proxy_result)
+    @container.cartridge_model.expects(:stop_gear).with(options).returns('stop')
+    @container.expects(:stopped_status_attr).returns('attr')
+    @container.stop_gear(options)
+  end
+
+  def test_stop_gear_hot_deploy
+    options = {hot_deploy: true}
+    proxy_cart = mock()
+    @container.cartridge_model.expects(:web_proxy).returns(proxy_cart)
+    @container.expects(:update_proxy_status).never
+    @container.cartridge_model.expects(:stop_gear).with(options).returns('stop')
+    @container.expects(:stopped_status_attr).returns('attr')
+    @container.stop_gear(options)
+  end
+
+  def test_stop_gear_init
+    options = {init: true}
+    proxy_cart = mock()
+    @container.cartridge_model.expects(:web_proxy).returns(proxy_cart)
+    @container.expects(:update_proxy_status).never
+    @container.cartridge_model.expects(:stop_gear).with(options).returns('stop')
+    @container.expects(:stopped_status_attr).returns('attr')
+    @container.stop_gear(options)
   end
 end
