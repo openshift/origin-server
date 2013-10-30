@@ -107,7 +107,6 @@ Endpoints:
 - Private-IP-Name: IP
   Private-Port-Name: MESSAGING_THROUGHPUT_PORT
   Private-Port: 5455
-  Public-Port-Name: MESSAGING_THROUGHPUT_PROXY_PORT
 - Private-IP-Name: IP
   Private-Port-Name: REMOTING_PORT
   Private-Port: 4447
