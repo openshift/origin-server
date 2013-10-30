@@ -27,8 +27,8 @@ class RemoteJob < OpenShift::Model
   #
   # == Returns:
   # New parallel job handle. Currently represented by a Hash
-  def self.create_parallel_job
-    return { }
+  def self.create_parallel_job(timeout=nil)
+    {:args => {:timeout => timeout}}
   end
 
   # Calls the provided block to generate RemoteJob entries for each gear and executes those jobs in parallel.

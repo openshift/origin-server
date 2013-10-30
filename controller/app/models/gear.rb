@@ -290,10 +290,10 @@ class Gear
   #
   # == Returns:
   # Hash of Gear._id => state representing the state of each gear
-  def self.get_gear_states(gears)
+  def self.get_gear_states(gears, timeout=nil)
     gear_states = {}
     tag = ""
-    handle = RemoteJob.create_parallel_job
+    handle = RemoteJob.create_parallel_job(timeout || 10)
     RemoteJob.run_parallel_on_gears(gears, handle) { |exec_handle, gear|
       if gear.get_proxy
         RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_show_state_job(gear))

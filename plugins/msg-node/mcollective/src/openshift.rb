@@ -193,7 +193,7 @@ module MCollective
             args      = job[:args]
 
             exitcode, output, addtl_params = execute_action(action, args)
-            if args['--with-container-uuid'] && ! quota_reported
+            if args['--with-container-uuid'] && ! quota_reported && ! ['app-state-show'].include?(action)
               report_quota(output, args['--with-container-uuid'])
               quota_reported = true
             end
