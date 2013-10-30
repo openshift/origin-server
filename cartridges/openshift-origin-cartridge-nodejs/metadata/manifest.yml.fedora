@@ -10,7 +10,7 @@ License: MIT License
 License-Url: https://raw.github.com/joyent/node/v0.10/LICENSE
 Vendor: www.nodejs.org
 Website: http://www.nodejs.org/
-Cartridge-Version: 0.0.7
+Cartridge-Version: 0.0.8
 Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
@@ -78,7 +78,9 @@ Endpoints:
   Private-Port-Name: PORT
   Private-Port: 8080
   Public-Port-Name: PROXY_PORT
-  Protocols: [http, ws]
+  Protocols:
+  - http
+  - ws
   Options:
     primary: true
   Mappings:

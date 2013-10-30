@@ -12,12 +12,7 @@ License: Ruby BSDL
 License-Url: http://www.ruby-lang.org/en/about/license.txt
 Vendor: ruby.org
 Cartridge-Version: 0.0.9
-Compatible-Versions:
-- 0.0.4
-- 0.0.5
-- 0.0.6
-- 0.0.7
-- 0.0.8
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -57,7 +52,7 @@ Cart-Data:
 - Key: OPENSHIFT_GEAR_UUID
   Type: environment
   Description: Unique ID which identified the gear. This value changes between gears.
-Publishes:
+Publishes: 
 Subscribes:
   set-env:
     Type: ENV:*
@@ -76,7 +71,9 @@ Endpoints:
   Private-Port-Name: PORT
   Private-Port: 8080
   Public-Port-Name: PROXY_PORT
-  Protocols: [http, ws]
+  Protocols:
+  - http
+  - ws
   Options:
     primary: true
   Mappings:

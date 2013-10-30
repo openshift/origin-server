@@ -2,7 +2,7 @@
 Name: postgresql
 Architecture: noarch
 Cartridge-Short-Name: POSTGRESQL
-Cartridge-Version: 0.3.4
+Cartridge-Version: 0.3.5
 Compatible-Versions: []
 Cartridge-Vendor: redhat
 Display-Name: PostgreSQL 9.2

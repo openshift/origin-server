@@ -12,10 +12,8 @@ Versions:
 License: The Python License, version 2.7
 License-Url: http://docs.python.org/3/license.html
 Vendor: python.org
-Cartridge-Version: 0.0.6
-Compatible-Versions:
-- 0.0.4
-- 0.0.5
+Cartridge-Version: 0.0.7
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -59,7 +57,7 @@ Provides:
 - python-2.7
 - python
 - python(version) = 2.7
-Publishes:
+Publishes: 
 Subscribes:
   set-env:
     Type: ENV:*
@@ -75,7 +73,9 @@ Endpoints:
   Private-Port-Name: PORT
   Private-Port: 8080
   Public-Port-Name: PROXY_PORT
-  Protocols: [http, ws]
+  Protocols:
+  - http
+  - ws
   Options:
     primary: true
   Mappings:
