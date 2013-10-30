@@ -23,8 +23,9 @@ class AppEventsControllerTest < ActionController::TestCase
     @app_name = "app#{@random}"
     @app = Application.create_app(@app_name, [PHP_VERSION], @domain, nil, true)
     @app.save
-    d1 = Deployment.new(deployment_id: "1", ref: "mybranch")
-    d2 = Deployment.new(deployment_id: "2", ref: "d975cbfd5c398610326c97f3988a52b208036eef")
+
+    d1 = Deployment.new(deployment_id: "1", ref: "mybranch", created_at: Time.now, activations: [Time.now.to_f])
+    d2 = Deployment.new(deployment_id: "2", ref: "d975cbfd5c398610326c97f3988a52b208036eef", created_at: Time.now, activations: [Time.now.to_f])
     @app.update_deployments([d1, d2])
     @app.save
   end
