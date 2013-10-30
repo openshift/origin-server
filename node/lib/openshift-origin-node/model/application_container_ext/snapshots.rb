@@ -16,6 +16,9 @@ module OpenShift
 --exclude=./$OPENSHIFT_GEAR_UUID/*/run/httpd.pid \
 --exclude=./$OPENSHIFT_GEAR_UUID/haproxy\*/run/stats \
 --exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/.state \
+--exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/.preupgrade_state \
+--exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/.upgrade_itinerary \
+--exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/.upgrade_complete* \
 --exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/repo \
 --exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/dependencies \
 --exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/build-dependencies \
