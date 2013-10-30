@@ -8,7 +8,7 @@ Version: '7'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
-Cartridge-Version: 0.0.7
+Cartridge-Version: 0.0.8
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -87,7 +87,9 @@ Endpoints:
   Public-Port-Name: HTTP_PROXY_PORT
   WebSocket-Port-Name: WEBSOCKET_PORT
   WebSocket-Port: 8676
-  Protocols: [http, ws]
+  Protocols:
+  - http
+  - ws
   Options:
     primary: true
   Mappings:

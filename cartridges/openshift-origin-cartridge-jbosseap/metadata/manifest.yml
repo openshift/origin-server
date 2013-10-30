@@ -9,7 +9,7 @@ Version: '6'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
-Cartridge-Version: 0.0.7
+Cartridge-Version: 0.0.8
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -84,7 +84,9 @@ Endpoints:
   Private-Port-Name: HTTP_PORT
   Private-Port: 8080
   Public-Port-Name: HTTP_PROXY_PORT
-  Protocols: [http, ws]
+  Protocols:
+  - http
+  - ws
   Options:
     primary: true
   Mappings:
