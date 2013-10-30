@@ -68,7 +68,7 @@ class DeploymentsControllerTest < ActionController::TestCase
     CloudUser.any_instance.stubs(:scopes).returns(Scope::Scopes.new << Scope::Application.new(:id => @app._id.to_s, :app_scope => :report_deployments))
     deployments = []
     for i in 1..5
-      deployments.push({:id => i.to_s, :ref => "tag_#{i}"})
+      deployments.push({:id => i.to_s, :ref => "tag_#{i}", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f]})
     end
     post :create, {"deployments" => deployments, "application_id" => @app._id}
     assert_response :success

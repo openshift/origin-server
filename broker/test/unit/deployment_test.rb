@@ -29,7 +29,7 @@ class DeploymentTest < ActiveSupport::TestCase
   end
 
   test "create and get deployment" do
-    ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch"}])
+    ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch", created_at: Time.now, activations: [Time.now.to_f]}])
     @app.deploy
     assert_equal(1, @app.deployments.length)
 

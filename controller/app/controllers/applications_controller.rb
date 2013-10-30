@@ -148,9 +148,6 @@ class ApplicationsController < BaseController
 
     rescue OpenShift::UnfulfilledRequirementException => e
       return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")
-    rescue OpenShift::ApplicationValidationException => e
-      messages = get_error_messages(e.app)
-      return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     end
     @application.user_agent= request.headers['User-Agent']
 
@@ -190,16 +187,11 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "Invalid deployment_branch: #{deployment_branch}. Deployment branches are limited to 256 characters",
                         1, "deployment_branch") if deployment_branch and deployment_branch.length > 256
 
-    begin
-      @application.config['auto_deploy'] = auto_deploy if !auto_deploy.nil?
-      @application.config['deployment_branch'] = deployment_branch if deployment_branch
-      @application.config['keep_deployments'] = keep_deployments if keep_deployments
-      @application.config['deployment_type'] = deployment_type if deployment_type
-      result = @application.update_configuration
-    rescue OpenShift::ApplicationValidationException => e
-      messages = get_error_messages(e.app)
-      return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
-    end
+    @application.config['auto_deploy'] = auto_deploy if !auto_deploy.nil?
+    @application.config['deployment_branch'] = deployment_branch if deployment_branch
+    @application.config['keep_deployments'] = keep_deployments if keep_deployments
+    @application.config['deployment_type'] = deployment_type if deployment_type
+    result = @application.update_configuration
 
     include_cartridges = (params[:include] == "cartridges")
     app = get_rest_application(@application, include_cartridges)
