@@ -124,7 +124,7 @@
                       .flow-block.right= info
 
                 - if cartridge.custom?
-                  %p.created Created from #{link_to cartridge.url, cartridge.url}
+                  %p.created.truncate Created from #{link_to cartridge.url, cartridge.url}
 
                 - if primary && (info = cartridge_info(cartridge, @application))
                   %p= info
