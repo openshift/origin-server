@@ -11,7 +11,7 @@
       %strong= @application.name
     %ol
       %li= link_to 'Set up the CNAME record with your DNS provider', alias_docs_url, :target => '_blank', :class => 'external'
-      %li Tell us about your alias using the form on this page
+      %li Configure OpenShift to use your alias:
     - e = @alias.errors
     = f.semantic_errors :except => [:id, :name, :certificate_file, :certificate_chain_file, :certificate_private_key_file]
 
@@ -21,7 +21,7 @@
         .controls
           %h3= "#{URI::parse(@application.web_url).host}"
           %p.help-block The current application URL. Set up a CNAME record with your DNS provider pointing to this URL.
-      = f.input :id, :label => 'Domain name', :required => true, :input_html => {:placeholder => 'example.com'}, :hint => 'Enter your custom domain name. e.g. www.example.com or something.example.com'
+      = f.input :id, :label => 'Domain name', :required => true, :input_html => {:placeholder => 'www.example.com'}, :hint => 'Enter your custom domain name. e.g. <em>www.example.com</em> or <em>something.example.com</em>'.html_safe
 
       .platform
 
@@ -38,7 +38,8 @@
         = control_group(e.has_key?(:certificate_file)) do
           %label.control-label{:for => 'certificate_file'} 
             SSL Certificate
-            %abbr{:title => 'required'} *
+            - if @private_ssl_certificates_supported 
+              %abbr{:title => 'required'}>*
           .controls
             = f.file_field :certificate_file, :id => 'certificate_file', :disabled => !@private_ssl_certificates_supported 
             = f.inline_errors_for :certificate_file
@@ -57,7 +58,8 @@
         = control_group(e.has_key?(:certificate_private_key_file)) do
           %label.control-label{:for => 'certificate_private_key_file'} 
             Certificate Private Key
-            %abbr{:title => 'required'} *
+            - if @private_ssl_certificates_supported 
+              %abbr{:title => 'required'}>*
           .controls
             = f.file_field :certificate_private_key_file, :id => 'certificate_private_key_file', :disabled => !@private_ssl_certificates_supported 
             = f.inline_errors_for :certificate_private_key_file
