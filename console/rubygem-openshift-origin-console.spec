@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.16.7
+Version: 1.16.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,26 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.8-1
+- Merge pull request #4046 from jwforres/remove_external_link
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4045 from liggitt/bug_1024489_public_key_logging
+  (dmcphers+openshiftbot@redhat.com)
+- Remove external link indicator where it doesnt make sense
+  (jforrest@redhat.com)
+- Fix bug 1024489 - filter logging of public keys (jliggitt@redhat.com)
+- Merge pull request #4038 from smarterclayton/handle_custom_cartridges
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4040 from jwforres/alias_visual_tweaks
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4039 from liggitt/ui_tweaks
+  (dmcphers+openshiftbot@redhat.com)
+- Fix tests (dmcphers@redhat.com)
+- Visual tweaks to the add and edit aliases pages (jforrest@redhat.com)
+- UI Tweaks (jliggitt@redhat.com)
+- Additional flash fixes (ccoleman@redhat.com)
+- Handle custom cartridge metadata (ccoleman@redhat.com)
+
 * Tue Oct 29 2013 Adam Miller <admiller@redhat.com> 1.16.7-1
 - Add logo icons to applications/show Create mixin to apply rules based on icon
   location usage. Adjustments to cartidge-blocks Reorder configure and
