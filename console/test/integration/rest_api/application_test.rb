@@ -107,11 +107,11 @@ class RestApiApplicationTest < ActiveSupport::TestCase
 
     #m = response_messages(ActiveResource::ResourceInvalid){ app.find_cartridge("_missing!_") }
 
-    m = response_messages(RestApi::ResourceNotFound){ app.find_cartridge("missing-cart") }
-    assert_messages 1, /cartridge/i, /missing-cart/i, m
+    m = response_messages(RestApi::ResourceNotFound){ app.find_cartridge("missing-cart-1") }
+    assert_messages 1, /cartridge/i, /missing-cart-1/i, m
 
-    m = response_messages(RestApi::ResourceNotFound){ Cartridge.new({:name => 'notfound', :application => app}, true).destroy }
-    assert_messages 1, /cartridge/i, /notfound/i, m
+    m = response_messages(RestApi::ResourceNotFound){ Cartridge.new({:name => 'invalid-cart', :application => app}, true).destroy }
+    assert_messages 1, "The requested cartridge was not found.", m
 
     m = response_messages(RestApi::ResourceNotFound){ app.find_alias("notreal") }
     assert_messages 1, /alias/i, /notreal/i, m

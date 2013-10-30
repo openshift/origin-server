@@ -7,8 +7,9 @@ class EmbCartEventsController < BaseController
 
   def create
     cartid = params[:cartridge_id].downcase if params[:cartridge_id].presence
+    cartid = ComponentInstance.check_name!(cartid)
     event = params[:event].downcase if params[:event].presence
-    cartridge = CartridgeCache.find_cartridge(cartid, @application).name rescue nil
+    cartridge = CartridgeCache.find_cartridge(cartid, @application).name rescue cartid
     
     return render_error(:unprocessable_entity, "Event can only contain characters and '-'", 126,
                         "event") if event !~ EVENT_REGEX
