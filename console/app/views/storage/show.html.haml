@@ -1,6 +1,7 @@
 - content_for :page_title, 'Change Gear Storage'
 
-%h1 Change Gear Storage
+%h1 Change Gear Storage for #{link_to @application.name, application_path(@application)}
+= flashes
 
 %section#storage-gear-groups
   %section
@@ -18,9 +19,8 @@
       You can check your usage with the RHC command line:
 
       %pre.cli
-        = preserve do
-          :escaped
-            $ rhc show-app #{@application.name} --gears quota
+        :escaped
+          $ rhc show-app #{@application.name} --gears quota
 
   -# This will only render if we have this partial, like in Online or if an admin wants to provide information
   = render('increase_storage') unless @can_modify_storage

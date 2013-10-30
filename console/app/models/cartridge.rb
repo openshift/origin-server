@@ -28,7 +28,7 @@ class Cartridge < RestApi::Base
   has_one    :help_topics, :class_name => as_indifferent_hash
   has_one    :links, :class_name => as_indifferent_hash
 
-  delegate :tags, :priority, :database?, :web_framework?, :builder?, :jenkins_client?, :haproxy_balancer?, :to => :cartridge_type, :allow_nil => false
+  delegate :display_name, :tags, :priority, :database?, :web_framework?, :builder?, :jenkins_client?, :haproxy_balancer?, :to => :cartridge_type, :allow_nil => false
 
   def custom?
     url.present?
@@ -59,10 +59,6 @@ class Cartridge < RestApi::Base
 
   def type
     @attributes[:type]
-  end
-
-  def display_name
-    @attributes[:display_name] || cartridge_type.display_name
   end
 
   def type=(type)
@@ -162,7 +158,7 @@ class Cartridge < RestApi::Base
   end
 
   def cartridge_type
-    @cartridge_type ||= (CartridgeType.cached.find(name) rescue CartridgeType.new(:name => name))
+    @cartridge_type ||= (CartridgeType.cached.find(name) rescue CartridgeType.new(@attributes.slice('name', 'display_name', 'website', 'version', 'type', 'tags', 'license', 'license_url')))
   end
 end
 
