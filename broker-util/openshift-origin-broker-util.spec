@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.16.5
+Version: 1.16.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,10 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.6-1
+- Fix bug 1024307 - oo-admin-ctl-domain doesn't allow more than one domain
+  (jliggitt@redhat.com)
+
 * Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.5-1
 - Fix for bug 1022370, 1023207 (abhgupta@redhat.com)
 
