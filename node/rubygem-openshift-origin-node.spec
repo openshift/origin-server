@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.8
+Version: 1.16.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,30 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.9-1
+- Merge pull request #3958 from detiber/fixTests
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4027 from mfojtik/bugzilla/1024284
+  (dmcphers+openshiftbot@redhat.com)
+- Cleanup register_user for functional_api (jdetiber@redhat.com)
+- <tests> Update test tags and enable REMOTE_USER auth for tests
+  (jdetiber@redhat.com)
+- Merge pull request #4035 from tkramer-
+  rh/dev/tkramer/security/umask_for_libra_user
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4032 from ncdc/update-cluster-fix-error-reporting
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4031 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Security - umask setting for libra user in rhcsh to 077 (tkramer@redhat.com)
+- Fix activation error reporting in update_cluster (andy.goldstein@gmail.com)
+- Better error handling related to 1024149 (dmcphers@redhat.com)
+- Refactor parse_valid_user method and remove unused variables
+  (mfojtik@redhat.com)
+- Bug 1024284 - Do not check if tc rules exists directly in startuser_imp
+  (mfojtik@redhat.com)
+- Fix the statususer command output for oo-admin-ctl-tc (mfojtik@redhat.com)
+
 * Tue Oct 29 2013 Adam Miller <admiller@redhat.com> 1.16.8-1
 - Change snapshot/restore for changes to pre-receive (pmorie@gmail.com)
 - Merge pull request #4017 from ncdc/gear-registry-atomic-write-sync
