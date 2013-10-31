@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.16.3
+Version: 1.16.4
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
+- Bump cartridge versions for 2.0.35 (pmorie@gmail.com)
+
 * Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Merge pull request #4009 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
