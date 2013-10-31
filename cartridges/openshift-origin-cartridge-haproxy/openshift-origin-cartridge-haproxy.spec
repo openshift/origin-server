@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.16.3
+Version: 1.17.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0

@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.16.6
+Version: 1.17.0
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
