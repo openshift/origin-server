@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.16.9
+Version: 1.16.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,24 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.10-1
+- Merge pull request #4054 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4058 from smarterclayton/timeout_gear_groups_correctly
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1024669 (abhgupta@redhat.com)
+- Merge pull request #4052 from rajatchopra/fix_jboss_expose_port
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4055 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Gear groups should timeout aggressively when fetching state
+  (ccoleman@redhat.com)
+- Merge pull request #4047 from ncdc/bz1024698
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1025033 (abhgupta@redhat.com)
+- Bug 1024698 (andy.goldstein@gmail.com)
+- fix bz1023514 and jboss carts (rchopra@redhat.com)
+
 * Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.9-1
 - Merge pull request #4043 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
