@@ -3491,9 +3491,11 @@ module OpenShift
         if handle.present?
           start_time = Time.new
           begin
-            options = MCollectiveApplicationContainerProxy.rpc_options
-            rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
             mc_args = handle.clone
+            custom_options = handle.delete :args
+            Rails.logger.debug("DEBUG: Parallel execute with options #{custom_options.inspect} (Request ID: #{Thread.current[:user_action_log_uuid]})")
+            options = MCollectiveApplicationContainerProxy.rpc_options.merge(custom_options)
+            rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
             identities = handle.keys
             rpc_client.custom_request('execute_parallel', mc_args, identities, {'identity' => identities}).each { |mcoll_reply|
               if mcoll_reply.results[:statuscode] == 0
@@ -3508,7 +3510,7 @@ module OpenShift
           ensure
             rpc_client.disconnect
           end
-          Rails.logger.debug "DEBUG: MCollective Response Time (execute_parallel): #{Time.new - start_time}s  (Request ID: #{Thread.current[:user_action_log_uuid]})"
+          Rails.logger.debug "DEBUG: MCollective Response Time (execute_parallel): #{((Time.new - start_time)*1000).round}ms  (Request ID: #{Thread.current[:user_action_log_uuid]})"
         end
       end
 

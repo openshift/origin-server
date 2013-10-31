@@ -204,7 +204,7 @@ class ApplicationsController < ConsoleController
     app_id = params[:id].to_s
 
     async{ @application = Application.find(app_id, :as => current_user, :params => {:include => :cartridges}) }
-    async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_id => app_id}) }
+    async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_id => app_id, :timeout => 3}) }
     async{ sshkey_uploaded? }
 
     join!(30)

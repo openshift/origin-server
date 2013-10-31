@@ -914,8 +914,8 @@ class Application
   ##
   # Retrieves the gear state for all gears within the application.
   # @return [Hash<String, String>] Map of {Gear} ID to state
-  def get_gear_states
-    gear_states, result_io = Gear.get_gear_states(group_instances.map{|g| g.gears}.flatten)
+  def get_gear_states(timeout=nil)
+    gear_states, result_io = Gear.get_gear_states(group_instances.map{|g| g.gears}.flatten, timeout)
     [gear_states, result_io]
   end
 
