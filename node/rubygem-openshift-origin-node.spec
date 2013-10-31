@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.10
+Version: 1.16.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.11-1
+- Merge pull request #4065 from pmorie/bugs/1025261
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1025261: call activate with 'all' during restore (pmorie@gmail.com)
+
 * Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.10-1
 - Merge pull request #4061 from mfojtik/bugzilla/1019219
   (dmcphers+openshiftbot@redhat.com)
