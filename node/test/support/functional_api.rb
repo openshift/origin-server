@@ -282,6 +282,46 @@ EOFZ
     "#{@tmp_dir}/#{app_id}_archive.tar.gz"
   end
 
+  def save_deployment_snapshot_for_app(app_id, tgz_file_name="test.tgz")
+    temp_artifact_file_name="#{@tmp_dir}/#{tgz_file_name}"
+    logger.info("Saving Deployment Snapshot Application(#{app_id}) as File(#{temp_artifact_file_name})")
+    ssh_command(app_id, "\"gear archive-deployment\" > #{temp_artifact_file_name}")
+    logger.info("Done Deployment Snapshot Application(#{app_id}) as File(#{temp_artifact_file_name})")
+  end
+
+  def copy_file_to_apache(tgz_file_name="test.tgz")
+    temp_artifact_file_name="#{@tmp_dir}/#{tgz_file_name}"
+    logger.info("Copying File(#{tgz_file_name}) to /var/www/html/binaryartifacts")
+    logger.info `mkdir -p /var/www/html/binaryartifacts ; cp #{temp_artifact_file_name} /var/www/html/binaryartifacts/`
+    logger.info("Done Copying File(#{tgz_file_name}) to /var/www/html/binaryartifacts")
+  end
+
+  def deploy_binary_artifact_using_rest_api(app_name, artifact_url)
+
+    logger.info("Starting Deploy Binary Artifact Using REST API")
+
+    url_endpoint = "#{@url_base}/domains/#{@namespace}/applications/#{app_name}/deployments"
+    logger.info("Posting to URL(#{url_endpoint}) to Deploy with the Downloadable Artifact URL(#{artifact_url})")
+
+    begin
+      response = RestClient::Request.execute(method: :post,
+                                             url: url_endpoint,
+                                             payload: JSON.dump(artifact_url: artifact_url),
+                                             headers: {content_type: :json, accept: :json},
+                                             timeout: 180)
+    rescue RestClient::Exception => e
+      raise "Exception binary deployment up: #{e.response}"
+    end
+
+    response = JSON.parse(response)
+
+    logger.info("Got Response(#{response})")
+    
+    logger.info("Done Deploy Binary Artifact Using REST API")
+
+  end
+
+
   def deploy_artifact(app_id, app_name, file)
     logger.info("Deploying #{file} to app #{app_name}")
     logger.info `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary-deploy`

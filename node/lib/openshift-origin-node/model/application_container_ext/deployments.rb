@@ -349,10 +349,13 @@ module OpenShift
         end
 
         def determine_extract_command(options)
-          use_stdin = !!options[:stdin]
-          filename  = options[:file]
+          use_artifact_url  = !!options[:artifact_url]
+          use_stdin         = !!options[:stdin]
+          filename          = options[:file]
 
-          if use_stdin
+          if use_artifact_url
+            "/usr/bin/curl #{options[:artifact_url]} | /bin/tar -xz"
+          elsif use_stdin
             "/bin/tar -xz"
           elsif filename =~ /\.tar\.gz$/i or filename =~ /\.tar$/i
             "/bin/tar xf #{filename}"

@@ -249,6 +249,90 @@ module OpenShift
         end
 
         #
+        # Deploys a binary artifact
+        #
+        # options: hash
+        #   :hot_deploy    : indicates whether to hot deploy
+        #   :artifact_url  : the artifact to download and deploy
+        #   :stdin         : deploy content streamed to STDIN
+        #   :file          : deploy the specified file
+        #   :out           : an IO to which any stdout should be written (default: nil)
+        #   :err           : an IO to which any stderr should be written (default: nil)
+        #   :all           : indicates whether to deploy to all gears or just the local one
+        #
+        def deploy_binary_artifact(options)
+          result = { status: RESULT_FAILURE }
+
+          message = "Starting deploy for binary artifact"
+          options[:out].puts message if options[:out]
+
+          message = "Stopping gear"
+          options[:out].puts message if options[:out]
+
+          stop_gear(user_initiated: true,
+                    exclude_web_proxy: true,
+                    out: options[:out],
+                    err: options[:in])
+
+          message ="Creating new deployment directory"
+          options[:out].puts message if options[:out]
+
+          deployment_datetime = create_deployment_dir
+          options[:deployment_datetime] = deployment_datetime
+
+          message = "Preparing deployment"
+          options[:out].puts message if options[:out]
+
+          prepare(options)
+
+          message = "Distributing deployment"
+          options[:out].puts message if options[:out]
+
+          distribute_result = distribute(options)
+          result[:distribute_result] = distribute_result
+          distribute_status = distribute_result[:status]
+
+          message = "Distribution status: #{distribute_status}"
+          options[:out].puts message if options[:out]
+
+          if distribute_status != RESULT_SUCCESS
+            message = "Distribution failed for the following gears:"
+            options[:out].puts message if options[:out]
+
+            failures = result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+            message = failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+            options[:out].puts message if options[:out]
+          end
+
+          options[:all]                = true
+          options[:report_deployments] = true
+
+          activate_result = activate(options)
+          result[:activate_result] = activate_result
+          activate_status = activate_result[:status]
+
+          message = "Activation status: #{activate_status}"
+          options[:out].puts message if options[:out]
+
+          if activate_status != RESULT_SUCCESS
+            message = "Activation failed for the following gears:"
+            options[:out].puts message if options[:out]
+
+            failures = result[:gear_results].values.select { |r| r[:status] != RESULT_SUCCESS }
+
+            message = failures.map { |f| "#{f[:gear_uuid]} (#{f[:errors][0]})" }.join("\n")
+            options[:out].puts message if options[:out]
+          end
+
+          result[:status] = RESULT_SUCCESS if distribute_status == RESULT_SUCCESS and activate_status == RESULT_SUCCESS
+
+          message = "Deployment status: #{result[:status]}"
+          options[:out].puts message if options[:out]
+
+          result
+        end
+
+
         # Handles the pre-receive portion of the Git push lifecycle.
         #
         # If a builder cartridge is present, the +pre-receive+ control action is invoked on
@@ -538,12 +622,15 @@ module OpenShift
 
           env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
-          if options[:stdin] || options[:file]
+          logger.info "stdin(#{options[:stdin]}) file(#{options[:file]}) URL(#{options[:artifact_url]})"
+          if options[:stdin] || options[:file] || options[:artifact_url]
             options[:destination] = PathUtils.join(@container_dir, 'app-root', 'runtime')
 
             clean_runtime_dirs(dependencies: true, build_dependencies: true, repo: true)
 
+            logger.info "Starting Extraction"
             extract_deployment_archive(env, options)
+            logger.info "Extraction completed artifact should be stored in(#{options[:destination]})"
           end
 
           buffer = ''
@@ -916,8 +1003,12 @@ module OpenShift
         #   :all           : indicates whether to deploy to all gears or just the local one
         #
         def deploy(options={})
-          pre_receive(options)
-          post_receive(options)
+          if options[:artifact_url] == nil
+            pre_receive(options)
+            post_receive(options)
+          else
+            deploy_binary_artifact(options)
+          end
         end
 
         # === Cartridge control methods

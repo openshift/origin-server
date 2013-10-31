@@ -402,6 +402,11 @@ EOF
     filename = '/tmp/foo.tar'
     assert_equal "/bin/tar xf #{filename}", @container.determine_extract_command(file: filename)
   end
+  
+  def test_determine_extract_command_tar_artifact_url
+    artifact_url = "http://localhost:81/this_is_an_artifact.tgz"
+    assert_equal "/usr/bin/curl #{artifact_url} | /bin/tar -xz", @container.determine_extract_command(artifact_url: artifact_url)
+  end
 
   def test_determine_extract_command_zip
     filename = '/tmp/foo.zip'
