@@ -388,6 +388,10 @@ function update_httpd_passenv {
   ( sed <$1 -e '/^PassEnv /d'
     for key in $(env |cut -d= -f1)
     do
+      # Exclude these three variables as Apache unset them
+      [[ $key == 'SHELL' ]] && continue
+      [[ $key == 'USER' ]] && continue
+      [[ $key == 'LOGNAME' ]] && continue
       if [[ $key =~ ^[A-Z].* ]]
       then
         echo PassEnv $key
