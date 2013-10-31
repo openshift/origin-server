@@ -1967,12 +1967,15 @@ class Application
         component_ops[comp_spec][:adds].push add_component_op
         usage_op_prereq = [add_component_op._id.to_s]
 
+        # in case of deployable carts, the post-configure op is executed at the end
+        # to ensure this, it is removed from the prerequisite list for any other pending_op
+        # to avoid issues, pending_ops should not depend ONLY on post-configure op to manage execution order
         unless (gear_id != app_dns_gear_id) and cartridge.is_deployable?
           #post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
           post_configure_op = PostConfigureCompOp.new(group_instance_id: group_instance_id, gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, prereq: [add_component_op._id.to_s] + [prereq_id])
           ops.push post_configure_op
           component_ops[comp_spec][:post_configures].push post_configure_op
-          usage_op_prereq = [post_configure_op._id.to_s]
+          usage_op_prereq += [post_configure_op._id.to_s]
         end
 
         #ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
