@@ -21,7 +21,7 @@ class ComponentInstance
   NAME_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\z/
   def self.check_name!(name)
     if name.blank? or name !~ NAME_REGEX
-      raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, nil, [name]) 
+      raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, {}, [])
     end
     name
   end
