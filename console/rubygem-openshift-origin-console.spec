@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.16.9
+Version: 1.16.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,21 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.10-1
+- Merge pull request #4054 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4058 from smarterclayton/timeout_gear_groups_correctly
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1024669 (abhgupta@redhat.com)
+- Gear groups should timeout aggressively when fetching state
+  (ccoleman@redhat.com)
+- Cartridge-block icons smaller (sgoodwin@redhat.com)
+- Refactor setting consistent font-size within cartridge-block flow-
+  block.right. - Everything gets 12px Noticed on Go carts the p.created line
+  wasn't aligned left with icon. - Set narrower width on icon-logo then
+  adjusted margin-right to space title - Made .cartridge-block padding
+  consistent. (sgoodwin@redhat.com)
+
 * Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.9-1
 - Merge pull request #4050 from sg00dwin/update-icon-set
   (dmcphers+openshiftbot@redhat.com)
