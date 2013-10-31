@@ -7,7 +7,7 @@
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client
-Version: 1.16.3
+Version: 1.16.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -49,6 +49,9 @@ Provides plugin jenkins client support. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
+- Bump cartridge versions for 2.0.35 (pmorie@gmail.com)
+
 * Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Merge pull request #3971 from ncdc/bz1022361
   (dmcphers+openshiftbot@redhat.com)
