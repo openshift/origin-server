@@ -1081,7 +1081,7 @@ Next, during the `activate` phase:
 7.  The primary cartridge is started (the application is now fully started).
 8.  The primary cartridge `post-deploy` control action is executed.
 9.  The `post-deploy` user action hook is executed, if present.
-10.  If the app is scalable, SSH to each child gear and execute `gear activate $deployment_id` which performs all the actvation steps (except this one)
+10.  If the app is scalable, SSH to each child gear and execute `gear activate $deployment_id` which performs all the activation steps (except this one)
 11.  Write activation time to `$OPENSHIFT_HOMEDIR/app-deployments/$date_$time/metadata.json`
 
 At this point, the application has been fully built and restarted.
