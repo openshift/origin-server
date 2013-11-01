@@ -224,7 +224,7 @@ class CloudUser
       "subaccounts" => false,
       "gear_sizes" => Rails.application.config.openshift[:default_gear_capabilities],
       "max_domains" => Rails.application.config.openshift[:default_max_domains],
-      "max_gears" => Rails.application.config.openshift[:default_max_gears],
+      "max_gears" => Rails.application.config.openshift[:default_max_gears]
     }
   end
 
@@ -268,13 +268,36 @@ class CloudUser
   #
   alias_method :_capabilities, :capabilities
   def capabilities
-    if caps = _capabilities
-      CapabilityProxy.new(caps, inherited_capabilities)
+    caps = _capabilities
+    CapabilityProxy.new(caps, inherited_capabilities)
+  end
+
+  def set_capabilities(caps, clear_existing_caps=false)
+    if clear_existing_caps
+      user_caps = capabilities
+      user_caps.each do |k, v|
+        if v.is_a?(Array)
+          _capabilities[k] = []
+        elsif v.is_a?(Hash)
+          _capabilities[k] = {}
+        elsif v.is_a?(Boolean)
+          _capabilities[k] = false
+        elsif v.is_a?(Integer) or v.is_a?(Float)
+          _capabilities[k] = 0
+        else
+          raise OpenShift::UserException.new("Capability type not found for '#{k} : #{v}'")
+        end
+      end 
     end
+    _capabilities.merge!(caps.deep_dup)
   end
 
   def ha
-    return capabilities["ha"] || false
+    capabilities["ha"] || false
+  end
+
+  def ha=(m)
+    _capabilities["ha"] = m if capabilities["ha"] != m
   end
 
   def max_gears
@@ -282,7 +305,7 @@ class CloudUser
   end
 
   def max_gears=(m)
-    capabilities["max_gears"] = m
+    _capabilities["max_gears"] = m if capabilities["max_gears"] != m
   end
 
   def max_domains
@@ -290,7 +313,35 @@ class CloudUser
   end
 
   def max_domains=(m)
-    capabilities["max_domains"] = m
+    _capabilities["max_domains"] = m if capabilities["max_domains"] != m
+  end
+
+  def subaccounts
+    capabilities["subaccounts"] || false
+  end
+
+  def subaccounts=(m)
+    _capabilities["subaccounts"] = m if capabilities["subaccounts"] != m
+  end
+
+  def inherit_on_subaccounts
+    capabilities["inherit_on_subaccounts"] || []
+  end
+
+  def add_capability_inherit_on_subaccounts(capability)
+    unless (capabilities["inherit_on_subaccounts"] || []).include?(capability)
+      capabilities["inherit_on_subaccounts"] = [] unless capabilities["inherit_on_subaccounts"]
+      capabilities["inherit_on_subaccounts"] << capability
+      _capabilities["inherit_on_subaccounts"] = capabilities["inherit_on_subaccounts"].dup
+    end
+  end
+
+  def remove_capability_inherit_on_subaccounts(capability)
+    caps = capabilities
+    if (caps["inherit_on_subaccounts"] || []).include?(capability)
+      caps["inherit_on_subaccounts"].delete(capability)
+      _capabilities["inherit_on_subaccounts"] = caps["inherit_on_subaccounts"].dup
+    end
   end
 
   def allowed_gear_sizes
@@ -299,20 +350,23 @@ class CloudUser
 
   def add_gear_size(gear_size)
     available_sizes = Rails.configuration.openshift[:gear_sizes]
-    if ! available_sizes.include? gear_size
+    unless available_sizes.include?(gear_size)
       raise Exception.new("Size #{gear_size} is not defined. Defined sizes are: #{available_sizes.join ', '}.")
     end
-    self.capabilities['gear_sizes'] << gear_size if not self.capabilities['gear_sizes'].include? gear_size
+    unless capabilities['gear_sizes'].include?(gear_size)
+      capabilities['gear_sizes'] << gear_size
+      _capabilities['gear_sizes'] = capabilities['gear_sizes'].dup
+    end
   end
 
   def remove_gear_size(gear_size)
-    caps = self.capabilities
+    caps = capabilities
     unless caps["gear_sizes"].include?(gear_size)
-        puts "User #{self.login} does not have gear size #{gear_size} in its capabilities."
-        return
+      puts "User #{self.login} does not have gear size #{gear_size} in its capabilities."
+      return
     end
-
     caps["gear_sizes"].delete(gear_size)
+    _capabilities["gear_sizes"] = caps["gear_sizes"].dup
   end
 
   def max_storage
@@ -323,8 +377,24 @@ class CloudUser
     capabilities['max_untracked_addtl_storage_per_gear'] || 0
   end
 
+  def max_untracked_additional_storage=(m)
+    _capabilities["max_untracked_addtl_storage_per_gear"] = m if capabilities["max_untracked_addtl_storage_per_gear"] != m
+  end
+
   def max_tracked_additional_storage
     capabilities['max_tracked_addtl_storage_per_gear'] || 0
+  end
+
+  def max_tracked_additional_storage=(m)
+    _capabilities["max_tracked_addtl_storage_per_gear"] = m if capabilities["max_tracked_addtl_storage_per_gear"] != m
+  end
+
+  def private_ssl_certificates
+    capabilities["private_ssl_certificates"] || false
+  end
+
+  def private_ssl_certificates=(m)
+    _capabilities["private_ssl_certificates"] = m if capabilities["private_ssl_certificates"] != m
   end
 
   # Delete user and all its artifacts like domains, applications associated with the user 

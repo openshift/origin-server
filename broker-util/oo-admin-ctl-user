@@ -68,341 +68,310 @@ USAGE
 end
 
 class String
-    def to_b()
-        return true if self.to_s.strip =~ /^(true|t|yes|y|1)$/i
-
-        return false
-    end
+  def to_b()
+    return true if self.to_s.strip =~ /^(true|t|yes|y|1)$/i
+    return false
+  end
 end
 
 def set_max_domains(user, maxdomains)
-    caps = user.capabilities
-    if caps["max_domains"] == maxdomains
-        puts "User already has max_domains set to #{user.max_domains}"
-        return
-    end
+  if user.max_domains == maxdomains
+    puts "User already has max_domains set to #{max_domains}"
+    return
+  end
 
-    print "Setting max_domains to #{maxdomains}... "
-    caps["max_domains"] = maxdomains
-    if user.save
-        puts "Done."
-    else
-        puts "An error occurred saving the user."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
+  print "Setting max_domains to #{maxdomains}... "
+  user.maxdomains = maxdomains
+  if user.save
+    puts "Done."
+  else
+    puts "An error occurred saving the user."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
 end
 
 def set_max_gears(user, maxgears)
-    caps = user.capabilities
-    if caps["max_gears"] == maxgears
-        puts "User already has max_gears set to #{user.max_gears}"
-        return
-    end
+  if user.maxgears == maxgears
+    puts "User already has max_gears set to #{max_gears}"
+    return
+  end
 
-    print "Setting max_gears to #{maxgears}... "
-    caps["max_gears"] = maxgears
-    if user.save
-        puts "Done."
-    else
-        puts "An error occurred saving the user."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
+  print "Setting max_gears to #{maxgears}... "
+  user.maxgears = maxgears
+  if user.save
+    puts "Done."
+  else
+    puts "An error occurred saving the user."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
 end
 
 def set_max_tracked_storage(user, maxtrackedstorage)
-    caps = user.capabilities
-    if caps["max_tracked_addtl_storage_per_gear"] == maxtrackedstorage
-        puts "User already has max_tracked_addtl_storage_per_gear set to #{caps['max_tracked_addtl_storage_per_gear']}"
-        return
-    end
+  if user.max_tracked_additional_storage == maxtrackedstorage
+    puts "User already has max_tracked_additional_storage set to #{maxtrackedstorage}"
+    return
+  end
 
-    print "Setting max_tracked_addtl_storage_per_gear to #{maxtrackedstorage}... "
-    caps["max_tracked_addtl_storage_per_gear"] = maxtrackedstorage
-    if user.save
-        puts "Done."
-    else
-        puts "An error occurred saving the user."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
+  print "Setting max_tracked_addtl_storage_per_gear to #{maxtrackedstorage}... "
+  user.max_tracked_additional_storage = maxtrackedstorage
+  if user.save
+    puts "Done."
+  else
+    puts "An error occurred saving the user."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
 end
 
 def set_max_untracked_storage(user, maxuntrackedstorage)
-    caps = user.capabilities
-    if caps["max_untracked_addtl_storage_per_gear"] == maxuntrackedstorage
-        puts "User already has max_untracked_addtl_storage_per_gear set to #{caps['max_untracked_addtl_storage_per_gear']}"
-        return
-    end
+  if user.max_untracked_additional_storage == maxuntrackedstorage
+    puts "User already has max_untracked_additional_storage set to #{maxuntrackedstorage}"
+    return
+  end
 
-    print "Setting max_untracked_addtl_storage_per_gear to #{maxuntrackedstorage}... "
-    caps["max_untracked_addtl_storage_per_gear"] = maxuntrackedstorage
-    if user.save
-        puts "Done."
-    else
-        puts "An error occurred saving the user."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
+  print "Setting max_untracked_addtl_storage_per_gear to #{maxuntrackedstorage}... "
+  user.max_untracked_additional_storage = maxuntrackedstorage
+  if user.save
+    puts "Done."
+  else
+    puts "An error occurred saving the user."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
 end
 
 def set_consumed_gears(user, consumedgears)
-    old_value = user.consumed_gears
-    if user.consumed_gears == consumedgears
-        puts "User already has consumed_gears set to #{user.consumed_gears}"
-        return
-    end
+  old_value = user.consumed_gears
+  if user.consumed_gears == consumedgears
+    puts "User already has consumed_gears set to #{user.consumed_gears}"
+    return
+  end
 
-    print "Setting consumed_gears to #{consumedgears}... "
-    result = CloudUser.where(login: user.login, consumed_gears: old_value).find_and_modify({ "$set" => { "consumed_gears" => consumedgears } } )
-    if result.nil?
-      puts "User's consumed_gear count changed between read and write, try again."
-      return
-    end
-    puts "Done."
+  print "Setting consumed_gears to #{consumedgears}... "
+  result = CloudUser.where(login: user.login, consumed_gears: old_value).find_and_modify({ "$set" => { "consumed_gears" => consumedgears } } )
+  if result.nil?
+    puts "User's consumed_gear count changed between read and write, try again."
+    return
+  end
+  puts "Done."
 end
 
 def allow_sub_accounts(user, allow)
-    # user.capabilities_will_change!
-    caps = user.capabilities
-    if caps['subaccounts'] == allow
-        puts "User already has allowsubaccounts set to #{allow}"
-        return
-    end
+  if user.subaccounts == allow
+    puts "User already has allowsubaccounts set to #{allow}"
+    return
+  end
 
-    print "Setting subaccounts capability to #{allow} for user #{user.login}... "
-    caps['subaccounts'] = allow
-    if user.save
-        puts "Done."
-    else
-        puts "An error occurred modifying the user capabilities."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
+  print "Setting subaccounts capability to #{allow} for user #{user.login}... "
+  user.subaccounts = allow
+  if user.save
+    puts "Done."
+  else
+    puts "An error occurred modifying the user capabilities."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
 end
 
 def allow_private_ssl_certificates(user, allow)
-    # user.capabilities_will_change!
-    caps = user.capabilities
-    if caps['private_ssl_certificates'] == allow
-        puts "User already has allow private_ssl_certificates set to #{allow}"
-        return
-    end
+  if user.private_ssl_certificates == allow
+    puts "User already has allow private_ssl_certificates set to #{allow}"
+    return
+  end
 
-    print "Setting private_ssl_certificates capability to #{allow} for user #{user.login}... "
-    caps['private_ssl_certificates'] = allow
-    if user.save
-        puts "Done."
-    else
-        puts "An error occurred modifying the user capabilities."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
+  print "Setting private_ssl_certificates capability to #{allow} for user #{user.login}... "
+  user.private_ssl_certificates = allow
+  if user.save
+    puts "Done."
+  else
+    puts "An error occurred modifying the user capabilities."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
 end
 
 def allow_plan_upgrade(user, allow)
-    caps = user.capabilities
-    if caps['plan_upgrade_enabled'] == allow
-        puts "User already has plan_upgrade_enabled set to #{allow}"
-        return
-    end
+  if user.plan_upgrade_enabled == allow
+    puts "User already has plan_upgrade_enabled set to #{allow}"
+    return
+  end
 
-    print "Setting plan_upgraded_enabled capability to #{allow} for user #{user.login}... "
-    caps['plan_upgrade_enabled'] = allow
-    if user.save
-        puts "Done."
-    else
-        puts "An error occurred modifying the user capabilities."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
+  print "Setting plan_upgraded_enabled capability to #{allow} for user #{user.login}... "
+  user.plan_upgrade_enabled = allow
+  if user.save
+    puts "Done."
+  else
+    puts "An error occurred modifying the user capabilities."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
 end
 
 def add_sub_account(user, subaccount_login)
-    caps = user.capabilities
-    unless caps['subaccounts']
-        puts "User #{user.login} does not have the capability to manage sub accounts"
-        return
-    end
+  unless user.subaccounts
+    puts "User #{user.login} does not have the capability to manage sub accounts"
+    return
+  end
 
-    begin
-        child_user = CloudUser::find_by_identity(subaccount_login)
-    rescue Mongoid::Errors::DocumentNotFound
-        child_user = nil
-    end
+  begin
+    child_user = CloudUser::find_by_identity(subaccount_login)
+  rescue Mongoid::Errors::DocumentNotFound
+    child_user = nil
+  end
     
-    if not child_user.nil?
-        if child_user.parent_user_id == user._id
-            puts "Error: Subaccount for '#{subaccount_login}' already exists under #{user.login}"
-        elsif not child_user.parent_user_id.nil?
-            parent_user = CloudUser.with(consistency: :eventual).find_by(_id: child_user.parent_user_id)
-            puts "Error: Subaccount for '#{subaccount_login}' already exists under #{parent_user.login}"
-        else
-            puts "Error: User '#{subaccount_login}' already exists"
-        end
-        exit 5
-    end
-    
-    print "Adding subaccount for #{subaccount_login} under #{user.login}... "
-    child_user = CloudUser.new(login: subaccount_login, parent_user_id: user._id)
-    if child_user.save
-        puts "Done."
+  if not child_user.nil?
+    if child_user.parent_user_id == user._id
+      puts "Error: Subaccount for '#{subaccount_login}' already exists under #{user.login}"
+    elsif not child_user.parent_user_id.nil?
+      parent_user = CloudUser.with(consistency: :eventual).find_by(_id: child_user.parent_user_id)
+      puts "Error: Subaccount for '#{subaccount_login}' already exists under #{parent_user.login}"
     else
-        puts "An error occurred adding the sub account #{subaccount_login}."
-        puts "Errors: #{child_user.errors.messages}"
-        exit 6
+      puts "Error: User '#{subaccount_login}' already exists"
     end
-    Lock.create_lock(child_user)
+    exit 5
+  end
+    
+  print "Adding subaccount for #{subaccount_login} under #{user.login}... "
+  child_user = CloudUser.new(login: subaccount_login, parent_user_id: user._id)
+  if child_user.save
+    puts "Done."
+  else
+    puts "An error occurred adding the sub account #{subaccount_login}."
+    puts "Errors: #{child_user.errors.messages}"
+    exit 6
+  end
+  Lock.create_lock(child_user)
 end
 
 def remove_sub_account(user, subaccount_login)
-    caps = user.capabilities
-    unless caps['subaccounts']
-        puts "User #{user.login} does not have the capability to manage sub accounts"
-        return
-    end
+  unless user.subaccounts
+    puts "User #{user.login} does not have the capability to manage sub accounts"
+    return
+  end
 
-	  begin
-        child_user = CloudUser::find_by_identity(subaccount_login)
-    rescue Mongoid::Errors::DocumentNotFound
-        puts "Error: Sub Account User '#{subaccount_login}' not found"
-        exit 5
-    end
+  begin
+    child_user = CloudUser::find_by_identity(subaccount_login)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Error: Sub Account User '#{subaccount_login}' not found"
+    exit 5
+  end
     
-    if child_user.parent_user_id.nil? || (child_user.parent_user_id != user._id)
-        puts "Error: User '#{subaccount_login}' is not a sub account of #{user.login}"
-        exit 5
-    end
+  if child_user.parent_user_id.nil? || (child_user.parent_user_id != user._id)
+    puts "Error: User '#{subaccount_login}' is not a sub account of #{user.login}"
+    exit 5
+  end
     
-    print "Removing subaccount for #{child_user.login} under #{user.login}... "
-    begin
-      child_user.force_delete
-    rescue Exception => e
-      puts "An error occurred removing the sub account for #{subaccount_login} : #{e.message}"
-      exit 6
-    end
-    puts "Done."
+  print "Removing subaccount for #{child_user.login} under #{user.login}... "
+  begin
+    child_user.force_delete
+  rescue Exception => e
+    puts "An error occurred removing the sub account for #{subaccount_login} : #{e.message}"
+    exit 6
+  end
+  puts "Done."
 end
 
 def add_gear_size(user, gear_size)
-    print "Adding gear size #{gear_size} for user #{user.login}... "
+  print "Adding gear size #{gear_size} for user #{user.login}... "
 
-    begin
-      if Rails.configuration.respond_to?('billing')
-        billing_config = Rails.configuration.billing
-        allowed_gears = []
-        billing_config[:plans].each do |plan_id, plan_info|
-          allowed_gears += plan_info[:capabilities]['gear_sizes']
-        end
-        allowed_gears.uniq!
-        unless allowed_gears.include?(gear_size)
-          if (user.plan_id != billing_config[:default_plan].to_s) or user.usage_account_id.present?
-            puts "Error: User is not allowed to use gear size #{gear_size}."
-            exit 5
-          end
-        end
-      end
-      user.add_gear_size(gear_size)
-    rescue Exception=>e
-      puts e.message
-      exit 1
-    end
-    if !user.save
-        puts "An error occurred adding the gear size #{gear_size} to user #{user.login}."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
-    puts "Done."
+  begin
+    user.add_gear_size(gear_size)
+  rescue Exception=>e
+    puts e.message
+    exit 1
+  end
+  if !user.save
+    puts "An error occurred adding the gear size #{gear_size} to user #{user.login}."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
+  puts "Done."
 
-    print "Adding gear size #{gear_size} for domains of user #{user.login}... "
-    user.domains.each do |d|
-      if (user.allowed_gear_sizes - d.allowed_gear_sizes) == [gear_size]
-        d.allowed_gear_sizes = user.allowed_gear_sizes
-        if !d.save
-          puts "An error occurred adding the gear size #{gear_size} to domain #{d.namespace} for user #{user.login}."
-          puts "Errors: #{d.errors.messages}"
-          exit 7
-        end
-      end
-    end
-    puts "Done."
-end
-
-def remove_gear_size(user, gear_size)
-    print "Removing gear size #{gear_size} for user #{user.login}... "
-
-    begin
-      user.remove_gear_size(gear_size)
-    rescue Exception => e
-      puts e.message
-      exit 6
-    end
-    if !user.save
-        puts "An error occurred removing the gear size #{gear_size} from user #{user.login}."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
-    puts "Done."
-
-    print "Removing gear size #{gear_size} for domains of user #{user.login}... "
-    user.domains.each do |d|
-      d.allowed_gear_sizes = (user.allowed_gear_sizes & d.allowed_gear_sizes)
+  print "Adding gear size #{gear_size} for domains of user #{user.login}... "
+  user.domains.each do |d|
+    if (user.allowed_gear_sizes - d.allowed_gear_sizes) == [gear_size]
+      d.allowed_gear_sizes = user.allowed_gear_sizes
       if !d.save
-        puts "An error occurred removing the gear size #{gear_size} from domain #{d.namespace} for user #{user.login}."
+        puts "An error occurred adding the gear size #{gear_size} to domain #{d.namespace} for user #{user.login}."
         puts "Errors: #{d.errors.messages}"
         exit 7
       end
     end
-    puts "Done."
+  end
+  puts "Done."
+end
+
+def remove_gear_size(user, gear_size)
+  print "Removing gear size #{gear_size} for user #{user.login}... "
+
+  begin
+    user.remove_gear_size(gear_size)
+  rescue Exception => e
+    puts e.message
+    exit 6
+  end
+  if !user.save
+    puts "An error occurred removing the gear size #{gear_size} from user #{user.login}."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
+  puts "Done."
+
+  print "Removing gear size #{gear_size} for domains of user #{user.login}... "
+  user.domains.each do |d|
+    d.allowed_gear_sizes = (user.allowed_gear_sizes & d.allowed_gear_sizes)
+    if !d.save
+      puts "An error occurred removing the gear size #{gear_size} from domain #{d.namespace} for user #{user.login}."
+      puts "Errors: #{d.errors.messages}"
+      exit 7
+    end
+  end
+  puts "Done."
 end
 
 def inherit_on_subaccounts(user, allow, capability, cap_name)
-    caps = user.capabilities
-    caps['inherit_on_subaccounts'] ||= []
- 
-    if caps['inherit_on_subaccounts'].include?(capability) == allow
-        puts "User already has #{cap_name} inheritance set to #{allow}"
-        return
-    end
+  if user.inherit_on_subaccounts.include?(capability) == allow
+    puts "User already has #{cap_name} inheritance set to #{allow}"
+    return
+  end
 
-    # user.capabilities_will_change!
-    print "Setting #{cap_name} inheritance to #{allow} for user #{user.login}... "
-    if allow
-      caps['inherit_on_subaccounts'].push(capability)
-    else
-      caps['inherit_on_subaccounts'].delete(capability)
-    end
+  print "Setting #{cap_name} inheritance to #{allow} for user #{user.login}... "
+  if allow
+    user.add_capability_inherit_on_subaccounts(capability)
+  else
+    user.remove_capability_inherit_on_subaccounts(capability)
+  end
     
-    if user.save
-        puts "Done."
-    else
-        puts "An error occurred modifying the user capabilities."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
+  if user.save
+    puts "Done."
+  else
+    puts "An error occurred modifying the user capabilities."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
 end
 
 def allow_ha(user, allow)
-    unless Rails.configuration.openshift[:allow_ha_applications]
-      puts "Error: Platform does not allow HA applications"
-      exit 5
-    end
-    caps = user.capabilities
-    if caps['ha'] == allow
-        puts "User already has HA set to #{allow}"
-        return
-    end
+  unless Rails.configuration.openshift[:allow_ha_applications]
+    puts "Error: Platform does not allow HA applications"
+    exit 5
+  end
+  if user.ha == allow
+    puts "User already has HA set to #{allow}"
+    return
+  end
 
-    print "Setting HA capability to #{allow} for user #{user.login}... "
-    caps['ha'] = allow
-    if user.save
-        puts "Done."
-    else
-        puts "An error occurred modifying the user capabilities."
-        puts "Errors: #{user.errors.messages}"
-        exit 6
-    end
+  print "Setting HA capability to #{allow} for user #{user.login}... "
+  user.ha = allow
+  if user.save
+    puts "Done."
+  else
+    puts "An error occurred modifying the user capabilities."
+    puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
 end
 
 opts = GetoptLong.new(
@@ -495,43 +464,43 @@ puts
 puts
 
 begin
-    user = CloudUser.find_by_identity(login)
+  user = CloudUser.find_by_identity(login)
 rescue Mongoid::Errors::DocumentNotFound
-    puts "Error: User '#{login}' not found"
-    exit 5
+  puts "Error: User '#{login}' not found"
+  exit 5
 end
 
 changed_user = false
 subaccount_list = []
 
 unless maxdomains.nil?
-    set_max_domains(user, maxdomains)
-    changed_user = true
+  set_max_domains(user, maxdomains)
+  changed_user = true
 end
 
 unless maxgears.nil?
-    set_max_gears(user, maxgears)
-    changed_user = true
+  set_max_gears(user, maxgears)
+  changed_user = true
 end
 
 unless maxtrackedstorage.nil?
-    set_max_tracked_storage(user,maxtrackedstorage)
-    changed_user = true
+  set_max_tracked_storage(user,maxtrackedstorage)
+  changed_user = true
 end
 
 unless maxuntrackedstorage.nil?
-    set_max_untracked_storage(user,maxuntrackedstorage)
-    changed_user = true
+  set_max_untracked_storage(user,maxuntrackedstorage)
+  changed_user = true
 end
 
 unless consumedgears.nil?
-    set_consumed_gears(user, consumedgears)
-    changed_user = true
+  set_consumed_gears(user, consumedgears)
+  changed_user = true
 end
 
 unless allowsubaccounts.nil?
-    allow_sub_accounts(user, allowsubaccounts)
-    changed_user = true
+  allow_sub_accounts(user, allowsubaccounts)
+  changed_user = true
 end
 
 unless args["--allowplanupgrade"].nil?
@@ -539,50 +508,47 @@ unless args["--allowplanupgrade"].nil?
 end
 
 unless allowprivatesslcertificates.nil?
-    allow_private_ssl_certificates(user, allowprivatesslcertificates)
-    changed_user = true
+  allow_private_ssl_certificates(user, allowprivatesslcertificates)
+  changed_user = true
 end
 
 unless account_to_add.nil?
-    add_sub_account(user, account_to_add)
+  add_sub_account(user, account_to_add)
 end
 
 unless account_to_remove.nil?
-    remove_sub_account(user, account_to_remove)
+  remove_sub_account(user, account_to_remove)
 end
 
 unless gear_size_to_add.nil?
-    add_gear_size(user, gear_size_to_add)
-    changed_user = true
+  add_gear_size(user, gear_size_to_add)
+  changed_user = true
 end
 
 unless gear_size_to_remove.nil?
-    remove_gear_size(user, gear_size_to_remove)
-    changed_user = true
+  remove_gear_size(user, gear_size_to_remove)
+  changed_user = true
 end
 
 unless inheritgearsizes.nil?
-    inherit_on_subaccounts(user, inheritgearsizes, 'gear_sizes', 'gearsizes')
-    changed_user = true
+  inherit_on_subaccounts(user, inheritgearsizes, 'gear_sizes', 'gearsizes')
+  changed_user = true
 end
 
 unless allowha.nil?
-    allow_ha(user, allowha)
-    changed_user = true
+  allow_ha(user, allowha)
+  changed_user = true
 end
 
 if args["--listsubaccounts"]
-    subaccount_list = CloudUser.where(parent_user_id: user._id) 
+  subaccount_list = CloudUser.where(parent_user_id: user._id) 
 end
 
 if changed_user
-    # reload user with new settings
-    user = CloudUser.find_by_identity(login)
-    puts
-    puts
+  # reload user with new settings
+  user = CloudUser.find_by_identity(login)
+  puts
 end
-
-caps = user.capabilities
 
 # print out the user's current settings
 puts "User #{user.login}:"
@@ -590,20 +556,20 @@ puts "                            plan: #{user.plan_id}"
 puts "                consumed domains: #{user.domains.count}"
 puts "                     max domains: #{user.max_domains}"
 puts "                  consumed gears: #{user.consumed_gears}"
-puts "                       max gears: #{caps['max_gears']}"
-puts "    max tracked storage per gear: #{caps['max_tracked_addtl_storage_per_gear'] || 0}"
-puts "  max untracked storage per gear: #{caps['max_untracked_addtl_storage_per_gear'] || 0}"
-puts "            plan upgrade enabled: #{caps['plan_upgrade_enabled']}"
-puts "                      gear sizes: #{caps['gear_sizes'].join(', ')}" if caps.has_key?('gear_sizes')
-puts "            sub accounts allowed: #{caps['subaccounts']}" if caps.has_key?('subaccounts')
-puts "private SSL certificates allowed: #{caps['private_ssl_certificates']}" if caps.has_key?('private_ssl_certificates')
-puts "              inherit gear sizes: #{caps['inherit_on_subaccounts'].include?('gear_sizes')}" if caps.has_key?('inherit_on_subaccounts')
-puts "                      HA allowed: #{caps['ha']}" if caps.has_key?('ha')
+puts "                       max gears: #{user.max_gears}"
+puts "    max tracked storage per gear: #{user.max_tracked_additional_storage}"
+puts "  max untracked storage per gear: #{user.max_untracked_additional_storage}"
+puts "            plan upgrade enabled: #{user.plan_upgrade_enabled}" if user.capabilities.has_key?('plan_upgrade_enabled')
+puts "                      gear sizes: #{user.allowed_gear_sizes.join(', ')}"
+puts "            sub accounts allowed: #{user.subaccounts}"
+puts "private SSL certificates allowed: #{user.private_ssl_certificates}"
+puts "              inherit gear sizes: #{user.inherit_on_subaccounts.include?('gear_sizes')}"
+puts "                      HA allowed: #{user.ha}"
 puts 
 if args["--listsubaccounts"] and (not subaccount_list.nil?) and (not subaccount_list.empty?)
-    puts "Sub Accounts: #{subaccount_list.length}"
-    subaccount_list.each do |subaccount|
-        puts "     #{subaccount.login}"
-    end
-    puts
+  puts "Sub Accounts: #{subaccount_list.length}"
+  subaccount_list.each do |subaccount|
+    puts "     #{subaccount.login}"
+  end
+  puts
 end

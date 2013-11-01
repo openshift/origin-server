@@ -9,8 +9,8 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     @unresponsive_server = "ip-11-10-9-8"
 
     @cu = CloudUser.new(login: @login)
-    @cu.capabilities['max_gears'] = 1000
-    @cu.capabilities['ha'] = true
+    @cu.max_gears = 1000
+    @cu.ha = true
     @cu.save!
     Lock.create_lock(@cu)
 
