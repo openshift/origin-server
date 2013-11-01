@@ -128,11 +128,17 @@ class AppCartridgesTest < ActionDispatch::IntegrationTest
     request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "appnoscale2", :cartridge => PHP_VERSION}, @headers)
     assert_response :created
 
-    # embed an invalid cartridge
-    request_via_redirect(:post, APP_CARTRIDGES_URL_FORMAT % [ns, "appnoscale"], {:name => "invalid-cartridge"}, @headers)
+    # embed a non-existent cartridge
+    request_via_redirect(:post, APP_CARTRIDGES_URL_FORMAT % [ns, "appnoscale"], {:name => "missing-cartridge-1.0"}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 109)
+
+    # embed an invalid cartridge
+    request_via_redirect(:post, APP_CARTRIDGES_URL_FORMAT % [ns, "appnoscale"], {:name => "invalid-cartridge"}, @headers)
+    assert_response :not_found
+    body = JSON.parse(@response.body)
+    assert_equal(body["messages"][0]["exit_code"], 129)
 
     # embed mysql cartridge into the non-scalable app
     # since the cartridge will reside on the same gear as the app, this should succeed
