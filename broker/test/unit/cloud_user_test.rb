@@ -106,12 +106,8 @@ class CloudUserTest < ActiveSupport::TestCase
     assert caps2 = c.capabilities
     assert_not_same caps, caps2
 
-    c.capabilities = nil
-    assert_nil c.capabilities
-    assert_nil c.capabilities
-
     a = {}
-    c.capabilities = a
+    c.set_capabilities(a, true)
     assert caps3 = c.capabilities
     assert_not_same caps, caps3
     assert_not_same caps2, caps3
@@ -121,9 +117,9 @@ class CloudUserTest < ActiveSupport::TestCase
 
   test "inherited capabilities" do
     parent = CloudUser.create(login: "#{@login}_parent") do |u|
-      u._capabilities = u.default_capabilities
-      u.capabilities['gear_sizes'] = ['foo', 'bar']
-      u.capabilities['inherit_on_subaccounts'] = ['gear_sizes']
+      u.set_capabilities(u.default_capabilities, true)
+      u.set_capabilities({'gear_sizes' => ['foo', 'bar']})
+      u.set_capabilities({'inherit_on_subaccounts' => ['gear_sizes']})
     end
     c = CloudUser.create(login: @login){ |u| u.parent_user_id = parent._id }
 

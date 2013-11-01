@@ -75,7 +75,7 @@ class AliasTest < ActionDispatch::IntegrationTest
     @app = "app#{@random}"
     @as = "as#{@random}.foo.com"
 
-    @user.capabilities["private_ssl_certificates"] = true
+    @user.private_ssl_certificates = true
     @user.save
 
     #create domain

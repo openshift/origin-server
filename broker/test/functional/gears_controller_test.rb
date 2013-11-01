@@ -12,7 +12,7 @@ class GearsControllerTest < ActionController::TestCase
     @login = "user#{@random}"
     @password = "password"
     @user = CloudUser.new(login: @login)
-    @user.capabilities["private_ssl_certificates"] = true
+    @user.private_ssl_certificates = true
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
