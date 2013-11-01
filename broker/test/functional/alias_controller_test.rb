@@ -9,7 +9,7 @@ class AliasControllerTest < ActionController::TestCase
     @login = "user#{@random}"
     @password = 'password'
     @user = CloudUser.new(login: @login)
-    @user.capabilities["private_ssl_certificates"] = true
+    @user.private_ssl_certificates = true
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
@@ -168,7 +168,7 @@ class AliasControllerTest < ActionController::TestCase
   end
 
   test "no user capability by domain and app name" do
-    @user.capabilities["private_ssl_certificates"] = false
+    @user.private_ssl_certificates = false
     @user.save!
 
     server_alias = "as.#{@random}"
@@ -185,7 +185,7 @@ class AliasControllerTest < ActionController::TestCase
   end
 
   test "no user capability by app id" do
-    @user.capabilities["private_ssl_certificates"] = false
+    @user.private_ssl_certificates = false
     @user.save
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "application_id" => @app.id, 
