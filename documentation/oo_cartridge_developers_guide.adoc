@@ -1977,9 +1977,11 @@ The required directories of a cartridge must conform to a set structure or the c
 
 .Cartridge Directory Structure
 ====
+
 <1> +Required+ files must exist for minimal OpenShift  support of the cartridge. 
 <2> +Discretionary+ files are recommended, but not necessary. For example, +conf.d+  is the standard file where a web framework installs its +httpd+ configuration. 
 <3> +Optional+ files are not necessary. Use optional files to support additional cartridge functionality.
+
 ----
 
 $cartridge_name
