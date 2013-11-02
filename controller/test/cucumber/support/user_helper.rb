@@ -32,5 +32,10 @@ module UserHelper
     run command
   end
 
+  def set_max_domains(login, max_domains)
+    command = "/usr/sbin/oo-admin-ctl-user -l #{login} --setmaxdomains #{max_domains}"
+    run command
+  end
+
 end
 World(UserHelper)

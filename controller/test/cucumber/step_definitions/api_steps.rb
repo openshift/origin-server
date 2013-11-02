@@ -165,6 +165,10 @@ Given /^a quickstart UUID$/ do
   @uuid = quickstarts[0]['quickstart']['id']
 end
 
+When /^the user has MAX_DOMAINS set to (\d*)$/ do |max_domains|
+  set_max_domains(@username,max_domains)
+end
+
 When /^I send a GET request to "([^\"]*)"$/ do |path|
   path = sub_random(path)
   url = @base_url + path.to_s
