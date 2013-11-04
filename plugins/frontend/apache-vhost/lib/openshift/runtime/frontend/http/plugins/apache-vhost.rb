@@ -94,9 +94,27 @@ module OpenShift
               FileUtils.mkdir_p(@app_path)
             end
 
+            def self.purge_by_uuid(uuid)
+              basedir = ::OpenShift::Config.new.get("OPENSHIFT_HTTP_CONF_DIR")
+              with_lock_and_reload do
+                FileUtils.rm_rf(Dir.glob(File.join(basedir, "#{uuid}_*")))
+              end
+            end
+
+            def self.purge_by_fqdn(fqdn)
+              # Determine the UUID so that we can catch aliases.
+              basedir = ::OpenShift::Config.new.get("OPENSHIFT_HTTP_CONF_DIR")
+              name = fqdn.sub(/\..*$/,'')
+              Dir.glob(File.join(basedir, "*_#{name}.conf")).map { |p|
+                File.basename(p).sub(/_.*$/,'')
+              }.each do |uuid|
+                purge_by_uuid(uuid)
+              end
+            end
+
             def destroy
               with_lock_and_reload do
-                FileUtils.rm_rf(Dir.glob(File.join(@basedir, "#{container_uuid}_*")))
+                FileUtils.rm_rf(Dir.glob(File.join(@basedir, "#{@container_uuid}_*")))
               end
             end
 
@@ -384,7 +402,7 @@ module OpenShift
             end
 
             # Private: Lock and reload changes to Apache
-            def with_lock_and_reload
+            def self.with_lock_and_reload
               LOCK.synchronize do
                 File.open(LOCKFILE, File::RDWR | File::CREAT | File::TRUNC | File::SYNC , 0640) do |f|
                   f.sync = true
@@ -399,6 +417,10 @@ module OpenShift
                 end
               end
               ::OpenShift::Runtime::Frontend::Http::Plugins::reload_httpd
+            end
+
+            def with_lock_and_reload
+              self.class.with_lock_and_reload
             end
 
           end

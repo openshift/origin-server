@@ -307,6 +307,9 @@ module OpenShift
               end
             end
 
+            def self.purge_by_uuid
+            end
+
             def destroy
               GearDB.open(GearDB::WRCREAT) { |d| d.delete(@container_uuid) }
             end
