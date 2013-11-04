@@ -6,25 +6,39 @@
 # Description: Script to apply the openshift port proxy iptables rules.
 ### END INIT INFO
 
+start() {
+    if [ -f /etc/openshift/iptables.filter.rules ]; then
+      { echo "*filter"; cat /etc/openshift/iptables.filter.rules; echo "COMMIT"; } | iptables-restore -n
+    fi
+
+    if [ -f /etc/openshift/iptables.nat.rules ]; then
+      { echo "*nat"; cat /etc/openshift/iptables.nat.rules; echo "COMMIT"; } | iptables-restore -n
+    fi
+}
+
+stop() {
+    # Droping the reference from the input chain would needlessly complicate
+    # this logic.  For that reason we can't actually drop the chain.  This will
+    # allow admins to flush the chain if needed.
+    iptables -F rhc-app-comm
+}
+
 case "$1" in
     start)
-        if [ -f /etc/openshift/iptables.filter.rules ]; then
-          { echo "*filter"; cat /etc/openshift/iptables.filter.rules; echo "COMMIT"; } | iptables-restore -n
-        fi
-
-        if [ -f /etc/openshift/iptables.nat.rules ]; then
-          { echo "*nat"; cat /etc/openshift/iptables.nat.rules; echo "COMMIT"; } | iptables-restore -n
-        fi
+        start
         ;;
     stop)
+        stop
         ;;
     restart)
+        stop
+        start
         ;;
     reload)
-        ;;
-    status)
+	# Calling stop could cause an outage.  It's best to simply call start.
+        start
         ;;
     *)
-        echo $"Usage: $0 {start|stop|status|restart|reload}"
+        echo $"Usage: $0 {start|stop|restart|reload}"
         exit 2
 esac
