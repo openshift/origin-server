@@ -655,7 +655,7 @@ module OpenShift
       #
       # Caveat: the quota information will not be populated.
       #
-      def self.all(hourglass=nil)
+      def self.all(hourglass=nil, loadenv=true)
         Enumerator.new do |yielder|
           config = OpenShift::Config.new
           gecos = config.get("GEAR_GECOS") || "OO application container"
@@ -671,7 +671,12 @@ module OpenShift
 
           pwents.each do |pwent|
             # The path is a performance hack to load only the variables we need
-            env = ::OpenShift::Runtime::Utils::Environ.load(File.join(pwent.dir, '.env', 'OPENSHIFT_{APP,GEAR}_{UUID,NAME,DNS}*'))
+            if loadenv
+              env = ::OpenShift::Runtime::Utils::Environ.load(File.join(pwent.dir, '.env', 'OPENSHIFT_{APP,GEAR}_{UUID,NAME,DNS}*'))
+              else
+              env = {}
+            end
+
             if env['OPENSHIFT_GEAR_DNS'] == nil
               namespace = nil
             else
