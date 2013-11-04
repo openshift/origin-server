@@ -29,7 +29,7 @@ class BuildingController < ConsoleController
     unless @jenkins_server
       framework = CartridgeType.cached.all.find{ |c| c.tags.include? :ci }
       @jenkins_server = Application.new(
-        :name => params[:application][:name],
+        :name => (params[:application][:name] rescue ""),
         :cartridge => framework.name,
         :domain => @application.domain,
         :as => current_user)
