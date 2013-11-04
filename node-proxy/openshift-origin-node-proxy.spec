@@ -1,8 +1,11 @@
-%global webproxymoduledir %{_prefix}/lib/node_modules/openshift-node-web-proxy
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
-%global with_systemd 1
+  %global with_systemd 1
+  %global webproxymoduledir %{nodejs_sitelib}/openshift-node-web-proxy
 %else
-%global with_systemd 0
+  %global with_systemd 0
+  %global scl nodejs010
+  %global scl_prefix nodejs010-
+  %global webproxymoduledir /opt/rh/nodejs010/root%{nodejs_sitelib}/openshift-node-web-proxy
 %endif
 
 Summary:       Routing proxy for OpenShift Origin Node
@@ -12,16 +15,22 @@ Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://www.openshift.com
-Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      nodejs
-Requires:      nodejs-async
-Requires:      nodejs-optimist
-Requires:      nodejs-supervisor
-Requires:      nodejs-ws
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{pkg_name}/%{pkg_name}-%{version}.tar.gz
+Requires:      %{?scl:%scl_prefix}nodejs
+Requires:      %{?scl:%scl_prefix}nodejs-async
+Requires:      %{?scl:%scl_prefix}nodejs-optimist
+Requires:      %{?scl:%scl_prefix}nodejs-supervisor
+Requires:      %{?scl:%scl_prefix}nodejs-ws
 %if %{with_systemd}
 Requires:      systemd-units
 BuildRequires: systemd-units
 %endif
+
+%if 0%{?fedora}%{?rhel} <= 6
+BuildRequires: nodejs010-build
+BuildRequires: scl-utils-build
+%endif
+
 BuildArch:     noarch
 
 %description
@@ -29,11 +38,12 @@ This package contains a routing proxy (for handling HTTP[S] and Websockets
 traffic) for an OpenShift Origin node.
 
 %prep
-%setup -q
+%setup -q -n %{pkg_name}-%{version}
 
 %build
 
 %install
+%{?scl:scl enable %scl - << \EOF}
 #  Runtime directories.
 mkdir -p %{buildroot}%{_var}/lock/subsys
 mkdir -p %{buildroot}%{_var}/run

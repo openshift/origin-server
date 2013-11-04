@@ -25,9 +25,9 @@
 # Check that networking is up.
 [ "$NETWORKING" = "no" ] && exit 0
 
-nodesysmodulespath="/usr/lib/node_modules"
+nodesysmodulespath="/opt/rh/nodejs010/root/usr/lib/node_modules"
 cfgfile="/etc/openshift/web-proxy-config.json"
-nodeserver="/usr/lib/node_modules/openshift-node-web-proxy/bin/web-proxy.js"
+nodeserver="${nodesysmodulespath}/openshift-node-web-proxy/bin/web-proxy.js"
 cmd="node-supervisor -w $nodeserver -- $nodeserver --config $cfgfile"
 prog="web-proxy"
 lockfile="/var/lock/subsys/node-web-proxy"
