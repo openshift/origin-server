@@ -31,10 +31,14 @@ module OpenShift
             SERVER_HTTP_PORT = 8000
             SERVER_HTTPS_PORT = 8443
 
-            def destroy
+            def self.purge_by_fqdn(fqdn)
               NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
-                d.delete_if { |k, v| (k == @fqdn) or (v["alias"] == @fqdn) }
+                d.delete_if { |k, v| (k == fqdn) or (v["alias"] == fqdn) }
               end
+            end
+
+            def destroy
+              self.class.purge_by_fqdn(@fqdn)
             end
 
             def connect(*elements)
