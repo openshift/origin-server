@@ -7,6 +7,13 @@
 ### END INIT INFO
 
 start() {
+    ROUTE_LOCALNET=`sysctl -n net.ipv4.conf.all.route_localnet`
+    if [ $ROUTE_LOCALNET -eq "0" ]; then
+        echo "WARNING: net.ipv4.conf.all.route_localnet must be enabled." 1>&2
+        sysctl -w net.ipv4.conf.all.route_localnet=1
+        echo "WARNING: It has been temporarily enabled.  Please ensure this setting is persisted in /etc/sysctl.conf."
+    fi
+
     if [ -f /etc/openshift/iptables.filter.rules ]; then
       { echo "*filter"; cat /etc/openshift/iptables.filter.rules; echo "COMMIT"; } | iptables-restore -n
     fi

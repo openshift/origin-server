@@ -23,11 +23,4 @@
 # Check that networking is up.
 [ "$NETWORKING" = "no" ] && exit 0
 
-ROUTE_LOCALNET=`sysctl -n net.ipv4.conf.all.route_localnet`
-if [ $ROUTE_LOCALNET -eq "0" ]; then
-    echo "WARNING: net.ipv4.conf.all.route_localnet must be enabled." 1>&2
-    echo 1 > /proc/sys/net/ipv4/conf/all/route_localnet
-    echo "WARNING: It has been temporarily enabled.  Please ensure this setting is persisted in /etc/sysctl.conf."
-fi
-
 /usr/sbin/oo-admin-ctl-iptables-port-proxy $@
