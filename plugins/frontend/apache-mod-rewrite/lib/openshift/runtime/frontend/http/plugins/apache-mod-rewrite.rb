@@ -45,15 +45,18 @@ module OpenShift
               @template_https = File.join(@basedir, TEMPLATE_HTTPS)
             end
 
-            def destroy
-              ApacheDBNodes.open(ApacheDBNodes::WRCREAT)     { |d| d.delete_if { |k, v| k.split('/')[0] == @fqdn } }
-              ApacheDBAliases.open(ApacheDBAliases::WRCREAT) { |d| d.delete_if { |k, v| v == @fqdn } }
-              ApacheDBIdler.open(ApacheDBIdler::WRCREAT)     { |d| d.delete(@fqdn) }
-              ApacheDBSTS.open(ApacheDBSTS::WRCREAT)         { |d| d.delete(@fqdn) }
+            def self.purge_by_fqdn(fqdn)
+              ApacheDBNodes.open(ApacheDBNodes::WRCREAT)     { |d| d.delete_if { |k, v| k.split('/')[0] == fqdn } }
+              ApacheDBAliases.open(ApacheDBAliases::WRCREAT) { |d| d.delete_if { |k, v| v == fqdn } }
+              ApacheDBIdler.open(ApacheDBIdler::WRCREAT)     { |d| d.delete(fqdn) }
+              ApacheDBSTS.open(ApacheDBSTS::WRCREAT)         { |d| d.delete(fqdn) }
+            end
 
+            def self.purge_by_uuid(uuid)
               # Clean up SSL certs and legacy node configuration
+              basedir = ::OpenShift::Config.new.get("OPENSHIFT_HTTP_CONF_DIR")
               ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do
-                paths = Dir.glob(PathUtils.join(@basedir, "#{container_uuid}_*"))
+                paths = Dir.glob(PathUtils.join(basedir, "#{uuid}_*"))
                 FileUtils.rm_rf(paths)
                 paths.each do |p|
                   if p =~ /\.conf$/
@@ -65,7 +68,11 @@ module OpenShift
                   end
                 end
               end
+            end
 
+            def destroy
+              self.class.purge_by_fqdn(@fqdn)
+              self.class.purge_by_uuid(@container_uuid)
             end
 
             def connect(*elements)

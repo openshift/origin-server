@@ -44,6 +44,12 @@ module OpenShift
               with_create
             end
 
+            def self.purge_by_fqdn(fqdn)
+              HaproxySNIProxyDB.open(HaproxySNIProxyDB::WRCREAT) do |d|
+                d.delete(fqdn)
+              end
+            end
+
             def destroy
               writer_if_exists do |d|
                 d.delete(@fqdn)

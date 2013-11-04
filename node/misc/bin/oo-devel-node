@@ -725,6 +725,15 @@ command :'frontend-unidle' do |c|
   end
 end
 
+command :'frontend-purge' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = 'Purge a broken gear from the Frontend Http configuration'
+
+  c.action do |args, options|
+    execute { ::OpenShift::Runtime::FrontendHttpServer.purge(options.with_container_uuid) }
+  end
+end
+
 command :'create-endpoints' do |c|
   c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID --cartridge-name CARTRIDGE)
   c.description = 'Creates endpoints for a cartridge within a gear'
