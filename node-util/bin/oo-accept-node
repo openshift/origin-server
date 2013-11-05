@@ -637,6 +637,7 @@ def check_system_httpd_configs
     end
 
     begin
+      SafeYAML::OPTIONS[:default_mode] = :safe
       has_websocket = false
       has_framework = false
 
@@ -652,15 +653,35 @@ def check_system_httpd_configs
       }.select { |p|
         not p.nil?
       }.each { |p|
-        is_framework = false
-
         ['metadata', 'info'].each { |mp|
+          mfile = File.join(p, mp, 'manifest.yml')
+          next unless File.exists?(mfile)
           begin
-            manifest = File.read(File.join(p, mp, 'manifest.yml'))
-            manifest.gsub!(/\#.*$/, '')
-            is_framework = manifest.include?('web_framework')
-            has_websocket |= is_framework & manifest.include?('websocket')
-            has_framework  |= is_framework
+            manifest = YAML.load(File.read(mfile), :safe => true)
+
+            manifest["Categories"] ||= []
+            manifest["Endpoints"]  ||= []
+
+            if manifest["Categories"].include?('web_framework')
+              manifest["Endpoints"].each do |endpoint|
+                endpoint["Protocols"] ||= ["http"]
+
+                if endpoint["Mappings"]
+                  endpoint["Mappings"].each do |mapping|
+
+                    mapping["Options"] ||= {}
+
+                    if mapping["Options"]["websocket"]
+                      endpoint["Protocols"] << "ws"
+                    end
+
+                    has_framework = true if endpoint["Protocols"].include?("http")
+                    has_websocket = true if endpoint["Protocols"].include?("ws")
+                  end
+                end
+              end
+            end
+
           rescue
           end
         }
