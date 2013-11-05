@@ -92,6 +92,7 @@ function welcome {
 }
 
 alias ctl_app=gear
+alias lsof='lsof -w'
 
 function ctl_all() {
   case "$1" in
