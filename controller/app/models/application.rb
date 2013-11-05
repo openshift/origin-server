@@ -1476,7 +1476,7 @@ class Application
       when "SYSTEM_SSH_KEY_ADD"
         domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0], component_id: component_id))
       when "APP_SSH_KEY_ADD"
-        id = component_id || gear._id rescue nil
+        id = (gear.nil?) ? component_id : gear._id
         add_ssh_keys << ApplicationSshKey.new(name: command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now, component_id: id)
       when "APP_ENV_VAR_REMOVE"
         remove_env_vars.push({"key" => command_item[:args][0]})
