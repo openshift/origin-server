@@ -54,11 +54,11 @@
             - case @application_type.support_type
             - when :openshift
               %span.icon-star-empty{"aria-hidden" => "true"}
-              %span.label-support.label-support-openshift{:title => 'Updated and maintained by the OpenShift team'} OpenShift maintained
+              %span.label-support.label-support-openshift{:title => 'Updated and maintained by the ProtonBox team'} ProtonBox maintained
             - when :partner
               %span.label-support.label-support-openshift{:title => 'Updated and maintained by a partner'} Partner created
             - else
-              %span.label-support.label-support-community.text-warning{:title => 'Created by a community member and not maintained by OpenShift'} Community created
+              %span.label-support.label-support-community.text-warning{:title => 'Created by a community member and not maintained by ProtonBox'} Community created
 
             - unless @application_type.automatic_updates?
               %span.text-warning{:title => 'When you create a QuickStart or a community cartridge, you are copying code from another repository. You are responsible for applying security fixes and updates.'}
@@ -102,7 +102,7 @@
         = f.inline_errors_for :domain_name
       .controls
         %p.help-block
-          OpenShift will automatically register this domain name for your application.  You can add
+          ProtonBox will automatically register this domain name for your application.  You can add
           your own domain name later.
 
     = control_group(e.has_key?(:initial_git_url) || e.has_key?(:initial_git_branch), :important => true) do
@@ -118,7 +118,7 @@
         %p.help-block 
           - if @application_type.initial_git_url
             Your application will start with an exact copy of the code and configuration provided in 
-            this Git repository. OpenShift may expect certain files to exist in certain directories,
+            this Git repository. ProtonBox may expect certain files to exist in certain directories,
             which may require you to update your repository after creation.
           - else
             We'll create a Git code repository in the cloud, and populate it with a set of 
@@ -195,7 +195,7 @@
           %p.help-block
             %span.text-warning= warn
         %p.help-block
-          OpenShift automatically routes web requests to your web gear.
+          ProtonBox automatically routes web requests to your web gear.
           - if can_scale
             If you allow your application to scale, we'll set up a load balancer and
             allocate more gears to handle traffic as you need it.

@@ -15,7 +15,7 @@
     -# client
     %h2 Managing your cartridge
     %p
-      Most of the capabilities of OpenShift are exposed through our command line tool, <code>rhc</code>.
+      Most of the capabilities of ProtonBox are exposed through our command line tool, <code>pbox</code>.
       Whether it's adding cartridges, checking uptime, or pulling log files from
       the server, you can quickly put a finger on the pulse of your application.
       #{link_to "Follow these steps to install the client", getting_started_guide_url}
@@ -27,17 +27,17 @@
     %pre.cli
       = preserve do
         :escaped
-          rhc cartridge list
+          pbox cartridge list
     %p
       You can manage the cartridge by running one of these commands
     %pre.cli
       = preserve do
         :escaped
-          rhc cartridge start -a #{@application.name} -c #{@cartridge.name}
-          rhc cartridge stop -a #{@application.name} -c #{@cartridge.name}
-          rhc cartridge restart -a #{@application.name} -c #{@cartridge.name}
-          rhc cartridge reload -a #{@application.name} -c #{@cartridge.name}
-          rhc cartridge status -a #{@application.name} -c #{@cartridge.name}
+          pbox cartridge start -a #{@application.name} -c #{@cartridge.name}
+          pbox cartridge stop -a #{@application.name} -c #{@cartridge.name}
+          pbox cartridge restart -a #{@application.name} -c #{@cartridge.name}
+          pbox cartridge reload -a #{@application.name} -c #{@cartridge.name}
+          pbox cartridge status -a #{@application.name} -c #{@cartridge.name}
 
     %p
       You can remove the cartridge by running the following command.
@@ -46,7 +46,7 @@
     %pre.cli
       = preserve do
         :escaped
-          rhc cartridge remove -a #{@application.name} -c #{@cartridge.name}
+          pbox cartridge remove -a #{@application.name} -c #{@cartridge.name}
 
   .span5
     %h2 Cartridge info

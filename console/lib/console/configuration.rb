@@ -52,7 +52,7 @@ module Console
 
     Builtin = {
       :openshift => {
-        :url => 'https://openshift.redhat.com/broker/rest',
+        :url => 'https://api.protonbox.com/broker/rest',
       },
       :local => {
         :url => 'https://localhost/broker/rest',
@@ -85,7 +85,7 @@ module Console
           Valid api object:
             {
               :url => '' # A URL pointing to the root of the REST API, e.g.
-                         # https://openshift.redhat.com/broker/rest
+                         # https://api.protonbox.com/broker/rest
             }
         EXCEPTION
       end

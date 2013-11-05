@@ -26,13 +26,13 @@
 
           - if cartridge.tags.include?(:web_framework)
             %p
-              OpenShift is configured to scale this cartridge with
-              #{link_to 'the web proxy HAProxy', scaling_help_url }. OpenShift
+              ProtonBox is configured to scale this cartridge with
+              #{link_to 'the web proxy HAProxy', scaling_help_url }. ProtonBox
               monitors the incoming web traffic to your application and
               automatically adds or removes copies of your cartridge
               (each running on their own gears) to serve requests as needed.
 
-          %p Control the number of gears OpenShift will use for your cartridge:
+          %p Control the number of gears ProtonBox will use for your cartridge:
 
           = f.inputs :inline => true, :without_errors => true do
             .input-prepend

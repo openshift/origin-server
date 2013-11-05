@@ -5,7 +5,7 @@
 =flashes
 
 %p
-  Aliases allow you to use your own domain names for your applications on OpenShift.
+  Aliases allow you to use your own domain names for your applications on ProtonBox.
 
 - if @application.aliases.empty?
   %p.larger No aliases exist. #{link_to "Add your first alias now", new_application_alias_path(@application)}
@@ -58,4 +58,4 @@
 
   %p
 
-%p Note: In order to route traffic on your domain to OpenShift, you must #{link_to("set up a CNAME record with your DNS provider", alias_docs_url)}.
+%p Note: In order to route traffic on your domain to ProtonBox, you must #{link_to("set up a CNAME record with your DNS provider", alias_docs_url)}.

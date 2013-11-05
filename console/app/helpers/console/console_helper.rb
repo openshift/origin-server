@@ -10,11 +10,11 @@ module Console::ConsoleHelper
 
   def product_branding
     [
-      image_tag('/assets/logo-origin.svg', :alt => 'OpenShift Origin')
+      image_tag('/assets/logo-origin.svg', :alt => 'ProtonBox')
     ].join.html_safe
   end
 
   def product_title
-    'OpenShift Origin'
+    'ProtonBox'
   end
 end

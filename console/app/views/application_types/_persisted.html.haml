@@ -10,7 +10,7 @@
     - if application_type.cartridges.present?
       = map_to_sentence(application_type.cartridges) do |c|
         - if missing_cartridges.include?(c)
-          %span.text-warning{:title => "OpenShift could not locate any cartridges that match '#{c}'"}= c
+          %span.text-warning{:title => "ProtonBox could not locate any cartridges that match '#{c}'"}= c
         - else
           = c
     - else

@@ -57,7 +57,7 @@
             #{link_to "Set an SSH key", new_key_path} to
             %ul
               %li
-                %a{href: 'javascript:;', title: 'Set your first key', 'data-content' => "<p>OpenShift uses the Secure Shell protocol to protect direct access to your application.  In order to upload or download source code from Git or to remotely access the gears in your app, you'll need to create and upload a public SSH key.</p>"} 
+                %a{href: 'javascript:;', title: 'Set your first key', 'data-content' => "<p>ProtonBox uses the Secure Shell protocol to protect direct access to your application.  In order to upload or download source code from Git or to remotely access the gears in your app, you'll need to create and upload a public SSH key.</p>"} 
                   Access source code or SSH to your gears
                 %span{'data-icon' => "\uee02"}
 
@@ -83,19 +83,19 @@
 
         - if @applications.length < 3 && @applications.none?{ |a| a.cartridges.any?(&:database?) }
           %li
-            %a{href: 'javascript:;', title: 'Add a Database', 'data-content' => "<p>OpenShift supports several database types out of the box (MySQL, PostgreSQL, and MongoDB).</p><p>Click on your application, and then at the bottom of the list of cartridges on the next page you'll see databases you can add.</p>"} 
+            %a{href: 'javascript:;', title: 'Add a Database', 'data-content' => "<p>ProtonBox supports several database types out of the box (MySQL, PostgreSQL, and MongoDB).</p><p>Click on your application, and then at the bottom of the list of cartridges on the next page you'll see databases you can add.</p>"} 
               Add a database to an app
             %span{'data-icon' => "\uee02"}
 
         - if @applications.map{ |a| a.members.length }.max < 2
           %li
-            %a{href: 'javascript:;', title: 'Membership', 'data-content' => '<p>You can give a collaborator access to your domains and applications.  Adding someone as an editor on a domain gives them the ability to create or update your applications.</p><p>To add a collaborator, click on a domain name, and then in the Members section enter the login of another OpenShift member.</p>'} 
+            %a{href: 'javascript:;', title: 'Membership', 'data-content' => '<p>You can give a collaborator access to your domains and applications.  Adding someone as an editor on a domain gives them the ability to create or update your applications.</p><p>To add a collaborator, click on a domain name, and then in the Members section enter the login of another ProtonBox member.</p>'} 
               Add a collaborator 
             %span{'data-icon' => "\uee02"}
 
         - if @applications.all?{ |a| a.aliases.blank? }
           %li
-            %a{href: 'javascript:;', title: 'Customize your URL', 'data-content' => "<p>OpenShift gives you a public domain for each of your applications.  If you have your own domain name, you can set it as an <strong>alias</strong> on your application.</p><p>Click on your application name to the left, and then select the 'change' link next to the application URL at the top of the overview page.</p>"} 
+            %a{href: 'javascript:;', title: 'Customize your URL', 'data-content' => "<p>ProtonBox gives you a public domain for each of your applications.  If you have your own domain name, you can set it as an <strong>alias</strong> on your application.</p><p>Click on your application name to the left, and then select the 'change' link next to the application URL at the top of the overview page.</p>"} 
               Use your own domain name
             %span{'data-icon' => "\uee02"}
 
