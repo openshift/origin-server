@@ -1,5 +1,5 @@
-@runtime
-@runtime_extended3
+@node
+@node_extended3
 Feature: Application Container Proxy gear retrieval
 
   Scenario Outline: Get gears with Broker auth tokens (scalable)

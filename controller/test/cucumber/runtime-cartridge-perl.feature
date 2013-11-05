@@ -1,4 +1,4 @@
-@runtime_extended3
+@node_extended3
 Feature: V2 SDK Perl Cartridge
 
   Scenario Outline: Add cartridge

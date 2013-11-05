@@ -1,4 +1,4 @@
-@runtime_extended1
+@node_extended1
 @not-fedora-19
 Feature: MySQL Tests
   Scenario: Snapshot/Restore an application with a MySQL database

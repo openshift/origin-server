@@ -1,5 +1,5 @@
-@runtime_extended
-@runtime_extended3
+@node_extended
+@node_extended3
 Feature: Cartridge Lifecycle Perl Verification Tests
   Scenario Outline: Application Creation
   #Given a new <cart_name> application, verify its availability

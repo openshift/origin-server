@@ -1,4 +1,4 @@
-@runtime3
+@node3
 Feature: V2 SDK Mock Cartridge Build Tests
 
   Scenario: Exercise hot deployment

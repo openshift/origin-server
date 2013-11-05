@@ -1,5 +1,5 @@
-@runtime
-@runtime1
+@node
+@node1
 Feature: District Configuration
   Scenario: Write and update district file
     Given a new active district with first_uid 1000 and max_uid 6999

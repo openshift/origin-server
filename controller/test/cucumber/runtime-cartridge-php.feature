@@ -1,4 +1,4 @@
-@runtime1
+@node1
 Feature: V2 SDK PHP Cartridge
 
   Scenario Outline: Add cartridge

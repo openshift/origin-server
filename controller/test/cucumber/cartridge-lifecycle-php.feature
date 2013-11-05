@@ -1,5 +1,5 @@
-@runtime_extended2
-@runtime
+@node_extended2
+@node
 Feature: Cartridge Lifecycle PHP Verification Tests
   Scenario Outline: Application Creation
   #Given a new <cart_name> application, verify its availability

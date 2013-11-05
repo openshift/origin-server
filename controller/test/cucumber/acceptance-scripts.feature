@@ -1,5 +1,5 @@
-@runtime_extended
-@runtime_extended3
+@node_extended
+@node_extended3
 Feature: Acceptance scripts for sanity checking infrastructure
 
   Scenario: Acceptance scripts usage

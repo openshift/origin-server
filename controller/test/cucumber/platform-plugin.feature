@@ -1,4 +1,4 @@
-@runtime_extended2
+@node_extended2
 Feature: V2 Platform Plugin Tests
   Scenario: Basic state checks for an application with an embedded cartridge
     Given a new mock-0.1 type application   

@@ -1,4 +1,4 @@
-@runtime4
+@node4
 @fedora-19-only
 Feature: MySQL Application Sub-Cartridge
 

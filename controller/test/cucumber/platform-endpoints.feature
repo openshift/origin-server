@@ -1,5 +1,5 @@
-@runtime
-@runtime3
+@node
+@node3
 @not-fedora-19
 @not-origin
 Feature: V2 Platform Endpoint tests

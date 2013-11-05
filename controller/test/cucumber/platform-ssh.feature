@@ -1,4 +1,4 @@
-@runtime_extended2
+@node_extended2
 Feature: V2 Platform SSH Tests
   Scenario: Platform SSH for web proxy cartridge
     And a new client created scalable mock-0.1 application

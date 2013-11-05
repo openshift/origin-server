@@ -1,4 +1,4 @@
-@runtime_extended3
+@node_extended3
 @not-enterprise
 Feature: phpMyAdmin Embedded Cartridge
 

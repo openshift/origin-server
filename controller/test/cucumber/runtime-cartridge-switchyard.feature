@@ -1,5 +1,5 @@
-@runtime
-@runtime_extended3
+@node
+@node_extended3
 @rhel-only
 @jboss
 @not-enterprise

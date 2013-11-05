@@ -1,4 +1,4 @@
-@runtime_extended1
+@node_extended1
 @jboss
 @jbossas
 @not-enterprise

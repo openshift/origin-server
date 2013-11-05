@@ -1,6 +1,6 @@
-@runtime_extended3
+@node_extended3
 @cartridge_nodejs
-@runtime_extended
+@node_extended
 @not-fedora-19
 Feature: Cartridge Lifecycle NodeJS Verification Tests
   Scenario Outline: Application Creation

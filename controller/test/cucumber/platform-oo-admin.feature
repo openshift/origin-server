@@ -1,6 +1,6 @@
 Feature: Adding and deleting domain environment variable
 
-  @runtime_extended3
+  @node_extended3
   @domain_env_var_test_1
   Scenario: Add and remove new env variable after creating applications that are in the same namespace
     And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
@@ -14,7 +14,7 @@ Feature: Adding and deleting domain environment variable
     Then the domain environment variable TEST_VAR_1 will not exist for all the applications in the namespace "randomNamespaceA" 
 
 
-  @runtime_extended3
+  @node_extended3
   @domain_env_var_test_2
   Scenario: Add and remove new env variable in between setting up the applications in the same namespace
     And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
@@ -28,7 +28,7 @@ Feature: Adding and deleting domain environment variable
     Then the domain environment variable TEST_VAR_1 will not exist for all the applications in the namespace "randomNamespaceA"   
 
 
-  @runtime_extended3
+  @node_extended3
   @domain_env_var_test_3
   Scenario: Adding a domain env variable in a first namespace should not update the new application created in another namespace
     And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
@@ -46,7 +46,7 @@ Feature: Adding and deleting domain environment variable
     And the domain environment variable TEST_VAR_2 will not exist for all the applications in the namespace "randomNamespaceA"
 
 
-  @runtime_extended3
+  @node_extended3
   @domain_env_var_test_4
   Scenario: Previously created application in a different namespace should not contain the domain variable added to another namespace
 
@@ -59,7 +59,7 @@ Feature: Adding and deleting domain environment variable
     And the domain environment variable TEST_VAR_1 will not exist for the application "mock01app1"
 
 
-  @runtime_extended3
+  @node_extended3
   @domain_env_var_test_5
   Scenario: Adding a domain env variable to an empty namespace and only the applications to be created in the namespace will get the domain env variable
 

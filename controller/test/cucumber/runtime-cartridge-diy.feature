@@ -1,4 +1,4 @@
-@runtime_extended2
+@node_extended2
 Feature: V2 SDK DIY Cartridge
   Scenario: Add cartridge
     Given a new diy-0.1 type application

@@ -1,7 +1,7 @@
 @postgres
 @v2
 Feature: Postgres Application Sub-Cartridge
-  @runtime_extended1
+  @node_extended1
   Scenario Outline: Create/Delete one application with a Postgres database
     Given a new mock-0.1 type application
 
@@ -29,7 +29,7 @@ Feature: Postgres Application Sub-Cartridge
       | postgres_version |
       |       9.2        |
 
-  @runtime_extended1
+  @node_extended1
   Scenario Outline: Database connections
     Given a new client created mock-0.1 application
     Given the embedded postgresql-<postgres_version> cartridge is added
@@ -75,7 +75,7 @@ Feature: Postgres Application Sub-Cartridge
       | postgres_version |
       |       9.2        |
   
-  @runtime_extended1
+  @node_extended1
   @postgres
   @v2
   Scenario Outline: Scaled Database connections
@@ -111,7 +111,7 @@ Feature: Postgres Application Sub-Cartridge
       | postgres_version |
       |       9.2        |
 
-  @runtime_extended1
+  @node_extended1
   @postgres
   @v2
   Scenario Outline: Tidy Database
@@ -135,7 +135,7 @@ Feature: Postgres Application Sub-Cartridge
       | postgres_version |
       |       9.2        |
 
-  @runtime_extended1
+  @node_extended1
   @postgres
   @v2
   Scenario Outline: Reload Database
@@ -164,7 +164,7 @@ Feature: Postgres Application Sub-Cartridge
       | postgres_version |
       |       9.2        |
 
-  @runtime_extended3
+  @node_extended3
   @postgres
   @v2
   Scenario Outline: Snapshot/Restore an application with a Postgres database
@@ -194,7 +194,7 @@ Feature: Postgres Application Sub-Cartridge
       | postgres_version |
       |       9.2        |
 
-  @runtime_extended3
+  @node_extended3
   @postgres
   @v2
   Scenario Outline: Snapshot/Restore a scalable application with a Postgres database
@@ -226,7 +226,7 @@ Feature: Postgres Application Sub-Cartridge
       | postgres_version |
       |       9.2        |
 
-  @runtime_extended3
+  @node_extended3
   @postgres
   @v2
   Scenario Outline: Snapshot/Restore after removing/adding Postgres
@@ -266,7 +266,7 @@ Feature: Postgres Application Sub-Cartridge
       | postgres_version |
       |       9.2        |
 
-  @runtime_extended3
+  @node_extended3
   Scenario Outline: Snapshot/Restore after removing/adding application
     Given a new client created mock-0.1 application
     Given the embedded postgresql-<postgres_version> cartridge is added

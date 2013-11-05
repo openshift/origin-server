@@ -1,5 +1,5 @@
-@runtime
-@runtime3
+@node
+@node3
 Feature: Trap User Shell
 
   As a system designer

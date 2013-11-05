@@ -1,5 +1,5 @@
-@runtime_extended
-@runtime_extended2
+@node_extended
+@node_extended2
 @rhel-only
 @not-fedora-19
 @jboss

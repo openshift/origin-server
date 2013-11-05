@@ -15,20 +15,20 @@ Feature: V2 SDK Ruby Cartridge
 
     @fedora-19-only
     @cartridge_v2_ruby_20
-    @runtime_extended1
+    @node_extended1
     Scenarios: r2.0
       | cart_version | label     | proc_name |
       |      2.0     | Passenger | ruby-mri  |
 
     @not-fedora-19
     @cartridge_v2_ruby_19
-    @runtime_extended3
+    @node_extended3
     Scenarios: r1.9
       | cart_version | label     | proc_name |
       |      1.9     | Passenger | ruby      |
 
     @rhel-only
-    @runtime_extended1
+    @node_extended1
     @cartridge_v2_ruby_18
     Scenarios: r1.8
       | cart_version | label     | proc_name |

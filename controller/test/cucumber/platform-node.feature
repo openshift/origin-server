@@ -1,5 +1,5 @@
-@runtime
-@runtime2
+@node
+@node2
 Feature: Account Management
   Scenario: Create and delete one account
     Given a new guest account
