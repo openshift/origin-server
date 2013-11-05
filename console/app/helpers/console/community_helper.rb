@@ -1,35 +1,31 @@
 module Console::CommunityHelper
 
   def irc_web_url
-    'http://webchat.freenode.net/?randomnick=1&channels=openshift&uio=d4'
+    'http://webchat.freenode.net/?randomnick=1&channels=protonbox&uio=d4'
   end
 
   def link_to_irc
     link_to "IRC", irc_web_url
   end
 
-  def openshift_twitter_hashtag_url
-    'http://twitter.com/search/%23OpenShift'
+  def protonbox_twitter_hashtag_url
+    'http://twitter.com/search/%23ProtonBox'
   end
 
-  def openshift_twitter_url
-    'http://twitter.com/openshift'
-  end
-
-  def openshift_ops_twitter_url
-    'http://twitter.com/openshift_ops'
+  def protonbox_twitter_url
+    'http://twitter.com/protonbox'
   end
 
   def open_bug_url
-    'https://bugzilla.redhat.com/enter_bug.cgi?product=OpenShift%20Origin'
+    '#'
   end
 
-  def openshift_github_url
-    'https://github.com/openshift'
+  def protonbox_github_url
+    'https://github.com/protonbox'
   end
 
   def stack_overflow_url
-    'http://stackoverflow.com/questions/tagged/openshift/'
+    'http://stackoverflow.com/questions/tagged/protonbox/'
   end
 
   def stack_overflow_link
@@ -37,39 +33,27 @@ module Console::CommunityHelper
   end
 
   def client_tools_url
-    openshift_github_project_url 'rhc'
-  end
-
-  def origin_server_url
-    openshift_github_project_url 'origin-server'
+    protonbox_github_project_url 'pbox'
   end
 
   def origin_server_source_path_url(path)
-    "#{openshift_github_project_url('origin-server')}/tree/master/#{path}"
+    "#{protonbox_github_project_url('origin-server')}/tree/master/#{path}"
   end
 
   def cartridges_source_url
     origin_server_source_path_url 'cartridges'
   end
 
-  def origin_server_srpm_url
-   "http://mirror.openshift.com/pub/openshift-origin/nightly/fedora-latest/latest/SRPMS/"
+  def protonbox_github_project_url(project)
+    "https://github.com/protonbox/#{project}"
   end
 
-  def openshift_github_project_url(project)
-    "https://github.com/openshift/#{project}"
-  end
-
-  def red_hat_account_url
-    'https://www.redhat.com/wapps/ugc'
-  end
-
-  def mailto_openshift_url
-    'mailto:openshift@redhat.com'
+  def mailto_protonbox_url
+    'mailto:hi@protonbox.com'
   end
 
   def link_to_account_mailto
-    link_to "openshift@redhat.com", mailto_openshift_url
+    link_to "hi@protonbox.com", mailto_protonbox_url
   end
 
   def status_jsonp_url(id)

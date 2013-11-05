@@ -19,7 +19,7 @@
       - if RestApi.download_cartridges_enabled?
         %h3 Install your own cartridge
         %form.form-inline{:method => :get, :action => application_cartridge_type_path(@application, 'custom')}
-          %p You may also add your own cartridges by providing a link to a #{link_to 'downloadable cartridge', downloadable_cartridges_help_url}.  OpenShift will download and install the cart into your application.  Remember that downloaded cartridges will not automatically receive updates.
+          %p You may also add your own cartridges by providing a link to a #{link_to 'downloadable cartridge', downloadable_cartridges_help_url}.  ProtonBox will download and install the cart into your application.  Remember that downloaded cartridges will not automatically receive updates.
 
           %input{:type => :text, :name => :url, :placeholder => 'URL to a cartridge definition'}
           %input.btn{:type => :submit, :value => 'Next', :title => 'Download a cartridge into this app'}

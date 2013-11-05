@@ -27,7 +27,7 @@ module Console::HelpHelper
   end
 
   def add_domains_user_guide_topic_url
-    user_guide_topic_url 'chap-OpenShift-User_Guide-Namespaces.html'
+    user_guide_topic_url 'chap-ProtonBox-User_Guide-Namespaces.html'
   end
 
   def product_architecture_url
@@ -50,20 +50,20 @@ module Console::HelpHelper
     community_base_url 'ideas'
   end
 
-  def openshift_blog_url
+  def protonbox_blog_url
     community_base_url 'blogs'
   end
 
-  def openshift_twitter_url
-    "http://twitter.com/openshift"
+  def protonbox_twitter_url
+    "http://twitter.com/protonbox"
   end
 
-  def openshift_facebook_url
-    "http://facebook.com/openshift"
+  def protonbox_facebook_url
+    "http://facebook.com/protonbox"
   end
 
-  def openshift_google_plus_url
-    "https://plus.google.com/b/108052331678796731786/108052331678796731786/posts"
+  def protonbox_google_plus_url
+    "https://plus.google.com/b/106177406982484377416/106177406982484377416/posts"
   end
 
   def opensource_community_url
@@ -118,12 +118,8 @@ module Console::HelpHelper
     community_base_url 'developers/download-cartridges'
   end
 
-  def livecd_wiki_url(anchor=nil)
-    community_base_url "wiki/getting-started-with-openshift-origin-livecd#{anchor.present? ? "##{anchor}" : ''}"
-  end
-
   def post_to_forum_url
-    community_base_url 'forums/openshift'
+    community_base_url 'forums/protonbox'
   end
 
   def events_url
@@ -135,7 +131,7 @@ module Console::HelpHelper
   end
 
   def forums_url
-    community_base_url 'forums/openshift'
+    community_base_url 'forums/protonbox'
   end
 
   def knowledge_base_url
@@ -254,7 +250,7 @@ module Console::HelpHelper
   end
 
   def privacy_policy_url
-    community_base_url 'legal/openshift_privacy'
+    community_base_url 'legal/protonbox_privacy'
   end
 
   def terms_of_service_url
@@ -278,11 +274,11 @@ module Console::HelpHelper
       {:href => developers_url,
        :name => 'Developer Center'},
       {:href => user_guide_url,
-       :name => 'OpenShift User Guide'},
+       :name => 'ProtonBox User Guide'},
       {:href => getting_started_path,
-       :name => 'Installing OpenShift client tools on Mac OSX, Linux, and Windows'},
+       :name => 'Installing ProtonBox client tools on Mac OSX, Linux, and Windows'},
       {:href => sync_git_with_remote_repo_knowledge_base_url,
-       :name => 'Sync your OpenShift repo with an existing Git repo'}
+       :name => 'Sync your ProtonBox repo with an existing Git repo'}
     ]
   end
 
@@ -291,12 +287,8 @@ module Console::HelpHelper
       {:href => community_base_url('faq/how-do-i-start-a-new-forum-discussion'),
        :name => 'How do I start a new Forum discussion?'},
       {:href => community_base_url('faq/how-do-i-install-the-rhc-client-tools-on-windows'),
-       :name => 'How do I install the rhc client tools on Windows?'}
+       :name => 'How do I install the pbox client tools on Windows?'}
     ]
-  end
-
-  def enterprise_evaluation_request_url
-    community_base_url 'page/openshift-enterprise-online-evaluation-request'
   end
 
   def resource_request_url
@@ -304,6 +296,6 @@ module Console::HelpHelper
   end
 
   def alias_docs_url
-    community_base_url 'blogs/custom-url-names-for-your-paas-applications-host-forwarding-and-cnames-the-openshift-way'
+    community_base_url 'blogs/custom-url-names-for-your-paas-applications-host-forwarding-and-cnames-the-protonbox-way'
   end
 end

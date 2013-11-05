@@ -6,7 +6,7 @@
 %section
   = semantic_form_for @jenkins_server, :url => application_building_path(@application), :html => {:method => :post, :class => 'form form-horizontal'} do |f|
     %p 
-      To build with Jenkins, OpenShift needs a server (created as a separate 
+      To build with Jenkins, ProtonBox needs a server (created as a separate 
       application) and a Jenkins client cartridge attached to each buildable 
       application.  Build jobs execute on the gear that contains the client cartridge,
       while the Jenkins server schedules jobs and stores history and other build

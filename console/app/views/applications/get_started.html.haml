@@ -42,7 +42,7 @@
           git push
 
     %p 
-      When you push changes the OpenShift server will report back its status on deploying your code.
+      When you push changes the ProtonBox server will report back its status on deploying your code.
       The server will run any of your configured
       = link_to "deploy hooks", deploy_hook_user_guide_topic_url
       and then restart the application.
@@ -55,20 +55,11 @@
     %h3 Command-Line
 
     %p
-      All of the capabilities of OpenShift are exposed through our command line tool,
-      %strong rhc.
+      All of the capabilities of ProtonBox are exposed through our command line tool,
+      %strong pbox.
       #{link_to "Follow these steps to install the client", client_tools_install_help_url}
       on Linux, Mac OS X, or Windows.
     %p
-      After installing the RHC read more 
+      After installing PBOX read more 
       #{link_to "on how to manage your application from the command line in our User Guide", user_guide_url }.
-
-    %h3 JBoss Developer Studio
-
-    %p
-      The JBoss Developer Studio is a full featured IDE with OpenShift integration built in.
-      It gives you the ability to create, edit and deploy applications without having to
-      leave the IDE.  Links to download, install and use the JBoss Developer Studio for Linux,
-      Mac OS X, or Windows can be found on the
-      #{link_to("JBoss Developer Studio tools page.", "#{client_tools_help_url}")}
     -# tech specific

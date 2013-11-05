@@ -134,7 +134,7 @@ module Console::ModelHelper
   end
 
   def gear_group_count_title(total_gears)
-    "OpenShift runs each cartridge inside one or more gears on a server and is allocated a fixed portion of CPU time and memory use."
+    "ProtonBox runs each cartridge inside one or more gears on a server and is allocated a fixed portion of CPU time and memory use."
   end
 
   def cartridge_storage(cart)
