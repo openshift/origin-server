@@ -1,7 +1,7 @@
 #!/bin/bash
 # openshift-iptables-port-proxy
 #
-# chkconfig:  2345 09 93
+# chkconfig:  2345 11 89
 # description: Script to apply the openshift port proxy iptables rules.
 #
 ### BEGIN INIT INFO
