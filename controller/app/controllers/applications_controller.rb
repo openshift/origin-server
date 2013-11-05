@@ -181,8 +181,8 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "Invalid deployment type: #{deployment_type}. Acceptable values are: #{Application::DEPLOYMENT_TYPES.join(", ")}",
                         1, "deployment_type") if deployment_type and !Application::DEPLOYMENT_TYPES.include?(deployment_type)
 
-    return render_error(:unprocessable_entity, "Invalid number of deployments to keep: #{params[:keep_deployments]}. Keep deployments must be greater than 0.",
-                        1, "keep_deployments") if keep_deployments and keep_deployments < 1
+    return render_error(:unprocessable_entity, "Invalid number of deployments to keep: #{params[:keep_deployments]}. Keep deployments must be greater than 0 and no greater than 1000.",
+                        1, "keep_deployments") if keep_deployments and (keep_deployments < 1 or keep_deployments > 1000)
 
     return render_error(:unprocessable_entity, "Invalid deployment_branch: #{deployment_branch}. Deployment branches are limited to 256 characters",
                         1, "deployment_branch") if deployment_branch and deployment_branch.length > 256

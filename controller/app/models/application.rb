@@ -596,6 +596,14 @@ class Application
           end
         end
       end
+      
+      if cart.is_web_proxy?
+        component_instances.each do |ci|
+          if ci.is_web_proxy?
+            raise OpenShift::UserException.new("You can only have one proxy cartridge in your application '#{name}'.", 109)
+          end
+        end
+      end
 
       # check if the requested feature is provided by any existing/embedded application cartridge
       component_instances.each do |ci|
