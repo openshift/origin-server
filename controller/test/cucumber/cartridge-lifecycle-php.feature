@@ -1,4 +1,4 @@
-@node_extended2
+@cartridge_extended2
 @node
 Feature: Cartridge Lifecycle PHP Verification Tests
   Scenario Outline: Application Creation

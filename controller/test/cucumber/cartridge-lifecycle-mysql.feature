@@ -1,4 +1,4 @@
-@node_extended1
+@cartridge_extended1
 @not-fedora-19
 Feature: MySQL Tests
   Scenario: Snapshot/Restore an application with a MySQL database

@@ -1,5 +1,5 @@
-@node2
-Feature: V2 SDK Mock Cartridge
+@cartridge2
+Feature: SDK Mock Cartridge
 
   Scenario: Exercise basic platform functionality in isolation
     Given a new mock-0.1 type application

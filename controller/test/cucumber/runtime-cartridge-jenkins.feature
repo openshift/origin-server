@@ -1,5 +1,5 @@
 @jenkins
-@node_extended1
+@cartridge_extended1
 Feature: Jenkins Application
   Scenario: Create and Deploy a DIY and Jenkins Application
     Given the libra client tools

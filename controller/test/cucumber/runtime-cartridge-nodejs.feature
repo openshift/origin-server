@@ -1,4 +1,4 @@
-@node_extended3
+@cartridge_extended3
 @cartridge_nodejs
 Feature: V2 SDK Node.js Cartridge
 

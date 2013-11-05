@@ -1,5 +1,4 @@
-@node
-@node_extended3
+@cartridge_extended3
 @jenkins
 Feature: Jenkins Client Embedded Cartridge
   Scenario Outline: Add Jenkins Client to one application without Jenkins server available (RHEL/CentOS)

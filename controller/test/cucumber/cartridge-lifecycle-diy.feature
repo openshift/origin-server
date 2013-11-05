@@ -1,5 +1,5 @@
-@node_extended
-@node_extended3
+@cartridge_extended
+@cartridge_extended3
 Feature: Cartridge Lifecycle DIY Verification Tests
   Scenario: Application Creation
     Given the libra client tools
