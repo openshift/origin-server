@@ -16,13 +16,14 @@ function getaddr() {
 
 # Fix up the IP Address in the config if the assigned node IP Address has changed.
 function fixaddr() {
-    cfg_addr=$(tail -n 2 $nat_rules_file | head -n 1 | awk '{ print $4 }')
     baddr=$(getaddr)
     echo $baddr
-    echo $cfg_addr
-    if [ "${cfg_addr}" != "${baddr}/32" ]; then
-        atomic_nat_config sed -i "s#${cfg_addr}#${baddr}/32#g"
-    fi
+    for cfg_addr in $(awk '{ print $4 }' $nat_rules_file | sort | uniq | sed '/^$/d'); do
+        echo $cfg_addr
+        if [ "${cfg_addr}" != "${baddr}/32" ]; then
+            atomic_nat_config sed -i "s#${cfg_addr}#${baddr}/32#g"
+        fi
+    done
 }
 
 # Make atomic updates to the specified config file.
