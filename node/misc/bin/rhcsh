@@ -163,22 +163,14 @@ function psql() {
     fi
   fi
 
-  # Save command for evaluation
-  cmd="\
   PGHOST=$pghost \
     PGPORT=$pgport \
     PGUSER=$pguser \
     PGPASSWORD=$pgpassword \
     PGDATABASE=$pgdatabase \
     $CMD $extra_args "$@"
-  "
 
-  # Run command and store stderr, stdout passes through
-  { errmsg=$(eval $cmd 2>&1 1>&3-) ;} 3>&1
-
-  # Only custom format the error message if we have exit code 2 and the output just has "psql: "
-  if [ $? -eq 2 ] && [ "$errmsg" == "psql: " ]
-  then
+  if [ $? -eq 2 ]; then
     lines=(
       "psql: could not connect to server: Connection refused",
       "        Is the server running on host \"${pghost}\" and accepting",
@@ -186,9 +178,6 @@ function psql() {
     )
     errmsg=$(printf -- '%s\n' "${lines[@]}")
   fi
-
-  # Print any error messages to stderr
-  [ ! -z "${errmsg}" ] && echo "${errmsg}" >&2
 }
 
 function mongo() {
