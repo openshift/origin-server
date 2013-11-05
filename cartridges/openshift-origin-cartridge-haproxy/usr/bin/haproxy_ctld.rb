@@ -292,7 +292,7 @@ class Haproxy
 
 end
 
-def p_usage
+def p_usage(rc=0)
     puts <<USAGE
 
 Usage: #{$0}
@@ -315,7 +315,7 @@ Notes:
 1. To start/stop auto scaling in daemon mode run:
     haproxy_ctld_daemon (start|stop|restart|run|)
 USAGE
-    exit! 255
+    exit! rc
 end
 
 begin
@@ -334,7 +334,7 @@ begin
         opt[o[2..-1]] = a.to_s
     end
 rescue Exception => e
-  p_usage
+  p_usage(255)
 end
 
 
