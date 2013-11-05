@@ -5,6 +5,7 @@
 # Configurable Values:
 # lower_case_table_names -> OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES
 # default-storage-engine -> OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE
+# max_connections -> OPENSHIFT_MYSQL_MAX_CONNECTIONS
 
 [mysqld]
 datadir=<%= ENV['OPENSHIFT_MYSQL_DIR'] %>/data/
@@ -21,6 +22,7 @@ read_rnd_buffer_size = 256K
 net_buffer_length = 2K
 thread_stack = 256K
 lower_case_table_names = <%= ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] ? ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] : '0' %>
+<%= ENV['OPENSHIFT_MYSQL_MAX_CONNECTIONS'] ? "max_connections = #{ENV['OPENSHIFT_MYSQL_MAX_CONNECTIONS']}" : '' %>
 
 <%= ENV['OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE'] ? "default-storage-engine = #{ENV['OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE']}" : '' %>
 myisam_sort_buffer_size = 2M
