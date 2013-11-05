@@ -138,6 +138,39 @@ module OpenShift
 
       end
 
+      # Public: Purge frontend records for broken gears.
+      #
+      # Args:
+      #   lookup   - either the uuid or fqdn of the broken gear.
+      #
+      # Note: This API function is intended for use when the
+      # ApplicationContainer object is no longer able to instantiate
+      # for a gear or no longer has complete information.
+      def self.purge(lookup)
+        uuid = fqdn = lookup
+        plugins.each do |pl|
+          [:lookup_by_uuid, :lookup_by_fqdn].each do |call|
+            if pl.methods.include?(call)
+              entry = pl.send(call, lookup)
+              if entry
+                uuid = entry.container_uuid if entry.container_uuid
+                fqdn = entry.fqdn           if entry.fqdn
+              end
+            end
+          end
+        end
+
+        plugins.each do |pl|
+          if fqdn and pl.methods.include?(:purge_by_fqdn)
+            pl.send(:purge_by_fqdn, fqdn)
+          end
+
+          if uuid and pl.methods.include?(:purge_by_uuid)
+            pl.send(:purge_by_uuid, uuid)
+          end
+        end
+      end
+
       def initialize(container)
         @config = ::OpenShift::Config.new
 
