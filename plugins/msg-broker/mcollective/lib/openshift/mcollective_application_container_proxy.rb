@@ -436,8 +436,13 @@ module OpenShift
       def destroy(gear, keep_uid=false, uid=nil, skip_hooks=false)
         args = build_base_gear_args(gear)
         args['--skip-hooks'] = true if skip_hooks
-        result = execute_direct(@@C_CONTROLLER, 'app-destroy', args)
-        result_io = parse_result(result, gear)
+        begin
+          result = execute_direct(@@C_CONTROLLER, 'app-destroy', args)
+          result_io = parse_result(result, gear)
+        rescue Exception=>e
+          raise e if has_gear?(gear.uuid)!=false
+          result_io = ResultIO.new
+        end
 
         uid = gear.uid unless uid
 
@@ -2764,8 +2769,6 @@ module OpenShift
       #
       # NOTES:
       # * uses rpc_exec
-      # * loops over all nodes
-      # * No longer being used
       #
       def has_gear?(gear_uuid)
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
