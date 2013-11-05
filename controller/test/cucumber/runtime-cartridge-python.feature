@@ -1,4 +1,4 @@
-@node_extended3
+@cartridge_extended3
 Feature: V2 SDK Python Cartridge
 
   @not-fedora-19

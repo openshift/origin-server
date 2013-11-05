@@ -1,4 +1,4 @@
-@node_extended3
+@cartridge_extended3
 @jboss
 @jbosseap
 Feature: V2 SDK JBossEAP Cartridge

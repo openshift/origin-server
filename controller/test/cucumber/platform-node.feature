@@ -18,7 +18,7 @@ Feature: Account Management
     And a traffic control entry should not exist
     And the account should not be subscribed to cgroup subsystems
     And an account home directory should not exist
-    
+
  Scenario: Delete One Namespace
     When I create a new namespace
     And I delete the namespace

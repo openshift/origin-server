@@ -1,4 +1,4 @@
-@node_extended1
+@cartridge_extended2
 @jboss
 @jbossas
 @not-enterprise

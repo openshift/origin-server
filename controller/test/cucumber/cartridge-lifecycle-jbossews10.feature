@@ -1,5 +1,5 @@
-@node_extended2
-@node_extended
+@cartridge_extended2
+@cartridge_extended
 @rhel-only
 @not-fedora-19
 @jboss

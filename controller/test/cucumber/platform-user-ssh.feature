@@ -14,10 +14,10 @@ Feature: Trap User Shell
     And I can run "this_should_fail" with exit code: 127
     And I can run "true" with exit code: 0
     And I can run "scp" with exit code: 1
-    
+
     When I run the rhcsh command "ctl_all stop"
     Then the application state will be stopped
-    
+
     When I run the rhcsh command "ctl_all start"
     Then the application state will be started
 
@@ -25,12 +25,12 @@ Feature: Trap User Shell
     Then the application state will be started
     Then the mock-0.1 cartridge status should be running
     Then the mock-plugin-0.1 cartridge status should be running
-    
+
     When I run the rhcsh command "ctl_all stop"
     Then the application state will be stopped
     And the mock-0.1 cartridge status should be stopped
     And the mock-plugin-0.1 cartridge status should be stopped
-    
+
     When I run the rhcsh command "ctl_all start"
     Then the application state will be started
     Then the mock-0.1 cartridge status should be running
