@@ -271,7 +271,7 @@ module OpenShift
                 File.chmod(oldstat.mode & 0777, @filename + ".cfg" + "-")
                 FileUtils.mv(@filename + ".cfg" + "-", @filename + ".cfg", :force=>true)
 
-                cmd = %{/sbin/service openshift-sni-proxy reload}
+                cmd = %{/sbin/service openshift-sni-proxy condreload}
                 ::OpenShift::Runtime::Utils::oo_spawn(cmd, :expected_exitstatus=> 0)
               rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
                 NodeLogger.logger.error("ERROR: failed to reload SNI proxy: #{e.rc}: stdout: #{e.stdout} stderr:#{e.stderr}")

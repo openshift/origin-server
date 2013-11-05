@@ -54,7 +54,7 @@ start() {
 
 stop() {
     echo -n $"Stopping $prog: "
-    killproc $prog
+    killproc -p $pidfile $prog
     retval=$?
     echo
     [ $retval -eq 0 ] && rm -f $lockfile
@@ -84,20 +84,21 @@ reload() {
     return $retval
 }
 
-force_reload() {
-    restart
-}
-
 fdr_status() {
     status $prog
 }
 
 case "$1" in
-    start|stop|restart|reload)
+    start)
+        # Fix the IP address and config params if they changed.
+        oo-rebuild-haproxy-sni-proxy || :
+        start
+        ;;
+    stop|restart|reload)
         $1
         ;;
     force-reload)
-        force_reload
+        restart
         ;;
     check)
         check
@@ -106,9 +107,12 @@ case "$1" in
         fdr_status
         ;;
     condrestart|try-restart)
-        [ ! -f $lockfile ] || restart
+        [ -f $lockfile ] && restart
 	;;
+    condreload|try-reload)
+        [ -f $lockfile ] && reload
+        ;;
     *)
-        echo $"Usage: $0 {start|stop|status|restart|try-restart|reload|force-reload}"
+        echo $"Usage: $0 {start|stop|status|restart|try-restart|reload|try-reload|force-reload}"
         exit 2
 esac
