@@ -630,19 +630,18 @@ module OpenShift
       end
 
       def secure_cartridge(short_name, uid, gid=uid, cartridge_home)
-        Dir.chdir(cartridge_home) do
-          @container.set_rw_permission_R(cartridge_home)
+        @container.set_rw_permission_R(cartridge_home)
 
-          files = ManagedFiles::IMMUTABLE_FILES.collect do |file|
-            file.gsub!('*', short_name)
-            file if File.exist?(file)
-          end || []
-          files.compact!
+        files = ManagedFiles::IMMUTABLE_FILES.collect do |file|
+          file.gsub!('*', short_name)
+          file = PathUtils.join(cartridge_home, file)
+          file if File.exist?(file)
+        end || []
+        files.compact!
 
-          unless files.empty?
-            @container.set_ro_permission(files)
-            FileUtils.chmod(0644, files)
-          end
+        unless files.empty?
+          @container.set_ro_permission(files)
+          FileUtils.chmod(0644, files)
         end
       end
 
