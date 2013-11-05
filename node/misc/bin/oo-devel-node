@@ -282,7 +282,7 @@ end
 command :'connector-execute' do |c|
   c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID --cartridge-name NAME \\
      --publishing-cartridge-name NAME --hook-name NAME --connection-type TYPE --input-args ARGS"
-  c.description = 'Need better documentation'
+  c.description = 'Run a specific connection hook in the application'
 
   c.option '-N', '--cartridge-name NAME', 'Unique identifier for the cartridge that the component belongs to'
   c.option '--publishing-cartridge-name NAME', ''
