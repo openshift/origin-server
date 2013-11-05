@@ -152,7 +152,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
-    @user.capabilities["max_untracked_addtl_storage_per_gear"] = 5
+    @user.max_untracked_additional_storage = 5
     @user.save
     app.reload
     app.owner.reload
