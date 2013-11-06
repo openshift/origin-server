@@ -213,9 +213,6 @@ module OpenShift
           buffer << "CLIENT_ERROR: Abandoned cartridge teardowns. There may be extraneous data left on system."
         end
 
-        # Ensure we're not in the gear's directory
-        Dir.chdir(@config.get("GEAR_BASE_DIR"))
-
         # FIXME: V1 contract is there a better way?
         [buffer, '', 0]
       end
@@ -269,28 +266,26 @@ module OpenShift
 
           create_private_endpoints(cartridge)
 
-          Dir.chdir(PathUtils.join(@container.container_dir, cartridge.directory)) do
-            unlock_gear(cartridge) do |c|
-              expected_entries = Dir.glob(PathUtils.join(@container.container_dir, '*'))
+          unlock_gear(cartridge) do |c|
+            expected_entries = Dir.glob(PathUtils.join(@container.container_dir, '*'))
 
-              create_dependency_directories(cartridge)
+            create_dependency_directories(cartridge)
 
-              output << cartridge_action(cartridge, 'setup', software_version, true)
-              output << process_erb_templates(c)
-              output << cartridge_action(cartridge, 'install', software_version)
+            output << cartridge_action(cartridge, 'setup', software_version, true)
+            output << process_erb_templates(c)
+            output << cartridge_action(cartridge, 'install', software_version)
 
-              actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
-              illegal_entries = actual_entries - expected_entries
-              unless illegal_entries.empty?
-                raise RuntimeError.new(
-                          "Cartridge created the following directories in the gear home directory: #{illegal_entries.join(', ')}")
-              end
-
-              output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
+            actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
+            illegal_entries = actual_entries - expected_entries
+            unless illegal_entries.empty?
+              raise RuntimeError.new(
+                        "Cartridge created the following directories in the gear home directory: #{illegal_entries.join(', ')}")
             end
 
-            validate_cartridge(cartridge)
+            output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
           end
+
+          validate_cartridge(cartridge)
 
           output << connect_frontend(cartridge)
         end

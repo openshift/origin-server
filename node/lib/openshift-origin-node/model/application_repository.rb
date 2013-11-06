@@ -47,9 +47,7 @@ module OpenShift
       # Returns +true+ if the given +filename+ exists in the tree for the git ref +ref+
       # of the repository, otherwise +false+.
       def file_exists?(filename, ref)
-        Dir.chdir(@path) do
-          return (not `git ls-tree #{ref} -- #{filename}`.chomp.strip.empty?)
-        end
+        return (not `cd #{@path}; git ls-tree #{ref} -- #{filename}`.chomp.strip.empty?)
       end
 
       def empty?
