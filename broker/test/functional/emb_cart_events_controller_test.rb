@@ -9,7 +9,7 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     @login = "user#{@random}"
     @user = CloudUser.new(login: @login)
     @password = "password"
-    @user.capabilities["private_ssl_certificates"] = true
+    @user.private_ssl_certificates = true
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)    
