@@ -253,7 +253,7 @@ class Upgrader
 
     raise "Couldn't find node queue at #{node_queue_path}" unless File.exists?(node_queue_path)
     raise "Couldn't find cluster metadata at #{cluster_metadata_path}" unless File.exists?(cluster_metadata_path)
-    
+
     puts "Loading cluster metadata from #{cluster_metadata_path}"
     metadata = OpenShift::Upgrader::ClusterMetadata.from_json_file(cluster_metadata_path)
 
@@ -733,13 +733,6 @@ class Upgrader
           :version => version,
           :ignore_cartridge_version => ignore_cartridge_version.to_s
         }
-
-        unless app.scalable
-          bk = OpenShift::Auth::BrokerKey.new
-          auth_iv, auth_token = bk.generate_broker_key(app)
-          upgrade_args[:auth_token] = auth_token
-          upgrade_args[:auth_iv] = auth_iv
-        end
 
         Timeout::timeout(420) do
           OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
