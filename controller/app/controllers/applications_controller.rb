@@ -85,7 +85,7 @@ class ApplicationsController < BaseController
 
     if not authorized?(:create_application, @domain)
       if authorized?(:create_builder_application, @domain, {
-            :cartridges => cart_params, 
+            :cartridges => cart_params,
             :gear_sizes => app_gear_sizes,
             :valid_gear_sizes => valid_sizes,
             :domain_id => @domain._id
@@ -104,9 +104,9 @@ class ApplicationsController < BaseController
     return render_error(:forbidden, "The owner of the domain #{@domain.namespace} has disabled all gear sizes from being created.  You will not be able to create an application in this domain.",
                         134) if valid_sizes.empty?
 
-    return render_error(:unprocessable_entity, "App gear sizes: #{app_gear_sizes.to_sentence} is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.",
-                        134, "gear_size") unless (app_gear_sizes - valid_sizes).empty?
-
+    invalid_sizes = (app_gear_sizes - valid_sizes).map {|s| "'#{s}'"}
+    return render_error(:unprocessable_entity, "The gear sizes #{invalid_sizes.to_sentence} are not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.", 134, "gear_size") if (invalid_sizes.length > 1)
+    return render_error(:unprocessable_entity, "The gear size #{invalid_sizes.to_sentence} is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.", 134, "gear_size") if (invalid_sizes.length == 1)
 
     #auto_deploy = get_bool(params[:auto_deploy]) if params[:auto_deploy].presence || false
     #auto_deploy = get_bool(auto_deploy)
@@ -129,7 +129,7 @@ class ApplicationsController < BaseController
       return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "name")
     end
 
-    return render_error(:unprocessable_entity, 
+    return render_error(:unprocessable_entity,
                         "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
                         104) if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
 
