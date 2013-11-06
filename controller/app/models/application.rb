@@ -1233,7 +1233,7 @@ class Application
       component_instances.each do |ci|
         ci.group_instance.gears.each do |gear|
           unless gear.removed
-            gears << gear if gear.sparse_carts.include?(ci._id) and ci.is_web_proxy?
+            gears << gear if (gear.host_singletons or gear.sparse_carts.include?(ci._id)) and ci.is_web_proxy?
           end
         end
       end
