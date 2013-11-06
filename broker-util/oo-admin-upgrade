@@ -379,6 +379,8 @@ class Upgrader
   def create_upgrade_queues(opts)
     raise "Node queue file already exists at #{node_queue_path}" if File.exists?(node_queue_path)
 
+    FileUtils.touch(node_queue_path)
+
     target_server_identity = opts[:target_server_identity]
     upgrade_position = opts[:upgrade_position]
     num_upgraders = opts[:num_upgraders]
