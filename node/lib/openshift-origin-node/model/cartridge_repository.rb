@@ -198,6 +198,10 @@ module OpenShift
           raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
         end
 
+        if installed_in_base_path?(cartridge_name)
+          raise ArgumentError.new("Cannot erase cartridge installed in CARTRIDGE_BASE_PATH")
+        end
+
         entry = nil
         $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
           # find a "template" entry
@@ -213,6 +217,13 @@ module OpenShift
         end
 
         entry
+      end
+
+      def installed_in_base_path?(cartridge_name)
+        config = OpenShift::Config.new
+        cartridge_base_path = config.get('CARTRIDGE_BASE_PATH')
+
+        File.exists?(PathUtils.join(cartridge_base_path, cartridge_name))
       end
 
       # :call-seq:
