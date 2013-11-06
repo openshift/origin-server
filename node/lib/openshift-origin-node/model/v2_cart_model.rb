@@ -928,6 +928,16 @@ module OpenShift
         logger.info "Deleted private endpoints for #{@container.uuid}/#{cartridge.directory}"
       end
 
+      def delete_private_endpoint(cartridge, endpoint, remove_private_ip=false)
+        logger.info "Deleting private endpoint #{endpoint.private_ip_name}:#{endpoint.private_port_name} for #{@container.uuid}/#{cartridge.directory}"
+
+        @container.remove_env_var(endpoint.private_ip_name) if remove_private_ip
+        @container.remove_env_var(endpoint.private_port_name)
+        disconnect_frontend_for_endpoint(cartridge, endpoint)
+
+        logger.info "Deleted private endpoint #{endpoint.private_ip_name}:#{endpoint.private_port_name} for #{@container.uuid}/#{cartridge.directory}"
+      end
+
       # Finds the next IP address available for binding of the given port for
       # the current gear user. The IP is assumed to be available only if the IP is
       # not already associated with an existing endpoint defined by any cartridge within the gear.
@@ -975,6 +985,18 @@ module OpenShift
         end
 
         allocated_ips
+      end
+
+      def disconnect_frontend_for_endpoint(cartridge, endpoint)
+        mappings = []
+        endpoint.mappings.each do |mapping|
+          mappings << mapping.frontend
+        end
+
+        logger.info("Disconnecting frontend mapping for #{@container.uuid}/#{cartridge.name}: #{mappings.inspect}")
+        unless mappings.empty?
+          FrontendHttpServer.new(@container).disconnect(*mappings)
+        end
       end
 
       # disconnect cartridge from frontend proxy

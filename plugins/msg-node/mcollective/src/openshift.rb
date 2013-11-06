@@ -222,6 +222,7 @@ module MCollective
         namespace = request[:namespace]
         version = request[:version]
         ignore_cartridge_version = request[:ignore_cartridge_version] == 'true' ? true : false
+        scalable = request[:scalable]
         hostname = Facter.value(:hostname)
 
         error_message = nil
@@ -229,7 +230,7 @@ module MCollective
 
         begin
           require 'openshift-origin-node/model/upgrade'
-          upgrader = OpenShift::Runtime::Upgrader.new(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, OpenShift::Runtime::Utils::Hourglass.new(235))
+          upgrader = OpenShift::Runtime::Upgrader.new(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, scalable, OpenShift::Runtime::Utils::Hourglass.new(235))
         rescue Exception => e
           report_exception e
           exitcode = 1

@@ -1497,14 +1497,14 @@ class Application
         op_group = AddBrokerAuthKeyOpGroup.new(iv: iv, token: token, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp } })
       when "NOTIFY_ENDPOINT_CREATE"
-        if gear and component_id
+        if gear 
           pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args])
           gear.port_interfaces.push(pi)
           pi.publish_endpoint(self) if self.ha
         end
         # OpenShift::RoutingService.notify_create_public_endpoint self, *command_item[:args]
       when "NOTIFY_ENDPOINT_DELETE"
-        PortInterface.remove_port_interface(gear, component_id, *command_item[:args]) if gear and component_id
+        PortInterface.remove_port_interface(gear, component_id, *command_item[:args]) if gear 
         OpenShift::RoutingService.notify_delete_public_endpoint self, *command_item[:args] if self.ha
       end
     end

@@ -73,6 +73,34 @@ module OpenShift
 
         class Mapping
           attr_accessor :frontend, :backend, :options
+
+          def from_json_hash(json_hash={})
+            self.frontend = json_hash['frontend']
+            self.backend  = json_hash['backend']
+            self.options  = json_hash['options']
+            self
+          end
+        end
+
+        def from_json_hash(json_hash = {})
+          self.private_ip_name     = json_hash['private_ip_name']
+          self.private_port_name   = json_hash['private_port_name']
+          self.private_port        = json_hash['private_port']
+          self.public_port_name    = json_hash['public_port_name']
+          self.websocket_port_name = json_hash['websocket_port_name']
+          self.websocket_port      = json_hash['websocket_port']
+          self.options             = json_hash['options']
+          self.protocols           = json_hash['protocols']
+          self.description         = json_hash['description']
+
+          self.mappings = []
+          if json_hash.has_key?('mappings') and json_hash['mappings'].respond_to?(:each)
+            json_hash['mappings'].each do |m|
+              self.mappings << Endpoint::Mapping.new.from_json_hash(m)
+            end
+          end
+
+          self
         end
 
         # :call-seq:

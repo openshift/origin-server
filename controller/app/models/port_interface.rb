@@ -29,6 +29,7 @@ class PortInterface
 
   def self.create_port_interface(gear, component_id, endpoint_hash)
     # ep_name, pub_ip, public_port, internal_addr, internal_port)
+    cart_name = endpoint_hash["cartridge_name"]
     public_ip = endpoint_hash["external_address"]
     public_port = endpoint_hash["external_port"]
     internal_ip = endpoint_hash["internal_address"]
@@ -44,7 +45,11 @@ class PortInterface
       gear.port_interfaces.delete(pi)
     end
 
-    comp = gear.app.component_instances.find_by(_id: component_id)
+    if component_id
+      comp = gear.app.component_instances.find_by(_id: component_id)
+    elsif cart_name
+      comp = gear.app.component_instances.find_by(cartridge_name: cart_name)
+    end
     PortInterface.new(cartridge_name: comp.cartridge_name, external_port: public_port.to_s, internal_port: internal_port.to_s, internal_address: internal_ip, protocols: protocols, type: types, mappings: mappings)
   end
 

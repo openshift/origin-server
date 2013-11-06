@@ -72,7 +72,7 @@ module OpenShift
                   :ignore_cartridge_version, :gear_home, :gear_env, :progress, :container, 
                   :gear_extension, :config, :hourglass
 
-      def initialize(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, hourglass = nil)
+      def initialize(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, scalable, hourglass = nil)
         @uuid = uuid
         @application_uuid = application_uuid
         @namespace = namespace
@@ -81,6 +81,7 @@ module OpenShift
         @ignore_cartridge_version = ignore_cartridge_version
         @config = OpenShift::Config.new
         @hourglass = hourglass || OpenShift::Runtime::Utils::Hourglass.new(235)
+        @scalable = scalable
 
         gear_base_dir = @config.get('GEAR_BASE_DIR')
         @gear_home = PathUtils.join(gear_base_dir, uuid)
@@ -103,7 +104,7 @@ module OpenShift
       # harmless changes the 2-n times around.
       #
       def execute
-        result = {
+        @result = {
           gear_uuid: @uuid,
           hostname: @hostname,
           steps: [],
@@ -112,38 +113,39 @@ module OpenShift
           warnings: [],
           itinerary: {},
           times: {},
+          broker_directives: [], # This stores messages/directives meant to be processed by the broker
           log: nil
         }
 
         if !File.directory?(gear_home) || File.symlink?(gear_home)
-          result[:errors] << "Application not found to upgrade: #{gear_home}"
-          return result
+          @result[:errors] << "Application not found to upgrade: #{gear_home}"
+          return @result
         end
 
         gear_env = OpenShift::Runtime::Utils::Environ.for_gear(gear_home)
         unless gear_env.key?('OPENSHIFT_GEAR_NAME') && gear_env.key?('OPENSHIFT_APP_NAME')
-          result[:warnings] << "Missing OPENSHIFT_GEAR_NAME and OPENSHIFT_APP_NAME variables"
-          result[:upgrade_complete] = true
-          return result
+          @result[:warnings] << "Missing OPENSHIFT_GEAR_NAME and OPENSHIFT_APP_NAME variables"
+          @result[:upgrade_complete] = true
+          return @result
         end
 
         begin
           load_gear_extension
         rescue => e
-          result[:errors] << e.message
-          return result
+          @result[:errors] << e.message
+          return @result
         end
 
         begin
           initialize_metadata_store
         rescue => e
-          result[:errors] << "Error initializing metadata store: #{e.message}"
-          return result
+          @result[:errors] << "Error initializing metadata store: #{e.message}"
+          return @result
         end
 
         begin
           start_time = timestamp
-          result[:times][:start_time] = start_time
+          @result[:times][:start_time] = start_time
           restart_time = 0
 
           progress.log "Beginning #{version} upgrade for #{uuid}"
@@ -152,10 +154,10 @@ module OpenShift
           gear_pre_upgrade
 
           itinerary = compute_itinerary
-          result[:itinerary] = itinerary.entries
+          @result[:itinerary] = itinerary.entries
 
           restart_time = upgrade_cartridges(itinerary)
-          result[:times][:restart] = restart_time
+          @result[:times][:restart] = restart_time
 
           gear_post_upgrade
 
@@ -169,10 +171,10 @@ module OpenShift
             cleanup
           end
 
-          result[:upgrade_complete] = true
+          @result[:upgrade_complete] = true
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
           progress.log "Caught an exception during upgrade: #{e.message}"
-          result[:errors] << {
+          @result[:errors] << {
             :rc => e.rc,
             :stdout => e.stdout,
             :stderr => e.stderr,
@@ -181,20 +183,20 @@ module OpenShift
           }
         rescue Exception => e
           progress.log "Caught an exception during upgrade: #{e.message}"
-          result[:errors] << {
+          @result[:errors] << {
             :message => e.message,
             :backtrace => e.backtrace.join("\n")
           }
         ensure
           total_time = timestamp - start_time
           progress.log "Total upgrade time on node (ms): #{total_time}"
-          result[:times][:upgrade_on_node_measured_from_node] = total_time
+          @result[:times][:upgrade_on_node_measured_from_node] = total_time
         end
 
-        result[:steps] = progress.steps
-        result[:log] = progress.buffer
+        @result[:steps] = progress.steps
+        @result[:log] = progress.buffer
 
-        result
+        @result
       end
 
       def load_gear_extension
@@ -271,6 +273,79 @@ module OpenShift
         end
       end
 
+      def compute_endpoints_upgrade_data(current_manifest, next_manifest)
+        curr_ep_hash = {}
+        next_ep_hash = {}
+
+        # Store current and next endpoints into a hash for easier computations.
+        current_manifest.endpoints.each do |ep|
+          curr_ep_hash["#{ep.private_ip_name}:#{ep.private_port_name}"] = ep
+        end
+
+        next_manifest.endpoints.each do |ep|
+          next_ep_hash["#{ep.private_ip_name}:#{ep.private_port_name}"] = ep
+        end
+
+        gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+
+        endpoints_upgrade_data = {
+            private_endpoints_remove: [],
+            public_endpoints_remove: [],
+            public_endpoints_add: []
+        }
+
+        # Construct a list of removed endpoints.
+        remove_list = (curr_ep_hash.keys - next_ep_hash.keys)
+
+        # Populate the endpoints upgrade data
+        # Add entries for any endpoints that got removed.
+        remove_list.each do |ep|
+          e1 = curr_ep_hash[ep]
+
+          ip_used = next_manifest.endpoints.select { |endpoint| e1.private_ip_name == endpoint.private_ip_name }
+          if ip_used.empty?
+            endpoints_upgrade_data[:private_endpoints_remove] << {endpoint: e1, remove_ip_env_var: true}
+          else
+            endpoints_upgrade_data[:private_endpoints_remove] << {endpoint: e1, remove_ip_env_var: true}
+          end
+
+          if e1.public_port_name
+            public_port = gear_env[e1.public_port_name]
+            endpoints_upgrade_data[:public_endpoints_remove] << {endpoint: e1, public_port: public_port}
+          end
+        end
+
+        # Add entries for any new endpoints that got added with public endpoints
+        add_list = (next_ep_hash.keys - curr_ep_hash.keys)
+
+        add_list.each do |ep|
+          e1 = next_ep_hash[ep]
+
+          if e1.public_port_name
+            endpoints_upgrade_data[:public_endpoints_add] << {endpoint: e1} if @scalable
+          end
+        end
+
+        # Add entries for public endpoints that got added/removed for existing endpoints.
+        common_list = (curr_ep_hash.keys & next_ep_hash.keys)
+
+        common_list.each do |ep|
+          e1 = curr_ep_hash[ep]
+          e2 = next_ep_hash[ep]
+
+          if e1.public_port_name and not e2.public_port_name then
+            public_port = gear_env[e1.public_port_name]
+            endpoints_upgrade_data[:public_endpoints_remove] << {endpoint: e1, public_port: public_port}
+          end
+
+          if e2.public_port_name and not e1.public_port_name then
+            endpoints_upgrade_data[:public_endpoints_add] << {endpoint: e2} if @scalable
+          end
+        end
+
+        endpoints_upgrade_data
+      end
+
       #
       # Compute the upgrade itinerary for the gear
       #
@@ -325,7 +400,7 @@ module OpenShift
             end
 
             progress.log "Creating itinerary entry for #{upgrade_type.downcase} upgrade of #{ident}"
-            itinerary.create_entry("#{name}-#{version}", upgrade_type)
+            itinerary.create_entry("#{name}-#{version}", upgrade_type, compute_endpoints_upgrade_data(manifest, next_manifest))
           end
 
           itinerary.persist
@@ -380,7 +455,7 @@ module OpenShift
 
           OpenShift::Runtime::Utils::Cgroups.new(uuid).boost do
           Dir.chdir(container.container_dir) do
-            itinerary.each_cartridge do |cartridge_name, upgrade_type|
+            itinerary.each_cartridge do |cartridge_name, upgrade_info|
               manifest = cartridge_model.get_cartridge(cartridge_name)
               cartridge_path = File.join(gear_home, manifest.directory)
 
@@ -397,14 +472,14 @@ module OpenShift
               progress.step "#{name}_upgrade_cart" do |context, errors|
                 context[:cartridge] = name.downcase
 
-                if upgrade_type == UpgradeType::COMPATIBLE
+                if upgrade_info[:upgrade_type] == UpgradeType::COMPATIBLE
                   progress.log "Compatible upgrade of cartridge #{ident}"
                   context[:compatible] = true
                   compatible_upgrade(cartridge_model, cartridge_version, next_manifest, cartridge_path)
                 else
                   progress.log "Incompatible upgrade of cartridge #{ident}"
                   context[:compatible] = false
-                  incompatible_upgrade(cartridge_model, cartridge_version, next_manifest, version, cartridge_path)
+                  incompatible_upgrade(cartridge_model, cartridge_version, manifest, next_manifest, version, cartridge_path, upgrade_info["upgrade_data"])
                 end
               end
 
@@ -478,6 +553,10 @@ module OpenShift
         return [reset_block_quota | reset_inode_quota, quota[:blocks_limit], quota[:inodes_limit]]
       end
 
+      def add_broker_directive(msg)
+        @result[:broker_directives] << msg
+      end
+
       #
       # Upgrade a cartridge from a compatible prior version:
       #
@@ -499,6 +578,61 @@ module OpenShift
         end
       end
 
+      # Handle migration of endpoints between two versions of a cartridge.
+      # Removal of private endpoints and addition/removal of public endpoints are handled.
+      def upgrade_endpoints(cart_model, current_manifest, next_manifest, upgrade_data)
+        gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+        name = next_manifest.name
+
+        upgrade_data["private_endpoints_remove"].each do |entry|
+          ep = entry["endpoint"]
+          private_port_name = ep["private_port_name"]
+          progress.step "#{private_port_name.downcase}_remove_private_endpoint" do |context, errors|
+            context[:cartridge] = name.downcase
+            progress.log "Removing private endpoint #{private_port_name}"
+            if gear_env.has_key?(private_port_name)
+              endp = ::OpenShift::Runtime::Manifest::Endpoint.new.from_json_hash(ep)
+              cart_model.delete_private_endpoint(current_manifest, endp , ep["remove_ip_env_var"])
+            end
+          end
+        end
+
+        upgrade_data["public_endpoints_remove"].each do |entry|
+          ep = entry["endpoint"]
+          public_port_name = ep["public_port_name"]
+          public_port = entry["public_port"]
+          progress.step "#{public_port_name.downcase}_remove_public_endpoint" do |context, errors|
+            context[:cartridge] = name.downcase
+            progress.log "Removing public endpoint #{public_port_name}."
+            if gear_env.has_key?(public_port_name)
+              @container.delete_public_endpoint(public_port_name, public_port)
+              add_broker_directive "NOTIFY_ENDPOINT_DELETE: #{@config.get('PUBLIC_IP')} #{public_port}\n"
+            end
+          end
+        end
+
+        upgrade_data["public_endpoints_add"].each do |entry|
+          ep = entry["endpoint"]
+          public_port_name = ep["public_port_name"]
+          private_ip   = gear_env[ep["private_ip_name"]]
+          private_port = ep["private_port"]
+          progress.step "#{public_port_name.downcase}_add_public_endpoint" do |context, errors|
+            context[:cartridge] = name.downcase
+            progress.log "Adding public endpoint #{public_port_name}."
+            endp = ::OpenShift::Runtime::Manifest::Endpoint.new.from_json_hash(ep)
+            if gear_env.has_key?(public_port_name)
+              progress.log "Public endpoint #{public_port_name} already present."
+              public_port = gear_env[public_port_name]
+              add_broker_directive @container.generate_endpoint_creation_notification_msg(next_manifest, endp, private_ip, public_port)
+            else
+              public_port  = @container.create_public_endpoint(private_ip, private_port)
+              @container.add_env_var(public_port_name, public_port)
+              add_broker_directive @container.generate_endpoint_creation_notification_msg(next_manifest, endp, private_ip, public_port)
+            end
+          end
+        end
+      end
+
       #
       # Upgrade a cartridge from an incompatible prior version:
       #
@@ -510,7 +644,7 @@ module OpenShift
       #   3. Process the ERB templates
       # 4. Connect the frontend
       #
-      def incompatible_upgrade(cart_model, current_version, next_manifest, version, target)
+      def incompatible_upgrade(cart_model, current_version, current_manifest, next_manifest, version, target, upgrade_data)
         container.setup_rewritten(next_manifest).each do |entry|
           FileUtils.rm entry if File.file? entry
           FileUtils.rm_r entry if File.directory? entry
@@ -542,6 +676,8 @@ module OpenShift
           context[:cartridge] = name.downcase
           cart_model.create_private_endpoints(next_manifest)
         end
+
+        upgrade_endpoints(cart_model, current_manifest, next_manifest, upgrade_data)
 
         progress.step "#{name}_connect_frontend" do |context, errors|
           context[:cartridge] = name.downcase

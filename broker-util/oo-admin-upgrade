@@ -750,6 +750,7 @@ class Upgrader
           :namespace => app.domain.namespace,
           :app_uuid => app.uuid,
           :version => version,
+          :scalable => app.scalable,
           :ignore_cartridge_version => ignore_cartridge_version.to_s
         }
 
@@ -770,7 +771,15 @@ class Upgrader
           else
             gear_result.remote_upgrade_result = JSON.load(remote_result_json)
 
-            unless gear_result.remote_upgrade_result['upgrade_complete']
+            if gear_result.remote_upgrade_result['upgrade_complete']
+              directives = gear_result.remote_upgrade_result['broker_directives']
+              directives.each do |command|
+                res = ResultIO.new
+                res.parse_output(command, gear_uuid)
+                app.process_commands(res, nil, gear)
+              end
+              app.execute_connections unless directives.empty?
+            else
               gear_result.errors << "Gear upgrade result is marked incomplete"
             end
           end
