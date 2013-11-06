@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.11
+Version: 1.16.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Nov 06 2013 Adam Miller <admiller@redhat.com> 1.16.12-1
+- Fix all invalid IPs in the iptables nat file (andy.goldstein@gmail.com)
+
 * Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.11-1
 - Merge pull request #4065 from pmorie/bugs/1025261
   (dmcphers+openshiftbot@redhat.com)
