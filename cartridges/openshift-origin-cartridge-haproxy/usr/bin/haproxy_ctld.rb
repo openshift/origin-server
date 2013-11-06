@@ -320,8 +320,7 @@ class Haproxy
         else
             seconds_left = 0
         end
-        @log.debug("GEAR_INFO - capacity: #{session_capacity_pct}% gear_count: #{gear_count} sessions: #{sessions} up/remove_thresh: #{@gear_up_pct}%/#{@gear_remove_pct}% sec_left_til_remove: #{seconds_left} gear_remove_thresh: #{@remove_count}/#{@remove_count_threshold}")
-        @log.debug("MAX_SESSIONS_PER_GEAR - #{@max_sessions_per_gear}")
+        @log.debug("GEAR_INFO - capacity: #{session_capacity_pct}% gear_count: #{gear_count} sessions: #{sessions}/#{@max_sessions_per_gear} up/remove_thresh: #{@gear_up_pct}%/#{@gear_remove_pct}% sec_left_til_remove: #{seconds_left} gear_remove_thresh: #{@remove_count}/#{@remove_count_threshold}")
     end
 
 
@@ -511,9 +510,14 @@ class Haproxy
       if File.exists? sessions_file
         sessions_data = File.read(sessions_file)
         begin
-          max_sessions = sessions_data.to_i
+          if sessions_data.to_i <= 0
+            @log.info("Unable to use negative or zero sessions! Using default...")
+            max_sessions = 20
+          else 
+            max_sessions = sessions_data.to_i
+          end
         rescue Exception => e
-          @@log.error("Unable to get gear's max sessions because of #{e.message}")
+          @log.error("Unable to get gear's max sessions because of #{e.message}")
         end
       end
       return max_sessions
