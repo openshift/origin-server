@@ -86,4 +86,32 @@ class DeploymentsControllerTest < ActionController::TestCase
     get :show, {"application_id" => @app.id, "id" => "bogus"}
     assert_response :not_found
   end
+
+  test "validate supported binary artifact formats" do
+    @domain.members.find(@user).role = :edit
+    @domain.save; @domain.run_jobs
+
+    supported_artifact_urls = ["http://localhost/test1.tgz", "http://localhost/test2.tar.gz", "https://localhost/test3.tgz", "https://localhost/test4.tar.gz", "ftp://localhost/test5.tgz", "ftp://localhost/test6.tar.gz"]
+    unsupported_artifact_urls = ["badurl1/test7.tgz", "notreal://localhost/test8.tgz", "http://localhost/test9.txt", "https://localhost/test10.txt", "http://localhost/test11", "test12", "-1", '!@#!@#@!#!', "not a url", '$%*!&#@!&#!)*#@!DAZSXCAS#R@#_@(_$*%)@*)#@*$_#@i[sadfsa]ew34122]\safdsa|xczxcz', '&^#$%!CSCA#@$#@FDS', "http://localhost/test13.tar", "http://somehost/test14.gz"]
+
+    supported_artifact_urls.each { |test_url|
+      ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch", :sha1 => "1234", :created_at => Time.now, :activations => [Time.now, Time.now]}])
+      post :create, { "application_id" => @app._id, "artifact_url" => test_url }
+      assert_response :success
+      json          = JSON.parse(response.body)
+      assert_equal "1", json["data"]["id"]
+    }
+
+    unsupported_artifact_urls.each { |test_url|
+      ResultIO.any_instance.stubs(:deployments).returns([{:id => 1, :ref => "mybranch", :sha1 => "1234", :created_at => Time.now, :activations => [Time.now, Time.now]}])
+      post :create, { "application_id" => @app._id, "artifact_url" => test_url }
+      json          = JSON.parse(response.body)
+      message       = json["messages"][0]
+      msg_exit_code = 105
+      msg_test      = "Invalid Binary Artifact URL(#{test_url})"
+      assert_equal msg_test, message["text"]
+      assert_equal msg_exit_code, message["exit_code"]
+    }
+  end
+
 end

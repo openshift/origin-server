@@ -867,6 +867,7 @@ module OpenShift
         args['--with-hot-deploy'] = hot_deploy
         args['--with-force-clean-build'] = force_clean_build
         args['--with-ref'] = ref
+        args['--with-artifact-url'] = artifact_url
 
         result_io = run_cartridge_command(@@C_CONTROLLER, gear, "deploy", args)
         return result_io

@@ -220,7 +220,7 @@ class RestApplication10 < OpenShift::Model
         "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment-variables")),
         "DEPLOY" => Link.new("Deploy the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), nil,[
           OptionalParam.new("ref", "string", "Git ref (tag, branch, commit id)", nil, "master"),
-          #OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "N/A"),
+          OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from"),
           OptionalParam.new("hot_deploy", "boolean", "Indicates whether this is a hot deployment", "true or false", false),
           OptionalParam.new("force_clean_build", "string", "Indicates whether a clean build should be performed", "true or false", false),
         ]),

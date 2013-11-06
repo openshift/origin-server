@@ -28,16 +28,41 @@ class DeploymentsController < BaseController
     hot_deploy = params[:hot_deploy].presence || false
     force_clean_build = params[:force_clean_build].presence || false
     ref = params[:ref].presence
-    #disabling artifact_url for now
-    #artifact_url = params[:artifact_url].presence
-    artifact_url = nil
+    artifact_url = params[:artifact_url].presence
     return render_error(:unprocessable_entity, "Git ref must be less than 256 characters",
                           105, "name") if ref && ref.length > 256
+
+    return render_error(:unprocessable_entity, "Invalid Binary Artifact URL(#{artifact_url})",
+                          105, "name") if artifact_url && is_invalid_binary_artifact_url(artifact_url)
+
+    return render_error(:unprocessable_entity, "Cannot specify a git deployment and a binary artifact deployment",
+                          105, "name") if artifact_url && ref
 
     result = @application.deploy(hot_deploy, force_clean_build, ref, artifact_url)
     deployment = @application.deployments.sort_by {|deployment| deployment.activations.last ? deployment.activations.last : 0 }.last
     rest_deployment = get_rest_deployment(deployment)
     render_success(:created, "deployment", rest_deployment, "Added #{deployment.deployment_id} to application #{@application.name}", result)
+  end
+
+  # Return false if the artifact url passes all validation checks
+  def is_invalid_binary_artifact_url(new_artifact_url)
+    begin
+      screening_url = URI(new_artifact_url)
+      if screening_url.scheme == "http" or screening_url.scheme == "https" or screening_url.scheme == "ftp"
+        case
+          when screening_url.path.slice(-4, 4) == ".tgz"
+            return false
+          when screening_url.path.slice(-7, 7) == ".tar.gz"
+            return false
+          else
+            return true
+        end
+      else
+        return true
+      end
+    rescue
+      return true
+    end
   end
 
   def update

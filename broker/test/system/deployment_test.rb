@@ -141,6 +141,50 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     body = JSON.parse(@response.body)
     assert_equal(3, body["data"].length, "There should only be 3 deployments kept")
 
+    #create binary deployment for tar.gz
+    request_via_redirect(:post, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {:artifact_url=> "http://localhost/deploymentvalidation.tar.gz"}, @headers)
+    assert_response :created
+    assert_response :success
+    body = JSON.parse(@response.body)
+    binary_deployment_id = body["data"]["id"]
+
+    assert_equal(false , body["data"]["hot_deploy"], "hot_deploy is #{body["data"]["hot_deploy"]} where it should be false")
+    assert_equal(false , body["data"]["force_clean_build"], "force_clean_build is #{body["data"]["force_clean_build"]} where it should be false")
+    # query deployment list
+    request_via_redirect(:get, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {}, @headers)
+    assert_response :ok
+    body = JSON.parse(@response.body)
+    assert_equal(3, body["data"].length)
+    missing_id = true
+    body["data"].each { |activation_hash|
+      if activation_hash["id"] == binary_deployment_id
+        missing_id = false
+      end
+    }
+    assert_equal missing_id, false
+
+    #create binary deployment for tgz
+    request_via_redirect(:post, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {:artifact_url=> "http://localhost/deploymentvalidationv2.tgz"}, @headers)
+    assert_response :created
+    assert_response :success
+    body = JSON.parse(@response.body)
+    binary_deployment_id_tgz = body["data"]["id"]
+
+    assert_equal(false , body["data"]["hot_deploy"], "hot_deploy is #{body["data"]["hot_deploy"]} where it should be false")
+    assert_equal(false , body["data"]["force_clean_build"], "force_clean_build is #{body["data"]["force_clean_build"]} where it should be false")
+    # query deployment list
+    request_via_redirect(:get, APP_DEPLOYMENT_COLLECTION_URL_FORMAT % [@ns, @app], {}, @headers)
+    assert_response :ok
+    body = JSON.parse(@response.body)
+    assert_equal(3, body["data"].length)
+    missing_id = true
+    body["data"].each { |activation_hash|
+      if activation_hash["id"] == binary_deployment_id_tgz
+        missing_id = false
+      end
+    }
+    assert_equal missing_id, false
+
   end
 
 end
