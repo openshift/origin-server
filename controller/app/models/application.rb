@@ -1540,42 +1540,65 @@ class Application
     result_io = ResultIO.new if result_io.nil?
     self.reload
     op_group = nil
-    begin
-      while self.pending_op_groups.count > 0
-        op_group = self.pending_op_groups.first
-        self.user_agent = op_group.user_agent
+    while self.pending_op_groups.count > 0
+      rollback_pending = false
+      op_group = self.pending_op_groups.first
+      self.user_agent = op_group.user_agent
+
+      begin
         op_group.elaborate(self) if op_group.pending_ops.count == 0
 
         if op_group.pending_ops.where(:state => :rolledback).count > 0
+          rollback_pending = true
           raise Exception.new("Op group is already being rolled back.")
         end
 
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
+      rescue Exception => e_orig
+        Rails.logger.error e_orig.message
+        # don't log the error stacktrace if this exception was raised just to trigger a rollback 
+        Rails.logger.debug e_orig.backtrace.inspect unless rollback_pending
+  
+        #rollback
+        begin
+          op_group.execute_rollback(result_io)
+          op_group.delete
+          num_gears_recovered = op_group.num_gears_added - op_group.num_gears_created + op_group.num_gears_rolled_back + op_group.num_gears_destroyed
+          op_group.unreserve_gears(num_gears_recovered, self)
+        rescue Exception => e_rollback
+          Rails.logger.error "Error during rollback"
+          Rails.logger.error e_rollback.message
+          Rails.logger.error e_rollback.backtrace.inspect
 
-        unless (op_group.class == DeleteAppOpGroup) or (op_group.class == RemoveFeaturesOpGroup and op_group.remove_all_features)
-          self.reload
+          # if the original exception was raised just to trigger a rollback
+          # then the rollback exception is the only thing of value and hence return/raise it
+          raise e_rollback if rollback_pending
+        end
+
+        # raise the original exception if it was the actual exception that led to the rollback
+        unless rollback_pending
+          if e_orig.respond_to? 'resultIO' and e_orig.resultIO
+            e_orig.resultIO.append result_io
+          end
+          raise e_orig
         end
       end
-      true
-    rescue Exception => e_orig
-      Rails.logger.error e_orig.message
-      Rails.logger.debug e_orig.backtrace.inspect
 
-      #rollback
       begin
-        op_group.execute_rollback(result_io)
-        op_group.delete
-        num_gears_recovered = op_group.num_gears_added - op_group.num_gears_created + op_group.num_gears_rolled_back + op_group.num_gears_destroyed
-        op_group.unreserve_gears(num_gears_recovered, self)
-      rescue Exception => e_rollback
-        Rails.logger.error "Error during rollback"
-        Rails.logger.error e_rollback.message
-        Rails.logger.error e_rollback.backtrace.inspect
+        self.reload
+      rescue Mongoid::Errors::DocumentNotFound
+        # ignore the exception, if the application has been deleted
+        # the app could be deleted based on the user's app deletion request
+        # or it could be the result of a rollback of an app creation request
+
+        # just break out of the loop
+        break
       end
-      raise e_orig
     end
+
+    true
   end
 
   def with_lock(&block)
