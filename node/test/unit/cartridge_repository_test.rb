@@ -114,6 +114,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert cr.exist?('crtest', '0.1', '0.0.2')
     assert cr.exist?('crtest', '0.2', '0.0.2')
 
+    cr.expects(:installed_in_base_path?).with('crtest').returns(false)
     cr.erase('crtest', '0.2', '0.0.2')
 
     refute cr.exist?('crtest', '0.2', '0.0.2')
@@ -128,7 +129,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
 
     e = cr.select('crtest', '0.1')
     assert_equal '0.0.1', e.cartridge_version
-
+    
+    cr.expects(:installed_in_base_path?).with('crtest').returns(false)
     cr.erase('crtest', '0.1', '0.0.1')
 
     refute cr.exist?('crtest', '0.1', '0.0.1')
@@ -140,6 +142,27 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert_raise(KeyError) do
       cr.select('crtest', '0.1')
     end
+  end
+
+  def test_erase_base_cartridge_path
+    paths = ["#{@path}/redhat-crtest/0.0.1/metadata/manifest.yml",
+             "#{@path}/redhat-crtest/0.0.2/metadata/manifest.yml"]
+    populate_manifest(paths)
+
+    cr = OpenShift::Runtime::CartridgeRepository.instance
+    cr.load
+
+    assert cr.exist?('crtest', '0.1', '0.0.2')
+    assert cr.exist?('crtest', '0.2', '0.0.2')
+
+    cr.expects(:installed_in_base_path?).with('crtest').returns(true)
+
+    assert_raise(ArgumentError) do
+      cr.erase('crtest', '0.2', '0.0.2')
+    end
+
+    e = cr.select('crtest', '0.2')
+    assert_equal '0.0.2', e.cartridge_version
   end
 
   def test_each

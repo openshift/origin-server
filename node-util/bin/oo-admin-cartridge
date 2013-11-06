@@ -36,27 +36,36 @@ module OpenShift
                      [options.source]
                    end
 
+            success = true
+
             dirs.each do |dir|
               begin
                 repository.install(dir)
               rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+                success = false
                 $stderr.puts "install failed for #{dir}: #{e.message}\nstdout: #{e.stdout}\nstderr: #{e.stderr}"
                 $stderr.puts e.backtrace.join("\n") if options.verbose
               rescue => e
+                success = false
                 $stderr.puts "install failed for #{dir}: #{e.message}"
                 $stderr.puts e.backtrace.join("\n") if options.verbose
               end
             end
+
+            return success ? 'succeeded' : 'installation failed'
           when :list
             return options.verbose ? repository.inspect : repository.to_s
           when :erase
             begin
               repository.erase(options.name, options.version, options.cartridge_version)
             rescue KeyError => e
-              abort "requested cartridge does not exists (#{e.message})"
+              abort "requested cartridge does not exist: (#{e.message})"
+            rescue => e
+              abort "Couldn't erase cartridge: (#{e.message})"
+            else
+              return 'succeeded'
             end
         end
-        'succeeded'
       end
     end
 
