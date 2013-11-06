@@ -245,9 +245,7 @@ module OpenShift
                                    timeout: @hourglass.remaining,
                                    expected_exitstatus: 0)
 
-            FileUtils.cd PathUtils.join(@container_dir, 'app-root', 'runtime') do
-            FileUtils.ln_s('../data', 'data')
-          end
+          FileUtils.ln_s('../data', PathUtils.join(@container_dir, 'app-root', 'runtime', 'data'))
         end
 
         def handle_scalable_restore(gear_groups, gear_env)
