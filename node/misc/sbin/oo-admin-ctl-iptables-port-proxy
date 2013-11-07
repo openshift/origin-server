@@ -7,6 +7,7 @@
 ### END INIT INFO
 
 RULES_FILE="/etc/openshift/iptables.filter.rules"
+NAT_FILE="/etc/openshift/iptables.nat.rules"
 
 start() {
     ROUTE_LOCALNET=`sysctl -n net.ipv4.conf.all.route_localnet`
@@ -42,6 +43,11 @@ case "$1" in
     status)
         if [ ! -f $RULES_FILE ]; then
             echo "ERROR: $RULES_FILE does not exist." 1>&2
+            exit 1
+        fi
+
+        if [ ! -f $NAT_FILE ]; then
+            echo "ERROR: $NAT_FILE does not exist." 1>&2
             exit 1
         fi
 
