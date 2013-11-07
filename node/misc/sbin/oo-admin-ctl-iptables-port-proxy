@@ -21,8 +21,8 @@ start() {
       { echo "*filter"; cat $RULES_FILE; echo "COMMIT"; } | iptables-restore -n
     fi
 
-    if [ -f /etc/openshift/iptables.nat.rules ]; then
-      { echo "*nat"; cat /etc/openshift/iptables.nat.rules; echo "COMMIT"; } | iptables-restore -n
+    if [ -f $NAT_FILE ]; then
+      { echo "*nat"; cat $NAT_FILE; echo "COMMIT"; } | iptables-restore -n
     fi
 }
 
@@ -31,6 +31,7 @@ stop() {
     # this logic.  For that reason we can't actually drop the chain.  This will
     # allow admins to flush the chain if needed.
     iptables -F rhc-app-comm
+    iptables -t nat -F
 }
 
 case "$1" in
@@ -59,8 +60,9 @@ case "$1" in
         fi
 
         NAT_ASSERTED=`grep DNAT $NAT_FILE | wc -l`
-        if [ ! $NAT_ASSERTED -eq $RULES ]; then
-            echo "ERROR: A difference has been detected between state of $NAT_FILE and the iptables rules." 1>&2
+        NAT=`iptables -t nat -L | grep DNAT | wc -l`
+        if [ ! $NAT_ASSERTED -eq $NAT ]; then
+            echo "ERROR: A difference has been detected between state of $NAT_FILE and the NAT table." 1>&2
             exit 1
         fi
 
