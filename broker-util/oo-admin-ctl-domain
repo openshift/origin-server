@@ -163,11 +163,17 @@ when "create"
   # Add the ssh key if it is provided
   if ssh_key
     user.add_ssh_key(UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
-    user.save!
+    unless user.save
+      puts "An error occurred during ssh key addition. Errors: #{user.errors.messages}"
+      exit 2
+    end
   end
   
   domain = Domain.new(namespace: namespace, owner: user)
-  domain.save!
+  unless domain.save
+    puts "An error occurred during domain creation. Errors: #{domain.errors.messages}"
+    exit 3
+  end
   reply.resultIO << "Successfully created domain.\n"
 
 when "update"
@@ -222,7 +228,10 @@ when "update"
     else
       user.add_ssh_key(UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
     end
-    user.save!
+    unless user.save
+      puts "An error occurred during ssh key add/update. Errors: #{user.errors.messages}"
+      exit 2
+    end
     reply.resultIO << "Successfully updated user.\n"
   end
   
