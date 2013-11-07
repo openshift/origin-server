@@ -249,6 +249,12 @@ Group-Overrides:
 ----
 
 
+=== Scaling
+This section defines the scaling parameters for a cartridge and is applicable when the cartridge is added to a scalable application.  The `Min` and `Max` parameters define the scaling limits for the cartridge.  Setting both the `Min` and `Max` equal to 1 indicates that the cartridge cannot scale.  On the other hand, if `Max` is specified as -1, then there is no maximum scaling limit and the cartridge can scale up as long as the user's gear limit is not exceeded.  The scaling limits are enforced during auto-scaling as well as when setting the cartridge scaling limits manually. 
+
+When using `Group-Overrides` to co-locate two or more cartridges that can all scale, it is important to ensure that their scaling limits match.  There are occasions, however, when this is not desirable, such as in the case of a `web_proxy` that is co-located with the `web_framework`.  In this case it doesn't make sense to have the `web_proxy` cartridge be present on every gear where the `web_framework` gear is located.  The `Multiplier` parameter enables this by allowing the cartridge to be placed on fewer gears within the group instance.  For example, if the `Multiplier` is set to 3, then every third gear within the group instance will have the cartridge installed.  Similarly, if the `Multiplier` is set to 1, then all gears within the group instance will have the cartridge installed on them.
+
+
 === Source-Url
 `Source-Url` is used when you self-distribute your cartridges. They are downloaded at the time the application is created.
 
