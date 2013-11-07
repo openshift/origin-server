@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -91,6 +91,30 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
+- add oo-admin-info-app (tdawson@redhat.com)
+- Merge pull request #3872 from sztsian/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4106 from pravisankar/dev/ravi/card639
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1027058: Gracefully handle upgrading zero gears on a node
+  (ironcladlou@gmail.com)
+- Allow adding large gear size to users irrespective of their plan If the user
+  is enrolled into a plan, do not store capabilites in cloud user mongo record
+  instead get the capabilities based on their plan. Any explicitly set
+  capabilities will be stored in user record. Fix test cases
+  (rpenta@redhat.com)
+- update for 36 upgrade (dmcphers@redhat.com)
+- Merge pull request #3402 from mscherer/feature/broker/ipv6
+  (dmcphers+openshiftbot@redhat.com)
+- add acct id to analytics export (rchopra@redhat.com)
+- bump_minor_versions for sprint 36 (admiller@redhat.com)
+- bug 950299 and bug 1018569 https://bugzilla.redhat.com/show_bug.cgi?id=950299
+  https://bugzilla.redhat.com/show_bug.cgi?id=1018569 changed the way it checks
+  package and service status to make it runs on all language
+  (zsun@fedoraproject.org)
+- add ipv6 support to oo-register-dns (misc@zarb.org)
+
 * Wed Oct 30 2013 Adam Miller <admiller@redhat.com> 1.16.6-1
 - Fix bug 1024307 - oo-admin-ctl-domain doesn't allow more than one domain
   (jliggitt@redhat.com)
