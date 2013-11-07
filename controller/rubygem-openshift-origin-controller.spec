@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,47 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
+- Getting singleton tests in the right place (dmcphers@redhat.com)
+- Merge pull request #4106 from pravisankar/dev/ravi/card639
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3999 from fabianofranz/master
+  (dmcphers+openshiftbot@redhat.com)
+- hotfix for deploy code to handle older apps which do not have 'sparse_carts'
+  field populated (rchopra@redhat.com)
+- Improved error messages when trying to create app or add cartridge with
+  invalid gear sizes (contact@fabianofranz.com)
+- Rest API Deployment support for passing the artifact url parameter with
+  associated tests in the broker and node.  Enabling the artifact url param in
+  the rest models. (jajohnso@redhat.com)
+- Allow adding large gear size to users irrespective of their plan If the user
+  is enrolled into a plan, do not store capabilites in cloud user mongo record
+  instead get the capabilities based on their plan. Any explicitly set
+  capabilities will be stored in user record. Fix test cases
+  (rpenta@redhat.com)
+- Merge pull request #4097 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4084 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing the run_jobs logic for op groups being rolled back
+  (abhgupta@redhat.com)
+- fix bz996952 - use gear_id with ssh key, rather than component_id
+  (rchopra@redhat.com)
+- Merge pull request #4100 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1019163 (lnader@redhat.com)
+- Added check to ensure the new cartridge does not clash with existing
+  web_proxy (lnader@redhat.com)
+- splitting runtime tests (dmcphers@redhat.com)
+- spliting runtime components (dmcphers@redhat.com)
+- Merge pull request #4073 from detiber/brokerExtendedTests
+  (dmcphers+openshiftbot@redhat.com)
+- Some rest-domains.feature tests rely on DEFAULT_MAX_DOMAINS = 1
+  (jdetiber@redhat.com)
+- haproxy cartridge's max limit should be set to -1 when making the app ha
+  (rchopra@redhat.com)
+- bump_minor_versions for sprint 36 (admiller@redhat.com)
+
 * Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.11-1
 - Merge pull request #4064 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
