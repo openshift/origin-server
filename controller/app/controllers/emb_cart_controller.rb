@@ -4,7 +4,7 @@ class EmbCartController < BaseController
   action_log_tag_resource :app_cartridge
 
   def index
-    cartridges = get_application_rest_cartridges(@application) 
+    cartridges = get_application_rest_cartridges(@application)
     render_success(:ok, "cartridges", cartridges, "Listing cartridges for application #{@application.name} under domain #{@application.domain_namespace}")
   end
 
@@ -30,7 +30,7 @@ class EmbCartController < BaseController
     scales_from = Integer(params[:scales_from].presence) rescue nil
     scales_to = Integer(params[:scales_to].presence) rescue nil
     additional_storage = Integer(params[:additional_storage].presence) rescue nil
-    gear_size = params[:gear_size] rescue nil 
+    gear_size = params[:gear_size] rescue nil
 
     user_env_vars = params[:environment_variables].presence
     Application.validate_user_env_variables(user_env_vars, true)
@@ -43,24 +43,24 @@ class EmbCartController < BaseController
       cart_urls = [params[:url]]
     # :cartridge param is deprecated because it isn't consistent with
     # the rest of the apis which take :name. Leave it here because
-    # some tools may still use it 
-    elsif params[:cartridge].is_a? Hash 
+    # some tools may still use it
+    elsif params[:cartridge].is_a? Hash
       # format used by java client
       cart_urls = [params[:cartridge][:url]] if params[:cartridge][:url].is_a? String
-      name = params[:cartridge][:name] if params[:cartridge][:name].is_a? String 
-      gear_size = params[:cartridge][:gear_size] if params[:cartridge][:gear_size].is_a? String 
+      name = params[:cartridge][:name] if params[:cartridge][:name].is_a? String
+      gear_size = params[:cartridge][:gear_size] if params[:cartridge][:gear_size].is_a? String
     elsif params[:cartridge].is_a? String
       name = params[:cartridge]
     else
       return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109)
     end
-    
+
     valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & @application.domain.allowed_gear_sizes & @application.domain.owner.allowed_gear_sizes
 
     return render_error(:forbidden, "The owner of the domain #{@application.domain.namespace} has disabled all gear sizes from being created.  You will not be able to add any cartridge in this domain.",
                         134) if valid_sizes.empty?
 
-    return render_error(:unprocessable_entity, "The gear size: #{gear_size} is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.",
+    return render_error(:unprocessable_entity, "The gear size '#{gear_size}' is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.",
                         134, "gear_size") if gear_size and !valid_sizes.include?(gear_size)
 
     if cart_urls.length > 0
@@ -102,7 +102,7 @@ class EmbCartController < BaseController
     end
 
     if scales_to and scales_from and scales_to != -1 and scales_from > scales_to
-      return render_error(:unprocessable_entity, "Invalid scaling values provided. 'scales_from(#{scales_from})' cannot be greater than 'scales_to(#{scales_to})'.", 109, "cartridge")      
+      return render_error(:unprocessable_entity, "Invalid scaling values provided. 'scales_from(#{scales_from})' cannot be greater than 'scales_to(#{scales_to})'.", 109, "cartridge")
     end
 
     begin
@@ -166,9 +166,9 @@ class EmbCartController < BaseController
     authorize! :destroy_cartridge, @application
 
     id = params[:id].presence
-    
+
     comp = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(id))
-    feature = comp.cartridge_name #@application.get_feature(comp.cartridge_name, comp.component_name)  
+    feature = comp.cartridge_name #@application.get_feature(comp.cartridge_name, comp.component_name)
     raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, nil, [id]) if feature.nil?
     result = @application.remove_features([feature])
     status = requested_api_version <= 1.4 ? :no_content : :ok
@@ -178,13 +178,13 @@ class EmbCartController < BaseController
 
   def update
     id = ComponentInstance.check_name!(params[:id].presence)
-    
+
     scales_from = Integer(params[:scales_from].presence) rescue nil
     scales_to = Integer(params[:scales_to].presence) rescue nil
     additional_storage = params[:additional_gear_storage].presence
 
     if scales_from.nil? and scales_to.nil? and additional_storage.nil?
-      return render_error(:unprocessable_entity, "No update parameters specified.  Valid update parameters are: scales_from, scales_to, additional_gear_storage", 168) 
+      return render_error(:unprocessable_entity, "No update parameters specified.  Valid update parameters are: scales_from, scales_to, additional_gear_storage", 168)
     end
 
     authorize!(:scale_cartridge, @application) unless scales_from.nil? and scales_to.nil?
@@ -201,19 +201,19 @@ class EmbCartController < BaseController
     end
 
     if scales_from and scales_from < 1
-      return render_error(:unprocessable_entity, "Invalid scales_from factor #{scales_from} provided", 168, "scales_from") 
+      return render_error(:unprocessable_entity, "Invalid scales_from factor #{scales_from} provided", 168, "scales_from")
     end
 
     if scales_to and (scales_to == 0 or scales_to < -1)
-      return render_error(:unprocessable_entity, "Invalid scales_to factor #{scales_to} provided", 168, "scales_to") 
+      return render_error(:unprocessable_entity, "Invalid scales_to factor #{scales_to} provided", 168, "scales_to")
     end
 
     if scales_to and scales_from and scales_to >= 1 and scales_to < scales_from
-      return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor provided", 168, "scales_to") 
+      return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor provided", 168, "scales_to")
     end
 
     if @application.quarantined && (scales_from || scales_to)
-      return render_upgrade_in_progress            
+      return render_upgrade_in_progress
     end
 
     component_instance = @application.component_instances.find_by(cartridge_name: id)
@@ -233,11 +233,11 @@ class EmbCartController < BaseController
     group_instance = @application.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
 
     if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < group_instance.min
-      return render_error(:unprocessable_entity, "The scales_to factor currently provided cannot be lower than the scales_from factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_to") 
+      return render_error(:unprocessable_entity, "The scales_to factor currently provided cannot be lower than the scales_from factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_to")
     end
 
     if scales_from and scales_to.nil? and group_instance.max >= 1 and group_instance.max < scales_from
-      return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from") 
+      return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from")
     end
 
     result = @application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)

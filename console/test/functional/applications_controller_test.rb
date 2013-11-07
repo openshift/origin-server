@@ -131,7 +131,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     Application.any_instance.expects(:save).returns(true)
 
     post(:create, {:application => app_params, :application_type => app_type, :advanced => true})
-    
+
     assert app = assigns(:application)
     assert_equal [{'url' => 'https://foo.bar'}], app.cartridges
   end
@@ -147,7 +147,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     Application.any_instance.expects(:save).returns(true)
 
     post(:create, {:application => app_params, :application_type => app_type, :advanced => true})
-    
+
     assert app = assigns(:application)
     assert_equal [CartridgeType.for_url('https://foo.bar')], app.attributes['cartridges']
   end
@@ -192,7 +192,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert !app.errors.empty?
     assert app.errors[:gear_size].present?, app.errors.to_hash.inspect
     assert_equal 1, app.errors[:gear_size].length, app.errors.to_hash.inspect
-    assert app.errors[:gear_size][0].include? "foobar is not valid"
+    assert app.errors[:gear_size][0].include? "'foobar' is not valid"
   end
 
   test "should retrieve application list" do
@@ -407,7 +407,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_response :success
     assert app = assigns(:application)
-    assert app.errors.messages[:gear_size][0].include? "medium is not valid"
+    assert app.errors.messages[:gear_size][0].include? "'medium' is not valid"
   end
 
   test 'should prevent scaled apps when not enough gears are available' do
