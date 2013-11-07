@@ -1,4 +1,4 @@
-@singleton
+@node_singleton
 Feature: Explicit idle/restore checks
   Scenario Outline: Idle one application
     Given a new mock-0.1 type application
