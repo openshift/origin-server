@@ -20,6 +20,7 @@ Requires:      gd-devel
 Requires:      perl-App-cpanminus
 Requires:      perl-CPAN
 Requires:      perl-CPANPLUS
+Requires:      db4-devel
 Requires:      rpm-build
 Requires:      expat-devel
 Requires:      perl-IO-Socket-SSL
