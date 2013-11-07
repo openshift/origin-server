@@ -6,6 +6,9 @@
 # Description: Script to apply the openshift port proxy iptables rules.
 ### END INIT INFO
 
+RULES_FILE="/etc/openshift/iptables.filter.rules"
+NAT_FILE="/etc/openshift/iptables.nat.rules"
+
 start() {
     ROUTE_LOCALNET=`sysctl -n net.ipv4.conf.all.route_localnet`
     if [ $ROUTE_LOCALNET -eq "0" ]; then
@@ -14,12 +17,12 @@ start() {
         echo "WARNING: It has been temporarily enabled.  Please ensure this setting is persisted in /etc/sysctl.conf."
     fi
 
-    if [ -f /etc/openshift/iptables.filter.rules ]; then
-      { echo "*filter"; cat /etc/openshift/iptables.filter.rules; echo "COMMIT"; } | iptables-restore -n
+    if [ -f $RULES_FILE ]; then
+      { echo "*filter"; cat $RULES_FILE; echo "COMMIT"; } | iptables-restore -n
     fi
 
-    if [ -f /etc/openshift/iptables.nat.rules ]; then
-      { echo "*nat"; cat /etc/openshift/iptables.nat.rules; echo "COMMIT"; } | iptables-restore -n
+    if [ -f $NAT_FILE ]; then
+      { echo "*nat"; cat $NAT_FILE; echo "COMMIT"; } | iptables-restore -n
     fi
 }
 
@@ -28,6 +31,7 @@ stop() {
     # this logic.  For that reason we can't actually drop the chain.  This will
     # allow admins to flush the chain if needed.
     iptables -F rhc-app-comm
+    iptables -t nat -F
 }
 
 case "$1" in
@@ -36,6 +40,34 @@ case "$1" in
         ;;
     stop)
         stop
+        ;;
+    status)
+        if [ ! -f $RULES_FILE ]; then
+            echo "ERROR: $RULES_FILE does not exist." 1>&2
+            exit 1
+        fi
+
+        if [ ! -f $NAT_FILE ]; then
+            echo "ERROR: $NAT_FILE does not exist." 1>&2
+            exit 1
+        fi
+
+        RULES_ASSERTED=`grep ACCEPT $RULES_FILE | wc -l`
+        RULES=`iptables -L rhc-app-comm | grep ACCEPT | wc -l`
+        if [ ! $RULES_ASSERTED -eq $RULES ]; then
+            echo "ERROR: A difference has been detected between state of $RULES_FILE and the rhc-app-comm iptables chain." 1>&2
+            exit 1
+        fi
+
+        NAT_ASSERTED=`grep DNAT $NAT_FILE | wc -l`
+        NAT=`iptables -t nat -L | grep DNAT | wc -l`
+        if [ ! $NAT_ASSERTED -eq $NAT ]; then
+            echo "ERROR: A difference has been detected between state of $NAT_FILE and the NAT table." 1>&2
+            exit 1
+        fi
+
+        echo "The OpenShift iptables port proxy is enabled."
+        exit 0
         ;;
     restart)
         stop
@@ -46,6 +78,6 @@ case "$1" in
         start
         ;;
     *)
-        echo $"Usage: $0 {start|stop|restart|reload}"
+        echo $"Usage: $0 {start|stop|status|restart|reload}"
         exit 2
 esac
