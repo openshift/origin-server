@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -149,6 +149,13 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
+- Fix bug 991387: Don't allow erase of carts in the cart_base_path
+  (pmorie@gmail.com)
+- Bug 1021056 - The SNI proxy allows for frontends that never show up in
+  Apache. (rmillner@redhat.com)
+- bump_minor_versions for sprint 36 (admiller@redhat.com)
+
 * Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Bug 1023588 - Build cartridge index from cache (jhonce@redhat.com)
 
