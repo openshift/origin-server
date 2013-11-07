@@ -5,4 +5,4 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 TARGET=$OPENSHIFT_HOMEDIR/app-root/runtime/dependencies/python/virtenv/venv/bin/python3.3
 SOURCE=$OPENSHIFT_PYTHON_DIR/opt/bin/python3.3
 
-exec ln -sf $SOURCE $TARGET
+ln -sf $SOURCE $TARGET || :
