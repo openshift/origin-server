@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,10 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
+- update for 36 upgrade (dmcphers@redhat.com)
+- bump_minor_versions for sprint 36 (admiller@redhat.com)
+
 * Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.5-1
 - Gear groups should timeout aggressively when fetching state
   (ccoleman@redhat.com)
