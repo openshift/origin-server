@@ -10,7 +10,7 @@
 
 Summary:       OpenShift NodeJS Websocket frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.2.1
+Version: 0.2.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Bug 1024721 - Add purge functionality to the frontend plugins.
+  (rmillner@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - Create HAProxy SNI proxy plugin package and use endpoint protocols
   (rmillner@redhat.com)
