@@ -1,0 +1,48 @@
+NAME
+  oo-app-info
+  
+SYNOPSIS
+  oo-app-info OPTIONS
+
+DESCRIPTION
+  Used to list information about an application.  Passwords are not shown.
+
+  This can also be used to list all the information of all the apps that
+  a user has, or is in a domain.
+
+OPTIONS
+  Required:
+    -h|--help  
+      Display a simple help dialog.
+
+    -a or --app 'foo1,/^bar2$/'
+      Comma-delimited list of app names or regular expressions, without domains
+
+    -d or --domain 'foo1,/^bar2$/'
+      Comma-delimited list of domain namespaces or regular expressions, without app names
+
+    -f or --fqdn foo1,bar2
+      Comma-delimited list of app FQDNs
+
+    -l or --login 'foo1,/^bar2$/'
+      Comma-delimited list of logins or regular expressions
+
+    -u or --gear_uuid 'foo1,/^bar2$/'
+      Comma-delimited list of Application or Gear uuids or regular expressions
+
+  Additional:
+    --deleted
+      Look for deleted Applications
+    --raw
+      Print raw data structure without formatting.
+  
+
+EXAMPLE
+
+  $ oo-app-info -l demo
+  
+  $ oo-app-info -u 555666777888,444333222111
+   
+AUTHOR
+  Troy Dawson <tdawson@redhat.com> - man page written for OpenShift Origin 
+

@@ -1,0 +1,106 @@
+#!/usr/bin/env oo-ruby
+
+#   Copyright 2012 Red Hat Inc.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+require 'optparse'
+$:.unshift('/usr/local/lib')
+
+RED="\033[31m" unless defined?(RED)
+GREEN="\033[32m" unless defined?(GREEN)
+YELLOW="\033[33m" unless defined?(YELLOW)
+NORM="\033[0m" unless defined?(NORM)
+
+def print_apps(args)
+  args[:query].each do |query|
+    appinfos = AppQuery.get(query, args[:query_type], args[:deleted])
+    if appinfos.nil? or appinfos.empty?
+      puts "\n#{RED}Error: No apps found for #{args[:query_type]}: '#{query}'#{NORM}\n\n"
+      next
+    end
+
+    if appinfos.respond_to? :each
+      puts "\n================================================================================\n\n"
+      appinfos.each do |ai|
+        if args[:raw]
+          require 'pp'
+          pp ai.to_h()
+        else
+          puts ai.to_s()
+        end
+        puts "================================================================================\n\n"
+      end
+    else
+      puts appinfos.to_s()
+    end
+  end
+end
+
+if $0 == __FILE__
+  $stdout.sync = true
+
+  params = {
+    :query      => [],
+    :query_type => nil,
+    :deleted    => false,
+    :raw        => false,
+  }
+
+  optparse = OptionParser.new do |opts|
+    opts.banner = "\nUsage: #{File.basename $0} [args]"
+    opts.separator ''
+    opts.separator 'Required:'
+    # TODO: add help output that shows different examples, including regexes
+    opts.on('-a',"--app 'foo1,/^bar2$/'", 'Comma-delimited list of app names or regular expressions, without domains') { |v|
+      params[:query] = v
+      params[:query_type] = 'app_name'
+    }
+    opts.on('-d',"--domain 'foo1,/^bar2$/'", 'Comma-delimited list of domain namespaces or regular expressions, without app names') { |v|
+      params[:query] = v
+      params[:query_type] = 'domain_name'
+    }
+    opts.on('-f','--fqdn foo1,bar2', 'Comma-delimited list of app FQDNs') { |v|
+      params[:query] = v
+      params[:query_type] = 'fqdn'
+    }
+    opts.on('-l',"--login 'foo1,/^bar2$/'", 'Comma-delimited list of logins or regular expressions') { |v|
+      params[:query] = v
+      params[:query_type] = 'login'
+    }
+    opts.on('-u',"--gear_uuid 'foo1,/^bar2$/'", 'Comma-delimited list of Application or Gear uuids or regular expressions') { |v|
+      params[:query] = v
+      params[:query_type] = 'uuid'
+    }
+    opts.separator ''
+    opts.separator 'Additional:'
+    opts.on('--deleted', 'Look for deleted Applications') { params[:deleted] = true }
+    opts.on('--raw', 'Print raw data structure without formatting.') { params[:raw] = true }
+  end
+  optparse.parse!
+
+  abort optparse.help if params[:query].empty?
+
+  print "Loading broker environment... "
+  require 'app_info'
+  puts "Done."
+
+  params[:query] = params[:query].strip.split(',')
+  begin
+    print_apps(params)
+  rescue => ex
+    puts "\n\n#{RED}Exception caught: #{ex.message}#{NORM}\n\n"
+    ex.backtrace.each { |x| puts "\t#{x}" }
+    exit
+  end
+end

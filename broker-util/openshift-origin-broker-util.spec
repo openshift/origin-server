@@ -39,13 +39,19 @@ They must be run on a openshift broker instance.
 mkdir -p %{buildroot}%{_sbindir}
 cp -p oo-* %{buildroot}%{_sbindir}/
 
+mkdir -p %{buildroot}%{ruby_libdir}
+cp -p lib/*.rb %{buildroot}%{ruby_libdir}
+
 mkdir -p %{buildroot}%{_mandir}/man8/
-cp man/*.8 %{buildroot}%{_mandir}/man8/
+cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 
 %files
 %doc LICENSE
+%attr(0750,-,-) %{_sbindir}/oo-accept-broker
+%attr(0750,-,-) %{_sbindir}/oo-accept-systems
+%attr(0750,-,-) %{_sbindir}/oo-admin-broker-auth
+%attr(0750,-,-) %{_sbindir}/oo-admin-broker-cache
 %attr(0750,-,-) %{_sbindir}/oo-admin-chk
-%attr(0750,-,-) %{_sbindir}/oo-admin-repair
 %attr(0750,-,-) %{_sbindir}/oo-admin-clear-pending-ops
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-app
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-authorization
@@ -54,33 +60,34 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-usage
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-user
 %attr(0750,-,-) %{_sbindir}/oo-admin-move
+%attr(0750,-,-) %{_sbindir}/oo-admin-repair
 %attr(0750,-,-) %{_sbindir}/oo-admin-upgrade
-%attr(0750,-,-) %{_sbindir}/oo-admin-broker-auth
-%attr(0750,-,-) %{_sbindir}/oo-admin-broker-cache
 %attr(0750,-,-) %{_sbindir}/oo-admin-usage
 %attr(0750,-,-) %{_sbindir}/oo-analytics-export
 %attr(0750,-,-) %{_sbindir}/oo-analytics-import
-%attr(0750,-,-) %{_sbindir}/oo-register-dns
-%attr(0750,-,-) %{_sbindir}/oo-accept-broker
-%attr(0750,-,-) %{_sbindir}/oo-accept-systems
-%attr(0750,-,-) %{_sbindir}/oo-stats
+%attr(0750,-,-) %{_sbindir}/oo-app-info
 %attr(0750,-,-) %{_sbindir}/oo-quarantine
+%attr(0750,-,-) %{_sbindir}/oo-register-dns
+%attr(0750,-,-) %{_sbindir}/oo-stats
 
+%{ruby_libdir}/app_info.rb
+
+%{_mandir}/man8/oo-accept-broker.8.gz
+%{_mandir}/man8/oo-accept-systems.8.gz
+%{_mandir}/man8/oo-admin-broker-auth.8.gz
+%{_mandir}/man8/oo-admin-broker-cache.8.gz
 %{_mandir}/man8/oo-admin-chk.8.gz
 %{_mandir}/man8/oo-admin-clear-pending-ops.8.gz
-%{_mandir}/man8/oo-admin-repair.8.gz
 %{_mandir}/man8/oo-admin-ctl-app.8.gz
 %{_mandir}/man8/oo-admin-ctl-district.8.gz
 %{_mandir}/man8/oo-admin-ctl-domain.8.gz
 %{_mandir}/man8/oo-admin-ctl-usage.8.gz
 %{_mandir}/man8/oo-admin-ctl-user.8.gz
 %{_mandir}/man8/oo-admin-move.8.gz
-%{_mandir}/man8/oo-admin-broker-auth.8.gz
-%{_mandir}/man8/oo-admin-broker-cache.8.gz
+%{_mandir}/man8/oo-admin-repair.8.gz
 %{_mandir}/man8/oo-admin-usage.8.gz
+%{_mandir}/man8/oo-app-info.8.gz
 %{_mandir}/man8/oo-register-dns.8.gz
-%{_mandir}/man8/oo-accept-broker.8.gz
-%{_mandir}/man8/oo-accept-systems.8.gz
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
