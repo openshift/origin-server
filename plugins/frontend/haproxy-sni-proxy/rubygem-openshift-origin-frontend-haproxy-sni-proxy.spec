@@ -10,7 +10,7 @@
 
 Summary:       OpenShift HAProxy SNI Proxy frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.2.0
+Version: 0.2.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -113,6 +113,13 @@ fi
 %attr(0644,root,root) %config(noreplace) /etc/openshift/node-plugins.d/openshift-origin-frontend-haproxy-sni-proxy.conf
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- Bug 1026969 - rebuild the SNI proxy on start to track changing IP address.
+  (rmillner@redhat.com)
+- Bug 1024721 - Add purge functionality to the frontend plugins.
+  (rmillner@redhat.com)
+- bump_minor_versions for sprint 36 (admiller@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.1.7-1
 - Bug 1017661 - Dont add a leading slash in non-http based mappings.  Other
   fixes. (rmillner@redhat.com)
