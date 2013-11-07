@@ -139,7 +139,7 @@ module OpenShift
 
         pwent = passwd_for(container_uuid)
 
-        env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
+        env = ::OpenShift::Runtime::Utils::Environ.load(File.join(pwent.dir, '.env', 'OPENSHIFT_{APP,GEAR}_{UUID,NAME,DNS}*'))
 
         if env['OPENSHIFT_GEAR_DNS'] == nil
           namespace = nil
@@ -151,7 +151,7 @@ module OpenShift
         raise "OPENSHIFT_APP_NAME is missing!" if env["OPENSHIFT_APP_NAME"].nil?
         raise "OPENSHIFT_GEAR_NAME is missing!" if env["OPENSHIFT_GEAR_NAME"].nil?
 
-        ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], container_uuid, pwent.uid, env["OPENSHIFT_APP_NAME"],
+        ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], container_uuid, pwent, env["OPENSHIFT_APP_NAME"],
                                  env["OPENSHIFT_GEAR_NAME"], namespace, nil, nil, hourglass)
       end
 
@@ -647,6 +647,26 @@ module OpenShift
 
       def list_proxy_mappings
         @cartridge_model.list_proxy_mappings
+      end
+
+      #
+      # Public: Return an enumerator which provides a list of uuids
+      # for every OpenShift gear in the system.
+      #
+      def self.all_uuids(hourglass=nil)
+        Enumerator.new do |yielder|
+          config = OpenShift::Config.new
+          gecos = config.get("GEAR_GECOS") || "OO application container"
+
+          uuids = []
+          Etc.passwd do |pwent|
+            uuids << pwent.name if pwent.gecos == gecos
+          end
+
+          uuids.each do |uuid|
+            yielder.yield(uuid)
+          end
+        end
       end
 
       #

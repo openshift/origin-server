@@ -80,8 +80,8 @@ end
 begin
   errors = {}
   if all_containers
-    OpenShift::Runtime::ApplicationContainer.all.each do |c|
-      errs = OpenShift::Runtime::Utils::Cgroups.new(c.uuid).classify_processes
+    OpenShift::Runtime::ApplicationContainer.all_uuids.each do |uuid|
+      errs = OpenShift::Runtime::Utils::Cgroups.new(uuid).classify_processes
       errors.merge!(errs)
     end
   else

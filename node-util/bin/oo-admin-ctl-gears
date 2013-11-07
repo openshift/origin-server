@@ -170,7 +170,7 @@ module OpenShift
               gear_set << gear
             end
           else
-            gear_set = ApplicationContainer.all
+            gear_set = ApplicationContainer.all(nil, false)
           end
           gear_set.each do |gear|
             begin

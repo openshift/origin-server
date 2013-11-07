@@ -97,7 +97,7 @@ begin
     puts OpenShift::Runtime::Utils::Cgroups.show_templates.join("\n")
   else
     if all_containers
-      containers = OpenShift::Runtime::ApplicationContainer.all.map { |c| c.uuid }
+      containers = OpenShift::Runtime::ApplicationContainer.all_uuids
     else
       containers = [container_uuid.to_s]
     end
