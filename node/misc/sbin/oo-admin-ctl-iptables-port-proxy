@@ -6,6 +6,8 @@
 # Description: Script to apply the openshift port proxy iptables rules.
 ### END INIT INFO
 
+RULES_FILE="/etc/openshift/iptables.filter.rules"
+
 start() {
     ROUTE_LOCALNET=`sysctl -n net.ipv4.conf.all.route_localnet`
     if [ $ROUTE_LOCALNET -eq "0" ]; then
@@ -14,8 +16,8 @@ start() {
         echo "WARNING: It has been temporarily enabled.  Please ensure this setting is persisted in /etc/sysctl.conf."
     fi
 
-    if [ -f /etc/openshift/iptables.filter.rules ]; then
-      { echo "*filter"; cat /etc/openshift/iptables.filter.rules; echo "COMMIT"; } | iptables-restore -n
+    if [ -f $RULES_FILE ]; then
+      { echo "*filter"; cat $RULES_FILE; echo "COMMIT"; } | iptables-restore -n
     fi
 
     if [ -f /etc/openshift/iptables.nat.rules ]; then
@@ -37,6 +39,22 @@ case "$1" in
     stop)
         stop
         ;;
+    status)
+        if [ ! -f $RULES_FILE ]; then
+            echo "ERROR: $RULES_FILE does not exist." 1>&2
+            exit 1
+        fi
+
+        RULES_ASSERTED=`cat $RULES_FILE | grep ACCEPT | wc -l`
+        RULES=`iptables -L rhc-app-comm | grep ACCEPT | wc -l`
+        if [ $RULES_ASSERTED -eq $RULES ]; then
+            echo "The OpenShift iptables port proxy is enabled."
+            exit 0
+        else
+            echo "WARNING: A difference has been detected between state of $RULES_FILE and the rhc-app-comm iptables chain." 1>&2
+            exit 1
+        fi
+        ;;
     restart)
         stop
         start
@@ -46,6 +64,6 @@ case "$1" in
         start
         ;;
     *)
-        echo $"Usage: $0 {start|stop|restart|reload}"
+        echo $"Usage: $0 {start|stop|status|restart|reload}"
         exit 2
 esac
