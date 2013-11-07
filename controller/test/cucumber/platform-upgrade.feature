@@ -1,6 +1,6 @@
 @manipulates_cart_repo
 @manipulates_gear_upgrade
-@singleton
+@cart_singleton
 Feature: Cartridge upgrades
   Scenario: Upgrade from compatible version
     Given the 0.0.1 version of the mock-0.1 cartridge is installed
