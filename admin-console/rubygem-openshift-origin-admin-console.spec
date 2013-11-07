@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,13 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
+- Allow adding large gear size to users irrespective of their plan If the user
+  is enrolled into a plan, do not store capabilites in cloud user mongo record
+  instead get the capabilities based on their plan. Any explicitly set
+  capabilities will be stored in user record. Fix test cases
+  (rpenta@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - Light theme for console, new nav header, remove breadcrumbs
   (rhamilto@redhat.com)
