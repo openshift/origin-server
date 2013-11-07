@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,50 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
+- Merge pull request #4114 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- splitting out ext functionals (dmcphers@redhat.com)
+- Fix bug 991387: Don't allow erase of carts in the cart_base_path
+  (pmorie@gmail.com)
+- Rest API Deployment support for passing the artifact url parameter with
+  associated tests in the broker and node.  Enabling the artifact url param in
+  the rest models. (jajohnso@redhat.com)
+- Merge pull request #4109 from ncdc/remove-chdir
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4101 from ironcladlou/dev/chdir
+  (dmcphers+openshiftbot@redhat.com)
+- Remove calls to FileUtils.cd (andy.goldstein@gmail.com)
+- update for 36 upgrade (dmcphers@redhat.com)
+- Merge pull request #4102 from pmorie/bugs/1022336
+  (dmcphers+openshiftbot@redhat.com)
+- Remove all uses of #chdir in threaded code (ironcladlou@gmail.com)
+- Merge pull request #4099 from pmorie/bugs/995638
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1022336: alias lsof to lsof -w (pmorie@gmail.com)
+- Merge pull request #4091 from ncdc/fix-secure-cartridge-race-condition
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 995638: do not store stderr in a variable during interactive psql
+  (pmorie@gmail.com)
+- Fix race condition in secure_cartridge (andy.goldstein@gmail.com)
+- Fix all invalid IPs in the iptables nat file (andy.goldstein@gmail.com)
+- Fix bug 1004649 (pmorie@gmail.com)
+- Merge pull request #4082 from rmillner/1024721
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1024721 - Add purge functionality to the frontend plugins.
+  (rmillner@redhat.com)
+- Add inhibit loading the environment for some uses of ApplicationContainer.all
+  (rmillner@redhat.com)
+- Bug 1026367 - Moving the sysctl logic to oo-admin-ctl-iptables-port-proxy
+  (bleanhar@redhat.com)
+- Bug 1026367 - Improving oo-admin-ctl-iptables-port-proxy "UI"
+  (bleanhar@redhat.com)
+- Bug 1026367 - starting openshift-iptables-port-proxy after the network is up
+  (bleanhar@redhat.com)
+- Bug 1026367 - openshift-iptables-port-proxy service script should enable
+  net.ipv4.conf.all.route_localnet (bleanhar@redhat.com)
+- bump_minor_versions for sprint 36 (admiller@redhat.com)
+
 * Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.11-1
 - Merge pull request #4065 from pmorie/bugs/1025261
   (dmcphers+openshiftbot@redhat.com)
