@@ -15,7 +15,7 @@
 
 Summary:       OpenShift ApacheDB frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.2.1
+Version: 0.2.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,10 @@ mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/con
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Bug 1024721 - Add purge functionality to the frontend plugins.
+  (rmillner@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - Make the vhost and mod_rewrite RPMs non-conflict even if their functionality
   still conflicts. (rmillner@redhat.com)
