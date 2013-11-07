@@ -119,8 +119,10 @@ module OpenShift
 
       # FIXME: Once Broker/Node protocol updated to provided necessary information this hack must go away
       def map_cartridge_name(cartridge_name)
-        results = cartridge_name.scan(/([a-zA-Z\d-]+)-([\d\.]+)/).first
-        raise "Invalid cartridge identifier '#{cartridge_name}': expected name-version" unless results && 2 == results.size
+        results = cartridge_name.split(/\-([0-9\.]+)$/)
+        if !Runtime::Manifest.valid_cartridge_name?(cartridge_name)
+          raise "Invalid cartridge identifier '#{cartridge_name}': expected name-version"
+        end
         results
       end
 
