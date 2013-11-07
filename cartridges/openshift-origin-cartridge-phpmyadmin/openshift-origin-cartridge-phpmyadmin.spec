@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -51,6 +51,9 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
+- bump_minor_versions for sprint 36 (admiller@redhat.com)
+
 * Tue Oct 22 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Fix for bug 1020440, 1021041, 1021462, 1021467, and a typo
   (abhgupta@redhat.com)
