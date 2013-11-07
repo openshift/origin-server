@@ -79,7 +79,7 @@ module OpenShift
             buffer, _, _ = ::OpenShift::Runtime::Utils.oo_spawn('oo-mco rpc -q openshift cartridge_repository action=list',
                                                                  expected_exitstatus: 0)
           when :erase
-            command      = %Q(mco rpc openshift cartridge_repository action=erase \
+            command      = %Q(oo-mco rpc openshift cartridge_repository action=erase \
                        name="#{options.name}" version="#{options.version}" cartridge_version="#{options.cartridge_version}")
             buffer, _, _ = ::OpenShift::Runtime::Utils.oo_spawn(command,
                                                                  expected_exitstatus: 0)
