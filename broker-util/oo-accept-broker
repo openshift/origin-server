@@ -772,14 +772,14 @@ function dns_bind_update_record() {
     # check $7: should be add|delete
     # check $8 should be A, TXT, CNAME
 
-    verbose "${7}ing $8 record named $9 to server $2: $10"
+    verbose "${7}ing $8 record named $9 to server $2: ${10}"
 
     if [ "$1" = "key" ]
     then
         nsupdate <<EOF
 server $2
 key $3 $4
-update $7 $9 1 $8 $10
+update $7 $9 1 $8 ${10}
 send
 EOF
     elif [ "$1" = "krb" ]
@@ -787,20 +787,20 @@ EOF
         kinit -kt "$5" -p "$6"
         nsupdate -g <<EOF
 server $2
-update $7 $9 1 $8 $10
+update $7 $9 1 $8 ${10}
 send
 EOF
     else
         nsupdate <<EOF
 server $2
-update $7 $9 1 $8 $10
+update $7 $9 1 $8 ${10}
 send
 EOF
     fi
 
     if [ $? != 0 ]
     then
-	fail "error ${7}ing $8 record name $9 to server $2: $10
+	fail "error ${7}ing $8 record name $9 to server $2: ${10}
 	-- is the nameserver running, reachable, and $1 auth working?"
     fi
 
