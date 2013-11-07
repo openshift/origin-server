@@ -51,15 +51,21 @@ case "$1" in
             exit 1
         fi
 
-        RULES_ASSERTED=`cat $RULES_FILE | grep ACCEPT | wc -l`
+        RULES_ASSERTED=`grep ACCEPT $RULES_FILE | wc -l`
         RULES=`iptables -L rhc-app-comm | grep ACCEPT | wc -l`
-        if [ $RULES_ASSERTED -eq $RULES ]; then
-            echo "The OpenShift iptables port proxy is enabled."
-            exit 0
-        else
-            echo "WARNING: A difference has been detected between state of $RULES_FILE and the rhc-app-comm iptables chain." 1>&2
+        if [ ! $RULES_ASSERTED -eq $RULES ]; then
+            echo "ERROR: A difference has been detected between state of $RULES_FILE and the rhc-app-comm iptables chain." 1>&2
             exit 1
         fi
+
+        NAT_ASSERTED=`grep DNAT $NAT_FILE | wc -l`
+        if [ ! $NAT_ASSERTED -eq $RULES ]; then
+            echo "ERROR: A difference has been detected between state of $NAT_FILE and the iptables rules." 1>&2
+            exit 1
+        fi
+
+        echo "The OpenShift iptables port proxy is enabled."
+        exit 0
         ;;
     restart)
         stop
