@@ -54,6 +54,7 @@ Requires:      freetype-devel
 Requires:      atlas-devel
 Requires:      lapack-devel
 Requires:      redhat-lsb-core
+Requires:      ta-lib-devel
 Requires:      symlinks
 
 Obsoletes: openshift-origin-cartridge-community-python-2.7
