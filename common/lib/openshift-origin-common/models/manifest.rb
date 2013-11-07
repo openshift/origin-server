@@ -377,6 +377,10 @@ module OpenShift
         end
       end
 
+      def self.valid_cartridge_name?(name)
+        name =~ VALID_CARTRIDGE_NAME_PATTERN
+      end
+
       def check_reserved_vendor_name
         if cartridge_vendor =~ RESERVED_VENDOR_NAME_PATTERN
           raise InvalidElementError.new("'#{cartridge_vendor}' is reserved.", 'Cartridge-Vendor')
