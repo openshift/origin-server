@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,14 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
+- Improved error messages when trying to create app or add cartridge with
+  invalid gear sizes (contact@fabianofranz.com)
+- Show upgrade rates (jliggitt@redhat.com)
+- Enabling jenkins can throw an exception if the jenkins server was deleted
+  after the enable jenkins page was loaded. (jforrest@redhat.com)
+- bump_minor_versions for sprint 36 (admiller@redhat.com)
+
 * Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.10-1
 - Merge pull request #4054 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
