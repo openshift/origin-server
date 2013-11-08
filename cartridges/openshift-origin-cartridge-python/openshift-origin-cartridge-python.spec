@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.16.6
+Version: 1.16.7
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.16.7-1
+- Bug 1024299 - make the symlink a soft failure so that the deploy converter
+  can run (rmillner@redhat.com)
+
 * Thu Oct 31 2013 Adam Miller <admiller@redhat.com> 1.16.6-1
 - Bug 1024299 - Fix symlink python3.3 in virtenv (jhonce@redhat.com)
 - Bump cartridge versions for 2.0.35 (pmorie@gmail.com)
