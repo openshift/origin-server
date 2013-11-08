@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -91,6 +91,15 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Merge pull request #4130 from pravisankar/dev/ravi/bug-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 990798 - oo-admin-ctl-domain with invalidate key type will show
+  appropriate error message (rpenta@redhat.com)
+- Merge pull request #4121 from brenton/misc7
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1027268 - syntax error is seen in oo-accept-broker (bleanhar@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - add oo-admin-info-app (tdawson@redhat.com)
 - Merge pull request #3872 from sztsian/master
