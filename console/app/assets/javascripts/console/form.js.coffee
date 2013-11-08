@@ -13,7 +13,7 @@ $ ->
 
   $.validator.addMethod "alpha_numeric", ((value) ->
     (/^[A-Za-z0-9]*$/).test value
-  ), "Only letters and numbers are allowed"
+  ), "Only letters and numbers are allowed."
 
   $.validator.addMethod "in_array", ((value, element, params) ->
     if $.isArray(params)
