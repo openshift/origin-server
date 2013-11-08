@@ -33,7 +33,7 @@ Feature: Cartridge upgrades
     And the invocation markers from the gear upgrade should exist
     And the application should be accessible
 
-  Scenario: Upgrade a node using containing failed apps
+  Scenario: Upgrade a node containing failed apps
     Given the 0.0.1 version of the mock-0.1 cartridge is installed
     And a new client created mock-0.1 application named mock1
     And a new client created mock-0.2 application named mock2

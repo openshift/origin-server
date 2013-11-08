@@ -193,12 +193,12 @@ module OpenShift
       # Erase all software versions for the given cartridge version from the repository. This cannot be undone.
       #
       #   CartridgeRepository.instance.erase('php', '3.5', '1.0') #=> Cartridge
-      def erase(cartridge_name, version, cartridge_version)
+      def erase(cartridge_name, version, cartridge_version, force = false)
         unless exist?(cartridge_name, version, cartridge_version)
           raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
         end
 
-        if installed_in_base_path?(cartridge_name)
+        if !force && installed_in_base_path?(cartridge_name)
           raise ArgumentError.new("Cannot erase cartridge installed in CARTRIDGE_BASE_PATH")
         end
 
