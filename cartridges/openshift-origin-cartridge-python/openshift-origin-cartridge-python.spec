@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -115,6 +115,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Bug 1024299 - make the symlink a soft failure so that the deploy converter
+  can run (rmillner@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - Bug 1019924 - Added ta-lib-devel dependency to the python cartridge
   (mfojtik@redhat.com)
