@@ -21,11 +21,11 @@ def clean_cart_repo
 
     if cart_repo.exist?(cart, '0.1', '0.0.2')
       $logger.info("Erasing test-generated version #{cart}-0.1 (0.0.2)")
-      cart_repo.erase(cart, '0.1', '0.0.2')
+      cart_repo.erase(cart, '0.1', '0.0.2', true)
 
       if cart_repo.exist?(cart, '0.2', '0.0.2')
         $logger.info("Erasing test-generated version #{cart}-0.2 (0.0.2)")
-        cart_repo.erase(cart, '0.2', '0.0.2')
+        cart_repo.erase(cart, '0.2', '0.0.2', true)
       end
 
       if File.exist?(manifest_backup_path)
