@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,26 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Merge pull request #4136 from pmorie/fix-tests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix cartridge extended tests: force erasure of installed cartridges during
+  tests (pmorie@gmail.com)
+- Merge pull request #4133 from ironcladlou/bz/1025451
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1028257 (pmorie@gmail.com)
+- Merge pull request #4121 from brenton/misc7
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1025451: Include cartridge vendor in sdk cart ident function
+  (ironcladlou@gmail.com)
+- Bug 1016983 - oo-admin-ctl-iptables-port-proxy status now checks the NAT
+  table (bleanhar@redhat.com)
+- Bug 1016983 - improving the oo-admin-ctl-iptables-port-proxy status check
+  (bleanhar@redhat.com)
+- Bug 1016983 - Check for the nat file in oo-admin-ctl-iptables-port-proxy
+  status (bleanhar@redhat.com)
+- Bug 1016983 - Adding a status method for oo-diagnostics (bleanhar@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - Merge pull request #4114 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
