@@ -49,8 +49,8 @@ class PortInterface
   end
 
   def self.remove_port_interface(gear, component_id, pub_ip, public_port) 
-    pi = gear.port_interfaces.find_by(external_port: public_port)
-    gear.port_interfaces.delete(pi)
+    pi = gear.port_interfaces.find_by(external_port: public_port) rescue nil
+    gear.port_interfaces.delete(pi) if pi
   end
 
   def publish_endpoint(app)
