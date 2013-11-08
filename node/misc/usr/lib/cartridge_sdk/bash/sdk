@@ -337,7 +337,7 @@ function ensure_httpd_restart_succeed() {
 
 # report the primary cartridge name for this gear
 function primary_cartridge_name() {
-  awk -F: '{printf "%s-%s", $2, $3}' $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_IDENT
+  awk -F: '{printf "%s-%s-%s", $1, $2, $3}' $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_IDENT
 }
 
 # Returns 0 if the named marker $1 exists, otherwise 1.
