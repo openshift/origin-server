@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Fix bug 1025155: error message highlighting (jliggitt@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - Improved error messages when trying to create app or add cartridge with
   invalid gear sizes (contact@fabianofranz.com)
