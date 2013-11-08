@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Fix cartridge extended tests: force erasure of installed cartridges during
+  tests (pmorie@gmail.com)
+- test case improvements (dmcphers@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - Getting singleton tests in the right place (dmcphers@redhat.com)
 - Merge pull request #4106 from pravisankar/dev/ravi/card639
