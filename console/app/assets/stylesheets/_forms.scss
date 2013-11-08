@@ -459,6 +459,10 @@ textarea:focus:required:valid {
   @include ie7-inline-block();
   vertical-align: middle;
   margin-bottom: 9px;
+
+  + .help-inline {
+    padding-left: 5px;
+  }
 }
 
 
