@@ -121,7 +121,7 @@ class GroupInstance
     comps = all_component_instances.map{ |c| c.to_hash }
     comps.each do |comp|
       application.group_overrides.each do |group_override|
-        if group_override["components"].include?(comp)
+        if group_override["components"].any? { |go_comp| go_comp["comp"]==comp["comp"] and go_comp["cart"]==comp["cart"] }
           if key
             return group_override[key]
           else
@@ -138,7 +138,7 @@ class GroupInstance
 
   def set_group_override(key, value)
     return unless key
-    group_override = get_group_override(key)
+    group_override = get_group_override
     if group_override
       group_override[key] = value
     else
