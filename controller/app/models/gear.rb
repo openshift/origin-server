@@ -71,8 +71,9 @@ class Gear
     Rails.configuration.openshift[:gear_sizes].include?(gear_size)
   end
 
-  def reserve_uid
-    @container = OpenShift::ApplicationContainerProxy.find_available(group_instance.gear_size, nil, server_identities)
+  def reserve_uid(gear_size = nil)
+    gear_size = group_instance.gear_size unless gear_size
+    @container = OpenShift::ApplicationContainerProxy.find_available(gear_size, nil, server_identities)
     reserved_gear_uid = @container.reserve_uid
 
     failure_message = "Failed to set UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"

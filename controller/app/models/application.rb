@@ -1739,7 +1739,7 @@ class Application
       init_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
 
       #reserve_uid_op = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
-      reserve_uid_op = ReserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [init_gear_op._id.to_s])
+      reserve_uid_op = ReserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, gear_size: gear_size, prereq: [init_gear_op._id.to_s])
 
       #create_gear_op = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
       create_gear_op = CreateGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)

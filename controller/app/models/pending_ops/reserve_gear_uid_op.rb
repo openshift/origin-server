@@ -2,10 +2,11 @@ class ReserveGearUidOp < PendingAppOp
 
   field :gear_id, type: String
   field :group_instance_id, type: String
+  field :gear_size, type: String
 
   def execute
     gear = get_gear()
-    gear.reserve_uid
+    gear.reserve_uid(gear_size)
   end
   
   def rollback
