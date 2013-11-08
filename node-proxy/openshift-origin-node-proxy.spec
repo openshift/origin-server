@@ -11,7 +11,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -136,6 +136,9 @@ fi
 %doc README
 
 %changelog
+* Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- <node-proxy> Spec file updates to make brew happy (jdetiber@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - <node-proxy> Update requires to use scl where appropriate
   (jdetiber@redhat.com)
