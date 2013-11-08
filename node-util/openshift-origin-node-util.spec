@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -149,6 +149,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Merge pull request #4126 from pmorie/bugs/1007709
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1007709: use oo-mco in oo-admin-cartridge (pmorie@gmail.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - Fix bug 991387: Don't allow erase of carts in the cart_base_path
   (pmorie@gmail.com)
