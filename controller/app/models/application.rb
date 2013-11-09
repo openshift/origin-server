@@ -1107,6 +1107,7 @@ class Application
     component_instances = get_components_for_feature(feature)
     component_instances.each do |component_instance|
       GroupInstance.run_on_gears(component_instance.group_instance.gears, result_io, false) do |gear, r|
+        next if not gear.has_component?(component_instance)
         r.append gear.status(component_instance)
       end
     end
@@ -1241,7 +1242,7 @@ class Application
       component_instances.each do |ci|
         ci.group_instance.gears.each do |gear|
           unless gear.removed
-            gears << gear if (gear.host_singletons or gear.sparse_carts.include?(ci._id)) and ci.is_web_proxy?
+            gears << gear if gear.has_component?(ci) and ci.is_web_proxy?
           end
         end
       end

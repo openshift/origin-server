@@ -136,6 +136,14 @@ class Gear
     end
   end
 
+  def has_component?(component_instance)
+    return false unless self.group_instance.all_component_instances.include? component_instance
+    if component_instance.is_sparse?
+      return (gear.host_singletons or gear.sparse_carts.include? component_instance._id))
+    end
+    return true
+  end
+
   def status(component_instance)
     @container.status(self, component_instance)
   end
