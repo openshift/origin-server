@@ -144,12 +144,14 @@ module OpenShift
                     :errors,
                     :warnings,
                     :times,
+                    :attempts,
                     :remote_upgrade_result,
                     :remote_exit_code
 
       def initialize(args = {})
         super(args)
 
+        @attempts ||= []
         @errors ||= []
         @warnings ||= []
         @times ||= {}
@@ -626,24 +628,36 @@ class Upgrader
 
       append_to_file(log_file, "Migrating app '#{gear.app_name}' gear '#{gear.gear_name}' with uuid '#{gear.gear_uuid}' on node '#{gear.server_identity}' for user: #{gear.login}")
 
+      attempts_results = []
+
       # start the upgrades in a retry loop
       num_tries = 2
       (1..num_tries).each do |i|
         # perform the upgrade
-        gear_result = upgrade_gear(gear.login, gear.app_name, gear.gear_uuid, gear.version, ignore_cartridge_version)
+        result = upgrade_gear(gear.login, gear.app_name, gear.gear_uuid, gear.version, ignore_cartridge_version)
 
         # write the results if all is well
-        if gear_result.errors.empty?
-          append_to_file(results_file, gear_result.to_json)
+        if result.errors.empty?
+          if !attempts_results.empty?
+            result.attempts = attempts_results
+          end
+
+          append_to_file(results_file, result.to_json)
           break
         end
 
         # dump the error to disk if the retry limit is hit and we're still failing
         if i == num_tries
-          gear_result.errors << "Failed upgrade after #{num_tries} tries"
-          append_to_file(error_file, gear_result.to_json)
+          if !attempts_results.empty?
+            result.attempts = attempts_results
+          end
+
+          result.errors << "Failed upgrade after #{num_tries} tries"
+          append_to_file(error_file, result.to_json)
           append_to_file(rerun_file, gear.to_json)
           break
+        else
+          attempts_results << result.remote_upgrade_result
         end
 
         # verify the user still exists
@@ -656,7 +670,7 @@ class Upgrader
         # if not, throw a warning and move on
         unless user && Application.find_by_user(user, gear.app_name)
           gear_result.warnings << "App '#{gear.app_name}' no longer found in datastore with uuid '#{gear.gear_uuid}'.  Ignoring..." 
-          append_to_file(results_file, gear_result.to_json)
+          append_to_file(results_file, result.to_json)
           break
         end
 
