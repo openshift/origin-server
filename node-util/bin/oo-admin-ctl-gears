@@ -63,7 +63,7 @@ module OpenShift
       end
 
       def stop(force=false)
-        p_runner do |gear|
+        p_runner(false) do |gear|
           syslog_pass_fail("Stopped", "Failed to stop", gear) do
             output_pass_fail("Stopping", gear) do
               options={ :user_initiated => false }
@@ -78,7 +78,7 @@ module OpenShift
       end
 
       def restart
-        p_runner do |gear|
+        p_runner(false) do |gear|
           syslog_pass_fail("Restarted", "Failed to restart", gear) do
             output_pass_fail("Restarting", gear) do
               out = ""
