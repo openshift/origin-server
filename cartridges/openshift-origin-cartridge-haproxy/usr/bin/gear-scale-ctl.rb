@@ -87,7 +87,7 @@ class GearScaleCtl
           return false
         end
       rescue RestClient::Exception => e
-        $stderr.puts "Failed to get application info from the broker."
+        $stderr.puts "Failed to get application info from the broker: #{e.message}"
         return false
       end
 
