@@ -253,7 +253,12 @@ begin
       puts "Multiplier factor is a required argument"
       exit 1
     end
-    ci = app.component_instances.find_by(cartridge_name: cartridge)
+    begin
+      ci = app.component_instances.find_by(cartridge_name: cartridge)
+    rescue Exception => e
+      puts "Cartridge #{cartridge} not found in the application #{app.name}"
+      exit 1
+    end
     unless ci.is_sparse?
       puts "Cannot set multiplier factor. Cartridge #{cartridge} needs to be a sparse cart."
       exit 1
