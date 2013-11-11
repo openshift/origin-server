@@ -2,7 +2,7 @@
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -37,6 +37,10 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
+- cron/cron_runjobs.sh Fix user-defined environment variables path
+  (jooert@users.noreply.github.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - Bump cartridge versions (fotios@redhat.com)
 - bump_minor_versions for sprint 35 (admiller@redhat.com)
