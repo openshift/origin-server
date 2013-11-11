@@ -230,5 +230,5 @@
   :javascript
     $('[data-text-copy]').click(function() {
       $(this).focus().select();
-      $(this).keypress(function(e){ e.preventDefault(); });
+      $(this).keyup(function(){ $(this).select(); });
     });
