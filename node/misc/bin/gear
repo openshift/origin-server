@@ -643,4 +643,3 @@ command :'rotate-in' do |c|
     $stdout.puts(JSON.dump(result)) if options.as_json
   end
 end
-

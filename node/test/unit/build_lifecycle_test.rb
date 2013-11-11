@@ -62,7 +62,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                           init: init,
                                           out: $stdout,
                                           err: $stderr)
-
+      @container.expects(:check_deployments_integrity).with(has_entry(out: $stdout))
       deployment_datetime = 'now'
       @container.expects(:create_deployment_dir).returns(deployment_datetime)
 
