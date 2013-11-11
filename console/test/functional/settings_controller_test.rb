@@ -7,7 +7,6 @@ class SettingsControllerTest < ActionController::TestCase
     get :show
     assert_response :success
     assert assigns(:user)
-    assert !assigns(:domain).persisted?
     assert assigns(:keys).empty?
     assert assigns(:authorizations)
 
@@ -26,7 +25,6 @@ class SettingsControllerTest < ActionController::TestCase
     assert assigns(:user)
     assert assigns(:domains)
     assert assigns(:domains).present?
-    assert_nil assigns(:domain)
     assert assigns(:keys)
     assert assigns(:authorizations)
 
