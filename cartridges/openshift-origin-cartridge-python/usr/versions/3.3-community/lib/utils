@@ -119,12 +119,10 @@ function get_distro_name_and_release() {
    version=$(uname -r)
    if [ "$distro" = "linux" ]; then
       if [ -f "/etc/redhat-release" ]; then
-         if grep "Red Hat" /etc/redhat-release > /dev/null 2>&1; then
-            distro="rhel"
+         if grep "Fedora" /etc/redhat-release > /dev/null 2>&1; then
+            distro="fedora"
          else
-            if grep "Fedora" /etc/redhat-release > /dev/null 2>&1; then
-               distro="fedora"
-            fi
+            distro="rhel"
          fi
          version=$(lsb_release -r | awk '{print $2}')
      fi
