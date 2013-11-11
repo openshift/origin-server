@@ -203,6 +203,9 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert CloudUser.accessible(u).empty?
     assert Authorization.accessible(u).empty?
 
+    u.scopes = Scope.list!("application/#{a._id}/admin")
+    assert CloudUser.accessible(u).present?
+
     u.scopes = Scope.list!("application/#{a2._id}/view")
     assert_equal [d2._id], Domain.accessible(u).map(&:_id)
 
@@ -218,6 +221,9 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal [d._id], Domain.accessible(u).map(&:_id)
     assert CloudUser.accessible(u).empty?
     assert Authorization.accessible(u).empty?
+
+    u.scopes = Scope.list!("domain/#{d._id}/admin")
+    assert CloudUser.accessible(u).present?
 
     u.scopes = Scope.list!("domain/#{d2._id}/view")
     assert_equal [a2._id], Application.accessible(u).map(&:_id)
