@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.17.2
+Version: 1.17.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
+- Merge pull request #4146 from rmillner/BZ1028576
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1028576 - EtcUtils should be explicitly required by the selinux module if
+  its going to be used. (rmillner@redhat.com)
+- Merge pull request #4119 from mfojtik/bugzilla/1026273
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1026273 - Allow the '_' character in cartridge name (mfojtik@redhat.com)
+
 * Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
 - Merge pull request #4136 from pmorie/fix-tests
   (dmcphers+openshiftbot@redhat.com)
