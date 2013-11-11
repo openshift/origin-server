@@ -15,7 +15,7 @@ function load_env {
     fi
 }
 
-for f in ~/.env/* ~/.env/.uservars/* ~/*/env/*
+for f in ~/.env/* ~/.env/user_vars/* ~/*/env/*
 do
     load_env $f
 done
