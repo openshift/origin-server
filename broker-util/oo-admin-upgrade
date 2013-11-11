@@ -139,6 +139,7 @@ module OpenShift
       attr_accessor :login,
                     :app_name,
                     :gear_uuid,
+                    :namespace,
                     :hostname,
                     :version,
                     :errors,
@@ -736,6 +737,7 @@ class Upgrader
       if app && gear
         server_identity = gear.server_identity
         gear_result.hostname = server_identity
+        gear_result.namespace = app.domain.namespace
 
         remote_result_json = nil
         remote_output = nil
