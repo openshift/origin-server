@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.17.2
+Version: 1.17.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
+- Merge pull request #4139 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4140 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1028284 (abhgupta@redhat.com)
+- set_group_override fix (rchopra@redhat.com)
+- port interface being removed may not exist (rchopra@redhat.com)
+
 * Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
 - Fix cartridge extended tests: force erasure of installed cartridges during
   tests (pmorie@gmail.com)
