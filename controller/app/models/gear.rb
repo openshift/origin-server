@@ -141,6 +141,14 @@ class Gear
     @container.status(self, component_instance)
   end
 
+  def has_component?(component_instance)
+    return false unless self.group_instance.all_component_instances.include? component_instance
+    if component_instance.is_sparse?
+      return (self.host_singletons or self.sparse_carts.include? component_instance._id)
+    end
+    return true
+  end
+
   # Installs the specified component on the gear.
   #
   # == Parameters:
