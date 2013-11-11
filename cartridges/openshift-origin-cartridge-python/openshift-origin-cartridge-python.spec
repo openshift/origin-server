@@ -42,6 +42,7 @@ Requires:      python27-MySQL-python
 Requires:      python27-python-psycopg2
 Requires:      python27-mod_wsgi
 Requires:      python27-python-pip-virtualenv
+Requires:      python27-numpy
 %endif
 Requires:      libjpeg
 Requires:      libjpeg-devel
