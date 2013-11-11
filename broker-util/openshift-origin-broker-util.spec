@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.17.2
+Version: 1.17.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -91,6 +91,18 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
+- Bug 1028518 (dmcphers@redhat.com)
+- Bug 1028518 (dmcphers@redhat.com)
+- Merge pull request #4144 from pravisankar/dev/ravi/bug1019246
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4137 from pmorie/bugs/1028518
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1019246 - Handle errors in setting multiplier for the cartridge
+  (rpenta@redhat.com)
+- Fix bug 1028518: include prior upgrade attempts in oo-admin-upgrade output
+  (pmorie@gmail.com)
+
 * Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
 - Merge pull request #4130 from pravisankar/dev/ravi/bug-fixes
   (dmcphers+openshiftbot@redhat.com)
