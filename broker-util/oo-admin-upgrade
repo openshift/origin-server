@@ -591,7 +591,7 @@ class Upgrader
 
     # fork the call to +upgrade_node_from_gear_queue_file+ (TODO: revisit this later; the
     # fork is apparently used to work around long-forgotten MCollective threading issues)
-    upgrade_node_cmd = "#{__FILE__} upgrade-from-file --upgrade-file '#{gear_queue_file}' --active-only #{active_only} --num_tries #{num_tries}"
+    upgrade_node_cmd = "#{__FILE__} upgrade-from-file --upgrade-file '#{gear_queue_file}' --active-only #{active_only} --num-tries #{num_tries}"
 
     upgrade_node_cmd += " --ignore-cartridge-version" if ignore_cartridge_version
 
@@ -1010,7 +1010,7 @@ class UpgraderCli < Thor
   method_option :num_tries, :type => :numeric, :default => 2, :desc => "Number of times to try a particular gear upgrade"
   def upgrade_from_file
     with_upgrader do |upgrader|
-      upgrader.upgrade_node_from_gear_queue_file(options.upgrade_file, options.active_only?, options.ignore_cartridge_version?)
+      upgrader.upgrade_node_from_gear_queue_file(options.upgrade_file, options.active_only?, options.ignore_cartridge_version?, options.num_tries)
     end
   end
 
