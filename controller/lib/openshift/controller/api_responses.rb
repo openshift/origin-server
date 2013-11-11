@@ -124,7 +124,7 @@ module OpenShift
           when OpenShift::UserException
             status = :unprocessable_entity
             internal_error = false
-            
+
           when OpenShift::AccessDeniedException
             status = :forbidden
             internal_error = false

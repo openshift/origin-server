@@ -73,7 +73,7 @@ class Domain
   end
 
   def self.validation_map
-    {namespace: 106, allowed_gear_sizes: 110}
+    {namespace: 106, allowed_gear_sizes: 110, members: 222}
   end
 
   def self.sort_by_original(user)
