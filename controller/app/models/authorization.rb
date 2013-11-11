@@ -26,6 +26,8 @@ class Authorization
   index({ token: 1 }, { unique: true })
   index({ user_id: 1 })
 
+  create_indexes
+
   attr_accessible :note, :expires_in
 
   validates :token, :uniqueness => true
