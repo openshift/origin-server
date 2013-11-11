@@ -27,7 +27,7 @@ module DomainAware
   end
 
   def user_owned_domains(opts={})
-    user_domains.select(&:owner?)
+    user_domains(opts).select(&:owner?)
   end
 
   def user_default_domain(opts={})

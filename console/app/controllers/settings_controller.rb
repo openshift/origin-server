@@ -5,10 +5,8 @@ class SettingsController < ConsoleController
   def show
     @user = current_user
 
-    @domains = user_owned_domains
-    @domain = Domain.new if @domains.blank?
-    @capabilities = user_capabilities
-
+    async{ @domains = user_owned_domains(:refresh => true) }
+    async{ @capabilities = user_capabilities }
     async{ @keys = Key.all :as => @user }
     async{ @authorizations = Authorization.all :as => @user }
 
