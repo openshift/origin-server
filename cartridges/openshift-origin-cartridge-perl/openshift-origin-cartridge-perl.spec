@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,10 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Tue Nov 12 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
+- Bug 1028960 - Prefer perl modules installed on system over CPAN install
+  (mfojtik@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - Bug 1026652 - Add db4-devel dependency to the perl cartridge
   (mfojtik@redhat.com)
