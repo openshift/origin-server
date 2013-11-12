@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.17.3
+Version: 1.17.4
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -116,6 +116,12 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Nov 12 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
+- Merge pull request #4158 from mfojtik/bugzilla/1015722
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1015722 - Added python27-numpy into python cart spec file
+  (mfojtik@redhat.com)
+
 * Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
 - Make the Python cartridge work with CentOS. (steven.merrill@gmail.com)
 
