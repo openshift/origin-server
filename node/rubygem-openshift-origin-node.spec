@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.13
+Version: 1.16.14
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.16.14-1
+- Add deployments integrity check in app container (pmorie@gmail.com)
+
 * Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.16.13-1
 - Bug 1028576 - EtcUtils should be explicitly required by the selinux module if
   its going to be used. (rmillner@redhat.com)
