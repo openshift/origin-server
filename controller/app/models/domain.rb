@@ -62,10 +62,14 @@ class Domain
   validate do |d|
     if d.allowed_gear_sizes_changed?
       new_gear_sizes = Array(d.allowed_gear_sizes).map{ |g| g.to_s.presence }.compact
-      valid_gear_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & (d.has_owner? and d.owner.allowed_gear_sizes or [])
+      valid_gear_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes
+      allowed_gear_sizes = valid_gear_sizes & (d.has_owner? and d.owner.allowed_gear_sizes or [])
       invalid_gear_sizes = new_gear_sizes - valid_gear_sizes
+      disallowed_gear_sizes = new_gear_sizes - allowed_gear_sizes
       if invalid_gear_sizes.present?
         d.errors.add :allowed_gear_sizes, "The following gear sizes are invalid: #{invalid_gear_sizes.to_sentence}"
+      elsif disallowed_gear_sizes.present?
+        d.errors.add :allowed_gear_sizes, "The following gear sizes are not available to this account: #{disallowed_gear_sizes.to_sentence}"
       else
         d.allowed_gear_sizes = new_gear_sizes.uniq
       end
