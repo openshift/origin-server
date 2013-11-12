@@ -14,8 +14,13 @@ module AdminConsole
       Rails.application.config.admin_console[:stats][:read_file] = "#{ActiveSupport::TestCase.fixture_path}admin_console/empty_district_and_node.json"
       get :show, :id => "small"
       assert assigns(:profile)
-      assert assigns(:districts)
-      assert !assigns(:show_nodes)
+      if Rails.configuration.msg_broker[:districts][:enabled]
+        assert assigns(:districts)
+        assert !assigns(:show_nodes)
+      else
+        assert !assigns(:districts)
+        assert assigns(:show_nodes)
+      end
       assert !assigns(:undistricted_nodes_exist)
       assert_response :success
     end
@@ -53,8 +58,13 @@ module AdminConsole
       Rails.application.config.admin_console[:stats][:read_file] = "#{ActiveSupport::TestCase.fixture_path}admin_console/district_with_node_and_undistricted_node.json"
       get :show, :id => "small"
       assert assigns(:profile)
-      assert assigns(:districts)
-      assert !assigns(:show_nodes)
+      if Rails.configuration.msg_broker[:districts][:enabled]
+        assert assigns(:districts)
+        assert !assigns(:show_nodes)
+      else
+        assert !assigns(:districts)
+        assert assigns(:show_nodes)
+      end
       assert assigns(:undistricted_nodes_exist)
       assert_response :success
     end    
