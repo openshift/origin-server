@@ -119,32 +119,6 @@ iframe {
   float: left;
 }
 
-.graph-horizontal {
-  caption {
-    caption-side: top;
-    font-weight: 600;
-    padding: 4px 5px;
-    text-align: left;
-  }
-  td { white-space: nowrap; }
-  td.graph-data { width: 100%; }
-  .graph-element { display: inline-block; border: 1px solid rgba(255,255,255,.1); line-height: 1em; }
-  .graph-element + .graph-element { border-left-width: 0px; margin-left: -1px;}
-  // Default colors alternate light and dark
-  .graph-element { background: rgba(255,255,255,.5); }
-  .graph-element:nth-of-type(2n) { background: rgba(255,255,255,.3); }
-  .graph-element.type-1  { background: #00B945; }
-  .graph-element.type-2  { background: #0776A0; }
-  .graph-element.type-3  { background: #FF8500; }
-  .graph-element.type-4  { background: #FF2C00; }
-  .graph-element.type-5  { background: #5D2680; }
-  .graph-element.type-6  { }
-  .graph-element.type-7  { }
-  .graph-element.type-8  { }
-  .graph-element.type-9  { }
-  .graph-element.type-10 { }
-}
-
 h2 + ul, h3 + ul, h4 + ul {
   margin-top: 9px;
 }
