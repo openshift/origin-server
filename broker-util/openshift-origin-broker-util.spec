@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.17.3
+Version: 1.17.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -91,6 +91,15 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Nov 12 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
+- Merge pull request #4160 from pravisankar/dev/ravi/bugs1028955_1028337
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4152 from ironcladlou/bz/1028514
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1028337 - Fix additional storage consistency check in oo-admin-chk
+  (rpenta@redhat.com)
+- Bug 1028514: Add namespace to gear upgrade results (ironcladlou@gmail.com)
+
 * Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
 - Bug 1028518 (dmcphers@redhat.com)
 - Bug 1028518 (dmcphers@redhat.com)
