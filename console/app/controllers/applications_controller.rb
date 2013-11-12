@@ -91,7 +91,7 @@ class ApplicationsController < ConsoleController
     @user_owned_domains = user_owned_domains
     @empty_owned_domains = @user_owned_domains.select{ |d| d.application_count == 0 }
     @empty_unowned_domains = @domains.select{ |d| !d.owner? && d.application_count == 0 }
-    @capabilities = user_capabilities
+    @capabilities = user_capabilities(:refresh => true)
   end
 
   def destroy
