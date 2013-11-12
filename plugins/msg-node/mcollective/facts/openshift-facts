@@ -6,4 +6,4 @@ if [ -f /opt/rh/ruby193/root/usr/libexec/mcollective/update_yaml.rb ]; then
   PREFIX="/opt/rh/ruby193/root"
 fi
 
-oo-exec-ruby ${PREFIX}/usr/libexec/mcollective/update_yaml.rb ${PREFIX}/etc/mcollective/facts.yaml &> /tmp/facts.log
+oo-exec-ruby ${PREFIX}/usr/libexec/mcollective/update_yaml.rb ${PREFIX}/etc/mcollective/facts.yaml &> /dev/null
