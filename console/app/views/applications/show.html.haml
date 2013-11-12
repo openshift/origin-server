@@ -187,7 +187,7 @@
           %p
             The command below will open a Secure Shell (SSH) session to your application on most operating systems.  See our #{link_to 'SSH help page', ssh_help_url} for information about connecting with Windows, Mac, and Linux computers.
           %p
-            %input#application_ssh_url.git-url{:readonly => 'readonly', :'data-text-copy' => true, :value => "ssh #{@application.ssh_string}", :title => 'Cut and paste this command into a command shell to access your OpenShift application.'}
+            %input#application_ssh_url.git-url{:readonly => 'readonly', :'data-text-copy' => true, :value => "ssh #{@application.ssh_string}", :title => 'Copy and paste this command into a command shell to access your OpenShift application.'}
 
     - else
       %h2 Source Code
