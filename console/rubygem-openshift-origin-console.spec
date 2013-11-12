@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.17.3
+Version: 1.17.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,20 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Nov 12 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
+- Bug 1029242: Change copy/paste help test (jliggitt@redhat.com)
+- Merge pull request #4156 from liggitt/bug_1029143_usage_graph_styles
+  (dmcphers@redhat.com)
+- Merge pull request #4163 from sg00dwin/bug-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4153 from liggitt/bug_1028896_ssh_field_copy
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for Bug 1022232 - the background color for the ssh url box is white in
+  Opera. And change text so as not to imply one "must upload their ssh key now"
+  otherwise they can't do it later. (sgoodwin@redhat.com)
+- Fix bug 1029143 - re-add usage graph styles (jliggitt@redhat.com)
+- Bug 1028896: Fix copy/paste of ssh url field (jliggitt@redhat.com)
+
 * Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
 - Bug 1016413 - refresh domain info (jliggitt@redhat.com)
 
