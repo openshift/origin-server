@@ -356,15 +356,23 @@ textarea[class*="span"],
 // DISABLED STATE
 // --------------
 
-// Disabled and read-only inputs
+// Disabled inputs
 input[disabled],
 select[disabled],
-textarea[disabled],
+textarea[disabled] {
+  cursor: not-allowed;
+  background-color: $inputDisabledBackground;
+  border: 1px solid $inputDisabledBorder;
+  color: #666 !important;
+}
+// Read-only inputs
 input[readonly],
 select[readonly],
 textarea[readonly] {
-  cursor: not-allowed;
   background-color: $inputDisabledBackground;
+  border: 1px dotted $inputDisabledBorder;
+  color: #666 !important;
+  cursor: inherit;
 }
 // Explicitly reset the colors here
 input[type="radio"][disabled],
@@ -373,7 +381,6 @@ input[type="radio"][readonly],
 input[type="checkbox"][readonly] {
   background-color: transparent;
 }
-
 
 
 
@@ -753,25 +760,6 @@ legend + .control-group {
   }
 }
 
-input[readonly],
-select[readonly],
-textarea[readonly] {
-  cursor: inherit;
-  color: #666 !important;
-  background-color: inherit !important;
-  border: 1px dotted #ccc !important;
-  border-radius: 0 0 0 0 !important;
-}
-.input-copyable {
-  -moz-box-sizing: border-box;
-  background-color: inherit;
-  border: 1px dotted #444444;
-  border-radius: 0 0 0 0;
-  color: #BABBBC;
-  cursor: inherit;
-  height: 28px;
-  width: 100%;
-}
 
 // FORM-IMPORTANT
 // ---------------------------
