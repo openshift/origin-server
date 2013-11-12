@@ -35,7 +35,7 @@ yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
 yum install -y --nogpgcheck ${url_of_the_latest_puppet-release_rpm}
 ----
 
-* Add `exclude=*mcollective*` to the puppet entry in the file `/etc/yum.repos.d/puppetlabs.repo`
+* Add `exclude=*mcollective* activemq` to the puppet repo entries in the file `/etc/yum.repos.d/puppetlabs.repo`
 
 * "Optional" repository - enable depending on your source:
 ** yum-config-manager --enable rhel-6-server-optional-rpms
@@ -63,7 +63,7 @@ puppet module install openshift/openshift_origin
 
 NOTE: If you would like to work from the puppet module source instead, you can just clone the github repository into the same directory:
 ----
-git clone git@github.com:openshift/puppet-openshift_origin.git /etc/puppet/modules/openshift_origin
+git clone https://github.com/openshift/puppet-openshift_origin.git /etc/puppet/modules/openshift_origin
 ----
 
 == Generating BIND TSIG Key
@@ -143,6 +143,8 @@ Create a puppet configuration file `configure_origin.pp` using the following tem
       # Apps would be named <app>-<namespace>.example.com
       # This also creates hostnames for local components under our domain
       register_host_with_named   => true,
+      # Forward requests for other domains (to Google by default)
+      conf_named_upstream_dns    => ['8.8.8.8'],
     
       # Auth OpenShift users created with htpasswd tool in /etc/openshift/htpasswd
       broker_auth_plugin         => 'htpasswd',
@@ -175,10 +177,18 @@ Execute the puppet script:
 puppet apply --verbose configure_origin.pp
 ----
 
-Assuming everything runs cleanly, installation is complete. Otherwise, you can resolve the errors shown
-(warnings can often be ignored) and re-run puppet until it runs cleanly.
+Assuming everything runs cleanly, installation is complete. Otherwise, you can resolve the errors shown (warnings can often be ignored) and re-run puppet until it runs cleanly.
 
-Once puppet runs cleanly, reboot the system for all settings and services to go into effect.
+Puppet is supposed to register the host DNS entries for you, but you may find this isn't working. If you have not already arranged for the DNS resolution of this host, you can now use the oo-register-dns tool to do so:
+
+----
+# oo-register-dns --domain example.com --with-node-hostname broker --with-node-ip <broker IP>
+# ping broker.example.com
+PING broker.example.com (172.x.x.x) 56(84) bytes of data.
+64 bytes from 172.x.x.x: icmp_seq=1 ttl=64 time=0.020 ms
+----
+
+Assuming everything runs cleanly and host DNS resolves, reboot the system for all settings and services to go into effect.
 
 === Configuring separate hosts for broker/node
 
@@ -207,6 +217,8 @@ particularly the bind_key.
       # Apps would be named <app>-<namespace>.example.com
       # This also creates hostnames for local components under our domain
       register_host_with_named   => true,
+      # Forward requests for other domains (to Google by default)
+      conf_named_upstream_dns    => ['8.8.8.8'],
     
       # The FQDNs of the OpenShift component hosts
       broker_hostname            => 'broker.example.com',
@@ -230,7 +242,7 @@ Execute the puppet script:
 ----
 puppet apply --verbose configure_origin.pp
 ----
-As with the all-in-one host, ensure puppet runs cleanly, then reboot.
+As with the all-in-one host, ensure puppet runs cleanly and the host DNS resolves, then reboot.
 
 ==== Node host
 
@@ -283,7 +295,7 @@ If you have not already arranged for the DNS resolution of this host, you can no
 
 oo-register-dns --with-node-hostname broker --with-node-ip <broker IP> --domain example.com
 
-As with the all-in-one host, ensure puppet runs cleanly, then reboot.
+As with the all-in-one host, ensure puppet runs cleanly and the host DNS resolves, then reboot.
 
 This should give you a working OpenShift deployment separated into two hosts, one for broker components and one for a node.
 You may add as many more node hosts as you like.
@@ -299,6 +311,7 @@ and the Mongo auth plugin (which stores user credentials in MongoDB).
 class { 'openshift_origin' :
   domain                     => 'openshift.local',
   register_host_with_named   => true,
+  conf_named_upstream_dns    => ['8.8.8.8'],
   install_method             => 'yum',
   jenkins_repo_base          => 'http://pkg.jenkins-ci.org/redhat',
   broker_auth_plugin         => 'mongo',
