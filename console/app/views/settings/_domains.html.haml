@@ -9,12 +9,16 @@
       %td= link_to d.name, domain_path(d)
       %td= pluralize(d.application_count, 'application')
       %td
-        - if d.members.count > 1
+        - if !d.owner?
+          = "Shared by #{d.members.find(&:owner?).name}" rescue "Shared with you"
+        - elsif d.members.count > 1
           = pluralize(d.members.count - 1, 'other member')
+        - else
+          No other members
 
 - if @domains.length > 3
   %p= link_to "See other domains", domains_path
-- elsif @domains.length < @capabilities.max_domains
+- elsif @domains.count(&:owner?) < @capabilities.max_domains
   %p= link_to "Create another domain", new_domain_path
 
 -#.btn-toolbar
