@@ -110,7 +110,7 @@ module OpenShift
           end
         end
 
-        def check_deployments_integrity(options)
+        def check_deployments_integrity(options = {})
           buffer = ''
           FileUtils.mkdir_p(PathUtils.join(@container_dir, 'app-deployments', 'by-id'))
 
