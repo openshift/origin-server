@@ -15,12 +15,7 @@ function apache() {
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k $1
     ret=$?
-    if [ "$1" == "start" ] ; then
-      for i in {1..5} ; do
-        test -f "$HTTPD_PID_FILE" && break;
-        sleep 1;
-      done
-    fi
+    [ "$ret" == "0" -a "$1" == "start" ] && wait_for_pid_file $HTTPD_PID_FILE
     return $ret
 }
 

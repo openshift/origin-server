@@ -15,6 +15,7 @@ function start() {
   write_httpd_passenv $HTTPD_PASSENV_FILE
   ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
+  [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
 function stop() {
