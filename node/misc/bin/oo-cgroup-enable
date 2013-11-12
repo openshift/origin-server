@@ -79,8 +79,8 @@ end
 
 begin
   if all_containers
-    OpenShift::Runtime::ApplicationContainer.all.each do |c|
-      OpenShift::Runtime::Utils::Cgroups.new(c.uuid).create
+    OpenShift::Runtime::ApplicationContainer.all_uuids.each do |uuid|
+      OpenShift::Runtime::Utils::Cgroups.new(uuid).create
     end
   else
     OpenShift::Runtime::Utils::Cgroups.new(container_uuid.to_s).create

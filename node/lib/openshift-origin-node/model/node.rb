@@ -325,8 +325,8 @@ module OpenShift
         res['gears_started_count'] = 0
         res['gears_deploying_count'] = 0
         res['gears_unknown_count'] = 0
-        OpenShift::Runtime::ApplicationContainer.all.each do |app|
-          res['git_repos_count'] += 1 if ApplicationRepository.new(app).exists?
+        OpenShift::Runtime::ApplicationContainer.all(nil, false).each do |app|
+          # res['git_repos_count'] += 1 if ApplicationRepository.new(app).exists?
           res['gears_total_count'] += 1
 
           case app.state.value

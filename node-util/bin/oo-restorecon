@@ -45,7 +45,7 @@ def restore_con(dir, label, verbose = False)
 end
 
 if options[:all]
-    OpenShift::Runtime::ApplicationContainer.all.each do |container|
+    OpenShift::Runtime::ApplicationContainer.all(nil, false).each do |container|
         mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(container.uid)
         restore_con(container.container_dir, mcs_label, options[:verbose])
     end
