@@ -75,7 +75,7 @@ class MembersController < BaseController
         render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, msg, nil, warnings)
       end
     else
-      render_error(:unprocessable_entity, "The members could not be added due to validation errors.", nil, nil, nil, get_error_messages(new_members))
+      render_error(:unprocessable_entity, "The members could not be added due to validation errors.", nil, nil, nil, get_error_messages(membership))
     end
   end
 
