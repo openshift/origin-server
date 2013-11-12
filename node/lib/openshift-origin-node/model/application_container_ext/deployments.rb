@@ -110,6 +110,56 @@ module OpenShift
           end
         end
 
+        def check_deployments_integrity(options)
+          buffer = ''
+          FileUtils.mkdir_p(PathUtils.join(@container_dir, 'app-deployments', 'by-id'))
+
+          deployments = all_deployments.map { | x | File.basename(x) }
+
+          linked_deployments = Dir.glob(PathUtils.join(@container_dir, 'app-deployments', 'by-id', '*')).map do | link |
+            File.basename(File.readlink(link))
+          end
+
+          unlinked_deployments = deployments - linked_deployments
+
+          if !unlinked_deployments.empty?
+            message = "Repairing links for #{unlinked_deployments.size} deployments"
+            options[:out].puts message if options[:out]
+            buffer << message
+          end
+
+          unlinked_deployments.each do | deployment_datetime |
+            deployment_id = calculate_deployment_id(deployment_datetime)
+            deployment_metadata = deployment_metadata_for(deployment_datetime)
+            deployment_metadata.id = deployment_id
+            deployment_metadata.save
+
+            link_deployment_id(deployment_datetime, deployment_id)
+          end
+
+          set_rw_permission_R(PathUtils.join(@container_dir, 'app-deployments'))
+
+          unless current_deployment_datetime
+            all_deployments_by_activation.reverse.each do |deployment|
+              deployment_datetime = File.basename(deployment)
+              deployment_metadata = deployment_metadata_for(deployment_datetime)
+
+              if deployment_metadata.activations.empty?
+                next
+              end
+
+              message = "Repairing current deployment symlink: #{deployment_datetime}"
+              options[:out].puts message if options[:out]
+              buffer << message
+
+              update_current_deployment_datetime_symlink(deployment_datetime)
+              break
+            end
+          end
+
+          buffer
+        end
+
         def update_current_deployment_datetime_symlink(deployment_datetime)
           file = PathUtils.join(@container_dir, 'app-deployments', 'current')
           FileUtils.rm_f(file)

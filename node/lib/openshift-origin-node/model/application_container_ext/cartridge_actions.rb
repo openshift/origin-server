@@ -360,6 +360,7 @@ module OpenShift
                       out:                options[:out],
                       err:                options[:err])
 
+            check_deployments_integrity(options)
             deployment_datetime = create_deployment_dir
 
             git_ref = options[:ref]
