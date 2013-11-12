@@ -131,8 +131,15 @@
       e.stopPropagation();
       $(popups).not(this).popover('hide');
       $(this).popover('show', e);
+    }).bind("touchstart", function(e) {
+      e.stopPropagation();
+      $(popups).not(this).popover('hide');
+      $(this).popover('show', e);
     });
     $('html').click(function(e) {
+      if (!$(e.target).is('.popover *'))
+        $(popups).popover('hide');
+    }).bind("touchstart", function(e){
       if (!$(e.target).is('.popover *'))
         $(popups).popover('hide');
     });
