@@ -1,6 +1,7 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
+    %global scl_root /opt/rh/ruby193/root
 %endif
 %global rubyabi 1.9.1
 
@@ -40,8 +41,8 @@ They must be run on a openshift broker instance.
 mkdir -p %{buildroot}%{_sbindir}
 cp -p oo-* %{buildroot}%{_sbindir}/
 
-mkdir -p %{buildroot}%{ruby_libdir}
-cp -p lib/*.rb %{buildroot}%{ruby_libdir}
+mkdir -p %{buildroot}%{?scl:%scl_root}%{ruby_libdir}
+cp -p lib/*.rb %{buildroot}%{?scl:%scl_root}%{ruby_libdir}
 
 mkdir -p %{buildroot}%{_mandir}/man8/
 cp -p man/*.8 %{buildroot}%{_mandir}/man8/
@@ -71,7 +72,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-register-dns
 %attr(0750,-,-) %{_sbindir}/oo-stats
 
-%{ruby_libdir}/app_info.rb
+%{?scl:%scl_root}%{ruby_libdir}/app_info.rb
 
 %{_mandir}/man8/oo-accept-broker.8.gz
 %{_mandir}/man8/oo-accept-systems.8.gz
