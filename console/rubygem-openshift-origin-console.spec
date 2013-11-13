@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.17.4
+Version: 1.17.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,25 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.5-1
+- Fix bug 1029745: billing info form (jliggitt@redhat.com)
+- Merge pull request #4178 from jwforres/bug_1024046_silver_addtl_help_links
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1024046 - template columns of the console help page (jforrest@redhat.com)
+- Merge pull request #4176 from liggitt/bug_1029241_test_case_selector
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4174 from jwforres/bug_1025635_help_popovers_on_ios
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1029241: Make test case selector match better (jliggitt@redhat.com)
+- Merge pull request #4172 from liggitt/bug_1028548_shared_domain_visibility
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4170 from liggitt/bug_1029303_refresh_user_capabilities
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1025635 - help popovers don't close on iOS browsers (jforrest@redhat.com)
+- Bug 1028548: Make shared domains visible in settings if no owned domains are
+  present (jliggitt@redhat.com)
+- Fix Bug 1029303: Refresh user capabilities on apps page (jliggitt@redhat.com)
+
 * Tue Nov 12 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
 - Bug 1029242: Change copy/paste help test (jliggitt@redhat.com)
 - Merge pull request #4156 from liggitt/bug_1029143_usage_graph_styles
