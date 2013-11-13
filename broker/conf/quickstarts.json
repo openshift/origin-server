@@ -19,18 +19,6 @@
     "tags":["python","django","framework"],
     "admin_tags":[]
   }},
-/*
-  {"quickstart":{
-    "id": "3",
-    "name":"CapeDwarf",
-    "website":"http://www.jboss.org/capedwarf",
-    "initial_git_url":"git://github.com/openshift/capedwarf-example.git",
-    "cartridges":["jbossas-7"],
-    "summary":"Deploy and run your Java App Engine applications on JBoss AS7 through OpenShift.",
-    "tags":["app engine","java","google","capedwarf"],
-    "admin_tags":[]
-  }},
-*/
   {"quickstart":{
     "id": "4",
     "name":"Drupal",
@@ -41,18 +29,6 @@
     "tags":["php","drupal","wiki","framework","instant_app"],
     "admin_tags":[]
   }},
-/*
-  {"quickstart":{
-    "id": "5",
-    "name":"JavaEE Full Profile Example on JBoss",
-    "website":"https://docs.jboss.org/author/display/AS71/Kitchensink+quickstart",
-    "initial_git_url":"git://github.com/openshift/kitchensink-example.git",
-    "cartridges":["jbossas-7"],
-    "summary":"This quickstart uses JBoss AS7 to show off all the new features of Java EE 6 and makes a great starting point for your Java project.",
-    "tags":["java","jboss","framework"],
-    "admin_tags":[]
-  }},
-*/
   {"quickstart":{
     "id": "6",
     "name":"Ruby on Rails",
@@ -63,18 +39,6 @@
     "tags":["ruby","rails","framework"],
     "admin_tags":[]
   }},
-/*
-  {"quickstart":{
-    "id": "7",
-    "name":"Spring Framework on JBoss EAP6",
-    "website":"http://springframework.org/",
-    "initial_git_url":"git://github.com/openshift/spring-eap6-quickstart.git",
-    "cartridges":["jbosseap-6"],
-    "summary":"This quickstart allows you to use Spring Framework on JBoss EAP 6.",
-    "tags":["java","jboss","framework"],
-    "admin_tags":[]
-  }},
-*/
   {"quickstart":{
     "id": "8",
     "name":"WordPress",
