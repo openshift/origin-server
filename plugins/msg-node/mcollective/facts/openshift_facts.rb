@@ -71,16 +71,3 @@ Facter.add(:active_capacity) { setcode { results['active_capacity'] } }
 Facter.add(:sshfp) do
     setcode { %x[/usr/bin/ssh-keygen -r $(hostname) -f /etc/ssh/ssh_host_rsa_key]}
 end
-
-#
-# List cartridges on the host
-#   Convert from name-m.n.p to name-m.n
-#   This is the *full* list.
-#
-Facter.add(:cart_list) do
-    carts = `oo-cartridge-list`.split
-    # The first element is the text "Cartridges:"
-    carts.shift
-    carts.sort!
-    setcode { carts.join('|') }
-end
