@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,11 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Bug 1029685 - Remove :cart_list fact (jhonce@redhat.com)
+- Bug 1022889 - AVC message is seen when mcolletive facts update cron job is
+  running. (bleanhar@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - update for 36 upgrade (dmcphers@redhat.com)
 - bump_minor_versions for sprint 36 (admiller@redhat.com)
