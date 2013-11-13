@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.17.4
+Version: 1.17.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.5-1
+- fix app status calls for sparse components (rchopra@redhat.com)
+
 * Tue Nov 12 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
 - Merge pull request #4164 from
   liggitt/bug_1029166_improve_domain_configure_error (dmcphers@redhat.com)
