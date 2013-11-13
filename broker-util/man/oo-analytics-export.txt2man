@@ -1,0 +1,25 @@
+NAME
+  oo-analytics-export
+  
+SYNOPSIS
+  oo-analytics-export [ --outfile <filename> ] [ --help ]
+
+DESCRIPTION
+
+Utiltity to export the mongo database into a json document containing analytics data for applications.
+  
+OPTIONS
+  -h|--help  
+    Display a simple usage page.
+    
+  --outfile  
+    Destination filename.
+  
+EXAMPLE
+  $ oo-analytics-export --outfile <path-to-file>
+    
+SEE ALSO
+  oo-analytics-import(8)
+  
+AUTHOR
+  Rajat Chopra <rchopra@redhat.com> - man page written for OpenShift Origin 

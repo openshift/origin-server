@@ -31,7 +31,16 @@ end
 methods = (Command.instance_methods(false) & Command.new.public_methods).sort
 options = OpenStruct.new
 p = OptionParser.new do |opts|
-  opts.banner = "Usage: oo-admin-ctl-authorization -c (#{methods.join('|')})"
+  opts.banner = "
+== Synopsis
+
+#{File.basename $0}: Manage authorizations
+
+Commands:
+ expire     - Deletes expired authroizations
+ revoke_all - Deletes all authorizations
+
+== Usage: oo-admin-ctl-authorization -c (#{methods.join('|')})"
 
   opts.separator ''
   opts.on('-c', '--command COMMAND',
