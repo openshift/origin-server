@@ -10,12 +10,13 @@ Description: The Cron cartridge allows you to run command line programs at sched
 License: ASL 2.0
 License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
 Website: http://www.openshift.com/
-Cartridge-Version: 0.0.7
+Cartridge-Version: 0.0.8
 Compatible-Versions:
 - 0.0.3
 - 0.0.4
 - 0.0.5
 - 0.0.6
+- 0.0.7
 Cartridge-Vendor: redhat
 Categories:
 - embedded

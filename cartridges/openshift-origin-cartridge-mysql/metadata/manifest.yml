@@ -7,8 +7,9 @@ Description: MySQL is a multi-user, multi-threaded SQL database server.
 Version: '5.1'
 Versions:
 - '5.1'
-Cartridge-Version: 0.2.5
-Compatible-Versions: []
+Cartridge-Version: 0.2.6
+Compatible-Versions:
+- 0.2.5
 Cartridge-Vendor: redhat
 License: GPL
 Vendor: Oracle
