@@ -114,7 +114,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert cr.exist?('crtest', '0.1', '0.0.2')
     assert cr.exist?('crtest', '0.2', '0.0.2')
 
-    cr.expects(:installed_in_base_path?).with('crtest').returns(false)
+    cr.expects(:installed_in_base_path?).with('crtest', '0.2', '0.0.2').returns(false)
     cr.erase('crtest', '0.2', '0.0.2')
 
     refute cr.exist?('crtest', '0.2', '0.0.2')
@@ -130,7 +130,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     e = cr.select('crtest', '0.1')
     assert_equal '0.0.1', e.cartridge_version
     
-    cr.expects(:installed_in_base_path?).with('crtest').returns(false)
+    cr.expects(:installed_in_base_path?).with('crtest', '0.1', '0.0.1').returns(false)
     cr.erase('crtest', '0.1', '0.0.1')
 
     refute cr.exist?('crtest', '0.1', '0.0.1')
@@ -155,7 +155,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert cr.exist?('crtest', '0.1', '0.0.2')
     assert cr.exist?('crtest', '0.2', '0.0.2')
 
-    cr.expects(:installed_in_base_path?).with('crtest').returns(true)
+    cr.expects(:installed_in_base_path?).with('crtest', '0.2', '0.0.2').returns(true)
 
     assert_raise(ArgumentError) do
       cr.erase('crtest', '0.2', '0.0.2')

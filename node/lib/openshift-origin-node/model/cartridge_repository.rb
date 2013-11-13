@@ -198,7 +198,7 @@ module OpenShift
           raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
         end
 
-        if !force && installed_in_base_path?(cartridge_name)
+        if !force && installed_in_base_path?(cartridge_name, version, cartridge_version)
           raise ArgumentError.new("Cannot erase cartridge installed in CARTRIDGE_BASE_PATH")
         end
 
@@ -219,11 +219,32 @@ module OpenShift
         entry
       end
 
-      def installed_in_base_path?(cartridge_name)
+      def installed_in_base_path?(cartridge_name, version, cartridge_version)
         config = OpenShift::Config.new
         cartridge_base_path = config.get('CARTRIDGE_BASE_PATH')
+        cartridge_path = PathUtils.join(cartridge_base_path, cartridge_name)
 
-        File.exists?(PathUtils.join(cartridge_base_path, cartridge_name))
+        unless File.exists?(cartridge_path)
+          return false
+        end
+
+        manifest_path = PathUtils.join(cartridge_path, %w(metadata manifest.yml))
+
+        unless File.exists?(manifest_path)
+          return false
+        end
+
+        error = false
+
+        begin
+          manifest = Manifest.new(manifest_path, nil, :file)
+        rescue OpenShift::InvalidElementError => e
+          error = true
+        rescue OpenShift::MissingElementError => e
+          error = true
+        end
+
+        return (!error && manifest.versions.include?(version) && manifest.cartridge_version == cartridge_version)
       end
 
       # :call-seq:
