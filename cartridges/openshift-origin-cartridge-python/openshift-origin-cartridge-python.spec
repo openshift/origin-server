@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.17.4
+Version: 1.17.5
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -116,6 +116,12 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.5-1
+- Merge pull request #4168 from mfojtik/bugzilla/1014793
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1014793 - Added 'wait_for_pid_file' function to Bash SDK
+  (mfojtik@redhat.com)
+
 * Tue Nov 12 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
 - Merge pull request #4158 from mfojtik/bugzilla/1015722
   (dmcphers+openshiftbot@redhat.com)
