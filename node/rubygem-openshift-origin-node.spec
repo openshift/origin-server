@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.17.3
+Version: 1.17.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,20 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
+- Fix bug 1028389 (pmorie@gmail.com)
+- Fix upgrade issues when check_deployments_integrity is called with no options
+  (pmorie@gmail.com)
+- Merge pull request #4168 from mfojtik/bugzilla/1014793
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4124 from a13m/app-container
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1029184: deployments integrity check (pmorie@gmail.com)
+- Bug 1014793 - Added 'wait_for_pid_file' function to Bash SDK
+  (mfojtik@redhat.com)
+- Improve performance for tools which iterate over ApplicationContainers
+  (agrimm@redhat.com)
+
 * Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
 - Merge pull request #4146 from rmillner/BZ1028576
   (dmcphers+openshiftbot@redhat.com)
