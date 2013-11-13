@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.17.4
+Version: 1.17.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -93,6 +93,12 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.5-1
+- app_info.rb in right place for rhel (tdawson@redhat.com)
+- Merge pull request #4171 from detiber/fixBuildRequires
+  (dmcphers+openshiftbot@redhat.com)
+- <broker-util> Adding ruby-devel as a build requirement (jdetiber@redhat.com)
+
 * Tue Nov 12 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
 - Merge pull request #4160 from pravisankar/dev/ravi/bugs1028955_1028337
   (dmcphers+openshiftbot@redhat.com)
