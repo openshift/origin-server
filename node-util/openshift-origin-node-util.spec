@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.17.3
+Version: 1.17.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -149,6 +149,12 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
+- Merge pull request #4124 from a13m/app-container
+  (dmcphers+openshiftbot@redhat.com)
+- Improve performance for tools which iterate over ApplicationContainers
+  (agrimm@redhat.com)
+
 * Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
 - Bug 1028205 (dmcphers@redhat.com)
 
