@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.16.14
+Version: 1.16.15
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.16.15-1
+- Fix upgrade issues when check_deployments_integrity is called with no options
+  (pmorie@gmail.com)
+
 * Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.16.14-1
 - Add deployments integrity check in app container (pmorie@gmail.com)
 
