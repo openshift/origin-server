@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.16.2
+Version: 1.16.3
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,12 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
+- Merge pull request #4168 from mfojtik/bugzilla/1014793
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1014793 - Added 'wait_for_pid_file' function to Bash SDK
+  (mfojtik@redhat.com)
+
 * Tue Nov 12 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Bug 1028960 - Prefer perl modules installed on system over CPAN install
   (mfojtik@redhat.com)
