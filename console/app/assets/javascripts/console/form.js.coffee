@@ -29,6 +29,7 @@ $ ->
     onclick:      false
     errorClass:   'help-inline'
     errorElement: 'p'
+    ignoreTitle:  true
     highlight: (element,errorClass,validClass) ->
       $(element).addClass('error')
       $el = find_control_group_parent(element)
