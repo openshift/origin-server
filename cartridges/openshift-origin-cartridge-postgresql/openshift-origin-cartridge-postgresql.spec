@@ -59,7 +59,6 @@ Requires:      python-psycopg2
 Requires:      %{?scl_ruby:%scl_prefix_ruby}rubygem-pg
 Requires:      rhdb-utils
 Requires:      uuid-pgsql
-Requires:      json-c
 BuildArch:     noarch
 
 Obsoletes: openshift-origin-cartridge-postgresql-8.4
