@@ -1558,7 +1558,7 @@ class Application
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
       rescue Exception => e_orig
-        Rails.logger.error e_orig.message
+        Rails.logger.error "Encountered error during execute '#{e_orig.message}' rollback pending: #{rollback_pending}"
         # don't log the error stacktrace if this exception was raised just to trigger a rollback 
         Rails.logger.debug e_orig.backtrace.inspect unless rollback_pending
   
@@ -1581,7 +1581,7 @@ class Application
         # raise the original exception if it was the actual exception that led to the rollback
         unless rollback_pending
           if e_orig.respond_to? 'resultIO' and e_orig.resultIO
-            e_orig.resultIO.append result_io
+            e_orig.resultIO.append result_io unless e_orig.resultIO == result_io
           end
           raise e_orig
         end
