@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -40,6 +40,9 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Nov 14 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
+- Bumping cartridge versions for 2.0.36 (pmorie@gmail.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
 - add max connections to tunables (dmcphers@redhat.com)
 - bump_minor_versions for sprint 36 (admiller@redhat.com)
