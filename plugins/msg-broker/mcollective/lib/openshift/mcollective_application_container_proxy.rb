@@ -3214,7 +3214,7 @@ module OpenShift
         rpc_exec('rpcutil', servers, force_rediscovery, options) do |client|
           begin
             # in some cases, the get_fact mcollective call gets stuck and never returns
-            # to handle these siturations, we are using the ruby Timeout moddule as a safety net
+            # to handle these situations, we are using the ruby Timeout moddule as a safety net
             # and setting the timer duration as a reasonable multiple of the mcollective timeout value
             failsafe_timeout = Rails.configuration.msg_broker[:fact_timeout] * 3
             Timeout::timeout(failsafe_timeout) do
