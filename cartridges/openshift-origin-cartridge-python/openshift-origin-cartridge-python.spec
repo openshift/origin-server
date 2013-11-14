@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.17.5
+Version: 1.17.6
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -116,6 +116,11 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Nov 14 2013 Adam Miller <admiller@redhat.com> 1.17.6-1
+- Merge pull request #4186 from pmorie/latest-versions
+  (dmcphers+openshiftbot@redhat.com)
+- Bumping cartridge versions for 2.0.36 (pmorie@gmail.com)
+
 * Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.5-1
 - Merge pull request #4168 from mfojtik/bugzilla/1014793
   (dmcphers+openshiftbot@redhat.com)
