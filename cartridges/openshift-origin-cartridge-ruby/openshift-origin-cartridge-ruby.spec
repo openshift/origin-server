@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.17.2
+Version: 1.17.3
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,11 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Nov 14 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
+- Merge pull request #4186 from pmorie/latest-versions
+  (dmcphers+openshiftbot@redhat.com)
+- Bumping cartridge versions for 2.0.36 (pmorie@gmail.com)
+
 * Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
 - Bug 1014793 - Added 'wait_for_pid_file' function to Bash SDK
   (mfojtik@redhat.com)
