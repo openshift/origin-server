@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.16.3
+Version: 1.16.4
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,11 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Thu Nov 14 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
+- Merge pull request #4186 from pmorie/latest-versions
+  (dmcphers+openshiftbot@redhat.com)
+- Bumping cartridge versions for 2.0.36 (pmorie@gmail.com)
+
 * Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Merge pull request #4168 from mfojtik/bugzilla/1014793
   (dmcphers+openshiftbot@redhat.com)
