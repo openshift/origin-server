@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,9 @@ fi
 
 
 %changelog
+* Thu Nov 14 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Bumping cartridge versions for 2.0.36 (pmorie@gmail.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - Bug 974933 - Inconsistent message is shown when rhc threaddump for a scaled
   up app (jhadvig@redhat.com)
