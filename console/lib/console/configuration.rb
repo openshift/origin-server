@@ -150,6 +150,18 @@ module Console
           Rails.configuration.send(:cache_store=, eval("[#{cache_store}]"))
         end
 
+        if default_host = config[:DEFAULT_URL_OPTIONS_HOST]
+          (Rails.configuration.action_controller.default_url_options ||= {})[:host]  = default_host
+        end
+
+        if default_port = config[:DEFAULT_URL_OPTIONS_PORT]
+          (Rails.configuration.action_controller.default_url_options ||= {})[:port] = default_port.empty? ? nil : default_port
+        end
+
+        if asset_host = config[:ASSET_HOST]
+          Rails.configuration.action_controller.asset_host = asset_host
+        end        
+
         case config[:CONSOLE_SECURITY]
         when 'basic'
           self.security_controller = 'Console::Auth::Basic'

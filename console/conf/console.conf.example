@@ -23,6 +23,15 @@ BROKER_URL=https://localhost/broker/rest
 #
 # COMMUNITY_URL=https://www.openshift.com/
 
+# When set, any absolute URLs that are generated will use this host
+# DEFAULT_URL_OPTIONS_HOST=openshift.redhat.com
+
+# When set, any absolute URLs that are generated will use this port
+# When set to nothing no port will be specified on the URL
+# DEFAULT_URL_OPTIONS_PORT=
+
+# The server url hosting the static assets for the console
+# ASSET_HOST=https://openshift.redhat.com
 
 #
 # SSL settings for the connection between the console and broker.
