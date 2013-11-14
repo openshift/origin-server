@@ -34,7 +34,7 @@
             Available in domain
           = link_to domain_id, domain_path(domain_id)
           - if apps.first.owner?
-            = render :partial => 'account_state', :locals => {:capabilities => @capabilities}
+            = render :partial => 'account_state', :locals => {:capabilities => @capabilities, :applications => @applications}
           - elsif owner = apps.first.members.find(&:owner)
             .flow-block.right
               %span.owner shared by #{owner.name}
