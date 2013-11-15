@@ -82,7 +82,7 @@ class OpenShift::Runtime::DeploymentTester
       local_hostname = `facter public_hostname`.chomp
       assert_equal local_hostname, entry.proxy_hostname
 
-      @api.assert_http_title_for_entry entry, DEFAULT_TITLE
+      @api.assert_http_title_for_entry entry, DEFAULT_TITLE, "Default title check for head gear failed"
 
       proxy_entries = entries[:proxy]
       assert_equal 1, proxy_entries.keys.size
@@ -108,10 +108,10 @@ class OpenShift::Runtime::DeploymentTester
       # make sure the http content is good
       web_entries.values.each do |entry|
         logger.info("Checking title for #{entry.as_json}")
-        @api.assert_http_title_for_entry entry, DEFAULT_TITLE
+        @api.assert_http_title_for_entry entry, DEFAULT_TITLE, "Default title check for secondary gear failed"
       end
     else
-      @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE
+      @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE, "Default title check failed"
     end
 
     deployment_metadata = app_container.deployment_metadata_for(app_container.current_deployment_datetime)
@@ -123,7 +123,7 @@ class OpenShift::Runtime::DeploymentTester
     assert_gear_deployment_consistency(@api.gears_for_app(app_name))
 
     if scaling
-      web_entries.values.each { |entry| @api.assert_http_title_for_entry entry, CHANGED_TITLE }
+      web_entries.values.each { |entry| @api.assert_http_title_for_entry entry, CHANGED_TITLE, "Check for changed title before scale-up failed" }
 
       @api.assert_scales_to app_name, framework, 3
 
@@ -133,9 +133,9 @@ class OpenShift::Runtime::DeploymentTester
       entries = gear_registry.entries
       assert_equal 3, entries[:web].size
 
-      entries[:web].values.each { |entry| @api.assert_http_title_for_entry entry, CHANGED_TITLE }
+      entries[:web].values.each { |entry| @api.assert_http_title_for_entry entry, CHANGED_TITLE, "Check for changed title after scale-up failed" }
     else
-      @api.assert_http_title_for_app app_name, @namespace, CHANGED_TITLE
+      @api.assert_http_title_for_app app_name, @namespace, CHANGED_TITLE, "Check for changed title failed"
     end
 
     if add_jenkins
@@ -162,9 +162,9 @@ class OpenShift::Runtime::DeploymentTester
 
       if scaling
         entries = gear_registry.entries
-        entries[:web].values.each { |entry| @api.assert_http_title_for_entry entry, DEFAULT_TITLE }
+        entries[:web].values.each { |entry| @api.assert_http_title_for_entry entry, DEFAULT_TITLE, "Default title check after rollback failed" }
       else
-        @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE
+        @api.assert_http_title_for_app app_name, @namespace, DEFAULT_TITLE, "Default title check after rollback failed"
       end
     end
   end
