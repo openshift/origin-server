@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.17.4
+Version: 1.17.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Sun Nov 17 2013 Adam Miller <admiller@redhat.com> 1.17.5-1
+- Make tests using deployment_tester easier to debug (pmorie@gmail.com)
+
 * Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
 - Fix bug 1028389 (pmorie@gmail.com)
 - Fix upgrade issues when check_deployments_integrity is called with no options
