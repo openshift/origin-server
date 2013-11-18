@@ -5,10 +5,13 @@
 
 - content_for :top do
   .grid-wrapper.section-header
-    %nav.span12.applications
-      %h1.icon-heading.applications
+    %nav.span8.applications
+      %h1.flow.icon-heading.applications
         %span.font-icon{:'data-icon' => "\uee48", 'aria-hidden'=>"true"}
         Applications
+        .flow-block.right
+          = render :partial => 'account_state', :locals => {:capabilities => @capabilities, :applications => @applications}
+
 
 :css
   @media (max-width: 767px) {
@@ -33,9 +36,7 @@
           - if groups.length == 1
             Available in domain
           = link_to domain_id, domain_path(domain_id)
-          - if apps.first.owner?
-            = render :partial => 'account_state', :locals => {:capabilities => @capabilities, :applications => @applications}
-          - elsif owner = apps.first.members.find(&:owner)
+          - if !apps.first.owner? and owner = apps.first.members.find(&:owner)
             .flow-block.right
               %span.owner shared by #{owner.name}
 

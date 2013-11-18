@@ -2,6 +2,11 @@
 * Application standard layouts
 */
 
+h1.applications .flow-block.right .gear-icon {
+  color: #aaa;
+  font-size: $h1FontSize - 3; 
+}
+
 .application {
 	position: relative;
   &.warning {
