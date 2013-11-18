@@ -401,17 +401,13 @@ class Upgrader
 
     puts "Getting all logins..."
     gather_users_start_time = current_time
-    query = {"group_instances.gears.0" => {"$exists" => true}}
-    options = {:fields => [ "uuid",
+    query = {"gears.0" => {"$exists" => true}}
+    options = {:fields => [
                 "domain_id",
                 "name",
-                "created_at",
-                "component_instances.cartridge_name",
-                "component_instances.group_instance_id",
-                "group_instances._id",
-                "group_instances.gears.uuid",
-                "group_instances.gears.server_identity",
-                "group_instances.gears.name"], 
+                "gears.uuid",
+                "gears.server_identity",
+                "gears.name"], 
                :timeout => false}
 
     ret = []
@@ -448,13 +444,11 @@ class Upgrader
         end
       end
 
-      app['group_instances'].each do |gi|
-        gi['gears'].each do |gear|
-          server_identity = gear['server_identity']
-          if server_identity && (!target_server_identity || (server_identity == target_server_identity))
-            node_to_gears[server_identity] = [] unless node_to_gears[server_identity] 
-            node_to_gears[server_identity] << {:server_identity => server_identity, :uuid => gear['uuid'], :name => gear['name'], :app_name => app['name'], :login => user_login}
-          end
+      app['gears'].each do |gear|
+        server_identity = gear['server_identity']
+        if server_identity && (!target_server_identity || (server_identity == target_server_identity))
+          node_to_gears[server_identity] = [] unless node_to_gears[server_identity] 
+          node_to_gears[server_identity] << {:server_identity => server_identity, :uuid => gear['uuid'], :name => gear['name'], :app_name => app['name'], :login => user_login}
         end
       end
     end

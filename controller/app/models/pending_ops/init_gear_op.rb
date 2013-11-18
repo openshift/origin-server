@@ -12,11 +12,11 @@ class InitGearOp < PendingAppOp
     begin 
       group_instance = get_group_instance()
     rescue Mongoid::Errors::DocumentNotFound
-      pending_app_op_group.application.group_instances.push(GroupInstance.new(custom_id: group_instance_id))
+      application.group_instances.push(GroupInstance.new(custom_id: group_instance_id))
       group_instance = get_group_instance()
     end
     
-    group_instance.gears.push(Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns))
+    application.gears.push(Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns))
   end
   
   def rollback

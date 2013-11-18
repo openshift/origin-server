@@ -116,22 +116,24 @@ class PendingAppOp
     return current_op
   end
 
-  def get_group_instance()
-    pending_app_op_group.application.group_instances.find(group_instance_id) 
+  def application
+    pending_app_op_group.application
   end
 
-  def get_gear()
-    group_instance = get_group_instance()
-    group_instance.gears.find(gear_id)
+  def get_group_instance
+    application.group_instances.find(group_instance_id) 
   end
 
-  def get_component_instance()
+  def get_gear
+    application.gears.find(gear_id) 
+  end
+
+  def get_component_instance
     component_instance = nil
-    group_instance = get_group_instance()
     if comp_spec
       comp_name = comp_spec["comp"]
       cart_name = comp_spec["cart"]
-      component_instance = pending_app_op_group.application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
+      component_instance = pending_app_op_group.application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name)
     end
     component_instance
   end

@@ -1,6 +1,5 @@
 class RemoveCompOp < PendingAppOp
 
-  field :group_instance_id, type: String
   field :gear_id, type: String
   field :comp_spec, type: Hash, default: {}
 

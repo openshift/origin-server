@@ -68,21 +68,18 @@ end
 puts
 puts "Post processing.."
 $coll = analytics_db.collection("applications")
-mongofind("applications", { }, { :fields => ["_id","component_instances","group_instances"], :timeout => false }) do |app|
+mongofind("applications", { }, { :fields => ["_id","component_instances","gears"], :timeout => false }) do |app|
   begin
-    new_gis = []
-    app["group_instances"].each { |gi|
-      new_gears = []
-      gi["gears"].each { |gear|
-        new_gears << { "_id" => gear["_id"].dup }
-      } if gi["gears"]
-      new_gis << { "gears" => new_gears }
-    } if app["group_instances"]
+    new_gears = []
+    app["gears"].each do |gear|
+      new_gears << {"_id" => gear["_id"].dup}
+    end if app["gears"].present?
+
     new_cis = []
-    app["component_instances"].each { |ci|
+    app["component_instances"].each do |ci|
       new_cis << { "cartridge_name" => ci["cartridge_name"].dup }
-    } if app["component_instances"]
-    $coll.update({"_id" => app["_id"]}, {"$set" => {"group_instances" => new_gis, "component_instances" => new_cis}} ) if app["_id"]
+    end if app["component_instances"].present?
+    $coll.update({"_id" => app["_id"]}, {"$set" => {"gears" => new_gears, "component_instances" => new_cis}} ) if app["_id"]
   rescue Exception => e
     puts e.message
     puts e.backtrace

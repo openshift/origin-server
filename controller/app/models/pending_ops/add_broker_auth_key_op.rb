@@ -4,8 +4,6 @@ class AddBrokerAuthKeyOp < PendingAppOp
   # they are maintained for now to ensure compatibility for any in-flight operations 
   field :iv, type: String
   field :token, type: String
-  
-  field :group_instance_id, type: String
   field :gear_id, type: String
 
   def isParallelExecutable()
@@ -16,7 +14,7 @@ class AddBrokerAuthKeyOp < PendingAppOp
     gear = get_gear()
     unless gear.removed
       if iv.nil? or token.nil?
-        iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(pending_app_op_group.application)
+        iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(application)
       end
       job = gear.get_broker_auth_key_add_job(iv, token)
       tag = { "op_id" => self._id.to_s }

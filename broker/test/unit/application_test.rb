@@ -165,16 +165,14 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
     app.scale_by(web_framework_component_instance.group_instance_id, 1)
     app.reload
-    count = app.group_instances.map { |gi| gi.gears }.flatten.count
-    assert_equal count, 3
+    assert_equal app.gears.count, 3
 
     app.scale_by(web_framework_component_instance.group_instance_id, -1)
     resp = rest_check(:get, "", {})
     assert_equal resp.status, 200
 
     app.reload
-    count = app.group_instances.map { |gi| gi.gears }.flatten.count
-    assert_equal count, 2
+    assert_equal app.gears.count, 2
 
     app.destroy_app
   end

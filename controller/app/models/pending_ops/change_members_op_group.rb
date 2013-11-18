@@ -20,15 +20,12 @@ class ChangeMembersOpGroup < PendingAppOpGroup
 
     if add_keys_attrs.present? or remove_keys_attrs.present?
       ops = []
-      app.group_instances.each do |group_instance|
-        group_instance.gears.each do |gear|
-          ops << UpdateAppConfigOp.new(
-            add_keys_attrs: add_keys_attrs,
-            remove_keys_attrs: remove_keys_attrs,
-            group_instance_id: group_instance.id.to_s,
-            gear_id: gear.id.to_s
-          )
-        end
+      app.gears.each do |gear|
+        ops << UpdateAppConfigOp.new(
+          add_keys_attrs: add_keys_attrs,
+          remove_keys_attrs: remove_keys_attrs,
+          gear_id: gear.id.to_s
+        )
       end
       pending_ops.concat(ops)
     end

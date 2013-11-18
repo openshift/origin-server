@@ -1,15 +1,14 @@
 class AddAliasOp < PendingAppOp
 
   field :fqdn, type: String
-  field :group_instance_id, type: String
   field :gear_id, type: String
 
   def execute
     result_io = ResultIO.new 
     gear = get_gear()
     result_io = gear.add_alias(fqdn) unless gear.removed
-    pending_app_op_group.application.aliases.push(Alias.new(fqdn: fqdn))
-    pending_app_op_group.application.save
+    application.aliases.push(Alias.new(fqdn: fqdn))
+    application.save
     result_io
   end
 
@@ -18,9 +17,9 @@ class AddAliasOp < PendingAppOp
     gear = get_gear()
     result_io = gear.remove_alias(fqdn) unless gear.removed
     begin
-      a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn)
-      pending_app_op_group.application.aliases.delete(a)
-      pending_app_op_group.application.save
+      a = application.aliases.find_by(fqdn: fqdn)
+      application.aliases.delete(a)
+      application.save
     rescue Mongoid::Errors::DocumentNotFound
       # ignore if alias is not found
     end

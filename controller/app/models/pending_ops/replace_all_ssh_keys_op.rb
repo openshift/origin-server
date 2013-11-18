@@ -1,8 +1,6 @@
 class ReplaceAllSshKeysOp < PendingAppOp
 
   field :keys_attrs, type: Array, default: []
-
-  field :group_instance_id, type: String
   field :gear_id, type: String
 
   def isParallelExecutable()

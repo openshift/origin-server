@@ -2,8 +2,6 @@ class StopCompOp < PendingAppOp
 
   field :comp_spec, type: Hash, default: {}
   field :force, type: Boolean, default: false
-
-  field :group_instance_id, type: String
   field :gear_id, type: String
 
   def isParallelExecutable()

@@ -125,7 +125,7 @@ def clean_app(a)
         puts "Failed to clear op for app (#{a.uuid}) - #{op.inspect} "
       end
     } 
-    if (a.group_instances.nil? or a.group_instances.empty?) and (a.component_instances.nil? or a.component_instances.empty?)
+    unless a.group_instances.present? or a.component_instances.present?
       a.delete
     end
   end

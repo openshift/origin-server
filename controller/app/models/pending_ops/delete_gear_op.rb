@@ -1,12 +1,11 @@
 class DeleteGearOp < PendingAppOp
 
   field :gear_id, type: String
-  field :group_instance_id, type: String
 
   def execute
     begin
-      group_instance = get_group_instance()
       gear = get_gear()
+      group_instance = gear.group_instance
       gear.delete
       pending_app_op_group.inc(:num_gears_destroyed, 1)
       

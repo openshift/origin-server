@@ -134,7 +134,7 @@ class RestEmbeddedCartridge15 < OpenShift::Model
       if cinst.is_sparse?
         self.scales_from = cinst.get_component.scaling.min
         self.scales_to = cinst.get_component.scaling.max
-        self.current_scale = cinst.group_instance.get_gears(cinst).length
+        self.current_scale = cinst.gears.length
       end
       self.gear_profile = scale[:gear_size]
       self.base_gear_storage = Gear.base_filesystem_gb(self.gear_profile)

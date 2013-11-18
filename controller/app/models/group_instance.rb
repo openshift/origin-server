@@ -16,7 +16,6 @@
 class GroupInstance
   include Mongoid::Document
   embedded_in :application, class_name: Application.name
-  embeds_many :gears, class_name: Gear.name
 
   attr_accessor :min, :max
 
@@ -35,6 +34,10 @@ class GroupInstance
     self._id = custom_id unless custom_id.nil?
   end
 
+  def gears
+    application.gears.select {|g| g.group_instance_id == self._id}
+  end
+
   def component_instances
     all_component_instances.select{|c| !c.is_sparse?}
   end
@@ -45,14 +48,6 @@ class GroupInstance
 
   def all_component_instances
     application.component_instances.where(group_instance_id: self._id)
-  end
-
-  def get_gears(component_instance=nil)
-    if component_instance.nil? or not component_instance.is_sparse?
-      return gears
-    else
-      return gears.select { |g| g.sparse_carts.include? component_instance._id or g.host_singletons }
-    end
   end
 
   def gear_size
@@ -73,6 +68,12 @@ class GroupInstance
 
   def addtl_fs_gb=(value)
     set_group_override("additional_filesystem_gb", value)
+  end
+
+  def server_identities
+    identities = self.gears.map{|gear| gear.server_identity}
+    identities.uniq!
+    identities
   end
 
   # Adds ssh keys to all gears within the group instance.

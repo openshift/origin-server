@@ -1,6 +1,5 @@
 class AddCompOp < PendingAppOp
 
-  field :group_instance_id, type: String
   field :gear_id, type: String
   field :comp_spec, type: Hash, default: {}
   field :init_git_url, type: String

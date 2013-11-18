@@ -150,11 +150,7 @@ def check_consumed_gears(user_id)
     actual_gears = 0
     user = CloudUser.find_by(:_id => user_id)
     user.domains.each do |d|
-      d.applications.each do |a|
-        a.group_instances.each do |gi|
-          actual_gears += gi.gears.length
-        end
-      end
+      d.applications.each { |a| actual_gears += a.gears.length }
     end
     return user.consumed_gears, actual_gears
   rescue Mongoid::Errors::DocumentNotFound
@@ -183,7 +179,7 @@ def reset_consumed_gears(user_id)
 end
 
 def datastore_has_gear_uid?(gear_uid, si_list)
-  query = {"group_instances.gears" => {"$elemMatch" => { "uid" => gear_uid, "server_identity" => {"$in" => si_list}}}}
+  query = {"gears" => {"$elemMatch" => { "uid" => gear_uid, "server_identity" => {"$in" => si_list}}}}
   return Application.where(query).exists?
 end
 
@@ -203,21 +199,14 @@ end
 
 def mark_gear_removed(unresponsive_servers)
   db = OpenShift::DataStore.db(:primary)
-  
-  gi_idx = 0
-  gi_search_count = 1
-  while gi_search_count > 0 do
-    gear_idx = 0
-    gear_search_count = 1
-    while gear_search_count > 0
-      filter = {"group_instances.#{gi_idx}.gears.#{gear_idx}.server_identity" => {"$in" => unresponsive_servers}}
-      update_query = {'$set' => {"group_instances.#{gi_idx}.gears.#{gear_idx}.removed" => true}}
-      db["applications"].update(filter, update_query, { :multi => true })
-      gear_idx += 1
-      gear_search_count = db["applications"].find({"group_instances.#{gi_idx}.gears.#{gear_idx}" => {"$exists" => true}}).count
-    end
-    gi_idx += 1
-    gi_search_count = db["applications"].find({"group_instances.#{gi_idx}.gears.0" => {"$exists" => true}}).count
+  gear_idx = 0
+  gear_search_count = 1
+  while gear_search_count > 0
+    filter = {"gears.#{gear_idx}.server_identity" => {"$in" => unresponsive_servers}}
+    update_query = {'$set' => {"gears.#{gear_idx}.removed" => true}}
+    db["applications"].update(filter, update_query, { :multi => true })
+    gear_idx += 1
+    gear_search_count = db["applications"].find({"gears.#{gear_idx}" => {"$exists" => true}}).count
   end
 end
 
@@ -229,39 +218,37 @@ def analyze_app(app, unresponsive_servers)
   app_recoverable = false
 
   # Gather required info on this app
-  app.group_instances.each_with_index do |gi, group_idx|
-    gi.gears.each_with_index do |gear, gear_idx|
-      unless unresponsive_servers.include?(gear.server_identity)
-        raise Exception.new "Server identity: #{gear.server_identity} not in unresponsive servers but 'removed' is set for Gear: #{gear._id.to_s}" if gear.removed and !$report_only
-        if group_idx == 0
-          if gear_idx == 0
+  app.gears.each_with_index do |gear, gear_idx|
+    unless unresponsive_servers.include?(gear.server_identity)
+      raise Exception.new "Server identity: #{gear.server_identity} not in unresponsive servers but 'removed' is set for Gear: #{gear._id.to_s}" if gear.removed and !$report_only
+      if app.group_instances[0]._id == gear.group_instance_id
+        if gear_idx == 0
+          framework[:available] = true
+        elsif app.ha
+          ci = nil
+          ci = app.component_instances.find_by(:cartridge_name => "haproxy-1.4") if app.component_instances.present?
+          if ci and gear.sparse_carts.include?(ci._id)
             framework[:available] = true
-          elsif app.ha
-            ci = nil
-            ci = app.component_instances.find_by(:cartridge_name => "haproxy-1.4") if app.component_instances.present?
-            if ci and gear.sparse_carts.include?(ci._id)
-              framework[:available] = true
-            else
-              framework[:scaled] = true
-            end
           else
             framework[:scaled] = true
           end
-          framework[:responsive_gears] << gear
-        else #group_idx != 0
-          db[:available] = true
-          db[:responsive_gears] << gear
-        end
-      else
-        raise Exception.new "Server identity: #{gear.server_identity} is in unresponsive servers but 'removed' is not set for Gear: #{gear._id.to_s}" if !gear.removed and !$report_only
-        if group_idx == 0
-          framework[:unresponsive_gears] << gear
         else
-          db[:unresponsive_gears] << gear
+          framework[:scaled] = true
         end
-      end 
-    end if gi.gears.present?
-  end if app.group_instances.present?
+        framework[:responsive_gears] << gear
+      else #app.group_instances[0]._id != gear.group_instance_id
+        db[:available] = true
+        db[:responsive_gears] << gear
+      end
+    else
+      raise Exception.new "Server identity: #{gear.server_identity} is in unresponsive servers but 'removed' is not set for Gear: #{gear._id.to_s}" if !gear.removed and !$report_only
+      if app.group_instances[0]._id == gear.group_instance_id
+        framework[:unresponsive_gears] << gear
+      else
+        db[:unresponsive_gears] << gear
+      end
+    end 
+  end if app.gears.present?
 
   if !framework[:available] and !db[:available]
     framework[:backup_available] = true if framework[:scaled]
@@ -316,14 +303,13 @@ end
 
 puts "Started at: #{Time.now}"
 start_time = (Time.now.to_f * 1000).to_i
-app_query = {"group_instances.gears.0" => {"$exists" => true}}
+app_query = {"gears.0" => {"$exists" => true}}
 app_selection = {:fields => ["name",
                              "created_at",
                              "domain_id",
-                             "group_instances.gears.uuid",
-                             "group_instances.gears.uid",
-                             "group_instances.gears.server_identity",
-                             "group_instances._id",
+                             "gears.uuid",
+                             "gears.uid",
+                             "gears.server_identity",
                              "app_ssh_keys.name", 
                              "app_ssh_keys.content",
                              "members"],
@@ -402,23 +388,21 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       end
     end
 
-    app['group_instances'].each do |gi|
-      gi['gears'].each do |gear|
-        gear_count += 1
-        datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['server_identity'], app["_id"].to_s, app_ssh_keys ]
+    app['gears'].each do |gear|
+      gear_count += 1
+      datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['server_identity'], app["_id"].to_s, app_ssh_keys ]
 
-        server_identity = gear['server_identity']
-        if fix_district_uids and Rails.configuration.msg_broker[:districts][:enabled]
-          # record all used uid values for each node to match later with the district
-          gear_uid_hash[server_identity] = [] unless gear_uid_hash.has_key?(server_identity)
-          gear_uid_hash[server_identity] << gear['uid'].to_i
-        end
+      server_identity = gear['server_identity']
+      if fix_district_uids and Rails.configuration.msg_broker[:districts][:enabled]
+        # record all used uid values for each node to match later with the district
+        gear_uid_hash[server_identity] = [] unless gear_uid_hash.has_key?(server_identity)
+        gear_uid_hash[server_identity] << gear['uid'].to_i
+      end
 
-        if fix_removed_nodes and server_identity.present? and !available_servers[server_identity]
-          available_servers[server_identity] = 'NONE'
-        end 
-      end if gi['gears'].present?
-    end if app['group_instances'].present?
+      if fix_removed_nodes and server_identity.present? and !available_servers[server_identity]
+        available_servers[server_identity] = 'NONE'
+      end 
+    end if app['gears'].present?
     user_hash[owner_id]["domains"][domain_id] += gear_count
   end
 end
@@ -704,7 +688,7 @@ unless fix_district_uids.nil? or $report_only or error_unreserved_district_uid_m
       district_info = district_hash[district_uuid]
       print "Fixing unreserved UID: #{gear_uid} in district: #{district_info[0]}...\t" if $verbose
       si_list = district_info[2]
-      query = {"group_instances.gears" => {"$elemMatch" => { "uid" => gear_uid, "server_identity" => {"$in" => si_list}}}}
+      query = {"gears" => {"$elemMatch" => { "uid" => gear_uid, "server_identity" => {"$in" => si_list}}}}
       begin
         app = Application.find_by(query)
         Application.run_in_application_lock(app) do
@@ -803,7 +787,7 @@ unless unresponsive_servers.empty?
   end
 
   # Find all apps that are unresponsive
-  query = {"group_instances.gears.server_identity" => {"$in" => unresponsive_servers}}
+  query = {"gears.server_identity" => {"$in" => unresponsive_servers}}
   selection = {:fields => ["name", "scalable"], :timeout => false}
   unresponsive_scalable_apps = []
   unresponsive_unscalable_apps = []
