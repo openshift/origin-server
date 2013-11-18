@@ -172,6 +172,7 @@
 @mixin formFieldState($textColor, $borderColor, $backgroundColor, $className) {
   // Set the text color
   > label,
+  ul.help-block,
   .help-inline {
     color: $textColor;
   }
