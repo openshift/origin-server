@@ -247,12 +247,12 @@ EOFZ
 
   def assert_http_title_for_entry(entry, expected, msg = nil)
     url = "http://#{entry.dns}:#{entry.proxy_port}/"
-    assert_http_title(url, expected)
+    assert_http_title(url, expected, msg)
   end
 
   def assert_http_title_for_app(app_name, namespace, expected, msg = nil)
     url = "http://#{app_name}-#{namespace}.#{cloud_domain}"
-    assert_http_title(url, expected)
+    assert_http_title(url, expected, msg)
   end
 
   def assert_scales_to(app_name, cartridge, count)
