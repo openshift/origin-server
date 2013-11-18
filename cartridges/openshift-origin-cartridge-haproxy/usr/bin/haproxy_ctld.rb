@@ -110,6 +110,9 @@ class Haproxy
         rescue Errno::ENOENT => e
           @log.error("A retryable error occurred: #{e}")
           raise ShouldRetry, e.to_s
+        rescue Errno::ECONNREFUSED
+          @log.error("Could not connect to the application.  Check if the application is stopped.")
+          raise ShouldRetry, "Could not connect to the application.  Check if the application is stopped."
         end
 
         @gear_count = self.stats['express'].count - 2
