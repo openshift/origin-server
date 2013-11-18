@@ -246,18 +246,25 @@ function enable-server() {
         echo "Enabling server $gear"
         if [ "${gear}" == "${OPENSHIFT_GEAR_UUID}" ]; then
             gearid="local-gear"
-            info=($(app_web_to_proxy_ratio_and_colocated_gears))
-            ratio=${info[0]}
-            if [ "$ratio" -ge 3 ]; then
-                echo "Not enabling local gear since web/proxy ratio is $ratio"
-                return 0
-            fi
         elif [ "${gear}" == "${OPENSHIFT_APP_UUID}" ]; then
             domain=$(get-app-domain)
             gearid="gear-${OPENSHIFT_APP_NAME}-${domain}"
         else
             domain=$(get-app-domain)
             gearid="gear-${gear}-${domain}"
+        fi
+        info=($(app_web_to_proxy_ratio_and_colocated_gears))
+        ratio=${info[0]}
+        unset info[0]
+        if [ "$ratio" -ge 3 ]; then
+            declare -A map
+            for uuid in ${info[@]}; do
+                map["$uuid"]=1
+            done
+            if [[ ${map["$gear"]} ]]; then
+                echo "Not enabling proxy gear since web/proxy ratio is $ratio"
+                return 0
+            fi
         fi
         set +e
         echo "enable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats > /dev/null
