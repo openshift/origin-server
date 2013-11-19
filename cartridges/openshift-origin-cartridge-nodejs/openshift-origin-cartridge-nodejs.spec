@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.18.2
+Version: 1.18.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Nov 19 2013 Adam Miller <admiller@redhat.com> 1.18.3-1
+- Bug 1031509 - Fixed typo in node.js cartridge package.json
+  (mfojtik@redhat.com)
+
 * Sun Nov 17 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
 - add dependency + correct url (lh@mikanda.de)
 
