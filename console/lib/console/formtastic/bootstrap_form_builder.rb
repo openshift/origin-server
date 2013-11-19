@@ -113,7 +113,7 @@ module Console
         return nil unless render_inline_errors?
         errors = error_keys(method, options).map do |x|
           attribute = localized_string(x, x.to_sym, :label) || humanized_attribute_name(x)
-          @object.errors[x].map do |error| 
+          @object.errors[x].map do |error|
             (error[0,1] == error[0,1].upcase) ? error : [attribute, error].join(" ")
           end
         end.flatten.compact.uniq
@@ -122,7 +122,7 @@ module Console
           @input_inline_errors << errors
           return nil
         end
-        send(:"error_#{inline_errors}", [*errors], options) 
+        send(:"error_#{inline_errors}", [*errors], options)
       end
 
       def error_list(errors, options = {}) #:nodoc:
@@ -224,9 +224,9 @@ module Console
           options[:input_html][:autocomplete] = field
         end
 
-        html_class = [ 
-          options[:as], 
-          options[:required] ? :required : :optional, 
+        html_class = [
+          options[:as],
+          options[:required] ? :required : :optional,
           'control-group',
         ] #changed
         html_class << 'control-group-important' if options[:important]
@@ -236,7 +236,7 @@ module Console
           html_class << 'error'
 
           wrapper_html[:"data-server-error"] = "server-error"
-          
+
           options[:input_html] ||= {}
           options[:input_html][:class] ||= ""
           options[:input_html][:class] << " error"
@@ -320,6 +320,7 @@ module Console
         end
 
         label_options = options_for_label(options).merge(:input_name => input_name)
+        label_options[:class] ||= 'control-label'
         label_options[:for] ||= html_options[:id]
 
         select_html = parts(method, options) do

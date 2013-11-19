@@ -1,5 +1,5 @@
 class CartridgeTypesController < ConsoleController
-
+  include Console::ModelHelper
   include CostAware
 
   def index
@@ -25,10 +25,26 @@ class CartridgeTypesController < ConsoleController
     url = params[:url].presence
     @wizard = !params[:direct].present?
 
-    @capabilities = user_capabilities
     @application = Application.find(params[:application_id], :as => current_user)
+    @capabilities = @application.domain.capabilities
     @cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.cached.find(name)
+    @gear_sizes = add_cartridge_gear_sizes(@application, @cartridge_type, @capabilities)
     @cartridge = Cartridge.new :as => current_user
+  end
+
+  def estimate
+    cart_params = params[:cartridge] || params
+
+    name = cart_params[:name].presence
+    url = cart_params[:url].presence
+    gear_size = cart_params[:gear_size].presence
+
+    application = Application.find(params[:application_id], :as => current_user)
+    cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.cached.find(name)
+
+    render :inline => gear_increase_indicator({'1' => [cartridge_type]}, application.scales?, gear_size, true, application.domain.capabilities, application.owner?)
+  rescue => e
+    render :inline => e.message, :status => 500
   end
 
   def conflicts?(cart_type)
@@ -54,9 +70,9 @@ class CartridgeTypesController < ConsoleController
     return true
   end
 
-  
+
   protected
     def active_tab
       :applications
-    end   
+    end
 end

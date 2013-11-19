@@ -1,4 +1,5 @@
 class CartridgesController < ConsoleController
+  include Console::ModelHelper
 
   def index
      # on index get, redirect back to application details page
@@ -14,10 +15,13 @@ class CartridgesController < ConsoleController
   def create
     name = (params[:cartridge] || {})[:name].presence
     url = (params[:cartridge] || {})[:url].presence
-    
+    gear_size = (params[:cartridge] || {})[:gear_size].presence
+
     @application = Application.find(params[:application_id], :as => current_user)
+    @capabilities = @application.domain.capabilities
     @cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.find(name)
-    @cartridge = Cartridge.new(:url => url, :name => url ? nil : name, :as => current_user, :application => @application)
+    @gear_sizes = add_cartridge_gear_sizes(@application, @cartridge_type, @capabilities)
+    @cartridge = Cartridge.new(:url => url, :name => url ? nil : name, :gear_size => gear_size, :as => current_user, :application => @application)
 
     if @cartridge.save
       @wizard = true

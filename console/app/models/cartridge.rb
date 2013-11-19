@@ -15,6 +15,7 @@ class Cartridge < RestApi::Base
     string :scales_with
     string :gear_profile
     integer :base_gear_storage, :additional_gear_storage
+    string :gear_size
   end
   custom_id :name
 

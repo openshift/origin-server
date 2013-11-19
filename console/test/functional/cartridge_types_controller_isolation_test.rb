@@ -11,7 +11,9 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
     {:max_gears => 16, :consumed_gears => 4}
   end
   def domain
-    {:id => 'test'}
+    {:id => 'test'}.tap do |o|
+      o[:capabilities] = {} 
+    end
   end
   def app(with_carts=false)
     {:id => 'testid', :name => 'test', :domain_id => 'test', :framework => 'php-5.3'}.tap do |o|
@@ -25,6 +27,7 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
     ActiveResource::HttpMock.respond_to({},true) do |mock|
       mock.get '/broker/rest/user.json', json_header, user.to_json
       mock.get '/broker/rest/domain/test.json', json_header, domain.to_json
+      mock.get '/broker/rest/domain/test.json?include=application_info', json_header, domain.to_json
       mock.get '/broker/rest/application/testid.json', json_header, app.to_json
       mock.get '/broker/rest/application/testid.json?include=cartridges', json_header, app(true).to_json
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [{:name => 'fake-cart-1', :type => :embedded}].to_json

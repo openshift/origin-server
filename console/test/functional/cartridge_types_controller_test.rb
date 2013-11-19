@@ -38,7 +38,9 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert_equal t.name, type.name
     assert assigns(:cartridge)
     assert assigns(:application)
+    assert assigns(:gear_sizes)
     assert_select ".indicator-gear-increase", "+0"
+    assert_select ".cartridge_gear_size", "Small"
   end
 
   test "should show type page for scalable" do
@@ -49,7 +51,23 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert_equal t.name, type.name
     assert assigns(:cartridge)
     assert assigns(:application)
+    assert assigns(:gear_sizes)
     assert_select ".indicator-gear-increase", /\+1\b/
+    assert_select ".cartridge_gear_size", "Small"
+  end
+
+  test "should show type page for scalable with gear sizes" do
+    gear_sizes = %w(small medium large)
+    CartridgeTypesController.any_instance.stubs(:add_cartridge_gear_sizes).returns(gear_sizes)
+
+    t = CartridgeType.embedded.find(&:service?)
+    get :show, :application_id => with_scalable_app.to_param, :id => t.name
+    assert_response :success
+    assert assigns(:gear_sizes)
+    assert_select ".indicator-gear-increase", /\+1\b/
+    assert_select "#cartridge_gear_size" do
+      assert_select 'option', gear_sizes.delete_at(0).titleize
+    end
   end
 
   test "should show custom url page" do
@@ -84,7 +102,7 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
     assert_select 'a[href=https://foo.com#bar]', 'bar'
     assert_select ".indicator-gear-increase", /\+0\-1\b/
-  end 
+  end
 
   test "should not raise on missing type" do
     # We allow arbitrary cartridges, but we may want to change that

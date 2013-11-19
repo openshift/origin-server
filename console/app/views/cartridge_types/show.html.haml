@@ -1,5 +1,10 @@
 - content_for :page_style, 'highlight'
 - content_for :page_title, 'Add a Cartridge'
+:css
+  .form-horizontal.add-cartridge .control-label { width: auto; font-size: 17.36px; }
+  .form-horizontal.add-cartridge .control-group { margin-bottom: 15px; }
+  .form-horizontal.add-cartridge .controls { margin-left: 90px; }
+  .form-horizontal.add-cartridge .controls h3 { display: inline; margin-right: 8px; }
 
 - if @wizard
   %h1.invisible Add a Cartridge
@@ -14,18 +19,57 @@
 = semantic_form_for @cartridge, :url => application_cartridges_path(@application), :html => {:class => 'form'} do |f|
   = f.hidden_field :name, :value => @cartridge_type.name
   = f.hidden_field :url, :value => @cartridge_type.url
+
   = f.semantic_errors
+
+  = f.inputs :class => 'inputs form-horizontal add-cartridge' do
+    - if @gear_sizes.length > 1
+      = f.input :gear_size, :as => :select, :collection => @gear_sizes.map{ |size| [size.to_s.titleize, size]}, :include_blank => false
+    - else
+      .control-group
+        %label.control-label Gear size
+        .controls
+          %h3.cartridge_gear_size= @gear_sizes.first.to_s.titleize
+          -#%span.icon-question-sign{'aria-hidden'=>"true"}
+          -#.popover-cartridge-gear-sizes.hide
+          -#  .left
+          -#    %h2 Gear resources
+
   %p
     Do you want to add the
     %strong
       - if @cartridge_type.custom?
         = link_to @cartridge_type.display_name, @cartridge_type.url
-      - else 
+      - else
         = @cartridge_type.display_name
     cartridge to your application?
+
   = f.buttons do
     = link_to "Back", @wizard ? application_cartridge_types_path(@application) : application_path(@application), :class => 'btn'
     = f.commit_button("Add Cartridge")
     %span#gear_increase
       = gear_increase_indicator({'1' => [@cartridge_type]}, @application.scales?, @application.gear_profile, true, @application.domain.capabilities, @application.owner?)
     = f.loading
+
+  - content_for :javascripts do
+    :javascript
+      $(function() {
+        $('.icon-question-sign').popover({
+          content: function() { return $('.popover-cartridge-gear-sizes').html(); },
+          trigger: 'hover',
+          html: true
+        });
+
+        var estimateUrl = function(form) {
+          var fields = $.grep(form.serializeArray(), function(field) {
+            return ['cartridge[name]', 'cartridge[url]', 'cartridge[gear_size]'].indexOf(field.name) != -1;
+          });
+          return "#{estimate_application_cartridge_type_path(@application.id, @cartridge_type.name || '-1')}" + '?' + $.param(fields);
+        }
+
+        $('select#cartridge_gear_size').change(function() {
+          $("#gear_increase").load(estimateUrl($(this).closest('form')));
+        });
+
+        $('select#cartridge_gear_size').trigger('change');
+      });
