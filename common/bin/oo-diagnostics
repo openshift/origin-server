@@ -1221,6 +1221,29 @@ class OODiag
     end
   end
 
+  def test_yum_configuration
+    if system "command -v oo-admin-yum-validator >& /dev/null"
+      output = `oo-admin-yum-validator --report-all 2>&1`
+      $?.success? or do_warn <<-YUM 
+        oo-admin-yum-validator reported some possible problems
+        with your package source configuration:
+--------------------------------------------------------------
+      #{output}
+--------------------------------------------------------------
+        Incorrect package source configuration could lead to
+        failure to install the correct RPMs.
+      YUM
+    elsif @project_is[:enterprise]
+      do_warn <<-YUM
+        oo-admin-yum-validator is not installed. Please install with:
+          yum install openshift-enterprise-release-2.0
+        This tool helps validate and fix your package source
+        configuration. Incorrect configuration could lead to
+        failure to install the correct RPMs.
+      YUM
+    end
+  end
+
 end #class OODiag
 
 
