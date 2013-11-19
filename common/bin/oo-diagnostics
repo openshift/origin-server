@@ -1199,6 +1199,28 @@ class OODiag
       ROGUES
     end
   end
+
+  def test_node_frontend_clash
+    skip_test unless @is_node
+    conflicts = %w[ rubygem-openshift-origin-frontend-apache-mod-rewrite
+                    rubygem-openshift-origin-frontend-apache-vhost ]
+    if conflicts.all? {|rpm| @rpms[rpm]}
+      # these both provide a conf file in /etc/httpd/conf.d which conflict if both are installed.
+      config = OpenShift::Config.new
+      plugins = config.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').map {|it| "rubygem-" + it}
+      remove = conflicts - plugins
+      do_fail <<-CONFLICT
+        Conflicting RPMs are installed:
+          rubygem-openshift-origin-frontend-apache-mod-rewrite
+          rubygem-openshift-origin-frontend-apache-vhost
+        When both are present, apps are likely to be unreachable.
+        Please remove the one not used in node.conf:
+          yum remove #{remove.join " "}
+        Then, restart the httpd service.
+      CONFLICT
+    end
+  end
+
 end #class OODiag
 
 
