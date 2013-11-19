@@ -207,7 +207,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert apps.any?{ |a| a.name == app.name }
     assert_response :success
     assert_select 'h3 > a', /#{app.name}/
-    assert_select 'h2 > .right', /#{caps.consumed_gears}\sof #{caps.max_gears}/m
+    assert_select 'h1 > .right', /#{caps.consumed_gears}\sof #{caps.max_gears}/m
   end
 
   test "should retrieve application details" do
