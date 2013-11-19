@@ -12,6 +12,10 @@ module Console::CostHelper
         [true, "This will add at least #{pluralize(min, 'gear')} to #{owner} account and may result in additional charges."]
       elsif !increasing
         [false, "No gears will be added to #{owner} account."]
+      elsif max == Float::INFINITY
+        [false, "This will add an unknown number of gears to #{owner} account."]
+      elsif min != max
+        [false, "This will add between #{min} and #{max} gears to #{owner} account."]
       else
         [false, "This will add #{pluralize(min, 'gear')} to #{owner} account."]
       end
