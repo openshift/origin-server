@@ -1,7 +1,12 @@
 :css
   span.pull-right > span {margin: 0 10px; font-size: 18px; font-weight: normal; text-transform: uppercase; opacity: .75;}
 
-  .leave .popover { width: 300px; }
+  .leave { margin-top: 20px; }
+  .leave .popover.bottom {margin-left: 75px;}
+  .leave .popover.bottom .arrow {margin-left: -70px;}
+  .leave .popover.bottom .arrow:before {border: 7px solid transparent; border-bottom-color: rgba(0,0,0,.2); content:''; height: 0; left: -7px; position: absolute; top: -7px; width: 0; z-index: -1;}
+
+  .leave .popover { width: 260px; }
   .leave .popover-inner, .leave .popover-content { width: auto; }
 
   .js .hidden-scripted { display: none; }
@@ -63,7 +68,7 @@
       = render :partial => 'members/members_form', :locals => {:domain => @domain, :members => @domain.members, :new_members => @new_members, :editable => @domain.admin?, :editing => @new_members.present?}
 
       - unless @domain.owner?
-        %span.leave.confirm-container
+        %div.leave.confirm-container
           = link_to "Leave Domain", domain_leave_path(@domain), { :class => 'btn btn-small confirm-link', :title => 'Leave Domain', 'data-placement' => 'bottom'}
           .confirm-popover.hide
             = render :partial => 'members/leave_domain_form', :locals => {:domain => @domain}
