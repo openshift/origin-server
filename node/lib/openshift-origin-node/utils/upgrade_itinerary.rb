@@ -14,8 +14,8 @@ module OpenShift
         @has_incompatible = has_incompatible
       end
 
-      def create_entry(cartridge_name, upgrade_type)
-        @entries[cartridge_name] = upgrade_type
+      def create_entry(cartridge_name, upgrade_type, upgrade_data={})
+        @entries[cartridge_name] = {upgrade_type: upgrade_type, upgrade_data: upgrade_data}
 
         if upgrade_type == UpgradeType::INCOMPATIBLE
           @has_incompatible = true
@@ -31,8 +31,8 @@ module OpenShift
       end
 
       def each_cartridge
-        @entries.each_pair do |name, upgrade_type|
-          yield name, upgrade_type if block_given?
+        @entries.each_pair do |name, upgrade_info|
+          yield name, upgrade_info if block_given?
         end
       end
 

@@ -222,6 +222,11 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           proxy.delete_all(proxy_mappings.map{|p| p[:proxy_port]}, true)
         end
 
+        def delete_public_endpoint(public_port)
+          proxy = ::OpenShift::Runtime::FrontendProxyServer.new
+          proxy.system_proxy_delete(public_port)
+        end
+
         # Public: Initialize OpenShift Port Proxy for this gear
         #
         # The port proxy range is determined by configuration and must

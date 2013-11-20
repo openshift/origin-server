@@ -35,6 +35,7 @@ module OpenShift
         @container.stubs(:uid).returns('123')
         @container.stubs(:gid).returns('456')
         @container.stubs(:homedir).returns('user/shouldnotexist')
+        @container.stubs(:container_dir).returns('/test/123')
 
         @uuid = '123'
         @app_uuid = 'abc'
@@ -48,7 +49,13 @@ module OpenShift
         Utils::Environ.expects(:for_gear).with('/test/123').returns(@gear_env)
         ApplicationContainer.expects(:from_uuid).with(@uuid, @hourglass).returns(@container)
 
-        @upgrader = Upgrader.new(@uuid, @app_uuid, 'namespace', @version, 'hostname', false, @hourglass)
+        @upgrade_data = {
+            "private_endpoints_remove" => [],
+            "public_endpoints_remove" => [],
+            "public_endpoints_add" => []
+        }
+
+        @upgrader = Upgrader.new(@uuid, @app_uuid, 'namespace', @version, 'hostname', false, false, @hourglass)
       end
 
       def test_compatible_success
@@ -96,7 +103,8 @@ module OpenShift
 
         upgrader.expects(:execute_cartridge_upgrade_script).with(target, current_version, next_manifest)
 
-        upgrader.incompatible_upgrade(cart_model, current_version, next_manifest, version, target)
+        OpenShift::Runtime::Utils::Environ.expects(:for_gear).with('/test/123').returns(@gear_env)
+        upgrader.incompatible_upgrade(cart_model, current_version, @current_manifest, next_manifest, version, target, @upgrade_data)
       end
 
       def test_incompatible_recover_after_setup
@@ -128,7 +136,8 @@ module OpenShift
 
         upgrader.expects(:execute_cartridge_upgrade_script).with(target, current_version, next_manifest)
 
-        upgrader.incompatible_upgrade(cart_model, current_version, next_manifest, version, target)
+        OpenShift::Runtime::Utils::Environ.expects(:for_gear).with('/test/123').returns(@gear_env)
+        upgrader.incompatible_upgrade(cart_model, current_version, @current_manifest, next_manifest, version, target, @upgrade_data)
       end
 
       def test_incompatible_recover_after_erb_processing
@@ -160,7 +169,8 @@ module OpenShift
 
         upgrader.expects(:execute_cartridge_upgrade_script).with(target, current_version, next_manifest)
 
-        upgrader.incompatible_upgrade(cart_model, current_version, next_manifest, version, target)
+        OpenShift::Runtime::Utils::Environ.expects(:for_gear).with('/test/123').returns(@gear_env)
+        upgrader.incompatible_upgrade(cart_model, current_version, @current_manifest, next_manifest, version, target, @upgrade_data)
       end
 
       def test_incompatible_done
@@ -192,7 +202,8 @@ module OpenShift
 
         upgrader.expects(:execute_cartridge_upgrade_script).with(target, current_version, next_manifest)
 
-        upgrader.incompatible_upgrade(cart_model, current_version, next_manifest, version, target)
+        OpenShift::Runtime::Utils::Environ.expects(:for_gear).with('/test/123').returns(@gear_env)
+        upgrader.incompatible_upgrade(cart_model, current_version, @current_manifest, next_manifest, version, target, @upgrade_data)
       end
 
     end

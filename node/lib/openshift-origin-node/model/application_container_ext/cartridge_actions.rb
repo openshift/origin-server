@@ -128,6 +128,34 @@ module OpenShift
           @cartridge_model.unsubscribe(cart_name, pub_cart_name)
         end
 
+        def generate_endpoint_creation_notification_msg(cart, endpoint, private_ip_value, public_port_value)
+          config = ::OpenShift::Config.new
+          endpoint_create_hash = { "cartridge_name" => "#{cart.name}-#{cart.version}",
+                                   "external_address" => config.get('PUBLIC_IP'),
+                                   "external_port" => public_port_value,
+                                   "internal_address" => private_ip_value,
+                                   "internal_port" => endpoint.private_port,
+                                   "protocols" => endpoint.protocols,
+                                   "description" => endpoint.description,
+                                   "type" => []
+          }
+
+          if cart.web_proxy?
+            endpoint_create_hash['protocols'] = @cartridge_model.primary_cartridge.public_endpoints.first.protocols
+            endpoint_create_hash['type'] = ["load_balancer"]
+          elsif cart.web_framework?
+            endpoint_create_hash['type'] = ["web_framework"]
+          elsif cart.categories.include? "database"
+            endpoint_create_hash['type'] = ["database"]
+          elsif cart.categories.include? "plugin"
+            endpoint_create_hash['type'] = ["plugin"]
+          else
+            endpoint_create_hash['type'] = ["other"]
+          end
+          endpoint_create_hash['mappings'] = endpoint.mappings.map { |m| { "frontend" => m.frontend, "backend" => m.backend } } if endpoint.mappings
+          "NOTIFY_ENDPOINT_CREATE: #{endpoint_create_hash.to_json}\n"
+        end
+
         # Creates public endpoints for the given cart. Public proxy mappings are created via
         # the FrontendProxyServer, and the resulting mapped ports are written to environment
         # variables with names based on the cart manifest endpoint entries.
@@ -158,30 +186,7 @@ module OpenShift
             public_port = create_public_endpoint(private_ip, endpoint.private_port)
             add_env_var(endpoint.public_port_name, public_port)
 
-            config = ::OpenShift::Config.new
-            endpoint_create_hash = { "external_address" => config.get('PUBLIC_IP'),
-                                     "external_port" => public_port,
-                                     "internal_address" => private_ip,
-                                     "internal_port" => endpoint.private_port,
-                                     "protocols" => endpoint.protocols,
-                                     "description" => endpoint.description,
-                                     "type" => []
-                                    }
-
-            if cart.web_proxy?
-              endpoint_create_hash['protocols'] = @cartridge_model.primary_cartridge.public_endpoints.first.protocols
-              endpoint_create_hash['type'] = ["load_balancer"]
-            elsif cart.web_framework?
-              endpoint_create_hash['type'] = ["web_framework"]
-            elsif cart.categories.include? "database"
-              endpoint_create_hash['type'] = ["database"]
-            elsif cart.categories.include? "plugin"
-              endpoint_create_hash['type'] = ["plugin"]
-            else
-              endpoint_create_hash['type'] = ["other"]
-            end
-            endpoint_create_hash['mappings'] = endpoint.mappings.map { |m| { "frontend" => m.frontend, "backend" => m.backend } } if endpoint.mappings
-            output << "NOTIFY_ENDPOINT_CREATE: #{endpoint_create_hash.to_json}\n"
+            output << generate_endpoint_creation_notification_msg(cart, endpoint, private_ip, public_port)
 
             logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
           "[#{endpoint.public_port_name}=#{public_port}]")
@@ -230,6 +235,12 @@ module OpenShift
           proxy_mappings.map{|p| remove_env_var(p[:public_port_name])}
 
           output
+        end
+
+        # Delete a particular public endpoint
+        def delete_public_endpoint(public_port_name, public_port_value)
+          @container_plugin.delete_public_endpoint(public_port_value)
+          remove_env_var(public_port_name)
         end
 
         def connector_execute(cart_name, pub_cart_name, connector_type, connector, args)
