@@ -1199,6 +1199,51 @@ class OODiag
       ROGUES
     end
   end
+
+  def test_node_frontend_clash
+    skip_test unless @is_node
+    conflicts = %w[ rubygem-openshift-origin-frontend-apache-mod-rewrite
+                    rubygem-openshift-origin-frontend-apache-vhost ]
+    if conflicts.all? {|rpm| @rpms[rpm]}
+      # these both provide a conf file in /etc/httpd/conf.d which conflict if both are installed.
+      config = OpenShift::Config.new
+      plugins = config.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').map {|it| "rubygem-" + it}
+      remove = conflicts - plugins
+      do_fail <<-CONFLICT
+        Conflicting RPMs are installed:
+          rubygem-openshift-origin-frontend-apache-mod-rewrite
+          rubygem-openshift-origin-frontend-apache-vhost
+        When both are present, apps are likely to be unreachable.
+        Please remove the one not used in node.conf:
+          yum remove #{remove.join " "}
+        Then, restart the httpd service.
+      CONFLICT
+    end
+  end
+
+  def test_yum_configuration
+    if system "command -v oo-admin-yum-validator >& /dev/null"
+      output = `oo-admin-yum-validator --report-all 2>&1`
+      $?.success? or do_warn <<-YUM 
+        oo-admin-yum-validator reported some possible problems
+        with your package source configuration:
+--------------------------------------------------------------
+      #{output}
+--------------------------------------------------------------
+        Incorrect package source configuration could lead to
+        failure to install the correct RPMs.
+      YUM
+    elsif @project_is[:enterprise]
+      do_warn <<-YUM
+        oo-admin-yum-validator is not installed. Please install with:
+          yum install openshift-enterprise-release-2.0
+        This tool helps validate and fix your package source
+        configuration. Incorrect configuration could lead to
+        failure to install the correct RPMs.
+      YUM
+    end
+  end
+
 end #class OODiag
 
 
