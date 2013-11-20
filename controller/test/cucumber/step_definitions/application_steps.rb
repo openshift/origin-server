@@ -163,6 +163,10 @@ When /^the embedded (.*) cartridge is removed$/ do |type|
   rhc_embed_remove(@app, type)
 end
 
+When /^a new environment variable key=(.*) value=(.*) is added$/ do |key,value|
+  rhc_set_env(@app,key,value)
+end
+
 When /^the application is changed$/ do
   Dir.chdir(@app.repo) do
     @update = "TEST"
@@ -173,6 +177,7 @@ When /^the application is changed$/ do
     run("git push >> " + @app.get_log("git_push") + " 2>&1")
   end
 end
+
 
 When /^the jboss application is changed to multiartifact$/ do
   Dir.chdir(@app.repo) do

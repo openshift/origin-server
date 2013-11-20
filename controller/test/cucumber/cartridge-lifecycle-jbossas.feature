@@ -30,7 +30,8 @@ Feature: Cartridge Lifecycle JBossAS Verification Tests
     Then only archive artifacts should be deployed
     When the jboss management interface is disabled
     Then deployment verification should be skipped with management unavailable message
-    When the application is changed
+    When a new environment variable key=OPENSHIFT_DUMMY value="\"value with spaces\"" is added
+    And the application is changed
     Then it should be updated successfully
     And the application should be accessible
     When I tidy the application
