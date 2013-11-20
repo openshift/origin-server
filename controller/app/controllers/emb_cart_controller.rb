@@ -115,6 +115,12 @@ class EmbCartController < BaseController
         return render_error(:unprocessable_entity, "Invalid cartridge. Valid values are (#{carts.join(', ')})",
                             109, "cartridge")
       end
+      
+      if not Rails.configuration.openshift[:allow_deprecated_cartridges]and cart.is_deprecated?
+        carts = CartridgeCache.cartridge_names("embedded", @application)
+        return render_error(:unprocessable_entity, "Cartridge #{cart.name} is deprecated. Please choose an alternative from this list (#{carts.join(', ')})",
+                            109, "cartridge")
+      end
 
       profs = cart.profile_for_feature(name)
       profile = (profs.is_a? Array) ? profs.first : profs

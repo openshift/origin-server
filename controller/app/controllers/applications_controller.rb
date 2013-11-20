@@ -68,7 +68,17 @@ class ApplicationsController < BaseController
         gear_size_map[c] = default_gear_size
       end
     end
-
+    
+    if not Rails.configuration.openshift[:allow_deprecated_cartridges]
+      deprecated = []
+      features.each do |feature|
+        c = CartridgeCache.find_cartridge(feature)
+        deprecated.push(feature) if c and c.is_deprecated?
+      end
+      
+      return render_error(:unprocessable_entity, "These cartridge(s) have been deprecated '#{deprecated.join(",")}'.  Please choose an alternative from list #{CartridgeCache.cartridge_names.join(", ")}") unless deprecated.empty?
+    end
+    
     user_env_vars = params[:environment_variables].presence
     Application.validate_user_env_variables(user_env_vars, true)
 

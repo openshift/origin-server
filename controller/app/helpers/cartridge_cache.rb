@@ -7,11 +7,13 @@ class CartridgeCache
   include CacheHelper
 
   # Returns an Array of Cartridge objects
-  def self.cartridges
-    CacheHelper.get_cached("all_cartridges", :expires_in => 21600.seconds) do
-      carts = OpenShift::ApplicationContainerProxy.find_one().get_available_cartridges
-      carts
-    end
+  def self.cartridges(show_deprecated=false)
+    carts = self.get_all_cartridges
+    available_carts = []
+    carts.each do |cart|
+      available_carts.push(cart) unless cart.is_deprecated? and !show_deprecated
+    end 
+    available_carts
   end
 
   # Returns an Array of cartridge names.
@@ -34,7 +36,7 @@ class CartridgeCache
   end
 
   def self.find_cartridge_by_category(cat, app=nil)
-    global_carts = CacheHelper.get_cached("cartridges_by_cat_#{cat}", :expires_in => 1.day) {cartridges.select{|cart| cart.categories.include?(cat) }}
+    global_carts = CacheHelper.get_cached("cartridges_by_cat_#{cat}", :expires_in => 1.day) {cartridges.select{|cart| cart.categories.include?(cat)}}
     if app
       app_local_community_carts = app.downloaded_cartridges.values.select { |cart| cart.categories.include?(cat) }
       global_carts << app_local_community_carts
@@ -88,7 +90,7 @@ class CartridgeCache
 
   def self.find_all_cartridges(requested_feature)
 
-    carts = self.cartridges
+    carts = self.get_all_cartridges
 
     cartname_hash = {}
     cartname_version_hash = {}
@@ -220,6 +222,15 @@ class CartridgeCache
        end
     end
     return cmap
+  end
+  
+  private
+  # Returns an Array of all cartridge objects
+  def self.get_all_cartridges
+    CacheHelper.get_cached("all_cartridges", :expires_in => 21600.seconds) do
+      carts = OpenShift::ApplicationContainerProxy.find_one().get_available_cartridges
+      carts
+    end
   end
 
 end

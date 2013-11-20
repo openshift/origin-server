@@ -151,7 +151,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "get embedded cartridge in all versions" do
-     name = MYSQL_VERSION
+    name = MYSQL_VERSION
     post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
     assert json = JSON.parse(response.body)
@@ -161,6 +161,32 @@ class EmbCartControllerTest < ActionController::TestCase
       get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
       assert_response :ok, "Getting embedded cartridge for version #{version} failed"
     end
+  end
+  
+  test "attempt to add deprecated cartridge" do
+    
+    carts = []
+    cart = OpenShift::Cartridge.new
+    cart.cartridge_vendor = "redhat"
+    cart.name = "emb-cart-1.0"
+    cart.provides = ["emb"]
+    cart.version = "1.0"
+    cart.deprecated = true
+    cart.categories = ["embedded"]
+    
+    carts << cart
+    cart = OpenShift::Cartridge.new
+    cart.cartridge_vendor = "redhat"
+    cart.name = "emb-cart-1.0"
+    cart.provides = ["emb"]
+    cart.version = "1.1"
+    cart.categories = ["embedded"]
+    carts << cart
+    
+    CartridgeCache.stubs(:get_all_cartridges).returns(carts) 
+    
+    post :create, {"name" => "emb-cart-1.0", "application_id" => @app.id}
+    assert_response :unprocessable_entity
   end
 
 end
