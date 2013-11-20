@@ -68,7 +68,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     cart.version = "1.10"
     carts << cart
 
-    CartridgeCache.stubs(:cartridges).returns(carts)
+    CartridgeCache.stubs(:get_all_cartridges).returns(carts)
     
     cart = CartridgeCache.find_cartridge("php-5.3")
     assert cart.features.include?"php"
@@ -180,7 +180,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     cart.version = "1.10"
     carts << cart
 
-    CartridgeCache.stubs(:cartridges).returns(carts)
+    CartridgeCache.stubs(:get_all_cartridges).returns(carts)
     
     carts = CartridgeCache.find_all_cartridges("php-5.3")
     carts.each do |cart|

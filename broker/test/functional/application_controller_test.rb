@@ -256,4 +256,38 @@ class ApplicationControllerTest < ActionController::TestCase
       assert_response :ok, "Getting application for version #{version} failed"
     end
   end
+  
+  test "attempt to create an application with deprecated cartridge" do
+    
+    carts = []
+    cart = OpenShift::Cartridge.new
+    cart.cartridge_vendor = "redhat"
+    cart.name = "ruby-1.8"
+    cart.provides = ["ruby"]
+    cart.version = "1.8"
+    cart.deprecated = true
+    
+    carts << cart
+    cart = OpenShift::Cartridge.new
+    cart.cartridge_vendor = "redhat"
+    cart.name = "ruby-1.9"
+    cart.provides = ["ruby"]
+    cart.version = "1.9"
+    carts << cart
+    
+    cart = OpenShift::Cartridge.new
+    cart.cartridge_vendor = "other"
+    cart.name = "ruby-1.10"
+    cart.provides = ["ruby"]
+    cart.version = "1.10"
+    carts << cart
+    CartridgeCache.stubs(:get_all_cartridges).returns(carts)  
+    
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => "ruby-1.8", "domain_id" => @domain.namespace}
+    assert_response :unprocessable_entity
+    
+    CartridgeCache.unstub(:get_all_cartridges)
+  end
+  
 end
