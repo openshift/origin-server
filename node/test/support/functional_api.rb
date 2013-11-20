@@ -316,7 +316,7 @@ EOFZ
     response = JSON.parse(response)
 
     logger.info("Got Response(#{response})")
-    
+
     logger.info("Done Deploy Binary Artifact Using REST API")
 
   end
@@ -329,5 +329,44 @@ EOFZ
 
   def cloud_domain
     ::OpenShift::Config.new.get('CLOUD_DOMAIN')
+  end
+
+  def assert_gear_status_in_proxy(proxy, target_gear, status)
+    proxy_status_csv = `curl "http://#{proxy.dns}/haproxy-status/;csv" 2>/dev/null`
+
+    if proxy.uuid == target_gear.uuid
+      name = 'local-gear'
+    else
+      gear_name = target_gear.dns.split('-')[0]
+      name = "gear-#{gear_name}-#{target_gear.namespace}"
+    end
+
+    passed = false
+    proxy_status_csv.split("\n").each do |line|
+      if line =~ /#{name}/
+        assert_match /#{status}/, line
+        passed = true
+        break
+      end
+    end
+
+    flunk("Target gear #{name} did not have expected status #{status}") unless passed
+  end
+
+  def restart_cartridge(app_name, cartridge)
+    logger.info("Restarting #{cartridge} in #{app_name}")
+
+    begin
+      response = RestClient::Request.execute(method: :post,
+                                             url: "#{@url_base}/domains/#{@namespace}/applications/#{app_name}/cartridges/#{cartridge}/events",
+                                             payload: JSON.dump(event: 'restart'),
+                                             headers: {content_type: :json, accept: :json},
+                                             timeout: 180)
+    rescue RestClient::Exception => e
+      raise "Exception restarting: #{e.response}"
+    end
+
+    response = JSON.parse(response)
+    assert_equal 'ok', response['status']
   end
 end

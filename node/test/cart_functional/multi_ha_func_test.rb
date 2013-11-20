@@ -65,4 +65,37 @@ class MultiHaFuncTest < OpenShift::NodeBareTestCase
 
   end
 
+  def assert_proxies_disabled(proxy_entries)
+    proxy_entries.values.each do |target_gear|
+      proxy_entries.values.each do |proxy|
+        logger.info "Checking target gear #{target_gear.dns} status from proxy #{proxy.dns}"
+        @api.assert_gear_status_in_proxy(proxy, target_gear, 'MAINT')
+      end
+    end
+  end
+
+  def test_haproxy_gears_stay_disabled_for_restarts
+    app_name = "app#{@api.random_string}"
+    app_id = @api.create_application(app_name, [@framework_cartridge], true)
+
+    app_container = OpenShift::Runtime::ApplicationContainer.from_uuid(app_id)
+    gear_registry = OpenShift::Runtime::GearRegistry.new(app_container)
+
+    logger.info "Enabling HA for #{app_name}"
+    @api.make_ha(app_name)
+    @api.assert_scales_to(app_name, @framework_cartridge, 3)
+    @api.assert_scales_to(app_name, @framework_cartridge, 4)
+    @api.assert_scales_to(app_name, @framework_cartridge, 5)
+
+    gear_registry = OpenShift::Runtime::GearRegistry.new(app_container)
+
+    entries = gear_registry.entries
+    proxy_entries = entries[:proxy]
+
+    # test restart
+    assert_proxies_disabled(proxy_entries)
+    @api.restart_cartridge(app_name, @framework_cartridge)
+    assert_proxies_disabled(proxy_entries)
+  end
+
 end
