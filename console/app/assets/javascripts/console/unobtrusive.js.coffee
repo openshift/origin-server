@@ -3,12 +3,22 @@ $ = jQuery
 $ -> 
 
   # Ties clickable areas (.tile-click) to a particular link (a.tile-target)
-  $('.tile-click').click((evt) ->
+  tileClickHandler = (evt) ->
     if ((t = $(evt.target)) && t.is('a'))
       return
     a = $('a.tile-target', this)[0]
     if a
-      window.location = a.href
+      if evt.which == 2 || evt.ctrlKey || evt.shiftKey
+        window.open(a.href)
+      else
+        window.location = a.href
+
+  $('.tile-click').click((evt) ->
+    if evt.which != 2
+      tileClickHandler.apply(this, [evt])
+  ).mouseup((evt) ->
+    if evt.which == 2
+      tileClickHandler.apply(this, [evt])
   )
 
   # Shows confirm popups when a link is clicked, dismisses them when a .cancel button is clicked
