@@ -120,6 +120,13 @@ module OpenShift
             FileUtils.ln_s("../data", PathUtils.join(gearappdir, "runtime", "data"), :verbose => @debug)
           end
 
+          vimrc = PathUtils.join(data_dir, ".vimrc")
+          File.open(vimrc, File::WRONLY|File::TRUNC|File::CREAT, 0600) {|file|
+            file.write %Q{set viminfo+=n#{data_dir}.viminfo}
+          }
+
+          FileUtils.ln_s(PathUtils.join(data_dir, ".vimrc"), PathUtils.join(homedir, ".vimrc"))
+
           add_env_var("TMP_DIR", "/tmp/", true)
           add_env_var("TMP_DIR", "/tmp/", false)
           add_env_var("TMPDIR", "/tmp/", false)
