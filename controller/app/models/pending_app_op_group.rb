@@ -125,7 +125,7 @@ class PendingAppOpGroup
             if result_io.hasUserActionableError
               raise OpenShift::UserException.new(result_io.errorIO.string, result_io.exitcode, nil, result_io)
             else
-              raise OpenShift::OOException.new("Failed to correctly execute all parallel operations", 1, result_io)
+              raise OpenShift::OOException.new("Failed to correctly execute parallel operations - #{result_io.errorIO.string}", 1, result_io)
             end
           end
         end
