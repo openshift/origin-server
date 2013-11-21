@@ -65,13 +65,18 @@ class PendingAppOp
 
   # the new_state needs to be a symbol
   def set_state(new_state)
-    failure_message = "Failed to set pending_op #{self._id.to_s} state to #{new_state.to_s} for application #{self.pending_app_op_group.application.name}"
-    updated_op = update_with_retries(5, failure_message) do |current_app, current_op_group, current_op, op_group_index, op_index|
-      Application.where({ "_id" => current_app._id, "pending_op_groups.#{op_group_index}._id" => current_op_group._id, "pending_op_groups.#{op_group_index}.pending_ops.#{op_index}._id" => current_op._id }).update({"$set" => { "pending_op_groups.#{op_group_index}.pending_ops.#{op_index}.state" => new_state }})
+    # in order to facilitate execution of pre-save ops, 
+    # we check whether the application is persisted to mongo
+    if pending_app_op_group.application.persisted?
+      failure_message = "Failed to set pending_op #{self._id.to_s} state to #{new_state.to_s} for application #{self.pending_app_op_group.application.name}"
+      updated_op = update_with_retries(5, failure_message) do |current_app, current_op_group, current_op, op_group_index, op_index|
+        Application.where({ "_id" => current_app._id, "pending_op_groups.#{op_group_index}._id" => current_op_group._id, "pending_op_groups.#{op_group_index}.pending_ops.#{op_index}._id" => current_op._id }).update({"$set" => { "pending_op_groups.#{op_group_index}.pending_ops.#{op_index}.state" => new_state }})
+      end
+      # set the state in the object in mongoid memory for access by the caller
+      self.state = updated_op.state
+    else
+      self.state = new_state
     end
-    
-    # set the state in the object in mongoid memory for access by the caller
-    self.state = updated_op.state
   end
 
   def update_with_retries(num_retries, failure_message, &block)
