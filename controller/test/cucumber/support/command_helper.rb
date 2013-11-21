@@ -235,6 +235,15 @@ module CommandHelper
     end
   end
 
+  def rhc_set_env(app,key,value)
+    rhc_do('rhc_reload') do
+      time = Benchmark.realtime do
+        run("#{$rhc_script} env set #{key}=#{value} -a #{app.name}  #{default_args(app)}").should == 0
+      end
+      log_event "#{time} SET_ENV_APP #{app.name} #{app.login} #{key} #{value}"
+    end
+  end
+
   def rhc_create_app(app, use_hosts=true, misc_opts='')
     rhc_sshkey_upload app
 
