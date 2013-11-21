@@ -20,6 +20,9 @@ class ApplicationConfigValidator < ActiveModel::Validator
       if application_config["deployment_branch"] and application_config["deployment_branch"].length > 256 
         record.errors.add(:config, {:message => "Invalid deployment_branch: #{application_config["deployment_branch"]}. Deployment branches are limited to 256 characters", :exit_code => -1})
       end
+      if application_config["deployment_branch"] and application_config["deployment_branch"] !~ Deployment::GIT_REF_REGEX
+        record.errors.add(:config, {:message => "Invalid deployment_branch: #{application_config["deployment_branch"]}. See git-check-ref-format man page for rules.", :exit_code => -1})
+      end
     end
   end
 end
