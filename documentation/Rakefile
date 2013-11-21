@@ -19,6 +19,8 @@ task :build_hangouts do
     ":toc2:",
     ":icons:",
     "",
+    "include::_origin_hangouts_preamble.adoc[]",
+    "",
   ]
   fh = File.open('origin_hangouts.csv', 'r')
   csv = CSV.new(fh, { :col_sep => '|'})
