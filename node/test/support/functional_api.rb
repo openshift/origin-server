@@ -213,7 +213,7 @@ EOFZ
     logger.info("Checking #{url} for title '#{expected}'")
     uri = URI.parse(url)
 
-    tries = 1
+    tries = 0
     title = ''
 
     while tries < 3
