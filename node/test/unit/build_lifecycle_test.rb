@@ -849,6 +849,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     link = PathUtils.join(@container.container_dir, 'app-deployments', 'by-id', deployment_id)
     FileUtils.expects(:ln_s).with(PathUtils.join('..', deployment_datetime), link)
+    PathUtils.expects(:oo_lchown).with(@container.uid, @container.gid, link)
     metadata = mock()
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
     metadata.expects(:id=).with(deployment_id)
