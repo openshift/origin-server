@@ -224,6 +224,22 @@ h1.applications .flow-block.right .gear-icon {
   }
 }
 
+@media (max-width: 320px) {
+  .domain {
+    &.tile-click {
+      .flow .flow-block.right {
+        span {
+          margin-left: 15px;
+        }
+        span:first-child {
+          margin-left: 0px;
+        }
+      }
+    }
+  }
+}
+
+
 .form-search {
   .btn:first-child {
     border-radius: 0;
