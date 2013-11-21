@@ -206,6 +206,7 @@ module OpenShift
           target = PathUtils.join('..', deployment_datetime)
           link = PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id)
           FileUtils.ln_s(target, link)
+          PathUtils.oo_lchown(uid, gid, link)
         end
 
         def unlink_deployment_id(deployment_id)
