@@ -1,4 +1,5 @@
 require 'asciidoctor'
+require 'csv'
 require 'pandoc-ruby'
 require 'pathname'
 require 'rake'
@@ -8,6 +9,48 @@ task :build do
     puts "Processing #{file}"
     Asciidoctor.render_file file, :in_place => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=./images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
   end
+end
+
+task :build_hangouts do
+  hangouts = [
+    "= OpenShift Origin Hangouts",
+    "OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>",
+    ":data-uri:",
+    ":toc2:",
+    ":icons:",
+    "",
+  ]
+  fh = File.open('origin_hangouts.csv', 'r')
+  csv = CSV.new(fh, { :col_sep => '|'})
+  idx = 0
+  csv.each do |row|
+    next if row[0].start_with?('#')
+    title = row[0].strip
+    description = row[1].strip
+    # Assumes a URL format like
+    # http://www.youtube.com/watch?v=tMphZs8P2xU
+    # or
+    # http://www.youtube.com/embed/E7veBgx3PP8
+    url = row[2].strip
+    video_id = url.split('=')[-1]
+    if url.match(/embed/)
+      video_id = url.split('/')[-1]
+    end
+    date = row[3]
+    hangouts << "== #{title}"
+    if not date.nil?
+      hangouts << "_Aired: #{date.strip}_ +"
+    end
+    hangouts.concat([description, "", '++++', "<iframe id='ytplayer' type='text/html' width='640' height='390' src='http://www.youtube.com/embed/#{video_id}?autoplay=0&origin=http://openshift.github.io' frameborder='0' allowfullscreen></iframe>", '++++', ""])
+    idx = idx + 1
+  end
+  fh.close
+
+  # AsciiDoc => HTML
+  output_html = Asciidoctor.render hangouts.join("\n"), :header_footer => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=./images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
+
+  # Out to disk
+  File.open('origin_hangouts.html', 'w') {|f| f.write(output_html)}
 end
 
 task :build_peps do
@@ -29,14 +72,15 @@ task :build_peps do
     pep_files << "#{pep_number}: link:#{output_file}[#{pep_title}]"
 
     # Prepend AsciiDoc header info
-    input_text = ["= OpenShift PEP #{pep_number}: #{pep_title}",
-                  "OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>",
-                  ":data-uri:",
-                  ":toc2:",
-                  ":icons:",
-                  "",
-                  asciidoc_txt,
-                 ].join("\n")
+    input_text = [
+      "= OpenShift PEP #{pep_number}: #{pep_title}",
+      "OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>",
+      ":data-uri:",
+      ":toc2:",
+      ":icons:",
+      "",
+      asciidoc_txt,
+    ].join("\n")
 
     # AsciiDoc => HTML
     output_html = Asciidoctor.render input_text, :header_footer => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=./images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
@@ -47,14 +91,15 @@ task :build_peps do
 
   # Write the index to be included in the Documentation Home page
   peps_list = pep_files.join(" +\n")
-  peps_text = ['[cols="1",options="header"]',
-               "|===",
-               "|OpenShift PEPs",
-               "",
-               "a|#{peps_list}",
-               "",
-               "|===",
-              ].join("\n")
+  peps_text = [
+    '[cols="1",options="header"]',
+    "|===",
+    "|OpenShift PEPs",
+    "",
+    "a|#{peps_list}",
+    "",
+    "|===",
+  ].join("\n")
 
   # Write it to disk
   File.open('_pep_list.adoc', 'w') {|f| f.write(peps_text)}
@@ -71,6 +116,7 @@ task :build_rest do
 end
 
 task :build_all do
+  Rake::Task['build_hangouts'].execute
   Rake::Task['build_peps'].execute
   Rake::Task['build_rest'].execute
 

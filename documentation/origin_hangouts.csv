@@ -1,0 +1,10 @@
+#Title|Description|URL|Date
+OpenStack Summit Round-up|An update from OpenShifters who attended the OpenStack summit covering Heat, Docker, Solum and the future of PaaS on OpenStack|http://www.youtube.com/embed/mdFwcUsAs6U|Oct 15 2013
+The Great DNS Configuration Debate|DNS Configuration conversation with Krishna Raman, Luke Meyer & Harrison Ripps|http://www.youtube.com/embed/E7veBgx3PP8|
+Gluster &  OpenShift|Overview of Gluster with a  background on Gluster project's history|http://www.youtube.com/watch?v=uBYnD_IqoPY|21 Oct 2013
+Identity Management|Overview of how Identity Mgmt is implemented on OpenShift Online & intro to FreeIPA with Dmitri Pal, Red Hat|http://www.youtube.com/watch?v=DPshCVcERQY|11 Oct 2013
+Build/Test Process| Insights into the current processes & plans for the future build/test processes for OpenShift Origin with Krishna Raman|http://www.youtube.com/watch?v=ulweEKpII58|4 Oct 2013
+OpenShift &  Docker integration|A conversation with Matt Hicks, Mike McGrath and Docker founder: Solomon Hykes|http://www.youtube.com/watch?v=jo_m5VZYzJc|27 Sep 2013
+Building OpenShift Origin from Source and Preview of the OpenShift Installer| Discussion of the different methods of building Origin from Source with Krishna Raman & Harrison Ripps|http://www.youtube.com/watch?v=xVMM2v698I0|6 Sep 2013
+Deploying OpenShift on OpenStack with Heat plus Building a German Healthcare Cloud| This was a 2 part session. Part 1: Using Heat to deploy OpenShift on OpenStack with Steven Dake & Chris Alfonso. Part 2: a Conversation with Alexander Grzesik, Softwarearchitekt, Medisite.de on Building Domain-specific PaaS with OpenShift Origin|http://www.youtube.com/watch?v=AVD0S0NJboA|16 Aug 2013
+All things Authentication on OpenShift|Deep Dive into OATH2 with Tim Bray, Google|http://www.youtube.com/watch?v=tMphZs8P2xU|30 Aug 2013
