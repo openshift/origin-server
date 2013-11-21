@@ -19,9 +19,11 @@ task :build_hangouts do
     ":toc2:",
     ":icons:",
     "",
-    "include::_origin_hangouts_preamble.adoc[]",
-    "",
   ]
+  File.open('_origin_hangouts_header.adoc').each_line do |line|
+    hangouts << line.chomp
+  end
+  hangouts << ''
   fh = File.open('origin_hangouts.csv', 'r')
   csv = CSV.new(fh, { :col_sep => '|'})
   idx = 0
@@ -47,6 +49,10 @@ task :build_hangouts do
     idx = idx + 1
   end
   fh.close
+
+  File.open('_origin_hangouts_footer.adoc').each_line do |line|
+    hangouts << line.chomp
+  end
 
   # AsciiDoc => HTML
   output_html = Asciidoctor.render hangouts.join("\n"), :header_footer => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=./images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
