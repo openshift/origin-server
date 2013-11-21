@@ -228,7 +228,4 @@
 
 - content_for :javascripts do
   :javascript
-    $('[data-text-copy]').click(function() {
-      $(this).focus().select();
-      $(this).keyup(function(){ $(this).select(); });
-    });
+    $('[data-text-copy]').on('click mousedown keyup focus', function() { $(this).select() });
