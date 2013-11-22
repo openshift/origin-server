@@ -44,7 +44,6 @@ traffic) for an OpenShift Origin node.
 %build
 
 %install
-%{?scl:scl enable %scl - << \EOF}
 #  Runtime directories.
 mkdir -p %{buildroot}%{_var}/lock/subsys
 mkdir -p %{buildroot}%{_var}/run
