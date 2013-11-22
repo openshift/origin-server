@@ -181,8 +181,10 @@ function stop() {
 
     if [ -f $OPENSHIFT_NODEJS_PID_DIR/cartridge.pid ]; then
       cart_pid=$( cat $OPENSHIFT_NODEJS_PID_DIR/cartridge.pid 2> /dev/null )
-      if [ "${cart_pid}" != "$(cartridge_pid)" ]; then
-        error "Warning: Application '$OPENSHIFT_APP_NAME' nodejs PID does not match '\$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid'.  Use force-stop to kill." 141
+      running_cart_pid=$(cartridge_pid)
+
+      if [ "${cart_pid}" != "${running_cart_pid}" ]; then
+        error "Warning: Application '$OPENSHIFT_APP_NAME' nodejs PID ($running_cart_pid) does not match '\$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid' ($cart_pid).  Use force-stop to kill." 141
       else
         logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
         echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_APP_NAME' ..." >> $logf
@@ -298,8 +300,10 @@ function is_node_running() {
     nodepid=$(cat "${OPENSHIFT_NODEJS_PID_DIR}/cartridge.pid")
     [ -n "$nodepid" ]  ||  return 1
 
+    node_command=$(ps --no-heading -ocmd -p $nodepid | replace '//' '/')
+
     # Ensure this is not a supervisor process
-    if [[ ! $(ps --no-heading -ocmd -p $nodepid | replace '//' '/') =~ $(supervisor_bin) ]]; then
+    if [[ -n "$node_command" && ! "${node_command}" =~ $(supervisor_bin) ]]; then
        return 0
     fi
 
