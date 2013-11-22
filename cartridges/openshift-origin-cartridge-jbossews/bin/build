@@ -49,7 +49,9 @@ if [ -z "$MAVEN_OPTS" ]; then
   export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
 fi
 
-export MAVEN_ARGS="clean package -Popenshift -DskipTests"
+if [ -z "$MAVEN_ARGS" ]; then
+  export MAVEN_ARGS="clean package -Popenshift -DskipTests"
+fi
 
 if [ -n "$OPENSHIFT_MAVEN_MIRROR" ]; then
     echo "Using Maven mirror $OPENSHIFT_MAVEN_MIRROR"
