@@ -6,8 +6,11 @@ module AsyncAware
   extend ActiveSupport::Concern
 
   def async(&block)
-    (@threads ||= []) << Thread.start do
+    @threads ||= []
+    index = @threads.length
+    @threads << Thread.start do
       begin
+        Thread.current[:index] = index
         Thread.current[:out] = yield block
       rescue => e
         Thread.current[:out] = e
@@ -16,17 +19,17 @@ module AsyncAware
   end
   def join(limit=nil)
     running = @threads
-    t1 = Time.now.to_i
+    t1 = Time.now.to_f
 
     threads = begin
-      @threads.map{ |t| limit ? t.join(limit) : t.join }
+      @threads.map{ |t| limit ? t.join(limit - (Time.now.to_f - t1)) : t.join }
     ensure
       @threads.each(&:kill)
       @threads = nil
     end
 
-    #puts                  "**** Joined #{Time.now.to_i - t1} (limit=#{limit})"
-    #puts running.map{ |t| "     #{t.inspect}: #{threads.include?(t) ? "" : "(did not finish) "}#{t[:out].inspect}" }.join("\n")
+    #puts                  "**** Joined #{Time.now.to_f - t1} (limit=#{limit})"
+    #puts running.map{ |t| "     #{t.inspect}: #{threads.include?(t) ? "" : "(did not finish) "} (index=#{t[:index]}) #{t[:out].inspect}" }.join("\n")
 
     running.map do |t| 
       if threads.include?(t) 
@@ -54,7 +57,7 @@ module AsyncAware
       @thread, @timeout = thread, timeout
     end
     def to_s
-      "The thread #{thread.inspect} did not complete within #{@timeout} seconds."
+      "The thread #{thread.inspect} (index=#{thread[:index]}) did not complete within #{@timeout} seconds."
     end
   end
 end

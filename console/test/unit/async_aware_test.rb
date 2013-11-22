@@ -52,4 +52,11 @@ class AsyncAwareTest < ActiveSupport::TestCase
     assert /13045/ =~ ex.to_s
     assert ex.to_s.include? Thread.current.inspect
   end
+
+  test "Thread timeout is cumulative" do
+    obj.async{ sleep(1) }
+    obj.async{ sleep(2) }
+    obj.async{ sleep(3) }
+    assert_raise(AsyncAware::ThreadTimedOut){ obj.join!(2) }
+  end
 end
