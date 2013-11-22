@@ -108,6 +108,7 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/sbin
 mkdir -p %{buildroot}%{appdir}/.tc_user_dir
+mkdir -p %{buildroot}%{_var}/log/openshift/node
 
 # Move the gem configs to the standard filesystem location
 mkdir -p %{buildroot}/etc/openshift
@@ -217,8 +218,7 @@ fi
 %{gem_spec}
 %attr(0750,-,-) /usr/sbin/*
 %attr(0755,-,-) /usr/bin/*
-%attr(0640,-,-) %ghost %{_var}/log/openshift/node/platform.log
-%attr(0640,-,-) %ghost %{_var}/log/openshift/node/platform-trace.log
+%attr(0750,-,-) %{_var}/log/openshift/node
 /usr/libexec/openshift/lib/quota_attrs.sh
 /usr/libexec/openshift/lib/archive_git_submodules.sh
 %attr(0755,-,-) %{openshift_lib}/cartridge_sdk
