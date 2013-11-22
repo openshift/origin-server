@@ -374,7 +374,8 @@ module OpenShift
             check_deployments_integrity(options)
             deployment_datetime = create_deployment_dir
 
-            git_ref = options[:ref]
+            gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+            git_ref = determine_deployment_ref(gear_env, options[:ref])
             deployment_metadata = deployment_metadata_for(deployment_datetime)
             deployment_metadata.git_ref = git_ref
             deployment_metadata.hot_deploy = options[:hot_deploy]

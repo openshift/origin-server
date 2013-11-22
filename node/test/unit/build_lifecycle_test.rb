@@ -66,6 +66,9 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
       deployment_datetime = 'now'
       @container.expects(:create_deployment_dir).returns(deployment_datetime)
 
+      gear_env = {a: 1}
+      OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
       metadata = mock()
       @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
 
@@ -79,6 +82,70 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
 
       @container.pre_receive(out: $stdout, err: $stderr, ref: git_ref, hot_deploy: hot_deploy, force_clean_build: force_clean_build, init: init)
+    end
+  end
+
+  def test_pre_receive_default_builder_no_git_ref
+    [nil, true].each do |init|
+      @cartridge_model.expects(:builder_cartridge).returns(nil)
+
+      @container.expects(:stop_gear).with(user_initiated: true,
+                                          hot_deploy: false,
+                                          exclude_web_proxy: true,
+                                          init: init,
+                                          out: $stdout,
+                                          err: $stderr)
+      @container.expects(:check_deployments_integrity).with(has_entry(out: $stdout))
+      deployment_datetime = 'now'
+      @container.expects(:create_deployment_dir).returns(deployment_datetime)
+
+      gear_env = {a: 1}
+      OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+      metadata = mock()
+      @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+
+      hot_deploy = false
+      force_clean_build = true
+      metadata.expects(:git_ref=).with('master')
+      metadata.expects(:hot_deploy=).with(hot_deploy)
+      metadata.expects(:force_clean_build=).with(force_clean_build)
+      metadata.expects(:save)
+
+
+      @container.pre_receive(out: $stdout, err: $stderr, hot_deploy: hot_deploy, force_clean_build: force_clean_build, init: init)
+    end
+  end
+
+  def test_pre_receive_default_builder_deployment_branch_env_var
+    [nil, true].each do |init|
+      @cartridge_model.expects(:builder_cartridge).returns(nil)
+
+      @container.expects(:stop_gear).with(user_initiated: true,
+                                          hot_deploy: false,
+                                          exclude_web_proxy: true,
+                                          init: init,
+                                          out: $stdout,
+                                          err: $stderr)
+      @container.expects(:check_deployments_integrity).with(has_entry(out: $stdout))
+      deployment_datetime = 'now'
+      @container.expects(:create_deployment_dir).returns(deployment_datetime)
+
+      gear_env = {'OPENSHIFT_DEPLOYMENT_BRANCH' => 'foo'}
+      OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+      metadata = mock()
+      @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(metadata)
+
+      hot_deploy = false
+      force_clean_build = true
+      metadata.expects(:git_ref=).with('foo')
+      metadata.expects(:hot_deploy=).with(hot_deploy)
+      metadata.expects(:force_clean_build=).with(force_clean_build)
+      metadata.expects(:save)
+
+
+      @container.pre_receive(out: $stdout, err: $stderr, hot_deploy: hot_deploy, force_clean_build: force_clean_build, init: init)
     end
   end
 

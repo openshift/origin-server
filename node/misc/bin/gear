@@ -51,20 +51,6 @@ def gear_cartridge_names
   cartridge_names
 end
 
-
-##
-# Returns the git ref to use when deploying. The ref will be whichever is not empty, in this order:
-#
-# +input+
-# $OPENSHIFT_DEPLOYMENT_BRANCH
-# 'master'
-def determine_deployment_ref(input=nil)
-  ref = input
-  ref = ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] if ref.nil? or ref.empty?
-  ref = 'master' if ref.nil? or ref.empty?
-  ref
-end
-
 def valid_git_ref?(ref)
   Dir.chdir(@repo.path) do
     system "git rev-parse --quiet --verify #{ref} >/dev/null 2>&1"
@@ -100,7 +86,7 @@ def do_command(command, options)
     if options.trace
       $stderr.puts e.backtrace.join("\n")
     end
-    
+
     exit -1
   else
     exit 0
@@ -120,7 +106,7 @@ command :prereceive do |c|
         raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'binary' - git-based deployments are disabled.")
       end
 
-      ref_to_deploy = determine_deployment_ref()
+      ref_to_deploy = @container.determine_deployment_ref(ENV)
 
       found_deployment_ref = false
       hot_deploy = false
@@ -179,7 +165,7 @@ command :postreceive do |c|
         raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'binary' - git-based deployments are disabled.")
       end
 
-      ref_to_deploy = determine_deployment_ref()
+      ref_to_deploy = @container.determine_deployment_ref(ENV)
 
       found_deployment_ref = false
 
@@ -256,7 +242,7 @@ command :build do |c|
         # if repo_dir is nil, it means we're using the default git repo location
 
         # determine the git ref we're building
-        git_ref = determine_deployment_ref(args[0])
+        git_ref = @container.determine_deployment_ref(ENV, args[0])
 
         # make sure we archive
         archive = true
@@ -386,7 +372,7 @@ command :remotedeploy do |c|
 
   c.action do |args, options|
     do_command(c, options) do
-      ref_to_deploy = determine_deployment_ref()
+      ref_to_deploy = @container.determine_deployment_ref(ENV)
       hot_deploy_enabled = @repo.file_exists?(HOT_DEPLOY_MARKER, ref_to_deploy)
 
       result = @container.remote_deploy(out: $stdout,
@@ -415,7 +401,7 @@ command :deploy do |c|
         raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'binary' - git-based deployments are disabled.")
       end
 
-      ref_to_deploy = determine_deployment_ref(args[0])
+      ref_to_deploy = @container.determine_deployment_ref(ENV, args[0])
       hot_deploy_enabled = options.hot_deploy || false
       force_clean_build_enabled = options.force_clean_build || false
 
