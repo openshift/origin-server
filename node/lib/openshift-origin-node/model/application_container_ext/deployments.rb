@@ -440,6 +440,19 @@ module OpenShift
                                                   chdir: destination,
                                                   expected_exitstatus: 0)
         end
+
+        ##
+        # Returns the git ref to use when deploying. The ref will be whichever is not empty, in this order:
+        #
+        # +input+
+        # $OPENSHIFT_DEPLOYMENT_BRANCH
+        # 'master'
+        def determine_deployment_ref(gear_env, input=nil)
+          ref = input
+          ref = gear_env['OPENSHIFT_DEPLOYMENT_BRANCH'] if ref.nil? or ref.empty?
+          ref = 'master' if ref.nil? or ref.empty?
+          ref
+        end
       end
     end
   end

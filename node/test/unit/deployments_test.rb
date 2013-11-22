@@ -402,7 +402,7 @@ EOF
     filename = '/tmp/foo.tar'
     assert_equal "/bin/tar xf #{filename}", @container.determine_extract_command(file: filename)
   end
-  
+
   def test_determine_extract_command_tar_artifact_url
     artifact_url = "http://localhost:81/this_is_an_artifact.tgz"
     assert_equal "/usr/bin/curl #{artifact_url} | /bin/tar -xz", @container.determine_extract_command(artifact_url: artifact_url)
@@ -524,5 +524,21 @@ EOF
 
     @container.clean_runtime_dirs(repo: true, build_dependencies: true, dependencies: true)
 
+  end
+
+  def test_determine_deployment_ref_no_input_no_env_var
+    assert_equal 'master', @container.determine_deployment_ref({})
+  end
+
+  def test_determine_deployment_ref_no_input_env_var
+    assert_equal 'foo', @container.determine_deployment_ref({'OPENSHIFT_DEPLOYMENT_BRANCH' => 'foo'})
+  end
+
+  def test_determine_deployment_ref_input_and_env_var
+    assert_equal 'bar', @container.determine_deployment_ref({'OPENSHIFT_DEPLOYMENT_BRANCH' => 'foo'}, 'bar')
+  end
+
+  def test_determine_deployment_ref_input_no_env_var
+    assert_equal 'bar', @container.determine_deployment_ref({}, 'bar')
   end
 end
