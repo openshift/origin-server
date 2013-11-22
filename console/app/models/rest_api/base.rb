@@ -6,6 +6,7 @@ require 'active_support/concern'
 require 'active_model/dirty'
 require 'active_resource/persistent_connection'
 require 'net/http'
+require 'cgi'
 
 module Net
   class HTTP
@@ -438,6 +439,10 @@ module RestApi
         end
       end
 
+      def encode_path_component(c)
+        CGI.escape(c).gsub('+', '%20') unless c.nil?
+      end
+
       def element_path(id = nil, prefix_options = {}, query_options = nil) #changed
         check_prefix_options(prefix_options)
 
@@ -452,7 +457,7 @@ module RestApi
         end
         unless singleton?
           raise ArgumentError, "id is required for non-singleton resources #{self}" if id.nil?
-          path << "/#{URI.parser.escape id.to_s}"
+          path << "/#{encode_path_component id.to_s}"
         end
         path << ".#{format.extension}#{query_string(query_options)}"
       end

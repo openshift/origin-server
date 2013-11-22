@@ -579,6 +579,17 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal @user.login, user.login
   end
 
+  def test_id_path_escaping
+    domain1 = Domain.new({:name => 'a domain name with special characters: []%'}, true)
+    assert_equal '/broker/rest/domain/a%20domain%20name%20with%20special%20characters%3A%20%5B%5D%25.json', domain1.send(:element_path)
+
+    application1 = Application.new({:id => 'an application id with special characters: []%'}, true)
+    assert_equal '/broker/rest/application/an%20application%20id%20with%20special%20characters%3A%20%5B%5D%25.json', application1.send(:element_path)
+
+    alias1 = Alias.new({:domain => domain1, :application => application1, :id => "alias name"}, true)
+    assert_equal '/broker/rest/application/an%20application%20id%20with%20special%20characters%3A%20%5B%5D%25/alias/alias%20name.json', alias1.send(:element_path)
+  end
+
   def test_custom_id_rename
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json

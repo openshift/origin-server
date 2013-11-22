@@ -6,7 +6,7 @@ module DomainAssociations
         check_prefix_options(p)
         p = HashWithIndifferentAccess.new(p)
         if p[:domain_id]
-          retval = "#{RestApi::Base.prefix}domain/#{p[:domain_id]}/"
+          retval = "#{RestApi::Base.prefix}domain/#{encode_path_component p[:domain_id]}/"
           # puts "Custom prefix of #{retval}"
         else
           retval = RestApi::Base.prefix

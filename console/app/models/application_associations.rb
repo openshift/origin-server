@@ -10,10 +10,10 @@ module ApplicationAssociations
         check_prefix_options(p)
         p = HashWithIndifferentAccess.new(p)
         if p[:application_id]
-          retval = "#{RestApi::Base.prefix}application/#{Application.id_from_param(p[:application_id])}/"
+          retval = "#{RestApi::Base.prefix}application/#{encode_path_component(Application.id_from_param(p[:application_id]))}/"
           # puts "Custom prefix of #{retval}"
         elsif p[:domain_id] and p[:application_name]
-          retval = "#{RestApi::Base.prefix}domain/#{p[:domain_id]}/application/#{p[:application_name]}/"
+          retval = "#{RestApi::Base.prefix}domain/#{encode_path_component(p[:domain_id])}/application/#{encode_path_component(p[:application_name])}/"
           # puts "Custom prefix of #{retval}"
         else
           retval = RestApi::Base.prefix
