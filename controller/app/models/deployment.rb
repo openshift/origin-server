@@ -21,7 +21,7 @@ class Deployment
   include Mongoid::Document
   embedded_in :application, class_name: Application.name
   # following rules defined in https://www.kernel.org/pub/software/scm/git/docs/git-check-ref-format.html
-  GIT_REF_REGEX = /^(?!\/|.*([\/.]\.|\/\/|@\{|\\\\))(?!.*\\)[^\040\177 ~^:?*\[]+(?<!\.lock|[\/.])$/
+  GIT_REF_REGEX = /\A(?!\/|.*([\/.]\.|\/\/|@\{|\\\\))(?!.*\\)[^\040\177 ~^:?*\[;]+(?<!\.lock|[\/.])\z/
 
   self.field :deployment_id, type: String
   self.field :created_at, type: Time

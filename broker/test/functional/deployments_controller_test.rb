@@ -117,7 +117,7 @@ class DeploymentsControllerTest < ActionController::TestCase
   test "validate ref" do
     # See git-check-ref-format man page for rules
     invalid_values = ["a"*257, "abc.lock", "abc/.xyz", "abc..xyz", "/abc", "abc/", "abc//xyz", "abc.", "abc@{xyz}"]
-    invalid_chars = ["^", "~", ":", "?", "*", "\\", " ", "["]
+    invalid_chars = ["^", "~", ":", "?", "*", "\\", " ", "[", ";"]
     invalid_chars.each do |invalid_char|
       invalid_values.push("abc#{invalid_char}xyz")
     end
