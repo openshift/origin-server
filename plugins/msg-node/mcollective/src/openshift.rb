@@ -293,19 +293,21 @@ module MCollective
                                             namespace, quota_blocks, quota_files, OpenShift::Runtime::Utils::Hourglass.new(235))
       end
 
+      # Yields an ApplicationContainer constructed from the given args. No exceptions will be raised
+      # and the method will return a tuple of a return code integer and output string.
       def with_container_from_args(args)
         output = ''
         begin
           container = get_app_container_from_args(args)
           yield(container, output)
-          if args['--report-deployments'] && args['--cart-name'] && container.cartridge_model.get_cartridge(args['--cart-name']).deployable?
-            return 0, output, {:deployments => container.calculate_deployments}
-          else
-            return 0, output
-          end
+          return 0, output
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
           report_exception e
-          return e.rc, "#{e.message}\n#{e.stdout}\n#{e.stderr}"
+          output << "\n" unless output.empty?
+          output << "Error: #{e.message}" if e.message
+          output << "\n#{e.stdout}" if e.stdout.is_a?(String)
+          output << "\n#{e.stderr}" if e.stderr.is_a?(String)
+          return e.rc, output
         rescue Exception => e
           report_exception e
           Log.instance.error e.message
@@ -381,46 +383,28 @@ module MCollective
         artifact_url = args['--with-artifact-url']
         out = StringIO.new
         err = StringIO.new
-        addtl_params = {}
+        addtl_params = nil
 
-        begin
-          with_container_from_args(args) do |container|
-            container.deploy(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url, out: out, err: err)
-            addtl_params[:deployments] = container.calculate_deployments
-          end
-        rescue Exception => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 1, e.message
-        else
-          output = ''
-          output << out.string
-          output << err.string
-          return 0, output, addtl_params
+        rc, output = with_container_from_args(args) do |container|
+          container.deploy(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url, out: out, err: err)
+          addtl_params = {deployments: container.calculate_deployments}
         end
+        
+        return rc, output, addtl_params
       end
 
       def oo_activate(args)
         deployment_id  = args['--with-deployment-id']
         out = StringIO.new
         err = StringIO.new
-        addtl_params = {}
+        addtl_params = nil
 
-        begin
-          with_container_from_args(args) do |container|
-            container.activate(deployment_id: deployment_id, out: out, err: err)
-            addtl_params[:deployments] = container.calculate_deployments
-          end
-        rescue Exception => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 1, e.message
-        else
-          output = ''
-          output << out.string
-          output << err.string
-          return 0, output, addtl_params
+        rc, output = with_container_from_args(args) do |container|
+          container.activate(deployment_id: deployment_id, out: out, err: err)
+          addtl_params = {deployments: container.calculate_deployments}
         end
+
+        return rc, output, addtl_params
       end
 
       def oo_authorized_ssh_key_add(args)
@@ -502,11 +486,17 @@ module MCollective
           return -1, "In #{__method__} at least user environment variables or gears must be provided for #{args['--with-app-name']}"
         end
 
-        rc, output = 0, ''
-        with_container_from_args(args) do |container|
-          rc, output = container.user_var_add(variables, gears)
+        cmd_rc, cmd_output = 0, ''
+
+        wrapper_rc, wrapper_output = with_container_from_args(args) do |container|
+          cmd_rc, cmd_output = container.user_var_add(variables, gears)
         end
-        return rc, output
+
+        if wrapper_rc == 0
+          return cmd_rc, cmd_output
+        else
+          return wrapper_rc, wrapper_output
+        end
       end
 
       def oo_user_var_remove(args)
@@ -517,11 +507,17 @@ module MCollective
         keys  = args['--with-keys'].split(' ')
         gears = args['--with-gears'] ? args['--with-gears'].split(';') : []
 
-        rc, output = 0, ''
-        with_container_from_args(args) do |container|
-          rc, output = container.user_var_remove(keys, gears)
+        cmd_rc, cmd_output = 0, ''
+
+        wrapper_rc, wrapper_output = with_container_from_args(args) do |container|
+          cmd_rc, cmd_output = container.user_var_remove(keys, gears)
         end
-        return rc, output
+        
+        if wrapper_rc == 0
+          return cmd_rc, cmd_output
+        else
+          return wrapper_rc, wrapper_output
+        end
       end
 
       def oo_user_var_list(args)
@@ -866,12 +862,18 @@ module MCollective
       def oo_post_configure(args)
         cart_name = args['--cart-name']
         template_git_url = args['--with-template-git-url']
-        args['--report-deployments'] = true
 
-        with_container_from_args(args) do |container, output|
+        deployments = nil
+
+        rc, output = with_container_from_args(args) do |container, output|
           output << container.post_configure(cart_name, template_git_url)
+
+          if container.cartridge_model.get_cartridge(cart_name).deployable?
+            deployments = {deployments: container.calculate_deployments}
+          end
         end
 
+        return rc, output, deployments
       end
 
       def oo_deconfigure(args)

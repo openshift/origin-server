@@ -2719,7 +2719,6 @@ module OpenShift
 
         # raise an exception in case of non-zero exit code from the node
         if result.exitcode != 0
-          result.debugIO << "Command return code: " + result.exitcode.to_s
           if result.hasUserActionableError
             raise OpenShift::UserException.new(result.errorIO.string, result.exitcode, nil, result)
           elsif result.exitcode == 146

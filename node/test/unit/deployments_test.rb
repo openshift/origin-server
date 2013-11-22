@@ -438,8 +438,7 @@ EOF
                                                        out: $stderr,
                                                        err: $stderr,
                                                        env: gear_env,
-                                                       chdir: destination,
-                                                       expected_exitstatus: 0)
+                                                       chdir: destination).returns(["", "", 0])
 
     @container.extract_deployment_archive(gear_env, file: file_path, destination: destination)
   end

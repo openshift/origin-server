@@ -437,8 +437,12 @@ module OpenShift
                                                   out: $stderr,
                                                   err: $stderr,
                                                   env: env,
-                                                  chdir: destination,
-                                                  expected_exitstatus: 0)
+                                                  chdir: destination)
+
+          unless rc == 0
+            raise OpenShift::Runtime::Utils::ShellExecutionException.new(
+              "Unable to extract deployment archive using command: #{extract_command}", rc, out, err)
+          end
         end
       end
     end
