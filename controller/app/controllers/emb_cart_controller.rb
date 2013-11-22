@@ -116,9 +116,9 @@ class EmbCartController < BaseController
                             109, "cartridge")
       end
       
-      if not Rails.configuration.openshift[:allow_deprecated_cartridges]and cart.is_deprecated?
+      if not Rails.configuration.openshift[:allow_obsolete_cartridges]and cart.is_obsolete?
         carts = CartridgeCache.cartridge_names("embedded", @application)
-        return render_error(:unprocessable_entity, "Cartridge #{cart.name} is deprecated. Please choose an alternative from this list (#{carts.join(', ')})",
+        return render_error(:unprocessable_entity, "Cartridge #{cart.name} is obsolete. Please choose an alternative from this list (#{carts.join(', ')})",
                             109, "cartridge")
       end
 

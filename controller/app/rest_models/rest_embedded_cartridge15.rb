@@ -100,7 +100,7 @@ class RestEmbeddedCartridge15 < OpenShift::Model
     :help_topics, :links, :properties, :display_name, :description, :scales_from,
     :scales_to, :current_scale, :supported_scales_from, :supported_scales_to,
     :scales_with, :base_gear_storage, :additional_gear_storage, :gear_profile, :collocated_with, 
-    :status_messages, :usage_rates, :deprecated
+    :status_messages, :usage_rates, :obsolete
 
   def initialize(cart, comp, app, cinst, colocated_cinsts, scale, url, status_messages, nolinks=false)
     self.name = cart.name
@@ -124,7 +124,7 @@ class RestEmbeddedCartridge15 < OpenShift::Model
     self.type = "standalone"
     self.type = "embedded" if cart.is_embeddable?
     self.usage_rates = cart.usage_rates
-    self.deprecated = cart.is_deprecated?
+    self.obsolete = cart.is_obsolete?
 
     unless scale.nil?
       self.scales_from = scale[:min]

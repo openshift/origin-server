@@ -88,7 +88,7 @@
 class RestCartridge < OpenShift::Model
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, 
     :help_topics, :properties, :display_name, :description, :scales_from, :scales_to,
-    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates, :deprecated
+    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates, :obsolete
 
   def initialize(cart)
     self.name = cart.name
@@ -114,7 +114,7 @@ class RestCartridge < OpenShift::Model
     self.scales_with = scaling_cart.name unless scaling_cart.nil?
     self.help_topics = cart.help_topics
     self.usage_rates = cart.usage_rates
-    self.deprecated = cart.is_deprecated?
+    self.obsolete = cart.is_obsolete?
   end
 
   def to_xml(options={})
