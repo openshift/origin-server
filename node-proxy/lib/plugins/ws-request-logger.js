@@ -124,14 +124,19 @@ function _log_websocket_access(payload) {
 function PayloadInfo(wsreq) {
   var wsproto    = '';
   var wsprotover = '';
+  var reqhost    = '';
 
   var is_http_req = (typeof(wsreq.upgradeReq) === 'undefined');
   var req = is_http_req? wsreq : wsreq.upgradeReq;
 
+  // https://bugzilla.redhat.com/show_bug.cgi?id=1030641
+  if (req.headers  &&  req.headers.host) {
+    reqhost = req.headers.host.split(':')[0];
+  }
   /*  Initialize the request meta data.  */
   this.request = {
     'remoteaddr': req.connection.remoteAddress  || req.socket.remoteAddress,
-    'host'      : req.headers.host.split(':')[0]  ||  '',
+    'host'      : reqhost,
     'authuser'  : httputils.getAuthUserName(req.headers),
     'referer'   : req.headers['referer'],
     'useragent' : req.headers['user-agent'],
