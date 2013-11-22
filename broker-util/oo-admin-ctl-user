@@ -367,6 +367,11 @@ rescue GetoptLong::Error => e
   usage
 end
 
+if ARGV.length>0
+  puts "Stray input arguments - #{ARGV.inspect}"
+  usage
+end
+
 login = args["--login"]
 allowsubaccounts = args["--allowsubaccounts"].to_b if args["--allowsubaccounts"]
 allowprivatesslcertificates = args["--allowprivatesslcertificates"].to_b if args["--allowprivatesslcertificates"]
@@ -537,5 +542,5 @@ if args["--listsubaccounts"] and (not subaccount_list.nil?) and (not subaccount_
   subaccount_list.each do |subaccount|
     puts "     #{subaccount.login}"
   end
-  puts
+ puts
 end
