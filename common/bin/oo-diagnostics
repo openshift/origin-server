@@ -396,16 +396,16 @@ class OODiag
     # don't much care if resolution is correct; what we want
     # is to avoid running a bunch more tests when the nameserver
     # is obviously broken.
-    command = "host -W 1 do-not-expect-to-resolve. #{server}"
+    command = "host -W 1 example.com. #{server}"
     # IPSocket.getaddress goes through /etc/hosts;
     # "host" uses DNS which is what we want.
     output = `#{command} 2>&1`
-    unless output =~ /NXDOMAIN/
+    if output =~ /connection timed out/
       do_fail <<-"FAIL"
         #{server} doesn't appear to respond to DNS requests.
         This command:
           #{command}
-        should have returned NXDOMAIN to the request.
+        should have connected to your primary nameserver.
         Instead, it returned:
           #{output}
         Please check the following to resolve this issue:
@@ -413,7 +413,7 @@ class OODiag
         * Is your nameserver running?
         * Is the firewall on your nameserver open (udp:53)?
         * Can you connect to your nameserver?
-        Not much is going to work without DNS resolution.
+        Many OpenShift functions fail without working DNS resolution.
       FAIL
       abort_tests
     end
