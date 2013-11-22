@@ -954,6 +954,11 @@ Adding marker files to `.openshift/markers` will have the following effects:
 |Will prevent shutdown and startup of the application during builds.
 |===
 
+=== Environment variables
+For some frameworks (such as Django) it is possible to set the `DEBUG` user
+environment variable using the `rhc env set DEBUG=True` command.
+In that case, Django will run in 'debug' mode, with more verbose logging and
+nice error reporting of HTTP 500 errors.
 
 [[ruby]]
 == Ruby
@@ -1043,6 +1048,25 @@ The `ruby` cartridge provides several environment variables to reference for eas
 
 OPENSHIFT_RUBY_LOGDIR:: Log files go here.
 OPENSHIFT_RUBY_VERSION:: The Ruby language version. The valid values are `1.8` and `1.9`.
+
+=== Using RAILS_ENV=development
+
+In OpenShift you can use the Rails development environment as you do when you
+are developing the Rails application locally. To instruct OpenShift to deploy
+your application in development mode, you need to set this user-environment
+variable:
+
+* `RAILS_ENV` (eg. `rhc env set RAILS_ENV=development`)
+
+When the Rails application run under development environment OpenShift will:
+
+* Skip the automatic static asset (re)compilation
+* Disable `bundle` command unless you do modification to the application Gemfile
+* Set web server to run your application in 'development' mode
+* Skip full restart of the Apache as the code is reloaded automatically
+
+The development mode can speed up the development phase of you application in
+OpenShift, but it is not recommended to use this mode for production.
 
 === `threaddump` command
 OpenShift's CLI tool, https://rubygems.org/gems/rhc[`rhc`], has a subcommand `threaddump`. Applications created by this cartridge respond to this command by looking
