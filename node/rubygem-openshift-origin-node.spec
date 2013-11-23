@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.17.6
+Version: 1.17.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Nov 22 2013 Adam Miller <admiller@redhat.com> 1.17.7-1
+- Bug 1032950 (andy.goldstein@gmail.com)
+
 * Tue Nov 19 2013 Adam Miller <admiller@redhat.com> 1.17.6-1
 - Fix assertion messages in functional api (pmorie@gmail.com)
 
