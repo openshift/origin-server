@@ -788,12 +788,12 @@ module OpenShift
         @container_plugin.memory_in_bytes(@uuid)
       end
 
-      def address_bound?(ip, port, hourglass)
-        @container_plugin.address_bound?(ip, port, hourglass)
+      def address_bound?(ip, port, hourglass, ignoreClosed=false)
+        @container_plugin.address_bound?(ip, port, hourglass, ignoreClosed)
       end
 
-      def addresses_bound?(addresses, hourglass)
-        @container_plugin.addresses_bound?(addresses, hourglass)
+      def addresses_bound?(addresses, hourglass, ignoreClosed=false)
+        @container_plugin.addresses_bound?(addresses, hourglass, ignoreClosed)
       end
 
       def gear_registry

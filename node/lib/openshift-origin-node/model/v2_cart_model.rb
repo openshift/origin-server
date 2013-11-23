@@ -909,7 +909,7 @@ module OpenShift
         if !address_list.empty? && @container.addresses_bound?(address_list, @hourglass)
           failures = ''
           allocated_endpoints.each do |endpoint|
-            if @container.address_bound?(allocated_ips[endpoint.private_ip_name], endpoint.private_port, @hourglass)
+            if @container.address_bound?(allocated_ips[endpoint.private_ip_name], endpoint.private_port, @hourglass, true)
               failures << "#{endpoint.private_ip_name}(#{endpoint.private_port})=#{allocated_ips[endpoint.private_ip_name]};"
             end
           end
