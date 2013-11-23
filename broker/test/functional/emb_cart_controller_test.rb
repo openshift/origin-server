@@ -163,7 +163,7 @@ class EmbCartControllerTest < ActionController::TestCase
     end
   end
   
-  test "attempt to add deprecated cartridge" do
+  test "attempt to add obsolete cartridge" do
     
     carts = []
     cart = OpenShift::Cartridge.new
@@ -171,7 +171,7 @@ class EmbCartControllerTest < ActionController::TestCase
     cart.name = "emb-cart-1.0"
     cart.provides = ["emb"]
     cart.version = "1.0"
-    cart.deprecated = true
+    cart.obsolete = true
     cart.categories = ["embedded"]
     
     carts << cart

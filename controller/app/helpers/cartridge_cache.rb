@@ -7,11 +7,13 @@ class CartridgeCache
   include CacheHelper
 
   # Returns an Array of Cartridge objects
-  def self.cartridges(show_deprecated=false)
+  def self.cartridges(show_obsolete=nil)
+    #if show_obsolete not specified explicitly by the caller fall back on the rails config
+    show_obsolete = show_obsolete || Rails.configuration.openshift[:allow_obsolete_cartridges]
     carts = self.get_all_cartridges
     available_carts = []
     carts.each do |cart|
-      available_carts.push(cart) unless cart.is_deprecated? and !show_deprecated
+      available_carts.push(cart) unless cart.is_obsolete? and !show_obsolete
     end 
     available_carts
   end

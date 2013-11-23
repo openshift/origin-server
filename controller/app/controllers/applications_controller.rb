@@ -69,14 +69,14 @@ class ApplicationsController < BaseController
       end
     end
     
-    if not Rails.configuration.openshift[:allow_deprecated_cartridges]
-      deprecated = []
+    if not Rails.configuration.openshift[:allow_obsolete_cartridges]
+      obsolete = []
       features.each do |feature|
         c = CartridgeCache.find_cartridge(feature)
-        deprecated.push(feature) if c and c.is_deprecated?
+        obsolete.push(feature) if c and c.is_obsolete?
       end
       
-      return render_error(:unprocessable_entity, "These cartridge(s) have been deprecated '#{deprecated.join(",")}'.  Please choose an alternative from list #{CartridgeCache.cartridge_names.join(", ")}") unless deprecated.empty?
+      return render_error(:unprocessable_entity, "These cartridge(s) have been obsoleted '#{obsolete.join(",")}'.  Please choose an alternative from list #{CartridgeCache.cartridge_names.join(", ")}") unless obsolete.empty?
     end
     
     user_env_vars = params[:environment_variables].presence

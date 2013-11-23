@@ -257,7 +257,7 @@ class ApplicationControllerTest < ActionController::TestCase
     end
   end
   
-  test "attempt to create an application with deprecated cartridge" do
+  test "attempt to create an application with obsolete cartridge" do
     
     carts = []
     cart = OpenShift::Cartridge.new
@@ -265,7 +265,7 @@ class ApplicationControllerTest < ActionController::TestCase
     cart.name = "ruby-1.8"
     cart.provides = ["ruby"]
     cart.version = "1.8"
-    cart.deprecated = true
+    cart.obsolete = true
     
     carts << cart
     cart = OpenShift::Cartridge.new
