@@ -20,6 +20,8 @@
 class Deployment
   include Mongoid::Document
   embedded_in :application, class_name: Application.name
+  # following rules defined in https://www.kernel.org/pub/software/scm/git/docs/git-check-ref-format.html
+  GIT_REF_REGEX = /\A(?!\/|.*([\/.]\.|\/\/|@\{|\\\\))(?!.*\\)[^\040\177 ~^:?*\[;]+(?<!\.lock|[\/.])\z/
 
   self.field :deployment_id, type: String
   self.field :created_at, type: Time
@@ -38,10 +40,17 @@ class Deployment
   validates_presence_of :activations
   validate  :validate_activations
   validate  :validate_deployment
+  validate  :validate_ref
 
   def validate_deployment
     if (self.ref and not self.ref.empty?) and (self.artifact_url and not self.artifact_url.empty?)
       self.errors[:base] << "You can either use an artifact URL or ref.  You cannot use both."
+    end
+  end
+  
+  def validate_ref
+    if self.ref and self.ref !~ GIT_REF_REGEX
+      self.errors[:ref] << "The ref is not well-formed.  See git-check-ref-format man page for rules"
     end
   end
 

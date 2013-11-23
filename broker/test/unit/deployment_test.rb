@@ -41,9 +41,18 @@ class DeploymentTest < ActiveSupport::TestCase
     # conflicting deployment info
     assert Deployment.new(ref: "mybranch", sha1: "1234", deployment_id: "1234", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f], artifact_url: "myurl").invalid?
 
-    # git commit id length
+    # git ref length
     assert Deployment.new(ref: "0" * 257, sha1: "1234", deployment_id: "1234", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f]).invalid?
-
+    
+    # See git-check-ref-format man page for rules
+    invalid_values = ["abc.lock", "abc/.xyz", "abc..xyz", "/abc", "abc/", "abc//xyz", "abc.", "abc@{xyz}"]
+    invalid_chars = ["^", "~", ":", "?", "*", "\\", " ", "[", ";"]
+    invalid_chars.each do |invalid_char|
+      invalid_values.push("abc#{invalid_char}xyz")
+    end
+    invalid_values.each do |invalid_value|
+      assert Deployment.new(ref: invalid_value, sha1: "1234", deployment_id: "1234", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f]).invalid?, "Expected value ref:#{invalid_value} to be rejected"
+    end
     # activation must be integers
     assert Deployment.new(ref: "mybranch", sha1: "1234", deployment_id: "1234", created_at: Time.now, activations: ["hello", "world"]).invalid?
     assert !Deployment.new(ref: "mybranch", sha1: "1234", deployment_id: "1234", created_at: Time.now, activations: [Time.now.to_f, Time.now.to_f]).invalid?

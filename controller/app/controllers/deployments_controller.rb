@@ -25,18 +25,19 @@ class DeploymentsController < BaseController
     return update if params[:deployments].presence
     authorize! :create_deployment, @application
 
-    hot_deploy = params[:hot_deploy].presence || false
-    force_clean_build = params[:force_clean_build].presence || false
+    hot_deploy = get_bool(params[:hot_deploy].presence)
+    force_clean_build = get_bool(params[:force_clean_build].presence) 
     ref = params[:ref].presence
     artifact_url = params[:artifact_url].presence
-    return render_error(:unprocessable_entity, "Git ref must be less than 256 characters",
-                          105, "name") if ref && ref.length > 256
+                          
+    return render_error(:unprocessable_entity, "The ref is not well-formed. Git ref must be less than 256 characters. See also git-check-ref-format man page for rules.",
+                          -1, "ref") if ref && (ref.length > 256 or ref !~ Deployment::GIT_REF_REGEX)
 
     return render_error(:unprocessable_entity, "Invalid Binary Artifact URL(#{artifact_url})",
-                          105, "name") if artifact_url && is_invalid_binary_artifact_url(artifact_url)
+                          -1, "artifact_url") if artifact_url && is_invalid_binary_artifact_url(artifact_url)
 
     return render_error(:unprocessable_entity, "Cannot specify a git deployment and a binary artifact deployment",
-                          105, "name") if artifact_url && ref
+                          -1, "artifact_url") if artifact_url && ref
 
     result = @application.deploy(hot_deploy, force_clean_build, ref, artifact_url)
     deployment = @application.deployments.sort_by {|deployment| deployment.activations.last ? deployment.activations.last : 0 }.last
