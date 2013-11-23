@@ -3506,6 +3506,14 @@ module OpenShift
                 Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}  (Request ID: #{Thread.current[:user_action_log_uuid]})")
 
                 handle[sender] = output if exitcode == 0
+              else
+                Rails.logger.debug("ERROR: Error in output of parallel execute: #{mcoll_reply.results.inspect}")
+                sender = mcoll_reply.results[:sender]
+                # plant the statuscode error in each gear job
+                handle[sender].each { |gear_info|
+                  gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{mcoll_reply.results[:statusmsg]}"
+                  gear_info[:result_exit_code] = mcoll_reply.results[:statuscode]
+                }
               end
             }
           ensure
