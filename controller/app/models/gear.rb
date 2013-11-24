@@ -79,24 +79,26 @@ class Gear
     failure_message = "Failed to set UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
 
     updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
-      Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => reserved_gear_uid, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => @container.id }})
+      Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => reserved_gear_uid, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => @container.id, "group_instances.#{gi_index}.gears.#{g_index}.removed" => false }})
     end
 
     # set the server_identity and uid attributes in the gear object in mongoid memory for access by the caller
     self.server_identity = updated_gear.server_identity
     self.uid = updated_gear.uid
+    self.removed = updated_gear.removed
   end
 
   def unreserve_uid
     get_proxy.unreserve_uid(self.uid) if get_proxy
     failure_message = "Failed to unset UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
     updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
-      Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => nil, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => nil }})
+      Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => nil, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => nil, "group_instances.#{gi_index}.gears.#{g_index}.removed" => true }})
     end
 
     # set the server_identity and uid attributes in the gear object in mongoid memory for access by the caller
     self.server_identity = updated_gear.server_identity
     self.uid = updated_gear.uid
+    self.removed = updated_gear.removed
   end
 
   def create_gear

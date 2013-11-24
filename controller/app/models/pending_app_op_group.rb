@@ -53,6 +53,38 @@ class PendingAppOpGroup
     pending_ops.where(:state.ne => :completed).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
   end
 
+  def eligible_pre_execute_ops
+    # reloading the op_group reloads the application and then incorrectly reloads (potentially)
+    # the op_group based on its position within the :pending_op_groups list
+    # hence, reloading the application, and then fetching the op_group using the _id
+    
+    if application.persisted?
+      reloaded_app = Application.find_by(_id: application._id)
+      op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
+      self.pending_ops = op_group.pending_ops
+    end
+    
+    pending_ops.where(:state.ne => :completed, :pre_save => true).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
+  end
+
+  # The pre_execute method does not handle parallel executions
+  # it has been created primarily to execute mongo operations
+  def pre_execute(result_io=nil)
+    result_io = ResultIO.new if result_io.nil?
+    begin
+      while(pending_ops.where(:state.ne => :completed, :pre_save => true).count > 0) do
+        eligible_pre_execute_ops.each do|op|
+          Rails.logger.debug "Pre-Execute #{op.class.to_s}"
+          # set the pending_op state to queued
+          op.set_state(:queued) 
+          return_val = op.execute
+          result_io.append return_val if return_val.is_a? ResultIO
+          op.set_state(:completed)
+        end
+      end
+    end
+  end
+
   def execute(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
 
@@ -194,7 +226,7 @@ class PendingAppOpGroup
       self.pending_ops.push ops
       self.num_gears_added = num_gears_added
       self.num_gears_removed = num_gears_removed
-      self.save
+      self.save if app.persisted?
       owner.save
     ensure
       Lock.unlock_user(owner, app)

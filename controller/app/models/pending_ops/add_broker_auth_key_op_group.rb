@@ -1,5 +1,7 @@
 class AddBrokerAuthKeyOpGroup < PendingAppOpGroup
 
+  # the iv and token fields will be removed from this op_group
+  # they are maintained for now to ensure compatibility for any in-flight operations 
   field :iv, type: String
   field :token, type: String
 

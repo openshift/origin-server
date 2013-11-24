@@ -205,7 +205,6 @@ class Application
     app.user_agent = user_agent
     app.init_git_url = OpenShift::Git.persistable_clone_spec(init_git_url)
     app.analytics['user_agent'] = user_agent
-    app.save
     features << "web_proxy" if scalable
     if app.valid?
       begin
@@ -231,7 +230,6 @@ class Application
         framework_gear_size = gear_size_map[framework_cartridges[0]]
         if framework_gear_size and (framework_gear_size != default_gear_size)
           app.default_gear_size = framework_gear_size
-          app.save!
         end
         gear_size_map.each do |name, gear_size|
           cart = CartridgeCache.find_cartridge(name, app)
@@ -341,7 +339,6 @@ class Application
     # the resultant string length is 4/3 times the number specified as the first argument
     # with 96 specified, the token is going to be 128 characters long
     self.secret_token = SecureRandom.urlsafe_base64(96, false)
-    self.save
   end
 
   def uuid
@@ -672,6 +669,17 @@ class Application
       op_group = AddFeaturesOpGroup.new(features: features, group_overrides: group_overrides, init_git_url: init_git_url,
                                         user_env_vars: user_env_vars, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
+      
+      # if the app is not persisted, it means its an app creation request
+      # in this case, calculate the pending_ops and execute the pre-save ones
+      # this ensures that the app document is not saved without basic embedded documents in place 
+      # Note: when the scheduler is implemented, these steps (except the call to run_jobs) 
+      # will be moved out of the lock
+      unless self.persisted?
+        op_group.elaborate(self)
+        op_group.pre_execute(result_io)
+        self.save
+      end
 
       self.run_jobs(result_io)
     end
@@ -1492,9 +1500,8 @@ class Application
       when "ENV_VAR_ADD"
         domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
       when "BROKER_KEY_ADD"
-        iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
         #op_group = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token }, user_agent: self.user_agent)
-        op_group = AddBrokerAuthKeyOpGroup.new(iv: iv, token: token, user_agent: self.user_agent)
+        op_group = AddBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp } })
       when "NOTIFY_ENDPOINT_CREATE"
         if gear 
@@ -1558,7 +1565,7 @@ class Application
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
       rescue Exception => e_orig
-        Rails.logger.error "Encountered error during execute '#{e_orig.message}' rollback pending: #{rollback_pending}"
+        Rails.logger.error "Encountered error during execute '#{e_orig.message}'"
         # don't log the error stacktrace if this exception was raised just to trigger a rollback 
         Rails.logger.debug e_orig.backtrace.inspect unless rollback_pending
   
@@ -1679,11 +1686,13 @@ class Application
 
   def calculate_remove_group_instance_ops(comp_specs, group_instance)
     pending_ops = []
-    gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s, group_instance.gears.map{|g| g._id.to_s}, group_instance.addtl_fs_gb)
+    gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s, 
+                                                  group_instance.gears.map{|g| g._id.to_s}, 
+                                                  group_instance.addtl_fs_gb, 
+                                                  true)
     pending_ops.push(*gear_destroy_ops)
     gear_destroy_op_ids = gear_destroy_ops.map{|op| op._id.to_s}
 
-    delete_comp_ops = []
     unsubscribe_conn_ops = []
     comp_specs.each do |comp_spec|
       comp_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
@@ -1697,18 +1706,14 @@ class Application
       end
       domain.remove_system_ssh_keys(comp_instance._id)
       domain.remove_env_variables(comp_instance._id)
-      #op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: gear_destroy_op_ids)
-      op = DeleteCompOp.new(group_instance_id: group_instance._id.to_s, comp_spec: comp_spec, prereq: gear_destroy_op_ids)
-      delete_comp_ops.push op
       #unsubscribe_conn_ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(comp_instance)}, prereq: [op._id.to_s]))
-      unsubscribe_conn_ops.push(UnsubscribeConnectionsOp.new(sub_pub_info: get_unsubscribe_info(comp_instance), prereq: [op._id.to_s]))
+      unsubscribe_conn_ops.push(UnsubscribeConnectionsOp.new(sub_pub_info: get_unsubscribe_info(comp_instance), 
+                                                             prereq: gear_destroy_op_ids))
     end
-    pending_ops.push(*delete_comp_ops)
     pending_ops.push(*unsubscribe_conn_ops)
-    comp_delete_op_ids = delete_comp_ops.map{|op| op._id.to_s}
 
     #destroy_ginst_op  = PendingAppOp.new(op_type: :destroy_group_instance, args: {"group_instance_id"=> group_instance._id.to_s}, prereq: gear_destroy_op_ids + comp_delete_op_ids)
-    destroy_ginst_op  = DeleteGroupInstanceOp.new(group_instance_id: group_instance._id.to_s, prereq: gear_destroy_op_ids + comp_delete_op_ids)
+    destroy_ginst_op  = DeleteGroupInstanceOp.new(group_instance_id: group_instance._id.to_s, prereq: gear_destroy_op_ids)
     pending_ops.push(destroy_ginst_op)
     pending_ops
   end
@@ -1735,12 +1740,16 @@ class Application
         app_dns_gear_id = gear_id.to_s
       end
 
-      #init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns}, prereq: maybe_notify_app_create_op)
-      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, host_singletons: host_singletons, app_dns: app_dns, prereq: maybe_notify_app_create_op)
-      init_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
+      group_instance_exists = self.group_instances.where(_id: ginst_id).exists?
+      if group_instance_exists
+        #init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns}, prereq: maybe_notify_app_create_op)
+        init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, host_singletons: host_singletons, app_dns: app_dns, prereq: maybe_notify_app_create_op)
+        init_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
+      end
 
       #reserve_uid_op = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
-      reserve_uid_op = ReserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, gear_size: gear_size, prereq: [init_gear_op._id.to_s])
+      reserve_uid_op = ReserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, gear_size: gear_size)
+      reserve_uid_op.prereq = group_instance_exists ? [init_gear_op._id.to_s] : [ginst_op_id]
 
       #create_gear_op = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
       create_gear_op = CreateGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
@@ -1756,7 +1765,7 @@ class Application
       #register_dns_op = PendingAppOp.new(op_type: :register_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
       register_dns_op = RegisterDnsOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [create_gear_op._id.to_s])
 
-      pending_ops.push(init_gear_op)
+      pending_ops.push(init_gear_op) if group_instance_exists
       pending_ops.push(reserve_uid_op)
       pending_ops.push(create_gear_op)
       pending_ops.push(track_usage_op)
@@ -1795,9 +1804,8 @@ class Application
     end
 
     if app_dns_group_instance_id && app_dns_gear_id
-      iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
       prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [] : [gear_id_prereqs[app_dns_gear_id]]
-      add_broker_auth_op = AddBrokerAuthKeyOp.new(iv: iv, token: token, group_instance_id: app_dns_group_instance_id, gear_id: app_dns_gear_id, prereq: prereq)
+      add_broker_auth_op = AddBrokerAuthKeyOp.new(group_instance_id: app_dns_group_instance_id, gear_id: app_dns_gear_id, prereq: prereq)
       pending_ops.push add_broker_auth_op
     end
 
@@ -1810,15 +1818,18 @@ class Application
       user_vars_op_id = op._id.to_s
     end
 
-    ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, (user_vars_op_id || ginst_op_id), init_git_url, app_dns_gear_id)
+    ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, 
+                                      is_scale_up, (user_vars_op_id || ginst_op_id), init_git_url, 
+                                      app_dns_gear_id)
     pending_ops.push(*ops)
 
     pending_ops
   end
 
-  def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb)
+  def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb, deleting_ginst=false)
     pending_ops = []
     delete_gear_op = nil
+    unreserve_uid_op = nil
     deleting_app = false
     gear_ids.each do |gear_id|
       deleting_app = true if self.group_instances.find(ginst_id).gears.find(gear_id).app_dns
@@ -1831,17 +1842,25 @@ class Application
       #unreserve_uid_op = PendingAppOp.new(op_type: :unreserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [deregister_dns_op._id.to_s])
       unreserve_uid_op = UnreserveGearUidOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [deregister_dns_op._id.to_s])
 
-      #delete_gear_op = PendingAppOp.new(op_type: :delete_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [unreserve_uid_op._id.to_s])
-      delete_gear_op = DeleteGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [unreserve_uid_op._id.to_s])
+      unless deleting_ginst
+        #delete_gear_op = PendingAppOp.new(op_type: :delete_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [unreserve_uid_op._id.to_s])
+        delete_gear_op = DeleteGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, prereq: [unreserve_uid_op._id.to_s])
+      end
 
       #track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
       #                    "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
       #                    "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage]}, prereq: [delete_gear_op._id.to_s])
       track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                           app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end],
-                          usage_type: UsageRecord::USAGE_TYPES[:gear_usage], prereq: [delete_gear_op._id.to_s])
+                          usage_type: UsageRecord::USAGE_TYPES[:gear_usage], 
+                          prereq: [(delete_gear_op || unreserve_uid_op)._id.to_s])
 
-      ops = [destroy_gear_op, deregister_dns_op, unreserve_uid_op, delete_gear_op, track_usage_op]
+      ops = []
+      ops.push(destroy_gear_op)
+      ops.push(deregister_dns_op)
+      ops.push(unreserve_uid_op)
+      ops.push(delete_gear_op) unless deleting_ginst
+      ops.push(track_usage_op)
 
       remove_ssh_keys = self.app_ssh_keys.find_by(component_id: gear_id) rescue []
       remove_ssh_keys = [remove_ssh_keys].flatten
@@ -1858,7 +1877,8 @@ class Application
         #  "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [delete_gear_op._id.to_s])
         track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
           app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
-          additional_filesystem_gb: additional_filesystem_gb, prereq: [delete_gear_op._id.to_s])
+          additional_filesystem_gb: additional_filesystem_gb, 
+          prereq: [(delete_gear_op || unreserve_uid_op)._id.to_s])
         pending_ops.push(track_usage_fs_op)
       end
     end
@@ -1871,7 +1891,8 @@ class Application
         #  "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [delete_gear_op._id.to_s]))
         pending_ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
           app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], cart_name: comp_spec["cart"],
-          usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: [delete_gear_op._id.to_s]))
+          usage_type: UsageRecord::USAGE_TYPES[:premium_cart], 
+          prereq: [(delete_gear_op || unreserve_uid_op)._id.to_s]))
       end if cartridge.is_premium?
     end
 
@@ -1978,9 +1999,10 @@ class Application
       cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
 
       new_component_op_id = []
-      unless is_scale_up
+      if self.group_instances.where(_id: group_instance_id).exists? and (not is_scale_up)
         #new_component_op = PendingAppOp.new(op_type: :new_component, args: {"group_instance_id"=> group_instance_id, "comp_spec" => comp_spec, "cartridge_vendor" => cartridge.cartridge_vendor, "version" => cartridge.version}, prereq: [prereq_id])
-        new_component_op = NewCompOp.new(group_instance_id: group_instance_id, comp_spec: comp_spec, cartridge_vendor: cartridge.cartridge_vendor, version: cartridge.version, prereq: [prereq_id])
+        new_component_op = NewCompOp.new(group_instance_id: group_instance_id, comp_spec: comp_spec, cartridge_vendor: cartridge.cartridge_vendor, version: cartridge.version)
+        new_component_op.prereq = [prereq_id] unless prereq_id.nil?
         component_ops[comp_spec][:new_component] = new_component_op
         new_component_op_id = [new_component_op._id.to_s]
         ops.push new_component_op
@@ -2085,7 +2107,9 @@ class Application
 
     unless group_overrides.nil?
       #set_group_override_op = PendingAppOp.new(op_type: :set_group_overrides, args: {"group_overrides"=> group_overrides}, saved_values: {"group_overrides" => self.group_overrides})
-      set_group_override_op = SetGroupOverridesOp.new(group_overrides: group_overrides, saved_group_overrides: self.group_overrides)
+      set_group_override_op = SetGroupOverridesOp.new(group_overrides: group_overrides, 
+                                                      saved_group_overrides: self.group_overrides, 
+                                                      pre_save: (not self.persisted?))
       pending_ops.push set_group_override_op
     end
 
@@ -2100,7 +2124,7 @@ class Application
       additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb] || 0
       add_gears   += ginst_scale if ginst_scale > 0
 
-      ginst_op = CreateGroupInstanceOp.new(group_instance_id: ginst_id)
+      ginst_op = CreateGroupInstanceOp.new(group_instance_id: ginst_id, pre_save: (not self.persisted?))
       ginst_op.prereq << set_group_override_op._id.to_s unless set_group_override_op.nil?
       pending_ops.push(ginst_op)
       gear_ids = (1..ginst_scale).map {|idx| Moped::BSON::ObjectId.new.to_s}
@@ -2118,6 +2142,12 @@ class Application
         deploy_gear_id = nil
       end
 
+      # add the attribute for creating components/gears to the group instance creation op
+      ginst_op.comp_specs = comp_specs
+      ginst_op.gear_ids = gear_ids
+      ginst_op.hosts_app_dns = app_dns_ginst
+      ginst_op.deploy_gear_id = deploy_gear_id
+      
       ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb,
                                       gear_size, ginst_op._id.to_s, false, app_dns_ginst, init_git_url, user_env_vars)
       pending_ops.push(*ops)
