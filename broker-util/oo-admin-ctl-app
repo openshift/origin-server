@@ -180,7 +180,7 @@ begin
             puts e.backtrace.inspect
           end
         end if gi.gears.present?
-      end app.group_instances.present?
+      end if app.group_instances.present?
 
       owner = app.domain.owner
       begin
@@ -216,20 +216,18 @@ begin
     end
 
     gear_id = nil
-    app.gears.each do |g|
-      if g._id.to_s == gear_uuid or g.uuid == gear_uuid
-        if g.sparse_carts and (g.sparse_carts.length > 0)
-          puts "Gear #{gear_uuid} hosts sparse components within its group instance. You cannot remove it."
-          puts "You can either remove the cartridge or delete the application."
-          exit 1
-        else  
-          gear_id = g._id.to_s
-          break
-        end
+    app.gears.select {|g| (g._id.to_s == gear_uuid) or (g.uuid == gear_uuid)}.each do |g|
+      if g.sparse_carts and (g.sparse_carts.length > 0)
+        puts "Gear #{gear_uuid} hosts sparse components within its group instance. You cannot remove it."
+        puts "You can either remove the cartridge or delete the application."
+        exit 1
+      else  
+        gear_id = g._id.to_s
+        break
       end
     end
 
-    unless found
+    unless gear_id
       puts "Gear #{gear_uuid} not found in #{app.name}"
       exit 1
     end

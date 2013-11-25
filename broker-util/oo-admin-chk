@@ -130,9 +130,7 @@ def check_consumed_gears(user_id)
     actual_gears = 0
     user = CloudUser.find_by(:_id => user_id)
     user.domains.each do |d|
-      d.applications.each do |app|
-        actual_gears += app.gears.length
-      end
+      actual_gears += d.applications.map {|a| a.gears.length}.inject(:+)
     end
     return user.consumed_gears, actual_gears
   rescue Mongoid::Errors::DocumentNotFound
@@ -285,7 +283,7 @@ if level >= 1 and $districts_enabled
   end
 end
 
-app_selection = {:fields => ["name", "created_at", "domain_id", "gears._id", "gears.group_instace_id", "gears.app_dns",
+app_selection = {:fields => ["name", "created_at", "domain_id", "gears._id", "gears.group_instance_id", "gears.app_dns",
                              "gears.uuid", "gears.uid", "gears.server_identity",
                              "group_instances._id", "component_instances._id", "component_instances.cartridge_name",
                              "component_instances.group_instance_id", "app_ssh_keys.name", "app_ssh_keys.content",
