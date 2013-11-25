@@ -56,16 +56,16 @@ The recommended method for installing OpenShift is via a "curl-to-shell" command
 $ sh <(curl -s https://install.openshift.com/)
 ----
 
-If you want to pass arguments to the installer, include them after the command in a single quoted string:
+If you want to pass arguments to the installer, include them after the whole command:
 
 ----
-$ sh <(curl -s https://install.openshift.com/) "-e -s rhsm -u user@company.com"
+$ sh <(curl -s https://install.openshift.com/) -e -s rhsm -u user@company.com
 ----
 
 By default, the installer runs in Origin mode. If you want to install OpenShift Enterprise, you can either run:
 
 ----
-$ sh <(curl -s https://install.openshift.com/) "-e"
+$ sh <(curl -s https://install.openshift.com/) -e
 ----
 
 ...or...
@@ -113,7 +113,7 @@ The installer will look for a configuration file at the default location `~/.ope
 If you have already configured a complete OpenShift deployment, you can run the installer without any user interaction by providing this argument and the ID of an installer workflow. For example, you can run the OpenShift full deployment workflow like this:
 
 ----
-$ sh <(curl -s https://install.openshift.com/) "-w origin_deploy"
+$ sh <(curl -s https://install.openshift.com/) -w origin_deploy
 ----
 
 When you run the command this way, the installer will sanity check your deployment configuration, and if everything looks good it will run the specified workflow automatically.
@@ -124,10 +124,10 @@ In default mode, the installer will provide you with options for installing or e
 ==== -s / --subscription-type TYPE
 _Subscription_ refers to where your openshift component RPMs are coming from. `oo-install` supports four options:
 
-* none - If you have manually configured yum repos on the target hosts, and those repos already include the OpenShift RPMs, the 'none' value tells the installer to use what you have already set up.
-* yum - Indicates that you would like the installer to create new yum repo entries for you under `/etc/yum.repos.d/`
-* rhsm - (For OpenShift Enterprise) Tells the installer that you want to use Red Hat Subscription Manager to set up OpenShift software channels
-* rhn - (For OpenShift Enterprise) Tells the installer that you want to use Red Hat Network to set up OpenShift software channels
+* *none* - If you have manually configured yum repos on the target hosts, and those repos already include the OpenShift RPMs, the 'none' value tells the installer to use what you have already set up.
+* *yum* - Indicates that you would like the installer to create new yum repo entries for you under `/etc/yum.repos.d/`
+* *rhsm* - (For OpenShift Enterprise) Tells the installer that you want to use Red Hat Subscription Manager to set up OpenShift software channels
+* *rhn* - (For OpenShift Enterprise) Tells the installer that you want to use Red Hat Network to set up OpenShift software channels
 
 The '-s' option exists to enable you to override the installer config file from the command line. This would typically be done in concert with the '-w' option as part of the setup for an unattended installation. For mor information on subscriptions, refer to TK.
 
@@ -137,7 +137,56 @@ As indicated in the explanation of the '-s' option above, this option exists to 
 ==== -p / --password PASSWORD
 See the comments on the '-u' option; this option would only be used under the same conditions.
 
-==== -d / -debug
+==== -d / --debug
 Enabling 'debug' mode will cause the installer to periodically dump out large volumes of information about the SSH sessions that it attempts to establish as it runs. This can be useful for debugging remote deployments.
 
 == Configuring Your Deployment
+When you run the installer for the first time, you will be asked to describe a number of items related to the OpenShift deployment that you want to set up. This whole process should be pretty self-explanatory, but here are some notes about the three main facets of the configuration process.
+
+=== DNS
+When you use `oo-install` to deploy OpenShift, the installer configures a http://en.wikipedia.org/wiki/BIND[BIND] server to run on the same host where the Broker will run. The primary function of this BIND instance is to provide lookup information for applications that are created by the users of your OpenShift system.
+
+==== Registering OpenShift Hosts with the OpenShift DNS Instance
+Depending on your lab setup, you may already have a DNS solution in place for your host systems. If not, you can opt to register your OpenShift hosts with the Broker's BIND server. This enables the hosts to look each other up by name in an environment where they may not be able to do name lookups otherwise.
+
+When the installer asks you:
+
+----
+Do you want to register DNS entries for your OpenShift hosts with the same OpenShift DNS service that will be managing DNS records for the hosted applications?
+----
+
+...answering 'yes' will notify the installer that you want this registration to be done. If you _do_ answer yes, you will be asked a followup question:
+
+----
+What domain do you want to use for the OpenShift hosts?
+----
+
+While it is possible for you to answer this question with the same domain that you are using for OpenShift-hosted applications, it is recommended that you use a different domain.
+
+For instance, if your domain is "mycompany.com", you might use:
+
+* `apps.mycompany.com` for your OpenShift applications domain and
+* `openshift.mycompany.com` for your OpenShift hosts domain
+
+==== Interacting with the OpenShift DNS Instance
+After installation, the Broker-based DNS server can be used separately from a larger DNS infrastructure, or easily configured to work in concert with one.
+
+*To experiment with the OpenShift DNS instance without full DNS intergation* +
+On a client-by-client basis, you can do the following to work against the OpenShift DNS server:
+
+1.
+2.
+3.
+
+*To integrate the OpenShift DNS instance into a larger infrastructure* +
+For a more permanent solution, here's how to delegate the OpenShift application domain (and if applicable, host domain) from your main DNS service to the OpenShift DNS server:
+
+1.
+2.
+3.
+
+=== Host Instances and Roles
+
+=== Subscription
+
+== Troubleshooting
