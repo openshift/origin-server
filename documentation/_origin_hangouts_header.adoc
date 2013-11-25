@@ -5,7 +5,7 @@ image::06_bonfire_large.jpg[Come hang out with OpenShift]
 Come hang with other OpenShifters (devs, users, cartridge builders, ops, devops, documenation, qa, whomever welcome too!). We do an on-air Google Hangout every Friday at Noon Eastern / 9AM Pacific!
 
 *What's this all about, hmm?* +
-The idea behind these weekly hangouts is that a lot of OpenShift community members  (and others) are working remotely these days and so #hangops is meant to be a chance to grab a coffee, beer, etc and hang out (virtually) and talk about a range of topics that intersect with OpenShift Origin.
+The idea behind these weekly hangouts is that a lot of OpenShift community members  (and others) are working remotely these days and so the community hour is meant to be a chance to grab a coffee, beer, etc and hang out (virtually) and talk about a range of topics that intersect with OpenShift Origin.
 
 *Cool! How do I join in?* +
 The host of the hangout will post the Hangout URL shortly before the event. Look for it on the https://plus.google.com/u/0/communities/114361859072744017486[Community Hangouts page], in the http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4[#openshift-dev] IRC chat room on http://www.freenode.net/[FreeNode], and on https://twitter.com/openshift[Twitter]. Chime in with your own questions and comments on #openshift-dev!
@@ -13,3 +13,5 @@ The host of the hangout will post the Hangout URL shortly before the event. Look
 *What do we talk about?* +
 The topics can be something you're working, something you're curious about, or whatever. If you want to request a topic for a specific week, please submit an issue with your idea/topic/etc.
 
+'''
+== Previously Aired Hangouts
