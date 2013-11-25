@@ -66,14 +66,13 @@ end
 
 # Gears that have a frontend mapping defined in their manifest.
 def has_frontend?(gear_dir)
-  output = %x[grep -r "Mappings:" `find #{gear_dir} -mindepth 3 -maxdepth 3 -name 'manifest.yml'` &> /dev/null]
-  if $?.success?
+  Dir["#{gear_dir}/*/metadata/manifest.yml"].each do |manifest|
+    next unless File.new(manifest).grep("Mappings:")
     $log.debug "FRONTEND"
-    true
-  else
-    $log.debug "NO FRONTEND"
-    false
+    return true
   end
+  $log.debug "NO FRONTEND"
+  false
 end
 
 # Gears that have had code committed within the specified interval
