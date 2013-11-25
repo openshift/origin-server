@@ -345,16 +345,23 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
     end
 
     if (current_time - creation_time) > 600
-      # check for component instances without corresponding group instances and vice-versa
       gi_hash = {}
-      app["group_instances"].each do |gi|
-        gi_hash[gi["_id"].to_s] = false
+      if app["group_instances"]
+        app["group_instances"].each {|gi| gi_hash[gi["_id"].to_s] = false}
+      else
+        summary << "Application '#{app['name']}' with Id '#{app['_id']}' doesn't have any group instances"
       end
 
+      # check for component instances without corresponding group instances and vice-versa
       if app['component_instances']
         app['component_instances'].each do |ci|
-          if ci['group_instance_id'] and gi_hash.has_key? ci['group_instance_id'].to_s
-            gi_hash[ci['group_instance_id'].to_s] = true
+          gid = ci['group_instance_id']
+          if gid
+            if gi_hash.has_key? gid.to_s
+              gi_hash[gid.to_s] = true
+            else
+              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has invalid group instance '#{gid}' for component instance '#{ci['_id']}'."
+            end
           else
             summary << "Application '#{app['name']}' with Id '#{app['_id']}' has missing group instance for component instance '#{ci['_id']}'."
           end
@@ -367,8 +374,33 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       else
         summary << "Application '#{app['name']}' with Id '#{app['_id']}' doesn't have any component instances"
       end
+
+      # check for applications without any gears in the group instance and viceversa
+      if app["gears"]
+        gi_hash.each {|k,v| gi_hash[k] = false}
+        app["gears"].each do |gear|
+          gid = gear['group_instance_id']
+          if gid
+            if gi_hash.has_key? gid.to_s
+              gi_hash[gid.to_s] = true
+            else
+              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has invalid group instance '#{gid}' for gear '#{gear['_id']}'"
+            end
+          else
+            summary << "Application '#{app['name']}' with Id '#{app['_id']}' has missing group instance for gear '#{gear['_id']}'."
+          end
+          gi_hash.each do |gi_id, present|
+            unless present
+              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has no gears for group instance with Id '#{gi_id}'"
+            end
+          end
+        end
+      else
+        summary << "Application '#{app['name']}' with Id '#{app['_id']}' doesn't have any gears."
+      end
     end
   end
+
   app['gears'].each do |gear|
     gear_count += 1
     datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["_id"].to_s, app_ssh_keys ]
@@ -590,52 +622,6 @@ node_hash.each do |gear_uuid, gear_info|
 end
 
 if level >= 1
-  # check for applications without any group instances in the database
-  puts "Checking for application without any group instances in the database:" if verbose
-  query = {"group_instances.0" => {"$exists" => false}}
-  selection = {:fields => ["name", "created_at"], :timeout => false}
-  OpenShift::DataStore.find(:applications, query, selection) do |app|
-    print "Application #{app['name']}/#{app['_id']}...\t" if verbose
-    if (current_time - app['created_at']) > 600
-      puts "FAIL" if verbose
-      summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have any group instances"
-    elsif verbose
-      puts "OK"
-    end
-  end
-
-  # check for applications without any gears in the group instance
-  puts "Checking for application without any gears in the group instances in the database:" if verbose
-  query = {"gears" => {"$size" => 0}}
-  selection = {:fields => ["name", "gears._id", "created_at"], :timeout => false}
-  OpenShift::DataStore.find(:applications, query, selection) do |app|
-    print "Application #{app['name']}/#{app['_id']}...\t" if verbose
-    if (current_time - app['created_at']) > 600
-      if (not app.has_key?("gears")) or app['gears'].length == 0 
-        puts "FAIL" if verbose
-        summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have any gears"
-      end
-    elsif verbose
-      puts "OK"
-    end
-  end
-
-  # check for applications where the gears attribute is missing from the group instance
-  puts "Checking for application without the gears attribute in the group instances in the database:" if verbose
-  query = {"gears" => {"$exists" => false}}
-  selection = {:fields => ["name", "gears._id", "created_at"], :timeout => false}
-  OpenShift::DataStore.find(:applications, query, selection) do |app|
-    print "Application #{app['name']}/#{app['_id']}...\t" if verbose
-    if (current_time - app['created_at']) > 600
-      if (not app.has_key?("gears")) or app['gears'].length == 0 
-        puts "FAIL" if verbose
-        summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have the gears attribute"
-      end
-    elsif verbose
-      puts "OK"
-    end
-  end
-
   # check for users with nil or empty or missing login in the database
   puts "Checking for users with nil or empty or missing login in the database:" if verbose
   query = {"$or" => [{"login" => {"$type" => 10}}, {"login" => ""}, {"login" => {"$exists" => false}}]}
