@@ -472,7 +472,7 @@ module OpenShift
               progress.step "#{name}_upgrade_cart" do |context, errors|
                 context[:cartridge] = name.downcase
 
-                if upgrade_info[:upgrade_type] == UpgradeType::COMPATIBLE
+                if upgrade_info["upgrade_type"] == UpgradeType::COMPATIBLE
                   progress.log "Compatible upgrade of cartridge #{ident}"
                   context[:compatible] = true
                   compatible_upgrade(cartridge_model, cartridge_version, next_manifest, cartridge_path)
