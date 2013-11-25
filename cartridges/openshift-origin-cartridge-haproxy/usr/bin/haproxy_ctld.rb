@@ -505,23 +505,16 @@ class Haproxy
 
     def get_max_sessions_per_gear
       marker_dir = File.join(ENV['OPENSHIFT_REPO_DIR'], ".openshift/markers/")
-      sessions_file = File.join(marker_dir, "max_sessions")
-      max_sessions = 20
-      if File.exists? sessions_file
-        sessions_data = File.read(sessions_file)
-        begin
-          if sessions_data.to_i <= 0
-            @log.info("Unable to use negative or zero sessions! Using default...")
-            max_sessions = 20
-          else 
-            max_sessions = sessions_data.to_i
-          end
-        rescue Exception => e
-          @log.error("Unable to get gear's max sessions because of #{e.message}")
-        end
+      max_sessions_marker = File.join(marker_dir, "max_sessions")
+      return MAX_SESSIONS unless File.exists?(max_sessions_marker)
+      max_sessions = File.read(max_sessions_marker).to_i rescue 0
+      if max_sessions > 0
+        max_sessions
+      else
+        @log.info "The max_sessions value is invalid, defaulting to #{MAX_SESSIONS}"
+        MAX_SESSIONS
       end
-      return max_sessions
-    end    
+    end   
 
     def stats()
         @status
