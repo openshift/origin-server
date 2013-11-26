@@ -220,10 +220,13 @@ class OODiag
 
   def load_broker_rails_env
     begin
+      verbose "Loading the broker rails environment."
       require "/var/www/openshift/broker/config/environment"
       # Disable analytics for admin scripts
       Rails.configuration.analytics[:enabled] = false
       Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
+    rescue Interrupt
+      raise
     rescue Exception => e
       do_fail <<-"FAIL"
         Broker application failed to load. This is most likely a gem
@@ -1321,21 +1324,26 @@ if __FILE__ == $0
   end
   options[:tests] = ARGV
 
-  #
-  # execute
-  #
-  o = OODiag.new(options)
-  o.run_setup
-  warns, errors = o.run_tests
+  begin
+    #
+    # execute
+    #
+    o = OODiag.new(options)
+    o.run_setup
+    warns, errors = o.run_tests
 
-  #
-  # summarize
-  #
-  o.wputs "#{warns} WARNINGS" if warns > 0
-  if errors > 0
-    o.eputs "#{errors} ERRORS"
-  else
-    puts "NO ERRORS"
+    #
+    # summarize
+    #
+    o.wputs "#{warns} WARNINGS" if warns > 0
+    if errors > 0
+      o.eputs "#{errors} ERRORS"
+    else
+      puts "NO ERRORS"
+    end
+    exit errors
+  rescue Interrupt
+    puts "\nExiting due to user interrupt (^C)."
+    exit 1
   end
-  exit errors
 end
