@@ -174,14 +174,41 @@ After installation, the Broker-based DNS server can be used separately from a la
 *To experiment with the OpenShift DNS instance without full DNS intergation* +
 On a client-by-client basis, you can do the following to work against the OpenShift DNS server:
 
-1.
-2.
-3.
+1. On the client system, make a backup copy of `/etc/resolv.conf` +
++
+----
+$ cp /etc/resolv.conf /etc/resolv.conf.bak
+----
+2. Open the file with a text editor +
++
+----
+$ vi /etc/resolv.conf
+----
+3. In the editor you will see something similar to this: +
++
+----
+domain mybu.mycorp.com
+search mybu.mycorp.com mybu.mycorp.com. mycorp.com.
+nameserver 1.1.1.1
+nameserver 1.1.1.2
+----
++
+    * Modify the `domain` and `search` values to match the app domain (and optionally also the OpenShift host domain) that you specified. 
+    * Then change the first `nameserver` entry to point to the Broker host's IP address.
+    * You can remove any additional `nameserver` entries.
++
+4. No restart necessary; you should be able to point a web browser on this client system at the URL off an application in the app domain. If you've also registered the OpenShift hosts with OpenShift DNS, they should be reachable by name as well.
+
+[WARNING]
+====
+* Once modified to use the Broker DNS, your client system will not be able to resolve non-OpenShift-registered hostnames until it is reverted to its original settings.
+* On a reboot, the client machine may overwrite your changes to the /etc/resolv.conf file
+====
 
 *To integrate the OpenShift DNS instance into a larger infrastructure* +
-For a more permanent solution, here's how to delegate the OpenShift application domain (and if applicable, host domain) from your main DNS service to the OpenShift DNS server:
+For a more permanent solution, here's how to delegate the OpenShift application domain (and if applicable, host domain) from your main DNS service to the OpenShift DNS server. The gist of the work is that you will be telling your main DNS service to _delegate_ to the OpenShift DNS service based on the domain of the name to be looked up.
 
-1.
+1. 
 2.
 3.
 
