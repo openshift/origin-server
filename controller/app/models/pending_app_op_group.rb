@@ -73,6 +73,7 @@ class PendingAppOpGroup
     result_io = ResultIO.new if result_io.nil?
     begin
       while(pending_ops.where(:state.ne => :completed, :pre_save => true).count > 0) do
+        Rails.logger.debug "Pre-Executing ops..."
         eligible_pre_execute_ops.each do|op|
           Rails.logger.debug "Pre-Execute #{op.class.to_s}"
           # set the pending_op state to queued

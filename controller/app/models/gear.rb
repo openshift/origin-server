@@ -96,18 +96,16 @@ class Gear
     gear_size = group_instance.gear_size unless gear_size
     @container = OpenShift::ApplicationContainerProxy.find_available(gear_size, nil, group_instance.server_identities)
     reserved_uid = @container.reserve_uid
-    Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => @container.id, "gears.$.uid" => reserved_uid, "gears.$.removed" => false}})
+    Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => @container.id, "gears.$.uid" => reserved_uid}})
     self.server_identity = @container.id
     self.uid = reserved_uid
-    self.removed = false
   end
 
   def unreserve_uid
     get_proxy.unreserve_uid(self.uid) if get_proxy
-    Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => nil, "gears.$.uid" => nil, "gears.$.removed" => true}})
+    Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => nil, "gears.$.uid" => nil}})
     self.server_identity = nil
     self.uid = nil
-    self.removed = true
   end
 
   def create_gear

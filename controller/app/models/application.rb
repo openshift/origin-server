@@ -1620,8 +1620,7 @@ class Application
     pending_ops = []
     gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s, 
                                                   group_instance.gears.map{|g| g._id.to_s}, 
-                                                  group_instance.addtl_fs_gb, 
-                                                  true)
+                                                  group_instance.addtl_fs_gb)
     pending_ops.push(*gear_destroy_ops)
     gear_destroy_op_ids = gear_destroy_ops.map{|op| op._id.to_s}
 
@@ -1647,7 +1646,7 @@ class Application
   end
 
   def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size,
-                                ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil, user_env_vars=nil)
+                                prereq_op=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil, user_env_vars=nil)
     pending_ops = []
 
     gear_id_prereqs = {}
@@ -1664,14 +1663,12 @@ class Application
         app_dns_gear_id = gear_id.to_s
       end
 
-      group_instance_exists = self.group_instances.where(_id: ginst_id).exists?
-      if group_instance_exists
-        init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, host_singletons: host_singletons, app_dns: app_dns, prereq: maybe_notify_app_create_op)
-        init_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
-      end
+      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, 
+                                    comp_specs: comp_specs, host_singletons: host_singletons, 
+                                    app_dns: app_dns, pre_save: (not self.persisted?))
+      init_gear_op.prereq << prereq_op._id.to_s unless prereq_op.nil?
 
-      reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, gear_size: gear_size)
-      reserve_uid_op.prereq = group_instance_exists ? [init_gear_op._id.to_s] : [ginst_op_id]
+      reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
 
       create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
 
@@ -1682,7 +1679,7 @@ class Application
 
       register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
 
-      pending_ops.push(init_gear_op) if group_instance_exists
+      pending_ops.push(init_gear_op)
       pending_ops.push(reserve_uid_op)
       pending_ops.push(create_gear_op)
       pending_ops.push(track_usage_op)
@@ -1724,41 +1721,35 @@ class Application
       user_vars_op_id = op._id.to_s
     end
 
+    prereq_op_id = prereq_op._id.to_s rescue nil
     ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, 
-                                      is_scale_up, (user_vars_op_id || ginst_op_id), init_git_url, 
+                                      is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url, 
                                       app_dns_gear_id)
     pending_ops.push(*ops)
 
     pending_ops
   end
 
-  def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb, deleting_ginst=false)
+  def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb)
     pending_ops = []
     delete_gear_op = nil
-    unreserve_uid_op = nil
     deleting_app = false
     gear_ids.each do |gear_id|
       deleting_app = true if self.gears.find(gear_id).app_dns
       destroy_gear_op = DestroyGearOp.new(gear_id: gear_id)
-
       deregister_dns_op = DeregisterDnsOp.new(gear_id: gear_id, prereq: [destroy_gear_op._id.to_s])
-
       unreserve_uid_op = UnreserveGearUidOp.new(gear_id: gear_id, prereq: [deregister_dns_op._id.to_s])
-
-      unless deleting_ginst
-        delete_gear_op = DeleteGearOp.new(gear_id: gear_id, prereq: [unreserve_uid_op._id.to_s])
-      end
-
+      delete_gear_op = DeleteGearOp.new(gear_id: gear_id, prereq: [unreserve_uid_op._id.to_s])
       track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                           app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end],
                           usage_type: UsageRecord::USAGE_TYPES[:gear_usage], 
-                          prereq: [(delete_gear_op || unreserve_uid_op)._id.to_s])
+                          prereq: [delete_gear_op._id.to_s])
 
       ops = []
       ops.push(destroy_gear_op)
       ops.push(deregister_dns_op)
       ops.push(unreserve_uid_op)
-      ops.push(delete_gear_op) unless deleting_ginst
+      ops.push(delete_gear_op)
       ops.push(track_usage_op)
 
       remove_ssh_keys = self.app_ssh_keys.find_by(component_id: gear_id) rescue []
@@ -1774,7 +1765,7 @@ class Application
         track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
           app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
           additional_filesystem_gb: additional_filesystem_gb, 
-          prereq: [(delete_gear_op || unreserve_uid_op)._id.to_s])
+          prereq: [delete_gear_op._id.to_s])
         pending_ops.push(track_usage_fs_op)
       end
     end
@@ -1785,7 +1776,7 @@ class Application
         pending_ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
           app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], cart_name: comp_spec["cart"],
           usage_type: UsageRecord::USAGE_TYPES[:premium_cart], 
-          prereq: [(delete_gear_op || unreserve_uid_op)._id.to_s]))
+          prereq: [delete_gear_op._id.to_s]))
       end if cartridge.is_premium?
     end
 
@@ -2001,11 +1992,6 @@ class Application
       additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb] || 0
       add_gears   += ginst_scale if ginst_scale > 0
 
-      ginst_op = CreateGroupInstanceOp.new(group_instance_id: ginst_id, pre_save: (not self.persisted?))
-      ginst_op.prereq << set_group_override_op._id.to_s unless set_group_override_op.nil?
-      pending_ops.push(ginst_op)
-      gear_ids = (1..ginst_scale).map {|idx| Moped::BSON::ObjectId.new.to_s}
-
       comp_specs = change[:added]
       app_dns_ginst = false
       comp_specs.each do |comp_spec|
@@ -2013,20 +1999,15 @@ class Application
         app_dns_ginst = true if ((not self.scalable) and cats.include?("web_framework")) || cats.include?("web_proxy")
       end
 
+      gear_ids = (1..ginst_scale).map {|idx| Moped::BSON::ObjectId.new.to_s}
       if app_dns_ginst
         deploy_gear_id = gear_ids[0] = self._id.to_s
       else
         deploy_gear_id = nil
       end
 
-      # add the attribute for creating components/gears to the group instance creation op
-      ginst_op.comp_specs = comp_specs
-      ginst_op.gear_ids = gear_ids
-      ginst_op.hosts_app_dns = app_dns_ginst
-      ginst_op.deploy_gear_id = deploy_gear_id
-      
       ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb,
-                                      gear_size, ginst_op._id.to_s, false, app_dns_ginst, init_git_url, user_env_vars)
+                                      gear_size, set_group_override_op, false, app_dns_ginst, init_git_url, user_env_vars)
       pending_ops.push(*ops)
     end
 
