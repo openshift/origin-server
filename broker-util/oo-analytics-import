@@ -8,6 +8,8 @@ if ARGV.include? "--infile"
 end
 
 if infile.nil? 
+  puts "Synopsis:"
+  puts "Utiltity to import json documents containing analytics data for applications into mongo database" 
   puts "Usage :"
   puts "  #{__FILE__} --infile <filename>" 
   exit 1

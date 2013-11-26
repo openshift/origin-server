@@ -7,7 +7,9 @@ if ARGV.include? "--outfile"
   outfile = ARGV[index+1]
 end
 
-if outfile.nil? 
+if outfile.nil?
+  puts "Synopsis:"
+  puts "Utiltity to export the mongo database into json documents containing analytics data for applications" 
   puts "Usage :"
   puts "  #{__FILE__} --outfile <filename>" 
   exit 1

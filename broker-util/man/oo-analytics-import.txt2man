@@ -1,0 +1,25 @@
+NAME
+  oo-analytics-import
+  
+SYNOPSIS
+  oo-analytics-import [ --infile <filename> ] [ --help ]
+
+DESCRIPTION
+
+Utiltity to import a json document containing analytics data for applications into mongo database.
+  
+OPTIONS
+  -h|--help  
+    Display a simple usage page.
+    
+  --infile  
+    Source filename.
+  
+EXAMPLE
+  $ oo-analytics-import --infile <path-to-file>
+    
+SEE ALSO
+  oo-analytics-export(8)
+  
+AUTHOR
+  Rajat Chopra <rchopra@redhat.com> - man page written for OpenShift Origin 

@@ -1,0 +1,28 @@
+NAME
+  oo-admin-ctl-authorization
+  
+SYNOPSIS
+  oo-admin-ctl-authorization [ --command (expire|revoke_all ] [ --help ]
+
+DESCRIPTION
+
+This is an administrative utility to manage authorizations.
+  
+OPTIONS
+  -h|--help  
+    Display a simple usage page.
+    
+  -c|--command COMMAND  
+  
+    expire - Deletes expired authorizations
+     
+    revoke_all - Deletes all authorizations
+  
+EXAMPLE
+  $ oo-admin-ctl-authorization -c revole_all
+    
+SEE ALSO
+  oo-admin-ctl-user(8)
+  
+AUTHOR
+  Clayton Coleman <ccoleman@redhat.com> - man page written for OpenShift Origin 
