@@ -11,7 +11,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.16.4
+Version: 1.16.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -135,6 +135,9 @@ fi
 %doc README
 
 %changelog
+* Tue Nov 26 2013 Adam Miller <admiller@redhat.com> 1.16.5-1
+- Bug 1034077: Fix for backend connection not opened. (mrunalp@gmail.com)
+
 * Fri Nov 22 2013 Adam Miller <admiller@redhat.com> 1.16.4-1
 - Merge pull request #4235 from maxamillion/admiller/fix_stage_node-proxy_build
   (dmcphers+openshiftbot@redhat.com)
