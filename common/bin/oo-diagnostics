@@ -220,10 +220,13 @@ class OODiag
 
   def load_broker_rails_env
     begin
+      verbose "Loading the broker rails environment."
       require "/var/www/openshift/broker/config/environment"
       # Disable analytics for admin scripts
       Rails.configuration.analytics[:enabled] = false
       Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
+    rescue Interrupt
+      raise
     rescue Exception => e
       do_fail <<-"FAIL"
         Broker application failed to load. This is most likely a gem
@@ -419,6 +422,36 @@ class OODiag
     end
   end
 
+  def prereq_domain_resolves
+    skip_test unless @is_broker or @is_node
+    verbose "checking that we can resolve our application domain"
+
+    domain = @is_broker ? Rails.configuration.openshift[:domain_suffix]
+                        : OpenShift::Config.new.get('CLOUD_DOMAIN')
+    # Test that the nameserver for the domain is known.
+    # IPSocket.getaddress goes through /etc/hosts;
+    # "host" uses DNS which is what we want.
+    command = "host -W 5 -t NS '#{domain}'"
+    output = `#{command} 2>&1`
+    if output !~ /name server/
+      do_fail <<-"FAIL"
+        Application domain does not appear to resolve under
+        current nameserver configuration. This command:
+          #{command}
+        should have returned the nameserver(s) for #{domain}.
+        Instead, it returned:
+          #{output}
+        Please check the following to resolve this issue:
+        * Is CLOUD_DOMAIN=#{domain} in #{@is_broker ? 'broker':'node'}.conf correct?
+        * Does /etc/resolv.conf have the right nameserver(s)?
+        * Is your OpenShift domain nameserver running?
+        * Is the firewall on your nameserver open (udp:53)?
+        * Does your nameserver respond to queries via dig/host?
+        Many OpenShift functions may fail without application DNS.
+      FAIL
+    end
+  end
+
   def test_enterprise_rpms
     skip_test unless @project_is[:enterprise]
     verbose "Checking that all OpenShift RPMs are actually from OpenShift Enterprise"
@@ -497,7 +530,7 @@ class OODiag
   def test_node_profiles_districts_from_broker
     skip_test unless @is_broker
 
-    conf = "/etc/openshift/broker.conf"
+    conf = "/etc/openshift/broker#{Rails.env.development? ? '-dev': ''}.conf"
     conf_profiles = Rails.configuration.openshift[:gear_sizes]
     default_profile = Rails.configuration.openshift[:default_gear_size]
     default_allowed = Rails.configuration.openshift[:default_gear_capabilities]
@@ -1291,21 +1324,26 @@ if __FILE__ == $0
   end
   options[:tests] = ARGV
 
-  #
-  # execute
-  #
-  o = OODiag.new(options)
-  o.run_setup
-  warns, errors = o.run_tests
+  begin
+    #
+    # execute
+    #
+    o = OODiag.new(options)
+    o.run_setup
+    warns, errors = o.run_tests
 
-  #
-  # summarize
-  #
-  o.wputs "#{warns} WARNINGS" if warns > 0
-  if errors > 0
-    o.eputs "#{errors} ERRORS"
-  else
-    puts "NO ERRORS"
+    #
+    # summarize
+    #
+    o.wputs "#{warns} WARNINGS" if warns > 0
+    if errors > 0
+      o.eputs "#{errors} ERRORS"
+    else
+      puts "NO ERRORS"
+    end
+    exit errors
+  rescue Interrupt
+    puts "\nExiting due to user interrupt (^C)."
+    exit 1
   end
-  exit errors
 end
