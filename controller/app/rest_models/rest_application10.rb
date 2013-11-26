@@ -104,7 +104,7 @@ class RestApplication10 < OpenShift::Model
     app.aliases.each do |a|
       self.aliases << a.fqdn
     end
-    self.gear_count = app.num_gears
+    self.gear_count = app.gears.count
     self.domain_id = app.domain_namespace
 
     self.gear_profile = app.default_gear_size

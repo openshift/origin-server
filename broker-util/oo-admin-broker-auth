@@ -176,7 +176,7 @@ class OOAdminRekeyBrokerAuth
 
   def find_mongo_nodes
     print "Finding all OpenShift Nodes with gears in the Broker datastore... " unless @quiet
-    @mongo_nodes = Application.all.distinct("group_instances.gears.server_identity")
+    @mongo_nodes = Application.all.distinct("gears.server_identity")
     puts "Done. #{@mongo_nodes.size} Node(s) found." unless @quiet
     @mongo_nodes.each {|n| puts "Found: #{n} in Broker datastore."} if @verbose
   end

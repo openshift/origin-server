@@ -45,14 +45,14 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
   def test_unresponsive_apps
     #test_unscalable_app_down
     @apps[0] = Application.create_app(@appnames[0], [PHP_VERSION], @domain)
-    gear = @apps[0].group_instances[0].gears[0]
+    gear = @apps[0].gears[0]
     gear.server_identity = @unresponsive_server
     gear.save!
     gear0 = gear._id
     
     #test_scalable_app_no_ha_framework_down
     @apps[1] = Application.create_app(@appnames[1], [PHP_VERSION], @domain, nil, true)
-    gear = @apps[1].group_instances[0].gears[0]
+    gear = @apps[1].gears[0]
     gear.server_identity = @unresponsive_server
     gear.save!
     gear1 = gear._id
@@ -106,8 +106,8 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     #test_scalable_app_no_ha_scaled_up_head_gear_down
     @apps[6] = Application.create_app(@appnames[6], [PHP_VERSION], @domain, nil, true)
     @apps[6].scale_by(@apps[6].group_instances[0]._id, 1)
-    assert_equal(2, @apps[6].group_instances[0].gears.size)
-    gear = @apps[6].group_instances[0].gears[0]
+    assert_equal(2, @apps[6].gears.size)
+    gear = @apps[6].gears[0]
     gear.server_identity = @unresponsive_server
     gear.save!
 

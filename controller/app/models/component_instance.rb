@@ -26,7 +26,6 @@ class ComponentInstance
     name
   end
 
-
   # @return [Boolean] true if the component does not scale.
   def is_sparse?
     get_component.is_sparse?
@@ -91,13 +90,27 @@ class ComponentInstance
     self.application.group_instances.find(self.group_instance_id)
   end
 
+  def gears
+    gi_gears = self.application.gears.select {|g| g.group_instance_id == self.group_instance_id}
+    return [] unless gi_gears.present?
+    ci_gears = []
+    unless self.is_sparse?
+      ci_gears = gi_gears
+    else
+      gi_gears.each do |gear|
+        ci_gears << gear if (gear.host_singletons or gear.sparse_carts.include? self._id)
+      end   
+    end 
+    ci_gears
+  end
+
   # Helper method called by {Application#process_commands} to process component hook output and extract the component_properties
   def process_properties(result_io)
     unless result_io.properties["component-properties"].nil?
       result_io.properties["component-properties"].each do |gear_id, properties|
         self.component_properties = self.component_properties.merge properties
       end
-      self.save
+      self.save!
     end
   end
 

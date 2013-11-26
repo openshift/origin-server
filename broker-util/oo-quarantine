@@ -6,22 +6,15 @@ def quarantine_action(quarantine=true)
     db = OpenShift::DataStore.db(:primary)
 
     # Mark all the gears as an update in progress
-    gi_count = 0
-    gi_search_count = 1
-    while gi_search_count > 0 do
-      gear_count = 0
-      gear_search_count = 1
-      while gear_search_count > 0
-        filter = {"group_instances.#{gi_count}.gears.#{gear_count}" => {"$exists" => true}}
-        update_query = {'$set' => {"group_instances.#{gi_count}.gears.#{gear_count}.quarantined" => quarantine}}
-        db["applications"].update(filter, update_query, { :multi => true })
-        gear_count += 1
-        gear_search_count = db["applications"].find({"group_instances.#{gi_count}.gears.#{gear_count}" => {"$exists" => true}}).count
-      end
-      gi_count += 1
-      gi_search_count = db["applications"].find({"group_instances.#{gi_count}.gears.0" => {"$exists" => true}}).count
+    gear_count = 0
+    gear_search_count = 1
+    while gear_search_count > 0
+      filter = {"gears.#{gear_count}" => {"$exists" => true}}
+      update_query = {'$set' => {"gears.#{gear_count}.quarantined" => quarantine}}
+      db["applications"].update(filter, update_query, { :multi => true })
+      gear_count += 1
+      gear_search_count = db["applications"].find({"gears.#{gear_count}" => {"$exists" => true}}).count
     end
-
   rescue Exception => e
     puts e.message
     puts e.backtrace

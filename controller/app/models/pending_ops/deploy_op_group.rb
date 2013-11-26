@@ -6,12 +6,9 @@ class DeployOpGroup < PendingAppOpGroup
   field :artifact_url, type: String
 
   def elaborate(app)
-    app.group_instances.each do |group_instance|
-      if group_instance.gears.where(app_dns: true).count > 0
-        gear = group_instance.gears.find_by(app_dns: true)
-        pending_ops.push DeployOp.new(group_instance_id: group_instance.id.to_s, gear_id: gear.id.to_s, hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
-        break
-      end
+    if app.gears.where(app_dns: true).count > 0
+      gear = app.gears.find_by(app_dns: true)
+      pending_ops.push DeployOp.new(gear_id: gear.id.to_s, hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
     end
   end
 

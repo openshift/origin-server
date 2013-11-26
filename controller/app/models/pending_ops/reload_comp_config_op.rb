@@ -1,8 +1,6 @@
 class ReloadCompConfigOp < PendingAppOp
 
   field :comp_spec, type: Hash, default: {}
-
-  field :group_instance_id, type: String
   field :gear_id, type: String
 
   def isParallelExecutable()

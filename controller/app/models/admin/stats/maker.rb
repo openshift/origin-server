@@ -500,59 +500,56 @@ class Admin::Stats::Maker
     with_each_record(:domains, {}, {:fields => ["owner_id"], :timeout => false}) do |domain|
       count_for_domain[domain["_id"]] = count_for_user[login_for_id[domain["owner_id"]]]
     end
-    query = {"group_instances.gears.0" => {"$exists" => true}}
+    query = {"gears.0" => {"$exists" => true}}
     selection = {:fields => %w[
                              domain_id
                              default_gear_size
                              component_instances.cartridge_name
                              component_instances.group_instance_id
-                             group_instances._id
-                             group_instances.gears.server_identity
+                             gears.group_instance_id
+                             gears.server_identity
                             ], :timeout => false}
     with_each_record(:applications, query, selection) do |app|
-        # record global stats
-        count_all['apps'] += 1
-        # record stats by gear profile (size)
-        profile = app['default_gear_size']
-        count_for_profile[profile]['apps'] += 1
-        # record stats by user
-        user_ct = count_for_domain[app['domain_id']] # per-domain=user counts
-        user_ct["#{profile}_apps"] += 1
-        user_ct['apps'] += 1
-        # build hashes for the cartridges this app uses
-        carts_for_group = Hash.new {|h,k| h[k] = []} # hash of arrays
-        short_carts_for_group = Hash.new {|h,k| h[k] = []} # hash of arrays
-        app['component_instances'].each do |comp|
-          carts_for_group[gid = comp['group_instance_id']] << (cart = comp['cartridge_name'])
-          # from "foo-bar-1.1" we want "foo-bar" for the short name
-          cart.match(/^  ([-\w]+)  -  [\d.]+  $/x)
-          short_carts_for_group[gid] << ($1 || cart)
+      # record global stats
+      count_all['apps'] += 1
+      # record stats by gear profile (size)
+      profile = app['default_gear_size']
+      count_for_profile[profile]['apps'] += 1
+      # record stats by user
+      user_ct = count_for_domain[app['domain_id']] # per-domain=user counts
+      user_ct["#{profile}_apps"] += 1
+      user_ct['apps'] += 1
+      # build hashes for the cartridges this app uses
+      carts_for_group = Hash.new {|h,k| h[k] = []} # hash of arrays
+      short_carts_for_group = Hash.new {|h,k| h[k] = []} # hash of arrays
+      app['component_instances'].each do |comp|
+        carts_for_group[gid = comp['group_instance_id']] << (cart = comp['cartridge_name'])
+        # from "foo-bar-1.1" we want "foo-bar" for the short name
+        cart.match(/^  ([-\w]+)  -  [\d.]+  $/x)
+        short_carts_for_group[gid] << ($1 || cart)
+      end
+      # now walk the gears and count up everything.
+      app['gears'].each do |gear|
+        carts = carts_for_group[gear['group_instance_id']]
+        short_carts = short_carts_for_group[gear['group_instance_id']]
+        count_all['gears'] += 1
+        # For now, we assume gear profile is same as app profile.
+        # If that assumption becomes untrue, we can look up gear profile by
+        # correlating with the server_identity's node profile.
+        count_for_profile[profile]['gears'] += 1
+        # account for the user's gear usage
+        user_ct["#{profile}_gears"] += 1
+        user_ct['gears'] += 1
+        # for this gear, record the cartridges used in this group_instance
+        carts.each do |cart|
+          count_all['cartridges'][cart] += 1
+          count_for_profile[profile]['cartridges'][cart] += 1
         end
-        # now walk the gears and count up everything.
-        # group_instances contain arrays of like-minded gears.
-        app['group_instances'].each do |group|
-          carts = carts_for_group[group['_id']]
-          short_carts = short_carts_for_group[group['_id']]
-          group['gears'].each do |gear|
-            count_all['gears'] += 1
-            # For now, we assume gear profile is same as app profile.
-            # If that assumption becomes untrue, we can look up gear profile by
-            # correlating with the server_identity's node profile.
-            count_for_profile[profile]['gears'] += 1
-            # account for the user's gear usage
-            user_ct["#{profile}_gears"] += 1
-            user_ct['gears'] += 1
-            # for this gear, record the cartridges used in this group_instance
-            carts.each do |cart|
-              count_all['cartridges'][cart] += 1
-              count_for_profile[profile]['cartridges'][cart] += 1
-            end
-            short_carts.each do |short|
-              count_all['cartridges_short'][short] += 1
-              count_for_profile[profile]['cartridges_short'][short] += 1
-            end
-          end
+        short_carts.each do |short|
+          count_all['cartridges_short'][short] += 1
+          count_for_profile[profile]['cartridges_short'][short] += 1
         end
+      end
     end
     # sum distribution of apps/gears per user
     count_for_user.values.each do |user_ct|

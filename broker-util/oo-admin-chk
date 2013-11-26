@@ -83,7 +83,7 @@ def datastore_has_gear?(gear_uuid, app_id=nil, false_positive_response=true)
     else
       query = {}
     end
-    query['group_instances.gears.uuid'] = gear_uuid
+    query['gears.uuid'] = gear_uuid
     return Application.where(query).exists?
   else
     return false_positive_response
@@ -93,7 +93,7 @@ end
 def datastore_has_gear_uid?(gear_uid, si_list, false_positive_response=true)
   $false_positive_check_cnt += 1
   if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
-    query = {"group_instances.gears" => {"$elemMatch" => {"uid" => gear_uid, "server_identity" => {"$in" => si_list}}}}
+    query = {"gears" => {"$elemMatch" => {"uid" => gear_uid, "server_identity" => {"$in" => si_list}}}}
     return Application.where(query).exists?
   else
     return false_positive_response
@@ -130,11 +130,7 @@ def check_consumed_gears(user_id)
     actual_gears = 0
     user = CloudUser.find_by(:_id => user_id)
     user.domains.each do |d|
-      d.applications.each do |a|
-        a.group_instances.each do |gi|
-          actual_gears += gi.gears.length
-        end
-      end
+      actual_gears += d.applications.map {|a| a.gears.length}.inject(:+)
     end
     return user.consumed_gears, actual_gears
   rescue Mongoid::Errors::DocumentNotFound
@@ -287,14 +283,14 @@ if level >= 1 and $districts_enabled
   end
 end
 
-app_selection = {:fields => ["name", "created_at", "domain_id", "group_instances.gears._id", "group_instances.gears.app_dns",
-                             "group_instances.gears.uuid", "group_instances.gears.uid", "group_instances.gears.server_identity",
+app_selection = {:fields => ["name", "created_at", "domain_id", "gears._id", "gears.group_instance_id", "gears.app_dns",
+                             "gears.uuid", "gears.uid", "gears.server_identity",
                              "group_instances._id", "component_instances._id", "component_instances.cartridge_name",
                              "component_instances.group_instance_id", "app_ssh_keys.name", "app_ssh_keys.content",
                              "group_overrides.additional_filesystem_gb", "group_overrides.components.cart",
                              "members", "domain_namespace", "owner_id"],
                  :timeout => false}
-app_query = {"group_instances.gears.0" => {"$exists" => true}}
+app_query = {"gears.0" => {"$exists" => true}}
 OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   gear_count = 0
   owner_id = nil
@@ -349,16 +345,23 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
     end
 
     if (current_time - creation_time) > 600
-      # check for component instances without corresponding group instances and vice-versa
       gi_hash = {}
-      app["group_instances"].each do |gi|
-        gi_hash[gi["_id"].to_s] = false
+      if app["group_instances"]
+        app["group_instances"].each {|gi| gi_hash[gi["_id"].to_s] = false}
+      else
+        summary << "Application '#{app['name']}' with Id '#{app['_id']}' doesn't have any group instances"
       end
 
+      # check for component instances without corresponding group instances and vice-versa
       if app['component_instances']
         app['component_instances'].each do |ci|
-          if ci['group_instance_id'] and gi_hash.has_key? ci['group_instance_id'].to_s
-            gi_hash[ci['group_instance_id'].to_s] = true
+          gid = ci['group_instance_id']
+          if gid
+            if gi_hash.has_key? gid.to_s
+              gi_hash[gid.to_s] = true
+            else
+              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has invalid group instance '#{gid}' for component instance '#{ci['_id']}'."
+            end
           else
             summary << "Application '#{app['name']}' with Id '#{app['_id']}' has missing group instance for component instance '#{ci['_id']}'."
           end
@@ -371,23 +374,46 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       else
         summary << "Application '#{app['name']}' with Id '#{app['_id']}' doesn't have any component instances"
       end
-    end
-  end
-  app['group_instances'].each do |gi|
-    gi['gears'].each do |gear|
-      gear_count += 1
-      datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["_id"].to_s, app_ssh_keys ]
 
-      has_gears = true
-      has_dns_gear = true if gear["app_dns"]
-      
-      if level >= 1 and $districts_enabled
-        # record all used uid values for each node to match later with the district
-        gear_uid_hash[gear['server_identity']] = [] unless gear_uid_hash.has_key?(gear['server_identity'])
-        gear_uid_hash[gear['server_identity']] << gear['uid'].to_i
+      # check for applications without any gears in the group instance and viceversa
+      if app["gears"]
+        gi_hash.each {|k,v| gi_hash[k] = false}
+        app["gears"].each do |gear|
+          gid = gear['group_instance_id']
+          if gid
+            if gi_hash.has_key? gid.to_s
+              gi_hash[gid.to_s] = true
+            else
+              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has invalid group instance '#{gid}' for gear '#{gear['_id']}'"
+            end
+          else
+            summary << "Application '#{app['name']}' with Id '#{app['_id']}' has missing group instance for gear '#{gear['_id']}'."
+          end
+          gi_hash.each do |gi_id, present|
+            unless present
+              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has no gears for group instance with Id '#{gi_id}'"
+            end
+          end
+        end
+      else
+        summary << "Application '#{app['name']}' with Id '#{app['_id']}' doesn't have any gears."
       end
     end
   end
+
+  app['gears'].each do |gear|
+    gear_count += 1
+    datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["_id"].to_s, app_ssh_keys ]
+
+    has_gears = true
+    has_dns_gear = true if gear["app_dns"]
+    
+    if level >= 1 and $districts_enabled
+      # record all used uid values for each node to match later with the district
+      gear_uid_hash[gear['server_identity']] = [] unless gear_uid_hash.has_key?(gear['server_identity'])
+      gear_uid_hash[gear['server_identity']] << gear['uid'].to_i
+    end
+  end if app['gears'].present?
   
   # if there are no gears, it will be caught by the check to detect missing group_instances / gears
   if has_gears and !has_dns_gear
@@ -436,19 +462,16 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       end 
     end
     # Generate gear_id_hash
-    app['group_instances'].each do |gi|
-      gid = gi['_id'].to_s
-      gid_info = [ app['_id'].to_s, app['name'], gi_hash[gid]['addtl_fs_gb'], gi_hash[gid]['premium_carts'] ]
-      gi['gears'].each do |gear|
-        gear_id = gear['_id'].to_s
-        unless gear_id_hash[gear_id]
-          gear_id_hash[gear_id] = gid_info
-        else
-          app_name = gear_id_hash[gear_id][1]
-          summary << "Gear Id '#{gear['_id']}' for Application '#{app['name']}' is already taken by another Application '#{app_name}'"
-        end
+    app['gears'].each do |gear|
+      gear_id = gear['_id'].to_s
+      unless gear_id_hash[gear_id]
+        gid = gear['group_instance_id'].to_s
+        gear_id_hash[gear_id] = [ app['_id'].to_s, app['name'], gi_hash[gid]['addtl_fs_gb'], gi_hash[gid]['premium_carts'] ]
+      else
+        app_name = gear_id_hash[gear_id][1]
+        summary << "Gear Id '#{gear['_id']}' for Application '#{app['name']}' is already taken by another Application '#{app_name}'"
       end
-    end
+    end if app['gears'].present?
   end
 end
 
@@ -599,61 +622,6 @@ node_hash.each do |gear_uuid, gear_info|
 end
 
 if level >= 1
-  # check for applications without any group instances in the database
-  puts "Checking for application without any group instances in the database:" if verbose
-  query = {"group_instances.0" => {"$exists" => false}}
-  selection = {:fields => ["name", "created_at"], :timeout => false}
-  OpenShift::DataStore.find(:applications, query, selection) do |app|
-    print "Application #{app['name']}/#{app['_id']}...\t" if verbose
-    if (current_time - app['created_at']) > 600
-      puts "FAIL" if verbose
-      summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have any group instances"
-    elsif verbose
-      puts "OK"
-    end
-  end
-
-  # check for applications without any gears in the group instance
-  puts "Checking for application without any gears in the group instances in the database:" if verbose
-  query = {"group_instances" => {"$elemMatch" => { "gears" => {"$size" => 0}}}}
-  selection = {:fields => ["name", "group_instances._id", "group_instances.gears._id", "created_at"], :timeout => false}
-  OpenShift::DataStore.find(:applications, query, selection) do |app|
-    print "Application #{app['name']}/#{app['_id']}...\t" if verbose
-    if (current_time - app['created_at']) > 600
-      app['group_instances'].each do |gi|
-        if (not gi.has_key?("gears")) or gi['gears'].length == 0 
-          puts "FAIL" if verbose
-          summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have any gears within group instance '#{gi['_id']}'"
-        end
-      end
-    elsif verbose
-      puts "OK"
-    end
-  end
-
-  # check for applications where the gears attribute is missing from the group instance
-  puts "Checking for application without the gears attribute in the group instances in the database:" if verbose
-  query = {"group_instances.gears" => {"$exists" => false}}
-  selection = {:fields => ["name", "group_instances._id", "created_at"], :timeout => false}
-  OpenShift::DataStore.find(:applications, query, selection) do |app|
-    print "Application #{app['name']}/#{app['_id']}...\t" if verbose
-    if (current_time - app['created_at']) > 600
-      if gis = app['group_instances']
-        gis.each do |gi|
-          if (not gi.has_key?("gears")) or gi['gears'].length == 0 
-            puts "FAIL" if verbose
-            summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have the gears attribute within group instance '#{gi['_id']}'"
-          end
-        end
-      else
-        puts "FAIL" if verbose
-        summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have any group_instances"
-      end
-    elsif verbose
-      puts "OK"
-    end
-  end
-
   # check for users with nil or empty or missing login in the database
   puts "Checking for users with nil or empty or missing login in the database:" if verbose
   query = {"$or" => [{"login" => {"$type" => 10}}, {"login" => ""}, {"login" => {"$exists" => false}}]}
@@ -771,7 +739,7 @@ if level >= 1 and $billing_enabled
     else
       query = {'name' => usage_gear_hash[gear_id]['app_name']}
     end
-    query['group_instances.gears._id'] = Moped::BSON::ObjectId(gear_id)
+    query['gears._id'] = Moped::BSON::ObjectId(gear_id)
     app_gear_exists = Application.where(query).exists?
 
     query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:gear_usage]}
@@ -818,19 +786,16 @@ if level >= 1 and $billing_enabled
     else
       query = {'name' => usage_storage_hash[gear_id]['app_name']}
     end
-    query['group_instances.gears._id'] = Moped::BSON::ObjectId(gear_id)
+    query['gears._id'] = Moped::BSON::ObjectId(gear_id)
     app = Application.where(query).first
     app_storage = 0
     group_inst = nil
-    app.group_instances.each do |gi|
-      gi.gears.each do |gear|
-        if gear._id.to_s == gear_id
-          group_inst = gi
-          break
-        end
+    app.gears.each do |gear|
+      if gear._id.to_s == gear_id
+        group_inst = gear.group_instance
+        break
       end
-      break if group_inst
-    end if app
+    end if app.gears.present?
     app_storage = group_inst.addtl_fs_gb if group_inst and (group_inst.addtl_fs_gb != 0)
 
     query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:addtl_fs_gb]}
@@ -883,7 +848,7 @@ if level >= 1 and $billing_enabled
     else
       query = {'name' => usage_cart_hash[gear_id]['app_name']}
     end
-    query['group_instances.gears._id'] = BSON::ObjectId(gear_id)
+    query['gears._id'] = BSON::ObjectId(gear_id)
     selection = {:fields => ["component_instances.cartridge_name"], :timeout => false}
     app_carts = []
     OpenShift::DataStore.find(:applications, query, selection) do |app|

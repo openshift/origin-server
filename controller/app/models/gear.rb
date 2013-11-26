@@ -1,6 +1,8 @@
 # Represents a gear created on an OpenShift Origin Node.
-# @!attribute [r] group_instance
-#   @return [GroupInstance] The {GroupInstance} that this gear is part of.
+# @!attribute [r] application
+#   @return [Application] that this {Gear} is part of.
+# @!attribute [r] group_instance_id
+#   @return [Moped::BSON::ObjectId] Reference to the {GroupInstance} that this gear is part of.
 # @!attribute [r] server_identity
 #   @return [String] DNS name of the node the gear is hosted on.
 # @!attribute [r] uid
@@ -10,7 +12,7 @@
 #   @deprecated Will be removed once typeless gears is completed
 class Gear
   include Mongoid::Document
-  embedded_in :group_instance, class_name: GroupInstance.name
+  embedded_in :application, class_name: Application.name
   field :server_identity, type: String
   field :uuid, type: String, default: ""
   field :uid, type: Integer
@@ -20,6 +22,7 @@ class Gear
   field :host_singletons, type: Boolean, default: false
   field :app_dns, type: Boolean, default: false
   field :sparse_carts, type: Array, default: []
+  field :group_instance_id, type: Moped::BSON::ObjectId
   embeds_many :port_interfaces, class_name: PortInterface.name
 
   # Initializes the gear
@@ -31,12 +34,30 @@ class Gear
 
     super(attrs, options)
     self._id = custom_id unless custom_id.nil?
-    self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
+    self.uuid = self._id.to_s unless self.uuid.present?
     if app_dns
-      self.name = group_instance.application.name if self.name=="" or self.name.nil?
+      self.name = group_instance.application.name unless self.name.present?
     else
-      self.name = self.uuid.to_s if self.name=="" or self.name.nil?
+      self.name = self.uuid.to_s unless self.name.present?
     end
+    self.group_instance_id = group_instance._id 
+  end
+
+  def component_instances
+    gi_cis = application.component_instances.where(group_instance_id: self.group_instance_id)
+    gear_cis = []
+    gi_cis.each do |ci|
+      if ci.is_sparse?
+        gear_cis << ci if (self.host_singletons or self.sparse_carts.include? ci._id)
+      else
+        gear_cis << ci
+      end
+    end
+    gear_cis
+  end
+
+  def group_instance
+    application.group_instances.find(self.group_instance_id)
   end
 
   def self.base_filesystem_gb(gear_size)
@@ -73,56 +94,44 @@ class Gear
 
   def reserve_uid(gear_size = nil)
     gear_size = group_instance.gear_size unless gear_size
-    @container = OpenShift::ApplicationContainerProxy.find_available(gear_size, nil, server_identities)
-    reserved_gear_uid = @container.reserve_uid
-
-    failure_message = "Failed to set UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
-
-    updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
-      Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => reserved_gear_uid, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => @container.id, "group_instances.#{gi_index}.gears.#{g_index}.removed" => false }})
-    end
-
-    # set the server_identity and uid attributes in the gear object in mongoid memory for access by the caller
-    self.server_identity = updated_gear.server_identity
-    self.uid = updated_gear.uid
-    self.removed = updated_gear.removed
+    @container = OpenShift::ApplicationContainerProxy.find_available(gear_size, nil, group_instance.server_identities)
+    reserved_uid = @container.reserve_uid
+    Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => @container.id, "gears.$.uid" => reserved_uid, "gears.$.removed" => false}})
+    self.server_identity = @container.id
+    self.uid = reserved_uid
+    self.removed = false
   end
 
   def unreserve_uid
     get_proxy.unreserve_uid(self.uid) if get_proxy
-    failure_message = "Failed to unset UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
-    updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
-      Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => nil, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => nil, "group_instances.#{gi_index}.gears.#{g_index}.removed" => true }})
-    end
-
-    # set the server_identity and uid attributes in the gear object in mongoid memory for access by the caller
-    self.server_identity = updated_gear.server_identity
-    self.uid = updated_gear.uid
-    self.removed = updated_gear.removed
+    Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => nil, "gears.$.uid" => nil, "gears.$.removed" => true}})
+    self.server_identity = nil
+    self.uid = nil
+    self.removed = true
   end
 
   def create_gear
     result_io = get_proxy.create(self)
-    app.process_commands(result_io, nil, self)
+    application.process_commands(result_io, nil, self)
     result_io
   end
 
   def destroy_gear(keep_uid=false)
     result_io = get_proxy.destroy(self, keep_uid)
-    app.process_commands(result_io, nil, self)
+    application.process_commands(result_io, nil, self)
     result_io
   end
 
   def publish_routing_info
     self.port_interfaces.each { |pi|
-      pi.publish_endpoint(self.group_instance.application)
+      pi.publish_endpoint(self.application)
     }
   end
 
   def register_dns
     dns = OpenShift::DnsService.instance
     begin
-      dns.register_application(self.name, self.group_instance.application.domain.namespace, public_hostname)
+      dns.register_application(self.name, application.domain.namespace, public_hostname)
       dns.publish
     ensure
       dns.close
@@ -132,7 +141,7 @@ class Gear
   def deregister_dns
     dns = OpenShift::DnsService.instance
     begin
-      dns.deregister_application(self.name, self.group_instance.application.domain.namespace)
+      dns.deregister_application(self.name, self.application.domain.namespace)
       dns.publish
     ensure
       dns.close
@@ -144,11 +153,8 @@ class Gear
   end
 
   def has_component?(component_instance)
-    return false unless self.group_instance.all_component_instances.include? component_instance
-    if component_instance.is_sparse?
-      return (self.host_singletons or self.sparse_carts.include? component_instance._id)
-    end
-    return true
+    return true if self.component_instances.include? component_instance
+    return false
   end
 
   # Installs the specified component on the gear.
@@ -166,7 +172,7 @@ class Gear
     unless self.removed
       result_io = get_proxy.add_component(self, component, init_git_url)
       component.process_properties(result_io)
-      app.process_commands(result_io, component._id, self)
+      application.process_commands(result_io, component._id, self)
     end
     raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     if component.is_sparse?
@@ -189,8 +195,8 @@ class Gear
   def post_configure_component(component, init_git_url=nil)
     result_io = get_proxy.post_configure_component(self, component, init_git_url)
     component.process_properties(result_io)
-    app.update_deployments_from_result(result_io)
-    app.process_commands(result_io, component._id, self)
+    application.update_deployments_from_result(result_io)
+    application.process_commands(result_io, component._id, self)
     raise OpenShift::NodeException.new("Unable to post-configure component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
@@ -213,9 +219,9 @@ class Gear
   # @raise [OpenShift::NodeException] on failure
   def deploy(hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
     result_io = get_proxy.deploy(self, hot_deploy, force_clean_build, ref, artifact_url)
-    app.update_deployments_from_result(result_io)
-    #app.process_commands(result_io, nil, self)
-    raise OpenShift::NodeException.new("Unable to deploy #{app.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
+    application.update_deployments_from_result(result_io)
+    #application.process_commands(result_io, nil, self)
+    raise OpenShift::NodeException.new("Unable to deploy #{application.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
 
@@ -228,9 +234,9 @@ class Gear
   # @raise [OpenShift::NodeException] on failure
   def activate(deployment_id)
     result_io = get_proxy.activate(self, deployment_id)
-    app.update_deployments_from_result(result_io)
-    #app.process_commands(result_io, nil, self)
-    raise OpenShift::NodeException.new("Unable to activate #{deployment_id} for #{app.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
+    application.update_deployments_from_result(result_io)
+    #application.process_commands(result_io, nil, self)
+    raise OpenShift::NodeException.new("Unable to activate #{deployment_id} for #{application.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
 
@@ -248,7 +254,7 @@ class Gear
     result_io = ResultIO.new
     unless self.removed
       result_io = get_proxy.remove_component(self, component)
-      app.process_commands(result_io, component._id, self)
+      application.process_commands(result_io, component._id, self)
     end
     if component.is_sparse?
       self.sparse_carts.delete(component._id)
@@ -355,57 +361,11 @@ class Gear
     RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_configuration_job(self, config)) unless config.nil? || config.empty?
   end
 
-  # Convenience method to get the {Application}
-  def app
-    @app ||= group_instance.application
-  end
-
   def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")
     base_filesystem_gb = Gear.base_filesystem_gb(self.group_instance.gear_size)
     base_file_limit = Gear.base_file_limit(self.group_instance.gear_size)
     total_fs_gb = additional_filesystem_gb + base_filesystem_gb
     total_file_limit = (total_fs_gb * base_file_limit) / base_filesystem_gb
     RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, total_file_limit.to_i))
-  end
-
-  def server_identities
-    identities = self.group_instance.gears.map{|gear| gear.server_identity}
-    identities.uniq!
-    identities
-  end
-
-  def update_with_retries(num_retries, failure_message, &block)
-    retries = 0
-    success = false
-    current_gear = self
-    current_gi = self.group_instance
-    current_app = self.group_instance.application
-
-    # find the index and do an atomic update
-    gi_index = current_app.group_instances.index(current_gi)
-    g_index = current_gi.gears.index(current_gear)
-    while retries < num_retries
-      retval = block.call(current_app, current_gi, current_gear, gi_index, g_index)
-
-      # the gear needs to be reloaded to find the updated index as well as to return the updated document
-      current_app = Application.find_by("_id" => current_app._id)
-      current_gi = current_app.group_instances.find_by(_id: current_gi._id)
-      gi_index = current_app.group_instances.index(current_gi)
-      current_gear = current_app.group_instances[gi_index].gears.find_by(uuid: current_gear.uuid)
-      g_index = current_app.group_instances[gi_index].gears.index(current_gear)
-      retries += 1
-
-      if retval["updatedExisting"]
-        success = true
-        break
-      end
-    end
-
-    # log the details in case we cannot update the pending_op
-    unless success
-      Rails.logger.error(failure_message)
-    end
-
-    return current_gear
   end
 end

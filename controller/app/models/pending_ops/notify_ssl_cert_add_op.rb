@@ -7,7 +7,7 @@ class NotifySslCertAddOp < PendingAppOp
   field :pass_phrase, type: Array
 
   def execute
-    OpenShift::RoutingService.notify_ssl_cert_add pending_app_op_group.application,fqdn,ssl_certificate,private_key,pass_phrase
+    OpenShift::RoutingService.notify_ssl_cert_add application,fqdn,ssl_certificate,private_key,pass_phrase
   end
 
 end

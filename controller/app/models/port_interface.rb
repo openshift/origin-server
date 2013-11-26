@@ -46,9 +46,9 @@ class PortInterface
     end
 
     if component_id
-      comp = gear.app.component_instances.find_by(_id: component_id)
+      comp = gear.application.component_instances.find_by(_id: component_id)
     elsif cart_name
-      comp = gear.app.component_instances.find_by(cartridge_name: cart_name)
+      comp = gear.application.component_instances.find_by(cartridge_name: cart_name)
     end
     PortInterface.new(cartridge_name: comp.cartridge_name, external_port: public_port.to_s, internal_port: internal_port.to_s, internal_address: internal_ip, protocols: protocols, type: types, mappings: mappings)
   end

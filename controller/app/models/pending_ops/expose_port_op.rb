@@ -2,7 +2,6 @@ class ExposePortOp < PendingAppOp
 
   field :comp_spec, type: Hash, default: {}
   field :gear_id, type: String
-  field :group_instance_id, type: String
 
   def isParallelExecutable()
     return true

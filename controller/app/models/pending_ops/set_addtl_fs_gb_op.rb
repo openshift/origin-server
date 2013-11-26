@@ -1,7 +1,6 @@
 class SetAddtlFsGbOp < PendingAppOp
 
   field :gear_id, type: String
-  field :group_instance_id, type: String
   field :addtl_fs_gb, type: Integer
   field :saved_addtl_fs_gb, type: Integer
 

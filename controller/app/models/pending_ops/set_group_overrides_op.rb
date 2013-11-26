@@ -4,11 +4,11 @@ class SetGroupOverridesOp < PendingAppOp
   field :saved_group_overrides, type: Array, default: []
   
   def execute
-    pending_app_op_group.application.set :group_overrides, group_overrides
+    application.set :group_overrides, group_overrides
   end
 
   def rollback
-    pending_app_op_group.application.set :group_overrides, saved_group_overrides
+    application.set :group_overrides, saved_group_overrides
   end
 
 end

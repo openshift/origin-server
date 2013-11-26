@@ -327,7 +327,7 @@ module OpenShift
       end
 
       def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil)
-        app = gear.app
+        app = gear.application
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
         args['--with-app-name'] = app.name
@@ -378,7 +378,7 @@ module OpenShift
       # on the node.
       #
       def create(gear, quota_blocks=nil, quota_files=nil)
-        app = gear.app
+        app = gear.application
         result = nil
         (1..10).each do |i|
           args = build_base_gear_args(gear, quota_blocks, quota_files)
@@ -793,7 +793,7 @@ module OpenShift
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
 
-        app = gear.app
+        app = gear.application
         downloaded_cart =  app.downloaded_cart_map.values.find { |c| c["versioned_name"]==component.cartridge_name}
         if downloaded_cart
           args['--with-cartridge-manifest'] = downloaded_cart["original_manifest"]
@@ -834,7 +834,7 @@ module OpenShift
           args['--with-template-git-url'] = template_git_url
         end
 
-        if framework_carts(gear.app).include?(cart) or embedded_carts(gear.app).include?(cart)
+        if framework_carts(gear.application).include?(cart) or embedded_carts(gear.application).include?(cart)
           result_io = run_cartridge_command(cart, gear, "post-configure", args)
         else
           #no-op
@@ -908,7 +908,7 @@ module OpenShift
       # * method on gear?
       #
       def remove_component(gear, component)
-        app = gear.app
+        app = gear.application
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
         cart = component.cartridge_name
@@ -1144,7 +1144,7 @@ module OpenShift
         cart = component.cartridge_name
         args = build_base_component_args(component, args)
 
-        if framework_carts(gear.app).include?(cart)
+        if framework_carts(gear.application).include?(cart)
           run_cartridge_command(cart, gear, "threaddump", args)
         else
           ResultIO.new
@@ -1178,7 +1178,7 @@ module OpenShift
         cart = component.cartridge_name
         args = build_base_component_args(component, args)
 
-        if framework_carts(gear.app).include?(cart)
+        if framework_carts(gear.application).include?(cart)
           run_cartridge_command(cart, gear, "system-messages", args)
         else
           ResultIO.new
@@ -1395,7 +1395,7 @@ module OpenShift
       #
       #
       def frontend_backup(gear)
-        app = gear.app
+        app = gear.application
         args = Hash.new
         args['--with-container-uuid']=gear.uuid
         args['--with-container-name']=gear.name
@@ -1721,7 +1721,7 @@ module OpenShift
 
           proxy_args = []
           options[:proxy_gears].each do |gear|
-            proxy_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname}"
+            proxy_args << "#{gear.uuid},#{gear.name},#{gear.application.domain_namespace},#{gear.public_hostname}"
           end
 
           args['--proxy-gears'] = proxy_args.join(' ')
@@ -1732,7 +1732,7 @@ module OpenShift
             first_port_interface = gear.port_interfaces[0]
 
             # uuid, name, namespace, proxy_hostname, proxy port
-            web_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname},#{first_port_interface.external_port}"
+            web_args << "#{gear.uuid},#{gear.name},#{gear.application.domain_namespace},#{gear.public_hostname},#{first_port_interface.external_port}"
           end
 
           args['--web-gears'] = web_args.join(' ')
@@ -1782,15 +1782,12 @@ module OpenShift
       #
       #
       def move_gear_post(gear, destination_container, state_map)
-        app = gear.app
+        app = gear.application
         reply = ResultIO.new
-        gi = gear.group_instance
-        gear_components = gi.all_component_instances
+        gear_components = gear.component_instances
         start_order, stop_order = app.calculate_component_orders
         source_container = gear.get_proxy
         start_order.each do |cinst|
-          next if not gear_components.include? cinst
-          next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
           cart = cinst.cartridge_name
           idle, leave_stopped = state_map[cart]
           unless leave_stopped
@@ -1832,17 +1829,16 @@ module OpenShift
       # * uses Container (from gear)
       #
       def move_gear_pre(gear, state_map)
-        app = gear.app
+        app = gear.application
         reply = ResultIO.new
         source_container = gear.get_proxy
-        gi_comps = gear.group_instance.all_component_instances.to_a
+        gear_comps = gear.component_instances.to_a
         start_order,stop_order = app.calculate_component_orders
 
         app.update_proxy_status(action: :disable, gear_uuid: gear.uuid) if app.scalable
 
         stop_order.each { |cinst|
-          next if not gi_comps.include? cinst
-          next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
+          next unless gear_comps.include? cinst 
           cart = cinst.cartridge_name
           idle, leave_stopped = state_map[cart]
           # stop the cartridge if it needs to
@@ -1894,14 +1890,14 @@ module OpenShift
       # * uses move_gear_destroy_old
       #
       def move_gear_secure(gear, destination_container, destination_district_uuid, change_district, node_profile)
-        app = gear.app
+        app = gear.application
         Application.run_in_application_lock(app) do
           move_gear(gear, destination_container, destination_district_uuid, change_district, node_profile)
         end
       end
 
       def move_gear(gear, destination_container, destination_district_uuid, change_district, node_profile)
-        app = gear.app
+        app = gear.application
         reply = ResultIO.new
         state_map = {}
 
@@ -1933,9 +1929,7 @@ module OpenShift
         quota_blocks = Integer(gear_quota[3])
         quota_files = Integer(gear_quota[6])
 
-        gi = gear.group_instance
-        gi.all_component_instances.each do |cinst|
-          next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
+        gear.component_instances.each do |cinst|
           state_map[cinst.cartridge_name] = [idle, leave_stopped]
         end
 
@@ -1952,10 +1946,9 @@ module OpenShift
             rsync_destination_container(gear, destination_container, destination_district_uuid, quota_blocks, quota_files)
 
             start_order,stop_order = app.calculate_component_orders
-            gi_comps = gear.group_instance.all_component_instances.to_a
+            gear_comps = gear.component_instances.to_a
             start_order.each do |cinst|
-              next if not gi_comps.include? cinst
-              next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
+              next unless gear_comps.include? cinst
               cart = cinst.cartridge_name
               idle, leave_stopped = state_map[cart]
 
@@ -2002,12 +1995,11 @@ module OpenShift
           end
         rescue Exception => e
           begin
-            gi_comps = gear.group_instance.all_component_instances.to_a
+            gear_comps = gear.component_instances.to_a
             start_order,stop_order = app.calculate_component_orders
             # start source
             start_order.each do |cinst|
-              next if not gi_comps.include? cinst
-              next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
+              next unless gear_comps.include? cinst
               cart = cinst.cartridge_name
               idle, leave_stopped = state_map[cart]
               if not leave_stopped
@@ -2048,7 +2040,7 @@ module OpenShift
       # * uses source_container.destroy
       #
       def move_gear_destroy_old(gear, source_container, destination_container, district_changed)
-        app = gear.app
+        app = gear.application
         reply = ResultIO.new
         log_debug "DEBUG: Deconfiguring old app '#{app.name}' on #{source_container.id} after move"
         begin
@@ -2148,7 +2140,7 @@ module OpenShift
       # * writes the eval output to log_debug
       #
       def rsync_destination_container(gear, destination_container, destination_district_uuid, quota_blocks, quota_files)
-        app = gear.app
+        app = gear.application
         reply = ResultIO.new
         source_container = gear.get_proxy
         log_debug "DEBUG: Creating new account for gear '#{gear.name}' on #{destination_container.id}"
@@ -2197,7 +2189,7 @@ module OpenShift
         end
 
         component_instances = app.get_components_for_feature(web_framework)
-        gear = component_instances.first.group_instance.gears.first
+        gear = component_instances.first.gears.first
         idle, leave_stopped, quota_blocks, quota_files = get_cart_status(gear, component_instances.first)
         return idle, leave_stopped
       end
@@ -2216,7 +2208,7 @@ module OpenShift
       # * uses do_with_retry
       #
       def get_cart_status(gear, component)
-        app = gear.app
+        app = gear.application
         source_container = gear.get_proxy
         leave_stopped = false
         idle = false
@@ -2693,7 +2685,7 @@ module OpenShift
       # * uses sanitize_result
       #
       def parse_result(mcoll_reply, gear=nil, command=nil)
-        app = gear.app unless gear.nil?
+        app = gear.application unless gear.nil?
         result = ResultIO.new
 
         mcoll_result = mcoll_reply ? mcoll_reply[0] : nil
@@ -2853,7 +2845,7 @@ module OpenShift
       # If the cart specified is in the framework_carts or embedded_carts list, the arguments will pass
       # through to run_cartridge_command. Otherwise, a new ResultIO will be returned.
       def run_cartridge_command_ignore_components(cart, gear, command, arguments, allow_move=true)
-        if framework_carts(gear.app).include?(cart) || embedded_carts(gear.app).include?(cart)
+        if framework_carts(gear.application).include?(cart) || embedded_carts(gear.application).include?(cart)
           result = run_cartridge_command(cart, gear, command, arguments, allow_move)
         else
           result = ResultIO.new
@@ -2884,7 +2876,7 @@ module OpenShift
       # * uses execute_direct
       #
       def run_cartridge_command(framework, gear, command, arguments, allow_move=true)
-        app = gear.app
+        app = gear.application
         resultIO = nil
 
         result = execute_direct(framework, command, arguments)

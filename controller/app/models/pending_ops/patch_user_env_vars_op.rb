@@ -6,13 +6,12 @@ class PatchUserEnvVarsOp < PendingAppOp
 
   def execute
     result_io = ResultIO.new
-    app = pending_app_op_group.application
-    gear = app.get_app_dns_gear
+    gear = application.get_app_dns_gear
     unless gear.removed
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
       if user_env_vars.present?
         # save overlapped user env vars for rollback
-        existing_vars = pending_app_op_group.application.list_user_env_variables
+        existing_vars = application.list_user_env_variables
         new_keys = user_env_vars.map {|ev| ev['name']}.compact
         overlapped_keys = existing_vars.keys & new_keys
         saved_vars = []
@@ -20,7 +19,7 @@ class PatchUserEnvVarsOp < PendingAppOp
         self.set(:saved_user_env_vars, saved_vars) unless saved_vars.empty?
       end
  
-      gears_endpoint = get_gears_ssh_endpoint(app) 
+      gears_endpoint = get_gears_ssh_endpoint(application) 
       result_io = gear.unset_user_env_vars(unset_vars, gears_endpoint) if unset_vars.present?
       result_io.append gear.set_user_env_vars(set_vars, gears_endpoint) if set_vars.present? or push_vars
     end
@@ -29,11 +28,10 @@ class PatchUserEnvVarsOp < PendingAppOp
 
   def rollback
     result_io = ResultIO.new
-    app = pending_app_op_group.application
     gear = nil
     
     begin 
-      gear = app.get_app_dns_gear
+      gear = application.get_app_dns_gear
     rescue OpenShift::UserException
       # if the head gear is missing, do not perform any operations and just return
       Rails.logger.info "DNS gear not found. Skipping rollback for PatchUserEnvVarsOp."
@@ -42,7 +40,7 @@ class PatchUserEnvVarsOp < PendingAppOp
     
     unless gear.nil? or gear.removed
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
-      gears_endpoint = get_gears_ssh_endpoint(app) 
+      gears_endpoint = get_gears_ssh_endpoint(application) 
       result_io = gear.unset_user_env_vars(set_vars, gears_endpoint) if set_vars.present?
       result_io.append gear.set_user_env_vars(saved_user_env_vars, gears_endpoint) if saved_user_env_vars.present?
     end
@@ -51,11 +49,9 @@ class PatchUserEnvVarsOp < PendingAppOp
 
   def get_gears_ssh_endpoint(app)
     gears_endpoint = []
-    app.group_instances.each do |group_instance|
-      group_instance.gears.each do |gear|
-        unless gear.removed
-          gears_endpoint << "#{gear.uuid}@#{gear.server_identity}" unless gear.app_dns #skip app dns
-        end
+    app.gears.each do |gear|
+      unless gear.removed
+        gears_endpoint << "#{gear.uuid}@#{gear.server_identity}" unless gear.app_dns #skip app dns
       end
     end
     gears_endpoint

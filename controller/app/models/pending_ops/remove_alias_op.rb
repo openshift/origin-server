@@ -1,16 +1,15 @@
 class RemoveAliasOp < PendingAppOp
 
   field :fqdn, type: String
-  field :group_instance_id, type: String
   field :gear_id, type: String
 
   def execute
     result_io = ResultIO.new
     gear = get_gear()
     result_io = gear.remove_alias(fqdn) unless gear.removed
-    a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn)
-    pending_app_op_group.application.aliases.delete(a)
-    pending_app_op_group.application.save
+    a = application.aliases.find_by(fqdn: fqdn)
+    application.aliases.delete(a)
+    application.save
     result_io
   end
 
@@ -18,10 +17,10 @@ class RemoveAliasOp < PendingAppOp
     result_io = ResultIO.new
     gear = get_gear()
     result_io = gear.add_alias(fqdn) unless gear.removed
-    a = pending_app_op_group.application.aliases.find_by(fqdn: fqdn) rescue nil
+    a = application.aliases.find_by(fqdn: fqdn) rescue nil
     unless a
-      pending_app_op_group.application.aliases.push(Alias.new(fqdn: fqdn))
-      pending_app_op_group.application.save
+      application.aliases.push(Alias.new(fqdn: fqdn))
+      application.save
     end
     result_io
   end

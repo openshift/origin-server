@@ -14,7 +14,7 @@ class CreateGroupInstanceOp < PendingAppOp
 
   def execute
     group_instance = GroupInstance.new(custom_id: group_instance_id)
-    pending_app_op_group.application.group_instances.push(group_instance)
+    application.group_instances.push(group_instance)
     
     # create all the gears within the group instance
     gear_ids.each do |gear_id|
@@ -22,7 +22,7 @@ class CreateGroupInstanceOp < PendingAppOp
       app_dns = (host_singletons && hosts_app_dns)
       gear = Gear.new(custom_id: gear_id, group_instance: group_instance, 
                       host_singletons: host_singletons, app_dns: app_dns)
-      group_instance.gears.push(gear)
+      application.gears.push(gear)
     end
 
     # create the component instances
@@ -30,12 +30,12 @@ class CreateGroupInstanceOp < PendingAppOp
       if comp_spec
         comp_name = comp_spec["comp"]
         cart_name = comp_spec["cart"]
-        cartridge = CartridgeCache.find_cartridge(cart_name, pending_app_op_group.application)
+        cartridge = CartridgeCache.find_cartridge(cart_name, application)
         component_instance = ComponentInstance.new(cartridge_name: cart_name, component_name: comp_name, 
                                                    group_instance_id: group_instance._id, 
                                                    cartridge_vendor: cartridge.cartridge_vendor, 
                                                    version: cartridge.version)
-        pending_app_op_group.application.component_instances.push(component_instance)
+        application.component_instances.push(component_instance)
       end
     end
   end

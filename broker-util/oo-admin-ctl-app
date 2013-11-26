@@ -161,7 +161,7 @@ begin
       end
       gear_count = 0
       # delete all gears, then delete app
-      app.group_instances.each do |gi| 
+      app.group_instances.each do |gi|
         gi.gears.each do |g|
           gear_count += 1
           g.deregister_dns rescue nil
@@ -179,9 +179,9 @@ begin
             puts e.message
             puts e.backtrace.inspect
           end
-        end if gi.gears
-      end if app.group_instances
-      
+        end if gi.gears.present?
+      end if app.group_instances.present?
+
       owner = app.domain.owner
       begin
         retries = 5
@@ -215,29 +215,19 @@ begin
       exit 1
     end
 
-    group_instance = nil
     gear_id = nil
-    found = false
-
-    app.group_instances.each do |gi|
-      gi.gears.each do |g|
-        if g._id.to_s == gear_uuid or g.uuid == gear_uuid
-          if (g.sparse_carts and g.sparse_carts.length>0) or (gi.gears.length==1 and gi.gears[0]==g)
-            puts "Gear #{gear_uuid} hosts sparse components within its group instance. You cannot remove it."
-            puts "You can either remove the cartridge or delete the application."
-            exit 1
-          else  
-            group_instance = gi
-            gear_id = g._id.to_s
-            found = true
-            break
-          end
-        end
+    app.gears.select {|g| (g._id.to_s == gear_uuid) or (g.uuid == gear_uuid)}.each do |g|
+      if g.sparse_carts and (g.sparse_carts.length > 0)
+        puts "Gear #{gear_uuid} hosts sparse components within its group instance. You cannot remove it."
+        puts "You can either remove the cartridge or delete the application."
+        exit 1
+      else  
+        gear_id = g._id.to_s
+        break
       end
-      break if found
     end
 
-    unless found
+    unless gear_id
       puts "Gear #{gear_uuid} not found in #{app.name}"
       exit 1
     end
