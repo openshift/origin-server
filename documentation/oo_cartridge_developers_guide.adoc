@@ -203,7 +203,7 @@ Versions: ['5.3']
 * domain_scope
 
 ===== Web Framework Category
-The `web_framework` category is used to describe a primary cartridge that accepts inbound HTTP and HTTPS as well as WebSocket requests.  An application can have a single cartridge with the `web_framework` category.  Lastly, when using a `web_framework` category, SSL termination occurs at the platform layer, before the cartridge interaction takes place and the original inbound protocol is passed using the `X-Forwarded-Proto` header to the cartridge.  An application can have a single cartridge with the `web_framework` category.
+The `web_framework` category is used to describe a primary cartridge that accepts inbound HTTP and HTTPS as well as WebSocket requests.  An application can have a single cartridge with the `web_framework` category.  Lastly, when using a `web_framework` category, SSL termination occurs at the platform layer, before the cartridge interaction takes place and the original inbound protocol is passed using the `X-Forwarded-Proto` header to the cartridge.
 
 ===== Web Proxy Category
 The `web_proxy` category is used to describe a cartridge that is responsible for routing web traffic to the application's gears.  If a scalable application is created with a cartridge that has the `web_framework` category, a `web_proxy` cartridge is also added to it to enable auto-scaling.  Subsequently, whenever the `web_framework` cartridge needs to scale beyond a single gear, the `web_proxy` cartridge will automatically route to the end point described by the `Public-Port-Name` with a value of `PROXY_PORT`.  The `web_proxy` will also be automatically updated with routing rules to address the new gears over HTTP as they are added.  An application can have a single cartridge with the `web_proxy` category.     
@@ -727,7 +727,7 @@ Synopsis:: `teardown`
 Options:: _None_
 
 Description::
-The `teardown` script prepares the gear for the cartridge to be removed. This script will not called when the gear is destroyed. The `teardown` script is only run when a cartridge is to be removed from the gear. The gear is expected to continue to operate minus the functionality of your cartridge cartridge.
+The `teardown` script prepares the gear for the cartridge to be removed. This script will not be called when the gear is destroyed. The `teardown` script is only run when a cartridge is to be removed from the gear. The gear is expected to continue to operate minus the functionality of your cartridge cartridge.
 
 Lock Context:: `unlocked`
 
@@ -892,8 +892,7 @@ With the exception of `OPENSHIFT_SECRET_TOKEN`, these variables may not be overr
 |The directory where the developer's application is "archived" to and will be run from
 
 |OPENSHIFT_SECRET_TOKEN
-|A unique 128 character string that is unique to your application that may be used for authentication: joining clusters
-|initial passwords, etc. This variable may be overridden using `rhc set-env`.
+|A unique 128 character string that is unique to your application that may be used for authentication: joining clusters, initial passwords, etc. This variable may be overridden using `rhc set-env`.
 
 |OPENSHIFT_TMP_DIR
 |The directory where your cartridge may store temporary data
@@ -1003,7 +1002,7 @@ Suppose the fictitious "AwesomeSQL" cartridge publishes environment variables wi
 [source,yaml]
 Publishes:   publish-awesomesql-connection-info:     Type: "ENV:NET_TCP:db:awesomesql"
 
-The cooresponding subscription event would be written thus:
+The corresponding subscription event would be written thus:
 
 [source,yaml]
 Subscribes:   set-awesomesql-connection-info:     Type: "ENV:NET_TCP:db:awesomesql"
@@ -1037,13 +1036,13 @@ OPENSHIFT_MYSQL_DB_PORT=port;
 OPENSHIFT_MYSQL_DB_URL=url;
 ----
 
-This would be fed as input to `hooks/publish-mysql-connection-info` in the PHP cartridge, as follows:
+This would be fed as input to `hooks/set-mysql-connection-info` in the PHP cartridge, as follows:
 
 ----
-hooks/publish-mysql-connection-info gear_name namespace gear_uuid 'OPENSHIFT_MYSQL_DB_USERNAME=username;OPENSHIFT_MYSQL_DB_PASSWORD=password;OPENSHIFT_MYSQL_DB_HOST=hostname;OPENSHIFT_MYSQL_DB_PORT=port;OPENSHIFT_MYSQL_DB_URL=url;'
+hooks/set-mysql-connection-info gear_name namespace gear_uuid 'OPENSHIFT_MYSQL_DB_USERNAME=username;OPENSHIFT_MYSQL_DB_PASSWORD=password;OPENSHIFT_MYSQL_DB_HOST=hostname;OPENSHIFT_MYSQL_DB_PORT=port;OPENSHIFT_MYSQL_DB_URL=url;'
 ----
 
-The `publish-mysql-connection-info` is responsible for being capable of parsing the final argument and extracting the values provided.
+The `set-mysql-connection-info` is responsible for being capable of parsing the final argument and extracting the values provided.
 
 == Backing Up and Restoring Your Cartridge
 OpenShift provides a snapshot/restore feature for user applications. This feature is meant to allow OpenShift application developers to:
