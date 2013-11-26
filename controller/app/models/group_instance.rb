@@ -76,6 +76,13 @@ class GroupInstance
     identities
   end
 
+  def has_component?(comp_spec)
+    all_component_instances.each do |ci|
+      return true if ci.component_name == comp_spec["comp"] and ci.cartridge_name == comp_spec["cart"]
+    end
+    return false
+  end
+
   # Adds ssh keys to all gears within the group instance.
   #
   # == Parameters:
