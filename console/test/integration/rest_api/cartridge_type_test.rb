@@ -116,7 +116,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('ruby').map(&:name)
     assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('ruby*').map(&:name)
     assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('*uby*').map(&:name)
-    assert_equal ['zend-5.6','php-5.3'], CartridgeType.cached.matches('zend-|php-').map(&:name)
-    assert_equal ['php-5.3','zend-5.6'], CartridgeType.cached.matches('php-|zend-').map(&:name)
+    assert_equal ['zend-6.1','zend-5.6','php-5.3'], CartridgeType.cached.matches('zend-|php-').map(&:name)
+    assert_equal ['php-5.3','zend-6.1','zend-5.6'], CartridgeType.cached.matches('php-|zend-').map(&:name)
   end
 end
