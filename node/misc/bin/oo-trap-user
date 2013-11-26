@@ -1,5 +1,6 @@
 #!/usr/bin/python -tt
 
+import ast
 import sys, os
 import pwd
 import syslog
@@ -268,6 +269,14 @@ if __name__ == '__main__':
 
     elif basecmd in ('quota',):
         allargs = ['--always-resolve']
+
+    # Set umask same as the ssh session - BZ990441
+    try:
+      umask = ast.literal_eval(os.environ['OPENSHIFT_UMASK'])
+    except (ValueError, SyntaxError, KeyError) as e:
+      umask = 077
+
+    os.umask(umask)
 
     runcon = '/usr/bin/runcon'
     mcs_level = get_mcs_level(os.getuid())
