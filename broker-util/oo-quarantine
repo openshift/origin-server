@@ -24,12 +24,18 @@ end
 
 def p_usage
   puts <<USAGE
+== Synopsis
 
-Usage: #{$0}
+#{File.basename $0}: An administrator utility to quarantine gears while a system upgrade is in process.
+
+== Usage
+
+#{File.basename $0}: OPTIONS
 
   --quarantine-all                     Quarantine all gears
   --unquarantine-all                   Unquarantine all gears
   --help                               Show usage info
+  
 USAGE
   exit 255
 end
