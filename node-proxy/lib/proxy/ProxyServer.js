@@ -470,6 +470,14 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   proxy_ws.on('open', function() {
     /*  Websocket proxy started event.  */
     surrogate.emit('start-proxy-websocket');
+
+    for (var i = 0; i < surrogate.buffer.length; i++) {
+      var data = surrogate.buffer[i].data;
+      var flags = surrogate.buffer[i].flags;
+      Logger.error("Replaying buffer data: " + data);
+        proxy_ws.send(data, flags);
+      }
+    surrogate.buffer = [];
   });
 
   proxy_ws.on('close', function() {
@@ -505,10 +513,20 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   ws.on('message', function(data, flags) {
     /*  Emit inbound data event.  */
     surrogate.emit('inbound.data', data, flags);
-
-    /*  Proxy data to outgoing websocket to the backend content server.  */
-    proxy_ws.send(data, flags);
+    if (proxy_ws.readyState == WebSocket.OPEN) {
+      /*  Proxy data to outgoing websocket to the backend content server.  */
+      proxy_ws.send(data, flags);
+    } else {
+      if (surrogate.buffer.length < 5) {
+        surrogate.buffer.push({data: data, flags: flags})
+      }
+    }
   });
+
+  /* Clear the buffer */
+  setTimeout(function() {
+      surrogate.buffer = [];
+  }, 3000);
 
 };  /*  End of function  websocketHandler.  */
 
@@ -629,6 +647,7 @@ RequestSurrogate.prototype.setBackendInfo = function(preq, pres) {
 function WebSocketSurrogate(ws) {
   this.backend = { };
   this.client  = { };
+  this.buffer  = [];
 
   this.client.websocket = ws;
 
