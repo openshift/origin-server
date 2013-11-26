@@ -216,14 +216,14 @@ pre {
           <section class='col-xs-12 col-sm-6 col-md-6'>
             <section>
               <h2>Deploying code changes</h2>
-                <p>OpenShift uses the <a href="http://git-scm.com/">Git version control system</a> for your source code, and grants you access to it via the Secure Shell (SSH) protocol. In order to upload and download code to your application you need to give us your <a href="https://www.openshift.com/developers/remote-access">public SSH key</a>. You can <a href="https://openshift.redhat.com/app/console/keys/new">upload it within the web console</a> or install the <a href="https://www.openshift.com/developers/rhc-client-tools-install">RHC command line tool</a> and run <code>rhc setup</code> to generate and upload your key automatically.</p>
+                <p>OpenShift uses the <a href="http://git-scm.com/">Git version control system</a> for your source code, and grants you access to it via the Secure Shell (SSH) protocol. In order to upload and download code to your application you need to give us your <a href="https://www.openshift.com/developers/remote-access">public SSH key</a>. You can upload it within the web console or install the <a href="https://www.openshift.com/developers/rhc-client-tools-install">RHC command line tool</a> and run <code>rhc setup</code> to generate and upload your key automatically.</p>
                 
 
                 
                 <h3>Working in your local Git repository</h3>
                 <p>If you created your application from the command line and uploaded your SSH key, rhc will automatically download a copy of that source code repository (Git calls this 'cloning') to your local system.</p>
 
-                <p>If you created the application from the web console, you'll need to manually clone the repository to your local system. Copy the Git URL located on the <a href="https://openshift.redhat.com/app/console">application page</a>, and then run:</p>
+                <p>If you created the application from the web console, you'll need to manually clone the repository to your local system. Copy the application's source code Git URL and then run:</p>
 
 <pre>$ git clone &lt;git_url&gt; &lt;directory_to_create&gt;
 
@@ -248,7 +248,7 @@ $ git push</pre>
                 <h2>Managing your application</h2>
 
                 <h3>Web Console</h3>
-                <p>You can use the <a href="https://openshift.redhat.com/app/console">OpenShift Online web console</a> to enable additional capabilities via cartridges, add collaborator access authorizations, designate custom domain aliases, and manage domain memberships.</p>
+                <p>You can use the OpenShift web console to enable additional capabilities via cartridges, add collaborator access authorizations, designate custom domain aliases, and manage domain memberships.</p>
 
                 <h3>Command Line Tools</h3>
                 <p>Installing the <a href="https://www.openshift.com/developers/rhc-client-tools-install">OpenShift RHC client tools</a> allows you complete control of your cloud environment. Read more on how to manage your application from the command line in our <a href="https://www.openshift.com/user-guide">User Guide</a>.
