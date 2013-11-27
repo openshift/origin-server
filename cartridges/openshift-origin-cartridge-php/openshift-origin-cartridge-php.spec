@@ -40,6 +40,7 @@ Requires:      php-bcmath
 Requires:      php-process
 Requires:      php-pecl-imagick
 Requires:      php-pecl-xdebug
+Requires:      php-fpm
 BuildArch:     noarch
 
 Obsoletes: openshift-origin-cartridge-php-5.3
