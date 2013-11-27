@@ -221,7 +221,14 @@ begin
         puts "Gear #{gear_uuid} hosts sparse components within its group instance. You cannot remove it."
         puts "You can either remove the cartridge or delete the application."
         exit 1
-      else  
+      else
+        cis = g.component_instances
+        cis.each do |ci|
+          if ci.gears.length == 1
+            puts "Gear #{gear_uuid} cannot be removed. You need to remove cartridge #{ci.cartridge_name}."
+            exit 1
+          end
+        end
         gear_id = g._id.to_s
         break
       end
