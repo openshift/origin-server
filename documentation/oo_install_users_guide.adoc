@@ -14,15 +14,11 @@ The `oo-install` utility is designed to ease the experience of a trial or basic 
 WARNING: `oo-install` is a deployment tool that has been optimized to simplify the process of getting a running OpenShift system on your chosen host systems. If you want to use OpenShift with an existing MongoDB database, ActiveMQ server, or DNS server, check out the link:oo_deployment_guide_comprehensive.html[Comprehensive Deployment Guide] instead.
 
 [float]
-==== oo-install is a Work in Progress
-This utility is currently in "Technology Preview". Technology Preview features are not supported and are not intended for production use. These features are included to provide customers with early access to upcoming product innovations, enabling them to test functionality and provide feedback during the development process. For highly available production deployments, expect to continue to craft install scripts customized to your particular environment.
-
-[float]
 ==== Do I Have To Read a Manual?
 In short, no. One of the design goals of the `oo-install` utility is to make this document completely unnecessary. If you are feeling bold, you are heartily encouraged to attempt to use the installer right now without any additionaly guidance. Check out https://install.openshift.com/ for the quick rundown on how to get started. If you run into problems, head back here or send your questions and feedback to the mailing lists or IRC channels mentioned on the oo-install web page.
 
 == Before You Begin
-This section covers some topics that will help you to have a successful OpenShift deployment. If you have jumped stright in with https://install.openshift.com/ and are having problems, look over this section to make sure you've got the basics covered.
+This section covers some topics that will help you to have a successful OpenShift deployment. If you have jumped straight in with https://install.openshift.com/ and are having problems, look over this section to make sure you've got the basics covered.
 
 === Utility Prerequisites
 You can run the OpenShift installer from any computer that has the following utilities installed:
@@ -78,11 +74,11 @@ $ sh <(curl -s https://install.openshift.com/ose/)
 
 [NOTE]
 ====
-OpenShift Enterprise installations require access to Red Hat Subscription Manager or Red Hat Network, and will only succeed on hosts running Red Hat Enterprise Linux.
+OpenShift Enterprise installations require access to Red Hat Subscription Manager or Red Hat Network, and have only been verified to succeed on hosts running Red Hat Enterprise Linux 6.4.
 ====
 
 === Running oo-install from source
-If you are working on oo-install development, you can also run the installer directly from source:
+If you are working on `oo-install` development, you can also run the installer directly from source:
 
 1. Clone the openshift-extras repo from GitHub: `git clone https://github.com/openshift/openshift-extras.git`
 2. `cd openshift-extras/oo-install`
@@ -197,7 +193,7 @@ The Node role is assigned to any host that will actually be used to store and se
 The installer is going to guide you through the process of gathering the following information about each host that you are going to use in your deployment.
 
 ===== Host Name
-This should be pretty self-explanatory. The installer is looking for the fully qualified domain name (FQDN) of the host. If you provided an OpenShift hosts domain during link:#dns[DNS] configuration, you can ge away with typing just the hostname here and the installer will append the rest for you.
+This should be pretty self-explanatory. The installer is looking for the fully qualified domain name (FQDN) of the host. If you provided an OpenShift hosts domain during link:#dns[DNS] configuration, you can get away with typing just the hostname here and the installer will append the rest for you.
 
 [NOTE]
 ====
@@ -360,15 +356,41 @@ nameserver 1.1.1.2
 [WARNING]
 ====
 * Once modified to use the Broker DNS, your client system will not be able to resolve non-OpenShift-registered hostnames until it is reverted to its original settings.
-* On a reboot, the client machine may overwrite your changes to the /etc/resolv.conf file
+* On a reboot, the client machine may overwrite your changes to the `/etc/resolv.conf` file
 ====
 
 === Permanent DNS Integration
 For a more permanent solution, here's how to delegate the OpenShift application domain (and if applicable, host domain) from your main DNS service to the OpenShift DNS server. The gist of the work is that you will be telling your main DNS service to _delegate_ to the OpenShift DNS service based on the domain of the name to be looked up.
 
-1. 
-2.
-3.
+NOTE: Keep in mind that DNS could be set up in one of a dozen different ways in your organization, so the best we can do is offer guidelines for what you are going to need to do.
+
+DNS services can be thought of as domain containerships. The DNS service that provides lookup information for `example.com` may also contain records for hosts in the subdomain `corp.example.com`. Alternately it may _delegate_ the job of subdomain lookups to another server. Delegation is how you will set the OpenShift DNS service to provide the lookup information for the OpenShift-hosted applications, and possibly also the information for the OpenShift hosts.
+
+==== Step 1. Identify the Point of Delegation
+First, you will need to determine the right DNS server or service layer where the delegation should be done. In a simple lab environment this may be pretty obvious, but in a large company this will probably involve the assistance of different members of your IT organization. Unfortunately, this guide can't offer a lot of guidance there. The point is that whatever nameserver is the authority for the _nearest containing subdomain_, that's generally the one where you'll want to define the NS records that refer to your OpenShift nameserver for its domain(s).
+
+==== Step 2. NS Records and A Records
+Once you've identified _where_ delegation should occur, you will need to configure the delegation itself. For a typical example, let's say you own `example.com`, and you want to delegate `openshift.example.com` to your OpenShift BIND server:
+
+* The root nameservers delegate "com" to the .com nameservers.
+* The .com nameservers delegate "example.com" to your example.com nameservers.
+* On your example.com nameserver, you would define a record for the `openshift.example.com` nameserver: +
++
+----
+openshift.example.com   NS   ns1.openshift.example.com
+----
++
+And then you would define that name with an IP that points to your OpenShift DNS server: +
++
+----
+ns1.openshift.example.com  A  10.x.x.x
+----
+
+The exact method/syntax for defining will vary by nameserver type, but the outcome should look the same when verified with `dig`.
+
+NOTE: Between you and us, we don't know why you couldn't just put the IP in the NS record and have done, but no one seems to do it that way. Levels of indirection and caching, perhaps?
+
+The OpenShift nameserver can then go on to define subdomains, for instance `hosts.openshift.example.com` and `apps.openshift.example.com`, as it is the master of this (sub)domain.
 
 == Using and Administering Your New OpenShift System
 Once your system is up and running, your work with `oo-install` is complete. You cannot use `oo-install` to reconfigure your deployment, though you _can_ use it to add Node hosts to your deployment.
