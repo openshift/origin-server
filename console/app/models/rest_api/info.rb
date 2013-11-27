@@ -44,6 +44,7 @@ module RestApi
           if s =~ /\:\w+/
             h[:name] = s
             h[:parameterized] = true
+            h[:match] = Regexp.new(s.split(/\:\w+/).map{|t| Regexp.quote(t)}.join('\w+'))
           else
             h[:name] = s.titleize
           end
