@@ -389,10 +389,10 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
           else
             summary << "Application '#{app['name']}' with Id '#{app['_id']}' has missing group instance for gear '#{gear['_id']}'."
           end
-          gi_hash.each do |gi_id, present|
-            unless present
-              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has no gears for group instance with Id '#{gi_id}'"
-            end
+        end
+        gi_hash.each do |gi_id, present|
+          unless present
+            summary << "Application '#{app['name']}' with Id '#{app['_id']}' has no gears for group instance with Id '#{gi_id}'"
           end
         end
       else
