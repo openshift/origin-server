@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.17.3
+Version: 1.17.4
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -76,6 +76,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Wed Nov 27 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
+- enable php-fpm based on user request (admiller@redhat.com)
+
 * Thu Nov 14 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
 - Merge pull request #4186 from pmorie/latest-versions
   (dmcphers+openshiftbot@redhat.com)
