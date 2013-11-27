@@ -22,7 +22,8 @@ https://openshift.redhat.com/community/open-source[OpenShift Origin] is Red Hat'
 |Admin Guides
 |Developer Guides
 
-a|link:oo_deployment_guide_comprehensive.html[Comprehensive Deployment Guide] +
+a|link:oo_install_users_guide.html[*oo-install* User's Guide] +
+link:oo_deployment_guide_comprehensive.html[Comprehensive Deployment Guide] +
 link:oo_deployment_guide_puppet.html[Puppet Deployment Guide] +
 link:oo_deployment_guide_vm.html[Virtual Machine Deployment Guide] +
 link:oo_client_tools_installation_guide.html[Client Tools Installation Guide]
