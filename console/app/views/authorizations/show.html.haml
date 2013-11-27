@@ -20,7 +20,7 @@
           - @authorization.scopes.each do |s|
             - if scope = @scope_definitions.find{ |scope| scope[:match] ? s.match(scope[:match]) : scope[:id].to_s == s.to_s }
               %tr
-                %td.nowrap{:scope => 'row'}= scope[:id]
+                %td.nowrap{:scope => 'row'}= s
                 %td= scope[:description]
             - else
               %tr
