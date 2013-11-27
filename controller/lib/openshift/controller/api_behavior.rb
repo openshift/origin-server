@@ -158,6 +158,27 @@ module OpenShift
         def authorized?(permissions, resource, *resources)
           Ability.authorized?(current_user, current_user.scopes, permissions, resource, *resources)
         end
+        
+        def check_input
+          unless support_valid_encoding?
+            # ruby 1.8.7 does have valid_encoding? method so catching the exception and logging
+            Rails.logger.warn "Could not validate request parameters encoding when running under MRI1.8"
+            return
+          end
+          check = lambda do |value|
+            err_message = "Only valid UTF-8 encoded inputs are accepted"
+            case value
+              when String then render_error(:bad_request, err_message) unless value.valid_encoding?
+              when Array then value.each(&check)
+              when Hash then value.each { |k, v| check.call(k.to_s) && check.call(v) }
+            end
+          end
+          params.each_value(&check)
+        end
+  
+        def support_valid_encoding?
+          String.new.respond_to?('valid_encoding?')
+        end
     end
   end
 end

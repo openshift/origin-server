@@ -19,7 +19,7 @@ class EnvironmentVariablesController < BaseController
     name = params[:id].presence
 
     env_hash = @application.list_user_env_variables([name])
-    return render_error(:unprocessable_entity, "Environment name '#{name}' not found in application", 189) unless env_hash[name]
+    return render_error(:not_found, "Environment name '#{name}' not found in application", 189) unless env_hash[name]
     env_var = {'name' => name, 'value' => env_hash[name]}
     render_success(:ok, "environment-variable", get_rest_environment_variable(env_var),
                    "Showing environment variable '#{name}' for application #{@application.name}")
@@ -63,7 +63,7 @@ class EnvironmentVariablesController < BaseController
     return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless params.has_key?(:value)
     value = params[:value]
     env_hash = @application.list_user_env_variables([name])
-    return render_error(:unprocessable_entity, "Environment name '#{name}' not found in application", 189) unless env_hash[name]
+    return render_error(:not_found, "Environment name '#{name}' not found in application", 189) unless env_hash[name]
 
     env_var = {'name' => name, 'value' => value}
     result = @application.patch_user_env_variables([env_var])
