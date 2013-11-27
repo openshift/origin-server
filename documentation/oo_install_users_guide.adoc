@@ -325,15 +325,15 @@ At this point, all that remains to configure your OpenShift deployment is to tel
 
 The installer supports three different ways to set subscription preferences. This is great from a deployment flexibility perspective, but may be really confusing if this is your first time through an OpenShift deployment.
 
-==== Pathway #1 - Command line options
+==== Pathway #1 - Command Line Options
 The first way to set subscription preferences is via the command line. This option works well if you are building an unattended installation system and you want to dyanamically set this information. The settings provided at the command line will trump any conflicting settings from the installer config file. But if you are _not_ running an unattended installation, you'll still have the opportunity to override these values. Bottom line: don't set subscription information on the command line unless you are using it in conjunction with an unattended installation (see the link:#w-workflow-workflow_id[-w] command line argument for more information).
 
-==== Pathway #2 - Configuration file options
+==== Pathway #2 - Configuration File Options
 Most commonly, you will just want to store subscription information in the installer config file. The main advantage to this is that you can reuse the subscription settings every time you configure a deployment. The main disadvantage to this is that you could potentially end up storing a piece of sensitive information (your RHSM or RHN password) to a cleartext file. In these situations, you will want to use a combination of this pathway and pathway #3; read on for more info.
 
 WARNING: Information that is stored in the `oo-install` configuration file is not encrypted. If you are using a subscription method that requires a user name and password, it is recommended that you omit the password from the configuration file. To do this, enter $$'-'$$ as your password when the installer asks.
 
-==== Pathway #3 - Runtime options
+==== Pathway #3 - Runtime Options
 After the installer gives you the opportunity to work with subscription settings in your configuration file, you will have the opportunity to set one-time values that _not_ stored in the configuration file. These values will be used during the current deployment and then forgotten by `oo-install`. This is suitable in particular for passwords that you do not want to capture in the non-encrypted installer config file.
 
 == Pre-flight Checking and Installation
@@ -344,28 +344,36 @@ Once you've configured DNS, Hosts and Roles, and Subscription information, the i
 * Is the host's system type supported by the installer?
 * Does the host have the necessary utilities installed for the selected installation task?
 
-=== Failing pre-flight?
+=== Failing Pre-Flight?
 If your deployment fails pre-flight, don't panic. Have a look at what the error messages are telling you about missing utilities and SSH connection issues (these are the largest causes of preflight failure).
 
 TIP: It is completely safe to rerun the installer if it fails preflight, and if you are totally stumped, link:index.html#discussion-forums[get in touch with us so that we can help!]
 
-=== Installing (Grab some tea)
+=== Installing (Grab Some Tea)
 Once the pre-flight inspection is complete, the installer hands control of the installation off to a $$'workflow executable'$$. The workflow executable's job is to transform the configuration that you've described into instructions for deploying your OpenShift. The entire installation process can take anywhere from 10 to 45 minutes. During the process, you will see a fairly constant stream of information scrolling by in your command terminal.
 
-=== Reboot (or not)
-When the process is completed, the easiest way to get your OpenShift system up and running is to reboot the server(s) where you've deployed it. If you do this, the recommended order is:
+=== Reboot
+When the process is completed, you will need to manually reboot the server(s) where you've deployed it. The recommended order is:
 
 * DBServer
 * MsgServer
 * Broker
 * Node(s)
 
-If you are using a basic deployment or you've deployed an all-in-one system, just note that a given host only needs to be rebooted once.
+In situations where more than one role resides on a given host, you only need to reboot that host once.
 
-If you would prefer not to reboot your hosts, you will need to manually restart several services in this order:
+*Why doesn't `oo-install` reboot for me?* +
+The main reason is that the installer was built to be mindful of production environments. If you happen to be installing OpenShift on hosts that are providing other mission-critical services, you probably want to defer that reboot until you can set up a low-impact maintenance window.
 
-1.
-2.
-3.
+NOTE: Be aware that OpenShift will not work properly until the OpenShift hosts are rebooted.
 
-== Administering Your New OpenShift System
+== Using and Administering Your New OpenShift System
+Once your system is up and running, your work with `oo-install` is complete. You cannot use `oo-install` to reconfigure your deployment, though you _can_ use it to add Node hosts to your deployment.
+
+From here, you can learn more about the management and operation of OpenShift from the following guides:
+
+* link:oo_administration_guide.html[OpenShift Administration Guide]
+* link:oo_cartridge_guide.html[OpenShift Cartridge Guide]
+* link:oo_troubleshooting_guide.html[OpenShift Troubleshooting Guide]
+
+And don't be afraid to reach out to link:index.html#discussion-forums[the community] for more help!
