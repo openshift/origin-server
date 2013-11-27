@@ -1972,7 +1972,7 @@ module OpenShift
             if app.scalable
               # execute connections restart the haproxy service, so stop it explicitly if needed
               stop_order.each do |cinst|
-                next if not gi_comps.include? cinst
+                next if not gear_comps.include? cinst
                 cart = cinst.cartridge_name
                 idle, leave_stopped = state_map[cart]
                 if leave_stopped and CartridgeCache.find_cartridge(cart, app).categories.include? "web_proxy"
