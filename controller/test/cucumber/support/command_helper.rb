@@ -235,7 +235,7 @@ module CommandHelper
     end
   end
 
-  def rhc_set_env(app,key,value)
+  def rhc_set_env(app, key, value)
     rhc_do('rhc_reload') do
       time = Benchmark.realtime do
         run("#{$rhc_script} env set #{key}=#{value} -a #{app.name}  #{default_args(app)}").should == 0
@@ -243,6 +243,18 @@ module CommandHelper
       log_event "#{time} SET_ENV_APP #{app.name} #{app.login} #{key} #{value}"
     end
   end
+
+  def rhc_get_app_status(app, cartridge_type)
+    output_buffer=[]
+    rhc_do('rhc_reload') do
+      time = Benchmark.realtime do
+        run("#{$rhc_script} cartridge status #{cartridge_type} -a #{app.name}  #{default_args(app)}",output_buffer).should == 0        
+      end
+      log_event "#{time} GET_APP_STATUS #{app.name} #{cartridge_type}"
+    end
+    output_buffer[0]
+  end
+
 
   def rhc_create_app(app, use_hosts=true, misc_opts='')
     rhc_sshkey_upload app

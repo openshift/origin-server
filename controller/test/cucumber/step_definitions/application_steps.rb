@@ -163,7 +163,7 @@ When /^the embedded (.*) cartridge is removed$/ do |type|
   rhc_embed_remove(@app, type)
 end
 
-When /^a new environment variable key=(.*) value=(.*) is added$/ do |key,value|
+When /^a new environment variable key=(.*) value=(.*) is added$/ do |key, value|
   rhc_set_env(@app,key,value)
 end
 
@@ -444,6 +444,12 @@ def assert_application_accessible(app, negate=false)
     app.is_accessible?(true).should be_true
   end
 end
+
+Then /^the cartridge (.+) status should be (.+)$/ do |cartridge, status|
+  result = rhc_get_app_status(@app, cartridge)
+  result.should =~ /status/
+end
+
 
 Then /^the application should display default content on first attempt$/ do
   # Check for "Welcome to OpenShift"
