@@ -28,6 +28,19 @@ The locations for the source code of this document and the `oo-install` utility 
 This section covers some topics that will help you to have a successful OpenShift deployment. If you have jumped straight in with https://install.openshift.com/ and are having problems, look over this section to make sure you've got the basics covered.
 
 === Utility Prerequisites
+This section explains the utilities that you will need to install on the various hosts that may be involved in your OpenShift installation. Install these before you run `oo-install` to avoid having to go back and set them up later.
+
+If you find a host system that is missing one of these required utilities, you can use `yum` to search for an appropriate RPM by running:
+
+----
+$ yum provides '*/<utility>'
+----
+
+Where "$$<utility>$$" is the name of the utility that you are looking to install.
+
+NOTE: If you are using a Linux distribution that does not ship with `yum` and can't do software updates with `yum`, then chances are good this installer is not going to work for you.
+
+==== On the `oo-install` Host
 You can run the OpenShift installer from any computer that has the following utilities installed:
 
 * ruby (1.8.7 or greater)
@@ -42,28 +55,25 @@ $ yum install ruby unzip curl
 
 If you want to run `oo-install` against a remote target host, you will also need the `ssh` client.
 
-==== Enable SELinux
+==== On the Target Hosts
+The host systems where you will be installing OpenShift will need to have the following utilities:
 
+* yum
+* getenforce (part of http://en.wikipedia.org/wiki/Security-Enhanced_Linux[SELinux])
 
-==== Other Dependencies
+NOTE: SELinux must be running in _Enforcing_ mode or _Permissive_ mode on every host system where OpenShift components will be installed.
+
+==== Origin-Specific Utilities
 If you are installing OpenShift Origin, you will also need to install the following utilities on your target host systems:
 
-* On all hosts:
+* On all target hosts:
 ** http://puppetlabs.com/[puppet]
 * On your Broker host:
 ** dnssec-keygen
 ** htpasswd
 
-You can use `yum` to search for an appropriate RPM by running:
-
-----
-$ yum provides '*/<utility>'
-----
-
-Where "$$<utility>$$" is the name of the utility that you are looking to install.
-
 === Where Should I Run This?
-The `oo-install` utility can run on _any_ system that meets the minimum prerequisites. This is important to understand, because while you _can_ run the installer from your intended Broker host, you could just as easily run it from your own computer (as long as you have SSH access to the target host). As you are answering the installer's questions about where your Broker lives, it is actually useful to think of it the way that other hosts would see it, even if you are running the installer from the system where an OpenShift component will live.
+The `oo-install` utility can run on _any_ system that meets the minimum prerequisites link:#on-the-code-oo-install-code-host[mentioned above]. This is important to understand, because while you _can_ run the installer from your intended Broker host, you could just as easily run it from your own computer (as long as you have SSH access to the target host). As you are answering the installer's questions about where your Broker lives, it is actually useful to think of it the way that other hosts would see it, even if you are running the installer from the system where an OpenShift component will live.
 
 [TIP]
 ====
