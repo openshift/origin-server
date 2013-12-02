@@ -258,6 +258,8 @@ If you only ever wanted to deploy an all-in-one OpenShift system, you could use 
 ===== SSH Host Name
 If the host in question is not the host where you are running the installer, this field enables you to specify the name of the SSH target for remote installation. This value can be:
 
+* An IP address
+* A DNS name that already resolves to the host
 * Identical to the Host Name
 * An alias from your `~/.ssh/config` file
 * `localhost`
@@ -272,8 +274,35 @@ In either case, the user in question must satisfy one of these two requirements:
 * Be `root` or
 * Have http://serverfault.com/questions/160581/how-to-setup-passwordless-sudo-on-linux[passwordless sudo] privileges on the target system
 
+[TIP]
+====
+Under RHEL, passwordless sudo configuration may not succeeed unless you set the following in your `/etc/sudoers` file for your target user:
+
+----
+Defaults:<username>    !requiretty
+----
+
+Try setting this if you see error messages like:
+
+----
+sudo: sorry, you must have a tty to run sudo
+----
+====
+
 ===== IP Address
-At this point, the installer will attempt to look up the IP addresses that have been assigned to the host that you are currently describing. In a situation where the host has multiple NICs, there may be multiple IP addresses to choose from. The critical point here is that you need to provide the IP address that _other_ OpenShift hosts would use to connect with this host. You also have the option of supplying a completely different IP address. This may be necessary in situations where one OpenShift host is separated from the others in a NAT environment.
+At this point, the installer will attempt to look up the IP addresses that have been assigned to the host that you are currently describing. In a situation where the host has multiple NICs, there may be multiple IP addresses to choose from.
+
+*Non-Node Hosts* +
+The IP address that is provided here should be the one that would be used by _other OpenShift hosts_ would use to connect with this host.
+
+*Node Hosts* +
+In the case of Node hosts, you will want to use the IP address that _client systems_ would use to reach the host.
+
+*DNS Registration* +
+If you have told the installer to link:#registering-openshift-hosts-with-the-openshift-dns-instance[register your OpenShift host names with the OpenShift DNS instance], this IP address will be used as the resolution of this hostname.
+
+*Manual Entry* +
+You also have the option of supplying a completely different IP address. This may be necessary in situations where one OpenShift host is separated from the others in a NAT environment.
 
 ===== IP Interface
 This value is only collected for Node hosts in OpenShift Origin deployments. This is a requirement of the underlying Puppet infrastructure. If you select one of the IP address / IP interface combos that `oo-install` finds on the host, you will not need to provide this at all. On the other hand, if you manually configure the IP address, you will also need to manually specify the interface. To see the available IP interfaces on a given host, you can run this command:
@@ -343,7 +372,15 @@ Most commonly, you will just want to store subscription information in the insta
 WARNING: Information that is stored in the `oo-install` configuration file is not encrypted. If you are using a subscription method that requires a user name and password, it is recommended that you omit the password from the configuration file. To do this, enter $$'-'$$ as your password when the installer asks.
 
 ==== Pathway #3 - Runtime Options
-After the installer gives you the opportunity to work with subscription settings in your configuration file, you will have the opportunity to set one-time values that _not_ stored in the configuration file. These values will be used during the current deployment and then forgotten by `oo-install`. This is suitable in particular for passwords that you do not want to capture in the non-encrypted installer config file.
+After the installer gives you the opportunity to work with subscription settings in your configuration file, you will have the opportunity to set one-time values that are _not_ stored in the configuration file. These values will be used during the current deployment and then forgotten by `oo-install`. This is suitable in particular for passwords that you do not want to capture in the non-encrypted installer config file.
+
+==== Subscription Notes for OpenShift Origin
+The most common subscription method for Origin is `yum`, and the current known good repos to use are these:
+
+* The base URL for the OpenShift repositories: `https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-19`
+* The base URL for a Jenkins repository: `http://pkg.jenkins-ci.org/redhat`
+
+The installer provides these settings as default values in new configuration files.
 
 == Pre-flight Checking and Installation
 Once you've configured DNS, Hosts and Roles, and Subscription information, the installer will do a sanity check of the entire deployment. Specifically, for each host that you've described, the installer checks the following:
@@ -351,7 +388,7 @@ Once you've configured DNS, Hosts and Roles, and Subscription information, the i
 * Is the host reachable? (see link:#ssh-host-name[SSH Host Name])
 * Does the user have the necessary privileges? (see link:#user[User])
 * Is the host's system type supported by the installer?
-* Does the host have the necessary utilities installed for the selected installation task?
+* Does the host have the necessary utilities installed for the selected installation task? (see link:#utility-prerequisites[Utility Prerequisites])
 
 === Failing Pre-Flight?
 If your deployment fails pre-flight, don't panic. Have a look at what the error messages are telling you about missing utilities and SSH connection issues (these are the largest causes of preflight failure).
@@ -380,6 +417,8 @@ NOTE: Be aware that OpenShift will not work properly until the OpenShift hosts a
 After the OpenShift installation is complete, you will need to make some DNS changes to interact with any OpenShift-hosted applications that you create. Here you have two options: a temporary, per-client solution or a permanent system-wide solution.
 
 === Temporary DNS Integration
+These instructions will enable you to set up temporary DNS integration on a Linux system. You can use this information as a guideline for accomplishing similar results on client systems running other operating systems.
+
 On a client-by-client basis, you can do the following to work against the OpenShift DNS server:
 
 1. On the client system, make a backup copy of `/etc/resolv.conf` +
@@ -402,8 +441,8 @@ nameserver 1.1.1.2
 ----
 +
     * Modify the `domain` and `search` values to match the app domain (and optionally also the OpenShift host domain) that you specified. 
-    * Then change the first `nameserver` entry to point to the Broker host's IP address.
-    * You can remove any additional `nameserver` entries.
+    * After the `search` line, insert a new `nameserver` entry to point to the Broker host's IP address.
+    * Leave the other `nameserver` entries alone.
 +
 4. No restart necessary; you should be able to point a web browser on this client system at the URL off an application in the app domain. If you've also registered the OpenShift hosts with OpenShift DNS, they should be reachable by name as well.
 
