@@ -218,16 +218,16 @@ def analyze_app(app, unresponsive_servers)
   app_recoverable = false
 
   # Gather required info on this app
-  app.gears.each_with_index do |gear, gear_idx|
+  app.gears.each do |gear|
     unless unresponsive_servers.include?(gear.server_identity)
       raise Exception.new "Server identity: #{gear.server_identity} not in unresponsive servers but 'removed' is set for Gear: #{gear._id.to_s}" if gear.removed and !$report_only
       if app.group_instances[0]._id == gear.group_instance_id
-        if gear_idx == 0
+        if gear.app_dns
           framework[:available] = true
         elsif app.ha
           ci = nil
           ci = app.component_instances.find_by(:cartridge_name => "haproxy-1.4") if app.component_instances.present?
-          if ci and gear.sparse_carts.include?(ci._id)
+          if gear.has_component?(ci)
             framework[:available] = true
           else
             framework[:scaled] = true
