@@ -43,7 +43,7 @@ Options:
   --allowsubaccounts (true|false)
     Add / Remove the capability to manage sub accounts
   --allowplanupgrade (true|false)
-    Add / Remove the capability to upgrade your plan.
+    Add / Remove the capability to upgrade plan for this login user
   --allowprivatesslcertificates (true|false)
     Add / Remove the capability to add private SSL certificates
   --addgearsize <gearsize>

@@ -8,13 +8,14 @@
 .fam C
 \fBoo-admin-ctl-user\fP [\fB-h\fP|\fB--help\fP] [\fB-l\fP|\fB--login\fP \fIlogin_name\fP] 
 [\fB--setmaxgears\fP \fImax_gears\fP] [\fB--setconsumedgears\fP \fIconsumed_gears\fP]
+[\fB--setmaxdomains\fP \fImax_domains\fP]
 [\fB--setmaxuntrackedstorage\fP \fImax_untracked_storage\fP]
 [\fB--setmaxtrackedstorage\fP \fImax_tracked_storage\fP]
 [\fB--listsubaccounts\fP] [\fB--addsubaccount\fP \fIsubaccount_login\fP]
 [\fB--removesubaccount\fP \fIsubaccount_login\fP] [\fB--allowsubaccounts\fP true|false]
 [\fB--addgearsize\fP \fIgear_size\fP] [\fB--removegearsize\fP \fIgear_size\fP]
 [\fB--inheritgearsizes\fP true|false] [\fB--allowha\fP true|false]
-[\fB--allowprivatesslcertificates\fP true|false]
+[\fB--allowprivatesslcertificates\fP true|false] [\fB--allowplanupgrade\fP true|false]
 
 .fam T
 .fi
@@ -35,6 +36,10 @@ Login with OpenShift access. Required.
 .B
 \fB--setmaxgears\fP \fImax_gears\fP
 Set the maximum number of gears a user is allowed to consume.
+.TP
+.B
+\fB--setmaxdomains\fP \fImax_domains\fP
+Set the maximum number of domains a user is allowed to consume.
 .TP
 .B
 \fB--setconsumedgears\fP \fIconsumed_gears\fP
@@ -83,6 +88,10 @@ Add or Remove High Availability capability for this login user account.
 .B
 \fB--allowprivatesslcertificates\fP true|false
 Add / Remove the capability to add private SSL certificates.
+.TP
+.B
+\fB--allowplanupgrade\fP true|false
+Add / Remove the capability to upgrade plan for this login user account.
 .SH EXAMPLE
 
 List the current user settings with:
