@@ -75,7 +75,7 @@ body.simple {
       .btn:active {
         color: #222;
       }
-      h1, h2 {
+      h1, h2, h3, h4 {
         color: #fafbfc;
       }
       input[type="text"], input[type="password"] {
@@ -91,9 +91,6 @@ body.simple {
           box-shadow: none;
         }
       }
-    }
-    .max {
-      width: 94%; /* otherwise inputs extend to far */
     }
   }
   > header .section-top { 
@@ -119,8 +116,8 @@ iframe {
   float: left;
 }
 
-h2 + ul, h3 + ul, h4 + ul {
-  margin-top: 9px;
+ul {
+  margin-bottom: 0;
 }
 
 .label-hide label {
@@ -195,13 +192,20 @@ h2 + ul, h3 + ul, h4 + ul {
     .frame.primary {
       padding: 40px 35px 30px;
     }
+    .frame.announcement {
+      .column-1 {
+        margin-bottom: 20px;
+      }
+    }
     .section-account {
       background-image: none;
     }
-  .column-1, .column-2 {
-    width: 98%;
-  }
-  .column-1 { margin-bottom: 20px; }
+    .column-1, .column-2 {
+      width: 100%;
+      > h2, > h1 {
+        line-height: 1.4;
+      }
+    }
   }
   .navbar.centered {
     height: 82px;
@@ -231,6 +235,8 @@ h2 + ul, h3 + ul, h4 + ul {
     .frame.primary,
     .frame.announcement {
       padding: 20px;
+      margin-left: -20px;
+      margin-right: -20px;
     }
   }
   h1.marquee {
