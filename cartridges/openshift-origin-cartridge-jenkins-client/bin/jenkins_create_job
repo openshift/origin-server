@@ -9,6 +9,8 @@ require 'fileutils'
 STDOUT.sync = true
 STDERR.sync = true
 
+CURL_CMD = "curl -s -ssl3 --insecure"
+
 @hostname = ENV['JENKINS_URL'].split("/")[-1].downcase
 @data_dir = ENV['OPENSHIFT_DATA_DIR']
 @job_name = "#{ENV['OPENSHIFT_APP_NAME']}-build"
@@ -34,7 +36,7 @@ def create_job
   FileUtils.rm @job_erb
 
 status_code = `/bin/sed -e "s,UPSTREAM_SSH,#{@uuid}@#{@app_name}-\\${OPENSHIFT_NAMESPACE}.#{@openshift_domain},g" #{job_template_xml} \
-  | curl -s  -X POST -H "Content-Type: application/xml" -H "Expect: " --data-binary @- --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}/createItem?name=#{@job_name}`
+  | #{CURL_CMD} -X POST -H "Content-Type: application/xml" -H "Expect: " --data-binary @- https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}/createItem?name=#{@job_name}`
 
   puts "create_job status: #{status_code}"
   if not File.exists? File.join(@data_dir, 'jobs', @app_name, 'config.xml')
