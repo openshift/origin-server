@@ -182,11 +182,12 @@ module OpenShift
           self.class.plugins.each do |pl|
             begin
               entry = pl.lookup_by_uuid(@container_uuid)
-              @fqdn = entry["fqdn"]
-              @container_name = entry["container_name"]
-              @namespace = entry["namespace"]
+              @fqdn = entry.fqdn
+              @container_name = entry.container_name
+              @namespace = entry.namespace
               break if not @fqdn.nil?
-            rescue NoMethodError
+            rescue NoMethodError => e
+              # NodeLogger.logger.debug("container #{container.uuid}, NoMethodError #{e.message}")
             end
           end
         else
@@ -196,7 +197,8 @@ module OpenShift
 
         # Could not infer from any source
         if (@fqdn.to_s == "") or (@container_name.to_s == "") or (@namespace.to_s == "")
-          raise FrontendHttpServerException.new("Could not determine gear information for: #{@container_uuid}", @container_uuid)
+          raise FrontendHttpServerException.new(%Q{Could not determine gear information for: uuid "#{@container_uuid}" fqdn "#{@fqdn}" container name "#{@container_name}" namespace "#{@namespace}"},
+                                                @container_uuid)
         end
 
         @plugins = self.class.plugins.map { |pl| pl.new(@container_uuid, @fqdn, @container_name, @namespace) }
