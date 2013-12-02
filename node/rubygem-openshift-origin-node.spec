@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.17.7
+Version: 1.17.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Dec 02 2013 Adam Miller <admiller@redhat.com> 1.17.8-1
+- Bug 1036006 - oo-admin-ctl-gears *startall commands fail (jhonce@redhat.com)
+
 * Fri Nov 22 2013 Adam Miller <admiller@redhat.com> 1.17.7-1
 - Bug 1032950 (andy.goldstein@gmail.com)
 
