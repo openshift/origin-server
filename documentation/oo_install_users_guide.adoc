@@ -17,6 +17,13 @@ WARNING: `oo-install` is a deployment tool that has been optimized to simplify t
 ==== Do I Have To Read a Manual?
 In short, no. One of the design goals of the `oo-install` utility is to make this document completely unnecessary. If you are feeling bold, you are heartily encouraged to attempt to use the installer right now without any additionaly guidance. Check out https://install.openshift.com/ for the quick rundown on how to get started. If you run into problems, head back here or send your questions and feedback to the mailing lists or IRC channels mentioned on the oo-install web page.
 
+[float]
+==== Source Code
+The locations for the source code of this document and the `oo-install` utility are as follows:
+
+* This document: https://github.com/openshift/origin-server/blob/master/documentation/oo_install_users_guide.adoc
+* `oo-install`: https://github.com/openshift/openshift-extras/tree/master/oo-install
+
 == Before You Begin
 This section covers some topics that will help you to have a successful OpenShift deployment. If you have jumped straight in with https://install.openshift.com/ and are having problems, look over this section to make sure you've got the basics covered.
 
@@ -34,6 +41,26 @@ $ yum install ruby unzip curl
 ----
 
 If you want to run `oo-install` against a remote target host, you will also need the `ssh` client.
+
+==== Enable SELinux
+
+
+==== Other Dependencies
+If you are installing OpenShift Origin, you will also need to install the following utilities on your target host systems:
+
+* On all hosts:
+** http://puppetlabs.com/[puppet]
+* On your Broker host:
+** dnssec-keygen
+** htpasswd
+
+You can use `yum` to search for an appropriate RPM by running:
+
+----
+$ yum provides '*/<utility>'
+----
+
+Where "$$<utility>$$" is the name of the utility that you are looking to install.
 
 === Where Should I Run This?
 The `oo-install` utility can run on _any_ system that meets the minimum prerequisites. This is important to understand, because while you _can_ run the installer from your intended Broker host, you could just as easily run it from your own computer (as long as you have SSH access to the target host). As you are answering the installer's questions about where your Broker lives, it is actually useful to think of it the way that other hosts would see it, even if you are running the installer from the system where an OpenShift component will live.
@@ -74,7 +101,24 @@ $ sh <(curl -s https://install.openshift.com/ose/)
 
 [NOTE]
 ====
-OpenShift Enterprise installations require access to Red Hat Subscription Manager or Red Hat Network, and have only been verified to succeed on hosts running Red Hat Enterprise Linux 6.4.
+OpenShift Enterprise installations require access to Red Hat Subscription Manager or Red Hat Network, and are verified to succeed on hosts running under a current Red Hat Enterprise Linux subscription.
+====
+
+=== Portable Installer
+You can download a version of the online installer for use on a CD or USB drive. The latest versions of the portable packages are available at:
+
+* OpenShift Origin Portable: https://install.openshift.com/portable/oo-install-origin.zip
+* OpenShift Enterprise Portable: https://install.openshift.com/portable/oo-install-ose.zip
+
+To use these portable installers:
+
+1. Download and unzip the portable installer zip file.
+2. Copy or burn the unzipped files to a USB drive or CD-ROM, respectively.
+3. Refer to the included README for instructions on starting the installation from the provided launcher.
+
+[NOTE]
+====
+Be aware that even if you are using the portable installer, your target hosts systems may still require internet access for necessary OpenShift RPMs.
 ====
 
 === Running oo-install from source
