@@ -5,7 +5,7 @@ module Console::CostHelper
     max = range.end
     increasing = (min > 0 || max > 0)
     owner = yours ? "your" : "the domain owner's"
-    cost, title = 
+    cost, title =
       if gear_increase_cost(min, capabilities)
         [true, "This will add #{pluralize(min, 'gear')} to #{owner} account and will result in additional charges."]
       elsif gear_increase_cost(max, capabilities)
@@ -28,7 +28,7 @@ module Console::CostHelper
       title = "#{title} The selected gear type will have additional hourly charges."
     end
 
-    content_tag(:span, 
+    content_tag(:span,
       [
         (if max == Float::INFINITY
           "+#{min}-?"
@@ -39,7 +39,7 @@ module Console::CostHelper
         end),
         "<span data-icon=\"\ue014\" aria-hidden=\"true\"> </span>",
         ("<span class=\"label label-premium\">#{user_currency_symbol}</span>" if cost),
-      ].compact.join(' ').html_safe, 
+      ].compact.join(' ').html_safe,
       :class => 'indicator-gear-increase',
       :title => title,
     )
@@ -48,6 +48,7 @@ module Console::CostHelper
   def cartridges_premium(cartridges)
     return cartridges.any?{ |(_, carts)| carts.any?{ |c| c.usage_rates.present? } } if cartridges.is_a? Hash
   end
+
   def gear_estimate_for_scaled_app(cartridges)
     min = 0
     max = 0

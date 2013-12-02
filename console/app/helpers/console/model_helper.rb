@@ -73,6 +73,16 @@ module Console::ModelHelper
     gear_sizes
   end
 
+  def add_cartridge_gear_sizes(application, cartridge_type, capabilities)
+    gear_sizes = [application.gear_profile]
+    if application.scales? && cartridge_type
+      gear_estimate = gear_estimate_for_scaled_app({'1' => [cartridge_type]})
+      increasing = (gear_estimate.begin > 0 || gear_estimate.end > 0)
+      gear_sizes = capabilities.allowed_gear_sizes if increasing
+    end
+    gear_sizes
+  end
+
   def estimate_domain_capabilities(selected_domain_name, writeable_domains, can_create, user_capabilities)
     if (selected_domain = writeable_domains.find {|d| d.name == selected_domain_name})
       [selected_domain.capabilities, selected_domain.owner?]
