@@ -57,6 +57,7 @@ Requires:      lapack-devel
 Requires:      redhat-lsb-core
 Requires:      ta-lib-devel
 Requires:      symlinks
+Requires:      libffi-devel
 
 Obsoletes: openshift-origin-cartridge-community-python-2.7
 Obsoletes: openshift-origin-cartridge-community-python-3.3
