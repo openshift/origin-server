@@ -209,14 +209,14 @@ EOFZ
     assert_operator 300, :>, response.code, "Invalid response received: #{response}"
   end
 
-  def assert_http_title(url, expected, msg = nil)
+  def assert_http_title(url, expected, msg = nil, max_tries = 3)
     logger.info("Checking #{url} for title '#{expected}'")
     uri = URI.parse(url)
 
     tries = 0
     title = ''
 
-    while tries < 3
+    while tries < max_tries
       tries += 1
       content = ''
 
@@ -245,14 +245,14 @@ EOFZ
     assert_equal expected, title, msg
   end
 
-  def assert_http_title_for_entry(entry, expected, msg = nil)
+  def assert_http_title_for_entry(entry, expected, msg = nil, tries = 3)
     url = "http://#{entry.dns}:#{entry.proxy_port}/"
-    assert_http_title(url, expected, msg)
+    assert_http_title(url, expected, msg, tries)
   end
 
-  def assert_http_title_for_app(app_name, namespace, expected, msg = nil)
+  def assert_http_title_for_app(app_name, namespace, expected, msg = nil, tries = 3)
     url = "http://#{app_name}-#{namespace}.#{cloud_domain}"
-    assert_http_title(url, expected, msg)
+    assert_http_title(url, expected, msg, tries)
   end
 
   def assert_scales_to(app_name, cartridge, count)

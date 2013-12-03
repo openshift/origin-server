@@ -77,7 +77,7 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
     @api.set_deployment_type(app_name2, 'binary')
     @api.deploy_artifact(app_id2, app_name2, artifact_path)
 
-    @api.assert_http_title_for_app(app_name2, @namespace, CHANGED_TITLE)
+    @api.assert_http_title_for_app(app_name2, @namespace, CHANGED_TITLE, "Check for changed title in second app failed", 5)
   end
   
   def use_the_rest_api_binary_deploy_app_test(cartridges, options = {})
