@@ -41,7 +41,7 @@ module OpenShift
 
       DEFAULT_NODE_PROFILE         = 'small'
       DEFAULT_QUOTA_BLOCKS         = '1048576'
-      DEFAULT_QUOTA_FILES          = '40000'
+      DEFAULT_QUOTA_FILES          = '80000'
       DEFAULT_NO_OVERCOMMIT_ACTIVE = false
       DEFAULT_MAX_ACTIVE_GEARS     = 0
 

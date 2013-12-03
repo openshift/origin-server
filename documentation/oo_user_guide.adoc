@@ -218,7 +218,7 @@ drwxr-xr-x. 10 root root                             4096 Jan 21 13:47 php-5.3
 d---------.  3 root root                             4096 Jan 21 13:47 .sandbox
 drwxr-x---.  2 root e9e92282a16b49e7b78d69822ac53e1d 4096 Jan 21 13:47 .ssh
 d---------.  3 root root                             4096 Jan 21 13:47 .tmp
-[root@node e9e92282a16b49e7b78d69822ac53e1d]# 
+[root@node e9e92282a16b49e7b78d69822ac53e1d]#
 ----
 
 During the link:#configure-rhc[rhc setup], our SSH key was uploaded to the server to enable us to authenticate to the system without having to provide a password. The SSH key we provided was actually appended to the _authorized_keys_ file. To verify this, use the following command to view the contents of the file:
@@ -683,10 +683,10 @@ $ ssh e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com
 
     *********************************************************************
 
-    You are accessing a service that is for use only by authorized users.  
-    If you do not have authorization, discontinue use at once. 
-    Any use of the services is subject to the applicable terms of the 
-    agreement which can be found at: 
+    You are accessing a service that is for use only by authorized users.
+    If you do not have authorization, discontinue use at once.
+    Any use of the services is subject to the applicable terms of the
+    agreement which can be found at:
     https://openshift.redhat.com/app/legal
 
     *********************************************************************
@@ -767,10 +767,10 @@ $ quota -s
 If the quota information that we configured earlier is correct, you should see the following information:
 
 ----
-Disk quotas for user e9e92282a16b49e7b78d69822ac53e1d (uid 1000): 
+Disk quotas for user e9e92282a16b49e7b78d69822ac53e1d (uid 1000):
      Filesystem  blocks   quota   limit   grace   files   quota   limit   grace
 /dev/mapper/VolGroup-lv_root
-                  22540       0   1024M             338       0   40000        
+                  22540       0   1024M             338       0   80000
 ----
 
 To view how much disk space your gear is actually using, you can also enter in the following:
@@ -818,7 +818,7 @@ You can delete an OpenShift Origin application by executing the _rhc app delete_
 $ rhc app delete -a someAppToDelete
 
 Are you sure you wish to delete the 'someAppToDelete' application? (yes/no)
-yes 
+yes
 
 Deleting application 'someAppToDelete'
 
@@ -1057,7 +1057,7 @@ You should see a screen with the following information:
 
 ----
 Connected to database.
-1 gshipley@redhat.com 
+1 gshipley@redhat.com
 ----
 
 === Manage Cartridges
@@ -1110,7 +1110,7 @@ mysql-5.1
     Password       = aFh_GsHP63fV
     Database Name  = firstphp
     Connection URL = mysql://127.1.244.1:3306/
-    
+
 ----
 
 === Port Forwarding
@@ -1373,7 +1373,7 @@ Once you have have been authenticated to your application gear, you can add a ne
 
 ----
  $ add-gear -a [AppName] -u [AppUUID] -n [DomainName]
- 
+
 ----
 
 In this example, the application name is _scaledapp_, the application UUID is the username that you used to SSH to the node host, and the domain name is _ose_. Given that information, your command should looking similar to the following:
@@ -1407,8 +1407,8 @@ scaledapp @ http://scaledapp-ose.example.com/
   Scaling Info
   ============
     Scaled x3 (minimum: 2, maximum: available gears) with haproxy-1.4 on small gears
-    
-  
+
+
 ----
 
 image:scaledApp3.png[image]
@@ -1504,7 +1504,7 @@ The DIY cartridge provides a number of hooks that are called during the lifecycl
 For this application, all that has been customized are the start and stop scripts. They simply launch the MyHttpServer class using Java, and perform a _wget_ call to have the MyHttpServer stop itself:
 
 ----
-cat .openshift/action_hooks/start 
+cat .openshift/action_hooks/start
 #!/bin/bash
 # The logic to start up your application should be put in this
 # script. The application will work only if it binds to
@@ -1612,7 +1612,7 @@ public class Todo {
     @NotNull
     @Size(min = 10, max = 40)
     private String todo;
-    
+
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name = "Tags", joinColumns = @JoinColumn(name = "todo_id"))
     @Column(name = "tag")
@@ -1652,12 +1652,12 @@ public class Todo {
     public void setCreatedOn(Date createdOn) {
         this.createdOn = createdOn;
     }
-    
-    
+
+
     public void setTags(List<String> tags) {
         this.tags = tags;
     }
-    
+
     public List<String> getTags() {
         return tags;
     }
@@ -1990,7 +1990,7 @@ At the bottom of the output, you should see the following information:
     jenkins-client-1 = https://jenkins-ose.example.com/job/todo-build/
     postgresql-8.4     = postgresql://127.1.248.129:5432/
     jbosseap-6
-    
+
 ----
 
 === Configure Jenkins
@@ -2057,7 +2057,7 @@ $GIT_SSH 4d1b096e414243e9833dad55d774de73@todo-ose.example.com deploy.sh
 jenkins_start_app 4d1b096e414243e9833dad55d774de73@todo-ose.example.com
 
 $GIT_SSH 4d1b096e414243e9833dad55d774de73@todo-ose.example.com post_deploy.sh
-      
+
 ----
 
 === Deploy Code to Jenkins
@@ -2091,9 +2091,9 @@ Writing objects: 100% (3/3), 282 bytes, done.
 Total 3 (delta 2), reused 0 (delta 0)
 remote: restart_on_add=false
 remote: Executing Jenkins build.
-remote: 
+remote:
 remote: You can track your build at https://jenkins-ose.example.com/job/todo-build
-remote: 
+remote:
 remote: Waiting for build to schedule....Done
 remote: Waiting for job to complete.....................................................................Done
 remote: SUCCESS
@@ -2124,7 +2124,7 @@ ssh://ffee273344bd404e99e59ba070512d0b@todobldr-ose.example.com/~/git/todobldr.g
     Cartridges
     ==========
       jbosseap-6
-      
+
 ----
 
 If the build fails, or if you just want to see the output of the Maven build process, you can log in to your Jenkins application, click on the build, and then click the link to view the console output. Log in to your Jenkins application and view the contents of the last build.
@@ -2327,7 +2327,7 @@ image:tools2.png[image]
 Verify that your changes were deployed correctly by opening up a web browser and going to the following URL:
 
 ----
-http://todo-ose.example.com/    
+http://todo-ose.example.com/
 ----
 
 image:tools3.png[image]
@@ -2434,7 +2434,7 @@ Log in to the github website and create a new repository for our quick start. Th
 
 ----
 https://github.com/repositories/new
-    
+
 ----
 
 Enter a project name and a description for your quick start. I suggest a name that identifies the project as a OpenShift Origin quick start. For example, a good name would be _Piwik-openshift-quickstart_.
@@ -2458,37 +2458,37 @@ Piwik on OpenShift
 =========================
 Piwik is a downloadable, open source (GPL licensed) real time web analytics software program. It provides you with detailed reports on your website visitors: the search engines and keywords they used, the language they speak, your popular pages, and so much more.
 
-Piwik aims to be an open source alternative to Google Analytics, and is already used on more than 150,000 websites. 
+Piwik aims to be an open source alternative to Google Analytics, and is already used on more than 150,000 websites.
 
 More information can be found on the official Piwik website at http://piwik.org
 
     Running on OpenShift
     --------------------
-    
+
     Create an account at http://openshift.redhat.com/
-    
+
     Create a PHP application
-    
+
         rhc app create -a piwik -t php-5.3 -l $USERNAME
-    
+
     Add mysql support to your application
-        
+
         rhc cartridge add -a piwik -c mysql -l $USERNAME
     Make a note of the username, password, and host name as you will need to use these to complete the Piwik installation on OpenShift
-    
+
     Add this upstream Piwik quickstart repo
-    
+
         cd piwik/php
         rm -rf *
         git remote add upstream -m master git://github.com/gshipley/piwik-openshift-quickstart.git
         git pull -s recursive -X theirs upstream master
-    
+
     Then push the repo upstream to OpenShift
-    
+
         git push
-    
+
     That's it, you can now checkout your application at:
-    
+
         http://piwik-$yourlogin.rhcloud.com
 ----
 
