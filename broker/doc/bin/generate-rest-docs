@@ -4,39 +4,83 @@ require 'rubygems'
 require 'optparse'
 require 'rest-client'
 require 'json'
+require 'yaml'
 
-options = {
+
+
+def set_up
+  
+  options = {
     :version => 1.6,
     :server => "localhost",
     :username => "first.last@mycompany.com",
-    :password => "password"
-}
-
-optparse = OptionParser.new { |opts|
-  opts.banner = "\nUsage: generate-rest-docs [options]" +
-                "\nExample: generate-rest-docs -v 1.6"
-
-  opts.on("-v", "--version", "API Version. Not required. Defaults to latest.") do |v|
-    options[:version] = v
+    :password => "password",
+    :timeout => 9000,
+    :debug => false
+  }
+  
+  optparse = OptionParser.new do |opts|
+    opts.banner = "\nUsage: generate-rest-docs [options]" +
+                  "\nExample: generate-rest-docs -v 1.6"
+  
+    opts.on("-v", "--version VERSION", "API Version. Not required. Defaults to #{options[:version]}.") do |v|
+      options[:version] = v
+    end
+   
+    opts.on("-d", "--debug", "Debug flag") do |d|
+      options[:debug] = d
+    end
+  
+    opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
   end
-
-#  opts.on("-s", "--server", "Server to use for generating docs. Not required. Defaults to localhost)") do |s|
-#    options[:server] = s
-#  end
-#  opts.on("-u", "--username", "Username to use for generating docs. Only required if using server that requires authentication)") do |u|
-#    options[:username] = u
-#  end
-#  opts.on("-p", "--password", "Password for username (Not required unless using server other than localhost)") do |p|
-#    options[:password] = p
-#  end
-
-  opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
-}
+  
+  begin
+    optparse.parse!
+  rescue OptionParser::InvalidArgument => e
+    puts "#{e.message}"
+    puts optparse.to_s
+    exit 1
+  end
+  
+  @link_map = {}
+  @replace = []
+  @url = "https://#{options[:server]}/broker/rest/api"
+  @random = rand(0..100)
+  @user = options[:username]
+  @password = options[:password]
+  @version = options[:version]
+  @timeout = options[:timeout]
+  @debug =  options[:debug]
+  
+  #add user
+  request = RestClient::Request.new(:method => :get, :url => "https://#{options[:server]}/broker/rest/user", :user => @user, :password => @password, :headers => @headers, :timeout => @timeout, :open_timeout => @timeout)
+  response = send_request(request)
+  #add the other user for membership
+  request = RestClient::Request.new(:method => :get, :url => "https://#{options[:server]}/broker/rest/user", :user => "team.member@mycompany.com", :password => @password, :headers => @headers, :timeout => @timeout, :open_timeout => @timeout)
+  response = send_request(request)
+  #add private cert capability and additional storage capability
+  system("oo-admin-ctl-user -l #{@user} --allowprivatesslcertificates true --setmaxtrackedstorage 20 --allowha true") if options[:server]=="localhost"
+  if options[:version]
+    @headers = {:accept => "application/json; version=#{@version}"}
+  else
+    @headers = {:accept => "application/json"}
+  end
+  
+  @resources = ["API", "USER", "KEY", "AUTHORIZATION", "DOMAIN", "MEMBER", "APPLICATION", "CARTRIDGE", "ALIAS", "ENVIRONMENT_VARIABLE", "GEAR_GROUP", "DESCRIPTOR", "DEPLOYMENT"]
+  @resources.each do |resource|
+    @link_map[resource] = []
+  end
+  
+  @params = YAML.load_file("../assets/params.yml")
+end
 
 def send_request(request)
+  #adding a wait because ofr some reason application stop and start is failing due to timing issues
+  sleep(5)
   begin
     response = request.execute
   rescue RestClient::ExceptionWithResponse => e
+    puts "#{e.message} #{e.backtrace}" if @debug
     process_error_response(request, e.response)
   end
 end
@@ -62,46 +106,36 @@ def process_response(response, resource)
   links.each do |key, value|
     if key.include? "ADD"
       new_resource = key.gsub("ADD_","")
-      puts "Adding............#{new_resource}.........."
-      payload = get_payload(new_resource, value)
-      puts payload
-      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)   
+      puts "#{key}............#{new_resource}.........."
+      payload = get_payload(new_resource, key, value)
+      puts "payload #{payload}" if @debug
+      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :timeout => @timeout, :open_timeout => @timeout, :payload => payload)   
       response = process_resource(request, new_resource)  
-      puts "Added............#{new_resource}.........."
-    elsif key == "GET" 
-      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
-      response = send_request(request)
-    elsif key == "UPDATE" 
-      puts "Updating............#{resource}.........."
-      payload = get_payload(resource, value)
-      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
-      response = send_request(request)
-      #puts "Updated............#{resource}.........."
-    elsif key == "DELETE" 
-      puts "Deleting............#{resource}.........."
-      #special case for renamed domains
-      if resource == "DOMAIN"
-        request = RestClient::Request.new(:method => value["method"], :url => value["href"] + "X", :user => @user, :password => @password, :headers => @headers, :payload => payload)
-        response = send_request(request)
-      else
-        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
-        response = send_request(request)
-      end
-      #puts "Deleted............#{resource}.........."
+
     elsif key.include? "GET_" 
       new_resource = key.gsub("GET_", "")[0..-1]
-      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :timeout => @timeout, :open_timeout => @timeout, :payload => payload)
       response = process_resource(request, new_resource)
-    elsif key.include? "SHOW_" or key.include? "QUICKSTART" or key.include? "SET_UNSET_ENVIRONMENT_VARIABLES"
+      
+    elsif key.include? "SHOW_" or key.include? "QUICKSTART"
       #skip for now 
       #TODO FIXME
       next
-    else
+    
+    elsif key.include? "DELETE"
       puts "#{key} ............#{resource}.........."
-      payload = get_payload(resource, value)
-      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+      payload = get_payload(resource, key, value)
+      puts "payload #{payload}" if @debug
+      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :timeout => @timeout, :open_timeout => @timeout, :payload => payload)
+    
+    else 
+      puts "#{key} ............#{resource}.........."
+      payload = get_payload(resource, key, value)
+      puts "payload #{payload}" if @debug
+      request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :timeout => @timeout, :open_timeout => @timeout, :payload => payload)
       response = send_request(request)
     end
+    
     curl_command = "curl -X #{value["method"]} -u #{@user}:#{@password} #{value["href"]}"
     curl_command = curl_command + " #{convert_payload_to_params(payload)}" if payload
     value["curl"] = curl_command
@@ -133,27 +167,23 @@ end
 def process_error_response(request, response)
   messages = Array.new
   begin 
-    puts "Encountered an error trying to #{request.method} #{request.url}"
+    puts "Encountered an error trying to #{request.method} #{request.url}" if @debug
     result = JSON.parse(response)
     messages = result['messages']
-    puts "#{messages}"
+    puts "#{messages}" if @debug
     return nil
   rescue Exception => e
-    puts "#{e.message}"
+    puts "#{e.message} #{e.backtrace}"
   end
 end
 
-def get_payload(resource, link)
+def get_payload(resource, key, link)
   payload = {}
   required_params = link["required_params"]
   required_params.each do |param|
-    #handle special cases TODO move to yaml
-    if resource.downcase == "key" and param["name"] == "content"
-      payload[param["name"]] = File.read("../assets/ssh-key.txt")
-    elsif resource.downcase.include? "cartridge" and param["name"] == "name"
-      payload[param["name"]] = "mysql-5.1" 
-    elsif resource.downcase.include? "application" and param["name"] == "deployment_id"
-      payload[param["name"]] = "f36f59c0" 
+    value =  @params[resource][key][param["name"]] rescue nil
+    if value 
+      payload[param["name"]] = value
     elsif param["valid_options"] and !param["valid_options"].empty?
       payload[param["name"]] = param["valid_options"][0]
     elsif resource.downcase.include? "alias" 
@@ -161,60 +191,22 @@ def get_payload(resource, link)
         payload[param["name"]] = File.read("../assets/certificate.txt")
       elsif param["name"] == "private_key"
         payload[param["name"]] = File.read("../assets/private-key.txt")
-      elsif param["name"] == "pass_phrase"
-        payload[param["name"]] = "abcd"
-      else
-        payload[param["name"]] = "myalias"
       end
-    elsif resource.downcase.include? "authorization" and param["name"] == "note"
-      payload[param["name"]] = "This is a note to myself"
-    elsif resource.downcase.include? "environment_variable" 
-      if param["name"] == "name"
-        payload[param["name"]] = "FOO"
-      elsif param["name"] == "value"
-        payload[param["name"]] = "bar"
-        payload[param["name"]] = "Xbar" if link["method"] == "PUT"
-      end
-    else
-      payload[param["name"]] = "my#{resource.downcase}" if param["type"].downcase == "string"
-      payload[param["name"]] = "my#{resource.downcase}X" if param["type"].downcase == "string" and link["method"] == "PUT"
-      payload[param["name"]] = rand(0..10) if param["type"].downcase == "integer"
-      payload[param["name"]] = false if param["type"].downcase == "boolean"
     end
-    #puts "REQUIRED: #{param["name"]}=#{payload[param["name"]]}"
   end
   
   optional_params = link["optional_params"]
   optional_params.each do |param|
-    #handle special cases
-    if resource.downcase.include? "application" and link["method"] == "POST"
-      if param["name"] == "cartridges"
-        payload[param["name"]] = "ruby-1.9"
-      elsif param["name"] == "scale"
-        payload[param["name"]] = "true"
-      elsif param["name"] == "deployments"
-        payload[param["name"]] = []
-      end
-    elsif resource.downcase.include? "cartridge" and param["name"] == "additional_gear_storage"
-      payload[param["name"]] = 10
+    value =  @params[resource][key][param["name"]] rescue nil
+    if value 
+      payload[param["name"]] = value
     elsif resource.downcase.include? "alias" 
       if param["name"] == "ssl_certificate"
         payload[param["name"]] = File.read("../assets/certificate.txt")
       elsif param["name"] == "private_key"
         payload[param["name"]] = File.read("../assets/private-key.txt")
-      elsif param["name"] == "pass_phrase"
-        payload[param["name"]] = "abcd"
       end
-    elsif resource.downcase.include? "authorization" and param["name"] == "note"
-      payload[param["name"]] = "This is my UPDATED note to myself"
-    elsif resource.downcase.include? "member" and param["name"] == "login"
-      payload[param["name"]] = "team.member@mycompany.com"
-    elsif !param["default_value"].nil?
-      payload[param["name"]] = param["default_value"]
-    elsif param["valid_options"] and !param["valid_options"].empty?
-      payload[param["name"]] = param["valid_options"][0]
     end
-    #puts "OPTIONAL: #{param["name"]}=#{payload[param["name"]]}"
   end
   return payload
 end
@@ -234,44 +226,17 @@ def process_resource(request, resource)
   return response
 end
 
+def tear_down
+  system("oo-admin-ctl-app    -l #{@user} -c force-destroy -b -a myapp")
+  system("oo-admin-ctl-domain -l #{@user} -c delete -n mydomain")
+  system("oo-admin-ctl-domain -l #{@user} -c delete")
+end
+
 if __FILE__ == $0
   
-  begin
-    optparse.parse!
-  rescue OptionParser::InvalidArgument => e
-    puts "\n ##### #{e.message} #####"
-    puts optparse.to_s
-    puts "\n ##### #{e.message} #####"
-    puts
-    exit 1
-  end
+  set_up
 
-
-  @link_map = {}
-  @replace = []
-  url = "https://#{options[:server]}/broker/rest/api"
-  @random = rand(0..100)
-  @user = options[:username]
-  @password = options[:password]
-  @version = options[:version]
-  
-  #add user
-  request = RestClient::Request.new(:method => :get, :url => "https://#{options[:server]}/broker/rest/user", :user => @user, :password => @password, :headers => @headers)
-  response = send_request(request)
-  #add private cert capability and additional storage capability
-  system("oo-admin-ctl-user -l #{@user} --allowprivatesslcertificates true --setmaxtrackedstorage 20") if options[:server]=="localhost"
-  if options[:version]
-    @headers = {:accept => "application/json; version=#{@version}"}
-  else
-    @headers = {:accept => "application/json"}
-  end
-  
-  @resources = ["API", "USER", "KEY", "AUTHORIZATION", "DOMAIN", "MEMBER", "APPLICATION", "CARTRIDGE", "ALIAS", "ENVIRONMENT_VARIABLE", "GEAR_GROUP", "DESCRIPTOR", "DEPLOYMENT"]
-  @resources.each do |resource|
-    @link_map[resource] = []
-  end
-
-  request = RestClient::Request.new(:method => :get, :url => url, :user => @user, :password => @password, :headers => @headers)
+  request = RestClient::Request.new(:method => :get, :url => @url, :user => @user, :password => @password, :headers => @headers, :timeout => @timeout, :open_timeout => @timeout)
   response = send_request(request)
   process_response(response, "API")
   
@@ -319,7 +284,6 @@ if __FILE__ == $0
   @resources.each do |resource|
     doc_file.puts "<a href='##{resource.downcase}'>#{resource.downcase.gsub("_", " ").capitalize}</a><br\>"
   end
-  #puts final_map.keys.to_s
 
   @resources.each do |resource|
     links = final_map[resource]
@@ -389,6 +353,7 @@ if __FILE__ == $0
     puts e.message
   ensure
     doc_file.close if doc_file
+    tear_down
   end
 end
 
