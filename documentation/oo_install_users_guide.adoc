@@ -292,17 +292,20 @@ sudo: sorry, you must have a tty to run sudo
 ===== IP Address
 At this point, the installer will attempt to look up the IP addresses that have been assigned to the host that you are currently describing. In a situation where the host has multiple NICs, there may be multiple IP addresses to choose from.
 
-*Non-Node Hosts* +
+_Non-Node Hosts_ +
 The IP address that is provided here should be the one that would be used by _other OpenShift hosts_ would use to connect with this host.
 
-*Node Hosts* +
+_Node Hosts_ +
 In the case of Node hosts, you will want to use the IP address that _client systems_ would use to reach the host.
 
-*DNS Registration* +
-If you have told the installer to link:#registering-openshift-hosts-with-the-openshift-dns-instance[register your OpenShift host names with the OpenShift DNS instance], this IP address will be used as the resolution of this hostname.
-
-*Manual Entry* +
+_Manual Entry_ +
 You also have the option of supplying a completely different IP address. This may be necessary in situations where one OpenShift host is separated from the others in a NAT environment.
+
+[NOTE]
+====
+_IP Address and DNS Registration_ +
+If you have told the installer to link:#registering-openshift-hosts-with-the-openshift-dns-instance[register your OpenShift host names with the OpenShift DNS instance], this IP address will be used as the resolution of this hostname.
+====
 
 ===== IP Interface
 This value is only collected for Node hosts in OpenShift Origin deployments. This is a requirement of the underlying Puppet infrastructure. If you select one of the IP address / IP interface combos that `oo-install` finds on the host, you will not need to provide this at all. On the other hand, if you manually configure the IP address, you will also need to manually specify the interface. To see the available IP interfaces on a given host, you can run this command:
@@ -377,10 +380,23 @@ After the installer gives you the opportunity to work with subscription settings
 ==== Subscription Notes for OpenShift Origin
 The most common subscription method for Origin is `yum`, and the current known good repos to use are these:
 
-* The base URL for the OpenShift repositories: `https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-19`
+* The base URL for the OpenShift repositories:
+** For Fedora target systems: `https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-19`
+** For RHEL6 target systems: `https://mirror.openshift.com/pub/openshift-origin/nightly/rhel-6`
 * The base URL for a Jenkins repository: `http://pkg.jenkins-ci.org/redhat`
 
-The installer provides these settings as default values in new configuration files.
+[WARNING]
+====
+The installer provides the *Fedora* repo for the base URL in new configuration files. If you are:
+
+* Installing OpenShift Origin onto RHEL hosts +
++
+and +
++
+* Using the "yum" subscription method
+
+...then you will need to explicitily change your base URL value to the *RHEL* repo provided above.
+====
 
 == Pre-flight Checking and Installation
 Once you've configured DNS, Hosts and Roles, and Subscription information, the installer will do a sanity check of the entire deployment. Specifically, for each host that you've described, the installer checks the following:
