@@ -4,13 +4,14 @@ NAME
 SYNOPSIS
   oo-admin-ctl-user [-h|--help] [-l|--login login_name] 
   [--setmaxgears max_gears] [--setconsumedgears consumed_gears]
+  [--setmaxdomains max_domains]
   [--setmaxuntrackedstorage max_untracked_storage]
   [--setmaxtrackedstorage max_tracked_storage]
   [--listsubaccounts] [--addsubaccount subaccount_login]
   [--removesubaccount subaccount_login] [--allowsubaccounts true|false]
   [--addgearsize gear_size] [--removegearsize gear_size]
   [--inheritgearsizes true|false] [--allowha true|false]
-  [--allowprivatesslcertificates true|false]
+  [--allowprivatesslcertificates true|false] [--allowplanupgrade true|false]
 
 DESCRIPTION
   Utility to manage users within OpenShift Origin.
@@ -24,6 +25,9 @@ OPTIONS
 
   --setmaxgears max_gears  
     Set the maximum number of gears a user is allowed to consume.
+
+  --setmaxdomains max_domains
+    Set the maximum number of domains a user is allowed to consume.
 
   --setconsumedgears consumed_gears  
     Set the number of gears a user has consumed. Use with caution.
@@ -62,6 +66,9 @@ OPTIONS
 
   --allowprivatesslcertificates true|false  
     Add / Remove the capability to add private SSL certificates.
+
+  --allowplanupgrade true|false  
+    Add / Remove the capability to upgrade plan for this login user account.
 
 EXAMPLE
 
