@@ -10,7 +10,7 @@
 
 Summary:       OpenShift NodeJS Websocket frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.3.0
+Version: 0.3.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
 - Bug 1024721 - Add purge functionality to the frontend plugins.
   (rmillner@redhat.com)
