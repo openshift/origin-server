@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -149,6 +149,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
+- Bug 1034436 - Use shell globs instead of find in oo-auto-idler
+  (agrimm@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
 - Merge pull request #4124 from a13m/app-container
   (dmcphers+openshiftbot@redhat.com)
