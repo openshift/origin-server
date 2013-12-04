@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.18.0
+Version: 1.18.0.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,38 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
+- fix bz1036507 - improve error message (rchopra@redhat.com)
+- Bug 1034626 - No cartridge status is shown (bparees@redhat.com)
+- Merge pull request #4239 from lnader/bugs (dmcphers+openshiftbot@redhat.com)
+- Bug 1032436 (lnader@redhat.com)
+- Creating group instance and components on gear creation (abhgupta@redhat.com)
+- Flatten 'gears' in application mongo record i.e. 'gears' field will be
+  sibling of 'group_instances'. (rpenta@redhat.com)
+- Ensuring that app is not saved without core attributes set
+  (abhgupta@redhat.com)
+- Merge pull request #4241 from rajatchopra/fix_parallel_msg
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4213 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz1031821 - node exceptions are now propagated. Failed ops are also
+  mentioned in the error message (rchopra@redhat.com)
+- Added ; to list of chars not allowed (lnader@redhat.com)
+- Added checking for git ref according to git-check-ref-format rules
+  (lnader@redhat.com)
+- Changed deprecated to obsolete (lnader@redhat.com)
+- Merge pull request #4210 from bparees/mock_error
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4204 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4209 from mrunalp/dev/upgrade_endpoints
+  (dmcphers+openshiftbot@redhat.com)
+- bug 997924: jbossas-7 build fails if the app has mock-plugin addon
+  (bparees@redhat.com)
+- card_169 (lnader@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+- Migrate endpoints during upgrade. (mrunalp@gmail.com)
+
 * Thu Nov 14 2013 Adam Miller <admiller@redhat.com> 1.17.6-1
 - Bug 1028393 (lnader@localhost.localdomain)
 

@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.17.1
+Version: 1.17.1.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -75,6 +75,17 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.17.1.1-1
+- Fix for bug 1034596 remove links that point to openshift.redhat.com
+  (sgoodwin@redhat.com)
+- Remove Open Sans since we're not including it externally,     make font stack
+  consistent with our site,     set line-height (sgoodwin@redhat.com)
+- Merge pull request #4233 from sg00dwin/app-start
+  (dmcphers+openshiftbot@redhat.com)
+- Revisions to new app welcome pages. (sgoodwin@redhat.com)
+- Bug 1033144: Allow MAVEN_ARGS overriding in jbossews builds
+  (ironcladlou@gmail.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - bump_minor_versions for sprint 36 (admiller@redhat.com)
 

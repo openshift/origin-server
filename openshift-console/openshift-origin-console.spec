@@ -15,7 +15,7 @@
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
-Version:       1.15.1
+Version:       1.15.1.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -249,6 +249,16 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
+- node: we do not want %%ghost-ed log files (mmahut@redhat.com)
+- Bug 1019492 - Community related links should point to the page on PROD
+  (bleanhar@redhat.com)
+- Update systemd service definitions to rebuild Gemfile.lock
+  (jdetiber@redhat.com)
+- Added minitest to assets group depenedencies (hripps@redhat.com)
+- Removing test dependencies from Broker/Console build and runtime.
+  (bleanhar@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Bump up version (tdawson@redhat.com)
 - Fixing gem version requirement on sass-twitter-bootstrap (kraman@gmail.com)

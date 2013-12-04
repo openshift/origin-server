@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version: 1.17.1
+Version: 1.17.1.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,9 @@ then
 fi
 
 %changelog
+* Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.17.1.1-1
+- 
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - bump_minor_versions for sprint 36 (admiller@redhat.com)
 

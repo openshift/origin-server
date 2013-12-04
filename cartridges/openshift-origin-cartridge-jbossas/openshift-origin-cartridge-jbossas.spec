@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.18.0
+Version: 1.18.0.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,16 @@ fi
 
 
 %changelog
+* Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
+- Fix for bug 1034596 remove links that point to openshift.redhat.com
+  (sgoodwin@redhat.com)
+- Remove Open Sans since we're not including it externally,     make font stack
+  consistent with our site,     set line-height (sgoodwin@redhat.com)
+- Revisions to new app welcome pages. (sgoodwin@redhat.com)
+- bug 997924: jbossas-7 build fails if the app has mock-plugin addon
+  (bparees@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Thu Nov 14 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
 - Bumping cartridge versions for 2.0.36 (pmorie@gmail.com)
 

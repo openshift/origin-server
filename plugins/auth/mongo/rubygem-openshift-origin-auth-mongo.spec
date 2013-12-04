@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mongo auth service
 Name:          rubygem-%{gem_name}
-Version:       1.15.1
+Version:       1.15.1.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -99,6 +99,11 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{b
 %doc %{gem_docdir}
 
 %changelog
+* Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
+- Add config value (jliggitt@redhat.com)
+- Updating tests to register mongo-auth based user in the correct database
+  based on Rails environment. (kraman@gmail.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Bump up version (tdawson@redhat.com)
 - <broker> re-base the broker URI from /broker => / (lmeyer@redhat.com)
