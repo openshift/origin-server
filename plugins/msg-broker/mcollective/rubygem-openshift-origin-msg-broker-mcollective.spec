@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,16 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
+- Fix for bug 1035120 (abhgupta@redhat.com)
+- Flatten 'gears' in application mongo record i.e. 'gears' field will be
+  sibling of 'group_instances'. (rpenta@redhat.com)
+- fix bz1031821 - node exceptions are now propagated. Failed ops are also
+  mentioned in the error message (rchopra@redhat.com)
+- Bug 1032906: Fix generic error handling in Openshift agent
+  (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Thu Nov 14 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
 - Fix typo (dmcphers@redhat.com)
 
