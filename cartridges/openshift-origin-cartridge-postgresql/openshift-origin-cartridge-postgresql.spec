@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -101,6 +101,14 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
+- Merge pull request #4202 from bparees/psql_restore_invalid_error
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+- Bug 1003531: An warning message should be thrown out instead of error message
+  when restore a app with postgresql-8.4 (and postgresl-9.2) cartridge
+  (bparees@redhat.com)
+
 * Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
 - Removing json-c for now as it requires upstream work (dmcphers@redhat.com)
 
