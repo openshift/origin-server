@@ -47,7 +47,7 @@ module OpenShift
       clnt = HTTPClient.new
       res = clnt.post("http://#{@server}:#{@port}/remove_alias", body)
       Rails.logger.debug "response: #{res.status}"
-      raise DNSException.new(res.body) unless res.status == 200
+      raise DNSException.new(res.body) unless (res.status == 200 or res.status == 404)
     end
 
     def modify_application(app_name, namespace, public_hostname)
