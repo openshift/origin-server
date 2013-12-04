@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'getoptlong'
 
-CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear|remove-cartridge|run-connection-hooks|set-multiplier)"
+CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear|remove-cartridge|run-connection-hooks|set-multiplier|update-cluster)"
 
 def usage
   puts <<USAGE
@@ -261,6 +261,8 @@ begin
       exit 1
     end
     app.update_component_limits(ci, nil, nil, nil, multiplier)
+  when "update-cluster"
+    app.update_cluster
   else
     puts "Command must be one of: #{CTL_APP_COMMANDS}"
     usage
