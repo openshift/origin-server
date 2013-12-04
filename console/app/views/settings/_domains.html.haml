@@ -7,7 +7,7 @@
   - @domains.first(3).each do |d|
     %tr
       %td= link_to d.name, domain_path(d)
-      %td= pluralize(d.application_count, 'application')
+      %td.nowrap= pluralize(d.application_count, 'application')
       %td
         - if !d.owner?
           = "Shared by #{d.members.find(&:owner?).name}" rescue "Shared with you"
