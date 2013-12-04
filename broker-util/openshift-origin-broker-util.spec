@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -96,6 +96,28 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-analytics-import.8.gz
 
 %changelog
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
+- Add update-cluster to oo-admin-ctl-app (andy.goldstein@gmail.com)
+- Fix oo-admin-repair: Do not depend on gear index to know whether it has
+  framework cart or not. (rpenta@redhat.com)
+- Bug 1035984 - Updated oo-admin-ctl-user man pages with
+  setmaxdomains/allowplanupgrade options (rpenta@redhat.com)
+- Bug 1034571 - Fix oo-admin-ctl-app script: 'remove-gear' option will not
+  remove database gears (rpenta@redhat.com)
+- Bug 1034018 - Fix gears/group_instances check in oo-admin-chk script
+  (rpenta@redhat.com)
+- Bug 977929 (lnader@localhost.localdomain)
+- Fix group_instances/component_instances/gears checks in oo-admin-chk script
+  (rpenta@redhat.com)
+- Bug fixes: 1034084, 1034018 (rpenta@redhat.com)
+- Flatten 'gears' in application mongo record i.e. 'gears' field will be
+  sibling of 'group_instances'. (rpenta@redhat.com)
+- fix bz1032765 - stray args will be treated as erroneous (rchopra@redhat.com)
+- Merge pull request #4209 from mrunalp/dev/upgrade_endpoints
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+- Migrate endpoints during upgrade. (mrunalp@gmail.com)
+
 * Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.5-1
 - app_info.rb in right place for rhel (tdawson@redhat.com)
 - Merge pull request #4171 from detiber/fixBuildRequires
