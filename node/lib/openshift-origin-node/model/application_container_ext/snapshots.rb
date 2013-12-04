@@ -181,6 +181,8 @@ module OpenShift
               return result unless distribute_result[:status] == RESULT_SUCCESS
 
               options[:all] = true
+              options[:restore] = true
+
               activate_result = result[:activate_result] = activate(options)
               return result unless activate_result[:status] == RESULT_SUCCESS
             else
