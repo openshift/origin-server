@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,45 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
+- Merge pull request #4280 from pmorie/dev/fix-tests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix binary deploy functional test on origin (pmorie@gmail.com)
+- Increase inode quotas to 80k per GB (andy.goldstein@gmail.com)
+- Bug 1036006 - oo-admin-ctl-gears *startall commands fail (jhonce@redhat.com)
+- Security - add OPENSHIFT_UMASK to oo-trap-user for - BZ990441
+  (tkramer@redhat.com)
+- Merge pull request #4019 from markllama/bugs/BZ1024102
+  (dmcphers+openshiftbot@redhat.com)
+- Fix upgrade tests (pmorie@gmail.com)
+- allow oo-trap-user to run from non-public-key auth (markllama@gmail.com)
+- Merge pull request #4230 from bparees/mysql_port_in_use
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4224 from mmahut/ownlogdir
+  (dmcphers+openshiftbot@redhat.com)
+- bug 985784: Unable to add database cartridge to apps again after removing it
+  due to TCP connection stays in CLOSE_WAIT status (bparees@redhat.com)
+- Merge pull request #4226 from ncdc/bz1033572-default-git-ref
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1033572 (andy.goldstein@gmail.com)
+- Bug 1032906: Fix generic error handling in Openshift agent
+  (ironcladlou@gmail.com)
+- node: we do not want %%ghost-ed log files (mmahut@redhat.com)
+- node: make sure to own the /var/log/openshift/node directory in rpm
+  (mmahut@redhat.com)
+- Merge pull request #4214 from ncdc/bz1032950-lchown-by-id-link
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1032950 (andy.goldstein@gmail.com)
+- Fix viminfo file error when using vim within gears (jhadvig@redhat.com)
+- Up tries on http assertions in functional API (pmorie@gmail.com)
+- Merge pull request #4209 from mrunalp/dev/upgrade_endpoints
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4198 from ncdc/haproxy-keep-proxy-gears-disabled
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+- Keep proxy gears disabled appropriately (andy.goldstein@gmail.com)
+- Migrate endpoints during upgrade. (mrunalp@gmail.com)
+
 * Tue Nov 19 2013 Adam Miller <admiller@redhat.com> 1.17.6-1
 - Fix assertion messages in functional api (pmorie@gmail.com)
 
