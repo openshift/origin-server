@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -76,6 +76,15 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
+- enable php-fpm based on user request (admiller@redhat.com)
+- Fix for bug 1034596 remove links that point to openshift.redhat.com
+  (sgoodwin@redhat.com)
+- Remove Open Sans since we're not including it externally,     make font stack
+  consistent with our site,     set line-height (sgoodwin@redhat.com)
+- Revisions to new app welcome pages. (sgoodwin@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Thu Nov 14 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
 - Merge pull request #4186 from pmorie/latest-versions
   (dmcphers+openshiftbot@redhat.com)
