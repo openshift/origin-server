@@ -82,7 +82,7 @@
                       = logo_for cartridge.cartridge_type
                       = cartridge.display_name
 
-                    .flow-block.right>
+                    .flow-block.right{:style => "min-width: #{cartridge.scales? ? 250 : 195}px"}>
                       %ul.inline.left
                         - if cartridge.scales?
                           %li.top
