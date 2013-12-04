@@ -152,6 +152,10 @@ table {
 .table-fixed {
   table-layout: fixed;
 }
+.table-fixed td, .table-fixed th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 
 // TABLE CELL SIZING
