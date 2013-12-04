@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,9 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
 - Fix the admin console testcases in origin (jforrest@redhat.com)
 
