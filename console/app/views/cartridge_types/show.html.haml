@@ -1,10 +1,8 @@
 - content_for :page_style, 'highlight'
 - content_for :page_title, 'Add a Cartridge'
 :css
-  .form-horizontal.add-cartridge .control-label { width: auto; font-size: 17.36px; }
-  .form-horizontal.add-cartridge .control-group { margin-bottom: 15px; }
-  .form-horizontal.add-cartridge .controls { margin-left: 90px; }
-  .form-horizontal.add-cartridge .controls h3 { display: inline; margin-right: 8px; }
+  .form-horizontal.add-cartridge .control-label { margin-left: 0; margin-right: 20px; width: auto; display: inline-block; }
+  .form-horizontal.add-cartridge .controls { margin-left: auto; display: inline-block; }
 
 - if @wizard
   %h1.invisible Add a Cartridge
@@ -16,19 +14,19 @@
 
 = render :partial => 'cartridge_types/cartridge_type_notifications', :locals => { :type => @cartridge_type }
 
-= semantic_form_for @cartridge, :url => application_cartridges_path(@application), :html => {:class => 'form'} do |f|
+= semantic_form_for @cartridge, :url => application_cartridges_path(@application), :html => {:class => 'form form-important'} do |f|
   = f.hidden_field :name, :value => @cartridge_type.name
   = f.hidden_field :url, :value => @cartridge_type.url
 
   = f.semantic_errors
 
   = f.inputs :class => 'inputs form-horizontal add-cartridge' do
-    - if @gear_sizes.length > 1
-      = f.input :gear_size, :as => :select, :collection => @gear_sizes.map{ |size| [size.to_s.titleize, size]}, :include_blank => false
-    - else
-      .control-group
-        %label.control-label Gear size
-        .controls
+    = control_group(false, :important => true) do  
+      %h3.control-label Gear Size
+      .controls
+        - if @gear_sizes.length > 1
+          = f.select :gear_size, @gear_sizes.map{ |size| [size.to_s.titleize, size]}, {}
+        - else
           %h3.cartridge_gear_size= @gear_sizes.first.to_s.titleize
           -#%span.icon-question-sign{'aria-hidden'=>"true"}
           -#.popover-cartridge-gear-sizes.hide
