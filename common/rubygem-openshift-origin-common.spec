@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,23 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
+- <oo-diagnostics> handle ^C more cleanly (lmeyer@redhat.com)
+- <oo-diagnostics> detect common DNS problem early (lmeyer@redhat.com)
+- Changed deprecated to obsolete (lnader@redhat.com)
+- <oo-diagnostics> loosen DNS test - bug 1033701 (lmeyer@redhat.com)
+- Merge pull request #4204 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4209 from mrunalp/dev/upgrade_endpoints
+  (dmcphers+openshiftbot@redhat.com)
+- card_169 (lnader@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+- <oo-diagnostics> validate yum conf if possible - bug 1031686
+  (lmeyer@redhat.com)
+- <oo-diagnostics> test for clashing app frontends, bug 1031686
+  (lmeyer@redhat.com)
+- Migrate endpoints during upgrade. (mrunalp@gmail.com)
+
 * Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
 - Merge pull request #4119 from mfojtik/bugzilla/1026273
   (dmcphers+openshiftbot@redhat.com)
