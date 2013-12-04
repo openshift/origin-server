@@ -163,6 +163,10 @@ class CartridgeCache
         end
       rescue Timeout::Error
         raise OpenShift::UnfulfilledRequirementException.new(url)
+      rescue HTTPClient::BadResponseError => be
+        raise OpenShift::UserException.new("Bad response (#{be.res.status_code}) from url - #{url}")
+      rescue Exception=>e
+        Rails.logger.debug(e.inspect)
       end
     end
 
