@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.11.1
+Version: 2.11.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,15 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 2.11.2-1
+- Fix for bug 1034596 remove links that point to openshift.redhat.com
+  (sgoodwin@redhat.com)
+- Remove Open Sans since we're not including it externally,     make font stack
+  consistent with our site,     set line-height (sgoodwin@redhat.com)
+- Revisions to new app welcome pages. (sgoodwin@redhat.com)
+- bug 997924: jbossas-7 build fails if the app has mock-plugin addon
+  (bparees@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 2.11.1-1
 - bump_minor_versions for sprint 36 (admiller@redhat.com)
 
