@@ -47,6 +47,31 @@ You can run the OpenShift installer from any computer that has the following uti
 * curl
 * unzip
 
+[TIP]
+====
+If you are installing OpenShift Origin on RHEL6 or a derivative distribution (such as CentOS, Scientific Linux, etc.) you will require the installation of ruby193-ruby from the Red Hat Software Collections repository. If you do not have a subscription with an available RHSCL entitlement, there is an unsupported subset of those packages available in the OpenShift Origin dependencies repository. 
+
+If you are using a RHEL6 installation that has access to the supported Red Hat Software Collections, please refer to the documentation for enabling them https://access.redhat.com/site/documentation/en-US/Red_Hat_Software_Collections/1/html/1.0_Release_Notes/chap-Installation_and_Usage.html[here].
+
+If you are using a RHEL6 (or derivative distribution) that doesn't have access, please run the following to enable the required repository.
+
+----
+$ cat > /etc/yum.repos.d/openshift-origin-deps.repo <<"EOF"
+[openshift-origin-deps]
+name=OpenShift Origin Dependencies - EL6
+baseurl=https://mirror.openshift.com/pub/openshift-origin/nightly/rhel-6/dependencies/$basearch/
+gpgcheck=0
+EOF
+----
+
+With the repo setup, you can now install ruby 1.9.3 as follows and the oo-install script will utilize it where necessary.
+
+----
+$ yum install ruby193-ruby
+----
+====
+
+
 On most systems, you can install these by running:
 
 ----
