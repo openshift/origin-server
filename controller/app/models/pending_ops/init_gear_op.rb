@@ -16,11 +16,11 @@ class InitGearOp < PendingAppOp
     begin 
       group_instance = get_group_instance()
     rescue Mongoid::Errors::DocumentNotFound
-      pending_app_op_group.application.group_instances.push(GroupInstance.new(custom_id: group_instance_id))
+      application.group_instances.push(GroupInstance.new(custom_id: group_instance_id))
       group_instance = get_group_instance()
     end
     
-     pending_app_op_group.application.gears.push(Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns))
+     application.gears.push(Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns))
 
     # create the component instances, if they are not present
     comp_specs.each do |comp_spec|
@@ -28,12 +28,12 @@ class InitGearOp < PendingAppOp
         unless group_instance.has_component?(comp_spec)
           comp_name = comp_spec["comp"]
           cart_name = comp_spec["cart"]
-          cartridge = CartridgeCache.find_cartridge(cart_name, pending_app_op_group.application)
+          cartridge = CartridgeCache.find_cartridge(cart_name, application)
           component_instance = ComponentInstance.new(cartridge_name: cart_name, component_name: comp_name, 
                                                      group_instance_id: group_instance._id, 
                                                      cartridge_vendor: cartridge.cartridge_vendor, 
                                                      version: cartridge.version)
-          pending_app_op_group.application.component_instances.push(component_instance)
+          application.component_instances.push(component_instance)
         end
       end
     end if comp_specs.present?
@@ -59,6 +59,15 @@ class InitGearOp < PendingAppOp
       end 
     rescue Mongoid::Errors::DocumentNotFound
       # ignore if the group instance is already deleted
+    end
+
+    # add an op_group to remove the ssh key created/added for this gear 
+    remove_ssh_keys = application.app_ssh_keys.find_by(component_id: gear_id) rescue []
+    remove_ssh_keys = [remove_ssh_keys].flatten
+    if remove_ssh_keys.length > 0
+      keys_attrs = application.remove_ssh_keys.map{|k| k.attributes.dup}
+      op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: application.user_agent)
+      Application.where(_id: application._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
     end
   end
 
