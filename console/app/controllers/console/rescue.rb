@@ -52,9 +52,18 @@ module Console
       end
 
       def server_error(e=nil, message=nil, alternatives=nil)
-        if e.present? && e.response.present? && e.response.code.present? && e.response.code.to_i == 503
-          logger.debug "Maintenance in progress: #{e}"
-          redirect_to server_unavailable_path
+        if e.present? && e.response.present?
+          if e.response.code.present? && e.response.code.to_i == 503
+            logger.debug "Maintenance in progress: #{e}"
+            redirect_to server_unavailable_path
+          else
+            if (server_messages = RestApi::Base.messages_for e.response).present?
+              e = RestApi::ServerError.new(e.response, server_messages.map(&:text).join(' -- '))
+              e.set_backtrace($!.backtrace)
+            end
+            logger.debug "Server error: #{e}"            
+            generic_error(e, message, alternatives)            
+          end
         else
           logger.debug "Server error: #{e}"
           generic_error(e, message, alternatives)
