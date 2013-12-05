@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Dec 05 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
+- Bug 1038680 - improve console's reporting of 500 errors from rest api
+  (jforrest@redhat.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
 - Merge pull request #4285 from liggitt/bug_1037435_cartridge_details_overflow
   (dmcphers+openshiftbot@redhat.com)
