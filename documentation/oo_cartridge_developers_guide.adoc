@@ -74,12 +74,14 @@ An example `manifest.yml` file:
 Name: PHP
 Cartridge-Short-Name: PHP
 Cartridge-Version: '1.0.1'
-Compatible-Versions: ['1.0.1']
+Compatible-Versions: 
+  - '1.0.1'
 Cartridge-Vendor: redhat
 Display-Name: PHP 5.3
 Description: "PHP is a general-purpose server-side scripting language..."
 Version: '5.3'
-Versions: ['5.3']
+Versions: 
+  - '5.3'
 License: "The PHP License, version 3.0"
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: PHP Group
@@ -97,7 +99,6 @@ Cart-Data:
 Provides:
   - php-5.3
   - "php"
-  - "php(version) = 5.3.2"
 Publishes:
   get-php-ini:
     Type: "FILESYSTEM:php-ini"
@@ -253,6 +254,22 @@ Group-Overrides:
 This section defines the scaling parameters for a cartridge and is applicable when the cartridge is added to a scalable application.  The `Min` and `Max` parameters define the scaling limits for the cartridge.  Setting both the `Min` and `Max` equal to 1 indicates that the cartridge cannot scale.  On the other hand, if `Max` is specified as -1, then there is no maximum scaling limit and the cartridge can scale up as long as the user's gear limit is not exceeded.  The scaling limits are enforced during auto-scaling as well as when setting the cartridge scaling limits manually. 
 
 When using `Group-Overrides` to co-locate two or more cartridges that can all scale, it is important to ensure that their scaling limits match.  There are occasions, however, when this is not desirable, such as in the case of a `web_proxy` that is co-located with the `web_framework`.  In this case it doesn't make sense to have the `web_proxy` cartridge be present on every gear where the `web_framework` gear is located.  The `Multiplier` parameter enables this by allowing the cartridge to be placed on fewer gears within the group instance.  For example, if the `Multiplier` is set to 3, then every third gear within the group instance will have the cartridge installed.  Similarly, if the `Multiplier` is set to 1, then all gears within the group instance will have the cartridge installed on them.
+
+
+=== Provides
+`Provides` is a list of *features* or *functionalities* that the cartridge provides to the application.  For example, the php-5.3 cartridge provides *php-5.3* as well as, more generically, *php*. 
+
+----
+Provides: 
+  - php-5.3
+  - php
+----
+
+
+=== Requires
+`Requires` is a list of *features* or *functionalities* that this cartridge depends upon for its operation.  These dependencies would be matched against other available cartridges to find the ones that *provide* them.  For example, a *framework* cartridge like *Rails* could require a *language/runtime* cartridge like *Ruby*.  In this case, if an application is being created with the *Rails* cartridge, based on the `Requires` specification, a cartridge that provides *Ruby* would be automatically added to the application.  
+
+The functionality specified in the `Requires` section must identify a single cartridge.  In case multiple cartridges are matched, then the cartridge cannot be added and an error is raised to the user. 
 
 
 === Source-Url
