@@ -144,6 +144,39 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Fix bug 1037994: scopes table text overflows at small resolutions
+  (jliggitt@redhat.com)
+- Add cartridges with gear sizes via web console (contact@fabianofranz.com)
+- Bug 1035101 - show scope descriptions for parameterized scopes
+  (jliggitt@redhat.com)
+- Fix bug 1034567 Make input fields block at 640px (sgoodwin@redhat.com)
+- add zend-6.1 to rest_api cartridge_type_test (vvitek@redhat.com)
+- Merge pull request #4190 from jwforres/online_ui_402_account_signup
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4229 from liggitt/bug_1033682_id_uri_escaping
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4222 from liggitt/bug_1029678_site_test_error
+  (dmcphers+openshiftbot@redhat.com)
+- Allow for asset_host, default_url_host, and default_url_port options to be
+  configured in the console.conf file (jforrest@redhat.com)
+- Merge pull request #4208 from liggitt/bug_1030791_popup_visibility
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4206 from liggitt/bug_1032665_middle_click
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1033682 - encode model ids when generating broker urls
+  (jliggitt@redhat.com)
+- Improve async error logging (jliggitt@redhat.com)
+- Merge pull request #4216 from liggitt/bug_1032888_middle_click_copy
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1032888: select ssh url on mousedown (jliggitt@redhat.com)
+- Fix bug 1030791: popup visibility on iphone (jliggitt@redhat.com)
+- Fix bug 1032665 - make middle-click work on clickable tiles
+  (jliggitt@redhat.com)
+- Fix bug 1030774: domain info overflow (jliggitt@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
 - Fix bug 1037994: scopes table text overflows at small resolutions
   (jliggitt@redhat.com)
