@@ -82,6 +82,12 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.10.2.2-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Avoid throwing an error if app entry is not found during deregister call
+  (kraman@gmail.com)
+- enable scl correctly (tdawson@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com>
 - enable scl correctly (tdawson@redhat.com)
 
