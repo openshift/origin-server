@@ -41,6 +41,9 @@ install -D -m 644 oo-namespace-init.8 %{buildroot}/%{_mandir}/man8/oo-namespace-
 %attr(0750,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.10.1.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.10.1.1-1
 - 
 
