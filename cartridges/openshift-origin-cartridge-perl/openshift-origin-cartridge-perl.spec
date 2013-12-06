@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Fri Dec 06 2013 Troy Dawson <tdawson@redhat.com> 1.17.2-1
+- Bump up cartridge versions. (mrunalp@gmail.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - Fix for bug 1034596 remove links that point to openshift.redhat.com
   (sgoodwin@redhat.com)
