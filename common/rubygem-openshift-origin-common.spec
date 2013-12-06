@@ -117,6 +117,24 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- <oo-diagnostics> handle ^C more cleanly (lmeyer@redhat.com)
+- <oo-diagnostics> detect common DNS problem early (lmeyer@redhat.com)
+- Changed deprecated to obsolete (lnader@redhat.com)
+- <oo-diagnostics> loosen DNS test - bug 1033701 (lmeyer@redhat.com)
+- Merge pull request #4204 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4209 from mrunalp/dev/upgrade_endpoints
+  (dmcphers+openshiftbot@redhat.com)
+- card_169 (lnader@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+- <oo-diagnostics> validate yum conf if possible - bug 1031686
+  (lmeyer@redhat.com)
+- <oo-diagnostics> test for clashing app frontends, bug 1031686
+  (lmeyer@redhat.com)
+- Migrate endpoints during upgrade. (mrunalp@gmail.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
 - <oo-diagnostics> handle ^C more cleanly (lmeyer@redhat.com)
 - <oo-diagnostics> detect common DNS problem early (lmeyer@redhat.com)
