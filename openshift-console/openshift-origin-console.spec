@@ -249,6 +249,17 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- node: we do not want %%ghost-ed log files (mmahut@redhat.com)
+- Bug 1019492 - Community related links should point to the page on PROD
+  (bleanhar@redhat.com)
+- Update systemd service definitions to rebuild Gemfile.lock
+  (jdetiber@redhat.com)
+- Added minitest to assets group depenedencies (hripps@redhat.com)
+- Removing test dependencies from Broker/Console build and runtime.
+  (bleanhar@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
 - node: we do not want %%ghost-ed log files (mmahut@redhat.com)
 - Bug 1019492 - Community related links should point to the page on PROD
