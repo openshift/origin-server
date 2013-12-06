@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Dec 06 2013 Troy Dawson <tdawson@redhat.com> 1.18.2-1
+- Bump up cartridge versions. (mrunalp@gmail.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
 - Fix for bug 1034596 remove links that point to openshift.redhat.com
   (sgoodwin@redhat.com)
