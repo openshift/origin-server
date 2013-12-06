@@ -38,6 +38,13 @@ chmod 0755 %{buildroot}%{_bindir}/*
 
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Merge pull request #3622 from brenton/ruby193-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- Adding oo-mco and updating oo-diagnostics to support the SCL'd mcollective
+  (bleanhar@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
 - Merge pull request #3622 from brenton/ruby193-mcollective
   (dmcphers+openshiftbot@redhat.com)
