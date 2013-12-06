@@ -6,16 +6,18 @@ require 'json'
 STDOUT.sync = true
 STDERR.sync = true
 
+CURL_CMD = "curl -s -ssl3 --insecure"
+
 @hostname = ENV['JENKINS_URL'].split("/")[-1]
 @job_url = "/job/#{ENV['OPENSHIFT_APP_NAME']}-build"
 
 def job_available?
-  status_code = `curl -s -w %{http_code} --output /dev/null -X POST --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/api/json`
+  status_code = `#{CURL_CMD} -w %{http_code} --output /dev/null -X POST https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/api/json`
   return status_code == '200'
 end
 
 def get_jobs_info
-  jobs = `curl -s --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/api/json`
+  jobs = `#{CURL_CMD} https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/api/json`
   result = $?
   if result.exitstatus != 0
     puts "ERROR - Couldn't access jobs information"
@@ -25,7 +27,7 @@ def get_jobs_info
 end
 
 def get_job_info(num)
-  jobs = `curl -s --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/#{num}/api/json`
+  jobs = `#{CURL_CMD} https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/#{num}/api/json`
   result = $?
   if result.exitstatus != 0
     puts "ERROR - Couldn't access job information"
@@ -41,11 +43,11 @@ end
 
 def is_cancelled
   jobs_info = get_jobs_info
-  queueItem = jobs_info["queueItem"]
+  jobs_info["queueItem"]
 end
 
 def schedule_build
-  status_code = `curl -s -w %{http_code} --output /dev/null -X POST --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/build`
+  status_code = `#{CURL_CMD} -w %{http_code} --output /dev/null -X POST https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/build`
   if status_code != '302' && status_code != '200'
     puts "ERROR - Couldn't schedule job"
     exit 292
