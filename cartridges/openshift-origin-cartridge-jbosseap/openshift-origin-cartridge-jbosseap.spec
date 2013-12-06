@@ -92,6 +92,16 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 2.11.1.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Fix for bug 1034596 remove links that point to openshift.redhat.com
+  (sgoodwin@redhat.com)
+- Remove Open Sans since we're not including it externally,     make font stack
+  consistent with our site,     set line-height (sgoodwin@redhat.com)
+- Revisions to new app welcome pages. (sgoodwin@redhat.com)
+- bug 997924: jbossas-7 build fails if the app has mock-plugin addon
+  (bparees@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 2.11.1.1-1
 - Fix for bug 1034596 remove links that point to openshift.redhat.com
   (sgoodwin@redhat.com)
