@@ -101,6 +101,15 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Merge pull request #4202 from bparees/psql_restore_invalid_error
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+- Bug 1003531: An warning message should be thrown out instead of error message
+  when restore a app with postgresql-8.4 (and postgresl-9.2) cartridge
+  (bparees@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
 - Merge pull request #4202 from bparees/psql_restore_invalid_error
   (dmcphers+openshiftbot@redhat.com)
