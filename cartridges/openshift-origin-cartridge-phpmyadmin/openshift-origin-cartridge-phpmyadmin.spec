@@ -51,6 +51,9 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.17.1.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.17.1.1-1
 - 
 
