@@ -85,6 +85,10 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 0.3.0.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 0.3.0.1-1
 - bump_minor_versions for sprint 37 (admiller@redhat.com)
 
