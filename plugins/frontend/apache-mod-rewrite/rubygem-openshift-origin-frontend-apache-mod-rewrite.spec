@@ -131,6 +131,9 @@ mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 0.3.1.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 0.3.1.1-1
 - 
 
