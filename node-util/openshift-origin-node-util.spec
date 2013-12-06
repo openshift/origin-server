@@ -149,6 +149,12 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Bug 1034436 - Use shell globs instead of find in oo-auto-idler
+  (agrimm@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
 - Bug 1034436 - Use shell globs instead of find in oo-auto-idler
   (agrimm@redhat.com)
