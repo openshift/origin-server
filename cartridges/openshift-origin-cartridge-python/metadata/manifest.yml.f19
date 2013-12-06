@@ -12,7 +12,7 @@ Versions:
 License: The Python License, version 2.7
 License-Url: http://docs.python.org/3/license.html
 Vendor: python.org
-Cartridge-Version: 0.0.9
+Cartridge-Version: 0.0.10
 Compatible-Versions:
 - 0.0.8
 Cartridge-Vendor: redhat

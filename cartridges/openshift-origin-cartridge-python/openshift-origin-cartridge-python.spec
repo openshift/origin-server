@@ -43,6 +43,11 @@ Requires:      python27-python-psycopg2
 Requires:      python27-mod_wsgi
 Requires:      python27-python-pip-virtualenv
 Requires:      python27-numpy
+Requires:      python33-python-virtualenv
+Requires:      python33-mod_wsgi
+Requires:      python33-python-pymongo
+Requires:      python33-python-psycopg2
+Requires:      python33-numpy
 %endif
 Requires:      libjpeg
 Requires:      libjpeg-devel
@@ -90,17 +95,18 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %__rm -f %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
-%__mkdir -p %{buildroot}%{cartridgedir}/usr/versions/{2.6,2.7}
+%__mkdir -p %{buildroot}%{cartridgedir}/usr/versions/{2.6,2.7,3.3}
 %if 0%{?fedora}%{?rhel} <= 6
 %__cp -anv %{buildroot}%{cartridgedir}/usr/versions/2.7-scl/* %{buildroot}%{cartridgedir}/usr/versions/2.7/
+%__cp -anv %{buildroot}%{cartridgedir}/usr/versions/3.3-scl/* %{buildroot}%{cartridgedir}/usr/versions/3.3/
 %endif
 %__cp -anv %{buildroot}%{cartridgedir}/usr/versions/shared/* %{buildroot}%{cartridgedir}/usr/versions/2.6/
 %__cp -anv %{buildroot}%{cartridgedir}/usr/versions/shared/* %{buildroot}%{cartridgedir}/usr/versions/2.7/
+%__cp -anv %{buildroot}%{cartridgedir}/usr/versions/shared/* %{buildroot}%{cartridgedir}/usr/versions/3.3/
 
 %__rm -rf %{buildroot}%{cartridgedir}/usr/versions/shared
 %__rm -rf %{buildroot}%{cartridgedir}/usr/versions/2.7-scl
-
-%__mv %{buildroot}%{cartridgedir}/usr/versions/3.3-community %{buildroot}%{cartridgedir}/usr/versions/3.3/
+%__rm -rf %{buildroot}%{cartridgedir}/usr/versions/3.3-scl
 
 %files
 %dir %{cartridgedir}
