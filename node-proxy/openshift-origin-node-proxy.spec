@@ -135,6 +135,16 @@ fi
 %doc README
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.17.0.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Bug 1034077: Fix for backend connection not opened. (mrunalp@gmail.com)
+- Merge pull request #4234 from maxamillion/admiller/fix_node-proxy_build
+  (dmcphers+openshiftbot@redhat.com)
+- remove unnecessary scl enable, we handle all scl paths in global macros
+  (admiller@redhat.com)
+- check for headers and host header bz#103064 (vbatts@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.17.0.1-1
 - Bug 1034077: Fix for backend connection not opened. (mrunalp@gmail.com)
 - Merge pull request #4234 from maxamillion/admiller/fix_node-proxy_build
