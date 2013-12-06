@@ -85,6 +85,17 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Fix for bug 1035120 (abhgupta@redhat.com)
+- Flatten 'gears' in application mongo record i.e. 'gears' field will be
+  sibling of 'group_instances'. (rpenta@redhat.com)
+- fix bz1031821 - node exceptions are now propagated. Failed ops are also
+  mentioned in the error message (rchopra@redhat.com)
+- Bug 1032906: Fix generic error handling in Openshift agent
+  (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
 - Fix for bug 1035120 (abhgupta@redhat.com)
 - Flatten 'gears' in application mongo record i.e. 'gears' field will be
