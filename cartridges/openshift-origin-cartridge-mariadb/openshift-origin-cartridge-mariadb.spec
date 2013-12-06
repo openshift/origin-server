@@ -36,6 +36,20 @@ Provides mariadb cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Bump cartridge versions for 2.0.35 (pmorie@gmail.com)
+- Bump cartridge versions (fotios@redhat.com)
+- Fix mariadb tests. (mrunalp@gmail.com)
+- MariaDB update based on MySQL cart changes (kraman@gmail.com)
+- Origin UI 72 - Membership (ccoleman@redhat.com)
+- Merge pull request #3707 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- add mappings support to routing spi, and add protocols to cart manifests
+  (rchopra@redhat.com)
+- Bug 982434 - remove extraneous set_app_info usage (jhonce@redhat.com)
+- Bug 980515 - Remove extraneous Conflicts element (jhonce@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
 - Bump cartridge versions for 2.0.35 (pmorie@gmail.com)
 - Bump cartridge versions (fotios@redhat.com)
