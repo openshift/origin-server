@@ -99,6 +99,12 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{b
 %doc %{gem_docdir}
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Add config value (jliggitt@redhat.com)
+- Updating tests to register mongo-auth based user in the correct database
+  based on Rails environment. (kraman@gmail.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
 - Add config value (jliggitt@redhat.com)
 - Updating tests to register mongo-auth based user in the correct database
