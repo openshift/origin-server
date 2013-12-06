@@ -76,6 +76,16 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- enable php-fpm based on user request (admiller@redhat.com)
+- Fix for bug 1034596 remove links that point to openshift.redhat.com
+  (sgoodwin@redhat.com)
+- Remove Open Sans since we're not including it externally,     make font stack
+  consistent with our site,     set line-height (sgoodwin@redhat.com)
+- Revisions to new app welcome pages. (sgoodwin@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
 - enable php-fpm based on user request (admiller@redhat.com)
 - Fix for bug 1034596 remove links that point to openshift.redhat.com
