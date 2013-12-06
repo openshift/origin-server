@@ -85,6 +85,22 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.19.0.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Fix for bug 1034596 remove links that point to openshift.redhat.com
+  (sgoodwin@redhat.com)
+- Remove Open Sans since we're not including it externally,     make font stack
+  consistent with our site,     set line-height (sgoodwin@redhat.com)
+- Merge pull request #4233 from sg00dwin/app-start
+  (dmcphers+openshiftbot@redhat.com)
+- Revisions to new app welcome pages. (sgoodwin@redhat.com)
+- Fix bug 1033700 (pmorie@gmail.com)
+- Merge pull request #4217 from pmorie/bugs/1010464
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+- Fix bug 1010464: only use supervisor is hot_deploy is enabled
+  (pmorie@gmail.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.19.0.1-1
 - Fix for bug 1034596 remove links that point to openshift.redhat.com
   (sgoodwin@redhat.com)
