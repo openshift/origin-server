@@ -360,13 +360,21 @@ module OpenShift
       # will be deleted.
       #
       # deconfigure('php-5.3')
-      def deconfigure(cartridge_name)
+      #
+      # In case you don't want to continue when the teardown operation fail you
+      # can set the second attribute to 'true'
+      #
+      # deconfigure('mysql-5.1', true)
+      #
+      #
+      def deconfigure(cartridge_name, strict_error=false)
         teardown_output = ''
 
         cartridge = nil
         begin
           cartridge = get_cartridge(cartridge_name)
-        rescue
+        rescue => e
+          raise e if strict_error
           teardown_output << "CLIENT_ERROR: Corrupted cartridge #{cartridge_name} removed. There may be extraneous data left on system.\n"
           logger.warn("Corrupted cartridge #{@container.uuid}/#{cartridge_name} removed. There may be extraneous data left on system.")
 
