@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Dec 06 2013 Troy Dawson <tdawson@redhat.com> 1.18.2-1
+- Fix for bug 1039151 (abhgupta@redhat.com)
+- Fix for bug 1038730 (abhgupta@redhat.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
 - fix bz1036507 - improve error message (rchopra@redhat.com)
 - Bug 1034626 - No cartridge status is shown (bparees@redhat.com)
