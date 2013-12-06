@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.18.2
+Version: 1.18.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,16 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Dec 06 2013 Troy Dawson <tdawson@redhat.com> 1.18.3-1
+- Merge pull request #4276 from sg00dwin/login-page-issues
+  (dmcphers+openshiftbot@redhat.com)
+- Include box-sizing mixin on form fields so there calculated widths are
+  consistent. Include additional heading so they get proper color .max input
+  style set to 100%% head + ul margin-top no longer needed and set default
+  margin-bottom to 0 Apply margin-bottom to space out announcement blocks Pull
+  left and right margin out 20px at mobile for more space.
+  (sgoodwin@redhat.com)
+
 * Thu Dec 05 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
 - Bug 1038680 - improve console's reporting of 500 errors from rest api
   (jforrest@redhat.com)
