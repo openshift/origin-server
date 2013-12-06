@@ -75,6 +75,18 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.17.1.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Fix for bug 1034596 remove links that point to openshift.redhat.com
+  (sgoodwin@redhat.com)
+- Remove Open Sans since we're not including it externally,     make font stack
+  consistent with our site,     set line-height (sgoodwin@redhat.com)
+- Merge pull request #4233 from sg00dwin/app-start
+  (dmcphers+openshiftbot@redhat.com)
+- Revisions to new app welcome pages. (sgoodwin@redhat.com)
+- Bug 1033144: Allow MAVEN_ARGS overriding in jbossews builds
+  (ironcladlou@gmail.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.17.1.1-1
 - Fix for bug 1034596 remove links that point to openshift.redhat.com
   (sgoodwin@redhat.com)
