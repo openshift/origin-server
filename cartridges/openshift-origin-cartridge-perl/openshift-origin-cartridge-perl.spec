@@ -72,6 +72,17 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.17.0.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- Fix for bug 1034596 remove links that point to openshift.redhat.com
+  (sgoodwin@redhat.com)
+- Remove Open Sans since we're not including it externally,     make font stack
+  consistent with our site,     set line-height (sgoodwin@redhat.com)
+- Revisions to new app welcome pages. (sgoodwin@redhat.com)
+- Bug 1032901 - Removed perl5lib folder from GIT and added to dependency_dirs
+  (mfojtik@redhat.com)
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 1.17.0.1-1
 - Fix for bug 1034596 remove links that point to openshift.redhat.com
   (sgoodwin@redhat.com)
