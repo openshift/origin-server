@@ -77,6 +77,12 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 0.4.1.1-1
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+- bug 985784: Unable to add database cartridge to apps again after removing it
+  due to TCP connection stays in CLOSE_WAIT status (bparees@redhat.com)
+- Migrate endpoints during upgrade. (mrunalp@gmail.com)
+
 * Wed Dec 04 2013 Krishna Raman <kraman@gmail.com> 0.4.1.1-1
 - bug 985784: Unable to add database cartridge to apps again after removing it
   due to TCP connection stays in CLOSE_WAIT status (bparees@redhat.com)
