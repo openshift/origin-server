@@ -55,7 +55,9 @@ function wait_for_mysqld_availability {
     sleep 1
   done
 
-  return 1
+  echo "Details from MySQL error log:"
+  tail -n 200 $OPENSHIFT_MYSQL_DB_LOG_DIR/mysql_error.log
+  exit 1
 }
 
 function stop {

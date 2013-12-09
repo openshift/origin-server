@@ -36,17 +36,20 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+
 %if 0%{?fedora}%{?rhel} <= 6
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %__mv %{buildroot}%{cartridgedir}/lib/mysql_context.rhel %{buildroot}%{cartridgedir}/lib/mysql_context
-%__rm %{buildroot}%{cartridgedir}/lib/mysql_context.f19
 %endif
-%if 0%{?fedora} == 19
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%__mv %{buildroot}%{cartridgedir}/lib/mysql_context.fc19 %{buildroot}%{cartridgedir}/lib/mysql_context
-%__rm %{buildroot}%{cartridgedir}/lib/mysql_context.rhel
+
+%if 0%{?fedora} > 18
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/lib/mysql_context.fedora %{buildroot}%{cartridgedir}/lib/mysql_context
 %endif
+
+# Remove what left
 %__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
+%__rm %{buildroot}%{cartridgedir}/lib/mysql_context.*
 
 %files
 %dir %{cartridgedir}
