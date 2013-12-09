@@ -72,7 +72,9 @@ Feature: applications
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version | database  |
       | JSON   |     5.3     |        4           | mysql-5.1 |
+      | JSON   |     5.3     |        4           | mysql-5.5 |
       | XML    |     5.3     |        4           | mysql-5.1 |
+      | XML    |     5.3     |        4           | mysql-5.5 |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
@@ -95,7 +97,9 @@ Feature: applications
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version | database  | ruby_version |
       | JSON   |     5.3     |        4           | mysql-5.1 |      1.9     |
+      | JSON   |     5.3     |        4           | mysql-5.5 |      1.9     |
       | XML    |     5.3     |        4           | mysql-5.1 |      1.9     |
+      | XML    |     5.3     |        4           | mysql-5.5 |      1.9     |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
@@ -334,7 +338,9 @@ Feature: applications
     Scenarios: RHEL scenarios
       | format | php_version | database  |
       | JSON   |     5.3     | mysql-5.1 |
+      | JSON   |     5.3     | mysql-5.5 |
       | XML    |     5.3     | mysql-5.1 |
+      | XML    |     5.3     | mysql-5.5 |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
@@ -364,7 +370,9 @@ Feature: applications
     Scenarios: RHEL scenarios
       | format | database  |
       | JSON   | mysql-5.1 |
+      | JSON   | mysql-5.5 |
       | XML    | mysql-5.1 |
+      | XML    | mysql-5.5 |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
@@ -394,7 +402,9 @@ Feature: applications
     Scenarios: RHEL scenarios
       | format | database  |
       | JSON   | mysql-5.1 |
+      | JSON   | mysql-5.5 |
       | XML    | mysql-5.1 |
+      | XML    | mysql-5.5 |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
@@ -424,7 +434,9 @@ Feature: applications
     Scenarios: RHEL scenarios
       | format | database  |
       | JSON   | mysql-5.1 |
+      | JSON   | mysql-5.5 |
       | XML    | mysql-5.1 |
+      | XML    | mysql-5.5 |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios

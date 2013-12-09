@@ -2,7 +2,7 @@ Given /^a mock application, verify addition and removal of v2 phpmyadmin-([\d\.]
   steps %Q{
     Given a new mock-0.1 type application
 
-    When I embed a mysql-5.1 cartridge into the application
+    When I embed a mysql-5.5 cartridge into the application
     And I embed a phpmyadmin-#{phpmyadmin_version} cartridge into the application
     Then a httpd process will be running
     And the phpmyadmin-#{phpmyadmin_version} cartridge instance directory will exist
