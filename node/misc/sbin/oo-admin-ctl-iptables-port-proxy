@@ -18,11 +18,11 @@ start() {
     fi
 
     if [ -f $RULES_FILE ]; then
-      { echo "*filter"; cat $RULES_FILE; echo "COMMIT"; } | iptables-restore -n
+      { echo -e "*filter\n-F rhc-app-comm"; cat $RULES_FILE; echo "COMMIT"; } | iptables-restore -n
     fi
 
     if [ -f $NAT_FILE ]; then
-      { echo "*nat"; cat $NAT_FILE; echo "COMMIT"; } | iptables-restore -n
+      { echo "*nat"; cat $NAT_FILE; echo "COMMIT"; } | iptables-restore --table=nat
     fi
 }
 
