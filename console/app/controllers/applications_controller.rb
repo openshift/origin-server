@@ -148,7 +148,7 @@ class ApplicationsController < ConsoleController
 
     @gear_sizes = new_application_gear_sizes(@user_writeable_domains, @capabilities)
 
-    flash.now[:error] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free? or @user_writeable_domains.find(&:can_create_application?)
+    flash.now[:error] = out_of_gears_message unless @capabilities.gears_free? or @user_writeable_domains.find(&:can_create_application?)
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
     # only need to check that domain_name is set (which it should be by the show form)
     if (valid = @application.valid?) # set any errors on the application object
