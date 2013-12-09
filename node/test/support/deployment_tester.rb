@@ -53,7 +53,7 @@ class OpenShift::Runtime::DeploymentTester
     if keep_deployments
       # keep up to #{keep} deployments
       logger.info "Setting OPENSHIFT_KEEP_DEPLOYMENTS to #{keep_deployments} for #{@namespace}"
-      @api.add_env_vars(app_name, [{name: 'OPENSHIFT_KEEP_DEPLOYMENTS', value: "#{keep_deployments}"}])
+      @api.configure_application(app_name, keep_deployments: keep_deployments)
 
       gear_env = OpenShift::Runtime::Utils::Environ.for_gear(app_container.container_dir)
 

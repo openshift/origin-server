@@ -91,6 +91,12 @@ class FunctionalApi
     app_id
   end
 
+  def configure_application(app_name, options)
+    logger.info("Configuring application #{app_name} with config options #{options}")
+    response = RestClient.put("#{@url_base}/domain/#{@namespace}/application/#{app_name}", options, accept: :json)
+    assert_operator 300, :>, response.code, "Invalid response received: #{response}"
+  end
+
   def clone_repo(app_id)
     Dir.chdir(@tmp_dir) do
       response = RestClient.get("#{@url_base}/applications/#{app_id}", accept: :json)
