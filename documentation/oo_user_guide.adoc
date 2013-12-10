@@ -903,14 +903,14 @@ You should see the following output:
 
 ----
 RESULT:
-cron-1.4, mysql-5.1, haproxy-1.4, postgresql-8.4
+cron-1.4, mysql-5.5, haproxy-1.4, postgresql-8.4
 ----
 
 === Example: Add a MySQL Cartridge to an Application
 In order to use a cartridge, we need to embed it into our existing application. As an example, we will add a MySQL cartridge. OpenShift Origin provides support for version 5.1 of this popular open source database. To enable MySQL support for the _firstphp_ application, issue the following command:
 
 ----
-$ rhc cartridge add mysql -a firstphp
+$ rhc cartridge add mysql-5.5 -a firstphp
 ----
 
 You should see the following output:
@@ -918,9 +918,9 @@ You should see the following output:
 ----
 Password: *********
 
-Adding 'mysql-5.1' to application 'firstphp'
+Adding 'mysql-5.5' to application 'firstphp'
 Success
-mysql-5.1
+mysql-5.5
 =========
   Properties
   ==========
@@ -990,6 +990,7 @@ OPENSHIFT_MYSQL_DB_USERNAME=admin
 OPENSHIFT_MYSQL_DB_SOCKET=/var/lib/openshift/e9e92282a16b49e7b78d69822ac53e1d//mysql-5.1/socket/mysql.sock
 OPENSHIFT_MYSQL_DB_URL=mysql://admin:aFh_GsHP63fV@127.1.244.1:3306/
 OPENSHIFT_MYSQL_DB_LOG_DIR=/var/lib/openshift/e9e92282a16b49e7b78d69822ac53e1d//mysql-5.1/log
+OPENSHIFT_MYSQL_VERSION=5.5
 ----
 
 To view a list of all _OPENSHIFT_ environment variables, you can use the following command:
@@ -1064,13 +1065,13 @@ Connected to database.
 OpenShift Origin provides the ability to embed multiple cartridges in an application. For instance, even though we are using MySQL for our _firstphp_ application, we could also embed the cron cartridge as well. It may be useful to stop, restart, or even check the status of a cartridge. To check the status of our MySQL database, use the following command:
 
 ----
-$ rhc cartridge status -a firstphp -c mysql
+$ rhc cartridge status -a firstphp -c mysql-5.5
 ----
 
 To stop the cartridge, enter the following command:
 
 ----
-$ rhc cartridge stop -a firstphp -c mysql
+$ rhc cartridge stop -a firstphp -c mysql-5.5
 ----
 
 Verify that the MySQL database has been stopped by either checking the status again or viewing the following URL in your browser:
@@ -1088,13 +1089,13 @@ Could not connect to database
 Start the database back up using the _start_ switch.
 
 ----
-$ rhc cartridge start -a firstphp -c mysql
+$ rhc cartridge start -a firstphp -c mysql-5.5
 ----
 
 OpenShift Origin also provides the ability to list important information about a cartridge by using the _show_ switch. For example, if a user has forgotten their MySQL connection information, they can display this information with the following command:
 
 ----
-$ rhc cartridge show mysql -a firstphp
+$ rhc cartridge show mysql-5.5 -a firstphp
 ----
 
 The user will then be presented with the following output:
@@ -1102,7 +1103,7 @@ The user will then be presented with the following output:
 ----
 Password: ****
 
-mysql-5.1
+mysql-5.5
 =========
   Properties
   ==========
@@ -1246,7 +1247,7 @@ After clicking on the _Phptwo_ application link, you will be presented with the 
 
 image:php2.4.png[image]
 
-On the next screen, select the MySQL 5.1 cartridge.
+On the next screen, select the MySQL 5.5 cartridge.
 
 image:php2.5.png[image]
 
@@ -2395,7 +2396,7 @@ We need to create an OpenShift Origin application to hold the source code as wel
 ----
  $ cd ~/code
 $ rhc app create-a piwik -t php
-$ rhc cartridge add -a piwik -c mysql
+$ rhc cartridge add -a piwik -c mysql-5.5
 ----
 
 OpenShift Origin, as you know, creates a default _index_ file for your application. Because we are going to be using the source code from our Piwik applicaiton, we need to remove the existing template.
@@ -2473,7 +2474,7 @@ More information can be found on the official Piwik website at http://piwik.org
 
     Add mysql support to your application
 
-        rhc cartridge add -a piwik -c mysql -l $USERNAME
+        rhc cartridge add -a piwik -c mysql-5.5 -l $USERNAME
     Make a note of the username, password, and host name as you will need to use these to complete the Piwik installation on OpenShift
 
     Add this upstream Piwik quickstart repo
