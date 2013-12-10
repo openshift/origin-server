@@ -331,9 +331,7 @@ module OpenShift
         cartridge              = get_cartridge(name)
 
         ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
-          if empty_repository?
-            output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code."
-          else
+          unless empty_repository?
             output << start_cartridge('start', cartridge, user_initiated: true)
           end
           output << cartridge_action(cartridge, 'post_install', software_version)
