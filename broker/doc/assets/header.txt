@@ -5,10 +5,13 @@
 <style type="text/css">
 
 pre.terminal {
-  color: #ddd;
-  border-radius: 0;
-  border: none;
-  background-image: none;
+   color: #000;
+   border-radius: 0;
+   border: none;
+   background-image: none;
+   background-color: #C7CCC7;
+   border-left: 3px solid #444;
+   padding: 10px;
 }
 
 body {
