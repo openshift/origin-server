@@ -6,7 +6,14 @@ function update_configuration {
       5.5)
         pe=$(dirname $(scl enable mysql55 "which mysql"))
         env_dir="${OPENSHIFT_MYSQL_DIR}/env"
-        set_env_var 'OPENSHIFT_MYSQL_PATH_ELEMENT' $pe $env_dir
+
+        # This is disabled due to BZ#1040065
+        # If you really insist of having mysql-5.5 client in command-line
+        # you can run:
+        #
+        # $ scl enable mysql55 "mysql"
+        #
+        # set_env_var 'OPENSHIFT_MYSQL_PATH_ELEMENT' $pe $env_dir
 
         local ld_path=$(LD_LIBRARY_PATH="" scl enable mysql55 "printenv LD_LIBRARY_PATH")
         path_append $LD_LIBRARY_PATH $ld_path >$OPENSHIFT_MYSQL_DIR/env/LD_LIBRARY_PATH
