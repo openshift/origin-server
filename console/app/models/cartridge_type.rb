@@ -57,7 +57,7 @@ class CartridgeType < RestApi::Base
     if name.present?
       name_prefix
     elsif url.present?
-      url_basename
+      url_suggested_name
     end
   end
 
@@ -65,10 +65,18 @@ class CartridgeType < RestApi::Base
     url || name
   end
 
-  def url_basename
+  def url_suggested_name
     uri = URI.parse(url)
     name = uri.fragment
     name = Rack::Utils.parse_nested_query(uri.query)['name'] if name.blank? && uri.query
+    name.presence
+  rescue
+    nil
+  end
+
+  def url_basename
+    uri = URI.parse(url)
+    name = url_suggested_name
     name = File.basename(uri.path) if name.blank? && uri.path.present? && uri.path != '/'
     name.presence || url
   rescue

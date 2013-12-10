@@ -288,6 +288,42 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_nil assigns(:suggesting_name)
   end
 
+  test "should suggest name from custom cart url with hash" do
+    with_unique_user
+    get :show, :id => 'custom', :application_type => {:cartridges => 'http://foo.bar#custom_cart'}
+    assert_response :success
+    assert_select 'h3', 'From Scratch'
+    assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
+    assert_select "input[type=hidden][name='application[cartridges][][url]'][value=http://foo.bar#custom_cart]"
+    assert_select ".indicator-gear-increase", "+1"
+    assert_equal 'customcart', assigns(:application).name
+    assert assigns(:suggesting_name)
+  end
+
+  test "should suggest name from custom cart url with name param" do
+    with_unique_user
+    get :show, :id => 'custom', :application_type => {:cartridges => 'http://foo.bar?name=custom_cart'}
+    assert_response :success
+    assert_select 'h3', 'From Scratch'
+    assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
+    assert_select "input[type=hidden][name='application[cartridges][][url]'][value=http://foo.bar?name=custom_cart]"
+    assert_select ".indicator-gear-increase", "+1"
+    assert_equal 'customcart', assigns(:application).name
+    assert assigns(:suggesting_name)
+  end
+
+  test "should not suggest name from custom cart url" do
+    with_unique_user
+    get :show, :id => 'custom', :application_type => {:cartridges => 'http://foo.bar'}
+    assert_response :success
+    assert_select 'h3', 'From Scratch'
+    assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
+    assert_select "input[type=hidden][name='application[cartridges][][url]'][value=http://foo.bar]"
+    assert_select ".indicator-gear-increase", "+1"
+    assert_nil assigns(:application).name
+    assert_nil assigns(:suggesting_name)
+  end
+
   test "should render custom cart type with a choice" do
     with_unique_user
     get :show, :id => 'custom', :cartridges => 'ruby'
