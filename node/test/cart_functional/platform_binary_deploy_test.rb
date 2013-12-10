@@ -42,7 +42,7 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
   def test_binary_deploy
     binary_deploy_test([ @framework_cartridge ])
   end
-  
+
   def test_rest_api_binary_deployment_to_scaled_app
     options = {}
     options[:scaling] = true
@@ -74,12 +74,12 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
     app_name2 = "#{app_name}2"
     app_id2 = @api.create_application(app_name2, cartridges, scaling)
     @api.add_ssh_key(app_id2, app_name2)
-    @api.set_deployment_type(app_name2, 'binary')
+    @api.configure_application(app_name2, deployment_type: 'binary')
     @api.deploy_artifact(app_id2, app_name2, artifact_path)
 
     @api.assert_http_title_for_app(app_name2, @namespace, CHANGED_TITLE, "Check for changed title in second app failed", 5)
   end
-  
+
   def use_the_rest_api_binary_deploy_app_test(cartridges, options = {})
     scaling = !!options[:scaling]
 
@@ -122,7 +122,7 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
     app_id2 = @api.create_application(deploy_target_app_name, cartridges, scaling)
 
     # 9) configure the app as a binary deployment type
-    @api.set_deployment_type(deploy_target_app_name, 'binary')
+    @api.configure_application(deploy_target_app_name, deployment_type: 'binary')
     @api.add_ssh_key(app_id2, deploy_target_app_name)
     @api.assert_http_title_for_app(deploy_target_app_name, @namespace, DEFAULT_TITLE)
 
@@ -134,10 +134,10 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
 
     # 12) use the rest api to deploy the s1 artifact to the new app
     @api.deploy_binary_artifact_using_rest_api(deploy_target_app_name, "http://localhost:81/#{v1_tgz_file_name}")
-    
+
     # 13) confirm the title is correct
     @api.assert_http_title_for_app(deploy_target_app_name, @namespace, CHANGED_TITLE)
-    
+
   end # use_the_rest_api_binary_deploy_to_scaled_app_test
 
 end
