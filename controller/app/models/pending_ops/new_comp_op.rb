@@ -19,6 +19,9 @@ class NewCompOp < PendingAppOp
     begin
       component_instance = get_component_instance()
       application.component_instances.delete(component_instance)
+      # If this was a downloaded cart, remove it from the downloaded cart map
+      application.downloaded_cart_map.delete_if { |cname, c| c["versioned_name"] == comp_spec["cart"] }
+      application.save
     rescue Mongoid::Errors::DocumentNotFound
       # ignore if component instance is already deleted
     end
