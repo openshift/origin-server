@@ -147,12 +147,6 @@ class EmbCartController < BaseController
       render_success(:created, "cartridge", cartridge, "Added #{name} to application #{@application.name}", result)
 
     rescue Exception => ex
-      # if this was a request to add a url based cart, remove the entry from downloaded_cart_map
-      unless cmap.empty?
-        @application.downloaded_cart_map.delete_if {|k, v| k == cmap.keys[0]}
-        @application.save
-      end
-
       case ex
       when OpenShift::GearLimitReachedException
         render_error(:unprocessable_entity, "Unable to add cartridge: #{ex.message}", 104)
