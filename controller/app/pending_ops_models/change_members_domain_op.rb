@@ -5,10 +5,14 @@ class ChangeMembersDomainOp < PendingDomainOps
   field :roles_changed, type: Array
 
   def execute
+    user_roles_changed   = (roles_changed   || []).select {|(id, type, *_)| type == 'user' }
+    user_members_removed = (members_removed || []).select {|(id, type, *_)| type == 'user' }
+    user_members_added   = (members_added || []).select {|(id, type, *_)| type == 'user' }
+
     self.domain.applications.select do |a|
-      a.change_member_roles(roles_changed || [], [:domain])
-      a.remove_members(members_removed || [], [:domain])
-      a.add_members((members_added || []).map{ |m| Domain.to_member(m) }, [:domain])
+      a.change_member_roles(user_roles_changed || [], [:domain])
+      a.remove_members(user_members_removed || [], [:domain])
+      a.add_members((user_members_added || []).map{ |m| Domain.to_member(m) }, [:domain])
       if a.has_member_changes?
         a.save!
       end

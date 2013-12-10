@@ -177,6 +177,31 @@ def clean_user(u)
   u.save!
 end
 
+$team_count = 0
+def clean_team(t)
+  $team_count += 1
+  t.reload
+  dlist = t.pending_ops.select { |op| op._type.nil? }
+  dlist.each { |op| op.delete }
+  t.pending_ops.delete_if { |op| op.nil? }
+  t.pending_ops.each { |op| op.state = :init if op.state==:queued and (op.created_at.nil? or op.created_at < $t) }
+  t.save
+  t.run_jobs rescue nil
+  t.reload
+  dlist = t.pending_ops.select { |op| (op.created_at.nil? or op.created_at < $t) and op.completed? }
+  dlist.each { |op| puts "Clearing op for team (#{t.name}) - #{op.inspect} " and op.delete }
+  t.pending_ops.each { |op|
+    puts "WARNING : Team #{t.name} has created_at field nil for op - #{op.inspect}" if op.created_at.nil?
+    if (op.created_at.nil? or op.created_at < $t) and not op.completed?
+      puts "Failed to clear op for team (#{t.name}) - #{op.inspect} "
+      # putting back to queued state if it is in init state
+      op.state = :queued if op.state == :init
+    end
+  }
+  t.save
+end
+
+
 hours = args["--time"] || 1
 hours = hours.to_i
 $t = Time.now - hours*60*60
@@ -199,6 +224,14 @@ if uuid.nil?
       puts e.backtrace
     end
   }
+  Team.no_timeout.lt("pending_ops.created_at" => $t).each { |t| 
+    begin
+      clean_team(t)
+    rescue Exception=>e
+      puts e.message
+      puts e.backtrace
+    end
+  }
   CloudUser.no_timeout.lt("pending_ops.created_at" => $t).each { |u| 
     begin
       clean_user(u)
@@ -211,5 +244,5 @@ else
   Application.where("_id" => uuid).lt("pending_op_groups.created_at" => $t).each { |a| clean_app(a) }
 end
 
-puts "#{$count} applications were cleaned up. #{$user_count} users were cleaned up. #{$domain_count} domains were cleaned up."
+puts "#{$count} applications were cleaned up. #{$user_count} users were cleaned up. #{$domain_count} domains were cleaned up. #{$team_count} teams were cleaned up."
 exit 0

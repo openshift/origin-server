@@ -32,6 +32,10 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal "You are limited to 1 members per domain", d.errors[:members].first, d.errors.to_hash
   end
 
+  def test_member_explicit_remove
+    # TODO: add a member with an explicit role, add the same with a from role, remove the explicit role, ensure member still exists but without an explicit role
+  end
+
   def test_member_explicit
     m = Member.new(_id: 'a', role: :view)
     assert_equal :view, m.role
@@ -71,6 +75,17 @@ class AccessControlledTest < ActiveSupport::TestCase
 
     assert m.remove_grant
     assert m.remove_grant # verify that removing a user twice is still true
+  end
+
+  def test_member_merge_duplicate_sources
+    m1 = Member.new(_id: 'a', role: :admin){|m| m.from = [['domain', :admin]] }
+    m2 = Member.new(_id: 'a', role: :view){|m| m.from = [['domain', :view]] }
+    assert_equal :admin, m1.role
+    assert_equal :view, m2.role
+    m1.merge(m2)
+    assert_equal :view, m1.role
+    assert_equal [['domain', :view]], m1.from
+    assert !m1.explicit_role?
   end
 
   def test_member_merge_explicit
@@ -153,19 +168,154 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert Ability.has_permission?('test', :ssh_to_gears, Application, :edit, nil)
   end
   
+  def test_has_member_changes
+    CloudUser.where(:login => 'hasmember1').delete
+    assert u1 = CloudUser.create(:login => 'hasmember1')
+
+    Domain.where(:namespace => 'hasmember').delete
+    assert d = Domain.create(:namespace => 'hasmember')
+    
+    # Test no-ops
+    d.add_members
+    assert !d.has_member_changes?
+    d.remove_members
+    assert !d.has_member_changes?
+
+    # Add a new member
+    d.add_members u1, :view
+    assert d.has_member_changes?
+    assert d.save
+    assert !d.has_member_changes?
+
+    # Add a new grant
+    d.add_members u1, :view, [:owner]
+    assert d.has_member_changes?
+    assert d.save
+    assert !d.has_member_changes?
+
+    # Re-add an existing explicit role and grant
+    d.add_members u1, :view
+    d.add_members u1, :view, [:owner]
+    assert !d.has_member_changes?
+
+    # Add a new grant with a duplicate role
+    d.add_members u1, :view, [:team, 123]
+    assert d.has_member_changes?
+    assert d.save
+    assert !d.has_member_changes?
+
+    # Remove a grant which leaves the calculated role the same
+    d.remove_members u1, [:team, 123]
+    assert d.has_member_changes?
+    assert d.save
+    assert !d.has_member_changes?
+
+    # Remove an explicit role which leaves the calculated role the same
+    d.remove_members u1
+    assert d.has_member_changes?
+    assert d.save
+    assert !d.has_member_changes?
+
+    # Ensure final role matches expectations
+    assert_equal :view, d.role_for(u1)
+  end
+
+  def test_team_propagation
+      CloudUser.where(:login => 'teampropagate1').delete
+      CloudUser.where(:login => 'teampropagate2').delete
+      assert u1 = CloudUser.create(:login => 'teampropagate1')
+      assert u2 = CloudUser.create(:login => 'teampropagate2')
+
+      Team.where(:name => 'teampropagate').delete
+      assert t = Team.create(:name => 'teampropagate')
+
+      Domain.where(:namespace => 'teampropagate').delete
+      assert d = Domain.create(:namespace => 'teampropagate')
+
+      # Application created before the team is a member
+      Application.where(:name => 'teampropagate1').delete
+      assert a1 = Application.create(:name => 'teampropagate1', :domain => d)
+
+      # Initial members of the team
+      t.add_members u1, :admin
+      t.save
+      assert_equal :admin, t.role_for(u1)
+      t.run_jobs
+
+      d.add_members t, :view
+      d.save
+      d.run_jobs
+
+      # Check propagation of team members when adding team
+      a1.reload
+      assert d_t_member = d.members.find_by(t.as_member.to_find_by_params)
+      assert_equal :view,  d_t_member.role
+      assert_equal nil, d_t_member.from
+
+      assert d_u1_member = d.members.find_by(u1.as_member.to_find_by_params)
+      assert_equal Set.new([["team", t._id, :view]]), Set.new(d_u1_member.from)
+
+      # Teams do not propagate from domains to apps
+      assert_raise(Mongoid::Errors::DocumentNotFound){ a1.members.find_by(t.as_member.to_find_by_params) }
+
+      # Expect the user from attribute to just have domain info
+      assert a1_u1_member = a1.members.find_by(u1.as_member.to_find_by_params)
+      assert_equal Set.new([["domain", :view]]), Set.new(a1_u1_member.from)
+
+      # Check propagation of additional team members to existing domain/app
+      t.add_members u2, :admin
+      t.save
+      t.run_jobs
+      
+      d.reload
+      a1.reload
+      assert d_u2_member = d.members.find_by(u2.as_member.to_find_by_params)
+      assert_equal Set.new([["team", t._id, :view]]), Set.new(d_u2_member.from)
+
+      assert a1_u2_member = a1.members.find_by(u2.as_member.to_find_by_params)      
+      assert_equal Set.new([["domain", :view]]), Set.new(a1_u2_member.from)
+
+      # Application created after the team is a member
+      Application.where(:name => 'teampropagate2').delete
+      assert a2 = Application.create(:name => 'teampropagate2', :domain => d)
+
+      assert_raise(Mongoid::Errors::DocumentNotFound){ a2.members.find_by(t.as_member.to_find_by_params) }
+
+      assert a2_u1_member = a2.members.find_by(u1.as_member.to_find_by_params)      
+      assert_equal Set.new([["domain", :view]]), Set.new(a2_u1_member.from)
+
+      assert a2_u2_member = a1.members.find_by(u2.as_member.to_find_by_params)      
+      assert_equal Set.new([["domain", :view]]), Set.new(a2_u2_member.from)
+  end
+
   def test_user_access_controllable
     CloudUser.where(:login => 'propagate_test').delete
     u = CloudUser.create(:login => 'propagate_test')
 
-    assert_equal nil, CloudUser.member_type
+    Team.where(:name => 'propagate_test').delete
+    t = Team.create(:name => 'propagate_test')
+
+    assert_equal 'user', CloudUser.member_type
     assert_equal [u], CloudUser.members_of(u._id)
     assert_equal [u], CloudUser.members_of([u._id])
-    assert_equal [u], CloudUser.members_of([u])
+    assert_equal [], CloudUser.members_of(t._id)
+    assert_equal [], CloudUser.members_of([t._id])
+    assert_equal [u], CloudUser.members_of([u,t])
+
+    assert_equal 'team', Team.member_type
+    assert_equal [], Team.members_of(u._id)
+    assert_equal [], Team.members_of([u._id])
+    assert_equal [t], Team.members_of(t._id)
+    assert_equal [t], Team.members_of([t._id])
+    assert_equal [t], Team.members_of([u,t])
 
     d = Domain.new
     assert CloudUser.members_of(d).empty?
+    assert Team.members_of(d).empty?
     d.members << u.as_member
+    d.members << t.as_member
     assert_equal [u], CloudUser.members_of(d).to_a
+    assert_equal [t], Team.members_of(d).to_a
   end
 
   def test_scopes_restricts_access
@@ -315,7 +465,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal 1, d2.pending_ops.length
     assert op = d2.pending_ops.last
     assert_equal ChangeMembersDomainOp, op.class
-    assert_equal [[u._id, :admin, nil, "propagate_test"]], op.members_added
+    assert_equal [[u._id, CloudUser.member_type, :admin, "propagate_test"]], op.members_added
     assert_nil op.members_removed
 
     d.run_jobs
@@ -331,12 +481,39 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal 1, d2.pending_ops.length
     assert op = d2.pending_ops.last
     assert_equal ChangeMembersDomainOp, op.class
-    assert_equal [u._id], op.members_removed
+    assert_equal [u.as_member.to_key], op.members_removed
     assert_nil op.members_added
 
     d.run_jobs
     assert d.pending_ops.empty?
     assert Domain.find_by(:namespace => 'test').pending_ops.empty?
+  end
+
+  def test_members_differentiate_types
+    CloudUser.where(:id => "1").delete
+    CloudUser.where(:login => "propagate_test").delete
+    assert u = CloudUser.create(:id => "1", :login => 'propagate_test')
+
+    Team.where(:id => "1").delete
+    Team.where(:name => "propagate_test").delete
+    assert t = Team.create(:id => "1", :name => 'propagate_test')
+
+    Domain.where(:namespace => 'test').delete
+    assert d = Domain.create(:namespace => 'test', :owner => u)
+    d.add_members(u, :view)
+    d.add_members(u, :edit)
+    d.add_members(t, :view)
+    d.add_members(t, :edit)
+    d.save
+
+    Application.where(:name => 'propagatetest').delete
+    assert a = Application.create(:name => 'propagatetest', :domain => d)
+
+    assert_equal :admin, d.role_for(u), "Role incorrect for #{d.class.model_name}"
+    assert_equal :edit, d.role_for(t), "Role incorrect for #{d.class.model_name}"
+
+    assert_equal :admin, a.role_for(u), "Role incorrect for #{a.class.model_name}"
+    assert_equal nil, a.role_for(t), "Role incorrect for #{a.class.model_name}"
   end
 
   def test_domain_propagates_changes_to_new_applications
@@ -426,7 +603,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert jobs = d.applications.first.pending_op_groups
     assert jobs.length == 1
     assert_equal ChangeMembersOpGroup, jobs.first.class
-    assert_equal [[u2._id, :admin, nil, 'propagate_test_2'], [u3._id, :admin, nil, 'propagate_test_3']], jobs.last.members_added
+    assert_equal [[u2._id, CloudUser.member_type, :admin, 'propagate_test_2'], [u3._id, CloudUser.member_type, :admin, 'propagate_test_3']], jobs.last.members_added
 
     a = d.applications.first
     assert_equal 3, (a.members & d.members).length
@@ -462,7 +639,7 @@ class AccessControlledTest < ActiveSupport::TestCase
 
     assert jobs.length == 2
     assert_equal ChangeMembersOpGroup, jobs.last.class
-    assert_equal [u3._id], jobs.last.members_removed
+    assert_equal [u3.as_member.to_key], jobs.last.members_removed
 
     assert_equal 1, (a.members & d.members).length
     assert_equal 2, a.members.length

@@ -4,7 +4,7 @@ module AccessControllable
   def as_member(role=nil)
     Member.new do |u|
       u._id = self._id
-      u._type = self.class.member_type
+      u.type = self.class.member_type
       u.name = name
       u.role = role
     end
@@ -16,7 +16,7 @@ module AccessControllable
 
   module ClassMethods
     def member_as(s)
-      @member_as = (s == :user) ? nil : s.to_s
+      @member_as = s.to_s
     end
 
     def member_type
@@ -28,7 +28,7 @@ module AccessControllable
         _id:
           if Membership === acl
             acl.members.inject([]) do |a, m|
-              next a unless member_type == m._type
+              next a unless member_type == m.type
               (next a unless yield m) if block_given?
               a << m._id
               a
