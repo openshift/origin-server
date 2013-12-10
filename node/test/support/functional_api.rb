@@ -196,11 +196,6 @@ EOFZ
     logger.info `oo-admin-ctl-user -l #{@login} --allowha true`
   end
 
-  def set_deployment_type(app_name, type)
-    logger.info "Setting deployment type for #{app_name} to #{type}"
-    add_env_vars(app_name, [ { name: 'OPENSHIFT_DEPLOYMENT_TYPE', value: type }])
-  end
-
   def make_ha(app_name)
     begin
       response = RestClient::Request.execute(method: :post,
