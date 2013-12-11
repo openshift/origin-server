@@ -2,6 +2,6 @@
 
 * Join the https://plus.google.com/u/0/communities/114361859072744017486[OpenShift Community on Google Plus]
 * http://openshift.github.io/documentation/oo_deployment_guide_vm.html[Download & deploy OpenShift] on your Cloud today
-* Try out https://openshift.redhat.com/app/account/new?web_user$$[promo_code]$$=HangOut[OpenShift Online]
+* Try out https://www.openshift.com/app/account/new?web_user$$[promo_code]$$=HangOut[OpenShift Online]
 * Ask a question on IRC (http://webchat.freenode.net/?randomnick=1&channels=openshift&uio=d4[#openshift] or http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4[#openshift-dev])
 
