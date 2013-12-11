@@ -329,11 +329,11 @@ class Haproxy
     # as required.
     #
     # This gets called every 5 seconds (by default, determined by
-    # CONFIG_VALIDATION_CHECK_INTERVAL defined above.
+    # CONFIG_VALIDATION_CHECK_INTERVAL defined above).
     #
     # Varibles currently being used:
     #
-    #   * @session_capcity_pct (determines how full current capacity us using
+    #   * @session_capcity_pct (determines how full current capacity is using
     #                          defined in "refresh" above).  100% full means
     #                          that all gears have all MAX_SESSIONS_PER_GEAR
     #                          or higher usage).  Though this number could be
@@ -366,7 +366,7 @@ class Haproxy
           # This would be one of the first areas that could be completely
           # removed or customized.  For example, users that wanted to scale up
           # when memory on a remote gear was high could do something like the
-          # psudo code below:
+          # pseudo code below:
           #
           # for gear_dns in gear_list
           #     mem_usage = `ssh -i ~/.openshift_ssh/id_rsa/$UUID@$gear_dns 'oo-cgroup-read memory.memsw.usage_in_bytes'`
@@ -375,7 +375,7 @@ class Haproxy
           #
           # Or in another example, we could track CPU deltas using cgruops.
           # This would require storing current and previous cpu to generate a
-          # delta.  Again, more psudo code.
+          # delta.  Again, more pseudo code.
           #
           # for gear_dns in gear_list
           #     current_cpu_usage = `ssh -i ~/.openshift_ssh/id_rsa/$UUID@$gear_dns 'oo-cgroup-read cpuacct.usage'`
@@ -409,7 +409,7 @@ class Haproxy
               # because flap detection is currently built to err on the side of
               # performance.  That is, as soon as we've hit a threshold to
               # scale up, do so.  However scaling down must meet not just a
-              # threshold but also severl flapping rules.  This may or may
+              # threshold but also several flapping rules.  This may or may
               # not be what you want.
               #
               # Current scale down rules:
