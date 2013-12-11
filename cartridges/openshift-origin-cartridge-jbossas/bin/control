@@ -279,10 +279,9 @@ function start() {
   # Check for running app
   if isrunning; then
       echo "Application is already running"
-  else    
+  else
+    export JBOSS_PIDFILE=${JBOSSAS_PID_FILE}
     ${JBOSSAS_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
-    PROCESS_ID=$!
-    echo "$PROCESS_ID" > ${JBOSSAS_PID_FILE}
 
     if ! ishttpup; then
         echo "Timed out waiting for http listening port"
