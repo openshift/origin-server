@@ -790,7 +790,7 @@ module OpenShift
           options[:hot_deploy] = deployment_metadata.hot_deploy
 
           # if it's a new gear via scale-up, force hot_deploy to false
-          options[:hot_deploy] = false if options[:post_install]
+          options[:hot_deploy] = false if options[:post_install] || options[:restore]
 
           parallel_results = with_gear_rotation(options) do |target_gear, local_gear_env, options|
             target_gear_uuid = target_gear.is_a?(String) ? target_gear : target_gear.uuid
