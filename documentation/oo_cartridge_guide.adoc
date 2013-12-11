@@ -653,6 +653,7 @@ The `mysql` cartridge provides several environment variables to reference for ea
 OPENSHIFT_MYSQLDB_DB_HOST:: The MySQL IP address
 OPENSHIFT_MYSQLDB_DB_PORT:: The MySQL port
 OPENSHIFT_MYSQLDB_DB_LOG_DIR:: The path to the MySQL log directory
+OPENSHIFT_MYSQL_VERSION: The version of the MySQL server
 
 
 [[nodejs]]

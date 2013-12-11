@@ -1,12 +1,13 @@
 #!/bin/bash
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_MYSQL_DIR}/lib/mysql_context"
 
 export STOPTIMEOUT=10
 
 # Run mysql commands
 function run_sql {
-  echo "$@" | /usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names
+  echo "$@" | mysql_context "/usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names"
 }
 
 function is_running {
@@ -32,7 +33,7 @@ function start {
   if ! is_running; then
     echo "Starting MySQL cartridge"
     oo-erb conf/my.cnf.erb.hidden > conf/my.cnf
-    /usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MYSQL_DIR/conf/my.cnf > /dev/null 2>&1 &
+    mysql_context "/usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MYSQL_DIR/conf/my.cnf" > /dev/null 2>&1 &
     wait_for_mysqld_availability
   else
     echo "MySQL already running" 1>&2
@@ -54,7 +55,9 @@ function wait_for_mysqld_availability {
     sleep 1
   done
 
-  return 1
+  echo "Details from MySQL error log:"
+  tail -n 200 $OPENSHIFT_MYSQL_DB_LOG_DIR/mysql_error.log
+  exit 1
 }
 
 function stop {
@@ -110,7 +113,7 @@ function pre_snapshot {
   local db_port=$OPENSHIFT_MYSQL_DB_PORT
 
   {
-    /usr/bin/mysqldump --extended-insert --quick -h $db_host -P $db_port -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --events --triggers --routines --add-drop-table | /bin/gzip > $dump_file
+    mysql_context "/usr/bin/mysqldump --extended-insert --quick -h $db_host -P $db_port -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --events --triggers --routines --add-drop-table" | /bin/gzip > $dump_file
   } ||
   {
     warning "Couldn't not dump mysql! Continuing anyway"
@@ -168,7 +171,7 @@ function post_restore {
         echo "SET UNIQUE_CHECKS=1;"
         echo "SET AUTOCOMMIT=1;"
         echo "COMMIT;"
-      ) | /usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names
+      ) | mysql_context "/usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names"
     } || error "Could not import MySQL Database" 187
 
 
@@ -202,8 +205,8 @@ function post_restore {
       # This approach provides relational consistency and will work with tables, views, triggers, etc
       # TODO: This may not work if the user created another database that has references to this database
       {
-        /usr/bin/mysqldump -h $NEW_IP -P $OPENSHIFT_MYSQL_DB_PORT -u $NEW_USER --password="$OPENSHIFT_MYSQL_DB_PASSWORD" $OLD_NAME | \
-          mysql -h $NEW_IP -P $OPENSHIFT_MYSQL_DB_PORT -u $NEW_USER --password="$OPENSHIFT_MYSQL_DB_PASSWORD" $NEW_NAME
+        mysql_context "/usr/bin/mysqldump -h $NEW_IP -P $OPENSHIFT_MYSQL_DB_PORT -u $NEW_USER --password="$OPENSHIFT_MYSQL_DB_PASSWORD" $OLD_NAME" | \
+          mysql_context "/usr/bin/mysql -h $NEW_IP -P $OPENSHIFT_MYSQL_DB_PORT -u $NEW_USER --password="$OPENSHIFT_MYSQL_DB_PASSWORD" $NEW_NAME"
       } || error "Could not rename database" 187
 
       # Drop the old database now that the data has been preserved

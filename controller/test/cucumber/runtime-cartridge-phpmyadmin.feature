@@ -28,6 +28,7 @@ Feature: phpMyAdmin Embedded Cartridge
     Scenarios: RHEL
       | phpmyadmin_version | database  |
       |        4           | mysql-5.1 |
+      |        4           | mysql-5.5 |
 
     @fedora-19-only
     Scenarios: Fedora 19

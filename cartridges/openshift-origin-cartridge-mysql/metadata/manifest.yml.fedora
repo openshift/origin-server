@@ -2,11 +2,11 @@
 Name: mysql
 Cartridge-Short-Name: MYSQL
 Architecture: noarch
-Display-Name: MySQL 5.1
+Display-Name: MySQL 5.5
 Description: MySQL is a multi-user, multi-threaded SQL database server.
-Version: '5.1'
+Version: '5.5'
 Versions:
-- '5.1'
+- '5.5'
 Cartridge-Version: 0.2.6
 Compatible-Versions:
 - 0.2.5
@@ -36,7 +36,7 @@ Cart-Data:
 Suggests:
 - phpmyadmin-4
 Provides:
-- mysql-5.1
+- mysql-5.5
 - mysql
 - mysql-singleton-master
 Publishes:
