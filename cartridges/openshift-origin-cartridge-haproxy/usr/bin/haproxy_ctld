@@ -1,5 +1,5 @@
 #!/bin/env bash
-if [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/haproxy_ctld.rb ]
+if [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/haproxy_ctld.rb ] && [ -x $OPENSHIFT_REPO_DIR/.openshift/action_hooks/haproxy_ctld.rb ]
 then
     exec oo-exec-ruby $OPENSHIFT_REPO_DIR/.openshift/action_hooks/haproxy_ctld.rb "$@"
 else
