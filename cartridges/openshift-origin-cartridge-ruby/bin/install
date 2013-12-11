@@ -16,10 +16,15 @@ for dir in template; do
 done
 
 mkdir $OPENSHIFT_RUBY_DIR/tmp
-
 mkdir $OPENSHIFT_HOMEDIR/.passenger
 
 echo "$version" > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_VERSION
+
+# Skip installing documentation for gems.
+# This will speed up the gem install/bundle install process
+#
+echo "gem: --no-document --no-ri --no-rdoc" > $OPENSHIFT_HOMEDIR/.gemrc
+
 update-configuration $version
 
 # Create additional directories required by RUBY and httpd
