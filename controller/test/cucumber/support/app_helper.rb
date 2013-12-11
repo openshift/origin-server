@@ -120,12 +120,18 @@ jenkins_build    = #{@jenkins_build}
     def persist
       # Because the system I/O is high during testing, this doesn't always
       # succeed right away.
+      success=false
       5.times do
         begin
           File.open(@file, "w") {|f| f.puts self.to_json}
+          success=true
+          $logger.debug("Successfully wrote file #{@file}")
           break
         rescue Errno::ENOENT
-          $logger.debug("Retrying file write for #{@file}")
+          $logger.error("Retrying file write for #{@file}")
+        end
+        if !success
+          raise "Failed to write to #{@file}"
         end
       end
     end
