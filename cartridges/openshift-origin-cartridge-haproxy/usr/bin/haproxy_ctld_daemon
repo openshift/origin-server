@@ -1,8 +1,3 @@
 #!/bin/bash -eu
 
-if [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/haproxy_ctld.rb ]
-then
-    exec oo-exec-ruby $OPENSHIFT_REPO_DIR/.openshift/action_hooks/haproxy_ctld.rb "$@"
-else
-    exec oo-exec-ruby haproxy_ctld_daemon.rb "$@"
-fi
+exec oo-exec-ruby haproxy_ctld_daemon.rb "$@"
