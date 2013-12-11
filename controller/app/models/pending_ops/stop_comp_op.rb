@@ -23,4 +23,7 @@ class StopCompOp < PendingAppOp
     end
   end
 
+  def action_message
+    "A gear stop did not complete"
+  end
 end

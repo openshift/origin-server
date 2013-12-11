@@ -149,28 +149,23 @@ module OpenShift
             message ||= ""
             message += "Unable to complete the requested operation due to: #{ex.message}. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
 
+          when OpenShift::ApplicationOperationFailed
+            status = :internal_server_error
+            message = "#{message}\nReference ID: #{request.uuid}"
+
           when OpenShift::NodeException, OpenShift::OOException
             status = :internal_server_error
-            messages = []
-            error_message = ""
-            if ex.resultIO
-              error_code = ex.resultIO.exitcode
-              error_message = ex.resultIO.errorIO.string.strip + "\n" unless ex.resultIO.errorIO.string.empty?
+            code, message, messages = extract_node_messages(ex, code, message)
+            message ||= "unknown error"
+            message = "Unable to complete the requested operation due to: #{message}.\nReference ID: #{request.uuid}"
 
-              messages.push(Message.new(:debug, ex.resultIO.debugIO.string, error_code, field)) unless ex.resultIO.debugIO.string.empty?
-              messages.push(Message.new(:warning, ex.resultIO.messageIO.string, error_code, field)) unless ex.resultIO.messageIO.string.empty?
-              messages.push(Message.new(:result, ex.resultIO.resultIO.string, error_code, field)) unless ex.resultIO.resultIO.string.empty?
-            end
-            error_message ||= ""
-            error_message += "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
-            
             # just trying to make sure that the error message is the last one to be added
-            messages.push(Message.new(:error, error_message, error_code, field))
+            messages.push(Message.new(:error, message, code, field))
 
-            return render_error(status, error_message, error_code, field, nil, messages, internal_error)
+            return render_error(status, message, code, field, nil, messages, internal_error)
           else
             status = :internal_server_error
-            message = "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
+            message = "Unable to complete the requested operation due to: #{message}.\nReference ID: #{request.uuid}"
           end
 
           Rails.logger.error "Reference ID: #{request.uuid} - #{ex.message}\n  #{ex.backtrace.join("\n  ")}" if internal_error
@@ -248,6 +243,20 @@ module OpenShift
           args["DOMAIN"] = (@application.domain_namespace if @application) || (@domain.namespace if @domain)
           args
         end
+
+        protected
+          def extract_node_messages(ex, code=nil, message=nil)
+            messages = []
+            if ex.respond_to?(:resultIO) && ex.resultIO
+              code = ex.resultIO.exitcode
+              message = ex.resultIO.errorIO.string.strip + "\n" unless ex.resultIO.errorIO.string.empty?
+
+              messages.push(Message.new(:debug, ex.resultIO.debugIO.string, error_code, field)) unless ex.resultIO.debugIO.string.empty?
+              messages.push(Message.new(:warning, ex.resultIO.messageIO.string, error_code, field)) unless ex.resultIO.messageIO.string.empty?
+              messages.push(Message.new(:result, ex.resultIO.resultIO.string, error_code, field)) unless ex.resultIO.resultIO.string.empty?
+            end
+            [code, message, messages]
+          end
     end
   end
 end

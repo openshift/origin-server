@@ -17,4 +17,7 @@ class StartCompOp < PendingAppOp
     end
   end
 
+  def action_message
+    "A gear start did not complete"
+  end
 end
