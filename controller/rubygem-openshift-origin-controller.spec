@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.18.2
+Version: 1.18.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Dec 10 2013 Adam Miller <admiller@redhat.com> 1.18.3-1
+- Merge pull request #4315 from rajatchopra/stg37_bugfix (admiller@redhat.com)
+- Merge pull request #4308 from rajatchopra/stg37
+  (dmcphers+openshiftbot@redhat.com)
+- fix typo - bz1040144 (rchopra@redhat.com)
+- fix bz 1039787 - delete downloaded cart as part of new_comp rollback and not
+  in the controller (rchopra@redhat.com)
+- Fix bug 1039760: Add patch support for env vars (jliggitt@redhat.com)
+
 * Fri Dec 06 2013 Troy Dawson <tdawson@redhat.com> 1.18.2-1
 - Fix for bug 1039151 (abhgupta@redhat.com)
 - Fix for bug 1038730 (abhgupta@redhat.com)
