@@ -222,14 +222,14 @@ class RestApplication < OpenShift::Model
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
         "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "application/#{@id}/aliases")),
         "LIST_MEMBERS" => Link.new("List members of this application", "GET", URI::join(url, "application/#{@id}/members")),
-        "SET_UNSET_ENVIRONMENT_VARIABLES" => Link.new("Add/Update/Delete one or more environment variables", "PATCH", URI::join(url, "application/#{@id}/environment-variables"), nil, [
-          OptionalParam.new("name", "string", "Name of the environment variable to add/update"),
-          OptionalParam.new("value", "string", "Value of the environment variable"),
-          OptionalParam.new("environment_variables", "array", "Add/Update/Delete application environment variables, e.g. Add/Update: [{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}], Delete: [{'name':'FOO'}, {'name':'BAR'}]")
-        ]),
         "ADD_ENVIRONMENT_VARIABLE" => Link.new("Add an environment variable", "POST", URI::join(url, "application/#{@id}/environment-variables"), [
           Param.new("name", "string", "Name of the environment variable"),
           Param.new("value", "string", "Value of the environment variable")
+        ]),
+        "SET_UNSET_ENVIRONMENT_VARIABLES" => Link.new("Add/Update/Delete one or more environment variables", "PATCH", URI::join(url, "application/#{@id}/environment-variables"), nil, [
+          OptionalParam.new("name", "string", "Name of the environment variable to add/update"),
+          OptionalParam.new("value", "string", "Value of the environment variable"),
+          OptionalParam.new("environment_variables", "array", "Add/Update/Delete application environment variables, e.g. Add/Update: [{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}], {Delete: [{'name':'FOO'}, {'name':'BAR'}]}")
         ]),
         "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "application/#{@id}/environment-variables")),
         "DEPLOY" => Link.new("Deploy the application", "POST", URI::join(url, "application/#{@id}/deployments"), nil,[
@@ -250,12 +250,15 @@ class RestApplication < OpenShift::Model
           OptionalParam.new("deployment_type", "string", "Indicates whether the app is setup for binary or git based deployments", ['git', 'binary']),
           OptionalParam.new("deployment_branch", "string", "Indicates which branch should trigger an automatic deployment, if automatic deployment is enabled."),
           OptionalParam.new("keep_deployments", "integer", "Indicates how many total deployments to preserve. Must be greater than 0"),
-        ]),
-        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "application/#{@id}"))
+        ])
+        
       }
       self.links["MAKE_HA"] = Link.new("Make the application Highly Available (HA)", "POST", URI::join(url, "application/#{@id}/events"), [
           Param.new("event", "string", "event", "make-ha")
         ]) if Rails.configuration.openshift[:allow_ha_applications]
+     
+     #delete must be the last link
+     self.links["DELETE"] = Link.new("Delete application", "DELETE", URI::join(url, "application/#{@id}"))
     end
   end
 

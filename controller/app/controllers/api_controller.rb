@@ -28,7 +28,7 @@ class ApiController < BaseController
         (OptionalParam.new("allowed_gear_sizes", "array", "A list of gear sizes that are allowed to be created on this domain", OpenShift::ApplicationContainerProxy.valid_gear_sizes) if requested_api_version >= 1.5),
       ].compact),
       "LIST_DOMAINS" => Link.new("List all domains you have access to", "GET", URI::join(get_url, "domains")),
-      "LIST_DOMAINS_BY_OWNER" => Link.new("List domains", "GET", URI::join(get_url, "domains"), [
+      "LIST_DOMAINS_BY_OWNER" => Link.new("List domains by owner", "GET", URI::join(get_url, "domains"), [
         Param.new("owner", "string", "Return only the domains owned by the specified user id or identity.  Use @self to refer to the current user.", ['@self', '*'], [])
         ]),
       "SHOW_DOMAIN" => Link.new("Retrieve a domain by its name", "GET", URI::join(get_url, "domain/:name"), [
@@ -43,7 +43,7 @@ class ApiController < BaseController
 
     links.merge!({
       "LIST_APPLICATIONS" => Link.new("List application", "GET", URI::join(get_url, "applications")),
-      "SHOW_APPLICATION" => Link.new("List application", "GET", URI::join(get_url, "application/:id"), [
+      "SHOW_APPLICATION" => Link.new("Retrieve application by id", "GET", URI::join(get_url, "application/:id"), [
         Param.new(":id", "string", "Unique identifier of the application", nil, [])
       ])
     }) if requested_api_version >= 1.5
