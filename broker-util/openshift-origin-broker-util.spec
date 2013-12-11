@@ -94,6 +94,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-authorization.8.gz
 %{_mandir}/man8/oo-analytics-export.8.gz
 %{_mandir}/man8/oo-analytics-import.8.gz
+%{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
