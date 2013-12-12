@@ -4,11 +4,7 @@ STOPTIMEOUT=10
 FMT="%a %b %d %Y %H:%M:%S GMT%z (%Z)"
 
 function cartridge_bin() {
-  if hot_deploy_enabled_for_latest_deployment; then
-    supervisor_bin
-  else
-    node_bin
-  fi
+  supervisor_bin
 }
 
 # This is the full path for supervisor in it's SCL context
@@ -42,11 +38,7 @@ function node_pid() {
 
 # Get the correct pid for the running cartridge, dependent on whether hot_deploy is enabled
 function cartridge_pid() {
-  if hot_deploy_enabled_for_latest_deployment; then
-    supervisor_pid
-  else
-    node_pid
-  fi
+  supervisor_pid
 }
 
 function print_missing_package_json_warning() {
@@ -153,12 +145,7 @@ function start() {
         node_cmd="node $node_opts $node_app $node_app_args"
     fi
 
-    if hot_deploy_enabled_for_latest_deployment; then
-        # TODO: supervisor resource usage fixed in version 0.5.4
-        nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts  >> $logf 2>&1 &"
-    else
-        nodejs_context "nohup $node_cmd >> $logf 2>&1 &"
-    fi
+    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts  >> $logf 2>&1 &"
 
     retries=3
     while [ $retries -gt 0 ]; do
@@ -287,11 +274,7 @@ function build() {
 }
 
 function is_cartridge_running() {
-    if hot_deploy_enabled_for_latest_deployment; then
-        is_supervisor_running
-    else
-        is_node_running
-    fi
+    is_supervisor_running
 }
 
 function is_node_running() {
@@ -328,22 +311,6 @@ function is_supervisor_running() {
 function post-deploy() {
     # Check if supervisor is already running. If not do a restart.
     if hot_deploy_enabled_for_latest_deployment && ! is_supervisor_running ; then
-      echo "hot_deploy marker found. Switching to using supervisor. Subsequent pushes won't require restart until the marker is removed."
-      existing_node_pid=$(node_pid)
-
-      logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
-      echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_APP_NAME' ..." >> $logf
-      /bin/kill $existing_node_pid
-      ret=$?
-      if [ $ret -eq 0 ]; then
-        TIMEOUT="$STOPTIMEOUT"
-        while [ $TIMEOUT -gt 0 ]  && is_node_running ; do
-          /bin/kill -0 "$existing_node_pid" >/dev/null 2>&1 || break
-          sleep 1
-          let TIMEOUT=${TIMEOUT}-1
-        done
-      fi
-
       restart
     fi
 }
@@ -395,4 +362,3 @@ case "$1" in
     pre-repo-archive)    pre-repo-archive ;;
     *) exit 0;
 esac
-
