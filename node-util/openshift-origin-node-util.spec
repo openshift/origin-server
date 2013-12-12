@@ -149,6 +149,12 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 1.18.0.2-1
+- Bumping version numbers (release-3 build-2) (kraman@gmail.com)
+- <oo-accept-node> fix context check for systemctl (lmeyer@redhat.com)
+- <oo-accept-node> clarify uid errmsg when non-gear user is in the range
+  (lmeyer@redhat.com)
+
 * Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
 - Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
 - Bug 1034436 - Use shell globs instead of find in oo-auto-idler
