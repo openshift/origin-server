@@ -51,6 +51,11 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 1.17.1.2-1
+- Bumping version numbers (release-3 build-2) (kraman@gmail.com)
+- dynamically find libdir for cartridge installs, should fix ARM
+  (admiller@redhat.com)
+
 * Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.17.1.1-1
 - Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
 
