@@ -99,7 +99,7 @@ module AdminHelper
       actual_gears = 0
       user = CloudUser.find_by(:_id => user_id)
       user.domains.each do |d|
-        actual_gears += d.applications.map {|a| a.gears.length}.inject(:+)
+        d.applications.each {|a| actual_gears += a.gears.length}
       end
       return user.consumed_gears, actual_gears
     rescue Mongoid::Errors::DocumentNotFound
@@ -298,7 +298,7 @@ module AdminHelper
         end
       end
 
-      if $chk_usage and !$user_hash[owner_id]['parent_user_id']
+      if $chk_usage and (!$user_hash[owner_id] or !$user_hash[owner_id]['parent_user_id'])
         gi_hash = {}
         app['group_instances'].each do |gi|
           gid = gi['_id'].to_s
@@ -527,7 +527,7 @@ module AdminHelper
         next if datastore_has_gear_uid?(unused_uid, district_info['server_names']) or
                 district_has_available_uid?(district_uuid, unused_uid)
         puts "Re-checking UID #{unused_uid} in district #{district_info['name']} in the database...FAIL\t" if $verbose
-        print_message << "UID '#{unused_uid}' is reserved in district '#{district_info['name']}' but not used by any gear"
+        print_message "UID '#{unused_uid}' is reserved in district '#{district_info['name']}' but not used by any gear"
                 
         error_unused_district_uid_map[district_uuid] = [] unless error_unused_district_uid_map.has_key? district_uuid
         error_unused_district_uid_map[district_uuid] << unused_uid
