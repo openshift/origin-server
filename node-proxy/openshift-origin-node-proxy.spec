@@ -137,6 +137,11 @@ fi
 %doc README
 
 %changelog
+* Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 1.17.0.2-1
+- Bumping version numbers (release-3 build-2) (kraman@gmail.com)
+- the nodejs rpm macros are in nodejs-devel for fedora, need to require it when
+  not building SCL (admiller@redhat.com)
+
 * Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.17.0.1-1
 - Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
 - Bug 1034077: Fix for backend connection not opened. (mrunalp@gmail.com)
