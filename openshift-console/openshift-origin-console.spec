@@ -71,6 +71,7 @@ BuildRequires: %{?scl:%scl_prefix}rubygem-jquery-rails
 BuildRequires: %{?scl:%scl_prefix}rubygem-uglifier
 
 %if 0%{?fedora} >= 19
+BuildRequires: systemd
 BuildRequires: ruby(release)
 %else
 BuildRequires: %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
