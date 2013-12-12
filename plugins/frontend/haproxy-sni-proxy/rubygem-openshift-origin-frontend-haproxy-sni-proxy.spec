@@ -113,6 +113,10 @@ fi
 %attr(0644,root,root) %config(noreplace) /etc/openshift/node-plugins.d/openshift-origin-frontend-haproxy-sni-proxy.conf
 
 %changelog
+* Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 0.2.1.2-1
+- Bumping version numbers (release-3 build-2) (kraman@gmail.com)
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - Bug 1026969 - rebuild the SNI proxy on start to track changing IP address.
   (rmillner@redhat.com)
