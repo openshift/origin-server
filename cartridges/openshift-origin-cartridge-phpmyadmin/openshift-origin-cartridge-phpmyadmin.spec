@@ -51,6 +51,10 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Dec 12 2013 Krishna Raman <kraman@gmail.com> 1.17.1.3-1
+- Bumping version numbers (release-3 build-4) (kraman@gmail.com)
+- fix libdir (admiller@redhat.com)
+
 * Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 1.17.1.2-1
 - Bumping version numbers (release-3 build-2) (kraman@gmail.com)
 - dynamically find libdir for cartridge installs, should fix ARM
