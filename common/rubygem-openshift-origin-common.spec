@@ -117,6 +117,16 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 1.18.0.2-1
+- Bumping version numbers (release-3 build-2) (kraman@gmail.com)
+- <oo-diagnostics> rewording around broker failure (lmeyer@redhat.com)
+- <oo-diagnostics> find right mco node log (lmeyer@redhat.com)
+- <oo-diagnostics> special-case service network check (lmeyer@redhat.com)
+- <oo-diagnostics> fix test_broker_certificate bad grep (lmeyer@redhat.com)
+- <oo-diagnostics> null out errors from absent files (lmeyer@redhat.com)
+- <oo-diagnostics> more specific test conditions (lmeyer@redhat.com)
+- <oo-diagnostics> more reliable test_broker_certificate (lmeyer@redhat.com)
+
 * Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
 - Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
 - <oo-diagnostics> handle ^C more cleanly (lmeyer@redhat.com)
