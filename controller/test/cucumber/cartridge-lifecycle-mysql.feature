@@ -125,4 +125,4 @@ Feature: MySQL Tests
 
     When I restore the application from a preserved snapshot
     Then the test data will be present in mysql
-    And the additional test data will not be present in mysq
+    And the additional test data will not be present in mysql
