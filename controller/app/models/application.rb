@@ -2758,7 +2758,7 @@ class Application
 
   def get_all_updated_ssh_keys
     ssh_keys = []
-    ssh_keys = self.app_ssh_keys.map {|k| k.to_key_hash } # the app_ssh_keys already have their name "updated"
+    ssh_keys = self.app_ssh_keys.map {|k| k.serializable_hash } # the app_ssh_keys already have their name "updated"
     ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
     ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
 
@@ -2773,7 +2773,7 @@ class Application
   #
   def get_updated_ssh_keys(user_id, keys)
     updated_keys_attrs = keys.map { |key|
-      key_attrs = key.to_key_hash.deep_dup
+      key_attrs = key.serializable_hash.deep_dup
       case key.class
       when UserSshKey
         key_attrs["name"] = user_id.to_s + "-" + key_attrs["name"]
