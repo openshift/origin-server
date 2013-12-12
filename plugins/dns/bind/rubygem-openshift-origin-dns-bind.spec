@@ -93,6 +93,10 @@ cp %{buildroot}%{gem_dir}/gems/openshift-origin-dns-bind-*/doc/examples/dhcpname
 
 
 %changelog
+* Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 1.10.2.2-1
+- Bumping version numbers (release-3 build-2) (kraman@gmail.com)
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - Merge pull request #535 from mscherer/fix_uplift_gem
   (dmcphers+openshiftbot@redhat.com)
