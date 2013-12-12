@@ -250,6 +250,11 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 1.15.1.3-1
+- Bumping version numbers (release-3 build-3) (kraman@gmail.com)
+- BuildRequire systemd for mock/koji builds, that package provides the
+  %%{_unitdir} macro. Accidently removed in previous build. (kraman@gmail.com)
+
 * Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 1.15.1.2-1
 - Bumping version numbers (release-3 build-2) (kraman@gmail.com)
 - don't hard code %%{_libdir}, this is breaking ARM (admiller@redhat.com)
