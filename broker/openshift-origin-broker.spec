@@ -273,6 +273,10 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 1.15.1.2-1
+- Bumping version numbers (release-3 build-2) (kraman@gmail.com)
+- don't hard code %%{_libdir}, this is breaking ARM (admiller@redhat.com)
+
 * Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.15.1.1-1
 - Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
 - Bug 1032436 (lnader@redhat.com)
