@@ -72,6 +72,10 @@ cp conf/openshift-origin-routing-activemq.conf.example %{buildroot}/etc/openshif
 /etc/openshift/plugins.d/openshift-origin-routing-activemq.conf.example
 
 %changelog
+* Wed Dec 11 2013 Krishna Raman <kraman@gmail.com> 0.2.1.2-1
+- Bumping version numbers (release-3 build-2) (kraman@gmail.com)
+- Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - fix version string to be uniform with rest of packages, build scripts assume
   this (admiller@redhat.com)
