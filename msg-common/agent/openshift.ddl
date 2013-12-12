@@ -500,6 +500,22 @@ action "upgrade", :description => "upgrade a gear" do
         :optional       => false,
         :list           => ["true", "false"]
 
+    input :auth_token,
+        :prompt         => "Broker auth token",
+        :description    => "Broker auth token",
+        :type           => :string,
+        :validation     => '^.+$',
+        :optional       => true,
+        :maxlength      => 128
+
+    input :auth_iv,
+        :prompt         => "Broker auth iv",
+        :description    => "Broker auth iv",
+        :type           => :string,
+        :validation     => '^.+$',
+        :optional       => true,
+        :maxlength      => 512
+
     output  :time,
             :description => "The time as a message",
             :display_as => "Time"
