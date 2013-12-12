@@ -138,4 +138,7 @@ class PendingAppOp
     component_instance
   end
 
+  def action_message
+    "#{self.class.to_s} failed"
+  end
 end

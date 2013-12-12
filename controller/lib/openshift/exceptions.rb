@@ -10,7 +10,7 @@ class OpenShift::ScaleConflictException < OpenShift::UserException
     self.requested_min = requested_min
     self.requested_max = requested_max
     self.comp_min = comp_min
-    self.comp_max = comp_max   
+    self.comp_max = comp_max
     super()
   end
 end
@@ -35,3 +35,5 @@ end
 
 class OpenShift::OperationForbidden < OpenShift::AccessDeniedException
 end
+
+class OpenShift::ApplicationOperationFailed < OpenShift::OOException; end

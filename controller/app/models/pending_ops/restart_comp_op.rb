@@ -17,4 +17,7 @@ class RestartCompOp < PendingAppOp
     end
   end
 
+  def action_message
+    "A gear restart did not complete"
+  end
 end

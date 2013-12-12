@@ -20,10 +20,13 @@ class UpdateAppConfigOp < PendingAppOp
         app = Application.find_by(_id: self.application._id)
         self.add_keys_attrs = app.get_all_updated_ssh_keys
       end
-      
+
       tag = { "op_id" => self._id.to_s }
       gear.update_configuration(self, handle, tag)
     end
   end
 
+  def action_message
+    "Application config change did not complete"
+  end
 end
