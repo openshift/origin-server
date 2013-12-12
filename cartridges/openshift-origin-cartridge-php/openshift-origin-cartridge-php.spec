@@ -42,6 +42,30 @@ Requires:      php-pecl-imagick
 Requires:      php-pecl-xdebug
 Requires:      php-fpm
 Requires:      php-intl
+
+#  RHEL-6 PHP 5.4 SCL
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:      php54
+Requires:      php54-php
+Requires:      php54-php-devel
+Requires:      php54-php-pdo
+Requires:      php54-php-gd
+Requires:      php54-php-xml
+Requires:      php54-php-mysqlnd
+Requires:      php54-php-pgsql
+Requires:      php54-php-mbstring
+Requires:      php54-php-pear
+Requires:      php54-php-pecl-apc
+Requires:      php54-php-soap
+Requires:      php54-php-bcmath
+Requires:      php54-php-process
+Requires:      php54-php-intl
+Requires:      php54-php-ldap
+Requires:      php54-php-process
+Requires:      php54-php-fpm
+Requires:      php54-php-intl
+%endif
+
 BuildArch:     noarch
 
 Obsoletes: openshift-origin-cartridge-php-5.3
