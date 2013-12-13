@@ -11,7 +11,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -137,6 +137,10 @@ fi
 %doc README
 
 %changelog
+* Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
+- the nodejs rpm macros are in nodejs-devel for fedora, need to require it when
+  not building SCL (admiller@redhat.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
 - Bug 1034077: Fix for backend connection not opened. (mrunalp@gmail.com)
 - Merge pull request #4234 from maxamillion/admiller/fix_node-proxy_build
