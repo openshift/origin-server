@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,14 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.20.1-1
+- bump_minor_versions for sprint 38 (admiller@redhat.com)
+- Fix bug 1040780: Use supervisor by default (temporary) (pmorie@gmail.com)
+- Reverting #4309 at this caused TypeError: object is not a function
+  (mfojtik@redhat.com)
+- Update server.js template to instanciate with new syntax
+  (ericwilliams76@gmail.com)
+
 * Fri Dec 06 2013 Troy Dawson <tdawson@redhat.com> 1.19.2-1
 - Bump up cartridge versions. (mrunalp@gmail.com)
 
