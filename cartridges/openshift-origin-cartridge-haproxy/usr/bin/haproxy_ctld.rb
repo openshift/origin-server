@@ -23,7 +23,8 @@ class HAProxyAttr
 end
 
 class Haproxy
-    MAX_SESSIONS_PER_GEAR = 16.0
+
+    MAX_SESSIONS = 20
 
     attr_accessor :gear_count, :sessions, :sessions_per_gear, :session_capacity_pct, :gear_namespace, :last_scale_up_time, :last_scale_error_time
 
@@ -63,6 +64,7 @@ class Haproxy
         @last_scale_up_time=Time.now
         @remove_count_threshold = 20
         @remove_count = 0
+        @max_sessions_per_gear = get_max_sessions_per_gear
         self.populate_status_urls
         self.refresh
         @log.info("Starting haproxy_ctld")
@@ -142,7 +144,7 @@ class Haproxy
 
         @log.debug("Got stats from #{num_remote_proxies} remote proxies.")
         @sessions_per_gear = @sessions.to_f / @gear_count
-        @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
+        @session_capacity_pct = (@sessions_per_gear / @max_sessions_per_gear ) * 100
     end
 
     def last_scale_up_time_seconds
@@ -201,7 +203,7 @@ class Haproxy
         else
             seconds_left = 0
         end
-        @log.debug("GEAR_INFO - capacity: #{session_capacity_pct}% gear_count: #{gear_count} sessions: #{sessions} up/remove_thresh: #{@gear_up_pct}%/#{@gear_remove_pct}% sec_left_til_remove: #{seconds_left} gear_remove_thresh: #{@remove_count}/#{@remove_count_threshold}")
+        @log.debug("GEAR_INFO - capacity: #{session_capacity_pct}% gear_count: #{gear_count} sessions: #{sessions}/#{@max_sessions_per_gear} up/remove_thresh: #{@gear_up_pct}%/#{@gear_remove_pct}% sec_left_til_remove: #{seconds_left} gear_remove_thresh: #{@remove_count}/#{@remove_count_threshold}")
     end
 
     def check_capacity(debug=nil)
@@ -284,6 +286,19 @@ class Haproxy
       end
       return min, max
     end
+
+    def get_max_sessions_per_gear
+      marker_dir = File.join(ENV['OPENSHIFT_REPO_DIR'], ".openshift/markers/")
+      max_sessions_marker = File.join(marker_dir, "max_sessions")
+      return MAX_SESSIONS unless File.exists?(max_sessions_marker)
+      max_sessions = File.read(max_sessions_marker).to_i rescue 0
+      if max_sessions > 0
+        max_sessions
+      else
+        @log.info "The max_sessions value is invalid, defaulting to #{MAX_SESSIONS}"
+        MAX_SESSIONS
+      end
+    end   
 
     def stats()
         @status
