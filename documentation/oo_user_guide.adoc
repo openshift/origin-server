@@ -26,40 +26,38 @@ Servers used::
 * localhost
 
 Tools used::
-* rhc
+* `rhc`
 
-=== Configure RHC
-By default, the RHC command line tool will default to use the publicly hosted OpenShift environment. Since we are using our own OpenShift Origin environment, we need to tell _rhc_ to use our OpenShift Origin link:oo_system_architecture_guide.html#broker[Broker] server instead of openshift.com. In order to accomplish this, the first thing we need to do is set our _LIBRA_SERVER_ variable to point to our Broker host and then run the _rhc setup_ command:
+In order to work with OpenShift applications from the command line, you will need to install the `rhc` utility on your client system. See the link:oo_client_tools_installation_guide.html[Client Tools installation Guide] for instructions on how to do this.
+
+=== Configuring `rhc`
+By default, the RHC command line tool will attempt to connect the publicly hosted OpenShift environment at https://www.openshift.com/[www.openshift.com]. If you are going to work against a different OpenShift deployment, you will need to tell `rhc` where the deployment's link:oo_system_architecture_guide.html#broker[Broker] host can be found. To provide this information, run the setup command with the `--server` flag:
 
 ----
-$ LIBRA_SERVER=<your Broker hostname or IP> rhc setup
+$ rhc setup --server <broker hostname>
 ----
 
-.Getting to a Broker Running Inside a Virtual Machine
-****
-If you are running OpenShift Origin from the all-in-one VM, you will need to experiment to determine the best way to communicate with the Broker inside. In a recent troubleshooting session, we found that external rhc clients could not connect to an Origin virtual machine with a NATed network configuration. Using a "bridged" network configuration seemed to solve the problem. The specific network configuration options will vary by virtual machine service (Virtual Box, VMWare, etc.)
-****
+*Getting to a Broker Running Inside a Virtual Machine* +
+If you are running OpenShift Origin from the all-in-one VM, you will need to experiment to determine the best way to communicate with the Broker inside. In a recent troubleshooting session, we found that external `rhc` clients could not connect to an Origin virtual machine with a NATed network configuration. Using a "bridged" network configuration seemed to solve the problem. The specific network configuration options will vary by virtual machine service (Virtual Box, VMWare, etc.)
 
-Once you enter in that command, you will be prompted for the username that you would like to authenticate with.
-
-NOTE: If you are using the OpenShift Origin virtual machine, there is a pre-defined account (admin/admin) that you can use.
+Once you enter in that command, you will be prompted for the username that you would like to authenticate with. If you are using the link:oo_deployment_guide_vm.html[OpenShift Origin virtual machine], you can authenticate with user "demo", password "changeme".
 
 The next step in the setup process is to create and upload our SSH key to the broker server. This is required for pushing your source code, via git, up to the OpenShift Origin server.
 
 Finally, you will be asked to create a namespace for the provided user account. The namespace is a unique name which becomes part of your application URL. It is also commonly referred to as the users domain. The namespace can be at most 16 characters long and can only contain alphanumeric characters. There is currently a 1:1 relationship between usernames and namespaces. For the examples in the document, the namespace `ose` will be used.
 
-=== What _rhc setup_ Does
-The _rhc setup_ tool is a convenient command line utility to ensure that the user's operating system is configured properly to create and manage applications from the command line. After this command has been executed, a _.openshift_ directory is created in the user's home directory with some basic configuration items specified in the _express.conf_ file. The contents of that file are as follows:
+=== What `rhc setup` Does
+This utility ensures that the user's operating system is configured properly to create and manage applications from the command line. Additionally, it creates a `.openshift` directory in the user's home directory and places a file there called `express.conf`. The contents of that file are as follows:
 
 ----
 # Default user login
-default_rhlogin='admin'
+default_rhlogin='<your username>'
 
 # Server API
 libra_server = '<your Broker hostname or IP>'
 ----
 
-This information will be provided to the _rhc_ command line tool for every future command that is issued. If you want to run commands as a different user than the one listed above, you can either change the default login in this file or provide the _-l_ switch to the _rhc_ command.
+This information will be provided to the `rhc` command line tool for every future command that is issued. If you want to run commands as a different user than the one listed above, you can either change the default login in this file or provide the _-l_ switch to the `rhc` command.
 
 == Application Development
 
@@ -68,9 +66,9 @@ Servers used::
 * node host
 
 Tools used::
-* rhc
+* `rhc`
 
-Having completed the link:#configure-rhc[rhc setup], we are ready to start using OpenShift Origin to create our first application. To create an application, we will be using the _rhc app_ command. In order to view all of the swtich available for the _rhc app_ command, enter the following command:
+Having completed the link:#configure-rhc[`rhc` setup], we are ready to start using OpenShift Origin to create our first application. To create an application, we will be using `rhc app`. In order to view all of the available setting options, enter the following command:
 
 ----
 $ rhc app -h
@@ -79,85 +77,74 @@ $ rhc app -h
 This will provide you with the following output:
 
 ----
-List of Actions
-create             Create an application and adds it to a domain
-git-clone          Clone and configure an application's repository locally
-delete             Delete an application from the server
-start              Start the application
-stop               Stop the application
-force-stop         Stops all application processes
-restart            Restart the application
-reload             Reload the application's configuration
-tidy               Clean out the application's logs and tmp directories and tidy up the git repo on the server
-show               Show information about an application
-status             Show status of an application's gears
+Creates and controls an OpenShift application.  To see the list of all applications use the rhc domain show command.
+Note that delete is not reversible and will stop your application and then remove the application and repo from the
+remote server. No local changes are made.
 
-Global Options
--l, --rhlogin login       OpenShift login
--p, --password password   OpenShift password
--d, --debug               Turn on debugging
---timeout seconds         Set the timeout in seconds for network commands
---noprompt                Suppress the interactive setup wizard from running before a command
---config FILE             Path of a different config file
--h, --help                Display help documentation
--v, --version             Display version information
+List of Actions
+  configure     Configure several properties that apply to an application
+  create        Create an application
+  delete        Delete an application from the server
+  deploy        Deploy a git reference or binary file of an application
+  force-stop    Stops all application processes
+  reload        Reload the application's configuration
+  restart       Restart the application
+  show          Show information about an application
+  start         Start the application
+  stop          Stop the application
+  tidy          Clean out the application's logs and tmp directories and tidy up the git repo on the server
 ----
 
 === Create a New Application
-It is very easy to create an OpenShift Origin application using _rhc_. The command to create an application is _rhc app create_ and it requires two mandatory arguments:
+The command to create an application is `rhc app create` and it requires two mandatory arguments:
 
-* *Application Name (-a or --app)* : The name of the application. The application name can only contain alpha-numeric characters and at max contain only 32 characters.
-* *Type (-t or --type)*: The type is used to specify which language runtime to use.
+* *Application Name*: The name of the application. The application name can only contain alpha-numeric characters and at max contain only 32 characters.
+* *Cartridge*: The cartridge type that specifies which language runtime to use.
 
-Create a directory to hold your OpenShift Origin code projects:
+If you haven't done so, create a directory to hold your OpenShift code projects:
 
 ----
 $ cd ~
-$ mkdir ose
-$ cd ose
+$ mkdir apps
+$ cd apps
 ----
 
-To create an application that uses the _php_ runtime, issue the following command:
+To create an application called "firstphp" that uses the _php_ runtime, issue the following command:
 
 ----
-$ rhc app create -a firstphp -t php
+$ rhc app create firstphp php-5.3
 ----
 
-After entering that command, you should see the following output:
+After entering that command, you should output similar to:
 
 ----
-Password: ****
+ Application Options
+ -------------------
+  Domain:     <yourdomain>
+  Cartridges: php-5.3
+  Gear Size:  default
+  Scaling:    no
 
-Creating application 'firstphp'
-===============================
+Creating application 'firstphp' ... done
 
-  Namespace: ose
-  Scaling:   no
-  Cartridge: php
-  Gear Size: default
 
-Your application's domain name is being propagated worldwide (this might take a minute)...
-The authenticity of host 'firstphp-ose.example.com (10.4.59.221)' can't be established.
-RSA key fingerprint is 6c:a5:e5:fa:75:db:5a:7f:dc:a2:44:ed:e4:97:af:3c.
-Are you sure you want to continue connecting (yes/no)? yes
+Waiting for your DNS name to be available ... done
+
 Cloning into 'firstphp'...
-done
+The authenticity of host 'firstphp-<yourdomain>.<appsdomain>.com (1.1.1.1)' can't be established.
+RSA key fingerprint is aa:11:aa:11:aa:11:aa:11:aa:11:aa:11:aa:11:aa:11.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'firstphp-<yourapp>.<appsdomain>.com,1.1.1.1' (RSA) to the list of known hosts.
+Checking connectivity... done
 
-firstphp @ http://firstphp-ose.example.com/
-===========================================
-  Application Info
-  ================
-    Git URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com/~/git/firstphp.git/
-    UUID      = e9e92282a16b49e7b78d69822ac53e1d
-    Created   = 1:47 PM
-    Gear Size = small
-    SSH URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com
-  Cartridges
-  ==========
-    php-5.3
+Your application 'firstphp' is now available.
 
-RESULT:
-Application firstphp was created.
+  URL:        http://firstphp-<yourdomain>.<appsdomain>.com/
+  SSH to:     01aa10a0110111a01100a011@firstphp-<yourdomain>.<appsdomain>.com
+  Git remote: ssh://01aa10a0110111a01100a011@firstphp-<yourdomain>.<appsdomain>.com/~/git/firstphp.git/
+  Cloned to:  /home/<you>/apps/firstphp
+
+Run 'rhc show-app firstphp' for more details about your app.
 ----
 
 You should also be able to verify that your application was created correctly by opening up a web browser and entering the following URL:
@@ -170,7 +157,7 @@ You should see the default template that OpenShift Origin uses for a new applica
 
 image:firstphp.png[image]
 
-=== What _rhc app create_ Does
+=== What `rhc app create` Does
 After you entered the command to create a new PHP application, a lot of things happened under the covers:
 
 * A request was made to the broker application host to create a new php application
@@ -221,7 +208,7 @@ d---------.  3 root root                             4096 Jan 21 13:47 .tmp
 [root@node e9e92282a16b49e7b78d69822ac53e1d]#
 ----
 
-During the link:#configure-rhc[rhc setup], our SSH key was uploaded to the server to enable us to authenticate to the system without having to provide a password. The SSH key we provided was actually appended to the _authorized_keys_ file. To verify this, use the following command to view the contents of the file:
+During the link:#configure-rhc[`rhc setup`], our SSH key was uploaded to the server to enable us to authenticate to the system without having to provide a password. The SSH key we provided was actually appended to the _authorized_keys_ file. To verify this, use the following command to view the contents of the file:
 
 ----
 # cat .ssh/authorized_keys
@@ -234,7 +221,7 @@ You will also notice the following three directories:
 * php-5.3 - The core PHP runtime and associated configuration files. Your application is served from this directory.
 
 === Localhost Directory Structure
-When you created the PHP application using the _rhc app create_ command, the private git repository that was created on your node host was cloned to your local machine.
+When you created the PHP application using the `rhc app create` command, the private git repository that was created on your node host was cloned to your local machine.
 
 ----
 $ cd firstphp
