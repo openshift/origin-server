@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.19.2
+Version: 1.20.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
