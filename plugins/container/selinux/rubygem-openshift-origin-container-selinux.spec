@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.5.0
+Version: 0.5.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,9 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
+- bump_minor_versions for sprint 38 (admiller@redhat.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
 - bug 985784: Unable to add database cartridge to apps again after removing it
   due to TCP connection stays in CLOSE_WAIT status (bparees@redhat.com)
