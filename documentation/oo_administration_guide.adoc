@@ -10,8 +10,14 @@ OpenShift Origin provides developers and IT organizations an open source auto-sc
 
 [TIP]
 ====
-*Installation is documented in the link:oo_deployment_guide_comprehensive.html[OpenShift Origin Deployment Guide].* +
-If you don't have OpenShift Origin up and running, go there first.
+*There are several ways to install / deploy OpenShift.* +
+
+* link:oo_deployment_guide_vm.html[The Origin VM] provides a pre-built, all-in-one virtual machine.
+* link:oo_install_users_guide.html[oo-install] offers the simplest, but most limited custom deployment path.
+* The link:oo_deployment_guide_puppet.html[Puppet Deployment Guide] explains how to use Puppet for a balance of flexibility and automation.
+* The link:oo_deployment_guide_comprehensive.html[Comprehensive Deployment Guide] describes the full, manual process to support the most custom deployments.
+
+If you don't have OpenShift Origin up and running, have a look at these deployment options first.
 ====
 
 [float]
@@ -23,97 +29,6 @@ System Administrators understand the complexity of not only deploying the code, 
 [float]
 === Managing an OpenShift Origin System
 This manual covers some of the most basic things that you will need to do to manage an OpenShift Origin instance. This guide does _not_ cover the management of some necessary support systems, including a messaging service like ActiveMQ and a MongoDB instance.
-
-== Adding Cartridges
-
-*Server used:*
-
-* node host
-* broker host
-
-*Tools used:*
-
-* yum
-* bundle
-
-By default, OpenShift Origin caches certain values for faster retrieval. Clearing this cache allows the retrieval of updated settings.
-
-For example, the first time MCollective retrieves the list of cartridges available on your nodes, the list is cached so that subsequent requests for this information are processed more quickly. If you install a new cartridge, it is unavailable to users until the cache is cleared and MCollective retrieves a new list of cartridges.
-
-This chapter will focus on installing cartridges to allow OpenShift Origin to create JBoss gears.
-
-=== List Available Cartridges
-For a complete list of all cartridges that are available to install, you can perform a search using the yum command that will output all OpenShift Origin cartridges.
-
-*Run the following command on the node host*:
-
-----
-# yum search origin-cartridge
-----
-
-You should see the following cartridges available to install:
-
-* openshift-origin-cartridge-cron.noarch : Embedded cron support for express
-* openshift-origin-cartridge-diy.noarch : Provides diy support
-* openshift-origin-cartridge-haproxy.noarch : Provides embedded haproxy-1.4 support
-* openshift-origin-cartridge-jbosseap.noarch : Provides JBossEAP6.0 support
-* openshift-origin-cartridge-jbossews.noarch : Provides JBossEWS1.0 support
-* openshift-origin-cartridge-jenkins.noarch : Provides jenkins-1 support
-* openshift-origin-cartridge-jenkins-client.noarch : Embedded jenkins client support for express
-* openshift-origin-cartridge-mysql.noarch : Provides embedded mysql support
-* openshift-origin-cartridge-perl.noarch : Provides mod_perl support
-* openshift-origin-cartridge-php.noarch : Provides php-5.3 support
-* openshift-origin-cartridge-postgresql.noarch : Provides embedded PostgreSQL support
-* openshift-origin-cartridge-python.noarch : Provides python-2.6 support
-* openshift-origin-cartridge-ruby.noarch : Provides ruby rack support running on Phusion Passenger
-
-=== Install JBoss EAP and JBoss EWS Support
-In order to enable consumers of the PaaS to create JBoss EAP / JBoss EWS gears, we will need to install all of the necessary cartridges for the application server and supporting build systems. Perform the following command to install the required cartridges:
-
-*Execute the following on the node host*:
-
-----
-# yum install openshift-origin-cartridge-jbosseap.noarch openshift-origin-cartridge-jbossews.noarch openshift-origin-cartridge-jenkins.noarch openshift-origin-cartridge-jenkins-client.noarch
-----
-
-The above command will allow users to create JBoss EAP and JBoss EWS gears. This also installs support for the Jenkins continuous integration environment, which is discussed in detail in the link:oo_user_guide.html#jenkins-continuous-integration[OpenShift Origin User's Guide]. At the time of this writing, the above command will download and install an additional 285 packages on your node host.
-
-NOTE: Depending on your connection and speed of your node host, this installation may take several minutes.
-
-=== Clear the Broker Application Cache
-At this point, you will notice if you try to create a JBoss EAP or JBoss EWS based application via the web console that the application type is not available. This is because the broker host creates a cache of available gear types to increase performance. After adding a new cartridge, you need to clear this cache in order for the new gear type to be available to users.
-
-*Execute the following on the broker host*:
-
-----
-# cd /var/www/openshift/broker
-# bundle exec rake tmp:clear
-----
-
-It may take several minutes before you see the new cartridges available on the web console as it takes a few minutes for the cache to completely clear.
-
-=== Test the New Cartridges
-Open up your preferred browser and enter the following URL, using the correct host and domain name for your environment:
-
-----
-http://broker.example.com
-----
-
-You will be prompted to authenticate and then be presented with an application creation screen. After the cache has been cleared, and assuming you have added the new cartridges correctly, you should see a screen similar to the following:
-
-image:console-jboss.png[image]
-
-If you do not see the new cartridges available on the web console, check that the new cartridges are available by viewing the contents of the _/usr/libexec/openshift/cartridges_ directory:
-
-----
-# cd /usr/libexec/openshift/cartridges
-# ls
-----
-
-=== Install the PostgreSQL and DIY Cartridges
-Using the information presented in this chapter, perform the necessary commands to install both the PostgreSQL and DIY cartridges on your node host. Verify the success of the installation by ensuring that the DIY application type is available on the web console:
-
-image:console-diy.png[image]
 
 == User Resource Management
 
@@ -462,6 +377,97 @@ the broker:
 ----
 
 Consult the man page or the -h option for script arguments. By default this tool summarizes gear usage by districts and profiles in a human-readable format. It can also produce several computer-readable formats for use by automation or monitoring.
+
+== Adding Cartridges
+
+*Server used:*
+
+* node host
+* broker host
+
+*Tools used:*
+
+* yum
+* bundle
+
+By default, OpenShift Origin caches certain values for faster retrieval. Clearing this cache allows the retrieval of updated settings.
+
+For example, the first time MCollective retrieves the list of cartridges available on your nodes, the list is cached so that subsequent requests for this information are processed more quickly. If you install a new cartridge, it is unavailable to users until the cache is cleared and MCollective retrieves a new list of cartridges.
+
+This chapter will focus on installing cartridges to allow OpenShift Origin to create JBoss gears.
+
+=== List Available Cartridges
+For a complete list of all cartridges that are available to install, you can perform a search using the yum command that will output all OpenShift Origin cartridges.
+
+*Run the following command on the node host*:
+
+----
+# yum search origin-cartridge
+----
+
+You should see the following cartridges available to install:
+
+* openshift-origin-cartridge-cron.noarch : Embedded cron support for express
+* openshift-origin-cartridge-diy.noarch : Provides diy support
+* openshift-origin-cartridge-haproxy.noarch : Provides embedded haproxy-1.4 support
+* openshift-origin-cartridge-jbosseap.noarch : Provides JBossEAP6.0 support
+* openshift-origin-cartridge-jbossews.noarch : Provides JBossEWS1.0 support
+* openshift-origin-cartridge-jenkins.noarch : Provides jenkins-1 support
+* openshift-origin-cartridge-jenkins-client.noarch : Embedded jenkins client support for express
+* openshift-origin-cartridge-mysql.noarch : Provides embedded mysql support
+* openshift-origin-cartridge-perl.noarch : Provides mod_perl support
+* openshift-origin-cartridge-php.noarch : Provides php-5.3 support
+* openshift-origin-cartridge-postgresql.noarch : Provides embedded PostgreSQL support
+* openshift-origin-cartridge-python.noarch : Provides python-2.6 support
+* openshift-origin-cartridge-ruby.noarch : Provides ruby rack support running on Phusion Passenger
+
+=== Install JBoss EAP and JBoss EWS Support
+In order to enable consumers of the PaaS to create JBoss EAP / JBoss EWS gears, we will need to install all of the necessary cartridges for the application server and supporting build systems. Perform the following command to install the required cartridges:
+
+*Execute the following on the node host*:
+
+----
+# yum install openshift-origin-cartridge-jbosseap.noarch openshift-origin-cartridge-jbossews.noarch openshift-origin-cartridge-jenkins.noarch openshift-origin-cartridge-jenkins-client.noarch
+----
+
+The above command will allow users to create JBoss EAP and JBoss EWS gears. This also installs support for the Jenkins continuous integration environment, which is discussed in detail in the link:oo_user_guide.html#jenkins-continuous-integration[OpenShift Origin User's Guide]. At the time of this writing, the above command will download and install an additional 285 packages on your node host.
+
+NOTE: Depending on your connection and speed of your node host, this installation may take several minutes.
+
+=== Clear the Broker Application Cache
+At this point, you will notice if you try to create a JBoss EAP or JBoss EWS based application via the web console that the application type is not available. This is because the broker host creates a cache of available gear types to increase performance. After adding a new cartridge, you need to clear this cache in order for the new gear type to be available to users.
+
+*Execute the following on the broker host*:
+
+----
+# cd /var/www/openshift/broker
+# bundle exec rake tmp:clear
+----
+
+It may take several minutes before you see the new cartridges available on the web console as it takes a few minutes for the cache to completely clear.
+
+=== Test the New Cartridges
+Open up your preferred browser and enter the following URL, using the correct host and domain name for your environment:
+
+----
+http://broker.example.com
+----
+
+You will be prompted to authenticate and then be presented with an application creation screen. After the cache has been cleared, and assuming you have added the new cartridges correctly, you should see a screen similar to the following:
+
+image:console-jboss.png[image]
+
+If you do not see the new cartridges available on the web console, check that the new cartridges are available by viewing the contents of the _/usr/libexec/openshift/cartridges_ directory:
+
+----
+# cd /usr/libexec/openshift/cartridges
+# ls
+----
+
+=== Install the PostgreSQL and DIY Cartridges
+Using the information presented in this chapter, perform the necessary commands to install both the PostgreSQL and DIY cartridges on your node host. Verify the success of the installation by ensuring that the DIY application type is available on the web console:
+
+image:console-diy.png[image]
 
 [[admin-console]]
 == Using the Administrative Console
