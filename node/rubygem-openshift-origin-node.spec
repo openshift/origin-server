@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.18.2
+Version: 1.18.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Dec 13 2013 Adam Miller <admiller@redhat.com> 1.18.3-1
+- Node Platform - Set broker credentials on all gears (jhonce@redhat.com)
+
 * Fri Dec 06 2013 Troy Dawson <tdawson@redhat.com> 1.18.2-1
 - Prune from child gear app-deployments dir (andy.goldstein@gmail.com)
 
