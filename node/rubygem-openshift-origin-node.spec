@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.0
+Version: 1.19.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,21 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.19.1-1
+- bump_minor_versions for sprint 38 (admiller@redhat.com)
+- Merge pull request #4288 from jhadvig/restore
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4303 from detiber/bz1035176
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1038129 - Gear is not started after restore when hot_deploy marker is
+  present (jhadvig@redhat.com)
+- Bug 1017536 - Duplication warning messages when creating scalable app with
+  empty git repo (jhadvig@redhat.com)
+- Use app config instead of env vars (andy.goldstein@gmail.com)
+- Bug 1035176 - openshift-iptables-port-proxy start causes duplicate rules
+  (jdetiber@redhat.com)
+- Use app config instead of env vars (andy.goldstein@gmail.com)
+
 * Fri Dec 06 2013 Troy Dawson <tdawson@redhat.com> 1.18.2-1
 - Prune from child gear app-deployments dir (andy.goldstein@gmail.com)
 
