@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.0
+Version: 1.19.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.19.1-1
+- bump_minor_versions for sprint 38 (admiller@redhat.com)
+- Fix bug 1039591: Don't use url basename as suggested app name
+  (jliggitt@redhat.com)
+
 * Fri Dec 06 2013 Troy Dawson <tdawson@redhat.com> 1.18.3-1
 - Merge pull request #4276 from sg00dwin/login-page-issues
   (dmcphers+openshiftbot@redhat.com)
