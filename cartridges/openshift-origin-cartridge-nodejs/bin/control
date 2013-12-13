@@ -145,7 +145,7 @@ function start() {
         node_cmd="node $node_opts $node_app $node_app_args"
     fi
 
-    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts  >> $logf 2>&1 &"
+    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts 2>&1 | tee -a $logf &"
 
     retries=3
     while [ $retries -gt 0 ]; do
