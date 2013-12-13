@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,9 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Fri Dec 13 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
+- Node Platform - Set broker credentials on all gears (jhonce@redhat.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
 - Bug 1032906: Fix generic error handling in Openshift agent
   (ironcladlou@gmail.com)
