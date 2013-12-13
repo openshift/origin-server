@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.0
+Version: 1.19.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,24 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.19.1-1
+- bump_minor_versions for sprint 38 (admiller@redhat.com)
+- fix typo in cucumber step definition (bparees@redhat.com)
+- Provide a much clearer message on simple operation failures
+  (ccoleman@redhat.com)
+- Merge pull request #4307 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4299 from mfojtik/card_85
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4311 from liggitt/bug_1039760_patch_env_var_api
+  (dmcphers+openshiftbot@redhat.com)
+- improve rest api docs generation script (lnader@redhat.com)
+- fix typo - bz1040144 (rchopra@redhat.com)
+- Updated tests for MySQL 5.5 (mfojtik@redhat.com)
+- Fix bug 1039760: Add patch support for env vars (jliggitt@redhat.com)
+- fix bz 1039787 - delete downloaded cart as part of new_comp rollback and not
+  in the controller (rchopra@redhat.com)
+
 * Fri Dec 06 2013 Troy Dawson <tdawson@redhat.com> 1.18.2-1
 - Fix for bug 1039151 (abhgupta@redhat.com)
 - Fix for bug 1038730 (abhgupta@redhat.com)
