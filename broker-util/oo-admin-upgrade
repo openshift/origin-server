@@ -748,6 +748,13 @@ class Upgrader
           :ignore_cartridge_version => ignore_cartridge_version.to_s
         }
 
+        unless app.scalable
+          bk = OpenShift::Auth::BrokerKey.new
+          auth_iv, auth_token = bk.generate_broker_key(app)
+          upgrade_args[:auth_token] = auth_token
+          upgrade_args[:auth_iv] = auth_iv
+        end
+
         Timeout::timeout(420) do
           OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
             client.upgrade(upgrade_args) do |response|

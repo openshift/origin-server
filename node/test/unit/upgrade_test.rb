@@ -55,7 +55,7 @@ module OpenShift
             "public_endpoints_add" => []
         }
 
-        @upgrader = Upgrader.new(@uuid, @app_uuid, 'namespace', @version, 'hostname', false, false, @hourglass)
+        @upgrader = Upgrader.new(@uuid, @app_uuid, nil, nil, 'namespace', @version, 'hostname', false, false, @hourglass)
       end
 
       def test_compatible_success
