@@ -1,14 +1,112 @@
 #!/usr/bin/env oo-ruby
+#
+# Introduction
+# ============
+#
+# haproxy_ctld.rb is the primary daemon that controls autoscaling on OpenShift.
+# By customizing this script users can change the thresholds and algorithms
+# used to control scale up and down behavior.
+#
+# Without changes, this script uses concurrent connections to determine when
+# scale up and down events should occur.  This behavior was chosen by default
+# because as more people are using the site, it's a common behavior to add
+# more backends.  Also, as backends slow down, requests take longer and thus
+# the number of requests outstanding at any point in time goes up which can
+# be a good indication that more backends are needed.
+#
+# There are, however, several scenarios where using this method won't work or
+# in some cases could be harmful to the performance of your application.  For
+# example, if your data backend is the primary bottleneck, adding more
+# application gears could actually harm performance, not increase it.  The
+# documentation contained in this script are intended as a starting point for
+# advanced users who wish to customize this script to be more application
+# specific.
+#
+# Overview
+# =======
+#
+# haproxy_ctld.rb runs inside the same gear as haproxy does.  Haproxy is our
+# primary load balancing software.  Haproxy and haproxy_ctld.rb are both run
+# as your user inside the gear and both are daemonized.  The default behavior
+# is to have haproxy_ctld.rb watch haproxy via it's unix socket "status" port
+# to obtain basic statistics about haproxy.  When a scale up or down event
+# is required, haproxy_ctld.rb contacts the broker via the standard REST API
+# and issues a scale-up or scale-down event.  Authentication is handled by an
+# auth token stored in the haproxy gear.  This token allows haproxy_ctld.rb to
+# behave as the user, but with far reduced permissions.
+#
+# The goals of customizing this script to your own needs are as follows:
+#
+# 1) Determine clear metrics for when you would like your application to scale
+#    up and scale down.
+# 2) Find a mechanism for monitoring those metrics.
+# 3) Customize this script accordingly
+# 4) Test it out.
+#
+# One common request is something like: "I want to scale up with CPU reaches
+# 90%."  To break that request down into an actionable item, first we have to
+# identify which cpu is being discussed.  Presumably one of the application
+# gears.  Keep in mind the haproxy gear doesn't have direct access to those
+# gears but there is an SSH key on the haproxy that has ssh access.  This
+# allows the haproxy to log in to remote gears and run commands in them to get
+# whatever desired metrics might be required.
+#
+# The next step might be to determine what thresholds to use.  Should we scale
+# up when just one gear is at 90%?  Should we scale up when 30% of the gears
+# are at 90%?
+#
+# As your customizations mature, you'll need to add anti-flap and other
+# protections.  In our 90% CPU example above, you wouldn't want to keep scaling
+# up just because one gear is at 90%.  It could be a code bug that hit an
+# infinite loop and without proper protections, your haproxy_ctld.rb script
+# could keep issuing scale up events indefinitely.
+#
+# Advanced Topics and Ideas
+# =========================
+#
+# In addition to scale up and down events, it should be possible to dynamically
+# alter some haproxy settings.  In our 90% CPU example above, perhaps one out
+# of 10 gears is at 90% while the others are only at 20.  Using the unix
+# control port, users could dynamically change the weight of the busy gear so
+# it is less favored until things even out.
+
 
 require 'socket'
 require 'logger'
 require 'getoptlong'
 require 'net/http'
 
+#
+# @check_interval = 5 (default)
+#
+# check_interval determines how often (in seconds) a the daemon should check
+# for scale up/down events.
+#
 @check_interval=5
 
+#
+# CONFIG_VALIDATION_CHECK_INTERVAL = 300 (default)
+#
+# Due to DNS issues, race conditions and performance, we always use IP address
+# in haproxy configs to point at backend gears.  The problem happens when those
+# IP addresses change.  CONFIG_VALIDATION_CHECK_INTERVAL is how often the
+# haproxy_ctld.rb file will lookup DNS names and update haproxy.cfg with new
+# ip addresses if anything has changed.
+#
 CONFIG_VALIDATION_CHECK_INTERVAL = 300
+
+#
+# FLAP_PROTECTION_TIME_SECONDS = 600 (default)
+#
+# Flap protection is an important setting for dealing with scale up and down
+# events.  Constantly scaling up and down is not an attractive behavior and
+# FLAP_PROTECTION_TIME_SECONDS is the amount of time (in seconds) required
+# to pass after a scale up event has happened but before a scale down event
+# occurs.  In other words, if a scale up event has happened, don't issue
+# a scale down event until after 600 seconds has elapsed
+#
 FLAP_PROTECTION_TIME_SECONDS = 600
+
 HAPROXY_CONF_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "conf")
 HAPROXY_RUN_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "run")
 HAPROXY_CONFIG=File.join(HAPROXY_CONF_DIR, "haproxy.cfg")
@@ -23,6 +121,20 @@ class HAProxyAttr
 end
 
 class Haproxy
+    #
+    # MAX_SESSIONS_PER_GEAR = 16.0 (default)
+    #
+    # Sessions per gear is the primary control for determining how much traffic
+    # an individual gear can handle.  It is highly likely users will want to
+    # tune this up and down.  If your backend is doing small and fast jobs like
+    # might be the case for a caching service (varnish), you may want to
+    # increase this number.  If the backend process is doing heavy processing
+    # and likely takes a while, you may want to lower this number.
+    #
+    # Note: This doesn't control how many requests go to a backend gear, this
+    # simply tells haproxy_ctld.rb how many connections per gear we are
+    # targeting so it can scale up and down to match that ratio.
+    #
     MAX_SESSIONS_PER_GEAR = 16.0
 
     attr_accessor :gear_count, :sessions, :sessions_per_gear, :session_capacity_pct, :gear_namespace, :last_scale_up_time, :last_scale_error_time
@@ -37,6 +149,7 @@ class Haproxy
       end
     end
 
+
     def populate_status_urls
       @status_urls = []
       if File.exist?(HAPROXY_STATUS_URLS_CONFIG)
@@ -50,6 +163,7 @@ class Haproxy
       end
     end
 
+
     def initialize(stats_sock="#{HAPROXY_RUN_DIR}/stats", log_debug=nil)
         @stats_sock=stats_sock
 
@@ -61,6 +175,8 @@ class Haproxy
         end
 
         @last_scale_up_time=Time.now
+        # remove_count_threshold defines how long @session_gear_pct must be
+        # below @remove_gear_pct.  
         @remove_count_threshold = 20
         @remove_count = 0
         self.populate_status_urls
@@ -204,28 +320,80 @@ class Haproxy
         @log.debug("GEAR_INFO - capacity: #{session_capacity_pct}% gear_count: #{gear_count} sessions: #{sessions} up/remove_thresh: #{@gear_up_pct}%/#{@gear_remove_pct}% sec_left_til_remove: #{seconds_left} gear_remove_thresh: #{@remove_count}/#{@remove_count_threshold}")
     end
 
-    def check_capacity(debug=nil)
-        # check_capacity tracks the following information for determining whether
-        # or not to increase or decrease a gear
-        #
-        # @session_capacity_pct (%full considering total number of gears and
-        #       current sessions
-        # @gear_up_pct - When capacity is larger then gear_up_pct, add a gear
-        # @gear_remove_pct - When capacity is less then gear_remove_pct, remove a
-        #       gear
-        # @gear_count - The number of gears (don't remove a gear when there's
-        #       only one left.
-        # @last_scale_up_time_seconds - how long it's been since we last scaled
-        #       up
-        # @remove_count - Number of consecutive remove_gear requests
-        # @remove_count_threshold - when remove_count meets remove_count_threshold
-        #       actually issue a remove_gear
 
+    #
+    # Does a capacity check and issues scale up and down events.
+    #
+    # This is the primary area users will want to customize.  It's heavily 
+    # targeted towards haproxy capacity today so feel free to gut and customize
+    # as required.
+    #
+    # This gets called every 5 seconds (by default, determined by
+    # CONFIG_VALIDATION_CHECK_INTERVAL defined above).
+    #
+    # Varibles currently being used:
+    #
+    #   * @session_capcity_pct (determines how full current capacity is using
+    #                          defined in "refresh" above).  100% full means
+    #                          that all gears have all MAX_SESSIONS_PER_GEAR
+    #                          or higher usage).  Though this number could be
+    #                          higher than 100% in times of high load.  This
+    #                          number will change up and down as more or fewer
+    #                          people visit your site.
+    #   * @gear_up_pct - Determines the level where @session_capacity_pct will
+    #                    trigger a gear up event.
+    #   * @gear_remove_pct - Determines the level where @session_capacity_pct
+    #                        will issue a gear down event.
+    #   * @gear_count - The number of gears currently defined in haproxy
+    #   * @last_scale_up_time_seconds - How long it's been since we last scaled
+    #                                   up.  Used for flap prevention
+    #   * @remove_count - Number of consecutive remove_gear requests
+    #   * @remove_count_threshold - The number of checks in a row where
+    #                               @session_capacity_pct must be below
+    #                               @gear_remove_pct before self.remove_gear
+    #                               will be called.
+    #
+    def check_capacity(debug=nil)
         lsets = last_scale_error_time_seconds
         if lsets == 0 || lsets > FLAP_PROTECTION_TIME_SECONDS
           min, max = get_scaling_limits
 
-          # If active capacity is greater then gear_up pct. Add a gear
+          #
+          # Check to see if @session_capacity_pct is greater than or equal to
+          # @gear_up_pct.  If it is, issue a gear up event and log it.  Then
+          # return back to the checker program.
+          #
+          # This would be one of the first areas that could be completely
+          # removed or customized.  For example, users that wanted to scale up
+          # when memory on a remote gear was high could do something like the
+          # pseudo code below:
+          #
+          # for gear_dns in gear_list
+          #     mem_usage = `ssh -i ~/.openshift_ssh/id_rsa/$UUID@$gear_dns 'oo-cgroup-read memory.memsw.usage_in_bytes'`
+          #     self.add_gear if mem_usage >= 10000000
+          # end
+          #
+          # Or in another example, we could track CPU deltas using cgruops.
+          # This would require storing current and previous cpu to generate a
+          # delta.  Again, more pseudo code.
+          #
+          # for gear_dns in gear_list
+          #     current_cpu_usage = `ssh -i ~/.openshift_ssh/id_rsa/$UUID@$gear_dns 'oo-cgroup-read cpuacct.usage'`
+          #     cpu_delta = current_cpu_usage - previous_cpu_usage
+          #     self.add_gear if cpu_delta >= 152504356
+          # end
+          #
+          # Another option is to create a tester script that you want to finish
+          # in a certain time.  If it's slower than expected, scale up.  Be
+          # careful not to create a heisenberg script (IE: a script that might
+          # change the performance of the gear simply by running it).  This can
+          # happen when doing a lot of compute.
+          #
+          # for gear_dns in gear_list
+          #     time_threshold = 2 # seconds
+          #     test_script_time = `ssh -i ~/.openshift_ssh/id_rsa/$UUID@$gear_dns 'my_test_script.sh'`
+          #     self.add_gear if time_test_script > time_threshold
+          # end
           if @session_capacity_pct >= @gear_up_pct
               @remove_count = 0
               if @gear_count < max or max < 0
@@ -236,12 +404,58 @@ class Haproxy
               end
               self.print_gear_stats if debug
           elsif @session_capacity_pct < @gear_remove_pct and @gear_count > 1
-              # If active capacity is less then gear remove percentage
-              # *AND* the last gear up happened longer then
-              # ago FLAP_PROTECTION_TIME_SECONDS
-              # *AND* remove_count is larger then the remove_count_threshold
-              # Gear remove.
-
+              #
+              # Removing gears is a bit more complicated almost entirely
+              # because flap detection is currently built to err on the side of
+              # performance.  That is, as soon as we've hit a threshold to
+              # scale up, do so.  However scaling down must meet not just a
+              # threshold but also several flapping rules.  This may or may
+              # not be what you want.
+              #
+              # Current scale down rules:
+              #
+              # If @session_capacity_pct is less than @gear_remove_pct
+              #   and
+              # @gear_count is greater than 1 (to prevent scaling down to 
+              #   zero gears)
+              #   and
+              # the last gear up happened longer than
+              #   FLAP_PROTECTION_TIME_SECONDS ago
+              #   and
+              # @remove_count is larger than @remove_count_threshold
+              #   then
+              # self.remove_gear
+              #
+              # Remember that @remove_count_threshold is the number of checks
+              # in a row that must be met before a gear down event happens.  It
+              # could be that the very moment you checked haproxy, there
+              # weren't many people connected, but overall things might be
+              # extremely busy.
+              #
+              #
+              # This will be the second area you are likely to customize.  The
+              # examples made above for scale up events will very likely require
+              # scale down changes in this section.  The most complicated part
+              # of the current code is all in the flap detection.  It is highly
+              # recommended not to start with flap detection built in.  Keep
+              # it simple and then adjust your code as you need to.  Here
+              # are some sample gear down events without flap detection.
+              #
+              #
+              # This example shows the below code with flap detection removed:
+              #
+              # if @session_capacity_pct < @gear_remove_pct and @gear_count > 1
+              #   self.remove_gear
+              # end
+              #
+              # Using one of the above examples with memory, this example
+              # issues a scale down when memory usage drops below a threashold.
+              #
+              # for gear_dns in gear_list
+              #     mem_usage = `ssh -i ~/.openshift_ssh/id_rsa/$UUID@$gear_dns 'oo-cgroup-read memory.memsw.usage_in_bytes'`
+              #     self.remove_gear if mem_usage < 10000000
+              # end
+              #
               @remove_count += 1 if @remove_count < @remove_count_threshold
 
               if self.last_scale_up_time_seconds.to_i > FLAP_PROTECTION_TIME_SECONDS
@@ -254,6 +468,7 @@ class Haproxy
               else
                   self.print_gear_stats if debug
               end
+              # End of scale down section
           else
               @remove_count = 0
               self.print_gear_stats if debug
