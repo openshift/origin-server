@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
