@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 1.19.1
+Version: 1.19.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -61,6 +61,13 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
+- Bug 1040065 - Disabled OPENSHIFT_MYSQL_PATH_ELEMENT via SCL
+  (mfojtik@redhat.com)
+- Be more verbose when MySQL fail to start (mfojtik@redhat.com)
+- Card online_cartridge_85 - Add Mysql 5.5 support through SCL
+  (mfojtik@redhat.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.19.1-1
 - bump_minor_versions for sprint 37 (admiller@redhat.com)
 
