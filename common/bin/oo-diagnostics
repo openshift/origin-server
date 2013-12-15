@@ -55,9 +55,7 @@ class OODiag
   def run_setup
     initialize
     load_rpm_list
-    detect_is_node_or_broker
-    detect_project_version
-    detect_os_version
+    detect_system_properties
     load_broker_rails_env if @is_broker
   end
 
@@ -175,30 +173,28 @@ class OODiag
     return @rpms
   end
 
-  def detect_is_node_or_broker
+  def detect_system_properties
     @is_broker = %w[openshift-origin-broker rhc-broker].any? {|name| @rpms[name]}
     verbose "OpenShift broker installed." if @is_broker
     @is_node= %w[rubygem-openshift-origin-node rhc-node].any? {|name| @rpms[name]}
     verbose "OpenShift node installed." if @is_node
-    return @is_broker, @is_node
-  end
 
-  def detect_project_version
     # These tests probably need a lot of work to be robust
     #
     @project_is = {}
     # It's OpenShift Enterprise if there are any el6op RPMs on the system.
     @project_is[:enterprise] = @rpms.values.select {|rpm| rpm[:release].include? 'el6op'}.length > 0
-    @scl_prefix = @project_is[:enterprise] ? "ruby193-" : ""
     # It's OpenShift Online if certain RPMs are present
     @project_is[:online] = @rpms['rhc-common'] && true
     # It's OpenShift Origin otherwise...
     @project_is[:origin] = !(@project_is[:enterprise] || @project_is[:online])
+    # detect whether the ruby193 SCL is in play.
+    system "scl enable ruby193 echo >& /dev/null"
+    @scl_prefix = $?.success? ? "ruby193-" : "" 
+    # detect whether we use service or systemctl
+    system "command -v systemctl >& /dev/null"
+    @use_systemctl = $?.success?
 
-    return @project_is
-  end
-
-  def detect_os_version
     # looking for RHEL or Fedora version via /etc/redhat-release
     # If something else... I dunno
     release = File.read '/etc/redhat-release'
@@ -215,7 +211,6 @@ class OODiag
       :rhel64 => release.include?('Enterprise Linux Server release 6.4'),
       :rhel7 => release.include?('Enterprise Linux Server release 7'),
     }
-    return @os_is
   end
 
   def load_broker_rails_env
@@ -919,18 +914,18 @@ class OODiag
   end
 
   def service_enabled?(svc)
-    if @os_is[:rhel6]
-      system "chkconfig #{svc} >& /dev/null"
-    else #systemd
+    if @use_systemctl
       system "systemctl is-enabled #{svc}.service >& /dev/null"
+    else #sysv
+      system "chkconfig #{svc} >& /dev/null"
     end
     return $?.exitstatus == 0
   end
   def service_started?(svc)
-    if @os_is[:rhel6]
-      system "service #{svc} status >& /dev/null"
-    else #systemd
+    if @use_systemctl
       system "systemctl status #{svc}.service >& /dev/null"
+    else #sysv
+      system "service #{svc} status >& /dev/null"
     end
     return $?.exitstatus == 0
   end
@@ -1099,7 +1094,7 @@ class OODiag
     # One bug would express when commands were run through oo-spawn/shellExec.
     # Under certain circumstances they would not have the dominating MCS label
     # (s0-s0:c0.c1023) and not be able to affect gears.
-    scl_root = @project_is[:enterprise] ? "/opt/rh/ruby193/root" : ""
+    scl_root = @scl_prefix.empty? ? "" : "/opt/rh/ruby193/root"
     context = `ps -o label= $(pgrep -f "ruby[^[:space:]]*[[:space:]]#{scl_root}/usr/sbin/mcollectived([[:space:]]|$)")`.chomp.split ":"
     context.shift
     context = context.join ":"
