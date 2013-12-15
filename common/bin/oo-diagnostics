@@ -1181,7 +1181,7 @@ class OODiag
     require 'socket'
 
     # Retrieve the SSL cert from Apache
-    response = `curl -k -s -v https://#{Socket.gethostname} -o /dev/null 2>&1`
+    response = `curl -k -s -v https://localhost/ -o /dev/null 2>&1`
     issuer = response.slice(/^\*\s*issuer: .*$/).gsub(/^\*\s*issuer: /,"")
     subject = response.slice(/^\*\s*subject: .*$/).gsub(/^\*\s*subject: /,"")
     commonname = response.slice(/^\*\s*common name: .*$/).gsub(/^\*\s*common name: /,"")
@@ -1189,7 +1189,7 @@ class OODiag
       do_warn "Using a self-signed certificate for the broker"
     end
 
-    apacheconfig = `httpd -S 2> /dev/null`.slice(/^\*:443.*\n[[:space:]][^\n]*\n[^[:space:]]/m)
+    apacheconfig = `httpd -S 2> /dev/null`.slice(  / ^\*:443.*  (\n^\s.*)*  \n(\S|\z) /x  )
     servername = apacheconfig.scan(/(?:(?:default server )|(?:port 443 namevhost ))(\S+) \((?:[^:]+)/)
     badnames = []
     servername.each do |sn|
