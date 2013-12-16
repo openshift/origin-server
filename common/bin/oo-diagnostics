@@ -1205,7 +1205,7 @@ class OODiag
 
     if badnames.size > 0
       badnames.uniq.each do |badname|
-        config_files = `grep -l -e "^[[:blank:]]*ServerName[[:blank:]]*#{badname}" /etc/httpd/conf.d/*`
+        config_files = `grep -l -e "^[[:blank:]]*ServerName[[:blank:]]*#{badname}" /etc/httpd/conf.d/*.conf`
         config_files.each_line do |config_file|
           do_warn <<-CONFLICT
             #{config_file.chomp} 
