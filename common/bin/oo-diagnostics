@@ -224,16 +224,15 @@ class OODiag
       raise
     rescue Exception => e
       do_fail <<-"FAIL"
-        Broker application failed to load. This is most likely a gem
-        dependency problem. Update rubygem RPMs and restart openshift-broker
-        to regenerate the broker Gemfile.lock - this may fix the problem.
-        Another possibility is that you are running this script with a
-        different ruby than what is required for the broker app (1.8 vs 1.9).
+        Broker application failed to load. This is often a gem dependency problem.
+        Updating rubygem RPMs and restarting openshift-broker
+        to regenerate the broker Gemfile.lock may fix the problem.
+        The actual error encountered was:
+        #{e.inspect}
         ***
         THIS PROBLEM NEEDS TO BE RESOLVED FOR THE BROKER TO WORK.
         DISABLING BROKER TESTS.
         ***
-        The error was: #{e.inspect}
       FAIL
       @is_broker = false
     end
