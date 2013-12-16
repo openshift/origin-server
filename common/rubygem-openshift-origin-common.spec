@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,11 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Mon Dec 16 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
+- <oo-diagnostics> null out errors from absent files (lmeyer@redhat.com)
+- <oo-diagnostics> more reliable test_broker_certificate (lmeyer@redhat.com)
+- <oo-diagnostics> more specific test conditions (lmeyer@redhat.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
 - <oo-diagnostics> handle ^C more cleanly (lmeyer@redhat.com)
 - <oo-diagnostics> detect common DNS problem early (lmeyer@redhat.com)
