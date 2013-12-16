@@ -934,12 +934,12 @@ class OODiag
     fail_without = []
     warn_without = []
     if @is_broker
-      fail_without += %w{httpd network sshd}
+      fail_without += %w{httpd sshd}
       fail_without += @project_is[:online] ? %w{rhc-broker rhc-site} : %w{openshift-broker}
       warn_without += %w{ntpd}
     end
     if @is_node
-      fail_without += %w{httpd network sshd openshift-iptables-port-proxy openshift-gears
+      fail_without += %w{httpd sshd openshift-iptables-port-proxy openshift-gears
                         cgconfig cgred crond openshift-node-web-proxy}
       scl_prefix = @project_is[:enterprise] ? "ruby193-" : ""
       fail_without << @scl_prefix + "mcollective"
@@ -950,6 +950,9 @@ class OODiag
        #
     verbose "checking that required services are running now"
     missing = fail_without.uniq.select {|svc| !service_started? svc}
+    # "network" had to be special; always check it with "service" not "systemctl"
+    system "service network status >& /dev/null"
+    missing += "network" if ! $?.success?
     do_fail <<-REQ unless missing.empty?
       The following service(s) are not currently started:
         #{missing.join ", "}
