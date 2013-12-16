@@ -1134,7 +1134,7 @@ class OODiag
     do_match_check = true
 
     if File.exists? '/var/www/openshift/console'
-      console = `ls /var/www/openshift/console/httpd/conf.d/*auth*.conf | grep -v -- '-dev.conf$'`.split
+      console = `ls /var/www/openshift/console/httpd/conf.d/*auth*.conf 2> /dev/null | grep -v -- '-dev.conf$'`.split
       #Make sure there is only 1 conf file for the console
       if(console.size > 1)
         do_match_check = false
@@ -1151,7 +1151,7 @@ class OODiag
       do_match_check = false
     end
 
-    broker = `ls /var/www/openshift/broker/httpd/conf.d/*auth*.conf | grep -v -- '-dev.conf$'`.split
+    broker = `ls /var/www/openshift/broker/httpd/conf.d/*auth*.conf 2> /dev/null | grep -v -- '-dev.conf$'`.split
     #Make sure there is only 1 conf file for the broker
     if(broker.size > 1)
       do_match_check = false
