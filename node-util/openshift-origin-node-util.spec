@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -149,6 +149,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Mon Dec 16 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
+- <oo-accept-node> clarify uid errmsg when non-gear user is in the range
+  (lmeyer@redhat.com)
+- <oo-accept-node> fix context check for systemctl (lmeyer@redhat.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
 - Bug 1034436 - Use shell globs instead of find in oo-auto-idler
   (agrimm@redhat.com)
