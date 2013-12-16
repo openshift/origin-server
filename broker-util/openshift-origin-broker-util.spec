@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.19.0
+Version: 1.19.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -97,6 +97,11 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Mon Dec 16 2013 Adam Miller <admiller@redhat.com> 1.19.1-1
+- bump version in broker-util, someone merged master version into stage in a PR
+  (admiller@redhat.com)
+- <oo-accept-broker> validate DNS AvahiPlugin (lmeyer@redhat.com)
+
 * Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
 - Bug 1034555 (lnader@redhat.com)
 
