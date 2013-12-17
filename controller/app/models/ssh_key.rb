@@ -82,16 +82,6 @@ class SshKey
     self
   end
 
-  # This method should be overridden in the subclasses, if required
-  def to_key_hash()
-    key_hash = {}
-    key_hash["name"] = self.name
-    key_hash["type"] = self.type
-    key_hash["content"] = self.content
-    key_hash["_type"] = self.class.to_s
-    key_hash
-  end
-
   def is_ssh?
     type != 'krb5-principal'
   end

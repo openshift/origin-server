@@ -18,6 +18,7 @@ production:
         ssl: <%= config[:ssl] %>
   options:
     raise_not_found_error: true
+    include_type_for_serialization: true
 development:
   sessions:
     default:
@@ -38,6 +39,7 @@ development:
         ssl: <%= config[:ssl] %>
   options:
     raise_not_found_error: true
+    include_type_for_serialization: true
 test:
   sessions:
     default:
@@ -58,3 +60,4 @@ test:
         ssl: <%= config[:ssl] %>
   options:
     raise_not_found_error: true
+    include_type_for_serialization: true

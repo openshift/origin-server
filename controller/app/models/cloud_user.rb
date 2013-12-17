@@ -188,7 +188,7 @@ class CloudUser
   # domains/application that the user has access to.
   def add_ssh_key(key)
     if persisted?
-      pending_op = AddSshKeysUserOp.new(keys_attrs: [key.to_key_hash()])
+      pending_op = AddSshKeysUserOp.new(keys_attrs: [key.serializable_hash])
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp , ssh_keys: key.serializable_hash }})
       reload.run_jobs
     else
@@ -208,7 +208,7 @@ class CloudUser
   def remove_ssh_key(name)
     if persisted?
       key = self.ssh_keys.find_by(name: name)
-      pending_op = RemoveSshKeysUserOp.new(keys_attrs: [key.to_key_hash()])
+      pending_op = RemoveSshKeysUserOp.new(keys_attrs: [key.serializable_hash])
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp } , "$pull" => { ssh_keys: key.serializable_hash }})
       reload.run_jobs
     else
