@@ -30,7 +30,25 @@ class RestApiCustomCartTest < ActiveSupport::TestCase
     assert_create_app_fails({:include => :cartridges, :cartridges => [{:url => 'https://cdk-claytondev.rhcloud.com/manifest/failure'}]}, "Create an app based on the CDK") do |app|
       assert app.errors.to_hash[:base].any? {|e| e =~ /Failed to execute: 'control start'/}
     end
-  end  
+  end
+
+  def test_custom_cart_with_bad_control_script_fails
+    with_configured_user
+    setup_domain
+    assert_create_app_fails({:include => :cartridges, :cartridges => [{:url => 'https://cdk-claytondev.rhcloud.com/manifest/failure'}]}, "Create an app with a failing cartridge control script") do |app|
+      assert app.errors.full_messages.one?{ |m| m =~ /Unable to complete the requested operation/ }, app.errors.inspect
+      assert app.errors.full_messages.one?{ |m| m =~ /Failed to execute\: 'control start'/ }, app.errors.inspect
+    end
+  end
+
+  def test_custom_cart_with_bad_control_script_gets_output
+    with_configured_user
+    setup_domain
+    assert_create_app_fails({:include => :cartridges, :cartridges => [{:url => 'https://cdk-claytondev.rhcloud.com/manifest/failure_output'}]}, "Create an app with a failing cartridge control script and output") do |app|
+      assert app.errors.full_messages.one?{ |m| m =~ /Stderr output/ }, app.errors.inspect
+      assert app.errors.full_messages.one?{ |m| m =~ /Deliberate failure/ }, app.errors.inspect
+    end
+  end
 
   def assert_create_app(options, message="", &block)
     app = Application.new({:name => 'test', :domain => @domain}.merge(options))
