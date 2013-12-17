@@ -161,12 +161,12 @@ module MCollective
 
         usage = (quota[:blocks_used] / quota[:blocks_limit].to_f) * 100.0
         if watermark < usage
-          buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using %3.1f%% of disk quota\n" % usage
+          buffer << "\nCLIENT_MESSAGE: Warning: Gear #{uuid} is using %3.1f%% of disk quota\n" % usage
         end
 
         usage = (quota[:inodes_used] / quota[:inodes_limit].to_f) * 100.0
         if watermark < usage
-          buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using %3.1f%% of inodes allowed\n" % usage
+          buffer << "\nCLIENT_MESSAGE: Warning: Gear #{uuid} is using %3.1f%% of inodes allowed\n" % usage
         end
       rescue Exception => e
         # do nothing

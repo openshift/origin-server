@@ -60,6 +60,21 @@ module Console
             if (server_messages = RestApi::Base.messages_for e.response).present?
               e = RestApi::ServerError.new(e.response, server_messages.map(&:text).join(' -- '))
               e.set_backtrace($!.backtrace)
+
+              warnings, errors = Array(server_messages).inject([[],[]]) do |a, m|
+                text = m.text
+                text = (text || "").gsub(/\A\n+/m, "").rstrip
+                case m.severity
+                when 'warning'
+                  a[0] << text
+                when 'error'
+                  a[1] << text
+                end
+                a
+              end
+
+              flash.now[:warning] = warnings.compact.join(' -- ') unless warnings.empty?
+              message = errors.compact.join(' -- ') unless errors.empty?
             end
             logger.debug "Server error: #{e}"            
             generic_error(e, message, alternatives)            
