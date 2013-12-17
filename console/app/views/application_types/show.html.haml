@@ -137,14 +137,7 @@
 
       .controls
         %p.help-block
-          Gears are the application containers running your code.
-          - if @gear_sizes.empty?
-            There are no gear sizes available for this application.
-          - else
-            For most applications, the '#{@gear_sizes.first.to_s}' gear size provides plenty of resources.
-
-          - if @gear_sizes.length > 1
-            If you require more resources, select a larger gear size here.
+          = render :partial => 'application_types/gear_size_help', :locals => {:gear_sizes => @gear_sizes}
 
     = control_group(e.has_key?(:cartridges), :important => true) do
       %h3.control-label Cartridges
