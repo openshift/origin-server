@@ -68,17 +68,17 @@ class ApplicationsController < BaseController
         gear_size_map[c] = default_gear_size
       end
     end
-    
+
     if not Rails.configuration.openshift[:allow_obsolete_cartridges]
       obsolete = []
       features.each do |feature|
         c = CartridgeCache.find_cartridge(feature)
         obsolete.push(feature) if c and c.is_obsolete?
       end
-      
+
       return render_error(:unprocessable_entity, "These cartridge(s) have been obsoleted '#{obsolete.join(",")}'.  Please choose an alternative from list #{CartridgeCache.cartridge_names.join(", ")}") unless obsolete.empty?
     end
-    
+
     user_env_vars = params[:environment_variables].presence
     Application.validate_user_env_variables(user_env_vars, true)
 
