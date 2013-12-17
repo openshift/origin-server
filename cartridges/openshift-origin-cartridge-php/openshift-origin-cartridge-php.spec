@@ -61,9 +61,6 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %if 0%{?fedora}%{?rhel} <= 6
 mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
-%if 0%{?fedora} == 18
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora18 %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
 %if 0%{?fedora} == 19
 mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
