@@ -281,6 +281,7 @@ module OpenShift
           options[:out].puts message if options[:out]
 
           stop_gear(user_initiated: true,
+                    hot_deploy: options[:hot_deploy],
                     exclude_web_proxy: true,
                     out: options[:out],
                     err: options[:in])
@@ -291,6 +292,8 @@ module OpenShift
           deployment_datetime = create_deployment_dir
           options[:deployment_datetime] = deployment_datetime
 
+          configure_deployment_metadata(deployment_datetime,options)        
+          
           message = "Preparing deployment"
           options[:out].puts message if options[:out]
 
@@ -374,13 +377,7 @@ module OpenShift
             check_deployments_integrity(options)
             deployment_datetime = create_deployment_dir
 
-            gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
-            git_ref = determine_deployment_ref(gear_env, options[:ref])
-            deployment_metadata = deployment_metadata_for(deployment_datetime)
-            deployment_metadata.git_ref = git_ref
-            deployment_metadata.hot_deploy = options[:hot_deploy]
-            deployment_metadata.force_clean_build = options[:force_clean_build]
-            deployment_metadata.save
+            configure_deployment_metadata(deployment_datetime,options)
           end
         end
 
@@ -1610,6 +1607,17 @@ module OpenShift
 
           result
         end
+        
+        private
+          def configure_deployment_metadata(deployment_datetime,options={}) 
+            gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+            git_ref = determine_deployment_ref(gear_env, options[:ref])
+            deployment_metadata = deployment_metadata_for(deployment_datetime)
+            deployment_metadata.git_ref = git_ref
+            deployment_metadata.hot_deploy = options[:hot_deploy]
+            deployment_metadata.force_clean_build = options[:force_clean_build]
+            deployment_metadata.save
+          end
       end
     end
   end
