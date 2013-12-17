@@ -1333,7 +1333,7 @@ class Application
         tag = conn._id.to_s
 
         pub_inst.gears.each do |gear|
-          input_args = [gear.name, self.domain.namespace, gear.uuid]
+          input_args = [gear.name, self.domain_namespace, gear.uuid]
           unless gear.removed
             job = gear.get_execute_connector_job(pub_inst, conn.from_connector_name, conn.connection_type, input_args)
             RemoteJob.add_parallel_job(handle, tag, gear, job)
@@ -1371,7 +1371,7 @@ class Application
 
           Rails.logger.debug "Output of publisher - '#{pub_out}'"
           sub_inst.gears.each do |gear|
-            input_args = [gear.name, self.domain.namespace, gear.uuid, input_to_subscriber]
+            input_args = [gear.name, self.domain_namespace, gear.uuid, input_to_subscriber]
             unless gear.removed
               job = gear.get_execute_connector_job(sub_inst, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
               RemoteJob.add_parallel_job(handle, tag, gear, job)
@@ -1399,7 +1399,7 @@ class Application
   def deregister_routing_dns
     dns = OpenShift::DnsService.instance
     begin
-      dns.deregister_application("ha-#{self.name}", self.domain.namespace)
+      dns.deregister_application("ha-#{self.name}", self.domain_namespace)
       dns.publish
     ensure
       dns.close
@@ -1410,7 +1410,7 @@ class Application
     target_hostname = Rails.configuration.openshift[:router_hostname]
     dns = OpenShift::DnsService.instance
     begin
-      dns.register_application("ha-#{self.name}", self.domain.namespace, target_hostname)
+      dns.register_application("ha-#{self.name}", self.domain_namespace, target_hostname)
       dns.publish
     ensure
       dns.close

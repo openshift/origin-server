@@ -335,7 +335,7 @@ module OpenShift
         args['--with-container-name'] = gear.name
         args['--with-quota-blocks'] = quota_blocks if quota_blocks
         args['--with-quota-files'] = quota_files if quota_files
-        args['--with-namespace'] = app.domain.namespace
+        args['--with-namespace'] = app.domain_namespace
         args['--with-uid'] = gear.uid if gear.uid
         args['--with-request-id'] = Thread.current[:user_action_log_uuid]
         args
@@ -1399,7 +1399,7 @@ module OpenShift
         args = Hash.new
         args['--with-container-uuid']=gear.uuid
         args['--with-container-name']=gear.name
-        args['--with-namespace']=app.domain.namespace
+        args['--with-namespace']=app.domain_namespace
         result = execute_direct(@@C_CONTROLLER, 'frontend-backup', args)
         result = parse_result(result)
         result.resultIO.string
@@ -1806,7 +1806,7 @@ module OpenShift
         begin
           dns = OpenShift::DnsService.instance
           public_hostname = destination_container.get_public_hostname
-          dns.modify_application(gear.name, app.domain.namespace, public_hostname)
+          dns.modify_application(gear.name, app.domain_namespace, public_hostname)
           dns.publish
         ensure
           dns.close
@@ -2155,7 +2155,7 @@ module OpenShift
         end
 
         log_debug "DEBUG: Moving system components for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
-        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{gear.name}-#{app.domain.namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /var/lib/openshift/ root@#{destination_container.get_ip_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{gear.name}-#{app.domain_namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /var/lib/openshift/ root@#{destination_container.get_ip_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
         if $?.exitstatus != 0
           raise OpenShift::NodeException.new("Error moving system components for app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
@@ -2890,7 +2890,7 @@ module OpenShift
               @id = e.server_identity
               Rails.logger.debug "DEBUG: Changing server identity of '#{gear.name}' from '#{gear.server_identity}' to '#{@id}'"
               dns_service = OpenShift::DnsService.instance
-              dns_service.modify_application(gear.name, app.domain.namespace, get_public_hostname)
+              dns_service.modify_application(gear.name, app.domain_namespace, get_public_hostname)
               dns_service.publish
               gear.server_identity = @id
               app.save

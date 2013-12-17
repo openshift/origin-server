@@ -24,7 +24,7 @@ module OpenShift
       msg = {
         :action => :add_ssl,
         :app_name => app.name,
-        :namespace => app.domain.namespace,
+        :namespace => app.domain_namespace,
         :alias => fqdn,
         :ssl => ssl_cert,
         :private_key => pvt_key,
@@ -37,7 +37,7 @@ module OpenShift
       msg = {
         :action => :remove_ssl,
         :app_name => app.name,
-        :namespace => app.domain.namespace,
+        :namespace => app.domain_namespace,
         :alias => fqdn
       }
       send_msg msg.to_yaml
@@ -47,7 +47,7 @@ module OpenShift
       msg = {
         :action => :add_alias,
         :app_name => app.name,
-        :namespace => app.domain.namespace,
+        :namespace => app.domain_namespace,
         :alias => alias_str
       }
       send_msg msg.to_yaml
@@ -57,7 +57,7 @@ module OpenShift
       msg = {
         :action => :remove_alias,
         :app_name => app.name,
-        :namespace => app.domain.namespace,
+        :namespace => app.domain_namespace,
         :alias => alias_str
       }
       send_msg msg.to_yaml
@@ -67,7 +67,7 @@ module OpenShift
       msg = {
         :action => :create_application,
         :app_name => app.name,
-        :namespace => app.domain.namespace,
+        :namespace => app.domain_namespace,
       }
       send_msg msg.to_yaml
     end
@@ -76,7 +76,7 @@ module OpenShift
       msg = {
         :action => :delete_application,
         :app_name => app.name,
-        :namespace => app.domain.namespace,
+        :namespace => app.domain_namespace,
       }
       send_msg msg.to_yaml
     end
@@ -85,7 +85,7 @@ module OpenShift
       msg = {
         :action => :add_gear,
         :app_name => app.name,
-        :namespace => app.domain.namespace,
+        :namespace => app.domain_namespace,
         :public_port_name => endpoint_name,
         :public_address => public_ip,
         :public_port => public_port,
@@ -100,7 +100,7 @@ module OpenShift
       msg = {
         :action => :delete_gear,
         :app_name => app.name,
-        :namespace => app.domain.namespace,
+        :namespace => app.domain_namespace,
         :public_address => public_ip,
         :public_port => public_port
       }
