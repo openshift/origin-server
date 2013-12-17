@@ -30,21 +30,25 @@ module AdminHelper
   $districts_enabled = Rails.configuration.msg_broker[:districts][:enabled]
   $first_district_uid = Rails.configuration.msg_broker[:districts][:first_uid]
 
-  class String
-    def to_b
-      return true if self.to_s.strip =~ /^(true|t|yes|y|1)$/i
-      return false
-    end
+  def to_b
+    return true if self.to_s.strip =~ /^(true|t|yes|y|1)$/i
+    return false
   end
 
-  def run(*func)
+  def run(method, *args)
+    ret = nil
     begin
-      send(*func)
+      if args.length > 0
+        ret = send(method, *args)
+      else
+        ret = send(method)
+      end
     rescue Exception => e
       $total_errors += 1
       puts e.message
       puts e.backtrace.inspect
     end
+    ret
   end
 
   def print_message(msg, flush=false)
@@ -367,7 +371,7 @@ module AdminHelper
     OpenShift::DataStore.find(:districts, {}, options) do |district|
       si_list =  district["server_identities"].map {|si| si["name"]}
       si_list.delete_if {|si| si.nil?}
-      $district_hash[district["_id"].to_s] = { 'name' => district["name"], 'max_capacity' => district["max_capacity"], 'server_names' => si_list, 'available_uids' => district["available_uids"] }
+      $district_hash[district["uuid"].to_s] = { 'name' => district["name"], 'max_capacity' => district["max_capacity"], 'server_names' => si_list, 'available_uids' => district["available_uids"] }
 
       # check available_uids list length and available_capacity
       if district["available_uids"].length != district["available_capacity"]
@@ -387,7 +391,7 @@ module AdminHelper
       gear_id = urec['gear_id'].to_s
       if !UsageRecord::EVENTS.values.include?(urec['event'])
         print_message "Found record in usage_records collection with invalid event '#{urec['event']}' for gear Id '#{gear_id}'."
-        return
+        next
       end
 
       hash = nil
@@ -400,7 +404,7 @@ module AdminHelper
         hash = $usage_cart_hash
       else
         print_message "Found invalid usage type '#{urec['usage_type']}' in usage_records collection for gear Id '#{gear_id}'."
-        return
+        next
       end
 
       unless hash[gear_id]
@@ -447,6 +451,7 @@ module AdminHelper
       end
     end
     error_consumed_gears_user_ids.uniq!
+    error_consumed_gears_user_ids
   end
 
   def find_ssh_key_inconsistencies
@@ -487,6 +492,7 @@ module AdminHelper
       end
     end
     error_ssh_keys_app_ids.uniq!
+    error_ssh_keys_app_ids
   end
 
   def find_district_inconsistencies
