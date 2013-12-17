@@ -37,6 +37,9 @@ Provides:
 - mariadb-5.5
 - mariadb
 - mariadb-singleton-master
+- mysql-5.5
+- mysql
+- mysql-singleton-master
 Publishes:
   publish-db-connection-info:
     Type: ENV:NET_TCP:db:connection-info

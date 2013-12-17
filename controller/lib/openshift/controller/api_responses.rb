@@ -59,8 +59,10 @@ module OpenShift
           field = ex.respond_to?(:field) ? ex.field : nil
 
           case ex
+          when OpenShift::ValidationException
+            return render_error(:unprocessable_entity, nil, nil, nil, nil, get_error_messages(ex.resource))
+
           when Mongoid::Errors::Validations
-            status = :unprocessable_entity
             field_map =
               case ex.document
               when Domain then requested_api_version <= 1.5 ? {"namespace" => "id"} : {"namespace" => "name"}
@@ -116,13 +118,8 @@ module OpenShift
               end
             internal_error = false
 
-          when OpenShift::ApplicationValidationException
-            status = :unprocessable_entity
-            messages = get_error_messages(ex.app)
-            return render_error(status, nil, nil, nil, nil, messages)
-
           when OpenShift::UserException
-            status = :unprocessable_entity
+            status = ex.response_code || :unprocessable_entity
             internal_error = false
 
           when OpenShift::AccessDeniedException

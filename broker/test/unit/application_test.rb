@@ -17,7 +17,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "create update and destroy application" do
     @appname = "test"
-    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil 
     
     app.config['auto_deploy'] = true
@@ -37,7 +37,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "create update and destroy scalable application" do
     @appname = "test"
-    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     
     app.config['auto_deploy'] = true
@@ -58,7 +58,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   
   test "app config validation" do
     @appname = "test"
-    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     
     app.config = nil
@@ -96,7 +96,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "app metadata validation" do
     @appname = "test"
-    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     [nil, {}, {'bar' => 1}, {'bar' => '1'}, {'bar' => []}, {'bar' => ['1']}, {'bar' => [1]}].each do |value|
@@ -123,7 +123,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "scalable application events" do
     @appname = "test"
-    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.restart
     app.stop
@@ -140,7 +140,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "threaddump application events" do
     @appname = "test"
-    app = Application.create_app(@appname, [RUBY_VERSION, MYSQL_VERSION], @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.threaddump
     app.destroy_app
@@ -149,14 +149,14 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   test "scaling and storage events on application" do
     @appname = "test"
 
-    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     @user.max_untracked_additional_storage = 5
     @user.save
     app.reload
     app.owner.reload
-    component_instance = app.component_instances.find_by(cartridge_name: PHP_VERSION)
+    component_instance = app.component_instances.find_by(cartridge_name: php_version)
     group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
     app.update_component_limits(component_instance, nil, nil, 2)
     app.update_component_limits(component_instance, 1, 2, nil)
@@ -179,16 +179,16 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "application events through internal rest" do
     @appname = "test"
-    app = Application.create_app(@appname, [RUBY_VERSION, MYSQL_VERSION], @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     resp = rest_check(:get, "", {})
     assert_equal resp.status, 200
 
-    resp = rest_check(:put, "/cartridges/#{RUBY_VERSION}", { "scales_from" => 2, "scales_to" => 2})
+    resp = rest_check(:put, "/cartridges/#{ruby_version}", { "scales_from" => 2, "scales_to" => 2})
     assert_equal resp.status, 200
 
-    resp = rest_check(:put, "/cartridges/#{RUBY_VERSION}", {})
+    resp = rest_check(:put, "/cartridges/#{ruby_version}", {})
     assert_equal resp.status, 422
 
     resp = rest_check(:get, "/cartridges", {})
@@ -203,7 +203,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     resp = rest_check(:post, "/events", { "event" => "tidy" })
     assert_equal resp.status, 200
 
-    component_instance = app.component_instances.find_by(cartridge_name: RUBY_VERSION)
+    component_instance = app.component_instances.find_by(cartridge_name: ruby_version)
     group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
     resp = rest_check(:get, "/gear_groups/#{group_instance._id.to_s}", { })
     assert_equal resp.status, 200

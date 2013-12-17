@@ -126,14 +126,8 @@ module Membership
     # This method needs to be implemented in any class that includes Membership
     #
     def members_changed(added, removed, changed_roles)
-      #queue_op(:change_members, added: added.presence, removed: removed.presence, changed: changed_roles.presence)
       Rails.logger.error "The members_changed method needs to be implemented in the specific classes\n  #{caller.join("\n  ")}"
       raise "Membership changes not implemented"
-    end
-
-    # FIXME create a standard pending operations model mixin that uniformly handles queueing on all type
-    def queue_op(op, args)
-      (relations['pending_ops'] ? pending_ops : pending_op_groups).build(:op_type => op, :state => :init, :args => args.stringify_keys)
     end
 
     def handle_member_changes

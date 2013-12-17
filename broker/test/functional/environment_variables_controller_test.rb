@@ -17,11 +17,14 @@ class EnvironmentVariablesControllerTest < ActionController::TestCase
     @request.env['REMOTE_USER'] = @login
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
+    result_io = ResultIO.new
+    result_io.resultIO.string = '{}'
+    @container.stubs(:list_user_env_vars).returns(result_io)
     @namespace = "ns#{@random}"
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
+    @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain)
     @app.save
   end
 

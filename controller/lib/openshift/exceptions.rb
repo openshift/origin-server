@@ -1,39 +1,50 @@
-class OpenShift::GearLimitReachedException < OpenShift::UserException; end
+module OpenShift
+  class GearLimitReachedException < UserException; end
 
-class OpenShift::ScaleConflictException < OpenShift::UserException
-  attr_accessor :cart, :comp, :requested_min, :requested_max, :comp_min, :comp_max
+  class ScaleConflictException < UserException
+    attr_accessor :cart, :comp, :requested_min, :requested_max, :comp_min, :comp_max
 
-  def initialize(msg, cart, comp, requested_min, requested_max, comp_min, comp_max)
-    super(msg)
-    self.cart = cart
-    self.comp = comp
-    self.requested_min = requested_min
-    self.requested_max = requested_max
-    self.comp_min = comp_min
-    self.comp_max = comp_max
-    super()
+    def initialize(msg, cart, comp, requested_min, requested_max, comp_min, comp_max)
+      super(msg)
+      self.cart = cart
+      self.comp = comp
+      self.requested_min = requested_min
+      self.requested_max = requested_max
+      self.comp_min = comp_min
+      self.comp_max = comp_max
+      super()
+    end
   end
-end
 
-class OpenShift::UnfulfilledRequirementException < OpenShift::OOException
-  attr_accessor :feature
+  class UnfulfilledRequirementException < OOException
+    attr_accessor :feature
 
-  def initialize(feature)
-    self.feature = feature
-    super
+    def initialize(feature)
+      self.feature = feature
+      super
+    end
   end
-end
 
-class OpenShift::ApplicationValidationException < OpenShift::OOException
-  attr_accessor :app
+  class ValidationException < OOException
+    attr_reader :resource
 
-  def initialize(app)
-    self.app = app
-    super()
+    def initialize(resource)
+      @resource = resource
+      super
+    end
   end
-end
 
-class OpenShift::OperationForbidden < OpenShift::AccessDeniedException
-end
+  class ApplicationValidationException < ValidationException
+    attr_reader :app
 
-class OpenShift::ApplicationOperationFailed < OpenShift::OOException; end
+    def initialize(app)
+      @app = app
+      super
+    end
+  end
+
+  class OperationForbidden < AccessDeniedException
+  end
+
+  class ApplicationOperationFailed < OOException; end
+end

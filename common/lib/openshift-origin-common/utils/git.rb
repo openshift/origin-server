@@ -51,7 +51,7 @@ module OpenShift
     def self.persistable_clone_spec(url)
       return nil if empty_clone_spec?(url)
       uri = URI.parse(url)
-      uri.userinfo = nil rescue nil
+      uri.userinfo = '' rescue nil
       uri.to_s
     rescue URI::InvalidURIError
       url

@@ -26,7 +26,8 @@ class ComponentInstance
     name
   end
 
-  # @return [Boolean] true if the component does not scale.
+  delegate :is_plugin?, :is_embeddable?, :is_web_proxy?, :is_web_framework?, to: :cartridge
+
   def is_sparse?
     get_component.is_sparse?
   end
@@ -61,26 +62,6 @@ class ComponentInstance
     return (max.nil? ? get_component.scaling.max : max)
   end
 
-  def is_plugin?
-    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
-    cart.is_plugin?
-  end
-
-  def is_embeddable?
-    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
-    cart.is_embeddable?
-  end
-
-  def is_web_proxy?
-    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
-    cart.is_web_proxy?
-  end
-
-  def is_web_framework?
-    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
-    cart.is_web_framework?
-  end
-
   def get_additional_control_actions
     cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.additional_control_actions
@@ -99,8 +80,8 @@ class ComponentInstance
     else
       gi_gears.each do |gear|
         ci_gears << gear if (gear.host_singletons or gear.sparse_carts.include? self._id)
-      end   
-    end 
+      end
+    end
     ci_gears
   end
 
@@ -115,26 +96,28 @@ class ComponentInstance
   end
 
   def get_feature
-    cart = get_cartridge
+    cart = cartridge
     prof = get_profile
     (prof.provides.length > 0 && prof.name != cart.default_profile) ? prof.provides.first : cart.provides.first
   end
 
   def get_profile
-    cart = get_cartridge
-    prof = cart.get_profile_for_component self.component_name
-  end
-
-  def get_cartridge
-    CartridgeCache.find_cartridge(cartridge_name, self.application)
+    cartridge.get_profile_for_component self.component_name
   end
 
   def get_component
-    get_cartridge.get_component(component_name)
+    cartridge.get_component(component_name)
   end
+
+  def cartridge
+    @cartridge ||= CartridgeCache.find_cartridge(cartridge_name, self.application) or
+      raise OpenShift::UserException.new("The cartridge #{cartridge_name} is referenced in the application #{self.application.name} but cannot be located.")
+  end
+  alias_method :get_cartridge, :cartridge
 
   # @return [Hash] a simplified hash representing this {ComponentInstance} object which is used by {Application#compute_diffs}
   def to_hash
     {"cart" => cartridge_name, "comp" => component_name}
   end
+  alias_method :to_component_spec, :to_hash
 end
