@@ -130,7 +130,7 @@ def check_consumed_gears(user_id)
     actual_gears = 0
     user = CloudUser.find_by(:_id => user_id)
     user.domains.each do |d|
-      actual_gears += d.applications.map {|a| a.gears.length}.inject(:+)
+      d.applications.each {|a| actual_gears += a.gears.length}
     end
     return user.consumed_gears, actual_gears
   rescue Mongoid::Errors::DocumentNotFound
