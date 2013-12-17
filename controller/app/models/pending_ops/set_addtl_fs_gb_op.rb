@@ -16,7 +16,7 @@ class SetAddtlFsGbOp < PendingAppOp
     end
   end
 
-  def addParallelRollbackJob(handle)
+  def add_parallel_rollback_job(handle)
     gear = get_gear()
     unless gear.removed
       tag = { "op_id" => self._id.to_s }

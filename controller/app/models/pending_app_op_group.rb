@@ -189,7 +189,7 @@ class PendingAppOpGroup
         Rails.logger.debug "Rollback #{op.class.to_s}"
 
         if op.is_parallel_executable
-          op.addParallelRollbackJob(handle)
+          op.add_parallel_rollback_job(handle)
           parallel_job_ops.push op
         else
           return_val = op.rollback
