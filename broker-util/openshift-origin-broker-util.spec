@@ -59,6 +59,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-authorization
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-district
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-region
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-domain
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-usage
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-user
@@ -85,6 +86,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-authorization.8.gz
 %{_mandir}/man8/oo-admin-ctl-cartridge.8.gz
 %{_mandir}/man8/oo-admin-ctl-district.8.gz
+%{_mandir}/man8/oo-admin-ctl-region.8.gz
 %{_mandir}/man8/oo-admin-ctl-domain.8.gz
 %{_mandir}/man8/oo-admin-ctl-usage.8.gz
 %{_mandir}/man8/oo-admin-ctl-user.8.gz

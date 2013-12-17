@@ -19,6 +19,7 @@
 class PendingDomainOps
   include Mongoid::Document
   include Mongoid::Timestamps::Created
+  include ModelHelper
 
   embedded_in :domain, class_name: Domain.name
 
@@ -98,7 +99,6 @@ class PendingDomainOps
     unless success
       Rails.logger.error(failure_message)
     end
-
     return current_op
   end
 end

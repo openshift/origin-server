@@ -1,5 +1,4 @@
 #!/usr/bin/env oo-ruby
-
 require 'rubygems'
 require 'getoptlong'
 require 'pp'
@@ -18,7 +17,7 @@ oo-admin-ctl-district: Control districts
 oo-admin-ctl-district OPTIONS
 
 Options:
--u|--uuid     <district uuid>
+-u|--uuid <district uuid>
     District uuid  (alphanumeric)
 -c|--command <command>
     #{CTL_DISTRICT_COMMANDS}
@@ -27,9 +26,13 @@ Options:
 -p|--node_profile <gear_size>
     #{Gear::gear_sizes_display_string} Only needed for create
 -i|--server_identity
-    Node server_identity (required)
+    Node server identity (required)
 -s|--size
     Size to add or remove (positive number) (required)
+-r|--region <region_name>
+    Region name of the server identitiy. Only for add-node (optional)
+-z|--zone <zone_name>
+    Zone within the region. Only for add-node when region is specified
 -b|--bypass
     Ignore warnings
 -h|--help
@@ -58,6 +61,8 @@ opts = GetoptLong.new(
     ["--size",             "-s", GetoptLong::REQUIRED_ARGUMENT],
     ["--name",             "-n", GetoptLong::REQUIRED_ARGUMENT],
     ["--node_profile",     "-p", GetoptLong::REQUIRED_ARGUMENT],
+    ["--region",           "-r", GetoptLong::REQUIRED_ARGUMENT],
+    ["--zone",             "-z", GetoptLong::REQUIRED_ARGUMENT],
     ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
@@ -80,6 +85,8 @@ uuid     = args["--uuid"]
 command  = args['--command']
 server_identity  = args['--server_identity']
 size     = args['--size'] ? args['--size'].to_i : nil
+region   = args['--region']
+zone     = args['--zone']
 bypass   = args['--bypass']
 name     = args['--name']
 node_profile = args['--node_profile']
@@ -127,7 +134,7 @@ reply = ResultIO.new
 begin
   case command
   when "add-node"
-    district.add_node(server_identity)
+    district.add_node(server_identity, region, zone)
     reply.resultIO << "Success!"
   when "remove-node"
     district.remove_node(server_identity)
@@ -184,10 +191,8 @@ WARNING
         exit 217
       end
     end
-
     district.delete
     reply.resultIO << "Successfully deleted district: #{uuid ? uuid : name}" if reply.resultIO.string.empty?
-  
   else
     if district
       append_district(district, reply.resultIO)

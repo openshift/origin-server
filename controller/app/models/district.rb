@@ -10,7 +10,7 @@ class District
   field :available_uids, type: Array, default: []
   field :available_capacity, type: Integer
   field :active_server_identities_size, type: Integer
-  field :server_identities, type: Array
+  embeds_many :server_identities, class_name: Server.name
 
   index({:name => 1}, {:unique => true})
   index({:uuid => 1}, {:unique => true})
@@ -18,7 +18,9 @@ class District
   create_indexes
 
   def self.create_district(name, gear_size=nil)
-
+    unless Rails.configuration.msg_broker[:districts][:enabled]
+      raise OpenShift::OOException.new("District creation disabled by the platform.")
+    end
     profile = gear_size ? gear_size : Rails.application.config.openshift[:default_gear_size]
     if District.where(name: name).count > 0
       raise OpenShift::OOException.new("District by name #{name} already exists")
@@ -28,6 +30,17 @@ class District
 
   def self.find_by_name(name)
     return District.where(name: name)[0]
+  end
+
+  def self.find_server(server)
+    si = nil
+    District.only(:server_identities).each do |district|
+      if district.server_identities.where(:name => server).exists?
+        si = district.server_identities.find_by(name: server)
+        break
+      end
+    end
+    si
   end
 
   # Since the DISTRICT_FIRST_UID in the msg_broker configuration can change after a district
@@ -41,7 +54,6 @@ class District
 
     first_uid = Rails.configuration.msg_broker[:districts][:first_uid]
     num_uids = Rails.configuration.msg_broker[:districts][:max_capacity]
-    self.server_identities = []
     self.available_uids = []
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.available_capacity = num_uids
@@ -60,9 +72,7 @@ class District
 
   def self.find_all(gear_size=nil, include_available_uids=true)
     query = nil
-    if gear_size
-      query = {'gear_size' => gear_size}
-    end
+    query = {'gear_size' => gear_size} if gear_size
     if include_available_uids
       District.where(query).find_all.to_a
     else
@@ -70,187 +80,161 @@ class District
     end
   end
 
-  def delete()
-    if not server_identities.empty?
-      raise OpenShift::OOException.new("Couldn't delete district '#{name}' because it still contains nodes")
-    end
+  def delete
+    raise OpenShift::OOException.new("Couldn't delete district '#{name}' because it still contains nodes") unless server_identities.empty?
     super
   end
 
-  def add_node(server_identity)
-    if server_identity
-      found = District.in("server_identities.name" => [server_identity]).exists?
-      unless found
-        container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-        begin
-          capacity = container.get_capacity
-          if capacity == 0 or capacity == 0.0
-            if container.get_node_profile == gear_size
-              container.set_district("#{uuid}", true, first_uid, max_uid)
-              self.active_server_identities_size += 1
-              self.server_identities << { "name" => server_identity, "active" => true}
-              self.save!
-            else
-              raise OpenShift::OOException.new("Node with server identity: #{server_identity} is of node profile '#{container.get_node_profile}' and needs to be '#{gear_size}' to add to district '#{name}'")  
-            end
-          else
-            raise OpenShift::OOException.new("Node with server identity: #{server_identity} already has gears on it")
-          end
-        rescue OpenShift::NodeException => e
-          raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be found")
-        end
-      else
-        raise OpenShift::OOException.new("Node with server identity: #{server_identity} already belongs to another district")
+  def add_node(server_identity, region_name=nil, zone_name=nil)
+    raise OpenShift::OOException.new("server_identity is required") unless server_identity
+    region_id = nil
+    zone_id = nil
+    if region_name
+      unless Region.where(name: region_name).exists?
+        raise OpenShift::OOException.new("Region object not found, you can create new region '#{region_name}' using oo-admin-ctl-region.")
       end
-    else
-      raise OpenShift::UserException.new("server_identity is required")
+      raise OpenShift::OOException.new("Zone name is required when region name is specified") unless zone_name
+      region = Region.find_by(name: region_name)
+      unless region.zones.where(name: zone_name).exists?
+        raise OpenShift::OOException.new("Zone object not found, you can add zone '#{zone_name}' to region '#{region_name}' using oo-admin-ctl-region.")
+      end
+      region_id = region._id
+      zone_id = region.zones.find_by(name: zone_name)._id
     end
-  end
 
-  def server_identities_hash
-    sih = {}
-    server_identities.each { |server_identity_info| sih[server_identity_info["name"]] = { "active" => server_identity_info["active"], "unresponsive" => server_identity_info["unresponsive"]} }
-    sih
+    if District.where({"server_identities.name" => server_identity}).exists?
+      raise OpenShift::OOException.new("Node with server identity: #{server_identity} already belongs to another district")
+    end
+    container = OpenShift::ApplicationContainerProxy.instance(server_identity)
+    raise OpenShift::OOException.new("Node with server identity: #{server_identity} already has gears on it") if container.get_capacity > 0
+    raise OpenShift::OOException.new("Node with server identity: #{server_identity} is of node profile " \
+          "'#{container.get_node_profile}' and needs to be '#{gear_size}' to add to district '#{name}'") if container.get_node_profile != gear_size
+
+    container.set_district("#{uuid}", true, first_uid, max_uid)
+    server = Server.new(name: server_identity, active: true, unresponsive: false)
+    if region_name
+      server.region_name = region_name
+      server.region_id = region_id
+      server.zone_name = zone_name
+      server.zone_id = zone_id
+    end
+    res = District.where(:uuid => self.uuid).update({"$push" => {"server_identities" => server.serializable_hash_with_timestamp}, "$inc" => {"active_server_identities_size" => 1}})
+    raise OpenShift::OOException.new("Could not add node #{server_identity}") if res.nil? or !res["updatedExisting"]
+    self.reload
   end
 
   def remove_node(server_identity)
-    server_map = server_identities_hash
-    if server_map.has_key?(server_identity)
-      unless server_map[server_identity]["active"]
-        begin
-          server_unresponsive = server_map[server_identity]["unresponsive"]
-          unless server_unresponsive
-            container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-            capacity = container.get_capacity
-          end
-          if server_unresponsive or capacity == 0 or capacity == 0.0
-            container.set_district('NONE', false, first_uid, max_uid) unless server_unresponsive
-            server_identities.delete_if { |si| (si["name"] == server_identity) and (si["active"] == false) }
-            if not self.save
-              raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid}")
-            end
-          else
-            raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid} because it still has apps on it")
-          end
-        rescue Exception => ex
-          Rails.logger.error ex.backtrace.inspect
-          raise OpenShift::OOException.new("Node with server identity: #{server_identity} might be unresponsive, run oo-admin-repair --removed-nodes and retry the current operation.")
-        end
-      else
-        raise OpenShift::OOException.new("Node with server identity: #{server_identity} from district: #{uuid} must be deactivated before it can be removed")
-      end
-    else
+    unless server_identities.where(name: server_identity).exists?
       raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{uuid}")
     end
+    server = server_identities.find_by(name: server_identity)
+    if server.active
+      raise OpenShift::OOException.new("Node with server identity: #{server_identity} from district: #{uuid} must be deactivated before it can be removed")
+    end
+    begin
+      unless server.unresponsive
+        container = OpenShift::ApplicationContainerProxy.instance(server_identity)
+        raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed " \
+              "from district: #{uuid} because it still has apps on it") if container.get_capacity > 0
+        container.set_district('NONE', false, first_uid, max_uid)
+      end
+    rescue Exception => ex
+      Rails.logger.error ex.backtrace.inspect
+      raise OpenShift::OOException.new("Node with server identity: #{server_identity} might be unresponsive, run oo-admin-repair --removed-nodes and retry the current operation.")
+    end
+    res = District.where(:uuid => self.uuid).update({"$pull" => {"server_identities" => server.serializable_hash}})
+    raise OpenShift::OOException.new("Could not remove node #{server_identity}") if res.nil? or !res["updatedExisting"]
+    self.reload
   end
 
   def reserve_given_uid(uid)
-    District.where(:uuid => self.uuid, :available_uids => uid).update( {"$pull" => { "available_uids" => uid }, "$inc" => { "available_capacity" => -1 }})
+    res = District.where(:uuid => self.uuid, :available_uids => uid).update({"$pull" => {"available_uids" => uid}, "$inc" => {"available_capacity" => -1}})
+    raise OpenShift::OOException.new("Could not reserve given uid #{uid}") if res.nil?
     self.reload
     self.available_uids.include? uid
   end
 
   def deactivate_node(server_identity)
-    server_map = server_identities_hash
-    if server_map.has_key?(server_identity)
-      if server_map[server_identity]["active"]
-        District.where("_id" => self._id, "server_identities.name" => server_identity ).update({ "$set" => { "server_identities.$.active" => false }, "$inc" => { "active_server_identities_size" => -1 } })
-        self.reload
-        server_unresponsive = server_map[server_identity]["unresponsive"]
-        unless server_unresponsive
-          container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-          container.set_district("#{uuid}", false, first_uid, max_uid)
-        end
-      else
-        raise OpenShift::OOException.new("Node with server identity: #{server_identity} is already deactivated")
-      end
-    else
+    unless server_identities.where(name: server_identity).exists?
       raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{uuid}")
+    end
+    server = server_identities.find_by(name: server_identity)
+    raise OpenShift::OOException.new("Node with server identity: #{server_identity} is already deactivated") unless server.active
+
+    res = District.where("_id" => self._id, "server_identities.name" => server_identity ).update({"$set" => {"server_identities.$.active" => false}, "$inc" => {"active_server_identities_size" => -1}})
+    raise OpenShift::OOException.new("Could not deactivate node #{server_identity}") if res.nil? or !res["updatedExisting"]
+    self.reload
+    server = server_identities.find_by(name: server_identity)
+    unless server.unresponsive
+      container = OpenShift::ApplicationContainerProxy.instance(server_identity)
+      container.set_district("#{uuid}", false, first_uid, max_uid)
     end
   end
 
   def activate_node(server_identity)
-    server_map = server_identities_hash
-    if server_map.has_key?(server_identity)
-      unless server_map[server_identity]["active"]
-        District.where("_id" => self._id, "server_identities.name" => server_identity ).update({ "$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } })
-        self.reload
-        container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-        container.set_district("#{uuid}", true, first_uid, max_uid)
-      else
-        raise OpenShift::OOException.new("Node with server identity: #{server_identity} is already active")
-      end
-    else
+    unless server_identities.where(name: server_identity).exists?
       raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{uuid}")
     end
+    server = server_identities.find_by(name: server_identity)
+    raise OpenShift::OOException.new("Node with server identity: #{server_identity} is already active") if server.active
+    raise OpenShift::OOException.new("Node with server identity: #{server_identity} is unresponsive") if server.unresponsive
+
+    res = District.where("_id" => self._id, "server_identities.name" => server_identity ).update({ "$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } })
+    raise OpenShift::OOException.new("Could not activate node #{server_identity}") if res.nil? or !res["updatedExisting"]
+    self.reload
+    container = OpenShift::ApplicationContainerProxy.instance(server_identity)
+    container.set_district("#{uuid}", true, first_uid, max_uid)
   end
 
   def self.reserve_uid(uuid, preferred_uid=nil)
     uid = nil
     if preferred_uid
-      obj = District.where(:uuid => uuid, :available_capacity.gt => 0, :available_uids => preferred_uid).find_and_modify( {"$pull" => { "available_uids" => preferred_uid }, "$inc" => { "available_capacity" => -1 }})
+      obj = District.where(:uuid => uuid, :available_capacity.gt => 0, :available_uids => preferred_uid).find_and_modify({"$pull" => {"available_uids" => preferred_uid}, "$inc" => {"available_capacity" => -1}})
       uid = preferred_uid if obj
     else
-      obj = District.where(:uuid => uuid, :available_capacity.gt => 0).find_and_modify( {"$pop" => { "available_uids" => -1}, "$inc" => { "available_capacity" => -1 }})
+      obj = District.where(:uuid => uuid, :available_capacity.gt => 0).find_and_modify({"$pop" => {"available_uids" => -1}, "$inc" => {"available_capacity" => -1}})
       uid = obj.available_uids.first if obj
     end
     return uid
   end
 
   def self.unreserve_uid(uuid, uid)
-    District.where(:uuid => uuid, :available_uids.nin => [uid]).update({"$push" => { "available_uids" => uid}, "$inc" => { "available_capacity" => 1 }})
+    District.where(:uuid => uuid, :available_uids.nin => [uid]).update({"$push" => {"available_uids" => uid}, "$inc" => {"available_capacity" => 1}})
   end
 
   def add_capacity(num_uids)
-    if num_uids > 0
-      # shuffle the additional UIDs and add them atomically
-      additions = (max_uid + 1..max_uid + num_uids).sort_by{rand}
-      update_result = District.where(:uuid => uuid).update({"$pushAll" => { :available_uids => additions}, "$inc" => { :available_capacity => num_uids, :max_capacity => num_uids, :max_uid => num_uids }})
-
-      if update_result.nil? or (not update_result["updatedExisting"])
-        raise OpenShift::OOException.new("Could not add capacity to district: #{uuid}")
-      end
-
-      self.reload
-
-      begin
-        OpenShift::ApplicationContainerProxy.set_district_uid_limits("#{uuid}", first_uid, max_uid)
-      rescue OpenShift::NodeException => e
-        raise OpenShift::OOException.new("There was an issue updating district uid limits on the nodes: #{e.message}")
-      end
-
-      return self
-    else
-      raise OpenShift::OOException.new("You must supply a positive number of uids to add")
+    raise OpenShift::OOException.new("You must supply a positive number of uids to add") if num_uids <= 0
+    # shuffle the additional UIDs and add them atomically
+    additions = (max_uid + 1..max_uid + num_uids).sort_by{rand}
+    res = District.where(:uuid => uuid).update({"$pushAll" => {:available_uids => additions}, "$inc" => {:available_capacity => num_uids, :max_capacity => num_uids, :max_uid => num_uids}})
+    raise OpenShift::OOException.new("Could not add capacity to district: #{uuid}") if res.nil? or !res["updatedExisting"]
+    self.reload
+    begin
+      OpenShift::ApplicationContainerProxy.set_district_uid_limits("#{uuid}", first_uid, max_uid)
+    rescue OpenShift::NodeException => e
+      raise OpenShift::OOException.new("There was an issue updating district uid limits on the nodes: #{e.message}")
     end
+    self
   end
 
   def remove_capacity(num_uids)
-    if num_uids > 0
-      subtractions = []
-      subtractions.fill(0, num_uids) {|i| i + max_uid - num_uids + 1}
+    raise OpenShift::OOException.new("You must supply a positive number of uids to remove") if num_uids <= 0
+    subtractions = []
+    subtractions.fill(0, num_uids) {|i| i + max_uid - num_uids + 1}
 
-      # check if the UIDs being removed are available
-      if (subtractions & available_uids).length == subtractions.length
-        update_result = District.where(:uuid => uuid, :available_uids => { "$all" => subtractions }).update({"$pullAll" => { "available_uids" => subtractions}, "$inc" => { :available_capacity => -num_uids, :max_capacity => -num_uids, :max_uid => -num_uids }})
-        if update_result.nil? or (not update_result["updatedExisting"])
-          raise OpenShift::OOException.new("Could not remove capacity from district: #{uuid}")
-        end
-      else
-        raise OpenShift::OOException.new("Specified number of UIDs not found in order in available_uids.  Can not continue!")
-      end
-
-      self.reload
-
-      begin
-        OpenShift::ApplicationContainerProxy.set_district_uid_limits("#{uuid}", first_uid, max_uid)
-      rescue OpenShift::NodeException => e
-        raise OpenShift::OOException.new("There was an issue updating district uid limits on the nodes: #{e.message}")
-      end
-
-      return self
+    # check if the UIDs being removed are available
+    if (subtractions & available_uids).length == subtractions.length
+      res = District.where(:uuid => uuid, :available_uids => {"$all" => subtractions}).update({"$pullAll" => {"available_uids" => subtractions}, "$inc" => {:available_capacity => -num_uids, :max_capacity => -num_uids, :max_uid => -num_uids}})
+      raise OpenShift::OOException.new("Could not remove capacity from district: #{uuid}") if res.nil? or !res["updatedExisting"]
     else
-      raise OpenShift::OOException.new("You must supply a positive number of uids to remove")
+      raise OpenShift::OOException.new("Specified number of UIDs not found in order in available_uids. Can not continue!")
     end
+    self.reload
+    begin
+      OpenShift::ApplicationContainerProxy.set_district_uid_limits("#{uuid}", first_uid, max_uid)
+    rescue OpenShift::NodeException => e
+      raise OpenShift::OOException.new("There was an issue updating district uid limits on the nodes: #{e.message}")
+    end
+    self
   end
 end
