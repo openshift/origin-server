@@ -1227,10 +1227,8 @@ class Application
     # parallel
     first_proxy = web_proxy_gears.first
 
-    if options[:rollback] != true
-      options[:proxy_gears] = web_proxy_gears
-      options[:web_gears] = web_framework_gears
-    end
+    options[:proxy_gears] = web_proxy_gears
+    options[:web_gears] = web_framework_gears
 
     first_proxy.update_cluster(options.merge(sync_new_gears:true))
 
