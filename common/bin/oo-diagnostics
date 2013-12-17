@@ -224,16 +224,15 @@ class OODiag
       raise
     rescue Exception => e
       do_fail <<-"FAIL"
-        Broker application failed to load. This is most likely a gem
-        dependency problem. Update rubygem RPMs and restart openshift-broker
-        to regenerate the broker Gemfile.lock - this may fix the problem.
-        Another possibility is that you are running this script with a
-        different ruby than what is required for the broker app (1.8 vs 1.9).
+        Broker application failed to load. This is often a gem dependency problem.
+        Updating rubygem RPMs and restarting openshift-broker
+        to regenerate the broker Gemfile.lock may fix the problem.
+        The actual error encountered was:
+        #{e.inspect}
         ***
         THIS PROBLEM NEEDS TO BE RESOLVED FOR THE BROKER TO WORK.
         DISABLING BROKER TESTS.
         ***
-        The error was: #{e.inspect}
       FAIL
       @is_broker = false
     end
@@ -875,8 +874,10 @@ class OODiag
     skip_test unless @is_node
     #
     # create a tmp file with all of the unique log statements after most recent mcollective start
+    logfile = "#{@scl_prefix}mcollective.log"
+    logfile = [ "/var/log/openshift/node/#{logfile}", "/var/log/#{logfile}" ].find {|f| File.exist? f}
     tmpfile = Tempfile.new("oodiag-mco-#{$$}").path
-    system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' /var/log/#{@scl_prefix}mcollective.log | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
+    system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' #{logfile} | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
     # if no restart seen, just use the whole thing
     system %Q! sort -u /var/log/#{@scl_prefix}mcollective.log > #{tmpfile} ! unless File.exists? tmpfile
     return unless File.exists? tmpfile
@@ -933,12 +934,12 @@ class OODiag
     fail_without = []
     warn_without = []
     if @is_broker
-      fail_without += %w{httpd network sshd}
+      fail_without += %w{httpd sshd}
       fail_without += @project_is[:online] ? %w{rhc-broker rhc-site} : %w{openshift-broker}
       warn_without += %w{ntpd}
     end
     if @is_node
-      fail_without += %w{httpd network sshd openshift-iptables-port-proxy openshift-gears
+      fail_without += %w{httpd sshd openshift-iptables-port-proxy openshift-gears
                         cgconfig cgred crond openshift-node-web-proxy}
       scl_prefix = @project_is[:enterprise] ? "ruby193-" : ""
       fail_without << @scl_prefix + "mcollective"
@@ -949,6 +950,9 @@ class OODiag
        #
     verbose "checking that required services are running now"
     missing = fail_without.uniq.select {|svc| !service_started? svc}
+    # "network" had to be special; always check it with "service" not "systemctl"
+    system "service network status >& /dev/null"
+    missing += "network" if ! $?.success?
     do_fail <<-REQ unless missing.empty?
       The following service(s) are not currently started:
         #{missing.join ", "}
@@ -1201,7 +1205,7 @@ class OODiag
 
     if badnames.size > 0
       badnames.uniq.each do |badname|
-        config_files = `grep -l -e "^[[:blank:]]*ServerName[[:blank:]]*#{badname}" /etc/httpd/conf.d/*`
+        config_files = `grep -l -e "^[[:blank:]]*ServerName[[:blank:]]*#{badname}" /etc/httpd/conf.d/*.conf`
         config_files.each_line do |config_file|
           do_warn <<-CONFLICT
             #{config_file.chomp} 
