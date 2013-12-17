@@ -101,8 +101,8 @@ class PendingAppOpGroup
           op.set_state(:queued)
 
 
-          if op.isParallelExecutable()
-            op.addParallelExecuteJob(handle)
+          if op.is_parallel_executable
+            op.add_parallel_execute_job(handle)
             parallel_job_ops.push op
           else
             return_val = op.execute
@@ -188,7 +188,7 @@ class PendingAppOpGroup
       eligible_rollback_ops.each do|op|
         Rails.logger.debug "Rollback #{op.class.to_s}"
 
-        if op.isParallelExecutable()
+        if op.is_parallel_executable
           op.addParallelRollbackJob(handle)
           parallel_job_ops.push op
         else

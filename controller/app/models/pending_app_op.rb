@@ -51,11 +51,11 @@ class PendingAppOp
     Rails.logger.debug "Rollback not implemented: #{self.class.to_s}"
   end
 
-  def isParallelExecutable()
+  def is_parallel_executable
     return false
   end
 
-  def addParallelExecuteJob(handle)
+  def add_parallel_execute_job(handle)
     Rails.logger.debug "Parallel execute not implemented: #{self.class.to_s}"
   end
 

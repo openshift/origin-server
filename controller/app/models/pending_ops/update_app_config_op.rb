@@ -8,11 +8,11 @@ class UpdateAppConfigOp < PendingAppOp
   field :recalculate_sshkeys, type: Boolean, default: false
   field :gear_id, type: String
 
-  def isParallelExecutable()
+  def is_parallel_executable
     return true
   end
 
-  def addParallelExecuteJob(handle)
+  def add_parallel_execute_job(handle)
     gear = get_gear()
     unless gear.removed
       # if recalculate_sshkeys is set to true, re-calculate the ssh keys to add

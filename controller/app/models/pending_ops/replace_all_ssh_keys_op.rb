@@ -3,11 +3,11 @@ class ReplaceAllSshKeysOp < PendingAppOp
   field :keys_attrs, type: Array, default: []
   field :gear_id, type: String
 
-  def isParallelExecutable()
+  def is_parallel_executable
     return true
   end
 
-  def addParallelExecuteJob(handle)
+  def add_parallel_execute_job(handle)
     gear = get_gear()
     unless gear.removed
       job = gear.get_fix_authorized_ssh_keys_job(keys_attrs)

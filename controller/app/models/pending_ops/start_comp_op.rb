@@ -3,11 +3,11 @@ class StartCompOp < PendingAppOp
   field :comp_spec, type: Hash, default: {}
   field :gear_id, type: String
 
-  def isParallelExecutable()
+  def is_parallel_executable
     return true
   end
 
-  def addParallelExecuteJob(handle)
+  def add_parallel_execute_job(handle)
     gear = get_gear()
     unless gear.removed
       component_instance = get_component_instance()
