@@ -17,6 +17,7 @@ Broker::Application.configure do
     :username => conf.get("ACTIVEMQ_USERNAME", "routinginfo"),
     :password => conf.get("ACTIVEMQ_PASSWORD", "routinginfopasswd"),
     :host => conf.get("ACTIVEMQ_HOST", "127.0.0.1"),
-    :port => conf.get("ACTIVEMQ_PORT", "61613")
+    :port => conf.get("ACTIVEMQ_PORT", "61613"),
+    :debug => conf.get_bool("ACTIVEMQ_DEBUG", "false"),
   }
 end

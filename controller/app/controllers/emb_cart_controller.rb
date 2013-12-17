@@ -64,23 +64,19 @@ class EmbCartController < BaseController
                         134, "gear_size") if gear_size and !valid_sizes.include?(gear_size)
 
     if cart_urls.length > 0
+      cmap = CartridgeCache.fetch_community_carts(cart_urls)
+      name = cmap.values[0]["versioned_name"]
       begin
-        cmap = CartridgeCache.fetch_community_carts(cart_urls)
-        name = cmap.values[0]["versioned_name"]
-        begin
-          clist = @application.get_components_for_feature(cmap.keys[0])
-          if clist.length>0
-            return render_error(:unprocessable_entity, "#{cmap.keys[0]} is already an embedded feature in the application", 136)
-          end
-        rescue Exception=>e
-          # ignore
+        clist = @application.get_components_for_feature(cmap.keys[0])
+        if clist.length>0
+          return render_error(:unprocessable_entity, "#{cmap.keys[0]} is already an embedded feature in the application", 136)
         end
-
-        @application.downloaded_cart_map.merge!(cmap)
-        @application.save
       rescue Exception=>e
-        return render_error(:unprocessable_entity, "Error in cartridge url - #{e.message}", 109)
+        # ignore
       end
+
+      @application.downloaded_cart_map.merge!(cmap)
+      @application.save
     end
 
     begin
