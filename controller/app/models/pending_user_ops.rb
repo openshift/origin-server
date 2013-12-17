@@ -99,16 +99,15 @@ class PendingUserOps
   end
 
   def serializable_hash_with_timestamp
-    s_hash = self.serializable_hash
-    t = Time.zone.now
-    if self.created_at.nil?
-      s_hash["created_at"] = t
+    unless self.persisted?
+      if self.created_at.nil?
+        self.set_created_at
+      end
+      if self.updated_at.nil? and self.able_to_set_updated_at?
+        self.set_updated_at
+      end
     end
-    if self.updated_at.nil?
-      s_hash["updated_at"] = t
-    end
-    # need to set the _type attribute for MongoId to instantiate the appropriate class 
-    s_hash["_type"] = self.class.to_s unless s_hash["_type"]
-    s_hash
+
+    self.serializable_hash
   end
 end
