@@ -634,7 +634,7 @@ module AdminHelper
           group_inst = gear.group_instance
           break
         end
-      end if app.gears.present?
+      end if app and app.gears.present?
       app_storage = group_inst.addtl_fs_gb if group_inst and (group_inst.addtl_fs_gb != 0)
 
       query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:addtl_fs_gb]}
