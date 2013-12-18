@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.18.3
+Version: 1.18.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Dec 17 2013 Adam Miller <admiller@redhat.com> 1.18.4-1
+- fix for 1043588 - get the first web_framework's port interface
+  (rchopra@redhat.com)
+
 * Tue Dec 10 2013 Adam Miller <admiller@redhat.com> 1.18.3-1
 - Merge pull request #4315 from rajatchopra/stg37_bugfix (admiller@redhat.com)
 - Merge pull request #4308 from rajatchopra/stg37
