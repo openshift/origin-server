@@ -41,6 +41,31 @@ Requires:      php-process
 Requires:      php-pecl-imagick
 Requires:      php-pecl-xdebug
 Requires:      php-fpm
+Requires:      php-intl
+
+#  RHEL-6 PHP 5.4 SCL
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:      php54
+Requires:      php54-php
+Requires:      php54-php-devel
+Requires:      php54-php-pdo
+Requires:      php54-php-gd
+Requires:      php54-php-xml
+Requires:      php54-php-mysqlnd
+Requires:      php54-php-pgsql
+Requires:      php54-php-mbstring
+Requires:      php54-php-pear
+Requires:      php54-php-pecl-apc
+Requires:      php54-php-soap
+Requires:      php54-php-bcmath
+Requires:      php54-php-process
+Requires:      php54-php-intl
+Requires:      php54-php-ldap
+Requires:      php54-php-process
+Requires:      php54-php-fpm
+Requires:      php54-php-intl
+%endif
+
 BuildArch:     noarch
 
 Obsoletes: openshift-origin-cartridge-php-5.3
@@ -59,15 +84,16 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
 
 %if 0%{?fedora}%{?rhel} <= 6
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel6 %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/usr/lib/php_context.rhel6 %{buildroot}%{cartridgedir}/usr/lib/php_context
+%__mv %{buildroot}%{cartridgedir}/versions/5.4-scl %{buildroot}%{cartridgedir}/versions/5.4
 %endif
-%if 0%{?fedora} == 18
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora18 %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%if 0%{?fedora} >= 18
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/usr/lib/php_context.fedora %{buildroot}%{cartridgedir}/usr/lib/php_context
 %endif
-%if 0%{?fedora} == 19
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
-rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
+%__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.* || :
+%__rm %{buildroot}%{cartridgedir}/usr/lib/php_context.* || :
 
 %files
 %attr(0755,-,-) %{cartridgedir}/bin/

@@ -5,7 +5,7 @@ Feature: gear-groups
   I want to check the application state on each of the gears within each gear group
 
   Scenario Outline: Check application state on gear with xml
-    #Given a new user, create a php-5.3 application using XML format and verify application state on gear
+    #Given a new user, create a php application using XML format and verify application state on gear
     Given a new user
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"name=api<random>"
@@ -38,7 +38,9 @@ Feature: gear-groups
     Scenarios: RHEL scenarios
     | format | cart_name |
     | JSON   | php-5.3   |
+    | JSON   | php-5.4   |
     | XML    | php-5.3   |
+    | XML    | php-5.4   |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios

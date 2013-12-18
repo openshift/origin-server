@@ -16,6 +16,7 @@ Feature: V2 SDK PHP Cartridge
     Scenarios: RHEL scenarios
       | cart_name |
       | php-5.3   |
+      | php-5.4   |
 
     @fedora-19-only
     Scenarios: RHEL scenarios

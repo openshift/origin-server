@@ -1,0 +1,7 @@
+#!/bin/bash
+
+function php_context {
+  case $OPENSHIFT_PHP_VERSION in
+    *) eval $1 ;;
+  esac
+}

@@ -1,11 +1,23 @@
 ---
 Name: php
 Cartridge-Short-Name: PHP
-Display-Name: PHP 5.3
+Display-Name: PHP 5.4
 Description: ! 'PHP is a general-purpose server-side scripting language originally
   designed for Web development to produce dynamic Web pages. Popular development frameworks
   include: CakePHP, Zend, Symfony, and Code Igniter.'
-Version: '5.3'
+Version: '5.4'
+Provides:
+- php-5.4
+- php
+Versions:
+- '5.4'
+- '5.3'
+Version-Overrides:
+  '5.3':
+    Display-Name: PHP 5.3
+    Provides:
+    - php-5.3
+    - php
 License: The PHP License, version 3.0
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: php.net
@@ -51,9 +63,6 @@ Cart-Data:
 - Key: OPENSHIFT_GEAR_UUID
   Type: environment
   Description: Unique ID which identified the gear. This value changes between gears.
-Provides:
-- php-5.3
-- php
 Publishes:
   get-php-ini:
     Type: FILESYSTEM:php-ini

@@ -1,4 +1,4 @@
-# Steps specific to the php-5.3 cartridge.
+# Steps specific to the php cartridge.
 require 'test/unit'
 require 'test/unit/assertions'
 
