@@ -387,7 +387,7 @@ def check_service_contexts
 
       servout = %x[/sbin/service #{service} status 2>&1]
       begin
-        pid = /pid\s+(\d+)/.match(servout)[1]
+        pid = /(pid|PID:)\s+(\d+)/.match(servout)[2]  # pid for service, PID: for systemctl
         pcontext = File.read("/proc/#{pid}/attr/current").strip
         pm = /(\w+):(\w+):(\w+):([\w\-\:\.\,]+)/.match(pcontext)
         if (m[3] != pm[2]) or (m[4] != pm[3]) or (m[5] != pm[4])
@@ -448,7 +448,7 @@ def check_cgroup_procs
             passwd_lines = $USERS.select { |u| u.uid == uid }
 
             if passwd_lines.empty?
-                do_fail("Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
+                do_fail("Process #{pid} exists for uid #{uid}; uid is in the gear uid range but not a gear user")
                 next
             end
 

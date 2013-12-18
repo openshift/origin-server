@@ -869,6 +869,30 @@ function check_dns_bind() {
     fi
 }
 
+function check_dns_avahi() {
+    verbose checking avahi dns plugin configuration
+
+	APP_VALUE_MAP=(
+		["MDNS_SERVER"]="Rails.application.config.dns[:server]"
+		["MDNS_PORT"]="Rails.application.config.dns[:port].to_s"
+		["MDNS_KEYNAME"]="Rails.application.config.dns[:keyname]"
+		["MDNS_KEYVALUE"]="Rails.application.config.dns[:keyvalue]"
+		["MDNS_ZONE"]="Rails.application.config.dns[:zone]"
+		["DNS_SUFFIX"]="Rails.application.config.openshift[:domain_suffix]"
+		)
+	load_application_values
+
+    verbose "DNS Server: ${APP_VALUES[MDNS_SERVER]}"
+    verbose "DNS Port: ${APP_VALUES[MDNS_PORT]}"
+    verbose "DNS Zone: ${APP_VALUES[MDNS_ZONE]}"
+    verbose "DNS Suffix: ${APP_VALUES[DNS_SUFFIX]}"
+    
+    # check the zone we update matches the broker's cloud domain
+    [[ x"${APP_VALUES[MDNS_ZONE]}" == x"${APP_VALUES[DNS_SUFFIX]}" ]] \
+    || fail "Zone in DNS plugin '${APP_VALUES[MDNS_ZONE]}' does not match CLOUD_DOMAIN ${APP_VALUES[DNS_SUFFIX]}"
+    # there should probably be some tests here like for BIND
+}
+
 function check_dynamic_dns() {
     verbose checking dynamic dns plugin
     APP_VALUE_MAP=(
@@ -890,6 +914,11 @@ function check_dynamic_dns() {
 	'OpenShift::NsupdatePlugin')
 	    verbose dynamic dns plugin = $NAME_PLUGIN
 	    check_dns_bind
+	    ;;
+
+	'OpenShift::AvahiPlugin')
+	    verbose dynamic dns plugin = $NAME_PLUGIN
+	    check_dns_avahi
 	    ;;
 
 	*)
