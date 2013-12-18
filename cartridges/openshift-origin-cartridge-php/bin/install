@@ -1,5 +1,11 @@
 #!/bin/bash -eu
 
+if [[ -d /usr/lib64 ]]; then
+  _libdir=/usr/lib64
+else
+  _libdir=/usr/lib
+fi
+
 case "$1" in
   -v|--version)
     version="$2"
@@ -13,7 +19,7 @@ mkdir -p $OPENSHIFT_PHP_DIR/phplib/pear/{docs,ext,php,cache,cfg,data,download,te
 mkdir -p $OPENSHIFT_PHP_DIR/{logs,run,tmp,sessions}
 
 rm -f $OPENSHIFT_PHP_DIR/modules $OPENSHIFT_PHP_DIR/conf/magic
-ln -s /usr/lib64/httpd/modules $OPENSHIFT_PHP_DIR/modules
+ln -s ${_libdir}/httpd/modules $OPENSHIFT_PHP_DIR/modules
 ln -s /etc/httpd/conf/magic $OPENSHIFT_PHP_DIR/conf/magic
 
 # Create a writable directory for Drush settings
