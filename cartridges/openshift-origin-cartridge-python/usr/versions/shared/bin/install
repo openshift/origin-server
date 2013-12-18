@@ -1,7 +1,10 @@
 #!/bin/bash -eu
 
-# Dynmically determine libdir, don't hardcode
-$_libdir=$(rpm --eval %{_libdir})
+if [[ -d /usr/lib64 ]]; then
+  _libdir=/usr/lib64
+else
+  _libdir=/usr/lib
+fi
 
 version="$1"
 
