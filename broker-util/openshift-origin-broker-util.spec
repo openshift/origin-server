@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.18.3
+Version: 1.18.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -96,6 +96,9 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-analytics-import.8.gz
 
 %changelog
+* Tue Dec 17 2013 Adam Miller <admiller@redhat.com> 1.18.4-1
+- Fix check_consumed_gears method in oo-admin-chk (rpenta@redhat.com)
+
 * Fri Dec 13 2013 Adam Miller <admiller@redhat.com> 1.18.3-1
 - fix version for tag (admiller@redhat.com)
 - Node Platform - Set broker credentials on all gears (jhonce@redhat.com)
