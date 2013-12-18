@@ -161,7 +161,7 @@ mv %{buildroot}%{consoledir}/etc/openshift/* %{buildroot}%{_sysconfdir}/openshif
 cp %{buildroot}%{_sysconfdir}/openshift/console.conf %{buildroot}%{_sysconfdir}/openshift/console-dev.conf
 rm -rf %{buildroot}%{consoledir}/etc
 mv %{buildroot}%{consoledir}/.openshift/api.yml %{buildroot}%{openshiftconfigdir}
-ln -sf /usr/lib64/httpd/modules %{buildroot}%{consoledir}/httpd/modules
+ln -sf %{_libdir}/httpd/modules %{buildroot}%{consoledir}/httpd/modules
 ln -sf /etc/httpd/conf/magic %{buildroot}%{consoledir}/httpd/conf/magic
 
 %if 0%{?fedora}

@@ -146,7 +146,7 @@ mv %{buildroot}%{brokerdir}/init.d/* %{buildroot}%{_initddir}
 %endif
 ln -s %{brokerdir}/public %{buildroot}%{htmldir}/broker
 ln -s %{brokerdir}/public %{buildroot}%{brokerdir}/httpd/root/broker
-ln -sf /usr/lib64/httpd/modules %{buildroot}%{brokerdir}/httpd/modules
+ln -sf %{_libdir}/httpd/modules %{buildroot}%{brokerdir}/httpd/modules
 ln -sf /etc/httpd/conf/magic %{buildroot}%{brokerdir}/httpd/conf/magic
 mv %{buildroot}%{brokerdir}/httpd/000002_openshift_origin_broker_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 mv %{buildroot}%{brokerdir}/httpd/000002_openshift_origin_broker_servername.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
