@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.18.2
+Version: 1.18.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.18.3-1
+- <oo-diagnostics> fix test_broker_certificate bad grep (lmeyer@redhat.com)
+- <oo-diagnostics> special-case service network check (lmeyer@redhat.com)
+- <oo-diagnostics> find right mco node log (lmeyer@redhat.com)
+- <oo-diagnostics> rewording around broker failure (lmeyer@redhat.com)
+
 * Mon Dec 16 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
 - <oo-diagnostics> null out errors from absent files (lmeyer@redhat.com)
 - <oo-diagnostics> more reliable test_broker_certificate (lmeyer@redhat.com)
