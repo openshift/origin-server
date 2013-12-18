@@ -251,9 +251,9 @@ module OpenShift
               code = ex.resultIO.exitcode
               message = ex.resultIO.errorIO.string.strip + "\n" unless ex.resultIO.errorIO.string.empty?
 
-              messages.push(Message.new(:debug, ex.resultIO.debugIO.string, error_code, field)) unless ex.resultIO.debugIO.string.empty?
-              messages.push(Message.new(:warning, ex.resultIO.messageIO.string, error_code, field)) unless ex.resultIO.messageIO.string.empty?
-              messages.push(Message.new(:result, ex.resultIO.resultIO.string, error_code, field)) unless ex.resultIO.resultIO.string.empty?
+              messages.push(Message.new(:debug, ex.resultIO.debugIO.string, code, field)) unless ex.resultIO.debugIO.string.empty?
+              messages.push(Message.new(:warning, ex.resultIO.messageIO.string, code, field)) unless ex.resultIO.messageIO.string.empty?
+              messages.push(Message.new(:result, ex.resultIO.resultIO.string, code, field)) unless ex.resultIO.resultIO.string.empty?
             end
             [code, message, messages]
           end
