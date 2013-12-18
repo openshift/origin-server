@@ -6,11 +6,11 @@ class AddBrokerAuthKeyOp < PendingAppOp
   field :token, type: String
   field :gear_id, type: String
 
-  def isParallelExecutable()
+  def is_parallel_executable
     return true
   end
 
-  def addParallelExecuteJob(handle)
+  def add_parallel_execute_job(handle)
     gear = get_gear()
     unless gear.removed
       if iv.nil? or token.nil?
