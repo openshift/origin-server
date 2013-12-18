@@ -23,6 +23,15 @@ class RestApiCustomCartTest < ActiveSupport::TestCase
     end
   end
 
+  def test_create_failing_app_from_cdk
+    with_configured_user
+    setup_domain
+
+    assert_create_app_fails({:include => :cartridges, :cartridges => [{:url => 'https://cdk-claytondev.rhcloud.com/manifest/failure'}]}, "Create an app based on the CDK") do |app|
+      assert app.errors.to_hash[:base].any? {|e| e =~ /Failed to execute: 'control start'/}
+    end
+  end  
+
   def assert_create_app(options, message="", &block)
     app = Application.new({:name => 'test', :domain => @domain}.merge(options))
     assert app.save, "#{app.name} could not be saved, #{app.errors.to_hash.inspect}"

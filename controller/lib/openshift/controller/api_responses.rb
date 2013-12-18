@@ -151,18 +151,21 @@ module OpenShift
 
           when OpenShift::ApplicationOperationFailed
             status = :internal_server_error
-            message = "#{message}\nReference ID: #{request.uuid}"
+            error_code, node_message, messages = extract_node_messages(ex, error_code, message, field)
+            messages.push(Message.new(:error, node_message, error_code, field)) unless node_message.blank?
+            message = "#{message}\nReference ID: #{request.uuid}"           
+            return render_error(status, message, error_code, field, nil, messages, internal_error)
 
           when OpenShift::NodeException, OpenShift::OOException
             status = :internal_server_error
-            code, message, messages = extract_node_messages(ex, code, message)
+            error_code, message, messages = extract_node_messages(ex, error_code, message, field)
             message ||= "unknown error"
             message = "Unable to complete the requested operation due to: #{message}.\nReference ID: #{request.uuid}"
 
             # just trying to make sure that the error message is the last one to be added
-            messages.push(Message.new(:error, message, code, field))
+            messages.push(Message.new(:error, message, error_code, field))
 
-            return render_error(status, message, code, field, nil, messages, internal_error)
+            return render_error(status, message, error_code, field, nil, messages, internal_error)
           else
             status = :internal_server_error
             message = "Unable to complete the requested operation due to: #{message}.\nReference ID: #{request.uuid}"
@@ -245,7 +248,7 @@ module OpenShift
         end
 
         protected
-          def extract_node_messages(ex, code=nil, message=nil)
+          def extract_node_messages(ex, code=nil, message=nil, field=nil)
             messages = []
             if ex.respond_to?(:resultIO) && ex.resultIO
               code = ex.resultIO.exitcode
