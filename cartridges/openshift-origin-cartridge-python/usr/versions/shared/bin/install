@@ -1,5 +1,8 @@
 #!/bin/bash -eu
 
+# Dynmically determine libdir, don't hardcode
+$_libdir=$(rpm --eval %{_libdir})
+
 version="$1"
 
 # Copy the version specific files to python directory
@@ -7,7 +10,7 @@ shopt -s dotglob
 cp -r $OPENSHIFT_PYTHON_DIR/usr/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template
 
 # Create additional directories required by PYTHON and httpd
-ln -sf /usr/lib64/httpd/modules $OPENSHIFT_PYTHON_DIR
+ln -sf ${_libdir}/httpd/modules $OPENSHIFT_PYTHON_DIR
 ln -sf /etc/httpd/conf/magic $OPENSHIFT_PYTHON_DIR/etc/magic
 
 # The virtual environment is assumed to exist going forward
