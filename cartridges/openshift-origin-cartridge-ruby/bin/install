@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+# Dynmically determine libdir, don't hardcode
+$_libdir=$(rpm --eval %{_libdir})
+
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_RUBY_DIR}/lib/util"
 
@@ -28,6 +31,6 @@ echo "gem: --no-document --no-ri --no-rdoc" > $OPENSHIFT_HOMEDIR/.gemrc
 update-configuration $version
 
 # Create additional directories required by RUBY and httpd
-ln -s /usr/lib64/httpd/modules $OPENSHIFT_RUBY_DIR
+ln -s ${_libdir}/httpd/modules $OPENSHIFT_RUBY_DIR
 ln -s /etc/httpd/conf/magic $OPENSHIFT_RUBY_DIR/etc/magic
 
