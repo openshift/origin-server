@@ -1712,6 +1712,11 @@ module OpenShift
       end
 
       def build_update_cluster_args(options, args)
+        faulty_gears = options[:web_gears].select do |gear|
+            first_port_interface = gear.port_interfaces.select { |pi| pi.type.include? "web_framework" }.first
+            first_port_interface.nil?
+          end
+        raise OpenShift::OOException.new("No port interface exists for web_framework in gears #{faulty_gears.map {|g| g.uuid}.inspect } for application #{faulty_gears[0].application.name}. Contact 'support'.") if faulty_gears.length>0
         if options.has_key?(:rollback)
           args['--rollback'] = options[:rollback]
         else
@@ -1729,7 +1734,7 @@ module OpenShift
           web_args = []
           options[:web_gears].each do |gear|
             # TODO eventually support multiple ports
-            first_port_interface = gear.port_interfaces[0]
+            first_port_interface = gear.port_interfaces.select { |pi| pi.type.include? "web_framework" }.first
 
             # uuid, name, namespace, proxy_hostname, proxy port
             web_args << "#{gear.uuid},#{gear.name},#{gear.application.domain_namespace},#{gear.public_hostname},#{first_port_interface.external_port}"
