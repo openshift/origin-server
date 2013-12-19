@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.3
+Version: 1.19.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Dec 19 2013 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Merge pull request #4341 from bparees/ssh_test_timeout
+  (dmcphers+openshiftbot@redhat.com)
+- move tests into new group 4 to avoid group 1 ssh timeout (bparees@redhat.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Merge pull request #4338 from VojtechVitek/php54
   (dmcphers+openshiftbot@redhat.com)
