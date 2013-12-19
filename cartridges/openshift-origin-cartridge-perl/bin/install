@@ -1,5 +1,11 @@
 #!/bin/bash -eu
 
+if [[ -d /usr/lib64 ]]; then
+  _libdir=/usr/lib64
+else
+  _libdir=/usr/lib
+fi
+
 # Create additional directories required by PERL and httpd
-ln -s /usr/lib64/httpd/modules $OPENSHIFT_PERL_DIR
+ln -s ${_libdir}/httpd/modules $OPENSHIFT_PERL_DIR
 ln -s /etc/httpd/conf/magic $OPENSHIFT_PERL_DIR/etc/magic

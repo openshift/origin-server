@@ -1,5 +1,11 @@
 #!/bin/bash -e
 
+if [[ -d /usr/lib64 ]]; then
+  _libdir=/usr/lib64
+else
+  _libdir=/usr/lib
+fi
+
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 case "$1" in
@@ -12,7 +18,7 @@ cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/conf/* ${OPENSHIFT_PHPMYADMI
 cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/conf.d/* ${OPENSHIFT_PHPMYADMIN_DIR}/conf.d/
 cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/phpMyAdmin/* ${OPENSHIFT_PHPMYADMIN_DIR}/phpMyAdmin/
 
-ln -s /usr/lib64/httpd/modules ${OPENSHIFT_PHPMYADMIN_DIR}modules
+ln -s ${_libdir}/httpd/modules ${OPENSHIFT_PHPMYADMIN_DIR}modules
 ln -s /etc/httpd/conf/magic ${OPENSHIFT_PHPMYADMIN_DIR}conf/magic
 
 client_result ""
