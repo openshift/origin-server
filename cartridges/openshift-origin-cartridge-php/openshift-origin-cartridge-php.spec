@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.19.1
+Version: 1.19.2
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -102,6 +102,15 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
+- Merge pull request #4370 from maxamillion/admiller/fix_libdir_uname
+  (dmcphers+openshiftbot@redhat.com)
+- enable php54 SCL, add php_context lib (vvitek@redhat.com)
+- handle non-64bit libdir for ARM (admiller@redhat.com)
+- add php54 SCL dependency on RHEL-6 (vvitek@redhat.com)
+- add php-intl pecl as php cartridge dependency (vvitek@redhat.com)
+- remove obsolete php .spec fedora18 condition (vvitek@redhat.com)
+
 * Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.19.1-1
 - bump_minor_versions for sprint 38 (admiller@redhat.com)
 
