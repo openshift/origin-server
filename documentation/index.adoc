@@ -1,11 +1,14 @@
 = OpenShift Origin Documentation Site
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
-v2.0, July 2013
+ORIGIN VERSION 3.0
 :data-uri:
 :toc2:
 :icons:
 
 https://openshift.redhat.com/community/open-source[OpenShift Origin] is Red Hat's open source Platform as a Service (PaaS) offering. OpenShift Origin is an application platform where application developers and teams can build, test, deploy, and run their applications. OpenShift Origin also serves as the upstream code base upon which https://www.openshift.com/products/online[OpenShift Online] and https://www.openshift.com/products/enterprise[OpenShift Enterprise] are based.
+
+=== Origin 3.0 Documentation
+This documentation set is for version 3.0. If you are looking for the "bleeding edge" upstream documentation, see http://openshift.github.io/documentation-latest/
 
 == General Overview
 
