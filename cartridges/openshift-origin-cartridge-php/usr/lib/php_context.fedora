@@ -5,3 +5,8 @@ function php_context {
     *) eval $1 ;;
   esac
 }
+
+function update_configuration {
+  # PEAR bin_dir
+  php_context "pear -c ${OPENSHIFT_HOMEDIR}.pearrc config-get bin_dir" > ${OPENSHIFT_PHP_DIR}env/OPENSHIFT_PHP_PATH_ELEMENT
+}
