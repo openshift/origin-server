@@ -21,9 +21,6 @@ module OpenShift
       # This NodeLogger implementation discards all log messages.
       #
       class NullLogger
-        def initialize(config=nil, context=nil)
-        end
-
         def reinitialize
         end
 

@@ -14,6 +14,7 @@
 # limitations under the License.
 #++
 
+require 'openshift-origin-node/utils/logger/logger_support'
 require 'logger'
 require 'fileutils'
 
@@ -35,6 +36,8 @@ module OpenShift
       # Note: File IO for the underlying loggers is synchronous.
       #
       class SplitTraceLogger
+        include LoggerSupport
+
         @@DEFAULT_PROFILES = {
           :standard => {
             file_config:   'PLATFORM_LOG_FILE',
@@ -50,9 +53,8 @@ module OpenShift
           }
         }
 
-        def initialize(config, context, profiles = nil)
+        def initialize(config, profiles = nil)
           @config = config
-          @context = context
           @profiles = profiles || @@DEFAULT_PROFILES
 
           reinitialize
@@ -125,7 +127,7 @@ module OpenShift
             logger.level = log_level
 
             logger.formatter = proc do |severity, datetime, progname, msg|
-              "#{datetime.strftime("%B %d %H:%M:%S")} #{severity} #{msg}\n"
+              "#{datetime.strftime("%B %d %H:%M:%S")} #{severity} #{format(msg)}\n"
             end
 
             logger
