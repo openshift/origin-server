@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Merge pull request #4338 from VojtechVitek/php54
+  (dmcphers+openshiftbot@redhat.com)
+- add php-5.4 to REST API tests (vvitek@redhat.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Merge pull request #4359 from liggitt/bug_1029678_site_test_failures
   (dmcphers+openshiftbot@redhat.com)
