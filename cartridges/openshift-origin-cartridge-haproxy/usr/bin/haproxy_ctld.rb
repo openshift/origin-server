@@ -123,7 +123,7 @@ end
 class Haproxy
 
     #
-    # MAX_SESSIONS_PER_GEAR = 16.0 (default)
+    MAX_SESSIONS_PER_GEAR = 16.0 (default)
     #
     # Sessions per gear is the primary control for determining how much traffic
     # an individual gear can handle.  It is highly likely users will want to
@@ -506,13 +506,13 @@ class Haproxy
     def get_max_sessions_per_gear
       marker_dir = File.join(ENV['OPENSHIFT_REPO_DIR'], ".openshift/markers/")
       max_sessions_marker = File.join(marker_dir, "max_sessions")
-      return MAX_SESSIONS unless File.exists?(max_sessions_marker)
+      return MAX_SESSIONS_PER_GEAR unless File.exists?(max_sessions_marker)
       max_sessions = File.read(max_sessions_marker).to_i rescue 0
       if max_sessions > 0
         max_sessions
       else
-        @log.info "The max_sessions value is invalid, defaulting to #{MAX_SESSIONS}"
-        MAX_SESSIONS
+        @log.info "The max_sessions value is invalid, defaulting to #{MAX_SESSIONS_PER_GEAR}"
+        MAX_SESSIONS_PER_GEAR
       end
     end   
 
