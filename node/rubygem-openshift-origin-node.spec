@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Dec 19 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Merge pull request #4375 from bparees/hot_deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1033523 - The hot_deploy marker/--hot-deploy option can not take effect
+  when deploying app with binary deployment (bparees@redhat.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Security - moved OPENSHIFT_UMASK from devenv into the node RPM
   (tkramer@redhat.com)
