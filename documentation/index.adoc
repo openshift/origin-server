@@ -45,21 +45,15 @@ include::_pep_list.adoc[]
 
 == Source Code Repositories
 
-OpenShift Origin sources are arranged into 5 repositories:
+OpenShift Origin sources are arranged into 3 repositories:
 
 [cols="1,3",options="header"]
 |===
 |Repository
 |Description
 
-|http://github.com/openshift/origin-dev-tools[origin-dev-tools]
-|Contains all the build tools necessary for building and testing a local or EC2 OpenShift Origin installation.
-
 |http://github.com/openshift/origin-server[origin-server]
 |The main repository that contains the source code for the Broker, Node and various plugins for DNS, Communication and Authentication. It also contains some of the core cartridges used by OpenShift installations.
-
-|http://github.com/openshift/origin-community-cartridges[origin-community-cartridges]
-|Contains additional cartridges used during the Fedora 19 installation.
 
 |http://github.com/openshift/rhc[rhc]
 |Contains command line tools used to access an OpenShift-based PaaS.

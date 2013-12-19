@@ -97,7 +97,7 @@ $ rpm -Uvh epel-release-6*.rpm
 $ cat > /etc/yum.repos.d/openshift-origin-deps.repo <<"EOF"
 [openshift-origin-deps]
 name=OpenShift Origin Dependencies - EL6
-baseurl=https://mirror.openshift.com/pub/openshift-origin/nightly/rhel-6/dependencies/$basearch/
+baseurl=http://mirror.openshift.com/pub/origin-server/release/3/rhel-6/dependencies/$basearch/
 gpgcheck=0
 EOF
 ----
@@ -417,8 +417,8 @@ After the installer gives you the opportunity to work with subscription settings
 The most common subscription method for Origin is `yum`, and the current known good repos to use are these:
 
 * The base URL for the OpenShift repositories:
-** For Fedora target systems: `https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-19`
-** For RHEL6 target systems: `https://mirror.openshift.com/pub/openshift-origin/nightly/rhel-6`
+** For Fedora target systems: `http://mirror.openshift.com/pub/origin-server/release/3/fedora-19`
+** For RHEL6 target systems: `http://mirror.openshift.com/pub/origin-server/release/3/rhel-6`
 * The base URL for a Jenkins repository: `http://pkg.jenkins-ci.org/redhat`
 
 [WARNING]
