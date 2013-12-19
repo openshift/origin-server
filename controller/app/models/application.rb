@@ -353,6 +353,12 @@ class Application
     super
   end
 
+  ##
+  # Return either the denormalized domain name or nil, since namespace is denormalized
+  def domain_namespace
+    attributes['domain_namespace'] or has_domain? ? domain.canonical_namespace : nil
+  end
+
   def capabilities
     @capabilities ||= domain.owner.capabilities.deep_dup rescue (raise OpenShift::UserException, "The application cannot be changed at this time.  Contact support.")
   end
