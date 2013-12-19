@@ -615,12 +615,8 @@ class Application
       end
 
       # Validate that the features support scalable if necessary
-      if self.scalable && !(cart.is_plugin? || cart.is_service?)
-        if cart.is_web_framework?
-          raise OpenShift::UserException.new("Scalable app cannot be of type '#{feature_name}'.", 109)
-        else
-          raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 109)
-        end
+      if self.scalable && !(cart.is_plugin? || cart.is_service? || cart.is_web_framework?)
+        raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 109)
       end
 
       # prevent a proxy from being added to a non-scalable (single-gear) application
