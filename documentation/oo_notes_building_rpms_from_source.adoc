@@ -1,6 +1,6 @@
 = Building OpenShift Origin RPMS from Source
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
-v2.0, July 2013
+ORIGIN VERSION 3.0
 :data-uri:
 :icons:
 
