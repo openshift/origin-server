@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.19.1
+Version: 1.19.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
+- handle non-64bit libdir for ARM (admiller@redhat.com)
+
 * Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.19.1-1
 - bump_minor_versions for sprint 38 (admiller@redhat.com)
 - Add --no-ri and --no-rdoc to default gem install options (mfojtik@redhat.com)
