@@ -424,13 +424,14 @@ command :'binary-deploy' do |c|
   c.syntax = "#{name} binary-deploy"
 
   c.description = "Deploy a binary artifact"
+  c.option "--hot-deploy", "Perform hot deployment"
   c.action do |args, options|
     do_command(c, options) do
       if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] != 'binary'
           raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'git' - binary deployments are disabled.")
       end
-
-      options = { out: $stdout, err: $stderr }
+      hot_deploy_enabled = options.hot_deploy || false
+      options = { out: $stdout, err: $stderr, hot_deploy: hot_deploy_enabled }
       if args.count > 0
         options[:file] = args[0]
       else

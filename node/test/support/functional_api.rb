@@ -297,7 +297,7 @@ EOFZ
     logger.info("Done Copying File(#{tgz_file_name}) to /var/www/html/binaryartifacts")
   end
 
-  def deploy_binary_artifact_using_rest_api(app_name, artifact_url)
+  def deploy_binary_artifact_using_rest_api(app_name, artifact_url, hot_deploy=true)
 
     logger.info("Starting Deploy Binary Artifact Using REST API")
 
@@ -307,7 +307,7 @@ EOFZ
     begin
       response = RestClient::Request.execute(method: :post,
                                              url: url_endpoint,
-                                             payload: JSON.dump(artifact_url: artifact_url),
+                                             payload: JSON.dump(artifact_url: artifact_url, hot_deploy: hot_deploy),
                                              headers: {content_type: :json, accept: :json},
                                              timeout: 180)
     rescue RestClient::Exception => e
@@ -323,9 +323,10 @@ EOFZ
   end
 
 
-  def deploy_artifact(app_id, app_name, file)
+  def deploy_artifact(app_id, app_name, file, hot_deploy=false)
     logger.info("Deploying #{file} to app #{app_name}")
-    logger.info `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary-deploy`
+    hot=hot_deploy ? '--hot-deploy' : ''
+    logger.info `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary-deploy #{hot}`
   end
 
   def cloud_domain
