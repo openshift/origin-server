@@ -129,7 +129,7 @@ class Gear
   def register_dns
     dns = OpenShift::DnsService.instance
     begin
-      dns.register_application(self.name, application.domain.namespace, public_hostname)
+      dns.register_application(self.name, application.domain_namespace, public_hostname)
       dns.publish
     ensure
       dns.close
@@ -139,7 +139,7 @@ class Gear
   def deregister_dns
     dns = OpenShift::DnsService.instance
     begin
-      dns.deregister_application(self.name, self.application.domain.namespace)
+      dns.deregister_application(self.name, self.application.domain_namespace)
       dns.publish
     ensure
       dns.close

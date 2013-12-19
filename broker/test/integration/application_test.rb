@@ -21,7 +21,7 @@ class ApplicationTest < ActiveSupport::TestCase
     app = Application.find_by(canonical_name: app_name.downcase)
 
     assert_equal(app.name, orig_app.name)
-    assert_equal(app.domain.namespace, orig_app.domain.namespace)
+    assert_equal(app.domain_namespace, orig_app.domain_namespace)
 
     app.aliases.push(Alias.new(fqdn: "app.foo.bar"))
 
