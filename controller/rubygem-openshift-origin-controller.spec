@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Merge pull request #4338 from VojtechVitek/php54
+  (dmcphers+openshiftbot@redhat.com)
+- add cucumber tests for php54 SCL on RHEL-6 (vvitek@redhat.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Merge pull request #4374 from pravisankar/dev/ravi/chk-bug
   (dmcphers+openshiftbot@redhat.com)
