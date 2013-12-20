@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -97,6 +97,9 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Bug 1044417 - Fix storage inconsistencies in oo-admin-chk (rpenta@redhat.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Fixing typos (dmcphers@redhat.com)
 - oo-admin-chk refactor (rpenta@redhat.com)
