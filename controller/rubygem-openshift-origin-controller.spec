@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.4
+Version: 1.19.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,19 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.5-1
+- Merge pull request #4385 from pravisankar/dev/ravi/chk-bug
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1044417 - Fix storage inconsistencies in oo-admin-chk (rpenta@redhat.com)
+- Merge pull request #4349 from bparees/scalable_cart
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4355 from smarterclayton/use_local_namespace
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1043620 - Cannot create scalable cartridge without specifying service
+  category (bparees@redhat.com)
+- Since domain_namespace is denormalized, guard load (ccoleman@redhat.com)
+- Use denormalized domain_namespace (ccoleman@redhat.com)
+
 * Thu Dec 19 2013 Adam Miller <admiller@redhat.com> 1.19.4-1
 - Merge pull request #4341 from bparees/ssh_test_timeout
   (dmcphers+openshiftbot@redhat.com)
