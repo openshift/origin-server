@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -102,6 +102,9 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
+- set php-5.4 SCL PATHs for gear environment (vvitek@redhat.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Merge pull request #4370 from maxamillion/admiller/fix_libdir_uname
   (dmcphers+openshiftbot@redhat.com)
