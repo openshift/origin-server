@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.3
+Version: 1.19.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,13 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Merge pull request #4363 from aaronknister/aknister/rhcsh_idle_timeout
+  (dmcphers+openshiftbot@redhat.com)
+- prefix rhcsh timeout parameter name with OPENSHIFT_ (aaron.knister@gmail.com)
+- make rhcsh idle time out a configurable parameter in node.conf
+  (RHCSH_IDLE_TIMEOUT) (aaron.knister@gmail.com)
+
 * Thu Dec 19 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Merge pull request #4375 from bparees/hot_deploy
   (dmcphers+openshiftbot@redhat.com)
