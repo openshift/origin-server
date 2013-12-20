@@ -78,6 +78,20 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+
+# The pgdata-template.tar.gz files are built from 'postgresql-setup initdb'
+# which builds datafiles that are architecture specific
+%ifarch x86_64
+%__mv %{buildroot}%{cartridgedir}/versions/9.2/conf/pgdata-template_x86_64.tar.gz \
+        %{buildroot}%{cartridgedir}/versions/9.2/conf/pgdata-template.tar.gz
+%__rm %{buildroot}%{cartridgedir}/versions/9.2/conf/pgdata-template_arm.tar.gz
+%endif
+%ifarch %{arm}
+%__mv %{buildroot}%{cartridgedir}/versions/9.2/conf/pgdata-template_arm.tar.gz \
+        %{buildroot}%{cartridgedir}/versions/9.2/conf/pgdata-template.tar.gz
+%__rm %{buildroot}%{cartridgedir}/versions/9.2/conf/pgdata-template_x86_64.tar.gz
+%endif
+
 %if 0%{?fedora}%{?rhel} <= 6
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %__mv %{buildroot}%{cartridgedir}/lib/util.rhel %{buildroot}%{cartridgedir}/lib/util
