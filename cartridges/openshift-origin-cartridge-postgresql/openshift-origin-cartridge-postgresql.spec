@@ -17,9 +17,12 @@ URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-%if 0%{?rhel} <=6
+%if 0%{?rhel} == 6
 Requires:      postgresql-ip4r
 Requires:      postgresql-jdbc
+# Have to put the postgresql92 here for when it's built outside scl
+BuildRequires: postgresql92-postgresql-server
+BuildRequires: postgresql-server
 %endif
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      postgresql < 9
@@ -39,6 +42,8 @@ Requires:      %{?scl:%scl_prefix}pgRouting
 Requires:      postgresql >= 9.2
 Requires:      postgresql < 9.3
 Requires:      postgis >= 2
+BuildRequires: postgresql-server >= 9.2
+BuildRequires: postgresql-server < 9.3
 %endif
 Requires:      postgresql-server
 Requires:      postgresql-libs
@@ -59,7 +64,6 @@ Requires:      python-psycopg2
 Requires:      %{?scl_ruby:%scl_prefix_ruby}rubygem-pg
 Requires:      rhdb-utils
 Requires:      uuid-pgsql
-BuildArch:     noarch
 
 Obsoletes: openshift-origin-cartridge-postgresql-8.4
 
@@ -78,17 +82,53 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+
 %if 0%{?fedora}%{?rhel} <= 6
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %__mv %{buildroot}%{cartridgedir}/lib/util.rhel %{buildroot}%{cartridgedir}/lib/util
 %__rm %{buildroot}%{cartridgedir}/lib/util.f19
 %endif
+
+%if 0%{?rhel} >= 6
+# Create Postgresql 8.4 data for cartridge deploy
+%__mkdir %{buildroot}/pgdata_tmp
+initdb -D %{buildroot}/pgdata_tmp/
+pushd %{buildroot}/pgdata_tmp/
+  %__tar -cvzf %{buildroot}/pgdata-template_pg84.tar.gz ./
+popd
+%__mv %{buildroot}/pgdata-template_pg84.tar.gz \
+    %{buildroot}%{cartridgedir}/versions/8.4/conf/pgdata-template.tar.gz
+%__rm -rf %{buildroot}/pgdata_tmp
+
+# Create Postgresql 9.2 SCL data for cartridge deploy
+%__mkdir %{buildroot}/pgdata_tmp
+scl enable postgresql92 "initdb -D %{buildroot}/pgdata_tmp/"
+pushd %{buildroot}/pgdata_tmp/
+    %__tar -cvzf %{buildroot}/pgdata-template_pg92scl.tar.gz ./
+popd
+%__mv %{buildroot}/pgdata-template_pg92scl.tar.gz \
+    %{buildroot}%{cartridgedir}/versions/9.2/conf/pgdata-template.tar.gz
+%__rm -rf %{buildroot}/pgdata_tmp
+
+%endif # %if 0%{?rhel} >= 6
+
 %if 0%{?fedora} == 19
 %__rm -rf %{buildroot}%{cartridgedir}/versions/8.4
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %__mv %{buildroot}%{cartridgedir}/lib/util.f19 %{buildroot}%{cartridgedir}/lib/util
 %__rm %{buildroot}%{cartridgedir}/lib/util.rhel
-%endif
+
+# Create Postgresql 9.2 data for cartridge deploy
+%__mkdir %{buildroot}/pgdata_tmp
+initdb -D %{buildroot}/pgdata_tmp/
+pushd %{buildroot}/pgdata_tmp/
+    %__tar -cvzf %{buildroot}/pgdata-template_pg92.tar.gz ./
+popd
+%__mv %{buildroot}/pgdata-template_pg92.tar.gz \
+    %{buildroot}%{cartridgedir}/versions/9.2/conf/pgdata-template.tar.gz
+%__rm -rf %{buildroot}/pgdata_tmp
+%endif # %if 0%{?fedora} == 19
+
 %__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 %files
