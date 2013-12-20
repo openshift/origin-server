@@ -49,7 +49,7 @@ if [ -n "$OPENSHIFT_UMASK" ]; then
     umask $OPENSHIFT_UMASK
 fi
 
-RHCSH_IDLE_TIMEOUT=300
+OPENSHIFT_RHCSH_IDLE_TIMEOUT=300
 source /etc/openshift/node.conf
 
 function welcome {
@@ -275,7 +275,7 @@ function tail_all {
 }
 
 export PS1="[$OPENSHIFT_GEAR_DNS \W]\> "
-export TMOUT=$RHCSH_IDLE_TIMEOUT
+export TMOUT=$OPENSHIFT_RHCSH_IDLE_TIMEOUT
 export SHELL=/bin/bash
 welcome
 
