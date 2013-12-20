@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.3
+Version: 1.19.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Checkbox isn't aligned with text (ccoleman@redhat.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Merge pull request #4338 from VojtechVitek/php54
   (dmcphers+openshiftbot@redhat.com)
