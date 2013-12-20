@@ -94,7 +94,7 @@ class Gear
 
   def reserve_uid(gear_size = nil)
     gear_size = group_instance.gear_size unless gear_size
-    @container = OpenShift::ApplicationContainerProxy.find_available(gear_size, nil, group_instance.server_identities)
+    @container = OpenShift::ApplicationContainerProxy.find_available(gear_size, nil, group_instance.server_identities, self)
     reserved_uid = @container.reserve_uid
     Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => @container.id, "gears.$.uid" => reserved_uid}})
     self.server_identity = @container.id
