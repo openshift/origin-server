@@ -164,15 +164,15 @@ node_hash.each do |gear_uuid, gear_info|
 end
 
 if level >= 1
-  find_consumed_gears_inconsistencies
-  find_ssh_key_inconsistencies
-  find_district_inconsistencies
+  run :find_consumed_gears_inconsistencies
+  run :find_ssh_key_inconsistencies
+  run :find_district_inconsistencies
 
-  find_app_gear_usage_record_inconsistencies
-  find_app_storage_usage_record_inconsistencies
-  find_app_premium_cart_usage_record_inconsistencies
-  find_usage_record_usage_inconsistencies
-  find_user_plan_inconsistencies  
+  run :find_app_gear_usage_record_inconsistencies
+  run :find_app_storage_usage_record_inconsistencies
+  run :find_app_premium_cart_usage_record_inconsistencies
+  run :find_usage_record_usage_inconsistencies
+  run :find_user_plan_inconsistencies 
 end
  
 end_time = Time.now.utc
