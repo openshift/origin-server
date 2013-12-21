@@ -3,7 +3,7 @@ require 'rake'
 require 'rake/clean'
 require 'rake/testtask'
 
-merge_path_functionals = [
+essentials_functionals = [
   'test/cart_functional/application_repository_func_test.rb',
   'test/cart_functional/application_state_func_test.rb',
   'test/cart_functional/bash_sdk_test.rb',
@@ -51,12 +51,12 @@ Rake::TestTask.new(:test) do |t|
   t.pattern = 'test/**/*_test.rb'
 end
 
-desc "Merge-path tests"
+desc "Essentials tests"
 Rake::TestTask.new(:essentials_test) do |t|
   t.verbose = true
   t.libs << File.expand_path('../../common/lib', __FILE__)
   files = [ 'test/unit/*_test.rb' ]
-  files.concat(merge_path_functionals)
+  files.concat(essentials_functionals)
   t.test_files = files
 end
 
@@ -67,7 +67,7 @@ Rake::TestTask.new(:ext_cart_func_test) do |t|
 
   all_functionals = Dir.glob('test/cart_functional/*_test.rb')
 
-  t.test_files = all_functionals - merge_path_functionals
+  t.test_files = all_functionals - essentials_functionals
 end
 
 desc "Extended node functional tests"
@@ -77,7 +77,7 @@ Rake::TestTask.new(:ext_node_func_test) do |t|
 
   all_functionals = Dir.glob('test/node_functional/*_test.rb')
 
-  t.test_files = all_functionals - merge_path_functionals
+  t.test_files = all_functionals - essentials_functionals
 end
 
 desc "Generate RDoc"
