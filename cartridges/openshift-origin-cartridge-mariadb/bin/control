@@ -1,12 +1,13 @@
 #!/bin/bash
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_MARIADB_DIR}/lib/mysql_context"
 
 export STOPTIMEOUT=10
 
 # Run mariadb commands
 function run_sql {
-  echo "$@" | /usr/bin/mysql -h $OPENSHIFT_MARIADB_DB_HOST -P $OPENSHIFT_MARIADB_DB_PORT -u $OPENSHIFT_MARIADB_DB_USERNAME --password="$OPENSHIFT_MARIADB_DB_PASSWORD" --skip-column-names
+  echo "$@" | mysql_context "/usr/bin/mysql -h $OPENSHIFT_MARIADB_DB_HOST -P $OPENSHIFT_MARIADB_DB_PORT -u $OPENSHIFT_MARIADB_DB_USERNAME --password="$OPENSHIFT_MARIADB_DB_PASSWORD" --skip-column-names"
 }
 
 function is_running {
@@ -31,8 +32,8 @@ function is_running {
 function start {
   if ! is_running; then
     echo "Starting MySQL cartridge"
-    erb conf/my.cnf.erb.hidden > conf/my.cnf
-    /usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MARIADB_DIR/conf/my.cnf > /dev/null 2>&1 &
+    oo-erb conf/my.cnf.erb.hidden > conf/my.cnf
+    mysql_context "/usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MARIADB_DIR/conf/my.cnf" > /dev/null 2>&1 &
     wait_for_mysqld_availability
   else
     echo "MySQL already running" 1>&2
@@ -110,7 +111,7 @@ function pre_snapshot {
   local db_port=$OPENSHIFT_MARIADB_DB_PORT
 
   {
-    /usr/bin/mysqldump --extended-insert --quick -h $db_host -P $db_port -u $OPENSHIFT_MARIADB_DB_USERNAME --password="$OPENSHIFT_MARIADB_DB_PASSWORD" --all-databases --events --triggers --routines --add-drop-table | /bin/gzip > $dump_file
+    mysql_context "/usr/bin/mysqldump --extended-insert --quick -h $db_host -P $db_port -u $OPENSHIFT_MARIADB_DB_USERNAME --password="$OPENSHIFT_MARIADB_DB_PASSWORD" --all-databases --events --triggers --routines --add-drop-table" | /bin/gzip > $dump_file
   } ||
   {
     warning "Couldn't not dump mariadb! Continuing anyway"
@@ -198,8 +199,8 @@ function post_restore {
       # This approach provides relational consistency and will work with tables, views, triggers, etc
       # TODO: This may not work if the user created another database that has references to this database
       {
-        /usr/bin/mysqldump -h $NEW_IP -P $OPENSHIFT_MARIADB_DB_PORT -u $NEW_USER --password="$OPENSHIFT_MARIADB_DB_PASSWORD" $OLD_NAME | \
-          mysql -h $NEW_IP -P $OPENSHIFT_MARIADB_DB_PORT -u $NEW_USER --password="$OPENSHIFT_MARIADB_DB_PASSWORD" $NEW_NAME
+	mysql_context "/usr/bin/mysqldump -h $NEW_IP -P $OPENSHIFT_MARIADB_DB_PORT -u $NEW_USER --password="$OPENSHIFT_MARIADB_DB_PASSWORD" $OLD_NAME" | \
+          mysql_context "/usr/bin/mysql -h $NEW_IP -P $OPENSHIFT_MARIADB_DB_PORT -u $NEW_USER --password="$OPENSHIFT_MARIADB_DB_PASSWORD" $NEW_NAME"
       } || error "Could not rename database" 187
 
       # Drop the old database now that the data has been preserved
@@ -247,3 +248,4 @@ case "$1" in
     post_restore
   ;;
 esac
+
