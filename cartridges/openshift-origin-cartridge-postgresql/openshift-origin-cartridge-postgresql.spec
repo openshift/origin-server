@@ -10,7 +10,7 @@
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
 Version: 1.18.0.1
-Release:       1%{?dist}
+Release:       2%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -141,6 +141,12 @@ popd
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.18.0.1-2
+- build pgdata at rpmbuild time for Fedora/Origin (admiller@redhat.com)
+
+* Fri Dec 20 2013 Adam Miller <maxamillion@fedoraproject.org> 1.18.0.1-2
+- Cherrypicked in spec change (no code change) for ARM builds
+  https://github.com/openshift/origin-server/pull/4393
 * Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
 - Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
 - Merge pull request #4202 from bparees/psql_restore_invalid_error
