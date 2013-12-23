@@ -71,11 +71,12 @@ class FunctionalApi
     response['data'].each do |app_data|
       id = app_data['id']
       logger.info("Deleting application id #{id}")
-      RestClient.delete("#{@url_base}/applications/#{id}")
+      RestClient::Request.execute(method: :delete, url: "#{@url_base}/applications/#{id}", headers: {accept: :json}, timeout: 60 )
     end
 
     logger.info("Deleting domain #{@namespace}")
-    RestClient.delete("#{@url_base}/domains/#{@namespace}")
+    RestClient::Request.execute(method: :delete, url: "#{@url_base}/domains/#{@namespace}", headers: {accept: :json}, timeout: 60 )
+
   end
 
   def create_application(app_name, cartridges, scaling = true)
