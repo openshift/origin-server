@@ -13,6 +13,8 @@ locked_files:
 - configuration/etc/conf.d/openshift.conf
 - configuration/etc/conf.d/php.conf
 - configuration/etc/php.ini
+- configuration/etc/php.d/
+- configuration/etc/php.d/*
 - metadata/
 - metadata/*
 - env/

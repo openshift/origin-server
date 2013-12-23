@@ -11,3 +11,7 @@ fi
 if [[ $curr =~ 0.0.4 ]]; then
   mkdir -p $OPENSHIFT_HOMEDIR/.drush
 fi
+
+if [[ $curr =~ 0.0.5 ]]; then
+  echo "$OPENSHIFT_PHP_DIR/configuration/etc/php.d" > "$OPENSHIFT_PHP_DIR/env/PHP_INI_SCAN_DIR"
+fi
