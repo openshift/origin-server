@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.18.3
+Version: 1.18.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,11 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Mon Dec 23 2013 Adam Miller <admiller@redhat.com> 1.18.4-1
+- <oo-diagnostics> OSE version-agnostic - bug 1043340 (lmeyer@redhat.com)
+- Bug 1042255 - reuse timer for execute_parallel_action calls
+  (jhonce@redhat.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.18.3-1
 - <oo-diagnostics> fix test_broker_certificate bad grep (lmeyer@redhat.com)
 - <oo-diagnostics> special-case service network check (lmeyer@redhat.com)
