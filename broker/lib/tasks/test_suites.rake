@@ -53,4 +53,10 @@ namespace :test do
     t.verbose = true
   end
 
+  Rake::TestTask.new :oo_admin_scripts => ['test:prepare'] do |t|
+    t.libs << "test"
+    t.test_files = FileList['test/system/oo_*_test.rb']
+    t.verbose = true
+  end
+
 end
