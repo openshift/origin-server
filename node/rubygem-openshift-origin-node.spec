@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.4
+Version: 1.19.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Dec 23 2013 Adam Miller <admiller@redhat.com> 1.19.5-1
+- fixup naming (dmcphers@redhat.com)
+
 * Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.4-1
 - Merge pull request #4363 from aaronknister/aknister/rhcsh_idle_timeout
   (dmcphers+openshiftbot@redhat.com)
