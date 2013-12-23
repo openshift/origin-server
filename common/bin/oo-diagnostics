@@ -1268,7 +1268,7 @@ class OODiag
     elsif @project_is[:enterprise]
       do_warn <<-YUM
         oo-admin-yum-validator is not installed. Please install with:
-          yum install openshift-enterprise-release-2.0
+          yum install openshift-enterprise-release
         This tool helps validate and fix your package source
         configuration. Incorrect configuration could lead to
         failure to install the correct RPMs.
