@@ -1098,16 +1098,8 @@ class Application
     # Alias to be an IP address or a host in the service domain.
     # Since DNS is case insensitive, all names are downcased for
     # indexing/compares.
-    server_alias = fqdn.downcase if fqdn
-    if  (server_alias.nil?) or
-        (server_alias =~ /#{Rails.configuration.openshift[:domain_suffix]}$/) or
-        (server_alias.length > 255 ) or
-        (server_alias.length == 0 ) or
-        (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/) or
-        (server_alias =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/) or
-        (not server_alias.match(/\A[a-z0-9]+([\.]?[\-a-z0-9]+)+\z/))
-      raise OpenShift::UserException.new("The specified alias is not allowed: '#{server_alias}'", 105, "id")
-    end
+    server_alias = validate_alias(fqdn) or
+      raise OpenShift::UserException.new("The specified alias is not allowed: '#{fqdn}'", 105, "id")
     validate_certificate(ssl_certificate, private_key, pass_phrase)
 
     Application.run_in_application_lock(self) do
@@ -1122,6 +1114,17 @@ class Application
       self.run_jobs(result_io)
       result_io
     end
+  end
+
+  def validate_alias(fqdn)
+    return false if fqdn.nil? || fqdn.length > 255 || fqdn.length == 0
+    fqdn.downcase!
+    return false if fqdn =~ /^\d+\.\d+\.\d+\.\d+$/
+    return false if fqdn =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/
+    return false if not fqdn =~ /\A[a-z0-9]+([\.]?[\-a-z0-9]+)+\z/
+    return false if fqdn.end_with?(Rails.configuration.openshift[:domain_suffix]) &&
+                    ! Rails.configuration.openshift[:allow_alias_in_domain]
+    return fqdn
   end
 
   # Removes a DNS alias for the application.
