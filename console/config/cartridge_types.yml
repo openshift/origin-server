@@ -27,10 +27,8 @@
 - :categories: 
   - :featured
   :name: jbosseap-6
-  :priority: -1
 
 - :name: zend-5.6
-  :priority: -1
   :categories:
   - :featured
 
