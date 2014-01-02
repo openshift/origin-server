@@ -26,7 +26,7 @@ module ActionDispatch::Routing
         resources :application_types, :only => [:show, :index], :id => id_regex, :singular_resource => true do
           get :estimate, on: :member
         end
-        resources :applications, :id => id_regex, :singular_resource => true do
+        resources :applications, :except => :edit, :id => id_regex, :singular_resource => true do
           resources :cartridges, :only => [:show, :create, :index], :id => id_regex, :singular_resource => true
           resources :aliases, :only => [:index, :edit, :create, :new, :destroy, :update], :id => id_regex, :singular_resource => true do
             get :delete, on: :member
