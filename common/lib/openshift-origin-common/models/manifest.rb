@@ -343,7 +343,7 @@ module OpenShift
 
       ## obtain all software versions covered in this manifest
       def self.raw_versions(manifest)
-        return [] if manifest.blank?
+        return [] if manifest.nil?
         ((manifest['Versions'] || []).map(&:to_s) << manifest['Version'].to_s).uniq
       end
 
@@ -445,7 +445,7 @@ module OpenShift
         if version
           return new(raw_manifest.deep_dup, version, nil, repository_base_path)
         end
-        preferred_version = raw_manifest['Version'].to_s
+        preferred_version = raw_manifest['Version'].to_s if raw_manifest
         raw_versions(raw_manifest).map do |v|
           new(raw_manifest.deep_dup, v, nil, repository_base_path)
         end.sort_by{ |m| preferred_version == m.version ? 0 : 1 }

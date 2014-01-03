@@ -71,7 +71,7 @@ class Application
   DEPLOYMENT_TYPES = ['git', 'binary']
 
   # This is the current regex for validations for new applications
-  APP_NAME_REGEX = /\A[A-Za-z0-9]+\z/
+  APP_NAME_REGEX = /\A[A-Za-z0-9]*\z/
   def self.check_name!(name)
     if name.blank? or name !~ APP_NAME_REGEX
       raise Mongoid::Errors::DocumentNotFound.new(Application, nil, [name])
@@ -118,8 +118,8 @@ class Application
 
   validates :name,
     presence: {message: "Application name is required and cannot be blank."},
-    format:   {with: APP_NAME_REGEX, message: "Invalid application name. Name must only contain alphanumeric characters."},
-    length:   {maximum: APP_NAME_MAX_LENGTH, minimum: 1, message: "Application name must be a minimum of 1 and maximum of #{APP_NAME_MAX_LENGTH} characters."},
+    format:   {with: APP_NAME_REGEX, message: "Application name must contain only alphanumeric characters (a-z, A-Z, or 0-9)."},
+    length:   {maximum: APP_NAME_MAX_LENGTH, minimum: 0, message: "Application name must be a minimum of 1 and maximum of #{APP_NAME_MAX_LENGTH} characters."},
     blacklisted: {message: "Application name is not allowed.  Please choose another."}
   validate :extended_validator
 
@@ -131,7 +131,7 @@ class Application
 
   index({'gears.uuid' => 1}, {:unique => true, :sparse => true})
   index({'pending_op_groups.created_at' => 1})
-  index({'domain_id' => 1})
+  index({'domain_id' => 1, 'canonical_name' => 1}, {:unique => true})
   create_indexes
 
   # non-persisted field used to store user agent of current request
@@ -2330,7 +2330,6 @@ class Application
   def merge_group_overrides(first, second)
     return_go = { }
 
-    framework_carts = CartridgeCache.cartridge_names("web_framework", self)
     first_has_web_framework = false
     first["components"].each do |components|
       c = CartridgeCache.find_cartridge(components['cart'], self)

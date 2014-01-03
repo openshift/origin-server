@@ -12,7 +12,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     CartridgeCache.stubs(:find_cartridge).with('embedcart-0.1', is_a(Application)).returns(embed_cart)
     Moped::BSON::ObjectId.stubs(:new).returns('1','2','3','4','5')
 
-    app = Application.new
+    app = Application.new default_gear_size: nil
 
     result = app.elaborate(['webcart-0.1', 'embedcart-0.1'])
     expected_result = [[{"from_comp_inst"=>{"cart"=>"embedcart-0.1", "comp"=>"embedcart-0.1"},
@@ -38,8 +38,6 @@ class SubscriptionTest < ActiveSupport::TestCase
                           "min_gears"=>1,
                           "max_gears"=>1}]]
 
-    CartridgeCache.unstub(:find_cartridge)
-    Moped::BSON::ObjectId.unstub(:new)
     assert_equal(expected_result, result)
   end
 
@@ -51,7 +49,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     CartridgeCache.stubs(:find_cartridge).with('embedcart-0.1', is_a(Application)).returns(embed_cart)
     Moped::BSON::ObjectId.stubs(:new).returns('1','2','3','4','5')
 
-    app = Application.new
+    app = Application.new default_gear_size: nil
 
     result = app.elaborate(['webcart-0.1', 'embedcart-0.1'])
     expected_result = [[{"from_comp_inst"=>{"cart"=>"embedcart-0.1", "comp"=>"embedcart-0.1"},
@@ -72,8 +70,6 @@ class SubscriptionTest < ActiveSupport::TestCase
                           "min_gears"=>1,
                           "max_gears"=>1}]]
 
-    CartridgeCache.unstub(:find_cartridge)
-    Moped::BSON::ObjectId.unstub(:new)
     assert_equal(expected_result, result)
   end
 

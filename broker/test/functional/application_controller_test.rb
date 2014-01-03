@@ -25,11 +25,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   def teardown
-    Rails.cache.clear
-    begin
-      @user.force_delete
-    rescue
-    end
+    @user.force_delete rescue nil
   end
 
   test "app create show list update and destroy by domain and app name" do
@@ -498,9 +494,9 @@ class ApplicationControllerTest < ActionController::TestCase
     assert app = assigns(:application)
     assert carts = app.downloaded_cartridge_instances
     assert carts.length == 1
-    assert cart = carts['mock-mock-0.2']
+    assert cart = carts['mock-mock-0.1']
     assert_equal ['mock', 'web_framework'], cart.categories.sort
-    assert_equal 'Mock Cart 2', cart.display_name
+    assert_equal 'Mock Cart', cart.display_name
   end
 
   test "create downloadable cart with version" do
@@ -520,13 +516,13 @@ class ApplicationControllerTest < ActionController::TestCase
           Display-Name: Mock Cart 2
       MANIFEST
     @app_name = "app#{@random}"
-    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test", "version" => "0.1"}], "domain_id" => @domain.namespace}
+    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test", "version" => "0.2"}], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
     assert carts = app.downloaded_cartridge_instances
     assert carts.length == 1
-    assert cart = carts['mock-mock-0.1']
+    assert cart = carts['mock-mock-0.2']
     assert_equal ['mock', 'web_framework'], cart.categories.sort
-    assert_equal 'Mock Cart', cart.display_name
+    assert_equal 'Mock Cart 2', cart.display_name
   end
 end

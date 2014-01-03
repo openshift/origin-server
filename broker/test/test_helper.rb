@@ -129,7 +129,10 @@ def stubber
   c.stubs(:deploy).returns(ResultIO.new)
   c.stubs(:activate).returns(ResultIO.new)
   c.stubs(:update_cluster).returns(ResultIO.new)
+  c.stubs(:get_quota_files).returns(10000)
   c.stubs(:get_update_cluster_job).returns(RemoteJob.new(nil, nil, nil))
+  c.stubs(:execute_direct).raises(StandardError.new("Unstubbed call to execute_direct"))
+  c.stubs(:rpc_get_fact_direct).raises(StandardError.new("Unstubbed call to rpc_get_fact_direct"))
   @container = c
 
   CartridgeCache.stubs(:get_all_cartridges).returns($cartridges)
@@ -137,7 +140,7 @@ def stubber
   RemoteJob.stubs(:get_parallel_run_results)
   OpenShift::ApplicationContainerProxy.stubs(:find_available).returns(@container)
   OpenShift::ApplicationContainerProxy.stubs(:find_one).returns(@container)
-  @container.stubs(:execute_direct).raises(StandardError.new("Bad call to execute_direct"))
+
   dns = mock()
   OpenShift::DnsService.stubs(:instance).returns(dns)
   dns.stubs(:register_application)

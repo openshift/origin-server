@@ -101,9 +101,7 @@ class ApplicationsController < BaseController
     app.analytics['user_agent'] = request.user_agent
     @application = app
 
-    if Application.where(domain: @domain, canonical_name: app_name.downcase).present?
-      return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "name")
-    end
+    raise OpenShift::ApplicationValidationException.new(app) unless app.valid?
 
     if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
       return render_error(:unprocessable_entity,
@@ -131,6 +129,10 @@ class ApplicationsController < BaseController
     rest_app = get_rest_application(app, include_cartridges)
 
     render_success(:created, "application", rest_app, "Application #{app.name} was created.", result)
+
+  rescue Moped::Errors::OperationFailure => e
+    return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "name") if [11000, 11001].include?(e.details['code'])
+    raise
 
   rescue OpenShift::UnfulfilledRequirementException => e
     return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")

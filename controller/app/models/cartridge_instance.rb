@@ -86,7 +86,7 @@ class CartridgeInstance < SimpleDelegator
   end
 
   def to_component_spec
-    profs = cart.profile_for_feature(name)
+    profs = profile_for_feature(name)
     profile = (profs.is_a? Array) ? profs.first : profs
     comp = profile.components.first
     {"cart" => cart.name, "comp" => comp.name}

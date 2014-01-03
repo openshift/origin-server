@@ -8,11 +8,16 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     register_user
     @namespace = "domain" + gen_uuid[0..9]
     @user = CloudUser.new(login: $user)
-    @user.save
+    @user.max_gears = 10
+    @user.save!
     @domain = Domain.new(namespace: @namespace, owner: @user)
-    @domain.save
+    @domain.save!
     Lock.create_lock(@user)
     stubber
+  end
+
+  def teardown
+    @user.force_delete rescue nil
   end
 
   test "create update and destroy application" do
