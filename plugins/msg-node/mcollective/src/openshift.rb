@@ -1137,7 +1137,7 @@ module MCollective
       def get_all_gears_endpoints_action
         gear_map = {}
 
-        openshift_users.each do |gear_uuid|
+        openshift_users.each do |gear_uuid, _|
           cont      = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
           env       = OpenShift::Runtime::Utils::Environ::for_gear(cont.container_dir)
           endpoints = []
@@ -1223,12 +1223,12 @@ module MCollective
       def get_all_gears_action
         gear_map = {}
 
-        openshift_users.each do |gear_uuid|
+        openshift_users.each do |gear_uuid, gear_uid|
           if request[:with_broker_key_auth]
             next unless File.exists?(PathUtils.join(@@config.get('GEAR_BASE_DIR'), gear_uuid, '.auth', 'token'))
           end
 
-          gear_map[gear_uuid] = gear_uuid
+          gear_map[gear_uuid] = gear_uid
         end
 
         reply[:output]   = gear_map
@@ -1241,7 +1241,7 @@ module MCollective
       def get_all_gears_sshkeys_action
         gear_map = {}
 
-        openshift_users.each do |gear_uuid|
+        openshift_users.each do |gear_uuid, _|
           gear_map[gear_uuid]  = []
           authorized_keys_file = PathUtils.join(@@config.get('GEAR_BASE_DIR'), gear_uuid, ".ssh", "authorized_keys")
           if File.exists?(authorized_keys_file) and not File.directory?(authorized_keys_file)
@@ -1265,7 +1265,7 @@ module MCollective
       def get_all_active_gears_action
         active_gears = {}
 
-        openshift_users.each do |gear_uuid|
+        openshift_users.each do |gear_uuid, _|
           state_file = PathUtils.join(@@config.get('GEAR_BASE_DIR'), gear_uuid, 'app-root', 'runtime', '.state')
           if File.exist?(state_file)
             state                   = File.read(state_file).chomp
@@ -1279,14 +1279,14 @@ module MCollective
 
       # find all unix users with the gear GECOS
       def openshift_users
-        uuids = []
+        uuid_map = {}
 
         IO.readlines('/etc/passwd').each { |line|
-          account, _, _, _, gecos, _, _ = line.split(':')
+          account, _, uid, _, gecos, _, _ = line.split(':')
           next unless gecos == @@config.get('GEAR_GECOS')
-          uuids << account
+          uuid_map[account] = uid
         }
-        uuids
+        uuid_map
       end
 
       ## Perform operation on CartridgeRepository
