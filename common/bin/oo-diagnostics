@@ -746,13 +746,17 @@ class OODiag
     #
     # info about mcollective client log error
     out = `grep 'Could not start logger: Errno::EACCES' #{tmpfile}`
-    do_warn <<-FIXLOG unless out.empty?
-      broker error_log: this problem indicates mcollective client logging is failing:
-        #{out}
-      Please fix this issue with the following commands:
-        # chown apache:root /var/log/#{@scl_prefix}-mcollective-client.log
-        # service openshift-broker restart
-    FIXLOG
+    if ! out.empty?
+      logfile = "/var/log/mcollective-client.log"
+      out.match /Errno::EACCES[^\/]+(\/\S+.log)/ and logfile = $1
+      do_warn <<-FIXLOG
+        broker error_log: this problem indicates mcollective client logging is failing:
+          #{out}
+        Please fix this issue with the following commands:
+          # chown apache:root #{logfile}
+          # service openshift-broker restart
+      FIXLOG
+    end
     #
     # done with the tmp file
     system "rm #{tmpfile}"
