@@ -24,22 +24,22 @@ NOTE: For OpenShift Origin broker/nodes to be configured properly you will need 
 NOTE: For Enterprise Linux systems you will need some extra repositories to install the necessary version of puppet. This is unnecessary for Fedora 19 systems.
 
 * http://fedoraproject.org/wiki/EPEL[EPEL repository] - install the latest http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[epel-release package].
-
++
 ----
 yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
 ----
-
++
 * http://docs.puppetlabs.com/guides/puppetlabs_package_repositories.html[PuppetLabs enterprise repository] - install the latest http://yum.puppetlabs.com/el/6/products/i386/[puppetlabs-release package].
-
++
 ----
 yum install -y --nogpgcheck ${url_of_the_latest_puppet-release_rpm}
 ----
-
-* Add `exclude=*mcollective* activemq` to the puppet repo entries in the file `/etc/yum.repos.d/puppetlabs.repo`
-
-* "Optional" repository - enable depending on your source:
-** yum-config-manager --enable rhel-6-server-optional-rpms
-** Under RHN classic, enable the rhel-x86_64-server-optional-6 channel
++
+Add `exclude=*mcollective* activemq` to the puppet repo entries in the file `/etc/yum.repos.d/puppetlabs.repo`
++
+* "Optional" repository - enable according to your source:
+** yum config manasger: `yum-config-manager --enable rhel-6-server-optional-rpms`
+** RHN classic: enable the `rhel-x86_64-server-optional-6` channel
 
 === Install Puppet
 
