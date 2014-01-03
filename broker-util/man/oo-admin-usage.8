@@ -7,7 +7,8 @@
 .nf
 .fam C
 \fBoo-admin-usage\fP [\fB-h\fP|\fB--help\fP] [\fB-l\fP|\fB--login\fP \fIlogin_name\fP] 
-[\fB-a\fP|\fB--app\fP \fIapp_name\fP] [\fB-g\fP|\fB--gear\fP \fIgear_id\fP] 
+[\fB-a\fP|\fB--app\fP \fIapp_name\fP] [\fB-g\fP|\fB--gear\fP \fIgear_id\fP]
+[\fB-p\fP|\fB--plan\fP \fIplan_name\fP] 
 [\fB-s\fP|\fB--start\fP \fIstart_timeframe\fP] [\fB-e\fP|\fB--end\fP \fIend_timeframe\fP]
 
 .fam T
@@ -15,7 +16,7 @@
 .fam T
 .fi
 .SH DESCRIPTION
-This is a utility to list the usage for a particular user on OpenShift Origin.
+This is a utility to list the usage for a particular user or list aggregated usage of all users for the given timeframe on OpenShift Origin.
 The usage can be filtered by application name, gear id, as well as a timeframe.
 The usage cost displayed is based on the usage duration and the usage rate. 
 It does not take into account any unbilled usage by the billing provider. 
@@ -27,7 +28,7 @@ Display a simple help dialog.
 .TP
 .B
 \fB-l\fP|\fB--login\fP \fIlogin_name\fP
-Login name of the user whose usage data is to be displayed (required).
+Login name of the user whose usage data is to be displayed.
 .TP
 .B
 \fB-a\fP|\fB--app\fP \fIapp_name\fP
@@ -36,6 +37,9 @@ The application name to filter the usage data.
 .B
 \fB-g\fP|\fB--gear\fP \fIgear_id\fP
 The gear id to filter the usage data.
+.PP
+\fB-p\fP|\fB--plan\fP \fIplan_name\fP
+Current user plan to filter the usage data.
 .PP
 \fB-s\fP|\fB--start\fP \fIstart_timeframe\fP
 The start time (yyyy-mm-dd) to filter the usage data (defaults to start of current month in UTC).

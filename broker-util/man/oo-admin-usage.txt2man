@@ -3,11 +3,11 @@ NAME
   
 SYNOPSIS
   oo-admin-usage [-h|--help] [-l|--login login_name] 
-  [-a|--app app_name] [-g|--gear gear_id] 
+  [-a|--app app_name] [-g|--gear gear_id] [-p|--plan plan_name] 
   [-s|--start start_timeframe] [-e|--end end_timeframe]
 
 DESCRIPTION
-  This is a utility to list the usage for a particular user on OpenShift Origin.
+  This is a utility to list the usage for a particular user or list aggregated usage of all users for the given timeframe on OpenShift Origin.
   The usage can be filtered by application name, gear id, as well as a timeframe.
   The usage cost displayed is based on the usage duration and the usage rate. 
   It does not take into account any unbilled usage by the billing provider. 
@@ -17,13 +17,16 @@ OPTIONS
     Display a simple help dialog.
 
   -l|--login login_name  
-    Login name of the user whose usage data is to be displayed (required).
+    Login name of the user whose usage data is to be displayed.
 
   -a|--app app_name  
     The application name to filter the usage data.
 
   -g|--gear gear_id  
     The gear id to filter the usage data.
+
+  -p|--plan plan_name
+    Current user plan to filter the usage data.
 
   -s|--start start_timeframe
     The start time (yyyy-mm-dd) to filter the usage data (defaults to start of current month in UTC).

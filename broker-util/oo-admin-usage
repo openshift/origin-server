@@ -3,13 +3,11 @@
 require 'rubygems'
 require 'getoptlong'
 
-TIME_FORMAT_REGEX = /^\d{4}\-\d{1,2}\-\d{1,2}$/
-
 def show_usage
     puts <<USAGE
 == Synopsis
 
-oo-admin-usage: List the usage data for a user. 
+oo-admin-usage: List the usage data for a user or aggregated usage data of all users for the given timeframe.
 Note: The usage cost displayed is based on the usage duration and the usage rate. 
 It does not take into account any unbilled usage by the billing provider.
 
@@ -19,11 +17,13 @@ oo-admin-usage OPTIONS
 
 Options:
 -l|--login
-    The user login whose usage data is to be displayed (required)
+    The user login whose usage data is to be displayed
 -a|--app
     The application name to filter the usage data 
 -g|--gear
     The gear id to filter the usage data 
+-p|--plan
+    Current user plan to filter the usage data
 -s|--start
     The start date (yyyy-mm-dd) to filter the usage data (defaults to start of current month in UTC)
 -e|--end
@@ -32,6 +32,24 @@ Options:
     Show Usage info
 USAGE
   exit 255
+end
+
+def get_time(date)
+  time = nil
+  begin
+    raise unless date =~ /^\d{4}\-\d{1,2}\-\d{1,2}$/
+    time = Time.parse(date)
+    time = time.to_i + time.gmt_offset
+    current_time = Time.now.utc
+    if time > current_time.to_i
+      puts "start/end time specified is greater than the current time. Defaulting to current time..."
+      time = current_time.to_i
+    end
+  rescue Exception => ex
+    puts "Error: Please specify the start date as yyyy-mm-dd"
+    show_usage
+  end
+  Time.at(time).utc
 end
 
 def calculate_usage_cost(usage_rate, duration)
@@ -82,11 +100,51 @@ def formatted_number(n, options={})
   sprintf(options[:format], "#{a}#{options[:separator]}#{b}")
 end
 
+def add_elapsed_time(hash, begin_time, end_time, current_time)
+  (begin_time.year..end_time.year).each do |year|
+    hash[year] = [] unless hash[year]
+    (0..11).each do |month|
+      hash[year][month] = 0 unless hash[year][month]
+    end
+  end
+  (begin_time.year..end_time.year).each do |year|
+    (0..11).each do |month|
+      tm = Time.utc(year, month+1)
+      btm = tm.at_beginning_of_month.utc
+      etm = tm.at_end_of_month.utc
+      if (begin_time < etm) and (end_time > btm)
+        etime = [end_time, etm, current_time].compact.min
+        btime = [begin_time, btm].compact.max
+        hash[year][month] += (etime - btime) if etime > btime
+      end
+    end
+  end
+end
+
+def summarize_elapsed_time(user_hash)
+  user_hash.each do |k,v|
+    v[:gear_sizes].each do |gs, gs_info|
+      gs_hrs = 0
+      gs_info.each do |year, months|
+        months.each {|tm| gs_hrs += tm }
+      end
+      v[:gear_sizes][gs] = gs_hrs
+    end
+    v[:premium_carts].each do |pc, pc_info|
+      pc_hrs = 0
+      pc_info.each do |year, months|
+        months.each {|tm| pc_hrs += tm }
+      end
+      v[:premium_carts][pc] = pc_hrs
+    end
+  end
+end
 
 opts = GetoptLong.new(
     ["--login", "-l", GetoptLong::REQUIRED_ARGUMENT],
-    ["--gear",  "-g", GetoptLong::REQUIRED_ARGUMENT],
     ["--app",   "-a", GetoptLong::REQUIRED_ARGUMENT],
+    ["--gear",  "-g", GetoptLong::REQUIRED_ARGUMENT],
+    ["--plan",  "-p", GetoptLong::REQUIRED_ARGUMENT],
     ["--start", "-s", GetoptLong::REQUIRED_ARGUMENT],
     ["--end",   "-e", GetoptLong::REQUIRED_ARGUMENT],
     ["--help",  "-h", GetoptLong::NO_ARGUMENT]
@@ -105,129 +163,221 @@ end
 login = args["--login"]
 app = args["--app"]
 gear = args["--gear"]
-start_timeframe = args["--start"]
-end_timeframe = args["--end"]
-
-unless login
-  puts "You must specify the user in order to display the usage details"
-  show_usage
-end
+plan_id = args["--plan"]
+start_date = args["--start"]
+end_date = args["--end"]
 
 # load the rails environment
 require "/var/www/openshift/broker/config/environment"
+include AdminHelper
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
 
-# record current time so that it remains constant throughout the execution of the script
+billing_api = OpenShift::BillingService.instance
+if plan_id and !billing_api.valid_plan(plan_id)
+  puts "Error: Invalid plan"
+  exit 2
+end
+
 current_time = Time.now.utc
-
-unless start_timeframe.nil?
-  begin
-    raise unless start_timeframe =~ TIME_FORMAT_REGEX
-    start_time = Time.parse(start_timeframe)
-    start_timeframe = start_time.to_i + start_time.gmt_offset
-  rescue Exception => ex
-    puts "Please specify the start time as yyyy-mm-dd"
-    show_usage
-  end
+start_time = end_time = nil
+if start_date
+  start_time = get_time(start_date)
+else
+  start_time = current_time.at_beginning_of_month.utc
 end
 
-unless end_timeframe.nil?
-  begin
-    raise unless end_timeframe =~ TIME_FORMAT_REGEX
-    end_time = Time.parse(end_timeframe)
-    end_timeframe = end_time.to_i + end_time.gmt_offset
-    if end_timeframe > current_time.to_i
-      puts "End timeframe specified is greater than the current time. Defaulting to current time..."
-      end_timeframe = current_time.to_i
-    end
-  rescue Exception => ex
-    puts "Please specify the end time as yyyy-mm-dd"
-    show_usage
-  end
+if end_date
+  end_time = get_time(end_date)
+  end_time = end_time.at_end_of_month.utc
+else
+  end_time = current_time
 end
 
-# default start timeframe to start of current month if, 
-# start timeframe is not specified 
-# and end timeframe is specified
-# and end timeframe is earlier than the start of the current month   
-if start_timeframe.nil? && end_timeframe && end_timeframe > current_time.at_beginning_of_month.to_i
-  start_timeframe = current_time.at_beginning_of_month.to_i
-end
-
-if start_timeframe && end_timeframe && start_timeframe > end_timeframe
+if start_time.to_i > end_time.to_i
   puts "The start time cannot be greater than the end time"
   show_usage
 end
-
-# Disable analytics for admin scripts
-Rails.configuration.analytics[:enabled] = false
 puts
 
-begin
-  user = CloudUser::find_by(login: login)
-rescue Mongoid::Errors::DocumentNotFound
-  puts "Error: User '#{login}' not found"
-  exit 5
+user_hash = {}
+filter = {}
+filter['plan_id'] = plan_id if plan_id
+filter['login'] = login if login
+selection = {:fields => ["_id", "plan_id"], :timeout => false}
+OpenShift::DataStore.find(:cloud_users, filter, selection) do |user|
+  user_hash[user['_id'].to_s] = {:plan_id => user['plan_id'], :gear_sizes => {},
+                                 :addtl_fs_gb => 0, :premium_carts => {}}
 end
 
-puts "Usage for #{login} (Plan: #{user.plan_id})"
-puts "------------------------------------------"
+if login and (user_hash.size == 0)
+  unless plan_id
+    puts "Error: User '#{login}' not found"
+  else
+    puts "Error: User '#{login}' with '#{plan_id}' plan not found"
+  end
+  exit 3
+end
 
-usage_rate = nil
-filter = {"app_name" => app, "gear_id" => gear, "begin_time" => start_timeframe, "end_time" => end_timeframe}
-usage_data = Usage.find_by_filter(user._id, filter)
-if usage_data.count > 0
-  usage_data.each_with_index do |usage, index|
-    # calculate the usage start time
-    if start_timeframe.nil?
-      begin_time = usage.begin_time
+if login
+  puts "Usage for #{login} (Plan: #{user_hash.values.first[:plan_id]})"
+else
+  plans = billing_api.get_plans
+  if plans.present?
+    plans.each do |plan, plan_info|
+      plan_count = 0
+      user_hash.each {|k,v| plan_count += 1 if v[:plan_id] == plan.to_s}
+      puts "#{plan.to_s.capitalize} Users: #{plan_count}" if !plan_id or (plan_id.to_s == plan.to_s)
+    end
+  else
+    puts "Users: #{user_hash.length}"
+  end
+end
+puts "-------------------"
+
+record_count = 0
+found_usage_rate = false
+filter = {}
+filter["user_id"] = BSON::ObjectId(user_hash.keys.first) if login
+filter["app_name"] = app if app
+filter["gear_id"] = BSON::ObjectId(gear) if gear
+filter["$or"] = [{"end_time" => nil}, {"end_time" => {"gte" => start_time}}] if start_time
+filter["begin_time"] = {"$lte" => end_time} if end_time
+selection = {:fields => ['user_id', 'begin_time', 'end_time', 'usage_type', 'gear_size', 'addtl_fs_gb', 'cart_name'], :timeout => false}
+if login
+  selection[:fields] << 'gear_id'
+  selection[:fields] << 'app_name'
+end
+OpenShift::DataStore.find(:usage, filter, selection) do |urec|
+  user_id = urec['user_id'].to_s
+  next unless user_hash[user_id].present?
+  record_count += 1
+
+  etime = [end_time, urec['end_time'], current_time].compact.min
+  btime = [start_time, urec['begin_time']].compact.max
+  next if etime <= btime 
+  elapsed_time = etime - btime
+
+  if urec['usage_type'] == UsageRecord::USAGE_TYPES[:gear_usage]
+    if login
+      usage_qualifier = urec['gear_size']
     else
-      begin_time = [usage.begin_time, Time.at(start_timeframe)].max
+      gs = user_hash[user_id][:gear_sizes]
+      gs[urec['gear_size'].to_sym] = {} unless gs[urec['gear_size'].to_sym]
+      add_elapsed_time(gs[urec['gear_size'].to_sym], btime, etime, current_time)
     end
-    
-    # calculate the usage end time
-    if end_timeframe.nil?
-      if usage.end_time.nil?
-        end_time = current_time
-        end_time_str = "PRESENT"
-      else
-        end_time = usage.end_time
-      end
+  elsif urec['usage_type'] == UsageRecord::USAGE_TYPES[:addtl_fs_gb]
+    if login
+      usage_qualifier = urec['addtl_fs_gb']
     else
-      if usage.end_time.nil?
-        end_time = Time.at(end_timeframe)
-      else
-        end_time = [usage.end_time, Time.at(end_timeframe)].min
-      end
+      fs = user_hash[user_id]
+      fs[:addtl_fs_gb] = 0 unless fs[:addtl_fs_gb]
+      fs[:addtl_fs_gb] += (urec['addtl_fs_gb'].to_s.to_i * elapsed_time)
     end
-
-    duration = end_time - begin_time
-    duration_str = pretty_duration(duration)
-    begin_time_str = begin_time.utc.strftime('%Y-%m-%d %H:%M:%S')
-    end_time_str = end_time.utc.strftime('%Y-%m-%d %H:%M:%S') unless end_time_str == "PRESENT" 
-
-    # calculate the usage cost
-    usage_rate = usage.get_usage_rate(user.plan_id)
-    usage_cost = calculate_usage_cost(usage_rate, duration)
-
-    if usage.usage_type == UsageRecord::USAGE_TYPES[:gear_usage]
-      usage_qualifier = usage.gear_size
-    elsif usage.usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb]
-      usage_qualifier = usage.addtl_fs_gb
-    elsif usage.usage_type == UsageRecord::USAGE_TYPES[:premium_cart]
-      usage_qualifier = usage.cart_name
+  elsif urec['usage_type'] == UsageRecord::USAGE_TYPES[:premium_cart]
+    if login
+      usage_qualifier = urec['cart_name']
+    else
+      pc = user_hash[user_id][:premium_carts]
+      pc[urec['cart_name'].to_sym] = {} unless pc[urec['cart_name'].to_sym]
+      add_elapsed_time(pc[urec['cart_name'].to_sym], btime, etime, current_time)
     end
-
-    # print out the user's usage data
-    puts "##{index + 1}"
-    puts " Usage Type: #{usage.usage_type} (#{usage_qualifier})"
-    puts "    Gear ID: #{usage.gear_id} (#{usage.app_name})"
-    puts "   Duration: #{duration_str} (#{begin_time_str} - #{end_time_str})"
-    puts "Cost (Est.): #{formatted_number(usage_cost)} ($#{usage_rate[:usd]}/#{usage_rate[:duration].to_s})" unless usage_rate.nil?
-    puts 
   end
 
-  puts "Note: The cost displayed is based on the usage duration and the usage rate. " \
-  "It does not take into account any unbilled usage by the billing provider." unless usage_rate.nil?
-else
-  puts "No usage data found"
+  if login
+    duration_str = pretty_duration(elapsed_time)
+    begin_time_str = btime.utc.strftime('%Y-%m-%d %H:%M:%S')
+    if etime == current_time
+      end_time_str = "PRESENT"
+    else
+      end_time_str = etime.utc.strftime('%Y-%m-%d %H:%M:%S')
+    end
+
+    # calculate the usage cost
+    usage_rate = nil
+    if user_hash[user_id][:plan_id]
+      usage_rate = Usage.get_usage_rate(user_hash[user_id][:plan_id], urec['usage_type'],
+                                        urec['gear_size'], urec['cart_name'])
+      usage_cost = calculate_usage_cost(usage_rate, elapsed_time)
+    end
+
+    puts "##{record_count}"
+    puts " Usage Type: #{urec['usage_type']} (#{usage_qualifier})"
+    puts "    Gear ID: #{urec['gear_id']} (#{urec['app_name']})"
+    puts "   Duration: #{duration_str} (#{begin_time_str} - #{end_time_str})"
+    unless usage_rate.nil?
+      puts "Cost (Est.): #{formatted_number(usage_cost)} ($#{usage_rate[:usd]}/#{usage_rate[:duration].to_s})"
+      found_usage_rate = true
+    end
+    puts 
+  end
 end
+
+if record_count == 0
+  puts "No usage data found"
+elsif login
+  puts "Note: The cost displayed is based on the usage duration and the usage rate. " \
+       "It does not take into account any unbilled usage by the billing provider." if found_usage_rate
+else
+  if (start_time.utc.strftime('%Y-%m-%d') != start_time.at_beginning_of_month.utc.strftime('%Y-%m-%d')) or
+     (end_time.utc.strftime('%Y-%m-%d') != end_time.at_end_of_month.utc.strftime('%Y-%m-%d'))
+    puts
+    puts "Warning: Monthly plan discounts may not be applied properly because --start/--end does not correspond to month begin/end."
+    puts
+  end
+  puts "Timeframe #{start_time.utc.strftime('%Y-%m-%d')} to #{end_time.utc.strftime('%Y-%m-%d')}:"
+  puts "-----------------------------------"
+  billing_api.apply_plan_discounts(user_hash)
+  summarize_elapsed_time(user_hash)
+
+  plans = billing_api.get_plans
+  if plans.present?
+    plans.each do |plan, plan_info|
+      gear_size_hrs = {}
+      premium_cart_hrs = {}
+      addtl_fs_gb_hrs = 0
+      user_hash.each do |k,v|
+        next if v[:plan_id] != plan.to_s
+        v[:gear_sizes].each do |gs, tm|
+          gear_size_hrs[gs] = 0 unless gear_size_hrs[gs]
+          gear_size_hrs[gs] += tm
+        end
+        addtl_fs_gb_hrs += v[:addtl_fs_gb]
+        v[:premium_carts].each do |pc, tm|
+          premium_cart_hrs[pc] = 0 unless premium_cart_hrs[pc]
+          premium_cart_hrs[pc] += tm
+        end
+      end
+      gear_size_hrs.each do |gs, tm|
+        puts "#{plan.to_s.capitalize} #{gs.capitalize} Gear Hours : #{(tm/3600).to_i}"
+      end
+      puts "#{plan.to_s.capitalize} Storage Hours Per GB : #{(addtl_fs_gb_hrs/3600).to_i}" if !plan_id or (plan_id.to_s == plan.to_s)
+      premium_cart_hrs.each do |pc, tm|
+        puts "#{plan.to_s.capitalize} #{pc} Cart Hours : #{(tm/3600).to_i}"
+      end
+    end
+  else
+    gear_size_hrs = {}
+    premium_cart_hrs = {}
+    addtl_fs_gb_hrs = 0
+    user_hash.each do |k,v|
+      v[:gear_sizes].each do |gs, tm|
+        gear_size_hrs[gs] = 0 unless gear_size_hrs[gs]
+        gear_size_hrs[gs] += tm
+      end
+      addtl_fs_gb_hrs += v[:addtl_fs_gb]
+      v[:premium_carts].each do |pc, tm|
+        premium_cart_hrs[pc] = 0 unless premium_cart_hrs[pc]
+        premium_cart_hrs[pc] += tm
+      end
+    end
+    gear_size_hrs.each do |gs, tm|
+      puts "#{gs.capitalize} Gear Hours : #{(tm/3600).to_i}"
+    end
+    puts "Storage Hours Per GB : #{(addtl_fs_gb_hrs/3600).to_i}"
+    premium_cart_hrs.each do |pc, tm|
+      puts "#{pc} Cart Hours : #{(tm/3600).to_i}"
+    end
+  end
+end
+puts

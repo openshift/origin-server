@@ -58,6 +58,9 @@ module OpenShift
     def get_plans
     end
 
+    def apply_plan_discounts(user_hash)
+    end
+
     def get_usage_time(urec)
       total_time = 0
       if urec['end_time'] > urec['time']
