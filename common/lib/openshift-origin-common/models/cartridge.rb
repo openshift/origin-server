@@ -11,6 +11,10 @@ module OpenShift
     attr_accessor :manifest_text, :manifest_url
 
     VERSION_ORDER = lambda{ |s| s.cartridge_version.split('.').map(&:to_i) rescue [0] }
+    PROFILE_EXCLUDED = [
+      "Name", "Version", "Architecture", "DisplayName", "License",
+      "Provides", "Requires", "Conflicts", "Native-Requires"
+    ]
 
     def initialize
       super
@@ -150,23 +154,21 @@ module OpenShift
       self.native_requires = [self.native_requires] if self.native_requires.class == String
 
       self.endpoints = []
-      if spec_hash.has_key?("Endpoints") and spec_hash["Endpoints"].respond_to?(:each)
-        spec_hash["Endpoints"].each do |ep|
+      if (endpoints = spec_hash["Endpoints"]).respond_to?(:each)
+        endpoints.each do |ep|
           self.endpoints << Endpoint.new.from_descriptor(ep)
         end
       end
 
-      if spec_hash.has_key?("Profiles")
-        spec_hash["Profiles"].each do |pname, p|
+      if (profiles = spec_hash["Profiles"]).respond_to?(:each)
+        profiles.each do |pname, p|
           profile = Profile.new.from_descriptor(self, p)
           profile.name = pname
           @profiles << (profile)
           @_profile_map[profile.name] = profile
         end
       else
-        except = ["Name", "Version", "Architecture", "DisplayName", "License",
-           "Provides", "Requires", "Conflicts", "Native-Requires"]
-        p = Profile.new.from_descriptor(self, Hash.new { |h, k| spec_hash[k] unless except.include?(k) })
+        p = Profile.new.from_descriptor(self, Hash.new{ |h, k| spec_hash[k] unless PROFILE_EXCLUDED.include?(k) })
         p.name = self.name
         p.generated = true
         @profiles << p

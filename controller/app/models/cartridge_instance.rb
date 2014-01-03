@@ -89,7 +89,7 @@ class CartridgeInstance < SimpleDelegator
     profs = profile_for_feature(name)
     profile = (profs.is_a? Array) ? profs.first : profs
     comp = profile.components.first
-    {"cart" => cart.name, "comp" => comp.name}
+    {"cart" => name, "comp" => comp.name}
   end
 
   protected

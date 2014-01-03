@@ -280,7 +280,6 @@ module OpenShift
                 ) unless versions.include?(version.to_s)
 
           @version = version.to_s
-          @manifest['Version'] = @version
         else
           @version = @manifest['Version'].to_s
         end
@@ -294,10 +293,16 @@ module OpenShift
           vtree = @manifest['Version-Overrides'][@version]
 
           if vtree
+            copy_manifest_if_equal(manifest)
             @manifest.merge!(vtree)
           end
         end
-        @manifest['Version'] = @version
+
+        # Ensure that the manifest version is accurate
+        if @manifest['Version'] != @version
+          copy_manifest_if_equal(manifest)
+          @manifest['Version'] = @version
+        end
 
         @cartridge_vendor       = @manifest['Cartridge-Vendor']
         @name                   = @manifest['Name']
@@ -443,11 +448,12 @@ module OpenShift
       #
       def self.projected_manifests(raw_manifest, version=nil, repository_base_path='')
         if version
-          return new(raw_manifest.deep_dup, version, nil, repository_base_path)
+          return new(Marshal.load(Marshal.dump(raw_manifest)), version, nil, repository_base_path)
         end
+
         preferred_version = raw_manifest['Version'].to_s if raw_manifest
         raw_versions(raw_manifest).map do |v|
-          new(raw_manifest.deep_dup, v, nil, repository_base_path)
+          new(raw_manifest, v, nil, repository_base_path)
         end.sort_by{ |m| preferred_version == m.version ? 0 : 1 }
       end
 
@@ -488,6 +494,12 @@ module OpenShift
       protected
         attr_writer :manifest_path
         attr_reader :repository_base_path
+
+        def copy_manifest_if_equal(to)
+          if @manifest.equal?(to)
+            @manifest = Marshal.load(Marshal.dump(@manifest)) 
+          end
+        end
     end
   end
 end
