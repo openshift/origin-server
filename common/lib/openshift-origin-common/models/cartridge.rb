@@ -19,10 +19,6 @@ module OpenShift
       @endpoints = []
     end
 
-    def instance
-      CartridgeInstance.new(self)
-    end
-
     def features
       @features ||= begin
         features = self.provides.dup
