@@ -1997,6 +1997,19 @@ module OpenShift
             # destroy destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with delete on '#{destination_container.id}'"
             reply.append destination_container.destroy(gear, !district_changed, nil, true)
+
+            # if the gear dns was updated, revert it back
+            if gear.server_identity == destination_container.id
+              begin
+                dns = OpenShift::DnsService.instance
+                public_hostname = source_container.get_public_hostname
+                dns.modify_application(gear.name, app.domain_namespace, public_hostname)
+                dns.publish
+              ensure
+                dns.close
+              end
+            end
+
             raise
           end
         rescue Exception => e
