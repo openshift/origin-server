@@ -319,12 +319,6 @@ elsif login
   puts "Note: The cost displayed is based on the usage duration and the usage rate. " \
        "It does not take into account any unbilled usage by the billing provider." if found_usage_rate
 else
-  if (start_time.utc.strftime('%Y-%m-%d') != start_time.at_beginning_of_month.utc.strftime('%Y-%m-%d')) or
-     (end_time.utc.strftime('%Y-%m-%d') != end_time.at_end_of_month.utc.strftime('%Y-%m-%d'))
-    puts
-    puts "Warning: Monthly plan discounts may not be applied properly because --start/--end does not correspond to month begin/end."
-    puts
-  end
   puts "Timeframe #{start_time.utc.strftime('%Y-%m-%d')} to #{end_time.utc.strftime('%Y-%m-%d')}:"
   puts "-----------------------------------"
   billing_api.apply_plan_discounts(user_hash)
@@ -377,6 +371,14 @@ else
     puts "Storage Hours Per GB : #{(addtl_fs_gb_hrs/3600).to_i}"
     premium_cart_hrs.each do |pc, tm|
       puts "#{pc} Cart Hours : #{(tm/3600).to_i}"
+    end
+  end
+  if plans.present?
+    puts
+    puts "Note: Aggregated usage hours excludes any monthly plan discounts."
+    if (start_time.utc.strftime('%Y-%m-%d') != start_time.at_beginning_of_month.utc.strftime('%Y-%m-%d')) or
+       (end_time.utc.strftime('%Y-%m-%d') != end_time.at_end_of_month.utc.strftime('%Y-%m-%d'))
+      puts "Warning: Monthly plan discounts may not be applied properly because --start/--end does not correspond to month begin/end boundaries."
     end
   end
 end
