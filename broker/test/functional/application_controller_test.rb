@@ -525,4 +525,32 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal ['mock', 'web_framework'], cart.categories.sort
     assert_equal 'Mock Cart 2', cart.display_name
   end
+
+  test "create downloadable cart from CartridgeType" do
+    body = <<-MANIFEST.strip_heredoc
+      ---
+      Name: remotemock
+      Version: '0.1'
+      Display-Name: Mock Cart
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - mock
+      - web_framework
+      MANIFEST
+    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(body)
+    CartridgeType.where(:base_name => 'remotemock').delete
+    types = CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(body), 'manifest://test')
+    types.each(&:save!)
+
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => ["mock-remotemock-0.1"], "domain_id" => @domain.namespace}
+    assert_response :created
+    assert app = assigns(:application)
+    assert carts = app.downloaded_cartridge_instances
+    assert carts.length == 1
+    assert cart = carts['mock-remotemock-0.1']
+    assert_equal ['mock', 'web_framework'], cart.categories.sort
+    assert_equal 'Mock Cart', cart.display_name
+  end
 end

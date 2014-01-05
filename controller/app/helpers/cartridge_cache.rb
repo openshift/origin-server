@@ -89,7 +89,7 @@ class CartridgeCache
 
   def self.find_all_cartridges(requested_feature)
     matching_carts = []
-    (CartridgeStream.provides(requested_feature) + self.get_all_cartridges).each do |cart|
+    (CartridgeType.provides(requested_feature) + self.get_all_cartridges).each do |cart|
       return [cart] if cart === requested_feature
       if cart.has_feature?(requested_feature)
         cart = cart.cartridge if cart.respond_to? :cartridge
