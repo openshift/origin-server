@@ -181,7 +181,7 @@ class CartridgeCache
       end
 
       name = spec[:name]
-      if ComponentInstance.check_name?(name)
+      if CartridgeInstance.check_feature?(name)
         cart = find_cartridge(name)
       end
       raise OpenShift::UserException.new("Invalid cartridge '#{name}' specified.", 109, field) if cart.nil?

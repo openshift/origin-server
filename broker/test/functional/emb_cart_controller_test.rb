@@ -119,7 +119,7 @@ class EmbCartControllerTest < ActionController::TestCase
 
   test "invalid cartridge id by domain and app name" do
     post :create, {"domain_id" => @domain.namespace, "application_id" => @app.name, "name" => "bogus"}
-    assert_response :not_found
+    assert_response :unprocessable_entity
     get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :not_found
     put :update, {"domain_id" => @domain.namespace, "application_id" => @app.name, "additional_gear_storage" => 10}

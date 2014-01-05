@@ -25,9 +25,6 @@ class ComponentInstance
     end
     name
   end
-  def self.check_name?(name)
-    name.present? and name =~ NAME_REGEX
-  end
 
   delegate :is_plugin?, :is_embeddable?, :is_web_proxy?, :is_web_framework?, to: :cartridge
 
