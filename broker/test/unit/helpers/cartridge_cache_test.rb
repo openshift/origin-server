@@ -182,9 +182,9 @@ class CartridgeCacheTest < ActiveSupport::TestCase
       - web_framework
       MANIFEST
     CartridgeCache.expects(:download_from_url).with("manifest://test").returns(body)
-    CartridgeType.where(:name => 'remotemock').delete
-    type = CartridgeType.from_manifest(OpenShift::Runtime::Manifest.manifests_from_yaml(body), 'manifest://test')
-    type.save!
+    CartridgeType.where(:base_name => 'remotemock').delete
+    types = CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(body), 'manifest://test')
+    types.each(&:save!)
 
     assert carts = CartridgeCache.find_and_download_cartridges([{name: 'remotemock'}])
     assert_equal 1, carts.length

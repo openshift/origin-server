@@ -1,0 +1,133 @@
+#!/usr/bin/env oo-ruby
+
+require 'optparse'
+require 'ostruct'
+
+PATH = '/var/www/openshift/broker/config/environment'
+
+class Command
+  def refresh(options)
+    env!(options)
+    failures = 0
+    carts = OpenShift::ApplicationContainerProxy.find_one.get_available_cartridges
+    types = CartridgeType.update_from(carts)
+    puts "Updating #{types.length} cartridges ..."
+    types.each do |type|
+      begin
+        op = type.persisted? ? "update" : "create"
+        type.save!
+        puts "#{op.capitalize} #{type.name}#{ " (obsolete)" if type.obsolete?}"
+      rescue => e
+        failures += 1
+        $stderr.puts "Failed to #{op} #{type.name}"
+        $stderr.puts e
+        $stderr.puts e.backtrace
+      end
+    end
+    if failures > 0
+      1
+    else
+      Rails.cache.clear
+      0
+    end
+  end
+
+  def clean(options)
+    env!(options)
+    puts "Deleting all cartridges from the broker ..."
+    CartridgeType.delete_all
+    Rails.cache.clear
+    0
+  rescue => e
+    $stderr.puts "Failed to delete some cartridges"
+    $stderr.puts e
+    $stderr.puts e.backtrace
+    1
+  end
+
+  def list(options)
+    env!(options)
+    carts = CartridgeType.all
+    if options.raw
+      carts.each do |type|
+        puts JSON.pretty_generate(type.cartridge.to_descriptor)
+      end
+      return 0
+    end
+
+    output = carts.map do |type|
+      [
+        type.name,
+        case
+        when type.is_web_proxy? then "web_proxy"
+        when type.is_web_framework? then "web"
+        when type.is_service? then "service"
+        when type.is_plugin? then "plugin"
+        else ''
+        end,
+        type.display_name,
+        type.obsolete? ? 'obsolete' : '',
+      ]
+    end
+    widths = Array.new(output.first.length, 0)
+    output.each{ |line| widths.each_with_index{ |w, i| widths[i] = [w, (line[i] || "").length].max } }
+    fmt = widths.map{ |w| "%-#{w}s" }.join(" ")
+    output.each{ |line| puts fmt % line }
+    0
+  rescue => e
+    $stderr.puts "Failed to list cartridges"
+    $stderr.puts e
+    $stderr.puts e.backtrace
+    1
+  end
+
+  protected
+    def env!(options)
+      require options.broker || PATH
+    end
+end
+
+methods = (Command.instance_methods(false) & Command.new.public_methods).sort
+options = OpenStruct.new
+p = OptionParser.new do |opts|
+  opts.banner = "
+== Synopsis
+
+#{File.basename $0}: Manage cartridges
+
+Commands:
+ refresh    - Update the broker with the latest cartridges from the nodes
+ clean      - Delete all cartridges in the broker
+ list       - List all cartridges
+
+== Usage: oo-admin-ctl-cartridge -c (#{methods.join('|')})"
+
+  opts.separator ''
+  opts.on('-c', '--command COMMAND',
+          methods.map(&:to_s),
+          [],
+          "A command to execute") do |command|
+    options.command = command
+  end
+
+  opts.on('--broker PATH', "The path to the broker",
+          " (default #{PATH})") do |path|
+    options.broker = path
+  end
+
+  opts.on('--raw', "Dump all cartridge information as JSON") do
+    options.raw = true
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit 0
+  end
+end
+p.parse!(ARGV)
+
+if options.command.nil?
+  puts p
+  exit 0
+end
+exit Command.new.send(options.command.downcase.gsub(/[\-]/,'_'), options)

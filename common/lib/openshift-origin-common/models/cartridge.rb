@@ -1,4 +1,92 @@
 module OpenShift
+  module CartridgeCategories
+    def is_plugin?
+      return categories.include?('web_proxy') || categories.include?('ci_builder') || categories.include?('plugin')
+    end
+
+    def is_service?
+      return categories.include?('service')
+    end
+
+    def is_embeddable?
+      return categories.include?('embedded')
+    end
+
+    def is_domain_scoped?
+      return categories.include?('domain_scope')
+    end
+
+    def is_web_proxy?
+      return categories.include?('web_proxy')
+    end
+
+    def is_web_framework?
+      return categories.include?('web_framework')
+    end
+
+    def is_ci_server?
+      return categories.include?('ci')
+    end
+
+    def is_ci_builder?
+      return categories.include?('ci_builder')
+    end
+
+    def is_deployable?
+      return categories.include?('web_framework')
+    end
+
+    # For now, these are synonyms
+    alias :is_buildable? :is_deployable?
+  end
+
+
+  module CartridgeAspects
+    def is_premium?
+      return usage_rates.present?
+    end
+
+    def usage_rates
+      []
+    end
+  end
+
+  #
+  # The including class must define original_name, cartridge_vendor, and version
+  #
+  module CartridgeNaming
+    def names
+      @names ||= [short_name, full_name, prefix_name, original_name]
+    end
+
+    def full_identifier
+      if cartridge_vendor.nil? || cartridge_vendor.empty?
+        short_name
+      else
+        full_name
+      end
+    end
+
+    def global_identifier
+      if self.cartridge_vendor == "redhat" || self.cartridge_vendor.to_s.empty?
+        short_name
+      else
+        full_name
+      end
+    end
+
+    protected
+      def full_name
+        "#{cartridge_vendor}-#{original_name}-#{version}"
+      end
+      def short_name
+        "#{original_name}-#{version}"
+      end
+      def prefix_name
+        "#{cartridge_vendor}-#{original_name}"
+      end    
+  end
+
   class Cartridge < OpenShift::Model
     attr_accessor :name, :version, :architecture, :display_name, :description, :vendor, :license,
                   :provides, :requires, :conflicts, :suggests, :native_requires, :default_profile,
@@ -9,6 +97,10 @@ module OpenShift
 
     # Available for downloadable cartridges
     attr_accessor :manifest_text, :manifest_url
+
+    include CartridgeCategories
+    include CartridgeAspects
+    include CartridgeNaming
 
     VERSION_ORDER = lambda{ |s| s.cartridge_version.split('.').map(&:to_i) rescue [0] }
     PROFILE_EXCLUDED = [
@@ -65,6 +157,10 @@ module OpenShift
       profiles.each{ |p| return p unless p.get_component(component_name).nil? }
     end
 
+    def is_obsolete?
+      return obsolete || false
+    end
+
     def profiles=(p)
       @_profile_map = {}
       @profiles = p
@@ -73,57 +169,6 @@ module OpenShift
 
     def categories
       @categories ||= []
-    end
-
-    def is_plugin?
-      return categories.include?('web_proxy') || categories.include?('ci_builder') || categories.include?('plugin')
-    end
-
-    def is_service?
-      return categories.include?('service')
-    end
-
-    def is_embeddable?
-      return categories.include?('embedded')
-    end
-
-    def is_domain_scoped?
-      return categories.include?('domain_scope')
-    end
-
-    def is_web_proxy?
-      return categories.include?('web_proxy')
-    end
-
-    def is_web_framework?
-      return categories.include?('web_framework')
-    end
-
-    def is_ci_server?
-      return categories.include?('ci')
-    end
-
-    def is_ci_builder?
-      return categories.include?('ci_builder')
-    end
-
-    def is_premium?
-      return usage_rates.present?
-    end
-
-    def is_deployable?
-      return categories.include?('web_framework')
-    end
-
-    def is_obsolete?
-      return obsolete || false
-    end
-
-    # For now, these are synonyms
-    alias :is_buildable? :is_deployable?
-
-    def usage_rates
-      []
     end
 
     def from_descriptor(spec_hash={})
@@ -179,20 +224,10 @@ module OpenShift
       self
     end
 
-    def name
-      (self.cartridge_vendor=="redhat" || self.cartridge_vendor.to_s.empty?) ? short_name : full_name
-    end
+    alias_method :name, :global_identifier
 
     def original_name
       @name
-    end
-
-    def full_identifier
-      if cartridge_vendor.nil? || cartridge_vendor.empty?
-        short_name
-      else
-        full_name
-      end
     end
 
     def ===(other)
@@ -204,10 +239,6 @@ module OpenShift
           name == other
         end
       end
-    end
-
-    def names
-      @names ||= [short_name, full_name, prefix_name, original_name]
     end
 
     def to_descriptor
@@ -254,16 +285,5 @@ module OpenShift
 
       h
     end
-
-    protected
-      def full_name
-        "#{cartridge_vendor}-#{original_name}-#{version}"
-      end
-      def short_name
-        "#{original_name}-#{version}"
-      end
-      def prefix_name
-        "#{cartridge_vendor}-#{original_name}"
-      end
   end
 end
