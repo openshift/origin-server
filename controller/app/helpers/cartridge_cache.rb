@@ -179,10 +179,11 @@ class CartridgeCache
         downloads << spec
         next arr
       end
-      name = spec[:name]
 
-      # match node cartridges
-      cart = find_cartridge(name)
+      name = spec[:name]
+      if ComponentInstance.check_name?(name)
+        cart = find_cartridge(name)
+      end
       raise OpenShift::UserException.new("Invalid cartridge '#{name}' specified.", 109, field) if cart.nil?
 
       # downloadable carts should be refreshed

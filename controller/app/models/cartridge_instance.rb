@@ -24,7 +24,6 @@ class CartridgeInstance < SimpleDelegator
   #
   def self.check_cartridge_specifications!(specs)
     specs.each do |cart|
-      ComponentInstance.check_name!(cart[:name]) if cart[:name]
       cart[:name] = String(cart[:name]).presence
       cart[:url]  = String(cart[:url]).presence
       cart

@@ -18,12 +18,15 @@ class ComponentInstance
   field :component_properties, type: Hash, default: {}
   field :group_instance_id, type: Moped::BSON::ObjectId
 
-  NAME_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\z/
+  NAME_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\Z/
   def self.check_name!(name)
     if name.blank? or name !~ NAME_REGEX
       raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, {}, [])
     end
     name
+  end
+  def self.check_name?(name)
+    name.present? and name =~ NAME_REGEX
   end
 
   delegate :is_plugin?, :is_embeddable?, :is_web_proxy?, :is_web_framework?, to: :cartridge

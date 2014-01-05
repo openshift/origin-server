@@ -76,6 +76,48 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     CartridgeCache.stubs(:get_all_cartridges).returns(carts)
   end
 
+  test "manifest syntax error raises InvalidManifestError" do
+    assert_raises(OpenShift::InvalidManifest) do
+      OpenShift::Runtime::Manifest.manifests_from_yaml("--- `")
+    end
+  end
+
+  test "cartridge is properly loaded from overrides" do
+    manifest = %q{#
+        Name: crtest
+        Display-Name: crtest Unit Test
+        Cartridge-Short-Name: CRTEST
+        Version: '0.3'
+        Versions: ['0.1', '0.2', '0.3']
+        Cartridge-Version: '0.0.1'
+        Cartridge-Vendor: redhat
+        Group-Overrides:
+          - components:
+            - crtest-0.3
+            - web_proxy
+        Version-Overrides:
+          '0.1':
+            Group-Overrides:
+              - components:
+                - crtest-0.1
+                - web_proxy
+          '0.2':
+            Group-Overrides:
+              - components:
+                - crtest-0.2
+                - web_proxy
+      }
+    assert manifests = OpenShift::Runtime::Manifest.manifests_from_yaml(manifest)
+    assert_equal 3, manifests.length
+    assert m = manifests[0]
+    assert_equal '0.3', m.version
+    assert_equal 'crtest', m.name
+    carts = manifests.map{ |m| OpenShift::Cartridge.new.from_descriptor(m.manifest) }
+    assert_equal [{'components' => ['crtest-0.3', 'web_proxy']}], carts[0].profiles[0].group_overrides
+    assert_equal [{'components' => ['crtest-0.2', 'web_proxy']}], carts[1].profiles[0].group_overrides
+    assert_equal [{'components' => ['crtest-0.1', 'web_proxy']}], carts[2].profiles[0].group_overrides
+  end
+
   test "find and download from cartridges" do
     stub_cartridges
     carts = CartridgeCache.find_and_download_cartridges(["ruby"])

@@ -330,7 +330,7 @@ class ApplicationControllerTest < ActionController::TestCase
       ---
       MANIFEST
     messages = assert_invalid_manifest
-    assert messages.one?{ |m| m['text'] =~ %r(The URL 'manifest://test' does not define a valid cartridge\.) }, messages.inspect
+    assert messages.one?{ |m| m['text'] == "The provided downloadable cartridge 'manifest://test' cannot be loaded: Version is a required element" }, messages.inspect
   end
 
   test "create downloadable cart without vendor" do

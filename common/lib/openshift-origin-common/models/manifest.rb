@@ -23,6 +23,12 @@ SafeYAML::OPTIONS[:default_mode] = :unsafe
 
 module OpenShift
 
+  # FIXME, exceptions should be changed to be a subclass of a generic 
+  #   InvalidManifestError
+
+  # Manifest is invalid
+  class InvalidManifest < KeyError; end
+
   # Manifest element in error
   class ElementError < KeyError
     attr_reader :element
@@ -61,7 +67,9 @@ module OpenShift
     class Manifest
 
       def self.manifest_from_yaml(yaml_str)
-        YAML.load(yaml_str, :safe => true)
+        YAML.safe_load(yaml_str) or {}
+      rescue Psych::SyntaxError => e
+        raise InvalidManifest, "Unable to load the provided manifest: #{e.message} (#{e.class})", e.backtrace
       end
 
       def self.manifests_from_yaml(str)
@@ -245,10 +253,10 @@ module OpenShift
         if manifest.is_a?(Hash)
           @manifest = manifest
         elsif type == :url
-          @manifest = YAML.safe_load(manifest)
+          @manifest = YAML.safe_load(manifest) || {}
           @manifest_path = :url
         else
-          @manifest = YAML.safe_load_file(manifest)
+          @manifest = YAML.safe_load_file(manifest) || {}
           @manifest_path = manifest
         end
         @repository_base_path = repository_base_path
