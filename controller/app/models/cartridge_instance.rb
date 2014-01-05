@@ -19,7 +19,7 @@ class CartridgeInstance < SimpleDelegator
   validate :cartridge_must_be_colocated
   validate :allow_obsolete_cartridge
 
-  FEATURE_REGEX = /\A[\w\d\-]+\Z/
+  FEATURE_REGEX = /\A[\w\d\-\.]+\Z/
   def self.check_feature?(feature)
     feature.present? and feature =~ FEATURE_REGEX
   end
