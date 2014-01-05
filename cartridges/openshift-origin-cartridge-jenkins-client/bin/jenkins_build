@@ -46,7 +46,7 @@ end
 
 def schedule_build
   status_code = `curl -s -w %{http_code} --output /dev/null -X POST --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}#{@job_url}/build`
-  if status_code != '302' && status_code != '200'
+  if status_code != '302' && status_code != '200' && status_code !='201'
     puts "ERROR - Couldn't schedule job"
     exit 292
   end

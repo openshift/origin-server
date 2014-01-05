@@ -450,6 +450,9 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   if (upgrade_req.headers["sec-websocket-protocol"]) {
     zheaders.headers["Sec-Websocket-Protocol"] = upgrade_req.headers["sec-websocket-protocol"];
   }
+  if (upgrade_req.headers["origin"]) {
+    zheaders.headers["Origin"] = upgrade_req.headers["origin"];
+  }
 
   /*  Create a proxy websocket request we need to send.  */
   var proxy_ws = new WebSocket('ws://' + ws_endpoint + upg_requri, zheaders);

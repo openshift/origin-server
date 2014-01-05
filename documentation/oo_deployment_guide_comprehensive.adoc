@@ -114,9 +114,11 @@ enabled=1
 EOF
 ----
 
-For RHEL systems you will need to include the http://fedoraproject.org/wiki/EPEL[EPEL repository] to install puppet. To do so install the latest http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[epel-release package].
+For RHEL systems you will need to include the http://fedoraproject.org/wiki/EPEL[EPEL] and "Optional" repositories install puppet.
 
-.RHEL6
+==== EPEL Repository
+Install the latest http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[epel-release package].
+
 ----
 yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
 ----
@@ -129,12 +131,19 @@ Update the EPEL repository definition to exclude mcollective and nodejs packages
 name=Extra Packages for Enterprise Linux 6 - $basearch
 #baseurl=http://download.fedoraproject.org/pub/epel/6/$basearch
 mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch
-exclude=*passenger* nodejs*
+exclude=*passenger* nodejs* <1>
 failovermethod=priority
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
 ----
+<1> Manually add this line
+
+==== "Optional" Repository
+The way you enable the "Optional" repo will depend on your source.
+
+* RHN Classic: enable the `rhel-x86_64-server-optional-6` channel.
+* Via yum config manager: `yum-config-manager --enable rhel-6-server-optional-rpms`
 
 === Updates and NTP
 The hosts should be running the latest Fedora packages, and should be configured to use NTP for clock synchronization.

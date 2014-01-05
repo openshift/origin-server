@@ -120,7 +120,7 @@ class Usage
     where(gear_id: gear_id).delete
   end
 
-  def get_usage_rate(plan_id)
+  def self.get_usage_rate(plan_id, usage_type, gear_size, cart_name)
     nil
   end
 

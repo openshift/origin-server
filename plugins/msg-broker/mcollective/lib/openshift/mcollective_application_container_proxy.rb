@@ -1997,6 +1997,19 @@ module OpenShift
             # destroy destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with delete on '#{destination_container.id}'"
             reply.append destination_container.destroy(gear, !district_changed, nil, true)
+
+            # if the gear dns was updated, revert it back
+            if gear.server_identity == destination_container.id
+              begin
+                dns = OpenShift::DnsService.instance
+                public_hostname = source_container.get_public_hostname
+                dns.modify_application(gear.name, app.domain_namespace, public_hostname)
+                dns.publish
+              ensure
+                dns.close
+              end
+            end
+
             raise
           end
         rescue Exception => e
@@ -2814,7 +2827,8 @@ module OpenShift
       # * uses rpc_exec
       #
       def has_uid_or_gid?(uid)
-        return false if uid.nil?
+        # a non-numeric string is converted to 0 with to_i (which is the uid for root)
+        return false if uid.nil? or uid.to_i == 0
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_uid_or_gid(:uid => uid.to_i) do |response|
             output = response[:body][:data][:output]
