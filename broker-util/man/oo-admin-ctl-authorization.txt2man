@@ -19,7 +19,7 @@ OPTIONS
     revoke_all - Deletes all authorizations
   
 EXAMPLE
-  $ oo-admin-ctl-authorization -c revole_all
+  $ oo-admin-ctl-authorization -c revoke_all
     
 SEE ALSO
   oo-admin-ctl-user(8)

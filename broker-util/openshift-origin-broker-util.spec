@@ -57,6 +57,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-admin-clear-pending-ops
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-app
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-authorization
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-district
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-domain
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-usage
@@ -81,6 +82,8 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-chk.8.gz
 %{_mandir}/man8/oo-admin-clear-pending-ops.8.gz
 %{_mandir}/man8/oo-admin-ctl-app.8.gz
+%{_mandir}/man8/oo-admin-ctl-authorization.8.gz
+%{_mandir}/man8/oo-admin-ctl-cartridge.8.gz
 %{_mandir}/man8/oo-admin-ctl-district.8.gz
 %{_mandir}/man8/oo-admin-ctl-domain.8.gz
 %{_mandir}/man8/oo-admin-ctl-usage.8.gz
@@ -91,7 +94,6 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-app-info.8.gz
 %{_mandir}/man8/oo-register-dns.8.gz
 %{_mandir}/man8/oo-stats.8.gz
-%{_mandir}/man8/oo-admin-ctl-authorization.8.gz
 %{_mandir}/man8/oo-analytics-export.8.gz
 %{_mandir}/man8/oo-analytics-import.8.gz
 %{_mandir}/man8/oo-quarantine.8.gz

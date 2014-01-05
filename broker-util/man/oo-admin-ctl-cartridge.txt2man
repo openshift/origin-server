@@ -1,0 +1,27 @@
+NAME
+  oo-admin-ctl-cartridge
+  
+SYNOPSIS
+  oo-admin-ctl-cartridge [ --command (refresh|clean|list) ] [ --help ]
+
+DESCRIPTION
+
+This is an administrative utility to manage cartridges.
+  
+OPTIONS
+  -h|--help  
+    Display a simple usage page.
+    
+  -c|--command COMMAND  
+  
+    refresh - Update the broker cartridge collection with cartridges from a node.
+
+    clean - Deletes all cartridges from the broker
+
+    list - Display information about broker cartridges
+  
+EXAMPLE
+  $ oo-admin-ctl-cartridge -c refresh
+    
+AUTHOR
+  Clayton Coleman <ccoleman@redhat.com> - man page written for OpenShift Origin 
