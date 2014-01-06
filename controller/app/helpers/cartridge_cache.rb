@@ -201,9 +201,7 @@ class CartridgeCache
       begin
         url, version = spec.values_at(:url, :version)
 
-        text = download_from_url(url)
-        raise OpenShift::UserException.new("The cartridge manifest at '#{url}' could not be downloaded.", 109, field) if text.blank?
-
+        text = download_from_url(url, field)
         versions = OpenShift::Runtime::Manifest.manifests_from_yaml(text)
 
         if version.present? && versions.present?
@@ -230,8 +228,7 @@ class CartridgeCache
     cartridges
   end
 
-  private
-  def self.download_from_url(url)
+  def self.download_from_url(url, field=nil)
     cartridge_conf = Rails.application.config.downloaded_cartridges || {}
 
     client = if cartridge_conf[:http_proxy].present?
@@ -260,13 +257,16 @@ class CartridgeCache
           end
         end
       rescue Timeout::Error
-        raise OpenShift::UnfulfilledRequirementException.new(url)
+        raise OpenShift::UserException.new("The cartridge manifest at '#{url}' took too long to retrieve.", 109, field)
       rescue HTTPClient::BadResponseError => be
-        raise OpenShift::UserException.new("Bad response (#{be.res.status_code}) from url - #{url}")
-      rescue Exception=>e
-        Rails.logger.debug(e.inspect)
+        raise OpenShift::UserException.new("The cartridge manifest at '#{url}' was not available (status code: #{be.res.status_code}).", 109, field)
+      rescue => e
+        Rails.logger.debug(e.backtrace)
+        raise OpenShift::UserException.new("The cartridge manifest at '#{url}' could not be downloaded: #{e.message}", 109, field)
       end
     end
+
+    raise OpenShift::UserException.new("The cartridge manifest at '#{url}' was empty.", 109, field) if manifest.blank?
 
     manifest
   end
