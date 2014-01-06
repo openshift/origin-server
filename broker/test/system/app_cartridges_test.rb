@@ -135,10 +135,11 @@ class AppCartridgesTest < ActionDispatch::IntegrationTest
     assert_equal(body["messages"][0]["exit_code"], 109)
 
     # embed an invalid cartridge
+    # This scenario was changed to return 109 because users can now add named features via the rest api
     request_via_redirect(:post, APP_CARTRIDGES_URL_FORMAT % [ns, "appnoscale"], {:name => "invalid-cartridge"}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
-    assert_equal(body["messages"][0]["exit_code"], 129)
+    assert_equal(body["messages"][0]["exit_code"], 109)
 
     # embed mysql cartridge into the non-scalable app
     # since the cartridge will reside on the same gear as the app, this should succeed
@@ -154,7 +155,7 @@ class AppCartridgesTest < ActionDispatch::IntegrationTest
       assert(message["field"] == "result", "Message field: #{message["field"]} should be equal to result for API versions 1.5 or earlier") if body["api_version"] <= 1.5 and message["severity"] == "result"
     end
     assert(has_result_from_node, "Missing result message from node")
-    
+
     # query the non-scalable application to verify the properties of the embedded cartridge
     request_via_redirect(:get, APP_URL_FORMAT % [ns, "appnoscale"], {}, @headers)
     assert_response :ok
