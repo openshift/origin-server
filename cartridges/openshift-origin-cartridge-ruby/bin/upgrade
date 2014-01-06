@@ -1,0 +1,11 @@
+#!/bin/bash -eu
+
+ruby_version=$1
+curr=$2
+next=$3
+
+if [[ $curr =~ 0.0.[1-11] ]]; then
+  if [ -e $OPENSHIFT_HOMEDIR/ruby/metadata/jenkins_shell_command ]; then
+    rm -f $OPENSHIFT_HOMEDIR/ruby/metadata/jenkins_shell_command
+  fi
+fi

@@ -11,3 +11,9 @@ fi
 if [[ $curr =~ 0.0.4 ]]; then
   mkdir -p $OPENSHIFT_HOMEDIR/.drush
 fi
+
+if [[ $curr =~ 0.0.[1-8] ]]; then
+  if [ -e $OPENSHIFT_HOMEDIR/php/metadata/jenkins_shell_command ]; then
+    rm -f $OPENSHIFT_HOMEDIR/php/metadata/jenkins_shell_command
+  fi
+fi
