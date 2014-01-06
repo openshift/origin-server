@@ -37,6 +37,16 @@ module AdminHelper
     end
   end
 
+  def run(*func)
+    begin
+      send(*func)
+    rescue Exception => e
+      $total_errors += 1
+      puts e.message
+      puts e.backtrace.inspect
+    end
+  end
+
   def print_message(msg, flush=false)
     $total_errors += 1
     $summary_count += 1
@@ -75,17 +85,14 @@ module AdminHelper
   def get_premium_carts
     return $premium_carts unless $premium_carts.empty?
 
-    premium_carts = []
-    all_carts = CartridgeCache.cartridges
-    all_carts.each do |cart|
-      premium_carts.push(cart.name) if cart.is_premium?
+    CartridgeCache.cartridges.each do |cart|
+      $premium_carts.push(cart.name) if cart.is_premium?
     end
-    $premium_carts = premium_carts
     return $premium_carts
   end
 
   def datastore_has_gear_uid?(gear_uid, server_identity_list)
-    query = {"group_instances.gears" => {"$elemMatch" => { "uid" => gear_uid, "server_identity" => {"$in" => server_identity_list}}}}
+    query = {"gears" => {"$elemMatch" => { "uid" => gear_uid, "server_identity" => {"$in" => server_identity_list}}}}
     return Application.where(query).exists?
   end
 
@@ -615,7 +622,7 @@ module AdminHelper
     usage_storage_gear_ids = $usage_storage_hash.keys
     missing_storage_gear_ids = (usage_storage_gear_ids - app_storage_gear_ids) + (app_storage_gear_ids - usage_storage_gear_ids)
     (app_storage_gear_ids & usage_storage_gear_ids).each do |gear_id|
-      missing_storage_gear_ids << gear_id if app_storage_hash[gear_id]['addtl_fs_gb'] != usage_storage_hash[gear_id]['addtl_fs_gb']
+      missing_storage_gear_ids << gear_id if app_storage_hash[gear_id]['addtl_fs_gb'] != $usage_storage_hash[gear_id]['addtl_fs_gb']
     end
     puts "Checking gears with additional storage in applications collection but not in usage_records and viceversa: " + (missing_storage_gear_ids.empty? ? "OK" : "FAIL") if $verbose
 
@@ -634,7 +641,7 @@ module AdminHelper
           group_inst = gear.group_instance
           break
         end
-      end if app.gears.present?
+      end if app and app.gears.present?
       app_storage = group_inst.addtl_fs_gb if group_inst and (group_inst.addtl_fs_gb != 0)
 
       query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:addtl_fs_gb]}
@@ -678,7 +685,7 @@ module AdminHelper
     usage_cart_gear_ids = $usage_cart_hash.keys
     missing_cart_gear_ids = (usage_cart_gear_ids - app_cart_gear_ids) + (app_cart_gear_ids - usage_cart_gear_ids)
     (usage_cart_gear_ids & app_cart_gear_ids).each do |gear_id|
-      if app_cart_hash[gear_id]['premium_carts'].sort != usage_cart_hash[gear_id]['cart_name'].sort
+      if app_cart_hash[gear_id]['premium_carts'].sort != $usage_cart_hash[gear_id]['cart_name'].sort
         missing_cart_gear_ids << gear_id
       end
     end

@@ -1,6 +1,6 @@
 class RollingRestartCompOp < RestartCompOp
 
-  def addParallelExecuteJob(handle)
+  def add_parallel_execute_job(handle)
     gear = get_gear()
     component_instance = get_component_instance()
     job = gear.get_restart_job(component_instance, true)

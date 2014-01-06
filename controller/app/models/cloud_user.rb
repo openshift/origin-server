@@ -317,6 +317,14 @@ class CloudUser
     self._capabilities["max_domains"] = m if capabilities["max_domains"] != m
   end
 
+  def plan_upgrade_enabled
+    capabilities["plan_upgrade_enabled"] || false
+  end
+
+  def plan_upgrade_enabled=(m)
+    self._capabilities["plan_upgrade_enabled"] = m if capabilities["plan_upgrade_enabled"] != m
+  end
+
   def subaccounts
     capabilities["subaccounts"] || false
   end

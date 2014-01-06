@@ -110,6 +110,13 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
   }
 }
 
+@media (max-width: 320px) {
+  .platform input[type="file"] {
+      max-width: 219px;
+      min-width: 0;
+  }
+}
+
 .important-list {
   margin-top: 10px;
   > li > p {

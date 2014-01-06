@@ -1,0 +1,25 @@
+#!/bin/bash
+
+function php_context {
+  case $OPENSHIFT_PHP_VERSION in
+    5.3) eval $1 ;;
+    5.4) /usr/bin/scl enable php54 "$1" ;;
+  esac
+}
+
+function update_configuration {
+  # PEAR bin_dir
+  local path=$(php_context "pear -c ${OPENSHIFT_HOMEDIR}.pearrc config-get bin_dir" | tr -d '\n')
+
+  case $OPENSHIFT_PHP_VERSION in
+    5.4)
+      # SCL bin_dir
+      path=$(path_append $path $(dirname $(scl enable php54 "which php") | tr -d '\n'))
+
+      local man_path=$(MANPATH="" scl enable php54 "printenv MANPATH")
+      path_append ${MANPATH:-:} ${man_path:-:} > ${OPENSHIFT_PHP_DIR}env/MANPATH
+      ;;
+  esac
+
+  echo $path > ${OPENSHIFT_PHP_DIR}env/OPENSHIFT_PHP_PATH_ELEMENT
+}

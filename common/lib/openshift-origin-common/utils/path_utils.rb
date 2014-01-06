@@ -17,6 +17,7 @@
 require 'fileutils'
 require 'etc'
 require 'pathname'
+require 'fcntl'
 require 'openshift-origin-common/utils/etc_utils'
 
 module PathUtils
@@ -78,6 +79,24 @@ module PathUtils
 
   module_function :join
 
+  # PathUtils.flock(lock_file) { block } -> nil
+  #
+  # Create a file lock for the duration of the provided block
+  def flock(lock_file)
+    File.open(lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
+      lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+      lock.flock(File::LOCK_EX)
+
+      begin
+        yield(lock)
+      ensure
+        lock.flock(File::LOCK_UN)
+      end
+    end
+  end
+
+  module_function :flock
+
   def pu_get_uid(user)
     return nil unless user
 
@@ -94,3 +113,4 @@ module PathUtils
 
   private_module_function :pu_get_gid
 end
+

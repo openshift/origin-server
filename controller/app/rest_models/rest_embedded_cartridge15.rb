@@ -181,7 +181,7 @@ class RestEmbeddedCartridge15 < OpenShift::Model
     self.help_topics = cart.help_topics
 
     if app and !nolinks
-      domain_id = app.domain.namespace
+      domain_id = app.domain_namespace
       app_id = app.name
       if not app_id.nil? and not domain_id.nil?
         self.links = {

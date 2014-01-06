@@ -17,21 +17,12 @@ require 'stringio'
 module MCollective
   module Agent
     class Openshift<RPC::Agent
-      metadata :name        => "OpenShift Agent",
-               :description => "Agent to manage OpenShift services",
-               :author      => "Mike McGrath",
-               :license     => "ASL 2.0",
-               :version     => "0.1",
-               :url         => "http://www.openshift.com",
-               :timeout     => 360
+      # Metadata moved to openshift.ddl
 
       activate_when do
         @@config = ::OpenShift::Config.new
 
-        File.open('/var/lock/oo-cartridge-repository', File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
-          lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-          lock.flock(File::LOCK_EX)
-
+        PathUtils.flock('/var/lock/oo-cartridge-repository') do
           @@cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
 
           Dir.glob(PathUtils.join(@@config.get('CARTRIDGE_BASE_PATH'), '*')).each do |path|
@@ -42,7 +33,6 @@ module MCollective
               Log.instance.warn("Failed to install cartridge from #{path}. #{e.message}")
             end
           end
-          lock.flock(File::LOCK_UN)
         end
 
         Log.instance.info(
@@ -62,10 +52,17 @@ module MCollective
         true
       end
 
+      def startup_hook
+        # If meta[:timeout] is not set Node operations will fail as default is too low
+        @hourglass_timeout = (meta[:timeout] * 0.65).ceil
+        Log.instance.info(
+            "Node transaction timeout is #{@hourglass_timeout}, mcollective timeout is #{meta[:timeout]}")
+      end
+
       def before_processing_hook(msg, connection)
         # Set working directory to a 'safe' directory to prevent Dir.chdir
         # calls with block from changing back to a directory which doesn't exist.
-        Log.instance.debug("Changing working directory to /tmp")
+        Log.instance.debug('Changing working directory to /tmp')
         Dir.chdir('/tmp')
       end
 
@@ -91,14 +88,14 @@ module MCollective
       def cartridge_do_action
         Log.instance.info("cartridge_do_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
+
         validate :cartridge, :shellsafe
         validate :action, :shellsafe
-        cartridge                  = request[:cartridge]
-        action                     = request[:action]
-        args                       = request[:args] ||= {}
-        pid, stdin, stdout, stderr = nil, nil, nil, nil
-        rc                         = nil
-        output                     = ''
+
+        action = request[:action]
+        args   = request[:args] ||= {}
+
+        args['--with-hourglass'] = OpenShift::Runtime::Utils::Hourglass.new(@hourglass_timeout)
 
         # Do the action execution
         exitcode, output, addtl_params = execute_action(action, args)
@@ -107,6 +104,7 @@ module MCollective
         reply[:exitcode]     = exitcode
         reply[:output]       = output
         reply[:addtl_params] = addtl_params
+        args.delete('--with-hourglass')
 
         if exitcode == 0
           Log.instance.info("cartridge_do_action reply (#{exitcode}):\n------\n#{cleanpwd(output)}\n------)")
@@ -161,12 +159,12 @@ module MCollective
 
         usage = (quota[:blocks_used] / quota[:blocks_limit].to_f) * 100.0
         if watermark < usage
-          buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using %3.1f%% of disk quota\n" % usage
+          buffer << "\nCLIENT_MESSAGE: Warning: Gear #{uuid} is using %3.1f%% of disk quota\n" % usage
         end
 
         usage = (quota[:inodes_used] / quota[:inodes_limit].to_f) * 100.0
         if watermark < usage
-          buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using %3.1f%% of inodes allowed\n" % usage
+          buffer << "\nCLIENT_MESSAGE: Warning: Gear #{uuid} is using %3.1f%% of inodes allowed\n" % usage
         end
       rescue Exception => e
         # do nothing
@@ -183,24 +181,28 @@ module MCollective
       def execute_parallel_action
         Log.instance.info("execute_parallel_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
 
+        hourglass = OpenShift::Runtime::Utils::Hourglass.new(@hourglass_timeout)
+
         quota_reported = false
-        joblist = request[config.identity]
+        joblist        = request[config.identity]
         joblist.each do |parallel_job|
-            job = parallel_job[:job]
 
-            cartridge = job[:cartridge]
-            action    = job[:action]
-            args      = job[:args]
+          job                      = parallel_job[:job]
+          action                   = job[:action]
+          args                     = job[:args]
+          args['--with-hourglass'] = hourglass
 
-            exitcode, output, addtl_params = execute_action(action, args)
-            if args['--with-container-uuid'] && ! quota_reported && ! ['app-state-show'].include?(action)
-              report_quota(output, args['--with-container-uuid'])
-              quota_reported = true
-            end
+          exitcode, output, addtl_params = execute_action(action, args)
 
-            parallel_job[:result_exit_code] = exitcode
-            parallel_job[:result_stdout]    = output
-            parallel_job[:result_addtl_params] = addtl_params
+          if args['--with-container-uuid'] && !quota_reported && !['app-state-show'].include?(action)
+            report_quota(output, args['--with-container-uuid'])
+            quota_reported = true
+          end
+
+          parallel_job[:result_exit_code]    = exitcode
+          parallel_job[:result_stdout]       = output
+          parallel_job[:result_addtl_params] = addtl_params
+          args.delete('--with-hourglass')
         end
 
         Log.instance.info("execute_parallel_action call - #{joblist}")
@@ -230,7 +232,8 @@ module MCollective
 
         begin
           require 'openshift-origin-node/model/upgrade'
-          upgrader = OpenShift::Runtime::Upgrader.new(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, scalable, OpenShift::Runtime::Utils::Hourglass.new(235))
+          upgrader = OpenShift::Runtime::Upgrader.new(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, scalable,
+                                                      OpenShift::Runtime::Utils::Hourglass.new(@hourglass_timeout))
         rescue Exception => e
           report_exception e
           exitcode = 1
@@ -276,21 +279,22 @@ module MCollective
       # configured MCollective agent timeout.
       #
       def get_app_container_from_args(args)
-        app_uuid = args['--with-app-uuid'].to_s if args['--with-app-uuid']
-        app_name = args['--with-app-name'].to_s if args['--with-app-name']
-        gear_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
-        gear_name = args['--with-container-name'].to_s if args['--with-container-name']
-        namespace = args['--with-namespace'].to_s if args['--with-namespace']
+        app_uuid     = args['--with-app-uuid'].to_s       if args['--with-app-uuid']
+        app_name     = args['--with-app-name'].to_s       if args['--with-app-name']
+        gear_uuid    = args['--with-container-uuid'].to_s if args['--with-container-uuid']
+        gear_name    = args['--with-container-name'].to_s if args['--with-container-name']
+        namespace    = args['--with-namespace'].to_s      if args['--with-namespace']
         quota_blocks = args['--with-quota-blocks']
         quota_files  = args['--with-quota-files']
         uid          = args['--with-uid']
+        hourglass    = args['--with-hourglass'] || OpenShift::Runtime::Utils::Hourglass.new(@hourglass_timeout)
 
         quota_blocks = nil if quota_blocks && quota_blocks.to_s.empty?
-        quota_files = nil if quota_files && quota_files.to_s.empty?
-        uid = nil if uid && uid.to_s.empty?
+        quota_files  = nil if quota_files && quota_files.to_s.empty?
+        uid          = nil if uid && uid.to_s.empty?
 
         OpenShift::Runtime::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
-                                            namespace, quota_blocks, quota_files, OpenShift::Runtime::Utils::Hourglass.new(235))
+                                                     namespace, quota_blocks, quota_files, hourglass)
       end
 
       # Yields an ApplicationContainer constructed from the given args. No exceptions will be raised
@@ -555,9 +559,6 @@ module MCollective
       end
 
       def oo_app_state_show(args)
-        container_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid'].to_s if args['--with-app-uuid']
-
         with_container_from_args(args) do |container, output|
           output << "\nCLIENT_RESULT: #{container.state.value}\n"
         end
@@ -603,9 +604,6 @@ module MCollective
       end
 
       def oo_force_stop(args)
-        container_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid'].to_s if args['--with-app-uuid']
-
         with_container_from_args(args) do |container|
           container.force_stop
         end
@@ -642,8 +640,6 @@ module MCollective
 
       def with_frontend_from_args(args)
         container_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
-        container_name = args['--with-container-name'].to_s if args['--with-container-name']
-        namespace = args['--with-namespace'].to_s if args['--with-namespace']
 
         with_frontend_rescue_pattern do |o|
           frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid))
@@ -786,7 +782,7 @@ module MCollective
       end
 
       def oo_ssl_certs(args)
-        with_frontend_returns_data do |f, o|
+        with_frontend_returns_data(args) do |f, o|
           f.ssl_certs
         end
       end
@@ -1023,18 +1019,13 @@ module MCollective
         max_uid = request[:max_uid]
 
         begin
-          File.open('/var/lock/oo-district-info', File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
-            lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-            lock.flock(File::LOCK_EX)
-
-            district_home = '/var/lib/openshift/.settings'
+          district_home = PathUtils.join(@@config.get('GEAR_BASE_DIR'), '.settings')
+          PathUtils.flock('/var/lock/oo-district-info') do
             FileUtils.mkdir_p(district_home)
 
-            File.open(File.join(district_home, 'district.info'), 'w') { |f|
+            File.open(PathUtils.join(district_home, 'district.info'), 'w') { |f|
               f.write("#Do not modify manually!\nuuid='#{uuid}'\nactive='#{active}'\nfirst_uid=#{first_uid}\nmax_uid=#{max_uid}")
             }
-
-            lock.flock(File::LOCK_UN)
           end
 
           Facter.add(:district_uuid) do
@@ -1071,13 +1062,10 @@ module MCollective
         max_uid = request[:max_uid]
 
         begin
-          File.open('/var/lock/oo-district-info', File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
-            lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-            lock.flock(File::LOCK_EX)
-
-            district_home = '/var/lib/openshift/.settings'
-
-            text = File.read(File.join(district_home, 'district.info'))
+          district_home = PathUtils.join(@@config.get('GEAR_BASE_DIR'), '.settings')
+          PathUtils.flock('/var/lock/oo-district-info') do
+            district_info = PathUtils.join(district_home, 'district.info')
+            text = File.read(district_info)
 
             new_first_uid = "first_uid=#{first_uid}"
             result = text.gsub!(/first_uid=\d+/, new_first_uid)
@@ -1087,9 +1075,7 @@ module MCollective
             result = text.gsub!(/max_uid=\d+/, new_max_uid)
             text << "#{new_max_uid}\n" if result.nil?
 
-            File.open(File.join(district_home, 'district.info'), "w") {|f| f.puts text}
-
-            lock.flock(File::LOCK_UN)
+            File.open(district_info, 'w') {|f| f.puts text}
           end
 
           Facter.add(:district_first_uid) do
@@ -1115,12 +1101,9 @@ module MCollective
       #
       def has_gear_action
         validate :uuid, /^[a-zA-Z0-9]+$/
-        uuid = request[:uuid].to_s
-        if File.exist?("/var/lib/openshift/#{uuid}")
-          reply[:output] = true
-        else
-          reply[:output] = false
-        end
+
+        uuid             = request[:uuid].to_s
+        reply[:output]   = File.exist? PathUtils.join(@@config.get('GEAR_BASE_DIR'), uuid)
         reply[:exitcode] = 0
       end
 
@@ -1130,13 +1113,9 @@ module MCollective
       def has_embedded_app_action
         validate :uuid, /^[a-zA-Z0-9]+$/
         validate :embedded_type, /^.+$/
-        uuid = request[:uuid].to_s if request[:uuid]
-        embedded_type = request[:embedded_type]
-        if File.exist?("/var/lib/openshift/#{uuid}/#{embedded_type}")
-          reply[:output] = true
-        else
-          reply[:output] = false
-        end
+        uuid             = request[:uuid].to_s if request[:uuid]
+        embedded_type    = request[:embedded_type]
+        reply[:output]   = File.exist? PathUtils.join(@@config.get('GEAR_BASE_DIR'), uuid, embedded_type)
         reply[:exitcode] = 0
       end
 
@@ -1144,11 +1123,12 @@ module MCollective
       # Returns the entire set of env variables for a given gear uuid
       #
       def get_gear_envs_action
-         validate :uuid, /^[a-zA-Z0-9]+$/
-         dir = OpenShift::Runtime::ApplicationContainer.from_uuid(request[:uuid].to_s).container_dir
-         env_hash = OpenShift::Runtime::Utils::Environ.for_gear(dir)
-         reply[:output] = env_hash
-         reply[:exitcode] = 0
+        validate :uuid, /^[a-zA-Z0-9]+$/
+        uuid             = request[:uuid].to_s if request[:uuid]
+        dir              = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid).container_dir
+        env_hash         = OpenShift::Runtime::Utils::Environ.for_gear(dir)
+        reply[:output]   = env_hash
+        reply[:exitcode] = 0
       end
 
       #
@@ -1157,60 +1137,48 @@ module MCollective
       def get_all_gears_endpoints_action
         gear_map = {}
 
-        uid_map          = {}
-        uids             = IO.readlines("/etc/passwd").map { |line|
-          uid               = line.split(":")[2]
-          username          = line.split(":")[0]
-          uid_map[username] = uid
-        }
-        dir = "/var/lib/openshift/"
-        Dir.foreach(dir) do |gear_file|
-          if File.directory?(dir + gear_file) and not File.symlink?(dir + gear_file) and not gear_file[0] == '.'
-           next if not uid_map.has_key?(gear_file)
-           gear_uuid = gear_file
-           cont = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
-           env = OpenShift::Runtime::Utils::Environ::for_gear(cont.container_dir)
-           config = OpenShift::Config.new
-           pub_ip = config.get('PUBLIC_IP')
-           endpoints = []
-           cont.cartridge_model.each_cartridge do |cart|
-             cart.public_endpoints.each do |ep|
-               endpoint_create_hash = { "cartridge_name" => cart.name+'-'+cart.version,
-                          "external_port" => env[ep.public_port_name],
-                          "internal_address" => env[ep.private_ip_name],
-                          "internal_port" => ep.private_port ,
-                          "protocols" => ep.protocols,
-                          "type" => []
-                          }
-               if cart.web_proxy?
-                 endpoint_create_hash['protocols'] = cont.cartridge_model.primary_cartridge.public_endpoints.first.protocols
-                 endpoint_create_hash['type'] = ["load_balancer"]
-               elsif cart.web_framework?
-                 endpoint_create_hash['type'] = ["web_framework"]
-               elsif cart.categories.include? "database"
-                 endpoint_create_hash['type'] = ["database"]
-               elsif cart.categories.include? "plugin"
-                 endpoint_create_hash['type'] = ["plugin"]
-               else
-                 endpoint_create_hash['type'] = ["other"]
-               end
-               endpoint_create_hash['mappings'] = ep.mappings.map { |m| { "frontend" => m.frontend, "backend" => m.backend } } if ep.mappings
-               endpoints << endpoint_create_hash
-             end
-           end
-           gear_map[gear_uuid] = endpoints.dup if endpoints.length > 0
-         end
-       end
-       reply[:output] = gear_map
-       reply[:exitcode] = 0
+        openshift_users.each do |gear_uuid, _|
+          cont      = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
+          env       = OpenShift::Runtime::Utils::Environ::for_gear(cont.container_dir)
+          endpoints = []
+          cont.cartridge_model.each_cartridge do |cart|
+            cart.public_endpoints.each do |ep|
+              endpoint_create_hash = {"cartridge_name"   => cart.name+'-'+cart.version,
+                                      "external_port"    => env[ep.public_port_name],
+                                      "internal_address" => env[ep.private_ip_name],
+                                      "internal_port"    => ep.private_port,
+                                      "protocols"        => ep.protocols,
+                                      "type"             => []
+              }
+
+              if cart.web_proxy?
+                endpoint_create_hash['protocols'] = cont.cartridge_model.primary_cartridge.public_endpoints.first.protocols
+                endpoint_create_hash['type']      = ["load_balancer"]
+              elsif cart.web_framework?
+                endpoint_create_hash['type'] = ["web_framework"]
+              elsif cart.categories.include? "database"
+                endpoint_create_hash['type'] = ["database"]
+              elsif cart.categories.include? "plugin"
+                endpoint_create_hash['type'] = ["plugin"]
+              else
+                endpoint_create_hash['type'] = ["other"]
+              end
+              endpoint_create_hash['mappings'] = ep.mappings.map { |m| {"frontend" => m.frontend, "backend" => m.backend} } if ep.mappings
+              endpoints << endpoint_create_hash
+            end
+          end
+          gear_map[gear_uuid] = endpoints.dup if endpoints.length > 0
+        end
+
+        reply[:output]   = gear_map
+        reply[:exitcode] = 0
       end
 
       #
       # Returns whether a uid or gid is already reserved on the system
       #
       def has_uid_or_gid_action
-        validate :uid, /^[0-9]+$/
-        uid  = request[:uid].to_i
+        uid  = request[:uid]
 
         begin
           Etc.getpwuid(uid)
@@ -1230,7 +1198,6 @@ module MCollective
         validate :gear_uuid, /^[a-zA-Z0-9]+$/
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/_]+\z/
 
-        app_uuid = request[:app_uuid].to_s if request[:app_uuid]
         gear_uuid = request[:gear_uuid].to_s if request[:gear_uuid]
         cart_name = request[:cartridge]
 
@@ -1255,24 +1222,14 @@ module MCollective
       def get_all_gears_action
         gear_map = {}
 
-        uid_map          = {}
-        uids             = IO.readlines("/etc/passwd").map { |line|
-          uid               = line.split(":")[2]
-          username          = line.split(":")[0]
-          uid_map[username] = uid
-        }
-        dir              = "/var/lib/openshift/"
-        filelist         = Dir.foreach(dir) { |file|
-          if File.directory?(dir+file) and not File.symlink?(dir+file) and not file[0]=='.'
-            if uid_map.has_key?(file)
-              if request[:with_broker_key_auth]
-                next unless File.exists?(File.join(dir, file, ".auth/token"))
-              end
-
-              gear_map[file] = uid_map[file]
-            end
+        openshift_users.each do |gear_uuid, gear_uid|
+          if request[:with_broker_key_auth]
+            next unless File.exists?(PathUtils.join(@@config.get('GEAR_BASE_DIR'), gear_uuid, '.auth', 'token'))
           end
-        }
+
+          gear_map[gear_uuid] = gear_uid
+        end
+
         reply[:output]   = gear_map
         reply[:exitcode] = 0
       end
@@ -1283,18 +1240,15 @@ module MCollective
       def get_all_gears_sshkeys_action
         gear_map = {}
 
-        dir              = "/var/lib/openshift/"
-        filelist         = Dir.foreach(dir) do |gear_file|
-          if File.directory?(dir + gear_file) and not File.symlink?(dir + gear_file) and not gear_file[0] == '.'
-            gear_map[gear_file] = []
-            authorized_keys_file = File.join(dir, gear_file, ".ssh", "authorized_keys")
-            if File.exists?(authorized_keys_file) and not File.directory?(authorized_keys_file)
-              File.open(authorized_keys_file, File::RDONLY) do |key_file|
-                key_file.each_line do |line|
-                  begin
-                    gear_map[gear_file] << "#{line.split[-1].chomp}::#{Digest::MD5.hexdigest(line.split[-2].chomp)}"
-                  rescue
-                  end
+        openshift_users.each do |gear_uuid, _|
+          gear_map[gear_uuid]  = []
+          authorized_keys_file = PathUtils.join(@@config.get('GEAR_BASE_DIR'), gear_uuid, ".ssh", "authorized_keys")
+          if File.exists?(authorized_keys_file) and not File.directory?(authorized_keys_file)
+            File.open(authorized_keys_file, File::RDONLY) do |key_file|
+              key_file.each_line do |line|
+                begin
+                  gear_map[gear_uuid] << "#{line.split[-1].chomp}::#{Digest::MD5.hexdigest(line.split[-2].chomp)}"
+                rescue
                 end
               end
             end
@@ -1308,20 +1262,30 @@ module MCollective
       # Get all gears
       #
       def get_all_active_gears_action
-        active_gears     = {}
-        dir              = "/var/lib/openshift/"
-        filelist         = Dir.foreach(dir) { |file|
-          if File.directory?(dir+file) and not File.symlink?(dir+file) and not file[0]=='.'
-            state_file = File.join(dir, file, 'app-root', 'runtime', '.state')
-            if File.exist?(state_file)
-              state  = File.read(state_file).chomp
-              active = !('idle' == state || 'stopped' == state)
-              active_gears[file] = nil if active
-            end
+        active_gears = {}
+
+        openshift_users.each do |gear_uuid, _|
+          state_file = PathUtils.join(@@config.get('GEAR_BASE_DIR'), gear_uuid, 'app-root', 'runtime', '.state')
+          if File.exist?(state_file)
+            state                   = File.read(state_file).chomp
+            active                  = !('idle' == state || 'stopped' == state)
+            active_gears[gear_uuid] = nil if active
           end
-        }
+        end
         reply[:output]   = active_gears
         reply[:exitcode] = 0
+      end
+
+      # find all unix users with the gear GECOS
+      def openshift_users
+        uuid_map = {}
+
+        IO.readlines('/etc/passwd').each { |line|
+          account, _, uid, _, gecos, _, _ = line.split(':')
+          next unless gecos == @@config.get('GEAR_GECOS')
+          uuid_map[account] = uid
+        }
+        uuid_map
       end
 
       ## Perform operation on CartridgeRepository

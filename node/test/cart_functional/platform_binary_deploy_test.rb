@@ -43,9 +43,22 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
     binary_deploy_test([ @framework_cartridge ])
   end
 
+  def test_binary_hot_deploy
+    options = {}
+    options[:hot_deploy] = true
+    binary_deploy_test([ @framework_cartridge ],options)
+  end
+
   def test_rest_api_binary_deployment_to_scaled_app
     options = {}
     options[:scaling] = true
+    use_the_rest_api_binary_deploy_app_test([ @framework_cartridge ], options)
+  end
+
+  def test_rest_api_hot_binary_deployment_to_scaled_app
+    options = {}
+    options[:scaling] = true
+    options[:hot_deploy] = true
     use_the_rest_api_binary_deploy_app_test([ @framework_cartridge ], options)
   end
 
@@ -55,15 +68,23 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
     use_the_rest_api_binary_deploy_app_test([ @framework_cartridge ], options)
   end
 
+  def test_rest_api_hot_binary_deployment_to_nonscaled_app
+    options = {}
+    options[:scaling] = false
+    options[:hot_deploy] = true
+    use_the_rest_api_binary_deploy_app_test([ @framework_cartridge ], options)
+  end
+
   def binary_deploy_test(cartridges, options = {})
     scaling = !!options[:scaling]
-
+    hot_deploy = !!options[:hot_deploy]
     @api.up_gears
 
     app_name = "app#{@api.random_string}"
     framework = cartridges[0]
 
     app_id = @api.create_application(app_name, cartridges, scaling)
+    
     @api.add_ssh_key(app_id, app_name)
     @api.assert_http_title_for_app(app_name, @namespace, DEFAULT_TITLE)
 
@@ -73,15 +94,21 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
 
     app_name2 = "#{app_name}2"
     app_id2 = @api.create_application(app_name2, cartridges, scaling)
+    cart_dir=wrap_control_script(cartridges[0],app_id2)    
     @api.add_ssh_key(app_id2, app_name2)
     @api.configure_application(app_name2, deployment_type: 'binary')
-    @api.deploy_artifact(app_id2, app_name2, artifact_path)
+    @api.deploy_artifact(app_id2, app_name2, artifact_path, hot_deploy)
 
     @api.assert_http_title_for_app(app_name2, @namespace, CHANGED_TITLE, "Check for changed title in second app failed", 5)
+    puts "checking for last stop"
+    if hot_deploy && File.exist?("#{cart_dir}/last_stop")
+      flunk ("Cartridge should not have been restarted for hot_deploy=true")
+    end           
   end
 
   def use_the_rest_api_binary_deploy_app_test(cartridges, options = {})
     scaling = !!options[:scaling]
+    hot_deploy = !!options[:hot_deploy]
 
     app_name                = "app#{@api.random_string}"
     v1_tgz_file_name        = "#{app_name}v1.tgz"
@@ -120,6 +147,7 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
 
     # 8) create a new app
     app_id2 = @api.create_application(deploy_target_app_name, cartridges, scaling)
+    cart_dir=wrap_control_script(cartridges[0],app_id2)    
 
     # 9) configure the app as a binary deployment type
     @api.configure_application(deploy_target_app_name, deployment_type: 'binary')
@@ -127,17 +155,40 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
     @api.assert_http_title_for_app(deploy_target_app_name, @namespace, DEFAULT_TITLE)
 
     # 10) use the rest api to deploy the s2 artifact to the new app
-    @api.deploy_binary_artifact_using_rest_api(deploy_target_app_name, "http://localhost:81/#{v2_tgz_file_name}")
+    @api.deploy_binary_artifact_using_rest_api(deploy_target_app_name, "http://localhost:81/#{v2_tgz_file_name}", hot_deploy)
 
     # 11) confirm the title is correct
     @api.assert_http_title_for_app(app_name, @namespace, VERSION_TWO_TITLE)
 
     # 12) use the rest api to deploy the s1 artifact to the new app
-    @api.deploy_binary_artifact_using_rest_api(deploy_target_app_name, "http://localhost:81/#{v1_tgz_file_name}")
+    @api.deploy_binary_artifact_using_rest_api(deploy_target_app_name, "http://localhost:81/#{v1_tgz_file_name}", hot_deploy)
 
     # 13) confirm the title is correct
     @api.assert_http_title_for_app(deploy_target_app_name, @namespace, CHANGED_TITLE)
+    puts "checking for last stop"
+    if hot_deploy && File.exist?("#{cart_dir}/last_stop")
+      flunk ("Cartridge should not have been restarted for hot_deploy=true")
+    end
 
   end # use_the_rest_api_binary_deploy_to_scaled_app_test
+
+  def wrap_control_script(cartridge,app_id)    
+    cart_type=cartridge.sub(/(.*?)-.*/,'\1')
+    cart_dir="/var/lib/openshift/#{app_id}/#{cart_type}"
+    control_wrapper = <<-EOS
+      #!/bin/bash
+      case "$1" in
+        start)     date +%s > last_start;;
+        stop)      date +%s > last_stop;;
+        restart)   date +%s > last_restart;;
+      esac
+      #{cart_dir}/bin/wrapped_control $1
+    EOS
+      
+    `mv #{cart_dir}/bin/control #{cart_dir}/bin/wrapped_control`
+    File.write("#{cart_dir}/bin/control",control_wrapper)
+    `chmod a+x #{cart_dir}/bin/control`
+    cart_dir
+  end
 
 end

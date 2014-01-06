@@ -6,6 +6,8 @@
 # lower_case_table_names -> OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES
 # default-storage-engine -> OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE
 # max_connections -> OPENSHIFT_MYSQL_MAX_CONNECTIONS
+# ft_min_word_len -> OPENSHIFT_MYSQL_FT_MIN_WORD_LEN
+# ft_max_word_len -> OPENSHIFT_MYSQL_FT_MAX_WORD_LEN
 
 [mysqld]
 datadir=<%= ENV['OPENSHIFT_MYSQL_DIR'] %>/data/
@@ -23,6 +25,8 @@ net_buffer_length = 2K
 thread_stack = 256K
 lower_case_table_names = <%= ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] ? ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] : '0' %>
 <%= ENV['OPENSHIFT_MYSQL_MAX_CONNECTIONS'] ? "max_connections = #{ENV['OPENSHIFT_MYSQL_MAX_CONNECTIONS']}" : '' %>
+<%= ENV['OPENSHIFT_MYSQL_FT_MIN_WORD_LEN'] ? "ft_min_word_len = #{ENV['OPENSHIFT_MYSQL_FT_MIN_WORD_LEN']}" : '' %>
+<%= ENV['OPENSHIFT_MYSQL_FT_MAX_WORD_LEN'] ? "ft_max_word_len = #{ENV['OPENSHIFT_MYSQL_FT_MAX_WORD_LEN']}" : '' %>
 
 <%= ENV['OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE'] ? "default-storage-engine = #{ENV['OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE']}" : '' %>
 myisam_sort_buffer_size = 2M
@@ -54,6 +58,8 @@ no-auto-rehash
 [myisamchk]
 key_buffer_size = 8M
 sort_buffer_size = 8M
+<%= ENV['OPENSHIFT_MYSQL_FT_MIN_WORD_LEN'] ? "ft_min_word_len = #{ENV['OPENSHIFT_MYSQL_FT_MIN_WORD_LEN']}" : '' %>
+<%= ENV['OPENSHIFT_MYSQL_FT_MAX_WORD_LEN'] ? "ft_max_word_len = #{ENV['OPENSHIFT_MYSQL_FT_MAX_WORD_LEN']}" : '' %>
 
 [mysqlhotcopy]
 interactive-timeout

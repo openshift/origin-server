@@ -1,6 +1,6 @@
 = OpenShift Origin Virtual Machine Deployment Guide
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
-v2.0, July 2013
+LATEST DOC UPDATES
 :data-uri:
 :toc2:
 :icons:
@@ -20,19 +20,19 @@ uncompressed RAW disk file (Linux only).
 Download the VM from the OpenShift "mirrors" site:
 
 ----
-wget https://mirror.openshift.com/pub/origin-server/release/2/images/openshift-origin.zip
+$ wget https://mirror.openshift.com/pub/origin-server/release/3/images/openshift-origin.zip
 ----
 
 == Unpack VM files
 
-The download package is a bzip2 compressed tar archive. Unpack it with tar:
+The download package is a ZIP archive. Unpack it with `unzip`or your system's archive utility.
 
 ----
-tar -xjvf openshift-origin.tbz2
+$ unzip openshift-origin.zip
 ----
 
 This can take quite a while.  The files being uncompressed are pretty
-large.  The result will be the creation of four additional files:
+large. The result will be the creation of four additional files:
 
 ----
 $ ls -1t
@@ -47,17 +47,16 @@ openshift-origin.vmx
 
 The VM image is configured to use link:http://en.wikipedia.org/wiki/MDNS[mDNS] to provide DNS name resolution so that
 your browser and RHC client can resolve the URL of the broker and applications running on the VM. mDNS services are built-in
-on MacOSX (bonjour) and Windows (zeroconf) system and require a few addition steps on Fedora 19 or other linux based systems.
+on MacOSX (bonjour) and Windows (zeroconf) system, but require a few addition steps on Fedora 19 or other linux based systems.
 
-Install the mdns resolver RPM:
-
+1. Install the mDNS resolver RPM:
++
 ----
-yum install -y nss-mdns
+$ yum install -y nss-mdns
 ----
-
-Edit your _/etc/nsswitch.conf_ file. Search for a list beginning with *"hosts:"* and add *mdns4* to the end of the line. 
+2. Edit your _/etc/nsswitch.conf_ file. Search for a list beginning with *"hosts:"* and add *mdns4* to the end of the line. 
 After the edit, it should look like:
-
++
 ----
 hosts:      files mdns4_minimal [NOTFOUND=return] dns myhostname mdns4
 ----
@@ -88,7 +87,7 @@ system.
 Start by installing the KVM/libvirt RPMs:
 
 ----
-yum install -y virt-manager libvirt
+$ yum install -y virt-manager libvirt
 ----
 
 NOTE: This step may take a while depending on the speed of your internet connection.
@@ -100,14 +99,13 @@ KVM requires a RAW disk image file. We can use _qemu-img_ command to convert the
 Install the _qemu-img_ RPM:
 
 ----
-yum install -y qemu-img
+$ yum install -y qemu-img
 ----
 
 Run _qemu-img_ to convert the image file and then copy it into the libvirt directory.
 
 ----
-qemu-img convert -O raw openshift-origin.vmdk openshift-origin.dsk
-mv openshift-origin.dsk /var/lib/libvirt/images/
+$ qemu-img convert -O raw origin-release-3.vmdk /var/lib/libvirt/images/origin-release-3.dsk
 ----
 
 ==== Create New VM
@@ -115,13 +113,13 @@ mv openshift-origin.dsk /var/lib/libvirt/images/
 Ensure that _libvirt_ is running:
 
 ----
-service libvirtd start
+$ systemctl start libvirtd.service
 ----
 
 Start virt-manager on the command line:
 
 ----
-virt-manager
+$ virt-manager
 ----
 
 Once virt-manager starts, click on the "Create a new virtual machine" icon or right click on localhost and select _New_.
@@ -158,11 +156,7 @@ image:virt_manager_step_4.png[image]
 
 ==== Starting the VM
 
-When the VM has finished booting. It will go through some initialization:
-
-image:virt_manager_vm_starting.png[image]
-
-And then present you with the URL and credentials to connect to your OpenShift Origin VM.
+When the VM has finished booting. It will go through some initialization and then present you with the URL a menu where you can start working with your VM.
 
 image:virt_manager_vm_running.png[image]
 
@@ -229,26 +223,31 @@ the stopped virtual machine and present the VM manager display.
 
 image:deployment_guide_vm/virtualbox_vm_prestart.png[image]
 
-==== Select Bridged Networking
+==== Add Bridged Networking
 
 By default VirtualBox uses Network Address Translation (NAT) to create a
 virtual network interface for your virtual machines. NAT will not let
-you connect back into your virtual machine.  You need to change the
+you connect back into your virtual machine.  You need to add a second
 network adaptor configuration to use Bridged networking.  Then your
 virtual machine will get an IP address from your DHCP server, and you
 will be able to use that address to browse or log in.
 
 Highlight the OpenShift virtual machine (if it's the only one, it will
 be already) and click the Settings icon (shaped like a gear) in the
-upper left corner.
+upper left corner. When the Settings window opens, select Network in the
+settings list.
 
 image:deployment_guide_vm/virtualbox_config_network_dialog.png[image]
 
-Each system may have different names for the network adaptor.  Find
-yours in the pulldown menu labeled "Attached to:".  Select it and
-press the OK button.  You'll return to the main display ready to start
-the VM.
+Leave Adapter 1 as NAT and select the tab for Adapter 2.
 
+1. First, check the Enable Network Adapter box, which will unlock the other adapter settings.
+2. Next, set the Attached to: value to "Bridged Adapter"
+3. Finally, set the Name value to the network adapter that you want to bridge.
+
+NOTE: Each system may have different names for their physical network adaptors.
+
+Press "OK" to finish changing the VM settings and return to the main window.
 Highlight the OpenShift Origin VM in the left hand column and click
 the "Start" button.  VirtualBox will display the VM console as a black
 window and you can observe the boot process.
@@ -258,20 +257,9 @@ startup about "Auto capture keyboard" and "mouse pointer
 integration". It is safe to click them away and to check the "don't
 show me again" box when you do.
 
-When the VM has completed booting VirtualBox will display the access
-information for the VM and prompt you to start a root console.
+When the VM has finished booting. It will go through some initialization and then present you with the URL a menu where you can start working with your VM.
 
-image:deployment_guide_vm/virtualbox_console_banner.png[image]
-
-The first line shows the URL you can use from your local browser to
-reach the OpenShift console. The username and password are on the next
-two lines. The next group shows the access information to the VM using
-SSH to get a command line shell on the VM. Note these values as you
-will need them to access the VM.
-
-When you press any key the console shell will start.
-
-image:deployment_guide_vm/virtualbox_console_shell.png[image]
+image:virt_manager_vm_running.png[image]
 
 == Accessing the Virtual Machine
 

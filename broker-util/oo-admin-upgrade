@@ -50,7 +50,7 @@ module OpenShift
 
     ##
     # High level metadata about the portion of the cluster
-    # being upgraded by this upgrader (e.g. the subset of 
+    # being upgraded by this upgrader (e.g. the subset of
     # nodes to be upgraded).
     #
     class ClusterMetadata < UpgradePersistable
@@ -206,7 +206,7 @@ class Upgrader
   #                              slots which each upgrader process must assign itself to. All positions must
   #                              be taken to upgrade.
   #
-  #  :upgrade_position         - Postion of this upgrader (1 based) amongst the num of upgraders (+num_upgraders+)
+  #  :upgrade_position         - Position of this upgrader (1 based) amongst the num of upgraders (+num_upgraders+)
   #
   #  :max_threads              - The maximum numbers of threads to use when processing nodes from the node queue.
   #                              Default is +12+.
@@ -368,7 +368,7 @@ class Upgrader
   #      the ordered list of nodes to be upgraded
   #
   #   3. A gear queue file per node, where each line in the queue file is a JSON dump of a
-  #      +GearQueueEntry+ represnting a gear to be upgraded.
+  #      +GearQueueEntry+ representing a gear to be upgraded.
   #
   # Expects an argument hash with data to store along with each node queue entry used to construct
   # the gear level node queues. Each argument is typically just passed through from +upgrade+; see

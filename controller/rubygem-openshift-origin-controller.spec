@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.1
+Version: 1.19.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,55 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.5-1
+- Merge pull request #4385 from pravisankar/dev/ravi/chk-bug
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1044417 - Fix storage inconsistencies in oo-admin-chk (rpenta@redhat.com)
+- Merge pull request #4349 from bparees/scalable_cart
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4355 from smarterclayton/use_local_namespace
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1043620 - Cannot create scalable cartridge without specifying service
+  category (bparees@redhat.com)
+- Since domain_namespace is denormalized, guard load (ccoleman@redhat.com)
+- Use denormalized domain_namespace (ccoleman@redhat.com)
+
+* Thu Dec 19 2013 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Merge pull request #4341 from bparees/ssh_test_timeout
+  (dmcphers+openshiftbot@redhat.com)
+- move tests into new group 4 to avoid group 1 ssh timeout (bparees@redhat.com)
+
+* Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Merge pull request #4338 from VojtechVitek/php54
+  (dmcphers+openshiftbot@redhat.com)
+- add cucumber tests for php54 SCL on RHEL-6 (vvitek@redhat.com)
+
+* Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
+- Merge pull request #4374 from pravisankar/dev/ravi/chk-bug
+  (dmcphers+openshiftbot@redhat.com)
+- Minor fix in finding additional storage inconsistencies (rpenta@redhat.com)
+- Merge pull request #4356 from smarterclayton/fix_job_module
+  (dmcphers+openshiftbot@redhat.com)
+- Move pending_ops into a path Rails can find them automatically
+  (ccoleman@redhat.com)
+- Rename addParallelRollbackJob (ccoleman@redhat.com)
+- Rename methods to fit Ruby coding style (ccoleman@redhat.com)
+- Report warnings and errors from broker when console gets rest api server
+  error (jforrest@redhat.com)
+- Merge pull request #4350 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4328 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4332 from bparees/extended_debug
+  (dmcphers+openshiftbot@redhat.com)
+- fix for 1043588 - get the first web_framework's port interface
+  (rchopra@redhat.com)
+- Bug fixes - 1040314, 1040312, 1040305 (rpenta@redhat.com)
+- oo-admin-chk refactor (rpenta@redhat.com)
+- Ensuring consistency for atomically adding/removing
+  pending_op_groups/ssh_keys (abhgupta@redhat.com)
+- force test case failure if file cannot be written (bparees@redhat.com)
+
 * Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.19.1-1
 - bump_minor_versions for sprint 38 (admiller@redhat.com)
 - fix typo in cucumber step definition (bparees@redhat.com)

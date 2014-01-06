@@ -57,7 +57,7 @@ class EmbCartController < BaseController
 
     valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & @application.domain.allowed_gear_sizes & @application.domain.owner.allowed_gear_sizes
 
-    return render_error(:forbidden, "The owner of the domain #{@application.domain.namespace} has disabled all gear sizes from being created.  You will not be able to add any cartridge in this domain.",
+    return render_error(:forbidden, "The owner of the domain #{@application.domain_namespace} has disabled all gear sizes from being created.  You will not be able to add any cartridge in this domain.",
                         134) if valid_sizes.empty?
 
     return render_error(:unprocessable_entity, "The gear size '#{gear_size}' is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.",

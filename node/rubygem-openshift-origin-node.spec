@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.1
+Version: 1.19.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,26 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Dec 23 2013 Adam Miller <admiller@redhat.com> 1.19.5-1
+- fixup naming (dmcphers@redhat.com)
+
+* Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Merge pull request #4363 from aaronknister/aknister/rhcsh_idle_timeout
+  (dmcphers+openshiftbot@redhat.com)
+- prefix rhcsh timeout parameter name with OPENSHIFT_ (aaron.knister@gmail.com)
+- make rhcsh idle time out a configurable parameter in node.conf
+  (RHCSH_IDLE_TIMEOUT) (aaron.knister@gmail.com)
+
+* Thu Dec 19 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Merge pull request #4375 from bparees/hot_deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1033523 - The hot_deploy marker/--hot-deploy option can not take effect
+  when deploying app with binary deployment (bparees@redhat.com)
+
+* Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
+- Security - moved OPENSHIFT_UMASK from devenv into the node RPM
+  (tkramer@redhat.com)
+
 * Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.19.1-1
 - bump_minor_versions for sprint 38 (admiller@redhat.com)
 - Merge pull request #4288 from jhadvig/restore

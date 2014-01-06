@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
+- handle non-64bit libdir for ARM (admiller@redhat.com)
+
 * Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
 - bump_minor_versions for sprint 38 (admiller@redhat.com)
 

@@ -4,11 +4,11 @@ class SetAddtlFsGbOp < PendingAppOp
   field :addtl_fs_gb, type: Integer
   field :saved_addtl_fs_gb, type: Integer
 
-  def isParallelExecutable()
+  def is_parallel_executable
     return true
   end
 
-  def addParallelExecuteJob(handle)
+  def add_parallel_execute_job(handle)
     gear = get_gear()
     unless gear.removed
       tag = { "op_id" => self._id.to_s }
@@ -16,7 +16,7 @@ class SetAddtlFsGbOp < PendingAppOp
     end
   end
 
-  def addParallelRollbackJob(handle)
+  def add_parallel_rollback_job(handle)
     gear = get_gear()
     unless gear.removed
       tag = { "op_id" => self._id.to_s }

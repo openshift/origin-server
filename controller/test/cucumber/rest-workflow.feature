@@ -64,7 +64,9 @@ Feature: Rest Quick tests
     Scenarios: RHEL
       | format | cart_name | db_cart_name |
       | JSON   |  php-5.3  |  mysql-5.1   |
+      | JSON   |  php-5.4  |  mysql-5.1   |
       | XML    |  php-5.3  |  mysql-5.1   |
+      | XML    |  php-5.4  |  mysql-5.1   |
 
     @fedora-19-only
     Scenarios: Fedora 19

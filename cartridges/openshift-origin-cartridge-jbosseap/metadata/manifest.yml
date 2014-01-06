@@ -18,7 +18,7 @@ Categories:
 - web_framework
 - java
 - jboss
-- jee_full_profile
+- java_ee_6
 Website: http://www.redhat.com/products/jbossenterprisemiddleware/application-platform/
 Help-Topics:
   Developer Center: https://www.openshift.com/developers
