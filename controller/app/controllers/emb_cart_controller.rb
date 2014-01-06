@@ -148,10 +148,11 @@ class EmbCartController < BaseController
 
     rescue Exception => ex
       # if this was a request to add a url based cart, remove the entry from downloaded_cart_map
-      # unless cmap.empty?
-      #  @application.downloaded_cart_map.delete_if {|k, v| k == cmap.keys[0]}
-      #  @application.save
-      # end
+      # even though the new_comp_op rollback does this, the exception could be raised before the op_group execution
+      unless cmap.empty?
+        @application.downloaded_cart_map.delete_if {|k, v| k == cmap.keys[0]}
+        @application.save
+      end
 
       case ex
       when OpenShift::GearLimitReachedException
