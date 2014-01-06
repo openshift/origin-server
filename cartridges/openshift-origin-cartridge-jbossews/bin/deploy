@@ -12,6 +12,12 @@ if [ -d $tmp ]; then
   done
 fi
 
+# clear the tomcat work directory to avoid accumulating old content
+# it will be recreated when tomcat starts or when the webapps directory is changed
+if [ -d ${OPENSHIFT_JBOSSEWS_DIR}/work/ ]; then
+    rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/work/
+fi
+
 # if repo/webapps has any files in it, sync them to $OPENSHIFT_JBOSSEWS_DIR/webapps
 # and delete any files in $OPENSHIFT_JBOSSEWS_DIR/webapps that don't exist in
 # repo/webapps
