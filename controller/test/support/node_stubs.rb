@@ -40,14 +40,25 @@ end
 
 def read_local_cartridges
   $global_cartridges ||= begin
-    manifests = Dir[File.expand_path('../../../../cartridges/**/manifest.yml', __FILE__)].to_a
-    if env = (ENV['CARTRIDGE_SUFFIX'] || 'rhel*')
-      manifests += Dir[File.expand_path("../../../../cartridges/**/manifest.yml.#{env}", __FILE__)].to_a
-    end
+    sources = [
+      ENV['CARTRIDGE_PATH'] || '.',
+      # we're in a source origin-server repo
+      File.expand_path('../../../../broker/cartridges', __FILE__),
+      # we're on a node or all in one server
+      '/var/lib/openshift/.cartridge_repository',
+    ]
+    manifests = sources.inject do |arr, base_path|
+      manifests = Dir["#{base_path}/**/manifest.yml"].presence or next
+      if env = (ENV['CARTRIDGE_SUFFIX'] || 'rhel*')
+        manifests += Dir["#{base_path}/**/manifest.yml.#{env}"].to_a
+      end
+      break manifests
+    end or raise "Unable to find system cartridges"
+
     manifests.map do |f|
       OpenShift::Runtime::Manifest.manifests_from_yaml(IO.read(f)).map do |m|
         OpenShift::Cartridge.new.from_descriptor(m.manifest)
-      end
+      end rescue raise "Unable to parse manifest: #{$!.message} (#{f})\n#{$!.backtrace.join("\n")}"
     end.flatten
   end
 end
