@@ -138,6 +138,7 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     # create domain
     request_via_redirect(:post, DOMAIN_COLLECTION_URL, {:name => ns}, @headers)
     assert_response :created
+    assert_equal 0, Domain.find_by(namespace: ns).owner.consumed_gears
 
     #set gear limit
     system "oo-admin-ctl-user -l #{@login} --setmaxgears 3"
@@ -145,12 +146,14 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     # create application #1
     request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version}, @headers)
     assert_response :created
+    assert_equal 1, Domain.find_by(namespace: ns).owner.consumed_gears
 
     # try create another application with the same name
     request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 100)
+    assert_equal 1, Domain.find_by(namespace: ns).owner.consumed_gears
 
     # create application #2
     request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app2", :cartridge => php_version}, @headers)

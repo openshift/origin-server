@@ -136,7 +136,7 @@ class AppCartridgesTest < ActionDispatch::IntegrationTest
 
     # embed an invalid cartridge
     request_via_redirect(:post, APP_CARTRIDGES_URL_FORMAT % [ns, "appnoscale"], {:name => "invalid-cartridge"}, @headers)
-    assert_response :not_found
+    assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 129)
 
