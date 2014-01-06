@@ -81,6 +81,27 @@ class Command
     1
   end
 
+  def delete(options)
+    env!(options)
+    raise ArgumentError, "--name NAMES is a required argument for delete" if options.names.nil? || options.names.empty?
+    carts = CartridgeType.in(name: options.names)
+    if carts.empty?
+      $stderr.puts "No cartridges match #{options.names.map{|s| "'#{s}'"}.join(', ')}."
+      return 2
+    end
+    carts.delete
+    puts "#{carts.map(&:name).join(',')} were deleted."
+    0
+  rescue ArgumentError
+    $stderr.puts $!
+    1
+  rescue => e
+    $stderr.puts "Failed to delete cartridges"
+    $stderr.puts e
+    $stderr.puts e.backtrace
+    1
+  end
+
   protected
     def env!(options)
       require options.broker || PATH
@@ -117,6 +138,10 @@ Commands:
 
   opts.on('--raw', "Dump all cartridge information as JSON") do
     options.raw = true
+  end
+
+  opts.on('-n NAMES', '--name NAMES', "Comma-delimited cartridge names.") do |names|
+    options.names = names.split(/[\, ]/)
   end
 
   opts.on_tail("-h", "--help", "Show this message") do

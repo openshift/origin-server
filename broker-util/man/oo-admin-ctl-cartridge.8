@@ -16,25 +16,34 @@ oo-admin-ctl-cartridge [ \fB--command\fP (refresh|clean|list) ] [ \fB--help\fP ]
 
 This is an administrative utility to manage cartridges.
 .SH OPTIONS
-.TP
-.B
 \fB-h\fP|\fB--help\fP
 Display a simple usage page.
-.TP
-.B
+.PP
 \fB-c\fP|\fB--command\fP COMMAND
 .PP
 .nf
 .fam C
+    list - Display information about broker cartridges
+
     refresh - Update the broker cartridge collection with cartridges from a node.
 
     clean - Deletes all cartridges from the broker
 
-    list - Display information about broker cartridges
+    delete - Remove individual cartridge versions from the broker.  Specify one or
+      more names using the '-n' option.
 
 .fam T
 .fi
+\fB--raw\fP
+When outputting cartridge information, display each manifest as JSON
+.PP
+\fB-n\fP|\fB--name\fP NAMES
+.RS
+.TP
+.B
+A comma-delimited list of cartridge names.
+Used by the "delete" command.
 .SH EXAMPLE
 $ oo-admin-ctl-cartridge \fB-c\fP refresh
 .SH AUTHOR
-Clayton Coleman <ccoleman@redhat.com> - man page written for OpenShift Origin 
+Clayton Coleman <ccoleman@redhat.com> - man page written for OpenShift Origin
