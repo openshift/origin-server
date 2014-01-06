@@ -17,4 +17,5 @@ def register_user(login=nil, password=nil)
 end
 
 # Load support files
-Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
+Dir["#{OpenShift::CloudEngine.root}/test/support/**/*.rb",
+    "#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }

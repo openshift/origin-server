@@ -40,9 +40,9 @@ end
 
 def read_local_cartridges
   $global_cartridges ||= begin
-    manifests = Dir[File.expand_path('../../../cartridges/**/manifest.yml', __FILE__)].to_a
+    manifests = Dir[File.expand_path('../../../../cartridges/**/manifest.yml', __FILE__)].to_a
     if env = (ENV['CARTRIDGE_SUFFIX'] || 'rhel*')
-      manifests += Dir[File.expand_path("../../../cartridges/**/manifest.yml.#{env}", __FILE__)].to_a
+      manifests += Dir[File.expand_path("../../../../cartridges/**/manifest.yml.#{env}", __FILE__)].to_a
     end
     manifests.map do |f|
       OpenShift::Runtime::Manifest.manifests_from_yaml(IO.read(f)).map do |m|
