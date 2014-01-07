@@ -1,14 +1,6 @@
 #!/bin/bash -eu
 
 python_version="$1"
-curr=$2
-next=$3
-
-if [[ $curr =~ 0.0.[1-9] ]]; then
-  if [ -e $OPENSHIFT_HOMEDIR/python/metadata/jenkins_shell_command ]; then
-    rm -f $OPENSHIFT_HOMEDIR/python/metadata/jenkins_shell_command
-  fi
-fi
 
 upgrade_script="$OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/bin/upgrade"
 
