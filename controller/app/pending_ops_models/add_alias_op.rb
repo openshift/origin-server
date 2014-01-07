@@ -8,7 +8,7 @@ class AddAliasOp < PendingAppOp
     gear = get_gear()
     result_io = gear.add_alias(fqdn) unless gear.removed
     application.aliases.push(Alias.new(fqdn: fqdn))
-    application.save
+    application.save!
     result_io
   end
 
@@ -19,7 +19,7 @@ class AddAliasOp < PendingAppOp
     begin
       a = application.aliases.find_by(fqdn: fqdn)
       application.aliases.delete(a)
-      application.save
+      application.save!
     rescue Mongoid::Errors::DocumentNotFound
       # ignore if alias is not found
     end

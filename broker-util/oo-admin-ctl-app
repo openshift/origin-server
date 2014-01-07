@@ -168,7 +168,7 @@ begin
           end
         end
         owner.consumed_gears -= gear_count
-        owner.save
+        owner.save!
       rescue Exception
         #ignore
       ensure

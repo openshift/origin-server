@@ -406,7 +406,7 @@ module OpenShift
             result = ooex.resultIO
             if result != nil && result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
               gear.uid = reserve_uid
-              app.save
+              app.save!
             else
               raise ooex
             end
@@ -1989,7 +1989,7 @@ module OpenShift
 
               app.update_proxy_status(action: :enable, gear_uuid: gear.uuid)
             end
-            app.save
+            app.save!
 
           rescue Exception => e
             gear.server_identity = source_container.id
@@ -2912,7 +2912,7 @@ module OpenShift
               dns_service.modify_application(gear.name, app.domain_namespace, get_public_hostname)
               dns_service.publish
               gear.server_identity = @id
-              app.save
+              app.save!
               #retry
               result = execute_direct(framework, command, arguments)
               resultIO = parse_result(result, gear, command)

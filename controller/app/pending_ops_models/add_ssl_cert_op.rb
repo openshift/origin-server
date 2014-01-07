@@ -13,7 +13,7 @@ class AddSslCertOp < PendingAppOp
     a = application.aliases.find_by(fqdn: fqdn)
     a.has_private_ssl_certificate = true
     a.certificate_added_at = Time.now
-    application.save
+    application.save!
     result_io
   end
 
@@ -25,7 +25,7 @@ class AddSslCertOp < PendingAppOp
       a = application.aliases.find_by(fqdn: fqdn)
       a.has_private_ssl_certificate = false
       a.certificate_added_at = nil
-      application.save
+      application.save!
     rescue Mongoid::Errors::DocumentNotFound
       # ignore if alias is not found
     end
