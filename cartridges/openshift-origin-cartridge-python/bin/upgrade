@@ -10,7 +10,6 @@ if [[ $curr =~ 0.0.[1-9] ]]; then
   fi
 fi
 
-
 upgrade_script="$OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/bin/upgrade"
 
 

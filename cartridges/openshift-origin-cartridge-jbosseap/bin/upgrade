@@ -6,7 +6,7 @@ jboss_version="$1"
 old_cart_version="$2"
 new_cart_version="$3"
 
-if [[ $curr =~ 0.0.[1-9] ]]; then
+if [[ $old_cart_version =~ 0.0.[1-9] ]]; then
   if [ -e $OPENSHIFT_HOMEDIR/jbosseap/metadata/jenkins_shell_command ]; then
     rm -f $OPENSHIFT_HOMEDIR/jbosseap/metadata/jenkins_shell_command
   fi

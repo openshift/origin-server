@@ -22,7 +22,7 @@ if [ "${nodejs_version}" == "0.10" ]; then
     fi
 fi
 
-if [[ $curr =~ 0.0.[1-10] ]]; then
+if [[ $old_cart_version =~ 0.0.[1-10] ]]; then
   if [ -e $OPENSHIFT_HOMEDIR/nodejs/metadata/jenkins_shell_command ]; then
     rm -f $OPENSHIFT_HOMEDIR/nodejs/metadata/jenkins_shell_command
   fi
