@@ -144,6 +144,24 @@ module OpenShift
         oldpath
       end
 
+      def self.check_quotas(uuid, watermark)
+        output = []
+        quota  = self.get_quota(uuid)
+        usage  = (quota[:blocks_used] / quota[:blocks_limit].to_f) * 100.0
+
+        if watermark < usage
+          output << "Warning: Gear #{uuid} is using %3.1f%% of disk quota" % usage
+        end
+
+        usage = (quota[:inodes_used] / quota[:inodes_limit].to_f) * 100.0
+        if watermark < usage
+          output << "Warning: Gear #{uuid} is using %3.1f%% of inodes allowed" % usage
+        end
+        return output
+      rescue Exception => e
+        return []
+      end
+
       def self.set_quota(uuid, blocksmax, inodemax)
         current_quota, current_inodes, cur_quota = 0, 0, nil
 
