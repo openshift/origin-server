@@ -93,6 +93,10 @@ class PendingAppOp
 
     while retries < num_retries
       retval = block.call(current_app, current_op_group, current_op, op_group_index, op_index)
+      if retval["updatedExisting"]
+        success = true
+        break
+      end
 
       # the op needs to be reloaded to find the updated index
       current_app = Application.find_by(_id: current_app._id)
@@ -101,11 +105,6 @@ class PendingAppOp
       current_op = current_app.pending_op_groups[op_group_index].pending_ops.find_by(_id: current_op._id)
       op_index = current_app.pending_op_groups[op_group_index].pending_ops.index(current_op)
       retries += 1
-
-      if retval["updatedExisting"]
-        success = true
-        break
-      end
     end
 
     # log the details in case we cannot update the pending_op
