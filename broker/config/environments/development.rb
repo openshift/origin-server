@@ -92,6 +92,8 @@ Broker::Application.configure do
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
     :allow_ha_applications => conf.get_bool('ALLOW_HA_APPLICATIONS', "false"),
     :router_hostname => conf.get('ROUTER_HOSTNAME', "www.example.com"),
+    :ha_dns_prefix => conf.get('HA_DNS_PREFIX', "ha-"),
+    :ha_dns_suffix => conf.get('HA_DNS_SUFFIX', ""),
     :valid_ssh_key_types => OpenShift::Controller::Configuration.parse_list(conf.get('VALID_SSH_KEY_TYPES', nil)),
     :allow_obsolete_cartridges => conf.get_bool('ALLOW_OBSOLETE_CARTRIDGES', "false")
   }
