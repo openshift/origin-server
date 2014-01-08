@@ -1,4 +1,4 @@
-@cartridge_extended1
+@cartridge_extended4
 @not-fedora-19
 Feature: MySQL Tests
   Scenario: Snapshot/Restore an application with a MySQL 5.1 database
