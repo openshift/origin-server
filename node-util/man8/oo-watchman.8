@@ -1,0 +1,72 @@
+.\" Process this file with
+.\" groff -man -Tascii oo-watchman.8
+.\"
+.de FN
+\fI\|\\$1\|\fP
+..
+.TH "OO-WATCHMAN" "8" "2014-01-10" "OpenShift" "OpenShift Management Commands"
+.SH NAME
+oo-watchman \- monitor the status and state of gears and cartridges
+.SH SYNOPSIS
+.B "/etc/init.d/openshift-watchman {start|stop|restart|status}"
+.SH DESCRIPTION
+.B "oo-watchman"
+Provides a plugin framework for monitoring the status and state of gears/cartridges on a node.
+.P
+Plugins inherit from the base class
+.B
+WatchmanPlugin
+implementing the optional methods
+.I
+initialize
+and
+.I
+apply.
+.P
+The scripts /etc/init.d/openshift-watchman and openshift-watchman.service are provided to start oo-watchman.
+.SH EXIT STATUS
+The program only returns when an exception is thrown
+.SH FILES
+.TP
+.FN /etc/openshift/node.conf
+Node configuration elements
+.TP
+.FN /etc/openshift/watchman/plugins.d
+Directory containing Watchman plugins. Location may be overridden in node.conf using by setting the
+.B
+WATCHMAN_PLUGIN_DIR
+element
+.TP
+.FN /var/log/watchman.log
+Exceptions from oo-watchman are logged here
+.TP
+.FN /var/log/watchman.output
+STDOUT and STDERR from watchman and plugins are logged here
+.TP
+.FN /var/log/messages
+Watchman initiated changes in gear state or status is logged
+.SH EXAMPLE
+.P
+The
+.B
+SyslogPlugin
+searches /var/log/messages for messages logged by cgroups when killing off a gear.
+The gear is restarted, if needed.
+.P
+The
+.B
+JbossPlugin
+searches JBoss cartridges' server.log files for OutOfMemoryExceptions.
+The gear is restarted, if needed.
+.P
+The
+.B
+StoplockPlugin
+removes .stop_lock files from running applications
+.P
+The
+.B
+ThrottlerPlugin
+monitors CPU usage via cgroups and restricts usage if needed.
+
+.SH SEE ALSO

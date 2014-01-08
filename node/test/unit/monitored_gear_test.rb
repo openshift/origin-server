@@ -1,7 +1,7 @@
 #!/usr/bin/env oo-ruby
 
 require_relative '../test_helper'
-require          'openshift-origin-node/utils/cgroups/monitored_gear'
+require_relative '../../../node-util/conf/watchman/plugins.d/monitored_gear'
 
 # This will sanity test some Array math helpers
 class ArrayTest < OpenShift::NodeTestCase
