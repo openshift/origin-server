@@ -35,6 +35,16 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     app.destroy_app
   end
 
+  test "initial app save failure should clean up gears" do
+    e = RuntimeError.new("Failure")
+    Application.any_instance.expects(:save!).raises(e)
+    assert_difference "@user.consumed_gears", 0 do
+      assert_difference "Application.all.count", 0 do
+        assert_raises(RuntimeError){ Application.create_app("test", [PHP_VERSION], @domain) }
+      end
+    end
+  end
+
   test "create update and destroy scalable application" do
     @appname = "test"
     app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
