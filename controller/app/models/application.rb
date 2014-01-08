@@ -1380,9 +1380,11 @@ class Application
   end
 
   def deregister_routing_dns
+    ha_dns_prefix = Rails.configuration.openshift[:ha_dns_prefix]
+    ha_dns_suffix = Rails.configuration.openshift[:ha_dns_suffix]
     dns = OpenShift::DnsService.instance
     begin
-      dns.deregister_application("ha-#{self.name}", self.domain_namespace)
+      dns.deregister_application("#{ha_dns_prefix}#{self.name}", "#{self.domain.namespace}#{ha_dns_suffix}")
       dns.publish
     ensure
       dns.close
@@ -1390,10 +1392,12 @@ class Application
   end
 
   def register_routing_dns
+    ha_dns_prefix = Rails.configuration.openshift[:ha_dns_prefix]
+    ha_dns_suffix = Rails.configuration.openshift[:ha_dns_suffix]
     target_hostname = Rails.configuration.openshift[:router_hostname]
     dns = OpenShift::DnsService.instance
     begin
-      dns.register_application("ha-#{self.name}", self.domain_namespace, target_hostname)
+      dns.register_application("#{ha_dns_prefix}#{self.name}", "#{self.domain.namespace}#{ha_dns_suffix}", target_hostname)
       dns.publish
     ensure
       dns.close
@@ -1436,15 +1440,19 @@ class Application
         op_group = AddBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp } })
       when "NOTIFY_ENDPOINT_CREATE"
-        if gear 
+        if gear
           pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args])
           gear.port_interfaces.push(pi)
-          pi.publish_endpoint(self) if self.ha
+          pi.publish_endpoint(self)
         end
-        # OpenShift::RoutingService.notify_create_public_endpoint self, *command_item[:args]
       when "NOTIFY_ENDPOINT_DELETE"
-        PortInterface.remove_port_interface(gear, component_id, *command_item[:args]) if gear 
-        OpenShift::RoutingService.notify_delete_public_endpoint self, *command_item[:args] if self.ha
+        if gear
+          public_ip, public_port = command_item[:args]
+          if pi = PortInterface.find_port_interface(gear, public_ip, public_port)
+            pi.unpublish_endpoint(self, public_ip)
+            gear.port_interfaces.delete(pi)
+          end
+        end
       end
     end
 

@@ -82,6 +82,7 @@ Broker::Application.configure do
     :default_gear_size => conf.get("DEFAULT_GEAR_SIZE", "small"),
     :gear_sizes => conf.get("VALID_GEAR_SIZES", "small").split(","),
     :default_gear_capabilities => conf.get("DEFAULT_GEAR_CAPABILITIES", "small").split(","),
+    :default_allow_ha => conf.get('DEFAULT_ALLOW_HA', "false"),
     :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Domain', 'Scope::Application', 'Scope::Userinfo'],
     :default_scope => 'userinfo',
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration("session=1.days|2.days", 1.month),
@@ -90,6 +91,8 @@ Broker::Application.configure do
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
     :allow_ha_applications => conf.get_bool('ALLOW_HA_APPLICATIONS', "false"),
     :router_hostname => conf.get('ROUTER_HOSTNAME', "www.example.com"),
+    :ha_dns_prefix => conf.get('HA_DNS_PREFIX', "ha-"),
+    :ha_dns_suffix => conf.get('HA_DNS_SUFFIX', ""),
     :valid_ssh_key_types => OpenShift::Controller::Configuration.parse_list(conf.get('VALID_SSH_KEY_TYPES', nil)),
     :allow_obsolete_cartridges => conf.get_bool('ALLOW_OBSOLETE_CARTRIDGES', "false")
   }
