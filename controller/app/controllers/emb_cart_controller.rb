@@ -46,7 +46,7 @@ class EmbCartController < BaseController
 
     cartridges = CartridgeCache.find_and_download_cartridges(specs)
     group_overrides = CartridgeInstance.overrides_for(cartridges, @application)
-    self.validate_cartridge_instances!(cartridges)
+    @application.validate_cartridge_instances!(cartridges)
 
     result = @application.add_features(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
 
@@ -63,6 +63,10 @@ class EmbCartController < BaseController
 
   rescue OpenShift::GearLimitReachedException => ex
     render_error(:unprocessable_entity, "Unable to add cartridge: #{ex.message}", 104)
+
+  rescue OpenShift::UserException => ex
+    ex.field = nil if ex.field == "cartridge"
+    raise
   end
 
   def destroy

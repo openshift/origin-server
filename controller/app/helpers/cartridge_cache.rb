@@ -186,7 +186,7 @@ class CartridgeCache
       end
       raise OpenShift::UserException.new("Invalid cartridge '#{name}' specified.", 109, field) if cart.nil?
 
-      # downloadable carts should be refreshed
+      # carts defined with a manifest URL are downloaded each time
       if cart.manifest_url
         downloads << spec.except(:name).merge!(url: cart.manifest_url, version: cart.version)
         next arr
@@ -229,7 +229,7 @@ class CartridgeCache
   end
 
   def self.download_from_url(url, field=nil)
-    cartridge_conf = Rails.application.config.downloaded_cartridges || {}
+    cartridge_conf = Rails.configuration.downloaded_cartridges || {}
 
     client = if cartridge_conf[:http_proxy].present?
       HTTPClient.new(cartridge_conf[:http_proxy])

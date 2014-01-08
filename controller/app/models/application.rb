@@ -507,7 +507,7 @@ class Application
       raise OpenShift::ApplicationValidationException.new(self)
     end
 
-    if (self.persisted? || !self.builder_id) && (obsolete = cartridges.select(&:is_obsolete?).presence)
+    if !Rails.configuration.openshift[:allow_obsolete_cartridges] && (obsolete = cartridges.select(&:is_obsolete?).presence) && (self.persisted? || !self.builder_id)
       obsolete.each{ |c| self.errors[:cartridge] = "The cartridge '#{c.name}' is no longer available to be added to an application." }
       raise OpenShift::ApplicationValidationException.new(self)
     end
@@ -555,7 +555,7 @@ class Application
 
       # ensure that the user isn't trying to add multiple versions of the same cartridge
       if cart_name_map.has_key?(cart.original_name)
-        raise OpenShift::UserException.new("#{cart.name} cannot co-exist with #{cart_name_map[cart.original_name]} in the same application", 109, 'cartridge')
+        raise OpenShift::UserException.new("#{cart.name} cannot co-exist with #{cart_name_map[cart.original_name]} in the same application", 136, "cartridge")
       else
         cart_name_map[cart.original_name] = cart.name
       end
@@ -564,7 +564,7 @@ class Application
       component_instances.each do |ci|
         ci_cart = ci.get_cartridge
         if ci_cart.original_name == cart.original_name
-          raise OpenShift::UserException.new("#{cart.name} cannot co-exist with cartridge #{ci.cartridge_name} in your application", 136, 'cartridge')
+          raise OpenShift::UserException.new("#{cart.name} cannot co-exist with cartridge #{ci.cartridge_name} in your application", 136, "cartridge")
         end
       end
 
@@ -640,11 +640,14 @@ class Application
       # this ensures that the app document is not saved without basic embedded documents in place
       # Note: when the scheduler is implemented, these steps (except the call to run_jobs)
       # will be moved out of the lock
-      unless self.persisted?
+      begin
         op_group.elaborate(self)
         op_group.pre_execute(result_io)
         self.save!
-      end
+      rescue
+        op_group.unreserve_gears(op_group.num_gears_added, self)
+        raise
+      end unless self.persisted?
 
       self.run_jobs(result_io)
     end

@@ -319,14 +319,14 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "create empty downloadable cart" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       MANIFEST
     messages = assert_invalid_manifest
-    assert messages.one?{ |m| m['text'] =~ %r(The cartridge manifest at 'manifest://test' could not be downloaded\.) }, messages.inspect
+    assert messages.one?{ |m| m['text'] == "The provided downloadable cartridge 'manifest://test' cannot be loaded: Version is a required element" }, messages.inspect
   end
 
   test "create invalid downloadable cart" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       MANIFEST
     messages = assert_invalid_manifest
@@ -334,7 +334,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "create downloadable cart without vendor" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: mock
       Cartridge-Short-Name: MOCK
@@ -350,7 +350,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "create downloadable cart without version" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Cartridge-Short-Name: MOCK
       MANIFEST
@@ -359,7 +359,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "create downloadable cart without name" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Version: '0.1'
       Cartridge-Short-Name: MOCK
@@ -369,7 +369,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "create downloadable cart with reserved name" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: git
       Version: '0.1'
@@ -381,7 +381,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "create downloadable cart without categories" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: mock
       Version: '0.1'
@@ -393,7 +393,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "allow create obsolete downloadable cart" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: mock
       Version: '0.1'
@@ -411,7 +411,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "prevent create obsolete downloadable cart" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: mock
       Version: '0.1'
@@ -432,7 +432,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "create cart without specified version" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: mock
       Version: '0.1'
@@ -450,7 +450,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "create downloadable cart" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: mock
       Version: '0.1'
@@ -473,7 +473,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "create downloadable cart with multiple versions" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: mock
       Version: '0.1'
@@ -500,7 +500,7 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "create downloadable cart with version" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: mock
       Version: '0.1'
@@ -538,7 +538,7 @@ class ApplicationControllerTest < ActionController::TestCase
       - mock
       - web_framework
       MANIFEST
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(body)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(body)
     CartridgeType.where(:base_name => 'remotemock').delete
     types = CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(body), 'manifest://test')
     types.each(&:save!)

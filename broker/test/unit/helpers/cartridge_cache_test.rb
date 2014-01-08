@@ -129,7 +129,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
   end
 
   test "find and download a cartridge" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: mock
       Version: '0.1'
@@ -149,7 +149,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
   end
 
   test "find and download a cartridge and select the preferred version" do
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(<<-MANIFEST.strip_heredoc)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Name: mock
       Version: '0.1'
@@ -181,7 +181,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
       - mock
       - web_framework
       MANIFEST
-    CartridgeCache.expects(:download_from_url).with("manifest://test").returns(body)
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(body)
     CartridgeType.where(:base_name => 'remotemock').delete
     types = CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(body), 'manifest://test')
     types.each(&:save!)
