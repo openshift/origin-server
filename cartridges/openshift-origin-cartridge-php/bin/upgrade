@@ -11,3 +11,9 @@ fi
 if [[ $curr =~ 0.0.4 ]]; then
   mkdir -p $OPENSHIFT_HOMEDIR/.drush
 fi
+
+# Needed for version 0.0.1 -> 0.1.8.  This can be removed after the upgrade
+# has been deployed.
+if [ -e $OPENSHIFT_HOMEDIR/php/metadata/jenkins_shell_command ]; then
+  rm -f $OPENSHIFT_HOMEDIR/php/metadata/jenkins_shell_command
+fi

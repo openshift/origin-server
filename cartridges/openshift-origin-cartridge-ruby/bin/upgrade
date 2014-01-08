@@ -1,0 +1,11 @@
+#!/bin/bash -eu
+
+ruby_version=$1
+curr=$2
+next=$3
+
+# Needed for version 0.0.1 -> 0.1.11.  This can be removed after the upgrade
+# has been deployed.
+if [ -e $OPENSHIFT_HOMEDIR/ruby/metadata/jenkins_shell_command ]; then
+  rm -f $OPENSHIFT_HOMEDIR/ruby/metadata/jenkins_shell_command
+fi

@@ -21,3 +21,9 @@ if [ "${nodejs_version}" == "0.10" ]; then
         link_global_modules ${nodejs_version}
     fi
 fi
+
+# Needed for version 0.0.1 -> 0.1.10.  This can be removed after the upgrade
+# has been deployed.
+if [ -e $OPENSHIFT_HOMEDIR/nodejs/metadata/jenkins_shell_command ]; then
+  rm -f $OPENSHIFT_HOMEDIR/nodejs/metadata/jenkins_shell_command
+fi
