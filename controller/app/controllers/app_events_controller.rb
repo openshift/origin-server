@@ -29,7 +29,7 @@ class AppEventsController < BaseController
     event = params[:event].presence
     server_alias = params[:alias].presence
     deployment_id = params[:deployment_id].presence
-    
+
     return render_error(:unprocessable_entity, "Event can only contain lowercase a-z and '-' characters", 126,
                         "event") if event !~ EVENT_REGEX
 
