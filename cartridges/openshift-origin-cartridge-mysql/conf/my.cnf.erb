@@ -31,6 +31,8 @@ lower_case_table_names = <%= ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] ? ENV
 <%= ENV['OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE'] ? "default-storage-engine = #{ENV['OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE']}" : '' %>
 myisam_sort_buffer_size = 2M
 
+<%= ENV['OPENSHIFT_MYSQL_TIMEZONE'] ? "default-time-zone = '#{ENV['OPENSHIFT_MYSQL_TIMEZONE']}'" : '' %>
+
 #INNODB
 # You can set .._buffer_pool_size up to 50 - 80 %
 # of RAM but beware of setting memory usage too high
