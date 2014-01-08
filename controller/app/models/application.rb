@@ -1397,9 +1397,11 @@ class Application
   end
 
   def deregister_routing_dns
+    ha_dns_prefix = Rails.configuration.openshift[:ha_dns_prefix]
+    ha_dns_suffix = Rails.configuration.openshift[:ha_dns_suffix]
     dns = OpenShift::DnsService.instance
     begin
-      dns.deregister_application("ha-#{self.name}", self.domain_namespace)
+      dns.deregister_application("#{ha_dns_prefix}#{self.name}", "#{self.domain.namespace}#{ha_dns_suffix}")
       dns.publish
     ensure
       dns.close
@@ -1407,10 +1409,12 @@ class Application
   end
 
   def register_routing_dns
+    ha_dns_prefix = Rails.configuration.openshift[:ha_dns_prefix]
+    ha_dns_suffix = Rails.configuration.openshift[:ha_dns_suffix]
     target_hostname = Rails.configuration.openshift[:router_hostname]
     dns = OpenShift::DnsService.instance
     begin
-      dns.register_application("ha-#{self.name}", self.domain_namespace, target_hostname)
+      dns.register_application("#{ha_dns_prefix}#{self.name}", "#{self.domain.namespace}#{ha_dns_suffix}", target_hostname)
       dns.publish
     ensure
       dns.close
