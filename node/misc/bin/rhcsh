@@ -87,14 +87,14 @@ function welcome {
   # Quota returns nonzero if you are over limit
   if quota >/dev/null 2>&1
   then
-    local usage=$(quota | grep '^.*/dev/' | awk '{print ($2 / $4 * 100)}')
-    if [[ $usage > 90.0 ]]
+    local usage=$(quota | grep '^.*/dev/' | awk '{printf "%3.1f", ($2 / $4 * 100)}')
+    if expr $usage \> 90.0 > /dev/null
     then
       echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of disk quota"
     fi
 
-    local usage=$(quota | grep '^.*/dev/' | awk '{print ($5 / $7 * 100)}')
-    if [[ $usage > 90.0 ]]
+    local usage=$(quota | grep '^.*/dev/' | awk '{printf "%3.1f",  ($5 / $7 * 100)}')
+    if expr $usage \> 90.0 > /dev/null
     then
       echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of inodes allowed"
     fi
