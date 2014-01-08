@@ -135,7 +135,7 @@ module MCollective
             OpenShift::Runtime::NodeLogger.context[:action_method] = action_method if action_method
 
             exitcode, output, addtl_params = self.send(action_method.to_sym, args)
-          rescue => e
+          rescue Exception => e
             report_exception e
             Log.instance.error("Unhandled action execution exception for action [#{action}]: #{e.message}")
             Log.instance.error(e.backtrace)
@@ -154,20 +154,10 @@ module MCollective
       # report approaching quota overage.
       #
       def report_quota(buffer, uuid)
-        quota = ::OpenShift::Runtime::Node.get_quota(uuid)
         watermark = @@config.get('QUOTA_WARNING_PERCENT', '90.0').to_f
-
-        usage = (quota[:blocks_used] / quota[:blocks_limit].to_f) * 100.0
-        if watermark < usage
-          buffer << "\nCLIENT_MESSAGE: Warning: Gear #{uuid} is using %3.1f%% of disk quota\n" % usage
+        ::OpenShift::Runtime::Node.check_quotas(uuid, watermark).each do |line|
+          buffer << "\nCLIENT_MESSAGE: #{line}\n"
         end
-
-        usage = (quota[:inodes_used] / quota[:inodes_limit].to_f) * 100.0
-        if watermark < usage
-          buffer << "\nCLIENT_MESSAGE: Warning: Gear #{uuid} is using %3.1f%% of inodes allowed\n" % usage
-        end
-      rescue Exception => e
-        # do nothing
       end
 
       # Executes a list of jobs sequentially, adding the exitcode and output

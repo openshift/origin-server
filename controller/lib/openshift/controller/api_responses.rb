@@ -126,6 +126,10 @@ module OpenShift
             status = :forbidden
             internal_error = false
 
+          when OpenShift::AuthServiceException
+            status = :service_unavailable
+            message = "Unable to authenticate the user. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
+
           when OpenShift::DNSException
             status = :service_unavailable
 

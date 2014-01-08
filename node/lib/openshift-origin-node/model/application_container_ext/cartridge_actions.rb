@@ -470,6 +470,12 @@ module OpenShift
 
           report_build_analytics
 
+          # report approaching quota overage.
+          watermark = @config.get('QUOTA_WARNING_PERCENT', '90.0').to_f
+          ::OpenShift::Runtime::Node.check_quotas(@uuid, watermark).each do |line|
+            options[:err] << "#{line}\n" if options.key?(:err)
+          end
+
           result[:status] = RESULT_SUCCESS
           result
         end
