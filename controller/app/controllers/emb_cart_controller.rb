@@ -46,10 +46,7 @@ class EmbCartController < BaseController
 
     cartridges = CartridgeCache.find_and_download_cartridges(specs)
     group_overrides = CartridgeInstance.overrides_for(cartridges, @application)
-    if not cartridges.all?(&:valid?)
-      @application.errors[:cartridges] = cartridges.map{ |c| c.errors.full_messages.uniq }.flatten
-      raise OpenShift::ApplicationValidationException.new(@application)
-    end
+    self.validate_cartridge_instances!(cartridges)
 
     result = @application.add_features(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
 

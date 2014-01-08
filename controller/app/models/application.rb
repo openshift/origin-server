@@ -501,6 +501,20 @@ class Application
     features || []
   end
 
+  def validate_cartridge_instances!(cartridges)
+    if not cartridges.all?(&:valid?)
+      cartridges.each{ |c| c.errors.full_messages.uniq.each{ |m| errors[:cartridge] = m } }
+      raise OpenShift::ApplicationValidationException.new(self)
+    end
+
+    if (self.persisted? || !self.builder_id) && (obsolete = cartridges.select(&:is_obsolete?).presence)
+      obsolete.each{ |c| self.errors[:cartridge] = "The cartridge '#{c.name}' is no longer available to be added to an application." }
+      raise OpenShift::ApplicationValidationException.new(self)
+    end
+
+    true
+  end
+
   ##
   # Perform common initial setup of an application, including persisting it and cleanup
   # if the creation fails.
@@ -517,10 +531,7 @@ class Application
     end
 
     group_overrides = CartridgeInstance.overrides_for(cartridges, self)
-    if not cartridges.all?(&:valid?)
-      cartridges.each{ |c| c.errors.full_messages.uniq.each{ |m| errors[:cartridges] = m } }
-      raise OpenShift::ApplicationValidationException.new(self)
-    end
+    self.validate_cartridge_instances!(cartridges)
 
     add_features(cartridges.map(&:cartridge), group_overrides, init_git_url, user_env_vars)
 
@@ -544,7 +555,7 @@ class Application
 
       # ensure that the user isn't trying to add multiple versions of the same cartridge
       if cart_name_map.has_key?(cart.original_name)
-        raise OpenShift::UserException.new("#{cart.name} cannot co-exist with #{cart_name_map[cart.original_name]} in the same application", 109)
+        raise OpenShift::UserException.new("#{cart.name} cannot co-exist with #{cart_name_map[cart.original_name]} in the same application", 109, 'cartridge')
       else
         cart_name_map[cart.original_name] = cart.name
       end
@@ -553,7 +564,7 @@ class Application
       component_instances.each do |ci|
         ci_cart = ci.get_cartridge
         if ci_cart.original_name == cart.original_name
-          raise OpenShift::UserException.new("#{cart.name} cannot co-exist with cartridge #{ci.cartridge_name} in your application", 109)
+          raise OpenShift::UserException.new("#{cart.name} cannot co-exist with cartridge #{ci.cartridge_name} in your application", 136, 'cartridge')
         end
       end
 
@@ -572,12 +583,12 @@ class Application
 
       # Validate that the features support scalable if necessary
       if self.scalable && !(cart.is_plugin? || cart.is_service? || cart.is_web_framework?)
-        raise OpenShift::UserException.new("#{cart.name} cannot be embedded in scalable app '#{name}'.", 109)
+        raise OpenShift::UserException.new("#{cart.name} cannot be embedded in scalable app '#{name}'.", 109, 'cartridge')
       end
 
       # prevent a proxy from being added to a non-scalable (single-gear) application
       if cart.is_web_proxy? and !self.scalable
-        raise OpenShift::UserException.new("#{cart.name} cannot be added to existing applications. It is automatically added when you create a scaling application.", 137)
+        raise OpenShift::UserException.new("#{cart.name} cannot be added to existing applications. It is automatically added when you create a scaling application.", 137, 'cartridge')
       end
 
       if self.scalable and cart.is_web_framework?
@@ -588,7 +599,7 @@ class Application
            cart_scalable = true
         end
         if !cart_scalable
-          raise OpenShift::UserException.new("Scalable app cannot be of type '#{cart.name}'.", 109)
+          raise OpenShift::UserException.new("The cartridge '#{cart.name}' does not support being made scalable.", 109, 'scalable')
         end
       end
 
@@ -596,19 +607,19 @@ class Application
       # or if it does, then no other application within the domain has this feature already
       if cart.is_domain_scoped?
         if Application.where(domain_id: self.domain._id, "component_instances.cartridge_name" => cart.name).present?
-          raise OpenShift::UserException.new("An application with #{cart.name} already exists within the domain. You can only have a single application with #{cart.name} within a domain.")
+          raise OpenShift::UserException.new("An application with #{cart.name} already exists within the domain. You can only have a single application with #{cart.name} within a domain.", 109, 'cartridge')
         end
       end
     end
 
     # Only one web_framework is allowed
     if (features + component_instances).inject(0){ |c, cart| cart.is_web_framework? ? c + 1 : c } > 1
-      raise OpenShift::UserException.new("You can only have one web cartridge in your application '#{name}'.", 109)
+      raise OpenShift::UserException.new("You can only have one web cartridge in your application '#{name}'.", 109, 'cartridge')
     end
 
     # Only one web proxy is allowed
     if (features + component_instances).inject(0){ |c, cart| cart.is_web_proxy? ? c + 1 : c } > 1
-      raise OpenShift::UserException.new("You can only have one proxy cartridge in your application '#{name}'.", 109)
+      raise OpenShift::UserException.new("You can only have one proxy cartridge in your application '#{name}'.", 109, 'cartridge')
     end
 
     # ensure features are available to the cache and that downloaded cartridegs are stored

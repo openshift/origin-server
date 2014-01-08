@@ -157,7 +157,7 @@ class CartridgeCache
   # - version: a specific version of a URL version to download
   # - gear_size: a gear size for this cartridge.  must be valid
   #
-  def self.find_and_download_cartridges(specs, field='cartridges', enforce_download_limit=false)
+  def self.find_and_download_cartridges(specs, field='cartridge', enforce_download_limit=false)
     downloads = []
 
     if enforce_download_limit
@@ -273,6 +273,7 @@ class CartridgeCache
 
   # Returns an Array of all cartridge objects
   def self.get_all_cartridges
+    #CartridgeType.all
     Rails.cache.fetch("all_cartridges", :expires_in => DURATION){ OpenShift::ApplicationContainerProxy.find_one.get_available_cartridges }
   end
 

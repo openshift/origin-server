@@ -17,9 +17,8 @@ class CartridgeInstance < SimpleDelegator
 
   validate :scale_range_must_be_valid
   validate :cartridge_must_be_colocated
-  validate :allow_obsolete_cartridge
 
-  FEATURE_REGEX = /\A[\w\d\-\.]+\Z/
+  FEATURE_REGEX = /\A[\w\-\.]+\Z/
   def self.check_feature?(feature)
     feature.present? and feature =~ FEATURE_REGEX
   end
@@ -103,11 +102,5 @@ class CartridgeInstance < SimpleDelegator
 
     def cartridge_must_be_colocated
       errors.add(:colocate_with, "The specified cartridge '#{colocate_with}' for colocate_with cannot be found.") if colocate_with.present? && colocate_target.nil?
-    end
-
-    def allow_obsolete_cartridge
-      if not Rails.configuration.openshift[:allow_obsolete_cartridges] and is_obsolete?
-        errors.add(:base, "The cartridge '#{name}' is no longer available to be added to an application.")
-      end
     end
 end

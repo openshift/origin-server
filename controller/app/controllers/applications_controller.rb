@@ -69,7 +69,7 @@ class ApplicationsController < BaseController
     end
     CartridgeInstance.check_cartridge_specifications!(specs)
     if not specs.all?{ |f| f[:name].present? ^ f[:url].present? }
-      return render_error(:unprocessable_entity, "Each cartridge must be specified by a name, or a JSON hash with a 'name' or 'url' key.", 109, 'cartridges') 
+      return render_error(:unprocessable_entity, "Each cartridge must be specified by a name, or a JSON hash with a 'name' or 'url' key.", 109, 'cartridge') 
     end
 
     builder_id = nil
@@ -112,7 +112,7 @@ class ApplicationsController < BaseController
     user_env_vars = params[:environment_variables].presence
     Application.validate_user_env_variables(user_env_vars, true)
 
-    cartridges = CartridgeCache.find_and_download_cartridges(specs, "cartridges", true)
+    cartridges = CartridgeCache.find_and_download_cartridges(specs, "cartridge", true)
 
     frameworks = cartridges.select(&:is_web_framework?)
     if frameworks.empty?

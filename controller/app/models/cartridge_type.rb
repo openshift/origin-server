@@ -112,6 +112,8 @@ class CartridgeType
   alias_method :is_obsolete?, :obsolete?
   alias_method :global_identifier, :name
 
+  delegate :components_in_profile, to: :cartridge
+
   def has_feature?(feature)
     provides.include?(feature)
   end
