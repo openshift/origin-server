@@ -218,7 +218,7 @@ class CloudUser
 
   def default_capabilities
     {
-      "ha" => false,
+      "ha" => Rails.application.config.openshift[:default_allow_ha],
       "subaccounts" => false,
       "gear_sizes" => Rails.application.config.openshift[:default_gear_capabilities],
       "max_domains" => Rails.application.config.openshift[:default_max_domains],
