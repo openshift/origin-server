@@ -3,6 +3,10 @@ class CartridgeType
   include Mongoid::Timestamps
 
   field :name, type: String
+  field :priority, type: DateTime
+  has_many :successors, class_name: 'CartridgeType', inverse_of: :predecessor
+  belongs_to :predecessor, class_name: 'CartridgeType', inverse_of: :successors, autobuild: false
+
   field :manifest_url, type: String
   field :text, type: String
 
@@ -20,41 +24,45 @@ class CartridgeType
   field :description, type: String
 
   attr_accessible :name, :manifest_url, :text,
-                  :base_name, :version, :cartridge_vendor, 
+                  :base_name, :version, :cartridge_vendor,
                   :categories, :provides,
                   :cartridge_version, :obsolete, :display_name, :description
 
   # Attributes that are loaded from the descriptor
   delegate :license, :license_url, :website, :help_topics,
-           :properties, :usage_rates, 
+           :properties, :usage_rates,
            to: :cartridge
 
-  index({ name: 1 }, { unique: true })
+  index({ name: 1, priority: -1 }, { sparse: true })
   index({ provides: 1 })
 
   create_indexes
 
-  validates :name, uniqueness: true, presence: true
+  validates :name, presence: true
   validates :base_name, presence: true
   validates :version, presence: true
   validates :cartridge_vendor, presence: true
   validates :provides, presence: true
   validate :name_matches_components
 
+  scope :active, lambda{ ne(priority: nil) }
+
   def self.provides(name)
     self.in(provides: name)
   end
 
-  #
-  #
-  #
   def self.update_from(sources, url=nil)
     missing = sources.inject({}){ |h, m| h[m.global_identifier] = m; h }
     updated = []
     self.in(name: missing.keys).each do |type|
       latest = missing.delete(type.name) or next
-      type.attributes = cartridge_attributes(latest, url)
-      updated << type if type.changed?
+      old = type
+      old.attributes = cartridge_attributes(latest, url)
+      if old.changed?
+        type = new(old.attributes)
+        type.predecessor = old
+        updated << type
+      end
     end
     missing.each_pair do |name, latest|
       updated << new(cartridge_attributes(latest, url))
@@ -90,6 +98,24 @@ class CartridgeType
       categories: c.categories,
       text: text,
     }
+  end
+
+  def activate
+    self.priority = Time.now
+    if self.save
+      self.class.where(name: name, :priority.lt => self.priority).set(:priority, nil)
+      if latest = self.class.where(name: name, :priority.ne => nil).only(:_id, :priority).first
+        if latest._id == self._id
+          true
+        else
+          self.errors.add(:base, "Another cartridge version #{latest._id} was activated at #{latest.priority}.")
+          false
+        end
+      else
+        self.errors.add(:base, "Another person has disabled this cartridge.")
+        false
+      end
+    end
   end
 
   def cartridge

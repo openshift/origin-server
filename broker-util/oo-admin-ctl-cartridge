@@ -6,11 +6,11 @@ require 'ostruct'
 PATH = '/var/www/openshift/broker/config/environment'
 
 class Command
-  def refresh(options)
+  def import_node(options)
     env!(options)
-    carts = OpenShift::ApplicationContainerProxy.find_one.get_available_cartridges
+    carts = OpenShift::ApplicationContainerProxy.find_one(options.node).get_available_cartridges
     types = CartridgeType.update_from(carts)
-    update_types(types)
+    update_types(options, types)
   end
 
   def clean(options)
@@ -20,15 +20,16 @@ class Command
     Rails.cache.clear
     0
   rescue => e
-    warn "Failed to delete some cartridges"
-    warn e.message
-    warn e.backtrace
+    exception e, "Failed to delete some cartridges"
     1
   end
 
   def list(options)
     env!(options)
     carts = CartridgeType.all
+    carts = carts.active unless options.all
+    return 0 if carts.empty?
+
     if options.raw
       carts.each do |type|
         puts JSON.pretty_generate(type.cartridge.to_descriptor)
@@ -37,7 +38,8 @@ class Command
     end
 
     output = carts.map do |type|
-      [
+      line = [
+        type.priority? ? '*' : ' ',
         type.name,
         case
         when type.is_web_proxy? then "web_proxy"
@@ -46,15 +48,17 @@ class Command
         else "service"
         end,
         type.display_name,
+        type.created_at.strftime("%Y/%m/%d %H:%M:%S %Z"),
+        type._id.to_s,
         type.obsolete? ? 'obsolete' : '',
-        type.manifest_url
+        type.manifest_url,
       ]
+      line
     end
-    output.sort_by!{ |line| [line[1], line[4].nil? ? 0 : 1, line[0]] }
-    widths = Array.new(output.first.length, 0)
-    output.each{ |line| widths.each_with_index{ |w, i| widths[i] = [w, (line[i] || "").length].max } }
-    fmt = widths.map{ |w| "%-#{w}s" }.join(" ")
-    output.each{ |line| puts fmt % line }
+    output.sort_by!{ |line| [line[2], line[5].nil? ? 0 : 1, line[1]] }
+    output.each{ |line| line.delete_at(5); line.shift } unless options.all
+
+    table(output)
     0
   rescue => e
     warn "Failed to list cartridges"
@@ -71,16 +75,63 @@ class Command
       warn "No cartridges match #{options.names.map{|s| "'#{s}'"}.join(', ')}."
       return 2
     end
+    names = carts.map{ |s| "'#{s}'" }.join(', ')
     carts.delete
-    puts "#{carts.map(&:name).join(',')} were deleted."
+    puts "#{names} were deleted."
     0
   rescue ArgumentError
     warn $!
     1
   rescue => e
-    warn "Failed to delete cartridges"
-    warn e
-    warn e.backtrace
+    exception e, "Failed to delete cartridges"
+    1
+  end
+
+  def deactivate(options)
+    env!(options)
+    raise ArgumentError, "--id ID is a required argument for deactivate" if options.id.nil?
+    cart = CartridgeType.find(options.id)
+    if cart.priority
+      cart.priority = nil
+      cart.save!
+      puts "#{cart.name} was deactivated."
+    else
+      puts "#{cart.name} was not active."
+    end
+    0
+  rescue ArgumentError
+    warn $!
+    1
+  rescue Mongoid::Errors::DocumentNotFound
+    warn "The cartridge #{options.id} does not exist."
+    2
+  rescue => e
+    exception e, "Failed to deactivate cartridge"
+    1
+  end
+
+  def activate(options)
+    env!(options)
+    raise ArgumentError, "--id ID is a required argument for activate" if options.id.nil?
+    cart = CartridgeType.find(options.id)
+    if cart.activate
+      puts "#{cart._id} is now the active cartridge for #{cart.name}"
+      0
+    else
+      warn "Unable to activate #{options.id}"
+      type.errors.full_messages.each do |m|
+        warn "  #{m}"
+      end
+      1
+    end
+  rescue ArgumentError
+    warn $!
+    1
+  rescue Mongoid::Errors::DocumentNotFound
+    warn "The cartridge #{options.id} does not exist."
+    2
+  rescue => e
+    exception e, "Failed to activate cartridge"
     1
   end
 
@@ -95,7 +146,7 @@ class Command
     if not options.force
       source_change, types = types.partition{ |t| t.manifest_url_changed? && t.persisted? }
       if not source_change.empty?
-        warn "Some cartridges had their manifests changed:"
+        warn "Some cartridges had their manifest URLs changed:"
         source_change.each do |c|
           warn "  #{c.name}: #{c.changes['manifest_url'][0]} -> #{c.changes['manifest_url'][1]}"
         end
@@ -103,14 +154,12 @@ class Command
       end
     end
 
-    update_types(types, "from #{options.url}")
+    update_types(options, types, "from #{options.url}")
   rescue KeyError
     warn text
     raise
   rescue => e
-    warn "Failed to import cartridge"
-    warn e.message
-    warn e.backtrace
+    exception e, "Failed to import cartridge"
     1
   end
 
@@ -119,13 +168,20 @@ class Command
       require options.broker || PATH
     end
 
-    def update_types(types, source=nil)
+    def table(output)
+      widths = Array.new(output.first.length, 0)
+      output.each{ |line| widths.each_with_index{ |w, i| widths[i] = [w, (line[i] || "").length].max } }
+      fmt = widths.map{ |w| "%-#{w}s" }.join(" ")
+      output.each{ |line| puts fmt % line }
+    end
+
+    def update_types(options, types, source=nil)
       if types.empty?
         warn "No changes#{ " #{source}" if source }"
         return 0
       end
       warn "Updating #{types.length} cartridges#{ " #{source}" if source } ..."
-      if types.inject(0){ |f, type| f + save_cart(type) } > 0
+      if types.inject(0){ |f, type| f + save_cart(options, type) } > 0
         1
       else
         Rails.cache.clear
@@ -133,24 +189,34 @@ class Command
       end
     end
 
-    def save_cart(type)
-      op = type.persisted? ? "update" : "add"
-      type.save!
-      puts "#{op.capitalize[0]} #{type.name}#{ " (obsolete)" if type.obsolete?}"
+    def save_cart(options, type)
+      op = type.persisted? || type.has_predecessor? ? "update" : "add"
+      if type.send(options.activate ? :activate : :save)
+        puts "#{op.capitalize[0]} #{type.name} [#{type._id}]#{ " (obsolete)" if type.obsolete?}"
+      else
+        warn "Failed to #{op} #{type.name}"
+        type.errors.full_messages.each do |m|
+          warn "  #{m}"
+        end
+      end
       0
     rescue => e
-      warn "Failed to #{op} #{type.name}"
-      warn e.message
-      warn e.backtrace
+      exception e, "Failed to #{op} #{type.name}"
       1
     end
 
     def warn(*args)
       $stderr.puts(*args)
     end
+
+    def exception(e, *args)
+      $stderr.puts(*args)
+      $stderr.puts e.message
+      $stderr.puts "  #{e.backtrace.join("  \n")}"
+    end
 end
 
-methods = (Command.instance_methods(false) & Command.new.public_methods).sort
+methods = (Command.instance_methods(false) & Command.new.public_methods).map{ |s| s.to_s.gsub('_', '-')}.sort
 options = OpenStruct.new
 p = OptionParser.new do |opts|
   opts.banner = "
@@ -159,9 +225,13 @@ p = OptionParser.new do |opts|
 #{File.basename $0}: Manage cartridges
 
 Commands:
- refresh    - Update the broker with the latest cartridges from the nodes
- clean      - Delete all cartridges in the broker
- list       - List all cartridges
+ activate    - Make a specific cartridge active
+ deactivate  - Disable a cartridge from being visible to users
+ clean       - Delete all cartridges in the broker
+ delete      - Remove one or more named cartridges
+ import      - Import a manifest as one or more cartridges
+ import-node - Import the latest cartridges from the nodes
+ list        - List all cartridges
 
 == Usage: oo-admin-ctl-cartridge -c (#{methods.join('|')})"
 
@@ -186,9 +256,24 @@ Commands:
     options.force = true
   end
 
+  opts.on('-a', '--all', "Show all cartridges, not just active ones.") do |url|
+    options.all = true
+  end
+
+  opts.on('--activate', "Mark imported or updated cartridges as active.") do
+    options.activate = true
+  end
 
   opts.on('-n NAMES', '--name NAMES', "Comma-delimited cartridge names.") do |names|
     options.names = names.split(/[\, ]/)
+  end
+
+  opts.on('--id ID', "Identifier for a cartridge version to activate or deactivate.") do |id|
+    options.id = id
+  end
+
+  opts.on('--node NODE', "Identifier for a node (server-identity) to import from.") do |node|
+    options.node = node
   end
 
   opts.on('-u URL', '--url URL', "URL of a cartrige manifest to import.") do |url|
