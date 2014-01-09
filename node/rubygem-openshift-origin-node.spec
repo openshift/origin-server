@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.5
+Version: 1.19.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.6-1
+- Card origin_node_319 - Add quota check to ssh login (jhonce@redhat.com)
+- Card online_node_319 - Add quota check to git push (jhonce@redhat.com)
+
 * Mon Dec 23 2013 Adam Miller <admiller@redhat.com> 1.19.5-1
 - fixup naming (dmcphers@redhat.com)
 
