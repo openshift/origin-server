@@ -11,7 +11,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.17.2
+Version: 1.17.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -137,6 +137,11 @@ fi
 %doc README
 
 %changelog
+* Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.17.3-1
+- Merge pull request #4269 from debug-ito/master
+  (dmcphers+openshiftbot@redhat.com)
+- Add support for passing through Origin header. (debug.ito@gmail.com)
+
 * Thu Dec 12 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
 - the nodejs rpm macros are in nodejs-devel for fedora, need to require it when
   not building SCL (admiller@redhat.com)
