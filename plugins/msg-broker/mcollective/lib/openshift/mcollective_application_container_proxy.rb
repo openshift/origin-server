@@ -2476,45 +2476,6 @@ module OpenShift
       end
 
       #
-      # Initializes the list of cartridges which are "standalone" or framework
-      #
-      # INPUTS:
-      #
-      # RETURNS:
-      # * Array of String
-      #
-      # SIDE EFFECTS:
-      # * initialize @framework_carts
-      #
-      # NOTES:
-      # * uses CartridgeCache
-      # * why not just ask the CartidgeCache?
-      # * that is: Why use an instance var at all?
-      #
-      def framework_carts(app=nil)
-        @framework_carts ||= CartridgeCache.cartridge_names('web_framework', app)
-      end
-
-      #
-      # Initializes the list of cartridges which are "standalone" or framework
-      #
-      # INPUTS:
-      #
-      # RETURNS:
-      # * Array of String
-      #
-      # SIDE EFFECTS:
-      # * initialize @embedded_carts
-      #
-      # NOTES:
-      # * Uses CartridgeCache
-      # * Why not just ask the CartridgeCache every time?
-      #
-      def embedded_carts(app=nil)
-        @embedded_carts ||= CartridgeCache.cartridge_names('embedded',app)
-      end
-
-      #
       # Start a component service
       #
       # INPUTS:

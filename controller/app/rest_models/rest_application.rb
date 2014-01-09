@@ -168,7 +168,6 @@ class RestApplication < OpenShift::Model
 
     unless nolinks
       allowed_gear_sizes = (app.domain.allowed_gear_sizes & app.domain.owner.allowed_gear_sizes)
-      carts = CartridgeCache.find_cartridge_by_category("embedded", app).map{ |c| c.name }
 
       self.links = {
         "GET" => Link.new("Get application", "GET", URI::join(url, "application/#{@id}")),
@@ -202,7 +201,7 @@ class RestApplication < OpenShift::Model
           Param.new("event", "string", "event", "thread-dump")
         ]),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "application/#{@id}/cartridges"),[
-            Param.new("name", "string", "Name of the cartridge.", carts)
+            Param.new("name", "string", "Name of a cartridge.")
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
             OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),
@@ -251,12 +250,11 @@ class RestApplication < OpenShift::Model
           OptionalParam.new("deployment_branch", "string", "Indicates which branch should trigger an automatic deployment, if automatic deployment is enabled."),
           OptionalParam.new("keep_deployments", "integer", "Indicates how many total deployments to preserve. Must be greater than 0"),
         ])
-        
       }
       self.links["MAKE_HA"] = Link.new("Make the application Highly Available (HA)", "POST", URI::join(url, "application/#{@id}/events"), [
           Param.new("event", "string", "event", "make-ha")
         ]) if Rails.configuration.openshift[:allow_ha_applications]
-     
+
      #delete must be the last link
      self.links["DELETE"] = Link.new("Delete application", "DELETE", URI::join(url, "application/#{@id}"))
     end

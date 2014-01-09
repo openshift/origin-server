@@ -7,10 +7,10 @@ class CartridgesController < BaseController
 
   ##
   # Retrieve details for specific cartridge
-  # 
+  #
   # URL: /cartridge/:name
   #
-  # @note This method may or may not require authenticated access depending on the authentication plugin that is configured.  
+  # @note This method may or may not require authenticated access depending on the authentication plugin that is configured.
   #
   # Action: GET
   # @return [RestReply<RestCartridge>] Cartridge Object
@@ -20,32 +20,31 @@ class CartridgesController < BaseController
 
   ##
   # Retrieve details for all available cartridge
-  # 
+  #
   # URL: /cartridges
   #
-  # @note This method may or may not require authenticated access depending on the authentication plugin that is configured.  
+  # @note This method may or may not require authenticated access depending on the authentication plugin that is configured.
   #
   # Action: GET
   # @return [RestReply<Array<RestCartridge>>] Array of cartridge objects
   def index
-    search = params[:id].presence
-    # handle "standalone" type for backwards compatibility
-    if search and search == "embedded" or search == "standalone"
-      search = "web_framework" if search == "standalone"
-      cartridges = CartridgeCache.cartridges.keep_if{ |c| c.categories.include?(search) }
-      rest_cartridges = cartridges.map { |c| get_rest_cartridge(c) }
-      return render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
+    searching = false
+    carts = CartridgeType.active
+
+    category = params[:category].presence || params[:id].presence
+    category = 'web_framework' if category == 'standalone'
+    if category == "embedded"
+      searching = true
+      carts = carts.not_in(categories: 'web_framework')
+    elsif category
+      searching = true
+      carts = carts.in(categories: category)
     end
-    # search by vendor, provides and version
-    if search
-      cartridges = CartridgeCache.find_all_cartridges(search)
-      rest_cartridges = cartridges.map { |c| get_rest_cartridge(c) }
-      Rails.logger.error "cartridges #{rest_cartridges}"
-      return render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
+    if feature = params[:feature].presence
+      searching = true
+      carts = carts.in(provides: feature)
     end
-    # return all cartridges
-    cartridges = CartridgeCache.cartridges
-    rest_cartridges = cartridges.map { |c| get_rest_cartridge(c) }
-    render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
+
+    render_success(:ok, "cartridges", carts.map{ |c| get_rest_cartridge(c) }, "#{searching ? "Searching" : "Listing "} cartridges")
   end
 end

@@ -126,7 +126,7 @@ class RestApplication15 < OpenShift::Model
     self.deployment_type = app.config['deployment_type']
 
     app.component_instances.each do |component_instance|
-      cart = CartridgeCache::find_cartridge_or_raise_exception(component_instance.cartridge_name, app)
+      cart = CartridgeCache.find_cartridge_or_raise_exception(component_instance.cartridge_name, app)
 
       # add the builder properties if this is a builder component
       if cart.categories.include?("ci_builder")
@@ -155,7 +155,7 @@ class RestApplication15 < OpenShift::Model
         apps = applications || app.domain.applications
         apps.each do |domain_app|
           domain_app.component_instances.each do |component_instance|
-            cart = CartridgeCache::find_cartridge_or_raise_exception(component_instance.cartridge_name, domain_app)
+            cart = CartridgeCache.find_cartridge_or_raise_exception(component_instance.cartridge_name, domain_app)
             if cart.categories.include?("ci")
               self.building_app = domain_app.name
               break
@@ -168,7 +168,6 @@ class RestApplication15 < OpenShift::Model
 
     unless nolinks
       allowed_gear_sizes = (app.domain.allowed_gear_sizes & app.domain.owner.allowed_gear_sizes)
-      carts = CartridgeCache.find_cartridge_by_category("embedded", app).map{ |c| c.name }
 
       self.links = {
         "GET" => Link.new("Get application", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}")),
@@ -204,7 +203,7 @@ class RestApplication15 < OpenShift::Model
         ]),
         "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domain/#{@domain_id}/application/#{@name}")),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domain/#{@domain_id}/application/#{@name}/cartridges"),[
-            Param.new("name", "string", "Name of the cartridge.", carts)
+            Param.new("name", "string", "Name of a cartridge.")
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
             OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),

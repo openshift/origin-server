@@ -43,7 +43,8 @@ class CartridgeTypeTest < ActiveSupport::TestCase
     cart = CartridgeType.new(:name => 'mock-1.0', :base_name => 'mock', :version => '1.0', :cartridge_vendor => 'redhat', :provides => ['mock-1.0'])
     cart.save!
     cart = CartridgeType.new(:name => 'mock-1.0', :base_name => 'mock', :version => '1.0', :cartridge_vendor => 'redhat', :provides => ['mock-1.0'])
-    assert !cart.save
+    assert cart.activate, cart.errors.full_messages.join("\n")
+    assert_equal cart._id, CartridgeType.active.where(name: 'mock-1.0').first._id
   end
 
   def test_latest_cdk
@@ -148,7 +149,7 @@ class CartridgeTypeTest < ActiveSupport::TestCase
     types = CartridgeType.update_from(versions, "manifest://test2")
     assert_equal 2, types.length
 
-    assert type = types.find(&:persisted?)
+    assert type = types.find{ |t| t.has_predecessor? }
     assert_equal 'mock-0.1', type.name
     assert type.changed?
     assert type.display_name_changed?
@@ -162,7 +163,7 @@ class CartridgeTypeTest < ActiveSupport::TestCase
     assert_equal "manifest://test2", type.manifest_url
     assert type.save!
 
-    assert type = types.find{ |t| not t.persisted? }
+    assert type = types.find{ |t| !t.persisted? && !t.has_predecessor? }
     assert_equal 'mock-0.2', type.name
     assert_equal "manifest://test2", type.manifest_url
     assert type.changed?

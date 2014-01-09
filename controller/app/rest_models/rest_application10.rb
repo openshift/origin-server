@@ -170,7 +170,7 @@ class RestApplication10 < OpenShift::Model
     end
 
     unless nolinks
-      carts = CartridgeCache.find_cartridge_by_category("embedded", app).map{ |c| c.name }
+      carts = CartridgeCache.other_names
 
       self.links = {
         "GET" => Link.new("Get application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
@@ -213,7 +213,7 @@ class RestApplication10 < OpenShift::Model
           Param.new("event", "string", "event", "thread-dump")
         ]),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
-          Param.new("cartridge", "string", "framework-type, e.g.: mongodb-2.2", carts)
+          Param.new("cartridge", "string", "Name of a cartridge.", carts)
         ]),
         "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
         "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable")),

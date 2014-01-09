@@ -30,14 +30,13 @@ class RestDomain10 < OpenShift::Model
     unless nolinks
       valid_sizes = domain.allowed_gear_sizes
       blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
-      carts = CartridgeCache.cartridge_names("web_framework")
 
       self.links = {
         "GET" => Link.new("Get domain", "GET", URI::join(url, "domains/#{id}")),
         "LIST_APPLICATIONS" => Link.new("List applications", "GET", URI::join(url, "domains/#{id}/applications")),
         "ADD_APPLICATION" => Link.new("Create new application", "POST", URI::join(url, "domains/#{id}/applications"), 
           [Param.new("name", "string", "Name of the application",nil,blacklisted_words)], 
-          [OptionalParam.new("cartridge", "string", "framework-type", carts),
+          [OptionalParam.new("cartridge", "string", "framework-type", CartridgeCache.web_framework_names),
           OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),
           OptionalParam.new("initial_git_url", "string", "A URL to a Git source code repository that will be the basis for this application.", ['*', OpenShift::Git::EMPTY_CLONE_SPEC]),
           OptionalParam.new("gear_profile", "string", "The size of the gear", valid_sizes, valid_sizes[0])
