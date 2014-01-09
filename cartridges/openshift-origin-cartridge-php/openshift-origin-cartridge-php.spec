@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.19.3
+Version: 1.19.4
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -102,6 +102,12 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.4-1
+- Bug 1033581 - Adding upgrade logic to remove the unneeded
+  jenkins_shell_command files (bleanhar@redhat.com)
+- Modify PHP stop() to skip httpd stop when the process is already dead
+  (hripps@redhat.com)
+
 * Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
 - set php-5.4 SCL PATHs for gear environment (vvitek@redhat.com)
 
