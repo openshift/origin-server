@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.5
+Version: 1.19.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,25 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.6-1
+- Mongoid error on app.save results in gear counts being out of sync
+  (ccoleman@redhat.com)
+- Merge pull request #4430 from worldline/default-allow-ha
+  (dmcphers+openshiftbot@redhat.com)
+- Add default user capability to create HA apps (filirom1@gmail.com)
+- Merge pull request #4428 from mrunalp/test_routing
+  (dmcphers+openshiftbot@redhat.com)
+- Route changes (ccoleman@redhat.com)
+- allow custom ha prefix and suffix (filirom1@gmail.com)
+- Merge pull request #4421 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1047950 and bug 1047952 (abhgupta@redhat.com)
+- Fix for bug 1040673 (abhgupta@redhat.com)
+- Add --quiet, --create, and --logins-file to oo-admin-ctl-user
+  (jliggitt@redhat.com)
+- oo-admin-usage enhancements: Show aggregated usage data for the given
+  timeframe. (rpenta@redhat.com)
+
 * Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.5-1
 - Merge pull request #4385 from pravisankar/dev/ravi/chk-bug
   (dmcphers+openshiftbot@redhat.com)
