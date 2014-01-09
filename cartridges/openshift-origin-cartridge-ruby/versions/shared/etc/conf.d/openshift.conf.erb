@@ -19,8 +19,15 @@ ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_RUBY_DIR'] %>/logs/error_log-
 CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_RUBY_DIR'] %>/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
 
 PassengerUser <%= ENV['OPENSHIFT_GEAR_UUID'] %>
-PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>/
+
+# This has been hardcoded to port 80 due to BZ#984867
+#
+# Passenger will do a HEAD request against 127.0.0.1:PORT where the
+# port 8080 is closed in production.
+#
+PassengerPreStart http://<%= ENV['OPENSHIFT_APP_DNS'] %>:80/
 PassengerSpawnIPAddress <%= ENV['OPENSHIFT_RUBY_IP'] %>
+
 PassengerUseGlobalQueue off
 
 # These must be passed on this place to make sure we set the right Rails/Rack
