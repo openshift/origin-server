@@ -138,6 +138,7 @@ class CartridgeTypeTest < ActiveSupport::TestCase
         Version: '0.2'
         Versions: ['0.1', '0.2']
         Cartridge-Vendor: redhat
+        Cartridge-Version: 0.1.0-ab3c4
         Categories:
         - mock
         - web_framework
@@ -161,11 +162,13 @@ class CartridgeTypeTest < ActiveSupport::TestCase
     assert type.is_obsolete?
     assert type.manifest_url_changed?
     assert_equal "manifest://test2", type.manifest_url
+    assert_equal "0.1.0-ab3c4", type.cartridge_version
     assert type.save!
 
     assert type = types.find{ |t| !t.persisted? && !t.has_predecessor? }
     assert_equal 'mock-0.2', type.name
     assert_equal "manifest://test2", type.manifest_url
+    assert_equal "0.1.0-ab3c4", type.cartridge_version
     assert type.changed?
     assert type.save!
   end

@@ -30,7 +30,7 @@ class CartridgeType
 
   # Attributes that are loaded from the descriptor
   delegate :license, :license_url, :website, :help_topics,
-           :properties, :usage_rates,
+           :properties, :usage_rates, :features,
            to: :cartridge
 
   index({ name: 1, priority: -1 }, { sparse: true })
@@ -96,6 +96,7 @@ class CartridgeType
       obsolete: c.is_obsolete?,
       provides: (c.features + c.names).uniq,
       categories: c.categories,
+      cartridge_version: c.cartridge_version,
       text: text,
     }
   end
@@ -135,10 +136,15 @@ class CartridgeType
 
   alias_method :original_name, :base_name
 
+  alias_method :manifest_text, :text
+
   alias_method :is_obsolete?, :obsolete?
   alias_method :global_identifier, :name
 
-  delegate :components_in_profile, to: :cartridge
+  delegate :components_in_profile, :get_profile_for_component,
+           :profile_for_feature, :requires, :get_component,
+           :additional_control_actions, :cart_data_def,
+           to: :cartridge
 
   def has_feature?(feature)
     provides.include?(feature)

@@ -1,5 +1,5 @@
 ENV["TEST_NAME"] = "unit_cartridge_cache_test"
-require 'test_helper'
+require_relative '../../test_helper'
 
 class CartridgeCacheTest < ActiveSupport::TestCase
   setup{ Rails.cache.clear }
@@ -124,7 +124,6 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert_equal 1, carts.length
     assert_equal "ruby-1.9", carts[0].name
     assert_nil carts[0].manifest_url
-    assert_nil carts[0].manifest_text
     assert carts[0].gear_size.nil?
   end
 
@@ -184,7 +183,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(body)
     CartridgeType.where(:base_name => 'remotemock').delete
     types = CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(body), 'manifest://test')
-    types.each(&:save!)
+    types.each(&:activate)
 
     assert carts = CartridgeCache.find_and_download_cartridges([{name: 'remotemock'}])
     assert_equal 1, carts.length
@@ -202,14 +201,14 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert cart.version, "5.3"
     assert_equal cart.cartridge_vendor, "redhat"
 
-    cart = CartridgeCache.find_cartridge("redhat-php-5.3")
+    assert cart = CartridgeCache.find_cartridge_by_feature("redhat-php-5.3")
     assert cart.features.include?"php"
     assert cart.version, "5.3"
     assert_equal cart.cartridge_vendor, "redhat"
 
     # CHANGE: Unless a cartridge exposes a "provides" with the exact version,
     #   non redhat cartridges will not be located
-    assert cart = CartridgeCache.find_cartridge("php-5.4")
+    assert cart = CartridgeCache.find_cartridge_by_feature("php-5.4")
     assert cart.features.include?"php"
     assert cart.version, "5.4"
     assert_not_equal cart.cartridge_vendor, "redhat"
@@ -218,7 +217,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert cart.features.include? "php"
     assert cart.version, "5.5"
 
-    cart = CartridgeCache.find_cartridge("php")
+    cart = CartridgeCache.find_cartridge_by_feature("php")
     assert cart.features.include?"php"
 
     assert_raise(OpenShift::UserException){CartridgeCache.find_cartridge("python-3.3")}
@@ -232,12 +231,10 @@ class CartridgeCacheTest < ActiveSupport::TestCase
   test "find cartridge with real cartridges" do
     carts = CartridgeCache.cartridges
     carts.each do |cart|
-      #puts "CART #{cart.name} #{cart.cartridge_vendor}-#{cart.features[0]}-#{cart.version}  #{cart.features.to_s} #{cart.versions.to_s} #{cart.version}"
-      c = CartridgeCache.find_cartridge(cart.name)
-      assert(!c.nil?, "Cartridge #{cart.name} not found")
+      assert CartridgeCache.find_cartridge(cart.name), "Cartridge #{cart.name} not found"
 
       # CHANGED: Finding a cartridge by vendor and name might return multiple cartridges
-      c = (CartridgeCache.find_cartridge("#{cart.cartridge_vendor}-#{cart.original_name}") rescue true)
+      c = (CartridgeCache.find_cartridge_by_feature("#{cart.cartridge_vendor}-#{cart.original_name}") rescue true)
       assert c.present?, "Cartridge #{cart.cartridge_vendor}-#{cart.original_name} not found"
     end
   end

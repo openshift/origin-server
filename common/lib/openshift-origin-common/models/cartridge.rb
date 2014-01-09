@@ -92,7 +92,7 @@ module OpenShift
                   :provides, :requires, :conflicts, :suggests, :native_requires, :default_profile,
                   :path, :license_url, :categories, :website, :suggests_feature,
                   :help_topics, :cart_data_def, :additional_control_actions, :versions, :cartridge_vendor,
-                  :endpoints, :obsolete
+                  :endpoints, :cartridge_version, :obsolete
     attr_reader   :profiles
 
     # Available for downloadable cartridges
@@ -102,7 +102,7 @@ module OpenShift
     include CartridgeAspects
     include CartridgeNaming
 
-    VERSION_ORDER = lambda{ |s| s.cartridge_version.split('.').map(&:to_i) rescue [0] }
+    VERSION_ORDER = lambda{ |s| s.version.split('.').map(&:to_i) rescue [0] }
     PROFILE_EXCLUDED = [
       "Name", "Version", "Architecture", "DisplayName", "License",
       "Provides", "Requires", "Conflicts", "Native-Requires"
@@ -192,6 +192,7 @@ module OpenShift
       self.help_topics = spec_hash["Help-Topics"] || {}
       self.cart_data_def = spec_hash["Cart-Data"] || {}
       self.additional_control_actions = spec_hash["Additional-Control-Actions"] || []
+      self.cartridge_version = spec_hash["Cartridge-Version"] || "0.0.0"
 
       self.provides = [self.provides] if self.provides.class == String
       self.requires = [self.requires] if self.requires.class == String
@@ -258,6 +259,7 @@ module OpenShift
       h["Help-Topics"] = self.help_topics if self.help_topics and !self.help_topics.empty?
       h["Cart-Data"] = self.cart_data_def if self.cart_data_def and !self.cart_data_def.empty?
       h["Additional-Control-Actions"] = self.additional_control_actions if self.additional_control_actions and !self.additional_control_actions.empty?
+      h["Cartridge-Version"] = self.cartridge_version if self.cartridge_version != "0.0.0"
 
       h["Provides"] = self.provides if self.provides && !self.provides.empty?
       h["Requires"] = self.requires if self.requires && !self.requires.empty?

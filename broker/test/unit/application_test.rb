@@ -3,7 +3,7 @@ require 'test_helper'
 require 'openshift-origin-controller'
 require 'helpers/rest/api'
 
-class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
+class ApplicationsTest < ActionDispatch::IntegrationTest
   def setup
     register_user
     @namespace = "domain" + gen_uuid[0..9]
@@ -45,7 +45,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     Application.any_instance.expects(:save!).raises(e)
     assert_difference "@user.consumed_gears", 0 do
       assert_difference "Application.all.count", 0 do
-        assert_raises(RuntimeError){ Application.create_app("test", [PHP_VERSION], @domain) }
+        assert_raises(RuntimeError){ Application.create_app("test", cartridge_instances_for(:php), @domain) }
       end
     end
   end

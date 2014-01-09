@@ -43,7 +43,7 @@ def read_local_cartridges
     sources = [
       ENV['CARTRIDGE_PATH'] || '.',
       # we're in a source origin-server repo
-      File.expand_path('../../../../broker/cartridges', __FILE__),
+      File.expand_path('../../../../cartridges', __FILE__),
       # we're on a node or all in one server
       '/var/lib/openshift/.cartridge_repository',
     ]
