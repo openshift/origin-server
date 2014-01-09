@@ -1,3 +1,8 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+
 Summary:       Daemon to create and maintain CNAME records for Avahi MDNS service
 Name:          avahi-cname-manager
 Version:       0.2.1
@@ -6,10 +11,10 @@ Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      ruby
-Requires:      rubygems
-Requires:      rubygem(ruby-dbus)
-Requires:      rubygem(sinatra)
+Requires:      %{?scl_prefix}ruby
+Requires:      %{?scl_prefix}rubygems
+Requires:      %{?scl_prefix}rubygem(ruby-dbus)
+Requires:      %{?scl_prefix}rubygem(sinatra)
 Requires:      avahi 
 Requires:      avahi-autoipd
 Requires:      avahi-compat-libdns_sd
