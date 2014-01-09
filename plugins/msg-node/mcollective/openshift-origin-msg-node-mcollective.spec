@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,11 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.3-1
+- Card online_node_319 - Add quota check to git push (jhonce@redhat.com)
+- Fix for bug 1047957 (abhgupta@redhat.com)
+- Bug 1045995 - Fix get_gears node implementation (rpenta@redhat.com)
+
 * Mon Dec 23 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Bug 1042255 - reuse timer for execute_parallel_action calls
   (jhonce@redhat.com)

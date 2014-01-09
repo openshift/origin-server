@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.18.2
+Version: 1.18.3
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,13 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.18.3-1
+- Bug 1033581 - Adding upgrade logic to remove the unneeded
+  jenkins_shell_command files (bleanhar@redhat.com)
+- Applied fix to other affected cartridges (hripps@redhat.com)
+- Bug 1026652 - Skip module checks if module exists in perl deplist.txt
+  (mfojtik@redhat.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
 - handle non-64bit libdir for ARM (admiller@redhat.com)
 

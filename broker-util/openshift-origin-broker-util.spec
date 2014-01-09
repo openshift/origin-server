@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.19.3
+Version: 1.19.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -99,6 +99,16 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.4-1
+- Merge pull request #4415 from pravisankar/dev/ravi/admin-usage-changes
+  (dmcphers+openshiftbot@redhat.com)
+- oo-admin-usage: Add a note 'Aggregated usage excludes monthly plan discounts'
+  in the end when user plan exists (rpenta@redhat.com)
+- Add --quiet, --create, and --logins-file to oo-admin-ctl-user
+  (jliggitt@redhat.com)
+- oo-admin-usage enhancements: Show aggregated usage data for the given
+  timeframe. (rpenta@redhat.com)
+
 * Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Bug 1044417 - Fix storage inconsistencies in oo-admin-chk (rpenta@redhat.com)
 

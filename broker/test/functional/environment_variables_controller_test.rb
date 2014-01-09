@@ -47,13 +47,13 @@ class EnvironmentVariablesControllerTest < ActionController::TestCase
 
     get :index , {"application_id" => @app._id}
     assert_response :success
-    
+
     get :update, {"id" => "foo", "value" => "barX", "application_id" => @app._id}
     assert_response :success
-    
+
     get :destroy, {"id" => "foo", "application_id" => @app._id}
     assert_response :success
-    
+
   end
 
   test "no or non-existent environment_variable" do
@@ -66,22 +66,22 @@ class EnvironmentVariablesControllerTest < ActionController::TestCase
   test "attempt to create invalid environment_variable" do
     post :create, {"name" => "1foo", "value" => "bar", "application_id" => @app._id}
     assert_response :unprocessable_entity
-    
+
     post :create, {"name" => "foo-bad", "value" => "bar", "application_id" => @app._id}
     assert_response :unprocessable_entity
 
     post :create, {"name" => ".foo", "value" => "bar", "application_id" => @app._id}
     assert_response :unprocessable_entity
-    
+
     post :create, {"name" => "foo bad", "value" => "bar", "application_id" => @app._id}
     assert_response :unprocessable_entity
-    
+
     post :create, {"name" => "foo\xB3", "value" => "bar", "application_id" => @app._id}
     assert_response :bad_request
-    
+
     post :create, {"name" => "foo", "value" => "bar\255", "application_id" => @app._id}
     assert_response :bad_request
-    
+
   end
 
 end
