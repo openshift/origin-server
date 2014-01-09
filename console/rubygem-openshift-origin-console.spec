@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.4
+Version: 1.19.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,16 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.5-1
+- Fix bug 1048992: Define remote_request? in console controller
+  (jliggitt@redhat.com)
+- Bug 1045971 - add alias display overlaps on iphone 4S (jforrest@redhat.com)
+- Merge pull request #4398 from bparees/rename_jee
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1047920 - application edit route should not be enabled
+  (jforrest@redhat.com)
+- rename jee to java_ee_6 (bparees@redhat.com)
+
 * Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 1.19.4-1
 - Checkbox isn't aligned with text (ccoleman@redhat.com)
 
