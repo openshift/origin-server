@@ -1,0 +1,100 @@
+#!/bin/bash
+#
+# avahi-cname-manager
+#
+# chkconfig:   345 85 15
+# description: OpenShift Avahi CNAME manager
+# processname: avahi-cname-manager
+# config:      /etc/avahi/cname-manager.conf
+# pidfile:     /var/run/avahi-cname-manager.pid
+#
+### BEGIN INIT INFO
+# Provides: avahi-cname-manager
+# Required-Start: $local_fs $remote_fs $network
+# Required-Stop: $local_fs $remote_fs $network
+# Short-Description: start and stop OpenShift Avahi CNAME manager
+# Description: Manager which maintains CNAME aliases on Avahi
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+cfgfile="/etc/avahi/cname-manager.conf"
+cmd="/usr/bin/avahi-cname-manager"
+prog="avahi-cname-manager"
+lockfile="/var/lock/subsys/avahi-cname-manager"
+pidfile="/var/run/avahi-cname-manager.pid"
+childpidfile="/var/run/avahi-cname-manager.pid"
+logfile="/var/log/avahi-cname-manager.log"
+
+start() {
+    echo -n $"Starting avahi-cname-manager: "
+    chown avahi-cname.avahi-cname $logfile >/dev/null 2>&1 || :
+    nohup scl enable ruby193 "$cmd" &> $logfile &
+
+    for i in {1..30}; do
+      pgrep -u 0 -f bin/avahi-cname-manager > $pidfile
+      retval=$?
+      [ $retval -eq 0 ] && break
+      sleep 1
+    done
+
+    [ $retval -eq 0 ] && touch $lockfile && echo_success
+    echo
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping avahi-cname-manager: "
+    killproc -p $pidfile $prog 
+    retval=$?
+    # If pid's whacked, we need to send a HUP.
+    pids=$(/usr/bin/pgrep -f avahi-cname-manager)
+    if [ -n "$pids" ]; then
+       kill -TERM $pids
+       retval=$?
+    fi
+
+    [ $retval -eq 0 ] && rm -f $lockfile && echo_success
+    echo
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start)
+        if ! test -f $pidfile  ||  ! status -p $pidfile $prog; then
+           start
+        else
+           echo "$prog already running. supervisor pid = `cat $pidfile`"
+        fi
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    status)
+        status -p $pidfile $prog
+        ;;
+    condrestart|try-restart)
+  	if [ -f $lockfile ] 
+        then
+            restart
+        fi
+	;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|reload}"
+        exit 2
+esac
