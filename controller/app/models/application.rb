@@ -660,11 +660,14 @@ class Application
       # this ensures that the app document is not saved without basic embedded documents in place 
       # Note: when the scheduler is implemented, these steps (except the call to run_jobs) 
       # will be moved out of the lock
-      unless self.persisted?
+      begin
         op_group.elaborate(self)
         op_group.pre_execute(result_io)
-        self.save
-      end
+        self.save!
+      rescue
+        op_group.unreserve_gears(op_group.num_gears_added, self)
+        raise
+      end unless self.persisted?
 
       self.run_jobs(result_io)
     end
