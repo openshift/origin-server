@@ -2181,6 +2181,7 @@ cat << EOF > /etc/httpd/conf.d/cartridge_files.conf
     Require all granted
 </Directory>
 EOF
+----
 
 ===== apache-mod-rewrite Plugin
 
