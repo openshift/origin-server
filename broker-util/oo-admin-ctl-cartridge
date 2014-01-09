@@ -27,7 +27,9 @@ class Command
   def list(options)
     env!(options)
     carts = CartridgeType.all
-    carts = carts.active unless options.all
+    carts = carts.active if options.active
+    carts = carts.in(name: options.names) if options.names
+    carts = carts.in(_id: options.ids) if options.ids
     return 0 if carts.empty?
 
     if options.raw
@@ -56,7 +58,12 @@ class Command
       line
     end
     output.sort_by!{ |line| [line[2], line[5].nil? ? 0 : 1, line[1]] }
-    output.each{ |line| line.delete_at(5); line.shift } unless options.all
+    if options.quiet
+      output.map!{ |line| [line[5]] }
+    elsif options.all
+    else
+      output.each{ |line| line.delete_at(5) }
+    end
 
     table(output)
     0
@@ -68,11 +75,11 @@ class Command
   end
 
   def delete(options)
+    ids = from_options_or_stdin(options, [:names, :ids], '--name NAMES')
     env!(options)
-    raise ArgumentError, "--name NAMES is a required argument for delete" if options.names.nil? || options.names.empty?
-    carts = CartridgeType.in(name: options.names)
+    carts = CartridgeType.or({:name.in => ids}, {:_id.in => ids})
     if carts.empty?
-      warn "No cartridges match #{options.names.map{|s| "'#{s}'"}.join(', ')}."
+      warn "No cartridges match #{ids.map{|s| "'#{s}'"}.join(', ')}."
       return 2
     end
     names = carts.map{ |s| "'#{s}'" }.join(', ')
@@ -88,48 +95,45 @@ class Command
   end
 
   def deactivate(options)
+    ids = from_options_or_stdin(options, [:names, :ids], '--ids IDS')
     env!(options)
-    raise ArgumentError, "--id ID is a required argument for deactivate" if options.id.nil?
-    cart = CartridgeType.find(options.id)
-    if cart.priority
-      cart.priority = nil
-      cart.save!
-      puts "#{cart.name} was deactivated."
-    else
-      puts "#{cart.name} was not active."
+    CartridgeType.or({:name.in => ids}, {:_id.in => ids}).each do |cart|
+      if cart.priority
+        cart.priority = nil
+        cart.save!
+        puts "#{cart.name} was deactivated."
+      else
+        puts "#{cart.name} was not active."
+      end
     end
     0
   rescue ArgumentError
     warn $!
     1
-  rescue Mongoid::Errors::DocumentNotFound
-    warn "The cartridge #{options.id} does not exist."
-    2
   rescue => e
     exception e, "Failed to deactivate cartridge"
     1
   end
 
   def activate(options)
+    ids = from_options_or_stdin(options, [:names, :ids], '--ids IDS')
     env!(options)
-    raise ArgumentError, "--id ID is a required argument for activate" if options.id.nil?
-    cart = CartridgeType.find(options.id)
-    if cart.activate
-      puts "#{cart._id} is now the active cartridge for #{cart.name}"
-      0
-    else
-      warn "Unable to activate #{options.id}"
-      type.errors.full_messages.each do |m|
-        warn "  #{m}"
+    code = 0
+    CartridgeType.or({:name.in => ids}, {:_id.in => ids}).each do |cart|
+      if cart.activate
+        puts "#{cart._id} is now the active cartridge for #{cart.name}"
+      else
+        warn "Unable to activate #{options.id}"
+        type.errors.full_messages.each do |m|
+          warn "  #{m}"
+        end
+        code = 1
       end
-      1
     end
+    code
   rescue ArgumentError
     warn $!
     1
-  rescue Mongoid::Errors::DocumentNotFound
-    warn "The cartridge #{options.id} does not exist."
-    2
   rescue => e
     exception e, "Failed to activate cartridge"
     1
@@ -168,11 +172,26 @@ class Command
       require options.broker || PATH
     end
 
+    def from_options_or_stdin(options, option, option_name=nil)
+      option = Array(option).find{ |s| options.send(s) }
+      items =
+        if option && value = options.send(option)
+          value
+        else
+          ARGF.map do |line|
+            text = line.gsub(/([^\\])#.*\Z/, "$1").strip
+            text if text.length > 0
+          end.compact
+        end
+      raise ArgumentError, "You must pass one or more filenames, pipe to stdin, or specify the option #{option_name}." if items.empty?
+      items
+    end
+
     def table(output)
       widths = Array.new(output.first.length, 0)
       output.each{ |line| widths.each_with_index{ |w, i| widths[i] = [w, (line[i] || "").length].max } }
       fmt = widths.map{ |w| "%-#{w}s" }.join(" ")
-      output.each{ |line| puts fmt % line }
+      output.each{ |line| puts (fmt % line).rstrip }
     end
 
     def update_types(options, types, source=nil)
@@ -233,6 +252,9 @@ Commands:
  import-node - Import the latest cartridges from the nodes
  list        - List all cartridges
 
+For delete, activate, and deactivate, you may pass a file containing ids
+or names.
+
 == Usage: oo-admin-ctl-cartridge -c (#{methods.join('|')})"
 
   opts.separator ''
@@ -256,20 +278,24 @@ Commands:
     options.force = true
   end
 
-  opts.on('-a', '--all', "Show all cartridges, not just active ones.") do |url|
-    options.all = true
+  opts.on('-a', '--active', "Show only active cartridges") do |url|
+    options.active = true
   end
 
   opts.on('--activate', "Mark imported or updated cartridges as active.") do
     options.activate = true
   end
 
-  opts.on('-n NAMES', '--name NAMES', "Comma-delimited cartridge names.") do |names|
+  opts.on('--name NAMES', "Comma-delimited cartridge names.") do |names|
     options.names = names.split(/[\, ]/)
   end
 
-  opts.on('--id ID', "Identifier for a cartridge version to activate or deactivate.") do |id|
-    options.id = id
+  opts.on('-q', "Display only ids") do
+    options.quiet = true
+  end
+
+  opts.on('--ids IDS', "ID for a cartridge version to activate or deactivate (comma-delimited).") do |ids|
+    options.ids = ids.split(/[\, ]/)
   end
 
   opts.on('--node NODE', "Identifier for a node (server-identity) to import from.") do |node|
