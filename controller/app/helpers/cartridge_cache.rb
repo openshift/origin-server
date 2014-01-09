@@ -274,7 +274,12 @@ class CartridgeCache
   # Returns an Array of all cartridge objects
   def self.get_all_cartridges
     #CartridgeType.all
-    Rails.cache.fetch("all_cartridges", :expires_in => DURATION){ OpenShift::ApplicationContainerProxy.find_one.get_available_cartridges }
+    Rails.cache.fetch("all_cartridges", :expires_in => DURATION) do
+      carts = OpenShift::ApplicationContainerProxy.find_one.get_available_cartridges
+      CartridgeType.active.each do |type|
+        carts << type.cartridge unless carts.any?{ |cart| cart.name == type.name }
+      end
+      carts
+    end
   end
-
 end
