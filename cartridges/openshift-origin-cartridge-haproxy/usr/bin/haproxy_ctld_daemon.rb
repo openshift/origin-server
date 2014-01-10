@@ -8,11 +8,10 @@ options = {
     :backtrace => true,
     :ontop => false,
     :log_output => true,
-    :log_dir => "#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}",
-    :log_output => true,
+    :log_dir => ENV['OPENSHIFT_HAPROXY_LOG_DIR'],
     :dir_mode => :normal,
     :dir => "#{ENV['OPENSHIFT_HAPROXY_DIR']}/run",
-    :multiple => false,
+    :multiple => false
 }
 
 FileUtils.touch("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/validate_config.log")
