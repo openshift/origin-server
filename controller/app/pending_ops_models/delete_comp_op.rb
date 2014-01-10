@@ -7,7 +7,7 @@ class DeleteCompOp < PendingAppOp
     cartname = component_instance.cartridge_name
     application.component_instances.delete(component_instance)
     application.downloaded_cart_map.delete_if { |cname, c| c["versioned_name"] == component_instance.cartridge_name}
-    application.save
+    application.save!
   end
 
 end

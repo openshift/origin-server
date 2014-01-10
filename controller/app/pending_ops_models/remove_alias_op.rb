@@ -9,7 +9,7 @@ class RemoveAliasOp < PendingAppOp
     result_io = gear.remove_alias(fqdn) unless gear.removed
     a = application.aliases.find_by(fqdn: fqdn)
     application.aliases.delete(a)
-    application.save
+    application.save!
     result_io
   end
 
@@ -20,7 +20,7 @@ class RemoveAliasOp < PendingAppOp
     a = application.aliases.find_by(fqdn: fqdn) rescue nil
     unless a
       application.aliases.push(Alias.new(fqdn: fqdn))
-      application.save
+      application.save!
     end
     result_io
   end

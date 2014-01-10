@@ -76,7 +76,7 @@ class EmbCartController < BaseController
       end
 
       @application.downloaded_cart_map.merge!(cmap)
-      @application.save
+      @application.save!
     end
 
     begin
@@ -147,7 +147,7 @@ class EmbCartController < BaseController
       # even though the new_comp_op rollback does this, the exception could be raised before the op_group execution
       unless cmap.empty?
         @application.downloaded_cart_map.delete_if {|k, v| k == cmap.keys[0]}
-        @application.save
+        @application.save!
       end
 
       case ex

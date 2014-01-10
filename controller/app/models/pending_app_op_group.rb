@@ -67,21 +67,46 @@ class PendingAppOpGroup
     pending_ops.where(:state.ne => :completed, :pre_save => true).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
   end
 
+  def reorder_usage_ops
+    if pending_ops.where(:state.ne => :completed, :_type => "TrackUsageOp").count > 0
+      op_ids = []
+      track_usage_op_ids = []
+      pending_ops.each do |op|
+        if op.kind_of?(TrackUsageOp)
+          track_usage_op_ids << op._id.to_s
+        else
+          op_ids << op._id.to_s
+        end
+      end
+      pending_ops.each do |op|
+        if op.kind_of?(TrackUsageOp)
+          op.prereq += op_ids
+          op.prereq.uniq!
+        else
+          op.prereq.delete_if {|id| track_usage_op_ids.include?(id)}
+        end
+      end
+      # in order to facilitate execution of pre-save ops, 
+      # we check whether the application is persisted to mongo
+      if application.persisted?
+        Application.where({ "_id" => application._id, "pending_op_groups._id" => self._id }).update({"$set" => { "pending_op_groups.$.pending_ops" => pending_ops.serializable_hash }})
+      end
+    end
+  end
+
   # The pre_execute method does not handle parallel executions
   # it has been created primarily to execute mongo operations
   def pre_execute(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
-    begin
-      while(pending_ops.where(:state.ne => :completed, :pre_save => true).count > 0) do
-        Rails.logger.debug "Pre-Executing ops..."
-        eligible_pre_execute_ops.each do|op|
-          Rails.logger.debug "Pre-Execute #{op.class.to_s}"
-          # set the pending_op state to queued
-          op.set_state(:queued) 
-          return_val = op.execute
-          result_io.append return_val if return_val.is_a? ResultIO
-          op.set_state(:completed)
-        end
+    while(pending_ops.where(:state.ne => :completed, :pre_save => true).count > 0) do
+      Rails.logger.debug "Pre-Executing ops..."
+      eligible_pre_execute_ops.each do|op|
+        Rails.logger.debug "Pre-Execute #{op.class.to_s}"
+        # set the pending_op state to queued
+        op.set_state(:queued) 
+        return_val = op.execute
+        result_io.append return_val if return_val.is_a? ResultIO
+        op.set_state(:completed)
       end
     end
   end
@@ -152,7 +177,7 @@ class PendingAppOpGroup
               op.set_state(:completed)
             end
           end
-          self.application.save
+          self.application.save!
 
           unless failed_ops.empty?
             if result_io.hasUserActionableError
@@ -201,7 +226,7 @@ class PendingAppOpGroup
       if parallel_job_ops.length > 0
         RemoteJob.execute_parallel_jobs(handle)
         parallel_job_ops.each{ |op| op.set_state(:rolledback) }
-        self.application.save
+        self.application.save!
       end
     end
   end
@@ -229,8 +254,8 @@ class PendingAppOpGroup
       self.pending_ops.push ops
       self.num_gears_added = num_gears_added
       self.num_gears_removed = num_gears_removed
-      self.save if app.persisted?
-      owner.save
+      self.save! if app.persisted?
+      owner.save!
     ensure
       Lock.unlock_user(owner, app)
     end
@@ -245,7 +270,7 @@ class PendingAppOpGroup
       end
       owner.reload
       owner.consumed_gears -= num_gears_removed
-      owner.save
+      owner.save!
     ensure
       Lock.unlock_user(owner, app)
     end
