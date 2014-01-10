@@ -640,14 +640,14 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
     app_reports.each do |app_id, app_info|
       app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
       if !recoverable and (framework[:backup_available] or db[:backup_available])
-      apps_to_backup << app_id
-    end 
-    d
-    less apps_to_backup.empty?
-    puts "Found #{apps_to_backup.size} unresponsive scalable apps that can not be recovered but framework/db backup available."
-    apps_to_backup.each do |app_id|
-      app_info = app_reports[app_id]
-      gear_ids = []
+        apps_to_backup << app_id
+      end
+    end
+    unless apps_to_backup.empty?
+      puts "Found #{apps_to_backup.size} unresponsive scalable apps that can not be recovered but framework/db backup available."
+      apps_to_backup.each do |app_id|
+        app_info = app_reports[app_id]
+        gear_ids = []
         (app_info[2][:responsive_gears] + app_info[3][:responsive_gears]).each { |gear| gear_ids << gear._id.to_s }
         puts "#{app_info[0].name} (id: #{app_id}, backup-gears: #{gear_ids.join(', ')})"
       end
