@@ -31,12 +31,12 @@ function is_running {
 # Start mysqld and block until it comes up.
 function start {
   if ! is_running; then
-    echo "Starting MySQL cartridge"
+    echo "Starting MariaDB cartridge"
     oo-erb conf/my.cnf.erb.hidden > conf/my.cnf
     mysql_context "/usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MARIADB_DIR/conf/my.cnf" > /dev/null 2>&1 &
     wait_for_mysqld_availability
   else
-    echo "MySQL already running" 1>&2
+    echo "MariaDB already running" 1>&2
   fi
 }
 
@@ -63,7 +63,7 @@ function stop {
     pidfile=$OPENSHIFT_MARIADB_DIR/pid/mariadb.pid
 
     if [ -f $pidfile ]; then
-      echo "Stopping MySQL cartridge"
+      echo "Stopping MariaDB cartridge"
       pid=$( /bin/cat $pidfile )
       /bin/kill $pid
       ret=$?
@@ -78,9 +78,9 @@ function stop {
       fi
     else
       if `pgrep -x mysqld_safe > /dev/null 2>&1`; then
-        echo "Warning: MySQL process exists without a pid file.  Use force-stop to kill." 1>&2
+        echo "Warning: MariaDB process exists without a pid file.  Use force-stop to kill." 1>&2
       else
-          echo "MySQL already stopped" 1>&2
+          echo "MariaDB already stopped" 1>&2
       fi
     fi
   fi
@@ -88,9 +88,9 @@ function stop {
 
 function status {
   if is_running; then
-    client_result "MySQL is running" 
+    client_result "MariaDB is running" 
   else
-    client_result "MySQL is stopped" 
+    client_result "MariaDB is stopped" 
   fi
 
   exit 0
@@ -166,14 +166,14 @@ function post_restore {
         echo "SET AUTOCOMMIT=1;"
         echo "COMMIT;"
       ) | /usr/bin/mysql -h $OPENSHIFT_MARIADB_DB_HOST -P $OPENSHIFT_MARIADB_DB_PORT -u $OPENSHIFT_MARIADB_DB_USERNAME --password="$OPENSHIFT_MARIADB_DB_PASSWORD" --skip-column-names
-    } || error "Could not import MySQL Database" 187
+    } || error "Could not import MariaDB Database" 187
 
 
     # Grant permissions to the current user
     run_sql "
     GRANT ALL ON *.* TO '$NEW_USER'@'$NEW_IP' IDENTIFIED BY '$OPENSHIFT_MARIADB_DB_PASSWORD' WITH GRANT OPTION;
     GRANT ALL ON *.* TO '$NEW_USER'@'%' IDENTIFIED BY '$OPENSHIFT_MARIADB_DB_PASSWORD' WITH GRANT OPTION;
-    " || error "Could not grant permissions for MySQL database" 187
+    " || error "Could not grant permissions for MariaDB database" 187
 
     # Only run the following if the username is different
     if [ "${OLD_USER}" != "${NEW_USER}" ]
@@ -209,7 +209,7 @@ function post_restore {
 
     cleanup_dump
   else
-    echo "MySQL restore attempted but no dump found!" 1>&2
+    echo "MariaDB restore attempted but no dump found!" 1>&2
     echo "$OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz does not exist" 1>&2
   fi
 }

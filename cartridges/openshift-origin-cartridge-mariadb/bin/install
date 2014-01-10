@@ -8,12 +8,12 @@ case "$1" in
     version="$2"
 esac
 
-# Add OPENSHIFT_MYSQL_VERSION variable to help mysql_context
+# Add OPENSHIFT_MARIADB_VERSION variable to help mysql_context
 # choose the right version. Also need to be exported for install.
 #
-env_dir="${OPENSHIFT_MYSQL_DIR}/env"
-set_env_var 'OPENSHIFT_MYSQL_VERSION' $version $env_dir
-export OPENSHIFT_MYSQL_VERSION=$version
+env_dir="${OPENSHIFT_MARIADB_DIR}/env"
+set_env_var 'OPENSHIFT_MARIADB_VERSION' $version $env_dir
+export OPENSHIFT_MARIADB_VERSION=$version
  
 # Generate username, password, and db name and create env variables
 echo 'Generating username and password'
@@ -35,10 +35,10 @@ echo 'Installing mariadb'
 mariadb_data_dir="${OPENSHIFT_MARIADB_DIR}/data"
 
 # Must be invoked with absolute path to avoid a mariadb bug involving my_print_defaults
-mysql_context "/usr/bin/mysql_install_db --datadir=${mysql_data_dir} --user=${USER}" || error 'Failed to create mysqldb', 119
+mysql_context "/usr/bin/mysql_install_db --datadir=${mariadb_data_dir} --user=${USER}" || error 'Failed to create mariadb database', 119
 
 client_result ""
-client_result "MariaDB ${OPENSHIFT_MYSQL_VERSION} database added.  Please make note of these credentials:"
+client_result "MariaDB ${OPENSHIFT_MARIADB_VERSION} database added.  Please make note of these credentials:"
 client_result ""
 client_result "       Root User: $username"
 client_result "   Root Password: $password"
@@ -47,8 +47,8 @@ client_result ""
 
 client_result 'Connection URL: mysql://$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT/'
 client_result ""
-client_result "You can manage your new MySQL database by also embedding phpmyadmin."
-client_result "The phpmyadmin username and password will be the same as the MySQL credentials above."
+client_result "You can manage your new MariaDB database by also embedding phpmyadmin."
+client_result "The phpmyadmin username and password will be the same as the MariaDB credentials above."
 
 cart_props 'connection_url=mysql://$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT/'
 cart_props "username=$username"

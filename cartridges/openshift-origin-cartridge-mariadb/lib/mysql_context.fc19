@@ -1,0 +1,24 @@
+#!/bin/bash
+
+function update_configuration {
+    set +u
+    case "$1" in
+      5.5)
+        pe=$(dirname $(which mysql))
+        env_dir="${OPENSHIFT_MARIADB_DIR}/env"
+        set_env_var 'OPENSHIFT_MARIADB_PATH_ELEMENT' $pe $env_dir
+
+        local ld_path=$(LD_LIBRARY_PATH="" printenv LD_LIBRARY_PATH)
+        path_append $LD_LIBRARY_PATH $ld_path >$OPENSHIFT_MARIADB_DIR/env/LD_LIBRARY_PATH
+
+        local man_path=$(MANPATH="" printenv MANPATH)
+        path_append $MANPATH $man_path >$OPENSHIFT_MARIADB_DIR/env/MANPATH
+        ;;
+    esac
+}
+
+function mysql_context {
+  case $OPENSHIFT_MARIADB_VERSION in
+    5.5) eval $1 ;;
+  esac
+}
