@@ -73,29 +73,29 @@ function tidy() {
 }
 
 function build() {
-    echo "Building PHP cartridge"
+    # Force clean build (.openshift/markers/force_clean_build)
     if force_clean_build_enabled_for_latest_deployment; then
-      echo "force_clean_build enabled - recreating pear libs" 1>&2
-      mkdir -p "${OPENSHIFT_PHP_DIR}"/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
+      echo "Force clean build enabled - recreating PEARs"
+      mkdir -p ${OPENSHIFT_PHP_DIR}phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
     fi
 
+    # PEAR
     if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]
     then
+        echo "Checking deplist.txt for PEAR dependency.."
         for f in $(cat ${OPENSHIFT_REPO_DIR}deplist.txt)
         do
-            echo "Checking pear: $f"
-            echo
-            if php_context "pear list '$f'" > /dev/null
-            then
-                php_context "pear upgrade '$f'"
-            elif ! ( php_context "php -c ${OPENSHIFT_PHP_DIR}conf -m | grep -i -q \^`basename '$f'`\$" )
-            then
-                php_context "pear install --alldeps '$f'"
+            echo -e "Checking PEAR: $f\n"
+            if ! php_context "pear info '$f' >/dev/null"; then
+              php_context "pear install --alldeps '$f'"
             else
-                echo "Extension already installed in the system: $f"
+              php_context "pear upgrade --alldeps '$f'" || :
             fi
-            # Remove gear-specific absolute paths from the generated PEAR files
-            find ${OPENSHIFT_PHP_DIR}phplib/pear/pear/ -type f ! -name '.*' -exec sed -i "s|${OPENSHIFT_HOMEDIR}|~/|g" {} \;
+            echo
+            # Remove gear-specific absolute paths from the generated PEAR
+            # files except from the hidden dirs/files (cache, registry etc.)
+            find ${OPENSHIFT_PHP_DIR}phplib/pear/pear/ -type f \( ! -regex '.*/\..*' \) \
+              -exec sed -i "s|${OPENSHIFT_HOMEDIR}|~/|g" {} \;
         done
     fi
 }
