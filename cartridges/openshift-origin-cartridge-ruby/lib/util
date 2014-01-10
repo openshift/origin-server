@@ -62,20 +62,13 @@ function gemfile_is_modified {
 
   if [ ! -f "${gemfile_md5_file}" ]; then
     update_gemfile_sum
-    return 1
+    return 0
   else
     pushd $OPENSHIFT_REPO_DIR 1>/dev/null
     md5sum --status --check "${gemfile_md5_file}"
-    success=$?
+    is_modified=$?
     popd 1>/dev/null
-
-    # md5sum returns '1' when the Gemfile(.lock) was modified
-    #
-    if [ "$success" == "1" ]; then
-      return 0
-    else
-      return 1
-    fi
+    return `[ "$is_modified" == "1" ] && echo 0 || echo 1`
   fi
 }
 
@@ -114,6 +107,15 @@ function update-configuration {
         echo -n "${GEM_HOME}/bin" > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
         ;;
     esac
+}
+
+function update_passenger_performance {
+  oo-erb ${OPENSHIFT_RUBY_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
+}
+
+function httpd_with_env {
+  ruby_context "RAILS_ENV=${RAILS_ENV:-production} /usr/sbin/httpd -C 'Include \
+  $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k $1"
 }
 
 function parse_args {
