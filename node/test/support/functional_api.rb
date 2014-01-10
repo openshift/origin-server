@@ -236,8 +236,9 @@ EOFZ
       content =~ /<title>(.+)<\/title>/
       title = $~[1]
 
-      if title =~ /^503|404 / && tries < 3
-        logger.info("Retrying #{url}")
+      if ((tries < max_tries) && (title =~ /^503|404 / || title != expected))
+        logger.info("Not the response we wanted; retrying #{url}")
+        next
       end
 
       break
