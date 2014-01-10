@@ -14,15 +14,9 @@ function ruby_in_development_mode {
 # speed up deployment.
 #
 function update_gemfile_sum {
-
   local gemfile_md5_file="${OPENSHIFT_RUBY_DIR}tmp/.gemfile_md5sum"
-
   pushd $OPENSHIFT_REPO_DIR 1>/dev/null
-  if [ -f Gemfile.lock ]; then
-    md5sum Gemfile Gemfile.lock > "${gemfile_md5_file}"
-  else
-    md5sum Gemfile > "${gemfile_md5_file}"
-  fi
+  [ -f Gemfile.lock ] && md5sum Gemfile.lock > "${gemfile_md5_file}"
   popd 1>/dev/null
 }
 
@@ -57,8 +51,7 @@ function gemfile_is_modified {
 
   local gemfile_md5_file="${OPENSHIFT_RUBY_DIR}tmp/.gemfile_md5sum"
 
-  [ ! -f "${OPENSHIFT_REPO_DIR}Gemfile" ] && return 1
-  [ ! -f "${OPENSHIFT_REPO_DIR}Gemfile.lock" ] && return 1
+  [ ! -f "${OPENSHIFT_REPO_DIR}Gemfile.lock" ] && return 0
 
   if [ ! -f "${gemfile_md5_file}" ]; then
     update_gemfile_sum
@@ -114,8 +107,7 @@ function update_passenger_performance {
 }
 
 function httpd_with_env {
-  ruby_context "RAILS_ENV=${RAILS_ENV:-production} /usr/sbin/httpd -C 'Include \
-  $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k $1"
+  ruby_context "RAILS_ENV=${RAILS_ENV:-production} /usr/sbin/httpd $HTTPD_CMD_CONF -k $1"
 }
 
 function parse_args {
