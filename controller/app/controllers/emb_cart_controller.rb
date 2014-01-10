@@ -42,7 +42,7 @@ class EmbCartController < BaseController
     return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109) unless specs.all?{ |f| f[:name] or f[:url] }
     #return render_error(:unprocessable_entity, "Only one cartridge may be added at a time.", 109) unless specs.length == 1
 
-    @application.domain.check_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "gear_size")
+    @application.domain.validate_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "gear_size")
 
     cartridges = CartridgeCache.find_and_download_cartridges(specs)
     group_overrides = CartridgeInstance.overrides_for(cartridges, @application)

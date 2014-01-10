@@ -115,11 +115,19 @@ function build() {
             return 0
           fi
         fi
-        echo "Bundling RubyGems based on Gemfile/Gemfile.lock to repo/vendor/bundle with 'bundle install --deployment'"
         pushd ${OPENSHIFT_REPO_DIR} 1> /dev/null
           SAVED_GIT_DIR=$GIT_DIR
           unset GIT_DIR
-          ruby_context "bundle install --deployment"
+          # You can tell bundler to skip installing certain gem group by using
+          # $ rhc env set BUNDLE_WITHOUT="group1 group2 ..."
+          #
+          if [ -z "${BUNDLE_WITHOUT}" ]; then
+            echo "Bundling RubyGems based on Gemfile/Gemfile.lock to repo/vendor/bundle with 'bundle install --deployment'"
+            ruby_context "bundle install --deployment"
+          else
+            echo "Bundling RubyGems based on Gemfile/Gemfile.lock to repo/vendor/bundle with 'bundle install --deployment --without \"${BUNDLE_WITHOUT}\"'"
+            ruby_context "bundle install --deployment --without '${BUNDLE_WITHOUT}'"
+          fi
           export GIT_DIR=$SAVED_GIT_DIR
         popd 1> /dev/null
     fi

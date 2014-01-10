@@ -117,7 +117,7 @@ def clean_app(a)
     dlist.each { |op| op.delete }
   end # end of lock
   if not delete_app
-    a.save
+    a.save!
     a.pending_op_groups.each { |op|
       if op.created_at.nil? or op.created_at < $t 
         next if op._type.nil?
@@ -139,7 +139,7 @@ def clean_domain(d)
   dlist.each { |op| op.delete }
   d.pending_ops.delete_if { |op| op.nil? }
   d.pending_ops.each { |op| op.state = :init if op.state==:queued and (op.created_at.nil? or op.created_at < $t) }
-  d.save
+  d.save!
   d.run_jobs rescue nil
   d.reload
   dlist = d.pending_ops.select { |op| (op.created_at.nil? or op.created_at < $t) and op.completed? }
@@ -151,7 +151,7 @@ def clean_domain(d)
       op.state = :queued if op.state == :init
     end
   }
-  d.save
+  d.save!
 end
 
 $user_count = 0
@@ -162,7 +162,7 @@ def clean_user(u)
   dlist.each { |op| op.delete }
   u.pending_ops.delete_if { |op| op.nil? }
   u.pending_ops.each { |op| op.state = :init if op.state==:queued and (op.created_at.nil? or op.created_at < $t) }
-  u.save
+  u.save!
   u.run_jobs rescue nil
   u.reload
   dlist = u.pending_ops.select { |op| (op.created_at.nil? or op.created_at < $t) and op.completed? }
@@ -175,7 +175,7 @@ def clean_user(u)
       op.state = :queued if op.state == :init
     end
   }
-  u.save
+  u.save!
 end
 
 hours = args["--time"] || 1

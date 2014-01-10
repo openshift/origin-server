@@ -357,7 +357,7 @@ class Haproxy
     # This gets called every 5 seconds (by default, determined by
     # CONFIG_VALIDATION_CHECK_INTERVAL defined above).
     #
-    # Varibles currently being used:
+    # Variables currently being used:
     #
     #   * @session_capcity_pct (determines how full current capacity is using
     #                          defined in "refresh" above).  100% full means
@@ -475,7 +475,7 @@ class Haproxy
               # end
               #
               # Using one of the above examples with memory, this example
-              # issues a scale down when memory usage drops below a threashold.
+              # issues a scale down when memory usage drops below a threshold.
               #
               # for gear_dns in gear_list
               #     mem_usage = `ssh -i ~/.openshift_ssh/id_rsa/$UUID@$gear_dns 'oo-cgroup-read memory.memsw.usage_in_bytes'`

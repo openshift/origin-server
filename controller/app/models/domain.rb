@@ -215,7 +215,7 @@ class Domain
     self.pending_ops.push pending_op
   end
 
-  def check_gear_sizes!(gear_sizes, field="gear_size")
+  def validate_gear_sizes!(gear_sizes, field="gear_size")
     valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & allowed_gear_sizes & owner.allowed_gear_sizes
 
     if valid_sizes.empty?

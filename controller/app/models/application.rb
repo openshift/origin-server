@@ -372,7 +372,7 @@ class Application
     Application.run_in_application_lock(self) do
       op_group = UpdateAppConfigOpGroup.new(config: self.config)
       self.pending_op_groups.push op_group
-      self.save
+      self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -764,7 +764,7 @@ class Application
     Application.run_in_application_lock(self) do
       op_group = AddFeaturesOpGroup.new(features: [], group_overrides: group_overrides, user_agent: self.user_agent)
       pending_op_groups.push op_group
-      self.save
+      self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -808,7 +808,7 @@ class Application
     Application.run_in_application_lock(self) do
       op_group = MakeAppHaOpGroup.new(user_agent: self.user_agent)
       pending_op_groups.push op_group
-      self.save
+      self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -833,7 +833,7 @@ class Application
     Application.run_in_application_lock(self) do
       op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_hash, min: scale_from, max: scale_to, multiplier: multiplier, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
       pending_op_groups.push op_group
-      self.save
+      self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -1499,6 +1499,7 @@ class Application
           raise Exception.new("Op group is already being rolled back.")
         end
 
+        op_group.reorder_usage_ops
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete

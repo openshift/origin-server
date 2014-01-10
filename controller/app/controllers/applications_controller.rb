@@ -86,8 +86,8 @@ class ApplicationsController < BaseController
       end
     end
 
-    @domain.check_gear_sizes!([default_gear_size], "gear_size")
-    @domain.check_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "cartridges")
+    @domain.validate_gear_sizes!([default_gear_size], "gear_size")
+    @domain.validate_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "cartridges")
 
     app = Application.new(
       domain: @domain,

@@ -68,16 +68,20 @@ class UsageRecord
   def self.find_latest_by_user_gear(user_id, gear_id, usage_type)
     where(:user_id => user_id, :gear_id => gear_id, :usage_type => usage_type).desc(:time).first
   end
+ 
+  def self.find_latest_by_gear(gear_id, usage_type)
+    where(:gear_id => gear_id, :usage_type => usage_type).desc(:time).first
+  end
 
   def self.track_usage(user_id, app_name, gear_id, event, usage_type,
-                       gear_size=nil, addtl_fs_gb=nil, cart_name=nil)
+                       gear_size=nil, addtl_fs_gb=nil, cart_name=nil, time=nil)
     UsageRecord.log_usage(user_id, gear_id, event, usage_type, gear_size, addtl_fs_gb, cart_name)
 
     if Rails.configuration.usage_tracking[:datastore_enabled]
-      now = Time.now.utc
+      time = Time.now.utc unless time
       if event == UsageRecord::EVENTS[:begin]
         usage = Usage.new(user_id: user_id, app_name: app_name, gear_id: gear_id,
-                          begin_time: now, created_at: now, usage_type: usage_type)
+                          begin_time: time, created_at: time, usage_type: usage_type)
         usage.gear_size = gear_size if gear_size
         usage.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
         usage.cart_name = cart_name if cart_name
@@ -85,7 +89,7 @@ class UsageRecord
       elsif event == UsageRecord::EVENTS[:end]
         usage = Usage.find_latest_by_user_gear(user_id, gear_id, usage_type)
         if usage
-          usage.end_time = now
+          usage.end_time = time
           usage.save!
           old_usage_rec = UsageRecord.find_latest_by_user_gear(user_id, gear_id, usage_type)
           # If we don't find begin/continue usage records for the 'end' event
@@ -107,7 +111,7 @@ class UsageRecord
       end
 
       # Keep created time in sync for UsageRecord and Usage mongo record.
-      usage_record = UsageRecord.new(event: event, time: now, created_at: now, gear_id: gear_id,
+      usage_record = UsageRecord.new(event: event, time: time, created_at: time, gear_id: gear_id,
                                      usage_type: usage_type, user_id: user_id, app_name: app_name)
       case usage_type
       when UsageRecord::USAGE_TYPES[:gear_usage]
