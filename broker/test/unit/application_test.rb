@@ -177,12 +177,12 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.update_component_limits(component_instance, 1, 2, nil)
     app.update_component_limits(component_instance, 1, -1, nil)
 
-    web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
-    app.scale_by(web_framework_component_instance.group_instance_id, 1)
+    web_instance = app.web_component_instance
+    app.scale_by(web_instance.group_instance_id, 1)
     app.reload
     assert_equal app.gears.count, 3
 
-    app.scale_by(web_framework_component_instance.group_instance_id, -1)
+    app.scale_by(web_instance.group_instance_id, -1)
     resp = rest_check(:get, "", {})
     assert_equal resp.status, 200
 

@@ -11,12 +11,13 @@ class ComponentInstance
   include Mongoid::Document
   embedded_in :application
 
-  field :cartridge_name, type: String
-  field :component_name, type: String
-  field :cartridge_vendor, type: String, default: ""
-  field :version, type: String, default: ""
-  field :component_properties, type: Hash, default: {}
   field :group_instance_id, type: Moped::BSON::ObjectId
+  field :cartridge_id, type: Moped::BSON::ObjectId
+  field :component_properties, type: Hash, default: {}
+  field :component_name, type: String
+
+  # DEPRECATED
+  field :cartridge_name, type: String
 
   NAME_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\Z/
   def self.check_name!(name)
@@ -62,11 +63,6 @@ class ComponentInstance
     return (max.nil? ? get_component.scaling.max : max)
   end
 
-  def get_additional_control_actions
-    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
-    cart.additional_control_actions
-  end
-
   def group_instance
     self.application.group_instances.find(self.group_instance_id)
   end
@@ -107,6 +103,10 @@ class ComponentInstance
 
   def get_component
     cartridge.get_component(component_name)
+  end
+
+  def supports_action?(action)
+    cartridge.additional_control_actions.include?(action)
   end
 
   def cartridge

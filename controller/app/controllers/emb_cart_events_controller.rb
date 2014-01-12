@@ -7,32 +7,51 @@ class EmbCartEventsController < BaseController
 
   def create
     cartid = params[:cartridge_id].downcase if params[:cartridge_id].presence
-    cartid = ComponentInstance.check_name!(cartid)
     event = params[:event].downcase if params[:event].presence
-    cartridge = CartridgeCache.find_cartridge(cartid, @application).name rescue cartid
-    
+
+    cartridge = ComponentInstance.check_name!(cartid)
+    instance = @application.component_instances.find_by(cartridge_name: cartridge_name)
+
     return render_error(:unprocessable_entity, "Event can only contain characters and '-'", 126,
                         "event") if event !~ EVENT_REGEX
 
-    return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{@application.name}", 129) if !@application.requires.include?(cartridge)
-
-    authorize! :change_cartridge_state, @application
-
     case event
       when 'start'
+        authorize! :change_cartridge_state, @application
         result = @application.start(cartridge)
+        msg = "Started #{cartridge} on #{@application.name}"
+
       when 'stop'
+        authorize! :change_cartridge_state, @application
         result = @application.stop(cartridge)
+        msg = "Stopped #{cartridge} on #{@application.name}"
+
       when 'restart'
+        authorize! :change_cartridge_state, @application
         result = @application.restart(cartridge)
+        msg = "Restarted #{cartridge} on #{@application.name}"
+
       when 'reload'
+        authorize! :change_cartridge_state, @application
         result = @application.reload_config(cartridge)
+        msg = "Reloaded #{cartridge} on #{@application.name}"
+
+      when "scale-up"
+        authorize! :scale_cartridge, @application
+        result = @application.scale_by(instance.group_instance_id, 1)
+        msg = "Cartridge #{cartridge_name} has been scaled down"
+
+      when "scale-down"
+        authorize! :scale_cartridge, @application
+        result = @application.scale_by(instance.group_instance_id, -1)
+        msg = "Cartridge #{cartridge_name} has been scaled down"
+
       else
         return render_error(:unprocessable_entity, "Invalid event '#{event}' for embedded cartridge #{cartridge} within application '#{@application.name}'", 126)
     end
 
     app = get_rest_application(@application)
-    render_success(:ok, "application", app, "Added #{event} on #{cartridge} for application #{@application.name}", result)
+    render_success(:ok, "application", app, msg, result)
   end
 
   protected

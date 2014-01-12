@@ -9,12 +9,12 @@ class EmbCartController < BaseController
   end
 
   def show
-    id = params[:id].presence
-    status_messages = !params[:include].nil? and params[:include].split(",").include?("status_messages")
+    id = ComponentInstance.check_name!(params[:id].presence)
+    status_messages = if_included(:status_messages, true)
 
-    cartname = CartridgeCache.find_cartridge(id, @application).name rescue id
-    component_instance = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(cartname))
-    cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
+    instance = @application.component_instances.find_by(cartridge_name: id)
+
+    cartridge = get_embedded_rest_cartridge(@application, instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
     render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@application.domain_namespace}")
   end
 
@@ -48,7 +48,7 @@ class EmbCartController < BaseController
     group_overrides = CartridgeInstance.overrides_for(cartridges, @application)
     @application.validate_cartridge_instances!(cartridges)
 
-    result = @application.add_features(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
+    result = @application.add_cartridges(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
 
     rest = cartridges.map do |cart|
       component_instance = @application.component_instances.where(cartridge_name: cart.name).first
@@ -76,14 +76,11 @@ class EmbCartController < BaseController
 
     authorize! :destroy_cartridge, @application
 
-    id = params[:id].presence
+    id = ComponentInstance.check_name!(params[:id].presence)
+    instance = @application.component_instances.find_by(cartridge_name: id)
+    result = @application.remove_cartridges([instance.cartridge_name])
 
-    comp = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(id))
-    feature = comp.cartridge_name #@application.get_feature(comp.cartridge_name, comp.component_name)
-    raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, nil, [id]) if feature.nil?
-    result = @application.remove_features([feature])
     status = requested_api_version <= 1.4 ? :no_content : :ok
-
     render_success(status, nil, nil, "Removed #{id} from application #{@application.name}", result)
   end
 
@@ -127,13 +124,8 @@ class EmbCartController < BaseController
       return render_upgrade_in_progress
     end
 
-    component_instance = @application.component_instances.find_by(cartridge_name: id)
-
-    if component_instance.nil?
-      return render_error(:unprocessable_entity, "Invalid cartridge #{id} for application #{@application.name}", 168, "PATCH_APP_CARTRIDGE", "cartridge")
-    end
-
-    if component_instance.is_sparse?
+    instance = @application.component_instances.find_by(cartridge_name: id)
+    if instance.is_sparse?
       if scales_to and scales_to != 1
         return render_error(:unprocessable_entity, "The cartridge #{id} cannot be scaled.", 168, "PATCH_APP_CARTRIDGE", "scales_to")
       elsif scales_from and scales_from != 1
@@ -141,7 +133,7 @@ class EmbCartController < BaseController
       end
     end
 
-    group_instance = @application.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
+    group_instance = @application.group_instances_with_scale.find{ |go| go.all_component_instances.include? instance }
 
     if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < group_instance.min
       return render_error(:unprocessable_entity, "The scales_to factor currently provided cannot be lower than the scales_from factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_to")
@@ -151,10 +143,10 @@ class EmbCartController < BaseController
       return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from")
     end
 
-    result = @application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
+    result = @application.update_component_limits(instance, scales_from, scales_to, additional_storage)
 
-    component_instance = @application.component_instances.find_by(cartridge_name: id)
-    cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
+    instance = @application.component_instances.find_by(cartridge_name: id)
+    cartridge = get_embedded_rest_cartridge(@application, instance, @application.group_instances_with_scale, @application.group_overrides)
 
     render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@application.domain_namespace}", result)
   end

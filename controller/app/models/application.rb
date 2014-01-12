@@ -81,8 +81,6 @@ class Application
 
   field :name, type: String
   field :canonical_name, type: String
-  #field :uuid, type: String, default: ""
-  field :domain_requires, type: Array, default: []
   field :group_overrides, type: Array, default: []
   embeds_many :pending_op_groups, class_name: PendingAppOpGroup.name
 
@@ -104,6 +102,7 @@ class Application
   field :secret_token, type: String
   field :config, type: Hash, default: {'auto_deploy' => true, 'deployment_branch' => 'master', 'keep_deployments' => 1, 'deployment_type' => 'git'}
   field :meta, type: Hash
+
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :gears, class_name: Gear.name
@@ -172,7 +171,7 @@ class Application
   end
 
   after_save do |app|
-    app.instance_variable_set(:@downloaded_cartridge_instances, nil)
+    app.instance_variable_set(:@downloaded_cartridges, nil)
   end
 
   # Hook to prevent accidental deletion of MongoID model before all related {Gear}s are removed
@@ -281,12 +280,78 @@ class Application
     @capabilities ||= domain.owner.capabilities.deep_dup rescue (raise OpenShift::UserException, "The application cannot be changed at this time.  Contact support.")
   end
 
-  def cartridge_instances
-    @cartridge_instances ||= {}
+  def quarantined
+    gears.any?(&:quarantined)
   end
 
-  def downloaded_cartridge_instances
-    @downloaded_cartridge_instances ||= begin
+  ##
+  # Enumerates all the Cartridges that are installed in this application.  If
+  # pending is true the op group will be iterated to check for changes to the
+  # list.
+  #
+  # In general, this is the primary mechanism by which the cartridges in the
+  # application should be queried.
+  #
+  def each_cartridge(pending=false, &block)
+    # For efficiency, generate different enumerators
+    e = if pending
+      Enumerator.new do |y|
+        removed = []
+        pending_op_groups.reverse_each do |g|
+          case op_group
+          when AddFeaturesOpGroup
+            op_group.cartridges.each do |c|
+              next if removed.any?{ |r| r.removes?(c) }
+              y << c
+            end
+          when RemoveFeaturesOpGroup
+            (removed ||= []) << op_group
+          end
+        end
+        component_instances.each do |i|
+          next if removed.any?{ |r| r.removes?(i.cartridge) }
+          y << i.cartridge
+        end
+      end
+    else
+      Enumerator.new do |y|
+        component_instances.each do |i|
+          y << i.cartridge
+        end
+      end
+    end
+    return e.each(&block) if block_given?
+    e
+  end
+
+  def cartridges(pending=false)
+    each_cartridge(pending).to_a
+  end
+
+  ##
+  # Returns the names of currently installed cartridges in this application
+  # NOTE: Use each_cartridge if you need to access a specific version of the cartridge
+  # @param pending [Boolean] Include the pending changes when calculating the list of features
+  # @return [Array<String>] List of features
+  def requires(pending=false)
+    each_cartridge(pending).map(&:name)
+  end
+  alias_method :cartridge_names, :requires
+
+  ##
+  # Get the web framework cartridge
+  # This method is only to maintain backwards compatibility for rest api version 1.0
+  # @return Cartridge
+  def web_cartridge
+    each_cartridge.find(&:is_web_framework?)
+  end
+
+  def web_component_instance
+    component_instances.detect(&:is_web_framework?)
+  end
+
+  def downloaded_cartridges
+    @downloaded_cartridges ||= begin
       self.downloaded_cart_map.inject({}) do |h, (_, data)|
         cart = CartridgeCache.cartridge_from_data(data)
         Rails.logger.error("Duplicate downloaded cartridge exists for application '#{self.name}'! Overwriting..") if h.has_key? cart.name
@@ -296,9 +361,13 @@ class Application
     end
   end
 
+  def cartridge_instances
+    @cartridge_instances ||= {}
+  end
+
   def track_downloaded_cartridge(cart)
     return self unless cart.manifest_url.present?
-    @downloaded_cartridge_instances[cart.name] = cart if @downloaded_cartridge_instances
+    @downloaded_cartridges[cart.name] = cart if @downloaded_cartridges
     Rails.logger.error("Duplicate downloaded cartridge exists for application '#{self.name}'! Overwriting..") if downloaded_cart_map.has_key? cart.name
     downloaded_cart_map[cart.name] = {
         "versioned_name" => cart.full_identifier,
@@ -307,10 +376,6 @@ class Application
         "original_manifest" => cart.manifest_text,
     }
     self
-  end
-
-  def quarantined
-    gears.any?(&:quarantined)
   end
 
   ##
@@ -469,38 +534,6 @@ class Application
     end
   end
 
-  ##
-  # Returns the feature requirements of the application
-  # @param include_pending [Boolean] Include the pending changes when calculating the list of features
-  # @return [Array<String>] List of features
-  def requires(include_pending=false)
-    features = component_instances.map {|ci| ci.cartridge_name} #get_feature(ci.cartridge_name, ci.component_name)}
-
-#    if include_pending
-#      self.pending_op_groups.each do |op_group|
-#        case op_group.op_type
-#        when :add_features
-#          features += op_group[:args]["features"]
-#       when :remove_features
-#          features -= op_group[:args]["features"]
-#        end
-#      end
-#    end
-
-    if include_pending
-      self.pending_op_groups.each do |op_group|
-        case op_group.class
-        when AddFeaturesOpGroup
-          features += op_group.features
-        when RemoveFeaturesOpGroup
-          features -= op_group.features
-        end
-      end
-    end
-
-    features || []
-  end
-
   def validate_cartridge_instances!(cartridges)
     if not cartridges.all?(&:valid?)
       cartridges.each{ |c| c.errors.full_messages.uniq.each{ |m| errors[:cartridge] = m } }
@@ -533,7 +566,7 @@ class Application
     group_overrides = CartridgeInstance.overrides_for(cartridges, self)
     self.validate_cartridge_instances!(cartridges)
 
-    add_features(cartridges.map(&:cartridge), group_overrides, init_git_url, user_env_vars)
+    add_cartridges(cartridges.map(&:cartridge), group_overrides, init_git_url, user_env_vars)
 
   rescue => e
     self.delete if persisted? && !(group_instances.present? || component_instances.present?)
@@ -542,16 +575,16 @@ class Application
 
   ##
   # Adds components to the application
-  # @param features [Array<Cartridge>] List of features to add to the application. Each cartridge must be resolved prior to this call
+  # @param cartridges [Array<Cartridge>] List of cartridges to add to the application. Each cartridge must be resolved prior to this call
   # @param group_overrides [Array] List of group overrides
   # @param init_git_url [String] URL to git repository to retrieve application code
   # @return [ResultIO] Output from cartridges
-  # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be added into the Application
-  def add_features(features, group_overrides=[], init_git_url=nil, user_env_vars=nil)
+  # @raise [OpenShift::UserException] Exception raised if there is any reason the cartridge cannot be added into the Application
+  def add_cartridges(cartridges, group_overrides=[], init_git_url=nil, user_env_vars=nil, io=ResultIO.new)
     ssl_endpoint = Rails.application.config.openshift[:ssl_endpoint]
     cart_name_map = {}
 
-    features.each do |cart|
+    cartridges.each do |cart|
 
       # ensure that the user isn't trying to add multiple versions of the same cartridge
       if cart_name_map.has_key?(cart.original_name)
@@ -560,7 +593,7 @@ class Application
         cart_name_map[cart.original_name] = cart.name
       end
 
-      # check if the requested feature is provided by any existing/embedded application cartridge
+      # check if the requested cartridge is already in the application
       component_instances.each do |ci|
         ci_cart = ci.get_cartridge
         if ci_cart.original_name == cart.original_name
@@ -581,7 +614,7 @@ class Application
         end
       end
 
-      # Validate that the features support scalable if necessary
+      # Validate that the cartridges support scalable if necessary
       if self.scalable && !(cart.is_plugin? || cart.is_service? || cart.is_web_framework?)
         raise OpenShift::UserException.new("#{cart.name} cannot be embedded in scalable app '#{name}'.", 109, 'cartridge')
       end
@@ -613,25 +646,24 @@ class Application
     end
 
     # Only one web_framework is allowed
-    if (features + component_instances).inject(0){ |c, cart| cart.is_web_framework? ? c + 1 : c } > 1
+    if (cartridges + component_instances).inject(0){ |c, cart| cart.is_web_framework? ? c + 1 : c } > 1
       raise OpenShift::UserException.new("You can only have one web cartridge in your application '#{name}'.", 109, 'cartridge')
     end
 
     # Only one web proxy is allowed
-    if (features + component_instances).inject(0){ |c, cart| cart.is_web_proxy? ? c + 1 : c } > 1
+    if (cartridges + component_instances).inject(0){ |c, cart| cart.is_web_proxy? ? c + 1 : c } > 1
       raise OpenShift::UserException.new("You can only have one proxy cartridge in your application '#{name}'.", 109, 'cartridge')
     end
 
-    # ensure features are available to the cache and that downloaded cartridegs are stored
-    features.inject(cartridge_instances) do |h, cart|
+    # ensure cartridges are available to the cache and that downloaded cartridegs are stored
+    cartridges.inject(cartridge_instances) do |h, cart|
       track_downloaded_cartridge(cart)
       h[cart.name] = cart
       h
     end
 
-    result_io = ResultIO.new
     Application.run_in_application_lock(self) do
-      op_group = AddFeaturesOpGroup.new(features: features.map(&:name), group_overrides: group_overrides, init_git_url: init_git_url,
+      op_group = AddFeaturesOpGroup.new(features: cartridges.map(&:name), group_overrides: group_overrides, init_git_url: init_git_url,
                                         user_env_vars: user_env_vars, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
 
@@ -642,14 +674,14 @@ class Application
       # will be moved out of the lock
       begin
         op_group.elaborate(self)
-        op_group.pre_execute(result_io)
+        op_group.pre_execute(io)
         self.save!
       rescue
         op_group.unreserve_gears(op_group.num_gears_added, self)
         raise
       end unless self.persisted?
 
-      self.run_jobs(result_io)
+      self.run_jobs(io)
     end
 
     # adding this feature may have caused pending_ops to be created on the domain
@@ -657,117 +689,121 @@ class Application
     # execute run_jobs on the domain to take care of those
     domain.reload
     domain.run_jobs
-    result_io
+    io
   end
 
   ##
-  # Removes components from the application
-  # @param features [Array<String>] List of features to remove from the application. Each feature will be resolved to the cartridge which provides it
+  # Removes cartridges from the application
+  # @param cartridges [Array<Cartridge>] List of cartridges to remove from the application. Each feature will be resolved to the cartridge which provides it
   # @param group_overrides [Array] List of group overrides
-  # @param force [Boolean] Set to true when deleting an application. It allows removal of web_proxy and ignores missing features
-  # @param remove_all_features [Boolean] Set to true when deleting an application.
-  #        It allows recomputing the list of features within the application after acquiring the lock.
-  #        If set to true, this ignores the features argument
+  # @param force [Boolean] Set to true when deleting an application. It allows removal of web_proxy and ignores missing cartridges
+  # @param remove_all_cartridges [Boolean] Set to true when deleting an application.
+  #        It allows recomputing the list of cartridges within the application after acquiring the lock.
+  #        If set to true, this ignores the cartridges argument
   # @return [ResultIO] Output from cartridges
-  # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be removed from the Application
-  def remove_features(features, group_overrides=[], force=false, remove_all_features=false)
-    installed_features = self.requires
-    result_io = ResultIO.new
+  # @raise [OpenShift::UserException] Exception raised if there is any reason the cartridge cannot be removed from the Application
+  def remove_cartridges(cartridges=nil, io=ResultIO.new)
+    remove_all_cartridges = cartridges.nil?
 
-    # FIXME: remove_all_features argument is ignored here
-    # For now, it is only used to check if we are removing a jenkins server application
-    # If the jenkins server app is still being created, jenkins clients cannot exist.
-    # But if this loop is modified to perform other checks/actions, we'll have to consider the remove_all_features flag
-    features.each do |feature|
-      cart = CartridgeCache.find_cartridge(feature, self)
-      raise OpenShift::UserException.new("Invalid feature: #{feature}", 109) unless cart
-      Rails.logger.debug "Removing feature #{feature}"
+    cartridges =
+      if remove_all_cartridges
+        component_ids = component_instances.map(&:_id).map(&:to_s)
+        self.cartridges
+      else
+        component_ids = []
+        cartridges.map do |cart|
+          cart = CartridgeCache.find_cartridge(cart, self) if cart.is_a? String
+          raise OpenShift::UserException.new("The cartridge '#{cart}' can not be found.", 109) if cart.nil?
 
-      if !force
-        raise OpenShift::UserException.new("'#{feature}' cannot be removed", 137) if (cart.is_web_proxy? and self.scalable) or cart.is_web_framework?
-        raise OpenShift::UserException.new("'#{feature}' is not a feature of '#{self.name}'", 135) unless installed_features.include? feature
+          instances = self.component_instances.where(cartridge_name: cart.name)
+          unless remove_all_cartridges
+            raise OpenShift::UserException.new("'#{cart.name}' cannot be removed", 137) if (cart.is_web_proxy? and self.scalable) or cart.is_web_framework?
+            raise OpenShift::UserException.new("'#{cart.name}' is not a cartridge of '#{self.name}'", 135) if instances.blank?
+          end
+          component_ids += instances.map(&:_id).map(&:to_s)
+          cart
+        end
       end
 
-      # FIXME: Instead of relying on individual cartridge categories to determine if any dependent features
-      # need to be removed in other applications, we need to make it more generic by using the domain_scope category
-      if cart.is_ci_server?
-        self.domain.applications.each do |uapp|
-          next if self.name == uapp.name
-          uapp.requires.each do |feature_name|
-            ucart = CartridgeCache.find_cartridge(feature_name, uapp)
-            if ucart.is_ci_builder?
-              Application.run_in_application_lock(uapp) do
-                op_group = RemoveFeaturesOpGroup.new(features: [feature_name], group_overrides: uapp.group_overrides, user_agent: uapp.user_agent)
-                uapp.pending_op_groups.push op_group
-                client_result_io = ResultIO.new
-                uapp.run_jobs(client_result_io)
-                if client_result_io.exitcode == 0
-                  client_result_io.resultIO.string = "Removed #{feature_name} from #{uapp.name}\n"
-                end
-                result_io.append(client_result_io)
-                result_io
+    cartridges.each{ |cart| remove_dependent_cartridges(cart, io) }
+
+    valid_domain_jobs = ((self.domain.system_ssh_keys.any?{ |k| component_ids.include? k.component_id.to_s }) || (self.domain.env_vars.any?{ |e| component_ids.include? e['component_id'].to_s })) rescue true
+
+    Application.run_in_application_lock(self) do
+      op_group = RemoveFeaturesOpGroup.new(features: cartridges.map(&:name), remove_all_features: remove_all_cartridges, user_agent: self.user_agent)
+      self.pending_op_groups.push op_group
+      self.run_jobs(io)
+    end
+
+    return io if !valid_domain_jobs
+
+    # removing this cartridge may have caused pending_ops to be created on the domain
+    # for removing env vars and ssh keys
+    # execute run_jobs on the domain to take care of those
+    domain.reload
+    domain.run_jobs
+    io
+  end
+
+  ##
+  # Removes cartridges on other applications in this domain that may depend on this cartridge's functionality.
+  #
+  # Deserves a serious refactoring - instead of relying on individual cartridge categories to determine if any
+  # dependent cartridges need to be removed in other applications, we should rely on linkages created between
+  # cartridges and applications.
+  #
+  def remove_dependent_cartridges(cart, io=ResultIO.new)
+    if cart.is_ci_server?
+      self.domain.applications.each do |app|
+        next if self == app
+        app.each_cartridge(true) do |ucart|
+          if ucart.is_ci_builder?
+            Application.run_in_application_lock(app) do
+              op_group = RemoveFeaturesOpGroup.new(features: [ucart.name], user_agent: app.user_agent)
+              app.pending_op_groups.push op_group
+              app.run_jobs(cart_io = ResultIO.new)
+              if cart_io.exitcode == 0
+                cart_io.resultIO.string = "Removed #{ucart.name} from #{app.name}\n"
               end
+              io.append(cart_io)
             end
           end
         end
       end
     end
-    feature_comps = features.map { |f|
-      cart = CartridgeCache.find_cartridge(f, self)
-      self.component_instances.find_by(cartridge_name: cart.name)._id.to_s rescue nil
-    }
-    valid_domain_jobs = ((self.domain.system_ssh_keys.any? { |k| feature_comps.include? k.component_id.to_s }) || (self.domain.env_vars.any? { |e| feature_comps.include? e['component_id'].to_s })) rescue true
-    Application.run_in_application_lock(self) do
-      op_group = RemoveFeaturesOpGroup.new(features: features, group_overrides: group_overrides, remove_all_features: remove_all_features, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
-      self.run_jobs(result_io)
-    end
-
-    return result_io if !valid_domain_jobs
-
-    # removing this feature may have caused pending_ops to be created on the domain
-    # for removing env vars and ssh keys
-    # execute run_jobs on the domain to take care of those
-    domain.reload
-    domain.run_jobs
-    result_io
+    io
   end
 
   ##
   # Destroys all gears on the application.
   # @note {#run_jobs} must be called in order to perform the updates
-  # This operation will trigger deletion of any applications listed in {#domain_requires}
   # @return [ResultIO] Output from cartridges
-  def destroy_app
-    result_io = ResultIO.new
-    self.domain.applications.each { |app|
-      app.domain_requires.each { |app_id|
-        if app_id==self._id
-          # now we have to worry if apps have a circular dependency among them or not
-          # assuming not for now or else stack overflow
-          result_io.append(app.destroy_app)
-          break
-        end
-      }
-    }
-    # specifying the remove_all_features flag as true to ensure removal of all features
-    result_io.append(self.remove_features(self.requires, [], true, true))
+  def destroy_app(io=ResultIO.new)
+    remove_dependent_applications(io)
+    remove_cartridges(nil, io)
     notify_observers(:after_destroy)
-    result_io
+    io
+  end
+
+  ##
+  # Destroys all applications that depend on this application
+  #
+  def remove_dependent_applications(io=ResultIO.new)
+    Application.where(domain_id: domain_id, builder_id: _id).each{ app.destroy_app(io) }
+    io
   end
 
   ##
   # Updates the component grouping overrides of the application and create tasks to perform the update
   # @param group_overrides [Array] list of group overrides
   # @return [ResultIO] Output from cartridges
-  def set_group_overrides(group_overrides)
+  def set_group_overrides(group_overrides, io=ResultIO.new)
     Application.run_in_application_lock(self) do
       op_group = AddFeaturesOpGroup.new(features: [], group_overrides: group_overrides, user_agent: self.user_agent)
       pending_op_groups.push op_group
       self.save!
-      result_io = ResultIO.new
-      self.run_jobs(result_io)
-      result_io
+      self.run_jobs(io)
+      io
     end
   end
 
@@ -780,19 +816,13 @@ class Application
     raise OpenShift::UserException.new("Only scalable applications can be made 'HA'") if not self.scalable
     raise OpenShift::UserException.new("Application is already HA") if self.ha
 
-    component_instance = self.component_instances.select { |ci|
-      cats = CartridgeCache.find_cartridge(ci.cartridge_name, self).categories
-      cats.include? "web_proxy"
-    }.first
+    component_instance = self.component_instances.find{ |i| i.cartridge.is_web_proxy? }
     raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.get_group_override('max_gears')==1
     # set the web_proxy's min to 2
     self.update_component_limits(component_instance, 2, -1, nil)
 
     # and the web_frameworks' min to 2 as well so that the app stays HA
-    web_ci = self.component_instances.select { |ci|
-      cats = CartridgeCache.find_cartridge(ci.cartridge_name, self).categories
-      cats.include? "web_framework"
-    }.first
+    web_ci = self.component_instances.find{ |i| i.cartridge.is_web_framework? }
     if web_ci.min < 2
       scale_up_needed = web_ci.gears.length>1
       self.update_component_limits(web_ci, 2, nil, nil)
@@ -902,7 +932,7 @@ class Application
   def to_descriptor
     h = {
       "Name" => self.name,
-      "Requires" => self.requires(true)
+      "Requires" => self.each_cartridge(true).map(&:name)
     }
 
     h["Start-Order"] = @start_order if @start_order.present?
@@ -1013,7 +1043,7 @@ class Application
       GroupInstance.run_on_gears(component_instance.gears, result_io, false) do |gear, r|
         r.append gear.threaddump(component_instance)
         threaddump_available = true
-      end if component_instance.get_additional_control_actions and component_instance.get_additional_control_actions.include? "threaddump"
+      end if component_instance.supports_action?("threaddump")
     end
     raise OpenShift::UserException.new("The threaddump command is not available for this application", 180) if !threaddump_available
     result_io
@@ -1056,13 +1086,14 @@ class Application
     end
   end
 
+  # NO LONGER USED: Remove
   def status(feature=nil)
     result_io = ResultIO.new
-    component_instances = get_components_for_feature(feature)
-    component_instances.each do |component_instance|
-      GroupInstance.run_on_gears(component_instance.gears, result_io, false) do |gear, r|
-        next if not gear.has_component?(component_instance)
-        r.append gear.status(component_instance)
+    self.component_instances.each do |instance|
+      next if feature && instance.cartridge_name != feature
+      GroupInstance.run_on_gears(instance.gears, result_io, false) do |gear, r|
+        next if not gear.has_component?(instance)
+        r.append gear.status(instance)
       end
     end
     result_io
@@ -1288,8 +1319,7 @@ class Application
   end
 
   def get_unsubscribe_info(comp_inst)
-    old_features = self.requires + [comp_inst.cartridge_name] #[get_feature(comp_inst.cartridge_name, comp_inst.component_name)]
-    old_connections, ignore, ignore = elaborate(old_features)
+    old_connections, _, _ = elaborate(self.cartridges << comp_inst.cartridge)
     sub_pub_hash = {}
     if self.scalable and old_connections
       old_connections.each do |old_conn|
@@ -1305,7 +1335,7 @@ class Application
 
   def execute_connections
     if self.scalable
-      connections, new_group_instances, cleaned_group_overrides = elaborate(self.requires, self.group_overrides)
+      connections, _, _ = elaborate(self.cartridges, self.group_overrides)
       set_connections(connections)
 
       Rails.logger.debug "Running publishers"
@@ -1467,7 +1497,7 @@ class Application
     end
 
     # Have to remember to run_jobs for the other apps involved at some point
-    # run_jobs is called on the domain after all processing is done from add_features and remove_features
+    # run_jobs is called on the domain after all processing is done from add_cartridges and remove_cartridges
     domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
     domain.add_env_variables(domain_env_vars_to_add) if !domain_env_vars_to_add.empty?
     nil
@@ -1579,10 +1609,12 @@ class Application
     end
   end
 
-  def update_requirements(features, group_overrides, init_git_url=nil, user_env_vars=nil)
-    group_overrides = (group_overrides + gen_non_scalable_app_overrides(features)).uniq unless self.scalable
+  def update_requirements(cartridges, group_overrides, init_git_url=nil, user_env_vars=nil)
+    unless self.scalable
+      group_overrides = (group_overrides + gen_non_scalable_app_overrides(cartridges)).uniq
+    end
 
-    connections, new_group_instances, cleaned_group_overrides = elaborate(features, group_overrides)
+    connections, new_group_instances, cleaned_group_overrides = elaborate(cartridges, group_overrides)
     current_group_instances = self.group_instances.map { |gi| gi.to_hash }
     changes, moves = compute_diffs(current_group_instances, new_group_instances)
 
@@ -1592,30 +1624,10 @@ class Application
     calculate_ops(changes, moves, connections, cleaned_group_overrides, init_git_url, user_env_vars)
   end
 
-  def calculate_scale_by(ginst_id, scale_by)
-    changes = []
-    current_group_instances = group_instances_with_scale
-    current_group_instances.each do |ginst|
-      if ginst._id.to_s == ginst_id.to_s
-        final_scale = ginst.gears.length + scale_by
-        final_scale = ginst.min if final_scale < ginst.min
-        final_scale = ginst.max if ((final_scale > ginst.max) && (ginst.max != -1))
-
-        changes << {
-          :from=>ginst_id.to_s, :to=>ginst_id.to_s,
-          :added=>[], :removed=>[],
-          :from_scale=>{:min=>ginst.min, :max=>ginst.max, :current=>ginst.gears.length},
-          :to_scale=>{:min=>ginst.min, :max=>ginst.max, :current=>final_scale}
-        }
-      end
-    end
-    calculate_ops(changes)
-  end
-
   def calculate_remove_group_instance_ops(comp_specs, group_instance)
     pending_ops = []
-    gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s, 
-                                                  group_instance.gears.map{|g| g._id.to_s}, 
+    gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s,
+                                                  group_instance.gears.map{|g| g._id.to_s},
                                                   group_instance.addtl_fs_gb)
     pending_ops.push(*gear_destroy_ops)
     gear_destroy_op_ids = gear_destroy_ops.map{|op| op._id.to_s}
@@ -1765,15 +1777,14 @@ class Application
         pending_ops.push(track_usage_fs_op)
       end
     end
-    comp_specs = self.group_instances.find(ginst_id).all_component_instances.map{ |c| c.to_hash }
-    comp_specs.each do |comp_spec|
-      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
+    #comp_specs = self.group_instances.find(ginst_id).all_component_instances.map(&:to_component_spec)
+    self.group_instances.find(ginst_id).all_component_instances.each do |instance|
       gear_ids.each do |gear_id|
         pending_ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
-          app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], cart_name: comp_spec["cart"],
+          app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], cart_name: instance.cartridge_name,
           usage_type: UsageRecord::USAGE_TYPES[:premium_cart], 
           prereq: [delete_gear_op._id.to_s]))
-      end if cartridge.is_premium?
+      end if instance.cartridge.is_premium?
     end
 
     if deleting_app
@@ -2089,7 +2100,7 @@ class Application
 
           if scale_change > 0
             add_gears += scale_change
-            comp_specs = self.component_instances.where(group_instance_id: group_instance._id).map{|c| c.to_hash}
+            comp_specs = self.group_instance.component_instances.map(&:to_component_spec)
             deploy_gear_id = group_instance.gears.find_by(app_dns: true)._id.to_s rescue nil
             gear_ids = (1..scale_change).map {|idx| Moped::BSON::ObjectId.new.to_s}
             additional_filesystem_gb = changed_additional_filesystem_gb || group_instance.addtl_fs_gb
@@ -2208,8 +2219,7 @@ class Application
         to_id         = from_id || new_group_instances[best_to][:_id]
       end
       unless from_comp_insts.empty? and to_comp_insts.empty?
-        added = to_comp_insts - from_comp_insts
-        removed = from_comp_insts - to_comp_insts
+        added, removed = compute_comp_inst_diffs(from_comp_insts, to_comp_insts)
         changes << {from: from_id, to: to_id, added: added, removed: removed, from_scale: from_scale, to_scale: to_scale}
       end
       (0..axis_size-1).each {|i| cost_matrix[i,best_to] = 1000}
@@ -2220,8 +2230,8 @@ class Application
       c1[:removed].each do |comp_spec|
         changes.each do |c2|
           if c2[:added].include?(comp_spec)
-            from_id = c1[:from].nil? ? nil : c1[:from]
-            to_id = c2[:to].nil? ? nil : c2[:to]
+            from_id = c1[:from]
+            to_id = c2[:to]
             moves << {component: comp_spec, from_group_instance_id: from_id, to_group_instance_id: to_id}
             c1[:removed].delete comp_spec
             c2[:added].delete comp_spec
@@ -2234,107 +2244,116 @@ class Application
     [changes, moves]
   end
 
-  def process_group_overrides(component_instances, group_overrides)
-    overrides = (group_overrides || []).deep_dup
+  def compute_comp_inst_diffs(from_comp_insts, to_comp_insts)
+    added = to_comp_insts - from_comp_insts
+    removed = from_comp_insts - to_comp_insts
+    return [added, removed]
+  end
+
+  ##
+  # WARNING: Mutates overrides
+  #
+  def process_group_overrides(instances, overrides)
+    overrides ||= []
     cleaned_overrides = []
 
-    # Resolve additional group overrides from component_instances
-    component_instances.each do |component_instance|
-      cart = CartridgeCache.find_cartridge(component_instance["cart"], self)
-      prof = cart.profile_for_feature(component_instance["comp"])
-      prof = prof[0] if prof.is_a?(Array)
-      comp = prof.get_component(component_instance["comp"])
+    # Resolve additional group overrides from instances
+    instances.each do |instance|
+      cart = instance[:cartridge]
+      comp = instance[:component]
+      prof = cart.profile_for_feature(comp.name)
       overrides += prof.group_overrides.deep_dup
-      component_go = {"components" => [{"cart" => cart.name, "comp" => comp.name}] }
-      if !comp.is_sparse?
-        component_go["min_gears"] = comp.scaling.min
-        component_go["max_gears"] = comp.scaling.max
+      override = {"components" => [{"cart" => cart.name, "comp" => comp.name}] }
+      unless comp.is_sparse?
+        override["min_gears"] = comp.scaling.min
+        override["max_gears"] = comp.scaling.max
       end
-      overrides <<  component_go
+      overrides << override
     end
 
     # Resolve all components within the group overrides
-    # Remove deleted components from group_overrides and build cleaned_overrides array
-    overrides.each do |group_override|
-      cleaned_override = {}
-      cleaned_override["components"] ||= []
+    overrides.each do |override|
 
-      group_override["components"].map! do |comp_spec|
-        comp_spec = {"comp" => comp_spec} if comp_spec.class == String
-        component = component_instances.select { |ci|
-          is_valid =  (ci["comp"] == comp_spec["comp"] && (comp_spec["cart"].nil? || ci["cart"] == comp_spec["cart"]))
-          unless is_valid
-            # try once more with comp_spec["comp"] possibly not the cartridge name
-            # basically some override (either by the user or through a group_override section in a cartridge)
-            # is referring to a component/feature that is not a cartridge name or component name of any of the cartridges
-            # installed on the system
-            ci_cart = CartridgeCache.find_cartridge(ci["cart"], self)
-            p = ci_cart.profile_for_feature(comp_spec["comp"])
-            unless p.nil? or p.is_a? Array
-              # this is the cartridge because we found a profile matching the feature, just double check on the component
-              # if this was an auto-generated component then we are good to choose this ci
-              begin
-                is_valid = true if p.get_component(ci["comp"]).generated
-              rescue Exception=>e
-                # ignore
-              end
+      # Check for components that do not have a valid cartridge
+      components = (override["components"] || []).map do |spec|
+        if String === spec
+          comp_name = spec
+          cart_name = nil
+          spec = {}
+        elsif Hash === spec
+          comp_name = spec["comp"]
+          cart_name = spec["cart"]
+        else
+          next
+        end
+
+        # Resolve component specs down to known instances
+        component = instances.find do |instance|
+          cart = instance[:cartridge]
+          valid = (comp_name == instance[:component].name && (cart_name.nil? || cart_name == cart.name))
+          unless valid
+            # try once more with spec["comp"] possibly not the cartridge name
+            # basically some override (either by the user or through a override section in a cartridge)
+            # is referring to a component/feature that is not a cartridge name or component name of any
+            # of the cartridges installed on the system
+            if p = cart.profile_for_feature(comp_name)
+              # this is the cartridge because we found a profile matching the feature, just double
+              # check on the component if this was an auto-generated component then we are good to
+              # choose this ci
+              valid = p.get_component(instance[:component].name).generated rescue nil
             end
-            unless is_valid
-              is_valid = true if ci_cart.categories.include?(comp_spec["comp"])
-            end
+            # This resolves cartridge contributed group-overrides for place, but is probably too
+            # underspecified. Lookups of group override specs should be done by feature or type,
+            # but probably not category.
+            valid ||= cart.features.include?(comp_name) || cart.categories.include?(comp_name)
           end
-          is_valid
-        }
-        next if component.size == 0
-        component = component.first
+          valid
+        end or next
 
-        # add sparse cart's special overrides to the cleaned_override
-        component["min_gears"] = comp_spec["min_gears"] if comp_spec["min_gears"]
-        component["max_gears"] = comp_spec["max_gears"] if comp_spec["max_gears"]
-        component["multiplier"] = comp_spec["multiplier"] if comp_spec["multiplier"]
-
-        cleaned_override["components"] << component
-        component
+        spec.slice('min_gears', 'max_gears', 'multiplier').merge!(
+          'comp' => component[:component].name,
+          'cart' => component[:cartridge].name,
+        )
       end
+      components.compact!
+      next if components.blank?
 
-      cleaned_override["min_gears"] = group_override["min_gears"] if group_override.has_key?("min_gears")
-      cleaned_override["max_gears"] = group_override["max_gears"] if group_override.has_key?("max_gears")
-      cleaned_override["additional_filesystem_gb"] = group_override["additional_filesystem_gb"] if group_override.has_key?("additional_filesystem_gb")
-      cleaned_override["gear_size"] = group_override["gear_size"] if group_override.has_key?("gear_size")
-      cleaned_overrides << cleaned_override if group_override["components"] and group_override["components"].count > 0
+      cleaned_overrides <<
+        override.slice('min_gears', 'max_gears', 'additional_filesystem_gb', 'gear_size').merge!(
+          "components" => components,
+        )
     end
 
     # work on cleaned_overrides only
-    go_map = {}
-    cleaned_overrides.each { |go|
-      merged_go = go.deep_dup
-      go["components"].each { |comp|
-        existing_go = go_map["#{comp["cart"]}/#{comp["comp"]}"]
-        merged_go = merge_group_overrides(merged_go, existing_go) if existing_go
-      }
-      merged_go["components"].each { |comp|
-        go_map["#{comp["cart"]}/#{comp["comp"]}"] = merged_go
-      }
-    }
+    by_path = {}
+    cleaned_overrides.each do |override|
+      merged = override.deep_dup
+      override["components"].each do |comp|
+        existing = by_path["#{comp["cart"]}/#{comp["comp"]}"] or next
+        merged = merge_group_overrides(merged, existing)
+      end
+      merged["components"].each do |comp|
+        by_path["#{comp["cart"]}/#{comp["comp"]}"] = merged
+      end
+    end
     processed_group_overrides = []
-    component_instances.each { |ci|
-      go = go_map["#{ci["cart"]}/#{ci["comp"]}"]
-      next if go.nil?
-      processed_group_overrides << go.deep_dup if !processed_group_overrides.include? go
-    }
+    instances.each do |instance|
+      override = by_path["#{instance[:cartridge].name}/#{instance[:component].name}"] or next
+      processed_group_overrides << override.deep_dup unless processed_group_overrides.include? override
+    end
     return [processed_group_overrides, processed_group_overrides]
   end
 
   def merge_comp_specs(first, second)
     return_specs = []
-    first.each { |comp_spec|
+    first.each do |comp_spec|
       new_spec = { "cart" => comp_spec["cart"], "comp" => comp_spec["comp"] }
       new_spec["min_gears"] = comp_spec["min_gears"] if comp_spec.has_key?("min_gears")
       new_spec["max_gears"] = comp_spec["max_gears"] if comp_spec.has_key?("max_gears")
       new_spec["multiplier"] = comp_spec["multiplier"] if comp_spec.has_key?("multiplier")
       return_specs << new_spec
-    }
-    second.each { |comp_spec|
+    end
+    second.each do |comp_spec|
       found = return_specs.find { |rs| rs["comp"]==comp_spec["comp"] and rs["cart"]==comp_spec["cart"] }
       if found
         found["min_gears"] = [found["min_gears"]||1, comp_spec["min_gears"]||1].max if found["min_gears"] or comp_spec["min_gears"]
@@ -2346,26 +2365,26 @@ class Application
         new_spec["multiplier"] = comp_spec["multiplier"] if comp_spec.has_key?("multiplier")
         return_specs << new_spec
       end
-    }
+    end
     return_specs
   end
 
   def merge_group_overrides(first, second)
     return_go = { }
 
-    first_has_web_framework = false
-    first["components"].each do |components|
-      c = CartridgeCache.find_cartridge(components['cart'], self)
-      if c.is_web_framework?
-        first_has_web_framework = true
-        break
-      end
-    end
-    if first_has_web_framework
+    # first_has_web_framework = false
+    # first["components"].each do |components|
+    #   c = CartridgeCache.find_cartridge(components['cart'], self)
+    #   if c.is_web_framework?
+    #     first_has_web_framework = true
+    #     break
+    #   end
+    # end
+    # if first_has_web_framework
       return_go["components"] = merge_comp_specs(first["components"], second["components"]) #(first["components"] + second["components"]).uniq
-    else
-      return_go["components"] = merge_comp_specs(second["components"], first["components"]) #(second["components"] + first["components"]).uniq
-    end
+    #else
+    #  return_go["components"] = merge_comp_specs(second["components"], first["components"]) #(second["components"] + first["components"]).uniq
+    #end
     return_go["min_gears"] = [first["min_gears"]||1, second["min_gears"]||1].max if first["min_gears"] or second["min_gears"]
     return_go["additional_filesystem_gb"] = [first["additional_filesystem_gb"]||0, second["additional_filesystem_gb"]||0].max if first["additional_filesystem_gb"] or second["additional_filesystem_gb"]
     fmax = (first["max_gears"].nil? or first["max_gears"]==-1) ? MAX_SCALE_NUM : first["max_gears"]
@@ -2442,16 +2461,14 @@ class Application
   #   An array of connections
   # group instances::
   #   An array of hash values representing a group instances.
-  def elaborate(features, group_overrides = [])
+  def elaborate(cartridges, group_overrides = [])
     profiles = []
     added_cartridges = []
     overrides = group_overrides.deep_dup
 
     #calculate initial list based on user provided dependencies
-    features.each do |feature|
-      cart = CartridgeCache.find_cartridge(feature, self)
-      raise OpenShift::UnfulfilledRequirementException.new(feature) if cart.nil?
-      prof = cart.profile_for_feature(feature)
+    cartridges.each do |cart|
+      prof = cart.profile_for_feature(cart.name)
       added_cartridges << cart
       profiles << {cartridge: cart, profile: prof}
     end
@@ -2464,7 +2481,7 @@ class Application
         cart.requires.each do |feature|
           next if profiles.count{|d| d[:cartridge].features.include?(feature)} > 0
 
-          cart = CartridgeCache.find_cartridge(feature, self)
+          cart = CartridgeCache.find_cartridge_by_base_name(feature, self)
           raise OpenShift::UnfulfilledRequirementException.new(feature) if cart.nil?
           prof = cart.profile_for_feature(feature)
           added_cartridges << cart
@@ -2480,7 +2497,7 @@ class Application
       profile.components.each do |component|
         component_instances << {
           cartridge: data[:cartridge],
-          component: component
+          component: component,
         }
       end
     end
@@ -2520,8 +2537,8 @@ class Application
       end
     end
 
-    comp_specs = component_instances.map{ |ci| {"comp"=> ci[:component].name, "cart"=> ci[:cartridge].name}}
-    processed_overrides, cleaned_overrides = process_group_overrides(comp_specs, overrides)
+    # overrides may have been altered after this call 
+    processed_overrides, cleaned_overrides = process_group_overrides(component_instances, overrides)
     group_instances = processed_overrides.map{ |go|
       group_instance = {}
       group_instance[:component_instances] = go["components"].map { |go_comp_spec| { "cart"=>go_comp_spec['cart'], "comp"=>go_comp_spec['comp'] } }
@@ -2568,28 +2585,28 @@ class Application
     configure_order = ComponentOrder.new
 
     existing_categories = {}
-    self.component_instances.each do |comp_inst|
-      cart = CartridgeCache.find_cartridge(comp_inst.cartridge_name, self)
-      prof = cart.get_profile_for_component(comp_inst.component_name)
+    self.component_instances.each do |instance|
+      cart = instance.cartridge
+      prof = cart.get_profile_for_component(instance.component_name)
 
-      [[comp_inst.cartridge_name],cart.categories,cart.provides,prof.provides].flatten.each do |cat|
+      [[instance.cartridge_name],cart.categories,cart.provides,prof.provides].flatten.each do |cat|
         existing_categories[cat] = [] if existing_categories[cat].nil?
-        existing_categories[cat] << comp_inst.to_hash
+        existing_categories[cat] << instance.to_hash
       end
     end
 
     comps = []
     categories = {}
-    comp_specs.each do |comp_inst|
-      cart = CartridgeCache.find_cartridge(comp_inst["cart"], self)
-      prof = cart.get_profile_for_component(comp_inst["comp"])
+    comp_specs.each do |instance|
+      cart = CartridgeCache.find_cartridge(instance["cart"], self)
+      prof = cart.get_profile_for_component(instance["comp"])
 
       comps << {cart: cart, prof: prof}
-      [[comp_inst["cart"]],cart.categories,cart.provides,prof.provides].flatten.each do |cat|
+      [[instance["cart"]],cart.categories,cart.provides,prof.provides].flatten.each do |cat|
         categories[cat] = [] if categories[cat].nil?
-        categories[cat] << comp_inst
+        categories[cat] << instance
       end
-      configure_order.add_component_order([comp_inst])
+      configure_order.add_component_order([instance])
     end
 
     #use the map to build DAG for order calculation
@@ -2609,7 +2626,7 @@ class Application
     if self.component_configure_order.empty?
       begin
         computed_configure_order = configure_order.tsort
-      rescue Exception=>e
+      rescue Exception
         raise OpenShift::UserException.new("Conflict in calculating configure order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
       end
     else
@@ -2684,64 +2701,41 @@ class Application
 
     # start/stop order can have nil if the component is not present in the application
     # for eg, php is being stopped and haproxy is not present in a non-scalable application
-    computed_start_order = computed_start_order.select { |co| not co.nil? }
-    computed_stop_order = computed_stop_order.select { |co| not co.nil? }
+    computed_start_order.compact!
+    computed_stop_order.compact!
 
     [computed_start_order, computed_stop_order]
   end
 
-  # Gets a feature name for the cartridge/component combination
-  #
-  # == Parameters:
-  # cartridge_name::
-  #   Name of cartridge
-  # component_name::
-  #   Name of component
-  #
-  # == Returns:
-  # Feature name provided by the cartridge that includes the component
-  def get_feature(cartridge_name,component_name)
-    cart = CartridgeCache.find_cartridge(cartridge_name, self)
-    prof = cart.get_profile_for_component component_name
-    (prof.provides.length > 0 && prof.name != cart.default_profile) ? prof.provides.first : cart.provides.first
-  end
-
-  def get_components_for_feature(feature)
-    cart = CartridgeCache.find_cartridge(feature, self)
-    raise OpenShift::UserException.new("No cartridge found that provides #{feature}", 109) if cart.nil?
-    prof = cart.profile_for_feature(feature)
-    prof.components.map{ |comp| self.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name) }
-  end
-
-  def gen_non_scalable_app_overrides(features)
+  def gen_non_scalable_app_overrides(cartridges)
     #find web_framework
-    web_framework = {}
-    features.each do |feature|
-      cart = CartridgeCache.find_cartridge(feature, self)
-      next unless cart.categories.include? "web_framework"
-      prof = cart.profile_for_feature(feature)
+    group_overrides = []
+    if primary = cartridges.find(&:is_web_framework?) || cartridges.find(&:is_service?)
+      prof = primary.profile_for_feature(primary.name)
       prof = prof.first if prof.is_a? Array
-      comp = prof.components.first
-      web_framework = {"cart"=>cart.name, "comp"=>comp.name}
+      primary_comp = prof.components.first
+      primary_spec = {"cart"=> primary.name, "comp"=> primary_comp.name}
+      group_overrides << {
+        "components" => [primary_spec],
+        "max_gears" => 1
+      }
     end
 
-    group_overrides = [{"components"=>[web_framework], "max_gears"=> 1}]
-    #generate group overrides to colocate all components with web_framework and limit scale to 1
-    features.each do |feature|
-      cart = CartridgeCache.find_cartridge(feature, self)
-      next if cart.categories.include? "web_framework"
-      profs = cart.profile_for_feature(feature)
+    #generate group overrides to colocate all components with the first service and limit scale to 1
+    cartridges.each do |cart|
+      next if cart.is_web_framework?
+      profs = cart.profile_for_feature(cart.name)
       profile = (profs.is_a? Array) ? profs.first : profs
       components = profile.components
-      group_overrides += components.map { |comp|
-        {
+      components.inject(group_overrides) do |arr, comp|
+        arr << {
           "components" => [
-            web_framework,
+            primary_spec,
             {"cart"=>cart.name, "comp"=>comp.name}
           ],
           "max_gears" => 1
         }
-      }
+      end
     end
 
     group_overrides
@@ -2782,7 +2776,7 @@ class Application
   # This method is only to maintain backwards compatibility for rest api version 1.0
   # @return [String]
   def health_check_path
-    web_cart = get_framework_cartridge
+    web_cart = web_cartridge
     if web_cart.nil?
       page = 'health'
     elsif web_cart.categories.include? 'php'
@@ -2800,24 +2794,10 @@ class Application
   # This method is only to maintain backwards compatibility for rest api version 1.0
   # @return [Integer, Integer]
   def get_app_scaling_limits
-    web_cart = get_framework_cartridge
+    web_cart = web_cartridge or return [1, 1]
     component_instance = self.component_instances.find_by(cartridge_name: web_cart.name)
     group_instance = group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
     [group_instance.min, group_instance.max]
-  end
-
-  # Get the web framework cartridge
-  # This method is only to maintain backwards compatibility for rest api version 1.0
-  # @return Cartridge
-  def get_framework_cartridge
-    web_cart = nil
-    self.requires.each do |feature|
-      cart = CartridgeCache.find_cartridge(feature, self)
-      next unless cart.categories.include? "web_framework"
-      web_cart = cart
-      break
-    end
-    web_cart
   end
 
   def self.validate_user_env_variables(user_env_vars, no_delete=false)

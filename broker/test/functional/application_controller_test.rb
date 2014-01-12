@@ -465,7 +465,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
-    assert carts = app.downloaded_cartridge_instances
+    assert carts = app.downloaded_cartridges
     assert carts.length == 1
     assert cart = carts['mock-mock-0.1']
     assert_equal ['mock', 'web_framework'], cart.categories.sort
@@ -492,7 +492,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
-    assert carts = app.downloaded_cartridge_instances
+    assert carts = app.downloaded_cartridges
     assert carts.length == 1
     assert cart = carts['mock-mock-0.1']
     assert_equal ['mock', 'web_framework'], cart.categories.sort
@@ -519,7 +519,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test", "version" => "0.2"}], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
-    assert carts = app.downloaded_cartridge_instances
+    assert carts = app.downloaded_cartridges
     assert carts.length == 1
     assert cart = carts['mock-mock-0.2']
     assert_equal ['mock', 'web_framework'], cart.categories.sort
@@ -547,7 +547,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => ["mock-remotemock-0.1"], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
-    assert carts = app.downloaded_cartridge_instances
+    assert carts = app.downloaded_cartridges
     assert carts.length == 1
     assert cart = carts['mock-remotemock-0.1']
     assert_equal ['mock', 'web_framework'], cart.categories.sort

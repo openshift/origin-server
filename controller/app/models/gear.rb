@@ -147,7 +147,7 @@ class Gear
   end
 
   def status(component_instance)
-    @container.status(self, component_instance)
+    get_proxy.status(self, component_instance)
   end
 
   def has_component?(component_instance)
@@ -334,13 +334,9 @@ class Gear
   # == Returns:
   # {OpenShift::ApplicationContainerProxy}
   def get_proxy
-    if @container.nil? and !self.server_identity.nil?
-      @container = OpenShift::ApplicationContainerProxy.instance(self.server_identity)
-    elsif @container and @container.id!=self.server_identity 
-      @container = OpenShift::ApplicationContainerProxy.instance(self.server_identity)
-    end
-
-    return @container
+    return nil unless server_identity
+    @container = nil if @container && @container.id != server_identity
+    @container ||= OpenShift::ApplicationContainerProxy.instance(server_identity)
   end
 
   def update_configuration(op, remote_job_handle, tag="")

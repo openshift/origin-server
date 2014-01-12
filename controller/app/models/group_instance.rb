@@ -35,19 +35,19 @@ class GroupInstance
   end
 
   def gears
-    application.gears.select {|g| g.group_instance_id == self._id}
+    application.gears.select{ |g| g.group_instance_id == self._id }
   end
 
   def component_instances
-    all_component_instances.select{|c| !c.is_sparse?}
+    all_component_instances.reject(&:is_sparse?)
   end
 
   def sparse_instances
-    all_component_instances.select{|c| c.is_sparse?}
+    all_component_instances.select(&:is_sparse?)
   end
 
   def all_component_instances
-    application.component_instances.where(group_instance_id: self._id)
+    application.component_instances.select{ |i| i.group_instance_id == self._id }
   end
 
   def gear_size
@@ -77,10 +77,9 @@ class GroupInstance
   end
 
   def has_component?(comp_spec)
-    all_component_instances.each do |ci|
-      return true if ci.component_name == comp_spec["comp"] and ci.cartridge_name == comp_spec["cart"]
+    all_component_instances.any? do |ci|
+      ci.component_name == comp_spec["comp"] and ci.cartridge_name == comp_spec["cart"]
     end
-    return false
   end
 
   # Adds ssh keys to all gears within the group instance.

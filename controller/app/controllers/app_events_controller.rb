@@ -29,6 +29,7 @@ class AppEventsController < BaseController
     event = params[:event].presence
     server_alias = params[:alias].presence
     deployment_id = params[:deployment_id].presence
+    cartridge_name = params[:cartridge_name].presence
 
     return render_error(:unprocessable_entity, "Event can only contain lowercase a-z and '-' characters", 126,
                         "event") if event !~ EVENT_REGEX
@@ -52,42 +53,54 @@ class AppEventsController < BaseController
       authorize! :change_state, @application
       r = @application.start
       msg = "Application #{@application.name} has started"
+
     when "stop"
       authorize! :change_state, @application
       r = @application.stop
       msg = "Application #{@application.name} has stopped"
+
     when "force-stop"
       authorize! :change_state, @application
       r = @application.stop(nil, true)
       msg = "Application #{@application.name} has forcefully stopped"
+
     when "restart"
       authorize! :change_state, @application
       r = @application.restart
       msg = "Application #{@application.name} has restarted"
+
     when "show-port", "expose-port", "conceal-port"
       return render_error(:gone, "This event (#{event}) is no longer supported.", 112)
+
     when "add-alias"
       authorize! :create_alias, @application
       r = @application.add_alias(server_alias)
       msg = "Application #{@application.name} has added alias"
+
     when "remove-alias"
       authorize! :destroy_alias, @application
       r = @application.remove_alias(server_alias)
       msg = "Application #{@application.name} has removed alias"
+
     when "make-ha"
       authorize! :make_ha, @application
       r = @application.make_ha
       msg = "Application #{@application.name} is now ha"
+
     when "scale-up"
       authorize! :scale_cartridge, @application
-      web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,@application).categories.include?("web_framework") }.first
-      r = @application.scale_by(web_framework_component_instance.group_instance_id, 1)
-      msg = "Application #{@application.name} has scaled up"
+      instance = @application.web_component_instance
+      raise OpenShift::UserException.new("Application #{@application.name} does not have a web cartridge to scale.")
+      r = @application.scale_by(instance.group_instance_id, 1)
+      msg = "Application #{@application.name} has scaled down"
+
     when "scale-down"
       authorize! :scale_cartridge, @application
-      web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,@application).categories.include?("web_framework") }.first
-      r = @application.scale_by(web_framework_component_instance.group_instance_id, -1)
+      instance = @application.web_component_instance
+      raise OpenShift::UserException.new("Application #{@application.name} does not have a web cartridge to scale.")
+      r = @application.scale_by(instance.group_instance_id, -1)
       msg = "Application #{@application.name} has scaled down"
+
     when "thread-dump"
       authorize! :view_code_details, @application
       r = @application.threaddump
@@ -96,17 +109,21 @@ class AppEventsController < BaseController
       else
         msg = !r.errorIO.string.empty? ? r.errorIO.string.chomp : ''
       end
+
     when 'tidy'
       authorize! :change_cartridge_state, @application
       r = @application.tidy
       msg = "Application #{@application.name} called tidy"
+
     when 'reload'
       authorize! :change_cartridge_state, @application
       r = @application.reload_config
       msg = "Application #{@application.name} called reload"
+
     when 'activate'
       r = @application.activate(deployment_id)
       msg = "Deployment ID #{deployment_id} on application #{@application.name} has been activated"
+
     else
       return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
                           126, "event")

@@ -33,7 +33,7 @@ class CartridgeType
            :properties, :usage_rates, :features,
            to: :cartridge
 
-  index({ name: 1, priority: -1 }, { sparse: true })
+  index({ name: 1, priority: -1, created_at: -1 }, { sparse: true })
   index({ provides: 1 })
 
   create_indexes
@@ -117,6 +117,14 @@ class CartridgeType
         false
       end
     end
+  end
+
+  def activate!
+    activate or raise Mongoid::Errors::Validations.new(self)
+  end
+
+  def has_name?(feature)
+    names.include?(feature)
   end
 
   def cartridge

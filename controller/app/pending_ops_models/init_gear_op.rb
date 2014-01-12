@@ -7,20 +7,20 @@ class InitGearOp < PendingAppOp
 
   # fields for creating component instances
   field :comp_specs, type: Array, default: []
-  
+
   field :pre_save, type: Boolean, default: false
 
   def execute
     # if the group_instance doesn't exist, create it
     group_instance = nil
-    begin 
+    begin
       group_instance = get_group_instance()
     rescue Mongoid::Errors::DocumentNotFound
       application.group_instances.push(GroupInstance.new(custom_id: group_instance_id))
       group_instance = get_group_instance()
     end
-    
-     application.gears.push(Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns))
+
+    application.gears.push(Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns))
 
     # create the component instances, if they are not present
     comp_specs.each do |comp_spec|
@@ -38,11 +38,10 @@ class InitGearOp < PendingAppOp
       end
     end if comp_specs.present?
   end
-  
+
   def rollback
     begin
-      gear = get_gear()
-      gear.delete
+      get_gear.delete
     rescue Mongoid::Errors::DocumentNotFound
       # ignore if gear is already deleted
     end

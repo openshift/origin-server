@@ -834,12 +834,7 @@ module OpenShift
           args['--with-template-git-url'] = template_git_url
         end
 
-        if framework_carts(gear.application).include?(cart) or embedded_carts(gear.application).include?(cart)
-          result_io = run_cartridge_command(cart, gear, "post-configure", args)
-        else
-          #no-op
-        end
-
+        result_io = run_cartridge_command(cart, gear, "post-configure", args)
         component_details = result_io.appInfoIO.string.empty? ? '' : result_io.appInfoIO.string
         result_io.debugIO << "#{cart}: #{component_details}" unless component_details.blank?
 
@@ -948,7 +943,7 @@ module OpenShift
         cart = component.cartridge_name
         args = build_base_component_args(component, args)
 
-        run_cartridge_command_ignore_components(cart, gear, "start", args)
+        run_cartridge_command(cart, gear, "start", args)
       end
 
       def get_start_job(gear, component)
@@ -978,7 +973,7 @@ module OpenShift
         cart = component.cartridge_name
         args = build_base_component_args(component, args)
 
-        run_cartridge_command_ignore_components(cart, gear, "stop", args)
+        run_cartridge_command(cart, gear, "stop", args)
       end
 
       def get_stop_job(gear, component)
@@ -1034,7 +1029,7 @@ module OpenShift
         cart = component.cartridge_name
         args = build_base_component_args(component, args)
 
-        run_cartridge_command_ignore_components(cart, gear, "restart", args)
+        run_cartridge_command(cart, gear, "restart", args)
       end
 
       def get_restart_job(gear, component, all=false)
@@ -1066,7 +1061,7 @@ module OpenShift
         cart = component.cartridge_name
         args = build_base_component_args(component, args)
 
-        run_cartridge_command_ignore_components(cart, gear, "reload", args)
+        run_cartridge_command(cart, gear, "reload", args)
       end
 
       def get_reload_job(gear, component)
@@ -1095,7 +1090,7 @@ module OpenShift
         cart = component.cartridge_name
         args = build_base_component_args(component, args)
 
-        run_cartridge_command_ignore_components(cart, gear, "status", args)
+        run_cartridge_command(cart, gear, "status", args)
       end
 
       #
@@ -1144,45 +1139,13 @@ module OpenShift
         cart = component.cartridge_name
         args = build_base_component_args(component, args)
 
-        if framework_carts(gear.application).include?(cart)
-          run_cartridge_command(cart, gear, "threaddump", args)
-        else
-          ResultIO.new
-        end
+        run_cartridge_command(cart, gear, "threaddump", args)
       end
 
       def get_threaddump_job(gear, component)
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
         RemoteJob.new('openshift-origin-node', 'threaddump', args)
-      end
-
-      #
-      # "retrieve the system messages"
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      # * cart: a Cartridge object
-      #
-      # RETURNS:
-      # * a ResultIO of undetermined content
-      #
-      # NOTES:
-      # * calls run_cartridge_command
-      # * method on Gear or Cart?
-      # * only applies to the "framework" services
-      #
-      def system_messages(gear, component)
-        args = build_base_gear_args(gear)
-        args = build_base_component_args(component, args)
-        cart = component.cartridge_name
-        args = build_base_component_args(component, args)
-
-        if framework_carts(gear.application).include?(cart)
-          run_cartridge_command(cart, gear, "system-messages", args)
-        else
-          ResultIO.new
-        end
       end
 
       #
@@ -1843,7 +1806,7 @@ module OpenShift
 
         app.update_proxy_status(action: :disable, gear_uuid: gear.uuid) if app.scalable
 
-        stop_order.each { |cinst|
+        stop_order.each do |cinst|
           next unless gear_comps.include? cinst 
           cart = cinst.cartridge_name
           idle, leave_stopped = state_map[cart]
@@ -1856,18 +1819,18 @@ module OpenShift
               end
             rescue Exception=>e
               # a force-stop will be applied if its a framework cartridge, so ignore the failure on stop
-              if not framework_carts(app).include? cart
+              if not cinst.cartridge.is_web_framework?
                 raise e
               end
             end
-            if framework_carts(app).include? cart
+            if cinst.cartridge.is_web_framework?
               log_debug "DEBUG: Force stopping existing app cartridge '#{cart}' before moving"
               do_with_retry('force-stop') do
                 reply.append source_container.force_stop(gear, cinst)
               end
             end
           end
-        }
+        end
         reply
       end
 
@@ -2199,17 +2162,9 @@ module OpenShift
       # * just a shortcut?
       #
       def get_app_status(app)
-        web_framework = nil
-        app.requires.each do |feature|
-          cart = CartridgeCache.find_cartridge(feature, app)
-          next unless cart.categories.include? "web_framework"
-          web_framework = cart.name
-          break
-        end
-
-        component_instances = app.get_components_for_feature(web_framework)
-        gear = component_instances.first.gears.first
-        idle, leave_stopped, quota_blocks, quota_files = get_cart_status(gear, component_instances.first)
+        instance = app.web_component_instance || app.component_instances.first
+        gear = instance.gears.first
+        idle, leave_stopped, _, _ = get_cart_status(gear, instance)
         return idle, leave_stopped
       end
 
@@ -2818,20 +2773,6 @@ module OpenShift
             return output == true
           end
         end
-      end
-
-      # This method wraps run_cartridge_command to acknowledge and consistently support the behavior
-      # until cartridges and components are handled as distinct concepts within the runtime.
-      #
-      # If the cart specified is in the framework_carts or embedded_carts list, the arguments will pass
-      # through to run_cartridge_command. Otherwise, a new ResultIO will be returned.
-      def run_cartridge_command_ignore_components(cart, gear, command, arguments, allow_move=true)
-        if framework_carts(gear.application).include?(cart) || embedded_carts(gear.application).include?(cart)
-          result = run_cartridge_command(cart, gear, command, arguments, allow_move)
-        else
-          result = ResultIO.new
-        end
-        result
       end
 
       #

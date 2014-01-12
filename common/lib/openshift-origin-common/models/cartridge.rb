@@ -1,7 +1,7 @@
 module OpenShift
   module CartridgeCategories
     def is_plugin?
-      return categories.include?('web_proxy') || categories.include?('ci_builder') || categories.include?('plugin')
+      return is_web_proxy? || is_ci_builder? || categories.include?('plugin')
     end
 
     def is_service?
@@ -17,7 +17,7 @@ module OpenShift
     end
 
     def is_web_proxy?
-      return categories.include?('web_proxy')
+      return features.include?('web_proxy')
     end
 
     def is_web_framework?
@@ -84,7 +84,7 @@ module OpenShift
       end
       def prefix_name
         "#{cartridge_vendor}-#{original_name}"
-      end    
+      end
   end
 
   class Cartridge < OpenShift::Model

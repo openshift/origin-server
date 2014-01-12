@@ -99,6 +99,7 @@ def stubber
   c.stubs(:update_cluster).returns(ResultIO.new)
   c.stubs(:deploy).returns(ResultIO.new)
   c.stubs(:activate).returns(ResultIO.new)
+  c.stubs(:status).returns(ResultIO.new)
   c.stubs(:update_cluster).returns(ResultIO.new)
   c.stubs(:get_quota_files).returns(10000)
   c.stubs(:get_update_cluster_job).returns(RemoteJob.new(nil, nil, nil))

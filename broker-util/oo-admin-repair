@@ -216,8 +216,8 @@ end
 def recover_app(app, framework, db)
   begin
     unless db[:remove_features].empty?
-      app.remove_features(db[:remove_features])
-      puts "Removed features: #{db[:remove_features].join(',')} from application with id: #{app._id}." if $verbose
+      app.remove_cartridges(db[:remove_features])
+      puts "Removed cartridges: #{db[:remove_features].join(',')} from application with id: #{app._id}." if $verbose
     end
     (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear._id.to_s) }
     puts "Application with id: #{app._id} fixed." if $verbose

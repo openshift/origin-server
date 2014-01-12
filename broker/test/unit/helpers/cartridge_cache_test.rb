@@ -119,12 +119,13 @@ class CartridgeCacheTest < ActiveSupport::TestCase
   end
 
   test "find and download from cartridges" do
-    stub_cartridges
     carts = CartridgeCache.find_and_download_cartridges(["ruby"])
+    cart = CartridgeType.active.where(provides: 'ruby').first
     assert_equal 1, carts.length
-    assert_equal "ruby-1.9", carts[0].name
+    assert_equal cart.name, carts[0].name
     assert_nil carts[0].manifest_url
     assert carts[0].gear_size.nil?
+    assert_equal cart._id, carts[0]._id
   end
 
   test "find and download a cartridge" do
@@ -179,6 +180,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
       Categories:
       - mock
       - web_framework
+      Provides: foo
       MANIFEST
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(body)
     CartridgeType.where(:base_name => 'remotemock').delete
@@ -194,38 +196,75 @@ class CartridgeCacheTest < ActiveSupport::TestCase
   end
 
   test "find cartridge with hypothetical cartridges" do
-    stub_cartridges
-
-    cart = CartridgeCache.find_cartridge("php-5.3")
-    assert cart.features.include?"php"
+    CartridgeType.where(provides: 'phpy').delete
+    CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(<<-BODY.strip_heredoc)).each(&:activate!)
+      ---
+      Name: phpx
+      Version: '5.3'
+      Display-Name: PHPX
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: redhat
+      Categories:
+      - mock
+      - web_framework
+      Provides:
+      - phpy
+      BODY
+    CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(<<-BODY.strip_heredoc)).each(&:activate!)
+      ---
+      Name: phpx
+      Version: '5.3'
+      Versions: ['5.3', '5.4']
+      Display-Name: PHPX
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: other
+      Categories:
+      - mock
+      - web_framework
+      Provides:
+      - phpy
+      BODY
+    CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(<<-BODY.strip_heredoc)).each(&:activate!)
+      ---
+      Name: phpx
+      Version: '5.4'
+      Display-Name: PHPX
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: third
+      Categories:
+      - mock
+      - web_framework
+      Provides:
+      - phpy
+      BODY
+    cart = CartridgeCache.find_cartridge("phpx-5.3")
+    assert cart.features.include? "phpy"
     assert cart.version, "5.3"
     assert_equal cart.cartridge_vendor, "redhat"
 
-    assert cart = CartridgeCache.find_cartridge_by_feature("redhat-php-5.3")
-    assert cart.features.include?"php"
+    assert cart = CartridgeCache.find_cartridge_by_base_name("phpx-5.3")
+    assert cart.features.include? "phpy"
+    assert cart.version, "5.3"
+    assert_equal "redhat", cart.cartridge_vendor
+
+    assert cart = CartridgeCache.find_cartridge_by_base_name("redhat-phpx-5.3")
+    assert cart.features.include? "phpy"
     assert cart.version, "5.3"
     assert_equal cart.cartridge_vendor, "redhat"
 
-    # CHANGE: Unless a cartridge exposes a "provides" with the exact version,
-    #   non redhat cartridges will not be located
-    assert cart = CartridgeCache.find_cartridge_by_feature("php-5.4")
-    assert cart.features.include?"php"
-    assert cart.version, "5.4"
-    assert_not_equal cart.cartridge_vendor, "redhat"
+    assert_nil CartridgeCache.find_cartridge("phpx-5.5")
 
-    cart = CartridgeCache.find_cartridge("php-5.5")
-    assert cart.features.include? "php"
-    assert cart.version, "5.5"
+    assert_nil CartridgeCache.find_cartridge_by_base_name("phpy")
 
-    cart = CartridgeCache.find_cartridge_by_feature("php")
-    assert cart.features.include?"php"
-
-    assert_raise(OpenShift::UserException){CartridgeCache.find_cartridge("python-3.3")}
-
-    cart = CartridgeCache.find_cartridge("ruby-1.9")
-    assert cart.features.include?"ruby"
-    assert cart.version == "1.9"
-    assert cart.cartridge_vendor, "redhat"
+    assert_raises(OpenShift::UserException){ CartridgeCache.find_cartridge_by_base_name("phpx-5.4") }
+    begin
+      CartridgeCache.find_cartridge_by_base_name("phpx-5.4")
+    rescue => e
+      s = e.to_s
+      assert s =~ /More than one cartridge was found/, s
+      assert s.include?('other-phpx-5.4'), s
+      assert s.include?('third-phpx-5.4'), s
+    end
   end
 
   test "find cartridge with real cartridges" do
@@ -234,7 +273,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
       assert CartridgeCache.find_cartridge(cart.name), "Cartridge #{cart.name} not found"
 
       # CHANGED: Finding a cartridge by vendor and name might return multiple cartridges
-      c = (CartridgeCache.find_cartridge_by_feature("#{cart.cartridge_vendor}-#{cart.original_name}") rescue true)
+      c = (CartridgeCache.find_cartridge_by_base_name("#{cart.cartridge_vendor}-#{cart.original_name}") rescue true)
       assert c.present?, "Cartridge #{cart.cartridge_vendor}-#{cart.original_name} not found"
     end
   end

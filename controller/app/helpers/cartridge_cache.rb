@@ -26,33 +26,51 @@ class CartridgeCache
     end
   end
 
-  # Returns an Array of web proxy cartridge names.
-  def self.web_proxy_names
-    Rails.cache.fetch("web_proxy_cartridge_names", :expires_in => DURATION) do
-      CartridgeType.active.in(provides: 'web_proxy').only(:name).limit(25).map(&:name).uniq.sort
-    end
+  #
+  # Return an exact match for name, nil if no matches exist, or raise an error if
+  # there is more than one relevant match.  If one or more cartridges that are
+  # provided by 'redhat' are found, then the most recent will be returned if all of
+  # of the matches have a common base (like 'php' or 'ruby').
+  #
+  def self.find_cartridge_by_base_name(name, app=nil)
+    matches = find_cartridges_by_base_name(name, app)
+    return nil if matches.blank?
+    return matches.first if matches.length == 1
+
+    names = matches.map(&:name).uniq.sort
+    raise OpenShift::UserException.new("More than one cartridge was found matching #{name}.  Please select one of #{names.to_sentence}", 197, nil, nil, nil, {:cartridge_names => names})
   end
 
   #
-  # Return an exact match for feature, nil if no matches exist, or raise an error if
-  # there is more than one relevant match.
+  # Return cartridges that match the criteria for find_cartridge_by_base_name
   #
-  def self.find_cartridge_by_feature(feature)
-    if type = CartridgeType.active.where(name: feature).first
-      return type
-    end
+  def self.find_cartridges_by_base_name(name, app=nil)
+    matches = scope_to_name(name, app)
+    return [] if matches.blank?
+    return matches if matches.length == 1
 
-    matches = CartridgeType.active.where(provides: feature)
+    redhat = matches.select{ |c| c.cartridge_vendor == "redhat"}
+    return [redhat.sort_by(&OpenShift::Cartridge::VERSION_ORDER).last] if redhat.map(&:original_name).uniq.length == 1
+
+    matches
+  end
+
+  #
+  # Return an exact match for name, or attempt to locate a matching name or
+  # feature.  Should only be used in limited cases where existing behavior
+  # requires checking the Provides of a cartridge (web_proxy).
+  #
+  def self.find_cartridge_by_feature(feature, app=nil)
+    matches = scope_to_feature(feature, app)
     return nil if matches.blank?
     return matches.first if matches.length == 1
 
     redhat = matches.select{ |c| c.cartridge_vendor == "redhat"}
-    return redhat.sort_by(&OpenShift::Cartridge::VERSION_ORDER).last if redhat.present?
+    return redhat.sort_by(&OpenShift::Cartridge::VERSION_ORDER).last if redhat.map(&:original_name).uniq.length == 1
 
     #if there are more than one match and none by redhat raise an exception
-    names = matches.map(&:name)
-
-    raise OpenShift::UserException.new("More that one cartridge was found matching #{feature}.  Please select one of #{names.to_sentence}")
+    names = matches.map(&:name).uniq.sort
+    raise OpenShift::UserException.new("More than one cartridge was found matching #{name}.  Please select one of #{names.to_sentence}", 197, nil, nil, nil, {:cartridge_names => names})
   end
 
   # Returns the active cartridge matching the provided name (the full_identifier)
@@ -62,14 +80,21 @@ class CartridgeCache
   #   Name of cartridge to look for.
   def self.find_cartridge(name, app=nil)
     if app
-      cart = app.downloaded_cartridge_instances[name] || app.cartridge_instances[name]
+      cart = app.downloaded_cartridges[name] || app.cartridge_instances[name]
       return cart if cart
     end
 
     if type = CartridgeType.active.where(name: name).first
       app.cartridge_instances[type.name] = type if app
       type
+    elsif type = CartridgeType.where(name: name).first
+      app.cartridge_instances[type.name] = type if app
+      type
     end
+  end
+
+  def self.find_cartridges(names, app=nil)
+    names.map{ |name| find_cartridge(name, app) }
   end
 
   # Returns the first cartridge that provides the specified feature,
@@ -136,7 +161,7 @@ class CartridgeCache
 
       name = spec[:name]
       if CartridgeInstance.check_feature?(name)
-        cart = find_cartridge_by_feature(name)
+        cart = find_cartridge_by_base_name(name)
       end
       raise OpenShift::UserException.new("Invalid cartridge '#{name}' specified.", 109, field) if cart.nil?
 
@@ -226,8 +251,29 @@ class CartridgeCache
   end
 
   private
-    # Returns an Array of all cartridge objects
+    # Returns a Criteria scope of all active cartridges
     def self.get_all_cartridges
       CartridgeType.active
+    end
+
+    def self.scope_to_feature(feature, app=nil)
+      if app
+        carts = each_cartridge.select{ |c| c.features.include?(feature) }
+        return carts if carts.present?
+      end
+      CartridgeType.active.where(provides: feature).select{ |c| c.features.include?(feature) }
+    end
+
+    def self.scope_to_name(name, app=nil)
+      if app
+        cart = app.downloaded_cartridges[name] || app.cartridge_instances[name]
+        return [cart] if cart
+        carts = each_cartridge.select{ |c| c.names.include?(name) }
+        return carts if carts.present?
+      end
+      if cart = CartridgeType.active.where(name: name).first
+        return [cart]
+      end
+      CartridgeType.active.where(provides: name).select{ |c| c.names.include?(name) }
     end
 end

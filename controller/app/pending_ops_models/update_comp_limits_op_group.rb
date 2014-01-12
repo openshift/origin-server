@@ -9,20 +9,20 @@ class UpdateCompLimitsOpGroup < PendingAppOpGroup
   def elaborate(app)
     updated_overrides = (app.group_overrides || []).deep_dup
     ci = app.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
-    found = updated_overrides.find {|go|
+    found = updated_overrides.find do |go|
       go["components"].find { |go_comp_spec| ci.cartridge_name==go_comp_spec["cart"] and ci.component_name==go_comp_spec["comp"] }
-    }
+    end
     if ci.is_sparse?
       if found
-        updated_overrides.each { |go|
-          go["components"].each { |go_comp_spec|
+        updated_overrides.each do |go|
+          go["components"].each do |go_comp_spec|
             if go_comp_spec["cart"] == ci.cartridge_name and go_comp_spec["comp"] == ci.component_name
               go_comp_spec["min_gears"] = min unless min.nil?
               go_comp_spec["max_gears"] = max unless max.nil?
               go_comp_spec["multiplier"] = multiplier unless multiplier.nil?
             end
-          }
-        }
+          end
+        end
         group_override = found
       else
         new_comp_spec = { "cart"=> ci.cartridge_name, "comp" => ci.component_name }
@@ -38,8 +38,8 @@ class UpdateCompLimitsOpGroup < PendingAppOpGroup
     end
     group_override["additional_filesystem_gb"] = additional_filesystem_gb unless additional_filesystem_gb.nil?
     updated_overrides.push(group_override) unless found
-    features = app.requires
-    ops, add_gear_count, rm_gear_count = app.update_requirements(features, updated_overrides)
+
+    ops, add_gear_count, rm_gear_count = app.update_requirements(app.cartridges, updated_overrides)
     try_reserve_gears(add_gear_count, rm_gear_count, app, ops)
   end
 

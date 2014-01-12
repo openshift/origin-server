@@ -91,7 +91,7 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     @apps[5].make_ha
     assert_equal(2, @apps[5].group_instances[0].gears.size)
     assert_equal(true, @apps[5].ha)
-    @apps[5].add_features(cartridge_instances_for(:mysql))
+    @apps[5].add_cartridges(cartridge_instances_for(:mysql))
     assert_equal(2, @apps[5].group_instances.size)
     assert_equal(1, @apps[5].group_instances[1].gears.size)
     gear = @apps[5].group_instances[0].gears[0]
@@ -113,13 +113,13 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
 
     #test_scalable_app_no_ha_db_available_head_gear_down
     @apps[7] = Application.create_app(@appnames[7], cartridge_instances_for(:php), @domain, nil, true)
-    @apps[7].add_features(cartridge_instances_for(:mysql))
+    @apps[7].add_cartridges(cartridge_instances_for(:mysql))
     assert_equal(2, @apps[7].group_instances.size)
     assert_equal(1, @apps[7].group_instances[1].gears.size)
     gear = @apps[7].group_instances[0].gears[0]
     gear.server_identity = @unresponsive_server
     gear.save!
-    
+
     repair_apps
 
     #test_unscalable_app_down
