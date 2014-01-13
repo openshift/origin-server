@@ -17,8 +17,12 @@ function update_configuration {
     esac
 }
 
+function mysql_version {
+  echo ${OPENSHIFT_MYSQL_IDENT} | cut -d':' -f3
+}
+
 function mysql_context {
-  case $OPENSHIFT_MYSQL_VERSION in
+  case $(mysql_version) in
     5.5) eval $1 ;;
   esac
 }
