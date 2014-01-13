@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -123,6 +123,18 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Merge pull request #4461 from ironcladlou/bz/1052059
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1052059: Fix Python 3.3 venv path references (ironcladlou@gmail.com)
+- Bug 1051910: Fix Python 2.6 regressions (ironcladlou@gmail.com)
+- Merge pull request #4444 from ironcladlou/dev/python-scl
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing double-slash in python and posgresql cartridge code
+  (jhadvig@redhat.com)
+- Convert Python 3.3 community cart to use SCL Python 3.3
+  (ironcladlou@gmail.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
 - handle non-64bit libdir for ARM (admiller@redhat.com)
 
