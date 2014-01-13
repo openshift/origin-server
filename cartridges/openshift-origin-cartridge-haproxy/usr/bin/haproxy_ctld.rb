@@ -240,7 +240,7 @@ class Haproxy
         @gear_up_pct = 90.0
         if @gear_count > 1
           # Pick a percentage for removing gears which is a moderate amount below the threshold where the gear would scale back up.
-          @gear_remove_pct = (@gear_up_pct * ([1-(1.0 / @gear_count), 0.95].max)) - (@gear_up_pct / @gear_count)
+          @gear_remove_pct = (@gear_up_pct * ([1-(1.0 / @gear_count), 0.85].max)) - (@gear_up_pct / @gear_count)
         else
           @gear_remove_pct = 1.0
         end
