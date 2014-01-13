@@ -234,6 +234,9 @@ module OpenShift
         if @uid.nil? or (@container_plugin.nil? or !File.directory?(@container_dir.to_s))
           # gear seems to have been deleted already... suppress any error
           # TODO : remove remaining stuff if it exists, e.g. .httpd/#{uuid}* etc
+
+          remove_app_symlinks(@container_dir)
+          FileUtils.rm_rf(@container_dir) if File.directory?(@container_dir)
           return ['', '', 0]
         end
 
@@ -256,16 +259,7 @@ module OpenShift
           raise UserDeletionException.new("ERROR: unable to delete user account #{@uuid}") if @uuid.nil?
 
           @container_plugin.destroy
-
-          if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-            Dir.foreach(File.dirname(@container_dir)) do |dent|
-              unobfuscate = PathUtils.join(File.dirname(@container_dir), dent)
-              if (File.symlink?(unobfuscate)) &&
-                  (File.readlink(unobfuscate) == File.basename(@container_dir))
-                File.unlink(unobfuscate)
-              end
-            end
-          end
+          remove_app_symlinks(@container_dir)
         end
 
         output += notify_endpoint_delete
@@ -273,6 +267,21 @@ module OpenShift
         notify_observers(:after_container_destroy)
 
         return output, errout, retcode
+      end
+
+      # Find and remove all symlinks for a gear
+      #
+      # @param container_dir [String] home dir for gear to cleanup
+      def remove_app_symlinks(container_dir)
+        if @config.get("CREATE_APP_SYMLINKS").to_i == 1
+          Dir.foreach(File.dirname(container_dir)) do |dent|
+            unobfuscate = PathUtils.join(File.dirname(container_dir), dent)
+            if (File.symlink?(unobfuscate)) &&
+                (File.readlink(unobfuscate) == File.basename(container_dir))
+              File.unlink(unobfuscate)
+            end
+          end
+        end
       end
 
       # Public: Sets the app state to "stopped" and causes an immediate forced
