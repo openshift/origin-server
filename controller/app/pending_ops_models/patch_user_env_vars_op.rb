@@ -18,10 +18,16 @@ class PatchUserEnvVarsOp < PendingAppOp
         overlapped_keys.each {|key| saved_vars << {'name' => key, 'value' => existing_vars[key]}}
         self.set(:saved_user_env_vars, saved_vars) unless saved_vars.empty?
       end
- 
-      gears_endpoint = get_gears_ssh_endpoint(application) 
-      result_io = gear.unset_user_env_vars(unset_vars, gears_endpoint) if unset_vars.present?
-      result_io.append gear.set_user_env_vars(set_vars, gears_endpoint) if set_vars.present? or push_vars
+
+      gears_endpoint = get_gears_ssh_endpoint(application)
+
+      begin
+        result_io = gear.unset_user_env_vars(unset_vars, gears_endpoint) if unset_vars.present?
+        result_io.append gear.set_user_env_vars(set_vars, gears_endpoint) if set_vars.present? or push_vars
+      rescue OpenShift::OOException => ooe
+        # Give a more user friendly error than what comes back directly from the node
+        raise OpenShift::ApplicationOperationFailed.new("Failed to update environment variable(s) on your application's gear(s).  Please try again and contact support if the issue persists.", result_io.exitcode, result_io)
+      end
     end
     result_io
   end
@@ -29,15 +35,15 @@ class PatchUserEnvVarsOp < PendingAppOp
   def rollback
     result_io = ResultIO.new
     gear = nil
-    
-    begin 
+
+    begin
       gear = application.get_app_dns_gear
     rescue OpenShift::UserException
       # if the head gear is missing, do not perform any operations and just return
       Rails.logger.info "DNS gear not found. Skipping rollback for PatchUserEnvVarsOp."
       return result_io
     end
-    
+
     unless gear.nil? or gear.removed
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
       gears_endpoint = get_gears_ssh_endpoint(application) 
