@@ -1535,9 +1535,9 @@ class Application
         op_group.delete
       rescue Exception => e_orig
         Rails.logger.error "Encountered error during execute '#{e_orig.message}'"
-        # don't log the error stacktrace if this exception was raised just to trigger a rollback 
+        # don't log the error stacktrace if this exception was raised just to trigger a rollback
         Rails.logger.debug e_orig.backtrace.inspect unless rollback_pending
-  
+
         #rollback
         begin
           # reload the application before a rollback
@@ -1614,7 +1614,7 @@ class Application
       group_overrides = (group_overrides + gen_non_scalable_app_overrides(cartridges)).uniq
     end
 
-    connections, new_group_instances, cleaned_group_overrides = elaborate(cartridges, group_overrides)
+    connections, new_group_instances = elaborate(cartridges, group_overrides)
     current_group_instances = self.group_instances.map { |gi| gi.to_hash }
     changes, moves = compute_diffs(current_group_instances, new_group_instances)
 
@@ -2255,93 +2255,96 @@ class Application
   #
   def process_group_overrides(instances, overrides)
     overrides ||= []
-    cleaned_overrides = []
+    resolved = []
+
+    # Convert override hashes to objects
+    overrides.each do |override|
+      if o = GroupOverride.resolve_from(instances, override)
+        resolved << o
+      end
+    end
 
     # Resolve additional group overrides from instances
     instances.each do |instance|
-      cart = instance[:cartridge]
-      comp = instance[:component]
-      prof = cart.profile_for_feature(comp.name)
-      overrides += prof.group_overrides.deep_dup
-      override = {"components" => [{"cart" => cart.name, "comp" => comp.name}] }
-      unless comp.is_sparse?
-        override["min_gears"] = comp.scaling.min
-        override["max_gears"] = comp.scaling.max
-      end
-      overrides << override
-    end
-
-    # Resolve all components within the group overrides
-    overrides.each do |override|
-
-      # Check for components that do not have a valid cartridge
-      components = (override["components"] || []).map do |spec|
-        if String === spec
-          comp_name = spec
-          cart_name = nil
-          spec = {}
-        elsif Hash === spec
-          comp_name = spec["comp"]
-          cart_name = spec["cart"]
-        else
-          next
+      instance.profile.group_overrides.each do |override|
+        if o = GroupOverride.resolve_from(instances, override)
+          resolved << o
         end
-
-        # Resolve component specs down to known instances
-        component = instances.find do |instance|
-          cart = instance[:cartridge]
-          valid = (comp_name == instance[:component].name && (cart_name.nil? || cart_name == cart.name))
-          unless valid
-            # try once more with spec["comp"] possibly not the cartridge name
-            # basically some override (either by the user or through a override section in a cartridge)
-            # is referring to a component/feature that is not a cartridge name or component name of any
-            # of the cartridges installed on the system
-            if p = cart.profile_for_feature(comp_name)
-              # this is the cartridge because we found a profile matching the feature, just double
-              # check on the component if this was an auto-generated component then we are good to
-              # choose this ci
-              valid = p.get_component(instance[:component].name).generated rescue nil
-            end
-            # This resolves cartridge contributed group-overrides for place, but is probably too
-            # underspecified. Lookups of group override specs should be done by feature or type,
-            # but probably not category.
-            valid ||= cart.features.include?(comp_name) || cart.categories.include?(comp_name)
-          end
-          valid
-        end or next
-
-        spec.slice('min_gears', 'max_gears', 'multiplier').merge!(
-          'comp' => component[:component].name,
-          'cart' => component[:cartridge].name,
-        )
       end
-      components.compact!
-      next if components.blank?
 
-      cleaned_overrides <<
-        override.slice('min_gears', 'max_gears', 'additional_filesystem_gb', 'gear_size').merge!(
-          "components" => components,
-        )
+      comp = instance.component
+      resolved <<
+        if comp.is_sparse?
+          GroupOverride.new([instance], comp.scaling.min, comp.scaling.max)
+        else
+          GroupOverride.new([instance])
+        end
     end
+    binding.pry
+
+    # merge all existing specs into as few as possible
+    by_path = {}
+    resolved.each do |override|
+      override.components.each do |c|
+        if previous = by_path[c.path]
+          previous.merge(override)
+        else
+          by_path[c.path] = override
+        end
+      end
+    end
+    binding.pry
+
+    overrides = []
+    instances.each do |i|
+      override = by_path[i.path] or next
+      overrides << override unless GroupOverride.included_in?(overrides, override)
+    end
+    binding.pry
 
     # work on cleaned_overrides only
     by_path = {}
-    cleaned_overrides.each do |override|
+    overrides.each do |override|
       merged = override.deep_dup
       override["components"].each do |comp|
-        existing = by_path["#{comp["cart"]}/#{comp["comp"]}"] or next
+        existing = by_path[comp.path] or next
         merged = merge_group_overrides(merged, existing)
       end
       merged["components"].each do |comp|
-        by_path["#{comp["cart"]}/#{comp["comp"]}"] = merged
+        by_path[comp.path] = merged
       end
     end
     processed_group_overrides = []
     instances.each do |instance|
-      override = by_path["#{instance[:cartridge].name}/#{instance[:component].name}"] or next
+      override = by_path[instance.path] or next
       processed_group_overrides << override.deep_dup unless processed_group_overrides.include? override
     end
-    return [processed_group_overrides, processed_group_overrides]
+
+    processed_group_overrides
+  end
+
+  def merge_group_overrides(first, second)
+    return_go = { }
+
+    if first["components"].any?{ |spec| spec.cartridge.is_web_framework? }
+      return_go["components"] = merge_comp_specs(first["components"], second["components"]) #(first["components"] + second["components"]).uniq
+    else
+      return_go["components"] = merge_comp_specs(second["components"], first["components"]) #(second["components"] + first["components"]).uniq
+    end
+    return_go["min_gears"] = [first["min_gears"]||1, second["min_gears"]||1].max if first["min_gears"] or second["min_gears"]
+    return_go["additional_filesystem_gb"] = [first["additional_filesystem_gb"]||0, second["additional_filesystem_gb"]||0].max if first["additional_filesystem_gb"] or second["additional_filesystem_gb"]
+    fmax = (first["max_gears"].nil? or first["max_gears"]==-1) ? MAX_SCALE_NUM : first["max_gears"]
+    smax = (second["max_gears"].nil? or second["max_gears"]==-1) ? MAX_SCALE_NUM : second["max_gears"]
+    return_go["max_gears"] = [fmax,smax].min if first["max_gears"] or second["max_gears"]
+    return_go["max_gears"] = -1 if return_go["max_gears"]==MAX_SCALE_NUM
+
+    return_go["gear_size"] = (first["gear_size"] || second["gear_size"]) if first["gear_size"] or second["gear_size"]
+    if first["gear_size"] and second["gear_size"] and (first["gear_size"] != second["gear_size"])
+      carts = []
+      return_go['components'].each {|comp| carts << comp['cart']}
+      raise OpenShift::UserException.new("Incompatible gear sizes: #{first["gear_size"]} and #{second["gear_size"]} for components: #{carts.uniq.to_sentence} that will reside on the same gear.", 142)
+    end
+    return_go
   end
 
   def merge_comp_specs(first, second)
@@ -2369,38 +2372,6 @@ class Application
     return_specs
   end
 
-  def merge_group_overrides(first, second)
-    return_go = { }
-
-    # first_has_web_framework = false
-    # first["components"].each do |components|
-    #   c = CartridgeCache.find_cartridge(components['cart'], self)
-    #   if c.is_web_framework?
-    #     first_has_web_framework = true
-    #     break
-    #   end
-    # end
-    # if first_has_web_framework
-      return_go["components"] = merge_comp_specs(first["components"], second["components"]) #(first["components"] + second["components"]).uniq
-    #else
-    #  return_go["components"] = merge_comp_specs(second["components"], first["components"]) #(second["components"] + first["components"]).uniq
-    #end
-    return_go["min_gears"] = [first["min_gears"]||1, second["min_gears"]||1].max if first["min_gears"] or second["min_gears"]
-    return_go["additional_filesystem_gb"] = [first["additional_filesystem_gb"]||0, second["additional_filesystem_gb"]||0].max if first["additional_filesystem_gb"] or second["additional_filesystem_gb"]
-    fmax = (first["max_gears"].nil? or first["max_gears"]==-1) ? MAX_SCALE_NUM : first["max_gears"]
-    smax = (second["max_gears"].nil? or second["max_gears"]==-1) ? MAX_SCALE_NUM : second["max_gears"]
-    return_go["max_gears"] = [fmax,smax].min if first["max_gears"] or second["max_gears"]
-    return_go["max_gears"] = -1 if return_go["max_gears"]==MAX_SCALE_NUM
-
-    return_go["gear_size"] = (first["gear_size"] || second["gear_size"]) if first["gear_size"] or second["gear_size"]
-    if first["gear_size"] and second["gear_size"] and (first["gear_size"] != second["gear_size"])
-      carts = []
-      return_go['components'].each {|comp| carts << comp['cart']}
-      raise OpenShift::UserException.new("Incompatible gear sizes: #{first["gear_size"]} and #{second["gear_size"]} for components: #{carts.uniq.to_sentence} that will reside on the same gear.", 142)
-    end
-    return_go
-  end
-
   # Creates array of subscriptions from component instance and
   # publishers which accounts for subscriptions as specified and
   # calculated subscriptions for connections with "wildcard" ENV:*
@@ -2419,10 +2390,11 @@ class Application
   #   subscriptions properly realized
   #
   def subscription_filter(ci, publishers)
-    wildcards = ci[:component].subscribes.select { |connector| connector.type == "ENV:*" }
-    raise "Multiple wildcard subscriptions specified in component #{ci[:component].name}" if wildcards.size > 1
+    component = ci.component
+    wildcards = component.subscribes.select { |connector| connector.type == "ENV:*" }
+    raise "Multiple wildcard subscriptions specified in component #{component.name}" if wildcards.size > 1
 
-    subscriptions = ci[:component].subscribes.map do |conn|
+    subscriptions = component.subscribes.map do |conn|
       new_conn = nil
       # Avoid copying ENV: connectors if wildcard subscription is found
       if not ( conn.name.start_with? "ENV:" and wildcards.any? )
@@ -2495,10 +2467,7 @@ class Application
     profiles.each do |data|
       profile = (data[:profile].is_a? Array) ? data[:profile].first : data[:profile]
       profile.components.each do |component|
-        component_instances << {
-          cartridge: data[:cartridge],
-          component: component,
-        }
+        component_instances << ComponentSpec.for_model(component, data[:cartridge])
       end
     end
 
@@ -2506,11 +2475,11 @@ class Application
     publishers = {}
     connections = []
     component_instances.each do |ci|
-      ci[:component].publishes.each do |connector|
+      ci.component.publishes.each do |connector|
         type = connector.type
         name = connector.name
         publishers[type] = [] if publishers[type].nil?
-        publishers[type] << { cartridge: ci[:cartridge].name , component: ci[:component].name, connector: name }
+        publishers[type] << { spec: ci, connector: name }
       end
     end
 
@@ -2524,24 +2493,24 @@ class Application
         if publishers.has_key? stype
           publishers[stype].each do |cinfo|
             connections << {
-              "from_comp_inst" => {"cart"=> cinfo[:cartridge], "comp"=> cinfo[:component]},
-              "to_comp_inst" =>   {"cart"=> ci[:cartridge].name, "comp"=> ci[:component].name},
+              "from_comp_inst" => cinfo[:spec],
+              "to_comp_inst" =>   ci,
               "from_connector_name" => cinfo[:connector],
               "to_connector_name" =>   sname,
               "connection_type" =>     stype}
             if stype.starts_with?("FILESYSTEM") or stype.starts_with?("SHMEM")
-              overrides << [{"cart"=> cinfo[:cartridge], "comp"=> cinfo[:component]}, {"cart"=> ci[:cartridge].name, "comp"=> ci[:component].name}]
+              overrides << [cinfo[:spec], ci]
             end
           end
         end
       end
     end
 
-    # overrides may have been altered after this call 
-    processed_overrides, cleaned_overrides = process_group_overrides(component_instances, overrides)
-    group_instances = processed_overrides.map{ |go|
+    # overrides may have been altered after this call
+    processed_overrides = process_group_overrides(component_instances, overrides)
+    group_instances = processed_overrides.map do |go|
       group_instance = {}
-      group_instance[:component_instances] = go["components"].map { |go_comp_spec| { "cart"=>go_comp_spec['cart'], "comp"=>go_comp_spec['comp'] } }
+      group_instance[:component_instances] = go["components"].map { |spec| spec.to_hash }
       group_instance[:scale] = {}
       group_instance[:scale][:min] = ( go["min_gears"] || 1 )
       group_instance[:scale][:max] = ( go["max_gears"] || -1 )
@@ -2550,8 +2519,8 @@ class Application
       group_instance[:scale][:additional_filesystem_gb] += (go["additional_filesystem_gb"] || 0)
       group_instance[:_id] = Moped::BSON::ObjectId.new
       group_instance
-    }
-    [connections, group_instances, cleaned_overrides]
+    end
+    [connections, group_instances]
   end
 
   def enforce_system_order(order, categories)

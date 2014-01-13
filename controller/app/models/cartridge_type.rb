@@ -142,6 +142,10 @@ class CartridgeType
   include OpenShift::CartridgeNaming
   include OpenShift::CartridgeAspects
 
+  def id
+    _id.to_s
+  end
+
   alias_method :original_name, :base_name
 
   alias_method :manifest_text, :text
