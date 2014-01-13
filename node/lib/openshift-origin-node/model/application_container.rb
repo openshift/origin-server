@@ -184,34 +184,32 @@ module OpenShift
         output = ''
         notify_observers(:before_container_create)
         # lock to prevent race condition between create and delete of gear
-        uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
-        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | uuid_lock |
-          uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-          uuid_lock.flock(File::LOCK_EX)
-
+        PathUtils.flock("/var/lock/oo-create.#{@uuid}") do
           resource = OpenShift::Runtime::Node.resource_limits
           no_overcommit_active = resource.get_bool('no_overcommit_active', false)
           overcommit_lock_file = "/var/lock/oo-create.overcommit"
           File.open(overcommit_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | overcommit_lock |
             overcommit_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
 
-            if no_overcommit_active
-              overcommit_lock.flock(File::LOCK_EX)
+            begin
+              if no_overcommit_active
+                overcommit_lock.flock(File::LOCK_EX)
 
-              nu = OpenShift::Runtime::Node.node_utilization
-              if (nu['gears_active_usage_pct'] >= 100)
-                raise GearCreationException.new("ERROR: Node capacity exceeded, unable to create container #{@uuid}")
+                nu = OpenShift::Runtime::Node.node_utilization
+                if (nu['gears_active_usage_pct'] >= 100)
+                  raise GearCreationException.new("ERROR: Node capacity exceeded, unable to create container #{@uuid}")
+                end
               end
+
+              @container_plugin = Containerization::Plugin.new(self)
+              @container_plugin.create
+            ensure
+              overcommit_lock.flock(File::LOCK_UN) if no_overcommit_active
             end
-
-            @container_plugin = Containerization::Plugin.new(self)
-            @container_plugin.create
-
-            overcommit_lock.flock(File::LOCK_UN) if no_overcommit_active
-
-            add_env_var('SECRET_TOKEN', secret_token, true) if secret_token
-            output = generate_ssh_key
           end
+
+          add_env_var('SECRET_TOKEN', secret_token, true) if secret_token
+          output = generate_ssh_key
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             unobfuscated = PathUtils.join(File.dirname(@container_dir),"#{@container_name}-#{@namespace}")
@@ -219,8 +217,6 @@ module OpenShift
               FileUtils.ln_s File.basename(@container_dir), unobfuscated, :force=>true
             end
           end
-
-          uuid_lock.flock(File::LOCK_UN)
         end
 
         notify_observers(:after_container_create)
@@ -247,11 +243,7 @@ module OpenShift
         retcode = -1
 
         # Don't try to delete a gear that is being scaled-up|created|deleted
-        uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
-        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | lock |
-          lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-          lock.flock(File::LOCK_EX)
-
+        PathUtils.flock("/var/lock/oo-create.#{@uuid}") do
           @cartridge_model.each_cartridge do |cart|
             env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
             cart.public_endpoints.each do |endpoint|
@@ -274,8 +266,6 @@ module OpenShift
               end
             end
           end
-
-          lock.flock(File::LOCK_UN)
         end
 
         output += notify_endpoint_delete
