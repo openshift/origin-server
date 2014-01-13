@@ -11,6 +11,8 @@
 #   @return [Integer] Number of times this operation has been attempted
 class PendingAppOp
   include Mongoid::Document
+  include Mongoid::Timestamps::Created
+
   embedded_in :pending_app_op_group, class_name: PendingAppOpGroup.name
   field :state,             type: Symbol,   default: :init
   field :prereq,            type: Array
@@ -128,13 +130,10 @@ class PendingAppOp
   end
 
   def get_component_instance
-    component_instance = nil
     if comp_spec
-      comp_name = comp_spec["comp"]
-      cart_name = comp_spec["cart"]
-      component_instance = pending_app_op_group.application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name)
+      comp_spec.application = application
+      application.component_instances.detect{ |i| i.matches_spec?(comp_spec) }
     end
-    component_instance
   end
 
   def action_message

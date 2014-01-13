@@ -14,29 +14,25 @@ class SubscriptionTest < ActiveSupport::TestCase
 
     app = Application.new default_gear_size: nil
 
-    result = app.elaborate(['webcart-0.1', 'embedcart-0.1'])
-    expected_result = [[{"from_comp_inst"=>{"cart"=>"embedcart-0.1", "comp"=>"embedcart-0.1"},
-                          "to_comp_inst"=>{"cart"=>"webcart-0.1", "comp"=>"webcart-0.1"},
+    embedcartspec = ComponentSpec.new("embedcart-0.1", "embedcart-0.1")
+    webcartspec = ComponentSpec.new("webcart-0.1", "webcart-0.1")
+
+    result = app.elaborate([web_cart, embed_cart])
+    expected_result = [[{"from_comp_inst"=>embedcartspec,
+                          "to_comp_inst"=>webcartspec,
                           "from_connector_name"=>"publish-db-connection-info",
                           "to_connector_name"=>"set-env",
                           "connection_type"=>"ENV:NET_TCP:db:connection-info"},
-                        {"from_comp_inst"=>{"cart"=>"embedcart-0.1", "comp"=>"embedcart-0.1"},
-                          "to_comp_inst"=>{"cart"=>"webcart-0.1", "comp"=>"webcart-0.1"},
+                        {"from_comp_inst"=>embedcartspec,
+                          "to_comp_inst"=>webcartspec,
                           "from_connector_name"=>"publish-garbage-info",
                           "to_connector_name"=>"set-env",
                           "connection_type"=>"ENV:NET_TCP:garbage:info"}],
-                       [{:component_instances=>[{"comp"=>"webcart-0.1", "cart"=>"webcart-0.1"}],
-                          :scale=>{:min=>1, :max=>-1, :gear_size=>nil, :additional_filesystem_gb=>0},
-                          :_id=>"2"},
-                        {:component_instances=>[{"comp"=>"embedcart-0.1", "cart"=>"embedcart-0.1"}],
-                          :scale=>{:min=>1, :max=>1, :gear_size=>nil, :additional_filesystem_gb=>0},
-                          :_id=>"3"}],
-                       [{"components"=>[{"comp"=>"webcart-0.1", "cart"=>"webcart-0.1"}],
-                          "min_gears"=>1,
-                          "max_gears"=>-1},
-                        {"components"=>[{"comp"=>"embedcart-0.1", "cart"=>"embedcart-0.1"}],
-                          "min_gears"=>1,
-                          "max_gears"=>1}]]
+                       [
+                        GroupOverride.new([webcartspec], 1, -1, nil, 0),
+                        GroupOverride.new([embedcartspec], 1, 1, nil, 0)
+                       ]
+                     ]
 
     assert_equal(expected_result, result)
   end
@@ -51,24 +47,20 @@ class SubscriptionTest < ActiveSupport::TestCase
 
     app = Application.new default_gear_size: nil
 
-    result = app.elaborate(['webcart-0.1', 'embedcart-0.1'])
-    expected_result = [[{"from_comp_inst"=>{"cart"=>"embedcart-0.1", "comp"=>"embedcart-0.1"},
-                          "to_comp_inst"=>{"cart"=>"webcart-0.1", "comp"=>"webcart-0.1"},
+    embedcartspec = ComponentSpec.new("embedcart-0.1", "embedcart-0.1")
+    webcartspec = ComponentSpec.new("webcart-0.1", "webcart-0.1")
+
+    result = app.elaborate([web_cart, embed_cart])
+    expected_result = [[{"from_comp_inst"=>embedcartspec,
+                          "to_comp_inst"=>webcartspec,
                           "from_connector_name"=>"publish-db-connection-info",
                           "to_connector_name"=>"set-db-connection-info",
                           "connection_type"=>"ENV:NET_TCP:db:connection-info"}],
-                       [{:component_instances=>[{"comp"=>"webcart-0.1", "cart"=>"webcart-0.1"}],
-                          :scale=>{:min=>1, :max=>-1, :gear_size=>nil, :additional_filesystem_gb=>0},
-                          :_id=>"2"},
-                        {:component_instances=>[{"comp"=>"embedcart-0.1", "cart"=>"embedcart-0.1"}],
-                          :scale=>{:min=>1, :max=>1, :gear_size=>nil, :additional_filesystem_gb=>0},
-                          :_id=>"3"}],
-                       [{"components"=>[{"comp"=>"webcart-0.1", "cart"=>"webcart-0.1"}],
-                          "min_gears"=>1,
-                          "max_gears"=>-1},
-                        {"components"=>[{"comp"=>"embedcart-0.1", "cart"=>"embedcart-0.1"}],
-                          "min_gears"=>1,
-                          "max_gears"=>1}]]
+                       [
+                        GroupOverride.new([webcartspec], 1, -1, nil, 0),
+                        GroupOverride.new([embedcartspec], 1, 1, nil, 0)
+                       ]
+                      ]
 
     assert_equal(expected_result, result)
   end

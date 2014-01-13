@@ -1,6 +1,6 @@
 class StopCompOp < PendingAppOp
 
-  field :comp_spec, type: Hash, default: {}
+  field :comp_spec, type: ComponentSpec, default: {}
   field :force, type: Boolean, default: false
   field :gear_id, type: String
 

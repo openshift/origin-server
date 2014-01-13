@@ -88,7 +88,7 @@ module OpenShift
   end
 
   class Cartridge < OpenShift::Model
-    attr_accessor :name, :version, :architecture, :display_name, :description, :vendor, :license,
+    attr_accessor :id, :name, :version, :architecture, :display_name, :description, :vendor, :license,
                   :provides, :requires, :conflicts, :suggests, :native_requires, :default_profile,
                   :path, :license_url, :categories, :website, :suggests_feature,
                   :help_topics, :cart_data_def, :additional_control_actions, :versions, :cartridge_vendor,
@@ -172,6 +172,7 @@ module OpenShift
     end
 
     def from_descriptor(spec_hash={})
+      self.id = spec_hash["Id"]
       self.name = spec_hash["Name"]
       self.version = spec_hash["Version"] || "0.0"
       self.versions = spec_hash["Versions"] || []
@@ -246,6 +247,7 @@ module OpenShift
       h = {
         "Name" => self.original_name,
         "Display-Name" => self.display_name,
+        "Id" => self.id,
       }
 
       h["Architecture"] = self.architecture if self.architecture != "noarch"

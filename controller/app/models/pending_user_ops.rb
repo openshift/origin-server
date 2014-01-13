@@ -15,7 +15,7 @@
 #   @return [Symbol] Optional method to call on the User object after operation has completed
 class PendingUserOps
   include Mongoid::Document
-  include Mongoid::Timestamps
+  include Mongoid::Timestamps::Created
 
   embedded_in :cloud_user, class_name: CloudUser.name
   field :state, type: Symbol, :default => :init

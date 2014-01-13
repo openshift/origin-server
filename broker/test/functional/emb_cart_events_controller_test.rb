@@ -3,7 +3,7 @@ require 'test_helper'
 class EmbCartEventsControllerTest < ActionController::TestCase
 
   def setup
-    @controller = EmbCartEventsController.new
+    @controller = allow_multiple_execution(EmbCartEventsController.new)
 
     @random = rand(1000000000)
     @login = "user#{@random}"

@@ -28,39 +28,18 @@ class ComponentInstance
   end
 
   delegate :is_plugin?, :is_embeddable?, :is_web_proxy?, :is_web_framework?, to: :cartridge
-
-  def is_sparse?
-    get_component.is_sparse?
-  end
+  delegate :is_sparse?, to: :component
 
   def min
-    min = get_group_overriding_value('min_gears')
-    return (min.nil? ? get_component.scaling.min : min)
-  end
-
-  def get_group_overriding_value(key)
-    self.application.group_overrides.each { |go|
-      go['components'].each { |comp_spec|
-        if comp_spec['cart']==self.cartridge_name and comp_spec['comp']==self.component_name
-          if comp_spec.has_key?(key)
-            return comp_spec[key] 
-          elsif not is_sparse?
-            return go[key]
-          end
-        end
-      }
-    }
-    return nil
-  end
-
-  def multiplier
-    mul = get_group_overriding_value('multiplier')
-    return (mul.nil? ? get_component.scaling.multiplier : mul)
+    get_value_from_group_override(:min_gears) || component.scaling.min
   end
 
   def max
-    max = get_group_overriding_value('max_gears')
-    return (max.nil? ? get_component.scaling.max : max)
+    get_value_from_group_override(:max_gears) || component.scaling.max
+  end
+
+  def multiplier
+    get_value_from_group_override(:multiplier) || component.scaling.multiplier
   end
 
   def group_instance
@@ -68,7 +47,7 @@ class ComponentInstance
   end
 
   def gears
-    gi_gears = self.application.gears.select {|g| g.group_instance_id == self.group_instance_id}
+    gi_gears = self.application.gears.select{ |g| g.group_instance_id == self.group_instance_id }
     return [] unless gi_gears.present?
     ci_gears = []
     unless self.is_sparse?
@@ -101,23 +80,74 @@ class ComponentInstance
     cartridge.get_profile_for_component self.component_name
   end
 
-  def get_component
-    cartridge.get_component(component_name)
-  end
-
   def supports_action?(action)
     cartridge.additional_control_actions.include?(action)
   end
 
+  def profile
+    @profile ||= cartridge.profile_for_feature(component_name)
+  end
+
+  def component
+    @component ||= cartridge.get_component(component_name)
+  end
+  alias_method :get_component, :component
+
   def cartridge
-    @cartridge ||= CartridgeCache.find_cartridge(cartridge_name, self.application) or
-      raise OpenShift::UserException.new("The cartridge #{cartridge_name} is referenced in the application #{self.application.name} but cannot be located.")
+    @cartridge ||= begin
+      if cartridge_id && (cart = CartridgeCache.find_cartridge_by_id(cartridge_id, self.application))
+        self.cartridge_name = cart.name
+        self.cartridge_vendor = cart.cartridge_vendor
+      elsif cartridge_name && (cart = CartridgeCache.find_cartridge(cartridge_name, self.application))
+        self.cartridge_id = cart.id
+        self.cartridge_vendor = cart.cartridge_vendor
+      end
+      cart or raise OpenShift::UserException.new("The cartridge #{cartridge_name} is referenced in the application #{self.application.name} but cannot be located.")
+    end
   end
   alias_method :get_cartridge, :cartridge
 
-  # @return [Hash] a simplified hash representing this {ComponentInstance} object which is used by {Application#compute_diffs}
-  def to_hash
-    {"cart" => cartridge_name, "comp" => component_name}
+  def group_overrides(&block)
+    e = EnumeratorArray.new do |y|
+      application.group_overrides.each do |override|
+        if override && override.components.any?{ |spec| matches_spec?(spec) }
+          y << override
+        end
+      end
+    end
+    return e.each(&block) if block_given?
+    e
   end
-  alias_method :to_component_spec, :to_hash
+
+  def to_component_spec
+    ComponentSpec.for_instance(self, self.has_application? ? self.application : nil)
+  end
+
+  def matches_spec?(spec)
+    component_name == spec.name && cartridge_name == spec.cartridge_name
+  end
+
+  private
+    ##
+    # Return the first value in the group overrides that applies to this component for <b>key</b>
+    # that is not nil.
+    #
+    def get_value_from_group_override(key)
+      group_overrides.each do |override|
+        match = false
+        override.components.each do |spec|
+          if matches_spec?(spec)
+            match = true
+            value = spec.send(key) if spec.respond_to?(key)
+            value = override.send(key) if !is_sparse? && value.nil?
+            return value unless value.nil?
+          end
+        end
+        if match
+          value = override.send(key)
+          return value unless value.nil?
+        end
+      end
+      nil
+    end
 end

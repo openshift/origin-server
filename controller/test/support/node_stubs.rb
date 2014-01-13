@@ -36,6 +36,13 @@ class ActionController::TestCase
     e.prepend_before_filter :reset_instance_variables
     c
   end
+
+  def json_messages(&block)
+    assert json = JSON.parse(response.body)
+    assert messages = json['messages']
+    yield messages if block_given?
+    messages
+  end
 end
 
 def read_local_cartridges

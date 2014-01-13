@@ -1,16 +1,22 @@
 class NewCompOp < PendingAppOp
 
   field :group_instance_id, type: String
-  field :comp_spec, type: Hash, default: {}
+  field :comp_spec, type: ComponentSpec, default: {}
   field :cartridge_vendor, type: String
   field :version, type: String
 
   def execute
     group_instance = get_group_instance()
     if comp_spec
-      comp_name = comp_spec["comp"]
-      cart_name = comp_spec["cart"]
-      component_instance = ComponentInstance.new(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id, cartridge_vendor: cartridge_vendor, version: version)
+      comp_spec.application = application
+      comp_name = comp_spec.name
+      cartridge = comp_spec.cartridge
+      component_instance = ComponentInstance.new(cartridge_name: comp_spec.cartridge_name,
+                                                 cartridge_id: cartridge.id,
+                                                 component_name: comp_name,
+                                                 group_instance_id: group_instance._id,
+                                                 cartridge_vendor: cartridge.cartridge_vendor,
+                                                 version: cartridge.version)
       application.component_instances.push(component_instance)
     end
   end

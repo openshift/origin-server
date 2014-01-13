@@ -41,21 +41,21 @@ class CartridgeInstance < SimpleDelegator
   def self.overrides_for(cartridges, app=nil)
     overrides = []
     cartridges.each do |cart|
-      overrides << cart.to_group_override
+      overrides << cart.to_group_override(app)
       next if cart.colocate_with.nil? or cart.colocate_target
 
       if app && (component = app.component_instances.where(cartridge_name: cart.colocate_with).first)
         cart.colocate_target = component
-        overrides << {"components" => [component.to_component_spec, cart.to_component_spec]}
+        overrides << GroupOverride.new([component.to_component_spec, cart.to_component_spec])
       else
-        group = cartridges.select do |other|
+        components = cartridges.select do |other|
           next if cart == other
           if other.name == cart.colocate_with
             cart.colocate_target = other
             other.colocate_target = cart
           end
-        end.map(&:to_component_spec)
-        overrides << {"components" => group}
+        end.map{ |c| c.to_component_spec(app) }
+        overrides << GroupOverride.new(components)
       end
     end
     overrides.compact!
@@ -77,22 +77,16 @@ class CartridgeInstance < SimpleDelegator
     end
   end
 
-  def to_group_override
+  def to_group_override(app=nil)
     return nil unless scales_from.present? or scales_to.present? or additional_storage.present? or gear_size.present?
-
-    h = {"components" => [to_component_spec]}
-    h["min_gears"] = scales_from unless scales_from.nil?
-    h["max_gears"] = scales_to unless scales_to.nil?
-    h["additional_filesystem_gb"] = additional_storage unless additional_storage.nil?
-    h["gear_size"] = gear_size unless gear_size.nil?
-    h
+    GroupOverride.new([to_component_spec(app)], scales_from, scales_to, gear_size, additional_storage)
   end
 
-  def to_component_spec
+  def to_component_spec(app=nil)
     profs = profile_for_feature(name)
     profile = (profs.is_a? Array) ? profs.first : profs
     comp = profile.components.first
-    {"cart" => name, "comp" => comp.name}
+    ComponentSpec.for_model(comp, __getobj__, app)
   end
 
   protected

@@ -87,19 +87,19 @@ class AppEventsController < BaseController
       r = @application.make_ha
       msg = "Application #{@application.name} is now ha"
 
-    when "scale-up"
+    when "scale-up", "scale-down"
       authorize! :scale_cartridge, @application
-      instance = @application.web_component_instance
-      raise OpenShift::UserException.new("Application #{@application.name} does not have a web cartridge to scale.")
-      r = @application.scale_by(instance.group_instance_id, 1)
-      msg = "Application #{@application.name} has scaled down"
+      instance = @application.web_component_instance or
+        raise OpenShift::UserException.new("Application #{@application.name} does not have a web cartridge to scale.")
 
-    when "scale-down"
-      authorize! :scale_cartridge, @application
-      instance = @application.web_component_instance
-      raise OpenShift::UserException.new("Application #{@application.name} does not have a web cartridge to scale.")
-      r = @application.scale_by(instance.group_instance_id, -1)
-      msg = "Application #{@application.name} has scaled down"
+      scale_by = Integer(params[:by]) rescue nil
+      scale_to = Integer(params[:to]) rescue nil
+      current = instance.gears.count
+      value = scale_to ? (scale_to - current) : (scale_by || 1)*(event == 'scale-down' ? -1 : 1)
+      final = current + value
+
+      r = @application.scale_by(instance.group_instance_id, value)
+      msg = "Application #{@application.name} has scaled to #{final}"
 
     when "thread-dump"
       authorize! :view_code_details, @application

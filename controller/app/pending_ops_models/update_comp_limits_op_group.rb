@@ -1,45 +1,38 @@
 class UpdateCompLimitsOpGroup < PendingAppOpGroup
 
-  field :comp_spec, type: Hash, default: {}
+  field :comp_spec, type: ComponentSpec, default: {}
   field :min, type: Integer
   field :max, type: Integer
   field :multiplier, type: Integer
   field :additional_filesystem_gb, type: Integer
 
   def elaborate(app)
-    updated_overrides = (app.group_overrides || []).deep_dup
-    ci = app.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
-    found = updated_overrides.find do |go|
-      go["components"].find { |go_comp_spec| ci.cartridge_name==go_comp_spec["cart"] and ci.component_name==go_comp_spec["comp"] }
-    end
-    if ci.is_sparse?
-      if found
-        updated_overrides.each do |go|
-          go["components"].each do |go_comp_spec|
-            if go_comp_spec["cart"] == ci.cartridge_name and go_comp_spec["comp"] == ci.component_name
-              go_comp_spec["min_gears"] = min unless min.nil?
-              go_comp_spec["max_gears"] = max unless max.nil?
-              go_comp_spec["multiplier"] = multiplier unless multiplier.nil?
-            end
-          end
+    overrides = app.application_overrides
+    instance = app.find_component_instance_for(comp_spec)
+
+    found = false
+    if instance.is_sparse?
+      instance.group_overrides do |override|
+        if component = override.components.find{ |c| c == comp_spec }
+          found = true
+          component.merge(min, max, multiplier)
+          override.merge(GroupOverride.new(nil, nil, nil, nil, additional_filesystem_gb))
         end
-        group_override = found
-      else
-        new_comp_spec = { "cart"=> ci.cartridge_name, "comp" => ci.component_name }
-        new_comp_spec["min_gears"] = min unless min.nil?
-        new_comp_spec["max_gears"] = max unless max.nil?
-        new_comp_spec["multiplier"] = multiplier unless multiplier.nil?
-        group_override = {"components" => [new_comp_spec]}
+      end
+      unless found
+        overrides << GroupOverride.new([ComponentOverrideSpec.new(comp_spec, min, max, multiplier)], nil, nil, nil, additional_filesystem_gb)
       end
     else
-      group_override = found || {"components" => [comp_spec]}
-      group_override["min_gears"] = min unless min.nil?
-      group_override["max_gears"] = max unless max.nil?
+      instance.group_overrides do |override|
+        found = true
+        override.merge(GroupOverride.new(nil, min, max, nil, additional_filesystem_gb))
+      end
+      unless found
+        overrides << GroupOverride.new([comp_spec], min, max, nil, additional_filesystem_gb)
+      end
     end
-    group_override["additional_filesystem_gb"] = additional_filesystem_gb unless additional_filesystem_gb.nil?
-    updated_overrides.push(group_override) unless found
 
-    ops, add_gear_count, rm_gear_count = app.update_requirements(app.cartridges, updated_overrides)
+    ops, add_gear_count, rm_gear_count = app.update_requirements(app.cartridges, overrides)
     try_reserve_gears(add_gear_count, rm_gear_count, app, ops)
   end
 

@@ -81,6 +81,8 @@ module OpenShift
 
             target =
               if    ComponentInstance >= model then target = 'Cartridge'
+              elsif CartridgeInstance >= model then target = 'Cartridge'
+              elsif CartridgeType     >= model then target = 'Cartridge'
               elsif GroupInstance     >= model then target = 'Gear group'
               else  model.to_s.underscore.humanize
               end
@@ -95,6 +97,8 @@ module OpenShift
                   (Domain >= model and ex.params[:canonical_namespace].presence) or
                   (Application >= model and ex.params[:canonical_name].presence) or
                   (ComponentInstance >= model and ex.params[:cartridge_name].presence) or
+                  (CartridgeInstance >= model and ex.params[:name].presence) or
+                  (CartridgeType     >= model and ex.params[:name].presence) or
                   (Alias >= model and ex.params[:fqdn].presence) or
                   (CloudUser >= model and ex.params[:login].presence) or
                   (CloudUser >= model and ex.params[:_id].presence) or

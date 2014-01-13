@@ -32,6 +32,21 @@ class CartridgeCache
   # provided by 'redhat' are found, then the most recent will be returned if all of
   # of the matches have a common base (like 'php' or 'ruby').
   #
+  def self.find_cartridge_by_id(id, app=nil)
+    if app
+      cart = app.downloaded_cartridges.values.find{ |c| c['id'] == id } ||
+             app.cartridge_instances.values.find{ |c| c.id == id }
+      return cart if cart
+    end
+    CartridgeType.where(id: id).first
+  end
+
+  #
+  # Return an exact match for name, nil if no matches exist, or raise an error if
+  # there is more than one relevant match.  If one or more cartridges that are
+  # provided by 'redhat' are found, then the most recent will be returned if all of
+  # of the matches have a common base (like 'php' or 'ruby').
+  #
   def self.find_cartridge_by_base_name(name, app=nil)
     matches = find_cartridges_by_base_name(name, app)
     return nil if matches.blank?
@@ -53,6 +68,10 @@ class CartridgeCache
     return [redhat.sort_by(&OpenShift::Cartridge::VERSION_ORDER).last] if redhat.map(&:original_name).uniq.length == 1
 
     matches
+  end
+
+  def self.find_cartridges_by_base_names(names, app=nil)
+    names.map{ |name| find_cartridges_by_base_name(name, app).first }.compact
   end
 
   #
@@ -268,7 +287,7 @@ class CartridgeCache
       if app
         cart = app.downloaded_cartridges[name] || app.cartridge_instances[name]
         return [cart] if cart
-        carts = each_cartridge.select{ |c| c.names.include?(name) }
+        carts = app.each_cartridge.select{ |c| c.names.include?(name) }
         return carts if carts.present?
       end
       if cart = CartridgeType.active.where(name: name).first

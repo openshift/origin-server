@@ -1,6 +1,6 @@
 class StopCompOpGroup < PendingAppOpGroup
 
-  field :comp_spec, type: Hash, default: {}
+  field :comp_spec, type: ComponentSpec, default: {}
 
   def elaborate(app)
     ops = []

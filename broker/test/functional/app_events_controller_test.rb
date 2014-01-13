@@ -1,9 +1,8 @@
 ENV["TEST_NAME"] = "functional_app_events_controller_test"
 require 'test_helper'
 class AppEventsControllerTest < ActionController::TestCase
-
   def setup
-    @controller = AppEventsController.new
+    @controller = allow_multiple_execution(AppEventsController.new)
 
     @random = rand(1000000000)
     @login = "user#{@random}"
@@ -49,12 +48,42 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_response :success
     post :create, {"event" => "force-stop", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+
+    post :create, {"event" => "scale-down", "to" => "0", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :unprocessable_entity
+    json_messages{ |a| assert a.any?{ |m| m['text'] =~ /Cannot scale down below gear limit of 1/ }, a.inspect }
+
     post :create, {"event" => "scale-up", "domain_id" => @domain.namespace, "application_id" => @app.name}
-    assert_response :success
+    assert_response :success, json_messages.inspect
+    assert @app.reload.gears.count == 2
+
+    post :create, {"event" => "scale-down", "by" => "2", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :unprocessable_entity
+    json_messages{ |a| assert a.any?{ |m| m['text'] =~ /Cannot scale down below gear limit of 1/ }, a.inspect }
+
     post :create, {"event" => "scale-down", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+    assert @app.reload.gears.count == 1
+
+    post :create, {"event" => "scale-up", "to" => "2", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert @app.reload.gears.count == 2
+
+    post :create, {"event" => "scale-down", "to" => "1", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert @app.reload.gears.count == 1
+
+    post :create, {"event" => "scale-down", "by" => "-2", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert @app.reload.gears.count == 3
+
+    post :create, {"event" => "scale-up", "by" => "-2", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert @app.reload.gears.count == 1
+
     post :create, {"event" => "reload", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+
     post :create, {"event" => "thread-dump", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
     post :create, {"event" => "tidy", "domain_id" => @domain.namespace, "application_id" => @app.name}

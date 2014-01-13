@@ -24,6 +24,8 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil 
+    assert_equal 1, app.group_instances.length
+    assert_equal 1, app.gears.length
     
     app.config['auto_deploy'] = true
     app.config['deployment_branch'] = "stage"
@@ -166,6 +168,12 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+    assert_equal 2, app.gears.length
+
+    _, updated = app.elaborate(app.cartridges, [])
+    changes, moves = app.compute_diffs(app.group_instance_overrides, updated)
+    assert changes.all?{ |c| c.added.empty? && c.removed.empty? && c.gear_change == 0 && c.additional_filesystem_change == 0 }, changes.inspect
+    assert moves.empty?, moves.inspect
 
     @user.max_untracked_additional_storage = 5
     @user.save
@@ -180,14 +188,14 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     web_instance = app.web_component_instance
     app.scale_by(web_instance.group_instance_id, 1)
     app.reload
-    assert_equal app.gears.count, 3
+    assert_equal 3, app.gears.count
 
     app.scale_by(web_instance.group_instance_id, -1)
     resp = rest_check(:get, "", {})
     assert_equal resp.status, 200
 
     app.reload
-    assert_equal app.gears.count, 2
+    assert_equal 2, app.gears.count
 
     app.destroy_app
   end

@@ -35,7 +35,15 @@ class GroupInstance
   end
 
   def gears
-    application.gears.select{ |g| g.group_instance_id == self._id }
+    application.gears.select{ |g| g.group_instance_id == _id }
+  end
+
+  def application_dns_gear
+    application.gears.each do |gear|
+      if gear.app_dns
+        return (gear.group_instance_id == _id) ? gear : nil
+      end
+    end
   end
 
   def component_instances
@@ -51,23 +59,23 @@ class GroupInstance
   end
 
   def gear_size
-    get_group_override("gear_size") || application.default_gear_size
+    get_group_override(:gear_size) || application.default_gear_size
   end
 
   def gear_size=(value)
     if value == application.default_gear_size
-      unset_group_override("gear_size")
+      unset_group_override(:gear_size)
     else
-      set_group_override("gear_size", value)
+      set_group_override(:gear_size, value)
     end
   end
 
   def addtl_fs_gb
-    get_group_override("additional_filesystem_gb") || 0
+    get_group_override(:additional_filesystem_gb) || 0
   end
 
   def addtl_fs_gb=(value)
-    set_group_override("additional_filesystem_gb", value)
+    set_group_override(:additional_filesystem_gb, value)
   end
 
   def server_identities
@@ -78,7 +86,7 @@ class GroupInstance
 
   def has_component?(comp_spec)
     all_component_instances.any? do |ci|
-      ci.component_name == comp_spec["comp"] and ci.cartridge_name == comp_spec["cart"]
+      ci.component_name == comp_spec.name and ci.cartridge_name == comp_spec.cartridge.name
     end
   end
 
@@ -118,47 +126,52 @@ class GroupInstance
     result_io
   end
 
-  # @return [Hash] a simplified hash representing this {GroupInstance} object which is used by {Application#compute_diffs}  
-  def to_hash
-    comps = all_component_instances.map{ |c| c.to_hash }
-    {component_instances: comps, scale: {current: self.gears.length, additional_filesystem_gb: self.addtl_fs_gb, gear_size: self.gear_size}, _id: _id}
-  end
-
   def get_group_override(key=nil)
-    comps = all_component_instances.map{ |c| c.to_hash }
-    comps.each do |comp|
-      application.group_overrides.each do |group_override|
-        if group_override["components"].any? { |go_comp| go_comp["comp"]==comp["comp"] and go_comp["cart"]==comp["cart"] }
-          if key
-            return group_override[key]
-          else
-            return group_override
-          end
+    comps = all_component_instances
+    application.group_overrides.each do |override|
+      next if override.nil?
+      if override.components.any?{ |comp| comps.any?{ |c| c.matches_spec?(comp) } }
+        if key
+          return override.send(key)
+        else
+          return override
         end
-      end if application.group_overrides
-    end
+      end
+    end if application.group_overrides
+
     if !key
-      return { "components" => comps }
+      GroupOverride.for_instance(self)
     end
-    return nil 
   end
 
   def set_group_override(key, value)
     return unless key
     group_override = get_group_override
     if group_override
-      group_override[key] = value
+      group_override.send("=#{key}", value)
     else
-      comps = all_component_instances.map{ |c| c.to_hash }
-      new_group_override = { "components" => comps }
-      new_group_override[key] = value
+      new_group_override = GroupOverride.for_instance(self)
+      new_group_override.send("=#{key}", value)
       application.group_overrides << new_group_override
     end
   end
 
   def unset_group_override(key)
-    group_override = get_group_override(key)
-    group_override.delete(key) if group_override
+    comps = all_component_instances
+    overrides = application.group_overrides
+    overrides.each_with_index do |override, i|
+      next if override.nil?
+      match = false
+      override.components.each do |comp|
+        if comps.any?{ |c| c.matches_spec(comp) }
+          match = true
+          if comp.respond_to?(key)
+            comp.clear(key)
+          end
+        end
+      end
+      override.clear(key)
+    end
   end
 
   protected
@@ -209,5 +222,25 @@ class GroupInstance
       end
     end
     [successful_runs,failed_runs]
-  end 
+  end
+
+  private
+    ##
+    # Return the first value in the group overrides that applies to this component for <b>key</b>
+    # that is not nil.
+    #
+    def get_group_override_with_key(key)
+      comps = all_component_instances
+      application.group_overrides.each do |override|
+        next if override.nil?
+        if group_override.components.any?{ |spec| comps.any?{ |comp| comp.matches_spec(spec) } }
+          if key && override.respond_to?(key)
+            value = override.send(key)
+            return value unless value.nil?
+          end
+        end
+      end if application.group_overrides
+      nil
+    end
+
 end

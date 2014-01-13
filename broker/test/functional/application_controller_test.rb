@@ -307,7 +307,8 @@ class ApplicationControllerTest < ActionController::TestCase
 
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => "ruby-1.8", "domain_id" => @domain.namespace}
-    assert_response :unprocessable_entity
+    # CHANGED - Obsolescene is done by deactivating the cartridge
+    assert_response :created
   end
 
   def assert_invalid_manifest
@@ -541,7 +542,7 @@ class ApplicationControllerTest < ActionController::TestCase
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(body)
     CartridgeType.where(:base_name => 'remotemock').delete
     types = CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(body), 'manifest://test')
-    types.each(&:save!)
+    types.each(&:activate!)
 
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => ["mock-remotemock-0.1"], "domain_id" => @domain.namespace}

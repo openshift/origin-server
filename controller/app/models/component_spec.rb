@@ -3,16 +3,19 @@ class ComponentSpec
   attr_writer :cartridge, :component, :application
 
   def self.for_model(component, cartridge, application=nil)
-    spec = new(component.name, cartridge.id)
+    spec = new(component.name, cartridge.name)
     spec.component = component
     spec.cartridge = cartridge
     spec.application = application
     spec
   end
 
-  def self.for_instance(component_instance, application=nil)
-    cart = component_instance.cartridge
-    new(component_instance.component_name, cart.id, component_instance.cartridge.name, cart, application, nil)
+  def self.for_instance(instance, application=nil)
+    cart = instance.cartridge
+    spec = new(instance.component_name, cart.name)
+    spec.cartridge = cart
+    spec.application = application || instance.has_application? ? instance.application : nil
+    spec
   end
 
   # Resolve a list of component specs to valid component instances
@@ -24,7 +27,7 @@ class ComponentSpec
         instances.find{ |i| i == spec }
       when Hash
         base = instances.find{ |i| i === spec }
-        ComponentOverrideSpec.required_for(spec, base)
+        ComponentOverrideSpec.required_for(base, spec)
       when String
         instances.find{ |i| i === spec }
       else
@@ -33,19 +36,19 @@ class ComponentSpec
     end.tap{ |a| a.compact! }
   end
 
-  def initialize(name, id)
+  def initialize(name, cartridge_name)
     @name = name
-    @id = id
-    @path = "#{@id}/#{@name}"
+    @cartridge_name = cartridge_name
+    @path = "#{@cartridge_name}/#{@name}"
   end
 
   def cartridge
-    @cartridge ||= CartridgeCache.find_cartridge_by_id(@id, @application) or
+    @cartridge ||= CartridgeCache.find_cartridge(@cartridge_name, @application) or
       raise OpenShift::UserException.new(
         if @application
-          "The cartridge #{@id} is referenced in the application #{@application.name} but cannot be located."
+          "The cartridge #{@cartridge_name} is referenced in the application #{@application.name} but cannot be located."
         else
-          "The cartridge #{@id} is cannot be located."
+          "The cartridge #{@cartridge_name} is cannot be located."
         end
       )
   end
@@ -60,9 +63,11 @@ class ComponentSpec
 
   def ==(other)
     return true if equal?(other)
-    return false unless other.respond_to?(:path)
+    return other.==(self) if ComponentOverrideSpec === other
+    return false unless ComponentSpec === other
     @path == other.path
   end
+  alias_method :eql?, :==
 
   def hash
     path.hash
@@ -70,16 +75,15 @@ class ComponentSpec
 
   ##
   # A ComponentSpec is equivalent to another spec with another path, a hash that
-  # matches "cart" or "cart_id" and "name", or a string that matches a component
+  # matches "cart" and "name", or a string that matches a component
   # in the cartridge represented by this spec.
   #
   def ===(other)
-    return true if self.==(other)
+    return true if equal?(other)
     case other
     when Hash
-      return false unless @name == other['name']
-      return true if @id == other['cart_id']
-      return true if cartridge.name == other['cart']
+      return false unless @name == other['comp']
+      return true if @cartridge_name == other['cart']
       false
     when String
       return true if @name == other
@@ -94,16 +98,43 @@ class ComponentSpec
       # underspecified. Lookups of group override specs should be done by feature or type,
       # but probably not category.
       valid ||= cart.features.include?(other) || cart.categories.include?(other)
+    else
+      self.==(other)
     end
-  end
-
-  def to_hash(*only)
-    {"comp" => @name, "cart_id" => @id}
   end
 
   def merge(other)
     return other if ComponentOverrideSpec === other
     self
+  end
+
+  def dup
+    self
+  end
+
+  def to_hash
+    {"comp" => @name, "cart" => @cartridge_name}
+  end
+
+  def mongoize
+    to_hash
+  end
+
+  def self.mongoize(object)
+    object.mongoize
+  end
+
+  def self.demongoize(object)
+    case object
+    when Hash
+      new(object['comp'], object['cart'])
+    else
+      object
+    end
+  end
+
+  def self.evolve(object)
+    object
   end
 
   def inspect
@@ -134,64 +165,4 @@ class ComponentSpec
     end
     parts
   end
-end
-
-class ComponentOverrideSpec < SimpleDelegator
-  attr_reader :min_gears, :max_gears, :multiplier
-
-  def self.required_for(hash, spec)
-    args = hash.values_at("min_gears", "max_gears", "multiplier")
-    if args.any?(&:present?)
-      new(spec, *args)
-    else
-      spec
-    end
-  end
-
-  def initialize(spec, *args)
-    super(spec)
-    apply(*args)
-  end
-
-  def merge(other)
-    return self if ComponentSpec === other
-    apply(other.min_gears, other.max_gears, other.multiplier)
-    self
-  end
-
-  def to_s
-    super.to_s
-  end
-
-  def inspect
-    prefix = "#<#{self.class}"
-    parts = inspect_parts
-    instance_variables.each do |var|
-      next if var == :@delegate_sd_obj
-      v = instance_variable_get(var)
-      next if v.nil?
-      s =
-        case v
-        when OpenShift::Component, OpenShift::Cartridge, CartridgeType, Application
-          "<#{v.name}>"
-        when OpenShift::Profile
-          "<set>"
-        else
-          v.inspect
-        end
-      parts << "#{var}=#{s}"
-    end
-    if parts.empty?
-      "#{prefix}>"
-    else
-      "#{prefix} #{parts.join(' ')}>"
-    end
-  end
-
-  protected
-    def apply(min_gears, max_gears=nil, multiplier=nil)
-      @min_gears = GroupOverride.integer_range(:max, 1, @min_gears, (Integer(min_gears) rescue nil))
-      @max_gears = GroupOverride.integer_range(:min, nil, @max_gears, (Integer(max_gears) rescue nil))
-      @multiplier = GroupOverride.integer_range(:max, 1, @multiplier, (Integer(multiplier) rescue nil))
-    end
 end

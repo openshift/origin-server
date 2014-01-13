@@ -1,7 +1,7 @@
 class PostConfigureCompOp < PendingAppOp
 
   field :gear_id, type: String
-  field :comp_spec, type: Hash, default: {}
+  field :comp_spec, type: ComponentSpec, default: {}
   field :init_git_url, type: String
 
   def execute

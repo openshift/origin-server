@@ -39,7 +39,7 @@ class Domain
   embeds_many :system_ssh_keys, class_name: SystemSshKey.name
   belongs_to :owner, class_name: CloudUser.name
   has_many :applications, class_name: Application.name, dependent: :restrict
-  embeds_many :pending_ops, class_name: PendingDomainOps.name
+  embeds_many :pending_ops, class_name: PendingDomainOps.name, cascade_callbacks: true
 
   has_members default_role: :admin
 
@@ -166,7 +166,7 @@ class Domain
 
     keys_attrs = ssh_keys.map { |k| k.serializable_hash }
     pending_op = AddSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
-    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { system_ssh_keys: keys_attrs }})
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pushAll" => { system_ssh_keys: keys_attrs }})
   end
 
   def remove_system_ssh_keys(remove_key)
@@ -179,7 +179,7 @@ class Domain
     return if ssh_keys.empty?
     keys_attrs = ssh_keys.map { |k| k.serializable_hash }
     pending_op = RemoveSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
-    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { system_ssh_keys: keys_attrs }})
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { system_ssh_keys: keys_attrs }})
   end
 
   def add_env_variables(variables)
@@ -196,7 +196,7 @@ class Domain
     Domain.where(_id: self.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) unless env_vars_to_rm.empty?
 
     pending_op = AddEnvVarsDomainOp.new(variables: variables, on_apps: applications)
-    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { env_vars: variables }})
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pushAll" => { env_vars: variables }})
   end
 
   def remove_env_variables(remove_key)
@@ -207,7 +207,7 @@ class Domain
     end
     return if variables.empty?
     pending_op = RemoveEnvVarsDomainOp.new(variables: variables, on_apps: applications)
-    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { env_vars: variables }})
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { env_vars: variables }})
   end
 
   def members_changed(added, removed, changed_roles)

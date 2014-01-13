@@ -1,6 +1,6 @@
 class DeleteCompOp < PendingAppOp
 
-  field :comp_spec, type: Hash, default: {}
+  field :comp_spec, type: ComponentSpec, default: {}
 
   def execute
     component_instance = get_component_instance()

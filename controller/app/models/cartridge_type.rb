@@ -2,6 +2,11 @@ class CartridgeType
   include Mongoid::Document
   include Mongoid::Timestamps
 
+  def self.check_name!(name)
+    CartridgeInstance.check_feature?(name) or raise Mongoid::Errors::DocumentNotFound.new(CartridgeInstance, name: name)
+    name
+  end
+
   field :name, type: String
   field :priority, type: DateTime
   has_many :successors, class_name: 'CartridgeType', inverse_of: :predecessor
@@ -129,7 +134,9 @@ class CartridgeType
 
   def cartridge
     @cartridge ||= begin
-      cart = OpenShift::Cartridge.new.from_descriptor(JSON.parse(text))
+      json = JSON.parse(text)
+      json["Id"] = self._id.to_s
+      cart = OpenShift::Cartridge.new.from_descriptor(json)
       cart.manifest_url = manifest_url
       cart
     end
@@ -143,7 +150,7 @@ class CartridgeType
   include OpenShift::CartridgeAspects
 
   def id
-    _id.to_s
+    _id
   end
 
   alias_method :original_name, :base_name

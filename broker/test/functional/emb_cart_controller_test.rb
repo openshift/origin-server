@@ -3,7 +3,7 @@ require 'test_helper'
 class EmbCartControllerTest < ActionController::TestCase
 
   def setup
-    @controller = EmbCartController.new
+    @controller = allow_multiple_execution(EmbCartController.new)
 
     @random = rand(1000000000)
     @login = "user#{@random}"
@@ -23,6 +23,7 @@ class EmbCartControllerTest < ActionController::TestCase
     @domain.save
     @app_name = "app#{@random}"
     (@app = Application.new(name: @app_name, domain: @domain)).add_initial_cartridges(cartridge_instances_for(:php))
+    assert_equal 1, @app.reload.group_instances.length
   end
 
   def teardown
@@ -33,6 +34,8 @@ class EmbCartControllerTest < ActionController::TestCase
     name = mysql_version
     post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
+    assert_equal 1, @app.reload.group_instances.length
+
     get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
     get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -45,6 +48,8 @@ class EmbCartControllerTest < ActionController::TestCase
     name = mysql_version
     post :create, {"name" => name, "application_id" => @app.id}
     assert_response :created
+    assert_equal 1, @app.reload.group_instances.length
+
     get :show, {"id" => name, "application_id" => @app.id}
     assert_response :success
     get :index , {"application_id" => @app.id}

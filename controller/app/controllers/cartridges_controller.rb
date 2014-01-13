@@ -15,7 +15,11 @@ class CartridgesController < BaseController
   # Action: GET
   # @return [RestReply<RestCartridge>] Cartridge Object
   def show
-    index
+    name = CartridgeType.check_name!(params[:id].presence)
+    @cartridge = CartridgeCache.find_cartridge(name) or
+      raise Mongoid::Errors::DocumentNotFound.new(CartridgeType, name: name)
+
+    render_success(:ok, "cartridge", get_rest_cartridge(@cartridge), "Showing cartridge #{name}")
   end
 
   ##
@@ -29,18 +33,26 @@ class CartridgesController < BaseController
   # @return [RestReply<Array<RestCartridge>>] Array of cartridge objects
   def index
     searching = false
-    carts = CartridgeType.active
+    carts = CartridgeType.active.order_by(:name => 1)
 
+    # Legacy support for cartridges/standalone|embedded
+    feature = params[:feature].presence
     category = params[:category].presence || params[:id].presence
+    if ['standalone','embedded'].include?(feature)
+      category = feature
+      feature = nil
+    end
+
     category = 'web_framework' if category == 'standalone'
     if category == "embedded"
       searching = true
       carts = carts.not_in(categories: 'web_framework')
+
     elsif category
       searching = true
       carts = carts.in(categories: category)
-    end
-    if feature = params[:feature].presence
+
+    elsif feature = params[:feature].presence
       searching = true
       carts = carts.in(provides: feature)
     end

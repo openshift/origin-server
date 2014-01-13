@@ -6,7 +6,7 @@ class InitGearOp < PendingAppOp
   field :app_dns, type: Boolean, default: false
 
   # fields for creating component instances
-  field :comp_specs, type: Array, default: []
+  field :comp_specs, type: TypedArray[ComponentSpec], default: []
 
   field :pre_save, type: Boolean, default: false
 
@@ -23,18 +23,18 @@ class InitGearOp < PendingAppOp
     application.gears.push(Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns))
 
     # create the component instances, if they are not present
-    comp_specs.each do |comp_spec|
-      if comp_spec
-        unless group_instance.has_component?(comp_spec)
-          comp_name = comp_spec["comp"]
-          cart_name = comp_spec["cart"]
-          cartridge = CartridgeCache.find_cartridge(cart_name, application)
-          component_instance = ComponentInstance.new(cartridge_name: cart_name, component_name: comp_name, 
-                                                     group_instance_id: group_instance._id, 
-                                                     cartridge_vendor: cartridge.cartridge_vendor, 
-                                                     version: cartridge.version)
-          application.component_instances.push(component_instance)
-        end
+    comp_specs.compact.each do |comp_spec|
+      comp_spec.application = self.application
+      unless group_instance.has_component?(comp_spec)
+        comp_name = comp_spec.name
+        cartridge = comp_spec.cartridge
+        component_instance = ComponentInstance.new(cartridge_name: comp_spec.cartridge_name,
+                                                   cartridge_id: cartridge.id,
+                                                   component_name: comp_name,
+                                                   group_instance_id: group_instance._id,
+                                                   cartridge_vendor: cartridge.cartridge_vendor,
+                                                   version: cartridge.version)
+        application.component_instances.push(component_instance)
       end
     end if comp_specs.present?
   end
@@ -66,7 +66,7 @@ class InitGearOp < PendingAppOp
     if remove_ssh_keys.length > 0
       keys_attrs = remove_ssh_keys.map{|k| k.serializable_hash}
       op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: application.user_agent)
-      Application.where(_id: application._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
+      Application.where(_id: application._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       
       # remove the ssh keys from the mongoid model in memory
       application.app_ssh_keys.delete_if { |k| k.component_id.to_s == gear_id }

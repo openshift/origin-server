@@ -67,6 +67,9 @@ class Application
   MAX_SCALE = -1
   MAX_SCALE_NUM = 1000000
 
+  # Maximum dependency chain length can be resolved during elaborate()
+  MAX_CARTRIDGE_RECURSION = 5
+
   # Available deployment types
   DEPLOYMENT_TYPES = ['git', 'binary']
 
@@ -81,8 +84,8 @@ class Application
 
   field :name, type: String
   field :canonical_name, type: String
-  field :group_overrides, type: Array, default: []
-  embeds_many :pending_op_groups, class_name: PendingAppOpGroup.name
+  field :group_overrides, type: TypedArray[GroupOverride], default: []
+  embeds_many :pending_op_groups, class_name: PendingAppOpGroup.name, cascade_callbacks: true
 
   belongs_to :domain, inverse_of: :applications
   field :domain_namespace, type: String # denormalized canonical namespace
@@ -91,9 +94,6 @@ class Application
   has_many :built_applications, class_name: Application.name
 
   field :downloaded_cart_map, type: Hash, default: {}
-  field :component_start_order, type: Array, default: []
-  field :component_stop_order, type: Array, default: []
-  field :component_configure_order, type: Array, default: []
   field :default_gear_size, type: String, default: Rails.configuration.openshift[:default_gear_size]
   field :scalable, type: Boolean, default: false
   field :ha, type: Boolean, default: false
@@ -284,6 +284,11 @@ class Application
     gears.any?(&:quarantined)
   end
 
+  # def group_overrides=(other)
+  #   other = GroupOverride::Array.new.concat(other) if other && !other.is_a?(GroupOverride::Array)
+  #   super(other)
+  # end
+
   ##
   # Enumerates all the Cartridges that are installed in this application.  If
   # pending is true the op group will be iterated to check for changes to the
@@ -292,10 +297,10 @@ class Application
   # In general, this is the primary mechanism by which the cartridges in the
   # application should be queried.
   #
-  def each_cartridge(pending=false, &block)
+  def cartridges(pending=false, &block)
     # For efficiency, generate different enumerators
     e = if pending
-      Enumerator.new do |y|
+      EnumeratorArray.new do |y|
         removed = []
         pending_op_groups.reverse_each do |g|
           case op_group
@@ -314,7 +319,7 @@ class Application
         end
       end
     else
-      Enumerator.new do |y|
+      EnumeratorArray.new do |y|
         component_instances.each do |i|
           y << i.cartridge
         end
@@ -324,17 +329,13 @@ class Application
     e
   end
 
-  def cartridges(pending=false)
-    each_cartridge(pending).to_a
-  end
-
   ##
   # Returns the names of currently installed cartridges in this application
-  # NOTE: Use each_cartridge if you need to access a specific version of the cartridge
+  # NOTE: Use cartridges as an enumerator if you need to access a specific version of the cartridge
   # @param pending [Boolean] Include the pending changes when calculating the list of features
   # @return [Array<String>] List of features
   def requires(pending=false)
-    each_cartridge(pending).map(&:name)
+    cartridges(pending).map(&:name)
   end
   alias_method :cartridge_names, :requires
 
@@ -343,7 +344,7 @@ class Application
   # This method is only to maintain backwards compatibility for rest api version 1.0
   # @return Cartridge
   def web_cartridge
-    each_cartridge.find(&:is_web_framework?)
+    cartridges.find(&:is_web_framework?)
   end
 
   def web_component_instance
@@ -516,13 +517,72 @@ class Application
   end
 
   ##
+  # Return an array of all of the application overrides defined by the application itself (stored on
+  # the model or implied by the scalable and ha flags).
+  #
+  # By passing "specs" you will retrieve the overrides for the application as if the application were
+  # changing.
+  #
+  # The array returned is a copy of the core data and can be changed without editing the application.
+  #
+  def application_overrides(specs=nil)
+    specs ||= component_instances.map(&:to_component_spec)
+
+    # Overides from the basic cartridge definitions.
+    overrides = []
+    specs.each do |spec|
+      # Cartridges can contribute overrides
+      spec.profile.group_overrides.each do |override|
+        if o = GroupOverride.resolve_from(specs, override)
+          overrides << o
+        end
+      end
+
+      # Each component has an implicit override based on its scaling
+      comp = spec.component
+      overrides <<
+        if comp.is_sparse?
+          GroupOverride.new([spec])
+        else
+          GroupOverride.new([spec], comp.scaling.min, comp.scaling.max)
+        end
+    end
+
+    # Overrides from the persisted application
+    group_overrides.each do |override|
+      if o = GroupOverride.resolve_from(specs, override)
+        overrides << o
+      end
+    end
+
+    # Overrides that are implicit to applications of this type
+    if self.scalable
+      if self.ha
+        overrides.concat(gen_available_app_overrides(specs))
+      end
+    else
+      overrides.concat(gen_non_scalable_app_overrides(specs))
+    end
+
+    overrides
+  end
+
+  def group_instance_overrides
+    group_instances.map{ |g| GroupOverride.for_instance(g) }
+  end
+
+  def group_instances_with_overrides
+    GroupOverride.reduce_to(group_instance_overrides, application_overrides)
+  end
+
+  ##
   # Retrieve the list of {GroupInstance} objects along with min and max gear specifications from group overrides
   # @return [Array<GroupInstance>]
   def group_instances_with_scale
     self.group_instances.map do |group_instance|
       override_spec = group_instance.get_group_override
-      group_instance.min = override_spec["min_gears"]
-      group_instance.max = override_spec["max_gears"]
+      group_instance.min = override_spec.min_gears
+      group_instance.max = override_spec.max_gears
       group_instance.min = group_instance.component_instances.map { |ci| ci.min }.max if group_instance.min.nil?
       group_instance.min = group_instance.sparse_instances.map { |ci| ci.min }.max if group_instance.min.nil?
       if group_instance.max.nil?
@@ -546,6 +606,11 @@ class Application
     end
 
     true
+  end
+
+  def find_component_instance_for(spec)
+    component_instances.detect{ |i| i.matches_spec?(spec) }.tap{ |instance| spec.application = self if instance } or
+      raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, spec.mongoize)
   end
 
   ##
@@ -756,7 +821,7 @@ class Application
     if cart.is_ci_server?
       self.domain.applications.each do |app|
         next if self == app
-        app.each_cartridge(true) do |ucart|
+        app.cartridges(true) do |ucart|
           if ucart.is_ci_builder?
             Application.run_in_application_lock(app) do
               op_group = RemoveFeaturesOpGroup.new(features: [ucart.name], user_agent: app.user_agent)
@@ -861,7 +926,7 @@ class Application
     end
     raise OpenShift::UserException.new("Cannot set the max gear limit to '1' if the application is HA (highly available)") if self.ha and scale_to==1
     Application.run_in_application_lock(self) do
-      op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_hash, min: scale_from, max: scale_to, multiplier: multiplier, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
+      op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_component_spec, min: scale_from, max: scale_to, multiplier: multiplier, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
       pending_op_groups.push op_group
       self.save!
       result_io = ResultIO.new
@@ -881,8 +946,9 @@ class Application
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
 
     ginst = group_instances_with_scale.select {|gi| gi._id == group_instance_id}.first
-    raise OpenShift::UserException.new("Cannot scale below minimum gear requirements.", 168) if scale_by < 0 && ginst.gears.length <= ginst.min
-    raise OpenShift::UserException.new("Cannot scale up beyond maximum gear limit in app #{self.name}.", 168) if scale_by > 0 && ginst.gears.length >= ginst.max and ginst.max > 0
+    current = ginst.gears.length
+    raise OpenShift::UserException.new("Cannot scale down below gear limit of #{ginst.min}.", 168) if (current+scale_by) < ginst.min
+    raise OpenShift::UserException.new("Cannot scale up above maximum gear limit of #{ginst.max}.", 168) if (scale_by > 0) && (current+scale_by) > ginst.max && ginst.max != -1
 
     Application.run_in_application_lock(self) do
       op_group = ScaleOpGroup.new(group_instance_id: group_instance_id, scale_by: scale_by, user_agent: self.user_agent)
@@ -932,7 +998,7 @@ class Application
   def to_descriptor
     h = {
       "Name" => self.name,
-      "Requires" => self.each_cartridge(true).map(&:name)
+      "Requires" => self.cartridges(true).map(&:name)
     }
 
     h["Start-Order"] = @start_order if @start_order.present?
@@ -1310,23 +1376,24 @@ class Application
     conns = []
     self.connections = [] unless connections.present?
     connections.each do |conn_info|
-      from_comp_inst = self.component_instances.find_by(cartridge_name: conn_info["from_comp_inst"]["cart"], component_name: conn_info["from_comp_inst"]["comp"])
-      to_comp_inst = self.component_instances.find_by(cartridge_name: conn_info["to_comp_inst"]["cart"], component_name: conn_info["to_comp_inst"]["comp"])
-      conns.push(ConnectionInstance.new(from_comp_inst._id, to_comp_inst._id,
+      from = self.find_component_instance_for(conn_info["from_comp_inst"])
+      to = self.find_component_instance_for(conn_info["to_comp_inst"])
+      conns.push(ConnectionInstance.new(from._id, to._id,
             conn_info["from_connector_name"], conn_info["to_connector_name"], conn_info["connection_type"]))
     end
     self.connections = conns
   end
 
+  ##
+  # Generate a Hash of unsubscribe information (must be serializable to mongo directly)
+  #
   def get_unsubscribe_info(comp_inst)
     old_connections, _, _ = elaborate(self.cartridges << comp_inst.cartridge)
     sub_pub_hash = {}
     if self.scalable and old_connections
-      old_connections.each do |old_conn|
-        if (old_conn["from_comp_inst"]["cart"] == comp_inst.cartridge_name) and
-           (old_conn["from_comp_inst"]["comp"] == comp_inst.component_name)
-          to_cart_comp = old_conn["to_comp_inst"]["cart"] + old_conn["to_comp_inst"]["comp"]
-          sub_pub_hash[to_cart_comp] = [old_conn["to_comp_inst"], old_conn["from_comp_inst"]]
+      old_connections.each do |conn|
+        if comp_inst.matches_spec?(conn["from_comp_inst"])
+          sub_pub_hash[conn["to_comp_inst"].path] = [conn["to_comp_inst"].mongoize, conn["from_comp_inst"].mongoize]
         end
       end
     end
@@ -1468,7 +1535,7 @@ class Application
         domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
       when "BROKER_KEY_ADD"
         op_group = AddBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp } })
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document } })
       when "NOTIFY_ENDPOINT_CREATE"
         if gear
           pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args])
@@ -1489,11 +1556,11 @@ class Application
     if add_ssh_keys.length > 0
       keys_attrs = get_updated_ssh_keys(nil, add_ssh_keys)
       op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, user_agent: self.user_agent)
-      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pushAll" => { app_ssh_keys: keys_attrs }})
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
     if remove_env_vars.length > 0
       op_group = UpdateAppConfigOpGroup.new(remove_env_vars: remove_env_vars)
-      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }})
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }})
     end
 
     # Have to remember to run_jobs for the other apps involved at some point
@@ -1536,7 +1603,7 @@ class Application
       rescue Exception => e_orig
         Rails.logger.error "Encountered error during execute '#{e_orig.message}'"
         # don't log the error stacktrace if this exception was raised just to trigger a rollback
-        Rails.logger.debug e_orig.backtrace.inspect unless rollback_pending
+        Rails.logger.debug e_orig.backtrace.join("\n") unless rollback_pending
 
         #rollback
         begin
@@ -1551,7 +1618,7 @@ class Application
         rescue Exception => e_rollback
           Rails.logger.error "Error during rollback"
           Rails.logger.error e_rollback.message
-          Rails.logger.error e_rollback.backtrace.inspect
+          Rails.logger.error e_rollback.backtrace.join("\n")
 
           # if the original exception was raised just to trigger a rollback
           # then the rollback exception is the only thing of value and hence return/raise it
@@ -1609,19 +1676,13 @@ class Application
     end
   end
 
-  def update_requirements(cartridges, group_overrides, init_git_url=nil, user_env_vars=nil)
-    unless self.scalable
-      group_overrides = (group_overrides + gen_non_scalable_app_overrides(cartridges)).uniq
-    end
-
-    connections, new_group_instances = elaborate(cartridges, group_overrides)
-    current_group_instances = self.group_instances.map { |gi| gi.to_hash }
-    changes, moves = compute_diffs(current_group_instances, new_group_instances)
-
-    if moves.size > 0
+  def update_requirements(cartridges, overrides, init_git_url=nil, user_env_vars=nil)
+    connections, groups = elaborate(cartridges, overrides)
+    changes, moves = compute_diffs(group_instance_overrides, groups)
+    if moves.present?
       raise OpenShift::UserException.new("Requested operation is not supported")
     end
-    calculate_ops(changes, moves, connections, cleaned_group_overrides, init_git_url, user_env_vars)
+    calculate_ops(changes, moves, connections, groups, init_git_url, user_env_vars)
   end
 
   def calculate_remove_group_instance_ops(comp_specs, group_instance)
@@ -1634,13 +1695,12 @@ class Application
 
     unsubscribe_conn_ops = []
     comp_specs.each do |comp_spec|
-      comp_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
-      remove_ssh_keys = self.app_ssh_keys.find_by(component_id: comp_instance._id) rescue []
-      remove_ssh_keys = [remove_ssh_keys].flatten
-      if remove_ssh_keys.length > 0
+      comp_instance = self.find_component_instance_for(comp_spec)
+      remove_ssh_keys = self.app_ssh_keys.where(component_id: comp_instance._id)
+      if remove_ssh_keys.length.present?
         keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
         op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       end
       domain.remove_system_ssh_keys(comp_instance._id)
       domain.remove_env_variables(comp_instance._id)
@@ -1656,7 +1716,6 @@ class Application
   def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size,
                                 prereq_op=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil, user_env_vars=nil)
     pending_ops = []
-
     gear_id_prereqs = {}
     maybe_notify_app_create_op = []
     app_dns_gear_id = nil
@@ -1676,7 +1735,7 @@ class Application
                                     app_dns: app_dns, pre_save: (not self.persisted?))
       init_gear_op.prereq << prereq_op._id.to_s unless prereq_op.nil?
 
-      reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
+      reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, gear_size: gear_size, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
 
       create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
 
@@ -1765,7 +1824,7 @@ class Application
       if remove_ssh_keys.length > 0
         keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
         op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       end
 
       pending_ops.push *ops
@@ -1800,9 +1859,9 @@ class Application
     sparse_components = ginst.component_instances.select { |ci| ci.is_sparse? }
     gears = []
     if sparse_components.length > 0
-      (scale_down_factor...0).each { |i|
+      (scale_down_factor...0).each do |i|
         # iterate through sparse components to see which ones need a definite scale-down
-        relevant_sparse_components = sparse_components.select { |ci|
+        relevant_sparse_components = sparse_components.select do |ci|
           min = ci.min rescue ci.get_component.scaling.min
           multiplier = ci.multiplier rescue ci.get_component.scaling.multiplier
           cur_sparse_gears = (ci.gears - gears)
@@ -1814,14 +1873,14 @@ class Application
             status = cur_total_gears/(cur_sparse_gears*1.0)>multiplier ? false : true
           end
           status
-        }
+        end
         # each of relevant_sparse_components want a gear removed that has them contained in the gear
         # if its empty, then remove a gear which does not have any of sparse_components in them (non-sparse gears)
         if relevant_sparse_components.length > 0
           relevant_sparse_comp_ids = relevant_sparse_components.map { |sp_ci| ci._id }
-          gear = scaled_gears.find { |g|
+          gear = scaled_gears.find do |g|
              (relevant_sparse_comp_ids - g.sparse_carts).empty?
-          }
+          end
         else
           gear = scaled_gears.find { |g| g.sparse_carts.empty? }
         end
@@ -1831,15 +1890,15 @@ class Application
         end
         gears << gear
         scaled_gears.delete(gear)
-      }
+      end
     else
       gears = scaled_gears[(scaled_gears.length + scale_down_factor)..-1]
     end
     return gears
   end
 
-  def add_sparse_cart?(index, sparse_carts_added_count, cartridge, comp_spec, is_scale_up)
-    ci = self.component_instances.find_by(cartridge_name: comp_spec['cart'], component_name: comp_spec['comp']) rescue nil
+  def add_sparse_cart?(index, sparse_carts_added_count, comp_spec, is_scale_up)
+    ci = self.component_instances.where(component_name: comp_spec.name).detect{ |c| c.cartridge_name == comp_spec.cartridge.name }
     gi = ci.group_instance rescue nil
     cur_gears =0
     if is_scale_up
@@ -1852,7 +1911,7 @@ class Application
     end
     cur_total_gears += (index+1)
 
-    comp = cartridge.get_component(comp_spec["comp"])
+    comp = comp_spec.component
     unless comp.is_sparse?
       if gi and gi.max
         if cur_total_gears > gi.max and gi.max>0
@@ -1885,7 +1944,7 @@ class Application
 
     comp_specs.each do |comp_spec|
       component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: [], expose_ports: []} if component_ops[comp_spec].nil?
-      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
+      cartridge = comp_spec.cartridge
 
       new_component_op_id = []
       if self.group_instances.where(_id: group_instance_id).exists? and (not is_scale_up)
@@ -1899,7 +1958,7 @@ class Application
       sparse_carts_added_count =0
       gear_id_prereqs.each_with_index do |prereq, index|
         gear_id, prereq_id = prereq
-        next if not add_sparse_cart?(index, sparse_carts_added_count, cartridge, comp_spec, is_scale_up)
+        next if not add_sparse_cart?(index, sparse_carts_added_count, comp_spec, is_scale_up)
         sparse_carts_added_count += 1
         git_url = nil
         git_url = init_git_url if gear_id == deploy_gear_id && cartridge.is_deployable?
@@ -1936,23 +1995,25 @@ class Application
   def calculate_remove_component_ops(comp_specs)
     ops = []
     comp_specs.each do |comp_spec|
-      component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
-      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
+      component_instance = find_component_instance_for(comp_spec)
+      cartridge = comp_spec.cartridge
+
       if component_instance.is_plugin? || (!self.scalable && component_instance.is_embeddable?)
         component_instance.gears.each do |gear|
           op = RemoveCompOp.new(gear_id: gear._id, comp_spec: comp_spec)
           ops.push op
           ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
-            app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end], cart_name: comp_spec["cart"],
+            app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end], cart_name: cartridge.name,
             usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: [op._id.to_s])) if cartridge.is_premium?
         end
       end
       remove_ssh_keys = self.app_ssh_keys.find_by(component_id: component_instance._id) rescue []
       remove_ssh_keys = [remove_ssh_keys].flatten
       if remove_ssh_keys.length > 0
-        keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
+        keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup }
         op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
+        pending_op_groups op_group
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       end
       domain.remove_system_ssh_keys(component_instance._id)
       domain.remove_env_variables(component_instance._id)
@@ -1975,47 +2036,38 @@ class Application
   # connections::
   #   An array of connections. (Output of {#elaborate})
   def calculate_ops(changes, moves=[], connections=nil, group_overrides=nil, init_git_url=nil, user_env_vars=nil)
-    app_dns_ginst_found = false
     add_gears = 0
     remove_gears = 0
     pending_ops = []
-    start_order, stop_order = calculate_component_orders
+    #_, _ = calculate_component_orders
 
-    unless group_overrides.nil?
-      set_group_override_op = SetGroupOverridesOp.new(group_overrides: group_overrides, 
-                                                      saved_group_overrides: self.group_overrides, 
-                                                      pre_save: (not self.persisted?))
+    if group_overrides.present?
+      set_group_override_op = SetGroupOverridesOp.new(group_overrides: group_overrides,
+                                                      saved_group_overrides: self.group_overrides,
+                                                      pre_save: !self.persisted?)
       pending_ops.push set_group_override_op
     end
 
+    deploy_gear_id = nil
     component_ops = {}
+
     # Create group instances and gears in preparation for move or add component operations
-    create_ginst_changes = changes.select{ |change| change[:from].nil? }
-    create_ginst_changes.each do |change|
-      ginst_scale = (change[:to_scale][:current] || change[:to_scale][:min]) || 1
-      ginst_scale = 1 if not self.scalable
-      ginst_id    = change[:to]
-      gear_size = change[:to_scale][:gear_size] || self.default_gear_size
-      additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb] || 0
-      add_gears   += ginst_scale if ginst_scale > 0
+    changes.select(&:new?).each do |change|
+      next if change.gear_change < 1
+      add_gears += change.gear_change
 
-      comp_specs = change[:added]
-      app_dns_ginst = false
-      comp_specs.each do |comp_spec|
-        cats = CartridgeCache.find_cartridge(comp_spec["cart"], self).categories
-        app_dns_ginst = true if ((not self.scalable) and cats.include?("web_framework")) || cats.include?("web_proxy")
+      gear_size = change.to.gear_size
+      additional_filesystem_gb = change.to.additional_filesystem_gb
+
+      gear_ids = Array.new(change.gear_change){ |i| Moped::BSON::ObjectId.new.to_s }
+      app_dns = change.will_have_app_dns?(self)
+      deploy_gear_id = if app_dns
+        gear_ids[0] = self._id
       end
 
-      gear_ids = (1..ginst_scale).map {|idx| Moped::BSON::ObjectId.new.to_s}
-      if app_dns_ginst
-        deploy_gear_id = gear_ids[0] = self._id.to_s
-      else
-        deploy_gear_id = nil
-      end
-
-      ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb,
-                                      gear_size, set_group_override_op, false, app_dns_ginst, init_git_url, user_env_vars)
-      pending_ops.push(*ops)
+      ops = calculate_gear_create_ops(change.to_instance_id.to_s, gear_ids, deploy_gear_id, change.added, component_ops, additional_filesystem_gb,
+                                      gear_size, set_group_override_op, false, app_dns, init_git_url, user_env_vars)
+      pending_ops.concat(ops)
     end
 
     moves.each do |move|
@@ -2023,102 +2075,100 @@ class Application
     end
 
     user_vars_op_id = nil
-    if user_env_vars.present?
-      changes.each do |change|
-        unless change[:from].nil? or change[:added].empty?
-          op = PatchUserEnvVarsOp.new(user_env_vars: user_env_vars)
-          pending_ops.push(op)
-          user_vars_op_id = op._id.to_s
-          break
-        end
-      end
+    if user_env_vars.present? && changes.any?{ |c| c.existing? && c.added? }
+      env_var_op = PatchUserEnvVarsOp.new(user_env_vars: user_env_vars)
+      pending_ops << env_var_op
+      user_vars_op_id = env_var_op._id.to_s
     end
 
     changes.each do |change|
-      unless change[:from].nil?
-        group_instance = self.group_instances.find(change[:from])
-        if change[:to].nil?
-          remove_gears += change[:from_scale][:current]
+      if change.existing?
+        group_instance = change.from.instance
 
-          group_instance_remove_ops = calculate_remove_group_instance_ops(change[:removed], group_instance)
-          pending_ops.push(*group_instance_remove_ops)
+        if change.delete?
+          remove_gears += -change.gear_change
+          group_instance_remove_ops = calculate_remove_group_instance_ops(change.removed, group_instance)
+          pending_ops.concat(group_instance_remove_ops)
+
         else
-          scale_change = 0
-          if change[:to_scale][:current].nil?
-            if change[:from_scale][:current] < change[:to_scale][:min]
-              scale_change += change[:to_scale][:min] - change[:from_scale][:current]
+          deploy_gear_id =
+            if app_dns_gear = group_instance.application_dns_gear
+              app_dns_gear._id.to_s
             end
-            if((change[:from_scale][:current] > change[:to_scale][:max]) && (change[:to_scale][:max] != -1))
-              scale_change -= change[:from_scale][:current] - change[:to_scale][:max]
-            end
-          else
-            scale_change += (change[:to_scale][:current] - change[:from_scale][:current])
+
+          if change.removed?
+            ops = calculate_remove_component_ops(change.removed)
+            pending_ops.concat(ops)
           end
 
-          deploy_gear_id = group_instance.gears.find_by(app_dns: true)._id.to_s rescue nil
-          ops = calculate_remove_component_ops(change[:removed])
-          pending_ops.push(*ops)
+          if change.added?
+            gear_id_prereqs = {}
+            group_instance.gears.each{ |g| gear_id_prereqs[g._id.to_s] = []}
 
-          gear_id_prereqs = {}
-          group_instance.gears.each{|g| gear_id_prereqs[g._id.to_s] = []}
-          ops = calculate_add_component_ops(change[:added], change[:from], deploy_gear_id, gear_id_prereqs, component_ops, false, user_vars_op_id, nil)
-          pending_ops.push(*ops)
+            ops = calculate_add_component_ops(change.added, change.existing_instance_id.to_s, deploy_gear_id, gear_id_prereqs, component_ops, false, user_vars_op_id, nil)
+            pending_ops.concat(ops)
+          end
 
           changed_additional_filesystem_gb = nil
           #add/remove fs space from existing gears
-          if change[:from_scale][:additional_filesystem_gb] != change[:to_scale][:additional_filesystem_gb]
-            changed_additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb]
+          if change.additional_filesystem_change != 0
+            new_fs = change.to.additional_filesystem_gb
+            old_fs = change.from.additional_filesystem_gb
+            changed_additional_filesystem_gb = new_fs
             usage_prereq = []
             usage_prereq = [pending_ops.last._id.to_s] if pending_ops.last
             usage_ops = []
-            if change[:from_scale][:additional_filesystem_gb] != 0
+            if change.from.additional_filesystem_gb > 0
               group_instance.gears.each do |gear|
                 track_usage_old_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                   app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end],
                   usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
-                  additional_filesystem_gb: change[:from_scale][:additional_filesystem_gb], prereq: usage_prereq)
+                  additional_filesystem_gb: old_fs, prereq: usage_prereq)
                 usage_ops.push(track_usage_old_fs_op._id.to_s)
                 pending_ops.push(track_usage_old_fs_op)
               end
             end
             group_instance.gears.each do |gear|
               fs_op = SetAddtlFsGbOp.new(gear_id: gear._id.to_s,
-                  addtl_fs_gb: change[:to_scale][:additional_filesystem_gb],
-                  saved_addtl_fs_gb: change[:from_scale][:additional_filesystem_gb],
+                  addtl_fs_gb: new_fs,
+                  saved_addtl_fs_gb: old_fs,
                   prereq: (usage_ops.empty? ? usage_prereq : usage_ops))
               pending_ops.push(fs_op)
 
-              if change[:to_scale][:additional_filesystem_gb] != 0
+              if change.to.additional_filesystem_gb > 0
                 track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                   app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:begin],
                   usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
-                  additional_filesystem_gb: change[:to_scale][:additional_filesystem_gb], prereq: [fs_op._id.to_s])
+                  additional_filesystem_gb: new_fs, prereq: [fs_op._id.to_s])
                 pending_ops.push(track_usage_fs_op)
               end
             end
           end
 
+          scale_change = change.gear_change
           if scale_change > 0
             add_gears += scale_change
-            comp_specs = self.group_instance.component_instances.map(&:to_component_spec)
-            deploy_gear_id = group_instance.gears.find_by(app_dns: true)._id.to_s rescue nil
-            gear_ids = (1..scale_change).map {|idx| Moped::BSON::ObjectId.new.to_s}
-            additional_filesystem_gb = changed_additional_filesystem_gb || group_instance.addtl_fs_gb
-            gear_size = change[:to_scale][:gear_size] || group_instance.gear_size
+            gear_ids = Array.new(scale_change){ |i| Moped::BSON::ObjectId.new.to_s }
 
-            ops = calculate_gear_create_ops(change[:from], gear_ids, deploy_gear_id, comp_specs, component_ops,
-                                            additional_filesystem_gb, gear_size, nil, true, false, nil, user_env_vars)
-            pending_ops.push *ops
-          end
+            ops = calculate_gear_create_ops(
+                    change.existing_instance_id.to_s,
+                    gear_ids,
+                    deploy_gear_id,
+                    change.to.components,
+                    component_ops,
+                    change.to.additional_filesystem_gb,
+                    change.to.gear_size,
+                    nil, true, false, nil,
+                    user_env_vars)
+            pending_ops.concat(ops)
 
-          if scale_change < 0
+          elsif scale_change < 0
             remove_gears += -scale_change
-            ginst = self.group_instances.find(change[:from])
-            gears = get_sparse_scaledown_gears(ginst, scale_change)
-            # gears = scaled_gears[(scaled_gears.length + scale_change)..-1]
-            remove_ids = gears.map{|g| g._id.to_s}
-            ops = calculate_gear_destroy_ops(ginst._id.to_s, remove_ids, ginst.addtl_fs_gb)
-            pending_ops.push(*ops)
+            group = change.from.instance
+            gears = get_sparse_scaledown_gears(group, scale_change)
+            remove_ids = gears.map{ |g| g._id.to_s }
+            ops = calculate_gear_destroy_ops(change.existing_instance_id.to_s, remove_ids, group.addtl_fs_gb)
+            pending_ops.concat(ops)
           end
         end
       end
@@ -2137,8 +2187,9 @@ class Application
       component_ops[config_order[idx]][:expose_ports].each { |op| op.prereq += prereq_ids }
     end
 
-    unless pending_ops.empty? or ((pending_ops.length == 1) and (pending_ops[0].class == SetGroupOverridesOp))
-
+    if pending_ops.present? and !(pending_ops.length == 1 and SetGroupOverridesOp === pending_ops.first)
+      # FIXME: this could be arbitrarily large - would be better to set a condition that this
+      # operation cannot be skipped
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
       execute_connection_op = ExecuteConnectionsOp.new(prereq: all_ops_ids)
       pending_ops.push execute_connection_op
@@ -2148,7 +2199,7 @@ class Application
     # if so, then make sure that the post-configure op for it is executed at the end
     # also, it should not be the prerequisite for any other pending_op
     component_ops.keys.each do |comp_spec|
-      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
+      cartridge = comp_spec.cartridge
       if cartridge.is_deployable?
         component_ops[comp_spec][:post_configures].each do |pcop|
           pcop.prereq += [execute_connection_op._id.to_s]
@@ -2158,7 +2209,7 @@ class Application
     end
 
     # update-cluster has to run after all deployable carts have been post-configured
-    if scalable
+    if scalable && pending_ops.present?
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
       update_cluster_op = UpdateClusterOp.new(prereq: all_ops_ids)
       pending_ops.push update_cluster_op
@@ -2182,194 +2233,40 @@ class Application
   #   Changes needed to the current_group_instances to make it match the new_group_instances. (Includes all adds/removes)
   # moves::
   #   A list of components which need to move from one group instance to another
-  def compute_diffs(current_group_instances, new_group_instances)
-    axis_size = current_group_instances.length + new_group_instances.length
-    cost_matrix = Matrix.build(axis_size,axis_size){0}
+  def compute_diffs(existing, added)
+    total = existing.length + added.length - 1
+    costs = Matrix.build(total+1, total+1){0}
     #compute cost of moves
-    (0..axis_size-1).each do |from|
-      (0..axis_size-1).each do |to|
-        gi_from = current_group_instances[from].nil? ? [] : current_group_instances[from][:component_instances]
-        gi_to   = new_group_instances[to].nil? ? [] : new_group_instances[to][:component_instances]
-
-        move_away = gi_from - gi_to
-        move_in   = gi_to - gi_from
-        cost_matrix[from,to] = move_away.length + move_in.length
-      end
-    end
-
-    #compute changes
-    changes = []
-    (0..axis_size-1).each do |from|
-      best_to = cost_matrix.row_vectors[from].to_a.index(cost_matrix.row_vectors[from].min)
-      from_id = nil
-      from_comp_insts = []
-      to_comp_insts   = []
-      from_scale      = {min: 1, max: MAX_SCALE, current: 0, additional_filesystem_gb: 0, gear_size: self.default_gear_size}
-      to_scale        = {min: 1, max: MAX_SCALE}
-
-      unless current_group_instances[from].nil?
-        from_comp_insts = current_group_instances[from][:component_instances]
-        from_id         = current_group_instances[from][:_id]
-        from_scale      = current_group_instances[from][:scale]
-      end
-
-      unless new_group_instances[best_to].nil?
-        to_comp_insts = new_group_instances[best_to][:component_instances]
-        to_scale      = new_group_instances[best_to][:scale]
-        to_id         = from_id || new_group_instances[best_to][:_id]
-      end
-      unless from_comp_insts.empty? and to_comp_insts.empty?
-        added, removed = compute_comp_inst_diffs(from_comp_insts, to_comp_insts)
-        changes << {from: from_id, to: to_id, added: added, removed: removed, from_scale: from_scale, to_scale: to_scale}
-      end
-      (0..axis_size-1).each {|i| cost_matrix[i,best_to] = 1000}
-    end
-
-    moves = []
-    changes.each do |c1|
-      c1[:removed].each do |comp_spec|
-        changes.each do |c2|
-          if c2[:added].include?(comp_spec)
-            from_id = c1[:from]
-            to_id = c2[:to]
-            moves << {component: comp_spec, from_group_instance_id: from_id, to_group_instance_id: to_id}
-            c1[:removed].delete comp_spec
-            c2[:added].delete comp_spec
-            break
+    (0..total).each do |from|
+      (0..total).each do |to|
+        costs[from,to] =
+          if f = existing[from]
+            if t = added[to]
+              (t.components-f.components).length + (f.components-t.components).length
+            else
+              f.components.length
+            end
+          else
+            (t = added[to]) ? t.components.length : 0
           end
-        end
       end
     end
+
+    changes = []
+    (0..total).each do |from|
+      to = costs.row_vectors[from].to_a.index(costs.row_vectors[from].min)
+      f = existing[from]
+      t = added[to]
+      if (f && f.components.present?) || (t && t.components.present?)
+        changes << GroupChange.new(f, t)
+      end
+
+      (0..total).each {|i| costs[i,to] = 1000 }
+    end
+
+    moves = GroupChange.moves(changes)
 
     [changes, moves]
-  end
-
-  def compute_comp_inst_diffs(from_comp_insts, to_comp_insts)
-    added = to_comp_insts - from_comp_insts
-    removed = from_comp_insts - to_comp_insts
-    return [added, removed]
-  end
-
-  ##
-  # WARNING: Mutates overrides
-  #
-  def process_group_overrides(instances, overrides)
-    overrides ||= []
-    resolved = []
-
-    # Convert override hashes to objects
-    overrides.each do |override|
-      if o = GroupOverride.resolve_from(instances, override)
-        resolved << o
-      end
-    end
-
-    # Resolve additional group overrides from instances
-    instances.each do |instance|
-      instance.profile.group_overrides.each do |override|
-        if o = GroupOverride.resolve_from(instances, override)
-          resolved << o
-        end
-      end
-
-      comp = instance.component
-      resolved <<
-        if comp.is_sparse?
-          GroupOverride.new([instance], comp.scaling.min, comp.scaling.max)
-        else
-          GroupOverride.new([instance])
-        end
-    end
-    binding.pry
-
-    # merge all existing specs into as few as possible
-    by_path = {}
-    resolved.each do |override|
-      override.components.each do |c|
-        if previous = by_path[c.path]
-          previous.merge(override)
-        else
-          by_path[c.path] = override
-        end
-      end
-    end
-    binding.pry
-
-    overrides = []
-    instances.each do |i|
-      override = by_path[i.path] or next
-      overrides << override unless GroupOverride.included_in?(overrides, override)
-    end
-    binding.pry
-
-    # work on cleaned_overrides only
-    by_path = {}
-    overrides.each do |override|
-      merged = override.deep_dup
-      override["components"].each do |comp|
-        existing = by_path[comp.path] or next
-        merged = merge_group_overrides(merged, existing)
-      end
-      merged["components"].each do |comp|
-        by_path[comp.path] = merged
-      end
-    end
-    processed_group_overrides = []
-    instances.each do |instance|
-      override = by_path[instance.path] or next
-      processed_group_overrides << override.deep_dup unless processed_group_overrides.include? override
-    end
-
-    processed_group_overrides
-  end
-
-  def merge_group_overrides(first, second)
-    return_go = { }
-
-    if first["components"].any?{ |spec| spec.cartridge.is_web_framework? }
-      return_go["components"] = merge_comp_specs(first["components"], second["components"]) #(first["components"] + second["components"]).uniq
-    else
-      return_go["components"] = merge_comp_specs(second["components"], first["components"]) #(second["components"] + first["components"]).uniq
-    end
-    return_go["min_gears"] = [first["min_gears"]||1, second["min_gears"]||1].max if first["min_gears"] or second["min_gears"]
-    return_go["additional_filesystem_gb"] = [first["additional_filesystem_gb"]||0, second["additional_filesystem_gb"]||0].max if first["additional_filesystem_gb"] or second["additional_filesystem_gb"]
-    fmax = (first["max_gears"].nil? or first["max_gears"]==-1) ? MAX_SCALE_NUM : first["max_gears"]
-    smax = (second["max_gears"].nil? or second["max_gears"]==-1) ? MAX_SCALE_NUM : second["max_gears"]
-    return_go["max_gears"] = [fmax,smax].min if first["max_gears"] or second["max_gears"]
-    return_go["max_gears"] = -1 if return_go["max_gears"]==MAX_SCALE_NUM
-
-    return_go["gear_size"] = (first["gear_size"] || second["gear_size"]) if first["gear_size"] or second["gear_size"]
-    if first["gear_size"] and second["gear_size"] and (first["gear_size"] != second["gear_size"])
-      carts = []
-      return_go['components'].each {|comp| carts << comp['cart']}
-      raise OpenShift::UserException.new("Incompatible gear sizes: #{first["gear_size"]} and #{second["gear_size"]} for components: #{carts.uniq.to_sentence} that will reside on the same gear.", 142)
-    end
-    return_go
-  end
-
-  def merge_comp_specs(first, second)
-    return_specs = []
-    first.each do |comp_spec|
-      new_spec = { "cart" => comp_spec["cart"], "comp" => comp_spec["comp"] }
-      new_spec["min_gears"] = comp_spec["min_gears"] if comp_spec.has_key?("min_gears")
-      new_spec["max_gears"] = comp_spec["max_gears"] if comp_spec.has_key?("max_gears")
-      new_spec["multiplier"] = comp_spec["multiplier"] if comp_spec.has_key?("multiplier")
-      return_specs << new_spec
-    end
-    second.each do |comp_spec|
-      found = return_specs.find { |rs| rs["comp"]==comp_spec["comp"] and rs["cart"]==comp_spec["cart"] }
-      if found
-        found["min_gears"] = [found["min_gears"]||1, comp_spec["min_gears"]||1].max if found["min_gears"] or comp_spec["min_gears"]
-        found["multiplier"] = [found["multiplier"]||1, comp_spec["multiplier"]||1].max if found["multiplier"] or comp_spec["multiplier"]
-      else
-        new_spec = { "cart" => comp_spec["cart"], "comp" => comp_spec["comp"] }
-        new_spec["min_gears"] = comp_spec["min_gears"] if comp_spec.has_key?("min_gears")
-        new_spec["max_gears"] = comp_spec["max_gears"] if comp_spec.has_key?("max_gears")
-        new_spec["multiplier"] = comp_spec["multiplier"] if comp_spec.has_key?("multiplier")
-        return_specs << new_spec
-      end
-    end
-    return_specs
   end
 
   # Creates array of subscriptions from component instance and
@@ -2423,7 +2320,7 @@ class Application
   #
   # == Parameters:
   # feature::
-  #   A list of features
+  #   A list of artridge instances
   # group_overrides::
   #   A list of group-overrides which specify which components must be placed on the same group.
   #   Components can be specified as Hash{cart: <cart name> [, comp: <component name>]}
@@ -2434,19 +2331,37 @@ class Application
   # group instances::
   #   An array of hash values representing a group instances.
   def elaborate(cartridges, group_overrides = [])
-    profiles = []
-    added_cartridges = []
-    overrides = group_overrides.deep_dup
+    # All of the components that will be installed
+    specs = component_specs_from(cartridges)
 
-    #calculate initial list based on user provided dependencies
+    # add overrides that are part of the application
+    overrides = application_overrides(specs)
+
+    # Calculate connections and add any shared placement rules
+    connections, connection_overrides = connections_from_component_specs(specs)
+    overrides.concat(connection_overrides)
+
+    groups = GroupOverride.reduce(overrides, specs).each do |o|
+      # force consistent defaults on every group
+      o.defaults(1, -1, self.default_gear_size, 0)
+    end
+
+    [connections, groups]
+  end
+
+  def component_specs_from(cartridges)
+    # Calculate initial list based on user provided dependencies
+    added_cartridges = []
+    profiles = []
     cartridges.each do |cart|
-      prof = cart.profile_for_feature(cart.name)
       added_cartridges << cart
+      prof = cart.profile_for_feature(cart.name)
       profiles << {cartridge: cart, profile: prof}
     end
 
-    #solve for transitive dependencies
-    until added_cartridges.length == 0 do
+    # Solve for transitive dependencies
+    depth = 0
+    while added_cartridges.present? do
       carts_to_process = added_cartridges
       added_cartridges = []
       carts_to_process.each do |cart|
@@ -2460,32 +2375,40 @@ class Application
           profiles << {cartridge: cart, profile: prof}
         end
       end
+      if (depth += 1) > MAX_CARTRIDGE_RECURSION
+        raise OpenShift::UserException.new("Too much recursion on cartridge dependency processing.")
+      end
     end
 
-    #calculate component instances
-    component_instances = []
+    # All of the components that will be available
+    specs = []
     profiles.each do |data|
       profile = (data[:profile].is_a? Array) ? data[:profile].first : data[:profile]
       profile.components.each do |component|
-        component_instances << ComponentSpec.for_model(component, data[:cartridge])
+        specs << ComponentSpec.for_model(component, data[:cartridge])
       end
     end
+    specs
+  end
+
+  def connections_from_component_specs(specs)
+    overrides = []
 
     #calculate connections
     publishers = {}
     connections = []
-    component_instances.each do |ci|
-      ci.component.publishes.each do |connector|
+    specs.each do |spec|
+      spec.component.publishes.each do |connector|
         type = connector.type
         name = connector.name
         publishers[type] = [] if publishers[type].nil?
-        publishers[type] << { spec: ci, connector: name }
+        publishers[type] << { spec: spec, connector: name }
       end
     end
 
-    component_instances.each do |ci|
+    specs.each do |spec|
       # obtain copy of connections with fully-resolved subscriptions for this ci
-      subscriptions = subscription_filter(ci, publishers)
+      subscriptions = subscription_filter(spec, publishers)
       subscriptions.each do |connector|
         stype = connector.type
         sname = connector.name
@@ -2494,34 +2417,20 @@ class Application
           publishers[stype].each do |cinfo|
             connections << {
               "from_comp_inst" => cinfo[:spec],
-              "to_comp_inst" =>   ci,
+              "to_comp_inst" =>   spec,
               "from_connector_name" => cinfo[:connector],
               "to_connector_name" =>   sname,
               "connection_type" =>     stype}
             if stype.starts_with?("FILESYSTEM") or stype.starts_with?("SHMEM")
-              overrides << [cinfo[:spec], ci]
+              overrides << [cinfo[:spec], spec]
             end
           end
         end
       end
     end
-
-    # overrides may have been altered after this call
-    processed_overrides = process_group_overrides(component_instances, overrides)
-    group_instances = processed_overrides.map do |go|
-      group_instance = {}
-      group_instance[:component_instances] = go["components"].map { |spec| spec.to_hash }
-      group_instance[:scale] = {}
-      group_instance[:scale][:min] = ( go["min_gears"] || 1 )
-      group_instance[:scale][:max] = ( go["max_gears"] || -1 )
-      group_instance[:scale][:gear_size] = ( go["gear_size"] || self.default_gear_size )
-      group_instance[:scale][:additional_filesystem_gb] ||= 0
-      group_instance[:scale][:additional_filesystem_gb] += (go["additional_filesystem_gb"] || 0)
-      group_instance[:_id] = Moped::BSON::ObjectId.new
-      group_instance
-    end
-    [connections, group_instances]
+    [connections, overrides]
   end
+
 
   def enforce_system_order(order, categories)
     web_carts = categories['web_framework'] || []
@@ -2560,18 +2469,18 @@ class Application
 
       [[instance.cartridge_name],cart.categories,cart.provides,prof.provides].flatten.each do |cat|
         existing_categories[cat] = [] if existing_categories[cat].nil?
-        existing_categories[cat] << instance.to_hash
+        existing_categories[cat] << instance
       end
     end
 
     comps = []
     categories = {}
     comp_specs.each do |instance|
-      cart = CartridgeCache.find_cartridge(instance["cart"], self)
-      prof = cart.get_profile_for_component(instance["comp"])
+      cart = instance.cartridge
+      prof = instance.profile
 
-      comps << {cart: cart, prof: prof}
-      [[instance["cart"]],cart.categories,cart.provides,prof.provides].flatten.each do |cat|
+      comps << instance
+      [instance.cartridge.name, cart.categories, cart.provides, prof.provides].flatten.each do |cat|
         categories[cat] = [] if categories[cat].nil?
         categories[cat] << instance
       end
@@ -2580,32 +2489,28 @@ class Application
 
     #use the map to build DAG for order calculation
     comps.each do |comp_spec|
-      comp_spec[:prof].configure_order.each do |dep_cart|
+      comp_spec.profile.configure_order.each do |dep_cart|
         if !categories[dep_cart] and !existing_categories[dep_cart]
-          raise OpenShift::UserException.new("Cartridge '#{comp_spec[:cart].name}' can not be added without cartridge '#{dep_cart}'.", 185)
+          raise OpenShift::UserException.new("Cartridge '#{comp_spec.cartridge.name}' can not be added without cartridge '#{dep_cart}'.", 185)
         end
       end
-      configure_order.add_component_order(comp_spec[:prof].configure_order.map{|c| categories[c]}.flatten)
+      configure_order.add_component_order(comp_spec.profile.configure_order.map{|c| categories[c]}.flatten)
     end
 
     # enforce system order of components (web_framework first etc)
     enforce_system_order(configure_order, categories)
 
     #calculate configure order using tsort
-    if self.component_configure_order.empty?
-      begin
-        computed_configure_order = configure_order.tsort
-      rescue Exception
-        raise OpenShift::UserException.new("Conflict in calculating configure order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-      end
-    else
-      computed_configure_order = self.component_configure_order.map{|c| categories[c]}.flatten
+    begin
+      computed_configure_order = configure_order.tsort
+    rescue Exception
+      raise OpenShift::UserException.new("Conflict in calculating configure order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
     end
 
     # configure order can have nil if the component is already configured
     # for eg, phpmyadmin is being added and it is the only component being passed/added
     # this could happen if mysql is already previously configured
-    computed_configure_order.select { |co| not co.nil? }
+    computed_configure_order.compact
   end
 
   # Returns the start/stop order specified in the application descriptor or processes the start and stop
@@ -2623,23 +2528,23 @@ class Application
     categories = {}
 
     #build a map of [categories, features, cart name] => component_instance
-    component_instances.each do |comp_inst|
-      cart = CartridgeCache.find_cartridge(comp_inst.cartridge_name, self)
-      prof = cart.get_profile_for_component(comp_inst.component_name)
+    component_instances.each do |instance|
+      cart = instance.cartridge
+      prof = instance.profile
 
-      comps << {cart: cart, prof: prof}
-      [[comp_inst.cartridge_name],cart.categories,cart.provides,prof.provides].flatten.each do |cat|
+      comps << instance
+      [[instance.cartridge_name], cart.categories, cart.provides, prof.provides].flatten.each do |cat|
         categories[cat] = [] if categories[cat].nil?
-        categories[cat] << comp_inst
+        categories[cat] << instance
       end
-      start_order.add_component_order([comp_inst])
-      stop_order.add_component_order([comp_inst])
+      start_order.add_component_order([instance])
+      stop_order.add_component_order([instance])
     end
 
     #use the map to build DAG for order calculation
     comps.each do |comp_spec|
-      start_order.add_component_order(comp_spec[:prof].start_order.map{|c| categories[c]}.flatten)
-      stop_order.add_component_order(comp_spec[:prof].stop_order.map{|c| categories[c]}.flatten)
+      start_order.add_component_order(comp_spec.profile.start_order.map{ |c| categories[c] }.flatten)
+      stop_order.add_component_order(comp_spec.profile.stop_order.map{ |c| categories[c] }.flatten)
     end
 
     # enforce system order of components (web_framework first etc)
@@ -2647,25 +2552,17 @@ class Application
     enforce_system_order(stop_order, categories)
 
     #calculate start order using tsort
-    if self.component_start_order.empty?
-      begin
-        computed_start_order = start_order.tsort
-      rescue Exception=>e
-        raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-      end
-    else
-      computed_start_order = self.component_start_order.map{|c| categories[c]}.flatten
+    begin
+      computed_start_order = start_order.tsort
+    rescue Exception=>e
+      raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
     end
 
     #calculate stop order using tsort
-    if self.component_stop_order.empty?
-      begin
-        computed_stop_order = stop_order.tsort
-      rescue Exception=>e
-        raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-      end
-    else
-      computed_stop_order = self.component_stop_order.map{|c| categories[c]}.flatten
+    begin
+      computed_stop_order = stop_order.tsort
+    rescue Exception=>e
+      raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
     end
 
     # start/stop order can have nil if the component is not present in the application
@@ -2676,38 +2573,25 @@ class Application
     [computed_start_order, computed_stop_order]
   end
 
-  def gen_non_scalable_app_overrides(cartridges)
-    #find web_framework
-    group_overrides = []
-    if primary = cartridges.find(&:is_web_framework?) || cartridges.find(&:is_service?)
-      prof = primary.profile_for_feature(primary.name)
-      prof = prof.first if prof.is_a? Array
-      primary_comp = prof.components.first
-      primary_spec = {"cart"=> primary.name, "comp"=> primary_comp.name}
-      group_overrides << {
-        "components" => [primary_spec],
-        "max_gears" => 1
-      }
+  ##
+  # Will not change existing component specs
+  def gen_available_app_overrides(specs)
+    overrides = []
+
+    # make the web framework min scale 2
+    if primary = specs.find{ |i| i.cartridge.is_web_framework? } || cartridges.find{ |i| i.cartridge.is_service? }
+      overrides << GroupOverride.new([primary.dup], 2)
     end
 
-    #generate group overrides to colocate all components with the first service and limit scale to 1
-    cartridges.each do |cart|
-      next if cart.is_web_framework?
-      profs = cart.profile_for_feature(cart.name)
-      profile = (profs.is_a? Array) ? profs.first : profs
-      components = profile.components
-      components.inject(group_overrides) do |arr, comp|
-        arr << {
-          "components" => [
-            primary_spec,
-            {"cart"=>cart.name, "comp"=>comp.name}
-          ],
-          "max_gears" => 1
-        }
-      end
+    # ensure the proxy has the appropriate min scale and multiplier
+    if proxy = specs.find{ |i| i.cartridge.is_web_proxy? }
+      GroupOverride.new([ComponentOverrideSpec.new(proxy.dup, 2, -1, 1).merge(proxy)])
     end
+    overrides
+  end
 
-    group_overrides
+  def gen_non_scalable_app_overrides(specs)
+    [GroupOverride.new(specs.dup, nil, 1)]
   end
 
   def get_all_updated_ssh_keys

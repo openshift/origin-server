@@ -9,11 +9,11 @@
 #   @return [Hash] Group level arguments hash
 class PendingAppOpGroup
   include Mongoid::Document
-  include Mongoid::Timestamps
+  include Mongoid::Timestamps::Created
   include TSort
 
   embedded_in :application, class_name: Application.name
-  embeds_many :pending_ops, class_name: PendingAppOp.name
+  embeds_many :pending_ops, class_name: PendingAppOp.name, cascade_callbacks: true
 
   field :parent_op_id, type: Moped::BSON::ObjectId
   field :num_gears_added,   type: Integer, default: 0
@@ -68,30 +68,30 @@ class PendingAppOpGroup
   end
 
   def reorder_usage_ops
-    if pending_ops.where(:state.ne => :completed, :_type => "TrackUsageOp").count > 0
-      op_ids = []
-      track_usage_op_ids = []
-      pending_ops.each do |op|
-        if op.kind_of?(TrackUsageOp)
-          track_usage_op_ids << op._id.to_s
-        else
-          op_ids << op._id.to_s
-        end
-      end
-      pending_ops.each do |op|
-        if op.kind_of?(TrackUsageOp)
-          op.prereq += op_ids
-          op.prereq.uniq!
-        else
-          op.prereq.delete_if {|id| track_usage_op_ids.include?(id)}
-        end
-      end
-      # in order to facilitate execution of pre-save ops, 
-      # we check whether the application is persisted to mongo
-      if application.persisted?
-        Application.where({ "_id" => application._id, "pending_op_groups._id" => self._id }).update({"$set" => { "pending_op_groups.$.pending_ops" => pending_ops.serializable_hash }})
-      end
-    end
+    # if pending_ops.where(:state.ne => :completed, :_type => "TrackUsageOp").count > 0
+    #   op_ids = []
+    #   track_usage_op_ids = []
+    #   pending_ops.each do |op|
+    #     if op.kind_of?(TrackUsageOp)
+    #       track_usage_op_ids << op._id.to_s
+    #     else
+    #       op_ids << op._id.to_s
+    #     end
+    #   end
+    #   pending_ops.each do |op|
+    #     if op.kind_of?(TrackUsageOp)
+    #       op.prereq += op_ids
+    #       op.prereq.uniq!
+    #     else
+    #       op.prereq.delete_if {|id| track_usage_op_ids.include?(id)}
+    #     end
+    #   end
+    #   # in order to facilitate execution of pre-save ops, 
+    #   # we check whether the application is persisted to mongo
+    #   if application.persisted?
+    #     Application.where({ "_id" => application._id, "pending_op_groups._id" => self._id }).update({"$set" => { "pending_op_groups.$.pending_ops" => pending_ops.as_document }})
+    #   end
+    # end
   end
 
   # The pre_execute method does not handle parallel executions
@@ -198,7 +198,7 @@ class PendingAppOpGroup
       end
     rescue Exception => e_orig
       Rails.logger.error e_orig.message
-      Rails.logger.error e_orig.backtrace.inspect
+      Rails.logger.error e_orig.backtrace.join("\n")
       raise e_orig
     end
   end
@@ -251,9 +251,9 @@ class PendingAppOpGroup
         raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.max_gears} limit and this application requires #{num_gears_added} additional gears.")
       end
       owner.consumed_gears += num_gears_added
-      self.pending_ops.push ops
       self.num_gears_added = num_gears_added
       self.num_gears_removed = num_gears_removed
+      self.pending_ops.concat(ops)
       self.save! if app.persisted?
       owner.save!
     ensure

@@ -1,6 +1,6 @@
 class TidyCompOp < PendingAppOp
 
-  field :comp_spec, type: Hash, default: {}
+  field :comp_spec, type: ComponentSpec, default: {}
   field :gear_id, type: String
 
   def is_parallel_executable
