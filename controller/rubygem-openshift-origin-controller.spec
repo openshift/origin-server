@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.6
+Version: 1.19.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,19 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
+- Merge pull request #4435 from bparees/ci_timeouts
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4429 from pravisankar/dev/ravi/usage-changes
+  (dmcphers+openshiftbot@redhat.com)
+- oo-admin-repair refactor Added repair for usage inconsistencies
+  (rpenta@redhat.com)
+- Use mongoid 'save\!' instead of 'save' to raise an exception in case of
+  failures (rpenta@redhat.com)
+- Execute track usage ops in the end for any opgroup (rpenta@redhat.com)
+- redistribute some group 1 extended cartridge tests into group 4
+  (bparees@redhat.com)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.6-1
 - Mongoid error on app.save results in gear counts being out of sync
   (ccoleman@redhat.com)
