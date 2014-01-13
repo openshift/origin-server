@@ -782,10 +782,7 @@ default_mimetype = "text/html"
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; UNIX: "/path1:/path2"
-;include_path = ".:/php/includes"
-;
-; Windows: "\path1;\path2"
-;include_path = ".;c:\php\includes"
+include_path = "<%= ".:#{ENV['OPENSHIFT_REPO_DIR']}libs/:#{ENV['OPENSHIFT_PHP_DIR']}phplib/pear/pear/php/:/usr/share/pear/"%>"
 ;
 ; PHP's default setting for include_path is ".;/path/to/php/pear"
 ; http://www.php.net/manual/en/ini.core.php#ini.include-path
@@ -872,7 +869,7 @@ file_uploads = On
 ; specified).
 ; http://www.php.net/manual/en/ini.core.php#ini.upload-tmp-dir
 
-upload_tmp_dir = "<%= "#{ENV['OPENSHIFT_PHP_DIR']}/tmp/" %>"
+upload_tmp_dir = "<%= "#{ENV['OPENSHIFT_PHP_DIR']}tmp/" %>"
 
 ; Maximum allowed size for uploaded files.
 ; http://www.php.net/manual/en/ini.core.php#ini.upload-max-filesize
@@ -1268,7 +1265,7 @@ session.save_handler = files
 ; where MODE is the octal representation of the mode. Note that this
 ; does not overwrite the process's umask.
 ; http://www.php.net/manual/en/session.configuration.php#ini.session.save-path
-session.save_path = "<%= "#{ENV['OPENSHIFT_PHP_DIR']}/sessions/" %>"
+session.save_path = "<%= "#{ENV['OPENSHIFT_PHP_DIR']}sessions/" %>"
 
 ; Whether to use cookies.
 ; http://www.php.net/manual/en/session.configuration.php#ini.session.use-cookies
