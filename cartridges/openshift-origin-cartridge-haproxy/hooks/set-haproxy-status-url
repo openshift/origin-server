@@ -28,6 +28,3 @@ else
     # Update the file with the list of all non-local haproxy status URLs.
     echo -e $list > $HAPROXY_STATUS_URLS_CONF
 fi
-
-# Restart the auto scaler to pick up the updated status URL list.
-$OPENSHIFT_HAPROXY_DIR/usr/bin/haproxy_ctld_daemon restart
