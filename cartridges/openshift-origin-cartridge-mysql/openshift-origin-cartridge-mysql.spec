@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 1.19.4
+Version: 1.19.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -61,6 +61,14 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
+- Merge pull request #4395 from andrewklau/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix quotation for --password in mysql cartridge control file
+  (mfojtik@redhat.com)
+- mysql cartridge was using a postgresql variable
+  (andrew.lau@ready2order.com.au)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.4-1
 - adding OPENSHIFT_MYSQL_TIMEZONE env variable (jhadvig@redhat.com)
 
