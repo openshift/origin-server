@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.12.2
+Version: 2.12.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,19 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 2.12.3-1
+- Merge pull request #4348 from bparees/build_disabled
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4416 from bparees/jboss_startup
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4330 from bparees/jboss_62
+  (dmcphers+openshiftbot@redhat.com)
+- distinguish between timed out and failed jboss starts (bparees@redhat.com)
+- update schema to latest jboss eap 6.2 (bparees@redhat.com)
+- Bug 1028327 - No message about "skip_maven_build marker found .." after git
+  push jbosseap-6 and jbossas-7 app with skip_maven_build marker added
+  (bparees@redhat.com)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 2.12.2-1
 - Bug 1033581 - Adding upgrade logic to remove the unneeded
   jenkins_shell_command files (bleanhar@redhat.com)
