@@ -181,7 +181,11 @@ module OpenShift
           FileUtils.rm_r(entry.repository_path) if File.exist?(entry.repository_path)
           FileUtils.mkpath(entry.repository_path)
 
-          Utils.oo_spawn("shopt -s dotglob; /bin/cp -ad #{directory}/* #{entry.repository_path}",
+          # We specifically don't want --preserve=context because we want
+          # the cartridge relabeled when it is copied into the cartridge
+          # repository, and we don't want --preserve=xattr because that
+          # implies --preserve=context on some filesystems.
+          Utils.oo_spawn("shopt -s dotglob; /bin/cp --recursive --no-dereference --preserve=mode,ownership,timestamps,links #{directory}/* #{entry.repository_path}",
                          expected_exitstatus: 0)
         end
         entry
