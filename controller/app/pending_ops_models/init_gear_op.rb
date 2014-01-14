@@ -7,7 +7,7 @@ class InitGearOp < PendingAppOp
 
   # fields for creating component instances
   field :comp_specs, type: Array, default: []
-  
+
   field :pre_save, type: Boolean, default: false
 
   def execute
@@ -19,8 +19,8 @@ class InitGearOp < PendingAppOp
       application.group_instances.push(GroupInstance.new(custom_id: group_instance_id))
       group_instance = get_group_instance()
     end
-    
-     application.gears.push(Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns))
+
+    application.gears.push(Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns))
 
     # create the component instances, if they are not present
     comp_specs.each do |comp_spec|
@@ -38,7 +38,7 @@ class InitGearOp < PendingAppOp
       end
     end if comp_specs.present?
   end
-  
+
   def rollback
     begin
       gear = get_gear()
@@ -68,7 +68,7 @@ class InitGearOp < PendingAppOp
       keys_attrs = remove_ssh_keys.map{|k| k.serializable_hash}
       op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: application.user_agent)
       Application.where(_id: application._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
-      
+
       # remove the ssh keys from the mongoid model in memory
       application.app_ssh_keys.delete_if { |k| k.component_id.to_s == gear_id }
     end

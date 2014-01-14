@@ -14,7 +14,7 @@ class NewCompOp < PendingAppOp
       application.component_instances.push(component_instance)
     end
   end
-  
+
   def rollback
     begin
       component_instance = get_component_instance()

@@ -1,12 +1,6 @@
 # Class to represent pending operations that need to occur for the {Application}
-# @!attribute [r] application
-#   @return [Application] {Application} that this operation needs to be performed on.
-# @!attribute [r] op_type
-#   @return [Symbol] Operation type
 # @!attribute [r] state
 #   @return [Symbol] Operation state. One of init, queued or completed
-# @!attribute [r] arguments
-#   @return [Hash] Arguments hash
 # @!attribute [r] retry_count
 #   @return [Integer] Number of times this operation has been attempted
 class PendingAppOp
