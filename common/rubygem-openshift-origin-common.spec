@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.18.5
+Version: 1.18.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.18.6-1
+- Bug 1051833 - PathUtils.flock() not removing lock file (jhonce@redhat.com)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.18.5-1
 - <oo-diagnostics> bug 1046202 test_broker_httpd_error_log (lmeyer@redhat.com)
 
