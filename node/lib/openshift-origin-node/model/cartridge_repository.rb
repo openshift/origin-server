@@ -531,12 +531,14 @@ module OpenShift
           FileUtils.symlink(source_usr, target_usr) if File.exist?(source_usr) && !File.exist?(target_usr)
         end
 
-        valid_cartridge_home(cartridge, target)
-
         if downloadable
-          manifest_on_disk = PathUtils.join(target, %w(metadata manifest.yml))
+          metadata_on_disk = PathUtils.join(target, 'metadata')
+          manifest_on_disk = PathUtils.join(metadata_on_disk, 'manifest.yml')
+          FileUtils.mkpath(metadata_on_disk) unless File.exist? metadata_on_disk
           IO.write(manifest_on_disk, YAML.dump(cartridge.manifest))
         end
+
+        valid_cartridge_home(cartridge, target)
 
       rescue => e
         FileUtils.rm_rf target if failure_remove
