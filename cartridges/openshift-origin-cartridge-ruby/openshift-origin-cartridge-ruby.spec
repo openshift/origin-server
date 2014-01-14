@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.19.4
+Version: 1.19.5
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,10 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
+- Bug 1052276 - Check if tmp/ directory exists before ruby restart
+  (mfojtik@redhat.com)
+
 * Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
 - Merge pull request #4439 from jhadvig/disable_assets_compilation
   (dmcphers+openshiftbot@redhat.com)
