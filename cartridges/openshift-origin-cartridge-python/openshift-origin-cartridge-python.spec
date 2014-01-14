@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.19.3
+Version: 1.19.4
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -123,6 +123,11 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Merge pull request #4464 from ironcladlou/bz/1052103
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1052103: Fix template app.py for Python 3.3 (ironcladlou@gmail.com)
+
 * Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Merge pull request #4461 from ironcladlou/bz/1052059
   (dmcphers+openshiftbot@redhat.com)
