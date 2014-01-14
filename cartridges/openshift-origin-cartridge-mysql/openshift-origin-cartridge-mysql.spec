@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 1.19.5
+Version: 1.19.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -61,6 +61,15 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.6-1
+- Merge pull request #4459 from mfojtik/bugzilla/1045342
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1045342 - Fix the $MYSQL_VERSION env var is missing for mysql-5.1
+  (mfojtik@redhat.com)
+- Bug 1051651 - Added more verbose error reporting when MySQL fail to start
+  (mfojtik@redhat.com)
+- Removed double-slash from my.conf.erb (mfojtik@redhat.com)
+
 * Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
 - Merge pull request #4395 from andrewklau/master
   (dmcphers+openshiftbot@redhat.com)
