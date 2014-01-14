@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.7
+Version: 1.19.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,22 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
+- Merge pull request #4474 from
+  liggitt/bug_1053099_write_downloadable_manifest_before_validating
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1053099: write downloadable manifest before validating extracted
+  cartridge (jliggitt@redhat.com)
+- Bug 1030777 - Remove gear dir even if gear not in passwd file
+  (jhonce@redhat.com)
+- Merge pull request #4468 from Miciah/bug-999117–oo-admin-cartridge-a
+  -install-does-not-restorecon-the-installed-cartridge
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4467 from jwhonce/bug/1051833
+  (dmcphers+openshiftbot@redhat.com)
+- CartridgeRepository#install: Don't keep context (miciah.masters@gmail.com)
+- Bug 1051833 - PathUtils.flock() not removing lock file (jhonce@redhat.com)
+
 * Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
 - Merge pull request #4458 from jwhonce/bug/1051984
   (dmcphers+openshiftbot@redhat.com)
