@@ -105,6 +105,11 @@ then
 fi
 
 %changelog
+* Tue Jan 14 2014 Krishna Raman <kraman@gmail.com> 1.17.1.2-1
+- Bumping package versions (kraman@gmail.com)
+- Add passthrough config for broker auth (iv/token) based on request headers
+  (kraman@gmail.com)
+
 * Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.17.1.1-1
 - Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
 
