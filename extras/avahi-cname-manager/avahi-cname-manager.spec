@@ -103,6 +103,11 @@ touch %{buildroot}%{_var}/lib/avahi-cname-manager/aliases
 %doc README
 
 %changelog
+* Tue Jan 14 2014 Krishna Raman <kraman@gmail.com> 0.2.1.2-1
+- Bumping package versions (kraman@gmail.com)
+- Adding init.d script (kraman@gmail.com)
+- scl-ize spec file (tdawson@redhat.com)
+
 * Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 0.2.1.1-1
 - Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
 
