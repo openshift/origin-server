@@ -82,7 +82,9 @@ module PathUtils
   # PathUtils.flock(lock_file) { block } -> nil
   #
   # Create a file lock for the duration of the provided block
-  def flock(lock_file)
+  # @param lock_file [String] path including file to use for locking
+  # @param unlink_file [true, false] should lock file be removed when lock released?
+  def flock(lock_file, unlink_file = true)
     File.open(lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
       lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
       lock.flock(File::LOCK_EX)
@@ -90,6 +92,7 @@ module PathUtils
       begin
         yield(lock)
       ensure
+        FileUtils.rm_f(lock_file) if unlink_file
         lock.flock(File::LOCK_UN)
       end
     end

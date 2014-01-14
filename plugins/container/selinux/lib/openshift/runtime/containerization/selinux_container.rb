@@ -44,9 +44,7 @@ module OpenShift
           # Lock to prevent race condition on obtaining a UNIX user uid.
           # When running without districts, there is a simple search on the
           #   passwd file for the next available uid.
-          File.open("/var/lock/oo-create", File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | uid_lock |
-            uid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-            uid_lock.flock(File::LOCK_EX)
+          PathUtils.flock('/var/lock/oo-create', false) do
 
             unless @container.uid
               @container.uid = @container.gid = @container.next_uid
