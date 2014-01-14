@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.12.3
+Version: 2.12.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,12 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 2.12.4-1
+- Merge pull request #4455 from bparees/ds_reconnect
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1051349 - sql db cannot be connected via java datasource after db
+  cartridge restart on the first time (bparees@redhat.com)
+
 * Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 2.12.3-1
 - Merge pull request #4348 from bparees/build_disabled
   (dmcphers+openshiftbot@redhat.com)
