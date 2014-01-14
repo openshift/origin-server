@@ -1,3 +1,14 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
+%global with_systemd 1
+%else
+%global with_systemd 0
+%endif
+
 Summary:       Daemon to create and maintain CNAME records for Avahi MDNS service
 Name:          avahi-cname-manager
 Version:       0.2.1
@@ -6,10 +17,11 @@ Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      ruby
-Requires:      rubygems
-Requires:      rubygem(ruby-dbus)
-Requires:      rubygem(sinatra)
+Requires:      %{?scl_prefix}ruby
+Requires:      %{?scl_prefix}rubygems
+Requires:      %{?scl_prefix}rubygem(ruby-dbus)
+Requires:      %{?scl_prefix}rubygem(sinatra)
+Requires:      %{?scl_prefix}rubygem(parseconfig)
 Requires:      avahi 
 Requires:      avahi-autoipd
 Requires:      avahi-compat-libdns_sd
@@ -17,12 +29,14 @@ Requires:      avahi-glib
 Requires:      avahi-gobject
 Requires:      avahi-tools
 Requires:      nss-mdns
-Requires:      systemd-units
 Requires(pre): shadow-utils
 Requires(pre): coreutils
 Requires(pre): /usr/bin/getent
 Requires(pre): /usr/sbin/groupadd
+%if %{with_systemd}
 BuildRequires: systemd-units
+Requires:      systemd-units
+%endif
 BuildArch:     noarch
 
 %description
@@ -42,8 +56,13 @@ mkdir -p %{buildroot}%{_var}/lib/avahi-cname-manager
 mkdir -p %{buildroot}/etc/avahi
 install -D -m 644 conf/cname-manager.conf %{buildroot}/etc/avahi/
 
+%if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
 install -D -m 644 systemd/avahi-cname-manager.service %{buildroot}%{_unitdir}
+%else
+mkdir -p %{buildroot}%{_initddir}
+install -m 755 init.d/avahi-cname-manager %{buildroot}%{_initddir}
+%endif
 install -D -m 644 systemd/avahi-cname-manager.env %{buildroot}%{_sysconfdir}/sysconfig/avahi-cname-manager
 
 mkdir -p %{buildroot}%{_bindir}
@@ -57,15 +76,23 @@ touch %{buildroot}%{_var}/lib/avahi-cname-manager/aliases
         avahi-cname >/dev/null 2>&1 || :
 
 %post
+%if %{with_systemd}
 /bin/systemctl --system daemon-reload
 /bin/systemctl try-restart avahi-cname-manager.service
+%endif
 
 %preun
+%if %{with_systemd}
 /bin/systemctl --no-reload disable avahi-cname-manager.service
 /bin/systemctl stop avahi-cname-manager.service
+%endif
 
 %files
+%if %{with_systemd}
 %attr(0644,-,-) %{_unitdir}/avahi-cname-manager.service
+%else
+%attr(0755,-,-) %{_initddir}/avahi-cname-manager
+%endif
 %attr(0644,-,-) %{_sysconfdir}/sysconfig/avahi-cname-manager
 %attr(0755,-,-) %{_bindir}/avahi-cname-manager
 %attr(0744,avahi-cname,avahi-cname) %{_var}/lib/avahi-cname-manager
