@@ -96,6 +96,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-analytics-import.8.gz
 
 %changelog
+* Tue Jan 14 2014 Krishna Raman <kraman@gmail.com> 1.18.0.2-1
+- Bumping package versions (kraman@gmail.com)
+- <oo-accept-broker> validate DNS AvahiPlugin (lmeyer@redhat.com)
+
 * Fri Dec 06 2013 Krishna Raman <kraman@gmail.com> 1.18.0.1-1
 - Bumping versions for OpenShift Origin Release 3 (kraman@gmail.com)
 - Fix oo-admin-repair: Do not depend on gear index to know whether it has
