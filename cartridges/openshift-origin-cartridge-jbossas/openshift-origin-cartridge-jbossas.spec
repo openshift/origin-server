@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.19.3
+Version: 1.19.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,12 @@ fi
 
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Merge pull request #4455 from bparees/ds_reconnect
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1051349 - sql db cannot be connected via java datasource after db
+  cartridge restart on the first time (bparees@redhat.com)
+
 * Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Merge pull request #4348 from bparees/build_disabled
   (dmcphers+openshiftbot@redhat.com)
