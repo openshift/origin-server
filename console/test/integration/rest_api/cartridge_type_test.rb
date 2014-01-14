@@ -54,7 +54,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
 
     log_types(types)
 
-    assert types[0].name.starts_with?('jbosseap-')
+    assert types[0].name.starts_with?('jbossas-')
   end
 
   test 'should load metadata from broker' do
@@ -70,7 +70,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     types.sort!
     log_types(types)
 
-    assert types[0].id.starts_with?('cart!jbosseap'), types[0].id
+    assert types[0].id.starts_with?('cart!jbossas'), types[0].id
   end
 
   test 'sort cartridges' do
