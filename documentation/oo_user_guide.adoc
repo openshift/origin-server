@@ -313,7 +313,6 @@ The misc directory is a location provided to the developer to store any applicat
 ==== The php directory
 The php directory is where all of the application code that the developer writes should be created. By default, two files are created in this directory:
 
-* health_check.php - A simple file to determine if the application is responding to requests
 * index.php - The OpenShift template that we saw after application creation in the web browser.
 
 === Environment Variables
@@ -536,7 +535,7 @@ firstphp stopped
 Verify that your application has been stopped with the following _curl_ command:
 
 ----
-$ curl http://firstphp-<yourdomain>.example.com/health_check.php
+$ curl http://firstphp-<yourdomain>.example.com/health
 
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html><head>

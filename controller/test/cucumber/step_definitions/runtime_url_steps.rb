@@ -19,16 +19,8 @@ end
 When /^I run the health\-check for the ([^ ]+) cartridge$/ do | type |
   host = "#{@app.name}-#{@account.domain}.#{$cloud_domain}"
 
-  if type.start_with?("perl-")
-    url = "health_check.pl"
-  elsif type.start_with?("php-")
-    url = "health_check.php"
-  else
-    url = "health"
-  end
-
   # Use curl to hit the app, causing restorer to turn it back on.
-  command = "/usr/bin/curl -k -H 'Host: #{host}' -s http://localhost/#{url}"
+  command = "/usr/bin/curl -k -H 'Host: #{host}' -s http://localhost/health"
   output = run_stdout command
   output.chomp!
 

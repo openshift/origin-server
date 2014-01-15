@@ -234,7 +234,7 @@ $ git push</pre>
 
                   <ul>
                     <li><a href="https://www.openshift.com/developers/deploying-and-building-applications">Learn more about deploying and building your application</a></li>
-                    <li>See the README file in your local application Git repository for more information on the options for deploying applications.</li>
+                    <li><a href="http://openshift.github.io/documentation/oo_cartridge_guide.html#php">Read more details about Repository Layout, Action Hooks and Markers</a></li>
                   </ul>
             </section>
             

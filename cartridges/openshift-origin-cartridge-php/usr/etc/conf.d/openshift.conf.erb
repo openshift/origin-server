@@ -1,5 +1,5 @@
 ServerRoot "<%= ENV['OPENSHIFT_PHP_DIR'] %>"
-DocumentRoot "<%= "#{ENV['OPENSHIFT_REPO_DIR']}php" %>"
+DocumentRoot "<%= ENV['OPENSHIFT_PHP_DOCUMENT_ROOT'] || "#{ENV['OPENSHIFT_REPO_DIR']}php" %>"
 Listen <%= "#{ENV['OPENSHIFT_PHP_IP']}:#{ENV['OPENSHIFT_PHP_PORT']}" %>
 User  <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
@@ -9,6 +9,19 @@ CustomLog "<%= "|/usr/sbin/rotatelogs #{ENV['OPENSHIFT_PHP_DIR']}logs/access_log
 DefaultRuntimeDir "<%= "#{ENV['OPENSHIFT_PHP_DIR']}run"%>"
 </IfVersion>
 
-<Directory "<%= "#{ENV['OPENSHIFT_REPO_DIR']}php" %>">
+<Directory "<%= ENV['OPENSHIFT_PHP_DOCUMENT_ROOT'] || "#{ENV['OPENSHIFT_REPO_DIR']}php" %>">
+  Options Indexes FollowSymLinks
   AllowOverride All
+  Order Allow,Deny
+  Allow from All
+  <Files "deplist.txt">
+    Order Deny,Allow
+    Deny from All
+  </Files>
+</Directory>
+
+<Directory "<%= "#{ENV['OPENSHIFT_REPO_DIR']}.openshift" %>">
+  AllowOverride None
+  Order Deny,Allow
+  Deny from All
 </Directory>
