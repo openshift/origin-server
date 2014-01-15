@@ -1519,7 +1519,6 @@ class Application
           raise Exception.new("Op group is already being rolled back.")
         end
 
-        op_group.reorder_usage_ops
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
@@ -2173,6 +2172,9 @@ class Application
       pending_ops.push update_cluster_op
     end
 
+    # push begin track usage ops to the end
+    reorder_usage_ops(pending_ops)
+
     [pending_ops, add_gears, remove_gears]
   end
 
@@ -2709,6 +2711,26 @@ class Application
     computed_stop_order = computed_stop_order.select { |co| not co.nil? }
 
     [computed_start_order, computed_stop_order]
+  end
+
+  def reorder_usage_ops(pending_ops)
+    op_ids = []
+    begin_usage_op_ids = []
+    pending_ops.each do |op|
+      if op.kind_of?(TrackUsageOp) and (op.event != UsageRecord::EVENTS[:end])
+        begin_usage_op_ids << op._id.to_s
+      else
+        op_ids << op._id.to_s
+      end
+    end
+    pending_ops.each do |op|
+      if begin_usage_op_ids.include?(op._id.to_s)
+        op.prereq += op_ids
+        op.prereq.uniq!
+      else
+        op.prereq.delete_if {|id| begin_usage_op_ids.include?(id)}
+      end
+    end unless begin_usage_op_ids.empty?
   end
 
   # Gets a feature name for the cartridge/component combination

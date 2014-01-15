@@ -67,33 +67,6 @@ class PendingAppOpGroup
     pending_ops.where(:state.ne => :completed, :pre_save => true).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
   end
 
-  def reorder_usage_ops
-    if pending_ops.where(:state.ne => :completed, :_type => "TrackUsageOp").count > 0
-      op_ids = []
-      track_usage_op_ids = []
-      pending_ops.each do |op|
-        if op.kind_of?(TrackUsageOp)
-          track_usage_op_ids << op._id.to_s
-        else
-          op_ids << op._id.to_s
-        end
-      end
-      pending_ops.each do |op|
-        if op.kind_of?(TrackUsageOp)
-          op.prereq += op_ids
-          op.prereq.uniq!
-        else
-          op.prereq.delete_if {|id| track_usage_op_ids.include?(id)}
-        end
-      end
-      # in order to facilitate execution of pre-save ops, 
-      # we check whether the application is persisted to mongo
-      if application.persisted?
-        Application.where({ "_id" => application._id, "pending_op_groups._id" => self._id }).update({"$set" => { "pending_op_groups.$.pending_ops" => pending_ops.serializable_hash }})
-      end
-    end
-  end
-
   # The pre_execute method does not handle parallel executions
   # it has been created primarily to execute mongo operations
   def pre_execute(result_io=nil)
