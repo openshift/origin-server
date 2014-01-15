@@ -47,7 +47,7 @@ class EnvironmentVariablesController < BaseController
       rest_env_var = get_rest_environment_variable(env_var)
       return render_success(:created, "environment-variable", rest_env_var, "Added environment variable '#{name}' to application #{@application.name}", result)
     else
-      Application.validate_user_env_variables(user_env_vars)
+      user_env_vars = Application.validate_user_env_variables(user_env_vars)
       result = @application.patch_user_env_variables(user_env_vars)
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
       rest_env_vars = set_vars.map {|ev| get_rest_environment_variable(ev)}

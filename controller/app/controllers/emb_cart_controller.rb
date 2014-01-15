@@ -33,7 +33,7 @@ class EmbCartController < BaseController
     gear_size = params[:gear_size] rescue nil
 
     user_env_vars = params[:environment_variables].presence
-    Application.validate_user_env_variables(user_env_vars, true)
+    user_env_vars = Application.validate_user_env_variables(user_env_vars, true)
 
     cart_urls = []
     cmap = {}
