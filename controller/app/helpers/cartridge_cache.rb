@@ -214,6 +214,7 @@ class CartridgeCache
     return cmap if urls.nil?
     urls.each do |url|
        manifest_str = download_from_url(url)
+       manifest_str << "\nManifest-Url: #{url}"
        validate_yaml(url, manifest_str)
 
        # TODO: check versions and create multiple of them

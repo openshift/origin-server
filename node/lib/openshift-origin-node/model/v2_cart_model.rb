@@ -504,7 +504,8 @@ module OpenShift
         envs                                  = {}
         envs["#{cartridge.short_name}_DIR"]   = target + File::SEPARATOR
         envs["#{cartridge.short_name}_IDENT"] = ident
-
+        envs["#{cartridge.short_name}_CARTRIDGE_MANIFEST_URL"] = cartridge.manifest_url unless cartridge.manifest_url.nil?
+        
         write_environment_variables(PathUtils.join(target, 'env'), envs)
 
         envs.clear
