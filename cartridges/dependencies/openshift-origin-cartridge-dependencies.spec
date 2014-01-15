@@ -4,6 +4,7 @@ Version:       1.19.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
+Source0:       %{name}-%{version}.tar.gz
 BuildArch:     noarch
 
 %description
