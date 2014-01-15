@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.8
+Version: 1.19.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
+- Merge pull request #4436 from bparees/jenkins_dl_cart
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 995807 - Jenkins builds fail on downloadable cartridges
+  (bparees@redhat.com)
+
 * Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
 - Bug 1040700 (dmcphers@redhat.com)
 
