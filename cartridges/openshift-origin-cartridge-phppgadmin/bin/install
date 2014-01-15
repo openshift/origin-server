@@ -1,0 +1,37 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+case "$1" in
+    -v|--version)
+      version="$2"
+esac
+
+echo "$version" > "$OPENSHIFT_PHPPGADMIN_DIR/env/OPENSHIFT_PHPPGADMIN_VERSION"
+cp -r ${OPENSHIFT_PHPPGADMIN_DIR}/versions/$version/conf/* ${OPENSHIFT_PHPPGADMIN_DIR}/conf/
+cp -r ${OPENSHIFT_PHPPGADMIN_DIR}/versions/$version/conf.d/* ${OPENSHIFT_PHPPGADMIN_DIR}/conf.d/
+cp -r ${OPENSHIFT_PHPPGADMIN_DIR}/versions/$version/phpPgAdmin/* ${OPENSHIFT_PHPPGADMIN_DIR}/phpPgAdmin/
+
+# check that postgresql is installed
+
+if [ -z "$OPENSHIFT_POSTGRESQL_DB_USERNAME" ]; then
+  client_error ""
+  client_error "PostgreSQL must be embedded before phpPgAdmin"
+  client_error ""
+  exit 137
+fi
+
+ln -s /usr/lib64/httpd/modules ${OPENSHIFT_PHPPGADMIN_DIR}modules
+ln -s /etc/httpd/conf/magic ${OPENSHIFT_PHPPGADMIN_DIR}conf/magic
+
+client_result ""
+client_result "phpPgAdmin added.  Please make note of these PostgreSQL credentials again:"
+client_result ""
+client_result "   Root User: $OPENSHIFT_POSTGRESQL_DB_USERNAME"
+client_result "   Root Password: $OPENSHIFT_POSTGRESQL_DB_PASSWORD"
+client_result ""
+client_result "URL: https://$OPENSHIFT_GEAR_DNS/phppgadmin/"
+
+cart_props "connection_url=https://$OPENSHIFT_GEAR_DNS/phppgadmin/"
+
+set_app_info "URL: https://$OPENSHIFT_GEAR_DNS/phppgadmin/"
