@@ -38,7 +38,7 @@ class EnvPlugin < OpenShift::Runtime::WatchmanPlugin
     @next_check = @next_update.call
 
     @gears.each do |uuid|
-      path = PathUtils.join(@config.get('GEAR_BASE_DIR', GEAR_BASE_DIR), uuid, '.env', 'OPENSHIFT_GEAR_DNS')
+      path = PathUtils.join(@config.get('GEAR_BASE_DIR', '/var/lib/openshift'), uuid, '.env', 'OPENSHIFT_GEAR_DNS')
       unless File.file? path
         Syslog.warning("watchman unable to determine application setup for gear #{uuid}. #{path} missing.")
       end
