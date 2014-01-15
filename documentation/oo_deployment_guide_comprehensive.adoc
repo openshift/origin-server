@@ -567,14 +567,14 @@ DNS1=10.4.59.x
 ----
 
 ==== Set the host name for your server
-You need to set the hostname of your broker host.  We need to change this to 
-reflect the new hostname that we are going to apply to this server. For this 
+You need to set the hostname of your broker host.  We need to change this to
+reflect the new hostname that we are going to apply to this server. For this
 chapter, we will be using broker.example.com.
 
 .RHEL6
 ====
-In order to accomplish this task, edit the _/etc/sysconfig/network_ file 
-and locate the section labeled _HOSTNAME_. The line that you want to 
+In order to accomplish this task, edit the _/etc/sysconfig/network_ file
+and locate the section labeled _HOSTNAME_. The line that you want to
 replace should look like this:
 
 ----
@@ -768,7 +768,7 @@ In order to start the mongo shell, enter the following command:
 mongo admin
 ----
 
-You should see a confirmation message that you are using MongoDB shell version: x.x.x and that you are connecting to the admin database. 
+You should see a confirmation message that you are using MongoDB shell version: x.x.x and that you are connecting to the admin database.
 Authenticate against the database with the user you created above.
 
 ----
@@ -784,9 +784,9 @@ show dbs
 You will then be presented with a list of valid databases that are currently available to the mongod service.
 
 ----
-admin	0.0625GB
-local	0.03125GB
-openshift_broker_dev	0.0625GB
+admin   0.0625GB
+local   0.03125GB
+openshift_broker_dev    0.0625GB
 ----
 
 To exit the Mongo shell, you can simply type exit:
@@ -925,7 +925,7 @@ Under the provided configuration instructions, the ActiveMQ console is only avai
 * Add a rule to your firewall configuration
 ====
 
-For example, the following command adds a rule to your firewall to allow connections to the ActiveMQ console. 
+For example, the following command adds a rule to your firewall to allow connections to the ActiveMQ console.
 
 *Execute the following on the ActiveMQ host.*
 
@@ -1061,7 +1061,7 @@ yum install -y openshift-origin-broker openshift-origin-broker-util \
               rubygem-openshift-origin-dns-avahi \
               rubygem-openshift-origin-dns-nsupdate \
               rubygem-openshift-origin-dns-route53 \
-              rubygem-passenger mod_passenger 
+              rubygem-passenger mod_passenger
 ----
 
 NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
@@ -1375,7 +1375,7 @@ OpenShift Origin supports various different authentication systems for authorizi
 Using Basic Auth, you need to copy the sample configuration file to the actual configuration file:
 
 ----
-cp /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user-basic.conf.sample /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf 
+cp /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user-basic.conf.sample /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf
 ----
 
 This configuration file specifies that the _AuthUserFile_ is located at _/etc/openshift/htpasswd_. At this point, that file doesn't exist, so you will need to create it and add a user named _demo_.
@@ -1901,7 +1901,7 @@ ssh -i /root/.ssh/rsync_id_rsa root@broker.example.com
 ----
 
 === Configure DNS Resolution on the Node
-Now you need to configure the node host to use the BIND server that was installed and configured on the broker application host. This is a fairly straightforward process of adding the IP address of the DNS server to the _/etc/resolv.conf_ on the node host. 
+Now you need to configure the node host to use the BIND server that was installed and configured on the broker application host. This is a fairly straightforward process of adding the IP address of the DNS server to the _/etc/resolv.conf_ on the node host.
 
 NOTE: You can skip this section if you are build a all-in-one environment.
 
@@ -1935,7 +1935,7 @@ PEERDNS="no"
 DNS1=10.4.59.x
 ----
 
-Now set the hostname for node host to correctly reflect node.example.com. 
+Now set the hostname for node host to correctly reflect node.example.com.
 
 .RHEL6
 ====
@@ -2055,7 +2055,7 @@ EOF
 
 Update the _plugin.activemq.pool.1.password_ password to match what you set up in the active configuration.
 
-On Fedora 19, Update the systemd service file to manage only the mcollective process. This prevents gears spawned from the process from being shut down if you have to restart mcollective. 
+On Fedora 19, Update the systemd service file to manage only the mcollective process. This prevents gears spawned from the process from being shut down if you have to restart mcollective.
 Update the mcollective service file:
 
 .Fedora
@@ -2172,7 +2172,7 @@ yum install -y httpd
 Set the server hostname
 
 .All-in-one case
----- 
+----
 echo "ServerName broker.example.com" > /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
 ----
 
@@ -2206,7 +2206,7 @@ If setting up an all-in-one machine, create broker and console routes in the nod
 ----
 cat <<EOF > /tmp/nodes.broker_routes.txt
 __default__ REDIRECT:/console
-__default__/console TOHTTPS:127.0.0.1:8118/console               
+__default__/console TOHTTPS:127.0.0.1:8118/console
 __default__/broker TOHTTPS:127.0.0.1:8080/broker
 EOF
 
@@ -2568,7 +2568,7 @@ The OpenShift Origin node requires several SELinux boolean values to be set in o
 | httpd_execmem             | Allow httpd to execute programs that require memory addresses that are both executable and writeable
 | httpd_unified             | Allow the broker to write files in the "http" file context
 | httpd_can_network_connect | Allow the broker application to access the network
-| httpd_can_network_relay   | Allow the SSL termination Apache instance to access the backend Broker application 
+| httpd_can_network_relay   | Allow the SSL termination Apache instance to access the backend Broker application
 | httpd_read_user_content   | Allow the node to read application data
 | httpd_enable_homedirs     | Allow the node to read application data
 | allow_polyinstantiation   | Allow polyinstantiation for gear containment
@@ -2689,7 +2689,7 @@ Edit the _/etc/openshift/node.conf_ file and *specify the correct settings for y
 PUBLIC_HOSTNAME="node.example.com"            # The node host's public hostname
 PUBLIC_IP="10.4.59.y"                         # The node host's public IP address
 BROKER_HOST="broker.example.com"              # IP or DNS name of broker host for REST API
-EXTERNAL_ETH_DEV='enp0s5'					  # Update to match name of external network device
+EXTERNAL_ETH_DEV='enp0s5'                     # Update to match name of external network device
 ----
 
 .All-In-One Setup
@@ -2697,7 +2697,7 @@ EXTERNAL_ETH_DEV='enp0s5'					  # Update to match name of external network devic
 PUBLIC_HOSTNAME="broker.example.com"          # The node host's public hostname
 PUBLIC_IP="10.4.59.x"                         # The node host's public IP address
 BROKER_HOST="broker.example.com"              # IP or DNS name of broker host for REST API
-EXTERNAL_ETH_DEV='enp0s5'					  # Update to match name of external network device
+EXTERNAL_ETH_DEV='enp0s5'                     # Update to match name of external network device
 ----
 
 NOTE: Ensure that EXTERNAL_ETH_DEV and PUBLIC_IP have accurate values or node will be unable to create gears
