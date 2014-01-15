@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.8
+Version: 1.19.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
+- Merge pull request #4436 from bparees/jenkins_dl_cart
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 995807 - Jenkins builds fail on downloadable cartridges
+  (bparees@redhat.com)
+
 * Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
 - Merge pull request #4474 from
   liggitt/bug_1053099_write_downloadable_manifest_before_validating
