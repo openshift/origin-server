@@ -8,8 +8,11 @@
       %h3
         = link_to type.display_name, application_type_path(type), :class => 'tile-target'
 
-        - if type.usage_rates?
-          = usage_rate_indicator
+    .tile-table-cell
+      - if type.cartridge?
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
+      - elsif type.quickstart?
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
 
   = show_description type.description
 
@@ -18,20 +21,34 @@
   - elsif type.website
     %p.help-block= link_to type.website, type.website
 
-  %p
-    - case type.support_type
-    - when :openshift
-      %span.icon-star-empty{"aria-hidden" => "true"}
-      %span.label-support.label-support-openshift{:title => 'Updated and maintained by the OpenShift team'} OpenShift maintained
-    - when :partner
-      %span.label-support.label-support-openshift{:title => 'Updated and maintained by a partner'} Partner created
-    - else
-      %span.label-support.label-support-community.text-warning{:title => 'Created by a community member and not maintained by OpenShift'} Community created
+  .tile-meta
+    %dl{:class => 'font-icon-legend'}
+      - if type.support_type == :openshift
+        %dt
+          %span.icon-star-empty{"aria-hidden" => "true", :title => "OpenShift maintained"}
+        %dd{:title => 'Updated and maintained by the OpenShift team'} OpenShift maintained
+    
+      - if type.automatic_updates?
+        %dt
+          %span.icon-shield{"aria-hidden" => "true", "title" => "Security updates"}
+        %dd 
+          Receives automatic security updates
+
+      - if type.usage_rates?
+        %dt
+          %span.icon-dollar.label-premium{"aria-hidden" => "true", "title" => "Usage rates"}
+        %dd 
+          May include additional usage fees at certain levels, see plan for details.
+
+
+    - if type.support_type == :partner
+      %div{:title => 'Updated and maintained by a partner'} Partner created
+    - elsif type.support_type != :openshift
+      %div.label-support.label-support-community.text-warning{:title => 'Created by a community member and not maintained by OpenShift'} Community created
 
     - unless type.automatic_updates?
-      %span.text-warning{:title => 'When you create a QuickStart or a community cartridge, you are copying code from another repository. You are responsible for applying security fixes and updates.'}
-        =" / Does not receive automatic security updates"
-
+      %div.text-warning{:title => 'When you create a QuickStart or a community cartridge, you are copying code from another repository. You are responsible for applying security fixes and updates.'}
+        =" Does not receive automatic security updates"
 
   - if type.tags.include? :in_development
     %p This type is development only and will not be accessible in production

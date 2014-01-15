@@ -14,3 +14,11 @@
 
       - if type.tags.include?(:in_development)
         %p This type is in development and will not be visible in production.
+    .tile-table-cell
+      - if type.automatic_updates?
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee50", "title" => "Receives automatic security updates"}
+
+      - if type.cartridge?
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
+      - elsif type.quickstart?
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}

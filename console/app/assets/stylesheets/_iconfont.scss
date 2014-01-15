@@ -125,13 +125,29 @@ h5.alert-heading {
 }
 
 dl.font-icon-legend {
-  margin: 5px 0 0 40px;
-  
+  margin: 0;
+  position: relative;
   dd {
-    margin: 0 0 25px 18px;
+    margin: 0 0 3px 23px;
+    font-size: $smallFontSize;
+    b {
+      font-weight: 600;
+    }
   }
-  dt .font-icon {
-    margin: 0 15px 0 -20px;
-    font-size: $leadFontSize;
+  dt {
+    position: absolute;
+    text-align: center;
+    width: 15px;
+    font-size: $smallFontSize;
+    color: $grayMedium;
+  }
+  &.font-icon-legend-large {
+    dd {
+      margin: 0 0 10px 28px;
+      font-size: $baseFontSize;
+    }
+    dt {
+      font-size: $baseFontSize;
+    }
   }
 }
