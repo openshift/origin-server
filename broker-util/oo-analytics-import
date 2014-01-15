@@ -1,6 +1,7 @@
 #!/usr/bin/oo-ruby
 
 # Utiltity to import the mongo database into json documents containing analytics data for applications
+# Existing documents in the collection are removed before the import
 infile = nil
 if ARGV.include? "--infile"
   index = ARGV.index("--infile")
@@ -10,6 +11,7 @@ end
 if infile.nil? 
   puts "Synopsis:"
   puts "Utiltity to import json documents containing analytics data for applications into mongo database" 
+  puts "Existing documents in the collection are removed before the import" 
   puts "Usage :"
   puts "  #{__FILE__} --infile <filename>" 
   exit 1
@@ -36,6 +38,9 @@ end
 files = [['analytics.apps.json', 'applications'], ['analytics.domains.json','domains'], ['analytics.usage.json', 'usage'], ['analytics.users.json', 'cloud_users']]
 
 files.each do |file, collection|
+    puts
+    puts "Cleaning up existing documents in collection [#{collection}]"
+    analytics_db.collection(collection).remove()
     puts
     puts "Running mongoimport on file [#{file}] on collection [#{collection}]"
     cmd = "mongoimport --username #{u} --password #{p} --host #{hp} --file /tmp/tmp/analytics/#{file} --db analytics --collection #{collection} --upsert"
