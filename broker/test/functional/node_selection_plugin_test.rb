@@ -13,7 +13,7 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     @@server_id = `oo-mco ping`.chomp.split(" ")[0]
   end
 
-  def self.select_best_fit_node_impl(node_list, app_props, current_gears, comp_list, user_props)
+  def self.select_best_fit_node_impl(node_list, app_props, current_gears, comp_list, user_props, request_time)
     raise Exception.new("Node list is empty") if node_list.empty?
     raise Exception.new("Node expected: #{@@server_id}; Node found: #{node_list[0].name}") if node_list[0].name != @@server_id
     
@@ -32,6 +32,8 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     raise Exception.new("Component count mismatch") if comp_list.length != 1
     raise Exception.new("Cartridge name mismatch") if comp_list[0].cartridge_name != @@cart_name
     raise Exception.new("Component name mismatch") if comp_list[0].component_name != @@comp_name
+
+    raise Exception.new("Request time not specified") if request_time.nil?
 
     return NodeProperties.new("serverid")
   end

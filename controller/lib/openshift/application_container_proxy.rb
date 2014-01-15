@@ -55,7 +55,11 @@ module OpenShift
           comp_list = gear.component_instances.map {|ci| ComponentProperties.new(ci)}
         end
 
-        node = @node_selector.select_best_fit_node_impl(node_list, app_props, current_gears, comp_list, user_props)
+        # sending the request time to the plugin
+        # since the request is processed inline currently, sending Time.now for now
+        # later, if asynchronous request processing is performed, we will store the request time and pass it along 
+        request_time = Time.now
+        node = @node_selector.select_best_fit_node_impl(node_list, app_props, current_gears, comp_list, user_props, request_time)
         server_id = node.name
         district = District.find_by(:_id => node.district_id) if node.district_id
       end
