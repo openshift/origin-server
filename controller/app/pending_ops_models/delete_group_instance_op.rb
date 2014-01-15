@@ -2,6 +2,7 @@ class DeleteGroupInstanceOp < PendingAppOp
 
   field :group_instance_id, type: String
 
+  # this op is being phased out - we perform this functionality in DeleteGearOp
   def execute
     begin
       group_instance = get_group_instance()

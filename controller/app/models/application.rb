@@ -1643,15 +1643,6 @@ class Application
     unsubscribe_conn_ops = []
     comp_specs.each do |comp_spec|
       comp_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
-      remove_ssh_keys = self.app_ssh_keys.find_by(component_id: comp_instance._id) rescue []
-      remove_ssh_keys = [remove_ssh_keys].flatten
-      if remove_ssh_keys.length > 0
-        keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
-        op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
-      end
-      domain.remove_system_ssh_keys(comp_instance._id)
-      domain.remove_env_variables(comp_instance._id)
       unsubscribe_conn_ops.push(UnsubscribeConnectionsOp.new(sub_pub_info: get_unsubscribe_info(comp_instance), prereq: gear_destroy_op_ids))
     end
     pending_ops.push(*unsubscribe_conn_ops)
@@ -1767,14 +1758,6 @@ class Application
       ops.push(unreserve_uid_op)
       ops.push(delete_gear_op)
       ops.push(track_usage_op)
-
-      remove_ssh_keys = self.app_ssh_keys.find_by(component_id: gear_id) rescue []
-      remove_ssh_keys = [remove_ssh_keys].flatten
-      if remove_ssh_keys.length > 0
-        keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
-        op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
-      end
 
       pending_ops.push *ops
       if additional_filesystem_gb != 0
@@ -1956,15 +1939,6 @@ class Application
             usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: [op._id.to_s])) if cartridge.is_premium?
         end
       end
-      remove_ssh_keys = self.app_ssh_keys.find_by(component_id: component_instance._id) rescue []
-      remove_ssh_keys = [remove_ssh_keys].flatten
-      if remove_ssh_keys.length > 0
-        keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
-        op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
-      end
-      domain.remove_system_ssh_keys(component_instance._id)
-      domain.remove_env_variables(component_instance._id)
       op = DeleteCompOp.new(comp_spec: comp_spec, prereq: ops.map{|o| o._id.to_s})
       ops.push op
       ops.push(UnsubscribeConnectionsOp.new(sub_pub_info: get_unsubscribe_info(component_instance), prereq: [op._id.to_s]))
