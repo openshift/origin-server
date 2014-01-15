@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.18.6
+Version: 1.18.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.18.7-1
+- Merge pull request #4436 from bparees/jenkins_dl_cart
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 995807 - Jenkins builds fail on downloadable cartridges
+  (bparees@redhat.com)
+
 * Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.18.6-1
 - Bug 1051833 - PathUtils.flock() not removing lock file (jhonce@redhat.com)
 
