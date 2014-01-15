@@ -351,6 +351,7 @@ function tidy() {
   client_message "Emptying log dir: $OPENSHIFT_JBOSSAS_LOG_DIR"
   shopt -s dotglob
   rm -rf $OPENSHIFT_JBOSSAS_LOG_DIR/*
+  rm -rf $OPENSHIFT_JBOSSAS_DIR/standalone/tmp/*
 }
 
 function threaddump() {
