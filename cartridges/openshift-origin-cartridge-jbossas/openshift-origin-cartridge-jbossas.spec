@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.19.4
+Version: 1.19.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,9 @@ fi
 
 
 %changelog
+* Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
+- Fix bug 916388: clean jboss* tmp dirs during tidy (pmorie@gmail.com)
+
 * Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
 - Merge pull request #4455 from bparees/ds_reconnect
   (dmcphers+openshiftbot@redhat.com)
