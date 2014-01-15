@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.12.4
+Version: 2.12.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,15 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 2.12.5-1
+- Merge pull request #4476 from pmorie/bugs/916388
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4422 from bparees/jboss_log_trim
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 916388: clean jboss* tmp dirs during tidy (pmorie@gmail.com)
+- switch to size rotating log file handler instead of periodic rotating file
+  handler (bparees@redhat.com)
+
 * Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 2.12.4-1
 - Merge pull request #4455 from bparees/ds_reconnect
   (dmcphers+openshiftbot@redhat.com)
