@@ -41,7 +41,7 @@ LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
 
 
   # Broker auth based on iv/token generated and verified by broker
-  SetEnvIf broker_auth_key "^[A-Za-z0-9+/=]*$" BROKER_AUTH=1
+  SetEnvIf broker_auth_key "^[A-Za-z0-9+/=]+$" BROKER_AUTH=1
 
   <IfVersion >= 2.4>
     Require env BROKER_AUTH

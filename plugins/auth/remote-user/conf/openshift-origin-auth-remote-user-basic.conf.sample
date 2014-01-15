@@ -33,7 +33,7 @@ LoadModule authz_user_module modules/mod_authz_user.so
   </IfVersion>
 
   # Broker auth based on iv/token generated and verified by broker
-  SetEnvIf broker_auth_key "^[A-Za-z0-9+/=]*$" BROKER_AUTH=1
+  SetEnvIf broker_auth_key "^[A-Za-z0-9+/=]+$" BROKER_AUTH=1
 
   <IfVersion >= 2.4>
     Require env BROKER_AUTH
