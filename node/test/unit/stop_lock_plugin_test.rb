@@ -1,0 +1,52 @@
+#--
+# Copyright 2014 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require_relative '../test_helper'
+
+require 'date'
+require_relative '../../../node-util/conf/watchman/plugins.d/stop_lock_plugin'
+
+class StopLockPluginTest < OpenShift::NodeBareTestCase
+  def setup
+    Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
+
+    @uuid = '461815c0d97e4c94b77b1713dba0901d'
+    @gears = mock
+    @gears.expects(:each).yields(@uuid)
+  end
+
+  def test_assert_stoplock_stopped
+    @gears.expects(:stop_lock?).with(@uuid).returns(true)
+    @gears.expects(:running?).with(@uuid).returns(false)
+
+    StopLockPlugin.new(nil, @gears, nil).apply
+  end
+
+  def test_assert_stoplock_running
+    @gears.expects(:stop_lock?).with(@uuid).returns(true)
+    @gears.expects(:running?).with(@uuid).returns(true)
+    @gears.expects(:stop_lock).with(@uuid).returns('/never/create/this/file/please')
+    @gears.expects(:state).with(@uuid).returns('started')
+
+    StopLockPlugin.new(nil, @gears, nil).apply
+  end
+
+  def test_refute_stoplock
+    @gears.expects(:stop_lock?).with(@uuid).returns(false)
+
+    StopLockPlugin.new(nil, @gears, nil).apply
+  end
+end

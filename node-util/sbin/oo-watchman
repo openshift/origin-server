@@ -1,0 +1,304 @@
+#!/usr/bin/env oo-ruby
+
+require 'rubygems'
+require 'date'
+require 'forwardable'
+require 'open4'
+require 'parseconfig'
+require 'syslog'
+require 'thread'
+require 'openshift-origin-node'
+require 'openshift-origin-node/utils/environ'
+require 'openshift-origin-node/utils/node_logger'
+require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/model/watchman/watchman_plugin'
+
+GEAR_BASE_DIR       = '/var/lib/openshift'
+GEAR_GECOS          = 'OpenShift guest'
+OPENSHIFT_CONF_DIR  = '/etc/openshift'
+WATCHMAN_PLUGIN_DIR = '/etc/openshift/watchman/plugins.d'
+
+module OpenShift
+  module Runtime
+
+    # Provides framework for monitoring gears on node.  Plugins provide the actual business logic.
+    class Watchman
+
+      attr_reader :logger, :config, :epoch, :gears, :incidents
+
+      # @param config [Config] elements from node.conf
+      # @param gears [CachedGears] collection of running gears on node
+      # @period_seconds [Integer] amount of time to wait between checks
+      def initialize(config, gears, period_seconds = 20)
+        @config    = config
+        @logger    = logger(config)
+        @period    = period_seconds
+        @gears     = gears
+        @incidents = {}
+
+        Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
+
+        plugin_dir   = @config.get('WATCHMAN_PLUGIN_DIR', WATCHMAN_PLUGIN_DIR)
+        plugin_files = Dir.glob(PathUtils.join(plugin_dir, '*')).find_all { |e| File.file?(e) }
+
+        raise "No plugins for Watchman found in #{plugin_dir}. Watchman shutting down." if plugin_files.nil? || plugin_files.empty?
+        Syslog.debug("Watchman found plugins: #{plugin_files.join(', ')}")
+
+        plugin_files.each { |p| require p }
+        @plugins = WatchmanPlugin.repository.collect do |plugin|
+          begin
+            plugin.new(@config,
+                       @gears,
+                       lambda { |uuid, timestamp| cache_incident(uuid, timestamp) })
+          rescue Exception => e
+            Syslog.warning("Failed to instantiate Watchman Plugin #{plugin}")
+          end
+        end
+
+        Syslog.info("Starting Watchman => delay: #{period_seconds}s")
+      end
+
+      # loop through plugins until stopped
+      # @return [] never
+      def apply
+        loop do
+          @plugins.each do |plugin|
+            begin
+              plugin.apply
+            rescue Exception => e
+              msg = "Unhandled exception (#{e}) from Watchman plugin #{plugin}: #{e.message}"
+              Syslog.notice(msg)
+              logger.debug(%Q{#{msg}\n#{e.backtrace.join("\n")}})
+            end
+          end
+
+          sleep (case
+                   when @gears.total_count == 0 || @gears.count == 0
+                     @period
+                   when (@gears.total_count / @gears.count) > 2
+                     # Increase the delay if more than half the gears running on node
+                     @period * 3
+                   else
+                     @period
+                 end)
+        end
+      end
+
+      # Instantiate a NodeLogger
+      #
+      # @param [Config] elements from node.conf
+      # @return [NodeLogger] Properly configured NodeLogger for Watchman to use
+      def logger(config)
+        logger_profiles = {
+            standard: {
+                file_config:   'WATCHMAN_CGROUPS_LOG_FILE',
+                level_config:  'WATCHMAN_CGROUPS_LOG_LEVEL',
+                default_file:  PathUtils.join(File::SEPARATOR, %w{var log openshift node cgroups.log}),
+                default_level: Logger::INFO
+            },
+            trace:    {
+                file_config:   'WATCHMAN_CGROUPS_TRACE_LOG_FILE',
+                level_config:  'WATCHMAN_CGROUPS_TRACE_LOG_LEVEL',
+                default_file:  PathUtils.join(File::SEPARATOR, %w{var log openshift node cgroups-trace.log}),
+                default_level: Logger::ERROR
+            }
+        }
+
+        logger = NodeLogger::SplitTraceLogger.new(config, NodeLogger.context, logger_profiles)
+
+        NodeLogger.set_logger(logger)
+        logger
+      end
+
+      # Record incident and restart gear if appropriate
+      #
+      # @param uuid [String] gear identifier
+      # @param timestamp [DateTime] of incident
+      def cache_incident(uuid, timestamp)
+        if @incidents.has_key?(uuid)
+          # Only restart, if this death is newer that last death...
+          if @incidents[uuid][:last_updated] < timestamp
+            restart(uuid)
+            @incidents[uuid] = {last_updated: timestamp}
+          end
+        else
+          # First death. Restart and move on...
+          @incidents[uuid] = {last_updated: timestamp}
+          restart(uuid)
+        end
+      end
+
+      # Conditionally restart gear
+      # Don't restart if application has been marked down
+      #
+      # @param uuid [String] gear identifier
+      def restart(uuid)
+        file = PathUtils.join(@config.get('GEAR_BASE_DIR', GEAR_BASE_DIR), uuid, '.env', 'OPENSHIFT_GEAR_NAME')
+        name = IO.read(file).chomp rescue '(Unknown)'
+
+        restart_gear = lambda do
+          Utils.oo_spawn(%Q{/usr/sbin/oo-admin-ctl-gears restartgear #{uuid}})
+          Syslog.info("watchman restarted user #{uuid}: application #{name}")
+        end
+
+        begin
+          restart_gear if @gears.running?(uuid)
+        rescue Errno::ENOENT
+          # .state file missing is there a stop_lock?
+          restart_gear unless @gears.stop_lock?(uuid)
+        end
+      end
+    end
+
+
+    # Provide a read-through cache of node.conf file
+    class CachedConfig
+      include Enumerable
+      extend Forwardable
+
+      attr_reader :last_updated
+
+      def_delegators :@config, :keys, :has_key?
+
+      # @param path [String] path to node.conf
+      def initialize(path)
+        @path   = path
+        @config = {}
+        @mutex  = Mutex.new
+        import_config()
+      end
+
+      # get value for key from node.conf element
+      # @param key [String] the key to retrieve
+      # @param default [String] the default value if key not found
+      # @return [String] the value for key
+      def get(key, default = nil)
+        import_config()
+        @config.has_key?(key) ? @config[key] : default
+      end
+
+      # update cache if node.conf has changed
+      # @param force [true, false] Force cache update
+      def import_config(force = false)
+        updated = File.stat(@path).mtime
+        @mutex.synchronize {
+          return if @last_updated == updated && !force
+          @last_updated = updated
+
+          c = ParseConfig.new(@path)
+          c.get_params.each do |key|
+            val = c[key]
+            if val.nil?
+              add(key, nil)
+            else
+              val.gsub!(/\\:/, ':')
+              val.gsub!(/[ \t]*#[^\n]*/, '')
+              val          = val[1..-2] if val.start_with? "\""
+              val          = val[1..-2] if val.start_with? "\'"
+              @config[key] = val
+            end
+          end
+        }
+      end
+    end
+
+    # Provide a read-through cache of running login id's for gears from passwd file
+    #
+    # @see Array
+    # @see Enumerable
+    # @see Forwardable
+    class CachedGears
+      include Enumerable
+      extend Forwardable
+
+      # @!attribute [r] last_updated
+      #   @return [Fixnum] the DateTime when cache last updated
+      attr_reader :last_updated
+
+      # @!attribute [r] total_count
+      #   @return [Fixnum] total number of gears on node
+      attr_reader :total_count
+
+      def_delegators :@gears, :length, :empty?, :include?, :[], :count
+
+      # @param config [Config] node configuration
+      # @param passwd [String] path to passwd file
+      def initialize(config, passwd = '/etc/passwd')
+        @config      = config
+        @gears       = []
+        @total_count = 0
+        @passwd      = passwd
+        @mutex       = Mutex.new
+        import_gears()
+      end
+
+      # @param block [Block] block to execute for each gear
+      def each(&block)
+        return enum_for(__method__) if block.nil?
+
+        import_gears()
+        @gears.each(&block)
+      end
+
+      # Does gear have a stop lock file?
+      # @param uuid [String] gear login id to check
+      # @return [true, false] true if stop lock exists
+      def stop_lock?(uuid)
+        File.exists?(stop_lock(uuid))
+      end
+
+      # @param uuid [String] gear login id
+      # @return [String] Path to gear's stop lock file
+      def stop_lock(uuid)
+        PathUtils.join(@config.get('GEAR_BASE_DIR', GEAR_BASE_DIR), uuid, 'app-root', 'runtime', '.stop_lock')
+      end
+
+      # Is gear running?
+      # @param uuid [String] gear login id to check
+      # @return [true, false] return true if gear status is running
+      def running?(uuid)
+        state = state(uuid)
+        not ('idle' == state || 'stopped' == state)
+      end
+
+      # get gear state
+      # @param uuid [String] gear login id to check
+      # @return [String] gear state
+      def state(uuid)
+        file = PathUtils.join(@config.get('GEAR_BASE_DIR', GEAR_BASE_DIR), uuid, 'app-root', 'runtime', '.state')
+        IO.read(file).chomp.downcase rescue 'unknown'
+      end
+
+      # update cache if passwd has changed
+      # @param force [true, false] Force cache update
+      def import_gears(force = true)
+        updated = File.stat(@passwd).mtime
+        @mutex.synchronize do
+          return if @last_updated == updated && !force
+          @last_updated = updated
+
+          gecos         = @config.get('GEAR_GECOS', GEAR_GECOS)
+          results, _, _ = Utils.oo_spawn(%Q{/bin/grep '#{gecos}' #{@passwd} | cut -d: -f1},
+                                         expected_exitstatus: 0)
+
+          if results.nil? or results.empty?
+            @gears.clear
+            @total_count = 0
+          else
+            ids          = results.split("\n")
+            @gears       = ids.find_all { |gear| running?(gear) }
+            @total_count = ids.length
+          end
+        end
+      end
+    end
+  end
+end
+
+conf_dir       = ENV['OPENSHIFT_CONF_DIR'] || OPENSHIFT_CONF_DIR
+node_conf_file = PathUtils.join(conf_dir, 'node.conf')
+
+config = OpenShift::Runtime::CachedConfig.new(node_conf_file)
+gears  = OpenShift::Runtime::CachedGears.new(config, '/etc/passwd')
+OpenShift::Runtime::Watchman.new(config, gears).apply
+
