@@ -30,10 +30,11 @@ module OpenShift
   end
 
   class UserException < OpenShift::OOException
-    attr_accessor :field
-    def initialize(msg, code=nil, field=nil, resultIO=nil)
+    attr_accessor :field, :response_code
+    def initialize(msg, code=nil, field=nil, resultIO=nil, response_code=nil)
       super(msg, code, resultIO)
       @field = field
+      @response_code = response_code
     end
   end
   #Not used removing class UserKeyException < OpenShift::OOException; end

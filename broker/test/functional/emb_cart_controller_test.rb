@@ -19,22 +19,18 @@ class EmbCartControllerTest < ActionController::TestCase
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
     @namespace = "ns#{@random}"
-    @domain = Domain.new(namespace: @namespace, owner:@user)
+    @domain = Domain.new(namespace: @namespace, owner: @user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
-    @app.save
+    (@app = Application.new(name: @app_name, domain: @domain)).add_initial_cartridges(cartridge_instances_for(:php))
   end
 
   def teardown
-    begin
-      @user.force_delete
-    rescue
-    end
+    @user.force_delete rescue nil
   end
 
   test "embedded cartridge create show list and destroy by domain and app name" do
-    name = MYSQL_VERSION
+    name = mysql_version
     post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
     get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -46,7 +42,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "embedded cartridge create show list and destroy by app id" do
-    name = MYSQL_VERSION
+    name = mysql_version
     post :create, {"name" => name, "application_id" => @app.id}
     assert_response :created
     get :show, {"id" => name, "application_id" => @app.id}
@@ -58,7 +54,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "no app name" do
-    name = MYSQL_VERSION
+    name = mysql_version
     post :create, {"name" => name, "domain_id" => @domain.namespace}
     assert_response :not_found
     get :show, {"id" => name, "domain_id" => @domain.namespace}
@@ -72,7 +68,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "no app id" do
-    name = MYSQL_VERSION
+    name = mysql_version
     post :create, {"name" => name}
     assert_response :not_found
     get :show, {"id" => name}
@@ -86,7 +82,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "no domain id" do
-    name = MYSQL_VERSION
+    name = mysql_version
     post :create, {"name" => name, "application_id" => @app.name}
     assert_response :not_found
     get :show, {"id" => name, "application_id" => @app.name}
@@ -123,7 +119,7 @@ class EmbCartControllerTest < ActionController::TestCase
 
   test "invalid cartridge id by domain and app name" do
     post :create, {"domain_id" => @domain.namespace, "application_id" => @app.name, "name" => "bogus"}
-    assert_response :not_found
+    assert_response :unprocessable_entity
     get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :not_found
     put :update, {"domain_id" => @domain.namespace, "application_id" => @app.name, "additional_gear_storage" => 10}
@@ -144,14 +140,14 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "destroy web_framework cartridge" do
-    delete :destroy , {"id" => PHP_VERSION, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    delete :destroy , {"id" => php_version, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
-    delete :destroy , {"id" => PHP_VERSION, "application_id" => @app.id}
+    delete :destroy , {"id" => php_version, "application_id" => @app.id}
     assert_response :unprocessable_entity
   end
 
   test "get embedded cartridge in all versions" do
-    name = MYSQL_VERSION
+    name = mysql_version
     post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
     assert json = JSON.parse(response.body)
@@ -162,9 +158,9 @@ class EmbCartControllerTest < ActionController::TestCase
       assert_response :ok, "Getting embedded cartridge for version #{version} failed"
     end
   end
-  
-  test "attempt to add obsolete cartridge" do
-    
+
+  def test_attempt_to_add_obsolete_cartridge
+    Rails.cache.clear
     carts = []
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "redhat"
@@ -173,8 +169,8 @@ class EmbCartControllerTest < ActionController::TestCase
     cart.version = "1.0"
     cart.obsolete = true
     cart.categories = ["embedded"]
-    
     carts << cart
+
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "redhat"
     cart.name = "emb-cart-1.0"
@@ -182,11 +178,11 @@ class EmbCartControllerTest < ActionController::TestCase
     cart.version = "1.1"
     cart.categories = ["embedded"]
     carts << cart
-    
-    CartridgeCache.stubs(:get_all_cartridges).returns(carts) 
-    
+    CartridgeCache.stubs(:get_all_cartridges).returns(carts)
+
     post :create, {"name" => "emb-cart-1.0", "application_id" => @app.id}
     assert_response :unprocessable_entity
+  ensure
+    Rails.cache.clear
   end
-
 end

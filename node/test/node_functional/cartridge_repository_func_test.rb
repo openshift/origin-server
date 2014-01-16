@@ -334,7 +334,7 @@ module OpenShift
         cartridge = ::OpenShift::Runtime::Manifest.new(manifest)
       end
 
-      assert_match /is reserved\.: 'Name'/, err.message
+      assert_match /Name 'git' is reserved\./, err.message
     end
 
     #def test_reserved_cartridge_name

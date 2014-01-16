@@ -27,7 +27,8 @@ class BrokerAuthTest < Test::Unit::TestCase
     app.expects(:created_at).at_least_once.returns(t)
     app.expects(:owner).returns(user)
     app.expects(:requires).returns(carts)
-    app.stubs(:downloaded_cartridges).returns({})
+    app.stubs(:downloaded_cartridge_instances).returns({})
+    app.stubs(:cartridge_instances).returns({})
 
     Application.expects(:find).with(app._id).returns(app)
 
@@ -65,7 +66,8 @@ class BrokerAuthTest < Test::Unit::TestCase
     app.stubs(:name).returns("foo")
     app.expects(:created_at).at_least_once.returns(t)
     app.expects(:requires).returns(['jenkins-1'])
-    app.expects(:downloaded_cartridges).returns({})
+    app.expects(:downloaded_cartridge_instances).returns({})
+    app.stubs(:cartridge_instances).returns({})
 
     Application.expects(:find_by_user).with(user, "foo").at_least_once.returns(app)
     CloudUser.expects(:find_by_identity).at_least_once.returns(user)

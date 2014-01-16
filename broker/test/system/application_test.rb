@@ -54,7 +54,7 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     assert_equal(body["messages"][0]["exit_code"], 101)
 
     # create an application under the user's domain
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version}, @headers)
     assert_response :created
 
     # query application list after application creation
@@ -63,7 +63,7 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     body = JSON.parse(@response.body)
     assert_equal(body["data"].length, 1)
     assert_equal(body["data"][0]["name"], "app1")
-    assert_equal(body["data"][0]["framework"], PHP_VERSION)
+    assert_equal(body["data"][0]["framework"], php_version)
     assert_equal(body["data"][0]["domain_id"], ns)
 
     # query application after creation
@@ -71,7 +71,7 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     assert_response :ok
     body = JSON.parse(@response.body)
     assert_equal(body["data"]["name"], "app1")
-    assert_equal(body["data"]["framework"], PHP_VERSION)
+    assert_equal(body["data"]["framework"], php_version)
     assert_equal(body["data"]["domain_id"], ns)
   end
 
@@ -79,7 +79,7 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     ns = "ns#{@random}"
 
     # create an application - without creating domain
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version}, @headers)
     assert_response :not_found
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 127)
@@ -107,25 +107,25 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     assert_equal(body["messages"][0]["exit_code"], 109)
 
     # create an application - and specify invalid node profile
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION, :gear_profile => "invalidprofile"}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version, :gear_profile => "invalidprofile"}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 134)
 
     # create an application - and specify invalid name
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app_name", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app_name", :cartridge => php_version}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 105)
 
     # create an application - and specify empty name
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "", :cartridge => php_version}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 105)
 
     # create an application - and specify long name
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app123456789012345678901234567890", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app123456789012345678901234567890", :cartridge => php_version}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 105)
@@ -138,30 +138,33 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     # create domain
     request_via_redirect(:post, DOMAIN_COLLECTION_URL, {:name => ns}, @headers)
     assert_response :created
+    assert_equal 0, Domain.find_by(namespace: ns).owner.consumed_gears
 
     #set gear limit
     system "oo-admin-ctl-user -l #{@login} --setmaxgears 3"
 
     # create application #1
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version}, @headers)
     assert_response :created
+    assert_equal 1, Domain.find_by(namespace: ns).owner.consumed_gears
 
     # try create another application with the same name
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 100)
+    assert_equal 1, Domain.find_by(namespace: ns).owner.consumed_gears
 
     # create application #2
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app2", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app2", :cartridge => php_version}, @headers)
     assert_response :created
 
     # create an application #3
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app3", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app3", :cartridge => php_version}, @headers)
     assert_response :created
 
     # create application #4
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app4", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app4", :cartridge => php_version}, @headers)
     assert_response :unprocessable_entity
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 104)
@@ -193,7 +196,7 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     assert_equal(body["messages"][0]["exit_code"], 101)
 
     # create application
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version}, @headers)
     assert_response :created
 
     # delete the application
@@ -215,7 +218,7 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create an application under the domain
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version}, @headers)
     assert_response :created
 
     #update application making sure only what is updated is changed

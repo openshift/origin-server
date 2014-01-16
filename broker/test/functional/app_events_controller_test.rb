@@ -10,6 +10,7 @@ class AppEventsControllerTest < ActionController::TestCase
     @password = "password"
     @user = CloudUser.new(login: @login)
     @user.private_ssl_certificates = true
+    @user.max_gears = 10
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
@@ -22,7 +23,7 @@ class AppEventsControllerTest < ActionController::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, nil, true)
+    @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain, nil, true)
     @app.save
 
     d1 = Deployment.new(deployment_id: "1", ref: "mybranch", created_at: Time.now, activations: [Time.now.to_f])
@@ -125,7 +126,7 @@ class AppEventsControllerTest < ActionController::TestCase
   test "thread-dump on a cartridge with threaddump hook" do
     #create an app with threaddump hook i.e. ruby-1.8 or jbossews-2.0
     app_name = "rubyapp#{@random}"
-    ruby_app = Application.create_app(app_name, [RUBY_VERSION], @domain, nil, true)
+    ruby_app = Application.create_app(app_name, cartridge_instances_for(:ruby), @domain, nil, true)
     ruby_app.save
     post :create, {"event" => "thread-dump", "domain_id" => @domain.namespace, "application_id" => ruby_app.name}
     assert_response :success

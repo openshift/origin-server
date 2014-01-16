@@ -44,7 +44,7 @@ class AliasTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create an application under the user's domain
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [@ns], {:name => @app, :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [@ns], {:name => @app, :cartridge => php_version}, @headers)
     assert_response :created
 
     #create alias with certificate
@@ -83,7 +83,7 @@ class AliasTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create an application under the user's domain
-    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [@ns], {:name => @app, :cartridge => PHP_VERSION}, @headers)
+    request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [@ns], {:name => @app, :cartridge => php_version}, @headers)
     assert_response :created
 
     # query alias list

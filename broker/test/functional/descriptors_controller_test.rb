@@ -22,7 +22,7 @@ class DescriptorsControllerTest < ActionController::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, nil, true)
+    @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain, nil, true)
     @app.save
   end
 

@@ -182,7 +182,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create an application under the user's domain
-    request_via_redirect(:post, DOMAIN_COLLECTION_URL + "/#{ns}/applications", {:name => "app1", :cartridge => PHP_VERSION, :nolinks => true}, @headers)
+    request_via_redirect(:post, DOMAIN_COLLECTION_URL + "/#{ns}/applications", {:name => "app1", :cartridge => php_version, :nolinks => true}, @headers)
     assert_response :created
 
     # update domain name
@@ -249,7 +249,7 @@ class DomainTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # create an application under the user's domain
-    request_via_redirect(:post, DOMAIN_COLLECTION_URL + "/#{ns}/applications", {:name => "app1", :cartridge => PHP_VERSION, :nolinks => true}, @headers)
+    request_via_redirect(:post, DOMAIN_COLLECTION_URL + "/#{ns}/applications", {:name => "app1", :cartridge => php_version, :nolinks => true}, @headers)
     assert_response :created
 
     # delete the domain without force option
