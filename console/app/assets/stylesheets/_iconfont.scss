@@ -140,6 +140,9 @@ dl.font-icon-legend {
     width: 15px;
     font-size: $smallFontSize;
     color: $grayMedium;
+    .label-premium {
+      @include usage_rate_indicator()
+    }
   }
   &.font-icon-legend-large {
     dd {
