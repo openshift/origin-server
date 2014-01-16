@@ -33,6 +33,17 @@
     .tile-table-cell {
       display: table-cell;
       vertical-align: middle;
+      &:last-child {
+        width: 45px;
+        text-align: right;
+        .font-icon {
+          font-size: 13px;
+          cursor: help;
+          &:last-child {
+            margin-left: 6px;
+          }
+        }
+      }
     }
     .font-icon.logo, .font-icon {
       font-size: $tileHeadingIconFontSize;
@@ -46,34 +57,40 @@
     }
     + p {
       margin-top: 3px;
+      font-size: inherit;
     }
+  }
+  .tile-meta {
+    font-size: $smallFontSize;
+    margin-bottom: $baseLineHeight / 2;
   }
   .tiles-featured & {
     padding: 15px 20px;
-    p {
-      font-size: inherit;
-    }
     .tile-table {
-      margin-bottom: 10px;
+      margin-bottom: $baseLineHeight / 2;
       .tile-table-cell {
         &:last-child {
           vertical-align: middle;
         }
         &:first-child {
           width: 60px;
-        }
-        .font-icon {
-          font-size: $tileLargeHeadingIconFontSize;
-          opacity: 0.30;
-          &[title="Quickstart"],
-          &[title="Cartridge"] {
-            @include iconfont-adjust()
+          .font-icon {
+            font-size: $tileLargeHeadingIconFontSize;
+            opacity: 0.30;
+            &[title="Quickstart"],
+            &[title="Cartridge"] {
+              @include iconfont-adjust()
+            }
           }
         }
       }
     }
     &:hover .tile-table .tile-table-cell .font-icon {
       opacity: .7;
+    }
+    .tile-meta {
+      font-size: $smallFontSize;
+      margin-bottom: $baseLineHeight / 2;
     }
   }
   &.application_type, &.embedded {
@@ -87,6 +104,10 @@
     .tile-table-cell {
       &:first-child {
         width:50px;
+      }
+      &:last-child {
+        width: auto;
+        text-align: left;
       }
       h3 {
         line-height: 1.2;
