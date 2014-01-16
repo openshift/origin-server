@@ -2853,6 +2853,11 @@ class Application
 
   def self.validate_user_env_variables(user_env_vars, no_delete=false)
     if user_env_vars.present?
+      begin
+        user_env_vars = YAML.load(user_env_vars)
+      rescue Exception => e
+        raise OpenShift::UserException.new("Invalid param format: expected YAML", 186, "environment_variables")
+      end
       if !user_env_vars.is_a?(Array) or !user_env_vars[0].is_a?(Hash)
         raise OpenShift::UserException.new("Invalid environment variables: expected array of hashes", 186, "environment_variables")
       end
@@ -2871,6 +2876,8 @@ class Application
         set_vars, unset_vars = sanitize_user_env_variables(user_env_vars)
         raise OpenShift::UserException.new("Environment variable deletion not allowed for this operation", 193, "environment_variables") unless unset_vars.empty?
       end
+
+      return user_env_vars
     end
   end
 

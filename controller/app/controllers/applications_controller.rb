@@ -80,7 +80,7 @@ class ApplicationsController < BaseController
     end
 
     user_env_vars = params[:environment_variables].presence
-    Application.validate_user_env_variables(user_env_vars, true)
+    user_env_vars = Application.validate_user_env_variables(user_env_vars, true)
 
     init_git_url = params[:initial_git_url].presence
     if init_git_url
