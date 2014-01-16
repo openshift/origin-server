@@ -201,9 +201,9 @@ def load_node_conf
       next unless $CONF.get(value).nil? || $CONF.get(value).empty?
       if value == "PORT_BEGIN" and !$CONF.get("PROXY_MIN_PORT_NUM").nil? || !$CONF.get("PROXY_MIN_PORT_NUM").empty?
         next
-      else if value == "UID_BEGIN" and !$CONF.get("GEAR_MIN_UID").nil? || !$CONF.get("GEAR_MIN_UID").empty?
+      elsif value == "UID_BEGIN" and !$CONF.get("GEAR_MIN_UID").nil? || !$CONF.get("GEAR_MIN_UID").empty?
         next
-      else if value == "PORTS_PER_USER" and !$CONF.get("PROXY_PORTS_PER_GEAR").nil? || !$CONF.get("PROXY_PORTS_PER_GEAR").empty?
+      elsif value == "PORTS_PER_USER" and !$CONF.get("PROXY_PORTS_PER_GEAR").nil? || !$CONF.get("PROXY_PORTS_PER_GEAR").empty?
         next
       else
         do_fail("SEVERE: in #{OpenShift::Config::NODE_CONF_FILE}, #{value} not defined")
