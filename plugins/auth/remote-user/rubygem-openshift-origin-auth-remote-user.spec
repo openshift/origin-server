@@ -105,6 +105,11 @@ then
 fi
 
 %changelog
+* Thu Jan 16 2014 Krishna Raman <kraman@gmail.com> 1.17.1.3-1
+- Bumping version number for rubygem-openshift-origin-auth-remote-user
+  (kraman@gmail.com)
+- Fix regex for base64 encoded broker auth iv/token values (kraman@gmail.com)
+
 * Tue Jan 14 2014 Krishna Raman <kraman@gmail.com> 1.17.1.2-1
 - Bumping package versions (kraman@gmail.com)
 - Add passthrough config for broker auth (iv/token) based on request headers
