@@ -200,9 +200,10 @@ def load_node_conf
     ].each do |value|
       next unless $CONF.get(value).nil? || $CONF.get(value).empty?
       if value == "PORT_BEGIN" and $CONF.get("PROXY_MIN_PORT_NUM").nil? || $CONF.get("PROXY_MIN_PORT_NUM").empty?
-      next
+        next
+      else 
+        do_fail("SEVERE: in #{OpenShift::Config::NODE_CONF_FILE}, #{value} not defined")
       end
-      do_fail("SEVERE: in #{OpenShift::Config::NODE_CONF_FILE}, #{value} not defined")
     end
 
     $GEAR_BASE_DIR = $CONF.get('GEAR_BASE_DIR')
