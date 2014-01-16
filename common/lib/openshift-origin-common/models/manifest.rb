@@ -209,7 +209,8 @@ module OpenShift
                   :manifest_path,
                   :install_build_required,
                   :source_url,
-                  :source_md5
+                  :source_md5,
+                  :manifest_url
 
       # When a cartridge is installed from a URL, we validate the
       # vendor name by matching against VALID_VENDOR_NAME_PATTERN,
@@ -342,7 +343,10 @@ module OpenShift
           raise MissingElementError.new('Source-Url', 'Source-Url is required in manifest to obtain cartridge via URL',
                                         ) if :url == @manifest_path
         end
-
+        if @manifest.has_key?('Manifest-Url')
+          raise InvalidElementError.new(nil, 'Manifest-Url') unless @manifest['Manifest-Url'] =~ URI::ABS_URI
+          @manifest_url = @manifest['Manifest-Url']
+        end
         @short_name.upcase!
 
         if @cartridge_vendor && @name && @cartridge_version

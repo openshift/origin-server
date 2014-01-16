@@ -67,7 +67,6 @@ class InitGearOp < PendingAppOp
       keys_attrs = remove_ssh_keys.map{|k| k.serializable_hash}
       op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: application.user_agent)
       Application.where(_id: application._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pullAll" => { app_ssh_keys: keys_attrs }})
-      
       # remove the ssh keys from the mongoid model in memory
       application.app_ssh_keys.delete_if { |k| k.component_id.to_s == gear_id }
     end

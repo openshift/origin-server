@@ -20,6 +20,7 @@ function start() {
       fi
     fi
     echo "Starting Ruby cartridge"
+    mkdir -p ${OPENSHIFT_REPO_DIR}public
     write_httpd_passenv $HTTPD_PASSENV_FILE
     oo-erb ${OPENSHIFT_RUBY_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
@@ -45,9 +46,10 @@ function stop() {
 
 function restart() {
     echo "${1}ing Ruby cart"
+    mkdir -p ${OPENSHIFT_REPO_DIR}public
     write_httpd_passenv $HTTPD_PASSENV_FILE
     oo-erb ${OPENSHIFT_RUBY_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
-    touch $OPENSHIFT_REPO_DIR/tmp/restart.txt
+    [ -d ${OPENSHIFT_REPO_DIR}/tmp ] && touch ${OPENSHIFT_REPO_DIR}/tmp/restart.txt
     ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     ruby_context "RAILS_ENV=${RAILS_ENV:-production} /usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k restart"
 }
@@ -141,10 +143,12 @@ function deploy() {
   pushd ${OPENSHIFT_REPO_DIR} > /dev/null
   if [ -f Gemfile ]
   then
-    if [ -f Rakefile ] && bundle exec "rake -T" | grep "assets:precompile" >/dev/null
-    then
-      echo "Precompiling with 'bundle exec rake assets:precompile'"
-      ruby_context "bundle exec rake assets:precompile"
+    if [ ! -f ${OPENSHIFT_REPO_DIR}.openshift/markers/disable_asset_compilation ];then
+      if [ -f Rakefile ] && bundle exec "rake -T" | grep "assets:precompile" >/dev/null
+      then
+        echo "Precompiling with 'bundle exec rake assets:precompile'"
+        ruby_context "bundle exec rake assets:precompile"
+      fi
     fi
   fi
   popd > /dev/null

@@ -1,4 +1,4 @@
-@cartridge_extended1
+@cartridge_extended4
 @fedora-19-only
 @not-rhel
 Feature: MariaDB Tests

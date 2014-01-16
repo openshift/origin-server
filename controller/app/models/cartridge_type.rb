@@ -150,7 +150,7 @@ class CartridgeType
   include OpenShift::CartridgeAspects
 
   def id
-    _id
+    _id.to_s
   end
 
   alias_method :original_name, :base_name

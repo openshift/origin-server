@@ -181,7 +181,11 @@ module OpenShift
           FileUtils.rm_r(entry.repository_path) if File.exist?(entry.repository_path)
           FileUtils.mkpath(entry.repository_path)
 
-          Utils.oo_spawn("shopt -s dotglob; /bin/cp -ad #{directory}/* #{entry.repository_path}",
+          # We specifically don't want --preserve=context because we want
+          # the cartridge relabeled when it is copied into the cartridge
+          # repository, and we don't want --preserve=xattr because that
+          # implies --preserve=context on some filesystems.
+          Utils.oo_spawn("shopt -s dotglob; /bin/cp --recursive --no-dereference --preserve=mode,ownership,timestamps,links #{directory}/* #{entry.repository_path}",
                          expected_exitstatus: 0)
         end
         entry
@@ -527,12 +531,14 @@ module OpenShift
           FileUtils.symlink(source_usr, target_usr) if File.exist?(source_usr) && !File.exist?(target_usr)
         end
 
-        valid_cartridge_home(cartridge, target)
-
         if downloadable
-          manifest_on_disk = PathUtils.join(target, %w(metadata manifest.yml))
+          metadata_on_disk = PathUtils.join(target, 'metadata')
+          manifest_on_disk = PathUtils.join(metadata_on_disk, 'manifest.yml')
+          FileUtils.mkpath(metadata_on_disk) unless File.exist? metadata_on_disk
           IO.write(manifest_on_disk, YAML.dump(cartridge.manifest))
         end
+
+        valid_cartridge_home(cartridge, target)
 
       rescue => e
         FileUtils.rm_rf target if failure_remove

@@ -145,7 +145,7 @@ function start() {
         node_cmd="node $node_opts $node_app $node_app_args"
     fi
 
-    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts 2>&1 | tee -a $logf &"
+    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts >& $logf &"
 
     retries=3
     while [ $retries -gt 0 ]; do
@@ -154,6 +154,10 @@ function start() {
       sleep 1
       let retries=${retries}-1
     done
+    
+    # ensure file is created before printing it to show startup status
+    sleep 2
+    cat $logf
 
     popd > /dev/null
     if [ -n "${cart_pid}" ]; then
@@ -170,7 +174,9 @@ function stop() {
       cart_pid=$( cat $OPENSHIFT_NODEJS_PID_DIR/cartridge.pid 2> /dev/null )
       running_cart_pid=$(cartridge_pid)
 
-      if [ "${cart_pid}" != "${running_cart_pid}" ]; then
+      if [ -z "${running_cart_pid}" ]; then
+        warning "Warning: Application '$OPENSHIFT_APP_NAME' is not running."
+      elif [ "${cart_pid}" != "${running_cart_pid}" ]; then
         error "Warning: Application '$OPENSHIFT_APP_NAME' nodejs PID ($running_cart_pid) does not match '\$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid' ($cart_pid).  Use force-stop to kill." 141
       else
         logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"

@@ -8,19 +8,28 @@ HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/configuration/etc/conf.d
 HTTPD_PASSENV_FILE=$HTTPD_CFG_DIR/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_PHP_DIR/run/httpd.pid
 
-function apache() {
-    if [ "$1" != "stop" ]; then
-      write_httpd_passenv $HTTPD_PASSENV_FILE
-      oo-erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
-    fi
+function start() {
+    echo "Starting PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
+    write_httpd_passenv $HTTPD_PASSENV_FILE
+    oo-erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-    php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -k $1"
-    ret=$?
-    [ "$ret" == "0" -a "$1" == "start" ] && wait_for_pid_file $HTTPD_PID_FILE
-    return $ret
+    php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -k start" \
+      && wait_for_pid_file $HTTPD_PID_FILE
+    return $?
+}
+
+function reload() {
+    echo "Reloading PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
+    write_httpd_passenv $HTTPD_PASSENV_FILE
+    oo-erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
+    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -k graceful" \
+      && wait_for_pid_file $HTTPD_PID_FILE
+    return $?
 }
 
 function restart() {
+    echo "Restarting PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     write_httpd_passenv $HTTPD_PASSENV_FILE
     oo-erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
@@ -30,18 +39,19 @@ function restart() {
 }
 
 function stop() {
+    echo "Stopping PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
       # If we still have a PID file, then ensure_valid_httpd_process's call to
       # killall_httpds didn't happen.
       httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-      php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -k stop"
-      wait_for_stop $httpd_pid
+      php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -k stop" \
+        && wait_for_stop $httpd_pid
     fi
 }
 
 function configtest() {
-    client_message "Testing Apache *.conf files"
+    echo "Testing Apache *.conf files"
     php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -t"
     return $?
 }
@@ -51,61 +61,54 @@ function status() {
    then
       client_result "Application is running"
       client_result $output
-      return 0
    else
       client_result "Application is either stopped or inaccessible"
-      # FIXME: We should return 1 once we can handle non-zero return statuses
-      #        (This should be possible after we remove the v1 logic completely)
-      return 0
    fi
 }
 
 function tidy() {
-    client_message "Emptying log dir: $OPENSHIFT_PHP_LOG_DIR"
+    echo "Emptying log dir: $OPENSHIFT_PHP_LOG_DIR"
     shopt -s dotglob
-    rm -rf $OPENSHIFT_PHP_LOG_DIR/*
-    return 0
+    rm -rf $OPENSHIFT_PHP_LOG_DIR/* || :
 }
 
 function build() {
-    echo "Building PHP cartridge"
+    # Force clean build (.openshift/markers/force_clean_build)
     if force_clean_build_enabled_for_latest_deployment; then
-      echo "force_clean_build enabled - recreating pear libs" 1>&2
-      mkdir -p "${OPENSHIFT_PHP_DIR}"/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
+      echo "Force clean build enabled - recreating PEARs"
+      mkdir -p ${OPENSHIFT_PHP_DIR}phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
     fi
 
+    # PEAR
     if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]
     then
+        echo "Checking deplist.txt for PEAR dependency.."
         for f in $(cat ${OPENSHIFT_REPO_DIR}deplist.txt)
         do
-            echo "Checking pear: $f"
-            echo
-            if php_context "pear list '$f'" > /dev/null
-            then
-                php_context "pear upgrade '$f'"
-            elif ! ( php_context "php -c ${OPENSHIFT_PHP_DIR}conf -m | grep -i -q \^`basename '$f'`\$" )
-            then
-                php_context "pear install --alldeps '$f'"
+            echo -e "Checking PEAR: $f\n"
+            if ! php_context "pear info '$f' >/dev/null"; then
+              php_context "pear install --alldeps '$f'"
             else
-                echo "Extension already installed in the system: $f"
+              php_context "pear upgrade --alldeps '$f'" || :
             fi
-            # Remove gear-specific absolute paths from the generated PEAR files
-            find ${OPENSHIFT_PHP_DIR}phplib/pear/pear/ -type f ! -name '.*' -exec sed -i "s|${OPENSHIFT_HOMEDIR}|~/|g" {} \;
+            echo
+            # Remove gear-specific absolute paths from the generated PEAR
+            # files except from the hidden dirs/files (cache, registry etc.)
+            find ${OPENSHIFT_PHP_DIR}phplib/pear/pear/ -type f \( ! -regex '.*/\..*' \) \
+              -exec sed -i "s|${OPENSHIFT_HOMEDIR}|~/|g" {} \;
         done
     fi
-    return 0
 }
 
 case "$1" in
-  start)           echo "Starting PHP cartridge";   apache start ;;
-  stop)            echo "Stopping PHP cartridge";   stop ;;
-  restart)         echo "Restarting PHP cartridge"; restart ;;
-  reload|graceful) echo "Reloading PHP cartridge";  apache graceful ;;
+  start)           start ;;
+  stop)            stop ;;
+  restart)         restart ;;
+  reload|graceful) reload ;;
   status)          status ;;
   configtest)      configtest ;;
   tidy)            tidy ;;
   build)           build ;;
-  deploy)          exit 0 ;; # Nothing to deploy on template PHP cartridge
   *)               exit 0
 esac
 

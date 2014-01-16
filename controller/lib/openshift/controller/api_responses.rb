@@ -132,7 +132,7 @@ module OpenShift
 
           when OpenShift::AuthServiceException
             status = :service_unavailable
-            message = "Unable to authenticate the user. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
+            message = "Unable to authenticate the user. Please try again and contact support if the issue persists. \nReference ID: #{request.uuid}"
 
           when OpenShift::DNSException
             status = :service_unavailable
@@ -152,7 +152,7 @@ module OpenShift
               Rail.logger.error "message: #{message}"
             end
             message ||= ""
-            message += "Unable to complete the requested operation due to: #{ex.message}. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
+            message += "Unable to complete the requested operation due to: #{ex.message}. Please try again and contact support if the issue persists. \nReference ID: #{request.uuid}"
 
           when OpenShift::ApplicationOperationFailed
             status = :internal_server_error
@@ -165,7 +165,7 @@ module OpenShift
             status = :internal_server_error
             error_code, message, messages = extract_node_messages(ex, error_code, message, field)
             message ||= "unknown error"
-            message = "Unable to complete the requested operation due to: #{message}.\nReference ID: #{request.uuid}"
+            message = "Unable to complete the requested operation due to: #{message}\nReference ID: #{request.uuid}"
 
             # just trying to make sure that the error message is the last one to be added
             messages.push(Message.new(:error, message, error_code, field))
@@ -173,7 +173,7 @@ module OpenShift
             return render_error(status, message, error_code, field, nil, messages, internal_error)
           else
             status = :internal_server_error
-            message = "Unable to complete the requested operation due to: #{message}.\nReference ID: #{request.uuid}"
+            message = "Unable to complete the requested operation due to: #{message}\nReference ID: #{request.uuid}"
           end
 
           Rails.logger.error "Reference ID: #{request.uuid} - #{ex.message}\n  #{ex.backtrace.join("\n  ")}" if internal_error

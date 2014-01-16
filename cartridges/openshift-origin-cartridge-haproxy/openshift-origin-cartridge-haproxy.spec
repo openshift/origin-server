@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.19.3
+Version: 1.19.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -46,6 +46,19 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
+- Merge pull request #4456 from caruccio/proxy-gear-ttl
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4463 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bisect the scale up/down threshold more evenly for lower scale numbers
+  (dmcphers@redhat.com)
+- Proxy gear ttl from env var (mateus.caruccio@getupcloud.com)
+
+* Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Bug 1051446 (dmcphers@redhat.com)
+- Fixing typos (dmcphers@redhat.com)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.3-1
 - Make sessions per gear configurable and use moving average for num sessions
   (dmcphers@redhat.com)

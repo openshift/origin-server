@@ -126,6 +126,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert_nil carts[0].manifest_url
     assert carts[0].gear_size.nil?
     assert_equal cart._id, carts[0]._id
+    assert_equal cart.id, carts[0]._id.to_s
   end
 
   test "find and download a cartridge" do
@@ -146,6 +147,10 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert CartridgeInstance === cart
     assert_equal "mock-mock-0.1", cart.name
     assert_equal "manifest://test", cart.manifest_url
+    assert cart.id
+    manifest = YAML.load(cart.manifest_text)
+    assert_nil manifest['Manifest-Url']
+    assert_equal cart.id, manifest['Id']
   end
 
   test "find and download a cartridge and select the preferred version" do
@@ -167,6 +172,10 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert CartridgeInstance === cart
     assert_equal "mock-mock-0.1", cart.name
     assert_equal "manifest://test", cart.manifest_url
+    assert cart.id
+    manifest = YAML.load(cart.manifest_text)
+    assert_nil manifest['Manifest-Url']
+    assert_equal cart.id, manifest['Id']
   end
 
   test "use a stream to find a downloadable URL" do
@@ -193,6 +202,10 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert CartridgeInstance === cart
     assert_equal "mock-remotemock-0.1", cart.name
     assert_equal "manifest://test", cart.manifest_url
+    assert_equal types[0].id, cart.id
+    manifest = YAML.load(cart.manifest_text)
+    assert_nil manifest['Manifest-Url']
+    assert_equal cart.id, manifest['Id']
   end
 
   test "find cartridge with hypothetical cartridges" do

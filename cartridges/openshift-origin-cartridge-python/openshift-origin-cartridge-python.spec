@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.19.2
+Version: 1.19.4
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -43,6 +43,11 @@ Requires:      python27-python-psycopg2
 Requires:      python27-mod_wsgi
 Requires:      python27-python-pip-virtualenv
 Requires:      python27-numpy
+Requires:      python33-python-virtualenv
+Requires:      python33-mod_wsgi
+Requires:      python33-python-pymongo
+Requires:      python33-python-psycopg2
+Requires:      python33-numpy
 %endif
 Requires:      libjpeg
 Requires:      libjpeg-devel
@@ -90,17 +95,18 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %__rm -f %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
-%__mkdir -p %{buildroot}%{cartridgedir}/usr/versions/{2.6,2.7}
+%__mkdir -p %{buildroot}%{cartridgedir}/usr/versions/{2.6,2.7,3.3}
 %if 0%{?fedora}%{?rhel} <= 6
 %__cp -anv %{buildroot}%{cartridgedir}/usr/versions/2.7-scl/* %{buildroot}%{cartridgedir}/usr/versions/2.7/
+%__cp -anv %{buildroot}%{cartridgedir}/usr/versions/3.3-scl/* %{buildroot}%{cartridgedir}/usr/versions/3.3/
 %endif
 %__cp -anv %{buildroot}%{cartridgedir}/usr/versions/shared/* %{buildroot}%{cartridgedir}/usr/versions/2.6/
 %__cp -anv %{buildroot}%{cartridgedir}/usr/versions/shared/* %{buildroot}%{cartridgedir}/usr/versions/2.7/
+%__cp -anv %{buildroot}%{cartridgedir}/usr/versions/shared/* %{buildroot}%{cartridgedir}/usr/versions/3.3/
 
 %__rm -rf %{buildroot}%{cartridgedir}/usr/versions/shared
 %__rm -rf %{buildroot}%{cartridgedir}/usr/versions/2.7-scl
-
-%__mv %{buildroot}%{cartridgedir}/usr/versions/3.3-community %{buildroot}%{cartridgedir}/usr/versions/3.3/
+%__rm -rf %{buildroot}%{cartridgedir}/usr/versions/3.3-scl
 
 %files
 %dir %{cartridgedir}
@@ -117,6 +123,23 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Merge pull request #4464 from ironcladlou/bz/1052103
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1052103: Fix template app.py for Python 3.3 (ironcladlou@gmail.com)
+
+* Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Merge pull request #4461 from ironcladlou/bz/1052059
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1052059: Fix Python 3.3 venv path references (ironcladlou@gmail.com)
+- Bug 1051910: Fix Python 2.6 regressions (ironcladlou@gmail.com)
+- Merge pull request #4444 from ironcladlou/dev/python-scl
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing double-slash in python and posgresql cartridge code
+  (jhadvig@redhat.com)
+- Convert Python 3.3 community cart to use SCL Python 3.3
+  (ironcladlou@gmail.com)
+
 * Wed Dec 18 2013 Adam Miller <admiller@redhat.com> 1.19.2-1
 - handle non-64bit libdir for ARM (admiller@redhat.com)
 

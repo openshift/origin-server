@@ -120,6 +120,7 @@ class RestEmbeddedCartridge15 < OpenShift::Model
     self.type = "embedded" if cart.is_embeddable?
     self.usage_rates = cart.usage_rates
     self.obsolete = cart.is_obsolete?
+    self.help_topics = cart.help_topics
 
     unless scale.nil?
       self.scales_from = scale[:min]
@@ -171,7 +172,6 @@ class RestEmbeddedCartridge15 < OpenShift::Model
         end
       end
     end
-    self.help_topics = cart.help_topics
 
     if app and !nolinks
       domain_id = app.domain_namespace

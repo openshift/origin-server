@@ -1,0 +1,13 @@
+[Unit]
+Description=OpenShift Watchman
+
+[Service]
+Type=forking
+ExecStart=/etc/init.d/openshift-watchman start
+ExecStop=/etc/init.d/openshift-watchman stop
+ExecReload=/etc/init.d/openshift-watchman restart
+Restart=no
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

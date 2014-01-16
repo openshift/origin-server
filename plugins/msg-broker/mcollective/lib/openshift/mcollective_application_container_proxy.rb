@@ -52,7 +52,7 @@ module OpenShift
       # * required_uid: the uid that is required to be available in the destination district
       #
       # RETURNS:
-      # * an MCollectiveApplicationContainerProxy
+      # * a list of available nodes
       #
       # RAISES:
       # * OpenShift::NodeUnavailableException
@@ -67,17 +67,16 @@ module OpenShift
       # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
       # * If gear_exists_in_district is true, then district_uuid must be passed and cannot be nil
       #
-      def self.find_available_impl(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, gear_exists_in_district=false, required_uid=nil)
+      def self.find_all_available_impl(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, gear_exists_in_district=false, required_uid=nil)
         district = nil
-        current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, least_preferred_server_identities, false, gear_exists_in_district, required_uid)
-        if !current_server
-          current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, least_preferred_server_identities, true, gear_exists_in_district, required_uid)
+        server_infos = rpc_find_all_available(node_profile, district_uuid, least_preferred_server_identities, false, gear_exists_in_district, required_uid)
+        if server_infos.blank?
+          server_infos = rpc_find_all_available(node_profile, district_uuid, least_preferred_server_identities, true, gear_exists_in_district, required_uid)
         end
-        district = preferred_district if preferred_district
-        raise OpenShift::NodeUnavailableException.new("No nodes available", 140) unless current_server
-        Rails.logger.debug "DEBUG: find_available_impl: current_server: #{current_server}: #{current_capacity}"
 
-        MCollectiveApplicationContainerProxy.new(current_server, district)
+        raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_infos.blank?
+
+        return server_infos
       end
 
       # <<factory method>>
@@ -88,18 +87,22 @@ module OpenShift
       # * node_profile: characteristics for node filtering
       #
       # RETURNS:
-      # * MCollectiveApplicationContainerProxy
+      # * a list of server_info arrays
       #
       # NOTES:
       # * Uses rpc_find_one() method
       def self.find_one_impl(node_profile=nil)
         current_server = rpc_find_one(node_profile)
-        current_server, capacity, district = rpc_find_available(node_profile) unless current_server
-
-        raise OpenShift::NodeUnavailableException.new("No nodes available", 140) unless current_server
-        Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
-
-        MCollectiveApplicationContainerProxy.new(current_server)
+        
+        if current_server
+          Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
+          return current_server
+        else
+          server_infos = find_all_available_impl(node_profile)
+          Rails.logger.debug "DEBUG: find_one_impl: Returning #{server_infos[0][0]} from a list of #{server_infos.length} servers"
+          # we are returning the server for the first server_info
+          return server_infos[0][0]
+        end
       end
 
       # <<orphan>>
@@ -284,7 +287,7 @@ module OpenShift
           end
           if district_uuid && district_uuid != 'NONE'
             reserved_uid = District::reserve_uid(district_uuid, preferred_uid)
-            raise OpenShift::OOException.new("uid could not be reserved in target district '#{district_uuid}'.  Please ensure the target district has available capacity.") unless reserved_uid
+            raise OpenShift::OOException.new("uid could not be reserved in target district '#{district_uuid}'.  Please ensure the target district has available capacity or does not contain a conflicting uid.") unless reserved_uid
           end
         end
         reserved_uid
@@ -2875,7 +2878,7 @@ module OpenShift
       # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
       # * If gear_exists_in_district is true, then district_uuid must be passed and cannot be nil
       #
-      def self.rpc_find_available(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, force_rediscovery=false, gear_exists_in_district=false, required_uid=nil)
+      def self.rpc_find_all_available(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, force_rediscovery=false, gear_exists_in_district=false, required_uid=nil)
 
         district_uuid = nil if district_uuid == 'NONE'
 
@@ -2973,27 +2976,9 @@ module OpenShift
             end
             server_infos.delete_if { |server_info| !server_info[2] } if has_districted_node
           end
-
-          # Sort by node available capacity and take the best half
-          server_infos = server_infos.sort_by { |server_info| server_info[1] }
-          server_infos = server_infos.first([4, (server_infos.length / 2).to_i].max) # consider the top half and no less than min(4, the actual number of available)
-
-          # Sort by district available capacity and take the best half
-          server_infos = server_infos.sort_by { |server_info| (server_info[2] && server_info[2].available_capacity) ? server_info[2].available_capacity : 1 }
-          server_infos = server_infos.last([4, (server_infos.length / 2).to_i].max) # consider the top half and no less than min(4, the actual number of available)
         end
 
-        current_district = nil
-        unless server_infos.empty?
-          # Randomly pick one of the best options
-          server_info = server_infos[rand(server_infos.length)]
-          current_server = server_info[0]
-          current_capacity = server_info[1]
-          current_district = server_info[2]
-          Rails.logger.debug "Current server: #{current_server} active capacity: #{current_capacity}"
-        end
-
-        return current_server, current_capacity, current_district
+        return server_infos
       end
 
       #
@@ -3031,13 +3016,35 @@ module OpenShift
         rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('rpcutil', options)
         begin
           rpc_client.get_fact(:fact => 'public_hostname') do |response|
-            raise OpenShift::NodeUnavailableExceptionn.new("No nodes available", 140) unless Integer(response[:body][:statuscode]) == 0
+            raise OpenShift::NodeUnavailableException.new("No nodes available", 140) unless Integer(response[:body][:statuscode]) == 0
             current_server = response[:senderid]
           end
         ensure
           rpc_client.disconnect
         end
         return current_server
+      end
+
+      def self.select_best_fit_node_impl(server_infos)
+        # Sort by node active capacity (consumed capacity) and take the best half
+        server_infos = server_infos.sort_by { |server_info| server_info[1] }
+        # consider the top half and no less than min(4, the actual number of available)
+        server_infos = server_infos.first([4, (server_infos.length / 2).to_i].max)
+
+        # Sort by district available capacity and take the best half
+        server_infos = server_infos.sort_by { |server_info| (server_info[2] && server_info[2].available_capacity) ? server_info[2].available_capacity : 1 }
+        # consider the top half and no less than min(4, the actual number of available)
+        server_infos = server_infos.last([4, (server_infos.length / 2).to_i].max) 
+
+        server_info = nil
+        unless server_infos.empty?
+          # Randomly pick one of the best options
+          server_info = server_infos[rand(server_infos.length)]
+          Rails.logger.debug "Selecting best fit node: server: #{server_info[0]} capacity: #{server_info[1]}"
+        end
+
+        raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_info.nil?
+        return server_info
       end
 
       #

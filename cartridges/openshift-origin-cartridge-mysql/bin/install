@@ -8,13 +8,6 @@ case "$1" in
     version="$2"
 esac
 
-# Add OPENSHIFT_MYSQL_VERSION variable to help mysql_context
-# choose the right version. Also need to be exported for install.
-#
-env_dir="${OPENSHIFT_MYSQL_DIR}/env"
-set_env_var 'OPENSHIFT_MYSQL_VERSION' $version $env_dir
-export OPENSHIFT_MYSQL_VERSION=$version
-
 # Generate username, password, and db name and create env variables
 echo 'Generating username and password'
 
@@ -33,7 +26,7 @@ mysql_data_dir="${OPENSHIFT_MYSQL_DIR}/data"
 mysql_context "/usr/bin/mysql_install_db --datadir=${mysql_data_dir} --user=${USER}" || error 'Failed to create mysqldb', 119
 
 client_result ""
-client_result "MySQL ${OPENSHIFT_MYSQL_VERSION} database added.  Please make note of these credentials:"
+client_result "MySQL ${version} database added.  Please make note of these credentials:"
 client_result ""
 client_result "       Root User: $username"
 client_result "   Root Password: $password"

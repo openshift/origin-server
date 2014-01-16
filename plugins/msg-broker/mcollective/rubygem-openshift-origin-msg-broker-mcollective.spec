@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.19.4
+Version: 1.19.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,14 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.6-1
+- Bug 1052928 - plugin: make the exception clear in case of a conflicting uuid
+  during a move (mmahut@redhat.com)
+
+* Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
+- Use mongoid 'save\!' instead of 'save' to raise an exception in case of
+  failures (rpenta@redhat.com)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.4-1
 - Merge pull request #4414 from abhgupta/abhgupta-scheduler
   (dmcphers+openshiftbot@redhat.com)

@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.19.3
+Version: 1.19.5
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,22 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
+- Bug 1052276 - Check if tmp/ directory exists before ruby restart
+  (mfojtik@redhat.com)
+
+* Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Merge pull request #4439 from jhadvig/disable_assets_compilation
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4440 from mfojtik/bugzilla/984867
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4426 from mfojtik/card_21
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_runtime_21 - Enable BUNDLE_WITHOUT env variable for Ruby
+  (mfojtik@redhat.com)
+- Bug 984867 - Hardcode port 80 for PassengerPreStart (mfojtik@redhat.com)
+- disable_assets_compilation (jhadvig@redhat.com)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.3-1
 - Bug 1033581 - Adding upgrade logic to remove the unneeded
   jenkins_shell_command files (bleanhar@redhat.com)

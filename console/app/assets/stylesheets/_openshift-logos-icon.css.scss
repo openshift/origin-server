@@ -28,7 +28,7 @@ Instead of a list of all class selectors,
 you can use the generic selector below, but it's slower:
 [class*="icon-"]:before {
 */
-.icon-github, .icon-git, .icon-openjdk, .icon-rails, .icon-php, .icon-ruby, .icon-django, .icon-nodejs, .icon-jenkins, .icon-python, .icon-go-gopher, .icon-perl, .icon-zend, .icon-jboss, .icon-tomcat, .icon-spring, .icon-mysql-database, .icon-postgresql, .icon-mongodb, .icon-mariadb, .icon-wordpress, .icon-drupal, .icon-codeigniter, .icon-shadowman, .icon-stackoverflow, .icon-aerogear, .icon-capedwarf, .icon-redis, .icon-play, .icon-clojure, .icon-scala, .icon-grails, .icon-grails, .icon-beaker {
+.icon-github, .icon-git, .icon-openjdk, .icon-rails, .icon-php, .icon-ruby, .icon-django, .icon-nodejs, .icon-jenkins, .icon-python, .icon-go-gopher, .icon-perl, .icon-zend, .icon-jboss, .icon-tomcat, .icon-spring, .icon-mysql-database, .icon-postgresql, .icon-mongodb, .icon-mariadb, .icon-wordpress, .icon-drupal, .icon-codeigniter, .icon-shadowman, .icon-stackoverflow, .icon-aerogear, .icon-capedwarf, .icon-redis, .icon-play, .icon-clojure, .icon-scala, .icon-grails, .icon-grails, .icon-beaker, .icon-joomla, .icon-load-balancer, .icon-wildfly, .icon-laravel {
 	font-family: 'openshift-logos-icon';
 	speak: none;
 	font-style: normal;
@@ -138,4 +138,16 @@ you can use the generic selector below, but it's slower:
 }
 .icon-beaker:before {
 	content: "\f133";
+}
+.icon-joomla:before {
+	content: "\f134";
+}
+.icon-wildfly:before {
+	content: "\f135";
+}
+.icon-load-balancer:before {
+	content: "\f136";
+}
+.icon-laravel:before {
+	content: "\f139";
 }

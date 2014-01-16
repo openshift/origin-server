@@ -41,13 +41,19 @@ isrunning() {
 
 # Check if the server http port is up
 function ishttpup() {
-    let count=0
+    count=0
     while [ ${count} -lt 64 ]
     do
         if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
             echo "Found ${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_HTTP_PORT} listening port"
             return 0
         fi
+        # if the process failed to start, error out immediately
+        # rather than waiting for the timeout on the port being available.
+        if ! ps | grep -v grep | grep $PROCESS_ID > /dev/null; then
+          return 2
+        fi
+
         let count=${count}+1
         sleep 2
     done
@@ -69,9 +75,14 @@ function start_app() {
         PROCESS_ID=$!
 
         echo $PROCESS_ID > $JBOSS_PID_FILE
-        if ! ishttpup; then
-            echo "Timed out waiting for http listening port"
-            exit 1
+        rc=0
+        ishttpup || rc=$?
+        if [ $rc -eq 1 ]; then
+          echo "Timed out waiting for http listening port for $cartridge_type process"
+           exit 1
+        elif [ $rc -eq 2 ]; then
+          echo "$cartridge_type process failed to start"
+          exit 2
         fi
     fi
 }

@@ -20,3 +20,5 @@ processed_templates:
 - '**/*.erb'
 dependency_dirs:
 - virtenv
+build_dependency_dirs:
+- ~/.distlib

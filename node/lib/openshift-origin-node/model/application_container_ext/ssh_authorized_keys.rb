@@ -202,39 +202,33 @@ module OpenShift
           # @return [Hash] authorized keys with the comment field as the key
           def modify
             authorized_keys_file = @filename
-            keys = Hash.new
+            keys                 = Hash.new
 
             @@mutex.synchronize do
-              File.open(@lockfile, File::RDWR|File::CREAT|File::TRUNC, 0600) do | lock |
-                lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-                lock.flock(File::LOCK_EX)
-                begin
-                  File.open(authorized_keys_file, File::RDWR|File::CREAT, @mode) do |file|
-                    file.each_line do |line|
-                      begin
-                        keys[line.split[-1].chomp] = line.chomp
-                      rescue
-                      end
+              PathUtils.flock(@lockfile) do
+                File.open(authorized_keys_file, File::RDWR|File::CREAT, @mode) do |file|
+                  file.each_line do |line|
+                    begin
+                      keys[line.split[-1].chomp] = line.chomp
+                    rescue
                     end
-
-                    if block_given?
-                      old_keys = keys.clone
-
-                      yield keys
-
-                      if old_keys != keys
-                        file.seek(0, IO::SEEK_SET)
-                        file.write(keys.values.join("\n")+"\n")
-                        file.truncate(file.tell)
-                      end
-                    end
-                    file.close
                   end
-                  @container.set_ro_permission(authorized_keys_file)
-                  ::OpenShift::Runtime::Utils::oo_spawn("restorecon #{authorized_keys_file}")
-                ensure
-                  lock.flock(File::LOCK_UN)
+
+                  if block_given?
+                    old_keys = keys.clone
+
+                    yield keys
+
+                    if old_keys != keys
+                      file.seek(0, IO::SEEK_SET)
+                      file.write(keys.values.join("\n")+"\n")
+                      file.truncate(file.tell)
+                    end
+                  end
+                  file.close
                 end
+                @container.set_ro_permission(authorized_keys_file)
+                ::OpenShift::Runtime::Utils::oo_spawn("restorecon #{authorized_keys_file}")
               end
             end
             keys

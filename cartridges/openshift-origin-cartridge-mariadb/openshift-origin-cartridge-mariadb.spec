@@ -10,6 +10,13 @@ URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      mariadb-server
 Requires:      mariadb-devel
+
+# For RHEL6 install mysql55 from SCL
+%if 0%{?rhel}
+Requires:      mariadb55
+Requires:      mariadb55-mariadb-devel
+%endif
+
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
@@ -26,6 +33,18 @@ Provides mariadb cartridge support to OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+%if 0%{?fedora}%{?rhel} <= 6
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/lib/mysql_context.rhel %{buildroot}%{cartridgedir}/lib/mysql_context
+%__rm %{buildroot}%{cartridgedir}/lib/mysql_context.f19
+%endif
+%if 0%{?fedora} == 19
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/lib/mysql_context.fc19 %{buildroot}%{cartridgedir}/lib/mysql_context
+%__rm %{buildroot}%{cartridgedir}/lib/mysql_context.rhel
+%endif
+%__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
+ 
 
 %files
 %dir %{cartridgedir}

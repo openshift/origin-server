@@ -1,11 +1,14 @@
 #!/usr/bin/env oo-ruby
 
 require_relative '../test_helper'
-require          'openshift-origin-node/utils/cgroups/throttler'
+require_relative '../../../node-util/conf/watchman/plugins.d/throttler_plugin'
+require_relative '../../../node-util/conf/watchman/plugins.d/monitored_gear'
 require          'openshift-origin-node/utils/node_logger'
 
 class ThrottlerTest < OpenShift::NodeTestCase
   def setup
+    Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
+
     @@impl = OpenShift::Runtime::Utils::Cgroups::Throttler
     @@mg   = OpenShift::Runtime::Utils::Cgroups::MonitoredGear
     @@cg   = OpenShift::Runtime::Utils::Cgroups
@@ -13,11 +16,11 @@ class ThrottlerTest < OpenShift::NodeTestCase
     logger = OpenShift::Runtime::NodeLogger::NullLogger.new
     OpenShift::Runtime::NodeLogger.set_logger(logger)
 
-    @@impl.any_instance.stubs(:config_val).with('apply_period').returns(120)
-    @@impl.any_instance.stubs(:config_val).with('apply_percent').returns(30)
-    @@impl.any_instance.stubs(:config_val).with('restore_percent').returns(70)
-
+    @@impl.any_instance.stubs(:resource).with('apply_period').returns(120)
+    @@impl.any_instance.stubs(:resource).with('apply_percent').returns(30)
+    @@impl.any_instance.stubs(:resource).with('restore_percent').returns(70)
     @throttler = @@impl.new
+
     @mock_usage = {
       "good" => {
         usage: 1,
@@ -45,8 +48,8 @@ class ThrottlerTest < OpenShift::NodeTestCase
     period = 9999
     threshold = 5555
 
-    @@impl.any_instance.stubs(:config_val).with('apply_period').returns(period)
-    @@impl.any_instance.stubs(:config_val).with('apply_percent').returns(threshold)
+    @@impl.any_instance.stubs(:resource).with('apply_period').returns(period)
+    @@impl.any_instance.stubs(:resource).with('apply_percent').returns(threshold)
 
     @@mg.expects("intervals=").with([period])
     @@impl.any_instance.expects(:start).once
@@ -57,7 +60,7 @@ class ThrottlerTest < OpenShift::NodeTestCase
   end
 
   def test_init_missing_config
-    @@impl.any_instance.unstub(:config_val)
+    @@impl.any_instance.unstub(:resource)
     resources = mock().tap do |x|
       x.stubs(:get).returns(nil)
     end
@@ -73,7 +76,7 @@ class ThrottlerTest < OpenShift::NodeTestCase
   end
 
   def test_init_invalid_config
-    @@impl.any_instance.unstub(:config_val)
+    @@impl.any_instance.unstub(:resource)
     resources = mock().tap do |x|
       x.stubs(:get).returns("asdf")
     end
@@ -190,7 +193,7 @@ class ThrottlerTest < OpenShift::NodeTestCase
         @throttler.expects(:utilization).returns(mock_util)
 
         (gears, _) = @throttler.find(state: state)
-        assert_equal correct, gears, "Throttler: find with state"
+        assert_equal correct, gears, 'Throttler: find with state'
       end
     end
 
@@ -203,7 +206,7 @@ class ThrottlerTest < OpenShift::NodeTestCase
       apps['A'].gear.expects(:profile).raises(RuntimeError)
 
       (gears, _) = @throttler.find(state: :default)
-      assert_equal ({'C' => apps['C']}), gears, "Throttler: find with state"
+      assert_equal ({'C' => apps['C']}), gears, 'Throttler: find with state'
     end
 
     # Test finding apps by usage only
@@ -222,7 +225,7 @@ class ThrottlerTest < OpenShift::NodeTestCase
           end
 
           (gears, _) = @throttler.find(opts)
-          assert_equal uuids, gears.keys, "Throttler: find with usage"
+          assert_equal uuids, gears.keys, 'Throttler: find with usage'
         ensure
           @@mg.unstub(:intervals)
         end
@@ -238,7 +241,7 @@ class ThrottlerTest < OpenShift::NodeTestCase
         @throttler.expects(:utilization).returns(mock_util)
 
         (gears, _) = @throttler.find(opts)
-        assert_equal uuids, gears.keys, "Throttler: find with usage and state"
+        assert_equal uuids, gears.keys, 'Throttler: find with usage and state'
       end
     end
   end
@@ -287,10 +290,10 @@ class ThrottlerTest < OpenShift::NodeTestCase
         @running_apps = mock_apps
       }
 
-      t.expects(:refuse_action).with(:throttle, 'B', "gear is boosted")
-      t.expects(:refuse_action).with(:restore, 'D', "still over threshold (1000000)")
-      t.expects(:refuse_action).with(:restore, 'E', "unknown utilization")
-      t.expects(:refuse_action).with(:restore, 'F', "still over threshold (1000000)")
+      t.expects(:refuse_action).with(:throttle, 'B', 'gear is boosted')
+      t.expects(:refuse_action).with(:restore, 'D', 'still over threshold (1000000)')
+      t.expects(:refuse_action).with(:restore, 'E', 'unknown utilization')
+      t.expects(:refuse_action).with(:restore, 'F', 'still over threshold (1000000)')
     end
 
     throttled = applied[:throttle]
@@ -314,18 +317,18 @@ class ThrottlerTest < OpenShift::NodeTestCase
 
   def test_throttle_second_run
     mock_apps = {
-      "A" => {
+      'A' => {
         expects: {
           boosted?: false
         },
       },
-      "C" => {}
+      'C' => {}
     }
 
     applied = setup_throttler(mock_apps, {
       bad: %w(A),
       throttled: [],
-      old_bad_gears: {"B" => {}, "C" => {}}
+      old_bad_gears: {'B' => {}, 'C' => {}}
     }) do
       @prev_old_bad_gears = @throttler.instance_variable_get('@old_bad_gears').keys
     end
@@ -339,19 +342,19 @@ class ThrottlerTest < OpenShift::NodeTestCase
 
   def test_throttle_remove_missing
     mock_apps = {
-      "A" => {
+      'A' => {
         expects: {
           boosted?: false
         },
       },
-      "B" => {
+      'B' => {
       },
     }
 
     applied = setup_throttler(mock_apps, {
       bad: %w(A C),
       throttled: [],
-      old_bad_gears: {"B" => {}, "C" => {}}
+      old_bad_gears: {'B' => {}, 'C' => {}}
     }) do
       @prev_old_bad_gears = @throttler.instance_variable_get('@old_bad_gears').keys
     end

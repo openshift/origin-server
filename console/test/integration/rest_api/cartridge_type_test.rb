@@ -54,11 +54,11 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
 
     log_types(types)
 
-    assert types[0].name.starts_with?('jbosseap-')
+    assert types[0].name.starts_with?('jbossas-')
   end
 
   test 'should load metadata from broker' do
-    assert type = CartridgeType.find('zend-5.6')
+    assert type = CartridgeType.find('zend-6.1')
     assert type.tags.include?(:web_framework), type.tags.inspect
     assert_not_equal type.name, type.display_name
   end
@@ -70,7 +70,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     types.sort!
     log_types(types)
 
-    assert types[0].id.starts_with?('cart!jbosseap'), types[0].id
+    assert types[0].id.starts_with?('cart!jbossas'), types[0].id
   end
 
   test 'sort cartridges' do
@@ -116,7 +116,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('ruby').map(&:name)
     assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('ruby*').map(&:name)
     assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('*uby*').map(&:name)
-    assert_equal ['zend-6.1','zend-5.6','php-5.4','php-5.3'], CartridgeType.cached.matches('zend-|php-').map(&:name)
-    assert_equal ['php-5.4','php-5.3','zend-6.1','zend-5.6'], CartridgeType.cached.matches('php-|zend-').map(&:name)
+    assert_equal ['zend-6.1','php-5.4','php-5.3'], CartridgeType.cached.matches('zend-|php-').map(&:name)
+    assert_equal ['php-5.4','php-5.3','zend-6.1'], CartridgeType.cached.matches('php-|zend-').map(&:name)
   end
 end

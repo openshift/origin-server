@@ -337,7 +337,7 @@ function ensure_httpd_restart_succeed() {
     local cfg_file="$2"
 
     if process_running 'httpd' $pid_file; then
-      ensure_valid_httpd_pid_file "$pid_file" "$cfg_file"
+      ensure_valid_httpd_process "${pid_file}" "${cfg_file}"
     else
       rm -f $pid_file 2>/dev/null
     fi

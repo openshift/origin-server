@@ -153,19 +153,22 @@ killtree() {
 
 # Check if the server http port is up
 function ishttpup() {
-
-    let count=0
+    count=0
     while [ ${count} -lt 64 ]
     do
         if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
             echo "Found ${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_HTTP_PORT} listening port"
             return 0
         fi
+        # if the process failed to start, error out immediately
+        # rather than waiting for the timeout on the port being available.
+        if ! ps | grep -v grep | grep $PROCESS_ID > /dev/null; then
+          return 2
+        fi
         let count=${count}+1
 
         sleep 2
     done
-
     return 1
 }
 
@@ -255,6 +258,15 @@ function build() {
 
           CART_NAME=${cartridge_type}
       fi
+
+      if [ ! -f ${OPENSHIFT_REPO_DIR}pom.xml ]; then
+        echo "Skipping Maven build due to absence of pom.xml"      
+      fi
+
+      if marker_present "skip_maven_build"; then
+        echo "skip_maven_build marker found; build will be skipped"
+      fi
+      
   fi
 
 }
@@ -285,11 +297,15 @@ function start() {
     PROCESS_ID=$!
     echo "$PROCESS_ID" > ${JBOSSEAP_PID_FILE}
 
-    if ! ishttpup; then
-      echo "Timed out waiting for http listening port"
+    rc=0
+    ishttpup || rc=$?
+    if [ $rc -eq 1 ]; then
+      echo "Timed out waiting for http listening port for $cartridge_type process"
       exit 1
+    elif [ $rc -eq 2 ]; then
+      echo "$cartridge_type process failed to start"
+      exit 2
     fi
-
     waitondeployments
   fi
 }
@@ -329,6 +345,7 @@ function tidy() {
   client_message "Emptying log dir: $OPENSHIFT_JBOSSEAP_LOG_DIR"
   shopt -s dotglob
   rm -rf $OPENSHIFT_JBOSSEAP_LOG_DIR/*
+  rm -rf $OPENSHIFT_JBOSSEAP_DIR/standalone/tmp/* 
 }
 
 function threaddump() {

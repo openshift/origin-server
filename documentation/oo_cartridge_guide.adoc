@@ -1097,3 +1097,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 |hot_deploy
 |Will prevent shutdown and startup of the application during builds. The Passenger `restart.txt` file will be used to reload the application.
 |===
+
+|disable_asset_compilation
+|Will prevent assets to be compiled upon application deployment. This marker should be used when deploying application with assets which are already compiled.
+|===

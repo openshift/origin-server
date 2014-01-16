@@ -28,10 +28,10 @@ fi
 
 path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
 
-if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT ]
-then
-    path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT):$path
-fi
+for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT 
+do
+    test -f ${f} && path=$(< $f):$path
+done
 
 if [ -f /etc/openshift/env/PATH ]
 then
@@ -87,13 +87,13 @@ function welcome {
   # Quota returns nonzero if you are over limit
   if quota >/dev/null 2>&1
   then
-    local usage=$(quota | grep '^.*/dev/' | awk '{printf "%3.1f", ($2 / $4 * 100)}')
+    local usage=$(quota -w | grep '^.*/dev/' | awk '{printf "%3.1f", ($2 / $4 * 100)}')
     if expr $usage \> 90.0 > /dev/null
     then
       echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of disk quota"
     fi
 
-    local usage=$(quota | grep '^.*/dev/' | awk '{printf "%3.1f",  ($5 / $7 * 100)}')
+    local usage=$(quota -w | grep '^.*/dev/' | awk '{printf "%3.1f",  ($5 / $7 * 100)}')
     if expr $usage \> 90.0 > /dev/null
     then
       echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of inodes allowed"

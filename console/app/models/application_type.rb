@@ -83,6 +83,8 @@ class ApplicationType
     return 0 if id == other.id
     c = source_priority - other.source_priority
     return c unless c == 0
+    c = featured_priority - other.featured_priority
+    return c unless c == 0          
     c = priority - other.priority
     return c unless c == 0
     display_name <=> other.display_name
@@ -101,6 +103,10 @@ class ApplicationType
     when :cartridge; -2
     else; 0
     end
+  end
+
+  def featured_priority
+    tags.include?(:featured) && quickstart? ? -2 : 0
   end
 
   def support_type

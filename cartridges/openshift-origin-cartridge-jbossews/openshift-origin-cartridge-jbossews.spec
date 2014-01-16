@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.18.2
+Version: 1.18.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -75,6 +75,17 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
+- Merge pull request #4420 from bparees/tomcat_build_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1048294 - Tomcat does not clean work directory when application is
+  redeployed (bparees@redhat.com)
+
+* Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.18.3-1
+- Merge pull request #4416 from bparees/jboss_startup
+  (dmcphers+openshiftbot@redhat.com)
+- distinguish between timed out and failed jboss starts (bparees@redhat.com)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.18.2-1
 - Bug 1033581 - Adding upgrade logic to remove the unneeded
   jenkins_shell_command files (bleanhar@redhat.com)

@@ -37,19 +37,8 @@ They must be run on a OpenShift node instance.
 mkdir -p %{buildroot}%{_sbindir}
 mkdir -p %{buildroot}%{_bindir}
 
-cp -p bin/oo-* %{buildroot}%{_sbindir}/
-rm %{buildroot}%{_sbindir}/oo-snapshot
-rm %{buildroot}%{_sbindir}/oo-restore
-rm %{buildroot}%{_sbindir}/oo-binary-deploy
-rm %{buildroot}%{_sbindir}/oo-gear-registry
-rm %{buildroot}%{_sbindir}/oo-config-eval
-cp -p bin/rhc-* %{buildroot}%{_bindir}/
-cp -p bin/oo-snapshot %{buildroot}%{_bindir}/
-cp -p bin/oo-restore %{buildroot}%{_bindir}/
-cp -p bin/oo-binary-deploy %{buildroot}%{_bindir}/
-cp -p bin/oo-gear-registry %{buildroot}%{_bindir}/
-cp -p bin/oo-config-eval %{buildroot}%{_bindir}/
-cp -p bin/unidle_gear.sh %{buildroot}%{_bindir}/
+cp -p sbin/* %{buildroot}%{_sbindir}/
+cp -p bin/*  %{buildroot}%{_bindir}/
 
 %if 0%{?fedora} >= 18
   mv %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.4 %{buildroot}%{_sbindir}/oo-httpd-singular
@@ -72,25 +61,37 @@ cp -p www/html/health.txt %{buildroot}/%{_localstatedir}/www/html/
 
 cp -p man8/*.8 %{buildroot}%{_mandir}/man8/
 
+mkdir -p %{buildroot}%{_initddir}
+mv init.d/openshift-watchman %{buildroot}%{_initddir}/
+
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift/watchman/plugins.d/
+cp -pr conf/watchman/* %{buildroot}/%{_sysconfdir}/openshift/watchman
 
 %if %{with_systemd}
 mkdir -p %{buildroot}/etc/systemd/system
 mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-gears.service
+mv services/openshift-watchman.service %{buildroot}/etc/systemd/system/openshift-watchman.service
 %else
-mkdir -p %{buildroot}%{_initddir}
 cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %post
 /sbin/restorecon /usr/sbin/oo-restorer* || :
+
 %if %{with_systemd}
 %systemd_post openshift-gears.service
+%systemd_post openshift-watchman.service
 
 %preun
 %systemd_preun openshift-gears.service
+%systemd_preun openshift-watchman.service
 
 %postun
 %systemd_postun_with_restart openshift-gears.service
+%systemd_postun_with_restart openshift-watchman.service
+%%else
+%postun
+/etc/init.d/openshift-watchman restart
 %endif
 
 %files
@@ -112,6 +113,8 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0750,-,-) %{_sbindir}/oo-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-repair-node
+%attr(0750,-,-) %{_sbindir}/oo-watchman
+%attr(0750,-,-) %{_initddir}/openshift-watchman
 %attr(0755,-,-) %{_bindir}/rhc-list-ports
 %attr(0755,-,-) %{_bindir}/oo-snapshot
 %attr(0755,-,-) %{_bindir}/oo-restore
@@ -119,6 +122,8 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0755,-,-) %{_bindir}/unidle_gear.sh
 %attr(0755,-,-) %{_bindir}/oo-config-eval
 %attr(0755,-,-) %{_bindir}/oo-gear-registry
+%attr(0755,-,-) %{_sysconfdir}/openshift/watchman/plugins.d
+%attr(0744,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/*
 
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz
@@ -135,6 +140,7 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %{_mandir}/man8/oo-admin-cartridge.8.gz
 %{_mandir}/man8/oo-su.8.gz
 %{_mandir}/man8/oo-cartridge.8.gz
+%{_mandir}/man8/oo-watchman.8.gz
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf
 %attr(0644,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf

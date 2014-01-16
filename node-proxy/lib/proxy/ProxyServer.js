@@ -490,11 +490,20 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   });
 
   proxy_ws.on('message', function(data, flags) {
-    /*  Emit websocket outbound data event.  */
-    surrogate.emit('outbound.data', data, flags);
+    // do not crash the whole proxy, when the connection is not open
+    // https://bugzilla.redhat.com/show_bug.cgi?id=1042938
+    try {
+      /*  Emit websocket outbound data event.  */
+      surrogate.emit('outbound.data', data, flags);
 
-    /*  Proxy message back to the websocket request originator.  */
-    ws.send(data, flags);
+      /*  Proxy message back to the websocket request originator.  */
+      ws.send(data, flags);
+    }
+    catch(err) {
+      Logger.error("failed to send message: " + err);
+      surrogate.emit('error', 'websocket.error');
+    };
+
   });
 
   /*  Handle the incoming websocket error/close/message events.  */

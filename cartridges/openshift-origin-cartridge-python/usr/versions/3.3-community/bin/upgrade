@@ -1,8 +1,0 @@
-#!/bin/bash -eu
-
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
-
-TARGET=$OPENSHIFT_HOMEDIR/app-root/runtime/dependencies/python/virtenv/venv/bin/python3.3
-SOURCE=$OPENSHIFT_PYTHON_DIR/opt/bin/python3.3
-
-ln -sf $SOURCE $TARGET || :

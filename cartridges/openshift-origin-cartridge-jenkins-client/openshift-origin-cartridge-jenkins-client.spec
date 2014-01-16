@@ -7,7 +7,7 @@
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client
-Version: 1.17.3
+Version: 1.17.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -49,6 +49,12 @@ Provides plugin jenkins client support. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.17.4-1
+- Merge pull request #4436 from bparees/jenkins_dl_cart
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 995807 - Jenkins builds fail on downloadable cartridges
+  (bparees@redhat.com)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.17.3-1
 - bug 993561: WARNING: Failed to broadcast over UDP appears in jenkins.log when
   git push change to a jenkins app (bparees@redhat.com)

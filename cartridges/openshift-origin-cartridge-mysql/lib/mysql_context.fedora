@@ -5,7 +5,7 @@ function update_configuration {
     case "$1" in
       5.5)
         pe=$(dirname $(which mysql))
-        env_dir="${OPENSHIFT_POSTGRESQL_DIR}/env"
+        env_dir="${OPENSHIFT_MYSQL_DIR}/env"
         set_env_var 'OPENSHIFT_MYSQL_PATH_ELEMENT' $pe $env_dir
 
         local ld_path=$(LD_LIBRARY_PATH="" printenv LD_LIBRARY_PATH)
@@ -17,8 +17,12 @@ function update_configuration {
     esac
 }
 
+function mysql_version {
+  echo ${OPENSHIFT_MYSQL_IDENT} | cut -d':' -f3
+}
+
 function mysql_context {
-  case $OPENSHIFT_MYSQL_VERSION in
+  case $(mysql_version) in
     5.5) eval $1 ;;
   esac
 }

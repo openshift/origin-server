@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.6
+Version: 1.19.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,40 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
+- Merge pull request #4436 from bparees/jenkins_dl_cart
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 995807 - Jenkins builds fail on downloadable cartridges
+  (bparees@redhat.com)
+
+* Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
+- Merge pull request #4474 from
+  liggitt/bug_1053099_write_downloadable_manifest_before_validating
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1053099: write downloadable manifest before validating extracted
+  cartridge (jliggitt@redhat.com)
+- Bug 1030777 - Remove gear dir even if gear not in passwd file
+  (jhonce@redhat.com)
+- Merge pull request #4468 from Miciah/bug-999117–oo-admin-cartridge-a
+  -install-does-not-restorecon-the-installed-cartridge
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4467 from jwhonce/bug/1051833
+  (dmcphers+openshiftbot@redhat.com)
+- CartridgeRepository#install: Don't keep context (miciah.masters@gmail.com)
+- Bug 1051833 - PathUtils.flock() not removing lock file (jhonce@redhat.com)
+
+* Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
+- Merge pull request #4458 from jwhonce/bug/1051984
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1051984 - Add -w to quota command (jhonce@redhat.com)
+- Merge pull request #4452 from bparees/zend_path_error
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4376 from pmorie/fix-tests
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1046618 - Syntax error is shown when SSH to zend application
+  (bparees@redhat.com)
+- Add retries in functional api (pmorie@gmail.com)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.19.6-1
 - Card origin_node_319 - Add quota check to ssh login (jhonce@redhat.com)
 - Card online_node_319 - Add quota check to git push (jhonce@redhat.com)

@@ -3,8 +3,6 @@
 #   @return [Array[PendingAppOp]] Array of pending operations that need to occur for this {Application}
 # @!attribute [rw] parent_op_id
 #   @return [Moped::BSON::ObjectId] ID of the {PendingDomainOps} operation that this operation is part of
-# @!attribute [r] op_type
-#   @return [Symbol] Group level operation type
 # @!attribute [r] arguments
 #   @return [Hash] Group level arguments hash
 class PendingAppOpGroup
@@ -57,41 +55,14 @@ class PendingAppOpGroup
     # reloading the op_group reloads the application and then incorrectly reloads (potentially)
     # the op_group based on its position within the :pending_op_groups list
     # hence, reloading the application, and then fetching the op_group using the _id
-    
+
     if application.persisted?
       reloaded_app = Application.find_by(_id: application._id)
       op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
       self.pending_ops = op_group.pending_ops
     end
-    
-    pending_ops.where(:state.ne => :completed, :pre_save => true).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
-  end
 
-  def reorder_usage_ops
-    # if pending_ops.where(:state.ne => :completed, :_type => "TrackUsageOp").count > 0
-    #   op_ids = []
-    #   track_usage_op_ids = []
-    #   pending_ops.each do |op|
-    #     if op.kind_of?(TrackUsageOp)
-    #       track_usage_op_ids << op._id.to_s
-    #     else
-    #       op_ids << op._id.to_s
-    #     end
-    #   end
-    #   pending_ops.each do |op|
-    #     if op.kind_of?(TrackUsageOp)
-    #       op.prereq += op_ids
-    #       op.prereq.uniq!
-    #     else
-    #       op.prereq.delete_if {|id| track_usage_op_ids.include?(id)}
-    #     end
-    #   end
-    #   # in order to facilitate execution of pre-save ops, 
-    #   # we check whether the application is persisted to mongo
-    #   if application.persisted?
-    #     Application.where({ "_id" => application._id, "pending_op_groups._id" => self._id }).update({"$set" => { "pending_op_groups.$.pending_ops" => pending_ops.as_document }})
-    #   end
-    # end
+    pending_ops.where(:state.ne => :completed, :pre_save => true).select{ |op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0 }
   end
 
   # The pre_execute method does not handle parallel executions

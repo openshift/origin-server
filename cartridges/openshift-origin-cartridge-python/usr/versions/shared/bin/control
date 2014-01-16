@@ -133,6 +133,9 @@ function build() {
       create-virtenv
     fi
 
+    echo "Activating virtenv"
+    activate-virtenv
+
     if [ -f ${OPENSHIFT_REPO_DIR}/requirements.txt ]
     then
         ( cd $OPENSHIFT_REPO_DIR; pip install -r ${OPENSHIFT_REPO_DIR}/requirements.txt $OPENSHIFT_PYTHON_MIRROR )
@@ -148,6 +151,7 @@ function build() {
 
 function deploy() {
     relative-virtenv
+    activate-virtenv
 }
 
 case "$1" in

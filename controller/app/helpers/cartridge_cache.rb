@@ -174,7 +174,7 @@ class CartridgeCache
     cartridges = specs.inject([]) do |arr, spec|
       spec = {name: spec} if spec.is_a?(String)
       if spec[:url]
-        downloads << spec
+        downloads << spec.except(:id)
         next arr
       end
 
@@ -186,7 +186,7 @@ class CartridgeCache
 
       # carts defined with a manifest URL are downloaded each time
       if cart.manifest_url
-        downloads << spec.except(:name).merge!(url: cart.manifest_url, version: cart.version)
+        downloads << spec.except(:name).merge!(url: cart.manifest_url, version: cart.version, id: cart.id)
         next arr
       end
 
@@ -197,7 +197,7 @@ class CartridgeCache
     # download URL cartridges
     downloads.each do |spec|
       begin
-        url, version = spec.values_at(:url, :version)
+        url, version, id = spec.values_at(:url, :version, :id)
 
         text = download_from_url(url, field)
         versions = OpenShift::Runtime::Manifest.manifests_from_yaml(text)
@@ -212,8 +212,9 @@ class CartridgeCache
 
         manifest.check_reserved_vendor_name
 
+        manifest.manifest["Id"] = id || Moped::BSON::ObjectId.new.to_s
         cart = OpenShift::Cartridge.new.from_descriptor(manifest.manifest)
-        cart.manifest_text = text
+        cart.manifest_text = manifest.manifest.to_yaml
         cart.manifest_url = url
         instance = CartridgeInstance.new(cart, spec)
         cartridges << instance
