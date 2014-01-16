@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.9
+Version: 1.19.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,30 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.19.10-1
+- Merge pull request #4389 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4477 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4481 from abhgupta/sshkey_removal_fix
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4480 from abhgupta/bug_1052395
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4478 from pravisankar/dev/ravi/fix-trackusage-order
+  (dmcphers+openshiftbot@redhat.com)
+- Moving test to functional tests and adding request_time to send to plugin
+  (abhgupta@redhat.com)
+- Separating out node selection algorithm (abhgupta@redhat.com)
+- Merge pull request #4437 from bparees/jenkins_dl_cart_test
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1035186 (dmcphers@redhat.com)
+- Removing sshkeys and env_vars in pending ops (abhgupta@redhat.com)
+- Fix for bug 1052395 (abhgupta@redhat.com)
+- Push only begin track usage ops to the end of the op group
+  (rpenta@redhat.com)
+- Bug 995807 - Jenkins builds fail on downloadable cartridges
+  (bparees@redhat.com)
+
 * Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
 - Merge pull request #4436 from bparees/jenkins_dl_cart
   (dmcphers+openshiftbot@redhat.com)
