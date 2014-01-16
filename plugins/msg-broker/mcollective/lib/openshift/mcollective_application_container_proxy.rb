@@ -61,7 +61,7 @@ module OpenShift
       # * a class method on Node?
       # * Uses Rails.configuration.msg_broker
       # * Uses District
-      # * Calls rpc_find_available
+      # * Calls rpc_find_all_available
       #
       # VALIDATIONS:
       # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
@@ -93,7 +93,7 @@ module OpenShift
       # * Uses rpc_find_one() method
       def self.find_one_impl(node_profile=nil)
         current_server = rpc_find_one(node_profile)
-        
+
         if current_server
           Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
           return current_server
@@ -2929,7 +2929,7 @@ module OpenShift
       end
 
       #
-      # Execute a cartridge hook command in a gear
+      # Returns the known server identities
       #
       # INPUTS:
       # * force_rediscovery: Boolean

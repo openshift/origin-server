@@ -783,7 +783,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                 .returns("some output")
 
     error = assert_raises(RuntimeError) { @container.post_configure(cart_name, 'url') }
-    assert_equal error.message, "CLIENT_ERROR: The initial build for the application failed: my error\nCLIENT_ERROR: \nCLIENT_ERROR: .Last 10 kB of build output:\nCLIENT_ERROR: some output"
+    assert_equal error.message, "CLIENT_ERROR: The initial build for the application failed: my error\nCLIENT_ERROR: \nCLIENT_ERROR: .Last 10 kB of build output:\nCLIENT_ERROR: some output\n"
   end
 
   # new gear

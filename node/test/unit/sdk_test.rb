@@ -56,19 +56,19 @@ module OpenShift
     end
 
     def test_translate_out_for_client_message
-      out = "message1\nmessage2\nmessage3"
+      out = "message1\nmessage2\nmessage3\n"
 
       translated = Runtime::Utils::Sdk.translate_out_for_client(out, :message)
 
-      assert_equal "CLIENT_MESSAGE: message1\nCLIENT_MESSAGE: message2\nCLIENT_MESSAGE: message3", translated
+      assert_equal "CLIENT_MESSAGE: message1\nCLIENT_MESSAGE: message2\nCLIENT_MESSAGE: message3\n", translated
     end
 
     def test_translate_out_for_client_error
-      out = "message1\nmessage2\nmessage3"
+      out = "message1\nmessage2\nmessage3\n"
 
       translated = Runtime::Utils::Sdk.translate_out_for_client(out, :error)
 
-      assert_equal "CLIENT_ERROR: message1\nCLIENT_ERROR: message2\nCLIENT_ERROR: message3", translated
+      assert_equal "CLIENT_ERROR: message1\nCLIENT_ERROR: message2\nCLIENT_ERROR: message3\n", translated
     end
 
     def test_translate_out_for_client_nil
