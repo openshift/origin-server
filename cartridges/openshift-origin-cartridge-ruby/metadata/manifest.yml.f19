@@ -10,8 +10,8 @@ Versions:
 License: Ruby BSDL
 License-Url: http://www.ruby-lang.org/en/about/license.txt
 Vendor: ruby.org
-Cartridge-Version: 0.0.11
-Compatible-Versions: []
+Cartridge-Version: 0.0.12
+Compatible-Versions: [0.0.11]
 Cartridge-Vendor: redhat
 Categories:
 - service
