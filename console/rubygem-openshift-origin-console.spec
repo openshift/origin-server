@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.6
+Version: 1.19.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,15 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
+- Merge pull request #4492 from VojtechVitek/obsolete_zend-5.6
+  (dmcphers+openshiftbot@redhat.com)
+- remove zend-5.6 rest_api tests (vvitek@redhat.com)
+- For bug 1045566 Updates to the display of app meta data using icon/text so
+  the user knows: if an app is a cartridge or quickstart if it's OpenShift
+  maintained and receives automatic security updates or if it's partner,
+  community created (sgoodwin@redhat.com)
+
 * Tue Jan 14 2014 Adam Miller <admiller@redhat.com> 1.19.6-1
 - Bug 1045559 - Show featured apps at the top of their app category
   (jforrest@redhat.com)
