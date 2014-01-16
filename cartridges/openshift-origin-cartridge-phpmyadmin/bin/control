@@ -8,11 +8,17 @@ HTTPD_CFG_FILE=${OPENSHIFT_PHPMYADMIN_DIR}conf/httpd_nolog.conf
 HTTPD_PASSENV_FILE=${OPENSHIFT_PHPMYADMIN_DIR}conf.d/passenv.conf
 HTTPD_PID_FILE=${OPENSHIFT_PHPMYADMIN_DIR}run/httpd.pid
 
+# construct the configuration directives for httpd
+HTTPD_CMD_CONF="-f $HTTPD_CFG_FILE"
+for dir in ${OPENSHIFT_PHPMYADMIN_DIR}conf.d /etc/openshift/cart.conf.d/httpd{,/phpmyadmin} ; do
+    [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -C 'Include $dir/*.conf'"
+done
+
 function start {
   echo "Starting PHPMyAdmin cartridge"
   write_httpd_passenv $HTTPD_PASSENV_FILE
   ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
+  /usr/sbin/httpd $HTTPD_CMD_CONF -k start
 }
 
 function stop {
@@ -20,7 +26,7 @@ function stop {
   ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   if [ -f "$HTTPD_PID_FILE" ]; then
       httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-      /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
+      /usr/sbin/httpd $HTTPD_CMD_CONF -k stop
       wait_for_stop $httpd_pid
   fi
 }
@@ -28,7 +34,7 @@ function stop {
 function restart {
   echo "Restarting PHPMyAdmin cartridge"
   write_httpd_passenv $HTTPD_PASSENV_FILE
-  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
+  /usr/sbin/httpd $HTTPD_CMD_CONF -k restart
 }
 
 function status {
