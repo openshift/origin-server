@@ -3,8 +3,6 @@
 #   @return [Array[PendingAppOp]] Array of pending operations that need to occur for this {Application}
 # @!attribute [rw] parent_op_id
 #   @return [Moped::BSON::ObjectId] ID of the {PendingDomainOps} operation that this operation is part of
-# @!attribute [r] op_type
-#   @return [Symbol] Group level operation type
 # @!attribute [r] arguments
 #   @return [Hash] Group level arguments hash
 class PendingAppOpGroup
@@ -57,13 +55,13 @@ class PendingAppOpGroup
     # reloading the op_group reloads the application and then incorrectly reloads (potentially)
     # the op_group based on its position within the :pending_op_groups list
     # hence, reloading the application, and then fetching the op_group using the _id
-    
+
     if application.persisted?
       reloaded_app = Application.find_by(_id: application._id)
       op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
       self.pending_ops = op_group.pending_ops
     end
-    
+
     pending_ops.where(:state.ne => :completed, :pre_save => true).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
   end
 
