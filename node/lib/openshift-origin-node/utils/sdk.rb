@@ -46,7 +46,7 @@ module OpenShift
           return '' unless out
 
           suffix = (type == :error ? "ERROR" : "MESSAGE")
-          out.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_#{suffix}: #{l}" }.join("\n")
+          out.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_#{suffix}: #{l}" }.join("\n") + "\n"
         end
       end
     end
