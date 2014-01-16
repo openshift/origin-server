@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.18.3
+Version: 1.18.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -155,6 +155,12 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
+- Card origin_node_374 - Port Watchman to Origin (jhonce@redhat.com)
+- Card origin_node_374 - Port Watchman to Origin Bug 1053423 - Restore
+  OPENSHIFT_GEAR_DNS check to watchman Bug 1053397 - Fix encoding error reading
+  spec file Bug 1053422 - Fix state vs. stop_lock check (jhonce@redhat.com)
+
 * Thu Dec 19 2013 Adam Miller <admiller@redhat.com> 1.18.3-1
 - Bug 1033523 - The hot_deploy marker/--hot-deploy option can not take effect
   when deploying app with binary deployment (bparees@redhat.com)
