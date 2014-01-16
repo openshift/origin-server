@@ -1,5 +1,11 @@
 #!/usr/bin/env oo-ruby
-
+#
+# openshift-watchman   This shell starts the watchman daemon
+#
+# chkconfig:       345 89 11
+# description:     Monitors OpenShift gears
+# processname:     watchman
+#
 require 'rubygems'
 require 'daemons'
 
