@@ -31,7 +31,7 @@ def usage
             --action add --with-cartridge-name mock-0.1
 
 == List of arguments
-       -a|--action                             One of <add|delete>
+       -a|--action                             One of <add|delete|force-delete>
        -c|--with-container-uuid     gear_uuid  Unique identifier for the gear
        -n|--with-cartridge-name     name       Unique identifier for the cartridge
        -u|--with-template-url                  override default application template
@@ -102,6 +102,8 @@ begin
       output = container.configure(c, template_url)
       output << container.post_configure(c, template_url)
     when 'delete'
+      container.deconfigure(c, true)
+    when 'force-delete'
       container.deconfigure(c)
     else
       usage
@@ -116,15 +118,15 @@ rescue OpenShift::Runtime::Utils::ShellExecutionException => e
     $stderr.puts e.backtrace.join("\n")
   end
 
-  exit -1
+  exit(-1)
 rescue Exception => e
   $stderr.puts "Cartridge #{action} failed"
   $stderr.puts e.message
   $stderr.puts e.backtrace.join("\n") if $OO_CART_DEBUG
-  exit -1
+  exit(-1)
 else
   puts "Cartridge #{action} succeeded"
-  
+
   if ($OO_CART_DEBUG || verbose)
     puts "Output:\n-----------------------------\n#{output}"
   end

@@ -116,8 +116,8 @@ module OpenShift
         #
         # context: root -> gear user -> root
         # @param cart_name   cartridge name
-        def deconfigure(cart_name)
-          @cartridge_model.deconfigure(cart_name)
+        def deconfigure(cart_name, strict_error=false)
+          @cartridge_model.deconfigure(cart_name, strict_error)
         end
 
         # Unsubscribe from a cart
