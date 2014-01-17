@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.12.5
+Version: 2.12.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,14 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 2.12.6-1
+- Merge pull request #4486 from bparees/maven_args
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4462 from bparees/cart_data_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1033673 - Unable to customize MAVEN_OPTS (bparees@redhat.com)
+- remove unnecessary cart-data variable descriptions (bparees@redhat.com)
+
 * Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 2.12.5-1
 - Merge pull request #4476 from pmorie/bugs/916388
   (dmcphers+openshiftbot@redhat.com)
