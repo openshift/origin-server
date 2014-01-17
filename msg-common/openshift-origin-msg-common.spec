@@ -8,7 +8,7 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -34,6 +34,10 @@ chmod 644 %{buildroot}%{mco_root}agent/*
 %{mco_root}agent/*
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.18.1-1
+- fix tags (admiller@redhat.com)
+- Allow multiple keys to added or removed at the same time (lnader@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com>
 - Allow multiple keys to added or removed at the same time (lnader@redhat.com)
 
