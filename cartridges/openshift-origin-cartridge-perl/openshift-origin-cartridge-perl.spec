@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.18.4
+Version: 1.18.5
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,11 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.18.5-1
+- Merge pull request #4502 from sosiouxme/custom-cart-confs
+  (dmcphers+openshiftbot@redhat.com)
+- <perl cart> enable providing custom gear server confs (lmeyer@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
 - remove unnecessary cart-data variable descriptions (bparees@redhat.com)
 
