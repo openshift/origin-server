@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.19.5
+Version: 1.19.6
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -102,6 +102,11 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.6-1
+- Merge pull request #4462 from bparees/cart_data_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- remove unnecessary cart-data variable descriptions (bparees@redhat.com)
+
 * Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
 - fix php-cli include_path; config cleanup (vvitek@redhat.com)
 - fix php cart PEAR builds (vvitek@redhat.com)
