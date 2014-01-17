@@ -42,7 +42,7 @@ module OpenShift
       # <<factory method>>
       #
       # Find a node which fulfills app requirements.  Implements the superclass
-      # find_available() method
+      # find_all_available() method
       #
       # INPUTS:
       # * node_profile: string identifier for a set of node characteristics
@@ -2082,7 +2082,7 @@ module OpenShift
       # * OpenShift::UserException
       #
       # NOTES:
-      # * uses MCollectiveApplicationContainerProxy.find_available_impl
+      # * uses MCollectiveApplicationContainerProxy.find_all_available_impl
       #
       def resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
         gear_exists_in_district = false
@@ -2109,7 +2109,7 @@ module OpenShift
 
           least_preferred_server_identities = [source_container.id]
           destination_gear_size = node_profile || gear.group_instance.gear_size
-          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(destination_gear_size, destination_district_uuid, nil, gear_exists_in_district, required_uid)
+          destination_container = MCollectiveApplicationContainerProxy.find_all_available_impl(destination_gear_size, destination_district_uuid, nil, gear_exists_in_district, required_uid)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
