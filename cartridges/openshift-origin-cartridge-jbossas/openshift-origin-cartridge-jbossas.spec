@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.19.5
+Version: 1.19.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,14 @@ fi
 
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.6-1
+- Merge pull request #4486 from bparees/maven_args
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4462 from bparees/cart_data_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1033673 - Unable to customize MAVEN_OPTS (bparees@redhat.com)
+- remove unnecessary cart-data variable descriptions (bparees@redhat.com)
+
 * Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
 - Fix bug 916388: clean jboss* tmp dirs during tidy (pmorie@gmail.com)
 
