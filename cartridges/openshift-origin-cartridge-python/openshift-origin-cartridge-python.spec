@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.19.5
+Version: 1.19.6
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -123,6 +123,11 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.6-1
+- Merge pull request #4502 from sosiouxme/custom-cart-confs
+  (dmcphers+openshiftbot@redhat.com)
+- <python cart> enable providing custom gear server confs (lmeyer@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
 - Merge pull request #4462 from bparees/cart_data_cleanup
   (dmcphers+openshiftbot@redhat.com)
