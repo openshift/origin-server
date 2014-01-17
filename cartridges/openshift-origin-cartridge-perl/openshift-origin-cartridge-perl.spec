@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.18.3
+Version: 1.18.4
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
+- remove unnecessary cart-data variable descriptions (bparees@redhat.com)
+
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 1.18.3-1
 - Bug 1033581 - Adding upgrade logic to remove the unneeded
   jenkins_shell_command files (bleanhar@redhat.com)
