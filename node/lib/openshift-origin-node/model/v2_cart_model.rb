@@ -376,7 +376,13 @@ module OpenShift
             cartridge = get_cartridge_fallback(cartridge_name)
           rescue
             logger.warn("Corrupted cartridge #{@container.uuid}/#{cartridge_name}. Attempting to auto-correct for deconfigure resorting to CartridgeRepository.")
-            cartridge = CartridgeRepository.instance.select(name, software_version)
+            begin
+              cartridge = CartridgeRepository.instance.select(name, software_version)
+            rescue
+              logger.warn("Cartridge #{cartridge_name} not found in CartridgeRepostory.")
+              teardown_output << "Cartridge #{cartridge_name} not found on the gear or in the CartridgeRepository. It is most likely a downloaded cartridge that failed to configure and was removed."
+              return teardown_output
+            end
           end
 
           ident = Runtime::Manifest.build_ident(cartridge.cartridge_vendor,
