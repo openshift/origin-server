@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.10
+Version: 1.19.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.11-1
+- Allow multiple keys to added or removed at the same time (lnader@redhat.com)
+- Merge pull request #4496 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1051203 (dmcphers@redhat.com)
+
 * Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.19.10-1
 - Merge pull request #4389 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
