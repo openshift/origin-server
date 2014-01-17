@@ -60,7 +60,7 @@ OPTIONS
     Display only ids
 
 EXAMPLE
-  $ oo-admin-ctl-cartridge -c refresh
+  $ oo-admin-ctl-cartridge -c list
 
 AUTHOR
   Clayton Coleman <ccoleman@redhat.com> - man page written for OpenShift Origin

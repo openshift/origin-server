@@ -102,6 +102,7 @@ class Command
         cart.priority = nil
         cart.save!
         puts "#{cart.name} was deactivated."
+        Rails.cache.clear
       else
         puts "#{cart.name} was not active."
       end
@@ -124,6 +125,7 @@ class Command
         warn "#{cart.name} is obsolete. Please pass --force to activate."
       elsif cart.activate
         puts "#{cart._id} # now the active cartridge for #{cart.name}"
+        Rails.cache.clear
       else
         warn "Unable to activate #{options.id}"
         type.errors.full_messages.each do |m|
