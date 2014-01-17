@@ -29,7 +29,9 @@ action "cartridge_do", :description => "run a cartridge action" do
                               app-destroy
                               app-state-show
                               authorized-ssh-key-add
+                              authorized-ssh-key-batch-add
                               authorized-ssh-key-remove
+                              authorized-ssh-key-batch-remove
                               authorized-ssh-keys-replace
                               broker-auth-key-add
                               broker-auth-key-remove

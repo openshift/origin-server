@@ -4,6 +4,6 @@ class RemoveSystemSshKeysDomainOp < PendingDomainOps
 
   def execute
     ssh_keys = keys_attrs.map { |key_hash| SystemSshKey.new.to_obj(key_hash) } 
-    pending_apps.each { |app| app.remove_ssh_keys(nil, ssh_keys, self) }
+    pending_apps.each { |app| app.remove_ssh_keys(ssh_keys, self) }
   end
 end
