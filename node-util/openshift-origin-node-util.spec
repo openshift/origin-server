@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.18.4
+Version: 1.18.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -155,6 +155,25 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.18.5-1
+- Merge pull request #4488 from lsm5/new-node_conf
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4503 from jwhonce/bug/1054512
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1054512 - Verify gear home directory ownership in oo-accept-node
+  (jhonce@redhat.com)
+- Bug 1054449 - Watchman support for chkconfig (jhonce@redhat.com)
+- Merge pull request #4495 from jwhonce/wip/watchman
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_node_374 - Port Watchman to Origin (jhonce@redhat.com)
+- correct if else syntax (lsm5@redhat.com)
+- check for old node conf vars if newer undefined (lsm5@redhat.com)
+- check for PROXY_MIN_PORT_NUM if PORT_BEGIN undefined (lsm5@redhat.com)
+- correct if else syntax (lsm5@redhat.com)
+- check for old and new port num variables (lsm5@redhat.com)
+- add PORT_BEGIN parameter to oo-accept-node (lsm5@redhat.com)
+- Card origin_node_374 - Port Watchman to Origin (jhonce@redhat.com)
+
 * Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
 - Card origin_node_374 - Port Watchman to Origin (jhonce@redhat.com)
 - Card origin_node_374 - Port Watchman to Origin Bug 1053423 - Restore
