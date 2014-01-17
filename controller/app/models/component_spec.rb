@@ -73,6 +73,10 @@ class ComponentSpec
     path.hash
   end
 
+  def default?
+    true
+  end
+
   ##
   # A ComponentSpec is equivalent to another spec with another path, a hash that
   # matches "cart" and "name", or a string that matches a component
@@ -105,6 +109,10 @@ class ComponentSpec
 
   def merge(other)
     return other if ComponentOverrideSpec === other
+    self
+  end
+
+  def reset(*args)
     self
   end
 

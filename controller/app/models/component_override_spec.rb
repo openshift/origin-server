@@ -107,6 +107,17 @@ class ComponentOverrideSpec < SimpleDelegator
     object
   end
 
+  def default?
+    @min_gears.nil? && @max_gears.nil? && @multiplier.nil?
+  end
+
+  def reset(min_gears, max_gears, multiplier)
+    @min_gears = (Integer(min_gears) rescue nil)
+    @max_gears = (Integer(max_gears) rescue nil)
+    @multiplier = (Integer(multiplier) rescue nil)
+    self
+  end
+
   protected
     KEYS = ["min_gears", "max_gears", "multiplier"]
 

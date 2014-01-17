@@ -169,6 +169,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     assert_equal 2, app.gears.length
+    assert_equal [], app.group_overrides
 
     _, updated = app.elaborate(app.cartridges, [])
     changes, moves = app.compute_diffs(app.group_instance_overrides, updated)
@@ -179,23 +180,37 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     @user.save
     app.reload
     app.owner.reload
+
     component_instance = app.component_instances.find_by(cartridge_name: php_version)
-    group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
+    specs = component_instance.group_instance.all_component_instances.map(&:to_component_spec)
+
+    app.update_component_limits(component_instance, 2, 2, nil)
+    assert_equal 3, (app = Application.find(app._id)).gears.length
+    assert_equal [GroupOverride.new(specs, 2, 2)], app.group_overrides
+
     app.update_component_limits(component_instance, nil, nil, 2)
+    assert_equal 3, (app = Application.find(app._id)).gears.length
+    assert_equal [GroupOverride.new(specs, nil, nil, nil, 2)], app.group_overrides
+
     app.update_component_limits(component_instance, 1, 2, nil)
+    assert_equal 3, (app = Application.find(app._id)).gears.length
+    assert_equal [GroupOverride.new(specs, nil, 2)], app.group_overrides
+
     app.update_component_limits(component_instance, 1, -1, nil)
+    assert_equal 3, (app = Application.find(app._id)).gears.length
+    assert_equal [], app.group_overrides
 
     web_instance = app.web_component_instance
     app.scale_by(web_instance.group_instance_id, 1)
     app.reload
-    assert_equal 3, app.gears.count
+    assert_equal 4, app.gears.count
 
     app.scale_by(web_instance.group_instance_id, -1)
     resp = rest_check(:get, "", {})
     assert_equal resp.status, 200
 
     app.reload
-    assert_equal 2, app.gears.count
+    assert_equal 3, app.gears.count
 
     app.destroy_app
   end
@@ -230,6 +245,44 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
     resp = rest_check(:get, "/gear_groups/#{group_instance._id.to_s}", { })
     assert_equal resp.status, 200
+
+    app.destroy_app
+  end
+
+  test "application elaborate does not change overrides" do
+    @appname = "test"
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain, nil, true)
+    assert app.group_overrides.empty?
+
+    overrides = [
+      GroupOverride.new([app.component_instances.detect{ |i| i.is_web_framework? }]),
+      GroupOverride.new([app.component_instances.detect{ |i| i.is_web_proxy? }]),
+      GroupOverride.new(nil),
+      GroupOverride.new([nil]),
+      GroupOverride.new([ComponentSpec.new("test", "other")]),
+    ]
+
+    _, groups = app.elaborate(app.cartridges, overrides)
+    assert_equal 1, groups.length
+    assert groups[0].implicit?
+
+    app.reload
+
+    overrides = [
+      GroupOverride.new([app.component_instances.detect{ |i| i.is_web_framework? }]),
+      GroupOverride.new([app.component_instances.detect{ |i| i.is_web_proxy? }]),
+      GroupOverride.new(nil),
+      GroupOverride.new([nil]),
+      GroupOverride.new([ComponentSpec.new("test", "other")]),
+    ]
+    app.group_overrides.concat(overrides)
+    ops, added, removed = app.update_requirements(app.cartridges, overrides)
+    assert_equal 0, added
+    assert_equal 0, removed
+    assert ops.empty?
+    assert ops.none?{ |t| SetGroupOverridesOp === t }
+
+    app.reload
 
     app.destroy_app
   end

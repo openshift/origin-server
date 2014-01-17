@@ -12,7 +12,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     CartridgeCache.stubs(:find_cartridge).with('embedcart-0.1', is_a(Application)).returns(embed_cart)
     Moped::BSON::ObjectId.stubs(:new).returns('1','2','3','4','5')
 
-    app = Application.new default_gear_size: nil
+    app = Application.new default_gear_size: nil, scalable: true
 
     embedcartspec = ComponentSpec.new("embedcart-0.1", "embedcart-0.1")
     webcartspec = ComponentSpec.new("webcart-0.1", "webcart-0.1")
@@ -45,7 +45,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     CartridgeCache.stubs(:find_cartridge).with('embedcart-0.1', is_a(Application)).returns(embed_cart)
     Moped::BSON::ObjectId.stubs(:new).returns('1','2','3','4','5')
 
-    app = Application.new default_gear_size: nil
+    app = Application.new default_gear_size: nil, scalable: true
 
     embedcartspec = ComponentSpec.new("embedcart-0.1", "embedcart-0.1")
     webcartspec = ComponentSpec.new("webcart-0.1", "webcart-0.1")

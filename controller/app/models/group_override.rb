@@ -17,6 +17,7 @@ class GroupOverride
   def self.reduce(overrides, limit_to=nil)
     by_path = {}
     overrides.each do |override|
+      next if override.blank?
       override.components.each do |c|
         if previous = by_path[c.path]
           # skip overrides we've already merged
@@ -53,6 +54,7 @@ class GroupOverride
     by_path = {}
     targets.each{ |o| o.components.each{ |c| (by_path[c.path] ||= []) << o } }
     overrides.each do |override|
+      next if override.blank?
       override.components.each do |component|
         if existing = by_path[component.path]
           existing.each{ |e| e.merge_strict(override) }
@@ -60,6 +62,18 @@ class GroupOverride
       end
     end
     targets
+  end
+
+  def self.remove_defaults_from(overrides, min_gears=nil, max_gears=nil, gear_size=nil, additional_filesystem_gb=nil)
+    return [] if overrides.blank?
+    overrides.reject(&:implicit?).map do |o|
+      o.dup.reset(
+        (o.min_gears unless min_gears == o.min_gears),
+        (o.max_gears unless max_gears == o.max_gears),
+        (o.gear_size unless gear_size == o.gear_size),
+        (o.additional_filesystem_gb unless additional_filesystem_gb == o.additional_filesystem_gb)
+      ).presence
+    end.compact
   end
 
   ##
@@ -94,28 +108,9 @@ class GroupOverride
     apply(*args)
   end
 
-  def merge(other)
-    return self unless GroupOverride === other
-    apply(other.components, other.min_gears, other.max_gears, other.gear_size, other.additional_filesystem_gb)
-    self
-  end
-
-  def merge_strict(other)
-    return self unless GroupOverride === other
-    apply(components && other.components, other.min_gears, other.max_gears, other.gear_size, other.additional_filesystem_gb)
-    self
-  end
-
-  def clear(key)
-    instance_variable_set("@#{key}", nil) if KEYS.include?(key.to_s)
-  end
-
-  def defaults(min_gears, max_gears, gear_size, additional_filesystem_gb)
-    @min_gears ||= min_gears
-    @max_gears ||= max_gears
-    @gear_size ||= gear_size
-    @additional_filesystem_gb ||= additional_filesystem_gb
-    self
+  def empty?
+    @min_gears.nil? && @max_gears.nil? && @gear_size.blank? && @additional_filesystem_gb.blank? &&
+      (@components.blank? || (@components.all?{ |s| s.nil? || s.default? } && @components.length < 2))
   end
 
   def inspect
@@ -147,15 +142,12 @@ class GroupOverride
     @hash ||= components.hash
   end
 
-  def dup
-    self.class.new(components.map(&:dup), min_gears, max_gears, gear_size, additional_filesystem_gb)
-  end
-
   def mongoize
     h = {"components" => components.map(&:mongoize)}
-    h['min_gears'] if min_gears
-    h['max_gears'] if max_gears
-    h['additional_filesystem_gb'] if additional_filesystem_gb
+    h['min_gears'] = @min_gears if @min_gears
+    h['max_gears'] = @max_gears if @max_gears
+    h['gear_size'] = @gear_size if @gear_size
+    h['additional_filesystem_gb'] = @additional_filesystem_gb if @additional_filesystem_gb
     h
   end
 
@@ -164,6 +156,7 @@ class GroupOverride
   end
 
   def self.demongoize(object)
+    binding
     case object
     when Hash
       required_for((object["components"] || []).compact.map{ |c| ComponentOverrideSpec.demongoize(c) }, object)
@@ -174,6 +167,55 @@ class GroupOverride
 
   def self.evolve(object)
     object
+  end
+
+  def implicit?
+    @implicit
+  end
+
+  def implicit
+    @implicit = true
+    self
+  end
+
+  def merge(other)
+    return self unless GroupOverride === other
+    @implicit = nil unless other.implicit?
+    apply(other.components, other.min_gears, other.max_gears, other.gear_size, other.additional_filesystem_gb)
+  end
+
+  def merge_strict(other)
+    return self unless GroupOverride === other
+    @implicit = nil unless other.implicit?
+    apply(components && other.components, other.min_gears, other.max_gears, other.gear_size, other.additional_filesystem_gb)
+  end
+
+  def clear(key)
+    @implicit = nil
+    instance_variable_set("@#{key}", nil) if KEYS.include?(key.to_s)
+  end
+
+  def defaults(min_gears, max_gears, gear_size, additional_filesystem_gb)
+    @min_gears ||= min_gears
+    @max_gears ||= max_gears
+    @gear_size ||= gear_size
+    @additional_filesystem_gb ||= additional_filesystem_gb
+    self
+  end
+
+  def dup
+    d = self.class.new(components.map(&:dup), min_gears, max_gears, gear_size, additional_filesystem_gb)
+    d.implicit if implicit?
+    d
+  end
+
+  def reset(min_gears, max_gears, gear_size, additional_filesystem_gb)
+    @implicit = nil
+    @min_gears = (Integer(min_gears) rescue nil)
+    @max_gears = (Integer(max_gears) rescue nil)
+    @gear_size = gear_size.to_s.presence
+    @additional_filesystem_gb = (Integer(additional_filesystem_gb) rescue nil)
+    self
   end
 
   protected
@@ -206,5 +248,6 @@ class GroupOverride
       @gear_size = gear_size if gear_size
 
       @additional_filesystem_gb = GroupOverride.integer_range(:max, 0, @additional_filesystem_gb, (Integer(additional_filesystem_gb) rescue nil))
+      self
     end
 end

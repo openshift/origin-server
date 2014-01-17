@@ -525,7 +525,7 @@ class Application
   #
   # The array returned is a copy of the core data and can be changed without editing the application.
   #
-  def application_overrides(specs=nil)
+  def implicit_application_overrides(specs=nil)
     specs ||= component_instances.map(&:to_component_spec)
 
     # Overides from the basic cartridge definitions.
@@ -534,7 +534,7 @@ class Application
       # Cartridges can contribute overrides
       spec.profile.group_overrides.each do |override|
         if o = GroupOverride.resolve_from(specs, override)
-          overrides << o
+          overrides << o.implicit
         end
       end
 
@@ -542,26 +542,53 @@ class Application
       comp = spec.component
       overrides <<
         if comp.is_sparse?
-          GroupOverride.new([spec])
+          GroupOverride.new([spec]).implicit
         else
-          GroupOverride.new([spec], comp.scaling.min, comp.scaling.max)
+          GroupOverride.new([spec], comp.scaling.min, comp.scaling.max).implicit
         end
     end
+
+    # Overrides that are implicit to applications of this type
+    if self.scalable
+      if self.ha
+        overrides.concat(implicit_available_overrides(specs))
+      end
+    else
+      overrides.concat(implicit_non_scalable_overrides(specs))
+    end
+
+    overrides
+  end
+
+  def implicit_available_overrides(specs)
+    overrides = []
+
+    # make the web framework min scale 2
+    if primary = specs.find{ |i| i.cartridge.is_web_framework? } || cartridges.find{ |i| i.cartridge.is_service? }
+      overrides << GroupOverride.new([primary.dup], 2).implicit
+    end
+
+    # ensure the proxy has the appropriate min scale and multiplier
+    if proxy = specs.find{ |i| i.cartridge.is_web_proxy? }
+      overrides << GroupOverride.new([ComponentOverrideSpec.new(proxy.dup, 2, -1, 1).merge(proxy)]).implicit
+    end
+    overrides
+  end
+
+  def implicit_non_scalable_overrides(specs)
+    [GroupOverride.new(specs.dup, nil, 1).implicit]
+  end
+
+  def application_overrides(specs=nil)
+    specs ||= component_instances.map(&:to_component_spec)
+
+    overrides = implicit_application_overrides(specs)
 
     # Overrides from the persisted application
     group_overrides.each do |override|
       if o = GroupOverride.resolve_from(specs, override)
         overrides << o
       end
-    end
-
-    # Overrides that are implicit to applications of this type
-    if self.scalable
-      if self.ha
-        overrides.concat(gen_available_app_overrides(specs))
-      end
-    else
-      overrides.concat(gen_non_scalable_app_overrides(specs))
     end
 
     overrides
@@ -2017,13 +2044,13 @@ class Application
     add_gears = 0
     remove_gears = 0
     pending_ops = []
-    #_, _ = calculate_component_orders
 
-    if group_overrides.present?
-      set_group_override_op = SetGroupOverridesOp.new(group_overrides: group_overrides,
-                                                      saved_group_overrides: self.group_overrides,
-                                                      pre_save: !self.persisted?)
-      pending_ops.push set_group_override_op
+    overrides = GroupOverride.remove_defaults_from(group_overrides, 1, -1, default_gear_size, 0)
+    if overrides != self.group_overrides
+      pending_ops << SetGroupOverridesOp.new(group_overrides: overrides,
+                                             saved_group_overrides: self.group_overrides,
+                                             pre_save: !self.persisted?)
+      prereq_op = pending_ops.last
     end
 
     deploy_gear_id = nil
@@ -2044,7 +2071,7 @@ class Application
       end
 
       ops = calculate_gear_create_ops(change.to_instance_id.to_s, gear_ids, deploy_gear_id, change.added, component_ops, additional_filesystem_gb,
-                                      gear_size, set_group_override_op, false, app_dns, init_git_url, user_env_vars)
+                                      gear_size, prereq_op, false, app_dns, init_git_url, user_env_vars)
       pending_ops.concat(ops)
     end
 
@@ -2314,12 +2341,15 @@ class Application
   #   An array of connections
   # group instances::
   #   An array of hash values representing a group instances.
-  def elaborate(cartridges, group_overrides = [])
+  def elaborate(cartridges, group_overrides=[])
     # All of the components that will be installed
     specs = component_specs_from(cartridges)
 
     # add overrides that are part of the application
-    overrides = application_overrides(specs)
+    overrides = implicit_application_overrides(specs)
+
+    # use a new set of group overrides
+    overrides.concat(group_overrides)
 
     # Calculate connections and add any shared placement rules
     connections, connection_overrides = connections_from_component_specs(specs)
@@ -2577,28 +2607,6 @@ class Application
     end unless begin_usage_op_ids.empty?
   end
 
-  ##
-  # Will not change existing component specs
-  #
-  def gen_available_app_overrides(specs)
-    overrides = []
-
-    # make the web framework min scale 2
-    if primary = specs.find{ |i| i.cartridge.is_web_framework? } || cartridges.find{ |i| i.cartridge.is_service? }
-      overrides << GroupOverride.new([primary.dup], 2)
-    end
-
-    # ensure the proxy has the appropriate min scale and multiplier
-    if proxy = specs.find{ |i| i.cartridge.is_web_proxy? }
-      GroupOverride.new([ComponentOverrideSpec.new(proxy.dup, 2, -1, 1).merge(proxy)])
-    end
-    overrides
-  end
-
-  def gen_non_scalable_app_overrides(specs)
-    [GroupOverride.new(specs.dup, nil, 1)]
-  end
-
   def get_all_updated_ssh_keys
     ssh_keys = []
     ssh_keys = self.app_ssh_keys.map {|k| k.serializable_hash } # the app_ssh_keys already have their name "updated"
@@ -2607,7 +2615,6 @@ class Application
 
     ssh_keys
   end
-
 
   # The ssh key names are used as part of the ssh key comments on the application's gears
   # Do not change the format of the key name, otherwise it may break key removal code on the node

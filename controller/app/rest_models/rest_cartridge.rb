@@ -103,16 +103,15 @@ class RestCartridge < OpenShift::Model
     self.type = "embedded" if cart.is_embeddable?
     scale = cart.components_in_profile(nil).first.scaling
     if not scale.nil?
-      self.scales_from = self.supported_scales_from = scale.min
-      self.scales_to = self.supported_scales_to = scale.max
+      self.supported_scales_from = scale.min
+      self.supported_scales_to = scale.max
     else
-      self.scales_from = self.supported_scales_from = 1
-      self.scales_to = self.supported_scales_to = -1
+      self.supported_scales_from = 1
+      self.supported_scales_to = -1
     end
-    self.current_scale = 0
     self.help_topics = cart.help_topics
     self.usage_rates = cart.usage_rates
-    self.obsolete = cart.is_obsolete?
+    @obsolete = true if cart.is_obsolete?
     @url = cart.manifest_url if cart.manifest_url.present?
   end
 

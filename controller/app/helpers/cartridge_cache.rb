@@ -34,7 +34,7 @@ class CartridgeCache
   #
   def self.find_cartridge_by_id(id, app=nil)
     if app
-      cart = app.downloaded_cartridges.values.find{ |c| c['id'] == id } ||
+      cart = app.downloaded_cartridges.values.find{ |c| c.id == id } ||
              app.cartridge_instances.values.find{ |c| c.id == id }
       return cart if cart
     end

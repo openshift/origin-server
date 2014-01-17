@@ -7,25 +7,25 @@ class UpdateCompLimitsOpGroup < PendingAppOpGroup
   field :additional_filesystem_gb, type: Integer
 
   def elaborate(app)
-    overrides = app.application_overrides
+    overrides = app.group_overrides.compact
     instance = app.find_component_instance_for(comp_spec)
 
     found = false
     if instance.is_sparse?
-      instance.group_overrides do |override|
+      overrides.each do |override|
         if component = override.components.find{ |c| c == comp_spec }
           found = true
-          component.merge(min, max, multiplier)
-          override.merge(GroupOverride.new(nil, nil, nil, nil, additional_filesystem_gb))
+          component.reset(min, max, multiplier)
+          override.reset(nil, nil, nil, additional_filesystem_gb)
         end
       end
       unless found
         overrides << GroupOverride.new([ComponentOverrideSpec.new(comp_spec, min, max, multiplier)], nil, nil, nil, additional_filesystem_gb)
       end
     else
-      instance.group_overrides do |override|
+      overrides.each do |override|
         found = true
-        override.merge(GroupOverride.new(nil, min, max, nil, additional_filesystem_gb))
+        override.reset(min, max, nil, additional_filesystem_gb)
       end
       unless found
         overrides << GroupOverride.new([comp_spec], min, max, nil, additional_filesystem_gb)
