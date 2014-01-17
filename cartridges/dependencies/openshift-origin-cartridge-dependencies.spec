@@ -54,6 +54,61 @@ an OpenShift cartrige.
 %files optional
 
 #===================
+# JBoss
+#===================
+# JBoss Recommended
+%package recommended-jboss
+Summary:   Recommended user dependencies for JBoss OpenShift Cartridges
+BuildArch: noarch
+
+%description recommended-jboss
+This package pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files recommended-jboss
+
+# JBoss Optional
+%package optional-jboss
+Summary:   Optional user dependencies for JBoss OpenShift Cartridges
+BuildArch: noarch
+
+%description optional-jboss
+This package pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files optional-jboss
+
+#===================
+# Nodejs
+#===================
+# Nodejs Recommended
+%package recommended-nodejs
+Summary:   Recommended user dependencies for Nodejs OpenShift Cartridges
+BuildArch: noarch
+
+%description recommended-nodejs
+This package pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files recommended-nodejs
+
+# Nodejs Optional
+%package optional-nodejs
+Summary:   Optional user dependencies for Nodejs OpenShift Cartridges
+BuildArch: noarch
+
+%description optional-nodejs
+This package pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files optional-nodejs
+
+
+#===================
 # Perl
 #===================
 # Perl Recommended
@@ -86,6 +141,33 @@ might need when building common applications using
 an OpenShift cartrige.
 
 %files optional-perl
+
+#===================
+# PHP
+#===================
+# PHP Recommended
+%package recommended-php
+Summary:   Recommended user dependencies for PHP OpenShift Cartridges
+BuildArch: noarch
+
+%description recommended-php
+This package pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files recommended-php
+
+# PHP Optional
+%package optional-php
+Summary:   Optional user dependencies for Ruby OpenShift Cartridges
+BuildArch: noarch
+
+%description optional-php
+This package pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files optional-php
 
 #===================
 # Python
@@ -134,6 +216,33 @@ might need when building common applications using
 an OpenShift cartrige.
 
 %files optional-python
+
+#===================
+# Ruby
+#===================
+# Ruby Recommended
+%package recommended-ruby
+Summary:   Recommended user dependencies for Ruby OpenShift Cartridges
+BuildArch: noarch
+
+%description recommended-ruby
+This package pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files recommended-ruby
+
+# Ruby Optional
+%package optional-ruby
+Summary:   Optional user dependencies for Ruby OpenShift Cartridges
+BuildArch: noarch
+
+%description optional-ruby
+This package pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files optional-ruby
 
 
 %changelog
