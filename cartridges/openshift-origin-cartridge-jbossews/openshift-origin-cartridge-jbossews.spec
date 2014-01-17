@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.18.4
+Version: 1.18.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -75,6 +75,11 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.18.5-1
+- Merge pull request #4462 from bparees/cart_data_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- remove unnecessary cart-data variable descriptions (bparees@redhat.com)
+
 * Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
 - Merge pull request #4420 from bparees/tomcat_build_cleanup
   (dmcphers+openshiftbot@redhat.com)
