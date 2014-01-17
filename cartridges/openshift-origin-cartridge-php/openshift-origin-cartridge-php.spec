@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.19.6
+Version: 1.19.7
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -102,6 +102,11 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
+- Merge pull request #4502 from sosiouxme/custom-cart-confs
+  (dmcphers+openshiftbot@redhat.com)
+- <php cart> enable providing custom gear server confs (lmeyer@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.6-1
 - Merge pull request #4462 from bparees/cart_data_cleanup
   (dmcphers+openshiftbot@redhat.com)
