@@ -1287,7 +1287,7 @@ module OpenShift
             buffer << err if err.is_a?(String)
 
             raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
-                      "Failed to execute: 'control #{action}' for #{path}", rc, out, err
+                      "CLIENT_ERROR: Failed to execute: 'control #{action}' for #{path}", rc, out, err
                   ) if rc != 0
           end
         }
@@ -1322,7 +1322,7 @@ module OpenShift
                                                              out:     options[:out],
                                                              err:     options[:err])
           raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
-                    "Failed to execute action hook '#{action}' for #{@container.uuid} application #{@container.application_name}",
+                    "CLIENT_ERROR: Failed to execute action hook '#{action}' for #{@container.uuid} application #{@container.application_name}",
                     rc, out, err
                 ) if rc != 0
         end

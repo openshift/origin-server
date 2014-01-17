@@ -300,7 +300,7 @@ module MCollective
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
           report_exception e
           output << "\n" unless output.empty?
-          output << "Error: #{e.message}" if e.message
+          output << "#{e.message}" if e.message
           output << "\n#{e.stdout}" if e.stdout.is_a?(String)
           output << "\n#{e.stderr}" if e.stderr.is_a?(String)
           return e.rc, output
