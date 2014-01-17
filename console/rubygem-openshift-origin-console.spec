@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.7
+Version: 1.19.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
+- Merge pull request #4496 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1051203 (dmcphers@redhat.com)
+
 * Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
 - Merge pull request #4492 from VojtechVitek/obsolete_zend-5.6
   (dmcphers+openshiftbot@redhat.com)
