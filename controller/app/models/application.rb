@@ -535,7 +535,7 @@ class Application
     overrides = []
     specs.each do |spec|
       # Cartridges can contribute overrides
-      spec.profile.group_overrides.each do |override|
+      spec.cartridge.group_overrides.each do |override|
         if o = GroupOverride.resolve_from(specs, override)
           overrides << o.implicit
         end
@@ -720,9 +720,8 @@ class Application
       end
 
       if self.scalable and cart.is_web_framework?
-        prof = cart.profile_for_feature(cart.name)
         cart_scalable = false
-        prof.components.each do |component|
+        cart.components.each do |component|
            next if component.scaling.min==1 and component.scaling.max==1
            cart_scalable = true
         end
@@ -2368,28 +2367,26 @@ class Application
 
   def component_specs_from(cartridges)
     # Calculate initial list based on user provided dependencies
-    added_cartridges = []
-    profiles = []
+    all = []
+    added = []
     cartridges.each do |cart|
-      added_cartridges << cart
-      prof = cart.profile_for_feature(cart.name)
-      profiles << {cartridge: cart, profile: prof}
+      all << cart
+      added << cart
     end
 
     # Solve for transitive dependencies
     depth = 0
-    while added_cartridges.present? do
-      carts_to_process = added_cartridges
-      added_cartridges = []
-      carts_to_process.each do |cart|
+    while added.present? do
+      process = added
+      added = []
+      process.each do |cart|
         cart.requires.each do |feature|
-          next if profiles.count{|d| d[:cartridge].features.include?(feature)} > 0
+          next if added.any?{ |d| d.features.include?(feature) }
 
           cart = CartridgeCache.find_cartridge_by_base_name(feature, self)
           raise OpenShift::UnfulfilledRequirementException.new(feature) if cart.nil?
-          prof = cart.profile_for_feature(feature)
-          added_cartridges << cart
-          profiles << {cartridge: cart, profile: prof}
+          all << cart
+          added << cart
         end
       end
       if (depth += 1) > MAX_CARTRIDGE_RECURSION
@@ -2399,10 +2396,9 @@ class Application
 
     # All of the components that will be available
     specs = []
-    profiles.each do |data|
-      profile = (data[:profile].is_a? Array) ? data[:profile].first : data[:profile]
-      profile.components.each do |component|
-        specs << ComponentSpec.for_model(component, data[:cartridge])
+    all.each do |cart|
+      cart.components.each do |component|
+        specs << ComponentSpec.for_model(component, cart)
       end
     end
     specs
@@ -2476,15 +2472,14 @@ class Application
   #
   # == Returns:
   # {ComponentInstance} objects ordered by calculated configure order
-  def calculate_configure_order(comp_specs)
+  def calculate_configure_order(specs)
     configure_order = ComponentOrder.new
 
     existing_categories = {}
     self.component_instances.each do |instance|
       cart = instance.cartridge
-      prof = cart.get_profile_for_component(instance.component_name)
 
-      [[instance.cartridge_name],cart.categories,cart.provides,prof.provides].flatten.each do |cat|
+      [[instance.cartridge_name], cart.categories, cart.provides].flatten.each do |cat|
         existing_categories[cat] = [] if existing_categories[cat].nil?
         existing_categories[cat] << instance
       end
@@ -2492,26 +2487,25 @@ class Application
 
     comps = []
     categories = {}
-    comp_specs.each do |instance|
-      cart = instance.cartridge
-      prof = instance.profile
+    specs.each do |spec|
+      cart = spec.cartridge
 
-      comps << instance
-      [instance.cartridge.name, cart.categories, cart.provides, prof.provides].flatten.each do |cat|
+      comps << spec
+      [cart.name, cart.categories, cart.provides].flatten.each do |cat|
         categories[cat] = [] if categories[cat].nil?
-        categories[cat] << instance
+        categories[cat] << spec
       end
-      configure_order.add_component_order([instance])
+      configure_order.add_component_order([spec])
     end
 
     #use the map to build DAG for order calculation
-    comps.each do |comp_spec|
-      comp_spec.profile.configure_order.each do |dep_cart|
+    comps.each do |spec|
+      spec.cartridge.configure_order.each do |dep_cart|
         if !categories[dep_cart] and !existing_categories[dep_cart]
-          raise OpenShift::UserException.new("Cartridge '#{comp_spec.cartridge.name}' can not be added without cartridge '#{dep_cart}'.", 185)
+          raise OpenShift::UserException.new("Cartridge '#{spec.cartridge_name}' can not be added without cartridge '#{dep_cart}'.", 185)
         end
       end
-      configure_order.add_component_order(comp_spec.profile.configure_order.map{|c| categories[c]}.flatten)
+      configure_order.add_component_order(spec.cartridge.configure_order.map{ |c| categories[c] }.flatten)
     end
 
     # enforce system order of components (web_framework first etc)
@@ -2547,10 +2541,9 @@ class Application
     #build a map of [categories, features, cart name] => component_instance
     component_instances.each do |instance|
       cart = instance.cartridge
-      prof = instance.profile
 
       comps << instance
-      [[instance.cartridge_name], cart.categories, cart.provides, prof.provides].flatten.each do |cat|
+      [[instance.cartridge_name], cart.categories, cart.provides].flatten.each do |cat|
         categories[cat] = [] if categories[cat].nil?
         categories[cat] << instance
       end
@@ -2559,9 +2552,9 @@ class Application
     end
 
     #use the map to build DAG for order calculation
-    comps.each do |comp_spec|
-      start_order.add_component_order(comp_spec.profile.start_order.map{ |c| categories[c] }.flatten)
-      stop_order.add_component_order(comp_spec.profile.stop_order.map{ |c| categories[c] }.flatten)
+    comps.each do |spec|
+      start_order.add_component_order(spec.cartridge.start_order.map{ |c| categories[c] }.flatten)
+      stop_order.add_component_order(spec.cartridge.stop_order.map{ |c| categories[c] }.flatten)
     end
 
     # enforce system order of components (web_framework first etc)

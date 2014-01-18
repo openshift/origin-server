@@ -4,13 +4,14 @@ class ApplicationControllerTest < ActionController::TestCase
 
   def setup
     Rails.cache.clear
-    @controller = ApplicationsController.new
+    @controller = allow_multiple_execution(ApplicationsController.new)
 
     @random = rand(1000000000)
     @login = "user#{@random}"
     @password = "password"
     @user = CloudUser.new(login: @login)
     @user.private_ssl_certificates = true
+    @user.capabilities["gear_sizes"] = ['small', 'medium', 'large']
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
@@ -30,8 +31,11 @@ class ApplicationControllerTest < ActionController::TestCase
 
   test "app create show list update and destroy by domain and app name" do
     @app_name = "app#{@random}"
+
     post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace}
     assert_response :created
+    assert app = assigns(:application)
+    assert_equal 1, app.gears.length
     get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
     assert_response :success
     assert json = JSON.parse(response.body)
@@ -59,6 +63,104 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal json['data']['deployment_type'], 'binary'
     assert_equal json['data']['deployment_branch'], 'stage'
 
+
+    delete :destroy, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert_response :ok
+  end
+
+  test "app create scalable show destroy by domain and app name" do
+    @app_name = "app#{@random}"
+
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :created
+
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert_response :success
+    assert app = assigns(:application)
+    assert app.scalable
+
+    delete :destroy, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert_response :ok
+  end
+
+  test "app create scalable with different gear types" do
+    @app_name = "app#{@random}"
+
+    post :create, {"name" => @app_name, "cartridges" => [
+      {"name" => php_version, "gear_size" => "medium", "scales_from" => 2, "scales_to" => 3},
+      {"name" => mysql_version, "gear_size" => "medium", "additional_storage" => 2}
+    ], "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :created
+
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert_response :success
+    assert app = assigns(:application)
+    assert app.scalable
+    assert_equal 2, app.group_instances.length
+
+    overrides = app.group_instances_with_overrides
+    overrides.sort_by{ |i| i.components.length }
+
+    assert_equal 1, overrides[0].min_gears
+    assert_equal 1, overrides[0].max_gears
+    assert_equal "medium", overrides[0].gear_size
+    assert_equal 2, overrides[0].additional_filesystem_gb
+
+    assert_equal 2, overrides[1].min_gears
+    assert_equal 3, overrides[1].max_gears
+    assert_equal "medium", overrides[1].gear_size
+    assert_equal 0, overrides[1].additional_filesystem_gb
+  end
+
+  test "set app configuration on create" do
+    defaults = {'auto_deploy' => true, 'deployment_branch' => 'master', 'keep_deployments' => 1, 'deployment_type' => 'git'}
+
+    post :create, {"name" => "app#{@random}", "cartridge" => php_version, "domain_id" => @domain.namespace, "config" => {"garbage" => 1}}
+    assert_response :created
+    assert app = assigns(:application)
+    assert app.reload.config["auto_deploy"]
+    assert_nil app.config["garbage"]
+
+    # send valid values
+    post :create, {"name" => "app#{@random}1", "cartridge" => php_version, "domain_id" => @domain.namespace, "config" => {
+      "auto_deploy" => "false",
+      "deployment_branch" => "stage",
+      "keep_deployments" => "2",
+      "deployment_type" => "binary",
+    }}
+    assert_response :created
+    assert app = assigns(:application)
+    assert_equal defaults.merge('auto_deploy' => false, 'deployment_branch' => "stage", "keep_deployments" => 2, "deployment_type" => 'binary'), app.reload.config
+
+    # send invalid values
+    post :create, {"name" => "app#{@random}2", "cartridge" => php_version, "domain_id" => @domain.namespace, "config" => {
+      "auto_deploy" => "x",
+      "deployment_branch" => nil,
+      "keep_deployments" => "x",
+      "deployment_type" => "foo",
+    }}
+    assert_response :unprocessable_entity
+    assert app = assigns(:application)
+    assert !app.persisted?
+    assert app.errors[:config].present?
+    messages = app.errors.full_messages
+    assert_equal 2, messages.length, messages.inspect
+    assert messages.any?{ |m| m =~ /Invalid value 'x' for auto_deploy/ }, app.errors.inspect
+    assert messages.any?{ |m| m =~ /Invalid deployment type: foo/ }, app.errors.inspect
+  end
+
+  test "app create available show destroy by domain and app name" do
+    @app_name = "app#{@random}"
+
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace, "ha" => true}
+    assert_response :created
+
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert_response :success
+    assert app = assigns(:application)
+    assert app.scalable
+    assert app.ha
+    assert_equal 2, app.gears.length
 
     delete :destroy, {"id" => @app_name, "domain_id" => @domain.namespace}
     assert_response :ok

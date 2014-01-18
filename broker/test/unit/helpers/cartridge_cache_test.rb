@@ -113,9 +113,9 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert_equal '0.3', m.version
     assert_equal 'crtest', m.name
     carts = manifests.map{ |m| OpenShift::Cartridge.new.from_descriptor(m.manifest) }
-    assert_equal [{'components' => ['crtest-0.3', 'web_proxy']}], carts[0].profiles[0].group_overrides
-    assert_equal [{'components' => ['crtest-0.2', 'web_proxy']}], carts[1].profiles[0].group_overrides
-    assert_equal [{'components' => ['crtest-0.1', 'web_proxy']}], carts[2].profiles[0].group_overrides
+    assert_equal [{'components' => ['crtest-0.3', 'web_proxy']}], carts[0].group_overrides
+    assert_equal [{'components' => ['crtest-0.2', 'web_proxy']}], carts[1].group_overrides
+    assert_equal [{'components' => ['crtest-0.1', 'web_proxy']}], carts[2].group_overrides
   end
 
   test "find and download from cartridges" do

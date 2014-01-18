@@ -67,7 +67,6 @@ class SubscriptionTest < ActiveSupport::TestCase
 
   def mock_embed_cart
     embed_cart = mock('OpenShift::Cartridge')
-    embed_profile = mock('OpenShift::Profile')
     embed_component = mock('OpenShift::Component')
     embed_cart_name = 'embedcart-0.1'
 
@@ -102,10 +101,9 @@ class SubscriptionTest < ActiveSupport::TestCase
     embed_scaling = mock('OpenShift::Scaling')
     embed_scaling.stubs(:max => 1, :min => 1, :min_managed => 0, :multiplier => 1)
     embed_component.stubs(:scaling).returns(embed_scaling)
-    embed_profile.stubs(:components).returns([embed_component])
-    embed_profile.stubs(:get_component).with(embed_cart_name).returns(embed_component)
-    embed_profile.stubs(:group_overrides).returns([])
-    embed_cart.stubs(:profile_for_feature).returns(embed_profile)
+    embed_cart.stubs(:components).returns([embed_component])
+    embed_cart.stubs(:get_component).with(embed_cart_name).returns(embed_component)
+    embed_cart.stubs(:group_overrides).returns([])
     embed_cart
   end
 
@@ -136,7 +134,6 @@ class SubscriptionTest < ActiveSupport::TestCase
 
   def web_cart_with_connectors( web_subscribes_array )
     web_cart = mock('OpenShift::Cartridge')
-    web_profile = mock('OpenShift::Profile')
     web_component = mock('OpenShift::Component')
     web_cart_name = 'webcart-0.1'
 
@@ -157,10 +154,9 @@ class SubscriptionTest < ActiveSupport::TestCase
     web_scaling.stubs(:max => -1, :min => 1, :min_managed => 0, :multiplier => 1)
     web_component.stubs(:scaling).returns(web_scaling)
 
-    web_profile.stubs(:components).returns([web_component])
-    web_profile.stubs(:get_component).with(web_cart_name).returns(web_component)
-    web_profile.stubs(:group_overrides).returns([])
-    web_cart.stubs(:profile_for_feature).returns(web_profile)
+    web_cart.stubs(:components).returns([web_component])
+    web_cart.stubs(:get_component).with(web_cart_name).returns(web_component)
+    web_cart.stubs(:group_overrides).returns([])
     web_cart
   end
 

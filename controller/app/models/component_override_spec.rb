@@ -68,8 +68,6 @@ class ComponentOverrideSpec < SimpleDelegator
         case v
         when OpenShift::Component, OpenShift::Cartridge, CartridgeType, Application
           "<#{v.name}>"
-        when OpenShift::Profile
-          "<set>"
         else
           v.inspect
         end

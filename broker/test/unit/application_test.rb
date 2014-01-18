@@ -65,8 +65,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     assert app.config['auto_deploy'] == true
-    puts app.config['deployment_branch']
-    #assert app.config['deployment_branch'] == "stage"
     assert app.config['keep_deployments'] == 3
     assert app.config['deployment_type'] == "binary"
 

@@ -70,22 +70,8 @@ class ComponentInstance
     end
   end
 
-  def get_feature
-    cart = cartridge
-    prof = get_profile
-    (prof.provides.length > 0 && prof.name != cart.default_profile) ? prof.provides.first : cart.provides.first
-  end
-
-  def get_profile
-    cartridge.get_profile_for_component self.component_name
-  end
-
   def supports_action?(action)
     cartridge.additional_control_actions.include?(action)
-  end
-
-  def profile
-    @profile ||= cartridge.profile_for_feature(component_name)
   end
 
   def component

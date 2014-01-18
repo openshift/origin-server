@@ -57,10 +57,6 @@ class ComponentSpec
     @component ||= cartridge.get_component(@name)
   end
 
-  def profile
-    @profile ||= cartridge.profile_for_feature(@name)
-  end
-
   def ==(other)
     return true if equal?(other)
     return other.==(self) if ComponentOverrideSpec === other
@@ -92,11 +88,8 @@ class ComponentSpec
     when String
       return true if @name == other
       cart = cartridge
-      if p = cart.profile_for_feature(other)
-        # this is the cartridge because we found a profile matching the feature, just double
-        # check on the component if this was an auto-generated component then we are good to
-        # choose this ci
-        return true if p.get_component(other).generated rescue nil
+      if p = cart.get_component(other)
+        return true if p.generated
       end
       # This resolves cartridge contributed group-overrides for place, but is probably too
       # underspecified. Lookups of group override specs should be done by feature or type,
@@ -164,8 +157,6 @@ class ComponentSpec
         case v
         when OpenShift::Component, OpenShift::Cartridge, CartridgeType, Application
           "<#{v.name}>"
-        when OpenShift::Profile
-          "<set>"
         else
           v.inspect
         end

@@ -83,10 +83,7 @@ class CartridgeInstance < SimpleDelegator
   end
 
   def to_component_spec(app=nil)
-    profs = profile_for_feature(name)
-    profile = (profs.is_a? Array) ? profs.first : profs
-    comp = profile.components.first
-    ComponentSpec.for_model(comp, __getobj__, app)
+    ComponentSpec.for_model(components.first, __getobj__, app)
   end
 
   protected
