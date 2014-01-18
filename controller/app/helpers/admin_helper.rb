@@ -812,7 +812,7 @@ module AdminHelper
       errors = []
       billing_api = OpenShift::BillingService.instance
       billing_api.check_inconsistencies(billing_user_hash, errors, $verbose)
-      print_message errors.join('\n')
+      print_message errors.join("\n") if errors.present?
     end
   end 
 end
