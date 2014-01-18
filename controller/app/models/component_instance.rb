@@ -15,8 +15,6 @@ class ComponentInstance
   field :cartridge_id, type: Moped::BSON::ObjectId
   field :component_properties, type: Hash, default: {}
   field :component_name, type: String
-
-  # DEPRECATED
   field :cartridge_name, type: String
 
   NAME_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\Z/
@@ -108,6 +106,7 @@ class ComponentInstance
   def to_component_spec
     ComponentSpec.for_instance(self, self.has_application? ? self.application : nil)
   end
+  alias_method :get_cartridge, :cartridge
 
   def matches_spec?(spec)
     component_name == spec.name && cartridge_name == spec.cartridge_name

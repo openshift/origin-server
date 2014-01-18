@@ -102,6 +102,7 @@ class Command
         cart.priority = nil
         cart.save!
         puts "#{cart.name} was deactivated."
+        Rails.cache.clear
       else
         puts "#{cart.name} was not active."
       end
@@ -120,8 +121,11 @@ class Command
     env!(options)
     code = 0
     CartridgeType.or({:name.in => ids}, {:_id.in => ids}).each do |cart|
-      if cart.activate
-        puts "#{cart._id} is now the active cartridge for #{cart.name}"
+      if cart.obsolete? && !options.force
+        warn "#{cart.name} is obsolete. Please pass --force to activate."
+      elsif cart.activate
+        puts "#{cart._id} # now the active cartridge for #{cart.name}"
+        Rails.cache.clear
       else
         warn "Unable to activate #{options.id}"
         type.errors.full_messages.each do |m|
@@ -210,8 +214,9 @@ class Command
 
     def save_cart(options, type)
       op = type.persisted? || type.has_predecessor? ? "update" : "add"
-      if type.send(options.activate ? :activate : :save)
-        puts "#{op.capitalize[0]} #{type.name} [#{type._id}]#{ " (obsolete)" if type.obsolete?}"
+      activate = options.activate && (!type.obsolete? || options.force)
+      if type.send(activate ? :activate : :save)
+        puts "#{type._id} # #{op.capitalize[0]} #{type.name} #{ " (obsolete)" if type.obsolete?}#{ " (active)" if activate}"
       else
         warn "Failed to #{op} #{type.name}"
         type.errors.full_messages.each do |m|
@@ -244,13 +249,22 @@ p = OptionParser.new do |opts|
 #{File.basename $0}: Manage cartridges
 
 Commands:
- activate    - Make a specific cartridge active
- deactivate  - Disable a cartridge from being visible to users
- clean       - Delete all cartridges in the broker
- delete      - Remove one or more named cartridges
- import      - Import a manifest as one or more cartridges
- import-node - Import the latest cartridges from the nodes
- list        - List all cartridges
+  activate    - Make a specific cartridge active.
+                Requires id or name, or input from STDIN.
+
+  deactivate  - Disable a cartridge from being visible to users
+                Requires id or name, or input from STDIN.
+
+  clean       - Delete all cartridges in the broker
+
+  delete      - Remove one or more named cartridges
+
+  import      - Import a manifest as one or more cartridges
+                Requires --url
+
+  import-node - Import the latest cartridges from a randomly selected node.
+
+  list        - List all cartridges
 
 For delete, activate, and deactivate, you may pass a file containing ids
 or names.
@@ -274,7 +288,7 @@ or names.
     options.raw = true
   end
 
-  opts.on('--force', "Confirm potentially destructive actions") do
+  opts.on('--force', "Force activation of obsolete cartridges") do
     options.force = true
   end
 

@@ -26,12 +26,6 @@ end
 #   @return [Array<PendingAppOpGroup>] List of pending operations to be performed on this application
 # @!attribute [r] domain
 #   @return [Domain] Domain that this application is part of.
-# @!attribute [rw] component_start_order
-#   @return [Array<String>] Normally start order computed based on order specified by each component's manifest.
-#     This attribute is used to overrides the start order
-# @!attribute [rw] component_stop_order
-#   @return [Array<String>] Normally stop order computed based on order specified by each component's manifest.
-#     This attribute is used to overrides the stop order
 # @!attribute [rw] component_stop_order
 #   @return [Array<String>] Normally configure order computed based on order specified by each component's manifest.
 #     This attribute is used to overrides the configure order
@@ -400,7 +394,6 @@ class Application
       self.run_jobs(result_io)
       result_io
     end
-    
   end
 
   ##

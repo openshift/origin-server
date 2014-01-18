@@ -32,12 +32,8 @@ module OpenShift
       return categories.include?('ci_builder')
     end
 
-    def is_deployable?
-      return categories.include?('web_framework')
-    end
-
-    # For now, these are synonyms
-    alias :is_buildable? :is_deployable?
+    alias_method :is_deployable?, :is_web_framework?
+    alias_method :is_buildable?, :is_web_framework?
   end
 
 
@@ -118,6 +114,10 @@ module OpenShift
       @group_overrides = []
     end
 
+    def categories
+      @categories ||= []
+    end
+
     def features
       @features ||= begin
         features = self.provides.dup
@@ -145,10 +145,6 @@ module OpenShift
 
     def is_obsolete?
       return obsolete || false
-    end
-
-    def categories
-      @categories ||= []
     end
 
     def from_descriptor(spec_hash={})
@@ -273,8 +269,9 @@ module OpenShift
       h["Vendor"] = self.vendor if self.vendor and !self.vendor.empty? and self.vendor != "unknown"
       h["Cartridge-Vendor"] = self.cartridge_vendor if self.cartridge_vendor and !self.cartridge_vendor.empty? and self.cartridge_vendor != "unknown"
       h["Obsolete"] = self.obsolete if !self.obsolete.nil? and self.obsolete
-      if self.endpoints.length > 0
-        h["Endpoints"] = self.endpoints.map { |e| e.to_descriptor }
+
+      if self.endpoints.present?
+        h["Endpoints"] = self.endpoints.map(&:to_descriptor)
       end
 
       h["Start-Order"] = @start_order unless @start_order.nil? || @start_order.empty?
@@ -291,13 +288,17 @@ module OpenShift
           h["Components"][v.name] = v.to_descriptor
         end
       end
-      if !self.connections.empty?
+
+      if self.connections.present?
         h["Connections"] = {}
         self.connections.each do |v|
           h["Connections"][v.name] = v.to_descriptor
         end
       end
-      h["Group-Overrides"] = self.group_overrides if !self.group_overrides.empty?
+
+      if self.group_overrides.present?
+        h["Group-Overrides"] = self.group_overrides
+      end
 
       h
     end

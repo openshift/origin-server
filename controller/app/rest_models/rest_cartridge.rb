@@ -88,7 +88,7 @@
 class RestCartridge < OpenShift::Model
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
     :help_topics, :properties, :display_name, :description, :scales_from, :scales_to,
-    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates, :obsolete
+    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates
 
   def initialize(cart)
     self.name = cart.name

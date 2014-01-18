@@ -63,7 +63,6 @@ class EmbCartController < BaseController
 
   rescue OpenShift::GearLimitReachedException => ex
     render_error(:unprocessable_entity, "Unable to add cartridge: #{ex.message}", 104)
-
   rescue OpenShift::UserException => ex
     ex.field = nil if ex.field == "cartridge"
     raise
