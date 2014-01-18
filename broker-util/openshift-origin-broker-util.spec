@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.19.5
+Version: 1.19.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -99,6 +99,13 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
+- Bug 1049064: The helper methods needed to be defined before their use
+  (abhgupta@redhat.com)
+
+* Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.19.6-1
+- Fix for bug 1049064 (abhgupta@redhat.com)
+
 * Mon Jan 13 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
 - oo-admin-repair typo fix (rpenta@redhat.com)
 - Merge pull request #4429 from pravisankar/dev/ravi/usage-changes

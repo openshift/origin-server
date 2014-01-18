@@ -34,14 +34,18 @@
       display: table-cell;
       vertical-align: middle;
       &:last-child {
-        width: 45px;
+        width: 50px;
         text-align: right;
-        .font-icon {
+        span {
           font-size: 13px;
           cursor: help;
+          margin-right: 5px;
           &:last-child {
-            margin-left: 6px;
+            margin-right: 0;
           }
+        }
+        .label-premium {
+          @include usage_rate_indicator()
         }
       }
     }
@@ -181,6 +185,7 @@
     display: inline-block;
     vertical-align: middle;
     margin-top: 0;
+    line-height: 1.5;
   }
 } 
 

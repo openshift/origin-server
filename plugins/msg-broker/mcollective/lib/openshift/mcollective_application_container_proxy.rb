@@ -42,7 +42,7 @@ module OpenShift
       # <<factory method>>
       #
       # Find a node which fulfills app requirements.  Implements the superclass
-      # find_available() method
+      # find_all_available() method
       #
       # INPUTS:
       # * node_profile: string identifier for a set of node characteristics
@@ -61,7 +61,7 @@ module OpenShift
       # * a class method on Node?
       # * Uses Rails.configuration.msg_broker
       # * Uses District
-      # * Calls rpc_find_available
+      # * Calls rpc_find_all_available
       #
       # VALIDATIONS:
       # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
@@ -93,7 +93,7 @@ module OpenShift
       # * Uses rpc_find_one() method
       def self.find_one_impl(node_profile=nil)
         current_server = rpc_find_one(node_profile)
-        
+
         if current_server
           Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
           return current_server
@@ -1471,13 +1471,11 @@ module OpenShift
       end
 
       #
-      # Create a job to add an authorized key
+      # Create a job to add authorized keys
       #
       # INPUTS:
       # * gear: a Gear object
-      # * ssh_key: String - SSH public key string
-      # * key_type: String, Enum [dsa|rsa]
-      # * comment: String
+      # * ssh_keys: Array - SSH public keys
       #
       # RETURNS:
       # * a RemoteJob object
@@ -1485,12 +1483,10 @@ module OpenShift
       # NOTES:
       # * uses RemoteJob
       #
-      def get_add_authorized_ssh_key_job(gear, ssh_key, key_type=nil, comment=nil)
+      def get_add_authorized_ssh_keys_job(gear, ssh_keys)
         args = build_base_gear_args(gear)
-        args['--with-ssh-key'] = ssh_key
-        args['--with-ssh-key-type'] = key_type if key_type
-        args['--with-ssh-key-comment'] = comment if comment
-        job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-add', args)
+        args['--with-ssh-keys'] = ssh_keys.to_json
+        job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-batch-add', args)
         job
       end
 
@@ -1515,13 +1511,11 @@ module OpenShift
       end
 
       #
-      # Create a job to remove an authorized key.
+      # Create a job to remove authorized keys.
       #
       # INPUTS:
       # * gear: a Gear object
-      # * ssh_key: String - SSH public key string
-      # * key_type: String
-      # * comment: String
+      # * ssh_keys: Array - SSH public keys
       #
       # RETURNS:
       # * a RemoteJob object
@@ -1529,12 +1523,10 @@ module OpenShift
       # NOTES:
       # * uses RemoteJob
       #
-      def get_remove_authorized_ssh_key_job(gear, ssh_key, key_type=nil, comment=nil)
+      def get_remove_authorized_ssh_keys_job(gear, ssh_keys)
         args = build_base_gear_args(gear)
-        args['--with-ssh-key'] = ssh_key
-        args['--with-ssh-key-type'] = key_type if key_type
-        args['--with-ssh-comment'] = comment if comment
-        job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-remove', args)
+        args['--with-ssh-keys'] = ssh_keys.to_json
+        job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-batch-remove', args)
         job
       end
 
@@ -2090,7 +2082,7 @@ module OpenShift
       # * OpenShift::UserException
       #
       # NOTES:
-      # * uses MCollectiveApplicationContainerProxy.find_available_impl
+      # * uses MCollectiveApplicationContainerProxy.find_all_available_impl
       #
       def resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
         gear_exists_in_district = false
@@ -2117,7 +2109,7 @@ module OpenShift
 
           least_preferred_server_identities = [source_container.id]
           destination_gear_size = node_profile || gear.group_instance.gear_size
-          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(destination_gear_size, destination_district_uuid, nil, gear_exists_in_district, required_uid)
+          destination_container = MCollectiveApplicationContainerProxy.find_all_available_impl(destination_gear_size, destination_district_uuid, nil, gear_exists_in_district, required_uid)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
@@ -2929,7 +2921,7 @@ module OpenShift
       end
 
       #
-      # Execute a cartridge hook command in a gear
+      # Returns the known server identities
       #
       # INPUTS:
       # * force_rediscovery: Boolean

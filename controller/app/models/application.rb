@@ -310,31 +310,34 @@ class Application
   # @param keys [Array<SshKey>] Array of keys to add to the application.
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
-  def add_ssh_keys(user_id, keys, parent_op=nil)
+  def add_ssh_keys(keys, parent_op=nil)
     return if keys.empty?
-    keys_attrs = get_updated_ssh_keys(user_id, keys)
+    #check user access before adding key
+    add_keys = []
+    keys.flatten.each do |key|
+      add_keys.push(key) unless key.class == UserSshKey and key.cloud_user and !Ability.has_permission?(key.cloud_user._id, :ssh_to_gears, Application, role_for(key.cloud_user._id), self)
+    end
+    keys_attrs = get_updated_ssh_keys(add_keys)
     Application.run_in_application_lock(self) do
-      return unless user_id.nil? || Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
       op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
     end
+    
   end
 
   ##
   # Remove the given ssh key from the application. If multiple users share the same key, only the specified users key is removed
   # but application access will still be possible.
-  # @param user_id [String] The ID of the user associated with the keys. If the user ID is nil, then the key is assumed to be a system generated key
   # @param keys [Array<SshKey>] Array of keys to remove from the application.
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
-  def remove_ssh_keys(user_id, keys, parent_op=nil)
+  def remove_ssh_keys(keys, parent_op=nil)
     return if keys.empty?
-    keys_attrs = get_updated_ssh_keys(user_id, keys)
+    keys_attrs = get_updated_ssh_keys(keys)
     Application.run_in_application_lock(self) do
-      return unless user_id.nil? || Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
       op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
@@ -1448,7 +1451,7 @@ class Application
     end
 
     if add_ssh_keys.length > 0
-      keys_attrs = get_updated_ssh_keys(nil, add_ssh_keys)
+      keys_attrs = get_updated_ssh_keys(add_ssh_keys)
       op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, user_agent: self.user_agent)
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
@@ -2739,8 +2742,8 @@ class Application
   def get_all_updated_ssh_keys
     ssh_keys = []
     ssh_keys = self.app_ssh_keys.map {|k| k.serializable_hash } # the app_ssh_keys already have their name "updated"
-    ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
-    ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
+    ssh_keys |= get_updated_ssh_keys(self.domain.system_ssh_keys)
+    ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u.ssh_keys) }.flatten(1)
 
     ssh_keys
   end
@@ -2751,19 +2754,22 @@ class Application
   #
   # FIXME why are we not using uuids and hashes to guarantee key uniqueness on the nodes?
   #
-  def get_updated_ssh_keys(user_id, keys)
-    updated_keys_attrs = keys.map { |key|
+  def get_updated_ssh_keys(keys)
+    updated_keys_attrs = []
+    keys.flatten.each do |key|
       key_attrs = key.serializable_hash.deep_dup
       case key.class
       when UserSshKey
-        key_attrs["name"] = user_id.to_s + "-" + key_attrs["name"]
+        key_attrs["name"] = key.cloud_user._id.to_s + "-" + key_attrs["name"]
       when SystemSshKey
         key_attrs["name"] = "domain-" + key_attrs["name"]
       when ApplicationSshKey
         key_attrs["name"] = "application-" + key_attrs["name"]
       end
-      key_attrs
-    }
+      #node requires a comment attribute
+      key_attrs["comment"] = key_attrs["name"]
+      updated_keys_attrs.push(key_attrs)
+    end
     updated_keys_attrs
   end
 

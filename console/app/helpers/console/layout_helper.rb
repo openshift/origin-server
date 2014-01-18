@@ -340,4 +340,8 @@ module Console::LayoutHelper
     opts = logo_data_icon_for item
     content_tag :span, "", :class => opts[:class], "data-icon" => opts[:data_icon].html_safe, :title => opts[:title], "aria-hidden" => "true"
   end
+
+  def show_small_app_type_icon?()
+    false
+  end
 end

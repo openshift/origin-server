@@ -1,12 +1,20 @@
 #!/usr/bin/env oo-ruby
-
+#
+# openshift-watchman   This shell starts the watchman daemon
+#
+# chkconfig:       345 89 11
+# description:     Monitors OpenShift gears
+# processname:     watchman
+#
 require 'rubygems'
 require 'daemons'
 
 raise 'Watchman must run as root' if Process.euid != 0
 
+APP_NAME = 'watchman'
+
 options = {
-    app_name:   'watchman',
+    app_name:   APP_NAME,
     backtrace:  true,
     ontop:      false,
     log_output: true,
@@ -15,4 +23,26 @@ options = {
     multiple:   false,
 }
 
-Daemons.run('/usr/sbin/oo-watchman', options)
+action = case ARGV[0]
+           when 'stop'
+             'Stopping'
+           when 'start'
+             'Starting'
+           when 'restart'
+             'Restarting'
+           else
+             nil
+         end
+
+# This code can be removed when we upgrade beyond Daemons 1.1.0
+if ARGV[0] == 'restart'
+  puts %Q{#{action} Watchman}
+  options[:ARGV] = ['stop']
+  Daemons.run('/usr/sbin/oo-watchman', options)
+
+  options[:ARGV] = ['start']
+  Daemons.run('/usr/sbin/oo-watchman', options)
+else
+  puts %Q{#{action} Watchman} if action
+  Daemons.run('/usr/sbin/oo-watchman', options)
+end

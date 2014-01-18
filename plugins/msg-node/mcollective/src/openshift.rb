@@ -118,6 +118,7 @@ module MCollective
       #
       # Returns [exitcode, output] from the resulting action execution.
       def execute_action(action, args)
+        start = Time.now
         action_method = "oo_#{action.gsub('-', '_')}"
         request_id    = args['--with-request-id'].to_s if args['--with-request-id']
 
@@ -133,7 +134,7 @@ module MCollective
           begin
             OpenShift::Runtime::NodeLogger.context[:request_id]    = request_id if request_id
             OpenShift::Runtime::NodeLogger.context[:action_method] = action_method if action_method
-
+            
             exitcode, output, addtl_params = self.send(action_method.to_sym, args)
           rescue Exception => e
             report_exception e
@@ -145,7 +146,7 @@ module MCollective
             OpenShift::Runtime::NodeLogger.context.delete(:request_id)
             OpenShift::Runtime::NodeLogger.context.delete(:action_method)
           end
-          Log.instance.info("Finished executing action [#{action}] (#{exitcode})")
+          Log.instance.info("Finished executing action [#{action}] (#{exitcode}) Time to execute #{Time.now - start}")
         end
 
         return exitcode, output, addtl_params
@@ -169,6 +170,7 @@ module MCollective
       #
       # BZ 876942: Disable threading until we can explore proper concurrency management
       def execute_parallel_action
+        start = Time.now
         Log.instance.info("execute_parallel_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
 
         hourglass = OpenShift::Runtime::Utils::Hourglass.new(@hourglass_timeout)
@@ -195,7 +197,7 @@ module MCollective
           args.delete('--with-hourglass')
         end
 
-        Log.instance.info("execute_parallel_action call - #{joblist}")
+        Log.instance.info("execute_parallel_action call - duration: #{Time.now - start} - #{joblist}")
         reply[:output]   = joblist
         reply[:exitcode] = 0
       end
@@ -298,7 +300,7 @@ module MCollective
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
           report_exception e
           output << "\n" unless output.empty?
-          output << "Error: #{e.message}" if e.message
+          output << "#{e.message}" if e.message
           output << "\n#{e.stdout}" if e.stdout.is_a?(String)
           output << "\n#{e.stderr}" if e.stderr.is_a?(String)
           return e.rc, output
@@ -407,7 +409,15 @@ module MCollective
         comment  = args['--with-ssh-key-comment']
 
         with_container_from_args(args) do |container|
-          container.add_ssh_key(ssh_key, key_type, comment)
+          container.add_ssh_keys([{:content => ssh_key, :type => key_type, :comment => comment}])
+        end
+      end
+      
+      def oo_authorized_ssh_key_batch_add(args)
+        ssh_keys  = args['--with-ssh-keys']
+
+        with_container_from_args(args) do |container|
+          container.add_ssh_keys(JSON.parse(ssh_keys))
         end
       end
 
@@ -418,6 +428,14 @@ module MCollective
 
         with_container_from_args(args) do |container|
           container.remove_ssh_key(ssh_key, key_type, comment)
+        end
+      end
+      
+      def oo_authorized_ssh_key_batch_remove(args)
+        ssh_keys  = args['--with-ssh-keys']
+
+        with_container_from_args(args) do |container|
+          container.remove_ssh_keys(JSON.parse(ssh_keys))
         end
       end
 

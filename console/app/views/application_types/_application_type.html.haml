@@ -22,7 +22,7 @@
     %p.help-block= link_to type.website, type.website
 
   .tile-meta
-    %dl{:class => 'font-icon-legend'}
+    %dl.font-icon-legend
       - if type.support_type == :openshift
         %dt
           %span.icon-star-empty{"aria-hidden" => "true", :title => "OpenShift maintained"}
@@ -36,7 +36,7 @@
 
       - if type.usage_rates?
         %dt
-          %span.icon-dollar.label-premium{"aria-hidden" => "true", "title" => "Usage rates"}
+          = usage_rate_indicator
         %dd 
           May include additional usage fees at certain levels, see plan for details.
 

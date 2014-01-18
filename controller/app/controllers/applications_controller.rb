@@ -18,7 +18,7 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id].presence
 
     by = domain_id.present? ? {domain_namespace: Domain.check_name!(domain_id).downcase} : {}
-    apps = Application.includes(:domain).accessible(current_user).where(by).map { |app| get_rest_application(app, include_cartridges) }
+    apps = Application.includes(:domain).accessible(current_user).where(by).sort_by{ |a| a.name }.map { |app| get_rest_application(app, include_cartridges) }
     Domain.find_by(canonical_namespace: domain_id.downcase) if apps.empty? && domain_id.present? # check for a missing domain
 
     render_success(:ok, "applications", apps, "Found #{apps.length} applications.")

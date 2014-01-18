@@ -109,23 +109,21 @@ module OpenShift
           FileUtils.rm_rf broker_auth_dir
           File.exists?(broker_auth_dir) ? false : true
         end
-
-
         #
         # Four functions for managing gear access through SSH
-        #  add/remove a single key value
-        #  replace all keys
-        #  validate the form of a set of keys in an array
+        # add/remove a single key value
+        # replace all keys
+        # validate the form of a set of keys in an array
         #
         # Keys can be SSH Authorized Keys or Kerberos 5 principal strings.
-        # 
+        #
 
         # Public: Add user access by SSH to a gear
-        # 
-        # Examples
-        #   container.add_ssh_key("alongstring", "ssh-rsa", "a users key")
         #
-        #   container.add_ssh_key("testuser@EXAMPLE.COM", "krb5-principal")
+        # Examples
+        # container.add_ssh_key("alongstring", "ssh-rsa", "a users key")
+        #
+        # container.add_ssh_key("testuser@EXAMPLE.COM", "krb5-principal")
         #
         # Returns: nil
         #
@@ -133,7 +131,7 @@ module OpenShift
           if key_type == "krb5-principal"
             # create a K5login object and add it
 
-            self.class.notify_observers(:before_add_krb5_principal, 
+            self.class.notify_observers(:before_add_krb5_principal,
                                         self, key_string)
             K5login.new(self).add_principal(key_string, comment)
             self.class.notify_observers(:after_add_krb5_principal,
@@ -145,6 +143,35 @@ module OpenShift
             AuthorizedKeysFile.new(self).add_key(key_string, key_type, comment)
             self.class.notify_observers(:after_add_ssh_key, self, key_string)
           end
+        end
+
+
+        # Public: Add several SSH keys to a gear
+        # 
+        # Examples
+        #   container.add_ssh_keys([{:content => "alongstring", :type => "ssh-rsa", :comment => "a users key"}, {:content => "testuser@EXAMPLE.COM", :type => "krb5-principal"}])
+        #
+        # Returns: nil
+        #
+        def add_ssh_keys(keys)
+          ssh_authorized_keys = []
+          keys.each do |key|
+            #TODO batch add these type of keys
+            if key["type"] == "krb5-principal"
+              # create a K5login object and add it
+              self.class.notify_observers(:before_add_krb5_principal, 
+                                        self, key["content"])
+              K5login.new(self).add_principal( key["content"], key["comment"])
+              self.class.notify_observers(:after_add_krb5_principal,
+                                        self, key["content"])
+            else
+              ssh_authorized_keys.push(key)
+            end
+          end
+          # create an SshAuthorizedKeys file object and add to it.
+          self.class.notify_observers(:before_add_ssh_key, self, ssh_authorized_keys)
+          AuthorizedKeysFile.new(self).add_keys(ssh_authorized_keys)
+          self.class.notify_observers(:after_add_ssh_key, self, ssh_authorized_keys)
         end
 
         # Public: remove user access by SSH to a gear
@@ -174,6 +201,30 @@ module OpenShift
             AuthorizedKeysFile.new(self).remove_key(key_string, key_type, comment)
             self.class.notify_observers(:after_remove_ssh_key, self, key_string)
           end
+        end
+        
+        # Public: remove user access by removing SSH keys from a gear
+        #
+        # Examples
+        #   container.remove_keys[{:content => "alongstring", :type => "ssh-rsa", :comment => "a users key"}, {:content => "testuser@EXAMPLE.COM", :type => "krb5-principal"}])
+        #
+        # Returns: nil
+        #
+        def remove_ssh_keys(keys)
+          ssh_authorized_keys = []
+          keys.each do |key|
+            if key["type"] == "krb5-principal"
+              self.class.notify_observers(:before_remove_krb5_principal, 
+                                          self, key["content"])
+              K5login.new(self).remove_principal(key["content"], key["comment"])
+              self.class.notify_observers(:after_remove_krb5_principal, self, key["content"])
+            else
+              ssh_authorized_keys.push(key)
+            end
+          end
+          self.class.notify_observers(:before_remove_ssh_key, self, ssh_authorized_keys)
+          AuthorizedKeysFile.new(self).remove_keys(ssh_authorized_keys)
+          self.class.notify_observers(:after_remove_ssh_key, self, ssh_authorized_keys)
         end
 
         # Public: replace all user access by SSH to a gear

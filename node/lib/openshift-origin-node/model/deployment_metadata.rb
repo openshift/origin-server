@@ -22,6 +22,7 @@ require 'active_support/core_ext/hash'
 module OpenShift
   module Runtime
     class DeploymentMetadata
+
       [:git_ref, :git_sha1, :id, :hot_deploy, :force_clean_build, :activations, :checksum].each do |attr_name|
         define_method(attr_name) do
           @metadata[attr_name]
@@ -39,21 +40,30 @@ module OpenShift
       # Creates a new DeploymentMetadata instance for the given deployment_datetime.
       #
       # If the file doesn't exist, create it and set the defaults.
-      #
+      #   If unable to create the file, log message and set the defaults.
       # If the file does exist, load it from disk.
+      #
+      # @param container           [ApplicationContainer] model of OpenShift application
+      # @param deployment_datetime [#to_s]                Timestamp of deployment in question
       def initialize(container, deployment_datetime)
         @file = PathUtils.join(container.container_dir, 'app-deployments', deployment_datetime, 'metadata.json')
 
-        if File.exist?(@file)
+        empty = File.stat(@file).size == 0
+        container.logger.warn("#{@file} was found empty. Will attempt to write defaults") if empty
+
+        if File.exists?(@file) && !empty
           load
         else
-          File.new(@file, "w", 0o0644)
+          File.new(@file, 'w', 0644)
           container.set_rw_permission(@file)
 
           @metadata = defaults
 
           save
         end
+      rescue => e
+        container.logger.warn("Unable to create or update #{@file}. Gear may be exceeding quota. #{e.message}")
+        @metadata = defaults
       end
 
       def load

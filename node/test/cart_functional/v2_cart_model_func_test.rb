@@ -34,9 +34,12 @@ module OpenShift
       @config.stubs(:get).with("CLOUD_DOMAIN").returns('example.com')
       @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns('/etc/httpd/conf.d/openshift')
       @config.stubs(:get).with("PORT_BEGIN").returns(nil)
+      @config.stubs(:get).with("PROXY_MIN_PORT_NUM").returns(nil)
       @config.stubs(:get).with("PORT_END").returns(nil)
       @config.stubs(:get).with("PORTS_PER_USER").returns(5)
+      @config.stubs(:get).with("PROXY_PORTS_PER_GEAR").returns(5)
       @config.stubs(:get).with("UID_BEGIN").returns(@uid)
+      @config.stubs(:get).with("GEAR_MIN_UID").returns(@uid)
       @config.stubs(:get).with("BROKER_HOST").returns('localhost')
 
       script_dir     = File.expand_path(File.dirname(__FILE__))

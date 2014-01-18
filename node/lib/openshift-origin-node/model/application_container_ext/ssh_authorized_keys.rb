@@ -52,19 +52,45 @@ module OpenShift
           #
           # Examples
           #
-          #   add_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
+          #   add_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
           #               'ssh-rsa',
           #               'example@example.com')
           #   # => nil
           #
           # Returns nil on Success or raises on Failure
           def add_key(key_string, key_type=nil, comment=nil)
+            #@container.logger.error "Adding new key #{key_string} #{key_type} #{comment}"
             comment = "" unless comment
 
             modify do |keys|
               keys[key_id(comment)] = key_entry(key_string, key_type, comment)
             end
 
+          end
+          
+          #
+          # Bodies from environment.rb globals
+          #
+          # Public: Append SSH keys to a users authorized_keys file
+          #
+          # keys - An Array of keys
+          #
+          # Examples
+          #
+          #   add_keys([{"content"=>'AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
+          #               "type" => 'ssh-rsa',
+          #               "comment" => 'example@example.com'}])
+          #   # => nil
+          #
+          # Returns nil on Success or raises on Failure
+          def add_keys(new_keys)
+            #@container.logger.error "Adding these new keys #{new_keys}"
+            modify do |keys|
+              new_keys.each do |k|
+                comment = k["comment"] || ""
+                keys[key_id(comment)] = key_entry(k["content"], k["type"], comment)
+              end
+            end
           end
 
           # Public: Remove an SSH key from a users authorized_keys file
@@ -88,6 +114,31 @@ module OpenShift
                 keys.delete_if{ |k, v| v.end_with?(key_id(comment)) }
               else
                 keys.delete_if{ |k,v| v.include?(key_string) }
+              end
+            end
+          end
+          
+          # Public: Remove SSH keys from a users authorized_keys file
+          #
+          # keys - An Array of keys
+          #
+          # Examples
+          #
+          #   remove_keys([{"content"=>'AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
+          #               "type" => 'ssh-rsa',
+          #               "comment" => 'example@example.com'}])
+          #   # => nil
+          #
+          # Returns nil on Success or raises on Failure
+          #
+          def remove_keys(old_keys)
+            modify do |keys|
+              old_keys.each do |key|
+                if key["comment"]
+                  keys.delete_if{ |k, v| v.end_with?(key_id(key["comment"])) }
+                else
+                  keys.delete_if{ |k,v| v.include?(key["content"]) }
+                end
               end
             end
           end

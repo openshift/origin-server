@@ -376,7 +376,13 @@ module OpenShift
             cartridge = get_cartridge_fallback(cartridge_name)
           rescue
             logger.warn("Corrupted cartridge #{@container.uuid}/#{cartridge_name}. Attempting to auto-correct for deconfigure resorting to CartridgeRepository.")
-            cartridge = CartridgeRepository.instance.select(name, software_version)
+            begin
+              cartridge = CartridgeRepository.instance.select(name, software_version)
+            rescue
+              logger.warn("Cartridge #{cartridge_name} not found in CartridgeRepostory.")
+              teardown_output << "Cartridge #{cartridge_name} not found on the gear or in the CartridgeRepository. It is most likely a downloaded cartridge that failed to configure and was removed."
+              return teardown_output
+            end
           end
 
           ident = Runtime::Manifest.build_ident(cartridge.cartridge_vendor,
@@ -504,8 +510,7 @@ module OpenShift
         envs                                  = {}
         envs["#{cartridge.short_name}_DIR"]   = target + File::SEPARATOR
         envs["#{cartridge.short_name}_IDENT"] = ident
-        envs["#{cartridge.short_name}_CARTRIDGE_MANIFEST_URL"] = cartridge.manifest_url unless cartridge.manifest_url.nil?
-        
+
         write_environment_variables(PathUtils.join(target, 'env'), envs)
 
         envs.clear
@@ -1281,7 +1286,7 @@ module OpenShift
             buffer << err if err.is_a?(String)
 
             raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
-                      "Failed to execute: 'control #{action}' for #{path}", rc, out, err
+                      "CLIENT_ERROR: Failed to execute: 'control #{action}' for #{path}", rc, out, err
                   ) if rc != 0
           end
         }
@@ -1316,7 +1321,7 @@ module OpenShift
                                                              out:     options[:out],
                                                              err:     options[:err])
           raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
-                    "Failed to execute action hook '#{action}' for #{@container.uuid} application #{@container.application_name}",
+                    "CLIENT_ERROR: Failed to execute action hook '#{action}' for #{@container.uuid} application #{@container.application_name}",
                     rc, out, err
                 ) if rc != 0
         end

@@ -23,7 +23,7 @@ require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node'
 require 'securerandom'
 require 'digest/sha1'
-
+require 'json'
 require 'commander/import'
 
 # Don't buffer output to the client
@@ -209,9 +209,26 @@ command :'authorized-ssh-key-add' do |c|
     if  options.with_ssh_key && options.with_ssh_key_type
       container = new_container(options.with_container_uuid, c)
       execute {
-        container.add_ssh_key(options.with_ssh_key,
-                              options.with_ssh_key_type,
-                              options.with_ssh_key_comment)
+        container.add_ssh_key(options.with_ssh_key, options.with_ssh_key_type, options.with_ssh_key_comment)
+      }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'authorized-ssh-key-batch-add' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID \\
+     --with-ssh-keys KEYS "
+  c.description = 'Batch adds authorized ssh keys to the application'
+
+  c.option '-k', '--with-ssh-keys KEYS', 'User provided array of ssh keys in json format [{"content":"key content", "type":"ssh-rsa", "comment":"user comment"}, ...]'
+  c.action do |args, options|
+    ssh_keys = JSON.parse(options.with_ssh_keys) rescue nil
+    if ssh_keys
+      container = new_container(options.with_container_uuid, c)
+      execute {
+        container.add_ssh_keys(ssh_keys)
       }
     else
       usage(c.syntax)
@@ -231,6 +248,25 @@ command :'authorized-ssh-key-remove' do |c|
     if  options.with_ssh_key && options.with_ssh_key_type
       container = new_container(options.with_container_uuid, c)
       execute { container.remove_ssh_key(options.with_ssh_key, options.with_ssh_key_type, options.with_ssh_key_comment) }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'authorized-ssh-key-batch-remove' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID \\
+     --with-ssh-keys KEYS "
+  c.description = 'Batch removes authorized ssh keys to the application'
+
+  c.option '-k', '--with-ssh-keys KEYS', 'User provided array of ssh keys in json format [{"content":"key content", "type":"ssh-rsa", "comment":"user comment"}, ...]'
+  c.action do |args, options|
+    ssh_keys = JSON.parse(options.with_ssh_keys) rescue nil
+    if ssh_keys
+      container = new_container(options.with_container_uuid, c)
+      execute {
+        container.remove_ssh_keys(ssh_keys)
+      }
     else
       usage(c.syntax)
     end
