@@ -22,9 +22,9 @@ module OpenShift
           @gear_shell = "/usr/bin/nsjoin"
           @mcs_label  = OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.gid)
 
-          @port_begin = (@config.get("PORT_BEGIN") || "35531").to_i
-          @ports_per_user = (@config.get("PORTS_PER_USER") || "5").to_i
-          @uid_begin = (@config.get("GEAR_MIN_UID") || "500").to_i
+          @port_begin = (@config.get("PORT_BEGIN") || @config.get("PROXY_MIN_PORT_NUM") || "35531").to_i
+          @ports_per_user = (@config.get("PORTS_PER_USER") || @config.get("PROXY_PORTS_PER_GEAR" || "5").to_i
+          @uid_begin = (@config.get("UID_BEGIN") || @config.get("GEAR_MIN_UID") || "500").to_i
           @container_metadata = File.join(@container.base_dir, ".container", @container.uuid)
         end
 

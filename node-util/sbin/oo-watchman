@@ -181,24 +181,20 @@ module OpenShift
       # @param force [true, false] Force cache update
       def import_config(force = false)
         updated = File.stat(@path).mtime
-        @mutex.synchronize {
+        @mutex.synchronize do
           return if @last_updated == updated && !force
           @last_updated = updated
 
           c = ParseConfig.new(@path)
           c.get_params.each do |key|
             val = c[key]
-            if val.nil?
-              add(key, nil)
-            else
-              val.gsub!(/\\:/, ':')
-              val.gsub!(/[ \t]*#[^\n]*/, '')
-              val          = val[1..-2] if val.start_with? "\""
-              val          = val[1..-2] if val.start_with? "\'"
-              @config[key] = val
-            end
+            val.gsub!(/\\:/, ':')
+            val.gsub!(/[ \t]*#[^\n]*/, '')
+            val          = val[1..-2] if val.start_with? "\""
+            val          = val[1..-2] if val.start_with? "\'"
+            @config[key] = val
           end
-        }
+        end
       end
     end
 
@@ -295,10 +291,11 @@ module OpenShift
   end
 end
 
-conf_dir       = ENV['OPENSHIFT_CONF_DIR'] || OPENSHIFT_CONF_DIR
-node_conf_file = PathUtils.join(conf_dir, 'node.conf')
+if ENV['DAEMONS_ARGV']
+  conf_dir       = ENV['OPENSHIFT_CONF_DIR'] || OPENSHIFT_CONF_DIR
+  node_conf_file = PathUtils.join(conf_dir, 'node.conf')
 
-config = OpenShift::Runtime::CachedConfig.new(node_conf_file)
-gears  = OpenShift::Runtime::CachedGears.new(config, '/etc/passwd')
-OpenShift::Runtime::Watchman.new(config, gears).apply
-
+  config = OpenShift::Runtime::CachedConfig.new(node_conf_file)
+  gears  = OpenShift::Runtime::CachedGears.new(config, '/etc/passwd')
+  OpenShift::Runtime::Watchman.new(config, gears).apply
+end

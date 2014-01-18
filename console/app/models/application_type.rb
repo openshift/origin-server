@@ -84,7 +84,7 @@ class ApplicationType
     c = source_priority - other.source_priority
     return c unless c == 0
     c = featured_priority - other.featured_priority
-    return c unless c == 0          
+    return c unless c == 0
     c = priority - other.priority
     return c unless c == 0
     display_name <=> other.display_name

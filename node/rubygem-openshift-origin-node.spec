@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.9
+Version: 1.19.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,35 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.11-1
+- Merge pull request #4488 from lsm5/new-node_conf
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4497 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4500 from mrunalp/bugs/1040113
+  (dmcphers+openshiftbot@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Don't make deconfigure fail when cartridge isn't found in the cartridge
+  repostory. (mrunalp@gmail.com)
+- Allow multiple keys to added or removed at the same time (lnader@redhat.com)
+- Bug 1044225 (dmcphers@redhat.com)
+- Merge pull request #4495 from jwhonce/wip/watchman
+  (dmcphers+openshiftbot@redhat.com)
+- do not use new values in node.conf BZ #1051015 (lsm5@redhat.com)
+- lookup both old and new conf values BZ #1051015) (lsm5@redhat.com)
+- keep consistency for new parameter description (lsm5@redhat.com)
+- minor typo fix (lsm5@redhat.com)
+- @port_begin also uses PROXY_MIN_PORT_NUM (lsm5@nagato.usersys.redhat.com)
+- Card origin_node_374 - Port Watchman to Origin (jhonce@redhat.com)
+
+* Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.19.10-1
+- Bug 1053782 - Make sure httpd restart succeed for broken httpd
+  (mfojtik@redhat.com)
+- Card origin_node_374 - Port Watchman to Origin (jhonce@redhat.com)
+- Card origin_node_374 - Port Watchman to Origin Bug 1053423 - Restore
+  OPENSHIFT_GEAR_DNS check to watchman Bug 1053397 - Fix encoding error reading
+  spec file Bug 1053422 - Fix state vs. stop_lock check (jhonce@redhat.com)
+
 * Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
 - Merge pull request #4436 from bparees/jenkins_dl_cart
   (dmcphers+openshiftbot@redhat.com)

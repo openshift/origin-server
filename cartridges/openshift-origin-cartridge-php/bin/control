@@ -8,12 +8,18 @@ HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/configuration/etc/conf.d
 HTTPD_PASSENV_FILE=$HTTPD_CFG_DIR/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_PHP_DIR/run/httpd.pid
 
+# construct the configuration directives for httpd
+HTTPD_CMD_CONF="-f $HTTPD_CFG_FILE"
+for dir in $HTTPD_CFG_DIR /etc/openshift/cart.conf.d/httpd{,/php} ; do
+    [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -C 'Include $dir/*.conf'"
+done
+
 function start() {
     echo "Starting PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     write_httpd_passenv $HTTPD_PASSENV_FILE
     oo-erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-    php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -k start" \
+    php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -k start" \
       && wait_for_pid_file $HTTPD_PID_FILE
     return $?
 }
@@ -23,7 +29,7 @@ function reload() {
     write_httpd_passenv $HTTPD_PASSENV_FILE
     oo-erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-    php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -k graceful" \
+    php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -k graceful" \
       && wait_for_pid_file $HTTPD_PID_FILE
     return $?
 }
@@ -34,7 +40,7 @@ function restart() {
     oo-erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-    php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -k restart"
+    php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -k restart"
     return $?
 }
 
@@ -45,14 +51,14 @@ function stop() {
       # If we still have a PID file, then ensure_valid_httpd_process's call to
       # killall_httpds didn't happen.
       httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-      php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -k stop" \
+      php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -k stop" \
         && wait_for_stop $httpd_pid
     fi
 }
 
 function configtest() {
     echo "Testing Apache *.conf files"
-    php_context "/usr/sbin/httpd -C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE -t"
+    php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -t"
     return $?
 }
 

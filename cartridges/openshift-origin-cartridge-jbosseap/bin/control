@@ -231,9 +231,6 @@ function build() {
 
       if [ -f ${OPENSHIFT_REPO_DIR}pom.xml ] && ! marker_present skip_maven_build
       then
-          update-configuration
-
-          export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
           pushd ${OPENSHIFT_REPO_DIR} > /dev/null
 
           if [ -z "$MAVEN_OPTS" ]; then

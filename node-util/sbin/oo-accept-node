@@ -194,12 +194,20 @@ def load_node_conf
     # make sure required values are set in the conf file
     %w[
       GEAR_BASE_DIR GEAR_SKEL_DIR GEAR_SHELL GEAR_GECOS
-      GEAR_MIN_UID GEAR_MAX_UID CARTRIDGE_BASE_PATH
-      PROXY_MIN_PORT_NUM PROXY_PORTS_PER_GEAR OPENSHIFT_HTTP_CONF_DIR
+      GEAR_MIN_UID UID_BEGIN GEAR_MAX_UID CARTRIDGE_BASE_PATH
+      PROXY_MIN_PORT_NUM PORT_BEGIN PROXY_PORTS_PER_GEAR PORTS_PER_USER OPENSHIFT_HTTP_CONF_DIR
       CLOUD_DOMAIN BROKER_HOST PUBLIC_IP PUBLIC_HOSTNAME
     ].each do |value|
       next unless $CONF.get(value).nil? || $CONF.get(value).empty?
-      do_fail("SEVERE: in #{OpenShift::Config::NODE_CONF_FILE}, #{value} not defined")
+      if value == "PORT_BEGIN" and !$CONF.get("PROXY_MIN_PORT_NUM").nil? || !$CONF.get("PROXY_MIN_PORT_NUM").empty?
+        next
+      elsif value == "UID_BEGIN" and !$CONF.get("GEAR_MIN_UID").nil? || !$CONF.get("GEAR_MIN_UID").empty?
+        next
+      elsif value == "PORTS_PER_USER" and !$CONF.get("PROXY_PORTS_PER_GEAR").nil? || !$CONF.get("PROXY_PORTS_PER_GEAR").empty?
+        next
+      else
+        do_fail("SEVERE: in #{OpenShift::Config::NODE_CONF_FILE}, #{value} not defined")
+      end
     end
 
     $GEAR_BASE_DIR = $CONF.get('GEAR_BASE_DIR')
@@ -537,29 +545,37 @@ def check_quotas
 end
 
 def check_users
-    verbose("checking #{$USERS.length} user accounts")
-    conf_dir_templ = "#{$LIMITS_CONF_DIR}/84-%s.conf"
-    $USERS.each do |user|
-        #Test home dir
-        user_fail(user.name, "user #{user.name} does not have a home directory #{user.dir}") unless File.exists? user.dir
-        user_fail(user.name, "user #{user.name} does not have a PAM limits file") unless File.exists?(conf_dir_templ % user.name)
-        if $CGROUP_PASS
-          check_user_cgroups user.name
-        end
-        if $TC_CHECK && $TC_PASS
-            hex_uid = user.uid.to_i.to_s(16)
-            tc_results = $TC_DATA.grep(/1:#{hex_uid}/)
-            user_fail(user.name, "user #{user.name} must have 1 tc class entry: actual=#{tc_results.length}") if tc_results.length != 1
-        end
+  verbose("checking #{$USERS.length} user accounts")
+  conf_dir_templ = "#{$LIMITS_CONF_DIR}/84-%s.conf"
 
-        results = $ALL_QUOTAS.grep(/#{user.name}/)
-        if results.length == 0 ||
-           results[0].split[4].to_i == 0 ||
-           results[0].split[7].to_i == 0
-            user_fail(user.name, "user #{user.name} does not have quotas imposed")
-        end
+  $USERS.each do |user|
+    #Test home dir
+    if File.exists? user.dir
+      fstat = File.stat(user.dir)
+      user_fail(user.name, "user #{user.name} home directory has owner #{fstat.uid} not root") unless fstat.uid == 0
+      user_fail(user.name, "user #{user.name} home directory has group #{fstat.gid} not #{user.gid}") unless fstat.gid == user.gid
+      user_fail(user.name, "user #{user.name} home directory has mode #{fstat.mode.to_s(8)} not 040750") unless fstat.mode == 040750
+    else
+      user_fail(user.name, "user #{user.name} does not have a home directory #{user.dir}")
+    end
+    user_fail(user.name, "user #{user.name} does not have a PAM limits file") unless File.exists?(conf_dir_templ % user.name)
+
+    if $CGROUP_PASS
+      check_user_cgroups user.name
+    end
+    if $TC_CHECK && $TC_PASS
+      hex_uid    = user.uid.to_i.to_s(16)
+      tc_results = $TC_DATA.grep(/1:#{hex_uid}/)
+      user_fail(user.name, "user #{user.name} must have 1 tc class entry: actual=#{tc_results.length}") if tc_results.length != 1
     end
 
+    results = $ALL_QUOTAS.grep(/#{user.name}/)
+    if results.length == 0 ||
+        results[0].split[4].to_i == 0 ||
+        results[0].split[7].to_i == 0
+      user_fail(user.name, "user #{user.name} does not have quotas imposed")
+    end
+  end
 end
 
 # Verify that the user has a cgroup in all subsystems and no others
