@@ -26,12 +26,6 @@ end
 #   @return [Array<PendingAppOpGroup>] List of pending operations to be performed on this application
 # @!attribute [r] domain
 #   @return [Domain] Domain that this application is part of.
-# @!attribute [rw] component_start_order
-#   @return [Array<String>] Normally start order computed based on order specified by each component's manifest.
-#     This attribute is used to overrides the start order
-# @!attribute [rw] component_stop_order
-#   @return [Array<String>] Normally stop order computed based on order specified by each component's manifest.
-#     This attribute is used to overrides the stop order
 # @!attribute [rw] component_stop_order
 #   @return [Array<String>] Normally configure order computed based on order specified by each component's manifest.
 #     This attribute is used to overrides the configure order
@@ -93,9 +87,6 @@ class Application
   has_many :built_applications, class_name: Application.name
 
   field :downloaded_cart_map, type: Hash, default: {}
-  field :component_start_order, type: Array, default: []
-  field :component_stop_order, type: Array, default: []
-  field :component_configure_order, type: Array, default: []
   field :default_gear_size, type: String, default: Rails.configuration.openshift[:default_gear_size]
   field :scalable, type: Boolean, default: false
   field :ha, type: Boolean, default: false
@@ -2596,14 +2587,10 @@ class Application
     enforce_system_order(configure_order, categories)
 
     #calculate configure order using tsort
-    if self.component_configure_order.empty?
-      begin
-        computed_configure_order = configure_order.tsort
-      rescue Exception=>e
-        raise OpenShift::UserException.new("Conflict in calculating configure order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-      end
-    else
-      computed_configure_order = self.component_configure_order.map{|c| categories[c]}.flatten
+    begin
+      computed_configure_order = configure_order.tsort
+    rescue Exception=>e
+      raise OpenShift::UserException.new("Conflict in calculating configure order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
     end
 
     # configure order can have nil if the component is already configured
@@ -2651,25 +2638,17 @@ class Application
     enforce_system_order(stop_order, categories)
 
     #calculate start order using tsort
-    if self.component_start_order.empty?
-      begin
-        computed_start_order = start_order.tsort
-      rescue Exception=>e
-        raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-      end
-    else
-      computed_start_order = self.component_start_order.map{|c| categories[c]}.flatten
+    begin
+      computed_start_order = start_order.tsort
+    rescue Exception=>e
+      raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
     end
 
     #calculate stop order using tsort
-    if self.component_stop_order.empty?
-      begin
-        computed_stop_order = stop_order.tsort
-      rescue Exception=>e
-        raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-      end
-    else
-      computed_stop_order = self.component_stop_order.map{|c| categories[c]}.flatten
+    begin
+      computed_stop_order = stop_order.tsort
+    rescue Exception=>e
+      raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
     end
 
     # start/stop order can have nil if the component is not present in the application
