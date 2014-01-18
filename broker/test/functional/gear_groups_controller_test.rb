@@ -25,7 +25,7 @@ class GearGroupsControllerTest < ActionController::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
+    @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain)
     @app.save
   end
 

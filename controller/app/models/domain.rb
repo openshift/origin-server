@@ -215,6 +215,21 @@ class Domain
     self.pending_ops.push pending_op
   end
 
+  def check_gear_sizes!(gear_sizes, field="gear_size")
+    valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & allowed_gear_sizes & owner.allowed_gear_sizes
+
+    if valid_sizes.empty?
+      raise OpenShift::UserException.new(
+        "The owner of the domain #{namespace} has disabled all gear sizes from being created.  You will not be able to add any cartridges in this domain.",
+        134, nil, nil, :forbidden)
+    end
+
+    invalid_sizes = (gear_sizes - valid_sizes).map {|s| "'#{s}'"}
+    raise OpenShift::UserException.new("The gear sizes #{invalid_sizes.to_sentence} are not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.", 134, field) if (invalid_sizes.length > 1)
+    raise OpenShift::UserException.new("The gear size #{invalid_sizes.to_sentence} is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.", 134, field) if (invalid_sizes.length == 1)
+    true
+  end
+
   # Runs all jobs in "init" phase and stops at the first failure.
   #
   # IMPORTANT: When changing jobs, be sure to leave old jobs runnable so that pending_ops

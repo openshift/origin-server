@@ -19,146 +19,54 @@ class EmbCartController < BaseController
   end
 
   def create
-
     if @application.quarantined
       return render_upgrade_in_progress
     end
 
     authorize! :create_cartridge, @application
 
-    colocate_with = params[:colocate_with].presence
-    scales_from = Integer(params[:scales_from].presence) rescue nil
-    scales_to = Integer(params[:scales_to].presence) rescue nil
-    additional_storage = Integer(params[:additional_storage].presence) rescue nil
-    gear_size = params[:gear_size] rescue nil
-
     user_env_vars = params[:environment_variables].presence
     Application.validate_user_env_variables(user_env_vars, true)
 
-    cart_urls = []
-    cmap = {}
-    if params[:name].is_a? String
-      name = params[:name]
-    elsif params[:url].is_a? String
-      cart_urls = [params[:url]]
-    # :cartridge param is deprecated because it isn't consistent with
-    # the rest of the apis which take :name. Leave it here because
-    # some tools may still use it
+    specs = []
+    if params[:cartridges].is_a?(Array)
+      specs += params[:cartridges].map{ |p| p.is_a?(Hash) ? p : {name: String(p).presence}}
     elsif params[:cartridge].is_a? Hash
-      # format used by java client
-      cart_urls = [params[:cartridge][:url]] if params[:cartridge][:url].is_a? String
-      name = params[:cartridge][:name] if params[:cartridge][:name].is_a? String
-      gear_size = params[:cartridge][:gear_size] if params[:cartridge][:gear_size].is_a? String
+      specs << params[:cartridge]
     elsif params[:cartridge].is_a? String
-      name = params[:cartridge]
+      specs << params.merge(name: params[:cartridge]) # DEPRECATED
     else
-      return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109)
+      specs << params
+    end
+    CartridgeInstance.check_cartridge_specifications!(specs)
+    return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109) unless specs.all?{ |f| f[:name] or f[:url] }
+    #return render_error(:unprocessable_entity, "Only one cartridge may be added at a time.", 109) unless specs.length == 1
+
+    @application.domain.check_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "gear_size")
+
+    cartridges = CartridgeCache.find_and_download_cartridges(specs)
+    group_overrides = CartridgeInstance.overrides_for(cartridges, @application)
+    @application.validate_cartridge_instances!(cartridges)
+
+    result = @application.add_features(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
+
+    rest = cartridges.map do |cart|
+      component_instance = @application.component_instances.where(cartridge_name: cart.name).first
+      get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
     end
 
-    valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & @application.domain.allowed_gear_sizes & @application.domain.owner.allowed_gear_sizes
-
-    return render_error(:forbidden, "The owner of the domain #{@application.domain_namespace} has disabled all gear sizes from being created.  You will not be able to add any cartridge in this domain.",
-                        134) if valid_sizes.empty?
-
-    return render_error(:unprocessable_entity, "The gear size '#{gear_size}' is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.",
-                        134, "gear_size") if gear_size and !valid_sizes.include?(gear_size)
-
-    if cart_urls.length > 0
-      cmap = CartridgeCache.fetch_community_carts(cart_urls)
-      name = cmap.values[0]["versioned_name"]
-      begin
-        clist = @application.get_components_for_feature(cmap.keys[0])
-        if clist.length>0
-          return render_error(:unprocessable_entity, "#{cmap.keys[0]} is already an embedded feature in the application", 136)
-        end
-      rescue Exception=>e
-        # ignore
-      end
-
-      @application.downloaded_cart_map.merge!(cmap)
-      @application.save!
+    if rest.length > 1
+      render_success(:created, "cartridges", rest, "Added #{cartridges.map(&:name).to_sentence} to application #{@application.name}", result)
+    else
+      render_success(:created, "cartridge",rest.first, "Added #{cartridges.first.name} to application #{@application.name}", result)
     end
 
-    begin
-      component_instance = @application.component_instances.find_by(cartridge_name: name)
-      if !component_instance.nil?
-        return render_error(:unprocessable_entity, "#{name} is already embedded in the application", 136)
-      end
-    rescue
-      #ignore
-    end
+  rescue OpenShift::GearLimitReachedException => ex
+    render_error(:unprocessable_entity, "Unable to add cartridge: #{ex.message}", 104)
 
-    unless colocate_with.nil? or colocate_with.empty?
-      begin
-        colocate_component_instance = @application.component_instances.find_by(cartridge_name: colocate_with)
-        colocate_component_instance = colocate_component_instance.first if colocate_component_instance.class == Array
-      rescue Mongoid::Errors::DocumentNotFound
-        return render_error(:unprocessable_entity, "Invalid collocation specified. No component matches #{colocate_with}", 109, "cartridge")
-      end
-    end
-
-    if scales_to and scales_from and scales_to != -1 and scales_from > scales_to
-      return render_error(:unprocessable_entity, "Invalid scaling values provided. 'scales_from(#{scales_from})' cannot be greater than 'scales_to(#{scales_to})'.", 109, "cartridge")
-    end
-
-    begin
-      group_overrides = []
-      # Todo: REST API assumes cartridge only has one component
-      cart = CartridgeCache.find_cartridge(ComponentInstance.check_name!(name), @application)
-
-      if cart.nil?
-        carts = CartridgeCache.cartridge_names("embedded", @application)
-        return render_error(:unprocessable_entity, "Invalid cartridge. Valid values are (#{carts.join(', ')})",
-                            109, "cartridge")
-      end
-      
-      if not Rails.configuration.openshift[:allow_obsolete_cartridges]and cart.is_obsolete?
-        carts = CartridgeCache.cartridge_names("embedded", @application)
-        return render_error(:unprocessable_entity, "Cartridge #{cart.name} is obsolete. Please choose an alternative from this list (#{carts.join(', ')})",
-                            109, "cartridge")
-      end
-
-      profs = cart.profile_for_feature(name)
-      profile = (profs.is_a? Array) ? profs.first : profs
-      comp = profile.components.first
-      comp_spec = {"cart" => cart.name, "comp" => comp.name}
-
-      unless colocate_component_instance.nil?
-        group_overrides << {"components" => [colocate_component_instance.to_hash, comp_spec]}
-      end
-      if !scales_to.nil? or !scales_from.nil? or !additional_storage.nil? or !gear_size.nil?
-        group_override = {"components" => [comp_spec]}
-        group_override["min_gears"] = scales_from unless scales_from.nil?
-        group_override["max_gears"] = scales_to unless scales_to.nil?
-        group_override["additional_filesystem_gb"] = additional_storage unless additional_storage.nil?
-        group_override["gear_size"] = gear_size unless gear_size.nil?
-        group_overrides << group_override
-      end
-
-      result = @application.add_features([name], group_overrides, nil, user_env_vars)
-
-      component_instance = @application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
-      cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
-
-      render_success(:created, "cartridge", cartridge, "Added #{name} to application #{@application.name}", result)
-
-    rescue Exception => ex
-      # if this was a request to add a url based cart, remove the entry from downloaded_cart_map
-      # even though the new_comp_op rollback does this, the exception could be raised before the op_group execution
-      unless cmap.empty?
-        @application.downloaded_cart_map.delete_if {|k, v| k == cmap.keys[0]}
-        @application.save!
-      end
-
-      case ex
-      when OpenShift::GearLimitReachedException
-        render_error(:unprocessable_entity, "Unable to add cartridge: #{ex.message}", 104)
-      when OpenShift::UserException
-        render_error(:unprocessable_entity, ex.message, ex.code)
-      else
-        raise
-      end
-    end
+  rescue OpenShift::UserException => ex
+    ex.field = nil if ex.field == "cartridge"
+    raise
   end
 
   def destroy

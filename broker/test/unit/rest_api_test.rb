@@ -2,7 +2,6 @@ require 'test_helper'
 require 'openshift-origin-controller'
 require 'helpers/rest/api'
 require 'json'
-require 'mocha/setup'
 
 class RestApiUnitTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
   def setup
@@ -11,8 +10,6 @@ class RestApiUnitTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
   end
 
   test "rest api" do
-    Rails.cache.clear
-    Rails.configuration.action_controller.perform_caching = true
     register_user if registration_required?
     REST_CALLS.each do |rest_version|
       rest_version.each do |rest_api|
@@ -26,9 +23,5 @@ class RestApiUnitTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
         end
       end
     end
-  end
-
-  def teardown
-    Mocha::Mockery.instance.stubba.unstub_all
   end
 end

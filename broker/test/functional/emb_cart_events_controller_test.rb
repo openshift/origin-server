@@ -22,8 +22,8 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @cartridge_id = MYSQL_VERSION
-    @app = Application.create_app(@app_name, [PHP_VERSION, @cartridge_id], @domain)
+    @cartridge_id = mysql_version
+    @app = Application.create_app(@app_name, cartridge_instances_for(:php, @cartridge_id), @domain)
     @app.save
   end
 

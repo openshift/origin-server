@@ -36,8 +36,8 @@ module OpenShift
       self.description         = spec_hash['Description']
 
       self.mappings = []
-      if spec_hash.has_key?('Mappings') and spec_hash['Mappings'].respond_to?(:each)
-        spec_hash['Mappings'].each do |m|
+      if (mappings = spec_hash['Mappings']).respond_to?(:each)
+        mappings.each do |m|
           self.mappings << Endpoint::Mapping.new.from_descriptor(m)
         end
       end

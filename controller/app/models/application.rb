@@ -26,12 +26,6 @@ end
 #   @return [Array<PendingAppOpGroup>] List of pending operations to be performed on this application
 # @!attribute [r] domain
 #   @return [Domain] Domain that this application is part of.
-# @!attribute [rw] component_start_order
-#   @return [Array<String>] Normally start order computed based on order specified by each component's manifest.
-#     This attribute is used to overrides the start order
-# @!attribute [rw] component_stop_order
-#   @return [Array<String>] Normally stop order computed based on order specified by each component's manifest.
-#     This attribute is used to overrides the stop order
 # @!attribute [rw] component_stop_order
 #   @return [Array<String>] Normally configure order computed based on order specified by each component's manifest.
 #     This attribute is used to overrides the configure order
@@ -71,7 +65,7 @@ class Application
   DEPLOYMENT_TYPES = ['git', 'binary']
 
   # This is the current regex for validations for new applications
-  APP_NAME_REGEX = /\A[A-Za-z0-9]+\z/
+  APP_NAME_REGEX = /\A[A-Za-z0-9]*\z/
   def self.check_name!(name)
     if name.blank? or name !~ APP_NAME_REGEX
       raise Mongoid::Errors::DocumentNotFound.new(Application, nil, [name])
@@ -93,10 +87,7 @@ class Application
   has_many :built_applications, class_name: Application.name
 
   field :downloaded_cart_map, type: Hash, default: {}
-  field :component_start_order, type: Array, default: []
-  field :component_stop_order, type: Array, default: []
-  field :component_configure_order, type: Array, default: []
-  field :default_gear_size, type: String
+  field :default_gear_size, type: String, default: Rails.configuration.openshift[:default_gear_size]
   field :scalable, type: Boolean, default: false
   field :ha, type: Boolean, default: false
   field :init_git_url, type: String, default: ""
@@ -116,14 +107,26 @@ class Application
   validates :config, presence: true, application_config: true
   validates :meta, application_metadata: true
 
+  validates :name,
+    presence: {message: "Application name is required and cannot be blank."},
+    format:   {with: APP_NAME_REGEX, message: "Application name must contain only alphanumeric characters (a-z, A-Z, or 0-9)."},
+    length:   {maximum: APP_NAME_MAX_LENGTH, minimum: 0, message: "Application name must be a minimum of 1 and maximum of #{APP_NAME_MAX_LENGTH} characters."},
+    blacklisted: {message: "Application name is not allowed.  Please choose another."}
+  validate :extended_validator
+
+  # Returns a map of field to error code for validation failures
+  # * 105: Invalid application name
+  def self.validation_map
+    {name: 105}
+  end
+
   index({'gears.uuid' => 1}, {:unique => true, :sparse => true})
   index({'pending_op_groups.created_at' => 1})
-  index({'domain_id' => 1})
+  index({'domain_id' => 1, 'canonical_name' => 1}, {:unique => true})
   create_indexes
 
   # non-persisted field used to store user agent of current request
   attr_accessor :user_agent
-  attr_accessor :downloaded_cartridges
   attr_accessor :connections
 
   #
@@ -148,25 +151,19 @@ class Application
     apps_info
   end
 
-  validates :name,
-    presence: {message: "Application name is required and cannot be blank."},
-    format:   {with: APP_NAME_REGEX, message: "Invalid application name. Name must only contain alphanumeric characters."},
-    length:   {maximum: APP_NAME_MAX_LENGTH, minimum: 1, message: "Application name must be a minimum of 1 and maximum of #{APP_NAME_MAX_LENGTH} characters."},
-    blacklisted: {message: "Application name is not allowed.  Please choose another."}
-  validate :extended_validator
-
-  # Returns a map of field to error code for validation failures
-  # * 105: Invalid application name
-  def self.validation_map
-    {name: 105}
-  end
-
-  # Denormalize the domain namespace and the owner id
+  # Denormalize the domain namespace and the owner id, ensure the init_git_url is clean
   before_save prepend: true do
     if has_domain?
       self.domain_namespace = domain.canonical_namespace if domain_namespace.blank? || domain_id_changed?
       self.owner_id = domain.owner_id if owner_id.blank? || domain_id_changed?
     end
+    if init_git_url_changed?
+      self.init_git_url = OpenShift::Git.persistable_clone_spec(init_git_url)
+    end
+  end
+
+  after_save do |app|
+    app.instance_variable_set(:@downloaded_cartridge_instances, nil)
   end
 
   # Hook to prevent accidental deletion of MongoID model before all related {Gear}s are removed
@@ -181,10 +178,10 @@ class Application
   end
 
   ##
-  # Factory method to create the {Application}
+  # Helper for test cases to create the {Application}
   #
   # @param application_name [String] Name of the application
-  # @param features [Array<String>] List of cartridges or features to add to the application
+  # @param cartridges [Array<CartridgeInstance>] List of cartridge instances to add to the application
   # @param domain [Domain] The domain namespace under which this application is created
   # @param default_gear_size [String] The default gear size to use when creating a new {Gear} for the application
   # @param scalable [Boolean] Indicates if the application should be scalable or host all cartridges on a single gear.
@@ -193,114 +190,27 @@ class Application
   # @param group_overrides [Array] List of overrides to specify gear sizes, scaling limits, component collocation etc.
   # @param init_git_url [String] URL to git repository to retrieve application code
   # @param user_agent [String] user agent string of browser used for this rest API request
+  # @param builder_id [String] the identifier of the application that is using this app as a builder
+  # @param user_env_vars [Array<Hash>] array of environment variables to add to this application
   # @return [Application] Application object
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
-  def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[],
-                      init_git_url=nil, user_agent=nil, community_cart_urls=[], builder_id=nil, user_env_vars=nil, gear_size_map={})#, auto_deploy=false, deployment_branch="master", keep_deployments=1, deployment_type="git")
-    default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
-    cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
-    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap, builder_id: builder_id)
-    #app.config['auto_deploy'] = auto_deploy
-    #app.config['deployment_branch'] = deployment_branch
-    #app.config['keep_deployments'] = keep_deployments
-    #app.config['deployment_type'] = deployment_type
-    app.user_agent = user_agent
-    app.init_git_url = OpenShift::Git.persistable_clone_spec(init_git_url)
+  def self.create_app(application_name, cartridges, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[],
+                      init_git_url=nil, user_agent=nil, builder_id=nil, user_env_vars=nil)#, auto_deploy=false, deployment_branch="master", keep_deployments=1, deployment_type="git")
+
+    app = Application.new(
+      domain: domain,
+      name: application_name,
+      default_gear_size: default_gear_size.presence || Rails.application.config.openshift[:default_gear_size],
+      scalable: scalable,
+      builder_id: builder_id,
+      user_agent: user_agent,
+      init_git_url: init_git_url,
+    )
     app.analytics['user_agent'] = user_agent
-    features << "web_proxy" if scalable
-    if app.valid?
-      begin
-        downloaded_cartridges = app.downloaded_cartridges(gear_size_map)
-        downloaded_cartridges.each { |cname,c| features << c.name }
-        framework_carts = CartridgeCache.cartridge_names("web_framework", app)
-        framework_cartridges = []
-        features.each do |feature|
-          cart = CartridgeCache.find_cartridge(feature, app)
-          if cart
-            framework_cartridges.push(cart.name) if cart.is_web_framework?
-          else
-            raise OpenShift::UserException.new("Invalid cartridge '#{feature}' specified.", 109, "cartridge")
-          end
-        end
-        if framework_carts.empty?
-          raise OpenShift::UserException.new("Unable to determine list of available cartridges.  Please try again and contact support if the issue persists.", 109, "cartridge")
-        elsif framework_cartridges.empty?
-          raise OpenShift::UserException.new("Each application must contain one web cartridge.  None of the specified cartridges #{features.to_sentence} is a web cartridge. Please include one of the following cartridges: #{framework_carts.to_sentence} or supply a valid url to a custom web_framework cartridge.", 109, "cartridge")
-        elsif framework_cartridges.length > 1
-          raise OpenShift::UserException.new("Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.", 109, "cartridge")
-        end
-        framework_gear_size = gear_size_map[framework_cartridges[0]]
-        if framework_gear_size and (framework_gear_size != default_gear_size)
-          app.default_gear_size = framework_gear_size
-        end
-        gear_size_map.each do |name, gear_size|
-          cart = CartridgeCache.find_cartridge(name, app)
-          if cart.nil?
-            carts = CartridgeCache.cartridge_names("embedded", app)
-            raise OpenShift::UserException.new("Invalid cartridge. Valid values are (#{carts.join(', ')})", 109, "cartridge")
-          end
 
-          profs = cart.profile_for_feature(name)
-          profile = (profs.is_a? Array) ? profs.first : profs
-          comp = profile.components.first
-          comp_spec = {"cart" => cart.name, "comp" => comp.name}
-
-          group_override = {"components" => [comp_spec]}
-          group_override["gear_size"] = gear_size
-          group_overrides << group_override
-        end
-
-        add_feature_result = app.add_features(features, group_overrides, init_git_url, user_env_vars)
-        result_io.append add_feature_result
-      rescue Exception => e
-        unless app.group_instances.present? or app.component_instances.present?
-          app.delete
-        end
-        raise e
-      end
-      app
-    else
-      app.delete
-      raise OpenShift::ApplicationValidationException.new(app)
-    end
+    result = app.add_initial_cartridges(cartridges, init_git_url, user_env_vars)
+    result_io.append(result)
     app
-  end
-
-  def quarantined
-    gears.each do |gear|
-      if gear.quarantined
-        return true
-      end
-    end
-    false
-  end
-
-  def downloaded_cartridges(gear_size_map={})
-    cmap = self.downloaded_cart_map
-    return @downloaded_cartridges if @downloaded_cartridges and cmap.length==@downloaded_cartridges.length
-    # download the content of the url
-    # careful, but assume this to be manifest.yml
-    # parse the manifest and store the cartridge
-    begin
-      @downloaded_cartridges = {}
-      cmap.each do |cartname, cartdata|
-        gear_size = gear_size_map[cartdata['url']]
-        manifest_str = cartdata["original_manifest"]
-        CartridgeCache.foreach_cart_version(manifest_str, cartdata["version"]) do |chash,name,version,vendored_name|
-          cart = OpenShift::Cartridge.new.from_descriptor(chash)
-          if @downloaded_cartridges.has_key?(cart.name)
-            Rails.logger.error("Duplicate community cartridge exists for application '#{self.name}'! Overwriting..")
-          end
-          @downloaded_cartridges[cart.name] = cart
-          gear_size_map[cart.name] = gear_size if gear_size
-        end
-        gear_size_map.delete(cartdata['url'])
-      end
-    rescue Exception =>e
-      Rails.logger.error(e.message)
-      raise e
-    end
-    @downloaded_cartridges
   end
 
   ##
@@ -328,13 +238,12 @@ class Application
 
   ##
   # Constructor. Should not be used directly. Use {Application#create_app} instead.
-  # @note side-effect: Saves application object in mongo
   def initialize(attrs = nil, options = nil)
     super
     @downloaded_cartridges = {}
     self.app_ssh_keys = []
     #self.pending_op_groups = []
-    self.analytics = {} if self.analytics.nil?
+    self.analytics ||= {}
 
     # the resultant string length is 4/3 times the number specified as the first argument
     # with 96 specified, the token is going to be 128 characters long
@@ -361,6 +270,38 @@ class Application
 
   def capabilities
     @capabilities ||= domain.owner.capabilities.deep_dup rescue (raise OpenShift::UserException, "The application cannot be changed at this time.  Contact support.")
+  end
+
+  def cartridge_instances
+    @cartridge_instances ||= {}
+  end
+
+  def downloaded_cartridge_instances
+    @downloaded_cartridge_instances ||= begin
+      self.downloaded_cart_map.inject({}) do |h, (_, data)|
+        cart = CartridgeCache.cartridge_from_data(data)
+        Rails.logger.error("Duplicate downloaded cartridge exists for application '#{self.name}'! Overwriting..") if h.has_key? cart.name
+        h[cart.name] = cart
+        h
+      end
+    end
+  end
+
+  def track_downloaded_cartridge(cart)
+    return self unless cart.manifest_text.present?
+    @downloaded_cartridge_instances[cart.name] = cart if @downloaded_cartridge_instances
+    Rails.logger.error("Duplicate downloaded cartridge exists for application '#{self.name}'! Overwriting..") if downloaded_cart_map.has_key? cart.name
+    downloaded_cart_map[cart.name] = {
+        "versioned_name" => cart.full_identifier,
+        "version" => cart.version,
+        "url" => cart.manifest_url,
+        "original_manifest" => cart.manifest_text,
+    }
+    self
+  end
+
+  def quarantined
+    gears.any?(&:quarantined)
   end
 
   ##
@@ -554,9 +495,48 @@ class Application
     features || []
   end
 
+  def validate_cartridge_instances!(cartridges)
+    if not cartridges.all?(&:valid?)
+      cartridges.each{ |c| c.errors.full_messages.uniq.each{ |m| errors[:cartridge] = m } }
+      raise OpenShift::ApplicationValidationException.new(self)
+    end
+
+    if !Rails.configuration.openshift[:allow_obsolete_cartridges] && (obsolete = cartridges.select(&:is_obsolete?).presence) && (self.persisted? || !self.builder_id)
+      obsolete.each{ |c| self.errors[:cartridge] = "The cartridge '#{c.name}' is no longer available to be added to an application." }
+      raise OpenShift::ApplicationValidationException.new(self)
+    end
+
+    true
+  end
+
+  ##
+  # Perform common initial setup of an application, including persisting it and cleanup
+  # if the creation fails.
+  #
+  # @param cartridges [Array<CartridgeInstance>] List of cartridge instances to add to the application
+  # @param init_git_url [String] URL to git repository to retrieve application code
+  # @param user_env_vars [Array<Hash>] array of environment variables to add to this application
+  # @return [ResultIO] Output from cartridges
+  # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
+  def add_initial_cartridges(cartridges, init_git_url=nil, user_env_vars=nil)
+
+    if self.scalable and not cartridges.any?{ |c| c.features.include?('web_proxy') }
+      cartridges << CartridgeInstance.new(CartridgeCache.find_cartridge('web_proxy'))
+    end
+
+    group_overrides = CartridgeInstance.overrides_for(cartridges, self)
+    self.validate_cartridge_instances!(cartridges)
+
+    add_features(cartridges.map(&:cartridge), group_overrides, init_git_url, user_env_vars)
+
+  rescue => e
+    self.delete if persisted? && !(group_instances.present? || component_instances.present?)
+    raise e
+  end
+
   ##
   # Adds components to the application
-  # @param features [Array<String>] List of features to add to the application. Each feature will be resolved to the cartridge which provides it
+  # @param features [Array<Cartridge>] List of features to add to the application. Each cartridge must be resolved prior to this call
   # @param group_overrides [Array] List of group overrides
   # @param init_git_url [String] URL to git repository to retrieve application code
   # @return [ResultIO] Output from cartridges
@@ -565,42 +545,20 @@ class Application
     ssl_endpoint = Rails.application.config.openshift[:ssl_endpoint]
     cart_name_map = {}
 
-    features.each do |feature_name|
-      cart = CartridgeCache.find_cartridge(feature_name, self)
-
-      # Make sure this is a valid cartridge
-      if cart.nil?
-        raise OpenShift::UserException.new("Invalid cartridge '#{feature_name}' specified.", 109)
-      end
+    features.each do |cart|
 
       # ensure that the user isn't trying to add multiple versions of the same cartridge
       if cart_name_map.has_key?(cart.original_name)
-        raise OpenShift::UserException.new("#{cart.name} cannot co-exist with #{cart_name_map[cart.original_name]} in the same application", 109)
+        raise OpenShift::UserException.new("#{cart.name} cannot co-exist with #{cart_name_map[cart.original_name]} in the same application", 136, "cartridge")
       else
         cart_name_map[cart.original_name] = cart.name
-      end
-
-      if cart.is_web_framework?
-        component_instances.each do |ci|
-          if ci.is_web_framework?
-            raise OpenShift::UserException.new("You can only have one framework cartridge in your application '#{name}'.", 109)
-          end
-        end
-      end
-
-      if cart.is_web_proxy?
-        component_instances.each do |ci|
-          if ci.is_web_proxy?
-            raise OpenShift::UserException.new("You can only have one proxy cartridge in your application '#{name}'.", 109)
-          end
-        end
       end
 
       # check if the requested feature is provided by any existing/embedded application cartridge
       component_instances.each do |ci|
         ci_cart = ci.get_cartridge
         if ci_cart.original_name == cart.original_name
-          raise OpenShift::UserException.new("#{feature_name} cannot co-exist with cartridge #{ci.cartridge_name} in your application", 109)
+          raise OpenShift::UserException.new("#{cart.name} cannot co-exist with cartridge #{ci.cartridge_name} in your application", 136, "cartridge")
         end
       end
 
@@ -613,55 +571,68 @@ class Application
         end
         if (((ssl_endpoint == "deny") and cart_req_ssl_endpoint ) or
             ((ssl_endpoint == "force") and not cart_req_ssl_endpoint))
-          raise OpenShift::UserException.new("Invalid cartridge '#{feature_name}' conflicts with platform SSL_ENDPOINT setting.", 109, "cartridge")
+          raise OpenShift::UserException.new("Invalid cartridge '#{cart.name}' conflicts with platform SSL_ENDPOINT setting.", 109, "cartridge")
         end
       end
 
       # Validate that the features support scalable if necessary
       if self.scalable && !(cart.is_plugin? || cart.is_service? || cart.is_web_framework?)
-        raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 109)
+        raise OpenShift::UserException.new("#{cart.name} cannot be embedded in scalable app '#{name}'.", 109, 'cartridge')
       end
 
       # prevent a proxy from being added to a non-scalable (single-gear) application
       if cart.is_web_proxy? and !self.scalable
-        raise OpenShift::UserException.new("#{feature_name} cannot be added to existing applications. It is automatically added when you create a scaling application.", 137)
+        raise OpenShift::UserException.new("#{cart.name} cannot be added to existing applications. It is automatically added when you create a scaling application.", 137, 'cartridge')
       end
 
       if self.scalable and cart.is_web_framework?
-        prof = cart.profile_for_feature(feature_name)
+        prof = cart.profile_for_feature(cart.name)
         cart_scalable = false
         prof.components.each do |component|
            next if component.scaling.min==1 and component.scaling.max==1
            cart_scalable = true
         end
         if !cart_scalable
-          raise OpenShift::UserException.new("Scalable app cannot be of type '#{feature_name}'.", 109)
+          raise OpenShift::UserException.new("The cartridge '#{cart.name}' does not support being made scalable.", 109, 'scalable')
         end
       end
 
       # Validate that this feature either does not have the domain_scope category
       # or if it does, then no other application within the domain has this feature already
       if cart.is_domain_scoped?
-        begin
-          if Application.where(domain_id: self.domain._id, "component_instances.cartridge_name" => cart.name).count() > 0
-            raise OpenShift::UserException.new("An application with #{feature_name} already exists within the domain. You can only have a single application with #{feature_name} within a domain.")
-          end
-        rescue Mongoid::Errors::DocumentNotFound
-          #ignore
+        if Application.where(domain_id: self.domain._id, "component_instances.cartridge_name" => cart.name).present?
+          raise OpenShift::UserException.new("An application with #{cart.name} already exists within the domain. You can only have a single application with #{cart.name} within a domain.", 109, 'cartridge')
         end
       end
     end
 
+    # Only one web_framework is allowed
+    if (features + component_instances).inject(0){ |c, cart| cart.is_web_framework? ? c + 1 : c } > 1
+      raise OpenShift::UserException.new("You can only have one web cartridge in your application '#{name}'.", 109, 'cartridge')
+    end
+
+    # Only one web proxy is allowed
+    if (features + component_instances).inject(0){ |c, cart| cart.is_web_proxy? ? c + 1 : c } > 1
+      raise OpenShift::UserException.new("You can only have one proxy cartridge in your application '#{name}'.", 109, 'cartridge')
+    end
+
+    # ensure features are available to the cache and that downloaded cartridegs are stored
+    features.inject(cartridge_instances) do |h, cart|
+      track_downloaded_cartridge(cart)
+      h[cart.name] = cart
+      h
+    end
+
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
-      op_group = AddFeaturesOpGroup.new(features: features, group_overrides: group_overrides, init_git_url: init_git_url,
+      op_group = AddFeaturesOpGroup.new(features: features.map(&:name), group_overrides: group_overrides, init_git_url: init_git_url,
                                         user_env_vars: user_env_vars, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
 
       # if the app is not persisted, it means its an app creation request
       # in this case, calculate the pending_ops and execute the pre-save ones
-      # this ensures that the app document is not saved without basic embedded documents in place 
-      # Note: when the scheduler is implemented, these steps (except the call to run_jobs) 
+      # this ensures that the app document is not saved without basic embedded documents in place
+      # Note: when the scheduler is implemented, these steps (except the call to run_jobs)
       # will be moved out of the lock
       begin
         op_group.elaborate(self)
@@ -2366,7 +2337,6 @@ class Application
   def merge_group_overrides(first, second)
     return_go = { }
 
-    framework_carts = CartridgeCache.cartridge_names("web_framework", self)
     first_has_web_framework = false
     first["components"].each do |components|
       c = CartridgeCache.find_cartridge(components['cart'], self)
@@ -2620,14 +2590,10 @@ class Application
     enforce_system_order(configure_order, categories)
 
     #calculate configure order using tsort
-    if self.component_configure_order.empty?
-      begin
-        computed_configure_order = configure_order.tsort
-      rescue Exception=>e
-        raise OpenShift::UserException.new("Conflict in calculating configure order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-      end
-    else
-      computed_configure_order = self.component_configure_order.map{|c| categories[c]}.flatten
+    begin
+      computed_configure_order = configure_order.tsort
+    rescue Exception=>e
+      raise OpenShift::UserException.new("Conflict in calculating configure order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
     end
 
     # configure order can have nil if the component is already configured
@@ -2675,25 +2641,17 @@ class Application
     enforce_system_order(stop_order, categories)
 
     #calculate start order using tsort
-    if self.component_start_order.empty?
-      begin
-        computed_start_order = start_order.tsort
-      rescue Exception=>e
-        raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-      end
-    else
-      computed_start_order = self.component_start_order.map{|c| categories[c]}.flatten
+    begin
+      computed_start_order = start_order.tsort
+    rescue Exception=>e
+      raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
     end
 
     #calculate stop order using tsort
-    if self.component_stop_order.empty?
-      begin
-        computed_stop_order = stop_order.tsort
-      rescue Exception=>e
-        raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-      end
-    else
-      computed_stop_order = self.component_stop_order.map{|c| categories[c]}.flatten
+    begin
+      computed_stop_order = stop_order.tsort
+    rescue Exception=>e
+      raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
     end
 
     # start/stop order can have nil if the component is not present in the application

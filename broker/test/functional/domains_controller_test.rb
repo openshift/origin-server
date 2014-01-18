@@ -136,7 +136,7 @@ class DomainsControllerTest < ActionController::TestCase
     domain.save
 
     app_name = "app#{@random}"
-    app = Application.create_app(app_name, [PHP_VERSION], domain)
+    app = Application.create_app(app_name, cartridge_instances_for(:php), domain)
     app.save
 
     delete :destroy , {"name" => namespace}
@@ -152,7 +152,7 @@ class DomainsControllerTest < ActionController::TestCase
     domain.save
 
     app_name = "app#{@random}"
-    app = Application.create_app(app_name, [PHP_VERSION], domain)
+    app = Application.create_app(app_name, cartridge_instances_for(:php), domain)
     app.save
 
     get :show, {"name" => namespace, "include" => 'application_info'}

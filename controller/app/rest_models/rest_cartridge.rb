@@ -115,6 +115,7 @@ class RestCartridge < OpenShift::Model
     self.help_topics = cart.help_topics
     self.usage_rates = cart.usage_rates
     self.obsolete = cart.is_obsolete?
+    @url = cart.manifest_url if cart.manifest_url.present?
   end
 
   def to_xml(options={})

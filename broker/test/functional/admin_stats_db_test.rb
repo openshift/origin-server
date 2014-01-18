@@ -37,7 +37,7 @@ class AdminStatsDbTest < ActionController::TestCase
   test "create some apps and check that stats work out" do
     # create a PHP app
     php_app = "app#{@random}php"
-    post :create, {"name" => php_app, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    post :create, {"name" => php_app, "cartridge" => php_version, "domain_id" => @domain.namespace}
     assert_response :created
     # Add other apps with problematic data to test
 
