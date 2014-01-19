@@ -209,7 +209,8 @@ module OpenShift
                   :manifest_path,
                   :install_build_required,
                   :source_url,
-                  :source_md5
+                  :source_md5,
+                  :usage_rates
 
       # When a cartridge is installed from a URL, we validate the
       # vendor name by matching against VALID_VENDOR_NAME_PATTERN,
@@ -319,6 +320,7 @@ module OpenShift
         @is_deployable          = @categories.include?('web_framework')
         @is_web_proxy           = @categories.include?('web_proxy')
         @install_build_required = @manifest.has_key?('Install-Build-Required') ? @manifest['Install-Build-Required'] : false
+        @usage_rates            = @manifest['Usage-Rates'] || []
 
 
         #FIXME: reinstate code after manifests are updated
