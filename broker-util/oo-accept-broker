@@ -758,28 +758,35 @@ function check_authentication() {
 function dns_bind_update_record() {
     # $1 = auth type: key, krb, or unauthenticated
     # $2 = server
-    # $3 = key name
-    # $4 = key value
-    # $5 = Kerberos keytab
-    # $6 = Kerberos principal
-    # $7 = function (add|delete)
-    # $8 = type (A, TXT, CNAME)
-    # $9 = name
-    # $10 = value
+    # $3 = key algorithm
+    # $4 = key name
+    # $5 = key value
+    # $6 = Kerberos keytab
+    # $7 = Kerberos principal
+    # $8 = function (add|delete)
+    # $9 = type (A, TXT, CNAME)
+    # $10 = name
+    # $11 = value
 
     # check $2: should be an IP address
     # check $4: should be a key string
     # check $7: should be add|delete
     # check $8 should be A, TXT, CNAME
 
-    verbose "${7}ing $8 record named $9 to server $2: ${10}"
+    verbose "${8}ing $9 record named ${10} to server $2: ${11}"
+
+    keyname=$4
+    if [ ! -z $3 ]
+    then
+      keyname="${3}:${keyname}"
+    fi
 
     if [ "$1" = "key" ]
     then
         nsupdate <<EOF
 server $2
-key $3 $4
-update $7 $9 1 $8 ${10}
+key $keyname $5
+update $8 ${10} 1 $9 ${11}
 send
 EOF
     elif [ "$1" = "krb" ]
@@ -787,21 +794,21 @@ EOF
         kinit -kt "$5" -p "$6"
         nsupdate -g <<EOF
 server $2
-update $7 $9 1 $8 ${10}
+update $8 ${10} 1 $9 ${11}
 send
 EOF
     else
         nsupdate <<EOF
 server $2
-update $7 $9 1 $8 ${10}
+update $8 ${10} 1 $9 ${11}
 send
 EOF
     fi
 
     if [ $? != 0 ]
     then
-	fail "error ${7}ing $8 record name $9 to server $2: ${10}
-	-- is the nameserver running, reachable, and $1 auth working?"
+        fail "error ${8}ing $9 record name ${10} to server $2: ${11}
+        -- is the nameserver running, reachable, and $1 auth working?"
     fi
 
 }
@@ -827,6 +834,7 @@ function check_dns_bind() {
     if [ "${APP_VALUES[DNS_AUTH]}" = "key" ]
     then
 	APP_VALUE_MAP=(
+    ["DNS_KEYALGORITHM"]="Rails.application.config.dns[:keyalgorithm]"
 		["DNS_KEYNAME"]="Rails.application.config.dns[:keyname]"
 		["DNS_KEYVAL"]="Rails.application.config.dns[:keyvalue]"
 		)
@@ -847,7 +855,7 @@ function check_dns_bind() {
     # check that zone suffix ends exactly with dns_zone (zone contains suffix)
 
     # try to add a dummy TXT record to the zone
-    dns_bind_update_record ${APP_VALUES[DNS_AUTH]} ${APP_VALUES[DNS_SERVER]} "${APP_VALUES[DNS_KEYNAME]}" "${APP_VALUES[DNS_KEYVAL]}" "${APP_VALUES[DNS_KRB_KEYTAB]}" "${APP_VALUES[DNS_KRB_PRINCIPAL]}" add txt testrecord.${APP_VALUES[DNS_SUFFIX]} this_is_a_test
+    dns_bind_update_record ${APP_VALUES[DNS_AUTH]} ${APP_VALUES[DNS_SERVER]} "${APP_VALUES[DNS_KEYALGORITHM]}" "${APP_VALUES[DNS_KEYNAME]}" "${APP_VALUES[DNS_KEYVAL]}" "${APP_VALUES[DNS_KRB_KEYTAB]}" "${APP_VALUES[DNS_KRB_PRINCIPAL]}" add txt testrecord.${APP_VALUES[DNS_SUFFIX]} this_is_a_test
 
     # verify that the record is there
     if host -t txt testrecord.${APP_VALUES[DNS_SUFFIX]} ${APP_VALUES[DNS_SERVER]} >/dev/null
@@ -858,7 +866,7 @@ function check_dns_bind() {
     fi
 
     # remove it.
-    dns_bind_update_record ${APP_VALUES[DNS_AUTH]} ${APP_VALUES[DNS_SERVER]} "${APP_VALUES[DNS_KEYNAME]}" "${APP_VALUES[DNS_KEYVAL]}" "${APP_VALUES[DNS_KRB_KEYTAB]}" "${APP_VALUES[DNS_KRB_PRINCIPAL]}" delete txt testrecord.${APP_VALUES[DNS_SUFFIX]}
+    dns_bind_update_record ${APP_VALUES[DNS_AUTH]} ${APP_VALUES[DNS_SERVER]} "${APP_VALUES[DNS_KEYALGORITHM]}" "${APP_VALUES[DNS_KEYNAME]}" "${APP_VALUES[DNS_KEYVAL]}" "${APP_VALUES[DNS_KRB_KEYTAB]}" "${APP_VALUES[DNS_KRB_PRINCIPAL]}" delete txt testrecord.${APP_VALUES[DNS_SUFFIX]}
 
     # verify that the record is removed
     if host -t txt testrecord.${APP_VALUES[DNS_SUFFIX]} ${APP_VALUES[DNS_SERVER]} >/dev/null
