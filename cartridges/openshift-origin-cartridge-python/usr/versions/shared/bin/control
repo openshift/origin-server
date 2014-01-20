@@ -10,7 +10,7 @@ HTTPD_PID_FILE=$OPENSHIFT_PYTHON_DIR/run/httpd.pid
 
 # construct the configuration directives for httpd
 HTTPD_CMD_CONF="-f $HTTPD_CFG_FILE"
-for dir in $OPENSHIFT_CFG_DIR/etc/conf.d/ /etc/openshift/cart.conf.d/httpd{,/python} ; do
+for dir in $HTTPD_CFG_DIR /etc/openshift/cart.conf.d/httpd{,/python} ; do
     [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -C 'Include $dir/*.conf'"
 done
 
@@ -26,7 +26,7 @@ function start_app() {
 function start_apache() {
     write_httpd_passenv $HTTPD_PASSENV_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-    /usr/sbin/httpd $HTTPD_CMD_CONF -k start
+    eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k start"
     [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
@@ -61,7 +61,7 @@ function stop_apache() {
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-        /usr/sbin/httpd $HTTPD_CMD_CONF -k stop
+        eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k stop"
         wait_for_stop $httpd_pid
     fi
 }
@@ -87,7 +87,7 @@ function restart() {
         oo-erb ${OPENSHIFT_PYTHON_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
         write_httpd_passenv $HTTPD_PASSENV_FILE
         ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-        /usr/sbin/httpd $HTTPD_CMD_CONF -k restart
+        eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k restart"
     fi
 }
 
