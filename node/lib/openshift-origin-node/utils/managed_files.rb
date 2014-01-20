@@ -126,7 +126,7 @@ module OpenShift
           end.flatten
 
           IMMUTABLE_FILES.each do |name|
-            name.gsub!('*', cart.short_name)
+            name = name.gsub('*', cart.short_name)
             wanted_files.delete_if do |entry|
               file = PathUtils.join(root, cart.directory, name)
               (entry.is_a?(String) and entry == file) or
