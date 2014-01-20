@@ -84,6 +84,7 @@ class Command
     end
     names = carts.map{ |s| "'#{s}'" }.join(', ')
     carts.delete
+    Rails.cache.clear
     puts "#{names} were deleted."
     0
   rescue ArgumentError
