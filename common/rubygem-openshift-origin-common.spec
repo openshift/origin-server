@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.18.7
+Version: 1.18.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,14 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.18.8-1
+- Merge remote-tracking branch 'origin/master' into add_cartridge_mongo_type
+  (ccoleman@redhat.com)
+- Revert "Bug 995807 - Jenkins builds fail on downloadable cartridges"
+  (bparees@redhat.com)
+- Allow downloadable cartridges to appear in rhc cartridge list
+  (ccoleman@redhat.com)
+
 * Wed Jan 15 2014 Adam Miller <admiller@redhat.com> 1.18.7-1
 - Merge pull request #4436 from bparees/jenkins_dl_cart
   (dmcphers+openshiftbot@redhat.com)
