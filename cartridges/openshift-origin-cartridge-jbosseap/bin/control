@@ -129,7 +129,10 @@ killtree() {
     if [ -z "$should_be_gone_pid" ]; then
         return
     else
-        kill -TERM ${_pid}
+        # process might have finished stopping after the ps check above
+        # so prevent kill from throwing an error (which would exit the script due to bash -e)
+        # with || true
+        kill -TERM ${_pid} || true
     fi
 
     local count=0
