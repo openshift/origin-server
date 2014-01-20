@@ -449,8 +449,12 @@ class CloudUser
           next
         end
 
-        op.execute
-
+        begin
+          op.execute
+        rescue Exception => e
+          Rails.logger.error "Error #{ex.message} #{e.backtrace}"
+          raise Exception.new("Exception thrown in execution of job #{op.class} for user #{op.cloud_user.login} error: #{e.message}")
+        end
         # reloading the op reloads the cloud_user and then incorrectly reloads (potentially)
         # the op based on its position within the pending_ops list
         # hence, reloading the cloud_user, and then fetching the op using the op_id stored earlier
@@ -466,7 +470,7 @@ class CloudUser
     rescue Exception => ex
       Rails.logger.error ex
       Rails.logger.error ex.backtrace
-      false
+      raise ex
     end
   end
 end
