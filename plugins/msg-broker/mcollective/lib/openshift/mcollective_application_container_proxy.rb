@@ -2848,8 +2848,8 @@ module OpenShift
       def has_app_cartridge?(app_uuid, gear_uuid, cart)
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_app_cartridge(:app_uuid => app_uuid, :gear_uuid => gear_uuid, :cartridge => cart) do |response|
-            output = response[:body][:data][:output]
-            return output == true
+            # the output is a boolean that is true if the cartridge exists on the gear and false otherwise
+            response[:body][:data][:output]
           end
         end
       end

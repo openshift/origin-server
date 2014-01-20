@@ -105,9 +105,10 @@ def clean_app(a)
             op.unreserve_gears(num_gears_recovered, a)
             success = true
             puts " complete."
-          rescue Exception=>ex
+          rescue Exception=> ex
             success = false
             puts " failed again!"
+            puts ex.backtrace.inspect
           end
         end
         dlist << op if success
