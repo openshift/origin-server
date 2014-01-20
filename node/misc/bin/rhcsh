@@ -52,6 +52,10 @@ fi
 OPENSHIFT_RHCSH_IDLE_TIMEOUT=300
 source /etc/openshift/node.conf
 
+function float_test {
+    awk 'END { exit ( !( '"$1"')); }' </dev/null
+}
+
 function welcome {
     if [ -n "$MOTD_FILE" -a -f "$MOTD_FILE" ]; then
         cat $MOTD_FILE
@@ -88,13 +92,13 @@ function welcome {
   if quota >/dev/null 2>&1
   then
     local usage=$(quota -w | grep '^.*/dev/' | awk '{printf "%3.1f", ($2 / $4 * 100)}')
-    if expr $usage \> 90.0 > /dev/null
+    if float_test "$usage > 90.0"
     then
       echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of disk quota"
     fi
 
     local usage=$(quota -w | grep '^.*/dev/' | awk '{printf "%3.1f",  ($5 / $7 * 100)}')
-    if expr $usage \> 90.0 > /dev/null
+    if float_test "$usage > 90.0"
     then
       echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of inodes allowed"
     fi
