@@ -13,6 +13,55 @@ might need when building common applications using
 an OpenShift cartrige.
 
 #===================
+# All Dependancy Packages
+#===================
+# All Recommended Packages
+%package recommended-all
+Summary:   All recommended user dependency packages for OpenShift Cartridges
+BuildArch: noarch
+Requires:  %{name}-recommended-jbossas
+Requires:  %{name}-recommended-jbosseap
+Requires:  %{name}-recommended-jbossews
+Requires:  %{name}-recommended-nodejs
+Requires:  %{name}-recommended-perl
+Requires:  %{name}-recommended-php
+Requires:  %{name}-recommended-python
+Requires:  %{name}-recommended-ruby
+
+%description recommended-all
+This package pulls in all the recommended OpenShift 
+Cartridge dependency packages.
+
+Those packages pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files recommended-all
+
+# All Optional Packages
+%package optional-all
+Summary:   All optional user dependency packages for OpenShift Cartridges
+BuildArch: noarch
+Requires:  %{name}-optional-jbossas
+Requires:  %{name}-optional-jbosseap
+Requires:  %{name}-optional-jbossews
+Requires:  %{name}-optional-nodejs
+Requires:  %{name}-optional-perl
+Requires:  %{name}-optional-php
+Requires:  %{name}-optional-python
+Requires:  %{name}-optional-ruby
+
+%description optional-all
+This package pulls in all the optional OpenShift 
+Cartridge dependency packages.
+
+Those packages pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files optional-all
+
+#===================
 # JBossAS
 #===================
 # JBossAS Recommended
