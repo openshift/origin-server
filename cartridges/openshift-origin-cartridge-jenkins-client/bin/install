@@ -39,6 +39,7 @@ if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${OPENSHIFT_CLO
 then
     # Embedding success
     client_result ""
+    client_result "Associated with job '${JOB_NAME}' in Jenkins server."
 else
     if enable_out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_job_action enable 2>&1)
     then
