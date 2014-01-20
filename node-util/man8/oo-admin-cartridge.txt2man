@@ -1,5 +1,5 @@
 NAME
-  oo-admin-cartridge
+  oo-admin-cartridge 
   
 SYNOPSIS
   oo-admin-cartridge --action install [--recursive] [--mco] [--source directory]
@@ -12,7 +12,7 @@ DESCRIPTION
   simple RPM's are not viable.
 
   This command is used for repair and development work. Restarting the mcollectived openshift agent will cause
-  all the cartridge in /var/libexec/openshift/cartridges to be installed in the cartridge repository.
+  all the cartridge in /usr/libexec/openshift/cartridges to be installed in the cartridge repository.
 
 OPTIONS
   -h|--help  
@@ -44,7 +44,7 @@ CONFIGURATION
     directory for storing cartridge repository
 
 EXAMPLE
-  # oo-admin-cartridge --action install --recursive --source /var/libexec/openshift/cartridges  
+  # oo-admin-cartridge --action install --recursive --source /usr/libexec/openshift/cartridges  
     Install all current cartridges into cartridge repository
   # oo-admin-cartridge --action list  
     List all versions of all cartridges install in cartridge repository
