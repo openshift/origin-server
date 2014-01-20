@@ -1122,8 +1122,11 @@ class Application
     return false if fqdn =~ /^\d+\.\d+\.\d+\.\d+$/
     return false if fqdn =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/
     return false if not fqdn =~ /\A[a-z0-9]+([\.]?[\-a-z0-9]+)+\z/
-    return false if fqdn.end_with?(Rails.configuration.openshift[:domain_suffix]) &&
-                    ! Rails.configuration.openshift[:allow_alias_in_domain]
+    if fqdn.end_with?(cloud_domain = Rails.configuration.openshift[:domain_suffix])
+      return false if ! Rails.configuration.openshift[:allow_alias_in_domain]
+      # still exclude those that could conflict with app names.
+      return false if fqdn.chomp(cloud_domain) =~ /\A\w+-\w+\.\z/
+    end
     return fqdn
   end
 
