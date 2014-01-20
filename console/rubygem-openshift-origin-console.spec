@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.8
+Version: 1.19.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
+- Fix bug 1054692: avoid currency symbol wrapping (jliggitt@redhat.com)
+- Add an additional failing test for cart output (ccoleman@redhat.com)
+- Hide small app type icon in origin Minor haml change Reverting back to use
+  usage_rate_indicator Added mixin to adjust $ sign size to match related group
+  icon size (sgoodwin@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
 - Merge pull request #4496 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
