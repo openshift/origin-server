@@ -28,6 +28,14 @@ function update_rails_env {
   fi
 }
 
+function groups_in_gemfile {
+  if grep -q "^group " "$1"; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # Apache is in development mode when the RAILS_ENV is set to the development.
 #
 function httpd_in_development_mode {
