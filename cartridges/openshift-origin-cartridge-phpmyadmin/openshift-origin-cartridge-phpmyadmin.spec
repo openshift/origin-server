@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.17.4
+Version: 1.17.5
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -51,6 +51,9 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.17.5-1
+- <perl,python,phpmyadmin carts> bug 1055095 (lmeyer@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.17.4-1
 - <phpmyadmin cart> enable providing custom gear server confs
   (lmeyer@redhat.com)
