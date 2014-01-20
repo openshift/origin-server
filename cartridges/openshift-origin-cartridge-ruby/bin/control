@@ -98,13 +98,17 @@ function build() {
     echo "Building Ruby cartridge"
     update-configuration $OPENSHIFT_RUBY_VERSION
 
-    if [ -d ${OPENSHIFT_RUBY_DIR}tmp/.bundle ]
-    then
+    if [ -d ${OPENSHIFT_RUBY_DIR}tmp/.bundle ]; then
       echo 'Restoring previously bundled RubyGems'
       echo 'NOTE: You can commit .openshift/markers/force_clean_build to force a clean bundle'
+
+      if [ -d ${OPENSHIFT_REPO_DIR}.bundle ]; then
+        echo 'ERROR: You need to remove the ".bundle" directory from your GIT repository.'
+        exit 1;
+      fi
       mv $OPENSHIFT_RUBY_DIR/tmp/.bundle ${OPENSHIFT_REPO_DIR}
-      if [ -d ${OPENSHIFT_REPO_DIR}vendor ]
-      then
+
+      if [ -d ${OPENSHIFT_REPO_DIR}vendor ]; then
         mv $OPENSHIFT_RUBY_DIR/tmp/vendor/bundle ${OPENSHIFT_REPO_DIR}vendor/
       else
         mv $OPENSHIFT_RUBY_DIR/tmp/vendor ${OPENSHIFT_REPO_DIR}
@@ -114,33 +118,33 @@ function build() {
 
     # If a Gemfile is committed and it is modified, then bundle install
     #
-    if [ -f ${OPENSHIFT_REPO_DIR}/Gemfile ]
-    then
-        if ! gemfile_is_modified; then
-          echo "NOTE: Skipping 'bundle install' because Gemfile is not modified."
-          return 0
+    if [ -f ${OPENSHIFT_REPO_DIR}/Gemfile ]; then
+      if ! gemfile_is_modified; then
+        echo "NOTE: Skipping 'bundle install' because Gemfile is not modified."
+        return 0
+      fi
+      if ruby_in_development_mode; then
+        echo "NOTE: Skipping 'bundle install' because running in development mode."
+        return 0
+      fi
+      pushd ${OPENSHIFT_REPO_DIR} 1> /dev/null
+      SAVED_GIT_DIR=$GIT_DIR
+      unset GIT_DIR
+      # You can tell bundler to skip installing certain gem group by using
+      # $ rhc env set BUNDLE_WITHOUT="group1 group2 ..."
+      #
+      if [ -z "${BUNDLE_WITHOUT}" ]; then
+        echo "bundle install --deployment --path ./app-root/repo/vendor/bundle"
+        if groups_in_gemfile ${OPENSHIFT_REPO_DIR}/Gemfile; then
+          echo "NOTE: You can prevent installing certain Gemfile group using: rhc env set BUNDLE_WITHOUT=groupname"
         fi
-        if ruby_in_development_mode; then
-          echo "NOTE: Skipping 'bundle install' because running in development mode."
-          return 0
-        fi
-        pushd ${OPENSHIFT_REPO_DIR} 1> /dev/null
-          SAVED_GIT_DIR=$GIT_DIR
-          unset GIT_DIR
-          # You can tell bundler to skip installing certain gem group by using
-          # $ rhc env set BUNDLE_WITHOUT="group1 group2 ..."
-          #
-          echo "Bundling RubyGems based on Gemfile/Gemfile.lock to repo/vendor/bundle..."
-          if [ -z "${BUNDLE_WITHOUT}" ]; then
-            echo "bundle install --deployment"
-            echo "NOTE: You can prevent installing certain Gemfile group using: rhc env set BUNDLE_WITHOUT=groupname"
-            ruby_context "bundle install --deployment"
-          else
-            echo "bundle install --deployment --without '${BUNDLE_WITHOUT}'"
-            ruby_context "bundle install --deployment --without '${BUNDLE_WITHOUT}'"
-          fi
-          export GIT_DIR=$SAVED_GIT_DIR
-        popd 1> /dev/null
+        ruby_context "bundle install --deployment"
+      else
+        echo "bundle install --deployment --without '${BUNDLE_WITHOUT}' --path ./app-root/repo/vendor/bundle"
+        ruby_context "bundle install --deployment --without '${BUNDLE_WITHOUT}'"
+      fi
+      export GIT_DIR=$SAVED_GIT_DIR
+      popd 1> /dev/null
     fi
 }
 
