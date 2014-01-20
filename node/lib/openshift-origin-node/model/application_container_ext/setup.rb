@@ -203,7 +203,7 @@ module OpenShift
         def next_uid
           uids = IO.readlines("/etc/passwd").map{ |line| line.split(":")[2].to_i }
           gids = IO.readlines("/etc/group").map{ |line| line.split(":")[2].to_i }
-          min_uid = (@config.get("GEAR_MIN_UID") || "500").to_i
+          min_uid = (@config.get("UID_BEGIN") || @config.get("GEAR_MIN_UID") || "1000").to_i
           max_uid = (@config.get("GEAR_MAX_UID") || "1500").to_i
 
           (min_uid..max_uid).each do |i|
