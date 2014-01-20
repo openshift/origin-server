@@ -1,6 +1,6 @@
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version:       1.19.2
+Version:       1.19.3
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -279,6 +279,10 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Adding recommended-all and optional-all packages (tdawson@redhat.com)
+- Add dependancy packages for all supported languages. (tdawson@redhat.com)
+
 * Wed Jan 15 2014 Troy Dawson <tdawson@redhat.com> 1.19.2-1
 - Adding source to spec file (tdawson@redhat.com)
 
