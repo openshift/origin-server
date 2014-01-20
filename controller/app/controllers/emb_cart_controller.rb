@@ -12,9 +12,15 @@ class EmbCartController < BaseController
     id = ComponentInstance.check_name!(params[:id].presence)
     status_messages = if_included(:status_messages, true)
 
-    instance = @application.component_instances.find_by(cartridge_name: id)
+    component = @application.component_instances.find_by(cartridge_name: id)
 
-    cartridge = get_embedded_rest_cartridge(@application, instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
+    cartridge = get_embedded_rest_cartridge(
+      @application,
+      component,
+      component.group_instance.all_component_instances,
+      @application.group_instances_with_overrides.detect{ |i| i.instance == component.group_instance },
+      status_messages
+    )
     render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@application.domain_namespace}")
   end
 
@@ -40,7 +46,6 @@ class EmbCartController < BaseController
     end
     CartridgeInstance.check_cartridge_specifications!(specs)
     return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109) unless specs.all?{ |f| f[:name] or f[:url] }
-    #return render_error(:unprocessable_entity, "Only one cartridge may be added at a time.", 109) unless specs.length == 1
 
     @application.domain.validate_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "gear_size")
 
@@ -50,9 +55,15 @@ class EmbCartController < BaseController
 
     result = @application.add_cartridges(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
 
+    overrides = @application.group_instances_with_overrides
     rest = cartridges.map do |cart|
-      component_instance = @application.component_instances.where(cartridge_name: cart.name).first
-      get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
+      component = @application.component_instances.where(cartridge_name: cart.name).first
+      get_embedded_rest_cartridge(
+        @application,
+        component,
+        component.group_instance.all_component_instances,
+        overrides.detect{ |i| i.instance == component.group_instance }
+      )
     end
 
     if rest.length > 1
@@ -132,20 +143,25 @@ class EmbCartController < BaseController
       end
     end
 
-    group_instance = @application.group_instances_with_scale.find{ |go| go.all_component_instances.include? instance }
+    override = @application.group_instances_with_overrides.detect{ |i| i.instance == instance.group_instance }
 
-    if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < group_instance.min
+    if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < override.min_gears
       return render_error(:unprocessable_entity, "The scales_to factor currently provided cannot be lower than the scales_from factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_to")
     end
 
-    if scales_from and scales_to.nil? and group_instance.max >= 1 and group_instance.max < scales_from
+    if scales_from and scales_to.nil? and override.max_gears >= 1 and override.max_gears < scales_from
       return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from")
     end
 
     result = @application.update_component_limits(instance, scales_from, scales_to, additional_storage)
 
     instance = @application.component_instances.find_by(cartridge_name: id)
-    cartridge = get_embedded_rest_cartridge(@application, instance, @application.group_instances_with_scale, @application.group_overrides)
+    cartridge = get_embedded_rest_cartridge(
+      @application,
+      instance,
+      instance.group_instance.all_component_instances,
+      @application.group_instances_with_overrides.detect{ |i| i.instance == instance.group_instance }
+    )
 
     render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@application.domain_namespace}", result)
   end

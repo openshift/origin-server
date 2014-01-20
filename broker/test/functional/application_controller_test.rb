@@ -32,15 +32,24 @@ class ApplicationControllerTest < ActionController::TestCase
   test "app create show list update and destroy by domain and app name" do
     @app_name = "app#{@random}"
 
-    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace}
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace, "initial_git_url" => "https://a:b@github.com/foobar/test.git"}
     assert_response :created
     assert app = assigns(:application)
     assert_equal 1, app.gears.length
-    get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
+
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace, "include" => "cartridges"}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert link = json['data']['links']['ADD_CARTRIDGE']
     assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'url' }
+
+    assert_equal [@domain.namespace, @app_name, false, 1, 'small', 'https://github.com/foobar/test.git'], json['data'].values_at('domain_id', 'name', 'scalable', 'gear_count', 'gear_profile', 'initial_git_url'), json['data'].inspect
+
+    assert_equal 1, (members = json['data']['members']).length
+    assert_equal [@login, true, 'admin', nil, @user._id.to_s, 'user'], members[0].values_at('login', 'owner', 'role', 'explicit_role', 'id', 'type'), members[0].inspect
+
+    assert_equal 1, (carts = json['data']['cartridges']).length
+    assert_equal [1, 1, 1, 1, 1, 0], carts[0].values_at('scales_from', 'scales_to', 'supported_scales_to', 'supported_scales_from', 'base_gear_storage', 'additional_gear_storage'), carts[0].inspect
 
     get :index, {"domain_id" => @domain.namespace}
     assert_response :success

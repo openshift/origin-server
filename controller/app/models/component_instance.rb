@@ -17,6 +17,11 @@ class ComponentInstance
   field :component_name, type: String
   field :cartridge_name, type: String
 
+  # DEPRECATED - will be removed
+  field :cartridge_vendor, type: String
+
+  attr_accessor :version
+
   NAME_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\Z/
   def self.check_name!(name)
     if name.blank? or name !~ NAME_REGEX

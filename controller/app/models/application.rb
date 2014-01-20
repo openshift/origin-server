@@ -185,33 +185,39 @@ class Application
   # @param application_name [String] Name of the application
   # @param cartridges [Array<CartridgeInstance>] List of cartridge instances to add to the application
   # @param domain [Domain] The domain namespace under which this application is created
-  # @param default_gear_size [String] The default gear size to use when creating a new {Gear} for the application
-  # @param scalable [Boolean] Indicates if the application should be scalable or host all cartridges on a single gear.
-  #    If set to true, a "web_proxy" cartridge is automatically added to perform load-balancing for the web tier
-  # @param result_io [ResultIO, #output] Object to log all messages and cartridge output
-  # @param group_overrides [Array] List of overrides to specify gear sizes, scaling limits, component collocation etc.
-  # @param init_git_url [String] URL to git repository to retrieve application code
-  # @param user_agent [String] user agent string of browser used for this rest API request
-  # @param builder_id [String] the identifier of the application that is using this app as a builder
-  # @param user_env_vars [Array<Hash>] array of environment variables to add to this application
-  # @return [Application] Application object
+  # @param opts [Hash] Flexible array of optional parameters
+  #   default_gear_size [String] The default gear size to use when creating a new {Gear} for the application
+  #   scalable [Boolean] Indicates if the application should be scalable or host all cartridges on a single gear.
+  #      If set to true, a "web_proxy" cartridge is automatically added to perform load-balancing for the web tier
+  #   available [Boolean] Indicates if the application should be be highly available.  Implies 'scalable'
+  #   result_io [ResultIO, #output] Object to log all messages and cartridge output
+  #   initial_git_url [String] URL to git repository to retrieve application code
+  #   user_agent [String] user agent string of browser used for this rest API request
+  #   builder_id [String] the identifier of the application that is using this app as a builder
+  #   user_env_vars [Array<Hash>] array of environment variables to add to this application
+  # @return [Application] Application object that has been created
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
-  def self.create_app(application_name, cartridges, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[],
-                      init_git_url=nil, user_agent=nil, builder_id=nil, user_env_vars=nil)#, auto_deploy=false, deployment_branch="master", keep_deployments=1, deployment_type="git")
+  def self.create_app(application_name, cartridges, domain, opts=nil)
+    opts ||= {}
 
     app = Application.new(
       domain: domain,
       name: application_name,
-      default_gear_size: default_gear_size.presence || Rails.application.config.openshift[:default_gear_size],
-      scalable: scalable,
-      builder_id: builder_id,
-      user_agent: user_agent,
-      init_git_url: init_git_url,
+      default_gear_size: opts[:default_gear_size].presence || Rails.application.config.openshift[:default_gear_size],
+      scalable: opts[:scalable] || opts[:available],
+      ha: opts[:available],
+      builder_id: opts[:builder_id],
+      user_agent: opts[:user_agent],
+      init_git_url: opts[:initial_git_url],
     )
-    app.analytics['user_agent'] = user_agent
+    app.config.each do |k, default|
+      v = opts[k.to_sym]
+      app.config[k] = v unless v.nil?
+    end
+    app.analytics['user_agent'] = opts[:user_agent]
 
-    result = app.add_initial_cartridges(cartridges, init_git_url, user_env_vars)
-    result_io.append(result)
+    io = opts[:result_io] || ResultIO.new
+    io.append app.add_initial_cartridges(cartridges, opts[:initial_git_url], opts[:user_env_vars])
     app
   end
 
@@ -297,14 +303,14 @@ class Application
       EnumeratorArray.new do |y|
         removed = []
         pending_op_groups.reverse_each do |g|
-          case op_group
+          case g
           when AddFeaturesOpGroup
-            op_group.cartridges.each do |c|
+            g.cartridges.each do |c|
               next if removed.any?{ |r| r.removes?(c) }
               y << c
             end
           when RemoveFeaturesOpGroup
-            (removed ||= []) << op_group
+            (removed ||= []) << g
           end
         end
         component_instances.each do |i|
@@ -1728,7 +1734,7 @@ class Application
 
   def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size,
                                 prereq_op=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil, user_env_vars=nil)
-    pending_ops = []
+    ops = []
     gear_id_prereqs = {}
     maybe_notify_app_create_op = []
     app_dns_gear_id = nil
@@ -1738,7 +1744,7 @@ class Application
 
       if app_dns
         notify_app_create_op = NotifyAppCreateOp.new()
-        pending_ops.push(notify_app_create_op)
+        ops.push(notify_app_create_op)
         maybe_notify_app_create_op = [notify_app_create_op._id.to_s]
         app_dns_gear_id = gear_id.to_s
       end
@@ -1759,22 +1765,17 @@ class Application
 
       register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
 
-      pending_ops.push(init_gear_op)
-      pending_ops.push(reserve_uid_op)
-      pending_ops.push(create_gear_op)
-      pending_ops.push(track_usage_op)
-      pending_ops.push(register_dns_op)
+      ops.push(init_gear_op, reserve_uid_op, create_gear_op, track_usage_op, register_dns_op)
 
       if additional_filesystem_gb != 0
         fs_op = SetAddtlFsGbOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s],
                                    addtl_fs_gb: additional_filesystem_gb, saved_addtl_fs_gb: 0)
-        pending_ops.push(fs_op)
+        ops.push(fs_op)
 
-        track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
-                                             app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin],
-                                             usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
-                                             additional_filesystem_gb: additional_filesystem_gb, prereq: [fs_op._id.to_s])
-        pending_ops.push(track_usage_fs_op)
+        ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+                                app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin],
+                                usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
+                                additional_filesystem_gb: additional_filesystem_gb, prereq: [fs_op._id.to_s])
       end
 
       gear_id_prereqs[gear_id] = register_dns_op._id.to_s
@@ -1784,32 +1785,28 @@ class Application
 
     gear_id_prereqs.each_key do |gear_id|
       prereq = gear_id_prereqs[gear_id].nil? ? [] : [gear_id_prereqs[gear_id]]
-      pending_ops.push(UpdateAppConfigOp.new(gear_id: gear_id, prereq: prereq, recalculate_sshkeys: true, add_env_vars: env_vars, config: (self.config || {})))
+      ops << UpdateAppConfigOp.new(gear_id: gear_id, prereq: prereq, recalculate_sshkeys: true, add_env_vars: env_vars, config: (self.config || {}))
     end
-
 
     # Add broker auth for non scalable apps
     if app_dns_gear_id && !scalable
       prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [] : [gear_id_prereqs[app_dns_gear_id]]
-      add_broker_auth_op = AddBrokerAuthKeyOp.new(gear_id: app_dns_gear_id, prereq: prereq)
-      pending_ops.push add_broker_auth_op
+      ops << AddBrokerAuthKeyOp.new(gear_id: app_dns_gear_id, prereq: prereq)
     end
 
     # Add and/or push user env vars when this is not an app create or user_env_vars are specified
     user_vars_op_id = nil
     if maybe_notify_app_create_op.empty? || user_env_vars.present?
-      op = PatchUserEnvVarsOp.new(user_env_vars: user_env_vars, push_vars: true, prereq: [pending_ops.last._id.to_s])
-      pending_ops.push(op)
+      op = PatchUserEnvVarsOp.new(user_env_vars: user_env_vars, push_vars: true, prereq: [ops.last._id.to_s])
+      ops << op
       user_vars_op_id = op._id.to_s
     end
 
     prereq_op_id = prereq_op._id.to_s rescue nil
-    ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, 
+    add = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, 
                                       is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url, 
                                       app_dns_gear_id)
-    pending_ops.push(*ops)
-
-    pending_ops
+    ops.concat(add)
   end
 
   def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb)
@@ -1998,7 +1995,6 @@ class Application
         end
       end
     end
-
     ops
   end
 
@@ -2062,7 +2058,7 @@ class Application
       gear_ids = Array.new(change.gear_change){ |i| Moped::BSON::ObjectId.new.to_s }
       app_dns = change.will_have_app_dns?(self)
       deploy_gear_id = if app_dns
-        gear_ids[0] = self._id
+        gear_ids[0] = self._id.to_s
       end
 
       ops = calculate_gear_create_ops(change.to_instance_id.to_s, gear_ids, deploy_gear_id, change.added, component_ops, additional_filesystem_gb,

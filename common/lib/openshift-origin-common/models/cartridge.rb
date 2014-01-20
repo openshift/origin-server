@@ -103,7 +103,7 @@ module OpenShift
     include CartridgeNaming
 
     VERSION_ORDER = lambda{ |s| s.version.split('.').map(&:to_i) rescue [0] }
-    NAME_PRECEDENCE_ORDER = lambda{ |c| [c.original_name, c.cartridge_vendor == "redhat" ? 0 : 1, *(s.version.split('.').map{ |i| -i.to_i } rescue [0])] }
+    NAME_PRECEDENCE_ORDER = lambda{ |c| [c.original_name, c.cartridge_vendor == "redhat" ? 0 : 1, *(c.version.split('.').map{ |i| -i.to_i } rescue [0])] }
 
     def initialize
       super

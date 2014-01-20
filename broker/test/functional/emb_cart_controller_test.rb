@@ -10,6 +10,7 @@ class EmbCartControllerTest < ActionController::TestCase
     @password = "password"
     @user = CloudUser.new(login: @login)
     @user.private_ssl_certificates = true
+    @user.max_untracked_additional_storage = 10
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
@@ -21,8 +22,11 @@ class EmbCartControllerTest < ActionController::TestCase
     @namespace = "ns#{@random}"
     @domain = Domain.new(namespace: @namespace, owner: @user)
     @domain.save
+  end
+
+  def with_app(options=nil)
     @app_name = "app#{@random}"
-    (@app = Application.new(name: @app_name, domain: @domain)).add_initial_cartridges(cartridge_instances_for(:php))
+    @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain, options)
     assert_equal 1, @app.reload.group_instances.length
   end
 
@@ -31,6 +35,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "embedded cartridge create show list and destroy by domain and app name" do
+    with_app
     name = mysql_version
     post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
@@ -44,7 +49,49 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "embedded cartridge on scalable app create show list and destroy by domain and app name" do
+    with_app(:scalable => true)
+
+    name = mysql_version
+    post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :created
+    assert json = JSON.parse(response.body)
+    assert_equal 'cartridge', json['type']
+    assert_equal [1, 1, 1, 1, 1, 0], json['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
+
+    get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal 'cartridge', json['type']
+    assert_equal [1, 1, 1, 1, 1, 0], json['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
+
+    put :update, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name, "additional_gear_storage" => 3}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal 'cartridge', json['type']
+    assert_equal [1, 1, 1, 1, 1, 3], json['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
+
+    get :show, {"id" => php_version, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert_equal [1, -1, 1, -1, 1, 0], JSON.parse(response.body)['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), response.body
+
+    put :update, {"id" => php_version, "domain_id" => @domain.namespace, "application_id" => @app.name, "additional_gear_storage" => 2}
+    assert_response :success
+    assert_equal [1, -1, 1, -1, 1, 2], JSON.parse(response.body)['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), response.body
+
+    get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert_equal [1, 1, 1, 1, 1, 3], JSON.parse(response.body)['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), response.body
+
+    get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+
+    delete :destroy , {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+  end
+
   test "embedded cartridge create show list and destroy by app id" do
+    with_app
     name = mysql_version
     post :create, {"name" => name, "application_id" => @app.id}
     assert_response :created
@@ -59,6 +106,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "no app name" do
+    with_app
     name = mysql_version
     post :create, {"name" => name, "domain_id" => @domain.namespace}
     assert_response :not_found
@@ -73,6 +121,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "no app id" do
+    with_app
     name = mysql_version
     post :create, {"name" => name}
     assert_response :not_found
@@ -87,6 +136,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "no domain id" do
+    with_app
     name = mysql_version
     post :create, {"name" => name, "application_id" => @app.name}
     assert_response :not_found
@@ -101,6 +151,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "no cartridge id by domain and app name" do
+    with_app
     post :create, {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
     get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -112,6 +163,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "no cartridge id by app id" do
+    with_app
     post :create, {"application_id" => @app.id}
     assert_response :unprocessable_entity
     get :show, {"application_id" => @app.id}
@@ -123,6 +175,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "invalid cartridge id by domain and app name" do
+    with_app
     post :create, {"domain_id" => @domain.namespace, "application_id" => @app.name, "name" => "bogus"}
     assert_response :unprocessable_entity
     get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -134,6 +187,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "invalid cartridge id by app id" do
+    with_app
     post :create, {"application_id" => @app.id}
     assert_response :unprocessable_entity
     get :show, {"application_id" => @app.id}
@@ -145,6 +199,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "destroy web_framework cartridge" do
+    with_app
     delete :destroy , {"id" => php_version, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
     delete :destroy , {"id" => php_version, "application_id" => @app.id}
@@ -152,6 +207,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   test "get embedded cartridge in all versions" do
+    with_app
     name = mysql_version
     post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
@@ -165,6 +221,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
 
   def test_attempt_to_add_obsolete_cartridge
+    with_app
     Rails.cache.clear
     carts = []
     cart = OpenShift::Cartridge.new

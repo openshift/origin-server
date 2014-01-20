@@ -24,8 +24,10 @@ class UpdateCompLimitsOpGroup < PendingAppOpGroup
       end
     else
       overrides.each do |override|
-        found = true
-        override.reset(min, max, nil, additional_filesystem_gb)
+        if override.components.any?{ |c| c == comp_spec }
+          found = true
+          override.reset(min, max, nil, additional_filesystem_gb)
+        end
       end
       unless found
         overrides << GroupOverride.new([comp_spec], min, max, nil, additional_filesystem_gb)

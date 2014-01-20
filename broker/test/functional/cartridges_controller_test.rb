@@ -66,8 +66,8 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
 
     request_via_redirect(:get, "/broker/rest/cartridges/#{php_version}", {}, @headers)
     assert_response :ok
-    assert (body = JSON.parse(@response.body))["data"].is_a? Hash
-    assert_equal "cartridge", body["type"]
+    assert (body = JSON.parse(@response.body))["data"].is_a? Array
+    assert_equal "cartridges", body["type"]
 
     request_via_redirect(:get, "/broker/rest/cartridge/redhat-#{php_version}", {}, @headers)
     assert_response :not_found

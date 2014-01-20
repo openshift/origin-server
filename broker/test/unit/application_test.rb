@@ -52,11 +52,39 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "pending operations reflected in cartridges queue" do
+    app = Application.new
+    assert e = app.cartridges
+    assert EnumeratorArray === e
+    assert_equal [], e.to_a
+    assert_not_same e, app.cartridges
+
+    app.pending_op_groups << AddFeaturesOpGroup.new(features: [php_version, mysql_version])
+    assert_equal [], app.cartridges.to_a
+    assert_equal [php_version, mysql_version], app.cartridges(true).to_a.map(&:name)
+
+    app.pending_op_groups << RemoveFeaturesOpGroup.new(features: [mysql_version])
+    assert_equal [], app.cartridges.to_a
+    assert_equal [php_version], app.cartridges(true).to_a.map(&:name)
+
+    @appname = "test"
+    Application.any_instance.expects(:save!)
+    Application.any_instance.expects(:run_jobs)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
+    assert !app.persisted?
+
+    assert_equal [php_version, mysql_version], app.cartridges.to_a.map(&:name)
+    # FIXME: should remove carts that are identical except for their ID, and prefer pending carts to
+    # non pending carts
+    assert_equal [php_version, mysql_version, php_version, mysql_version], app.cartridges(true).to_a.map(&:name)
+  end
+
   test "create update and destroy scalable application" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true, :initial_git_url => "https://a:b@github.com/foobar/test.git")
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
-    
+
+    assert_equal "https://github.com/foobar/test.git", app.init_git_url
     app.config['auto_deploy'] = true
     app.config['deployment_branch'] = "stage"
     app.config['keep_deployments'] = 3
@@ -70,10 +98,22 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
     app.destroy_app
   end
-  
+
+  test "create test and destroy available application" do
+    @appname = "test"
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :available => true)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+
+    assert app.scalable
+    assert app.ha
+    assert_equal 3, app.gears.count
+
+    app.destroy_app
+  end
+
   test "app config validation" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     
     app.config = nil
@@ -111,7 +151,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
   test "app metadata validation" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     [nil, {}, {'bar' => 1}, {'bar' => '1'}, {'bar' => []}, {'bar' => ['1']}, {'bar' => [1]}].each do |value|
@@ -138,7 +178,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
   test "scalable application events" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.restart
     app.stop
@@ -155,7 +195,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
   test "threaddump application events" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.threaddump
     app.destroy_app
@@ -164,7 +204,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   test "scaling and storage events on application" do
     @appname = "test"
 
-    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     assert_equal 2, app.gears.length
     assert_equal [], app.group_overrides
@@ -215,29 +255,29 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
   test "application events through internal rest" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     resp = rest_check(:get, "", {})
     assert_equal resp.status, 200
 
     resp = rest_check(:put, "/cartridges/#{ruby_version}", { "scales_from" => 2, "scales_to" => 2})
-    assert_equal resp.status, 200
+    assert_equal 200, resp.status
 
     resp = rest_check(:put, "/cartridges/#{ruby_version}", {})
-    assert_equal resp.status, 422
+    assert_equal 422, resp.status
 
     resp = rest_check(:get, "/cartridges", {})
-    assert_equal resp.status, 200
+    assert_equal 200, resp.status
 
     resp = rest_check(:post, "/events", { "event" => "thread-dump" })
-    assert_equal resp.status, 200
+    assert_equal 200, resp.status
 
     resp = rest_check(:post, "/events", { "event" => "reload" })
-    assert_equal resp.status, 200
+    assert_equal 200, resp.status
 
     resp = rest_check(:post, "/events", { "event" => "tidy" })
-    assert_equal resp.status, 200
+    assert_equal 200, resp.status
 
     component_instance = app.component_instances.find_by(cartridge_name: ruby_version)
     group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
@@ -249,7 +289,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
   test "application elaborate does not change overrides" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain, :scalable => true)
     assert app.group_overrides.empty?
 
     overrides = [

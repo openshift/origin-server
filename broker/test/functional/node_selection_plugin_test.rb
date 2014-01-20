@@ -10,7 +10,8 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     @@gear_id = Moped::BSON::ObjectId.new
     @@cart_name = "php-5.3"
     @@comp_name = "php-5.3"
-    @@server_id = `oo-mco ping`.chomp.split(" ")[0]
+    @@server_id = OpenShift::MCollectiveApplicationContainerProxy.find_one_impl
+    #@@server_id = `oo-mco ping`.chomp.split(" ")[0]
   end
 
   def self.select_best_fit_node_impl(node_list, app_props, current_gears, comp_list, user_props, request_time)
