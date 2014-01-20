@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.11
+Version: 1.19.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,23 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.12-1
+- Bug 1051015 - Look for UID_BEGIN, default to 1000 (lsm5@redhat.com)
+- Merge remote-tracking branch 'origin/master' into add_cartridge_mongo_type
+  (ccoleman@redhat.com)
+- Merge pull request #4504 from bparees/revert_jenkins_dl
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4509 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4507 from jwhonce/bug/1054403
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1044223 (dmcphers@redhat.com)
+- Bug 1054403 - Reset empty metadata.json file (jhonce@redhat.com)
+- Revert "Bug 995807 - Jenkins builds fail on downloadable cartridges"
+  (bparees@redhat.com)
+- Allow downloadable cartridges to appear in rhc cartridge list
+  (ccoleman@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.11-1
 - Merge pull request #4488 from lsm5/new-node_conf
   (dmcphers+openshiftbot@redhat.com)
