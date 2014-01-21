@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.12
+Version: 1.19.13
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,24 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.19.13-1
+- Fix test cases (dmcphers@redhat.com)
+- Merge pull request #4536 from danmcp/bug982921
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4535 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 982921 (dmcphers@redhat.com)
+- Merge pull request #4525 from jwhonce/bug/1055647
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 966766 (dmcphers@redhat.com)
+- Merge pull request #4528 from danmcp/bug1038559
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4524 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1038559 (dmcphers@redhat.com)
+- Bug 1055647 - rhcsh quota check incorrect (jhonce@redhat.com)
+- Better message for bug 1028633 (dmcphers@redhat.com)
+
 * Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.12-1
 - Bug 1051015 - Look for UID_BEGIN, default to 1000 (lsm5@redhat.com)
 - Merge remote-tracking branch 'origin/master' into add_cartridge_mongo_type
