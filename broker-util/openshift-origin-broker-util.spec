@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.19.7
+Version: 1.19.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -99,6 +99,14 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
+- Merge remote-tracking branch 'origin/master' into add_cartridge_mongo_type
+  (ccoleman@redhat.com)
+- Bug 1054574 - Clear cache on (de)activation Bug 1052829 - Fix example text in
+  oo-admin-ctl-cartridge man (ccoleman@redhat.com)
+- Allow downloadable cartridges to appear in rhc cartridge list
+  (ccoleman@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
 - Bug 1049064: The helper methods needed to be defined before their use
   (abhgupta@redhat.com)

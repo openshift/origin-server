@@ -102,7 +102,7 @@ class EmbCartControllerTest < ActionController::TestCase
 
     get :show, {"id" => php_version, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
-    assert_equal [1, -1, 1, -1, 1, 0], JSON.parse(response.body)['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), response.body
+    assert_equal [php_version, 1, -1, 1, -1, 1, 0], JSON.parse(response.body)['data'].values_at('name', 'scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), response.body
 
     put :update, {"id" => php_version, "domain_id" => @domain.namespace, "application_id" => @app.name, "additional_gear_storage" => 2}
     assert_response :success
@@ -255,7 +255,7 @@ class EmbCartControllerTest < ActionController::TestCase
     carts = []
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "redhat"
-    cart.name = "emb-cart-1.0"
+    cart.name = "emb-cart"
     cart.provides = ["emb"]
     cart.version = "1.0"
     cart.obsolete = true
@@ -264,7 +264,7 @@ class EmbCartControllerTest < ActionController::TestCase
 
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "redhat"
-    cart.name = "emb-cart-1.0"
+    cart.name = "emb-cart"
     cart.provides = ["emb"]
     cart.version = "1.1"
     cart.categories = ["embedded"]

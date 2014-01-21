@@ -99,7 +99,13 @@ module MCollective
 
         # Do the action execution
         exitcode, output, addtl_params = execute_action(action, args)
-        report_quota(output, args['--with-container-uuid']) if args['--with-container-uuid']
+
+        if args['--with-container-uuid']
+          report_quota(output, args['--with-container-uuid'])
+          if report_resource(output, args['--with-app-name'])
+            exitcode = 222
+          end
+        end
 
         reply[:exitcode]     = exitcode
         reply[:output]       = output
@@ -156,9 +162,17 @@ module MCollective
       #
       def report_quota(buffer, uuid)
         watermark = @@config.get('QUOTA_WARNING_PERCENT', '90.0').to_f
-        ::OpenShift::Runtime::Node.check_quotas(uuid, watermark).each do |line|
+        ::OpenShift::Runtime::Node.check_quotas(uuid, watermark).each do |line|                                                                                         i
           buffer << "\nCLIENT_MESSAGE: #{line}\n"
         end
+      end
+
+      def report_resource(buffer, app_name = '<app>')
+        buffer.match(/Resource temporarily unavailable/) do
+          buffer << "\nCLIENT_MESSAGE: Resources unavailable for operation. You may need to run 'rhc force-stop-app -a #{app_name}' and retry.\n"
+          return true
+        end
+        false
       end
 
       # Executes a list of jobs sequentially, adding the exitcode and output
@@ -186,9 +200,15 @@ module MCollective
 
           exitcode, output, addtl_params = execute_action(action, args)
 
-          if args['--with-container-uuid'] && !quota_reported && !['app-state-show'].include?(action)
-            report_quota(output, args['--with-container-uuid'])
-            quota_reported = true
+          if args['--with-container-uuid']
+            if !quota_reported && !['app-state-show'].include?(action)
+              report_quota(output, args['--with-container-uuid'])
+              quota_reported = true
+            end
+
+            if report_resource(output, args['--with-app-name'])
+              exitcode = 222
+            end
           end
 
           parallel_job[:result_exit_code]    = exitcode

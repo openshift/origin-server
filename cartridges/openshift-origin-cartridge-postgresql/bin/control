@@ -212,7 +212,14 @@ function reload {
 
 function tidy {
   truncate -s0 $OPENSHIFT_POSTGRESQL_DB_LOG_DIR/*
+  # PosgreSQL needs to be running in order to perform vacuuming
+  #
+  if ! _is_running; then
+    tidy_start=true
+    start
+  fi
   postgresql_context "psql -c 'vacuum analyze;' -U postgres"
+  [ tidy_start ] && stop
 }
 
 case "$1" in

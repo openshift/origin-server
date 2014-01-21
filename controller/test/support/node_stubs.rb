@@ -60,7 +60,7 @@ def read_local_cartridges
         manifests += Dir["#{base_path}/**/manifest.yml.#{env}"].to_a
       end
       break manifests
-    end or raise "Unable to find system cartridges"
+    end or raise "Unable to find system cartridges in #{sources.join(', ')}"
 
     manifests.map do |f|
       OpenShift::Runtime::Manifest.manifests_from_yaml(IO.read(f)).map do |m|

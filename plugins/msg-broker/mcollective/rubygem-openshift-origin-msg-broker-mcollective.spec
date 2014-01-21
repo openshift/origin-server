@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.19.8
+Version: 1.19.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
+- Typo fix: Method name find_available_impl changed to find_all_available_impl
+  (rpenta@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
 - Merge pull request #4497 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)

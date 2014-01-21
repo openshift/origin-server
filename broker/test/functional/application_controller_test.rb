@@ -389,37 +389,44 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "attempt to create an application with obsolete cartridge" do
-    carts = []
-    cart = OpenShift::Cartridge.new
-    cart.cartridge_vendor = "redhat"
-    cart.name = "ruby-1.8"
-    cart.provides = ["ruby"]
-    cart.version = "1.8"
-    cart.obsolete = true
+    begin
+      carts = []
+      cart = OpenShift::Cartridge.new
+      cart.cartridge_vendor = "redhat"
+      cart.name = "ruby-1.8"
+      cart.provides = ["ruby"]
+      cart.version = "1.8"
+      cart.categories = ['web_framework']
+      cart.obsolete = true
 
-    carts << cart
-    cart = OpenShift::Cartridge.new
-    cart.cartridge_vendor = "redhat"
-    cart.name = "ruby-1.9"
-    cart.provides = ["ruby"]
-    cart.version = "1.9"
-    carts << cart
+      carts << cart
+      cart = OpenShift::Cartridge.new
+      cart.cartridge_vendor = "redhat"
+      cart.name = "ruby-1.9"
+      cart.provides = ["ruby"]
+      cart.version = "1.9"
+      cart.categories = ['web_framework']
+      carts << cart
 
-    cart = OpenShift::Cartridge.new
-    cart.cartridge_vendor = "other"
-    cart.name = "ruby-1.10"
-    cart.provides = ["ruby"]
-    cart.version = "1.10"
-    carts << cart
-    CartridgeCache.stubs(:get_all_cartridges).returns(carts)
+      cart = OpenShift::Cartridge.new
+      cart.cartridge_vendor = "other"
+      cart.name = "ruby-1.10"
+      cart.provides = ["ruby"]
+      cart.version = "1.10"
+      cart.categories = ['web_framework']
+      carts << cart
+      CartridgeCache.stubs(:get_all_cartridges).returns(carts)
 
-    os = Rails.configuration.openshift
-    Rails.configuration.stubs(:openshift).returns(os.merge(:allow_obsolete_cartridges => false))
+      os = Rails.configuration.openshift
+      Rails.configuration.stubs(:openshift).returns(os.merge(:allow_obsolete_cartridges => false))
 
-    @app_name = "app#{@random}"
-    post :create, {"name" => @app_name, "cartridge" => "ruby-1.8", "domain_id" => @domain.namespace}
-    # CHANGED - Obsolescene is done by deactivating the cartridge
-    assert_response :created
+      @app_name = "app#{@random}"
+      post :create, {"name" => @app_name, "cartridge" => "ruby-1.8", "domain_id" => @domain.namespace}
+      # CHANGED: This is now allowed - deactivate the cart otherwise.
+      assert_response :created
+    ensure
+      Rails.cache.clear
+    end
   end
 
   def assert_invalid_manifest
@@ -583,11 +590,24 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal [1, 1, 1, 1, 1, 0], cart.values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
 
     assert app = assigns(:application)
+
+    app.reload
+    assert carts = app.downloaded_cart_map
+    assert carts.length == 1
+    assert cart = carts['mock']
+    assert_equal "mock-mock-0.1", cart['versioned_name']
+    assert_equal "0.1", cart['version']
+    assert_equal "manifest://test", cart['url']
+    type = OpenShift::Cartridge.new.from_descriptor(YAML.load(cart['original_manifest']))
+    assert_equal ['mock', 'web_framework'], type.categories.sort
+    assert_equal 'Mock Cart', type.display_name
+
     assert carts = app.downloaded_cartridges
     assert carts.length == 1
     assert cart = carts['mock-mock-0.1']
     assert_equal ['mock', 'web_framework'], cart.categories.sort
     assert_equal 'Mock Cart', cart.display_name
+    assert_equal "manifest://test", cart.manifest_url
   end
 
   test "create downloadable cart with multiple versions" do
@@ -610,6 +630,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
+    app.reload
     assert carts = app.downloaded_cartridges
     assert carts.length == 1
     assert cart = carts['mock-mock-0.1']
@@ -637,6 +658,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test", "version" => "0.2"}], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
+    app.reload
     assert carts = app.downloaded_cartridges
     assert carts.length == 1
     assert cart = carts['mock-mock-0.2']
@@ -665,6 +687,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => ["mock-remotemock-0.1"], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
+    app.reload
     assert carts = app.downloaded_cartridges
     assert carts.length == 1
     assert cart = carts['mock-remotemock-0.1']

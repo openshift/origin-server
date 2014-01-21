@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.11
+Version: 1.19.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,19 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.12-1
+- Merge remote-tracking branch 'origin/master' into add_cartridge_mongo_type
+  (ccoleman@redhat.com)
+- Remove component_(start|stop|configure)_order from Mongo
+  (ccoleman@redhat.com)
+- Bug 1054610 - Fix total_error_count in oo-admin-chk (rpenta@redhat.com)
+- Merge pull request #4504 from bparees/revert_jenkins_dl
+  (dmcphers+openshiftbot@redhat.com)
+- Revert "Bug 995807 - Jenkins builds fail on downloadable cartridges"
+  (bparees@redhat.com)
+- Allow downloadable cartridges to appear in rhc cartridge list
+  (ccoleman@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.11-1
 - Allow multiple keys to added or removed at the same time (lnader@redhat.com)
 - Merge pull request #4496 from danmcp/master

@@ -1865,10 +1865,6 @@ module OpenShift
         reply = ResultIO.new
         state_map = {}
 
-        if gear.get_proxy.get_district_uuid == 'NONE'
-          raise OpenShift::UserException.new("Move gear *not* supported without districts.")
-        end
-
         # resolve destination_container according to district
         destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
 
@@ -1876,13 +1872,13 @@ module OpenShift
 
         if source_container.id == destination_container.id
           log_debug "Cannot move a gear within the same node. The source container and destination container are the same."
-          raise OpenShift::UserException.new("Error moving app. Destination container same as source container.", 1)
+          raise OpenShift::UserException.new("Error moving gear. Destination container same as source container.", 1)
         end
 
         destination_node_profile = destination_container.get_node_profile
         if source_container.get_node_profile != destination_node_profile and app.scalable
           log_debug "Cannot change node_profile for *scalable* application gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
-          raise OpenShift::UserException.new("Error moving app.  Cannot change node profile for *scalable* app.", 1)
+          raise OpenShift::UserException.new("Error moving gear. Cannot change node profile for *scalable* app.", 1)
         end
 
         # get the application state
@@ -2764,8 +2760,8 @@ module OpenShift
       def has_app_cartridge?(app_uuid, gear_uuid, cart)
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_app_cartridge(:app_uuid => app_uuid, :gear_uuid => gear_uuid, :cartridge => cart) do |response|
-            output = response[:body][:data][:output]
-            return output == true
+            # the output is a boolean that is true if the cartridge exists on the gear and false otherwise
+            response[:body][:data][:output]
           end
         end
       end

@@ -378,7 +378,7 @@ module OpenShift
     def test_unlock_gear_success
       @container.expects(:locked_files).with('mock-0.1').returns(%w(file1 file2 file3)).at_least_once
       @model.expects(:do_unlock).with(%w(file1 file2 file3))
-      @model.expects(:do_lock).with(%w(file1 file2 file3))
+      @model.expects(:do_lock).with(%w(file1 file2 file3), true)
 
       params = []
       @model.unlock_gear('mock-0.1') { |cart_name| params << cart_name }
@@ -393,7 +393,7 @@ module OpenShift
     def test_unlock_gear_block_raises
       @container.expects(:locked_files).with('mock-0.1').returns(%w(file1 file2 file3)).at_least_once
       @model.expects(:do_unlock).with(%w(file1 file2 file3))
-      @model.expects(:do_lock).with(%w(file1 file2 file3))
+      @model.expects(:do_lock).with(%w(file1 file2 file3), true)
 
       assert_raise Runtime::Utils::ShellExecutionException do
         @model.unlock_gear('mock-0.1') { raise Runtime::Utils::ShellExecutionException.new('error') }
@@ -525,7 +525,7 @@ module OpenShift
 
       @container.expects(:locked_files).with(cartridge).returns(files).at_least_once
       @model.expects(:do_unlock).with(files)
-      @model.expects(:do_lock).never
+      @model.expects(:do_lock).with(files, false)
 
       @model.unlock_gear(cartridge, false) do |cartridge|
 
@@ -538,7 +538,7 @@ module OpenShift
 
       @container.expects(:locked_files).with(cartridge).returns(files).at_least_once
       @model.expects(:do_unlock).with(files)
-      @model.expects(:do_lock).with(files)
+      @model.expects(:do_lock).with(files, true)
 
       @model.unlock_gear(cartridge) do |cartridge|
 
@@ -551,7 +551,7 @@ module OpenShift
 
       @container.expects(:locked_files).with(cartridge).returns(files).at_least_once
       @model.expects(:do_unlock).with(files)
-      @model.expects(:do_lock).with(files)
+      @model.expects(:do_lock).with(files, true)
 
       assert_raise RuntimeError do
         @model.unlock_gear(cartridge) do |cartridge|
@@ -566,7 +566,7 @@ module OpenShift
 
       @container.expects(:locked_files).with(cartridge).returns(files).at_least_once
       @model.expects(:do_unlock).with(files)
-      @model.expects(:do_lock).never()
+      @model.expects(:do_lock).with(files, false)
 
       assert_raise RuntimeError do
         @model.unlock_gear(cartridge, false) do |cartridge|

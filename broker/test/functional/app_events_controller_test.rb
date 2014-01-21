@@ -39,7 +39,6 @@ class AppEventsControllerTest < ActionController::TestCase
   end
 
   test "app events by domain name and app name" do
-    server_alias = "as#{@random}"
     post :create, {"event" => "stop", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
     post :create, {"event" => "start", "domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -98,7 +97,6 @@ class AppEventsControllerTest < ActionController::TestCase
   end
 
   test "app events by app id" do
-    server_alias = "as#{@random}"
     post :create, {"event" => "stop", "application_id" => @app.id}
     assert_response :success
     post :create, {"event" => "start", "application_id" => @app.id}

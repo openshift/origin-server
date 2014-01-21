@@ -24,7 +24,7 @@ module OpenShift
 
           @port_begin = (@config.get("PORT_BEGIN") || @config.get("PROXY_MIN_PORT_NUM") || "35531").to_i
           @ports_per_user = (@config.get("PORTS_PER_USER") || @config.get("PROXY_PORTS_PER_GEAR" || "5").to_i
-          @uid_begin = (@config.get("UID_BEGIN") || @config.get("GEAR_MIN_UID") || "500").to_i
+          @uid_begin = (@config.get("UID_BEGIN") || @config.get("GEAR_MIN_UID") || "1000").to_i
           @container_metadata = File.join(@container.base_dir, ".container", @container.uuid)
         end
 

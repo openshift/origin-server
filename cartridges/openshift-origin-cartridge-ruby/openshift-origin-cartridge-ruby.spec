@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.19.8
+Version: 1.19.9
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,14 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
+- Added groups_in_gemfile function to Ruby cart SDK (mfojtik@redhat.com)
+- Be less verbose when not needed in Ruby cartridge (mfojtik@redhat.com)
+- Unified notice messages and wrapped long lines. (mfojtik@redhat.com)
+- Skip bundle install if Gemfile/Gemfile.lock is not modified
+  (mfojtik@redhat.com)
+- Fixed wrong return value from gemfile_is_modified() (mfojtik@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
 - Merge pull request #4502 from sosiouxme/custom-cart-confs
   (dmcphers+openshiftbot@redhat.com)
