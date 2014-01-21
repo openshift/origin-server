@@ -318,6 +318,11 @@ command :activate do |c|
   c.action do |args, options|
     # TODO make sure there is a deployment id arg
     do_command(c, options) do
+
+      unless @container.deployment_exists?(args[0])
+        raise "Deployment id #{args[0]} is invalid"
+      end
+
       if options.as_json.nil?
         out = $stdout
         err = $stderr
