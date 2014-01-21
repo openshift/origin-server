@@ -6,7 +6,7 @@ class PostConfigureCompOp < PendingAppOp
 
   def execute
     result_io = ResultIO.new
-    gear = get_gear()
+    gear = get_gear
     unless gear.removed
       component_instance = get_component_instance()
       result_io = gear.post_configure_component(component_instance, init_git_url)

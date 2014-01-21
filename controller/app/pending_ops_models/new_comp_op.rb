@@ -7,11 +7,11 @@ class NewCompOp < PendingAppOp
 
   def execute
     group_instance = get_group_instance()
-    if comp_spec
-      comp_spec.application = application
-      comp_name = comp_spec.name
-      cartridge = comp_spec.cartridge
-      component_instance = ComponentInstance.new(cartridge_name: comp_spec.cartridge_name,
+    if spec = comp_spec
+      spec.application = application
+      comp_name = spec.name
+      cartridge = spec.cartridge
+      component_instance = ComponentInstance.new(cartridge_name: spec.cartridge_name,
                                                  cartridge_id: cartridge.id,
                                                  component_name: comp_name,
                                                  group_instance_id: group_instance._id,
@@ -34,7 +34,7 @@ class NewCompOp < PendingAppOp
         op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: application.user_agent)
         Application.where(_id: application._id).update_all({ "$push" => { pending_op_groups: op_group.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       end
-      
+
       # remove the ssh keys and environment variables from the domain, if any
       application.domain.remove_system_ssh_keys(component_instance._id)
       application.domain.remove_env_variables(component_instance._id)

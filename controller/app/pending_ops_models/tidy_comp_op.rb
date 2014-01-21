@@ -8,9 +8,9 @@ class TidyCompOp < PendingAppOp
   end
 
   def add_parallel_execute_job(handle)
-    gear = get_gear()
+    gear = get_gear
     unless gear.removed
-      component_instance = get_component_instance()
+      component_instance = get_component_instance
       job = gear.get_tidy_job(component_instance)
       tag = { "op_id" => self._id.to_s }
       RemoteJob.add_parallel_job(handle, tag, gear, job)

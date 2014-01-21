@@ -126,6 +126,20 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "make application HA" do
+    assert !@app.ha
+    post :create, "event" => "make-ha", "application_id" => @app.id
+    assert_response :success
+    overrides = @app.reload.group_instances_with_overrides
+    assert @app.ha
+    assert_equal 1, overrides.length
+    assert_equal 2, overrides[0].min_gears
+    assert_equal(-1, overrides[0].max_gears)
+    assert comp = overrides[0].components.detect{ |i| i.cartridge.is_web_proxy? }
+    assert_equal 2, comp.min_gears
+    assert_equal 1, comp.multiplier
+  end
+
   test "no app name or domain name" do
     post :create, {"event" => "stop", "application_id" => @app.name}
     assert_response :not_found

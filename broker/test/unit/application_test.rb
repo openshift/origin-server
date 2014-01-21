@@ -21,12 +21,14 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "create update and destroy application" do
+    Gear.any_instance.expects(:publish_routing_info).never
+    Gear.any_instance.expects(:unpublish_routing_info).never
     @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
-    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil 
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     assert_equal 1, app.group_instances.length
     assert_equal 1, app.gears.length
-    
+
     app.config['auto_deploy'] = true
     app.config['deployment_branch'] = "stage"
     app.config['keep_deployments'] = 3
@@ -38,7 +40,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert app.config['deployment_branch'] == "stage"
     assert app.config['keep_deployments'] == 3
     assert app.config['deployment_type'] == "binary"
-    
+
     app.destroy_app
   end
 

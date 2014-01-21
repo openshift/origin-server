@@ -116,17 +116,17 @@ class PendingAppOp
   end
 
   def get_group_instance
-    application.group_instances.find(group_instance_id) 
+    application.group_instances.find(group_instance_id)
   end
 
   def get_gear
-    application.gears.find(gear_id) 
+    application.gears.find(gear_id)
   end
 
   def get_component_instance
-    if comp_spec
-      comp_spec.application = application
-      application.component_instances.detect{ |i| i.matches_spec?(comp_spec) }
+    if spec = comp_spec
+      spec.application = application
+      application.component_instances.detect{ |i| i.matches_spec?(spec) }
     end
   end
 

@@ -247,6 +247,13 @@ class PendingAppOpGroup
     end
   end
 
+  def get_component_instance
+    if spec = comp_spec
+      spec.application = application
+      application.component_instances.detect{ |i| i.matches_spec?(spec) }
+    end
+  end
+
   def serializable_hash_with_timestamp
     unless self.persisted?
       if self.created_at.nil?

@@ -574,8 +574,14 @@ class ApplicationControllerTest < ActionController::TestCase
       - web_framework
       MANIFEST
     @app_name = "app#{@random}"
-    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace}
+    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace, "include" => "cartridges"}
     assert_response :created
+
+    assert json = JSON.parse(response.body)
+    assert cart = json['data']['cartridges'].first
+    assert_equal ["mock-mock-0.1", "0.1", "manifest://test"], cart.values_at('name', "version", 'url'), json.inspect
+    assert_equal [1, 1, 1, 1, 1, 0], cart.values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
+
     assert app = assigns(:application)
     assert carts = app.downloaded_cartridges
     assert carts.length == 1

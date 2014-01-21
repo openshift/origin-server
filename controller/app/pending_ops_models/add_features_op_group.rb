@@ -2,7 +2,6 @@
 class AddFeaturesOpGroup < PendingAppOpGroup
 
   field :features, type: Array, default: []
-  #field :cartridge_ids, type: Array, default: []
   field :group_overrides, type: TypedArray[GroupOverride], default: []
   field :init_git_url, type: String
   field :user_env_vars, type: Array

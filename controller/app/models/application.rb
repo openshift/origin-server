@@ -370,7 +370,7 @@ class Application
     return self unless cart.manifest_url.present?
     @downloaded_cartridges[cart.name] = cart if @downloaded_cartridges
     Rails.logger.error("Duplicate downloaded cartridge exists for application '#{self.name}'! Overwriting..") if downloaded_cart_map.has_key? cart.name
-    downloaded_cart_map[cart.name] = {
+    downloaded_cart_map[cart.original_name] = {
         "versioned_name" => cart.full_identifier,
         "version" => cart.version,
         "url" => cart.manifest_url,
@@ -754,6 +754,7 @@ class Application
       h[cart.name] = cart
       h
     end
+    save! if persisted? && downloaded_cart_map_changed?
 
     Application.run_in_application_lock(self) do
       op_group = AddFeaturesOpGroup.new(features: cartridges.map(&:name), group_overrides: group_overrides, init_git_url: init_git_url,
@@ -768,7 +769,7 @@ class Application
       begin
         op_group.elaborate(self)
         op_group.pre_execute(io)
-        self.save!
+        save!
       rescue
         op_group.unreserve_gears(op_group.num_gears_added, self)
         raise
@@ -909,28 +910,11 @@ class Application
     raise OpenShift::UserException.new("Only scalable applications can be made 'HA'") if not self.scalable
     raise OpenShift::UserException.new("Application is already HA") if self.ha
 
-    component_instance = self.component_instances.find{ |i| i.cartridge.is_web_proxy? }
+    component_instance = self.component_instances.detect{ |i| i.cartridge.is_web_proxy? }
     raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.get_group_override('max_gears')==1
-    # set the web_proxy's min to 2
-    self.update_component_limits(component_instance, 2, -1, nil)
 
-    # and the web_frameworks' min to 2 as well so that the app stays HA
-    web_ci = self.component_instances.find{ |i| i.cartridge.is_web_framework? }
-    if web_ci.min < 2
-      scale_up_needed = web_ci.gears.length>1
-      self.update_component_limits(web_ci, 2, nil, nil)
-      if scale_up_needed
-        self.scale_by(component_instance.group_instance._id, 1)
-      end
-    end
-
-    # Make ha's remaining tasks -
-    #   resend routing endpoints to routing plugin
-    #   register ha dns
-    #   set ha flag
     Application.run_in_application_lock(self) do
-      op_group = MakeAppHaOpGroup.new(user_agent: self.user_agent)
-      pending_op_groups.push op_group
+      pending_op_groups << MakeAppHaOpGroup.new(user_agent: self.user_agent)
       self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -1058,7 +1042,7 @@ class Application
   def start_component(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
-      op_group = StartCompOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, user_agent: self.user_agent)
+      op_group = StartCompOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
@@ -1083,7 +1067,7 @@ class Application
   def stop_component(component_name, cartridge_name, force=false)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
-      op_group = StopCompOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, force: force, user_agent: self.user_agent)
+      op_group = StopCompOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, force: force, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
@@ -1108,7 +1092,7 @@ class Application
   def restart_component(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
-      op_group = RestartCompOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, user_agent: self.user_agent)
+      op_group = RestartCompOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
       result_io
@@ -1145,7 +1129,7 @@ class Application
 
   def reload_component_config(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
-      op_group = ReloadCompConfigOpGroup.new(comp_spec: {"comp" => component_name, "cart" => cartridge_name}, user_agent: self.user_agent)
+      op_group = ReloadCompConfigOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -1807,6 +1791,8 @@ class Application
                                       is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url, 
                                       app_dns_gear_id)
     ops.concat(add)
+
+    ops
   end
 
   def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb)
@@ -2214,6 +2200,14 @@ class Application
       pending_ops.push update_cluster_op
     end
 
+    # notify subscribers of route changes if endpoints are exposed
+    # FIXME routing publish should be transactional
+    # if pending_ops.present? && (ops = component_ops.inject([]){ |p,(_,v)| p.concat((v[:expose_ports] || [])) }).presence
+    #   ops.each do |op|
+    #     pending_ops << PublishRoutingInfoOp.new(gear_id: op.gear_id, prereq: [op._id.to_s])
+    #   end
+    # end
+
     # push begin track usage ops to the end
     reorder_usage_ops(pending_ops)
 
@@ -2387,7 +2381,7 @@ class Application
     specs = []
     all.each do |cart|
       cart.components.each do |component|
-        specs << ComponentSpec.for_model(component, cart)
+        specs << ComponentSpec.for_model(component, cart, self)
       end
     end
     specs

@@ -23,7 +23,8 @@ class InitGearOp < PendingAppOp
     application.gears.push(Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns))
 
     # create the component instances, if they are not present
-    comp_specs.compact.each do |comp_spec|
+    specs = comp_specs.compact
+    specs.each do |comp_spec|
       comp_spec.application = self.application
       unless group_instance.has_component?(comp_spec)
         comp_name = comp_spec.name
@@ -36,7 +37,7 @@ class InitGearOp < PendingAppOp
                                                    version: cartridge.version)
         application.component_instances.push(component_instance)
       end
-    end if comp_specs.present?
+    end if specs.present?
   end
 
   def rollback

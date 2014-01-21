@@ -49,6 +49,35 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "add show and remove downloaded cartridge to application" do
+    with_app
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: downloadmock
+      Version: '0.1'
+      Versions: ['0.1', '0.2']
+      Display-Name: Mock Cart
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - mock
+      - service
+      MANIFEST
+
+    post :create, {"url" => "manifest://test", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :created
+    assert_equal 1, @app.reload.group_instances.length
+
+    get :show, {"id" => "mock-downloadmock-0.1", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal ["mock-downloadmock-0.1", "0.1", "manifest://test"], json['data'].values_at('name', "version", 'url'), json.inspect
+    assert_equal [1, 1, 1, 1, 1, 0], json['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
+
+    delete :destroy , {"id" => "mock-downloadmock-0.1", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+  end
+
   test "embedded cartridge on scalable app create show list and destroy by domain and app name" do
     with_app(:scalable => true)
 

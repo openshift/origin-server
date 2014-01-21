@@ -8,7 +8,7 @@ class StartCompOp < PendingAppOp
   end
 
   def add_parallel_execute_job(handle)
-    gear = get_gear()
+    gear = get_gear
     unless gear.removed
       component_instance = get_component_instance()
       job = gear.get_start_job(component_instance)
