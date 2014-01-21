@@ -84,7 +84,7 @@ module OpenShift
       end
       def prefix_name
         "#{cartridge_vendor}-#{original_name}"
-      end    
+      end
   end
 
   class Cartridge < OpenShift::Model
