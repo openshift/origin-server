@@ -117,19 +117,24 @@ class District
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
       unless server_map[server_identity]["active"]
-        server_unresponsive = server_map[server_identity]["unresponsive"]
-        unless server_unresponsive
-          container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-          capacity = container.get_capacity
-        end
-        if server_unresponsive or capacity == 0 or capacity == 0.0
-          container.set_district('NONE', false, first_uid, max_uid) unless server_unresponsive
-          server_identities.delete_if { |si| (si["name"] == server_identity) and (si["active"] == false) }
-          if not self.save
-            raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid}")
+        begin
+          server_unresponsive = server_map[server_identity]["unresponsive"]
+          unless server_unresponsive
+            container = OpenShift::ApplicationContainerProxy.instance(server_identity)
+            capacity = container.get_capacity
           end
-        else
-          raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid} because it still has apps on it")
+          if server_unresponsive or capacity == 0 or capacity == 0.0
+            container.set_district('NONE', false, first_uid, max_uid) unless server_unresponsive
+            server_identities.delete_if { |si| (si["name"] == server_identity) and (si["active"] == false) }
+            if not self.save
+              raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid}")
+            end
+          else
+            raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid} because it still has apps on it")
+          end
+        rescue Exception => ex
+          Rails.logger.error ex.backtrace.inspect
+          raise OpenShift::OOException.new("Node with server identity: #{server_identity} might be unresponsive, run oo-admin-repair --removed-nodes and retry the current operation.")
         end
       else
         raise OpenShift::OOException.new("Node with server identity: #{server_identity} from district: #{uuid} must be deactivated before it can be removed")
