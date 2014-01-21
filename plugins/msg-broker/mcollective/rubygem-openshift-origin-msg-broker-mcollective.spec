@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.19.9
+Version: 1.19.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,14 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.19.10-1
+- Merge pull request #4531 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1040113: Handling edge cases in cleaning up downloaded cart map Also,
+  fixing a couple of minor issues (abhgupta@redhat.com)
+- Bug 1049626 - Allow move gear with districts, with-out districts, across
+  districted nodes to non-districted nodes and vice versa. (rpenta@redhat.com)
+
 * Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
 - Typo fix: Method name find_available_impl changed to find_all_available_impl
   (rpenta@redhat.com)
