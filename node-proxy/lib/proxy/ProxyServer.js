@@ -66,22 +66,28 @@ function _load_config(f) {
  *  @param  {Integer}              Connection Keep-Alive timeout
  *  @api    private
  */
-function _setProxyResponseHeaders(proxy_res, vhost, keep_alive_timeout) {
+function _setProxyResponseHeaders(proxy_res, res, vhost, keep_alive_timeout) {
+  /* Copy the headers to original res */
+  for (var key in proxy_res.headers) {
+    if (key != 'connection') {
+      res.setHeader(key, proxy_res.headers[key]);
+    }
+  }
+
   var about_me = constants.NODE_PROXY_WEB_PROXY_NAME + '/' +
                  constants.NODE_PROXY_PRODUCT_VER;
   var zroute   = '1.1 ' + vhost + ' (' + about_me + ')';
 
   /*  Set the Via: header to indicate it went via us.  */
-  httputils.addHeader(proxy_res.headers, 'Via', zroute);
+  res.setHeader('Via', zroute);
 
   /*  Set the Keep-Alive timeout if Connection is being kept alive.  */
   var conn_header = proxy_res.headers['Connection']  ||  '';
   if ('keep-alive' === conn_header.toLowerCase() ) {
     var ka = utils.format('timeout=%d, max=%d', keep_alive_timeout,
                           keep_alive_timeout + DEFAULT_KEEP_ALIVE_TIMEOUT);
-    proxy_res.headers['Keep-Alive'] = ka;
+    res.setHeader('Keep-Alive', ka);
   }
-
 }  /*  End of function  _setProxyResponseHeaders.  */
 
 
@@ -269,8 +275,8 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
     });
 
     /*  Set the appropriate headers on the reponse & send the headers.  */
-    _setProxyResponseHeaders(pres, reqhost, keep_alive_timeout);
-    res.writeHead(pres.statusCode, pres.headers);
+    _setProxyResponseHeaders(pres, res, reqhost, keep_alive_timeout);
+    res.writeHead(pres.statusCode);
   });
 
   /*  Handle the outgoing request socket event and set a timeout.  */
