@@ -24,11 +24,6 @@ Feature: Cartridge Lifecycle JBossEWS1.0 Verification Tests
     When the application is restarted
     Then the application should be accessible
 
-  Scenario: Application Tidy
-    Given an existing jbossews-1.0 application
-    When I tidy the application
-    Then the application should be accessible
-
   Scenario: Application Destroying
     Given an existing jbossews-1.0 application
     When the application is destroyed
