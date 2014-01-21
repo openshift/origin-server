@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.19.8
+Version: 1.19.9
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -99,6 +99,11 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
+- Bug 1040113: Handling edge cases in cleaning up downloaded cart map Also,
+  fixing a couple of minor issues (abhgupta@redhat.com)
+- Bug 1054574 - clear cache when removing cartridge (contact@fabianofranz.com)
+
 * Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
 - Merge remote-tracking branch 'origin/master' into add_cartridge_mongo_type
   (ccoleman@redhat.com)
