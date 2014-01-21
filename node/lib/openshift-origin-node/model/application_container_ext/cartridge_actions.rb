@@ -829,6 +829,12 @@ module OpenShift
 
         # Activates a remote gear
         #
+        # options: hash
+        #   :deployment_id : the id of the deployment to activate (required)
+        #   :post_install  : if true, run post_install after post-deploy (i.e. for a new gear on scale up)
+        #   :out           : an IO to which any stdout should be written (default: nil)
+        #   :err           : an IO to which any stderr should be written (default: nil)
+        #
         # @param [OpenShift::Runtime::GearRegistry::Entry] gear the remote gear to activate
         # @param [Hash] gear_env the environment for the local gear
         # @param [Hash] options activation options
@@ -980,7 +986,7 @@ module OpenShift
             deployment_metadata.save
 
             if options[:report_deployments] && gear_env['OPENSHIFT_APP_DNS'] == gear_env['OPENSHIFT_GEAR_DNS']
-              report_deployments(gear_env)
+              report_deployments(gear_env, out: options[:out])
             end
 
             result[:status] = RESULT_SUCCESS
