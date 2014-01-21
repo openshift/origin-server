@@ -1,0 +1,5 @@
+# WARNING: It is not recommended to use system-config-firewall post OpenShift
+# installation.  This file is intended to save admins from accidentally causing
+# an outage.
+-N rhc-app-comm
+-A INPUT -j rhc-app-comm

@@ -987,6 +987,39 @@ class OODiag
     WANT
   end
 
+  def test_missing_iptables_config
+    skip_test unless @is_node
+    iptables_conf = '/etc/sysconfig/iptables'
+    return if File.exists? iptables_conf
+
+    do_fail <<-BUG
+      #{iptables_conf} is missing.  Rebooting this system will likely lead to a
+      broken firewall.  Ensure that the openshift-iptables-port-proxy service
+      is running and all critical services are currently allowed by the running
+      firewall then run 'service iptables save'.
+    BUG
+  end
+
+  def test_system_config_firewall
+    skip_test unless @is_node
+    conf_file = '/etc/sysconfig/system-config-firewall'
+
+    `grep enabled #{conf_file}`
+     have_system_config_firewall = 0 == $?.to_i
+     if have_system_config_firewall
+       do_warn <<-WARN
+         Using system-config-firewall and lokkit with OpenShift is not recommended.
+         To continue using lokkit people ensure the following custom rules are 
+         installed in #{conf_file}:
+
+         --custom-rules=ipv4:filter:/etc/openshift/system-config-firewall-compat
+         --custom-rules=ipv4:filter:/etc/openshift/iptables.filter.rules
+         --custom-rules=ipv4:nat:/etc/openshift/iptables.nat.rules
+       WARN
+     end
+    
+  end
+
   def test_node_quota_bug
     skip_test unless @is_node && @os_is[:rhel6]
     verbose "testing for quota creation failure bug"
