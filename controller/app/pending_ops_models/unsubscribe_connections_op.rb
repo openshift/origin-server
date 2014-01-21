@@ -3,7 +3,7 @@ class UnsubscribeConnectionsOp < PendingAppOp
   field :sub_pub_info, type: Hash, default: {}
   
   def execute
-    if application.scalable and sub_pub_info
+    if application.scalable and sub_pub_info.present?
       Rails.logger.debug "Running unsubscribe connections"
       handle = RemoteJob.create_parallel_job
       sub_pub_info.values.each do |to, from|
