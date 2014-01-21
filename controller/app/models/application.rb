@@ -291,7 +291,7 @@ class Application
     return self unless cart.manifest_text.present?
     @downloaded_cartridge_instances[cart.name] = cart if @downloaded_cartridge_instances
     Rails.logger.error("Duplicate downloaded cartridge exists for application '#{self.name}'! Overwriting..") if downloaded_cart_map.has_key? cart.name
-    downloaded_cart_map[cart.name] = {
+    downloaded_cart_map[cart.original_name] = {
         "versioned_name" => cart.full_identifier,
         "version" => cart.version,
         "url" => cart.manifest_url,
@@ -625,6 +625,10 @@ class Application
 
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
+      # save this app before adding the op_group, if its persisted already
+      # this ensures that any downloaded carts are present before the op_group with the features is added  
+      self.save! if self.persisted?
+
       op_group = AddFeaturesOpGroup.new(features: features.map(&:name), group_overrides: group_overrides, init_git_url: init_git_url,
                                         user_env_vars: user_env_vars, user_agent: self.user_agent)
       self.pending_op_groups.push op_group

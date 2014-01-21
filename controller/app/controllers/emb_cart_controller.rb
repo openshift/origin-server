@@ -44,11 +44,38 @@ class EmbCartController < BaseController
 
     @application.domain.check_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "gear_size")
 
-    cartridges = CartridgeCache.find_and_download_cartridges(specs)
-    group_overrides = CartridgeInstance.overrides_for(cartridges, @application)
-    @application.validate_cartridge_instances!(cartridges)
-
-    result = @application.add_features(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
+    begin
+      cartridges = CartridgeCache.find_and_download_cartridges(specs)
+      group_overrides = CartridgeInstance.overrides_for(cartridges, @application)
+      @application.validate_cartridge_instances!(cartridges)
+      result = @application.add_features(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
+    rescue
+      # If this was a request to add a url based cart, 
+      # remove the entry from downloaded_cart_map if there is no corresponding component_instance created. 
+      # This handles the cases where the exception is raised after populating the downloaded_cart_map,
+      # but before the pending op for the new component/gear are created and executed
+      unsets = {}
+      @application.downloaded_cart_map.each do |k, v|
+        cartridges.map(&:cartridge).each do |cartridge|
+          if v["versioned_name"] == cartridge.name
+            found = false
+            @application.component_instances.each do |ci|
+              if ci.cartridge_name ==  ci.cartridge_name
+                found = true
+                break
+              end
+            end
+            unsets["downloaded_cart_map.#{k}"] = "" if !found
+          end
+        end
+      end if cartridges.present?
+      # Since this is outside the application lock, we are using unset instead of saving the modified cart map
+      Application.where(:_id => @application._id).find_and_modify({"$unset"=> unsets}) if unsets.present?
+      
+      # this rescue block is only responsible for cleaning up the downloaded_cart_map
+      # the exception should be re-raised to handle full error processing
+      raise
+    end
 
     rest = cartridges.map do |cart|
       component_instance = @application.component_instances.where(cartridge_name: cart.name).first
