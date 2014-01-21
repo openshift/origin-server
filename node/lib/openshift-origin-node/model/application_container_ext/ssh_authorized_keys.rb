@@ -181,12 +181,6 @@ module OpenShift
                 keys[id] = entry
               end
             end
-
-            # set/reset the SELinux context for the .ssh directory
-            ssh_dir = PathUtils.join(@container.container_dir, "/.ssh")
-            cmd = "restorecon -R #{ssh_dir}"
-            ::OpenShift::Runtime::Utils::oo_spawn(cmd)
-
           end
 
           private
@@ -278,8 +272,9 @@ module OpenShift
                   end
                   file.close
                 end
-                @container.set_ro_permission(authorized_keys_file)
-                ::OpenShift::Runtime::Utils::oo_spawn("restorecon #{authorized_keys_file}")
+                PathUtils.oo_chown(0, @container.gid, authorized_keys_file)
+                @container.chcon(authorized_keys_file,
+                                      ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid))
               end
             end
             keys

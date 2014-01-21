@@ -784,6 +784,10 @@ module OpenShift
         @container_plugin.set_rw_permission(paths)
       end
 
+      def chcon(path, label = nil, type=nil, role=nil, user=nil)
+        @container_plugin.chcon(path, label, type, role, user)
+      end
+
       def memory_in_bytes
         @container_plugin.memory_in_bytes(@uuid)
       end

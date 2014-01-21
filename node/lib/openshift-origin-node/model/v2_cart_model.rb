@@ -436,8 +436,6 @@ module OpenShift
       #
       #   v2_cart_model.do_unlock_gear(entries)
       def do_unlock(entries)
-        mcs_label = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
-
         entries.each do |entry|
           if entry.end_with?('/')
             entry.chomp!('/')
@@ -471,8 +469,6 @@ module OpenShift
       # Take the given array of file system entries and prepare them for the application developer
       #    v2_cart_model.do_lock_gear(entries)
       def do_lock(entries)
-        mcs_label = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
-
         # It is expensive doing one file at a time but...
         # ...it allows reporting on the failed command at the file level
         # ...we don't have to worry about the length of argv
@@ -1535,7 +1531,6 @@ module OpenShift
       # Writes the +stop_lock+ file and changes its ownership to the gear user.
       def create_stop_lock
         unless stop_lock?
-          mcs_label = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
           File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
           @container.set_rw_permission(stop_lock)
         end
