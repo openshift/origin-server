@@ -16,7 +16,7 @@
 # limitations under the License.
 #++
 
-require "/var/www/openshift/broker/config/environment"
+require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 require 'getoptlong'
 require 'time'
 include AdminHelper

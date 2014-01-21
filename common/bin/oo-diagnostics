@@ -216,7 +216,7 @@ class OODiag
   def load_broker_rails_env
     begin
       verbose "Loading the broker rails environment."
-      require "/var/www/openshift/broker/config/environment"
+      require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
       # Disable analytics for admin scripts
       Rails.configuration.analytics[:enabled] = false
       Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]

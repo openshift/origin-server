@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'getoptlong'
 require 'pp'
-require "/var/www/openshift/broker/config/environment"
+require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 
 CTL_DISTRICT_COMMANDS = "(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy|publish-uids)"
 

@@ -966,7 +966,7 @@ class UpgraderCli < Thor
       STDOUT.sync, STDERR.sync = true
 
       # Disable analytics for admin scripts
-      require '/var/www/openshift/broker/config/environment'
+      require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
       Rails.configuration.analytics[:enabled] = false
       Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 
