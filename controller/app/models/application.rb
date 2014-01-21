@@ -883,7 +883,7 @@ class Application
   # Destroys all applications that depend on this application
   #
   def remove_dependent_applications(io=ResultIO.new)
-    Application.where(domain_id: domain_id, builder_id: _id).each{ app.destroy_app(io) }
+    Application.where(domain_id: domain_id, builder_id: _id).each{ |app| app.destroy_app(io) }
     io
   end
 
