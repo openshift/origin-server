@@ -636,7 +636,7 @@ module OpenShift
         @container.set_rw_permission_R(cartridge_home)
 
         files = ManagedFiles::IMMUTABLE_FILES.collect do |file|
-          file.gsub!('*', short_name)
+          file = file.gsub('*', short_name)
           file = PathUtils.join(cartridge_home, file)
           file if File.exist?(file)
         end || []
