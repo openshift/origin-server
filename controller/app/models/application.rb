@@ -288,7 +288,7 @@ class Application
   end
 
   def track_downloaded_cartridge(cart)
-    return self unless cart.manifest_text.present?
+    return self unless cart.manifest_url.present?
     @downloaded_cartridge_instances[cart.name] = cart if @downloaded_cartridge_instances
     Rails.logger.error("Duplicate downloaded cartridge exists for application '#{self.name}'! Overwriting..") if downloaded_cart_map.has_key? cart.name
     downloaded_cart_map[cart.original_name] = {
@@ -520,7 +520,7 @@ class Application
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
   def add_initial_cartridges(cartridges, init_git_url=nil, user_env_vars=nil)
 
-    if self.scalable and not cartridges.any?{ |c| c.features.include?('web_proxy') }
+    if self.scalable and not cartridges.any?{ |c| c.provides.include?('web_proxy') }
       cartridges << CartridgeInstance.new(CartridgeCache.find_cartridge('web_proxy'))
     end
 
