@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.18.8
+Version: 1.18.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.18.9-1
+- Bug 1034110 (dmcphers@redhat.com)
+
 * Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.18.8-1
 - Merge remote-tracking branch 'origin/master' into add_cartridge_mongo_type
   (ccoleman@redhat.com)
