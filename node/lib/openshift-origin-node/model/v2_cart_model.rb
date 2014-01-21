@@ -418,12 +418,12 @@ module OpenShift
       # Prepare the given cartridge for the cartridge author
       #
       #   v2_cart_model.unlock_gear('php-5.3')
-      def unlock_gear(cartridge, relock = true)
+      def unlock_gear(cartridge, relock=true)
         begin
           do_unlock(@container.locked_files(cartridge))
           yield cartridge
         ensure
-          do_lock(@container.locked_files(cartridge)) if relock
+          do_lock(@container.locked_files(cartridge), relock)
         end
         nil
       end
@@ -468,7 +468,7 @@ module OpenShift
       #
       # Take the given array of file system entries and prepare them for the application developer
       #    v2_cart_model.do_lock_gear(entries)
-      def do_lock(entries)
+      def do_lock(entries, lock_cartridge_entries=true)
         mcs_label = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
 
         # It is expensive doing one file at a time but...
@@ -481,7 +481,7 @@ module OpenShift
             raise OpenShift::Runtime::FileLockError.new("Failed to lock file system entry [#{entry}]: #{e}",
                                                         entry)
           end
-        end
+        end if lock_cartridge_entries
 
         begin
           @container.set_ro_permission(@container.container_dir)
@@ -548,7 +548,6 @@ module OpenShift
       #
       # ~/php/phplib -> ~/app-root/runtime/dependencies/php/phplib
       def create_dependency_directories(cartridge)
-        cartridge_directory = PathUtils.join(@container.container_dir, cartridge.name)
 
         %w(build-dependencies dependencies).each do |dependencies_dir_name|
           if dependencies_dir_name == 'build-dependencies'
