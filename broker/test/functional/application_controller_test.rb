@@ -4,13 +4,14 @@ class ApplicationControllerTest < ActionController::TestCase
 
   def setup
     Rails.cache.clear
-    @controller = ApplicationsController.new
+    @controller = allow_multiple_execution(ApplicationsController.new)
 
     @random = rand(1000000000)
     @login = "user#{@random}"
     @password = "password"
     @user = CloudUser.new(login: @login)
     @user.private_ssl_certificates = true
+    @user.capabilities["gear_sizes"] = ['small', 'medium', 'large']
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
@@ -30,13 +31,25 @@ class ApplicationControllerTest < ActionController::TestCase
 
   test "app create show list update and destroy by domain and app name" do
     @app_name = "app#{@random}"
-    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace}
+
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace, "initial_git_url" => "https://a:b@github.com/foobar/test.git"}
     assert_response :created
-    get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert app = assigns(:application)
+    assert_equal 1, app.gears.length
+
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace, "include" => "cartridges"}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert link = json['data']['links']['ADD_CARTRIDGE']
     assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'url' }
+
+    assert_equal [@domain.namespace, @app_name, false, 1, 'small', 'https://github.com/foobar/test.git'], json['data'].values_at('domain_id', 'name', 'scalable', 'gear_count', 'gear_profile', 'initial_git_url'), json['data'].inspect
+
+    assert_equal 1, (members = json['data']['members']).length
+    assert_equal [@login, true, 'admin', nil, @user._id.to_s, 'user'], members[0].values_at('login', 'owner', 'role', 'explicit_role', 'id', 'type'), members[0].inspect
+
+    assert_equal 1, (carts = json['data']['cartridges']).length
+    assert_equal [1, 1, 1, 1, 1, 0], carts[0].values_at('scales_from', 'scales_to', 'supported_scales_to', 'supported_scales_from', 'base_gear_storage', 'additional_gear_storage'), carts[0].inspect
 
     get :index, {"domain_id" => @domain.namespace}
     assert_response :success
@@ -62,6 +75,50 @@ class ApplicationControllerTest < ActionController::TestCase
 
     delete :destroy, {"id" => @app_name, "domain_id" => @domain.namespace}
     assert_response :ok
+  end
+
+  test "app create scalable show destroy by domain and app name" do
+    @app_name = "app#{@random}"
+
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :created
+
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert_response :success
+    assert app = assigns(:application)
+    assert app.scalable
+
+    delete :destroy, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert_response :ok
+  end
+
+  test "app create scalable with different gear types" do
+    @app_name = "app#{@random}"
+
+    post :create, {"name" => @app_name, "cartridges" => [
+      {"name" => php_version, "gear_size" => "medium"},
+      {"name" => mysql_version, "gear_size" => "medium"}
+    ], "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :created
+
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert_response :success
+    assert app = assigns(:application)
+    assert app.scalable
+    assert_equal 2, app.group_instances.length
+
+    overrides = app.group_instances_with_scale
+    overrides.sort_by{ |i| i.all_component_instances.length }
+
+    assert_equal 1, overrides[0].min
+    assert_equal 1, overrides[0].max
+    assert_equal "medium", overrides[0].gear_size
+    assert_equal 0, overrides[0].addtl_fs_gb
+
+    assert_equal 1, overrides[1].min
+    assert_equal -1, overrides[1].max
+    assert_equal "medium", overrides[1].gear_size
+    assert_equal 0, overrides[1].addtl_fs_gb
   end
 
   test "app create show list and destroy by app id" do
@@ -278,36 +335,43 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "attempt to create an application with obsolete cartridge" do
-    carts = []
-    cart = OpenShift::Cartridge.new
-    cart.cartridge_vendor = "redhat"
-    cart.name = "ruby-1.8"
-    cart.provides = ["ruby"]
-    cart.version = "1.8"
-    cart.obsolete = true
+    begin
+      carts = []
+      cart = OpenShift::Cartridge.new
+      cart.cartridge_vendor = "redhat"
+      cart.name = "ruby-1.8"
+      cart.provides = ["ruby"]
+      cart.version = "1.8"
+      cart.categories = ['web_framework']
+      cart.obsolete = true
 
-    carts << cart
-    cart = OpenShift::Cartridge.new
-    cart.cartridge_vendor = "redhat"
-    cart.name = "ruby-1.9"
-    cart.provides = ["ruby"]
-    cart.version = "1.9"
-    carts << cart
+      carts << cart
+      cart = OpenShift::Cartridge.new
+      cart.cartridge_vendor = "redhat"
+      cart.name = "ruby-1.9"
+      cart.provides = ["ruby"]
+      cart.version = "1.9"
+      cart.categories = ['web_framework']
+      carts << cart
 
-    cart = OpenShift::Cartridge.new
-    cart.cartridge_vendor = "other"
-    cart.name = "ruby-1.10"
-    cart.provides = ["ruby"]
-    cart.version = "1.10"
-    carts << cart
-    CartridgeCache.stubs(:get_all_cartridges).returns(carts)
+      cart = OpenShift::Cartridge.new
+      cart.cartridge_vendor = "other"
+      cart.name = "ruby-1.10"
+      cart.provides = ["ruby"]
+      cart.version = "1.10"
+      cart.categories = ['web_framework']
+      carts << cart
+      CartridgeCache.stubs(:get_all_cartridges).returns(carts)
 
-    os = Rails.configuration.openshift
-    Rails.configuration.stubs(:openshift).returns(os.merge(:allow_obsolete_cartridges => false))
+      os = Rails.configuration.openshift
+      Rails.configuration.stubs(:openshift).returns(os.merge(:allow_obsolete_cartridges => false))
 
-    @app_name = "app#{@random}"
-    post :create, {"name" => @app_name, "cartridge" => "ruby-1.8", "domain_id" => @domain.namespace}
-    assert_response :unprocessable_entity
+      @app_name = "app#{@random}"
+      post :create, {"name" => @app_name, "cartridge" => "ruby-1.8", "domain_id" => @domain.namespace}
+      assert_response :unprocessable_entity
+    ensure
+      Rails.cache.clear
+    end
   end
 
   def assert_invalid_manifest
@@ -462,14 +526,32 @@ class ApplicationControllerTest < ActionController::TestCase
       - web_framework
       MANIFEST
     @app_name = "app#{@random}"
-    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace}
+    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace, "include" => "cartridges"}
     assert_response :created
+
+    assert json = JSON.parse(response.body)
+    assert cart = json['data']['cartridges'].first
+    assert_equal ["mock-mock-0.1", "0.1", "manifest://test"], cart.values_at('name', "version", 'url'), json.inspect
+    assert_equal [1, 1, 1, 1, 1, 0], cart.values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
+
     assert app = assigns(:application)
+    app.reload
+    assert carts = app.downloaded_cart_map
+    assert carts.length == 1
+    assert cart = carts['mock']
+    assert_equal "mock-mock-0.1", cart['versioned_name']
+    assert_equal "0.1", cart['version']
+    assert_equal "manifest://test", cart['url']
+    type = OpenShift::Cartridge.new.from_descriptor(YAML.load(cart['original_manifest']))
+    assert_equal ['mock', 'web_framework'], type.categories.sort
+    assert_equal 'Mock Cart', type.display_name
+
     assert carts = app.downloaded_cartridge_instances
     assert carts.length == 1
     assert cart = carts['mock-mock-0.1']
     assert_equal ['mock', 'web_framework'], cart.categories.sort
     assert_equal 'Mock Cart', cart.display_name
+    assert_equal "manifest://test", cart.manifest_url
   end
 
   test "create downloadable cart with multiple versions" do
@@ -492,6 +574,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
+    app.reload
     assert carts = app.downloaded_cartridge_instances
     assert carts.length == 1
     assert cart = carts['mock-mock-0.1']
@@ -519,6 +602,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test", "version" => "0.2"}], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
+    app.reload
     assert carts = app.downloaded_cartridge_instances
     assert carts.length == 1
     assert cart = carts['mock-mock-0.2']
@@ -541,12 +625,13 @@ class ApplicationControllerTest < ActionController::TestCase
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(body)
     CartridgeType.where(:base_name => 'remotemock').delete
     types = CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(body), 'manifest://test')
-    types.each(&:save!)
+    types.each(&:activate)
 
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => ["mock-remotemock-0.1"], "domain_id" => @domain.namespace}
     assert_response :created
     assert app = assigns(:application)
+    app.reload
     assert carts = app.downloaded_cartridge_instances
     assert carts.length == 1
     assert cart = carts['mock-remotemock-0.1']

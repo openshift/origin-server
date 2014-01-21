@@ -36,6 +36,13 @@ class ActionController::TestCase
     e.prepend_before_filter :reset_instance_variables
     c
   end
+
+  def json_messages(&block)
+    assert json = JSON.parse(response.body)
+    assert messages = json['messages']
+    yield messages if block_given?
+    messages
+  end
 end
 
 def read_local_cartridges
@@ -43,7 +50,7 @@ def read_local_cartridges
     sources = [
       ENV['CARTRIDGE_PATH'] || '.',
       # we're in a source origin-server repo
-      File.expand_path('../../../../broker/cartridges', __FILE__),
+      File.expand_path('../../../../cartridges', __FILE__),
       # we're on a node or all in one server
       '/var/lib/openshift/.cartridge_repository',
     ]
@@ -53,7 +60,7 @@ def read_local_cartridges
         manifests += Dir["#{base_path}/**/manifest.yml.#{env}"].to_a
       end
       break manifests
-    end or raise "Unable to find system cartridges"
+    end or raise "Unable to find system cartridges in #{sources.join(', ')}"
 
     manifests.map do |f|
       OpenShift::Runtime::Manifest.manifests_from_yaml(IO.read(f)).map do |m|

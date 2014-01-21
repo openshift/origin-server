@@ -1,9 +1,8 @@
 ENV["TEST_NAME"] = "functional_app_events_controller_test"
 require 'test_helper'
 class AppEventsControllerTest < ActionController::TestCase
-
   def setup
-    @controller = AppEventsController.new
+    @controller = allow_multiple_execution(AppEventsController.new)
 
     @random = rand(1000000000)
     @login = "user#{@random}"
@@ -40,7 +39,6 @@ class AppEventsControllerTest < ActionController::TestCase
   end
 
   test "app events by domain name and app name" do
-    server_alias = "as#{@random}"
     post :create, {"event" => "stop", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
     post :create, {"event" => "start", "domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -49,12 +47,22 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_response :success
     post :create, {"event" => "force-stop", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+
+    post :create, {"event" => "scale-down", "to" => "0", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :unprocessable_entity
+    json_messages{ |a| assert a.any?{ |m| m['text'] =~ /Cannot scale below minimum gear requirements/ }, a.inspect }
+
     post :create, {"event" => "scale-up", "domain_id" => @domain.namespace, "application_id" => @app.name}
-    assert_response :success
+    assert_response :success, json_messages.inspect
+    assert @app.reload.gears.count == 2
+
     post :create, {"event" => "scale-down", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+    assert @app.reload.gears.count == 1
+
     post :create, {"event" => "reload", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+
     post :create, {"event" => "thread-dump", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
     post :create, {"event" => "tidy", "domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -69,7 +77,6 @@ class AppEventsControllerTest < ActionController::TestCase
   end
 
   test "app events by app id" do
-    server_alias = "as#{@random}"
     post :create, {"event" => "stop", "application_id" => @app.id}
     assert_response :success
     post :create, {"event" => "start", "application_id" => @app.id}
@@ -95,6 +102,19 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_response :success
     post :create, {"event" => "activate", "deployment_id" => "1", "application_id" => @app.id}
     assert_response :success
+  end
+
+  test "make application HA" do
+    assert !@app.ha
+    post :create, "event" => "make-ha", "application_id" => @app.id
+    assert_response :success
+    overrides = @app.reload.group_instances_with_scale
+    assert @app.ha
+    assert_equal 1, overrides.length
+    assert_equal 2, overrides[0].min
+    assert_equal(-1, overrides[0].max)
+    assert comp = overrides[0].all_component_instances.detect{ |i| i.cartridge.is_web_proxy? }
+    assert_equal 2, comp.min
   end
 
   test "no app name or domain name" do
@@ -126,7 +146,7 @@ class AppEventsControllerTest < ActionController::TestCase
   test "thread-dump on a cartridge with threaddump hook" do
     #create an app with threaddump hook i.e. ruby-1.8 or jbossews-2.0
     app_name = "rubyapp#{@random}"
-    ruby_app = Application.create_app(app_name, cartridge_instances_for(:ruby), @domain, nil, true)
+    ruby_app = Application.create_app(app_name, cartridge_instances_for(:ruby), @domain, :scalable => true)
     ruby_app.save
     post :create, {"event" => "thread-dump", "domain_id" => @domain.namespace, "application_id" => ruby_app.name}
     assert_response :success

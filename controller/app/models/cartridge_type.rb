@@ -137,8 +137,15 @@ class CartridgeType
 
   alias_method :is_obsolete?, :obsolete?
   alias_method :global_identifier, :name
+  alias_method :manifest_text, :text
 
-  delegate :components_in_profile, to: :cartridge
+  delegate :requires, :get_component,
+           :additional_control_actions, :cart_data_def,
+           :components, :connections, :group_overrides,
+           :start_order, :stop_order, :configure_order,
+           :get_profile_for_component, :components_in_profile,
+           :profile_for_feature,
+           to: :cartridge
 
   def has_feature?(feature)
     provides.include?(feature)
