@@ -1237,7 +1237,7 @@ module OpenShift
 
         def threaddump(cart_name)
           unless ::OpenShift::Runtime::State::STARTED == state.value
-            return "CLIENT_ERROR: Application is #{state.value}, must be #{::OpenShift::Runtime::State::STARTED} to allow a thread dump"
+            raise "CLIENT_ERROR: Application is #{state.value}, must be #{::OpenShift::Runtime::State::STARTED} to allow a thread dump"
           end
 
           @cartridge_model.do_control('threaddump', cart_name)
