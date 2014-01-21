@@ -43,7 +43,6 @@ class ComponentSpec
   end
 
   def cartridge
-    binding.pry if @application.nil?
     @cartridge ||= CartridgeCache.find_cartridge(@cartridge_name, @application) or
       raise OpenShift::UserException.new(
         if @application

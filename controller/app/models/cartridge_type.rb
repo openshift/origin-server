@@ -160,7 +160,7 @@ class CartridgeType
   alias_method :is_obsolete?, :obsolete?
   alias_method :global_identifier, :name
 
-  delegate :requires, :get_component,
+  delegate :requires, :get_component, :usage_rates,
            :additional_control_actions, :cart_data_def,
            :components, :connections, :group_overrides,
            :start_order, :stop_order, :configure_order,
@@ -179,10 +179,6 @@ class CartridgeType
         name == other
       end
     end
-  end
-
-  def usage_rates
-    @usage_rates || []
   end
 
   protected

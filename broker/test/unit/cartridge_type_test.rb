@@ -37,6 +37,18 @@ class CartridgeTypeTest < ActiveSupport::TestCase
     assert !cart.obsolete?
   end
 
+  def test_is_premium
+    cart = stub(:usage_rates => [1])
+    CartridgeType.any_instance.expects(:cartridge).returns(cart)
+    assert CartridgeType.new.is_premium?
+  end
+
+  def test_is_not_premium
+    cart = stub(:usage_rates => [])
+    CartridgeType.any_instance.expects(:cartridge).returns(cart)
+    assert !CartridgeType.new.is_premium?
+  end
+
   def test_duplicate_error
     CartridgeType.where(:name => 'mock-1.0').delete
 
