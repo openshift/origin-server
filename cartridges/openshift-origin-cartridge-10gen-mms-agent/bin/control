@@ -39,7 +39,7 @@ function start() {
       echo ""
       echo "Missing settings.py file:  ${OPENSHIFT_REPO_DIR}.openshift/mms/settings.py"
       echo "This file is part of the agent zip file: 10gen-mms-agent-<group-name>.zip"
-      echo "The zip file is available to download from https://mms.10gen.com/ after you register with their service. "
+      echo "The zip file is available to download from https://mms.mongodb.com/ after you register with their service. "
       echo "It contains your 10gen MMS credentials and is required for running the agent."
       echo "You will need to add this file and then do a git commit and push before you can start the 10gen-mms-agent cartridge."
       echo ""
