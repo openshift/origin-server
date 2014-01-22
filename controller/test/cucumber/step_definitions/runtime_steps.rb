@@ -893,9 +893,13 @@ end
 
 Then /^the ([^ ]+) cartridge status should be (running|stopped)$/ do |cart_name, expected_status|
   begin
-    @gear.carts[cart_name].status
-    # If we're here, the cart status is 'running'
-    raise "Expected #{cart_name} cartridge to be stopped" if expected_status == "stopped"
+    status = @gear.carts[cart_name].status
+    if status.include? "ERROR: Non-zero exitcode returned while executing 'status' command on cartridge"
+      raise "Expected #{cart_name} cartridge to be running" if expected_status == "running"
+    else
+      # If we're here, the cart status is 'running'
+      raise "Expected #{cart_name} cartridge to be stopped" if expected_status == "stopped"
+    end
   rescue OpenShift::Runtime::Utils::ShellExecutionException
     # If we're here, the cart status is 'stopped'
     raise if expected_status == "running"

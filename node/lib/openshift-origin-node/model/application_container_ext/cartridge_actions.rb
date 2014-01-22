@@ -1252,7 +1252,12 @@ module OpenShift
           out,err,rc = run_in_container_context(quota_cmd)
           raise "ERROR: Error fetching quota (#{rc}): #{quota_cmd.squeeze(" ")} stdout: #{out} stderr: #{err}" unless rc == 0
           buffer << out
-          buffer << @cartridge_model.do_control("status", cart_name)
+          begin
+            buffer << @cartridge_model.do_control("status", cart_name)
+          rescue ::OpenShift::Runtime::Utils::ShellExecutionException => shell_ex
+            # catch the exception. Nonzero exit code may also be a valid status message.
+            buffer << "ERROR: Non-zero exitcode returned while executing 'status' command on cartridge. Error code : #{shell_ex.rc}. Stdout : #{shell_ex.stdout}. Stderr : #{shell_ex.stderr}"
+          end
           buffer
         end
 
