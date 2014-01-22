@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.10
+Version: 1.19.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.11-1
+- Bug 1056349 (dmcphers@redhat.com)
+
 * Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.19.10-1
 - Merge pull request #4520 from smarterclayton/update_custom_cart_error
   (dmcphers+openshiftbot@redhat.com)
