@@ -107,6 +107,18 @@ an OpenShift cartrige.
 %package optional-jbosseap
 Summary:   Optional user dependencies for JBossEAP OpenShift Cartridges
 BuildArch: noarch
+Requires:  jbossas-appclient
+Requires:  jbossas-bundles
+Requires:  jbossas-core
+Requires:  jbossas-domain
+Requires:  jbossas-hornetq-native
+Requires:  jbossas-jbossweb-native
+Requires:  jbossas-modules-eap
+Requires:  jbossas-product-eap
+Requires:  jbossas-standalone
+Requires:  jbossas-welcome-content-eap
+Requires:  jboss-eap6-modules
+Requires:  jboss-eap6-index
 
 %description optional-jbosseap
 This package pulls in other packages that a user
@@ -177,6 +189,11 @@ an OpenShift cartrige.
 %package recommended-perl
 Summary:   Recommended user dependencies for Perl OpenShift Cartridges
 BuildArch: noarch
+Requires:  db4-devel
+Requires:  perl-CPAN
+Requires:  perl-CPANPLUS
+Requires:  perl-DBD-SQLite
+Requires:  perl-DBD-MySQL
 
 %description recommended-perl
 This package pulls in other packages that a user
@@ -189,6 +206,12 @@ an OpenShift cartrige.
 %package optional-perl
 Summary:   Optional user dependencies for Perl OpenShift Cartridges
 BuildArch: noarch
+Requires:  expat-devel
+Requires:  gd-devel
+Requires:  gdbm-devel
+Requires:  ImageMagick-perl
+Requires:  perl-MongoDB
+Requires:  rpm-build
 
 %description optional-perl
 This package pulls in other packages that a user
@@ -231,6 +254,20 @@ an OpenShift cartrige.
 %package recommended-python
 Summary:   Recommended user dependencies for Python OpenShift Cartridges
 BuildArch: noarch
+Requires:  libcurl
+Requires:  libjpeg
+Requires:  MySQL-python
+Requires:  python-magic
+Requires:  python-psycopg2
+Requires:  redhat-lsb-core
+Requires:  symlinks
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:  python27-mod_wsgi
+Requires:  python27-MySQL-python
+Requires:  python27-python-psycopg2
+Requires:  python33-mod_wsgi
+Requires:  python33-python-psycopg2
+%endif
 
 %description recommended-python
 This package pulls in other packages that a user
@@ -243,6 +280,26 @@ an OpenShift cartrige.
 %package optional-python
 Summary:   Optional user dependencies for Python OpenShift Cartridges
 BuildArch: noarch
+Requires:  atlas-devel
+Requires:  freetype-devel
+Requires:  gcc-gfortran
+Requires:  lapack-devel
+Requires:  libcurl-devel
+Requires:  libffi-devel
+Requires:  libjpeg-devel
+Requires:  numpy
+Requires:  numpy-f2py
+Requires:  pymongo
+Requires:  pymongo-gridfs
+Requires:  python-virtualenv
+Requires:  ta-lib-devel
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:  python27-numpy
+Requires:  python27-python-pip-virtualenv
+Requires:  python33-numpy
+Requires:  python33-python-virtualenv
+Requires:  python33-python-pymongo
+%endif
 
 %description optional-python
 This package pulls in other packages that a user
