@@ -1909,6 +1909,13 @@ module OpenShift
           raise OpenShift::UserException.new("Error moving gear. Destination container same as source container.", 1)
         end
 
+        # Only allow gear move between districted nodes
+        # Move from districted to non-districted nodes and vice versa not allowed: gear uids on non-districted nodes may not be in the range of uids supported by the district
+        # Move between non-districted nodes not allowed:: gear uids are not set in mongo and we can not guarantee same uid for both source and destination
+        if [source_container.get_district_uuid, destination_container.get_district_uuid].include?('NONE')
+          raise OpenShift::UserException.new("Error moving gear. Move gear only allowed between districted nodes.")
+        end
+
         destination_node_profile = destination_container.get_node_profile
         if source_container.get_node_profile != destination_node_profile and app.scalable
           log_debug "Cannot change node_profile for *scalable* application gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"

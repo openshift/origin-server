@@ -535,15 +535,17 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
       unresponsive_servers.each do |server|
         if available_servers[server] != 'NONE'
           begin
+            deactivated = false
             district = District.find_by_name(available_servers[server])
             district.server_identities.each do |si|
               if si['name'] == server
                 si['unresponsive'] = true
+                deactivated = true unless si['active']
                 district.save!
                 break
               end
             end
-            district.deactivate_node(server)
+            district.deactivate_node(server) unless deactivated
             district.remove_node(server)
             puts "Server: #{server} removed from district: #{available_servers[server]}" if $verbose
           rescue Exception => e
