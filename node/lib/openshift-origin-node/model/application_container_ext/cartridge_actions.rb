@@ -464,10 +464,6 @@ module OpenShift
             return result unless activate_result[:status] == RESULT_SUCCESS
           end
 
-          if options[:report_deployments]
-            report_deployments(gear_env)
-          end
-
           report_build_analytics
 
           # report approaching quota overage.
