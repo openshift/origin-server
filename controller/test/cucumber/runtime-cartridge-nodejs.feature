@@ -43,7 +43,7 @@ Feature: V2 SDK Node.js Cartridge
     Scenarios: RHEL non-SCL
       | nodejs_version |
       |  0.6           |
-      
+
     @fedora-only
     Scenarios: Fedora-19
       | nodejs_version |
