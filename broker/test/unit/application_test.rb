@@ -113,6 +113,25 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.destroy_app
   end
 
+  test "make an application highly available" do
+    @appname = "test"
+    app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+
+    assert app.scalable
+    assert !app.ha
+    assert_equal 1, app.gears.count
+
+    app.make_ha
+    app.reload
+    assert app.ha
+    assert_equal 2, app.gears.count
+    assert app.gears.all?{ |g| g.sparse_carts.length == 1 }
+    assert_equal [app.component_instances.detect{ |i| i.cartridge.is_web_proxy? }._id], app.gears.map(&:sparse_carts).flatten.uniq
+
+    app.destroy_app
+  end
+
   test "app config validation" do
     @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)

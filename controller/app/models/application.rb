@@ -1883,46 +1883,41 @@ class Application
     return gears
   end
 
-  def add_sparse_cart?(index, sparse_carts_added_count, comp_spec, is_scale_up)
-    ci = self.component_instances.where(component_name: comp_spec.name).detect{ |c| c.cartridge_name == comp_spec.cartridge.name }
-    gi = ci.group_instance rescue nil
-    cur_gears =0
-    if is_scale_up
-      cur_gears = ci.gears.length rescue 0
+  def add_sparse_cart?(index, sparse_carts_added_count, spec, is_scale_up)
+    gears = sparse_carts_added_count
+    total = index + 1
+    if is_scale_up && (ci = self.find_component_instance_for(spec) rescue nil)
+      gears += ci.gears.length
+      total += ci.group_instance.gears.length
     end
-    cur_gears += sparse_carts_added_count
-    cur_total_gears =0
-    if is_scale_up
-      cur_total_gears = gi.gears.length rescue 0
-    end
-    cur_total_gears += (index+1)
 
-    comp = comp_spec.component
+    comp = spec.component
     unless comp.is_sparse?
-      if gi and gi.max
-        if cur_total_gears > gi.max and gi.max>0
+      if spec.respond_to?(:max_gears)
+        if total > spec.max_gears && gi.max_gears > 0
           return false
         end
-      elsif cur_total_gears > comp.scaling.max and comp.scaling.max!=-1
+      elsif total > comp.scaling.max && comp.scaling.max != -1
         return false
       end
       return true
     end
-    multiplier = ci.multiplier rescue comp.scaling.multiplier
-    min = ci.min rescue comp.scaling.min
-    max = ci.max rescue comp.scaling.max
+
+    multiplier = spec.multiplier rescue comp.scaling.multiplier
+    min = spec.min_gears rescue comp.scaling.min
+    max = spec.max_gears rescue comp.scaling.max
 
     # check on min first
-    return true if cur_gears<min
+    return true if gears < min
 
     # if min is met, but multiplier is infinite, return false
     return false if multiplier <= 0
 
     # for max, and cases where multiplier has been changed in apps mid-life
-    should_be_sparse_cart_count = [cur_total_gears/multiplier, (max==-1 ? (cur_total_gears/multiplier) : max)].min
-    return true if cur_gears < should_be_sparse_cart_count
+    should_be_sparse_cart_count = [total/multiplier, (max==-1 ? (total/multiplier) : max)].min
+    return true if gears < should_be_sparse_cart_count
 
-    return false
+    false
   end
 
   def calculate_add_component_ops(comp_specs, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil, app_dns_gear_id=nil)
