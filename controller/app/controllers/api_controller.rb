@@ -39,6 +39,9 @@ class ApiController < BaseController
         Param.new(":name", "string", "Name of the application", nil, []),
       ]),
       "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
+      "SHOW_CARTRIDGE"  => Link.new("Retrieve a cartridge by name", "GET", URI::join(get_url, "cartridge/:id"), [
+        Param.new(":id", "string", "Name of the cartridge", nil, [])
+      ]),
     }
 
     links.merge!({

@@ -15,6 +15,11 @@ class CartridgesController < BaseController
   # Action: GET
   # @return [RestReply<RestCartridge>] Cartridge Object
   def show
+    id = params[:id].presence
+    if id
+      c = CartridgeCache.find_cartridge(id)
+      return render_success(:ok, "cartridge", get_rest_cartridge(c), "Cartridge #{id} found") if c
+    end
     index
   end
 
