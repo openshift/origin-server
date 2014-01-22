@@ -5,7 +5,7 @@ Display-Name: 10gen Mongo Monitoring Service Agent
 Description: MongoDB Monitoring Service (MMS) instruments MongoDB and provides information
   about current and historical operational metrics of your system.
 Version: '0.1'
-License-Url: https://mms.10gen.com/links/terms-of-service
+License-Url: https://mms.mongodb.com/links/terms-of-service
 Cartridge-Version: 0.0.4
 Compatible-Versions:
 - 0.0.1
@@ -16,9 +16,9 @@ Vendor: 10gen.com
 Categories:
 - embedded
 - database-support
-Website: https://mms.10gen.com/
+Website: https://mms.mongodb.com/
 Help-Topics:
-  MMS Manual: https://mms.10gen.com/help/
+  MMS Manual: https://mms.mongodb.com/help/
 Cart-Data:
 - Key: monitoring_url
   Type: cart_data
