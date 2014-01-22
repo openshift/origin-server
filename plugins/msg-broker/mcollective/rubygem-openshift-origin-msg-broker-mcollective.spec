@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.19.10
+Version: 1.19.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,17 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.11-1
+- Merge pull request #4551 from pravisankar/dev/ravi/bug1049626
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1049626 - Only allow gear move between districted nodes Rationale:
+  districted to non-districted nodes not allowed: gear uids on non-districted
+  nodes may not be in the range of uids supported by the district between non-
+  districted nodes not allowed:: gear uids are not set in mongo and we can not
+  guarantee same uid for both source and destination (rpenta@redhat.com)
+- Bug 1055878: calling tidy once per gear instead of per gear per cart
+  (abhgupta@redhat.com)
+
 * Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.19.10-1
 - Merge pull request #4531 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
