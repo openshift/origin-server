@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.13
+Version: 1.19.14
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,20 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.14-1
+- Adding gem to ignore list (dmcphers@redhat.com)
+- Rebalancing cartridge tests (dmcphers@redhat.com)
+- Add API for getting a single cartridge (lnader@redhat.com)
+- Merge pull request #4551 from pravisankar/dev/ravi/bug1049626
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4543 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Rebalancing cartridge extended tests (dmcphers@redhat.com)
+- Bug 1056178 - Add useful error message during node removal from district
+  (rpenta@redhat.com)
+- Bug 1055878: calling tidy once per gear instead of per gear per cart
+  (abhgupta@redhat.com)
+
 * Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.19.13-1
 - Add more tests around downloadable cartridges (ccoleman@redhat.com)
 - Merge pull request #4531 from abhgupta/abhgupta-dev
