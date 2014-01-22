@@ -1106,25 +1106,22 @@ module OpenShift
       #
       # INPUTS:
       # * gear: a Gear object
-      # * cart: a Cartridge object
       #
       # RETURNS:
       # * String: stdout from a command
       #
       # NOTES
-      # * calls the 'tidy' hook on a Gear or app?
-      # * doesn't use cart input
+      # * calls the 'tidy' hook on a Gear
       # * calls execute_direct
       #
-      def tidy(gear, component)
+      def tidy(gear)
         args = build_base_gear_args(gear)
         result = execute_direct(@@C_CONTROLLER, 'tidy', args)
         parse_result(result)
       end
 
-      def get_tidy_job(gear, component)
+      def get_tidy_job(gear)
         args = build_base_gear_args(gear)
-        args = build_base_component_args(component, args)
         RemoteJob.new('openshift-origin-node', 'tidy', args)
       end
 
