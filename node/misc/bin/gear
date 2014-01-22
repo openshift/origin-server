@@ -190,8 +190,8 @@ command :postreceive do |c|
                                          report_deployments: true,
                                          all: true,
                                          init: options.init)
-
-        puts "Result: #{result[:status]}"
+        puts "-------------------------"
+        puts "Git Post-Receive Result: #{result[:status]}"
 
         if distribute_result = result[:distribute_result] and not distribute_result[:gear_results].empty?
           distribute_status = distribute_result[:status]
