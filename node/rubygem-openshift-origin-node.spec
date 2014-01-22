@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.13
+Version: 1.19.14
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,17 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.14-1
+- Merge pull request #4547 from pmorie/bugs/1055653
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1055653 and improve post-receive output readability
+  (pmorie@gmail.com)
+- Just use an empty list to lock only the container (dmcphers@redhat.com)
+- Merge pull request #4540 from fabianofranz/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1055961 - 'gear activate' must validate deployment id
+  (contact@fabianofranz.com)
+
 * Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.19.13-1
 - Fix test cases (dmcphers@redhat.com)
 - Merge pull request #4536 from danmcp/bug982921
