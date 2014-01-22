@@ -27,6 +27,13 @@ The locations for the source code of this document and the `oo-install` utility 
 == Before You Begin
 This section covers some topics that will help you to have a successful OpenShift deployment. If you have jumped straight in with https://install.openshift.com/ and are having problems, look over this section to make sure you've got the basics covered.
 
+=== The Base OS Setup
+When you install Fedora, Red Hat Enterprise Linux or CentOS, you will be given the option to select a starting set of packages:
+
+image:os_minimal_install.png[image]
+
+*Be sure to select the "Minimal" installation.* This will ensure that the system does not contain any package incompatibilities with OpenShift.
+
 === Utility Prerequisites
 This section explains the utilities that you will need to install on the various hosts that may be involved in your OpenShift installation. Install these before you run `oo-install` to avoid having to go back and set them up later.
 
@@ -73,9 +80,12 @@ If you are installing OpenShift Origin, you will also need to install the follow
 
 * On all target hosts:
 ** http://puppetlabs.com/[puppet]
+** augtool
 * On your Broker host:
 ** dnssec-keygen
 ** htpasswd
+
+NOTE: Additionally you will need to _remove_ `firewalld`. Origin uses a proxy that is incompatible with firewalld.
 
 *OpenShift Origin on RHEL and Derivatives* +
 If you are installing OpenShift Origin on RHEL6 or a derivative distribution (such as CentOS, Scientific Linux, etc.), you will need to set up two additional requirements on those host systems:
