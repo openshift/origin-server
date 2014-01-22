@@ -1230,15 +1230,19 @@ module MCollective
         cart_name = request[:cartridge]
 
         begin
-          container = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
-          cartridge = container.get_cartridge(cart_name)
-          reply[:output] = (not cartridge.nil?)
+          container        = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
+          cartridge        = container.get_cartridge(cart_name)
+          reply[:output]   = (not cartridge.nil?)
+          reply[:exitcode] = 0
+        rescue RuntimeError
+          Log.instance.error e.message
+          reply[:output]   = false
           reply[:exitcode] = 0
         rescue Exception => e
           report_exception e
           Log.instance.error e.message
           Log.instance.error e.backtrace.join("\n")
-          reply[:output] = false
+          reply[:output]   = false
           reply[:exitcode] = 1
         end
         reply
