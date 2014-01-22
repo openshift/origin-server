@@ -562,6 +562,10 @@ class Application
     overrides
   end
 
+  ##
+  # An available application has an implicit override to have 2 minimum web gears,
+  # and 2 sparse web proxy components on those gears.
+  #
   def implicit_available_overrides(specs)
     overrides = []
 
@@ -572,15 +576,26 @@ class Application
 
     # ensure the proxy has the appropriate min scale and multiplier
     if proxy = specs.find{ |i| i.cartridge.is_web_proxy? }
-      overrides << GroupOverride.new([ComponentOverrideSpec.new(proxy.dup, 2, -1, 1).merge(proxy)]).implicit
+      overrides << GroupOverride.new([ComponentOverrideSpec.new(proxy.dup, 2, -1, Rails.configuration.openshift[:default_ha_multiplier] || 1).merge(proxy)]).implicit
     end
     overrides
   end
 
+  ##
+  # A non-scalable application has an implicit override for all components to be
+  # located on the same gear. 
+  #
   def implicit_non_scalable_overrides(specs)
     [GroupOverride.new(specs.dup, nil, 1).implicit]
   end
 
+  ##
+  # Return the full list of overrides, implicit and explicit,
+  # defined on this application.  These overrides are mutable.
+  #
+  # If specs is passed, only the override rules that apply
+  # to that new list of specs (components) will be returned.
+  #
   def application_overrides(specs=nil)
     specs ||= component_instances.map(&:to_component_spec)
 
@@ -596,31 +611,22 @@ class Application
     overrides
   end
 
+  ##
+  # Return all of the group overrides persisted on the application. These
+  # overrides are mutable.  Use application_overrides when you need to
+  # see the effective overrides.
+  #
   def group_instance_overrides
     group_instances.map{ |g| GroupOverride.for_instance(g) }
   end
 
+  ##
+  # Return one override for each group instance, containing the effective rules
+  # for that instance.  The instance member points to the group_instance that
+  # controls the override.
+  #
   def group_instances_with_overrides
     GroupOverride.reduce_to(group_instance_overrides, application_overrides)
-  end
-
-  ##
-  # Retrieve the list of {GroupInstance} objects along with min and max gear specifications from group overrides
-  # @return [Array<GroupInstance>]
-  def group_instances_with_scale
-    self.group_instances.map do |group_instance|
-      override_spec = group_instance.get_group_override
-      group_instance.min = override_spec.min_gears
-      group_instance.max = override_spec.max_gears
-      group_instance.min = group_instance.component_instances.map { |ci| ci.min }.max if group_instance.min.nil?
-      group_instance.min = group_instance.sparse_instances.map { |ci| ci.min }.max if group_instance.min.nil?
-      if group_instance.max.nil?
-        max = group_instance.component_instances.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min
-        max = group_instance.sparse_instances.map { |ci| ci.max==-1 ? MAX_SCALE_NUM : ci.max }.min if max.nil?
-        group_instance.max = (max==MAX_SCALE_NUM ? -1 : max)
-      end
-      group_instance
-    end
   end
 
   def validate_cartridge_instances!(cartridges)
@@ -957,10 +963,10 @@ class Application
   def scale_by(group_instance_id, scale_by)
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
 
-    ginst = group_instances_with_scale.select {|gi| gi._id == group_instance_id}.first
-    current = ginst.gears.length
-    raise OpenShift::UserException.new("Cannot scale down below gear limit of #{ginst.min}.", 168) if (current+scale_by) < ginst.min
-    raise OpenShift::UserException.new("Cannot scale up above maximum gear limit of #{ginst.max}.", 168) if (scale_by > 0) && (current+scale_by) > ginst.max && ginst.max != -1
+    override = group_instances_with_overrides.detect{ |i| i.instance._id === group_instance_id}
+    current = override.instance.gears.length
+    raise OpenShift::UserException.new("Cannot scale down below gear limit of #{override.min_gears}.", 168) if (current+scale_by) < override.min_gears
+    raise OpenShift::UserException.new("Cannot scale up above maximum gear limit of #{override.max_gears}.", 168) if (scale_by > 0) && (current+scale_by) > override.max_gears && override.max_gears != -1
 
     Application.run_in_application_lock(self) do
       op_group = ScaleOpGroup.new(group_instance_id: group_instance_id, scale_by: scale_by, user_agent: self.user_agent)
@@ -2642,8 +2648,8 @@ class Application
   def get_app_scaling_limits
     web_cart = web_cartridge or return [1, 1]
     component_instance = self.component_instances.find_by(cartridge_name: web_cart.name)
-    group_instance = group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
-    [group_instance.min, group_instance.max]
+    group_instance = group_instances_with_overrides.detect{ |i| i.instance.all_component_instances.include? component_instance }
+    [group_instance.min_gears, group_instance.max_gears]
   end
 
   def self.validate_user_env_variables(user_env_vars, no_delete=false)

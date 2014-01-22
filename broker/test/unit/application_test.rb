@@ -301,7 +301,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal 200, resp.status
 
     component_instance = app.component_instances.find_by(cartridge_name: ruby_version)
-    group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
+    assert group_instance = app.group_instances.detect{ |i| i.all_component_instances.include? component_instance }
     resp = rest_check(:get, "/gear_groups/#{group_instance._id.to_s}", { })
     assert_equal resp.status, 200
 

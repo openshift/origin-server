@@ -67,7 +67,8 @@
 class RestGearGroup < OpenShift::Model
   attr_accessor :id, :name, :gear_profile, :cartridges, :gears, :scales_from, :scales_to, :base_gear_storage, :additional_gear_storage
 
-  def initialize(group_instance, gear_states = {}, app, url, nolinks, include_endpoints)
+  def initialize(override, gear_states = {}, app, url, nolinks, include_endpoints)
+    group_instance = override.instance
     self.id         = group_instance._id.to_s
     self.name         = self.id
     self.gear_profile = group_instance.gear_size

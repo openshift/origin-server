@@ -67,11 +67,12 @@
 class RestGearGroup15 < OpenShift::Model
   attr_accessor :uuid, :name, :gear_profile, :cartridges, :gears, :scales_from, :scales_to, :base_gear_storage, :additional_gear_storage
 
-  def initialize(group_instance, gear_states = {}, app, url, nolinks)
+  def initialize(override, gear_states = {}, app, url, nolinks)
+    group_instance = override.instance
     self.uuid         = group_instance._id.to_s
     self.name         = self.uuid
     self.gear_profile = group_instance.gear_size
-    self.gears        = group_instance.gears.map{ |gear| 
+    self.gears        = group_instance.gears.map{ |gear|
       { :id => gear.uuid, 
         :state => gear_states[gear.uuid] || 'unknown', 
         :ssh_url => "ssh://#{app.ssh_uri(gear.app_dns ? nil: gear.uuid)}",
