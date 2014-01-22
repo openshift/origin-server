@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.19.9
+Version: 1.19.10
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -99,6 +99,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.10-1
+- Bug 1056178 - Add useful error message during node removal from district
+  (rpenta@redhat.com)
+
 * Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
 - Bug 1040113: Handling edge cases in cleaning up downloaded cart map Also,
   fixing a couple of minor issues (abhgupta@redhat.com)
