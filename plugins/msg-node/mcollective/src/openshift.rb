@@ -162,7 +162,7 @@ module MCollective
       #
       def report_quota(buffer, uuid)
         watermark = @@config.get('QUOTA_WARNING_PERCENT', '90.0').to_f
-        ::OpenShift::Runtime::Node.check_quotas(uuid, watermark).each do |line|                                                                                         i
+        ::OpenShift::Runtime::Node.check_quotas(uuid, watermark).each do |line|
           buffer << "\nCLIENT_MESSAGE: #{line}\n"
         end
       end
