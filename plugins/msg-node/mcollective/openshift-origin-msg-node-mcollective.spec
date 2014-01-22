@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.19.6
+Version: 1.19.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,9 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
+- Bug 1056480 - Removed random character in code (jhonce@redhat.com)
+
 * Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.19.6-1
 - Merge pull request #4534 from jwhonce/bug/1054825
   (dmcphers+openshiftbot@redhat.com)
