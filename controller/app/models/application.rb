@@ -1633,6 +1633,7 @@ class Application
   def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size,
                                 prereq_op=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil, user_env_vars=nil)
     pending_ops = []
+    track_usage_ops = []
 
     gear_id_prereqs = {}
     maybe_notify_app_create_op = []
@@ -1661,7 +1662,7 @@ class Application
       # we are assuming that haproxy will also be added to this gear
       create_gear_op.sshkey_required = app_dns && self.scalable
 
-      track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id:
+      track_usage_ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id:
                            self.domain.owner.parent_user_id, app_name: self.name, gear_id: gear_id,
                            event: UsageRecord::EVENTS[:begin], usage_type: UsageRecord::USAGE_TYPES[:gear_usage],
                            gear_size: gear_size, prereq: [create_gear_op._id.to_s])
@@ -1671,7 +1672,6 @@ class Application
       pending_ops.push(init_gear_op)
       pending_ops.push(reserve_uid_op)
       pending_ops.push(create_gear_op)
-      pending_ops.push(track_usage_op)
       pending_ops.push(register_dns_op)
 
       if additional_filesystem_gb != 0
@@ -1679,11 +1679,10 @@ class Application
                                    addtl_fs_gb: additional_filesystem_gb, saved_addtl_fs_gb: 0)
         pending_ops.push(fs_op)
 
-        track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+        track_usage_ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                                              app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin],
                                              usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
                                              additional_filesystem_gb: additional_filesystem_gb, prereq: [fs_op._id.to_s])
-        pending_ops.push(track_usage_fs_op)
       end
 
       gear_id_prereqs[gear_id] = register_dns_op._id.to_s
@@ -1713,12 +1712,13 @@ class Application
     end
 
     prereq_op_id = prereq_op._id.to_s rescue nil
-    ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, 
+    ops, usage_ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, 
                                       is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url, 
                                       app_dns_gear_id)
     pending_ops.push(*ops)
+    track_usage_ops.push(*usage_ops)
 
-    pending_ops
+    [pending_ops, track_usage_ops]
   end
 
   def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb)
@@ -1858,6 +1858,7 @@ class Application
 
   def calculate_add_component_ops(comp_specs, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil, app_dns_gear_id=nil)
     ops = []
+    usage_ops = []
 
     comp_specs.each do |comp_spec|
       component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: [], expose_ports: [], add_broker_auth_keys: []} if component_ops[comp_spec].nil?
@@ -1896,6 +1897,7 @@ class Application
         # in case of deployable carts, the post-configure op is executed at the end
         # to ensure this, it is removed from the prerequisite list for any other pending_op
         # to avoid issues, pending_ops should not depend ONLY on post-configure op to manage execution order
+        post_configure_op = nil
         unless (gear_id != app_dns_gear_id) and cartridge.is_deployable?
           post_configure_op = PostConfigureCompOp.new(gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, prereq: [add_component_op._id.to_s] + [prereq_id])
           ops.push post_configure_op
@@ -1903,19 +1905,25 @@ class Application
           usage_op_prereq += [post_configure_op._id.to_s]
         end
 
-        ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+        usage_ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
           app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin], cart_name: comp_spec["cart"],
-          usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: usage_op_prereq)) if cartridge.is_premium?
+          usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: usage_op_prereq) if cartridge.is_premium?
 
         if self.scalable
-          op = ExposePortOp.new(gear_id: gear_id, comp_spec: comp_spec, prereq: usage_op_prereq + [prereq_id])
+          expose_port_prereq = []
+          if post_configure_op
+            expose_port_prereq << post_configure_op._id.to_s 
+          else
+            expose_port_prereq << add_component_op._id.to_s
+          end
+          op = ExposePortOp.new(gear_id: gear_id, comp_spec: comp_spec, prereq: expose_port_prereq + [prereq_id])
           component_ops[comp_spec][:expose_ports].push op
           ops.push op
         end
       end
     end
 
-    ops
+    [ops, usage_ops]
   end
 
   def calculate_remove_component_ops(comp_specs)
@@ -1955,6 +1963,7 @@ class Application
     add_gears = 0
     remove_gears = 0
     pending_ops = []
+    begin_usage_ops = []
     start_order, stop_order = calculate_component_orders
 
     unless group_overrides.nil?
@@ -1989,9 +1998,10 @@ class Application
         deploy_gear_id = nil
       end
 
-      ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb,
+      ops, track_usage_ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb,
                                       gear_size, set_group_override_op, false, app_dns_ginst, init_git_url, user_env_vars)
       pending_ops.push(*ops)
+      begin_usage_ops.push(*track_usage_ops)
     end
 
     moves.each do |move|
@@ -2037,23 +2047,24 @@ class Application
 
           gear_id_prereqs = {}
           group_instance.gears.each{|g| gear_id_prereqs[g._id.to_s] = []}
-          ops = calculate_add_component_ops(change[:added], change[:from], deploy_gear_id, gear_id_prereqs, component_ops, false, user_vars_op_id, nil)
+          ops, usage_ops = calculate_add_component_ops(change[:added], change[:from], deploy_gear_id, gear_id_prereqs, component_ops, false, user_vars_op_id, nil)
           pending_ops.push(*ops)
+          begin_usage_ops.push(*usage_ops)
 
           changed_additional_filesystem_gb = nil
           #add/remove fs space from existing gears
           if change[:from_scale][:additional_filesystem_gb] != change[:to_scale][:additional_filesystem_gb]
             changed_additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb]
-            usage_prereq = []
-            usage_prereq = [pending_ops.last._id.to_s] if pending_ops.last
-            usage_ops = []
+            fs_prereq = []
+            fs_prereq = [pending_ops.last._id.to_s] if pending_ops.present?
+            end_usage_op_ids = [] 
             if change[:from_scale][:additional_filesystem_gb] != 0
               group_instance.gears.each do |gear|
                 track_usage_old_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                   app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end],
                   usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
-                  additional_filesystem_gb: change[:from_scale][:additional_filesystem_gb], prereq: usage_prereq)
-                usage_ops.push(track_usage_old_fs_op._id.to_s)
+                  additional_filesystem_gb: change[:from_scale][:additional_filesystem_gb], prereq: fs_prereq)
+                end_usage_op_ids.push(track_usage_old_fs_op._id.to_s)
                 pending_ops.push(track_usage_old_fs_op)
               end
             end
@@ -2061,15 +2072,14 @@ class Application
               fs_op = SetAddtlFsGbOp.new(gear_id: gear._id.to_s,
                   addtl_fs_gb: change[:to_scale][:additional_filesystem_gb],
                   saved_addtl_fs_gb: change[:from_scale][:additional_filesystem_gb],
-                  prereq: (usage_ops.empty? ? usage_prereq : usage_ops))
+                  prereq: (end_usage_op_ids.empty? ? fs_prereq : end_usage_op_ids))
               pending_ops.push(fs_op)
 
               if change[:to_scale][:additional_filesystem_gb] != 0
-                track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+                begin_usage_ops.push TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                   app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:begin],
                   usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
                   additional_filesystem_gb: change[:to_scale][:additional_filesystem_gb], prereq: [fs_op._id.to_s])
-                pending_ops.push(track_usage_fs_op)
               end
             end
           end
@@ -2082,9 +2092,10 @@ class Application
             additional_filesystem_gb = changed_additional_filesystem_gb || group_instance.addtl_fs_gb
             gear_size = change[:to_scale][:gear_size] || group_instance.gear_size
 
-            ops = calculate_gear_create_ops(change[:from], gear_ids, deploy_gear_id, comp_specs, component_ops,
+            ops, track_usage_ops = calculate_gear_create_ops(change[:from], gear_ids, deploy_gear_id, comp_specs, component_ops,
                                             additional_filesystem_gb, gear_size, nil, true, false, nil, user_env_vars)
             pending_ops.push *ops
+            begin_usage_ops.push *track_usage_ops
           end
 
           if scale_change < 0
@@ -2117,7 +2128,6 @@ class Application
     end
 
     unless pending_ops.empty? or ((pending_ops.length == 1) and (pending_ops[0].class == SetGroupOverridesOp))
-
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
       execute_connection_op = ExecuteConnectionsOp.new(prereq: all_ops_ids)
       pending_ops.push execute_connection_op
@@ -2143,9 +2153,14 @@ class Application
       pending_ops.push update_cluster_op
     end
 
-    # push begin track usage ops to the end
-    reorder_usage_ops(pending_ops)
-
+    # track begin usage ops after update-cluster/execute-connections op
+    unless begin_usage_ops.empty?
+      begin_usage_prereq = []
+      begin_usage_prereq.push pending_ops.last._id.to_s if pending_ops.present?
+      begin_usage_ops.each {|op| op.prereq += begin_usage_prereq }
+      pending_ops.push *begin_usage_ops
+    end
+    
     [pending_ops, add_gears, remove_gears]
   end
 
@@ -2669,26 +2684,6 @@ class Application
     computed_stop_order = computed_stop_order.select { |co| not co.nil? }
 
     [computed_start_order, computed_stop_order]
-  end
-
-  def reorder_usage_ops(pending_ops)
-    op_ids = []
-    begin_usage_op_ids = []
-    pending_ops.each do |op|
-      if op.kind_of?(TrackUsageOp) and (op.event != UsageRecord::EVENTS[:end])
-        begin_usage_op_ids << op._id.to_s
-      else
-        op_ids << op._id.to_s
-      end
-    end
-    pending_ops.each do |op|
-      if begin_usage_op_ids.include?(op._id.to_s)
-        op.prereq += op_ids
-        op.prereq.uniq!
-      else
-        op.prereq.delete_if {|id| begin_usage_op_ids.include?(id)}
-      end
-    end unless begin_usage_op_ids.empty?
   end
 
   # Gets a feature name for the cartridge/component combination
