@@ -129,6 +129,36 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert app.gears.all?{ |g| g.sparse_carts.length == 1 }
     assert_equal [app.component_instances.detect{ |i| i.cartridge.is_web_proxy? }._id], app.gears.map(&:sparse_carts).flatten.uniq
 
+    # scale up, get 1 more php instance
+    app.scale_by(app.group_instances.first._id, 1)
+    app.reload
+    assert_equal 3, app.gears.count
+    assert_equal 2, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+    assert_equal [app.component_instances.detect{ |i| i.cartridge.is_web_proxy? }._id], app.gears.map(&:sparse_carts).flatten.uniq
+
+    # scale down, php instance goes away
+    app.scale_by(app.group_instances.first._id, -1)
+    assert_equal 2, app.gears.count
+    assert_equal 2, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
+    # alter multiplier to 1, expect new haproxy gear
+    stubs_config(:openshift, default_ha_multiplier: 1)
+    app.scale_by(app.group_instances.first._id, 1)
+    assert_equal 3, app.gears.count
+    assert_equal 3, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
+    app.scale_by(app.group_instances.first._id, -1)
+
+    # alter multiplier to 2, expect 4 new php gears
+    stubs_config(:openshift, default_ha_multiplier: 2)
+    app.scale_by(app.group_instances.first._id, 3)
+    assert_equal 5, app.gears.count
+    assert_equal 2, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
+    app.scale_by(app.group_instances.first._id, 1)
+    assert_equal 6, app.gears.count
+    assert_equal 3, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
     app.destroy_app
   end
 

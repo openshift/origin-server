@@ -21,6 +21,20 @@ class ActiveSupport::TestCase
       (@version ||= {})[sym] ||= cartridge_instances_for(sym).first.name
     end
   end
+
+  def stubs_config(sym, with)
+    os = Rails.configuration.openshift
+    Rails.configuration.stubs(sym).returns(os.merge(with))
+  end
+
+  def with_config(sym, value, base=:openshift, &block)
+    c = Rails.configuration.send(base)
+    @old =  c[sym]
+    c[sym] = value
+    yield
+  ensure
+    c[sym] = @old
+  end  
 end
 
 class ActionController::TestCase

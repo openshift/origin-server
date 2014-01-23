@@ -7,15 +7,6 @@ class CartridgeTypeTest < ActiveSupport::TestCase
     Lock.stubs(:unlock_application).returns(true)
   end
 
-  def with_config(sym, value, base=:openshift, &block)
-    c = Rails.configuration.send(base)
-    @old =  c[sym]
-    c[sym] = value
-    yield
-  ensure
-    c[sym] = @old
-  end
-
   def test_create_type
     CartridgeType.where(:name => 'mock').delete
 

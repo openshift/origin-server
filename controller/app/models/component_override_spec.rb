@@ -122,6 +122,6 @@ class ComponentOverrideSpec < SimpleDelegator
     def apply(min_gears, max_gears=nil, multiplier=nil)
       @min_gears = GroupOverride.integer_range(:max, 1, @min_gears, (Integer(min_gears) rescue nil))
       @max_gears = GroupOverride.integer_range(:min, nil, @max_gears, (Integer(max_gears) rescue nil))
-      @multiplier = GroupOverride.integer_range(:max, 1, @multiplier, (Integer(multiplier) rescue nil))
+      @multiplier = GroupOverride.integer_range(:max, 0, @multiplier, (Integer(multiplier) rescue nil))
     end
 end

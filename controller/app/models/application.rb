@@ -576,7 +576,7 @@ class Application
 
     # ensure the proxy has the appropriate min scale and multiplier
     if proxy = specs.find{ |i| i.cartridge.is_web_proxy? }
-      overrides << GroupOverride.new([ComponentOverrideSpec.new(proxy.dup, 2, -1, Rails.configuration.openshift[:default_ha_multiplier] || 1).merge(proxy)]).implicit
+      overrides << GroupOverride.new([ComponentOverrideSpec.new(proxy.dup, 2, -1, Rails.configuration.openshift[:default_ha_multiplier] || 0).merge(proxy)]).implicit
     end
     overrides
   end
@@ -916,7 +916,8 @@ class Application
     raise OpenShift::UserException.new("Only scalable applications can be made 'HA'") if not self.scalable
     raise OpenShift::UserException.new("Application is already HA") if self.ha
 
-    component_instance = self.component_instances.detect{ |i| i.cartridge.is_web_proxy? }
+    component_instance = self.component_instances.detect{ |i| i.cartridge.is_web_proxy? } or
+      raise OpenShift::UserException.new("Cannot make the application HA because there is no web cartridge.")
     raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.get_group_override('max_gears')==1
 
     Application.run_in_application_lock(self) do
