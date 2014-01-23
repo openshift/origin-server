@@ -440,6 +440,11 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     gear_registry = mock()
     @container.expects(:gear_registry).returns(gear_registry).at_least_once
 
+    @container.expects(:run_in_container_context).with("rsync -aAX --rsh=/usr/bin/oo-ssh /var/lib/openshift/#{@gear_uuid}/.openshift_ssh/id_rsa{,.pub} #{@gear_uuid.to_i + 2}@node1.example.com:.openshift_ssh/",
+                                                            env: gear_env,
+                                                            chdir: @container.container_dir,
+                                                            expected_exitstatus: 0)
+
     uuid1 = @container.uuid
     gear1 = {
       uuid: uuid1,

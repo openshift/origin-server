@@ -108,8 +108,8 @@ class Gear
     self.uid = nil
   end
 
-  def create_gear
-    result_io = get_proxy.create(self)
+  def create_gear(sshkey_required=false)
+    result_io = get_proxy.create(self, nil, nil, sshkey_required)
     application.process_commands(result_io, nil, self)
     result_io
   end

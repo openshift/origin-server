@@ -329,7 +329,7 @@ module OpenShift
         end
       end
 
-      def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil)
+      def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
         app = gear.application
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -338,6 +338,7 @@ module OpenShift
         args['--with-container-name'] = gear.name
         args['--with-quota-blocks'] = quota_blocks if quota_blocks
         args['--with-quota-files'] = quota_files if quota_files
+        args['--with-generate-app-key'] = sshkey_required if sshkey_required
         args['--with-namespace'] = app.domain_namespace
         args['--with-uid'] = gear.uid if gear.uid
         args['--with-request-id'] = Thread.current[:user_action_log_uuid]
@@ -380,11 +381,11 @@ module OpenShift
       # Constructs a shell command line to be executed by the MCollective agent
       # on the node.
       #
-      def create(gear, quota_blocks=nil, quota_files=nil)
+      def create(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
         app = gear.application
         result = nil
         (1..10).each do |i|
-          args = build_base_gear_args(gear, quota_blocks, quota_files)
+          args = build_base_gear_args(gear, quota_blocks, quota_files, sshkey_required)
 
           # set the secret token for new gear creations
           # log an error if the application does not have its secret_token set

@@ -1656,6 +1656,10 @@ class Application
       reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
 
       create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
+      # this flag is passed to the node to indicate that an sshkey is required to be generated for this gear
+      # currently the sshkey is being generated on the app dns gear if the application is scalable
+      # we are assuming that haproxy will also be added to this gear
+      create_gear_op.sshkey_required = app_dns && self.scalable
 
       track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id:
                            self.domain.owner.parent_user_id, app_name: self.name, gear_id: gear_id,

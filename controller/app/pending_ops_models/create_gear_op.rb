@@ -1,11 +1,12 @@
 class CreateGearOp < PendingAppOp
 
   field :gear_id, type: String
+  field :sshkey_required, type: Boolean, default: false
 
   def execute
     result_io = ResultIO.new
     gear = get_gear()
-    result_io = gear.create_gear unless gear.removed
+    result_io = gear.create_gear(sshkey_required) unless gear.removed
     raise OpenShift::NodeException.new("Unable to create gear", result_io.exitcode, result_io) if result_io.exitcode != 0
     pending_app_op_group.inc(:num_gears_created, 1)
     result_io
