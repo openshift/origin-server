@@ -9,8 +9,8 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.13
-Release:       2%{?dist}
+Version: 1.19.14
+Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://openshift.redhat.com
@@ -144,6 +144,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.14-1
+- bump console Release to test build scripts for chainbuild case
+  (admiller@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.13-1
 - bump console Release to test build scripts for chainbuild case
   (admiller@redhat.com)
