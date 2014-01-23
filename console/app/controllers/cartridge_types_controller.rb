@@ -25,6 +25,8 @@ class CartridgeTypesController < ConsoleController
     url = params[:url].presence
     @wizard = !params[:direct].present?
 
+    url = "http://#{url}" if url and (URI.parse(url).scheme rescue nil).blank?
+
     @application = Application.find(params[:application_id], :as => current_user)
     @capabilities = @application.domain.capabilities
     @cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.cached.find(name)
