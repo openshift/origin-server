@@ -178,6 +178,8 @@ module OpenShift
           FileUtils.touch(known_hosts)
           FileUtils.touch(ssh_config)
 
+          set_rw_permission_R(ssh_dir)
+
           FileUtils.chmod(0600, [ssh_key, ssh_public_key])
           FileUtils.chmod(0660, [known_hosts, ssh_config])
 
