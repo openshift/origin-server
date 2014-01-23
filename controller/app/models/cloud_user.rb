@@ -452,7 +452,7 @@ class CloudUser
         begin
           op.execute
         rescue Exception => e
-          Rails.logger.error "Error #{ex.message} #{e.backtrace}"
+          Rails.logger.error "Error #{e.message} #{e.backtrace}"
           raise Exception.new("Exception thrown in execution of job #{op.class} for user #{op.cloud_user.login} error: #{e.message}")
         end
         # reloading the op reloads the cloud_user and then incorrectly reloads (potentially)

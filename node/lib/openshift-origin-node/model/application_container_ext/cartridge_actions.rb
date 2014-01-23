@@ -464,10 +464,6 @@ module OpenShift
             return result unless activate_result[:status] == RESULT_SUCCESS
           end
 
-          if options[:report_deployments]
-            report_deployments(gear_env)
-          end
-
           report_build_analytics
 
           # report approaching quota overage.
@@ -829,6 +825,12 @@ module OpenShift
 
         # Activates a remote gear
         #
+        # options: hash
+        #   :deployment_id : the id of the deployment to activate (required)
+        #   :post_install  : if true, run post_install after post-deploy (i.e. for a new gear on scale up)
+        #   :out           : an IO to which any stdout should be written (default: nil)
+        #   :err           : an IO to which any stderr should be written (default: nil)
+        #
         # @param [OpenShift::Runtime::GearRegistry::Entry] gear the remote gear to activate
         # @param [Hash] gear_env the environment for the local gear
         # @param [Hash] options activation options
@@ -980,7 +982,7 @@ module OpenShift
             deployment_metadata.save
 
             if options[:report_deployments] && gear_env['OPENSHIFT_APP_DNS'] == gear_env['OPENSHIFT_GEAR_DNS']
-              report_deployments(gear_env)
+              report_deployments(gear_env, out: options[:out])
             end
 
             result[:status] = RESULT_SUCCESS
@@ -1250,7 +1252,12 @@ module OpenShift
           out,err,rc = run_in_container_context(quota_cmd)
           raise "ERROR: Error fetching quota (#{rc}): #{quota_cmd.squeeze(" ")} stdout: #{out} stderr: #{err}" unless rc == 0
           buffer << out
-          buffer << @cartridge_model.do_control("status", cart_name)
+          begin
+            buffer << @cartridge_model.do_control("status", cart_name)
+          rescue ::OpenShift::Runtime::Utils::ShellExecutionException => shell_ex
+            # catch the exception. Nonzero exit code may also be a valid status message.
+            buffer << "ERROR: Non-zero exitcode returned while executing 'status' command on cartridge. Error code : #{shell_ex.rc}. Stdout : #{shell_ex.stdout}. Stderr : #{shell_ex.stderr}"
+          end
           buffer
         end
 

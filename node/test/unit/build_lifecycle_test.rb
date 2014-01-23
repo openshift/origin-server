@@ -1619,7 +1619,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     metadata.expects(:record_activation)
     metadata.expects(:save)
 
-    @container.expects(:report_deployments).with(gear_env)
+    @container.expects(:report_deployments).with(gear_env, out:nil)
 
     result = @container.activate_local_gear(activate_options)
     assert_equal 'success', result[:status]

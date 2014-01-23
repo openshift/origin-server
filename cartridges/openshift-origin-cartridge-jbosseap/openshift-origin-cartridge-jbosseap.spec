@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.12.6
+Version: 2.12.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,10 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 2.12.7-1
+- Bug 1055646 - [new relic] JBossAS cart restart fails if kill -TERM is called
+  when process has already terminated (bparees@redhat.com)
+
 * Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 2.12.6-1
 - Merge pull request #4486 from bparees/maven_args
   (dmcphers+openshiftbot@redhat.com)

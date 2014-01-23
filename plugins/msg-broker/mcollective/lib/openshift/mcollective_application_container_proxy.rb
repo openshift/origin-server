@@ -1101,25 +1101,22 @@ module OpenShift
       #
       # INPUTS:
       # * gear: a Gear object
-      # * cart: a Cartridge object
       #
       # RETURNS:
       # * String: stdout from a command
       #
       # NOTES
-      # * calls the 'tidy' hook on a Gear or app?
-      # * doesn't use cart input
+      # * calls the 'tidy' hook on a Gear
       # * calls execute_direct
       #
-      def tidy(gear, component)
+      def tidy(gear)
         args = build_base_gear_args(gear)
         result = execute_direct(@@C_CONTROLLER, 'tidy', args)
         parse_result(result)
       end
 
-      def get_tidy_job(gear, component)
+      def get_tidy_job(gear)
         args = build_base_gear_args(gear)
-        args = build_base_component_args(component, args)
         RemoteJob.new('openshift-origin-node', 'tidy', args)
       end
 
@@ -1873,6 +1870,13 @@ module OpenShift
         if source_container.id == destination_container.id
           log_debug "Cannot move a gear within the same node. The source container and destination container are the same."
           raise OpenShift::UserException.new("Error moving gear. Destination container same as source container.", 1)
+        end
+
+        # Only allow gear move between districted nodes
+        # Move from districted to non-districted nodes and vice versa not allowed: gear uids on non-districted nodes may not be in the range of uids supported by the district
+        # Move between non-districted nodes not allowed:: gear uids are not set in mongo and we can not guarantee same uid for both source and destination
+        if [source_container.get_district_uuid, destination_container.get_district_uuid].include?('NONE')
+          raise OpenShift::UserException.new("Error moving gear. Move gear only allowed between districted nodes.")
         end
 
         destination_node_profile = destination_container.get_node_profile

@@ -190,8 +190,8 @@ command :postreceive do |c|
                                          report_deployments: true,
                                          all: true,
                                          init: options.init)
-
-        puts "Result: #{result[:status]}"
+        puts "-------------------------"
+        puts "Git Post-Receive Result: #{result[:status]}"
 
         if distribute_result = result[:distribute_result] and not distribute_result[:gear_results].empty?
           distribute_status = distribute_result[:status]
@@ -318,6 +318,11 @@ command :activate do |c|
   c.action do |args, options|
     # TODO make sure there is a deployment id arg
     do_command(c, options) do
+
+      unless @container.deployment_exists?(args[0])
+        raise "Deployment id #{args[0]} is invalid"
+      end
+
       if options.as_json.nil?
         out = $stdout
         err = $stderr

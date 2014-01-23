@@ -562,7 +562,7 @@ module OpenShift
       ##
       # Send the deployments to the broker
       #
-      def report_deployments(gear_env)
+      def report_deployments(gear_env, options = {})
         broker_addr = @config.get('BROKER_HOST')
         domain = gear_env['OPENSHIFT_NAMESPACE']
         app_name = gear_env['OPENSHIFT_APP_NAME']
@@ -584,7 +584,7 @@ module OpenShift
           response = request.execute
 
           if 300 <= response.code
-            raise response
+            options[:out].puts "Failed to report deployment to broker.  This will be corrected on the next git push." if options[:out]
           end
         end
       end

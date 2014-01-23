@@ -300,31 +300,35 @@ class Haproxy
         seconds.to_i
     end
 
-    def add_gear(debug=false)
+    def add_gear(debug=false, exit_on_error=false)
         @last_scale_up_time = Time.now
         @log.info("add-gear - capacity: #{self.session_capacity_pct}% gear_count: #{self.gear_count} sessions: #{self.sessions} up_thresh: #{@gear_up_pct}%")
-        gear_scale('add-gear', debug)
+        gear_scale('add-gear', debug, exit_on_error)
         self.print_gear_stats
     end
 
-    def remove_gear(debug=false)
+    def remove_gear(debug=false, exit_on_error=false)
         @log.info("remove-gear - capacity: #{self.session_capacity_pct}% gear_count: #{self.gear_count} sessions: #{self.sessions} remove_thresh: #{@gear_remove_pct}%")
-        gear_scale('remove-gear', debug)
+        gear_scale('remove-gear', debug, exit_on_error)
         self.print_gear_stats
     end
 
-    def gear_scale(action, debug)
+    def gear_scale(action, debug, exit_on_error)
       begin
         res=`#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/#{action} -n #{self.gear_namespace} -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_GEAR_UUID']} 2>&1`
         exit_code = $?.exitstatus
         @log.info("#{action} - exit_code: #{exit_code}  output: #{res}")
         if exit_code != 0
+          if exit_on_error
+            $stderr.puts res
+            exit 1
+          end
           @last_scale_error_time = Time.now
         else
           @last_scale_error_time = nil
         end
         self.populate_status_urls
-      rescue Exception => e
+      rescue => e
         @log.info("#{action} failure: #{e.message}")
         @log.info e.backtrace.join('\n') if debug
         @last_scale_error_time = Time.now
@@ -576,10 +580,10 @@ if opt['up'] || opt['down']
   begin
     ha = Haproxy.new("#{HAPROXY_RUN_DIR}/stats", opt['debug'])
     if opt['up']
-      ha.add_gear(opt['debug'])
+      ha.add_gear(opt['debug'], true)
       exit 0
     elsif opt['down']
-      ha.remove_gear(opt['debug'])
+      ha.remove_gear(opt['debug'], true)
       exit 0
     end
   rescue Haproxy::ShouldRetry => e

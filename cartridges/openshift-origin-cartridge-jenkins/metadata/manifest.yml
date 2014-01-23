@@ -9,7 +9,7 @@ Description: Jenkins is a continuous integration (CI) build server that is deepl
 Version: '1'
 License: MIT license
 License-Url: http://jenkinsci.org/mitlicense
-Cartridge-Version: 0.0.6
+Cartridge-Version: 0.0.7
 Cartridge-Vendor: redhat
 Categories:
 - web_framework
@@ -55,3 +55,4 @@ Scaling:
 Compatible-Versions:
 - 0.0.4
 - 0.0.5
+- 0.0.6
