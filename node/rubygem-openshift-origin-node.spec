@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.15
+Version: 1.19.16
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.16-1
+- Bug 1057219 - deconfigure didn't capture RuntimeError (jhonce@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.15-1
 - Fix bug 1055653: handle exceptions from RestClient (pmorie@gmail.com)
 - Merge pull request #4568 from danmcp/bug1049044
