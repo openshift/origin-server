@@ -2,7 +2,7 @@
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron
-Version: 1.17.2
+Version: 1.17.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -37,6 +37,11 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.17.3-1
+- Merge pull request #4558 from bparees/latest_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Bump up cartridge versions (bparees@redhat.com)
+
 * Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.17.2-1
 - Bug 1044966 - Show duplicate message when adding cron cartridge to a HA
   scaling app which has two haproxy gears (bparees@redhat.com)
