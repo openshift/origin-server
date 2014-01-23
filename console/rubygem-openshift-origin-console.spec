@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.11
+Version: 1.19.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.12-1
+- Merge pull request #4557 from liggitt/bug_1056441_member_error_color
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1056441: Member add message color (jliggitt@redhat.com)
+
 * Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.11-1
 - Bug 1056349 (dmcphers@redhat.com)
 
