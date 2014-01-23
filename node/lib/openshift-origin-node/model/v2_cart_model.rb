@@ -404,6 +404,8 @@ module OpenShift
           rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
             teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stdout, :error)
             teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stderr, :error)
+          rescue RuntimeError => e
+              teardown_output <<  "\n#{e.message}"
           ensure
             disconnect_frontend(cartridge)
             delete_cartridge_directory(cartridge)
