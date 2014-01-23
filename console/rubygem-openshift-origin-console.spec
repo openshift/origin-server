@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.14
+Version: 1.19.15
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.15-1
+- Merge pull request #4570 from
+  liggitt/bug_1055906_downloadable_cartridge_scheme (ccoleman@redhat.com)
+- Fix bug 1055906: Add http:// to cartridge url if no scheme provided
+  (jliggitt@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.14-1
 - bump console Release to test build scripts for chainbuild case
   (admiller@redhat.com)
