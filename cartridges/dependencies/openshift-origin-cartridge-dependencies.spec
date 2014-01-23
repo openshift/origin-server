@@ -327,6 +327,7 @@ an OpenShift cartrige.
 %package optional-ruby
 Summary:   Optional user dependencies for Ruby OpenShift Cartridges
 BuildArch: noarch
+Requires:  libicu-devel
 
 %description optional-ruby
 This package pulls in other packages that a user
