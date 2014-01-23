@@ -1399,6 +1399,9 @@ module OpenShift
                 # sync from this gear (load balancer) to all new proxy gears
                 # copy the git repo
                 sync_git_repo(ssh_urls, gear_env)
+
+                # also sync the private key so that new proxy gears can also deploy to other gears when elected
+                sync_private_key(ssh_urls, gear_env)
               end
             end
           end
@@ -1421,6 +1424,22 @@ module OpenShift
                                                     env: gear_env,
                                                     chdir: container_dir,
                                                     expected_exitstatus: 0)
+          end
+        end
+
+        def sync_private_key(ssh_urls, gear_env)
+          ssh_dir        = PathUtils.join(container_dir, '.openshift_ssh')
+          ssh_key        = PathUtils.join(ssh_dir, 'id_rsa')
+          Parallel.map(ssh_urls, :in_threads => MAX_THREADS) do |gear|
+            out, err, rc = run_in_container_context("rsync -aAX --rsh=/usr/bin/oo-ssh #{ssh_key}{,.pub} #{gear}:.openshift_ssh/", 
+                                                    env: gear_env, 
+                                                    chdir: container_dir, 
+                                                    expected_exitstatus: 0)
+            if rc==0
+              # rsync drops the system_u context on the files, reset it
+              command = "/usr/bin/oo-ssh #{gear} chcon -u system_u .openshift_ssh/*"
+              out, err, rc = run_in_container_context(command, env: gear_env, expected_exitstatus: 0)
+            end
           end
         end
 
