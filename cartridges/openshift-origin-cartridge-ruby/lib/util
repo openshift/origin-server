@@ -69,7 +69,15 @@ function gemfile_is_modified {
     md5sum --status --check "${gemfile_md5_file}"
     is_modified=$?
     popd 1>/dev/null
-    return `[ "$is_modified" == "1" ] && echo 0 || echo 1`
+
+    if [ "$is_modified" == "1" ]; then
+      # make sure we update the checksum!
+      update_gemfile_sum
+
+      return 0
+    fi
+
+    return 1
   fi
 }
 
