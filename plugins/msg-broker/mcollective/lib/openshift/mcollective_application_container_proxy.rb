@@ -1482,7 +1482,7 @@ module OpenShift
       #
       def get_add_authorized_ssh_keys_job(gear, ssh_keys)
         args = build_base_gear_args(gear)
-        args['--with-ssh-keys'] = ssh_keys.to_json
+        args['--with-ssh-keys'] = build_ssh_key_args_with_content(ssh_keys)
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-batch-add', args)
         job
       end
@@ -1522,7 +1522,7 @@ module OpenShift
       #
       def get_remove_authorized_ssh_keys_job(gear, ssh_keys)
         args = build_base_gear_args(gear)
-        args['--with-ssh-keys'] = ssh_keys.to_json
+        args['--with-ssh-keys'] = build_ssh_key_args_with_content(ssh_keys)
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-batch-remove', args)
         job
       end
@@ -1542,7 +1542,7 @@ module OpenShift
       #
       def get_fix_authorized_ssh_keys_job(gear, ssh_keys)
         args = build_base_gear_args(gear)
-        args['--with-ssh-keys'] = ssh_keys.map {|k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name']}}
+        args['--with-ssh-keys'] = build_ssh_key_args(ssh_keys)
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-keys-replace', args)
         job
       end
@@ -3539,5 +3539,14 @@ module OpenShift
       def mask_user_creds(str)
         str.gsub(/(User: |Password: |username=|password=).*/, '\1[HIDDEN]')
       end
+
+      def build_ssh_key_args_with_content(ssh_keys)
+        ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name'], 'content' => k['content']} }
+      end
+
+      def build_ssh_key_args(ssh_keys)
+        ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name']} }
+      end
+
     end
 end

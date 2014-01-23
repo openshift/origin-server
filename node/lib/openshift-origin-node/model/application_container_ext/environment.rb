@@ -187,7 +187,7 @@ module OpenShift
           if key_type == "krb5-principal"
             # create a K5login object and add it
 
-            self.class.notify_observers(:before_remove_krb5_principal, 
+            self.class.notify_observers(:before_remove_krb5_principal,
                                         self, key_string)
             K5login.new(self).remove_principal(key_string, comment)
             self.class.notify_observers(:after_remove_krb5_principal,
@@ -202,7 +202,7 @@ module OpenShift
             self.class.notify_observers(:after_remove_ssh_key, self, key_string)
           end
         end
-        
+
         # Public: remove user access by removing SSH keys from a gear
         #
         # Examples
@@ -256,7 +256,7 @@ module OpenShift
           AuthorizedKeysFile.new(self).replace_keys(authorized_keys) if authorized_keys.count > 0
           K5login.new(self).replace_principals(krb5_principals) if krb5_principals.count > 0
           self.class.notify_observers(:after_replace_ssh_keys, self)
-          
+
         end
 
         # validate the ssh keys to check for the required attributes

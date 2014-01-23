@@ -405,7 +405,7 @@ module MCollective
           container.deploy(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url, out: out, err: err)
           addtl_params = {deployments: container.calculate_deployments}
         end
-        
+
         return rc, output, addtl_params
       end
 
@@ -432,12 +432,12 @@ module MCollective
           container.add_ssh_keys([{:content => ssh_key, :type => key_type, :comment => comment}])
         end
       end
-      
+
       def oo_authorized_ssh_key_batch_add(args)
         ssh_keys  = args['--with-ssh-keys']
 
         with_container_from_args(args) do |container|
-          container.add_ssh_keys(JSON.parse(ssh_keys))
+          container.add_ssh_keys(ssh_keys)
         end
       end
 
@@ -450,12 +450,12 @@ module MCollective
           container.remove_ssh_key(ssh_key, key_type, comment)
         end
       end
-      
+
       def oo_authorized_ssh_key_batch_remove(args)
         ssh_keys  = args['--with-ssh-keys']
 
         with_container_from_args(args) do |container|
-          container.remove_ssh_keys(JSON.parse(ssh_keys))
+          container.remove_ssh_keys(ssh_keys)
         end
       end
 
