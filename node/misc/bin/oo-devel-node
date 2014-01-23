@@ -141,7 +141,8 @@ command :'app-create' do |c|
   c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID --with-namespace NAMESPACE \\
      --with-app-uuid UUID --with-app-name NAME --with-secret-token TOKEN \\
      [--with-uid UID] [--with-container-name NAME] \\
-     [--with-quota-blocks BLOCKS] [--with-quota-files FILES])
+     [--with-quota-blocks BLOCKS] [--with-quota-files FILES] \\
+     [--with-generate-app-key])
   c.description = 'Create a gear without using the Broker'
 
   c.option '-S', '--with-secret-token token', 'Value of OPENSHIFT_SECRET_TOKEN for gear'
@@ -152,6 +153,7 @@ command :'app-create' do |c|
   c.option '-i', '--with-uid UID', Integer, 'User ID to use in /etc/passwd'
   c.option '-b', '--with-quota-blocks BLOCKS', Integer, 'Number of blocks to allow'
   c.option '-f', '--with-quota-files FILES', Integer, 'Number of files to allow'
+  c.option '--with-generate-app-key', 'Should application ssh key be generated'
   c.action do |args, options|
     options.default with_container_name: options.with_app_name,
                     with_secret_token: Digest::SHA1.base64digest(SecureRandom.random_bytes(256)).to_s
@@ -171,7 +173,7 @@ command :'app-create' do |c|
         options.with_quota_blocks,
         options.with_quota_files
     )
-    execute { container.create(options.with_secret_token) }
+    execute { container.create(options.with_secret_token, options.with_generate_app_key) }
   end
 end
 
