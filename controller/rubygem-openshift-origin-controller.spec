@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.14
+Version: 1.19.15
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,17 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.15-1
+- Merge pull request #4568 from danmcp/bug1049044
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1049044: Creating a single sshkey for each scalable application
+  (abhgupta@redhat.com)
+- Bug 1055371 (dmcphers@redhat.com)
+- fix bz 1049063 - do not throw exception for status call (rchopra@redhat.com)
+- Merge pull request #4555 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1056657: Fixing typo (abhgupta@redhat.com)
+
 * Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.14-1
 - Adding gem to ignore list (dmcphers@redhat.com)
 - Rebalancing cartridge tests (dmcphers@redhat.com)
