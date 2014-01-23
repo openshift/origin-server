@@ -17,10 +17,11 @@ class GearGroupsController < BaseController
     include_endpoints = (params[:include] == "endpoints")
     # validate the gear group ID using regex to avoid a mongo call, if it is malformed
     if gear_group_id !~ GROUP_INSTANCE_ID_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Gear group '#{gear_group_id}' not found for application #{@application.name} on domain '#{@application.domain_namespace}'", 101)
+      raise Mongoid::Errors::DocumentNotFound.new(GroupInstance, nil, [gear_group_id])
     end
     gear_states, result_io = @application.get_gear_states(state_timeout)
-    group_instance = @application.group_instances_with_overrides.detect{ |i| i.instance._id === gear_group_id }
+    group_instance = @application.group_instances_with_overrides.detect{ |i| i.instance._id === gear_group_id } or 
+      raise Mongoid::Errors::DocumentNotFound.new(GroupInstance, nil, [gear_group_id])
     render_success(:ok, "gear_group", get_rest_gear_group(group_instance, gear_states, @application, get_url, nolinks, include_endpoints), "Showing gear group #{gear_group_id} for application '#{@application.name}' with domain '#{@application.domain_namespace}'", result_io)
   end
 
