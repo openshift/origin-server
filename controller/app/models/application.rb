@@ -325,7 +325,6 @@ class Application
       self.run_jobs(result_io)
       result_io
     end
-    
   end
 
   ##
@@ -2772,8 +2771,6 @@ class Application
       when ApplicationSshKey
         key_attrs["name"] = "application-" + key_attrs["name"]
       end
-      #node requires a comment attribute
-      key_attrs["comment"] = key_attrs["name"]
       updated_keys_attrs.push(key_attrs)
     end
     updated_keys_attrs

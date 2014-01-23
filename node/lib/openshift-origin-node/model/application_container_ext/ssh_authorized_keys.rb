@@ -4,7 +4,7 @@ module OpenShift
   module Runtime
     module ApplicationContainerExt
       module SecureShell
-        
+
         # Manage a user (gear/container) SSH authorized_keys file and entries
         class AuthorizedKeysFile
 
@@ -36,7 +36,7 @@ module OpenShift
 
             @lockfile = "/var/lock/oo-modify-ssh-keys.#{@username}"
           end
-          
+
           def authorized_keys
             modify
           end
@@ -59,7 +59,7 @@ module OpenShift
           #
           # Returns nil on Success or raises on Failure
           def add_key(key_string, key_type=nil, comment=nil)
-            #@container.logger.error "Adding new key #{key_string} #{key_type} #{comment}"
+            #@container.logger.info "Adding new key #{key_string} #{key_type} #{comment}"
             comment = "" unless comment
 
             modify do |keys|
@@ -67,7 +67,7 @@ module OpenShift
             end
 
           end
-          
+
           #
           # Bodies from environment.rb globals
           #
@@ -84,7 +84,7 @@ module OpenShift
           #
           # Returns nil on Success or raises on Failure
           def add_keys(new_keys)
-            #@container.logger.error "Adding these new keys #{new_keys}"
+            #@container.logger.info "Adding these new keys #{new_keys}"
             modify do |keys|
               new_keys.each do |k|
                 comment = k["comment"] || ""
@@ -117,7 +117,7 @@ module OpenShift
               end
             end
           end
-          
+
           # Public: Remove SSH keys from a users authorized_keys file
           #
           # keys - An Array of keys
@@ -181,7 +181,7 @@ module OpenShift
                 keys[id] = entry
               end
             end
-      
+
             # set/reset the SELinux context for the .ssh directory
             ssh_dir = PathUtils.join(@container.container_dir, "/.ssh")
             cmd = "restorecon -R #{ssh_dir}"

@@ -130,7 +130,7 @@ module OpenShift
 
             @lockfile = "/var/lock/oo-k5login.#{@username}"
           end
-          
+
           # Public: Determine the location of the user's k5login file
           #
           # It resides in the user's home directory unless otherwise specified
@@ -139,7 +139,7 @@ module OpenShift
           # Returns: String - The absolute path to the k5login file
           #
           def k5login_file(config_file=nil)
-            
+
             config_file ||= @config_file
             if File.exists? config_file
 
@@ -182,7 +182,7 @@ module OpenShift
               end
             end
           end
-          
+
           # Public: delete a single principal from the current set
           # 
           # principal: String - a Kerberos principal
@@ -210,7 +210,7 @@ module OpenShift
             modify do | _principals |
               # remove all entries
               _principals.delete_if {|p| true }
-              
+
               # add all of the new entries
               new_principals.each do |p|
                 _principals[p['key']] = Set.new if not _principals[p['key']]
@@ -228,7 +228,7 @@ module OpenShift
             nhash = phash.clone
             nhash.each_key {|k| nhash[k] = nhash[k].clone }
           end
-          
+
           # deep compare of two principal hashes
           #
           # check that the array of keys is the same and then that
@@ -260,7 +260,7 @@ module OpenShift
               File.open(@lockfile, lockfile_flags, lockfile_mode) do | lock |
                 lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
                 lock.flock(File::LOCK_EX)
-                
+
                 begin
                   flags =  File::RDWR|File::CREAT
                   mode = 0640
@@ -294,14 +294,14 @@ module OpenShift
                       _principals[line] = id_set
                       # and reset for the next iteration
                       id_set = Set.new
-  
+
                     end
 
                     if block_given?
                       old_principals = K5login.clone(_principals)
 
                       yield _principals
-                      
+
                       if not K5login.compare(old_principals, _principals)
                         file.seek(0, IO::SEEK_SET)
                         # write all of the ids and then the principal string
@@ -335,7 +335,7 @@ module OpenShift
                 end
               end
             end
-            
+
             @principals = _principals
             File.delete @filename if @principals.length == 0
             @principals
