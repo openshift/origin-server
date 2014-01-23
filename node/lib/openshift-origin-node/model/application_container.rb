@@ -584,7 +584,7 @@ module OpenShift
                                             :headers => { :accept => 'application/json;version=1.6', :user_agent => 'OpenShift' },
                                             :payload => params)
 
-          response = request.execute
+          response = request.execute { |response, request, result| response }
 
           if 300 <= response.code
             options[:out].puts "Failed to report deployment to broker.  This will be corrected on the next git push." if options[:out]
