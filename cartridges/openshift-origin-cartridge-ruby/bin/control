@@ -88,9 +88,6 @@ function pre-repo-archive() {
     echo 'Saving away previously bundled RubyGems'
     mv ${OPENSHIFT_REPO_DIR}.bundle ${OPENSHIFT_RUBY_DIR}/tmp/
     mv ${OPENSHIFT_REPO_DIR}vendor ${OPENSHIFT_RUBY_DIR}/tmp/
-  else
-    # Remove last Gemfile checkum file to force bundler to run.
-    rm -rf ${OPENSHIFT_RUBY_DIR}tmp/.gemfile_md5sum
   fi
 }
 
@@ -119,6 +116,10 @@ function build() {
     # If a Gemfile is committed and it is modified, then bundle install
     #
     if [ -f ${OPENSHIFT_REPO_DIR}/Gemfile ]; then
+      if force_clean_build_enabled_for_latest_deployment; then
+        # Remove last Gemfile checksum file to force bundler to run.
+        rm -f ${OPENSHIFT_RUBY_DIR}tmp/.gemfile_md5sum
+      fi
       if ! gemfile_is_modified; then
         echo "NOTE: Skipping 'bundle install' because Gemfile is not modified."
         return 0
