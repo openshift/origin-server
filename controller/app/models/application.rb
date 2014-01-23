@@ -146,7 +146,7 @@ class Application
         gear_sizes[gear_sz] ||= 0
         gear_sizes[gear_sz] += gi.gears.length if gi.gears.present?
       end if app.group_instances.present?
-      apps_info << {"_id" => app._id, "domain_id" => app.domain_id, "gear_sizes" => gear_sizes} 
+      apps_info << {"_id" => app._id, "domain_id" => app.domain_id, "gear_sizes" => gear_sizes}
     end
     apps_info
   end
@@ -625,7 +625,7 @@ class Application
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
       # save this app before adding the op_group, if its persisted already
-      # this ensures that any downloaded carts are present before the op_group with the features is added  
+      # this ensures that any downloaded carts are present before the op_group with the features is added
       self.save! if self.persisted?
 
       op_group = AddFeaturesOpGroup.new(features: features.map(&:name), group_overrides: group_overrides, init_git_url: init_git_url,
@@ -1503,9 +1503,9 @@ class Application
         op_group.delete
       rescue Exception => e_orig
         Rails.logger.error "Encountered error during execute '#{e_orig.message}'"
-        # don't log the error stacktrace if this exception was raised just to trigger a rollback 
+        # don't log the error stacktrace if this exception was raised just to trigger a rollback
         Rails.logger.debug e_orig.backtrace.inspect unless rollback_pending
-  
+
         #rollback
         begin
           # reload the application before a rollback
@@ -1612,8 +1612,8 @@ class Application
 
   def calculate_remove_group_instance_ops(comp_specs, group_instance)
     pending_ops = []
-    gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s, 
-                                                  group_instance.gears.map{|g| g._id.to_s}, 
+    gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s,
+                                                  group_instance.gears.map{|g| g._id.to_s},
                                                   group_instance.addtl_fs_gb)
     pending_ops.push(*gear_destroy_ops)
     gear_destroy_op_ids = gear_destroy_ops.map{|op| op._id.to_s}
@@ -1649,8 +1649,8 @@ class Application
         app_dns_gear_id = gear_id.to_s
       end
 
-      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, 
-                                    comp_specs: comp_specs, host_singletons: host_singletons, 
+      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id,
+                                    comp_specs: comp_specs, host_singletons: host_singletons,
                                     app_dns: app_dns, pre_save: (not self.persisted?))
       init_gear_op.prereq << prereq_op._id.to_s unless prereq_op.nil?
 
@@ -1712,8 +1712,8 @@ class Application
     end
 
     prereq_op_id = prereq_op._id.to_s rescue nil
-    ops, usage_ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, 
-                                      is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url, 
+    ops, usage_ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
+                                      is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
                                       app_dns_gear_id)
     pending_ops.push(*ops)
     track_usage_ops.push(*usage_ops)
@@ -1733,7 +1733,7 @@ class Application
       delete_gear_op = DeleteGearOp.new(gear_id: gear_id, prereq: [unreserve_uid_op._id.to_s])
       track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                           app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end],
-                          usage_type: UsageRecord::USAGE_TYPES[:gear_usage], 
+                          usage_type: UsageRecord::USAGE_TYPES[:gear_usage],
                           prereq: [delete_gear_op._id.to_s])
 
       ops = []
@@ -1747,7 +1747,7 @@ class Application
       if additional_filesystem_gb != 0
         track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
           app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
-          additional_filesystem_gb: additional_filesystem_gb, 
+          additional_filesystem_gb: additional_filesystem_gb,
           prereq: [delete_gear_op._id.to_s])
         pending_ops.push(track_usage_fs_op)
       end
@@ -1758,7 +1758,7 @@ class Application
       gear_ids.each do |gear_id|
         pending_ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
           app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:end], cart_name: comp_spec["cart"],
-          usage_type: UsageRecord::USAGE_TYPES[:premium_cart], 
+          usage_type: UsageRecord::USAGE_TYPES[:premium_cart],
           prereq: [delete_gear_op._id.to_s]))
       end if cartridge.is_premium?
     end
@@ -1912,7 +1912,7 @@ class Application
         if self.scalable
           expose_port_prereq = []
           if post_configure_op
-            expose_port_prereq << post_configure_op._id.to_s 
+            expose_port_prereq << post_configure_op._id.to_s
           else
             expose_port_prereq << add_component_op._id.to_s
           end
@@ -1967,8 +1967,8 @@ class Application
     start_order, stop_order = calculate_component_orders
 
     unless group_overrides.nil?
-      set_group_override_op = SetGroupOverridesOp.new(group_overrides: group_overrides, 
-                                                      saved_group_overrides: self.group_overrides, 
+      set_group_override_op = SetGroupOverridesOp.new(group_overrides: group_overrides,
+                                                      saved_group_overrides: self.group_overrides,
                                                       pre_save: (not self.persisted?))
       pending_ops.push set_group_override_op
     end
@@ -2057,7 +2057,7 @@ class Application
             changed_additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb]
             fs_prereq = []
             fs_prereq = [pending_ops.last._id.to_s] if pending_ops.present?
-            end_usage_op_ids = [] 
+            end_usage_op_ids = []
             if change[:from_scale][:additional_filesystem_gb] != 0
               group_instance.gears.each do |gear|
                 track_usage_old_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
@@ -2160,7 +2160,7 @@ class Application
       begin_usage_ops.each {|op| op.prereq += begin_usage_prereq }
       pending_ops.push *begin_usage_ops
     end
-    
+
     [pending_ops, add_gears, remove_gears]
   end
 
