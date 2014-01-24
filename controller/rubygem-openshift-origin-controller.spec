@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.15
+Version: 1.19.16
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,14 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.19.16-1
+- Merge pull request #4580 from pravisankar/dev/ravi/admin-repair-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- oo-admin-repair: Print info related to usage errors for paid users in usage-
+  refund.log (rpenta@redhat.com)
+- Add begin usage ops after update-cluster/execute-connects op
+  (rpenta@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.15-1
 - Merge pull request #4568 from danmcp/bug1049044
   (dmcphers+openshiftbot@redhat.com)
