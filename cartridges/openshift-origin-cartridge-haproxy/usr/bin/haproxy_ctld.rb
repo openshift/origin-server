@@ -179,7 +179,7 @@ class Haproxy
         @remove_count_threshold = 20
         @remove_count = 0
         self.populate_status_urls
-        self.refresh
+        self.refresh(false)
         @log.info("Starting haproxy_ctld")
         self.print_gear_stats
     end
@@ -212,7 +212,7 @@ class Haproxy
       end
     end
 
-    def refresh(stats_sock="#{HAPROXY_RUN_DIR}/stats")
+    def refresh(log_error_on_should_retry=true, stats_sock="#{HAPROXY_RUN_DIR}/stats")
         populate_status_urls(true)
         @previous_stats << @stats if @stats
         @previous_stats.delete_at(0) if @previous_stats.length > MOVING_AVERAGE_SAMPLE_SIZE
@@ -229,10 +229,10 @@ class Haproxy
           end
           @socket.close
         rescue Errno::ENOENT => e
-          @log.error("A retryable error occurred: #{e}")
+          @log.error("A retryable error occurred: #{e}") if log_error_on_should_retry
           raise ShouldRetry, e.to_s
         rescue Errno::ECONNREFUSED
-          @log.error("Could not connect to the application.  Check if the application is stopped.")
+          @log.error("Could not connect to the application.  Check if the application is stopped.") if log_error_on_should_retry
           raise ShouldRetry, "Could not connect to the application.  Check if the application is stopped."
         end
 
@@ -246,7 +246,7 @@ class Haproxy
         end
         @sessions = num_sessions('express', 'BACKEND')
         if @gear_count == 0
-          @log.error("Failed to get information from haproxy")
+          @log.error("Failed to get information from haproxy") if log_error_on_should_retry
           raise ShouldRetry, "Failed to get information from haproxy"
         end
 
@@ -587,14 +587,18 @@ if opt['up'] || opt['down']
       exit 0
     end
   rescue Haproxy::ShouldRetry => e
-    puts e
+    puts e.message
     exit 1
   end
 else
+  ha = nil
   while true
     begin
-      ha = Haproxy.new("#{HAPROXY_RUN_DIR}/stats", opt['debug']) unless ha
-      ha.refresh()
+      if ha
+        ha.refresh
+      else
+        ha = Haproxy.new("#{HAPROXY_RUN_DIR}/stats", opt['debug'])
+      end
       ha.check_capacity(opt['debug'])
     rescue Haproxy::ShouldRetry => e
       # Already logged when the exception was generated
