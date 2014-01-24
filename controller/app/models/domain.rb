@@ -83,7 +83,7 @@ class Domain
 
   def self.create!(opts)
     owner = opts[:owner]
-    allowed_domains = owner.max_domains
+    allowed_domains = opts[:_allowed_domains] || owner.max_domains
     opts.delete(:allowed_gear_sizes) if opts[:allowed_gear_sizes].nil?
     domain = Domain.new(opts)
     unless pre_and_post_condition(

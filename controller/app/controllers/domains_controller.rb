@@ -59,9 +59,9 @@ class DomainsController < BaseController
     allowed_domains = 1 if requested_api_version < 1.2
     allowed_gear_sizes = Array(params[:allowed_gear_sizes]) if params.has_key? :allowed_gear_sizes
 
-    domain = Domain.create!(namespace: namespace, owner: current_user, allowed_gear_sizes: allowed_gear_sizes)
+    @domain = Domain.create!(namespace: namespace, owner: current_user, allowed_gear_sizes: allowed_gear_sizes, _allowed_domains: allowed_domains)
 
-    render_success(:created, "domain", get_rest_domain(domain), "Created domain with name #{domain.namespace}")
+    render_success(:created, "domain", get_rest_domain(@domain), "Created domain with name #{@domain.namespace}")
   end
 
   # Create a new domain for the user
