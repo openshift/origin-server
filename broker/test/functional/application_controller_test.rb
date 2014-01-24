@@ -550,6 +550,28 @@ class ApplicationControllerTest < ActionController::TestCase
     assert messages.one?{ |m| m['text'] =~ %r(The cartridge.*is no longer available to be added to an application) }, messages.inspect
   end
 
+  test "prevent create cart with multiple components" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - web_framework
+      Components:
+        framework1:
+        framework2:
+      MANIFEST
+    @app_name = "app#{@random}"
+    os = Rails.configuration.openshift
+    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace}
+    assert_response :unprocessable_entity
+    assert json = JSON.parse(response.body)
+    assert messages = json['messages']
+    assert messages.one?{ |m| m['text'].include? "The cartridge mock-mock-0.1 is invalid: only one component may be defined per cartridge." }, messages.inspect
+  end
+
   test "create cart without specified version" do
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---

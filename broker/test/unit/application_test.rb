@@ -187,24 +187,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.destroy_app
   end  
 
-  test "elaborate php and jenkins-client" do
-    # non scalable app has plugin together with web framework
-    _, overrides = Application.new.elaborate(cartridge_instances_for(:php, :'jenkins-client'), [])
-    assert_equal 1, overrides.length
-    assert_equal cartridge_instances_for(:php, :'jenkins-client').map(&:to_component_spec).sort, overrides[0].components
-    assert_equal 1, overrides[0].min_gears
-    assert_equal 1, overrides[0].max_gears
-  end
-
-  test "elaborate scalable php and jenkins-client" do
-    # non scalable app has plugin together with web framework
-    _, overrides = Application.new(:scalable => true).elaborate(cartridge_instances_for(:php, :'jenkins-client', :web_proxy), [])
-    assert_equal 1, overrides.length
-    assert_equal cartridge_instances_for(:php, :'jenkins-client', :web_proxy).map(&:to_component_spec).sort, overrides[0].components
-    assert_equal 1, overrides[0].min_gears
-    assert_equal -1, overrides[0].max_gears
-  end
-
   test "app config validation" do
     @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
@@ -417,6 +399,46 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.destroy_app
   end
 
+  test "elaborate php and jenkins-client" do
+    # non scalable app has plugin together with web framework
+    _, overrides = Application.new.elaborate(cartridge_instances_for(:php, :'jenkins-client'), [])
+    assert_equal 1, overrides.length
+    assert_equal cartridge_instances_for(:php, :'jenkins-client').map(&:to_component_spec).sort, overrides[0].components
+    assert_equal 1, overrides[0].min_gears
+    assert_equal 1, overrides[0].max_gears
+  end
+
+  test "elaborate php and mysql" do
+    # non scalable app has plugin together with web framework
+    _, overrides = Application.new.elaborate(cartridge_instances_for(:php, :mysql), [])
+    assert_equal 1, overrides.length
+    assert_equal cartridge_instances_for(:php, :mysql).map(&:to_component_spec).sort, overrides[0].components
+    assert_equal 1, overrides[0].min_gears
+    assert_equal 1, overrides[0].max_gears
+  end
+
+  test "elaborate scalable php and jenkins-client" do
+    # non scalable app has plugin together with web framework
+    _, overrides = Application.new(:scalable => true).elaborate(cartridge_instances_for(:php, :'jenkins-client', :web_proxy), [])
+    assert_equal 1, overrides.length
+    assert_equal cartridge_instances_for(:php, :'jenkins-client', :web_proxy).map(&:to_component_spec).sort, overrides[0].components
+    assert_equal 1, overrides[0].min_gears
+    assert_equal -1, overrides[0].max_gears
+  end
+
+  test "elaborate scalable php, jenkins-client, and mysql" do
+    # non scalable app has plugin together with web framework
+    _, overrides = Application.new(:scalable => true).elaborate(cartridge_instances_for(:php, :'jenkins-client', :mysql, :web_proxy), [])
+    assert_equal 2, overrides.length
+    assert_equal cartridge_instances_for(:php, :'jenkins-client', :web_proxy).map(&:to_component_spec).sort, overrides[0].components
+    assert_equal 1, overrides[0].min_gears
+    assert_equal -1, overrides[0].max_gears
+
+    assert_equal cartridge_instances_for(:mysql).map(&:to_component_spec).sort, overrides[1].components
+    assert_equal 1, overrides[1].min_gears
+    assert_equal 1, overrides[1].max_gears
+  end
+
   test "user info through internal rest" do
     credentials = Base64.encode64("#{$user}:#{$password}")
     headers = {}
@@ -445,6 +467,5 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     end
     @domain.reload.delete
     @user.reload.delete
-    Mocha::Mockery.instance.stubba.unstub_all
   end
 end

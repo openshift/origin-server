@@ -693,6 +693,10 @@ class Application
         cart_name_map[cart.original_name] = cart.name
       end
 
+      if cart.components.length != 1
+        raise OpenShift::UserException.new("The cartridge #{cart.name} is invalid: only one component may be defined per cartridge.", 136, "cartridge")
+      end
+
       # check if the requested cartridge is already in the application
       component_instances.each do |ci|
         ci_cart = ci.get_cartridge
@@ -1735,6 +1739,7 @@ class Application
       host_singletons = (gear_id == deploy_gear_id)
       app_dns = (host_singletons && hosts_app_dns)
 
+      # FIXME this operation should move to much later in the process (DNS must be registered before publishing this route)
       if app_dns
         notify_app_create_op = NotifyAppCreateOp.new()
         ops.push(notify_app_create_op)
@@ -1742,8 +1747,8 @@ class Application
         app_dns_gear_id = gear_id.to_s
       end
 
-      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id, 
-                                    comp_specs: comp_specs, host_singletons: host_singletons, 
+      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id,
+                                    comp_specs: comp_specs, host_singletons: host_singletons,
                                     app_dns: app_dns, pre_save: (not self.persisted?))
       init_gear_op.prereq << prereq_op._id.to_s unless prereq_op.nil?
 
@@ -1789,6 +1794,7 @@ class Application
 
     # Add and/or push user env vars when this is not an app create or user_env_vars are specified
     user_vars_op_id = nil
+    # FIXME this condition should be stronger (only fired when env vars are specified OR other gears already exist)
     if maybe_notify_app_create_op.empty? || user_env_vars.present?
       op = PatchUserEnvVarsOp.new(user_env_vars: user_env_vars, push_vars: true, prereq: [ops.last._id.to_s])
       ops << op

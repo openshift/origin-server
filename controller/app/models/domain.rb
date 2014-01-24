@@ -51,7 +51,7 @@ class Domain
   attr_accessor :application_count
   attr_accessor :gear_counts
   attr_accessor :available_gears
-  attr_accessor :max_storage_per_gear  
+  attr_accessor :max_storage_per_gear
 
   validates :namespace,
     #presence: {message: "Namespace is required and cannot be blank."},
@@ -113,6 +113,10 @@ class Domain
 
   def with_gear_counts
     self.class.with_gear_counts([self]).first
+  end
+
+  before_save prepend: true do
+    self.namespace.downcase!
   end
 
   before_save prepend: true do
