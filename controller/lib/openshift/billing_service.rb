@@ -19,7 +19,7 @@ module OpenShift
       @warning_count = 0
     end
 
-    def set_logger(log_file=nil)
+    def set_logger(log_file=nil, print_log_file=true)
       if log_file
         @log = Logger.new(log_file)
         output = log_file
@@ -31,7 +31,7 @@ module OpenShift
       @log.formatter = proc do |severity, datetime, progname, msg|
           "#{datetime} #{severity}:: #{msg}\n"
       end
-      puts "Errors/Warnings will be logged to #{output}"
+      puts "Errors/Warnings will be logged to #{output}" if print_log_file
     end
 
     # Unique usage id that can be used to narrow down to specific set of records.
@@ -50,6 +50,10 @@ module OpenShift
       @warning_count += 1
       msg += "(#{get_uid(urec)})" if urec
       @log.warn msg
+    end
+
+    def print_info(msg)
+      @log.info msg
     end
 
     def get_provider_name
