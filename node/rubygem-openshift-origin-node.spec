@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.16
+Version: 1.19.17
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,13 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.19.17-1
+- Merge pull request #4581 from jwhonce/wip/head_key_flag
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1049044 - Create more of .openshift_ssh environment (jhonce@redhat.com)
+- Bug 1049044 - Restore setting ssh config settings for gear
+  (jhonce@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.16-1
 - Bug 1057219 - deconfigure didn't capture RuntimeError (jhonce@redhat.com)
 
