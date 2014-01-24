@@ -31,6 +31,7 @@ class Domain
   include Mongoid::Document
   include Mongoid::Timestamps
   include Membership
+  extend PreAndPostCondition
 
   field :namespace, type: String
   field :canonical_namespace, type: String
@@ -78,6 +79,22 @@ class Domain
 
   def self.validation_map
     {namespace: 106, allowed_gear_sizes: 110, members: 222}
+  end
+
+  def self.create!(opts)
+    owner = opts[:owner]
+    allowed_domains = owner.max_domains
+    opts.delete(:allowed_gear_sizes) if opts[:allowed_gear_sizes].nil?
+    domain = Domain.new(opts)
+    unless pre_and_post_condition(
+             lambda{ Domain.where(owner: owner).count < allowed_domains },
+             lambda{ Domain.where(owner: owner).count <= allowed_domains },
+             lambda{ domain.save_with_duplicate_check! },
+             lambda{ domain.destroy rescue nil }
+           )
+      raise OpenShift::UserException.new("You may not have more than #{pluralize(allowed_domains, "domain")}.", 103, nil, nil, :conflict)
+    end
+    domain
   end
 
   def self.sort_by_original(user)
@@ -277,4 +294,7 @@ class Domain
       raise e
     end
   end
+
+  private
+    extend ActionView::Helpers::TextHelper # for pluralize()
 end

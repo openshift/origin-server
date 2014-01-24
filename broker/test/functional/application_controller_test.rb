@@ -158,6 +158,26 @@ class ApplicationControllerTest < ActionController::TestCase
     assert messages.any?{ |m| m =~ /Invalid deployment type: foo/ }, app.errors.inspect
   end
 
+  test "create domain during app create" do
+    @app_name = "app#{@random}"
+    @domain.destroy
+    @user.max_domains = 1
+    @user.save
+
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @namespace}
+    assert_response :created
+
+    assert @user.domains.first
+    assert_equal @namespace, @user.domains.first.namespace
+
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => "#{@namespace}1"}
+    assert_response :conflict
+    assert json = JSON.parse(response.body)
+    assert_equal 'domain_id', json['messages'][0]['field']
+    assert json['messages'][0]['text'].include?("You may not have more than 1 domain."), json['messages'].inspect
+    assert_equal 103, json['messages'][0]['exit_code']
+  end
+
   test "app create available show destroy by domain and app name" do
     @app_name = "app#{@random}"
 

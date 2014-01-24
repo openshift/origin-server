@@ -27,9 +27,11 @@ class RestApplication13 < OpenShift::Model
     self.gear_profile = app.default_gear_size
     self.scalable = app.scalable
 
-    self.git_url = "ssh://#{app.ssh_uri}/~/git/#{@name}.git/"
+    if ssh_uri = app.ssh_uri.presence
+      self.git_url = "ssh://#{ssh_uri}/~/git/#{@name}.git/"
+      self.ssh_url = "ssh://#{ssh_uri}"
+    end
     self.app_url = "http://#{app.fqdn}/"
-    self.ssh_url = "ssh://#{app.ssh_uri}"
     self.health_check_path = app.health_check_path
 
     self.building_with = nil

@@ -96,17 +96,6 @@ module OpenShift
           end
         end
 
-        def pre_and_post_condition(pre, post, run, fails)
-          return false if !pre.call
-          run.call
-          if post.call
-            true
-          else
-            fails.call
-            false
-          end
-        end
-
         def get_log_tag_prepend
           tag = "UNKNOWN"
           case request.method
@@ -129,6 +118,18 @@ module OpenShift
         def get_domain(id=nil)
           id ||= params[:domain_id].presence
           @domain = Domain.accessible(current_user).find_by(canonical_namespace: Domain.check_name!(id.presence).downcase)
+        end
+
+        def find_or_create_domain!(id=nil)
+          get_domain(id)
+        rescue Mongoid::Errors::DocumentNotFound
+          raise if params[:domain_id].blank?
+          begin
+            @domain = Domain.create!(namespace: params[:domain_id], owner: current_user)
+          rescue OpenShift::UserException => e
+            e.field = 'domain_id'
+            raise
+          end
         end
 
         def get_application

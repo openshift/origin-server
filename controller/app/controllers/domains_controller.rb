@@ -57,18 +57,9 @@ class DomainsController < BaseController
 
     allowed_domains = current_user.max_domains
     allowed_domains = 1 if requested_api_version < 1.2
+    allowed_gear_sizes = Array(params[:allowed_gear_sizes]) if params.has_key? :allowed_gear_sizes
 
-    @domain = domain = Domain.new(namespace: namespace, owner: current_user)
-    domain.allowed_gear_sizes = Array(params[:allowed_gear_sizes]) if params.has_key? :allowed_gear_sizes
-
-    unless pre_and_post_condition(
-             lambda{ Domain.where(owner: current_user).count < allowed_domains },
-             lambda{ Domain.where(owner: current_user).count <= allowed_domains },
-             lambda{ domain.save_with_duplicate_check! },
-             lambda{ domain.destroy rescue nil }
-           )
-      return render_error(:conflict, "You may not have more than #{pluralize(allowed_domains, "domain")}.", 103)
-    end
+    domain = Domain.create!(namespace: namespace, owner: current_user, allowed_gear_sizes: allowed_gear_sizes)
 
     render_success(:created, "domain", get_rest_domain(domain), "Created domain with name #{domain.namespace}")
   end

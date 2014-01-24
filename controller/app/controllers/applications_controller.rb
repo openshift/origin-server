@@ -3,7 +3,7 @@
 # Application CRUD REST API
 class ApplicationsController < BaseController
   include RestModelHelper
-  before_filter :get_domain, :only => :create
+  #before_filter :get_domain, :only => :create
   before_filter :get_application, :only => [:show, :destroy, :update]
   ##
   # List all applications
@@ -71,8 +71,10 @@ class ApplicationsController < BaseController
     end
     CartridgeInstance.check_cartridge_specifications!(specs)
     if not specs.all?{ |f| f[:name].present? ^ f[:url].present? }
-      return render_error(:unprocessable_entity, "Each cartridge must be specified by a name, or a JSON hash with a 'name' or 'url' key.", 109, 'cartridge') 
+      return render_error(:unprocessable_entity, "Each cartridge must be specified by a name, or a JSON hash with a 'name' or 'url' key.", 109, 'cartridge') unless params[:advanced]
     end
+
+    find_or_create_domain!
 
     builder_id = nil
     if not authorized?(:create_application, @domain)
@@ -135,7 +137,7 @@ class ApplicationsController < BaseController
     cartridges = CartridgeCache.find_and_download_cartridges(specs, "cartridge", true)
 
     frameworks = cartridges.select(&:is_web_framework?)
-    if frameworks.empty?
+    if frameworks.empty? && !params[:advanced]
       framework_carts = CartridgeCache.web_framework_names.presence or
         raise OpenShift::UserException.new("Unable to determine list of available cartridges. Please try again and contact support if the issue persists.", 109, "cartridges")
       raise OpenShift::UserException.new("An application must contain one web cartridge. None of the specified cartridges is a web cartridge. " \
