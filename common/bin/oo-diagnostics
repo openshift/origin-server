@@ -1009,7 +1009,7 @@ class OODiag
      if have_system_config_firewall
        do_warn <<-WARN
          Using system-config-firewall and lokkit with OpenShift is not recommended.
-         To continue using lokkit people ensure the following custom rules are 
+         To continue using lokkit please ensure the following custom rules are 
          installed in #{conf_file}:
 
          --custom-rules=ipv4:filter:/etc/openshift/system-config-firewall-compat
