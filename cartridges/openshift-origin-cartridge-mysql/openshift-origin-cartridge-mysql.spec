@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 1.19.7
+Version: 1.20.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
