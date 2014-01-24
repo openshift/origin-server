@@ -16,11 +16,14 @@ class CartridgesController < BaseController
   # @return [RestReply<RestCartridge>] Cartridge Object
   def show
     id = params[:id].presence
-    if id
+    if id == "embedded" or id == "standalone"
+      #for backward compatibility get all cartridges matching
+      index
+    else
       c = CartridgeCache.find_cartridge(id)
       return render_success(:ok, "cartridge", get_rest_cartridge(c), "Cartridge #{id} found") if c
-    end
-    index
+      return render_error(:not_found, "Could not find cartridge #{id}") 
+    end if id
   end
 
   ##
