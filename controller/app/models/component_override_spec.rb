@@ -66,7 +66,7 @@ class ComponentOverrideSpec < SimpleDelegator
       next if v.nil?
       s =
         case v
-        when OpenShift::Component, OpenShift::Cartridge, CartridgeType, Application
+        when OpenShift::Component, OpenShift::Cartridge, CartridgeInstance, CartridgeType, Application
           "<#{v.name}>"
         else
           v.inspect

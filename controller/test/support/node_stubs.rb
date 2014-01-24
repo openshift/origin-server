@@ -16,7 +16,7 @@ class ActiveSupport::TestCase
     end
   end
 
-  [:php, :ruby, :mysql].each do |sym|
+  [:php, :ruby, :mysql, :'jenkins-client'].each do |sym|
     define_method "#{sym}_version" do
       (@version ||= {})[sym] ||= cartridge_instances_for(sym).first.name
     end

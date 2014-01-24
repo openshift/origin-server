@@ -1,3 +1,6 @@
+#
+# A reference to a specific component within a cartridge.
+#
 class ComponentSpec
   attr_reader :path, :name, :id, :cartridge_name
   attr_writer :cartridge, :component, :application
@@ -71,6 +74,10 @@ class ComponentSpec
 
   def default?
     true
+  end
+
+  def <=>(other)
+    path <=> other.path
   end
 
   ##
@@ -155,7 +162,7 @@ class ComponentSpec
       next if v.nil?
       s =
         case v
-        when OpenShift::Component, OpenShift::Cartridge, CartridgeType, Application
+        when OpenShift::Component, OpenShift::Cartridge, CartridgeInstance, CartridgeType, Application
           "<#{v.name}>"
         else
           v.inspect

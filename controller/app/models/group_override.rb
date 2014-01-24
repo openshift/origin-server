@@ -1,3 +1,14 @@
+#
+# A group override dictates a rule about how a component (cartridge) is represented in
+# an application.  An override includes one or more components and a set of limits
+# (or no limit) on scaling.  A component may also have its own limits through a
+# ComponentOverrideSpec to define how it scales indepently within a group.
+#
+# All of the overrides for an application are reduced to calculate the appropriate
+# shape of an application (how cartridges are placed into group instances, and the
+# number of gears in that instance).  An override is "implicit" if it is provided
+# by a rule of the system and should not be persisted.
+#
 class GroupOverride
   attr_reader :components, :min_gears, :max_gears, :gear_size, :additional_filesystem_gb
   attr_accessor :instance
@@ -18,16 +29,24 @@ class GroupOverride
     by_path = {}
     overrides.each do |override|
       next if override.blank?
+      found = nil
       override.components.each do |c|
         if previous = by_path[c.path]
           # skip overrides we've already merged
-          next if previous.eql?(override)
-          previous.merge(override)
-          # some components may be new, ensure they are mapping to the located item
-          previous.components.each{ |pc| by_path[pc.path] = previous }
+          next if previous.equal?(override) && previous.equal?(found)
+          if found
+            # this override is already covered - subsume the previous override
+            found.merge(previous)
+            by_path.each{ |k, v| by_path[k] = found if v == previous }
+          else
+            # this override should be associated with a previous override
+            found = previous
+            found.merge(override)
+            by_path.each{ |k, v| by_path[k] = found if v == override }
+          end
         else
-          # register this component to this override for further iteration
-          by_path[c.path] = override
+          # subsequent overrides should merge into this one
+          by_path[c.path] = found || override
         end
       end
     end
@@ -42,6 +61,7 @@ class GroupOverride
     else
       by_path.values.inject([]) do |arr, override|
         arr << override unless arr.any?{ |a| a.equal?(override) }
+        arr
       end
     end
   end
@@ -180,14 +200,16 @@ class GroupOverride
 
   def merge(other)
     return self unless GroupOverride === other
-    @implicit = nil unless other.implicit?
-    apply(other.components, other.min_gears, other.max_gears, other.gear_size, other.additional_filesystem_gb)
+    changed = apply(other.components, other.min_gears, other.max_gears, other.gear_size, other.additional_filesystem_gb)
+    @implicit = nil unless other.implicit? || !changed
+    self
   end
 
   def merge_strict(other)
     return self unless GroupOverride === other
-    @implicit = nil unless other.implicit?
-    apply(components && other.components, other.min_gears, other.max_gears, other.gear_size, other.additional_filesystem_gb)
+    changed = apply(components && other.components, other.min_gears, other.max_gears, other.gear_size, other.additional_filesystem_gb)
+    @implicit = nil unless other.implicit? || !changed
+    self
   end
 
   def clear(key)
@@ -222,6 +244,7 @@ class GroupOverride
     KEYS = ["min_gears", "max_gears", "gear_size", "additional_filesystem_gb"]
 
     def apply(components, min_gears=nil, max_gears=nil, gear_size=nil, additional_filesystem_gb=nil)
+      altered = false
       @components ||= []
       if ::Array === components
         @hash = nil # reset hash code
@@ -232,22 +255,39 @@ class GroupOverride
             if existing === c
               matched = true
               @components[i] = existing.merge(c)
+              altered = (ComponentOverrideSpec === c) # not 100% accurate
             end
           end
-          @components << c unless matched
+          unless matched
+            altered = true
+            @components << c 
+          end
         end
+        @components.sort!
       end
 
-      @min_gears = GroupOverride.integer_range(:max, 1, @min_gears, (Integer(min_gears) rescue nil))
-      @max_gears = GroupOverride.integer_range(:min, nil, @max_gears, (Integer(max_gears) rescue nil))
+      if (i = GroupOverride.integer_range(:max, 1, @min_gears, (Integer(min_gears) rescue nil))) != @min_gears
+        altered ||= i != 1
+        @min_gears = i
+      end
+      if (i = GroupOverride.integer_range(:min, nil, @max_gears, (Integer(max_gears) rescue nil))) != @max_gears
+        altered ||= i != -1
+        @max_gears = i
+      end
 
       # probably should be moved earlier in the override resolution process
       if @gear_size && gear_size && @gear_size != gear_size
         raise OpenShift::UserException.new("Incompatible gear sizes: #{@gear_size} and #{gear_size} for components: #{(components || []).map(&:name).uniq.to_sentence} that will reside on the same gear.", 142)
       end
-      @gear_size = gear_size if gear_size
+      if gear_size
+        altered = true
+        @gear_size = gear_size 
+      end
 
-      @additional_filesystem_gb = GroupOverride.integer_range(:max, 0, @additional_filesystem_gb, (Integer(additional_filesystem_gb) rescue nil))
-      self
+      if (i = GroupOverride.integer_range(:max, 0, @additional_filesystem_gb, (Integer(additional_filesystem_gb) rescue nil))) != @additional_filesystem_gb
+        altered ||= i != 0
+        @additional_filesystem_gb = i
+      end
+      altered
     end
 end

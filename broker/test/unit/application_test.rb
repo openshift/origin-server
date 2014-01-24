@@ -75,10 +75,10 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
     assert !app.persisted?
 
-    assert_equal [php_version, mysql_version], app.cartridges.to_a.map(&:name)
+    assert_equal [php_version, mysql_version].sort, app.cartridges.to_a.map(&:name).sort
     # FIXME: should remove carts that are identical except for their ID, and prefer pending carts to
     # non pending carts
-    assert_equal [php_version, mysql_version, php_version, mysql_version], app.cartridges(true).to_a.map(&:name)
+    assert_equal [php_version, mysql_version, php_version, mysql_version].sort, app.cartridges(true).to_a.map(&:name).sort
   end
 
   test "create update and destroy scalable application" do
@@ -162,6 +162,49 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.destroy_app
   end
 
+  test "jenkins-client and builders are dependent on jenkins app" do
+    @appname = "test"
+    builder = Application.create_app("#{@appname}j", cartridge_instances_for(:jenkins), @domain)
+    builder =  Application.find(builder._id)
+    assert_equal 1, builder.gears.count
+
+    app = Application.create_app(@appname, cartridge_instances_for(:php, 'jenkins-client'), @domain, scalable: true)
+    app = Application.find(app._id)
+    assert_equal 1, app.gears.count
+    assert_equal 1, app.group_instances.count
+
+    built = Application.create_app("#{@appname}b", cartridge_instances_for(:php), @domain, builder_id: builder._id)
+    assert_equal 1, built.gears.count
+    assert_equal 1, built.group_instances.count
+
+    # removing Jenkins removes the client cart and any builders
+    builder.destroy_app
+    app.reload
+    assert_equal 2, app.cartridges.count
+    # builder was deleted
+    assert_raises(Mongoid::Errors::DocumentNotFound){ Application.find(built._id) }
+
+    app.destroy_app
+  end  
+
+  test "elaborate php and jenkins-client" do
+    # non scalable app has plugin together with web framework
+    _, overrides = Application.new.elaborate(cartridge_instances_for(:php, :'jenkins-client'), [])
+    assert_equal 1, overrides.length
+    assert_equal cartridge_instances_for(:php, :'jenkins-client').map(&:to_component_spec).sort, overrides[0].components
+    assert_equal 1, overrides[0].min_gears
+    assert_equal 1, overrides[0].max_gears
+  end
+
+  test "elaborate scalable php and jenkins-client" do
+    # non scalable app has plugin together with web framework
+    _, overrides = Application.new(:scalable => true).elaborate(cartridge_instances_for(:php, :'jenkins-client', :web_proxy), [])
+    assert_equal 1, overrides.length
+    assert_equal cartridge_instances_for(:php, :'jenkins-client', :web_proxy).map(&:to_component_spec).sort, overrides[0].components
+    assert_equal 1, overrides[0].min_gears
+    assert_equal -1, overrides[0].max_gears
+  end
+
   test "app config validation" do
     @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
@@ -196,8 +239,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     
     #check validation on update_config
     assert_raise(OpenShift::UserException){app.update_configuration}
-    
-    
   end
 
   test "app metadata validation" do
