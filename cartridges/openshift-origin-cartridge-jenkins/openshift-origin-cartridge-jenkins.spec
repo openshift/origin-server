@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.16.5
+Version: 1.16.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,12 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.16.6-1
+- Merge pull request #4578 from bparees/jenkins_utf
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1056666 - Jenkins cartridge InvalidPathException with é or '
+  (bparees@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.16.5-1
 - Bump up cartridge versions (bparees@redhat.com)
 
