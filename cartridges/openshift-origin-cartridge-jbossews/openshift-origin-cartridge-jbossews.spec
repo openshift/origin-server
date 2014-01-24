@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.18.6
+Version: 1.18.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -76,6 +76,9 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.18.7-1
+- Bug 988756 - Adding Requires: bc to jbossews cartridge (bleanhar@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.18.6-1
 - Bug 974933 - Inconsistent message is shown when rhc threaddump for a scaled
   up app (jhadvig@redhat.com)
