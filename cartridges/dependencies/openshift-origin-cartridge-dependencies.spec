@@ -1,6 +1,6 @@
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version:       1.19.3
+Version:       1.19.5
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -327,6 +327,7 @@ an OpenShift cartrige.
 %package optional-ruby
 Summary:   Optional user dependencies for Ruby OpenShift Cartridges
 BuildArch: noarch
+Requires:  libicu-devel
 
 %description optional-ruby
 This package pulls in other packages that a user
@@ -336,6 +337,12 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
+- add libicu-devel to optional-ruby (tdawson@redhat.com)
+
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
+- adding dependencies for jbossaes, perl, and python (tdawson@redhat.com)
+
 * Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Adding recommended-all and optional-all packages (tdawson@redhat.com)
 - Add dependancy packages for all supported languages. (tdawson@redhat.com)

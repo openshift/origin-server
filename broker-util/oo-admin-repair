@@ -26,6 +26,13 @@ Rails.configuration.analytics[:enabled] = false
 Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
 
+$log_file = "/var/log/openshift/broker/usage-refund.log"
+$billing_api = nil
+if $billing_enabled
+  $billing_api = OpenShift::BillingService.instance
+  $billing_api.set_logger($log_file, false)
+end
+
 trap("INT") do
   print_message "#{$0} Interrupted", true
   exit 1
@@ -226,7 +233,7 @@ def recover_app(app, framework, db)
   end
 end
 
-def create_usage_record(gear_id, usage_type, exists_in_app)
+def create_usage_record(gear_id, usage_type, exists_in_app, current_time)
   user_id = nil
   app_name = nil
   event = nil
@@ -299,6 +306,24 @@ def create_usage_record(gear_id, usage_type, exists_in_app)
           usage.end_time = time
           usage.save!
           puts "Fixed usage for gear_id: #{gear_id}, usage_type: #{usage_type}, set end time in usage" if $verbose
+        end
+      end
+
+      # Check whether we need to provide refunds to the user
+      if $billing_enabled
+        user = CloudUser.find_by(_id: user_id)
+        if user.usage_account_id.present? and
+           (user.plan_id.to_s != Rails.configuration.billing[:default_plan].to_s)
+            msg = "User: #{user_id}, Plan: #{user.plan_id}, UsageAccount: #{user.usage_account_id}, "
+          if gear_size
+            msg += "Gear: #{gear_size},"
+          elsif addtl_fs_gb
+            msg += "Storage: #{addtl_fs_gb},"
+          elsif cart_name
+            msg += "Premium-Cart: #{cart_name},"
+          end
+          msg += " Start: #{time}, Fixed: #{current_time}"
+          $billing_api.print_info msg
         end
       end
     end
@@ -446,28 +471,32 @@ def repair_usage(gear_app_gear_ids, gear_urec_gear_ids, storage_app_gear_ids,
   return if (gear_app_gear_ids + gear_urec_gear_ids + storage_app_gear_ids + storage_urec_gear_ids +
              storage_mismatch_gear_ids + cart_app_gear_ids + cart_urec_gear_ids + gear_ids + urec_gear_ids).empty?
   puts "Fixing usage inconsistencies" if $verbose
+  current_time = Time.now.utc
+  puts "************"
+  puts "Check file: #{$log_file} for info on refunds to the user because of incorrect usage billing." if $billing_enabled
+  puts "************"
   gear_app_gear_ids.each do |gear_id|
-    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:gear_usage], true)
+    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:gear_usage], true, current_time)
   end if gear_app_gear_ids.present?
 
   gear_urec_gear_ids.each do |gear_id|
-    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:gear_usage], false)
+    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:gear_usage], false, current_time)
   end if gear_urec_gear_ids.present?
 
   storage_app_gear_ids.each do |gear_id|
-    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:addtl_fs_gb], true)
+    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:addtl_fs_gb], true, current_time)
   end if storage_app_gear_ids.present?
 
   storage_urec_gear_ids.each do |gear_id|
-    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:addtl_fs_gb], false)
+    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:addtl_fs_gb], false, current_time)
   end if storage_urec_gear_ids.present?
 
   cart_app_gear_ids.each do |gear_id|
-    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:premium_cart], true)
+    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:premium_cart], true, current_time)
   end if cart_app_gear_ids.present?
 
   cart_urec_gear_ids.each do |gear_id|
-    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:premium_cart], false)
+    create_usage_record(gear_id, UsageRecord::USAGE_TYPES[:premium_cart], false, current_time)
   end if cart_urec_gear_ids.present?
 
   storage_mismatch_gear_ids.each do |gear_id|

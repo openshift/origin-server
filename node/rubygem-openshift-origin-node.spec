@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.14
+Version: 1.19.16
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,25 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.16-1
+- Bug 1057219 - deconfigure didn't capture RuntimeError (jhonce@redhat.com)
+
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.15-1
+- Fix bug 1055653: handle exceptions from RestClient (pmorie@gmail.com)
+- Merge pull request #4568 from danmcp/bug1049044
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing essentials test (dmcphers@redhat.com)
+- rsync private key over to new proxy gears (rchopra@redhat.com)
+- Node Platform - Optionally generate application key (jhonce@redhat.com)
+- Bug 1055371 (dmcphers@redhat.com)
+- Merge pull request #4527 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4542 from bparees/duplicate_reporting
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz 1049063 - do not throw exception for status call (rchopra@redhat.com)
+- Bug 1025485 - Git push reports deployments to the broker twice
+  (bparees@redhat.com)
+
 * Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.14-1
 - Merge pull request #4547 from pmorie/bugs/1055653
   (dmcphers+openshiftbot@redhat.com)

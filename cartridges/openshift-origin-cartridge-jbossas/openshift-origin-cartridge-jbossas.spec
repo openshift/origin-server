@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.19.7
+Version: 1.19.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,9 @@ fi
 
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
+- Bump up cartridge versions (bparees@redhat.com)
+
 * Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
 - Bug 1055646 - [new relic] JBossAS cart restart fails if kill -TERM is called
   when process has already terminated (bparees@redhat.com)

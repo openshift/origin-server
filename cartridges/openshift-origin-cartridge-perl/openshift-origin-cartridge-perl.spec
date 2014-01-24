@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.18.6
+Version: 1.18.7
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.18.7-1
+- Bump up cartridge versions (bparees@redhat.com)
+
 * Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.18.6-1
 - <perl,python,phpmyadmin carts> bug 1055095 (lmeyer@redhat.com)
 

@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.19.7
+Version: 1.19.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,13 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
+- Merge pull request #4568 from danmcp/bug1049044
+  (dmcphers+openshiftbot@redhat.com)
+- Node Platform - Optionally generate application key (jhonce@redhat.com)
+- Bug 1055371 (dmcphers@redhat.com)
+- Bug 1056716 - Agent ignoring RuntimeError (jhonce@redhat.com)
+
 * Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
 - Bug 1056480 - Removed random character in code (jhonce@redhat.com)
 

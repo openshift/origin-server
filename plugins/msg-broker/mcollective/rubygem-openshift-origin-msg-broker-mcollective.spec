@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.19.11
+Version: 1.19.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.12-1
+- Merge pull request #4568 from danmcp/bug1049044
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1049044: Creating a single sshkey for each scalable application
+  (abhgupta@redhat.com)
+- Bug 1055371 (dmcphers@redhat.com)
+
 * Wed Jan 22 2014 Adam Miller <admiller@redhat.com> 1.19.11-1
 - Merge pull request #4551 from pravisankar/dev/ravi/bug1049626
   (dmcphers+openshiftbot@redhat.com)

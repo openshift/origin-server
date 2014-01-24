@@ -413,7 +413,7 @@ class Application
     keys_attrs = get_updated_ssh_keys(keys)
     Application.run_in_application_lock(self) do
       op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, parent_op: parent_op, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -439,7 +439,7 @@ class Application
     end
     Application.run_in_application_lock(self) do
       op_group = UpdateAppConfigOpGroup.new(config: self.config)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -458,7 +458,7 @@ class Application
       self.reload
 
       op_group = ReplaceAllSshKeysOpGroup.new(keys_attrs: self.get_all_updated_ssh_keys, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -473,7 +473,7 @@ class Application
   def add_env_variables(vars, parent_op=nil)
     Application.run_in_application_lock(self) do
       op_group = UpdateAppConfigOpGroup.new(add_env_vars: vars, parent_op: parent_op, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -488,7 +488,7 @@ class Application
   def remove_env_variables(vars, parent_op=nil)
     Application.run_in_application_lock(self) do
       op_group = UpdateAppConfigOpGroup.new(remove_env_vars: vars, parent_op: parent_op, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -502,7 +502,7 @@ class Application
   def patch_user_env_variables(vars)
     Application.run_in_application_lock(self) do
       op_group = PatchUserEnvVarsOpGroup.new(user_env_vars: vars, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -769,7 +769,7 @@ class Application
     Application.run_in_application_lock(self) do
       op_group = AddFeaturesOpGroup.new(features: cartridges.map(&:name), group_overrides: group_overrides, init_git_url: init_git_url,
                                         user_env_vars: user_env_vars, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
 
       # if the app is not persisted, it means its an app creation request
       # in this case, calculate the pending_ops and execute the pre-save ones
@@ -835,7 +835,7 @@ class Application
 
     Application.run_in_application_lock(self) do
       op_group = RemoveFeaturesOpGroup.new(features: cartridges.map(&:name), remove_all_features: remove_all_cartridges, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(io)
     end
 
@@ -864,7 +864,7 @@ class Application
           if ucart.is_ci_builder?
             Application.run_in_application_lock(app) do
               op_group = RemoveFeaturesOpGroup.new(features: [ucart.name], user_agent: app.user_agent)
-              app.pending_op_groups.push op_group
+              app.pending_op_groups << op_group
               app.run_jobs(cart_io = ResultIO.new)
               if cart_io.exitcode == 0
                 cart_io.resultIO.string = "Removed #{ucart.name} from #{app.name}\n"
@@ -904,7 +904,7 @@ class Application
   def set_group_overrides(group_overrides, io=ResultIO.new)
     Application.run_in_application_lock(self) do
       op_group = AddFeaturesOpGroup.new(features: [], group_overrides: group_overrides, user_agent: self.user_agent)
-      pending_op_groups.push op_group
+      pending_op_groups << op_group
       self.save!
       self.run_jobs(io)
       io
@@ -950,7 +950,7 @@ class Application
     raise OpenShift::UserException.new("Cannot set the max gear limit to '1' if the application is HA (highly available)") if self.ha and scale_to==1
     Application.run_in_application_lock(self) do
       op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_component_spec, min: scale_from, max: scale_to, multiplier: multiplier, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
-      pending_op_groups.push op_group
+      pending_op_groups << op_group
       self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -975,7 +975,7 @@ class Application
 
     Application.run_in_application_lock(self) do
       op_group = ScaleOpGroup.new(group_instance_id: group_instance_id, scale_by: scale_by, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -1044,7 +1044,7 @@ class Application
       op_group = StartFeatureOpGroup.new(feature: feature, user_agent: self.user_agent)
     end
     Application.run_in_application_lock(self) do
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(result_io)
       result_io
     end
@@ -1054,7 +1054,7 @@ class Application
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       op_group = StartCompOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(result_io)
       result_io
     end
@@ -1069,7 +1069,7 @@ class Application
       else
         op_group = StopFeatureOpGroup.new(feature: feature, force: force, user_agent: self.user_agent)
       end
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(result_io)
       result_io
     end
@@ -1079,7 +1079,7 @@ class Application
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       op_group = StopCompOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, force: force, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(result_io)
       result_io
     end
@@ -1094,7 +1094,7 @@ class Application
       else
         op_group = RestartFeatureOpGroup.new(feature: feature, user_agent: self.user_agent)
       end
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(result_io)
       result_io
     end
@@ -1104,7 +1104,7 @@ class Application
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       op_group = RestartCompOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(result_io)
       result_io
     end
@@ -1119,7 +1119,7 @@ class Application
       else
         op_group = ReloadFeatureConfigOpGroup.new(feature: feature, user_agent: self.user_agent)
       end
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(result_io)
       result_io
     end
@@ -1143,7 +1143,7 @@ class Application
   def reload_component_config(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
       op_group = ReloadCompConfigOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -1154,7 +1154,7 @@ class Application
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
       op_group = TidyAppOpGroup.new(user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(result_io)
       result_io
     end
@@ -1170,7 +1170,7 @@ class Application
     raise OpenShift::UserException.new("Gear for removal not specified") if gear_id.nil?
     Application.run_in_application_lock(self) do
       op_group = RemoveGearOpGroup.new(gear_id: gear_id, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -1236,10 +1236,10 @@ class Application
     Application.run_in_application_lock(self) do
       raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140, "id") if Application.where("aliases.fqdn" => server_alias).count > 0
       op_group = AddAliasOpGroup.new(fqdn: server_alias, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       if ssl_certificate.present?
         op_group = AddSslCertOpGroup.new(fqdn: server_alias, ssl_certificate: ssl_certificate, private_key: private_key, pass_phrase: pass_phrase, user_agent: self.user_agent)
-        self.pending_op_groups.push op_group
+        self.pending_op_groups << op_group
       end
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -1261,10 +1261,10 @@ class Application
     Application.run_in_application_lock(self) do
       if al1as.has_private_ssl_certificate
          op_group = RemoveSslCertOpGroup.new(fqdn: al1as.fqdn, user_agent: self.user_agent)
-         self.pending_op_groups.push op_group
+         self.pending_op_groups << op_group
       end
       op_group = RemoveAliasOpGroup.new(fqdn: al1as.fqdn, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -1281,12 +1281,12 @@ class Application
       #remove old certificate
       if old_alias.has_private_ssl_certificate
          op_group = RemoveSslCertOpGroup.new(fqdn: fqdn, user_agent: self.user_agent)
-         self.pending_op_groups.push op_group
+         self.pending_op_groups << op_group
       end
       #add new certificate
       if ssl_certificate.present?
         op_group = AddSslCertOpGroup.new(fqdn: fqdn, ssl_certificate: ssl_certificate, private_key: private_key, pass_phrase: pass_phrase, user_agent: self.user_agent)
-        self.pending_op_groups.push op_group
+        self.pending_op_groups << op_group
       end
 
       result_io = ResultIO.new
@@ -1389,7 +1389,7 @@ class Application
   def run_connection_hooks
     Application.run_in_application_lock(self) do
       op_group = ExecuteConnectionsOpGroup.new()
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
 
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -1528,7 +1528,7 @@ class Application
 
   def members_changed(added, removed, changed_roles)
     op_group = ChangeMembersOpGroup.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence, user_agent: self.user_agent)
-    self.pending_op_groups.push op_group
+    self.pending_op_groups << op_group
   end
 
   # Processes directives returned by component hooks to add/remove domain ssh keys, app ssh keys, env variables, broker keys etc
@@ -1714,24 +1714,22 @@ class Application
     gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s,
                                                   group_instance.gears.map{|g| g._id.to_s},
                                                   group_instance.addtl_fs_gb)
-    pending_ops.push(*gear_destroy_ops)
+    pending_ops.concat(gear_destroy_ops)
     gear_destroy_op_ids = gear_destroy_ops.map{|op| op._id.to_s}
 
-    unsubscribe_conn_ops = []
     comp_specs.each do |comp_spec|
       comp_instance = self.find_component_instance_for(comp_spec)
-      unsubscribe_conn_ops.push(UnsubscribeConnectionsOp.new(sub_pub_info: get_unsubscribe_info(comp_instance), prereq: gear_destroy_op_ids))
+      pending_ops << UnsubscribeConnectionsOp.new(sub_pub_info: get_unsubscribe_info(comp_instance), prereq: gear_destroy_op_ids)
     end
-    pending_ops.push(*unsubscribe_conn_ops)
 
-    destroy_ginst_op  = DeleteGroupInstanceOp.new(group_instance_id: group_instance._id.to_s, prereq: gear_destroy_op_ids)
-    pending_ops.push(destroy_ginst_op)
-    pending_ops
+    pending_ops << DeleteGroupInstanceOp.new(group_instance_id: group_instance._id.to_s, prereq: gear_destroy_op_ids)
   end
 
   def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size,
                                 prereq_op=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil, user_env_vars=nil)
     ops = []
+    track_usage_ops = []
+
     gear_id_prereqs = {}
     maybe_notify_app_create_op = []
     app_dns_gear_id = nil
@@ -1742,7 +1740,7 @@ class Application
       # FIXME this operation should move to much later in the process (DNS must be registered before publishing this route)
       if app_dns
         notify_app_create_op = NotifyAppCreateOp.new()
-        ops.push(notify_app_create_op)
+        ops << notify_app_create_op
         maybe_notify_app_create_op = [notify_app_create_op._id.to_s]
         app_dns_gear_id = gear_id.to_s
       end
@@ -1755,25 +1753,28 @@ class Application
       reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, gear_size: gear_size, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
 
       create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
+      # this flag is passed to the node to indicate that an sshkey is required to be generated for this gear
+      # currently the sshkey is being generated on the app dns gear if the application is scalable
+      # we are assuming that haproxy will also be added to this gear
+      create_gear_op.sshkey_required = app_dns && self.scalable
 
-      track_usage_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id:
+      track_usage_ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id:
                            self.domain.owner.parent_user_id, app_name: self.name, gear_id: gear_id,
                            event: UsageRecord::EVENTS[:begin], usage_type: UsageRecord::USAGE_TYPES[:gear_usage],
                            gear_size: gear_size, prereq: [create_gear_op._id.to_s])
 
       register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
 
-      ops.push(init_gear_op, reserve_uid_op, create_gear_op, track_usage_op, register_dns_op)
+      ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op)
 
       if additional_filesystem_gb != 0
-        fs_op = SetAddtlFsGbOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s],
+        ops << SetAddtlFsGbOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s],
                                    addtl_fs_gb: additional_filesystem_gb, saved_addtl_fs_gb: 0)
-        ops.push(fs_op)
 
-        ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
-                                app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin],
-                                usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
-                                additional_filesystem_gb: additional_filesystem_gb, prereq: [fs_op._id.to_s])
+        track_usage_ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+                                            app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin],
+                                            usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
+                                            additional_filesystem_gb: additional_filesystem_gb, prereq: [ops.last._id.to_s])
       end
 
       gear_id_prereqs[gear_id] = register_dns_op._id.to_s
@@ -1802,12 +1803,13 @@ class Application
     end
 
     prereq_op_id = prereq_op._id.to_s rescue nil
-    add = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, 
-                                      is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url, 
+    add, usage = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
+                                      is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
                                       app_dns_gear_id)
     ops.concat(add)
+    track_usage_ops.concat(usage)
 
-    ops
+    [ops, track_usage_ops]
   end
 
   def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb)
@@ -1855,7 +1857,7 @@ class Application
 
   def get_sparse_scaledown_gears(ginst, scale_down_factor)
     scaled_gears = ginst.gears.select { |g| g.app_dns==false }
-    sparse_components = ginst.component_instances.select { |ci| ci.is_sparse? }
+    sparse_components = ginst.component_instances.select(&:is_sparse?)
     gears = []
     if sparse_components.length > 0
       (scale_down_factor...0).each do |i|
@@ -1935,6 +1937,7 @@ class Application
 
   def calculate_add_component_ops(comp_specs, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil, app_dns_gear_id=nil)
     ops = []
+    usage_ops = []
 
     comp_specs.each do |comp_spec|
       component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: [], expose_ports: [], add_broker_auth_keys: []} if component_ops[comp_spec].nil?
@@ -1946,7 +1949,7 @@ class Application
         new_component_op.prereq = [prereq_id] unless prereq_id.nil?
         component_ops[comp_spec][:new_component] = new_component_op
         new_component_op_id = [new_component_op._id.to_s]
-        ops.push new_component_op
+        ops << new_component_op
       end
 
       sparse_carts_added_count = 0
@@ -1959,41 +1962,49 @@ class Application
         if cartridge.is_web_proxy?
           add_broker_auth_op = AddBrokerAuthKeyOp.new(gear_id: gear_id, prereq: new_component_op_id + [prereq_id])
           prereq_id = add_broker_auth_op._id.to_s
-          component_ops[comp_spec][:add_broker_auth_keys].push add_broker_auth_op
-          ops.push add_broker_auth_op
+          component_ops[comp_spec][:add_broker_auth_keys] << add_broker_auth_op
+          ops << add_broker_auth_op
         end
 
         git_url = nil
         git_url = init_git_url if gear_id == deploy_gear_id && cartridge.is_deployable?
         add_component_op = AddCompOp.new(gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, prereq: new_component_op_id + [prereq_id])
-        ops.push add_component_op
-        component_ops[comp_spec][:adds].push add_component_op
+        ops << add_component_op
+        component_ops[comp_spec][:adds] << add_component_op
         usage_op_prereq = [add_component_op._id.to_s]
 
         # in case of deployable carts, the post-configure op is executed at the end
         # to ensure this, it is removed from the prerequisite list for any other pending_op
         # to avoid issues, pending_ops should not depend ONLY on post-configure op to manage execution order
+        post_configure_op = nil
         unless (gear_id != app_dns_gear_id) and cartridge.is_deployable?
           post_configure_op = PostConfigureCompOp.new(gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, prereq: [add_component_op._id.to_s] + [prereq_id])
-          ops.push post_configure_op
-          component_ops[comp_spec][:post_configures].push post_configure_op
+          ops << post_configure_op
+          component_ops[comp_spec][:post_configures] << post_configure_op
           usage_op_prereq += [post_configure_op._id.to_s]
         end
 
         if cartridge.is_premium?
-          ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+          usage_ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
             app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin], cart_name: cartridge.name,
             usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: usage_op_prereq)
         end
 
         if self.scalable
-          op = ExposePortOp.new(gear_id: gear_id, comp_spec: comp_spec, prereq: usage_op_prereq + [prereq_id])
-          component_ops[comp_spec][:expose_ports].push op
-          ops.push op
+          expose_port_prereq = []
+          if post_configure_op
+            expose_port_prereq << post_configure_op._id.to_s
+          else
+            expose_port_prereq << add_component_op._id.to_s
+          end
+          op = ExposePortOp.new(gear_id: gear_id, comp_spec: comp_spec, prereq: expose_port_prereq + [prereq_id])
+          component_ops[comp_spec][:expose_ports] << op
+          ops << op
         end
       end
     end
-    ops
+
+    [ops, usage_ops]
   end
 
   def calculate_remove_component_ops(comp_specs)
@@ -2004,16 +2015,16 @@ class Application
 
       if component_instance.is_plugin? || (!self.scalable && component_instance.is_embeddable?)
         component_instance.gears.each do |gear|
-          op = RemoveCompOp.new(gear_id: gear._id, comp_spec: comp_spec)
-          ops.push op
-          ops.push(TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
-            app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end], cart_name: cartridge.name,
-            usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: [op._id.to_s])) if cartridge.is_premium?
+          ops << RemoveCompOp.new(gear_id: gear._id, comp_spec: comp_spec)
+          if cartridge.is_premium?
+            ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+              app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end], cart_name: cartridge.name,
+              usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: [ops.last._id.to_s])
+          end
         end
       end
-      op = DeleteCompOp.new(comp_spec: comp_spec, prereq: ops.map{|o| o._id.to_s})
-      ops.push op
-      ops.push(UnsubscribeConnectionsOp.new(sub_pub_info: get_unsubscribe_info(component_instance), prereq: [op._id.to_s]))
+      ops << DeleteCompOp.new(comp_spec: comp_spec, prereq: ops.map{|o| o._id.to_s})
+      ops << UnsubscribeConnectionsOp.new(sub_pub_info: get_unsubscribe_info(component_instance), prereq: [ops.last._id.to_s])
     end
     ops
   end
@@ -2033,6 +2044,7 @@ class Application
     add_gears = 0
     remove_gears = 0
     pending_ops = []
+    begin_usage_ops = []
 
     overrides = GroupOverride.remove_defaults_from(group_overrides, 1, -1, default_gear_size, 0)
     if overrides != self.group_overrides
@@ -2059,13 +2071,14 @@ class Application
         gear_ids[0] = self._id.to_s
       end
 
-      ops = calculate_gear_create_ops(change.to_instance_id.to_s, gear_ids, deploy_gear_id, change.added, component_ops, additional_filesystem_gb,
+      ops, usage_ops = calculate_gear_create_ops(change.to_instance_id.to_s, gear_ids, deploy_gear_id, change.added, component_ops, additional_filesystem_gb,
                                       gear_size, prereq_op, false, app_dns, init_git_url, user_env_vars)
       pending_ops.concat(ops)
+      begin_usage_ops.concat(usage_ops)
     end
 
     moves.each do |move|
-      #ops.push(PendingAppOps.new(op_type: :move_component, args: move, flag_req_change: true))
+      #ops << PendingAppOps.new(op_type: :move_component, args: move, flag_req_change: true)
     end
 
     user_vars_op_id = nil
@@ -2099,8 +2112,9 @@ class Application
             gear_id_prereqs = {}
             group_instance.gears.each{ |g| gear_id_prereqs[g._id.to_s] = []}
 
-            ops = calculate_add_component_ops(change.added, change.existing_instance_id.to_s, deploy_gear_id, gear_id_prereqs, component_ops, false, user_vars_op_id, nil)
+            ops, usage_ops = calculate_add_component_ops(change.added, change.existing_instance_id.to_s, deploy_gear_id, gear_id_prereqs, component_ops, false, user_vars_op_id, nil)
             pending_ops.concat(ops)
+            begin_usage_ops.concat(usage_ops)
           end
 
           changed_additional_filesystem_gb = nil
@@ -2109,32 +2123,36 @@ class Application
             new_fs = change.to.additional_filesystem_gb
             old_fs = change.from.additional_filesystem_gb
             changed_additional_filesystem_gb = new_fs
-            usage_prereq = []
-            usage_prereq = [pending_ops.last._id.to_s] if pending_ops.last
-            usage_ops = []
-            if change.from.additional_filesystem_gb > 0
+            fs_prereq = []
+            fs_prereq = [pending_ops.last._id.to_s] if pending_ops.last
+            end_usage_op_ids = []
+
+            if old_fs != 0
               group_instance.gears.each do |gear|
-                track_usage_old_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+                pending_ops << TrackUsageOp.new(
+                  user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                   app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:end],
                   usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
-                  additional_filesystem_gb: old_fs, prereq: usage_prereq)
-                usage_ops.push(track_usage_old_fs_op._id.to_s)
-                pending_ops.push(track_usage_old_fs_op)
+                  additional_filesystem_gb: old_fs,
+                  prereq: fs_prereq)
+                end_usage_op_ids << pending_ops.last._id.to_s
               end
             end
+
             group_instance.gears.each do |gear|
-              fs_op = SetAddtlFsGbOp.new(gear_id: gear._id.to_s,
+              pending_ops << SetAddtlFsGbOp.new(
+                  gear_id: gear._id.to_s,
                   addtl_fs_gb: new_fs,
                   saved_addtl_fs_gb: old_fs,
-                  prereq: (usage_ops.empty? ? usage_prereq : usage_ops))
-              pending_ops.push(fs_op)
+                  prereq: (end_usage_op_ids.empty? ? fs_prereq : end_usage_op_ids))
 
-              if change.to.additional_filesystem_gb > 0
-                track_usage_fs_op = TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
+              if new_fs != 0
+                begin_usage_ops << TrackUsageOp.new(
+                  user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                   app_name: self.name, gear_id: gear._id.to_s, event: UsageRecord::EVENTS[:begin],
                   usage_type: UsageRecord::USAGE_TYPES[:addtl_fs_gb],
-                  additional_filesystem_gb: new_fs, prereq: [fs_op._id.to_s])
-                pending_ops.push(track_usage_fs_op)
+                  additional_filesystem_gb: new_fs,
+                  prereq: [pending_ops.last._id.to_s])
               end
             end
           end
@@ -2144,7 +2162,7 @@ class Application
             add_gears += scale_change
             gear_ids = Array.new(scale_change){ |i| Moped::BSON::ObjectId.new.to_s }
 
-            ops = calculate_gear_create_ops(
+            ops, usage_ops = calculate_gear_create_ops(
                     change.existing_instance_id.to_s,
                     gear_ids,
                     deploy_gear_id,
@@ -2155,6 +2173,7 @@ class Application
                     nil, true, false, nil,
                     user_env_vars)
             pending_ops.concat(ops)
+            begin_usage_ops.concat(usage_ops)
 
           elsif scale_change < 0
             remove_gears += -scale_change
@@ -2189,18 +2208,17 @@ class Application
       # operation cannot be skipped
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
       execute_connection_op = ExecuteConnectionsOp.new(prereq: all_ops_ids)
-      pending_ops.push execute_connection_op
+      pending_ops << execute_connection_op
     end
 
     # check to see if there are any deployable carts being configured
     # if so, then make sure that the post-configure op for it is executed at the end
     # also, it should not be the prerequisite for any other pending_op
-    component_ops.keys.each do |comp_spec|
-      cartridge = comp_spec.cartridge
-      if cartridge.is_deployable?
-        component_ops[comp_spec][:post_configures].each do |pcop|
+    component_ops.keys.each do |spec|
+      if spec.cartridge.is_deployable?
+        component_ops[spec][:post_configures].each do |pcop|
           pcop.prereq += [execute_connection_op._id.to_s]
-          pending_ops.each { |op| op.prereq.delete_if { |prereq_id| prereq_id == pcop._id.to_s } }
+          pending_ops.each{ |op| op.prereq.delete_if { |prereq_id| prereq_id == pcop._id.to_s } }
         end
       end
     end
@@ -2208,8 +2226,7 @@ class Application
     # update-cluster has to run after all deployable carts have been post-configured
     if scalable && pending_ops.present?
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
-      update_cluster_op = UpdateClusterOp.new(prereq: all_ops_ids)
-      pending_ops.push update_cluster_op
+      pending_ops << UpdateClusterOp.new(prereq: all_ops_ids)
     end
 
     # notify subscribers of route changes if endpoints are exposed
@@ -2220,8 +2237,13 @@ class Application
     #   end
     # end
 
-    # push begin track usage ops to the end
-    reorder_usage_ops(pending_ops)
+    # track begin usage ops after update-cluster/execute-connections op
+    if begin_usage_ops.present?
+      begin_usage_prereq = []
+      begin_usage_prereq << pending_ops.last._id.to_s if pending_ops.present?
+      begin_usage_ops.each{ |op| op.prereq.concat(begin_usage_prereq) }
+      pending_ops.concat(begin_usage_ops)
+    end
 
     [pending_ops, add_gears, remove_gears]
   end
@@ -2578,26 +2600,6 @@ class Application
     [computed_start_order, computed_stop_order]
   end
 
-  def reorder_usage_ops(pending_ops)
-    op_ids = []
-    begin_usage_op_ids = []
-    pending_ops.each do |op|
-      if op.kind_of?(TrackUsageOp) and (op.event != UsageRecord::EVENTS[:end])
-        begin_usage_op_ids << op._id.to_s
-      else
-        op_ids << op._id.to_s
-      end
-    end
-    pending_ops.each do |op|
-      if begin_usage_op_ids.include?(op._id.to_s)
-        op.prereq += op_ids
-        op.prereq.uniq!
-      else
-        op.prereq.delete_if {|id| begin_usage_op_ids.include?(id)}
-      end
-    end unless begin_usage_op_ids.empty?
-  end
-
   def get_all_updated_ssh_keys
     ssh_keys = []
     ssh_keys = self.app_ssh_keys.map {|k| k.serializable_hash } # the app_ssh_keys already have their name "updated"
@@ -2624,8 +2626,6 @@ class Application
       when ApplicationSshKey
         key_attrs["name"] = "application-" + key_attrs["name"]
       end
-      #node requires a comment attribute
-      key_attrs["comment"] = key_attrs["name"]
       updated_keys_attrs.push(key_attrs)
     end
     updated_keys_attrs
@@ -2728,7 +2728,7 @@ class Application
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
       op_group = DeployOpGroup.new(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(result_io)
     end
     return result_io
@@ -2739,7 +2739,7 @@ class Application
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
       op_group = ActivateOpGroup.new(deployment_id: deployment_id)
-      self.pending_op_groups.push op_group
+      self.pending_op_groups << op_group
       self.run_jobs(result_io)
     end
     return result_io

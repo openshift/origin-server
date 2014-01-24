@@ -135,7 +135,7 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_equal(-1, overrides[0].max_gears)
     assert comp = overrides[0].components.detect{ |i| i.cartridge.is_web_proxy? }
     assert_equal 2, comp.min_gears
-    assert_equal 1, comp.multiplier
+    assert_equal 0, comp.multiplier
   end
 
   test "no app name or domain name" do

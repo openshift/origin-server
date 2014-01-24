@@ -108,8 +108,8 @@ class Gear
     self.uid = nil
   end
 
-  def create_gear
-    result_io = get_proxy.create(self)
+  def create_gear(sshkey_required=false)
+    result_io = get_proxy.create(self, nil, nil, sshkey_required)
     application.process_commands(result_io, nil, self)
     result_io
   end
@@ -346,7 +346,7 @@ class Gear
     remove_envs = op.remove_env_vars
     config = op.config
 
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_keys_job(self, add_keys)) if add_keys.present?      
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_keys_job(self, add_keys)) if add_keys.present?
     RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_keys_job(self, remove_keys))  if remove_keys.present?
 
     add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(self, env["key"],env["value"]))} if add_envs.present?

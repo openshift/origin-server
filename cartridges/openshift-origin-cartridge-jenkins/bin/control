@@ -79,7 +79,11 @@ function start() {
       --handlerCountMax=45 \
       --handlerCountMaxIdle=20 \
       --httpListenAddress=$OPENSHIFT_JENKINS_IP"
-
+  
+  # Without this, international characters in job definitions
+  # are not handled properly by Jenkins
+  export LANG=en_US.UTF.8 
+  
   $JENKINS_CMD &
   
   if ! is_up; then

@@ -151,39 +151,47 @@ module OpenShift
 
           ::OpenShift::Runtime::FrontendHttpServer.new(self).create
 
+          mk_openshift_ssh(homedir)
+
           # Fix SELinux context for cart dirs
           set_rw_permission(profile)
           reset_permission_R(homedir)
         end
 
-        ##
-        # Generate an RSA ssh key
-        def generate_ssh_key()
-          ssh_dir        = PathUtils.join(@container_dir, '.openshift_ssh')
+        def mk_openshift_ssh(homedir)
+          ssh_dir        = PathUtils.join(homedir, '.openshift_ssh')
           known_hosts    = PathUtils.join(ssh_dir, 'known_hosts')
           ssh_config     = PathUtils.join(ssh_dir, 'config')
           ssh_key        = PathUtils.join(ssh_dir, 'id_rsa')
           ssh_public_key = ssh_key + '.pub'
 
           FileUtils.mkdir_p(ssh_dir)
-          set_rw_permission(ssh_dir)
+          FileUtils.chmod(0750, ssh_dir)
+
+          FileUtils.touch(known_hosts)
+          FileUtils.touch(ssh_config)
+          FileUtils.chmod(0660, [known_hosts, ssh_config])
+
+          add_env_var('APP_SSH_KEY', ssh_key, true)
+          add_env_var('APP_SSH_PUBLIC_KEY', ssh_public_key, true)
+
+          set_rw_permission_R(ssh_dir)
+        end
+
+        ##
+        # Generate an RSA ssh key
+        def generate_ssh_key()
+          ssh_dir        = PathUtils.join(@container_dir, '.openshift_ssh')
+          ssh_key        = PathUtils.join(ssh_dir, 'id_rsa')
+          ssh_public_key = ssh_key + '.pub'
 
           run_in_container_context("/usr/bin/ssh-keygen -N '' -f #{ssh_key}",
                                    chdir:               @container_dir,
                                    timeout:             @hourglass.remaining,
                                    expected_exitstatus: 0)
 
-          FileUtils.touch(known_hosts)
-          FileUtils.touch(ssh_config)
-
-          set_rw_permission_R(ssh_dir)
-
-          FileUtils.chmod(0750, ssh_dir)
           FileUtils.chmod(0600, [ssh_key, ssh_public_key])
-          FileUtils.chmod(0660, [known_hosts, ssh_config])
-
-          add_env_var('APP_SSH_KEY', ssh_key, true)
-          add_env_var('APP_SSH_PUBLIC_KEY', ssh_public_key, true)
+          set_rw_permission_R(ssh_dir)
 
           public_key_bytes = IO.read(ssh_public_key)
           public_key_bytes.sub!(/^ssh-rsa /, '')

@@ -329,7 +329,7 @@ module OpenShift
         end
       end
 
-      def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil)
+      def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
         app = gear.application
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -338,6 +338,7 @@ module OpenShift
         args['--with-container-name'] = gear.name
         args['--with-quota-blocks'] = quota_blocks if quota_blocks
         args['--with-quota-files'] = quota_files if quota_files
+        args['--with-generate-app-key'] = sshkey_required if sshkey_required
         args['--with-namespace'] = app.domain_namespace
         args['--with-uid'] = gear.uid if gear.uid
         args['--with-request-id'] = Thread.current[:user_action_log_uuid]
@@ -380,11 +381,11 @@ module OpenShift
       # Constructs a shell command line to be executed by the MCollective agent
       # on the node.
       #
-      def create(gear, quota_blocks=nil, quota_files=nil)
+      def create(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
         app = gear.application
         result = nil
         (1..10).each do |i|
-          args = build_base_gear_args(gear, quota_blocks, quota_files)
+          args = build_base_gear_args(gear, quota_blocks, quota_files, sshkey_required)
 
           # set the secret token for new gear creations
           # log an error if the application does not have its secret_token set
@@ -1445,7 +1446,7 @@ module OpenShift
       #
       def get_add_authorized_ssh_keys_job(gear, ssh_keys)
         args = build_base_gear_args(gear)
-        args['--with-ssh-keys'] = ssh_keys.to_json
+        args['--with-ssh-keys'] = build_ssh_key_args_with_content(ssh_keys)
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-batch-add', args)
         job
       end
@@ -1485,7 +1486,7 @@ module OpenShift
       #
       def get_remove_authorized_ssh_keys_job(gear, ssh_keys)
         args = build_base_gear_args(gear)
-        args['--with-ssh-keys'] = ssh_keys.to_json
+        args['--with-ssh-keys'] = build_ssh_key_args_with_content(ssh_keys)
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-batch-remove', args)
         job
       end
@@ -1505,7 +1506,7 @@ module OpenShift
       #
       def get_fix_authorized_ssh_keys_job(gear, ssh_keys)
         args = build_base_gear_args(gear)
-        args['--with-ssh-keys'] = ssh_keys.map {|k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name']}}
+        args['--with-ssh-keys'] = build_ssh_key_args(ssh_keys)
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-keys-replace', args)
         job
       end
@@ -3441,5 +3442,14 @@ module OpenShift
       def mask_user_creds(str)
         str.gsub(/(User: |Password: |username=|password=).*/, '\1[HIDDEN]')
       end
+
+      def build_ssh_key_args_with_content(ssh_keys)
+        ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name'], 'content' => k['content']} }
+      end
+
+      def build_ssh_key_args(ssh_keys)
+        ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name']} }
+      end
+
     end
 end

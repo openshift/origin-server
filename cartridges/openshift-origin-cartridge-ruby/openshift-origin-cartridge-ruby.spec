@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.19.9
+Version: 1.19.11
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,14 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.11-1
+- Merge pull request #4572 from ncdc/bugs/1005123-ruby-jenkins-force-clean-
+  build-broken (dmcphers+openshiftbot@redhat.com)
+- Bug 1005123 (andy.goldstein@gmail.com)
+
+* Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.10-1
+- Bump up cartridge versions (bparees@redhat.com)
+
 * Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
 - Added groups_in_gemfile function to Ruby cart SDK (mfojtik@redhat.com)
 - Be less verbose when not needed in Ruby cartridge (mfojtik@redhat.com)
