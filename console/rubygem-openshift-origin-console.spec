@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.19.15
+Version: 1.20.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.19.16-1
+- Adding back zend-5.6 until bug 1054654 is fixed (lnader@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.15-1
 - Merge pull request #4570 from
   liggitt/bug_1055906_downloadable_cartridge_scheme (ccoleman@redhat.com)

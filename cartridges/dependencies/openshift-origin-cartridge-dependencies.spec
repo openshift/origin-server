@@ -1,6 +1,6 @@
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version:       1.19.5
+Version: 1.20.0
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com

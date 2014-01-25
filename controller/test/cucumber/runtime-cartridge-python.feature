@@ -10,10 +10,6 @@ Feature: V2 SDK Python Cartridge
   And the python-2.6 PYTHON_DIR env entry will exist
   And the python-2.6 PYTHON_LOG_DIR env entry will exist
   And the python-2.6 PYTHON_VERSION env entry will exist
-
-  @not-fedora-19
-  Scenario: Destroy application
-  Given a new python-2.6 type application
   When I destroy the application
   Then the application git repo will not exist
 

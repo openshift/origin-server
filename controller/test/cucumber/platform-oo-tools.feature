@@ -1,4 +1,4 @@
-@cartridge_extended4
+@cartridge_extended3
 Feature: V2 Platform Extended Tests
   Scenario: Basic functional test using oo-app-create and oo-cartridge
     Given a new cli-created mock-0.1 type application
