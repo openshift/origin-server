@@ -17,10 +17,33 @@ class ComponentInstance
   field :component_name, type: String
   field :cartridge_name, type: String
 
+  field :manifest_text, type: String
+  field :manifest_url, type: String
+
   # DEPRECATED - will be removed
   field :cartridge_vendor, type: String
 
   attr_accessor :version
+
+  def self.from(cartridge, name=nil)
+    name ||= cartridge.components.first.name
+    inst = new(
+      cartridge_name: cartridge.name,
+      # LEGACY - these will be removed in a future release
+      component_name: name,
+      cartridge_vendor: cartridge.cartridge_vendor,
+      version: cartridge.version,
+    )
+    if cartridge.persisted?
+      inst.cartridge_id = cartridge.id
+    else
+      inst._id = Moped::BSON::ObjectId.from_string(cartridge.id) if cartridge.id.present?
+      inst.manifest_url = cartridge.manifest_url
+      inst.manifest_text = cartridge.manifest_text
+    end
+    inst.instance_variable_set(:@cartridge, cartridge)
+    inst
+  end
 
   NAME_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\Z/
   def self.check_name!(name)
@@ -84,10 +107,30 @@ class ComponentInstance
 
   def cartridge
     @cartridge ||= begin
-      if cartridge_id && (cart = CartridgeCache.find_cartridge_by_id(cartridge_id, self.application))
+      # WARNING: during migration, this will prefer the new cartridge over the old (which means an update of the
+      # old location by old code will have no effect).
+      if data = (manifest_text and attributes)
+        cart = CartridgeCache.find_serialized_cartridge(data)
+        cart.id = _id.to_s
         self.cartridge_name = cart.name
         self.cartridge_vendor = cart.cartridge_vendor
-      elsif cartridge_name && (cart = CartridgeCache.find_cartridge(cartridge_name, self.application))
+        self.cartridge_id = nil
+        cart
+      # DEPRECATED: this block will be removed when downloaded_cart_map is removed
+      elsif data = (cartridge_name and application.downloaded_cart_map and
+                    application.downloaded_cart_map.each_value.detect{ |c| c['versioned_name'] == cartridge_name })
+        cart = CartridgeCache.cartridge_from_data(data)
+        cart.id = _id.to_s
+        self.cartridge_name = cart.name
+        self.cartridge_vendor = cart.cartridge_vendor
+        self.cartridge_id = nil
+        self.manifest_text = cart.manifest_text
+        self.manifest_url = cart.manifest_url
+        cart
+      elsif cartridge_id && (cart = CartridgeCache.find_cartridge_by_id(cartridge_id))
+        self.cartridge_name = cart.name
+        self.cartridge_vendor = cart.cartridge_vendor
+      elsif cartridge_name && (cart = CartridgeCache.find_cartridge(cartridge_name))
         self.cartridge_id = cart.id
         self.cartridge_vendor = cart.cartridge_vendor
       end

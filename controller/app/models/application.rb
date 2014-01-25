@@ -52,6 +52,7 @@ end
 class Application
   include Mongoid::Document
   include Mongoid::Timestamps
+  include MongoidAtomicUpdate
   include Membership
 
   # Maximum length of  a valid application name
@@ -87,7 +88,7 @@ class Application
   belongs_to :builder, class_name: Application.name, inverse_of: :built_applications
   has_many :built_applications, class_name: Application.name
 
-  field :downloaded_cart_map, type: Hash, default: {}
+  field :downloaded_cart_map, type: Hash # REMOVED, pending migration
   field :default_gear_size, type: String, default: Rails.configuration.openshift[:default_gear_size]
   field :scalable, type: Boolean, default: false
   field :ha, type: Boolean, default: false
@@ -162,10 +163,6 @@ class Application
     if init_git_url_changed?
       self.init_git_url = OpenShift::Git.persistable_clone_spec(init_git_url)
     end
-  end
-
-  after_save do |app|
-    app.instance_variable_set(:@downloaded_cartridges, nil)
   end
 
   # Hook to prevent accidental deletion of MongoID model before all related {Gear}s are removed
@@ -248,7 +245,6 @@ class Application
   # Constructor. Should not be used directly. Use {Application#create_app} instead.
   def initialize(attrs = nil, options = nil)
     super
-    @downloaded_cartridges = {}
     self.app_ssh_keys = []
     #self.pending_op_groups = []
     self.analytics ||= {}
@@ -292,7 +288,7 @@ class Application
   ##
   # Enumerates all the Cartridges that are installed in this application.  If
   # pending is true the op group will be iterated to check for changes to the
-  # list.
+  # list - if pending is set to an op group all earlier op groups will be iterated.
   #
   # In general, this is the primary mechanism by which the cartridges in the
   # application should be queried.
@@ -302,7 +298,13 @@ class Application
     e = if pending
       EnumeratorArray.new do |y|
         removed = []
+        pending = pending_op_groups.last
         pending_op_groups.reverse_each do |g|
+          # skip until we find the passed group
+          if pending
+            next unless pending.equal?(g)
+            pending = nil
+          end
           case g
           when AddFeaturesOpGroup
             g.cartridges.each do |c|
@@ -330,53 +332,25 @@ class Application
   end
 
   ##
-  # Returns the names of currently installed cartridges in this application
-  # NOTE: Use cartridges as an enumerator if you need to access a specific version of the cartridge
-  # @param pending [Boolean] Include the pending changes when calculating the list of features
-  # @return [Array<String>] List of features
-  def requires(pending=false)
-    cartridges(pending).map(&:name)
+  # Return all of the existing downloaded cartridges in this app.
+  #
+  def downloaded_cartridges
+    cartridges.reject(&:persisted?)
   end
-  alias_method :cartridge_names, :requires
 
   ##
-  # Get the web framework cartridge
+  # Get the web framework cartridge or nil if it doesn't exist.
   # This method is only to maintain backwards compatibility for rest api version 1.0
   # @return Cartridge
   def web_cartridge
-    cartridges.find(&:is_web_framework?)
+    cartridges(true).find(&:is_web_framework?)
   end
 
+  ##
+  # Return the first web framework component in this application.
+  #
   def web_component_instance
     component_instances.detect(&:is_web_framework?)
-  end
-
-  def downloaded_cartridges
-    @downloaded_cartridges ||= begin
-      self.downloaded_cart_map.inject({}) do |h, (_, data)|
-        cart = CartridgeCache.cartridge_from_data(data)
-        Rails.logger.error("Duplicate downloaded cartridge exists for application '#{self.name}'! Overwriting..") if h.has_key? cart.name
-        h[cart.name] = cart
-        h
-      end
-    end
-  end
-
-  def cartridge_instances
-    @cartridge_instances ||= {}
-  end
-
-  def track_downloaded_cartridge(cart)
-    return self unless cart.manifest_url.present?
-    @downloaded_cartridges[cart.name] = cart if @downloaded_cartridges
-    Rails.logger.error("Duplicate downloaded cartridge exists for application '#{self.name}'! Overwriting..") if downloaded_cart_map.has_key? cart.name
-    downloaded_cart_map[cart.original_name] = {
-        "versioned_name" => cart.full_identifier,
-        "version" => cart.version,
-        "url" => cart.manifest_url,
-        "original_manifest" => cart.manifest_text,
-    }
-    self
   end
 
   ##
@@ -583,7 +557,7 @@ class Application
 
   ##
   # A non-scalable application has an implicit override for all components to be
-  # located on the same gear. 
+  # located on the same gear.
   #
   def implicit_non_scalable_overrides(specs)
     [GroupOverride.new(specs.dup, nil, 1).implicit]
@@ -758,17 +732,13 @@ class Application
       raise OpenShift::UserException.new("You can only have one proxy cartridge in your application '#{name}'.", 109, 'cartridge')
     end
 
-    # ensure cartridges are available to the cache and that downloaded cartridegs are stored
-    cartridges.inject(cartridge_instances) do |h, cart|
-      track_downloaded_cartridge(cart)
-      h[cart.name] = cart
-      h
-    end
-    save! if persisted? && downloaded_cart_map_changed?
-
     Application.run_in_application_lock(self) do
-      op_group = AddFeaturesOpGroup.new(features: cartridges.map(&:name), group_overrides: group_overrides, init_git_url: init_git_url,
-                                        user_env_vars: user_env_vars, user_agent: self.user_agent)
+      op_group = AddFeaturesOpGroup.new(
+        features: cartridges.map(&:name), # For old data support
+        cartridges: cartridges.map(&:specification_hash), # Replaces features
+        group_overrides: group_overrides, init_git_url: init_git_url,
+        user_env_vars: user_env_vars, user_agent: self.user_agent
+      )
       self.pending_op_groups << op_group
 
       # if the app is not persisted, it means its an app creation request
@@ -880,7 +850,6 @@ class Application
 
   ##
   # Destroys all gears on the application.
-  # @note {#run_jobs} must be called in order to perform the updates
   # @return [ResultIO] Output from cartridges
   def destroy_app(io=ResultIO.new)
     remove_dependent_applications(io)
@@ -903,7 +872,7 @@ class Application
   # @return [ResultIO] Output from cartridges
   def set_group_overrides(group_overrides, io=ResultIO.new)
     Application.run_in_application_lock(self) do
-      op_group = AddFeaturesOpGroup.new(features: [], group_overrides: group_overrides, user_agent: self.user_agent)
+      op_group = AddFeaturesOpGroup.new(features: [], cartridges: [], group_overrides: group_overrides, user_agent: self.user_agent)
       pending_op_groups << op_group
       self.save!
       self.run_jobs(io)
@@ -1945,7 +1914,12 @@ class Application
 
       new_component_op_id = []
       if self.group_instances.where(_id: group_instance_id).exists? and (not is_scale_up)
-        new_component_op = NewCompOp.new(group_instance_id: group_instance_id, comp_spec: comp_spec, cartridge_vendor: cartridge.cartridge_vendor, version: cartridge.version)
+        new_component_op = NewCompOp.new(
+          group_instance_id: group_instance_id,
+          comp_spec: comp_spec,
+          cartridge_vendor: cartridge.cartridge_vendor,
+          version: cartridge.version,
+        )
         new_component_op.prereq = [prereq_id] unless prereq_id.nil?
         component_ops[comp_spec][:new_component] = new_component_op
         new_component_op_id = [new_component_op._id.to_s]

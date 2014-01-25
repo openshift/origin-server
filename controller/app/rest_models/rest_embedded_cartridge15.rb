@@ -112,9 +112,8 @@ class RestEmbeddedCartridge15 < OpenShift::Model
     self.license_url = cart.license_url
     self.tags = cart.categories
     self.website = cart.website
-    self.url = nil
-    if downloaded = app.downloaded_cartridges[cart.name]
-      self.url = downloaded.manifest_url
+    if not cart.persisted?
+      self.url = cart.manifest_url
     end
     self.type = "standalone"
     self.type = "embedded" if cart.is_embeddable?

@@ -130,6 +130,10 @@ class PendingAppOp
     end
   end
 
+  def if_not_found(e)
+    raise e unless Mongoid::Errors::DocumentNotFound === e
+  end
+
   def action_message
     "#{self.class.to_s} failed"
   end

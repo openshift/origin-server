@@ -83,8 +83,8 @@ class RestGearGroup < OpenShift::Model
       ghash
     }
 
-    self.cartridges   = group_instance.all_component_instances.map { |component_instance| 
-      cart = CartridgeCache.find_cartridge_or_raise_exception(component_instance.cartridge_name, app)
+    self.cartridges = group_instance.all_component_instances.map do |component_instance|
+      cart = component_instance.cartridge
 
       # Handling the case when component_properties is an empty array
       # This can happen if the mongo document is copied and pasted back and saved using a UI tool
@@ -97,7 +97,7 @@ class RestGearGroup < OpenShift::Model
         :display_name => cart.display_name,
         :tags => cart.categories
       })
-    }
+    end
 
     self.scales_from    = group_instance.min
     self.scales_to    = group_instance.max

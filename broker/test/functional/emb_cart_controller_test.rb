@@ -249,6 +249,88 @@ class EmbCartControllerTest < ActionController::TestCase
     end
   end
 
+  test "add downloadable embedded cartridge" do
+    with_app
+
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Display-Name: Mock Cart
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - mock
+      - embedded
+      MANIFEST
+    post :create, {"url" => 'manifest://test', "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :created
+
+    # Instance data is accurate on the object
+    app = Application.find(@app._id)
+    assert_nil app.downloaded_cart_map
+    assert instances = app.component_instances
+    assert instances.length == 2
+    assert instance = instances[1]
+    assert_equal 'manifest://test', instance.manifest_url
+    type = OpenShift::Cartridge.new.from_descriptor(YAML.load(instance.manifest_text))
+    assert_equal instance._id.to_s, type.id
+    assert_equal ['embedded', 'mock'], type.categories.sort
+    assert_equal 'Mock Cart', type.display_name
+    assert instance_cart = instance.cartridge
+
+    assert carts = app.downloaded_cartridges
+    assert carts.length == 1
+    assert cart = carts[0]
+    assert_same instance_cart, cart
+    assert_equal ['embedded', 'mock'], type.categories.sort
+    assert_equal 'Mock Cart', cart.display_name
+    assert_equal "manifest://test", cart.manifest_url
+
+    delete :destroy, {"id" => cart.name, "application_id" => @app.id}
+    assert_response :success
+
+    app.reload
+    assert_equal 1, app.component_instances.length
+    assert app.downloaded_cartridges.empty?
+  end
+
+  test "remove legacy downloadable embedded cartridge" do
+    with_app
+
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Display-Name: Mock Cart
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - mock
+      - embedded
+      MANIFEST
+    post :create, {"url" => 'manifest://test', "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :created
+
+    app = Application.find(@app._id)
+
+    # reset the application to a pre migration state
+    cart = app.downloaded_cartridges.first
+    app.downloaded_cart_map = {cart.original_name => CartridgeCache.cartridge_to_data(cart)}
+    instance = app.component_instances[0]
+    instance.cartridge_id = nil
+    instance.manifest_url = nil
+    instance.manifest_text = nil
+    app.save!
+
+    delete :destroy, {"id" => cart.name, "application_id" => @app.id}
+    assert_response :success
+
+    app.reload
+    assert_equal 1, app.component_instances.length
+    assert app.downloaded_cartridges.empty?
+  end
+
   def test_attempt_to_add_obsolete_cartridge
     with_app
     Rails.cache.clear

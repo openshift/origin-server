@@ -185,40 +185,40 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_raises(Mongoid::Errors::DocumentNotFound){ Application.find(built._id) }
 
     app.destroy_app
-  end  
+  end
 
   test "app config validation" do
     @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
-    
+
     app.config = nil
     assert app.invalid?, "config validation failed"
-    
+
     app.config = {'auto_deploy' => nil, 'deployment_branch' => nil, 'keep_deployments' => nil, 'deployment_type' => nil}
     assert app.invalid?, "config validation failed"
-    assert_equal app.errors.messages[:config].length, 4, "Wrong number of error messages" 
-    
+    assert_equal app.errors.messages[:config].length, 4, "Wrong number of error messages"
+
     #reset config and try individual fields
     app.config = {'auto_deploy' => true, 'deployment_branch' => 'master', 'keep_deployments' => 1, 'deployment_type' => 'git'}
     assert app.valid?, "config validation failed where it should have succeeded"
-    
+
     app.config['auto_deploy'] = 'blah'
     assert app.invalid?, "auto_deploy validation failed"
-    assert_equal app.errors.messages[:config].length, 1, "Wrong number of error messages" 
-    
+    assert_equal app.errors.messages[:config].length, 1, "Wrong number of error messages"
+
     app.config['deployment_branch'] = "0" * 999
     assert app.invalid?, "deployment_branch validation failed"
     assert_equal app.errors.messages[:config].length, 2, "Wrong number of error messages"
-    
+
     app.config['keep_deployments'] = -1
     assert app.invalid?, "keep_deployments validation failed"
     assert_equal app.errors.messages[:config].length, 3, "Wrong number of error messages"
-    
+
     app.config['deployment_type'] = "blah"
     assert app.invalid?, "deployment_type validation failed"
     assert_equal app.errors.messages[:config].length, 4, "Wrong number of error messages"
-    
+
     #check validation on update_config
     assert_raise(OpenShift::UserException){app.update_configuration}
   end

@@ -79,13 +79,13 @@ class CartridgeType
     c =
       case source
       when OpenShift::Runtime::Manifest
-        text ||= source.manifest.to_json
+        text ||= source.manifest.to_yaml
         OpenShift::Cartridge.new.from_descriptor(source.manifest)
       when OpenShift::Cartridge
-        text ||= source.to_descriptor.to_json
+        text ||= source.to_descriptor.to_yaml
         source
       when Hash
-        text ||= source.to_json
+        text ||= source.to_yaml
         OpenShift::Cartridge.new.from_descriptor(source)
       else
         raise "Invalid source"
@@ -134,7 +134,7 @@ class CartridgeType
 
   def cartridge
     @cartridge ||= begin
-      json = JSON.parse(text)
+      json = YAML.load(text, safe: true)
       json["Id"] = self._id.to_s
       cart = OpenShift::Cartridge.new.from_descriptor(json)
       cart.manifest_url = manifest_url
@@ -164,6 +164,7 @@ class CartridgeType
            :additional_control_actions, :cart_data_def,
            :components, :connections, :group_overrides,
            :start_order, :stop_order, :configure_order,
+           :specification_hash,
            to: :cartridge
 
   def has_feature?(feature)

@@ -86,22 +86,11 @@ class RestApplication < OpenShift::Model
 
   def initialize(app, url, nolinks=false, applications=nil)
     self.embedded = {}
-    app.requires(true).each do |feature|
-      cart = CartridgeCache.find_cartridge_or_raise_exception(feature, app)
-      if cart.is_web_framework?
-        self.framework = cart.name
-      else
-        self.embedded[cart.name] = {info: ""}
-      end
-    end
 
     self.name = app.name
     self.creation_time = app.created_at
     self.id = app._id
-    self.aliases = []
-    app.aliases.each do |a|
-      self.aliases << RestAlias.new(app, a, url, nolinks)
-    end
+    self.aliases = app.aliases.map{ |a| RestAlias.new(app, a, url, nolinks) }
     self.gear_count = app.gears.count
     self.domain_id = app.domain_namespace
 
@@ -128,25 +117,25 @@ class RestApplication < OpenShift::Model
     self.deployment_type = app.config['deployment_type']
 
     app.component_instances.each do |component_instance|
-      cart = CartridgeCache::find_cartridge_or_raise_exception(component_instance.cartridge_name, app)
+      cart = component_instance.cartridge
 
       # add the builder properties if this is a builder component
-      if cart.categories.include?("ci_builder")
+      if cart.is_ci_builder?
         self.building_with = cart.name
         self.build_job_url = component_instance.component_properties["job_url"]
 
         # adding the job_url and "info" property for backward compatibility
         self.embedded[cart.name] = component_instance.component_properties
         self.embedded[cart.name]["info"] = "Job URL: #{component_instance.component_properties['job_url']}"
+      elsif cart.is_web_framework?
+        self.framework = cart.name
       else
-        unless cart.categories.include? "web_framework"
-          self.embedded[cart.name] = component_instance.component_properties
+        self.embedded[cart.name] = component_instance.component_properties
 
-          # if the component has a connection_url property, add it as "info" for backward compatibility
-          # make sure it is a hash, because copy-pasting the app document in mongo (using rockmongo UI) can convert hashes into arrays 
-          if component_instance.component_properties.is_a?(Hash) and component_instance.component_properties.has_key?("connection_url")
-            self.embedded[cart.name]["info"] = "Connection URL: #{component_instance.component_properties['connection_url']}"
-          end
+        # if the component has a connection_url property, add it as "info" for backward compatibility
+        # make sure it is a hash, because copy-pasting the app document in mongo (using rockmongo UI) can convert hashes into arrays
+        if component_instance.component_properties.is_a?(Hash) and component_instance.component_properties.has_key?("connection_url")
+          self.embedded[cart.name]["info"] = "Connection URL: #{component_instance.component_properties['connection_url']}"
         end
       end
     end
@@ -157,8 +146,7 @@ class RestApplication < OpenShift::Model
         apps = applications || app.domain.applications
         apps.each do |domain_app|
           domain_app.component_instances.each do |component_instance|
-            cart = CartridgeCache::find_cartridge_or_raise_exception(component_instance.cartridge_name, domain_app)
-            if cart.categories.include?("ci")
+            if component_instance.cartridge.is_ci_server?
               self.building_app = domain_app.name
               break
             end

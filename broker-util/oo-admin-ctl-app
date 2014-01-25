@@ -112,9 +112,9 @@ begin
   when "restart"
     reply.append app.restart  
   when "status"
-    app.requires.each { |feature|
-      reply.append app.status(feature)
-    }
+    app.cartridges.each do |cart|
+      reply.append app.status(cart.name)
+    end
   when "force-destroy","destroy"
     unless bypass
       puts <<-WARNING

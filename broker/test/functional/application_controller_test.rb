@@ -634,19 +634,95 @@ class ApplicationControllerTest < ActionController::TestCase
     assert app = assigns(:application)
 
     app.reload
-    assert carts = app.downloaded_cart_map
-    assert carts.length == 1
-    assert cart = carts['mock']
-    assert_equal "mock-mock-0.1", cart['versioned_name']
-    assert_equal "0.1", cart['version']
-    assert_equal "manifest://test", cart['url']
-    type = OpenShift::Cartridge.new.from_descriptor(YAML.load(cart['original_manifest']))
+    assert_nil app.downloaded_cart_map
+    # assert carts = app.downloaded_cart_map
+    # assert carts.length == 1
+    # assert cart = carts['mock']
+    # assert_equal "mock-mock-0.1", cart['versioned_name']
+    # assert_equal "0.1", cart['version']
+    # assert_equal "manifest://test", cart['url']
+    # type = OpenShift::Cartridge.new.from_descriptor(YAML.load(cart['original_manifest']))
+    # assert_equal ['mock', 'web_framework'], type.categories.sort
+    # assert_equal 'Mock Cart', type.display_name
+
+    assert instances = app.component_instances
+    assert instances.length == 1
+    assert instance = instances[0]
+    assert_equal 'manifest://test', instance.manifest_url
+    assert_equal 'mock-mock-0.1', instance.cartridge_name
+    assert_nil instance.cartridge_id
+
+    type = OpenShift::Cartridge.new.from_descriptor(YAML.load(instance.manifest_text))
+    assert_equal instance._id.to_s, type.id
     assert_equal ['mock', 'web_framework'], type.categories.sort
     assert_equal 'Mock Cart', type.display_name
+    assert instance_cart = instance.cartridge
 
     assert carts = app.downloaded_cartridges
     assert carts.length == 1
-    assert cart = carts['mock-mock-0.1']
+    assert cart = carts[0]
+    assert_same instance_cart, cart
+    assert_equal ['mock', 'web_framework'], cart.categories.sort
+    assert_equal 'Mock Cart', cart.display_name
+    assert_equal "manifest://test", cart.manifest_url
+  end
+
+  test "legacy downloadable cart gets carts migrated" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Display-Name: Mock Cart
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - mock
+      - web_framework
+      MANIFEST
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace, "include" => "cartridges"}
+    assert_response :created
+
+    # reset the application to a pre migration state
+    assert app = assigns(:application).reload
+    cart = app.downloaded_cartridges.first
+    app.downloaded_cart_map = {cart.original_name => CartridgeCache.cartridge_to_data(cart)}
+    instance = app.component_instances[0]
+    instance.cartridge_id = nil
+    instance.manifest_url = nil
+    instance.manifest_text = nil
+    app.save!
+
+    assert cart = app.cartridges.detect{ |i| i.name == 'mock-mock-0.1' }
+    assert_equal 'manifest://test', cart.manifest_url
+
+    #$stop = 1
+    app.add_cartridges(cartridge_instances_for(:mysql))
+
+    assert instances = app.component_instances
+    assert instances.length == 2
+    assert instance = instances.detect{ |i| i.cartridge_name == 'mock-mock-0.1' }
+    assert_equal 'manifest://test', instance.manifest_url
+    type = OpenShift::Cartridge.new.from_descriptor(YAML.load(instance.manifest_text))
+    assert_equal instance._id.to_s, type.id
+    assert_equal ['mock', 'web_framework'], type.categories.sort
+    assert_equal 'Mock Cart', type.display_name
+    downloaded = instance.cartridge
+
+    assert instance = instances.detect{ |i| i.cartridge_name == mysql_version }
+    assert_nil instance.manifest_url
+    assert_nil instance.manifest_text
+    assert_not_equal instance._id.to_s, instance.cartridge_id
+    assert instance.cartridge_id
+    assert_equal 'redhat', instance.cartridge_vendor
+    assert type = CartridgeType.find(instance.cartridge_id)
+    assert_equal type._id, instance.cartridge_id
+    assert_same instance.cartridge, instance.cartridge
+
+    assert carts = app.downloaded_cartridges
+    assert carts.length == 1
+    assert cart = carts[0]
+    assert_same downloaded, cart
     assert_equal ['mock', 'web_framework'], cart.categories.sort
     assert_equal 'Mock Cart', cart.display_name
     assert_equal "manifest://test", cart.manifest_url
@@ -675,7 +751,7 @@ class ApplicationControllerTest < ActionController::TestCase
     app.reload
     assert carts = app.downloaded_cartridges
     assert carts.length == 1
-    assert cart = carts['mock-mock-0.1']
+    assert cart = carts[0]
     assert_equal ['mock', 'web_framework'], cart.categories.sort
     assert_equal 'Mock Cart', cart.display_name
   end
@@ -703,7 +779,7 @@ class ApplicationControllerTest < ActionController::TestCase
     app.reload
     assert carts = app.downloaded_cartridges
     assert carts.length == 1
-    assert cart = carts['mock-mock-0.2']
+    assert cart = carts[0]
     assert_equal ['mock', 'web_framework'], cart.categories.sort
     assert_equal 'Mock Cart 2', cart.display_name
   end
@@ -732,7 +808,7 @@ class ApplicationControllerTest < ActionController::TestCase
     app.reload
     assert carts = app.downloaded_cartridges
     assert carts.length == 1
-    assert cart = carts['mock-remotemock-0.1']
+    assert cart = carts[0]
     assert_equal ['mock', 'web_framework'], cart.categories.sort
     assert_equal 'Mock Cart', cart.display_name
   end

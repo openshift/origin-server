@@ -1,25 +1,35 @@
-# Cache of cartridge manifest metadata. Used to reduce the number of calls
-# to the Node to retrieve cartridge information.
-
+#
+# CartridgeCache abstracts finding and locating cartridges available to the server.
+#
+# If you need to access the cartridges on an application use the Application#cartridges
+# method.  Only use methods here when attempting to locate a cartridge by a specific
+# criteria.
+#
 require 'httpclient'
 
 class CartridgeCache
 
   DURATION = 6.hours
 
+  #
   # Returns an Array of Cartridge objects
+  #
   def self.cartridges
     get_all_cartridges
   end
 
+  #
   # Returns an Array of web framework cartridge names.
+  #
   def self.web_framework_names
     Rails.cache.fetch("web_framework_cartridge_names", :expires_in => DURATION) do
       CartridgeType.active.in(categories: 'web_framework').only(:name).limit(25).map(&:name).uniq.sort
     end
   end
 
+  #
   # Returns an Array of web framework cartridge names.
+  #
   def self.other_names
     Rails.cache.fetch("other_cartridge_names", :expires_in => DURATION) do
       CartridgeType.active.not_in(categories: 'web_framework').only(:name).limit(25).map(&:name).uniq.sort
@@ -27,15 +37,11 @@ class CartridgeCache
   end
 
   #
-  # Return an exact match for name, nil if no matches exist, or raise an error if
-  # there is more than one relevant match.  If one or more cartridges that are
-  # provided by 'redhat' are found, then the most recent will be returned if all of
-  # of the matches have a common base (like 'php' or 'ruby').
+  # Return an exact match for id, nil if no matches exist
   #
   def self.find_cartridge_by_id(id, app=nil)
     if app
-      cart = app.downloaded_cartridges.values.find{ |c| c.id == id } ||
-             app.cartridge_instances.values.find{ |c| c.id == id }
+      cart = app.cartridges.detect{ |c| c.id == id }
       return cart if cart
     end
     CartridgeType.where(id: id).first
@@ -99,21 +105,33 @@ class CartridgeCache
   #   Name of cartridge to look for.
   def self.find_cartridge(name, app=nil)
     if app
-      cart = app.downloaded_cartridges[name] || app.cartridge_instances[name]
+      cart = app.cartridges.detect{ |c| c.name == name }
       return cart if cart
     end
 
-    if type = CartridgeType.active.where(name: name).first
-      app.cartridge_instances[type.name] = type if app
-      type
-    elsif type = CartridgeType.where(name: name).first
-      app.cartridge_instances[type.name] = type if app
-      type
-    end
+    CartridgeType.active.where(name: name).first || CartridgeType.where(name: name).first
   end
 
+  # Return cartridges in bulk for names
+  #
+  # TODO: more efficiently bulk load cartridges
+  #
   def self.find_cartridges(names, app=nil)
     names.map{ |name| find_cartridge(name, app) }
+  end
+
+  def self.find_serialized_cartridge(hash, app=nil)
+    return nil unless hash.present? && hash['manifest_text'].present?
+    cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(hash['manifest_text'], safe: true))
+    cart.manifest_text = hash['manifest_text']
+    cart.manifest_url = hash['manifest_url']
+    cart
+  end
+
+  def self.find_serialized_cartridges(hashes, app=nil)
+    downloaded, hashes = hashes.partition{ |c| c['manifest_text'].present? }
+    ids, named = hashes.partition{ |c| c['id'].present? }
+    downloaded.map{ |c| find_serialized_cartridge(c, app) } + ids.map{ |c| find_cartridge_by_id(c['id'], app) } + find_cartridges(named.map{ |c| c['name'] }, app)
   end
 
   # Returns the first cartridge that provides the specified feature,
@@ -143,6 +161,15 @@ class CartridgeCache
     cart.manifest_text = data['original_manifest']
     cart.manifest_url = data['url']
     cart
+  end
+
+  def self.cartridge_to_data(cart)
+    {
+        "versioned_name" => cart.full_identifier,
+        "version" => cart.version,
+        "url" => cart.manifest_url,
+        "original_manifest" => cart.manifest_text,
+    }
   end
 
   #
@@ -286,9 +313,7 @@ class CartridgeCache
 
     def self.scope_to_name(name, app=nil)
       if app
-        cart = app.downloaded_cartridges[name] || app.cartridge_instances[name]
-        return [cart] if cart
-        carts = app.each_cartridge.select{ |c| c.names.include?(name) }
+        carts = app.cartridges.select{ |c| c.names.include?(name) }
         return carts if carts.present?
       end
       if cart = CartridgeType.active.where(name: name).first

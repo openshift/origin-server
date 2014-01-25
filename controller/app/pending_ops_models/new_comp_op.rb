@@ -2,32 +2,40 @@ class NewCompOp < PendingAppOp
 
   field :group_instance_id, type: String
   field :comp_spec, type: ComponentSpec, default: {}
+
+  # DEPRECATED, will be removed post migration
   field :cartridge_vendor, type: String
   field :version, type: String
 
   def execute
-    group_instance = get_group_instance()
+    group = get_group_instance
     if spec = comp_spec
       spec.application = application
-      comp_name = spec.name
-      cartridge = spec.cartridge
-      component_instance = ComponentInstance.new(cartridge_name: spec.cartridge_name,
-                                                 cartridge_id: cartridge.id,
-                                                 component_name: comp_name,
-                                                 group_instance_id: group_instance._id,
-                                                 cartridge_vendor: cartridge.cartridge_vendor,
-                                                 version: cartridge.version)
-      application.component_instances.push(component_instance)
+      cartridge = spec.cartridge(pending_app_op_group)
+
+      instance = ComponentInstance.from(cartridge, spec.name)
+      instance.group_instance_id = group._id
+
+      # write atomically
+      skip_map = application.downloaded_cart_map.nil? || cartridge.persisted?
+      application.atomic_update do
+        application.component_instances << instance
+        application.downloaded_cart_map[cartridge.original_name] = CartridgeCache.cartridge_to_data(cartridge) unless skip_map
+      end
     end
   end
 
   def rollback
     begin
-      component_instance = get_component_instance()
-      application.component_instances.delete(component_instance)
+      instance = get_component_instance
+
+      application.atomic_update do
+        instance.delete
+        application.downloaded_cart_map.delete_if{ |_, c| c["versioned_name"] == instance.cartridge_name} if application.downloaded_cart_map
+      end
 
       # remove the ssh key for this component, if any
-      remove_ssh_keys = application.app_ssh_keys.find_by(component_id: component_instance._id) rescue []
+      remove_ssh_keys = application.app_ssh_keys.find_by(component_id: instance._id) rescue []
       remove_ssh_keys = [remove_ssh_keys].flatten
       if remove_ssh_keys.length > 0
         keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
@@ -36,12 +44,9 @@ class NewCompOp < PendingAppOp
       end
 
       # remove the ssh keys and environment variables from the domain, if any
-      application.domain.remove_system_ssh_keys(component_instance._id)
-      application.domain.remove_env_variables(component_instance._id)
+      application.domain.remove_system_ssh_keys(instance._id)
+      application.domain.remove_env_variables(instance._id)
 
-      # If this was a downloaded cart, remove it from the downloaded cart map
-      application.downloaded_cart_map.delete_if { |cname, c| c["versioned_name"] == comp_spec["cart"] }
-      application.save!
     rescue Mongoid::Errors::DocumentNotFound
       # ignore if component instance is already deleted
     end

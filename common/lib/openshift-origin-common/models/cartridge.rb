@@ -302,5 +302,19 @@ module OpenShift
 
       h
     end
+
+    def specification_hash
+      h = {
+        'name' => name,
+        'id' => id,
+      }
+      h['manifest_url'] = manifest_url if manifest_url
+      h['manifest_text'] = manifest_text if manifest_text
+      h
+    end
+
+    def persisted?
+      !manifest_text.present?
+    end
   end
 end

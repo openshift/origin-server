@@ -792,16 +792,13 @@ module OpenShift
       #
       def add_component(gear, component, template_git_url=nil)
         result_io = ResultIO.new
-        cart_data = nil
 
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
 
-        app = gear.application
-        downloaded_cart =  app.downloaded_cart_map.values.find { |c| c["versioned_name"]==component.cartridge_name}
-        if downloaded_cart
-          args['--with-cartridge-manifest'] = downloaded_cart["original_manifest"]
-          args['--with-software-version'] = downloaded_cart["version"]
+        unless component.cartridge.persisted?
+          args['--with-cartridge-manifest'] = component.cartridge.manifest_text
+          args['--with-software-version'] = component.cartridge.version
         end
 
         if template_git_url.present?
@@ -1914,10 +1911,10 @@ module OpenShift
             gear_comps = gear.component_instances.to_a
             start_order.each do |cinst|
               next unless gear_comps.include? cinst
-              cart = cinst.cartridge_name
-              idle, leave_stopped = state_map[cart]
+              cart = cinst.cartridge
+              idle, leave_stopped = state_map[cart.name]
 
-              if app.scalable and not CartridgeCache.find_cartridge(cart, app).categories.include? "web_proxy"
+              if app.scalable and not cart.is_web_proxy?
                 begin
                   reply.append destination_container.expose_port(gear, cinst)
                 rescue Exception=>e
@@ -1938,10 +1935,10 @@ module OpenShift
               # execute connections restart the haproxy service, so stop it explicitly if needed
               stop_order.each do |cinst|
                 next if not gear_comps.include? cinst
-                cart = cinst.cartridge_name
-                idle, leave_stopped = state_map[cart]
-                if leave_stopped and CartridgeCache.find_cartridge(cart, app).categories.include? "web_proxy"
-                  log_debug "DEBUG: Explicitly stopping cartridge '#{cart}' in '#{app.name}' after move on #{destination_container.id}"
+                cart = cinst.cartridge
+                idle, leave_stopped = state_map[cart.name]
+                if leave_stopped and carts.is_web_proxy?
+                  log_debug "DEBUG: Explicitly stopping cartridge '#{cart.name}' in '#{app.name}' after move on #{destination_container.id}"
                   reply.append destination_container.stop(gear, cinst)
                 end
               end

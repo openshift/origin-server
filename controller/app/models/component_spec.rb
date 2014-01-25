@@ -39,21 +39,24 @@ class ComponentSpec
     end.tap{ |a| a.compact! }
   end
 
-  def initialize(name, cartridge_name)
+  def initialize(name, cartridge_name, id=nil)
     @name = name
     @cartridge_name = cartridge_name
+    @id = id
     @path = "#{@cartridge_name}/#{@name}"
   end
 
-  def cartridge
-    @cartridge ||= CartridgeCache.find_cartridge(@cartridge_name, @application) or
-      raise OpenShift::UserException.new(
-        if @application
-          "The cartridge #{@cartridge_name} is referenced in the application #{@application.name} but cannot be located."
-        else
-          "The cartridge #{@cartridge_name} is cannot be located."
-        end
-      )
+  def cartridge(from=nil)
+    @cartridge ||= begin
+      if @application
+        @application.cartridges(from).detect{ |c| (@id && c.id == @id) || c.name == @cartridge_name } or
+          raise OpenShift::UserException.new("The cartridge #{@cartridge_name} is referenced in the application #{@application.name} but cannot be located.")
+      else
+        cart = CartridgeCache.find_cartridge_by_id(@id) if @id
+        cart or CartridgeCache.find_cartridge(@cartridge_name) or
+          raise OpenShift::UserException.new("The cartridge #{@cartridge_name} cannot be located.")
+      end
+    end
   end
 
   def component
@@ -121,7 +124,9 @@ class ComponentSpec
   end
 
   def to_hash
-    {"comp" => @name, "cart" => @cartridge_name}
+    h = {"comp" => @name, "cart" => @cartridge_name}
+    h['cart_id'] = @id if @id
+    h
   end
 
   def mongoize
@@ -135,7 +140,7 @@ class ComponentSpec
   def self.demongoize(object)
     case object
     when Hash
-      new(object['comp'], object['cart'])
+      new(object['comp'], object['cart'], object['cart_id'])
     else
       object
     end
