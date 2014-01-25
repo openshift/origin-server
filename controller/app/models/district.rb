@@ -17,19 +17,27 @@ class District
   index({:gear_size => 1})
   create_indexes
 
+  DISTRICT_NAME_REGEX = /\A[A-Za-z0-9]*\z/
+  def self.check_name!(name)
+    if name.blank? or name !~ DISTRICT_NAME_REGEX
+      raise Mongoid::Errors::DocumentNotFound.new(District, nil, [name])
+    end
+    name
+  end
+
   def self.create_district(name, gear_size=nil)
     unless Rails.configuration.msg_broker[:districts][:enabled]
       raise OpenShift::OOException.new("District creation disabled by the platform.")
     end
     profile = gear_size ? gear_size : Rails.application.config.openshift[:default_gear_size]
-    if District.where(name: name).count > 0
+    if District.where(name: District.check_name!(name)).exists?
       raise OpenShift::OOException.new("District by name #{name} already exists")
     end
     dist = District.new(name: name, gear_size: profile)
   end
 
   def self.find_by_name(name)
-    return District.where(name: name)[0]
+    return District.where(name: District.check_name!(name))[0]
   end
 
   def self.find_server(server)
@@ -90,16 +98,18 @@ class District
     region_id = nil
     zone_id = nil
     if region_name
-      unless Region.where(name: region_name).exists?
+      unless Region.where(name: Region.check_name!(region_name)).exists?
         raise OpenShift::OOException.new("Region object not found, you can create new region '#{region_name}' using oo-admin-ctl-region.")
       end
       raise OpenShift::OOException.new("Zone name is required when region name is specified") unless zone_name
       region = Region.find_by(name: region_name)
-      unless region.zones.where(name: zone_name).exists?
+      unless region.zones.where(name: Zone.check_name!(zone_name)).exists?
         raise OpenShift::OOException.new("Zone object not found, you can add zone '#{zone_name}' to region '#{region_name}' using oo-admin-ctl-region.")
       end
       region_id = region._id
       zone_id = region.zones.find_by(name: zone_name)._id
+    elsif zone_name
+      raise OpenShift::OOException.new("Region name is required when zone name is specified")
     end
 
     if District.where({"server_identities.name" => server_identity}).exists?

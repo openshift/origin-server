@@ -2134,8 +2134,17 @@ module OpenShift
         district_changed = (destination_district_uuid != source_district_uuid)
 
         if source_container.id == destination_container.id
-          raise OpenShift::UserException.new("Error moving gear.  Old and new servers are the same: #{source_container.id}", 1)
+          raise OpenShift::UserException.new("Error moving gear. Old and new servers are the same: #{source_container.id}", 1)
         end
+
+        if Rails.configuration.msg_broker[:regions][:enabled]
+          source_si = District.find_server(source_container.id)
+          destination_si = District.find_server(destination_container.id)
+          if source_si && destination_si && (source_si.region_id != destination_si.region_id)
+            raise OpenShift::UserException.new("Error moving gear. Old and new servers must belong to the same region, source region: #{source_si.region_name} destination region: #{destination_si.region_name}")
+          end 
+        end
+
         return [destination_container, destination_district_uuid, district_changed]
       end
 

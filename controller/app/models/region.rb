@@ -10,11 +10,19 @@ class Region
   index({:name => 1}, {:unique => true})
   create_indexes
 
+  REGION_NAME_REGEX = /\A[A-Za-z0-9]*\z/
+  def self.check_name!(name)
+    if name.blank? or name !~ REGION_NAME_REGEX
+      raise Mongoid::Errors::DocumentNotFound.new(Region, nil, [name])
+    end
+    name
+  end
+
   def self.create(name)
     unless Rails.configuration.msg_broker[:regions][:enabled]
       raise OpenShift::OOException.new("Region creation disabled by the platform.")
     end
-    if Region.where(name: name).exists?
+    if Region.where(name: Region.check_name!(name)).exists?
       raise OpenShift::OOException.new("Region by name '#{name}' already exists")
     end
     Region.create!(name: name)
@@ -27,7 +35,7 @@ class Region
 
   def add_zone(name)
     raise OpenShift::OOException.new("Zone name is required") unless name
-    if zones.where(name: name).exists?
+    if zones.where(name: Zone.check_name!(name)).exists?
       raise OpenShift::OOException.new("Zone '#{name}' already exists in region '#{self.name}'")
     end
     zone = Zone.new(name: name)
@@ -38,7 +46,7 @@ class Region
 
   def remove_zone(name)
     raise OpenShift::OOException.new("Zone name is required") unless name
-    unless zones.where(name: name).exists?
+    unless zones.where(name: Zone.check_name!(name)).exists?
       raise OpenShift::OOException.new("Zone '#{name}' not found in region '#{self.name}'")
     end
     zone = zones.find_by(name: name)
