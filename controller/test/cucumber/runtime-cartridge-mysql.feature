@@ -1,4 +1,4 @@
-@cartridge_extended4
+@cartridge_extended1
 @not-fedora-19
 Feature: MySQL Application Sub-Cartridge
 
