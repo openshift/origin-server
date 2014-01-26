@@ -1,5 +1,5 @@
 @cartridge_extended
-@cartridge_extended2
+@cartridge_extended1
 @not-enterprise
 @jboss
 @jbossas
