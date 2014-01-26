@@ -49,6 +49,13 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "embedded cartridge add where already exists" do
+    with_app
+    post :create, {"name" => haproxy_version, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :unprocessable_entity
+    json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "haproxy-1.4 cannot be added to existing applications. It is automatically added when you create a scaling application." }, ms.inspect }
+  end
+
   test "add show and remove downloaded cartridge to application" do
     with_app
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)

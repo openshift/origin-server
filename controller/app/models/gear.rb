@@ -61,20 +61,20 @@ class Gear
   end
 
   def self.base_filesystem_gb(gear_size)
-    CacheHelper.get_cached(gear_size + "_quota_blocks", :expires_in => 1.day) {
+    Rails.cache.fetch(gear_size + "_quota_blocks", :expires_in => 1.day) do
       proxy = OpenShift::ApplicationContainerProxy.find_one(gear_size)
       quota_blocks = proxy.get_quota_blocks
       # calculate the minimum storage in GB - blocks are 1KB each
       quota_blocks / 1024 / 1024
-    }
+    end
   end
 
   def self.base_file_limit(gear_size)
-    CacheHelper.get_cached(gear_size + "_quota_files", :expires_in => 1.day) {
+    Rails.cache.fetch(gear_size + "_quota_files", :expires_in => 1.day) do
       proxy = OpenShift::ApplicationContainerProxy.find_one(gear_size)
       quota_files = proxy.get_quota_files
       quota_files
-    }
+    end
   end
 
   def self.gear_sizes_display_string

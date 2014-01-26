@@ -134,7 +134,7 @@ class ComponentInstance
         self.cartridge_id = cart.id
         self.cartridge_vendor = cart.cartridge_vendor
       end
-      cart or raise OpenShift::UserException.new("The cartridge #{cartridge_name} is referenced in the application #{self.application.name} but cannot be located.")
+      cart or raise OpenShift::UserException.new("The cartridge #{cartridge_name} is used by the application #{self.application.name} but cannot be located.")
     end
   end
   alias_method :get_cartridge, :cartridge

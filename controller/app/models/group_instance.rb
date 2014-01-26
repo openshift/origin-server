@@ -17,8 +17,6 @@ class GroupInstance
   include Mongoid::Document
   embedded_in :application, class_name: Application.name
 
-  attr_accessor :min, :max
-
   # Initializes the application
   #
   # == Parameters:
@@ -48,10 +46,6 @@ class GroupInstance
 
   def component_instances
     all_component_instances.reject(&:is_sparse?)
-  end
-
-  def sparse_instances
-    all_component_instances.select(&:is_sparse?)
   end
 
   def all_component_instances
@@ -223,24 +217,4 @@ class GroupInstance
     end
     [successful_runs,failed_runs]
   end
-
-  private
-    ##
-    # Return the first value in the group overrides that applies to this component for <b>key</b>
-    # that is not nil.
-    #
-    def get_group_override_with_key(key)
-      comps = all_component_instances
-      application.group_overrides.each do |override|
-        next if override.nil?
-        if group_override.components.any?{ |spec| comps.any?{ |comp| comp.matches_spec(spec) } }
-          if key && override.respond_to?(key)
-            value = override.send(key)
-            return value unless value.nil?
-          end
-        end
-      end if application.group_overrides
-      nil
-    end
-
 end

@@ -134,13 +134,6 @@ class CartridgeCache
     downloaded.map{ |c| find_serialized_cartridge(c, app) } + ids.map{ |c| find_cartridge_by_id(c['id'], app) } + find_cartridges(named.map{ |c| c['name'] }, app)
   end
 
-  # Returns the first cartridge that provides the specified feature,
-  # same as find_cartridge, but raise an OOException if no cartridge is
-  # found.
-  def self.find_cartridge_or_raise_exception(feature, app)
-    find_cartridge(feature, app) or raise OpenShift::OOException.new("The application '#{app.name}' requires '#{feature}' but a matching cartridge could not be found")
-  end
-
   # DEPRECATED: Do not use
   def self.find_all_cartridges(requested_feature)
     matching_carts = []
@@ -278,7 +271,7 @@ class CartridgeCache
           client.get_content(url, nil, {"X-OpenShift-Cartridge-Download"=>""}) do |chunk|
             manifest << chunk
             if manifest.length > client.read_block_size
-              raise OpenShift::UnfulfilledRequirementException.new(url)
+              raise OpenShift::UserException.new("The cartridge manifest at '#{url}' must be smaller than #{client.read_block_size} bytes.", 109, field)
             end
           end
         end

@@ -121,6 +121,34 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal 0, overrides[1].additional_filesystem_gb
   end
 
+  test "app create validates scales_from less than scales_to" do
+    @app_name = "app#{@random}"
+
+    post :create, {"name" => @app_name, "cartridges" => [
+      {"name" => php_version, "gear_size" => "medium", "scales_from" => 'a', "scales_to" => '-3'},
+    ], "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :unprocessable_entity
+    json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "scales_to must be -1 or greater than or equal to scales_from" }, ms.inspect }
+  end
+
+  test "app create validates scales_from" do
+    @app_name = "app#{@random}"
+
+    post :create, {"name" => @app_name, "cartridges" => [
+      {"name" => php_version, "gear_size" => "medium", "scales_from" => '-1'},
+    ], "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :unprocessable_entity
+    json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "Scales from must be greater than 0" }, ms.inspect }
+  end
+
+  test "app create validates duplicate carts" do
+    @app_name = "app#{@random}"
+
+    post :create, {"name" => @app_name, "cartridges" => CartridgeCache.find_all_cartridges('ruby').map(&:name), "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :unprocessable_entity
+    json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "ruby-1.8 cannot co-exist with ruby-1.9 in the same application" }, ms.inspect }
+  end
+
   test "set app configuration on create" do
     defaults = {'auto_deploy' => true, 'deployment_branch' => 'master', 'keep_deployments' => 1, 'deployment_type' => 'git'}
 
@@ -181,7 +209,7 @@ class ApplicationControllerTest < ActionController::TestCase
   test "app create available show destroy by domain and app name" do
     @app_name = "app#{@random}"
 
-    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace, "ha" => true}
+    post :create, {"name" => @app_name, "cartridge" => jbosseap_version, "domain_id" => @domain.namespace, "ha" => true}
     assert_response :created
 
     get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
@@ -592,6 +620,69 @@ class ApplicationControllerTest < ActionController::TestCase
     assert messages.one?{ |m| m['text'].include? "The cartridge mock-mock-0.1 is invalid: only one component may be defined per cartridge." }, messages.inspect
   end
 
+  test "prevent create unscalable web cartridge" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - web_framework
+      Scaling:
+        Min: 1
+        Max: 1
+      MANIFEST
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :unprocessable_entity
+    json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "The cartridge 'mock-mock-0.1' does not support being made scalable." }, ms.inspect }
+  end
+
+  test "create scalable app with custom web_proxy" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Group-Overrides:
+      - components:
+        - web_framework
+        - web_proxy
+      Provides:
+      - web_proxy
+      MANIFEST
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => [php_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :success
+    assert app = assigns(:application)
+    assert app.scalable
+    assert_equal 1, app.group_instances.length
+    assert_equal 2, app.cartridges.length
+    assert cart = app.cartridges.detect{ |c| c.name == 'mock-mock-0.1' }
+    assert cart.is_web_proxy?
+    assert !cart.persisted?
+    assert cart = app.cartridges.detect{ |c| c.name == php_version }
+    assert_equal -1, app.group_instances_with_overrides[0].max_gears
+  end
+
+  test "prevents multiple web proxies" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Provides:
+      - web_proxy
+      MANIFEST
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => [php_version, haproxy_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :unprocessable_entity
+    json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "You can only have one proxy cartridge in your application" }, ms.inspect }
+  end
+
   test "create cart without specified version" do
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
@@ -726,6 +817,59 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal ['mock', 'web_framework'], cart.categories.sort
     assert_equal 'Mock Cart', cart.display_name
     assert_equal "manifest://test", cart.manifest_url
+  end
+
+  test "create downloadable cart with requirements" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.2'
+      Display-Name: Mock Cart
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - mock
+      - web_framework
+      Requires:
+      -
+        - mysql
+        - postgresql
+      - phpmyadmin
+      MANIFEST
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace}
+    assert_response :created
+    assert app = assigns(:application)
+    app.reload
+    assert carts = app.downloaded_cartridges
+    assert carts.length == 1
+    assert_equal 2, carts[0].requires.length
+
+    assert_equal 3, app.cartridges.length
+    assert cart = app.cartridges.detect{ |c| c.name == mysql_version }
+    assert cart = app.cartridges.detect{ |c| c.original_name == 'phpmyadmin' }
+  end
+
+  test "create downloadable cart with unmet requirements" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.2'
+      Display-Name: Mock Cart
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - mock
+      - web_framework
+      Requires:
+      -
+        - unknowncart
+        - otherunknown
+      MANIFEST
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace}
+    assert_response :unprocessable_entity
+    json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "None of the cartridge requirements unknowncart, otherunknown for mock-mock-0.2 were available to install." }, ms.inspect }
   end
 
   test "create downloadable cart with multiple versions" do

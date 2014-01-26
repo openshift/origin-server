@@ -48,15 +48,18 @@ class ComponentSpec
 
   def cartridge(from=nil)
     @cartridge ||= begin
-      if @application
-        @application.cartridges(from).detect{ |c| (@id && c.id == @id) || c.name == @cartridge_name } or
-          raise OpenShift::UserException.new("The cartridge #{@cartridge_name} is referenced in the application #{@application.name} but cannot be located.")
-      else
-        cart = CartridgeCache.find_cartridge_by_id(@id) if @id
-        cart or CartridgeCache.find_cartridge(@cartridge_name) or
-          raise OpenShift::UserException.new("The cartridge #{@cartridge_name} cannot be located.")
+      cart = @application.cartridges(from).detect{ |c| (@id && c.id == @id) || c.name == @cartridge_name } if @application
+      cart = CartridgeCache.find_cartridge_by_id(@id) if cart.nil? && @id
+      cart = CartridgeCache.find_cartridge(@cartridge_name) if cart.nil?
+      if cart.nil?
+        raise OpenShift::UserException.new("The cartridge #{@cartridge_name} is referenced by the application #{@application.name} but cannot be located.") if @application
+        raise OpenShift::UserException.new("The cartridge #{@cartridge_name} cannot be located.")
       end
+      cart
     end
+  rescue
+    binding.pry
+    raise
   end
 
   def component

@@ -157,7 +157,7 @@ class ApplicationsController < BaseController
     raise
 
   rescue OpenShift::UnfulfilledRequirementException => e
-    return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")
+    return render_error(:unprocessable_entity, "Unable to create application: #{e.message}", 109, "cartridges")
   end
 
   ##

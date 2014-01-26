@@ -16,7 +16,7 @@ class ActiveSupport::TestCase
     end
   end
 
-  [:php, :ruby, :mysql, :'jenkins-client'].each do |sym|
+  [:php, :ruby, :mysql, :'jenkins-client', :jenkins, :haproxy, :jbosseap].each do |sym|
     define_method "#{sym}_version" do
       (@version ||= {})[sym] ||= cartridge_instances_for(sym).first.name
     end
@@ -34,7 +34,7 @@ class ActiveSupport::TestCase
     yield
   ensure
     c[sym] = @old
-  end  
+  end
 end
 
 class ActionController::TestCase

@@ -17,11 +17,16 @@ module OpenShift
   end
 
   class UnfulfilledRequirementException < OOException
-    attr_accessor :feature
+    attr_reader :feature, :cart_name
 
-    def initialize(feature)
-      self.feature = feature
+    def initialize(feature, cart_name)
+      @feature = feature
+      @cart_name = cart_name
       super
+    end
+
+    def to_s
+      feature.is_a?(Array) ? "None of the cartridge requirements #{feature.join(", ")} for #{cart_name} were available to install." : "The cartridge requirement #{feature} for #{cart_name} is not available to install."
     end
   end
 

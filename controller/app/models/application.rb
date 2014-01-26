@@ -590,6 +590,9 @@ class Application
   # overrides are mutable.  Use application_overrides when you need to
   # see the effective overrides.
   #
+  # Does not reflect any persisted settings on the instances - so will not have
+  # additional_filesystem_gb or gear_size set.
+  #
   def group_instance_overrides
     group_instances.map{ |g| GroupOverride.for_instance(g) }
   end
@@ -864,20 +867,6 @@ class Application
   def remove_dependent_applications(io=ResultIO.new)
     Application.where(domain_id: domain_id, builder_id: _id).each{ |app| app.destroy_app(io) }
     io
-  end
-
-  ##
-  # Updates the component grouping overrides of the application and create tasks to perform the update
-  # @param group_overrides [Array] list of group overrides
-  # @return [ResultIO] Output from cartridges
-  def set_group_overrides(group_overrides, io=ResultIO.new)
-    Application.run_in_application_lock(self) do
-      op_group = AddFeaturesOpGroup.new(features: [], cartridges: [], group_overrides: group_overrides, user_agent: self.user_agent)
-      pending_op_groups << op_group
-      self.save!
-      self.run_jobs(io)
-      io
-    end
   end
 
   ##
@@ -1671,20 +1660,20 @@ class Application
 
   def update_requirements(cartridges, overrides, init_git_url=nil, user_env_vars=nil)
     connections, groups = elaborate(cartridges, overrides)
-    changes, moves = compute_diffs(group_instance_overrides, groups)
+    changes, moves = compute_diffs(group_instances_with_overrides, groups)
     if moves.present?
       raise OpenShift::UserException.new("Requested operation is not supported")
     end
     calculate_ops(changes, moves, connections, groups, init_git_url, user_env_vars)
   end
 
-  def calculate_remove_group_instance_ops(comp_specs, group_instance)
+  def calculate_remove_group_instance_ops(comp_specs, group_instance, additional_filesystem_gb)
     pending_ops = []
     gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s,
                                                   group_instance.gears.map{|g| g._id.to_s},
-                                                  group_instance.addtl_fs_gb)
+                                                  additional_filesystem_gb)
     pending_ops.concat(gear_destroy_ops)
-    gear_destroy_op_ids = gear_destroy_ops.map{|op| op._id.to_s}
+    gear_destroy_op_ids = gear_destroy_ops.map{ |op| op._id.to_s }
 
     comp_specs.each do |comp_spec|
       comp_instance = self.find_component_instance_for(comp_spec)
@@ -2068,7 +2057,8 @@ class Application
 
         if change.delete?
           remove_gears += -change.gear_change
-          group_instance_remove_ops = calculate_remove_group_instance_ops(change.removed, group_instance)
+          additional_filesystem_gb = change.from.additional_filesystem_gb
+          group_instance_remove_ops = calculate_remove_group_instance_ops(change.removed, group_instance, additional_filesystem_gb)
           pending_ops.concat(group_instance_remove_ops)
 
         else
@@ -2154,7 +2144,7 @@ class Application
             group = change.from.instance
             gears = get_sparse_scaledown_gears(group, scale_change)
             remove_ids = gears.map{ |g| g._id.to_s }
-            ops = calculate_gear_destroy_ops(change.existing_instance_id.to_s, remove_ids, group.addtl_fs_gb)
+            ops = calculate_gear_destroy_ops(change.existing_instance_id.to_s, remove_ids, change.from.additional_filesystem_gb)
             pending_ops.concat(ops)
           end
         end
@@ -2371,13 +2361,20 @@ class Application
       process = added
       added = []
       process.each do |cart|
-        cart.requires.each do |feature|
-          next if added.any?{ |d| d.features.include?(feature) }
-
-          cart = CartridgeCache.find_cartridge_by_base_name(feature, self)
-          raise OpenShift::UnfulfilledRequirementException.new(feature) if cart.nil?
-          all << cart
-          added << cart
+        cart.requires.each do |required|
+          located = nil
+          Array(required).each do |feature|
+            if added.any?{ |d| d.features.include?(feature) || d.names.include?(feature) }
+              located = true
+              break
+            end
+            if located = CartridgeCache.find_cartridge_by_base_name(feature, self)
+              all << located
+              added << located
+              break
+            end
+          end
+          raise OpenShift::UnfulfilledRequirementException.new(required, cart.name) unless located
         end
       end
       if (depth += 1) > MAX_CARTRIDGE_RECURSION

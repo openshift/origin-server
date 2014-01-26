@@ -96,10 +96,10 @@ class RestGearGroup15 < OpenShift::Model
       })
     end
 
-    self.scales_from    = group_instance.min
-    self.scales_to    = group_instance.max
+    self.scales_from    = override.min_gears
+    self.scales_to    = override.max_gears
     self.base_gear_storage = Gear.base_filesystem_gb(self.gear_profile)
-    self.additional_gear_storage = group_instance.addtl_fs_gb
+    self.additional_gear_storage = override.additional_filesystem_gb
   end
 
   def to_xml(options={})

@@ -72,7 +72,7 @@ class GroupChange
   end
 
   def additional_filesystem_change
-    @additional_filesystem_change ||= (to ? to.additional_filesystem_gb : 0) - (from ? from.instance.addtl_fs_gb : 0)
+    @additional_filesystem_change ||= (to ? to.additional_filesystem_gb : 0) - (from ? from.additional_filesystem_gb : 0)
   end
 
   def to_instance_id
