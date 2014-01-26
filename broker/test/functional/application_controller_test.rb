@@ -97,7 +97,7 @@ class ApplicationControllerTest < ActionController::TestCase
 
     post :create, {"name" => @app_name, "cartridges" => [
       {"name" => php_version, "gear_size" => "medium", "scales_from" => 2, "scales_to" => 3},
-      {"name" => mysql_version, "gear_size" => "medium", "additional_storage" => 2}
+      {"name" => mysql_version, "gear_size" => "medium", "additional_gear_storage" => 2}
     ], "domain_id" => @domain.namespace, "scale" => true}
     assert_response :created
 
@@ -714,13 +714,13 @@ class ApplicationControllerTest < ActionController::TestCase
       - web_framework
       MANIFEST
     @app_name = "app#{@random}"
-    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test"}], "domain_id" => @domain.namespace, "include" => "cartridges"}
+    post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test", "additional_gear_storage" => 2}], "domain_id" => @domain.namespace, "include" => "cartridges"}
     assert_response :created
 
     assert json = JSON.parse(response.body)
     assert cart = json['data']['cartridges'].first
     assert_equal ["mock-mock-0.1", "0.1", "manifest://test"], cart.values_at('name', "version", 'url'), json.inspect
-    assert_equal [1, 1, 1, 1, 1, 0], cart.values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
+    assert_equal [1, 1, 1, 1, 1, 2], cart.values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
 
     assert app = assigns(:application)
 

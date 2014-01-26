@@ -5,6 +5,9 @@ class InitGearOp < PendingAppOp
   field :host_singletons, type: Boolean, default: false
   field :app_dns, type: Boolean, default: false
 
+  field :gear_size, type: String
+  field :addtl_fs_gb, type: Integer
+
   # fields for creating component instances
   field :comp_specs, type: TypedArray[ComponentSpec], default: []
 
@@ -18,7 +21,7 @@ class InitGearOp < PendingAppOp
         begin
           get_group_instance
         rescue Mongoid::Errors::DocumentNotFound
-          application.group_instances << GroupInstance.new(custom_id: group_instance_id)
+          application.group_instances << GroupInstance.new(custom_id: group_instance_id, addtl_fs_gb: addtl_fs_gb, gear_size: gear_size)
           get_group_instance
         end
 

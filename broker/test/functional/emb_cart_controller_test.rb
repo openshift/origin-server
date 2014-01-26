@@ -49,6 +49,23 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "embedded cartridge create with storage" do
+    with_app
+    name = mysql_version
+$stop = 1
+    post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name, "additional_gear_storage" => '2'}
+    assert_response :created
+
+    get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal 'cartridge', json['type']
+    assert_equal [1, 1, 1, 1, 1, 2], json['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
+
+    delete :destroy , {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+  end
+
   test "embedded cartridge add where already exists" do
     with_app
     post :create, {"name" => haproxy_version, "domain_id" => @domain.namespace, "application_id" => @app.name}

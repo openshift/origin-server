@@ -5,12 +5,12 @@ class CartridgeInstance < SimpleDelegator
   include ActiveModel::Validations
   include ActiveModel::MassAssignmentSecurity
 
-  attr_accessor   :gear_size, :colocate_with, :scales_from, :scales_to, :additional_storage
-  attr_accessible :gear_size, :colocate_with, :scales_from, :scales_to, :additional_storage
+  attr_accessor   :gear_size, :colocate_with, :scales_from, :scales_to, :additional_gear_storage
+  attr_accessible :gear_size, :colocate_with, :scales_from, :scales_to, :additional_gear_storage
 
   attr_accessor :colocate_target
 
-  validates_numericality_of :additional_storage, only_integer: true, allow_nil: true, greater_than: 0
+  validates_numericality_of :additional_gear_storage, only_integer: true, allow_nil: true, greater_than: 0
 
   validates_numericality_of :scales_from, only_integer: true, allow_nil: true, greater_than: 0
   validates_numericality_of :scales_to,   only_integer: true, allow_nil: true
@@ -78,8 +78,8 @@ class CartridgeInstance < SimpleDelegator
   end
 
   def to_group_override(app=nil)
-    return nil unless scales_from.present? or scales_to.present? or additional_storage.present? or gear_size.present?
-    GroupOverride.new([to_component_spec(app)], scales_from, scales_to, gear_size, additional_storage)
+    return nil unless scales_from.present? or scales_to.present? or additional_gear_storage.present? or gear_size.present?
+    GroupOverride.new([to_component_spec(app)], scales_from, scales_to, gear_size, additional_gear_storage)
   end
 
   def to_component_spec(app=nil)

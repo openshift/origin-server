@@ -17,6 +17,9 @@ class GroupInstance
   include Mongoid::Document
   embedded_in :application, class_name: Application.name
 
+  field :gear_size, type: String
+  field :addtl_fs_gb, type: Integer
+
   # Initializes the application
   #
   # == Parameters:
@@ -53,23 +56,11 @@ class GroupInstance
   end
 
   def gear_size
-    get_group_override(:gear_size) || application.default_gear_size
-  end
-
-  def gear_size=(value)
-    if value == application.default_gear_size
-      unset_group_override(:gear_size)
-    else
-      set_group_override(:gear_size, value)
-    end
+    super || group_override.gear_size
   end
 
   def addtl_fs_gb
-    get_group_override(:additional_filesystem_gb) || 0
-  end
-
-  def addtl_fs_gb=(value)
-    set_group_override(:additional_filesystem_gb, value)
+    super || group_override.additional_filesystem_gb
   end
 
   def server_identities
@@ -90,7 +81,7 @@ class GroupInstance
   # add_keys::
   #   Array of Hash containing name, type, content of the ssh keys
   # remove_keys::
-  #   Array of Hash containing name, type, content of the ssh keys  
+  #   Array of Hash containing name, type, content of the ssh keys
   # add_envs::
   #   Array of Hash containing key, value of the environment variables
   # remove_envs::
@@ -120,52 +111,9 @@ class GroupInstance
     result_io
   end
 
-  def get_group_override(key=nil)
-    comps = all_component_instances
-    application.group_overrides.each do |override|
-      next if override.nil?
-      if override.components.any?{ |comp| comps.any?{ |c| c.matches_spec?(comp) } }
-        if key
-          return override.send(key)
-        else
-          return override
-        end
-      end
-    end if application.group_overrides
-
-    if !key
-      GroupOverride.for_instance(self)
-    end
-  end
-
-  def set_group_override(key, value)
-    return unless key
-    group_override = get_group_override
-    if group_override
-      group_override.send("=#{key}", value)
-    else
-      new_group_override = GroupOverride.for_instance(self)
-      new_group_override.send("=#{key}", value)
-      application.group_overrides << new_group_override
-    end
-  end
-
-  def unset_group_override(key)
-    comps = all_component_instances
-    overrides = application.group_overrides
-    overrides.each_with_index do |override, i|
-      next if override.nil?
-      match = false
-      override.components.each do |comp|
-        if comps.any?{ |c| c.matches_spec(comp) }
-          match = true
-          if comp.respond_to?(key)
-            comp.clear(key)
-          end
-        end
-      end
-      override.clear(key)
-    end
+  def group_override
+    # FIXME: May not be safe to cache
+    @group_override ||= GroupOverride.reduce_to([GroupOverride.for_instance(self)], application.application_overrides).first.defaults(1, -1, application.default_gear_size, 0)
   end
 
   protected

@@ -196,7 +196,7 @@ class RestApplication < OpenShift::Model
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
             OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),
             OptionalParam.new("scales_to", "integer", "Maximum number of gears to run the component on."),
-            OptionalParam.new("additional_storage", "integer", "Additional GB of space to request on all gears running this component."),
+            OptionalParam.new("additional_gear_storage", "integer", "Additional GB of space to request on all gears running this component."),
             OptionalParam.new("gear_size", "string", "Gear size for the cartridge.", allowed_gear_sizes, allowed_gear_sizes[0]),
             (OptionalParam.new("url", "string", "A URL to a downloadable cartridge.") if Rails.application.config.openshift[:download_cartridges_enabled]),
             OptionalParam.new("environment_variables", "array", "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]")

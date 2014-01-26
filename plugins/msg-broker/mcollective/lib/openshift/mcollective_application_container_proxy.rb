@@ -346,17 +346,10 @@ module OpenShift
       end
 
       def build_base_component_args(component, existing_args={})
-        cart = component.cartridge_name
-        existing_args['--cart-name'] = cart
         existing_args['--component-name'] = component.component_name
-        existing_args['--with-software-version'] = component.version
-        existing_args['--cartridge-vendor'] = component.cartridge_vendor
-        if not component.cartridge_vendor.empty?
-          clist = cart.split('-')
-          if clist[0]==component.cartridge_vendor.to_s
-            existing_args['--cart-name'] = clist[1..-1].join('-')
-          end
-        end
+        existing_args['--cart-name'] = component.cartridge.send(:short_name)
+        existing_args['--with-software-version'] = component.cartridge.version
+        existing_args['--cartridge-vendor'] = component.cartridge.cartridge_vendor
         existing_args
       end
 

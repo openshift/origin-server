@@ -57,9 +57,6 @@ class ComponentSpec
       end
       cart
     end
-  rescue
-    binding.pry
-    raise
   end
 
   def component

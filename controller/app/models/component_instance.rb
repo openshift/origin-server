@@ -23,8 +23,6 @@ class ComponentInstance
   # DEPRECATED - will be removed
   field :cartridge_vendor, type: String
 
-  attr_accessor :version
-
   def self.from(cartridge, name=nil)
     name ||= cartridge.components.first.name
     inst = new(
@@ -32,7 +30,6 @@ class ComponentInstance
       # LEGACY - these will be removed in a future release
       component_name: name,
       cartridge_vendor: cartridge.cartridge_vendor,
-      version: cartridge.version,
     )
     if cartridge.persisted?
       inst.cartridge_id = cartridge.id
@@ -57,14 +54,17 @@ class ComponentInstance
   delegate :is_sparse?, to: :component
 
   def min
+    raise "Remove me"
     get_value_from_group_override(:min_gears) || component.scaling.min
   end
 
   def max
+    raise "Remove me"
     get_value_from_group_override(:max_gears) || component.scaling.max
   end
 
   def multiplier
+    raise "Remove me"
     get_value_from_group_override(:multiplier) || component.scaling.multiplier
   end
 
@@ -166,6 +166,7 @@ class ComponentInstance
     # that is not nil.
     #
     def get_value_from_group_override(key)
+      raise "Remove me"
       group_overrides.each do |override|
         match = false
         override.components.each do |spec|

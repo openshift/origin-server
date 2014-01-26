@@ -8,8 +8,13 @@ class AddFeaturesOpGroup < PendingAppOpGroup
   field :user_env_vars, type: Array
 
   def elaborate(app)
+    # use the newer versions of a cartridge
+    carts = {}
+    cartridges.each{ |c| carts[c.name] = c unless carts.has_key?(c.name) }
+    app.cartridges.each{ |c| carts[c.name] = c unless carts.has_key?(c.name) }
+
     overrides = (app.group_overrides || []) + (group_overrides || [])
-    ops, gears_added, gears_removed = app.update_requirements(app.cartridges + cartridges, overrides, init_git_url, user_env_vars)
+    ops, gears_added, gears_removed = app.update_requirements(carts.values, overrides, init_git_url, user_env_vars)
     try_reserve_gears(gears_added, gears_removed, app, ops)
   end
 

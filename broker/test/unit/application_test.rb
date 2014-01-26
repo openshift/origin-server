@@ -159,6 +159,10 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal 6, app.gears.count
     assert_equal 3, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
 
+    app.scale_by(app.group_instances.first._id, -1)
+    assert_equal 5, app.gears.count
+    assert_equal 2, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
     app.destroy_app
   end
 
@@ -284,7 +288,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal [], app.group_overrides
 
     _, updated = app.elaborate(app.cartridges, [])
-    changes, moves = app.compute_diffs(app.group_instance_overrides, updated)
+    changes, moves = app.compute_diffs(app.group_instances_with_overrides, updated)
     assert changes.all?{ |c| c.added.empty? && c.removed.empty? && c.gear_change == 0 && c.additional_filesystem_change == 0 }, changes.inspect
     assert moves.empty?, moves.inspect
 

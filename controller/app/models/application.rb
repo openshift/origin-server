@@ -586,24 +586,14 @@ class Application
   end
 
   ##
-  # Return all of the group overrides persisted on the application. These
-  # overrides are mutable.  Use application_overrides when you need to
-  # see the effective overrides.
-  #
-  # Does not reflect any persisted settings on the instances - so will not have
-  # additional_filesystem_gb or gear_size set.
-  #
-  def group_instance_overrides
-    group_instances.map{ |g| GroupOverride.for_instance(g) }
-  end
-
-  ##
   # Return one override for each group instance, containing the effective rules
   # for that instance.  The instance member points to the group_instance that
-  # controls the override.
+  # controls the override.  All rules should be populated.
   #
   def group_instances_with_overrides
-    GroupOverride.reduce_to(group_instance_overrides, application_overrides)
+    GroupOverride.reduce_to(group_instance_overrides, application_overrides).each do |o|
+      o.defaults(1, -1, self.default_gear_size, 0)
+    end
   end
 
   def validate_cartridge_instances!(cartridges)
@@ -880,7 +870,7 @@ class Application
 
     component_instance = self.component_instances.detect{ |i| i.cartridge.is_web_proxy? } or
       raise OpenShift::UserException.new("Cannot make the application HA because there is no web cartridge.")
-    raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.get_group_override('max_gears')==1
+    raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.group_override.max_gears==1
 
     Application.run_in_application_lock(self) do
       pending_op_groups << MakeAppHaOpGroup.new(user_agent: self.user_agent)
@@ -1704,6 +1694,7 @@ class Application
       end
 
       init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id,
+                                    gear_size: gear_size, addtl_fs_gb: additional_filesystem_gb,
                                     comp_specs: comp_specs, host_singletons: host_singletons,
                                     app_dns: app_dns, pre_save: (not self.persisted?))
       init_gear_op.prereq << prereq_op._id.to_s unless prereq_op.nil?
@@ -1726,8 +1717,9 @@ class Application
       ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op)
 
       if additional_filesystem_gb != 0
+        # FIXME move into CreateGearOp
         ops << SetAddtlFsGbOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s],
-                                   addtl_fs_gb: additional_filesystem_gb, saved_addtl_fs_gb: 0)
+                                  addtl_fs_gb: additional_filesystem_gb, saved_addtl_fs_gb: 0)
 
         track_usage_ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
                                             app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin],
@@ -2103,12 +2095,20 @@ class Application
               end
             end
 
+            pending_ops << ChangeAddtlFsGbOp.new(
+              group_instance_id: group_instance._id,
+              addtl_fs_gb: new_fs,
+              saved_addtl_fs_gb: old_fs,
+              prereq: (end_usage_op_ids.empty? ? fs_prereq : end_usage_op_ids),
+            )
+            change_op_id = pending_ops.last._id.to_s
+
             group_instance.gears.each do |gear|
               pending_ops << SetAddtlFsGbOp.new(
                   gear_id: gear._id.to_s,
                   addtl_fs_gb: new_fs,
                   saved_addtl_fs_gb: old_fs,
-                  prereq: (end_usage_op_ids.empty? ? fs_prereq : end_usage_op_ids))
+                  prereq: [change_op_id])
 
               if new_fs != 0
                 begin_usage_ops << TrackUsageOp.new(
@@ -2743,4 +2743,17 @@ class Application
       update_deployments(deploys)
     end
   end
+
+  private
+    ##
+    # Return all of the group overrides persisted on the application. These
+    # overrides are mutable.  Use application_overrides when you need to
+    # see the effective overrides.
+    #
+    # Does not reflect any persisted settings on the instances - so will not have
+    # additional_filesystem_gb or gear_size set.
+    #
+    def group_instance_overrides
+      group_instances.map{ |g| GroupOverride.for_instance(g) }
+    end
 end

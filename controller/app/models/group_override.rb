@@ -119,7 +119,7 @@ class GroupOverride
   end
 
   def self.for_instance(instance)
-    override = new(instance.all_component_instances.map{ |i| ComponentSpec.for_instance(i) }, nil, nil, instance.gear_size, instance.addtl_fs_gb)
+    override = new(instance.all_component_instances.map{ |i| ComponentSpec.for_instance(i) }, nil, nil, nil, nil)
     override.instance = instance
     override
   end
@@ -260,7 +260,7 @@ class GroupOverride
           end
           unless matched
             altered = true
-            @components << c 
+            @components << c
           end
         end
         @components.sort!
