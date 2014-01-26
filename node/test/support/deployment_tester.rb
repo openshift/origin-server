@@ -179,7 +179,7 @@ class OpenShift::Runtime::DeploymentTester
 
       all_deployments = container.all_deployments
 
-      assert_operator all_deployments.length, :<=, keep_deployments
+      assert_operator all_deployments.length, :<=, keep_deployments if keep_deployments
 
       all_deployments.each do |deployment|
         %w(dependencies build-dependencies repo).each do |dir|

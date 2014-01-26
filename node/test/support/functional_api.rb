@@ -210,7 +210,7 @@ EOFZ
     assert_operator 300, :>, response.code, "Invalid response received: #{response}"
   end
 
-  def assert_http_title(url, expected, msg = nil, max_tries = 3)
+  def assert_http_title(url, expected, msg=nil, max_tries=10)
     logger.info("Checking #{url} for title '#{expected}'")
     uri = URI.parse(url)
 
@@ -225,7 +225,7 @@ EOFZ
         content = Net::HTTP.get(uri)
       rescue SocketError => e
         logger.info("DNS lookup failure; retrying #{url}")
-        sleep 1
+        sleep 10
         next
       rescue Errno::ECONNREFUSED => e
         logger.info("connection refused; retrying #{url}")
@@ -238,6 +238,7 @@ EOFZ
 
       if ((tries < max_tries) && (title =~ /^503|404 / || title != expected))
         logger.info("Not the response we wanted; retrying #{url}")
+        sleep 1
         next
       end
 
@@ -247,12 +248,12 @@ EOFZ
     assert_equal expected, title, msg
   end
 
-  def assert_http_title_for_entry(entry, expected, msg = nil, tries = 3)
+  def assert_http_title_for_entry(entry, expected, msg = nil, tries = 10)
     url = "http://#{entry.dns}:#{entry.proxy_port}/"
     assert_http_title(url, expected, msg, tries)
   end
 
-  def assert_http_title_for_app(app_name, namespace, expected, msg = nil, tries = 3)
+  def assert_http_title_for_app(app_name, namespace, expected, msg = nil, tries = 10)
     url = "http://#{app_name}-#{namespace}.#{cloud_domain}"
     assert_http_title(url, expected, msg, tries)
   end
@@ -335,22 +336,26 @@ EOFZ
   end
 
   def assert_gear_status_in_proxy(proxy, target_gear, status)
-    proxy_status_csv = `curl "http://#{proxy.dns}/haproxy-status/;csv" 2>/dev/null`
-
-    if proxy.uuid == target_gear.uuid
-      name = 'local-gear'
-    else
-      gear_name = target_gear.dns.split('-')[0]
-      name = "gear-#{gear_name}-#{target_gear.namespace}"
-    end
-
     passed = false
-    proxy_status_csv.split("\n").each do |line|
-      if line =~ /#{name}/
-        assert_match /#{status}/, line
-        passed = true
-        break
+    3.times do
+      proxy_status_csv = `curl "http://#{proxy.dns}/haproxy-status/;csv" 2>/dev/null`
+
+      if proxy.uuid == target_gear.uuid
+        name = 'local-gear'
+      else
+        gear_name = target_gear.dns.split('-')[0]
+        name = "gear-#{gear_name}-#{target_gear.namespace}"
       end
+
+      proxy_status_csv.split("\n").each do |line|
+        if line =~ /#{name}/
+          assert_match /#{status}/, line
+          passed = true
+          break
+        end
+      end
+      break if passed
+      sleep 1
     end
 
     flunk("Target gear #{name} did not have expected status #{status}") unless passed
