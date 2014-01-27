@@ -719,6 +719,8 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |hot_deploy
 |Disable app restarting during git pushes (see 'Development Mode')
+|force_npm_deploy
+|This will force to run your application using NPM instead of using 'supervisor'
 |===
 
 === Development Mode
@@ -732,6 +734,15 @@ of your javascript files in "development" mode, you can either use the
 ----
 
 This will run Node.JS with https://npmjs.org/package/supervisor[Supervisor].
+Note that when the force_npm_deploy marker is present, the hot_deploy marker
+is not supported. In this case when you do add hot_deploy marker, the start
+operation will fail.
+
+[NOTE]
+====
+The `hot_deploy` marker is restricted to the supervisor only. Using the
+`force_npm_deploy` marker, will result in your application not being started.
+====
 
 === Local Development + Testing
 You can also develop and test your Node application locally on your machine
