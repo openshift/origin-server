@@ -3,17 +3,16 @@ config_dir  = File.join(File.join("config", "**"), "*")
 $:.push File.expand_path("../lib", __FILE__)
 lib_dir  = File.join(File.join("lib", "**"), "*")
 conf_dir  = File.join(File.join("conf", "**"), "*")
-spec_file = "rubygem-openshift-origin-routing-activemq.spec"
 
 Gem::Specification.new do |s|
+  spec_file = IO.read(File.expand_path("../rubygem-#{File.basename(__FILE__, '.gemspec')}.spec", __FILE__))
+
   s.name        = "openshift-origin-routing-activemq"
-  s.version     = `rpm -q --define 'rhel 7' --qf "%{version}\n" --specfile #{spec_file}`.split[0]
-  s.license     = `rpm -q --define 'rhel 7' --qf "%{license}\n" --specfile #{spec_file}`.split[0]
+  s.version     = spec_file.match(/^Version:\s*(.*?)$/mi)[1].chomp
   s.authors     = ["Miciah Dashiel Butler Masters"]
   s.email       = ["mmasters@redhat.com"]
-  s.homepage    = `rpm -q --define 'rhel 7' --qf "%{url}\n" --specfile #{spec_file}`.split[0]
-  s.summary     = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
-  s.description = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.homepage    = 'https://github.com/openshift/origin-server'
+  s.summary     = 'OpenShift Origin Broker ActiveMQ Routing plugin'
 
   s.files       = Dir[lib_dir] + Dir[conf_dir] + Dir[config_dir]
   s.files       += %w(README.md Rakefile Gemfile rubygem-openshift-origin-routing-activemq.spec openshift-origin-routing-activemq.gemspec LICENSE COPYRIGHT)

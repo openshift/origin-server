@@ -89,7 +89,7 @@ group :development, :test do
   gem 'rake', '>= 0.8.7'
   gem 'simplecov'
   gem 'cucumber'
-  gem 'minitest'
+  gem 'minitest', '>= 3.5', '< 5.0'
   gem 'capybara', '~> 2.1.0', :require => false
   gem 'poltergeist',   '~> 1.2.0', :require => false
 end
