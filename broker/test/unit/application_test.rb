@@ -288,7 +288,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal [], app.group_overrides
 
     _, updated = app.elaborate(app.cartridges, [])
-    changes, moves = app.compute_diffs(app.group_instances_with_overrides, updated)
+    changes, moves = app.compute_diffs(app.group_instances_with_overrides, updated, {})
     assert changes.all?{ |c| c.added.empty? && c.removed.empty? && c.gear_change == 0 && c.additional_filesystem_change == 0 }, changes.inspect
     assert moves.empty?, moves.inspect
 
@@ -392,7 +392,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
       GroupOverride.new([ComponentSpec.new("test", "other")]),
     ]
     app.group_overrides.concat(overrides)
-    ops, added, removed = app.update_requirements(app.cartridges, overrides)
+    ops, added, removed = app.update_requirements(app.cartridges, nil, overrides)
     assert_equal 0, added
     assert_equal 0, removed
     assert ops.empty?
@@ -441,6 +441,24 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal cartridge_instances_for(:mysql).map(&:to_component_spec).sort, overrides[1].components
     assert_equal 1, overrides[1].min_gears
     assert_equal 1, overrides[1].max_gears
+  end
+
+
+  test "update_requirements should detect new cartridge versions by id and add a pending op" do
+    @appname = "test"
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain)
+
+    cart = OpenShift::Cartridge.new.from_descriptor(app.cartridges.first.to_descriptor)
+    old_id = cart.id
+    cart.id = "__new__"
+
+    ops, add, remove = app.update_requirements([cart], nil, [])
+    assert_equal 0, add
+    assert_equal 0, remove
+    assert ops.present?
+    assert op = ops.find{ |o| UpdateCompIds === o }
+    assert op.comp_specs.any?{ |c| c.id == '__new__' }
+    assert op.saved_comp_specs.any?{ |c| c.id == old_id }
   end
 
   test "user info through internal rest" do

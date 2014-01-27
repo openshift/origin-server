@@ -124,6 +124,7 @@ class Application
   end
 
   index({'gears.uuid' => 1}, {:unique => true, :sparse => true})
+  index({'component_instances.cartridge_id' => 1}, {:sparse => true})
   index({'pending_op_groups.created_at' => 1})
   index({'domain_id' => 1, 'canonical_name' => 1}, {:unique => true})
   create_indexes
@@ -1648,13 +1649,15 @@ class Application
     end
   end
 
-  def update_requirements(cartridges, overrides, init_git_url=nil, user_env_vars=nil)
-    connections, groups = elaborate(cartridges, overrides)
-    changes, moves = compute_diffs(group_instances_with_overrides, groups)
+  def update_requirements(cartridges, replacements, overrides, init_git_url=nil, user_env_vars=nil)
+    current = group_instances_with_overrides
+    connections, updated = elaborate(cartridges, overrides)
+    upgrades = compute_upgrades(replacements)
+    changes, moves = compute_diffs(current, updated, upgrades)
     if moves.present?
-      raise OpenShift::UserException.new("Requested operation is not supported")
+      raise OpenShift::UserException.new("Moving cartridges from one gear group to another is not supported.")
     end
-    calculate_ops(changes, moves, connections, groups, init_git_url, user_env_vars)
+    calculate_ops(changes, moves, connections, updated, init_git_url, user_env_vars)
   end
 
   def calculate_remove_group_instance_ops(comp_specs, group_instance, additional_filesystem_gb)
@@ -2036,12 +2039,19 @@ class Application
       #ops << PendingAppOps.new(op_type: :move_component, args: move, flag_req_change: true)
     end
 
-    user_vars_op_id = nil
     if user_env_vars.present? && changes.any?{ |c| c.existing? && c.added? }
-      env_var_op = PatchUserEnvVarsOp.new(user_env_vars: user_env_vars)
-      pending_ops << env_var_op
-      user_vars_op_id = env_var_op._id.to_s
+      pending_ops << PatchUserEnvVarsOp.new(user_env_vars: user_env_vars)
     end
+
+    if upgrades = changes.inject([]){ |a, c| a.concat(c.upgraded); a }.presence
+      pending_ops << UpdateCompIds.new(
+        comp_specs: upgrades.map(&:last),
+        saved_comp_specs: upgrades.map(&:first),
+        prereq: [(pending_ops.last._id.to_s rescue nil)].compact.presence
+      )
+    end
+
+    prereq_op_id = pending_ops.last._id.to_s rescue nil
 
     changes.each do |change|
       if change.existing?
@@ -2068,7 +2078,7 @@ class Application
             gear_id_prereqs = {}
             group_instance.gears.each{ |g| gear_id_prereqs[g._id.to_s] = []}
 
-            ops, usage_ops = calculate_add_component_ops(change.added, change.existing_instance_id.to_s, deploy_gear_id, gear_id_prereqs, component_ops, false, user_vars_op_id, nil)
+            ops, usage_ops = calculate_add_component_ops(change.added, change.existing_instance_id.to_s, deploy_gear_id, gear_id_prereqs, component_ops, false, prereq_op_id, nil)
             pending_ops.concat(ops)
             begin_usage_ops.concat(usage_ops)
           end
@@ -2227,7 +2237,7 @@ class Application
   #   Changes needed to the current_group_instances to make it match the new_group_instances. (Includes all adds/removes)
   # moves::
   #   A list of components which need to move from one group instance to another
-  def compute_diffs(existing, added)
+  def compute_diffs(existing, added, upgrades)
     total = existing.length + added.length - 1
     costs = Matrix.build(total+1, total+1){0}
     #compute cost of moves
@@ -2236,7 +2246,8 @@ class Application
         costs[from,to] =
           if f = existing[from]
             if t = added[to]
-              (t.components-f.components).length + (f.components-t.components).length
+              updated = f.components.map{ |c| upgrades[c] || c }
+              (t.components-updated).length + (updated-t.components).length
             else
               f.components.length
             end
@@ -2252,7 +2263,7 @@ class Application
       f = existing[from]
       t = added[to]
       if (f && f.components.present?) || (t && t.components.present?)
-        changes << GroupChange.new(f, t)
+        changes << GroupChange.new(f, t, upgrades.slice(*f))
       end
 
       (0..total).each {|i| costs[i,to] = 1000 }
@@ -2755,5 +2766,15 @@ class Application
     #
     def group_instance_overrides
       group_instances.map{ |g| GroupOverride.for_instance(g) }
+    end
+
+    def compute_upgrades(replacements)
+      return {} if replacements.blank?
+      replacements.inject({}) do |h, (f, t)|
+        raise OpenShift::UserException.new("Cartridges with more than one component cannot be replaced.") if f.components.length != 1
+        raise OpenShift::UserException.new("Replacing #{f.name} with #{t.name} is not supported because they have different configurations.") if t.components.length != 1
+        h[ComponentSpec.for_model(f.components.first, f)] = ComponentSpec.for_model(t.components.first, t)
+        h
+      end
     end
 end

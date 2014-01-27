@@ -35,7 +35,7 @@ class UpdateCompLimitsOpGroup < PendingAppOpGroup
       end
     end
 
-    ops, add_gear_count, rm_gear_count = app.update_requirements(app.cartridges, overrides)
+    ops, add_gear_count, rm_gear_count = app.update_requirements(app.cartridges, nil, overrides)
     try_reserve_gears(add_gear_count, rm_gear_count, app, ops)
   end
 

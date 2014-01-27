@@ -51,6 +51,7 @@ class CartridgeType
   validate :name_matches_components
 
   scope :active, lambda{ ne(priority: nil) }
+  scope :inactive, lambda{ where(priority: nil) }
 
   def self.provides(name)
     self.in(provides: name)
@@ -135,7 +136,7 @@ class CartridgeType
   def cartridge
     @cartridge ||= begin
       json = YAML.load(text, safe: true)
-      json["Id"] = self._id.to_s
+      json["Id"] = self._id
       cart = OpenShift::Cartridge.new.from_descriptor(json)
       cart.manifest_url = manifest_url
       cart
@@ -150,7 +151,7 @@ class CartridgeType
   include OpenShift::CartridgeAspects
 
   def id
-    _id.to_s
+    _id
   end
 
   alias_method :original_name, :base_name
@@ -164,7 +165,7 @@ class CartridgeType
            :additional_control_actions, :cart_data_def,
            :components, :connections, :group_overrides,
            :start_order, :stop_order, :configure_order,
-           :specification_hash,
+           :specification_hash, :to_descriptor,
            to: :cartridge
 
   def has_feature?(feature)

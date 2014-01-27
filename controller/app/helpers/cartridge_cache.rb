@@ -41,7 +41,7 @@ class CartridgeCache
   #
   def self.find_cartridge_by_id(id, app=nil)
     if app
-      cart = app.cartridges.detect{ |c| c.id == id }
+      cart = app.cartridges.detect{ |c| c.id === id }
       return cart if cart
     end
     CartridgeType.where(id: id).first

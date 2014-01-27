@@ -6,7 +6,7 @@ class ComponentSpec
   attr_writer :cartridge, :component, :application
 
   def self.for_model(component, cartridge, application=nil)
-    spec = new(component.name, cartridge.name)
+    spec = new(component.name, cartridge.name, cartridge.id)
     spec.component = component
     spec.cartridge = cartridge
     spec.application = application
@@ -15,7 +15,7 @@ class ComponentSpec
 
   def self.for_instance(instance, application=nil)
     cart = instance.cartridge
-    spec = new(instance.component_name, cart.name)
+    spec = new(instance.component_name, cart.name, instance.cartridge_id || cart.id)
     spec.cartridge = cart
     spec.application = application || instance.has_application? ? instance.application : nil
     spec
@@ -48,7 +48,7 @@ class ComponentSpec
 
   def cartridge(from=nil)
     @cartridge ||= begin
-      cart = @application.cartridges(from).detect{ |c| (@id && c.id == @id) || c.name == @cartridge_name } if @application
+      cart = @application.cartridges(from).detect{ |c| (@id && c.id === @id) || c.name == @cartridge_name } if @application
       cart = CartridgeCache.find_cartridge_by_id(@id) if cart.nil? && @id
       cart = CartridgeCache.find_cartridge(@cartridge_name) if cart.nil?
       if cart.nil?
@@ -107,6 +107,14 @@ class ComponentSpec
       valid ||= cart.features.include?(other) || cart.categories.include?(other)
     else
       self.==(other)
+    end
+  end
+
+  def version_equal?(other)
+    if id && other.id
+      id === other.id
+    else
+      true
     end
   end
 

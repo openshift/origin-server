@@ -145,8 +145,8 @@ class Command
   end
 
   def import(options)
-    env!(options)
     raise ArgumentError, "--url URL is a required argument for import" if options.url.nil? || options.url.empty?
+    env!(options)
 
     text = CartridgeCache.download_from_url(options.url)
     versions = OpenShift::Runtime::Manifest.manifests_from_yaml(text)
@@ -170,6 +170,24 @@ class Command
   rescue => e
     exception e, "Failed to import cartridge"
     1
+  end
+
+  def migrate(options)
+    env!(options)
+
+    CartridgeType.inactive.each do |t|
+      if active = CartridgeType.active.where(name: t.name).first
+        warn "Updating #{t.name} from #{t._id} => #{active._id}"
+        h = Application.where(:pending_op_groups.size => 0, 'component_instances.cartridge_id' => t._id).update_all('component_instances.$.cartridge_id' => active._id)
+        puts "#{active._id} # from #{t._id}"
+        binding.pry
+      else
+        if (count = Application.where('component_instances.cartridge_id' => t._id).count > 0)
+          warn "No active upgrade for #{t.name} (#{t._id}) - #{count} applications found"
+        end
+      end
+    end
+    0
   end
 
   protected
@@ -266,6 +284,10 @@ Commands:
   import-node - Import the latest cartridges from a randomly selected node.
 
   list        - List all cartridges
+
+  migrate     - Run a migration of old cartridge versions to the latest
+                active version.  Does not migrate cartridges without an
+                active version.
 
 For delete, activate, and deactivate, you may pass a file containing ids
 or names.

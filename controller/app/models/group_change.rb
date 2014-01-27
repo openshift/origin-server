@@ -15,12 +15,13 @@ class GroupChange
     moves.each(&:clean)
   end
 
-  attr_reader :to, :from
+  attr_reader :to, :from, :upgrades
 
   # Expects a GroupInstance and a GroupOverride
-  def initialize(from, to)
+  def initialize(from, to, upgrades={})
     @from = from
     @to = to
+    @upgrades = upgrades
   end
 
   def new?
@@ -35,21 +36,40 @@ class GroupChange
     to.nil?
   end
 
-  def added?
-    added.present?
+  def upgraded?
+    upgraded.present?
   end
 
   def removed?
     removed.present?
   end
 
+  def added?
+    added.present?
+  end
+
+  def upgraded
+    @upgraded ||= begin
+      if to && from
+        to.components.map do |t|
+          if (original = from.components.find{ |f| f == t }) && !t.version_equal?(original)
+            [original, t]
+          end
+        end.compact.concat(@upgrades.each_pair.to_a)
+      else
+        @upgrades.each_pair.to_a
+      end
+    end
+  end
+
   def removed
     @removed ||= begin
       if from
+        changing = from.components.map{ |c| @upgrades[c] || c }
         if to
-          from.components - to.components
+          changing - to.components
         else
-          from.components.dup
+          changing
         end
       end || []
     end
@@ -59,7 +79,7 @@ class GroupChange
     @added ||= begin
       if from
         if to
-          to.components - from.components
+          to.components - from.components.map{ |c| @upgrades[c] || c }
         end
       elsif to
         to.components.dup

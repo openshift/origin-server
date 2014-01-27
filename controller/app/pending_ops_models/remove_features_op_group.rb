@@ -7,7 +7,7 @@ class RemoveFeaturesOpGroup < PendingAppOpGroup
   def elaborate(app)
     carts = []
     carts = app.cartridges.delete_if{ |c| features.include?(c.name) } unless remove_all_features
-    ops, add_gear_count, rm_gear_count = app.update_requirements(carts, app.group_overrides.dup)
+    ops, add_gear_count, rm_gear_count = app.update_requirements(carts, nil, app.group_overrides.dup)
     try_reserve_gears(add_gear_count, rm_gear_count, app, ops)
   end
 
