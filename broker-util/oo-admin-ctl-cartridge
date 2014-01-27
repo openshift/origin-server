@@ -3,7 +3,7 @@
 require 'optparse'
 require 'ostruct'
 
-PATH = '/var/www/openshift/broker/config/environment'
+PATH = "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 
 class Command
   def import_node(options)

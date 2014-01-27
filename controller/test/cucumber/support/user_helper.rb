@@ -1,5 +1,3 @@
-#require '/var/www/openshift/broker/config/environment'
-
 module UserHelper
   #
   # Obtain a unique username from S3.

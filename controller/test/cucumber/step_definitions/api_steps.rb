@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'rest_client'
 require 'nokogiri'
-#require '/var/www/openshift/broker/config/environment'
 require 'logger'
 require 'parseconfig'
 require 'rspec'
