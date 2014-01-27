@@ -21,17 +21,13 @@
   = f.semantic_errors
 
   = f.inputs :class => 'inputs form-horizontal add-cartridge' do
-    = control_group(false, :important => true) do  
-      %h3.control-label Gear Size
-      .controls
+    = control_group(false) do
+      .control-label Using Gear Size
+      .controls.cartridge_gear_size
         - if @gear_sizes.length > 1
           = f.select :gear_size, @gear_sizes.map{ |size| [size.to_s.titleize, size]}, {}
         - else
-          %h3.cartridge_gear_size= @gear_sizes.first.to_s.titleize
-          -#%span.icon-question-sign{'aria-hidden'=>"true"}
-          -#.popover-cartridge-gear-sizes.hide
-          -#  .left
-          -#    %h2 Gear resources
+          .inline= @gear_sizes.first.to_s.titleize
 
   %p
     Do you want to add the
@@ -41,6 +37,11 @@
       - else
         = @cartridge_type.display_name
     cartridge to your application?
+
+  - if @cartridge_type.custom?
+    .alert.alert-info
+      This cartridge will be downloaded into your application.  The cart will have access to all of your application data - be sure this is what you really want to do!
+      = link_to "Learn more", downloadable_cartridges_help_url
 
   = f.buttons do
     = link_to "Back", @wizard ? application_cartridge_types_path(@application) : application_path(@application), :class => 'btn'

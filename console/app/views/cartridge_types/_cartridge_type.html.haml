@@ -3,7 +3,7 @@
 - extra_info = extra_info if defined? extra_info
 - hide_link = hide_link if defined? hide_link
 
-- classes = "tile #{cartridge_type.tags.join(' ')}"
+- classes = "tile cartridge_type #{cartridge_type.tags.join(' ')}"
 - classes += " inactive" if inactive
 - classes += " tile-click" unless inactive or hide_link
 = div_for cartridge_type, :class => classes do
@@ -20,56 +20,73 @@
           = cartridge_type.display_name
         - else
           = link_to cartridge_type.display_name, application_cartridge_type_path(application, cartridge_type), :class => 'tile-target'
-        
+
         - if cartridge_type.usage_rates?
           = usage_rate_indicator
-
-  - if cartridge_type.custom?
-    %p
-      This cartridge will be downloaded into your application.  The cart will have access to all of your application data - be sure this is what you really want to do!
-
-    %p.text-warning Downloaded cartridges do not receive updates automatically
-
-  - if extra_info
-    %ul.unstyled.meta
-
-      -if cartridge_type.custom?
-        %li.url
-          %label URL:
-          %span= cartridge_type.url
-
-      -# if cartridge_type.license
-        %li.license
-          %label License:
-          - if cartridge_type.respond_to? :license_url
-            = link_to cartridge_type.license, cartridge_type.license_url
-          - else
-            %span= cartridge_type.license
-
-      - if cartridge_type.website
-        %li.website
-          %label Website:
-          = link_to cartridge_type.website, cartridge_type.website
-
-      - if cartridge_type.version
-        %li.version
-          %label Version:
-          %span= cartridge_type.version
 
   - if not (inactive and reason == :installed) and cartridge_type.description.present?
     = show_description cartridge_type.description
 
+  - if extra_info
+
+    .tile-meta
+      %dl.font-icon-legend
+        -if cartridge_type.custom?
+          %dt
+          %dd
+            URL:
+            = cartridge_type.url
+
+        -# if cartridge_type.license
+          %dt
+          %dd
+            License:
+            - if cartridge_type.respond_to? :license_url
+              = link_to cartridge_type.license, cartridge_type.license_url
+            - else
+              = cartridge_type.license
+
+        - if cartridge_type.website.present?
+          %dt
+          %dd
+            Website:
+            = link_to cartridge_type.website, cartridge_type.website
+
+        -# if cartridge_type.version.present?
+          %dt
+          %dd
+            Version:
+            = cartridge_type.version
+
+        - if cartridge_type.support_type == :openshift
+          %dt
+            %span.icon-star-empty{"aria-hidden" => "true", :title => "OpenShift maintained"}
+          %dd{:title => 'Updated and maintained by the OpenShift team'} OpenShift maintained
+
+        - if cartridge_type.automatic_updates?
+          %dt
+            %span.icon-shield{"aria-hidden" => "true", "title" => "Security updates"}
+          %dd
+            Receives automatic security updates
+        - elsif cartridge_type.custom?
+          %dt
+          %dd.text-warning Downloaded cartridges do not receive updates automatically
+
+        - if cartridge_type.usage_rates?
+          %dt
+            = usage_rate_indicator
+          %dd
+            May include additional usage fees at certain levels, see plan for details.
+
+    -if cartridge_type.provides
+      %div
+        %h4 What you get:
+        %ul
+          - cartridge_type.provides.each do |provided|
+            %li= provided
+
   - if cartridge_type.learn_more_url
     = link_to "Learn more", cartridge_type.learn_more_url
-  - elsif cartridge_type.custom?
-    = link_to "Learn more", downloadable_cartridges_help_url
-
-  - if extra_info and cartridge_type.provides
-    %div
-      %h4 What you get:
-      %ul
-        - cartridge_type.provides.each do |provided|
-          %li= provided
 
   - if reason
     - case reason
