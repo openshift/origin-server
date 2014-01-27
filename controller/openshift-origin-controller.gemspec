@@ -9,16 +9,15 @@ bin_dir  = File.join("bin", "*")
 spec_file = "rubygem-openshift-origin-controller.spec"
 
 Gem::Specification.new do |s|
+  spec_file = IO.read(File.expand_path("../rubygem-#{File.basename(__FILE__, '.gemspec')}.spec", __FILE__))
+
   s.name        = "openshift-origin-controller"
-  s.version     = `rpm -q --define 'rhel 7' --qf "%{version}\n" --specfile #{spec_file}`.split[0]
-  s.license     = `rpm -q --define 'rhel 7' --qf "%{license}\n" --specfile #{spec_file}`.split[0]
+  s.version     = spec_file.match(/^Version:\s*(.*?)$/mi)[1].chomp
   s.authors     = ["Krishna Raman"]
   s.email       = ["kraman@gmail.com"]
-  s.homepage    = `rpm -q --define 'rhel 7' --qf "%{url}\n" --specfile #{spec_file}`.split[0]
-  s.summary     = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
-  s.description = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
-
-  s.rubyforge_project = "openshift-origin-controller"
+  s.homepage    = 'https://github.com/openshift/origin-server'
+  s.summary     = 'OpenShift Origin REST API and model'
+  s.description = 'OpenShift Origin REST API and model'
 
   s.files       = Dir[lib_dir] + Dir[app_dir] + Dir[config_dir]
   s.test_files  = Dir[test_dir]
