@@ -19,6 +19,8 @@ essentials_functionals = [
   'test/node_functional/unix_user_func_test.rb'
 ]
 
+ext_cart_functionals = []
+
 desc "Print environment to run from checkout - eval $( rake local_env | tail -n +1 )"
 task :local_env do
   pwd = Dir.pwd
@@ -58,6 +60,42 @@ Rake::TestTask.new(:essentials_test) do |t|
   files = [ 'test/unit/*_test.rb' ]
   files.concat(essentials_functionals)
   t.test_files = files
+end
+
+desc "Extended cart functional tests 1"
+Rake::TestTask.new(:ext_cart_func_test1) do |t|
+  t.verbose = true
+  t.libs << File.expand_path('../../common/lib', __FILE__)
+
+  tests = ['test/cart_functional/platform_binary_deploy_test.rb',
+           'test/cart_functional/platform_deploy_ext_test.rb']
+
+  ext_cart_functionals += tests
+
+  t.test_files = tests
+end
+
+desc "Extended cart functional tests 2"
+Rake::TestTask.new(:ext_cart_func_test2) do |t|
+  t.verbose = true
+  t.libs << File.expand_path('../../common/lib', __FILE__)
+
+  tests = ['test/cart_functional/platform_deployment_integrity_test.rb',
+           'test/cart_functional/scaling_func_test.rb']
+
+  ext_cart_functionals += tests
+
+  t.test_files = tests
+end
+
+desc "Extended cart functional tests 3"
+Rake::TestTask.new(:ext_cart_func_test3) do |t|
+  t.verbose = true
+  t.libs << File.expand_path('../../common/lib', __FILE__)
+
+  all_functionals = Dir.glob('test/cart_functional/*_test.rb')
+
+  t.test_files = all_functionals - essentials_functionals - ext_cart_functionals
 end
 
 desc "Extended cart functional tests"
