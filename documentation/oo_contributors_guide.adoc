@@ -1,0 +1,126 @@
+= OpenShift Contributors Guide
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+LATEST DOC UPDATES
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+This document describes the recommended workflow to maintain a fork of a GitHub repository and how to submit pull requests for new features or bug fixes. The examples used on this page refer to the OpenShift Origin repository but this workflow can be used for any GitHub repository.
+
+== Forking a Repository
+
+Before you can begin editing code you must first create a fork of the GitHub repository you wish to contribute to.
+
+1. Navigate to the GitHub page of the repository you wish to fork.
+2. Click on the fork button on the top right corner of the page.
+
+image:bootcamp_3_fork.jpg[image]
+
+This creates a copy of the repository in your own GitHub space. 
+
+== Cloning Your Fork
+_Cloning_ is the process of copying your forked code to your local system. The `git` utility does this in a way that establishes a relationship between your local copy of the code and the GitHub copy.
+
+=== Clone the repository from your fork ===
+
+    git clone git@github.com:<username>/<repo-name>.git
+    git clone git@github.com:kraman/origin-server.git
+
+=== Add the upstream repo so that you can pull changes ===
+
+    git remote add upstream <original repo git url>
+    git remote add upstream git@github.com:openshift/origin-server.git
+
+== Working on a Topic Branch
+
+Always try to avoid working on the master branch. 
+It usually results in merge conflicts and/or update issues.
+Instead, work on a bug/feature/topic branch whenever possible.
+
+    #start from the master branch
+    git checkout master
+
+    #create a new branch
+    git branch dev/kraman/bug/12345
+ 
+    #switch to the new branch
+    git checkout dev/kraman/bug/12345
+
+    #...make changes...
+
+== Staying Updated
+
+Once a fork has been created, it does not automatically track the upstream repository.
+Follow the steps outlined below to keep the master branch up-to-date.
+
+    #pull the latest changes from upstream
+    git fetch upstream
+    git fetch upstream --tags
+
+    #make sure there are no un-committed changes
+    git stash
+
+    #make sure we are working on the master branch
+    git checkout master
+
+    #merge the latest changes
+    git merge upstream/master
+
+    #push the updates changes to our GitHub fork
+    git push origin master
+    git push origin --tags
+
+    #return to your bug/feature branch
+    git checkout dev/kraman/bug/12345
+
+    #rebase this branch onto latest code from master (expect conflicts)
+    git rebase master
+
+    #... resolve conflicts
+
+    #push the rebased branch back to your fork
+    git push origin dev/kraman/bug/12345 -f
+
+    #Restore any un-committed changes
+    git stash pop
+
+NOTE: The `git stash` steps are optional. It is easier if you commit all changes before attempting a rebase.
+
+
+== Submitting Code via a Pull Request
+
+Once your code is ready to be submitted, you will need to submit a pull request with your changes.
+
+1. Update your branch and make sure you are rebased off the latest upstream/master
+2. Squash your commits onto a single revision
+3. Submit a pull request on GitHub
+
+=== Squashing your changes into one revision
+
+Before you can submit a request, rebase all your changes on to a single commit. This makes it easier to review
+and also makes reverting the code easier in case of any build breakages.
+
+    git rebase -i master
+    #... squash commits ...
+
+
+For more information about squashing commits, read http://git-scm.com/book/en/Git-Tools-Rewriting-History#Squashing-Commits
+
+=== Creating a pull request
+
+https://help.github.com/articles/using-pull-requests[GitHub instructions on creating a pull request]
+
+If you need to make changes to your commit after a pull request has been issues, 
+you can go back to the pull request page and update the commit range rather than
+submit a new pull requests.
+
+== Getting Your Pull Request Reviewed
+The main OpenShift repos get dozens of pull requests per day. In order to make sure that your pull request is reviewed, please do one of these three things:
+
+1. If you know the GitHub ID of the person who should review your code, you can alert them in a comment on your pull request by including the GitHub username preceded by the '@' symbol.
+2. You can log into the OpenShift developers' IRC channel, http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4[#openshift-dev] on FreeNode, and ask for a code review.
+3. You can send an e-mail to the http://lists.openshift.redhat.com/openshiftmm/listinfo/dev[OpenShift developers' mail list] asking for a code review (don't forget to include a link to the pull request).
+
+Especially if you go with the mail list route, be sure to follow up if you don't hear from anyone within a business day. In general the response time should be much shorter.
+
