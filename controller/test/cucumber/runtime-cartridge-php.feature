@@ -1,4 +1,4 @@
-@cartridge1
+@cartridge2
 Feature: V2 SDK PHP Cartridge
 
   Scenario Outline: Add cartridge

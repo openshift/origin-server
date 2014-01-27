@@ -84,7 +84,7 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
     framework = cartridges[0]
 
     app_id = @api.create_application(app_name, cartridges, scaling)
-    
+
     @api.add_ssh_key(app_id, app_name)
     @api.assert_http_title_for_app(app_name, @namespace, DEFAULT_TITLE)
 
@@ -103,7 +103,7 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
     puts "checking for last stop"
     if hot_deploy && File.exist?("#{cart_dir}/last_stop")
       flunk ("Cartridge should not have been restarted for hot_deploy=true")
-    end           
+    end
   end
 
   def use_the_rest_api_binary_deploy_app_test(cartridges, options = {})

@@ -22,7 +22,7 @@ Feature: V2 SDK Ruby Cartridge
 
     @not-fedora-19
     @cartridge_v2_ruby_19
-    @cartridge_extended3
+    @cartridge_extended1
     Scenarios: r1.9
       | cart_version | label     | proc_name |
       |      1.9     | Passenger | ruby      |
