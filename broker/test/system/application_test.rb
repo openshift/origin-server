@@ -80,12 +80,6 @@ class ApplicationTest < ActionDispatch::IntegrationTest
 
     # create an application - without creating domain
     request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version}, @headers)
-    assert_response :not_found
-    body = JSON.parse(@response.body)
-    assert_equal(body["messages"][0]["exit_code"], 127)
-
-    # create domain
-    request_via_redirect(:post, DOMAIN_COLLECTION_URL, {:name => ns}, @headers)
     assert_response :created
 
     # create an application - without specifying app name

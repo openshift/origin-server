@@ -10,6 +10,11 @@ class TrackUsageOp < PendingAppOp
   field :gear_size, type: String
   field :cart_name, type: String
 
+  def initialize(*args)
+    super
+    raise "Invalid arguments" if usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb] && additional_filesystem_gb.nil?
+  end
+
   def execute
     unless parent_user_id
       storage_usage_type = ( usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb] )
@@ -24,7 +29,7 @@ class TrackUsageOp < PendingAppOp
       end
     end
   end
-  
+
   def rollback
     unless parent_user_id
       storage_usage_type = (usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb])

@@ -9,14 +9,22 @@ class Command
   def import_node(options)
     env!(options)
     carts = OpenShift::ApplicationContainerProxy.find_one(options.node).get_available_cartridges
-    types = CartridgeType.update_from(carts)
+    types = CartridgeType.update_from(carts, nil, options.force)
     update_types(options, types)
   end
 
   def clean(options)
     env!(options)
-    puts "Deleting all cartridges from the broker ..."
-    CartridgeType.delete_all
+    puts "Deleting all unused cartridges from the broker ..."
+    CartridgeType.inactive.each do |t|
+      found = Application.where('component_instances.cartridge_id' => t._id).count
+      if found == 0
+        t.delete
+        puts "#{t._id} # %-35s" % [t.name, found]
+      else
+        warn "# #{t._id} %-35s %s" % [t.name, found]
+      end
+    end
     Rails.cache.clear
     0
   rescue => e
@@ -145,12 +153,23 @@ class Command
   end
 
   def import(options)
+    raise ArgumentError, "Use --url URL or specify a list of files via STDIN" if (options.url.nil? || options.url.empty?) && (files = ARGF.readlines).empty?
     env!(options)
-    raise ArgumentError, "--url URL is a required argument for import" if options.url.nil? || options.url.empty?
 
-    text = CartridgeCache.download_from_url(options.url)
-    versions = OpenShift::Runtime::Manifest.manifests_from_yaml(text)
-    types = CartridgeType.update_from(versions, options.url)
+    if options.url
+      text = CartridgeCache.download_from_url(options.url)
+      versions = OpenShift::Runtime::Manifest.manifests_from_yaml(text)
+      types = CartridgeType.update_from(versions, options.url)
+    else
+      types = []
+      files.each do |s|
+        s.chomp!
+        warn "Importing #{s} ..."
+        text = IO.read(File.expand_path(s))
+        versions = OpenShift::Runtime::Manifest.manifests_from_yaml(text)
+        types.concat(CartridgeType.update_from(versions, nil, options.force))
+      end
+    end
 
     if not options.force
       source_change, types = types.partition{ |t| t.manifest_url_changed? && t.persisted? }
@@ -170,6 +189,71 @@ class Command
   rescue => e
     exception e, "Failed to import cartridge"
     1
+  end
+
+  def migrate(options)
+    env!(options)
+
+    cartridges = 0
+    completed = 0
+    applications = 0
+    incomplete = 0
+    CartridgeType.inactive.each do |t|
+      if active = CartridgeType.active.where(name: t.name).first
+        cartridges += 1
+        result = Application.where(:pending_op_groups.with_size => 0, 'component_instances.cartridge_id' => t._id).update_all('$set' => {'component_instances.$.cartridge_id' => active._id})
+        updated = result['n']
+        applications += updated
+        if (remaining = Application.where('component_instances.cartridge_id' => t._id).count) > 0
+          warn "#{t._id} ! -> #{active._id} INCOMPLETE %7s / %3s left %s" % [updated, remaining, active.name]
+          incomplete += remaining
+        else
+          puts "#{t._id} # -> #{active._id} DONE       %7s   %3s      %s" % [updated, nil, active.name]
+          completed += 1
+        end
+      else
+        if (count = Application.where('component_instances.cartridge_id' => t._id).count > 0)
+          warn "No active upgrade for #{t.name} (#{t._id}) - #{count} applications found"
+        end
+      end
+    end
+    if completed > 0 || incomplete > 0
+      warn "Migrated #{completed}/#{cartridges} cartridges"
+      warn "Updated #{applications} applications"
+      warn "Skipped #{incomplete} applications with pending jobs"
+    else
+      warn "No cartridges can be migrated"
+    end
+    incomplete == 0 ? 0 : 2
+  end
+
+  def diff(options)
+    raise ArgumentError, "diff requires exactly two IDs or names" if (options.names || []).length != 2 && (options.ids || []).uniq.length != 2
+    env!(options)
+    carts =
+      if options.names
+        if options.names.uniq.length == 1
+          [CartridgeType.active.where(name: options.names.first).first, CartridgeType.inactive.where(name: options.names.last).order_by(created_at: 1).first]
+        else
+          [CartridgeType.active.where(name: options.names.first).first, CartridgeType.active.where(name: options.names.last).first]
+        end
+      else
+        CartridgeType.find(*options.ids)
+      end
+    if carts.uniq.length == 1
+      warn "No differences between the specified carts #{carts.map(&:_id)}"
+      return 0
+    end
+    warn "#{cartridge_label(carts.first)}\n#{cartridge_label(carts.last)}\n---"
+
+    objs = carts.map(&:to_descriptor).each{ |o| o.delete('Id') }
+    if diffs = different?(*objs)
+      puts JSON.pretty_generate(diffs)
+      1
+    else
+      warn "Manifests are identical"
+      0
+    end
   end
 
   protected
@@ -197,6 +281,10 @@ class Command
       output.each{ |line| widths.each_with_index{ |w, i| widths[i] = [w, (line[i] || "").length].max } }
       fmt = widths.map{ |w| "%-#{w}s" }.join(" ")
       output.each{ |line| puts (fmt % line).rstrip }
+    end
+
+    def cartridge_label(cart)
+      "#{cart.name} #{cart._id}#{cart.priority? ? ' *' : ''}"
     end
 
     def update_types(options, types, source=nil)
@@ -239,6 +327,53 @@ class Command
       $stderr.puts e.message
       $stderr.puts "  #{e.backtrace.join("  \n")}"
     end
+
+    #
+    # Based on https://gist.github.com/agius/2631752
+    #
+    def different?(a, b, bi_directional=true)
+      return [a.class.name, nil] if !a.nil? && b.nil?
+      return [nil, b.class.name] if !b.nil? && a.nil?
+
+      differences = {}
+      a.each do |k, v|
+        if !v.nil? && b[k].nil?
+          differences[k] = [v, nil]
+          next
+        elsif !b[k].nil? && v.nil?
+          differences[k] = [nil, b[k]]
+          next
+        end
+        if v.is_a?(Hash)
+          unless b[k].is_a?(Hash)
+            differences[k] = "Different types"
+            next
+          end
+          diff = different?(a[k], b[k])
+          differences[k] = diff if !diff.nil? && diff.count > 0
+        elsif v.is_a?(Array)
+          unless b[k].is_a?(Array)
+            differences[k] = "Different types"
+            next
+          end
+          c = 0
+          diff = v.map do |n|
+            if n.is_a?(Hash)
+              diffs = different?(n, b[k][c])
+              c += 1
+              ["Differences: ", diffs] unless diffs.nil?
+            else
+              c += 1
+              [n , b[c]] unless b[c] == n
+            end
+          end.compact
+          differences[k] = diff if diff.count > 0
+        else
+          differences[k] = [v, b[k]] unless v == b[k]
+        end
+      end
+      return differences if !differences.nil? && differences.count > 0
+    end
 end
 
 methods = (Command.instance_methods(false) & Command.new.public_methods).map{ |s| s.to_s.gsub('_', '-')}.sort
@@ -266,6 +401,10 @@ Commands:
   import-node - Import the latest cartridges from a randomly selected node.
 
   list        - List all cartridges
+
+  migrate     - Run a migration of old cartridge versions to the latest
+                active version.  Does not migrate cartridges without an
+                active version.
 
 For delete, activate, and deactivate, you may pass a file containing ids
 or names.

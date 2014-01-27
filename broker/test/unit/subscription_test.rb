@@ -12,31 +12,27 @@ class SubscriptionTest < ActiveSupport::TestCase
     CartridgeCache.stubs(:find_cartridge).with('embedcart-0.1', is_a(Application)).returns(embed_cart)
     Moped::BSON::ObjectId.stubs(:new).returns('1','2','3','4','5')
 
-    app = Application.new default_gear_size: nil
+    app = Application.new default_gear_size: nil, scalable: true
 
-    result = app.elaborate(['webcart-0.1', 'embedcart-0.1'])
-    expected_result = [[{"from_comp_inst"=>{"cart"=>"embedcart-0.1", "comp"=>"embedcart-0.1"},
-                          "to_comp_inst"=>{"cart"=>"webcart-0.1", "comp"=>"webcart-0.1"},
+    embedcartspec = ComponentSpec.new("embedcart-0.1", "embedcart-0.1")
+    webcartspec = ComponentSpec.new("webcart-0.1", "webcart-0.1")
+
+    result = app.elaborate([web_cart, embed_cart])
+    expected_result = [[{"from_comp_inst"=>embedcartspec,
+                          "to_comp_inst"=>webcartspec,
                           "from_connector_name"=>"publish-db-connection-info",
                           "to_connector_name"=>"set-env",
                           "connection_type"=>"ENV:NET_TCP:db:connection-info"},
-                        {"from_comp_inst"=>{"cart"=>"embedcart-0.1", "comp"=>"embedcart-0.1"},
-                          "to_comp_inst"=>{"cart"=>"webcart-0.1", "comp"=>"webcart-0.1"},
+                        {"from_comp_inst"=>embedcartspec,
+                          "to_comp_inst"=>webcartspec,
                           "from_connector_name"=>"publish-garbage-info",
                           "to_connector_name"=>"set-env",
                           "connection_type"=>"ENV:NET_TCP:garbage:info"}],
-                       [{:component_instances=>[{"comp"=>"webcart-0.1", "cart"=>"webcart-0.1"}],
-                          :scale=>{:min=>1, :max=>-1, :gear_size=>nil, :additional_filesystem_gb=>0},
-                          :_id=>"2"},
-                        {:component_instances=>[{"comp"=>"embedcart-0.1", "cart"=>"embedcart-0.1"}],
-                          :scale=>{:min=>1, :max=>1, :gear_size=>nil, :additional_filesystem_gb=>0},
-                          :_id=>"3"}],
-                       [{"components"=>[{"comp"=>"webcart-0.1", "cart"=>"webcart-0.1"}],
-                          "min_gears"=>1,
-                          "max_gears"=>-1},
-                        {"components"=>[{"comp"=>"embedcart-0.1", "cart"=>"embedcart-0.1"}],
-                          "min_gears"=>1,
-                          "max_gears"=>1}]]
+                       [
+                        GroupOverride.new([webcartspec], 1, -1, nil, 0),
+                        GroupOverride.new([embedcartspec], 1, 1, nil, 0)
+                       ]
+                     ]
 
     assert_equal(expected_result, result)
   end
@@ -49,37 +45,33 @@ class SubscriptionTest < ActiveSupport::TestCase
     CartridgeCache.stubs(:find_cartridge).with('embedcart-0.1', is_a(Application)).returns(embed_cart)
     Moped::BSON::ObjectId.stubs(:new).returns('1','2','3','4','5')
 
-    app = Application.new default_gear_size: nil
+    app = Application.new default_gear_size: nil, scalable: true
 
-    result = app.elaborate(['webcart-0.1', 'embedcart-0.1'])
-    expected_result = [[{"from_comp_inst"=>{"cart"=>"embedcart-0.1", "comp"=>"embedcart-0.1"},
-                          "to_comp_inst"=>{"cart"=>"webcart-0.1", "comp"=>"webcart-0.1"},
+    embedcartspec = ComponentSpec.new("embedcart-0.1", "embedcart-0.1")
+    webcartspec = ComponentSpec.new("webcart-0.1", "webcart-0.1")
+
+    result = app.elaborate([web_cart, embed_cart])
+    expected_result = [[{"from_comp_inst"=>embedcartspec,
+                          "to_comp_inst"=>webcartspec,
                           "from_connector_name"=>"publish-db-connection-info",
                           "to_connector_name"=>"set-db-connection-info",
                           "connection_type"=>"ENV:NET_TCP:db:connection-info"}],
-                       [{:component_instances=>[{"comp"=>"webcart-0.1", "cart"=>"webcart-0.1"}],
-                          :scale=>{:min=>1, :max=>-1, :gear_size=>nil, :additional_filesystem_gb=>0},
-                          :_id=>"2"},
-                        {:component_instances=>[{"comp"=>"embedcart-0.1", "cart"=>"embedcart-0.1"}],
-                          :scale=>{:min=>1, :max=>1, :gear_size=>nil, :additional_filesystem_gb=>0},
-                          :_id=>"3"}],
-                       [{"components"=>[{"comp"=>"webcart-0.1", "cart"=>"webcart-0.1"}],
-                          "min_gears"=>1,
-                          "max_gears"=>-1},
-                        {"components"=>[{"comp"=>"embedcart-0.1", "cart"=>"embedcart-0.1"}],
-                          "min_gears"=>1,
-                          "max_gears"=>1}]]
+                       [
+                        GroupOverride.new([webcartspec], 1, -1, nil, 0),
+                        GroupOverride.new([embedcartspec], 1, 1, nil, 0)
+                       ]
+                      ]
 
     assert_equal(expected_result, result)
   end
 
   def mock_embed_cart
     embed_cart = mock('OpenShift::Cartridge')
-    embed_profile = mock('OpenShift::Profile')
     embed_component = mock('OpenShift::Component')
     embed_cart_name = 'embedcart-0.1'
 
     embed_cart_requires = []
+    embed_cart.stubs(:id).returns('_emb_cart_1_')
     embed_cart.stubs(:requires).returns(embed_cart_requires)
     embed_cart_features = ['embedcart-0.1', 'embedcart', 'embedcart(version) = 0.1']
     embed_cart.stubs(:features).returns(embed_cart_features)
@@ -110,10 +102,9 @@ class SubscriptionTest < ActiveSupport::TestCase
     embed_scaling = mock('OpenShift::Scaling')
     embed_scaling.stubs(:max => 1, :min => 1, :min_managed => 0, :multiplier => 1)
     embed_component.stubs(:scaling).returns(embed_scaling)
-    embed_profile.stubs(:components).returns([embed_component])
-    embed_profile.stubs(:get_component).with(embed_cart_name).returns(embed_component)
-    embed_profile.stubs(:group_overrides).returns([])
-    embed_cart.stubs(:profile_for_feature).returns(embed_profile)
+    embed_cart.stubs(:components).returns([embed_component])
+    embed_cart.stubs(:get_component).with(embed_cart_name).returns(embed_component)
+    embed_cart.stubs(:group_overrides).returns([])
     embed_cart
   end
 
@@ -144,11 +135,11 @@ class SubscriptionTest < ActiveSupport::TestCase
 
   def web_cart_with_connectors( web_subscribes_array )
     web_cart = mock('OpenShift::Cartridge')
-    web_profile = mock('OpenShift::Profile')
     web_component = mock('OpenShift::Component')
     web_cart_name = 'webcart-0.1'
 
     web_cart_requires = []
+    web_cart.stubs(:id).returns('_web_cart_1_')
     web_cart.stubs(:requires).returns(web_cart_requires)
     web_cart_features = ['webcart-0.1', 'webcart', 'webcart(version) = 0.1']
     web_cart.stubs(:features).returns(web_cart_features)
@@ -165,10 +156,9 @@ class SubscriptionTest < ActiveSupport::TestCase
     web_scaling.stubs(:max => -1, :min => 1, :min_managed => 0, :multiplier => 1)
     web_component.stubs(:scaling).returns(web_scaling)
 
-    web_profile.stubs(:components).returns([web_component])
-    web_profile.stubs(:get_component).with(web_cart_name).returns(web_component)
-    web_profile.stubs(:group_overrides).returns([])
-    web_cart.stubs(:profile_for_feature).returns(web_profile)
+    web_cart.stubs(:components).returns([web_component])
+    web_cart.stubs(:get_component).with(web_cart_name).returns(web_component)
+    web_cart.stubs(:group_overrides).returns([])
     web_cart
   end
 

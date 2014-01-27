@@ -112,9 +112,8 @@ class RestEmbeddedCartridge < OpenShift::Model
     self.license_url = cart.license_url
     self.tags = cart.categories
     self.website = cart.website
-    self.url = nil
-    if downloaded = app.downloaded_cartridge_instances[cart.name]
-      self.url = downloaded.manifest_url
+    if not cart.persisted?
+      self.url = cart.manifest_url
     end
     self.type = "standalone"
     self.type = "embedded" if cart.is_embeddable?
@@ -151,9 +150,7 @@ class RestEmbeddedCartridge < OpenShift::Model
 
     self.properties = []
     if app.nil?
-      #self.provides = cart.features
     else
-      #self.provides = app.get_feature(cinst.cartridge_name, cinst.component_name)
       prop_values = cinst.component_properties
       cart.cart_data_def.each do |data_def|
         property = {}

@@ -1,17 +1,17 @@
 class RestartCompOpGroup < PendingAppOpGroup
 
-  field :comp_spec, type: Hash, default: {}
+  field :comp_spec, type: ComponentSpec, default: {}
 
   def elaborate(app)
     ops = []
-    component_instance = app.component_instances.find_by(cartridge_name: comp_spec['cart'], component_name: comp_spec['comp'])
+    component_instance = get_component_instance
     component_instance.gears.each do |gear|
       if app.scalable? && component_instance.is_web_framework?
         if gear.app_dns
-          ops.push(RollingRestartCompOp.new(gear_id: gear._id.to_s, comp_spec: {'cart' => component_instance.cartridge_name, 'comp' => component_instance.component_name}))
+          ops.push(RollingRestartCompOp.new(gear_id: gear._id.to_s, comp_spec: component_instance.to_component_spec))
         end
       else
-        ops.push(RestartCompOp.new(gear_id: gear._id.to_s, comp_spec: {'cart' => component_instance.cartridge_name, 'comp' => component_instance.component_name}))
+        ops.push(RestartCompOp.new(gear_id: gear._id.to_s, comp_spec: component_instance.to_component_spec))
       end
     end
     pending_ops.push(*ops)

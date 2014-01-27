@@ -60,28 +60,38 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
 
     request_via_redirect(:get, "/broker/rest/cartridges/redhat-#{php_version}", {}, @headers)
     assert_response :ok
-    body1 = JSON.parse(@response.body)
-    cart_count1 = body1["data"].length
-    assert cart_count1 > 0
+    assert (body = JSON.parse(@response.body))["data"].is_a? Array
+    assert_equal 1, body["data"].length
+    assert_equal "cartridges", body["type"]
 
     request_via_redirect(:get, "/broker/rest/cartridges/#{php_version}", {}, @headers)
     assert_response :ok
-    body1 = JSON.parse(@response.body)
-    cart_count1 = body1["data"].length
-    assert cart_count1 > 0
+    assert (body = JSON.parse(@response.body))["data"].is_a? Array
+    assert_equal "cartridges", body["type"]
 
+    request_via_redirect(:get, "/broker/rest/cartridge/redhat-#{php_version}", {}, @headers)
+    assert_response :not_found
+    request_via_redirect(:get, "/broker/rest/cartridges/redhat-#{php_version}", {}, @headers)
+    assert_response :ok
+    assert (data = JSON.parse(@response.body)["data"]).is_a?(Array) && data.length > 0
+    request_via_redirect(:get, "/broker/rest/cartridges", {feature: "redhat-#{php_version}" }, @headers)
+    assert_response :ok
+    assert (data = JSON.parse(@response.body)["data"]).is_a?(Array) && data.length > 0
+
+    request_via_redirect(:get, "/broker/rest/cartridge/redhat-php", {}, @headers)
+    assert_response :not_found
     request_via_redirect(:get, "/broker/rest/cartridges/redhat-php", {}, @headers)
     assert_response :ok
-    body1 = JSON.parse(@response.body)
-    cart_count1 = body1["data"].length
-    assert cart_count1 > 0
-
-    request_via_redirect(:get, "/broker/rest/cartridges/php", {}, @headers)
+    assert (data = JSON.parse(@response.body)["data"]).is_a?(Array) && data.length > 0
+    request_via_redirect(:get, "/broker/rest/cartridges", {feature: 'redhat-php'}, @headers)
     assert_response :ok
-    body1 = JSON.parse(@response.body)
-    cart_count1 = body1["data"].length
-    assert cart_count1 > 0
+    assert (data = JSON.parse(@response.body)["data"]).is_a?(Array) && data.length > 0
 
+    request_via_redirect(:get, "/broker/rest/cartridge/redhat-php", {}, @headers)
+    assert_response :not_found
+    request_via_redirect(:get, "/broker/rest/cartridges/redhat-php", {}, @headers)
+    assert_response :ok
+    assert (data = JSON.parse(@response.body)["data"]).is_a?(Array) && data.length > 0
   end
 
   test "get cartridge in all versions" do

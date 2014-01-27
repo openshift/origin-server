@@ -1,95 +1,143 @@
-# Cache of cartridge manifest metadata. Used to reduce the number of calls
-# to the Node to retrieve cartridge information.
-
+#
+# CartridgeCache abstracts finding and locating cartridges available to the server.
+#
+# If you need to access the cartridges on an application use the Application#cartridges
+# method.  Only use methods here when attempting to locate a cartridge by a specific
+# criteria.
+#
 require 'httpclient'
 
 class CartridgeCache
 
   DURATION = 6.hours
 
+  #
   # Returns an Array of Cartridge objects
-  def self.cartridges(show_obsolete=nil)
-    show_obsolete = show_obsolete || Rails.configuration.openshift[:allow_obsolete_cartridges]
-    get_all_cartridges.select{ |cart| show_obsolete || !cart.is_obsolete? }
+  #
+  def self.cartridges
+    get_all_cartridges
   end
 
-  # Returns an Array of cartridge names.
   #
-  # == Parameters:
-  # cart_type::
-  #   Specify to return only names of cartridges which have specified cartridge categories
-  def self.cartridge_names(type=nil, app=nil)
-    if type.nil?
-      names = Rails.cache.fetch("cart_names_all", :expires_in => DURATION){ cartridges.map(&:name) }
-      names.concat(app.downloaded_cartridge_instances.keys) if app
-      names
-    else
-      type = "web_framework" if type == "standalone"
-      find_cartridge_by_category(type, app).map(&:name)
+  # Returns an Array of web framework cartridge names.
+  #
+  def self.web_framework_names
+    Rails.cache.fetch("web_framework_cartridge_names", :expires_in => DURATION) do
+      CartridgeType.active.in(categories: 'web_framework').only(:name).limit(25).map(&:name).uniq.sort
     end
   end
 
-  def self.find_cartridge_by_category(category, app=nil)
-    carts = Rails.cache.fetch("cartridges_by_cat_#{category}", :expires_in => DURATION){ cartridges.select{ |cart| cart.categories.include?(category) } }
-    carts.concat(app.downloaded_cartridge_instances.values.select{ |cart| cart.categories.include?(category) }) if app
-    carts
+  #
+  # Returns an Array of web framework cartridge names.
+  #
+  def self.other_names
+    Rails.cache.fetch("other_cartridge_names", :expires_in => DURATION) do
+      CartridgeType.active.not_in(categories: 'web_framework').only(:name).limit(25).map(&:name).uniq.sort
+    end
   end
 
-  # Returns the first cartridge that provides the specified feature.
-  # @note This method matches both features provided by the cartridge as well as the cartridge name.
+  #
+  # Return an exact match for id, nil if no matches exist
+  #
+  def self.find_cartridge_by_id(id, app=nil)
+    if app
+      cart = app.cartridges.detect{ |c| c.id === id }
+      return cart if cart
+    end
+    CartridgeType.where(id: id).first
+  end
+
+  #
+  # Return an exact match for name, nil if no matches exist, or raise an error if
+  # there is more than one relevant match.  If one or more cartridges that are
+  # provided by 'redhat' are found, then the most recent will be returned if all of
+  # of the matches have a common base (like 'php' or 'ruby').
+  #
+  def self.find_cartridge_by_base_name(name, app=nil)
+    matches = find_cartridges_by_base_name(name, app)
+    return nil if matches.blank?
+    return matches.first if matches.length == 1
+
+    names = matches.map(&:name).uniq.sort
+    raise OpenShift::UserException.new("More than one cartridge was found matching #{name}.  Please select one of #{names.to_sentence}", 197, nil, nil, nil, {:cartridge_names => names})
+  end
+
+  #
+  # Return cartridges that match the criteria for find_cartridge_by_base_name
+  #
+  def self.find_cartridges_by_base_name(name, app=nil)
+    matches = scope_to_name(name, app)
+    return [] if matches.blank?
+    return matches if matches.length == 1
+
+    redhat = matches.select{ |c| c.cartridge_vendor == "redhat"}
+    return [redhat.sort_by(&OpenShift::Cartridge::VERSION_ORDER).last] if redhat.map(&:original_name).uniq.length == 1
+
+    matches
+  end
+
+  def self.find_cartridges_by_base_names(names, app=nil)
+    names.map{ |name| find_cartridges_by_base_name(name, app).first }.compact
+  end
+
+  #
+  # Return an exact match for name, or attempt to locate a matching name or
+  # feature.  Should only be used in limited cases where existing behavior
+  # requires checking the Provides of a cartridge (web_proxy).
+  #
+  def self.find_cartridge_by_feature(feature, app=nil)
+    matches = scope_to_feature(feature, app)
+    return nil if matches.blank?
+    return matches.first if matches.length == 1
+
+    redhat = matches.select{ |c| c.cartridge_vendor == "redhat"}
+    return redhat.sort_by(&OpenShift::Cartridge::VERSION_ORDER).last if redhat.map(&:original_name).uniq.length == 1
+
+    #if there are more than one match and none by redhat raise an exception
+    names = matches.map(&:name).uniq.sort
+    raise OpenShift::UserException.new("More than one cartridge was found matching #{name}.  Please select one of #{names.to_sentence}", 197, nil, nil, nil, {:cartridge_names => names})
+  end
+
+  # Returns the active cartridge matching the provided name (the full_identifier)
   #
   # == Parameters:
   # feature::
-  #   Name of feature to look for.
-  def self.find_cartridge(requested_feature, app=nil)
+  #   Name of cartridge to look for.
+  def self.find_cartridge(name, app=nil)
     if app
-      app.downloaded_cartridge_instances.values.each do |cart|
-        return cart if cart.features.include?(requested_feature)
-        return cart if cart.names.include?(requested_feature)
-        return cart if cart.original_name == requested_feature
-      end
-      if cart = app.cartridge_instances[requested_feature]
-        return cart
-      end
+      cart = app.cartridges.detect{ |c| c.name == name }
+      return cart if cart
     end
 
-    matches = Rails.cache.fetch("carts_by_feature_#{requested_feature}", :expires_in => DURATION){ self.find_all_cartridges(requested_feature) }
-
-    return nil if matches.blank?
-
-    cart =
-      if matches.length == 1
-        matches.first
-      else
-        redhat = matches.select{ |c| c.cartridge_vendor == "redhat"}
-        if redhat.present?
-          redhat.sort_by(&OpenShift::Cartridge::VERSION_ORDER).last
-        end
-      end
-
-    if cart
-      app.cartridge_instances[cart.name] = cart if app
-      return cart
-    end
-
-    #if there are more than one match and none by redhat raise an exception
-    choices = matches.inject([]) do |arr, c|
-      arr << c.name
-    end
-
-    raise OpenShift::UserException.new("More that one cartridge was found matching #{requested_feature}.  Please select one of #{choices.to_sentence}")
+    CartridgeType.active.where(name: name).first || CartridgeType.where(name: name).first
   end
 
-  # Returns the first cartridge that provides the specified feature,
-  # same as find_cartridge, but raise an OOException if no cartridge is
-  # found.
-  def self.find_cartridge_or_raise_exception(feature, app)
-    find_cartridge(feature, app) or raise OpenShift::OOException.new("The application '#{app.name}' requires '#{feature}' but a matching cartridge could not be found")
+  # Return cartridges in bulk for names
+  #
+  # TODO: more efficiently bulk load cartridges
+  #
+  def self.find_cartridges(names, app=nil)
+    names.map{ |name| find_cartridge(name, app) }
   end
 
+  def self.find_serialized_cartridge(hash, app=nil)
+    return nil unless hash.present? && hash['manifest_text'].present?
+    cart = OpenShift::Cartridge.new.from_descriptor(JSON.parse(hash['manifest_text'], safe: true))
+    cart.manifest_text = hash['manifest_text']
+    cart.manifest_url = hash['manifest_url']
+    cart
+  end
+
+  def self.find_serialized_cartridges(hashes, app=nil)
+    downloaded, hashes = hashes.partition{ |c| c['manifest_text'].present? }
+    ids, named = hashes.partition{ |c| c['id'].present? }
+    downloaded.map{ |c| find_serialized_cartridge(c, app) } + ids.map{ |c| find_cartridge_by_id(c['id'], app) } + find_cartridges(named.map{ |c| c['name'] }, app)
+  end
+
+  # DEPRECATED: Do not use
   def self.find_all_cartridges(requested_feature)
     matching_carts = []
-    (CartridgeType.provides(requested_feature) + self.get_all_cartridges).each do |cart|
+    CartridgeType.active.provides(requested_feature).each do |cart|
       return [cart] if cart === requested_feature
       if cart.has_feature?(requested_feature)
         cart = cart.cartridge if cart.respond_to? :cartridge
@@ -97,54 +145,24 @@ class CartridgeCache
       end
     end
     matching_carts
-=begin
-    cartname_hash = {}
-    cartname_version_hash = {}
-    vendor_cartname_hash = {}
-    vendor_cartname_version_hash = {}
-
-    carts.each { |c|
-      cartname = c.original_name
-      cartname_hash[cartname] = [] if !cartname_hash[cartname]
-      cartname_hash[cartname] << c
-
-      cartname_version = c.original_name + "-" + c.version
-      cartname_version_hash[cartname_version] = [] if !cartname_version_hash[cartname_version]
-      cartname_version_hash[cartname_version] << c
-
-      next if c.cartridge_vendor.to_s.empty?
-
-      vendor_cartname = c.cartridge_vendor + "-" + c.original_name
-      vendor_cartname_hash[vendor_cartname] = [] if !vendor_cartname_hash[vendor_cartname]
-      vendor_cartname_hash[vendor_cartname] << c
-
-      vendor_cartname_version = c.cartridge_vendor + "-" + c.original_name + "-" + c.version
-      vendor_cartname_version_hash[vendor_cartname_version] = [] if !vendor_cartname_version_hash[vendor_cartname_version]
-      vendor_cartname_version_hash[vendor_cartname_version] << c
-    }
-
-    return cartname_hash[requested_feature] if cartname_hash[requested_feature]
-    return cartname_version_hash[requested_feature] if cartname_version_hash[requested_feature]
-    return vendor_cartname_hash[requested_feature] if vendor_cartname_hash[requested_feature]
-    return vendor_cartname_version_hash[requested_feature] if vendor_cartname_version_hash[requested_feature]
-
-    matching_carts = []
-
-    carts.each do |cart|
-      matching_carts << cart if cart.features.include?(requested_feature)
-    end
-
-    return matching_carts
-=end
   end
 
   def self.cartridge_from_data(data)
     raw = OpenShift::Runtime::Manifest.manifest_from_yaml(data['original_manifest'])
-    manifest = OpenShift::Runtime::Manifest.projected_manifests(raw, data["version"])
-    cart = OpenShift::Cartridge.new.from_descriptor(manifest.manifest)
-    cart.manifest_text = data['original_manifest']
+    manifest = OpenShift::Runtime::Manifest.projected_manifests(raw, data["version"]).manifest
+    cart = OpenShift::Cartridge.new.from_descriptor(manifest)
+    cart.manifest_text = manifest.to_json
     cart.manifest_url = data['url']
     cart
+  end
+
+  def self.cartridge_to_data(cart)
+    {
+      "versioned_name" => cart.full_identifier,
+      "version" => cart.version,
+      "url" => cart.manifest_url,
+      "original_manifest" => JSON.parse(cart.manifest_text).to_yaml,
+    }
   end
 
   #
@@ -176,19 +194,19 @@ class CartridgeCache
     cartridges = specs.inject([]) do |arr, spec|
       spec = {name: spec} if spec.is_a?(String)
       if spec[:url]
-        downloads << spec
+        downloads << spec.except(:id)
         next arr
       end
 
       name = spec[:name]
       if CartridgeInstance.check_feature?(name)
-        cart = find_cartridge(name)
+        cart = find_cartridge_by_base_name(name)
       end
       raise OpenShift::UserException.new("Invalid cartridge '#{name}' specified.", 109, field) if cart.nil?
 
       # carts defined with a manifest URL are downloaded each time
       if cart.manifest_url
-        downloads << spec.except(:name).merge!(url: cart.manifest_url, version: cart.version)
+        downloads << spec.except(:name).merge!(url: cart.manifest_url, version: cart.version, id: cart.id)
         next arr
       end
 
@@ -199,7 +217,7 @@ class CartridgeCache
     # download URL cartridges
     downloads.each do |spec|
       begin
-        url, version = spec.values_at(:url, :version)
+        url, version, id = spec.values_at(:url, :version, :id)
 
         text = download_from_url(url, field)
         versions = OpenShift::Runtime::Manifest.manifests_from_yaml(text)
@@ -214,8 +232,9 @@ class CartridgeCache
 
         manifest.check_reserved_vendor_name
 
+        manifest.manifest["Id"] = id || Moped::BSON::ObjectId.new.to_s
         cart = OpenShift::Cartridge.new.from_descriptor(manifest.manifest)
-        cart.manifest_text = text
+        cart.manifest_text = manifest.manifest.to_json
         cart.manifest_url = url
         instance = CartridgeInstance.new(cart, spec)
         cartridges << instance
@@ -252,7 +271,7 @@ class CartridgeCache
           client.get_content(url, nil, {"X-OpenShift-Cartridge-Download"=>""}) do |chunk|
             manifest << chunk
             if manifest.length > client.read_block_size
-              raise OpenShift::UnfulfilledRequirementException.new(url)
+              raise OpenShift::UserException.new("The cartridge manifest at '#{url}' must be smaller than #{client.read_block_size} bytes.", 109, field)
             end
           end
         end
@@ -271,15 +290,28 @@ class CartridgeCache
     manifest
   end
 
-  # Returns an Array of all cartridge objects
-  def self.get_all_cartridges
-    #CartridgeType.all
-    Rails.cache.fetch("all_cartridges", :expires_in => DURATION) do
-      carts = OpenShift::ApplicationContainerProxy.find_one.get_available_cartridges
-      CartridgeType.active.each do |type|
-        carts << type.cartridge unless carts.any?{ |cart| cart.name == type.name }
-      end
-      carts
+  private
+    # Returns a Criteria scope of all active cartridges
+    def self.get_all_cartridges
+      CartridgeType.active
     end
-  end
+
+    def self.scope_to_feature(feature, app=nil)
+      if app
+        carts = each_cartridge.select{ |c| c.features.include?(feature) }
+        return carts if carts.present?
+      end
+      CartridgeType.active.where(provides: feature).select{ |c| c.features.include?(feature) }
+    end
+
+    def self.scope_to_name(name, app=nil)
+      if app
+        carts = app.cartridges.select{ |c| c.names.include?(name) }
+        return carts if carts.present?
+      end
+      if cart = CartridgeType.active.where(name: name).first
+        return [cart]
+      end
+      CartridgeType.active.where(provides: name).select{ |c| c.names.include?(name) }
+    end
 end

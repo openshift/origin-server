@@ -1,6 +1,6 @@
 class RestartCompOp < PendingAppOp
 
-  field :comp_spec, type: Hash, default: {}
+  field :comp_spec, type: ComponentSpec, default: {}
   field :gear_id, type: String
 
   def is_parallel_executable
@@ -8,7 +8,7 @@ class RestartCompOp < PendingAppOp
   end
 
   def add_parallel_execute_job(handle)
-    gear = get_gear()
+    gear = get_gear
     unless gear.removed
       component_instance = get_component_instance()
       job = gear.get_restart_job(component_instance)

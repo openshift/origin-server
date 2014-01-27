@@ -1,6 +1,6 @@
 class StopCompOp < PendingAppOp
 
-  field :comp_spec, type: Hash, default: {}
+  field :comp_spec, type: ComponentSpec, default: {}
   field :force, type: Boolean, default: false
   field :gear_id, type: String
 
@@ -9,7 +9,7 @@ class StopCompOp < PendingAppOp
   end
 
   def add_parallel_execute_job(handle)
-    gear = get_gear()
+    gear = get_gear
     unless gear.removed
       component_instance = get_component_instance()
 

@@ -18,7 +18,7 @@
 #   @return [Symbol] Method to call on the {Domain} once this operation is complete.
 class PendingDomainOps
   include Mongoid::Document
-  include Mongoid::Timestamps
+  include Mongoid::Timestamps::Created
 
   embedded_in :domain, class_name: Domain.name
 

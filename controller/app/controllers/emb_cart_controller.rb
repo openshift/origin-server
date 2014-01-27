@@ -9,12 +9,18 @@ class EmbCartController < BaseController
   end
 
   def show
-    id = params[:id].presence
-    status_messages = !params[:include].nil? and params[:include].split(",").include?("status_messages")
+    id = ComponentInstance.check_name!(params[:id].presence)
+    status_messages = if_included(:status_messages, true)
 
-    cartname = CartridgeCache.find_cartridge(id, @application).name rescue id
-    component_instance = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(cartname))
-    cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
+    component = @application.component_instances.find_by(cartridge_name: id)
+
+    cartridge = get_embedded_rest_cartridge(
+      @application,
+      component,
+      component.group_instance.all_component_instances,
+      @application.group_instances_with_overrides.detect{ |i| i.instance == component.group_instance },
+      status_messages
+    )
     render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@application.domain_namespace}")
   end
 
@@ -40,46 +46,24 @@ class EmbCartController < BaseController
     end
     CartridgeInstance.check_cartridge_specifications!(specs)
     return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109) unless specs.all?{ |f| f[:name] or f[:url] }
-    #return render_error(:unprocessable_entity, "Only one cartridge may be added at a time.", 109) unless specs.length == 1
 
-    @application.domain.check_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "gear_size")
+    @application.domain.validate_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "gear_size")
 
-    begin
-      cartridges = CartridgeCache.find_and_download_cartridges(specs)
-      group_overrides = CartridgeInstance.overrides_for(cartridges, @application)
-      @application.validate_cartridge_instances!(cartridges)
-      result = @application.add_features(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
-    rescue
-      # If this was a request to add a url based cart, 
-      # remove the entry from downloaded_cart_map if there is no corresponding component_instance created. 
-      # This handles the cases where the exception is raised after populating the downloaded_cart_map,
-      # but before the pending op for the new component/gear are created and executed
-      unsets = {}
-      @application.downloaded_cart_map.each do |k, v|
-        cartridges.map(&:cartridge).each do |cartridge|
-          if v["versioned_name"] == cartridge.name
-            found = false
-            @application.component_instances.each do |ci|
-              if ci.cartridge_name ==  ci.cartridge_name
-                found = true
-                break
-              end
-            end
-            unsets["downloaded_cart_map.#{k}"] = "" if !found
-          end
-        end
-      end if cartridges.present?
-      # Since this is outside the application lock, we are using unset instead of saving the modified cart map
-      Application.where(:_id => @application._id).find_and_modify({"$unset"=> unsets}) if unsets.present?
-      
-      # this rescue block is only responsible for cleaning up the downloaded_cart_map
-      # the exception should be re-raised to handle full error processing
-      raise
-    end
+    cartridges = CartridgeCache.find_and_download_cartridges(specs)
+    group_overrides = CartridgeInstance.overrides_for(cartridges, @application)
+    @application.validate_cartridge_instances!(cartridges)
 
+    result = @application.add_cartridges(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
+
+    overrides = @application.group_instances_with_overrides
     rest = cartridges.map do |cart|
-      component_instance = @application.component_instances.where(cartridge_name: cart.name).first
-      get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
+      component = @application.component_instances.where(cartridge_name: cart.name).first
+      get_embedded_rest_cartridge(
+        @application,
+        component,
+        component.group_instance.all_component_instances,
+        overrides.detect{ |i| i.instance == component.group_instance }
+      )
     end
 
     if rest.length > 1
@@ -90,7 +74,6 @@ class EmbCartController < BaseController
 
   rescue OpenShift::GearLimitReachedException => ex
     render_error(:unprocessable_entity, "Unable to add cartridge: #{ex.message}", 104)
-
   rescue OpenShift::UserException => ex
     ex.field = nil if ex.field == "cartridge"
     raise
@@ -103,14 +86,11 @@ class EmbCartController < BaseController
 
     authorize! :destroy_cartridge, @application
 
-    id = params[:id].presence
+    id = ComponentInstance.check_name!(params[:id].presence)
+    instance = @application.component_instances.find_by(cartridge_name: id)
+    result = @application.remove_cartridges([instance.cartridge_name])
 
-    comp = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(id))
-    feature = comp.cartridge_name #@application.get_feature(comp.cartridge_name, comp.component_name)
-    raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, nil, [id]) if feature.nil?
-    result = @application.remove_features([feature])
     status = requested_api_version <= 1.4 ? :no_content : :ok
-
     render_success(status, nil, nil, "Removed #{id} from application #{@application.name}", result)
   end
 
@@ -154,13 +134,8 @@ class EmbCartController < BaseController
       return render_upgrade_in_progress
     end
 
-    component_instance = @application.component_instances.find_by(cartridge_name: id)
-
-    if component_instance.nil?
-      return render_error(:unprocessable_entity, "Invalid cartridge #{id} for application #{@application.name}", 168, "PATCH_APP_CARTRIDGE", "cartridge")
-    end
-
-    if component_instance.is_sparse?
+    instance = @application.component_instances.find_by(cartridge_name: id)
+    if instance.is_sparse?
       if scales_to and scales_to != 1
         return render_error(:unprocessable_entity, "The cartridge #{id} cannot be scaled.", 168, "PATCH_APP_CARTRIDGE", "scales_to")
       elsif scales_from and scales_from != 1
@@ -168,20 +143,25 @@ class EmbCartController < BaseController
       end
     end
 
-    group_instance = @application.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
+    override = @application.group_instances_with_overrides.detect{ |i| i.instance == instance.group_instance }
 
-    if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < group_instance.min
+    if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < override.min_gears
       return render_error(:unprocessable_entity, "The scales_to factor currently provided cannot be lower than the scales_from factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_to")
     end
 
-    if scales_from and scales_to.nil? and group_instance.max >= 1 and group_instance.max < scales_from
+    if scales_from and scales_to.nil? and override.max_gears >= 1 and override.max_gears < scales_from
       return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from")
     end
 
-    result = @application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
+    result = @application.update_component_limits(instance, scales_from, scales_to, additional_storage)
 
-    component_instance = @application.component_instances.find_by(cartridge_name: id)
-    cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
+    instance = @application.component_instances.find_by(cartridge_name: id)
+    cartridge = get_embedded_rest_cartridge(
+      @application,
+      instance,
+      instance.group_instance.all_component_instances,
+      @application.group_instances_with_overrides.detect{ |i| i.instance == instance.group_instance }
+    )
 
     render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@application.domain_namespace}", result)
   end

@@ -7,11 +7,11 @@
 #   @return [Hash] Group level arguments hash
 class PendingAppOpGroup
   include Mongoid::Document
-  include Mongoid::Timestamps
+  include Mongoid::Timestamps::Created
   include TSort
 
   embedded_in :application, class_name: Application.name
-  embeds_many :pending_ops, class_name: PendingAppOp.name
+  embeds_many :pending_ops, class_name: PendingAppOp.name, cascade_callbacks: true
 
   field :parent_op_id, type: Moped::BSON::ObjectId
   field :num_gears_added,   type: Integer, default: 0
@@ -62,7 +62,7 @@ class PendingAppOpGroup
       self.pending_ops = op_group.pending_ops
     end
 
-    pending_ops.where(:state.ne => :completed, :pre_save => true).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
+    pending_ops.where(:state.ne => :completed, :pre_save => true).select{ |op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0 }
   end
 
   # The pre_execute method does not handle parallel executions
@@ -95,7 +95,6 @@ class PendingAppOpGroup
 
           # set the pending_op state to queued
           op.set_state(:queued)
-
 
           if op.is_parallel_executable
             op.add_parallel_execute_job(handle)
@@ -169,7 +168,7 @@ class PendingAppOpGroup
       end
     rescue Exception => e_orig
       Rails.logger.error e_orig.message
-      Rails.logger.error e_orig.backtrace.inspect
+      Rails.logger.error e_orig.backtrace.join("\n")
       raise e_orig
     end
   end
@@ -222,9 +221,9 @@ class PendingAppOpGroup
         raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.max_gears} limit and this application requires #{num_gears_added} additional gears.")
       end
       owner.consumed_gears += num_gears_added
-      self.pending_ops.push ops
       self.num_gears_added = num_gears_added
       self.num_gears_removed = num_gears_removed
+      self.pending_ops.concat(ops)
       self.save! if app.persisted?
       owner.save!
     ensure
@@ -244,6 +243,13 @@ class PendingAppOpGroup
       owner.save!
     ensure
       Lock.unlock_user(owner, app)
+    end
+  end
+
+  def get_component_instance
+    if spec = comp_spec
+      spec.application = application
+      application.component_instances.detect{ |i| i.matches_spec?(spec) }
     end
   end
 

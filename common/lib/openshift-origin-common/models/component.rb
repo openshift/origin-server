@@ -18,8 +18,8 @@ module OpenShift
       self.scaling.multiplier!=1
     end
 
-    def from_descriptor(profile, spec_hash = {})
-      self.name = spec_hash["Name"] || profile.name
+    def from_descriptor(cartridge, spec_hash = {})
+      self.name = spec_hash["Name"] || cartridge.name
       if (publishes = spec_hash["Publishes"]).is_a? Hash
         publishes.each do |n, p|
           conn = Connector.new(n).from_descriptor(p)
