@@ -142,7 +142,7 @@ class OOStats
   # Load the broker rails environment so we can leverage its tools
   def load_broker_rails_env
     begin
-      require "/var/www/openshift/broker/config/environment"
+      require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
       # Disable analytics for admin scripts
       Rails.configuration.analytics[:enabled] = false
       # Wait this long for answers from node hosts
