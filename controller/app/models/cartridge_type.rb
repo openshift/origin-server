@@ -52,19 +52,20 @@ class CartridgeType
 
   scope :active, lambda{ ne(priority: nil) }
   scope :inactive, lambda{ where(priority: nil) }
+  scope :latest, lambda{ order_by(priority: -1, created_at: -1) }
 
   def self.provides(name)
     self.in(provides: name)
   end
 
-  def self.update_from(sources, url=nil)
+  def self.update_from(sources, url=nil, force=false)
     missing = sources.inject({}){ |h, m| h[m.global_identifier] = m; h }
     updated = []
-    self.in(name: missing.keys).each do |type|
+    self.in(name: missing.keys).latest.each do |type|
       latest = missing.delete(type.name) or next
       old = type
       old.attributes = cartridge_attributes(latest, url)
-      if old.changed?
+      if old.changed? || force
         type = new(old.attributes)
         type.predecessor = old
         updated << type
@@ -80,13 +81,13 @@ class CartridgeType
     c =
       case source
       when OpenShift::Runtime::Manifest
-        text ||= source.manifest.to_yaml
+        text ||= source.manifest.to_json
         OpenShift::Cartridge.new.from_descriptor(source.manifest)
       when OpenShift::Cartridge
-        text ||= source.to_descriptor.to_yaml
+        text ||= source.to_descriptor.to_json
         source
       when Hash
-        text ||= source.to_yaml
+        text ||= source.to_json
         OpenShift::Cartridge.new.from_descriptor(source)
       else
         raise "Invalid source"
@@ -135,7 +136,7 @@ class CartridgeType
 
   def cartridge
     @cartridge ||= begin
-      json = YAML.load(text, safe: true)
+      json = JSON.parse(text)
       json["Id"] = self._id
       cart = OpenShift::Cartridge.new.from_descriptor(json)
       cart.manifest_url = manifest_url

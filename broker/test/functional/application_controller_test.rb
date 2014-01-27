@@ -794,7 +794,7 @@ class ApplicationControllerTest < ActionController::TestCase
     assert instances.length == 2
     assert instance = instances.detect{ |i| i.cartridge_name == 'mock-mock-0.1' }
     assert_equal 'manifest://test', instance.manifest_url
-    type = OpenShift::Cartridge.new.from_descriptor(YAML.load(instance.manifest_text))
+    type = OpenShift::Cartridge.new.from_descriptor(JSON.parse(instance.manifest_text))
     assert_equal instance._id.to_s, type.id
     assert_equal ['mock', 'web_framework'], type.categories.sort
     assert_equal 'Mock Cart', type.display_name

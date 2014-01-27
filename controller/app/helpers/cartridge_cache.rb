@@ -122,7 +122,7 @@ class CartridgeCache
 
   def self.find_serialized_cartridge(hash, app=nil)
     return nil unless hash.present? && hash['manifest_text'].present?
-    cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(hash['manifest_text'], safe: true))
+    cart = OpenShift::Cartridge.new.from_descriptor(JSON.parse(hash['manifest_text'], safe: true))
     cart.manifest_text = hash['manifest_text']
     cart.manifest_url = hash['manifest_url']
     cart
@@ -149,19 +149,19 @@ class CartridgeCache
 
   def self.cartridge_from_data(data)
     raw = OpenShift::Runtime::Manifest.manifest_from_yaml(data['original_manifest'])
-    manifest = OpenShift::Runtime::Manifest.projected_manifests(raw, data["version"])
-    cart = OpenShift::Cartridge.new.from_descriptor(manifest.manifest)
-    cart.manifest_text = data['original_manifest']
+    manifest = OpenShift::Runtime::Manifest.projected_manifests(raw, data["version"]).manifest
+    cart = OpenShift::Cartridge.new.from_descriptor(manifest)
+    cart.manifest_text = manifest.to_json
     cart.manifest_url = data['url']
     cart
   end
 
   def self.cartridge_to_data(cart)
     {
-        "versioned_name" => cart.full_identifier,
-        "version" => cart.version,
-        "url" => cart.manifest_url,
-        "original_manifest" => cart.manifest_text,
+      "versioned_name" => cart.full_identifier,
+      "version" => cart.version,
+      "url" => cart.manifest_url,
+      "original_manifest" => JSON.parse(cart.manifest_text).to_yaml,
     }
   end
 
@@ -234,7 +234,7 @@ class CartridgeCache
 
         manifest.manifest["Id"] = id || Moped::BSON::ObjectId.new.to_s
         cart = OpenShift::Cartridge.new.from_descriptor(manifest.manifest)
-        cart.manifest_text = manifest.manifest.to_yaml
+        cart.manifest_text = manifest.manifest.to_json
         cart.manifest_url = url
         instance = CartridgeInstance.new(cart, spec)
         cartridges << instance

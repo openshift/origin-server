@@ -195,11 +195,11 @@ module OpenShift
 
       if (components = spec_hash["Components"]).is_a? Hash
         components.each do |cname, c|
-         comp = Component.new.from_descriptor(self, c || {})
-         comp.name = cname
-         @components << comp
-         @_component_name_map[comp.name] = comp
-       end
+          comp = Component.new.from_descriptor(self, c || {})
+          comp.name = cname
+          @components << comp
+          @_component_name_map[comp.name] = comp
+        end
       else
         c = Component.new.from_descriptor(self, {
           "Publishes"  => spec_hash["Publishes"],

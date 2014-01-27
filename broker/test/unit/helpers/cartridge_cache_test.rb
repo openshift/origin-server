@@ -126,7 +126,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert_nil carts[0].manifest_url
     assert carts[0].gear_size.nil?
     assert_equal cart._id, carts[0]._id
-    assert_equal cart.id, carts[0]._id.to_s
+    assert_equal cart.id, carts[0]._id
   end
 
   test "find and download a cartridge" do
