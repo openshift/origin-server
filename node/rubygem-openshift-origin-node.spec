@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.17
+Version: 1.19.18
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jan 28 2014 Adam Miller <admiller@redhat.com> 1.19.18-1
+- Revert "Merge pull request #4488 from lsm5/new-node_conf" (jhonce@redhat.com)
+- Revert "Merge pull request #4519 from lsm5/new-node_conf" (jhonce@redhat.com)
+
 * Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.19.17-1
 - Merge pull request #4581 from jwhonce/wip/head_key_flag
   (dmcphers+openshiftbot@redhat.com)
