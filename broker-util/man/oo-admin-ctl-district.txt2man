@@ -20,7 +20,7 @@ OPTIONS
 
   -c|--command cmd  
     Available commands: add-node, remove-node, deactivate-node, activate-node,
-    add-capacity, remove-capacity, create, destroy
+    add-capacity, remove-capacity, create, destroy, set-region, unset-region
 
   -n|--name district_name  
     District name. Arbitrary identifier used on create or in place of uuid for

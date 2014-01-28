@@ -4,7 +4,7 @@ require 'getoptlong'
 require 'pp'
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 
-CTL_DISTRICT_COMMANDS = "(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy|publish-uids)"
+CTL_DISTRICT_COMMANDS = "(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy|publish-uids|set-region|unset-region)"
 
 def usage
   puts <<USAGE
@@ -96,7 +96,7 @@ if node_profile && !Gear::valid_gear_size?(node_profile)
   exit 1
 end
   
-if command && !(command =~ /\A(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy|publish-uids)\z/)
+if command && !(command =~ /\A(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy|publish-uids|set-region|unset-region)\z/)
   puts "Command must be one of: #{CTL_DISTRICT_COMMANDS}"
   exit 255
 end
@@ -113,8 +113,17 @@ if uuid || name
     puts "District '#{name}' already exists"
     exit 1
   end
-  unless server_identity || (command != 'add-node' && command != 'remove-node' && command != 'deactivate-node' && command != 'activate-node')
+  unless server_identity || (command != 'add-node' && command != 'remove-node' && command != 'deactivate-node' &&
+                             command != 'activate-node' && command != 'set-region' && command != 'unset-region')
     puts "--server_identity is required with command: #{command}"
+    exit 1
+  end
+  unless region || (command != 'set-region' && command != 'unset-region')
+    puts "--region is required with command: #{command}"
+    exit 1
+  end
+  unless zone || (command != 'set-region' && command != 'unset-region')
+    puts "--zone is required with command: #{command}"
     exit 1
   end
   unless size || (command != 'add-capacity' && command != 'remove-capacity')
@@ -150,6 +159,12 @@ begin
     reply.resultIO << "Success!"
   when "remove-capacity"
     district.remove_capacity(size)
+    reply.resultIO << "Success!"
+  when "set-region"
+    district.set_region(server_identity, region, zone)
+    reply.resultIO << "Success!"
+  when "unset-region"
+    district.unset_region(server_identity, region, zone)
     reply.resultIO << "Success!"
   when "publish-uids"
     districts = district ? [district] : District.find_all
