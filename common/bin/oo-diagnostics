@@ -418,6 +418,18 @@ class OODiag
 
   def prereq_domain_resolves
     skip_test unless @is_broker or @is_node
+
+    `which host`
+    have_host_command = 0 == $?.to_i
+    unless have_host_command
+      do_warn <<-WARN
+         The host command is not available. This command is not required; however, you
+         may install it, by installing the bind-utils package, to enable further
+         diagnostics checking.
+      WARN
+    end
+    skip_test unless have_host_command
+
     verbose "checking that we can resolve our application domain"
 
     domain = @is_broker ? Rails.configuration.openshift[:domain_suffix]
