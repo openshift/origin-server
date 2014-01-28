@@ -23,7 +23,7 @@ echo 'Installing mysqld'
 mysql_data_dir="${OPENSHIFT_MYSQL_DIR}/data"
 
 # Must be invoked with absolute path to avoid a mysql bug involving my_print_defaults
-mysql_context "/usr/bin/mysql_install_db --datadir=${mysql_data_dir} --user=${USER}" || error 'Failed to create mysqldb', 119
+mysql_context "/usr/bin/mysql_install_db --datadir=${mysql_data_dir} --skip-name-resolve --force > ${OPENSHIFT_MYSQL_DB_LOG_DIR}/install_db.log" || error 'Failed to create mysqldb', 119
 
 client_result ""
 client_result "MySQL ${version} database added.  Please make note of these credentials:"
