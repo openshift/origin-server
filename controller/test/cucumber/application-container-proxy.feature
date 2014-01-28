@@ -13,7 +13,6 @@ Feature: Application Container Proxy gear retrieval
     Scenarios: RHEL scenarios
       | php_version |
       | php-5.3     |
-      | php-5.4     |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
@@ -31,7 +30,6 @@ Feature: Application Container Proxy gear retrieval
     Scenarios: RHEL scenarios
       | php_version |
       | php-5.3     |
-      | php-5.4     |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
