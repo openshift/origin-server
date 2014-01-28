@@ -5,7 +5,7 @@ Feature: applications
   In order to do things with domains
   I want to List, Create, Retrieve, Start, Stop, Restart, Force-stop and Delete applications
 
-  Scenario Outline: Create, get, resolve dns, list, delete application
+  Scenario Outline: Create, Get, Resolve DNS, List, Delete application
     #Given a new user, create a php-<php_version> application using <format> format and verify application creation API
     Given a new user
     And I accept "<format>"
