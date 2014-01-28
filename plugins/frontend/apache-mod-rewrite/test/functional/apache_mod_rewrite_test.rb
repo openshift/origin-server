@@ -1,12 +1,12 @@
 #--
 # Copyright 2010 Red Hat, Inc.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -67,12 +67,13 @@ module OpenShift
         "#{@fqdn}/ssl_to_gear" => "SSL_TO_GEAR:/dest"
       }
 
+      @nodes_expected.values.each { |v| v << "|#{@application_uuid}|#{@container_uuid}" }
 
       @aliases=["foo.example.com", "bar.example.com"]
       @ssl_certs=[["SSL_CERT", "SSL_KEY", "bar.example.com"]]
 
       @plugin_class = ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheModRewrite
-      @plugin = @plugin_class.new(@container_uuid, @fqdn, @container_name, @namespace)
+      @plugin = @plugin_class.new(@container_uuid, @fqdn, @container_name, @namespace, @application_uuid)
 
       exercise_plugin_is_available
     end
