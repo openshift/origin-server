@@ -777,19 +777,13 @@ class Application
     raise OpenShift::UserException.new("Only scalable applications can be made 'HA'") if not self.scalable
     raise OpenShift::UserException.new("Application is already HA") if self.ha
 
-    component_instance = self.component_instances.select { |ci|
-      cats = CartridgeCache.find_cartridge(ci.cartridge_name, self).categories
-      cats.include? "web_proxy"
-    }.first
+    component_instance = self.component_instances.select { |ci| ci.is_web_proxy? }.first
     raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.get_group_override('max_gears')==1
     # set the web_proxy's min to 2
     self.update_component_limits(component_instance, 2, -1, nil)
 
     # and the web_frameworks' min to 2 as well so that the app stays HA
-    web_ci = self.component_instances.select { |ci|
-      cats = CartridgeCache.find_cartridge(ci.cartridge_name, self).categories
-      cats.include? "web_framework"
-    }.first
+    web_ci = self.component_instances.select { |ci| ci.is_web_framework? }.first
     if web_ci.min < 2
       scale_up_needed = web_ci.gears.length>1
       self.update_component_limits(web_ci, 2, nil, nil)
@@ -1886,7 +1880,7 @@ class Application
         sparse_carts_added_count += 1
 
         # Ensure that all web_proxies get broker auth
-        if cartridge.categories.include?("web_proxy")
+        if cartridge.is_web_proxy?
           add_broker_auth_op = AddBrokerAuthKeyOp.new(gear_id: gear_id, prereq: new_component_op_id + [prereq_id])
           prereq_id = add_broker_auth_op._id.to_s
           component_ops[comp_spec][:add_broker_auth_keys].push add_broker_auth_op
@@ -1899,6 +1893,12 @@ class Application
         ops.push add_component_op
         component_ops[comp_spec][:adds].push add_component_op
         usage_op_prereq = [add_component_op._id.to_s]
+
+        # if this is a web_proxy, send any existing alias information to it 
+        if cartridge.is_web_proxy? and self.aliases.present?
+          resend_aliases_op = ResendAliasesOp.new(gear_id: gear_id, fqdns: self.aliases.map {|app_alias| app_alias.fqdn}, prereq: [add_component_op._id.to_s])
+          ops.push resend_aliases_op
+        end
 
         # in case of deployable carts, the post-configure op is executed at the end
         # to ensure this, it is removed from the prerequisite list for any other pending_op

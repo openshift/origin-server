@@ -1282,7 +1282,7 @@ module OpenShift
       # NOTES:
       # * calls execute_direct
       # * executes the 'add-alias' action on the node
-      # * method on Gear?
+      # * not used anymore -  replaced with add_aliases
       #
       def add_alias(gear, server_alias)
         args = build_base_gear_args(gear)
@@ -1304,7 +1304,7 @@ module OpenShift
       # NOTES:
       # * calls execute_direct
       # * executes the 'remove-alias' action on the gear.
-      # * method on Gear?
+      # * not used anymore -  replaced with remove_aliases
       #
       def remove_alias(gear, server_alias)
         args = build_base_gear_args(gear)
@@ -1313,6 +1313,47 @@ module OpenShift
         parse_result(result)
       end
 
+      #
+      # Add multiple application aliases to a gear
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * server_aliases: Array - a list of FQDN for the gear
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'add-aliases' action on the node
+      #
+      def add_aliases(gear, server_aliases)
+        args = build_base_gear_args(gear)
+        args['--with-aliases'] = server_aliases
+        result = execute_direct(@@C_CONTROLLER, 'add-aliases', args)
+        parse_result(result)
+      end
+
+      #
+      # remove multiple application aliases from a gear
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * server_aliases: Array - a list of FQDN for the gear
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'remove-aliases' action on the gear.
+      #
+      def remove_aliases(gear, server_aliases)
+        args = build_base_gear_args(gear)
+        args['--with-aliases'] = server_aliases
+        result = execute_direct(@@C_CONTROLLER, 'remove-aliases', args)
+        parse_result(result)
+      end
       #
       # Add or Update user environment variables to all gears in the app
       #
