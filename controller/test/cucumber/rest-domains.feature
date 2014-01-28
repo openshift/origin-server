@@ -16,6 +16,13 @@ Feature: domains
     When I send a GET request to "/domains/api<random>"
     Then the response should be "200"
     And the response should be a "domain" with attributes "name=api<random>"
+    When the user has MAX_DOMAINS set to 1
+    And I send a POST request to "/domains" with the following:"name=apix<random>"
+    Then the response should be "409"
+    When the user has MAX_DOMAINS set to 2
+    And I send a POST request to "/domains" with the following:"name=apix<random>"
+    Then the response should be "201"
+    And the response should be a "domain" with attributes "name=apix<random>"
     When I send a PUT request to "/domains/api<random>" with the following:"name=apiy<random>"
     Then the response should be "200"
     And the response should be a "domain" with attributes "name=apiy<random>"
@@ -161,25 +168,6 @@ Feature: domains
 
     When I send a DELETE request to "/domains/api<random>"
     Then the response should be "404"
-
-    Scenarios:
-     | format |
-     | JSON   |
-     | XML    |
-
-  Scenario Outline: Create more than one domain
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    And the response should be a "domain" with attributes "name=api<random>"
-    When the user has MAX_DOMAINS set to 1
-    And I send a POST request to "/domains" with the following:"name=apix<random>"
-    Then the response should be "409"
-    When the user has MAX_DOMAINS set to 2
-    And I send a POST request to "/domains" with the following:"name=apix<random>"
-    Then the response should be "201"
-    And the response should be a "domain" with attributes "name=apix<random>"
 
     Scenarios:
      | format |
