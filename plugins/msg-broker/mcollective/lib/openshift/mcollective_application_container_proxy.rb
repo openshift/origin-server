@@ -2106,6 +2106,7 @@ module OpenShift
           node_profile = nil
         end
 
+        destination_gear_size = node_profile || gear.group_instance.gear_size
         if destination_container.nil?
           if !destination_district_uuid and !change_district
             destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
@@ -2118,7 +2119,6 @@ module OpenShift
           end
 
           least_preferred_servers = [source_container.id]
-          destination_gear_size = node_profile || gear.group_instance.gear_size
           destination_container = MCollectiveApplicationContainerProxy.find_all_available_impl(destination_gear_size, destination_district_uuid, nil, nil, gear, gear_exists_in_district, required_uid)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
@@ -2138,8 +2138,9 @@ module OpenShift
         end
 
         if Rails.configuration.msg_broker[:regions][:enabled]
-          source_si = District.find_server(source_container.id)
-          destination_si = District.find_server(destination_container.id)
+          districts = District.find_all(destination_gear_size)
+          source_si = District.find_server(source_container.id, districts)
+          destination_si = District.find_server(destination_container.id, districts)
           if source_si && destination_si && (source_si.region_id != destination_si.region_id)
             raise OpenShift::UserException.new("Error moving gear. Old and new servers must belong to the same region, source region: #{source_si.region_name} destination region: #{destination_si.region_name}")
           end 
@@ -2993,6 +2994,11 @@ module OpenShift
         rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
           found_district = false
           districts.each do |district|
+            # skip district servers in these cases:
+            # - if required uid is not availabe in the district
+            # - server is not active
+            # - server can not accomodate any more gears
+            # - server not part of any region when user requested region
             next if required_uid and !district.available_uids.include?(required_uid)
             if district.server_identities.where(name: server).exists?
               si = district.server_identities.find_by(name: server)
@@ -3009,7 +3015,7 @@ module OpenShift
         end
         if server_infos.empty?
           if require_district && require_region
-            raise OpenShift::NodeUnavailableException.new("No district and region nodes available", 140)
+            raise OpenShift::NodeUnavailableException.new("No districted region nodes available", 140)
           elsif require_district
             raise OpenShift::NodeUnavailableException.new("No district nodes available", 140)
           end
@@ -3027,13 +3033,13 @@ module OpenShift
                 break
               end
             end
-            si = District.find_server(app_server) if app_server
+            si = District.find_server(app_server, districts) if app_server
             if si
               current_region = Region.find_by(_id: si.region_id)
               least_preferred_zone_ids = []
               least_preferred_servers.each do |server_name|
                 next unless server_name
-                si = District.find_server(server_name)
+                si = District.find_server(server_name, districts)
                 least_preferred_zone_ids << si.zone_id if si.zone_id
               end if least_preferred_servers.present?
 
@@ -3060,7 +3066,7 @@ module OpenShift
             server_infos.delete_if { |server_info| !server_info[2] } if has_districted_node
           end
 
-          # Remove any non region nodes if you prefer regions
+          # Prefer region nodes over non region nodes when region is not requested
           if Rails.configuration.msg_broker[:regions][:enabled] && !require_region
             has_region_node = false
             server_infos.each do |server_info|

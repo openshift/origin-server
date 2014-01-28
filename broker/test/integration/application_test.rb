@@ -115,14 +115,15 @@ class ApplicationTest < ActiveSupport::TestCase
     assert_equal app.gears.count, 3
     assert_equal app.group_instances.count, 2
     si1, si2, si3 = nil, nil, nil
+    districts = District.find_all
     app.group_instances.each do |gi|
       if gi.gears.count == 2
-        si1 = District.find_server(gi.gears.first.server_identity)
-        si2 = District.find_server(gi.gears.last.server_identity)
+        si1 = District.find_server(gi.gears.first.server_identity, districts)
+        si2 = District.find_server(gi.gears.last.server_identity, districts)
         assert_not_equal "s00", si1.name
         assert_not_equal "s00", si2.name
       else
-        si3 = District.find_server(gi.gears.first.server_identity)
+        si3 = District.find_server(gi.gears.first.server_identity, districts)
         assert_not_equal "s00", si3.name
       end
     end
