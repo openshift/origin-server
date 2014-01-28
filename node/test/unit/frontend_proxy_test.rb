@@ -33,11 +33,8 @@ class FrontendProxyTest < OpenShift::NodeTestCase
     @wrap_uid  = 6501
 
     @config.stubs(:get).with("PORT_BEGIN").returns(@ports_begin.to_s)
-    @config.stubs(:get).with("PROXY_MIN_PORT_NUM").returns(@ports_begin.to_s)
     @config.stubs(:get).with("PORTS_PER_USER").returns(@ports_per_user.to_s)
-    @config.stubs(:get).with("PROXY_PORTS_PER_GEAR").returns(@ports_per_user.to_s)
     @config.stubs(:get).with("UID_BEGIN").returns(@uid_begin.to_s)
-    @config.stubs(:get).with("GEAR_MIN_UID").returns(@uid_begin.to_s)
   end
 
   # Simple test to validate the port range computation given
