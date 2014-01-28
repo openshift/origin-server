@@ -52,9 +52,9 @@ module OpenShift
         # instance should act upon, relative to the given container/user.
         config = ::OpenShift::Config.new
 
-        @port_begin = (config.get("PORT_BEGIN") || config.get("PROXY_MIN_PORT_NUM") || "35531").to_i
-        @ports_per_user = (config.get("PORTS_PER_USER") || config.get("PROXY_PORTS_PER_GEAR") || "5").to_i
-        @uid_begin = (config.get("UID_BEGIN") || config.get("GEAR_MIN_UID") || "500").to_i
+        @port_begin = (config.get("PORT_BEGIN") || "35531").to_i
+        @ports_per_user = (config.get("PORTS_PER_USER") || "5").to_i
+        @uid_begin = (config.get("UID_BEGIN") || "500").to_i
       end
 
       # Returns a Range representing the valid proxy port values for the
