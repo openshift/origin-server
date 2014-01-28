@@ -51,14 +51,14 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     gear0 = gear._id
     
     #test_scalable_app_no_ha_framework_down
-    @apps[1] = Application.create_app(@appnames[1], cartridge_instances_for(:php), @domain, nil, true)
+    @apps[1] = Application.create_app(@appnames[1], cartridge_instances_for(:php), @domain, :scalable => true)
     gear = @apps[1].gears[0]
     gear.server_identity = @unresponsive_server
     gear.save!
     gear1 = gear._id
 
     #test_scalable_app_ha_all_frameworks_down
-    @apps[2] = Application.create_app(@appnames[2], cartridge_instances_for(:php), @domain, nil, true)
+    @apps[2] = Application.create_app(@appnames[2], cartridge_instances_for(:php), @domain, :scalable => true)
     @apps[2].make_ha
     assert_equal(2, @apps[2].group_instances[0].gears.size)
     assert_equal(true, @apps[2].ha)
@@ -68,7 +68,7 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     end
 
     #test_scalable_app_scaled_up_gear_down
-    @apps[3] = Application.create_app(@appnames[3], cartridge_instances_for(:php), @domain, nil, true)
+    @apps[3] = Application.create_app(@appnames[3], cartridge_instances_for(:php), @domain, :scalable => true)
     @apps[3].scale_by(@apps[3].group_instances[0]._id, 1)
     assert_equal(2, @apps[3].group_instances[0].gears.size)
     gear = @apps[3].group_instances[0].gears[1]
@@ -77,7 +77,7 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     gear3 = gear._id
 
     #test_scalable_app_ha_framework_gear_down
-    @apps[4] = Application.create_app(@appnames[4], cartridge_instances_for(:php), @domain, nil, true)
+    @apps[4] = Application.create_app(@appnames[4], cartridge_instances_for(:php), @domain, :scalable => true)
     @apps[4].make_ha
     assert_equal(2, @apps[4].group_instances[0].gears.size)
     assert_equal(true, @apps[4].ha)
@@ -87,11 +87,11 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     gear4 = gear._id
 
     #test_scalable_app_ha_framework_gear_down_db_down
-    @apps[5] = Application.create_app(@appnames[5], cartridge_instances_for(:php), @domain, nil, true)
+    @apps[5] = Application.create_app(@appnames[5], cartridge_instances_for(:php), @domain, :scalable => true)
     @apps[5].make_ha
     assert_equal(2, @apps[5].group_instances[0].gears.size)
     assert_equal(true, @apps[5].ha)
-    @apps[5].add_features(cartridge_instances_for(:mysql))
+    @apps[5].add_cartridges(cartridge_instances_for(:mysql))
     assert_equal(2, @apps[5].group_instances.size)
     assert_equal(1, @apps[5].group_instances[1].gears.size)
     gear = @apps[5].group_instances[0].gears[0]
@@ -104,7 +104,7 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     gear5_2 = gear._id
 
     #test_scalable_app_no_ha_scaled_up_head_gear_down
-    @apps[6] = Application.create_app(@appnames[6], cartridge_instances_for(:php), @domain, nil, true)
+    @apps[6] = Application.create_app(@appnames[6], cartridge_instances_for(:php), @domain, :scalable => true)
     @apps[6].scale_by(@apps[6].group_instances[0]._id, 1)
     assert_equal(2, @apps[6].gears.size)
     gear = @apps[6].gears[0]
@@ -112,14 +112,14 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     gear.save!
 
     #test_scalable_app_no_ha_db_available_head_gear_down
-    @apps[7] = Application.create_app(@appnames[7], cartridge_instances_for(:php), @domain, nil, true)
-    @apps[7].add_features(cartridge_instances_for(:mysql))
+    @apps[7] = Application.create_app(@appnames[7], cartridge_instances_for(:php), @domain, :scalable => true)
+    @apps[7].add_cartridges(cartridge_instances_for(:mysql))
     assert_equal(2, @apps[7].group_instances.size)
     assert_equal(1, @apps[7].group_instances[1].gears.size)
     gear = @apps[7].group_instances[0].gears[0]
     gear.server_identity = @unresponsive_server
     gear.save!
-    
+
     repair_apps
 
     #test_unscalable_app_down

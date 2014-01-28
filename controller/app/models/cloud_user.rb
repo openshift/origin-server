@@ -38,7 +38,7 @@ class CloudUser
   field :consumed_gears, type: Integer, default: 0
 
   embeds_many :ssh_keys, class_name: UserSshKey.name
-  embeds_many :pending_ops, class_name: PendingUserOps.name
+  embeds_many :pending_ops, class_name: PendingUserOps.name, cascade_callbacks: true
   # embeds_many :identities, class_name: Identity.name, cascade_callbacks: true
 
   has_many :domains, class_name: Domain.name, dependent: :restrict, foreign_key: :owner_id
@@ -189,7 +189,7 @@ class CloudUser
   def add_ssh_key(key)
     if persisted?
       pending_op = AddSshKeysUserOp.new(keys_attrs: [key.serializable_hash])
-      CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp , ssh_keys: key.serializable_hash }})
+      CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document , ssh_keys: key.serializable_hash }})
       reload.run_jobs
     else
       ssh_keys << key
@@ -209,7 +209,7 @@ class CloudUser
     if persisted?
       key = self.ssh_keys.find_by(name: name)
       pending_op = RemoveSshKeysUserOp.new(keys_attrs: [key.serializable_hash])
-      CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp } , "$pull" => { ssh_keys: key.serializable_hash }})
+      CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document } , "$pull" => { ssh_keys: key.serializable_hash }})
       reload.run_jobs
     else
       ssh_keys.delete_if{ |k| k.name == name }

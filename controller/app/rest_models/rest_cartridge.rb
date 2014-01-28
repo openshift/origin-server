@@ -86,9 +86,9 @@
 # @!attribute [r] usage_rates
 #   @return [Array<Object>]
 class RestCartridge < OpenShift::Model
-  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, 
+  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
     :help_topics, :properties, :display_name, :description, :scales_from, :scales_to,
-    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates, :obsolete
+    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates
 
   def initialize(cart)
     self.name = cart.name
@@ -101,20 +101,17 @@ class RestCartridge < OpenShift::Model
     self.website = cart.website
     self.type = "standalone"
     self.type = "embedded" if cart.is_embeddable?
-    scale = cart.components_in_profile(nil).first.scaling
+    scale = cart.components.first.scaling
     if not scale.nil?
-      self.scales_from = self.supported_scales_from = scale.min
-      self.scales_to = self.supported_scales_to = scale.max
+      self.supported_scales_from = scale.min
+      self.supported_scales_to = scale.max
     else
-      self.scales_from = self.supported_scales_from = 1
-      self.scales_to = self.supported_scales_to = -1
+      self.supported_scales_from = 1
+      self.supported_scales_to = -1
     end
-    self.current_scale = 0
-    scaling_cart = CartridgeCache.find_cartridge_by_category("scales")[0]
-    self.scales_with = scaling_cart.name unless scaling_cart.nil?
     self.help_topics = cart.help_topics
     self.usage_rates = cart.usage_rates
-    self.obsolete = cart.is_obsolete?
+    @obsolete = true if cart.is_obsolete?
     @url = cart.manifest_url if cart.manifest_url.present?
   end
 

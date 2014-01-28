@@ -3,7 +3,7 @@ require 'test_helper'
 require 'openshift-origin-controller'
 require 'helpers/rest/api'
 
-class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
+class ApplicationsTest < ActionDispatch::IntegrationTest
   def setup
     register_user
     @namespace = "domain" + gen_uuid[0..9]
@@ -21,10 +21,14 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   end
 
   test "create update and destroy application" do
+    Gear.any_instance.expects(:publish_routing_info).never
+    Gear.any_instance.expects(:unpublish_routing_info).never
     @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
-    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil 
-    
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+    assert_equal 1, app.group_instances.length
+    assert_equal 1, app.gears.length
+
     app.config['auto_deploy'] = true
     app.config['deployment_branch'] = "stage"
     app.config['keep_deployments'] = 3
@@ -36,7 +40,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     assert app.config['deployment_branch'] == "stage"
     assert app.config['keep_deployments'] == 3
     assert app.config['deployment_type'] == "binary"
-    
+
     app.destroy_app
   end
 
@@ -50,11 +54,39 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     end
   end
 
+  test "pending operations reflected in cartridges queue" do
+    app = Application.new
+    assert e = app.cartridges
+    assert EnumeratorArray === e
+    assert_equal [], e.to_a
+    assert_not_same e, app.cartridges
+
+    app.pending_op_groups << AddFeaturesOpGroup.new(features: [php_version, mysql_version])
+    assert_equal [], app.cartridges.to_a
+    assert_equal [php_version, mysql_version], app.cartridges(true).to_a.map(&:name)
+
+    app.pending_op_groups << RemoveFeaturesOpGroup.new(features: [mysql_version])
+    assert_equal [], app.cartridges.to_a
+    assert_equal [php_version], app.cartridges(true).to_a.map(&:name)
+
+    @appname = "test"
+    Application.any_instance.expects(:save!)
+    Application.any_instance.expects(:run_jobs)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
+    assert !app.persisted?
+
+    assert_equal [php_version, mysql_version].sort, app.cartridges.to_a.map(&:name).sort
+    # FIXME: should remove carts that are identical except for their ID, and prefer pending carts to
+    # non pending carts
+    assert_equal [php_version, mysql_version, php_version, mysql_version].sort, app.cartridges(true).to_a.map(&:name).sort
+  end
+
   test "create update and destroy scalable application" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true, :initial_git_url => "https://a:b@github.com/foobar/test.git")
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
-    
+
+    assert_equal "https://github.com/foobar/test.git", app.init_git_url
     app.config['auto_deploy'] = true
     app.config['deployment_branch'] = "stage"
     app.config['keep_deployments'] = 3
@@ -63,55 +95,141 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     assert app.config['auto_deploy'] == true
-    puts app.config['deployment_branch']
-    #assert app.config['deployment_branch'] == "stage"
     assert app.config['keep_deployments'] == 3
     assert app.config['deployment_type'] == "binary"
 
     app.destroy_app
   end
-  
+
+  test "create test and destroy available application" do
+    @appname = "test"
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :available => true)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+
+    assert app.scalable
+    assert app.ha
+    assert_equal 3, app.gears.count
+
+    app.destroy_app
+  end
+
+  test "make an application highly available" do
+    @appname = "test"
+    app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+
+    assert app.scalable
+    assert !app.ha
+    assert_equal 1, app.gears.count
+
+    app.make_ha
+    app.reload
+    assert app.ha
+    assert_equal 2, app.gears.count
+    assert app.gears.all?{ |g| g.sparse_carts.length == 1 }
+    assert_equal [app.component_instances.detect{ |i| i.cartridge.is_web_proxy? }._id], app.gears.map(&:sparse_carts).flatten.uniq
+
+    # scale up, get 1 more php instance
+    app.scale_by(app.group_instances.first._id, 1)
+    app.reload
+    assert_equal 3, app.gears.count
+    assert_equal 2, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+    assert_equal [app.component_instances.detect{ |i| i.cartridge.is_web_proxy? }._id], app.gears.map(&:sparse_carts).flatten.uniq
+
+    # scale down, php instance goes away
+    app.scale_by(app.group_instances.first._id, -1)
+    assert_equal 2, app.gears.count
+    assert_equal 2, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
+    # alter multiplier to 1, expect new haproxy gear
+    stubs_config(:openshift, default_ha_multiplier: 1)
+    app.scale_by(app.group_instances.first._id, 1)
+    assert_equal 3, app.gears.count
+    assert_equal 3, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
+    app.scale_by(app.group_instances.first._id, -1)
+
+    # alter multiplier to 2, expect 4 new php gears
+    stubs_config(:openshift, default_ha_multiplier: 2)
+    app.scale_by(app.group_instances.first._id, 3)
+    assert_equal 5, app.gears.count
+    assert_equal 2, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
+    app.scale_by(app.group_instances.first._id, 1)
+    assert_equal 6, app.gears.count
+    assert_equal 3, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
+    app.scale_by(app.group_instances.first._id, -1)
+    assert_equal 5, app.gears.count
+    assert_equal 2, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
+    app.destroy_app
+  end
+
+  test "jenkins-client and builders are dependent on jenkins app" do
+    @appname = "test"
+    builder = Application.create_app("#{@appname}j", cartridge_instances_for(:jenkins), @domain)
+    builder =  Application.find(builder._id)
+    assert_equal 1, builder.gears.count
+
+    app = Application.create_app(@appname, cartridge_instances_for(:php, 'jenkins-client'), @domain, scalable: true)
+    app = Application.find(app._id)
+    assert_equal 1, app.gears.count
+    assert_equal 1, app.group_instances.count
+
+    built = Application.create_app("#{@appname}b", cartridge_instances_for(:php), @domain, builder_id: builder._id)
+    assert_equal 1, built.gears.count
+    assert_equal 1, built.group_instances.count
+
+    # removing Jenkins removes the client cart and any builders
+    builder.destroy_app
+    app.reload
+    assert_equal 2, app.cartridges.count
+    # builder was deleted
+    assert_raises(Mongoid::Errors::DocumentNotFound){ Application.find(built._id) }
+
+    app.destroy_app
+  end
+
   test "app config validation" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
-    
+
     app.config = nil
     assert app.invalid?, "config validation failed"
-    
+
     app.config = {'auto_deploy' => nil, 'deployment_branch' => nil, 'keep_deployments' => nil, 'deployment_type' => nil}
     assert app.invalid?, "config validation failed"
-    assert_equal app.errors.messages[:config].length, 4, "Wrong number of error messages" 
-    
+    assert_equal app.errors.messages[:config].length, 4, "Wrong number of error messages"
+
     #reset config and try individual fields
     app.config = {'auto_deploy' => true, 'deployment_branch' => 'master', 'keep_deployments' => 1, 'deployment_type' => 'git'}
     assert app.valid?, "config validation failed where it should have succeeded"
-    
+
     app.config['auto_deploy'] = 'blah'
     assert app.invalid?, "auto_deploy validation failed"
-    assert_equal app.errors.messages[:config].length, 1, "Wrong number of error messages" 
-    
+    assert_equal app.errors.messages[:config].length, 1, "Wrong number of error messages"
+
     app.config['deployment_branch'] = "0" * 999
     assert app.invalid?, "deployment_branch validation failed"
     assert_equal app.errors.messages[:config].length, 2, "Wrong number of error messages"
-    
+
     app.config['keep_deployments'] = -1
     assert app.invalid?, "keep_deployments validation failed"
     assert_equal app.errors.messages[:config].length, 3, "Wrong number of error messages"
-    
+
     app.config['deployment_type'] = "blah"
     assert app.invalid?, "deployment_type validation failed"
     assert_equal app.errors.messages[:config].length, 4, "Wrong number of error messages"
-    
+
     #check validation on update_config
     assert_raise(OpenShift::UserException){app.update_configuration}
-    
-    
   end
 
   test "app metadata validation" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     [nil, {}, {'bar' => 1}, {'bar' => '1'}, {'bar' => []}, {'bar' => ['1']}, {'bar' => [1]}].each do |value|
@@ -138,7 +256,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "scalable application events" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.restart
     app.stop
@@ -155,7 +273,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "threaddump application events" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.threaddump
     app.destroy_app
@@ -164,66 +282,183 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   test "scaling and storage events on application" do
     @appname = "test"
 
-    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+    assert_equal 2, app.gears.length
+    assert_equal [], app.group_overrides
+
+    _, updated = app.elaborate(app.cartridges, [])
+    changes, moves = app.compute_diffs(app.group_instances_with_overrides, updated, {})
+    assert changes.all?{ |c| c.added.empty? && c.removed.empty? && c.gear_change == 0 && c.additional_filesystem_change == 0 }, changes.inspect
+    assert moves.empty?, moves.inspect
 
     @user.max_untracked_additional_storage = 5
     @user.save
     app.reload
     app.owner.reload
+
     component_instance = app.component_instances.find_by(cartridge_name: php_version)
-    group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
+    specs = component_instance.group_instance.all_component_instances.map(&:to_component_spec)
+
+    app.update_component_limits(component_instance, 2, 2, nil)
+    assert_equal 3, (app = Application.find(app._id)).gears.length
+    assert_equal [GroupOverride.new(specs, 2, 2)], app.group_overrides
+
     app.update_component_limits(component_instance, nil, nil, 2)
+    assert_equal 3, (app = Application.find(app._id)).gears.length
+    assert_equal [GroupOverride.new(specs, nil, nil, nil, 2)], app.group_overrides
+
     app.update_component_limits(component_instance, 1, 2, nil)
+    assert_equal 3, (app = Application.find(app._id)).gears.length
+    assert_equal [GroupOverride.new(specs, nil, 2)], app.group_overrides
+
     app.update_component_limits(component_instance, 1, -1, nil)
+    assert_equal 3, (app = Application.find(app._id)).gears.length
+    assert_equal [], app.group_overrides
 
-    web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
-    app.scale_by(web_framework_component_instance.group_instance_id, 1)
+    web_instance = app.web_component_instance
+    app.scale_by(web_instance.group_instance_id, 1)
     app.reload
-    assert_equal app.gears.count, 3
+    assert_equal 4, app.gears.count
 
-    app.scale_by(web_framework_component_instance.group_instance_id, -1)
+    app.scale_by(web_instance.group_instance_id, -1)
     resp = rest_check(:get, "", {})
     assert_equal resp.status, 200
 
     app.reload
-    assert_equal app.gears.count, 2
+    assert_equal 3, app.gears.count
 
     app.destroy_app
   end
 
   test "application events through internal rest" do
     @appname = "test"
-    app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, nil, true)
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     resp = rest_check(:get, "", {})
     assert_equal resp.status, 200
 
     resp = rest_check(:put, "/cartridges/#{ruby_version}", { "scales_from" => 2, "scales_to" => 2})
-    assert_equal resp.status, 200
+    assert_equal 200, resp.status
 
     resp = rest_check(:put, "/cartridges/#{ruby_version}", {})
-    assert_equal resp.status, 422
+    assert_equal 422, resp.status
 
     resp = rest_check(:get, "/cartridges", {})
-    assert_equal resp.status, 200
+    assert_equal 200, resp.status
 
     resp = rest_check(:post, "/events", { "event" => "thread-dump" })
-    assert_equal resp.status, 200
+    assert_equal 200, resp.status
 
     resp = rest_check(:post, "/events", { "event" => "reload" })
-    assert_equal resp.status, 200
+    assert_equal 200, resp.status
 
     resp = rest_check(:post, "/events", { "event" => "tidy" })
-    assert_equal resp.status, 200
+    assert_equal 200, resp.status
 
     component_instance = app.component_instances.find_by(cartridge_name: ruby_version)
-    group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
+    assert group_instance = app.group_instances.detect{ |i| i.all_component_instances.include? component_instance }
     resp = rest_check(:get, "/gear_groups/#{group_instance._id.to_s}", { })
     assert_equal resp.status, 200
 
     app.destroy_app
+  end
+
+  test "application elaborate does not change overrides" do
+    @appname = "test"
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain, :scalable => true)
+    assert app.group_overrides.empty?
+
+    overrides = [
+      GroupOverride.new([app.component_instances.detect{ |i| i.is_web_framework? }]),
+      GroupOverride.new([app.component_instances.detect{ |i| i.is_web_proxy? }]),
+      GroupOverride.new(nil),
+      GroupOverride.new([nil]),
+      GroupOverride.new([ComponentSpec.new("test", "other")]),
+    ]
+
+    _, groups = app.elaborate(app.cartridges, overrides)
+    assert_equal 1, groups.length
+    assert groups[0].implicit?
+
+    app.reload
+
+    overrides = [
+      GroupOverride.new([app.component_instances.detect{ |i| i.is_web_framework? }]),
+      GroupOverride.new([app.component_instances.detect{ |i| i.is_web_proxy? }]),
+      GroupOverride.new(nil),
+      GroupOverride.new([nil]),
+      GroupOverride.new([ComponentSpec.new("test", "other")]),
+    ]
+    app.group_overrides.concat(overrides)
+    ops, added, removed = app.update_requirements(app.cartridges, nil, overrides)
+    assert_equal 0, added
+    assert_equal 0, removed
+    assert ops.empty?
+    assert ops.none?{ |t| SetGroupOverridesOp === t }
+
+    app.reload
+
+    app.destroy_app
+  end
+
+  test "elaborate php and jenkins-client" do
+    # non scalable app has plugin together with web framework
+    _, overrides = Application.new.elaborate(cartridge_instances_for(:php, :'jenkins-client'), [])
+    assert_equal 1, overrides.length
+    assert_equal cartridge_instances_for(:php, :'jenkins-client').map(&:to_component_spec).sort, overrides[0].components
+    assert_equal 1, overrides[0].min_gears
+    assert_equal 1, overrides[0].max_gears
+  end
+
+  test "elaborate php and mysql" do
+    # non scalable app has plugin together with web framework
+    _, overrides = Application.new.elaborate(cartridge_instances_for(:php, :mysql), [])
+    assert_equal 1, overrides.length
+    assert_equal cartridge_instances_for(:php, :mysql).map(&:to_component_spec).sort, overrides[0].components
+    assert_equal 1, overrides[0].min_gears
+    assert_equal 1, overrides[0].max_gears
+  end
+
+  test "elaborate scalable php and jenkins-client" do
+    # non scalable app has plugin together with web framework
+    _, overrides = Application.new(:scalable => true).elaborate(cartridge_instances_for(:php, :'jenkins-client', :web_proxy), [])
+    assert_equal 1, overrides.length
+    assert_equal cartridge_instances_for(:php, :'jenkins-client', :web_proxy).map(&:to_component_spec).sort, overrides[0].components
+    assert_equal 1, overrides[0].min_gears
+    assert_equal -1, overrides[0].max_gears
+  end
+
+  test "elaborate scalable php, jenkins-client, and mysql" do
+    # non scalable app has plugin together with web framework
+    _, overrides = Application.new(:scalable => true).elaborate(cartridge_instances_for(:php, :'jenkins-client', :mysql, :web_proxy), [])
+    assert_equal 2, overrides.length
+    assert_equal cartridge_instances_for(:php, :'jenkins-client', :web_proxy).map(&:to_component_spec).sort, overrides[0].components
+    assert_equal 1, overrides[0].min_gears
+    assert_equal -1, overrides[0].max_gears
+
+    assert_equal cartridge_instances_for(:mysql).map(&:to_component_spec).sort, overrides[1].components
+    assert_equal 1, overrides[1].min_gears
+    assert_equal 1, overrides[1].max_gears
+  end
+
+
+  test "update_requirements should detect new cartridge versions by id and add a pending op" do
+    @appname = "test"
+    app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain)
+
+    cart = OpenShift::Cartridge.new.from_descriptor(app.cartridges.first.to_descriptor)
+    old_id = cart.id
+    cart.id = "__new__"
+
+    ops, add, remove = app.update_requirements([cart], nil, [])
+    assert_equal 0, add
+    assert_equal 0, remove
+    assert ops.present?
+    assert op = ops.find{ |o| UpdateCompIds === o }
+    assert op.comp_specs.any?{ |c| c.id == '__new__' }
+    assert op.saved_comp_specs.any?{ |c| c.id == old_id }
   end
 
   test "user info through internal rest" do
@@ -254,6 +489,5 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     end
     @domain.reload.delete
     @user.reload.delete
-    Mocha::Mockery.instance.stubba.unstub_all
   end
 end

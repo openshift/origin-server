@@ -1,14 +1,13 @@
+#TODO: Rename RemoveCartridgesOpGroup and do a migration
 class RemoveFeaturesOpGroup < PendingAppOpGroup
 
   field :features, type: Array, default: []
-  field :group_overrides, type: Array, default: []
   field :remove_all_features, type: Boolean, default: false
 
   def elaborate(app)
-    final_features = []
-    final_features = app.requires - features unless remove_all_features
-    final_group_overrides = (app.group_overrides || []) + (group_overrides || [])
-    ops, add_gear_count, rm_gear_count = app.update_requirements(final_features, final_group_overrides)
+    carts = []
+    carts = app.cartridges.delete_if{ |c| features.include?(c.name) } unless remove_all_features
+    ops, add_gear_count, rm_gear_count = app.update_requirements(carts, nil, app.group_overrides.dup)
     try_reserve_gears(add_gear_count, rm_gear_count, app, ops)
   end
 
@@ -19,6 +18,10 @@ class RemoveFeaturesOpGroup < PendingAppOpGroup
       self.application.delete
       self.application.pending_op_groups.clear
     end
+  end
+
+  def removes?(cartridge)
+    features.any?{ |name| name == cartridge.name }
   end
 
   def execute_rollback(result_io=nil)

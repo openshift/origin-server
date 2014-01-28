@@ -3,7 +3,7 @@
 # Application CRUD REST API
 class ApplicationsController < BaseController
   include RestModelHelper
-  before_filter :get_domain, :only => :create
+  #before_filter :get_domain, :only => :create
   before_filter :get_application, :only => [:show, :destroy, :update]
   ##
   # List all applications
@@ -49,7 +49,9 @@ class ApplicationsController < BaseController
   def create
     app_name = String(params[:name]).downcase
     scalable = get_bool(params[:scale])
+    available = get_bool(params[:ha])
     default_gear_size = (params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]).downcase
+    config = (params[:config].is_a?(Hash) and params[:config])
 
     if init_git_url = String(params[:initial_git_url]).presence
       repo_spec, _ = (OpenShift::Git.safe_clone_spec(init_git_url) rescue nil)
@@ -69,8 +71,10 @@ class ApplicationsController < BaseController
     end
     CartridgeInstance.check_cartridge_specifications!(specs)
     if not specs.all?{ |f| f[:name].present? ^ f[:url].present? }
-      return render_error(:unprocessable_entity, "Each cartridge must be specified by a name, or a JSON hash with a 'name' or 'url' key.", 109, 'cartridge') 
+      return render_error(:unprocessable_entity, "Each cartridge must be specified by a name, or a JSON hash with a 'name' or 'url' key.", 109, 'cartridge') unless params[:advanced]
     end
+
+    find_or_create_domain!
 
     builder_id = nil
     if not authorized?(:create_application, @domain)
@@ -86,18 +90,36 @@ class ApplicationsController < BaseController
       end
     end
 
-    @domain.check_gear_sizes!([default_gear_size], "gear_size")
-    @domain.check_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "cartridges")
+    @domain.validate_gear_sizes!([default_gear_size], "gear_size")
+    @domain.validate_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "cartridges")
+
+    if available
+      raise OpenShift::UserException.new("This feature ('High Availability') is currently disabled. Enable it in OpenShift's config options.") if not Rails.configuration.openshift[:allow_ha_applications]
+      raise OpenShift::UserException.new("'High Availability' is not an allowed feature for the account ('#{@domain.owner.login}')") if not @domain.owner.ha
+    end
 
     app = Application.new(
       domain: @domain,
       name: app_name,
       default_gear_size: default_gear_size,
-      scalable: scalable,
+      scalable: scalable || available,
+      ha: available,
       builder_id: builder_id,
       user_agent: request.user_agent,
       init_git_url: init_git_url,
     )
+    if config.present?
+      app.config.each do |k, default|
+        if !(v = config[k]).nil?
+          app.config[k] =
+            case default
+            when Integer then (Integer(v) rescue default)
+            when FalseClass, TrueClass then (get_bool(v) rescue v)
+            else v.to_s
+            end
+        end
+      end
+    end
     app.analytics['user_agent'] = request.user_agent
     @application = app
 
@@ -115,10 +137,10 @@ class ApplicationsController < BaseController
     cartridges = CartridgeCache.find_and_download_cartridges(specs, "cartridge", true)
 
     frameworks = cartridges.select(&:is_web_framework?)
-    if frameworks.empty?
-      framework_carts = CartridgeCache.cartridge_names("web_framework").presence or
-        raise OpenShift::UserException.new("Unable to determine list of available cartridges.  If the problem persists please contact Red Hat support.", 109, "cartridges")
-      raise OpenShift::UserException.new("An application must contain one web cartridge.  None of the specified cartridges is a web cartridge. " \
+    if frameworks.empty? && !params[:advanced]
+      framework_carts = CartridgeCache.web_framework_names.presence or
+        raise OpenShift::UserException.new("Unable to determine list of available cartridges. Please try again and contact support if the issue persists.", 109, "cartridges")
+      raise OpenShift::UserException.new("An application must contain one web cartridge. None of the specified cartridges is a web cartridge. " \
                                          "Please include one of the following cartridges: #{framework_carts.to_sentence} or supply a valid url to a custom " \
                                          "web_framework cartridge.", 109, "cartridge")
     end
@@ -135,7 +157,7 @@ class ApplicationsController < BaseController
     raise
 
   rescue OpenShift::UnfulfilledRequirementException => e
-    return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")
+    return render_error(:unprocessable_entity, "Unable to create application: #{e.message}", 109, "cartridges")
   end
 
   ##

@@ -67,11 +67,12 @@
 class RestGearGroup15 < OpenShift::Model
   attr_accessor :uuid, :name, :gear_profile, :cartridges, :gears, :scales_from, :scales_to, :base_gear_storage, :additional_gear_storage
 
-  def initialize(group_instance, gear_states = {}, app, url, nolinks)
+  def initialize(override, gear_states = {}, app, url, nolinks)
+    group_instance = override.instance
     self.uuid         = group_instance._id.to_s
     self.name         = self.uuid
     self.gear_profile = group_instance.gear_size
-    self.gears        = group_instance.gears.map{ |gear| 
+    self.gears        = group_instance.gears.map{ |gear|
       { :id => gear.uuid, 
         :state => gear_states[gear.uuid] || 'unknown', 
         :ssh_url => "ssh://#{app.ssh_uri(gear.app_dns ? nil: gear.uuid)}",
@@ -79,8 +80,8 @@ class RestGearGroup15 < OpenShift::Model
       }
     }
 
-    self.cartridges   = group_instance.all_component_instances.map { |component_instance| 
-      cart = CartridgeCache.find_cartridge_or_raise_exception(component_instance.cartridge_name, app)
+    self.cartridges   = group_instance.all_component_instances.map do |component_instance| 
+      cart = component_instance.cartridge
 
       # Handling the case when component_properties is an empty array
       # This can happen if the mongo document is copied and pasted back and saved using a UI tool
@@ -93,12 +94,12 @@ class RestGearGroup15 < OpenShift::Model
         :display_name => cart.display_name,
         :tags => cart.categories
       })
-    }
+    end
 
-    self.scales_from    = group_instance.min
-    self.scales_to    = group_instance.max
+    self.scales_from    = override.min_gears
+    self.scales_to    = override.max_gears
     self.base_gear_storage = Gear.base_filesystem_gb(self.gear_profile)
-    self.additional_gear_storage = group_instance.addtl_fs_gb
+    self.additional_gear_storage = override.additional_filesystem_gb
   end
 
   def to_xml(options={})

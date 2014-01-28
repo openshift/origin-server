@@ -1,7 +1,7 @@
 module OpenShift
   module CartridgeCategories
     def is_plugin?
-      return categories.include?('web_proxy') || categories.include?('ci_builder') || categories.include?('plugin')
+      return is_web_proxy? || is_ci_builder? || categories.include?('plugin')
     end
 
     def is_service?
@@ -17,7 +17,7 @@ module OpenShift
     end
 
     def is_web_proxy?
-      return categories.include?('web_proxy')
+      return features.include?('web_proxy')
     end
 
     def is_web_framework?
@@ -32,12 +32,8 @@ module OpenShift
       return categories.include?('ci_builder')
     end
 
-    def is_deployable?
-      return categories.include?('web_framework')
-    end
-
-    # For now, these are synonyms
-    alias :is_buildable? :is_deployable?
+    alias_method :is_deployable?, :is_web_framework?
+    alias_method :is_buildable?, :is_web_framework?
   end
 
 
@@ -88,12 +84,16 @@ module OpenShift
   end
 
   class Cartridge < OpenShift::Model
-    attr_accessor :name, :version, :architecture, :display_name, :description, :vendor, :license,
-                  :provides, :requires, :conflicts, :suggests, :native_requires, :default_profile,
+    # General cartridge metadata
+    attr_accessor :id, :name, :version, :architecture, :display_name, :description, :vendor, :license,
+                  :provides, :requires, :conflicts, :suggests, :native_requires,
                   :path, :license_url, :categories, :website, :suggests_feature,
                   :help_topics, :cart_data_def, :additional_control_actions, :versions, :cartridge_vendor,
-                  :endpoints, :obsolete
-    attr_reader   :profiles
+                  :endpoints, :cartridge_version, :obsolete
+
+    # Profile information
+    attr_accessor :components, :group_overrides,
+                  :connections, :start_order, :stop_order, :configure_order
 
     # Available for downloadable cartridges
     attr_accessor :manifest_text, :manifest_url
@@ -102,25 +102,25 @@ module OpenShift
     include CartridgeAspects
     include CartridgeNaming
 
-    VERSION_ORDER = lambda{ |s| s.cartridge_version.split('.').map(&:to_i) rescue [0] }
-    PROFILE_EXCLUDED = [
-      "Name", "Version", "Architecture", "DisplayName", "License",
-      "Provides", "Requires", "Conflicts", "Native-Requires"
-    ]
+    VERSION_ORDER = lambda{ |s| s.version.split('.').map(&:to_i) rescue [0] }
+    NAME_PRECEDENCE_ORDER = lambda{ |c| [c.original_name, c.cartridge_vendor == "redhat" ? 0 : 1, *(c.version.split('.').map{ |i| -i.to_i } rescue [0])] }
 
     def initialize
       super
-      @_profile_map = {}
-      @profiles = []
       @endpoints = []
+      @_component_name_map = {}
+      @components = []
+      @connections = []
+      @group_overrides = []
+    end
+
+    def categories
+      @categories ||= []
     end
 
     def features
       @features ||= begin
         features = self.provides.dup
-        self.profiles.each do |profile|
-          features += profile.provides
-        end
         features.uniq!
         features
       end
@@ -130,48 +130,25 @@ module OpenShift
       names.include?(feature) || features.include?(feature)
     end
 
-    def profile_for_feature(feature)
-      if feature.nil? || self.provides.include?(feature) || self.name == feature || feature == self.original_name || feature=="#{self.cartridge_vendor}-#{self.original_name}"
-        return @_profile_map[self.default_profile]
-      else
-        self.profiles.each do |profile|
-          return profile if profile.provides.include? feature
-        end
-      end
-    end
-
-    def components_in_profile(profile)
-      profile = self.default_profile if profile.nil?
-      @_profile_map[profile].components
-    end
-
     def has_component?(component_name)
       !get_component(component_name).nil?
     end
 
-    def get_component(component_name)
-      profiles.each{ |p| return p.get_component(component_name) unless p.get_component(component_name).nil? }
+    def components=(data)
+      @components = data
+      @components.each {|comp| @_component_name_map[comp.name] = comp }
     end
 
-    def get_profile_for_component(component_name)
-      profiles.each{ |p| return p unless p.get_component(component_name).nil? }
+    def get_component(comp_name)
+      @_component_name_map[comp_name]
     end
 
     def is_obsolete?
       return obsolete || false
     end
 
-    def profiles=(p)
-      @_profile_map = {}
-      @profiles = p
-      @profiles.each{ |profile| @_profile_map[p.name] = p }
-    end
-
-    def categories
-      @categories ||= []
-    end
-
     def from_descriptor(spec_hash={})
+      self.id = spec_hash["Id"]
       self.name = spec_hash["Name"]
       self.version = spec_hash["Version"] || "0.0"
       self.versions = spec_hash["Versions"] || []
@@ -192,6 +169,7 @@ module OpenShift
       self.help_topics = spec_hash["Help-Topics"] || {}
       self.cart_data_def = spec_hash["Cart-Data"] || {}
       self.additional_control_actions = spec_hash["Additional-Control-Actions"] || []
+      self.cartridge_version = spec_hash["Cartridge-Version"] || "0.0.0"
 
       self.provides = [self.provides] if self.provides.class == String
       self.requires = [self.requires] if self.requires.class == String
@@ -205,21 +183,43 @@ module OpenShift
         end
       end
 
-      if (profiles = spec_hash["Profiles"]).respond_to?(:each)
-        profiles.each do |pname, p|
-          profile = Profile.new.from_descriptor(self, p)
-          profile.name = pname
-          @profiles << (profile)
-          @_profile_map[profile.name] = profile
+      self.start_order = spec_hash["Start-Order"] || []
+      self.stop_order = spec_hash["Stop-Order"] || []
+      self.configure_order = spec_hash["Configure-Order"] || []
+
+      #fixup user data. provides, start_order, start_order, configure_order bust be arrays
+      self.provides = [self.provides] if self.provides.class == String
+      self.start_order = [self.start_order] if self.start_order.class == String
+      self.stop_order = [self.stop_order] if self.stop_order.class == String
+      self.configure_order = [self.configure_order] if self.configure_order.class == String
+
+      if (components = spec_hash["Components"]).is_a? Hash
+        components.each do |cname, c|
+          comp = Component.new.from_descriptor(self, c || {})
+          comp.name = cname
+          @components << comp
+          @_component_name_map[comp.name] = comp
         end
       else
-        p = Profile.new.from_descriptor(self, Hash.new{ |h, k| spec_hash[k] unless PROFILE_EXCLUDED.include?(k) })
-        p.name = self.name
-        p.generated = true
-        @profiles << p
-        @_profile_map[p.name] = p
+        c = Component.new.from_descriptor(self, {
+          "Publishes"  => spec_hash["Publishes"],
+          "Subscribes" => spec_hash["Subscribes"],
+          "Scaling"    => spec_hash["Scaling"],
+        })
+        c.generated = true
+        @components << c
+        @_component_name_map[c.name] = c
       end
-      self.default_profile = spec_hash["Default-Profile"] || self.profiles.first.name
+
+      if (connections = spec_hash["Connections"]).is_a? Hash
+        connections.each{ |n,c| self.connections << Connection.new(n).from_descriptor(c) }
+      end
+
+      self.group_overrides ||= []
+      if (overrides = spec_hash["Group-Overrides"]).is_a? Array
+        overrides.each{ |o| self.group_overrides << o.dup }
+      end
+
       self.obsolete = spec_hash["Obsolete"] || false
       self
     end
@@ -247,6 +247,7 @@ module OpenShift
         "Display-Name" => self.display_name,
       }
 
+      h["Id"] = self.id if self.id
       h["Architecture"] = self.architecture if self.architecture != "noarch"
       h["Version"] = self.version if self.version != "0.0"
       h["Versions"] = self.versions if self.versions and !versions.empty?
@@ -258,6 +259,7 @@ module OpenShift
       h["Help-Topics"] = self.help_topics if self.help_topics and !self.help_topics.empty?
       h["Cart-Data"] = self.cart_data_def if self.cart_data_def and !self.cart_data_def.empty?
       h["Additional-Control-Actions"] = self.additional_control_actions if self.additional_control_actions and !self.additional_control_actions.empty?
+      h["Cartridge-Version"] = self.cartridge_version if self.cartridge_version != "0.0.0"
 
       h["Provides"] = self.provides if self.provides && !self.provides.empty?
       h["Requires"] = self.requires if self.requires && !self.requires.empty?
@@ -266,24 +268,53 @@ module OpenShift
       h["Native-Requires"] = self.native_requires if self.native_requires && !self.native_requires.empty?
       h["Vendor"] = self.vendor if self.vendor and !self.vendor.empty? and self.vendor != "unknown"
       h["Cartridge-Vendor"] = self.cartridge_vendor if self.cartridge_vendor and !self.cartridge_vendor.empty? and self.cartridge_vendor != "unknown"
-      h["Default-Profile"] = self.default_profile if !self.default_profile.nil? and !self.default_profile.empty? and !@_profile_map[@default_profile].generated
       h["Obsolete"] = self.obsolete if !self.obsolete.nil? and self.obsolete
-      if self.endpoints.length > 0
-        h["Endpoints"] = self.endpoints.map { |e| e.to_descriptor }
+
+      if self.endpoints.present?
+        h["Endpoints"] = self.endpoints.map(&:to_descriptor)
       end
 
-      if self.profiles.length == 1 && self.profiles.first.generated
-        profile_h = self.profiles.first.to_descriptor
-        profile_h.delete("Name")
-        h.merge!(profile_h)
+      h["Start-Order"] = @start_order unless @start_order.nil? || @start_order.empty?
+      h["Stop-Order"] = @stop_order unless @stop_order.nil? || @stop_order.empty?
+      h["Configure-Order"] = @configure_order unless @configure_order.nil? || @configure_order.empty?
+
+      if self.components.length == 1 && self.components.first.generated
+        comp_h = self.components.first.to_descriptor
+        comp_h.delete("Name")
+        h.merge!(comp_h)
       else
-        h["Profiles"] = {}
-        self.profiles.each do |v|
-          h["Profiles"][v.name] = v.to_descriptor
+        h["Components"] = {}
+        self.components.each do |v|
+          h["Components"][v.name] = v.to_descriptor
         end
       end
 
+      if self.connections.present?
+        h["Connections"] = {}
+        self.connections.each do |v|
+          h["Connections"][v.name] = v.to_descriptor
+        end
+      end
+
+      if self.group_overrides.present?
+        h["Group-Overrides"] = self.group_overrides
+      end
+
       h
+    end
+
+    def specification_hash
+      h = {
+        'name' => name,
+        'id' => id,
+      }
+      h['manifest_url'] = manifest_url if manifest_url
+      h['manifest_text'] = manifest_text if manifest_text
+      h
+    end
+
+    def persisted?
+      !manifest_text.present?
     end
   end
 end
