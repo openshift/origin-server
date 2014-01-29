@@ -39,7 +39,7 @@ module OpenShift
         #   # Setup permissions
         #
         # Returns nil on Success or raises on Failure
-        def create
+        def create(create_initial_deployment_dir = true)
           cmd = %{groupadd -g #{@container.gid} \
           #{@container.uuid}}
           out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
