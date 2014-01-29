@@ -266,7 +266,7 @@ class GroupOverride
         @components.sort!
       end
 
-      if (i = GroupOverride.integer_range(:max, 1, @min_gears, (Integer(min_gears) rescue nil))) != @min_gears
+      if (i = GroupOverride.integer_range(:max, 0, @min_gears, (Integer(min_gears) rescue nil))) != @min_gears
         altered ||= i != 1
         @min_gears = i
       end

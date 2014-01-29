@@ -82,13 +82,13 @@ class CartridgeType
       case source
       when OpenShift::Runtime::Manifest
         text ||= source.manifest.to_json
-        OpenShift::Cartridge.new.from_descriptor(source.manifest)
+        OpenShift::Cartridge.new(source.manifest)
       when OpenShift::Cartridge
         text ||= source.to_descriptor.to_json
         source
       when Hash
         text ||= source.to_json
-        OpenShift::Cartridge.new.from_descriptor(source)
+        OpenShift::Cartridge.new(source)
       else
         raise "Invalid source"
       end
@@ -130,6 +130,10 @@ class CartridgeType
     activate or raise Mongoid::Errors::Validations.new(self)
   end
 
+  def activated?
+    priority?
+  end
+
   def has_name?(feature)
     names.include?(feature)
   end
@@ -138,8 +142,10 @@ class CartridgeType
     @cartridge ||= begin
       json = JSON.parse(text)
       json["Id"] = self._id
-      cart = OpenShift::Cartridge.new.from_descriptor(json)
+      cart = OpenShift::Cartridge.new(json)
       cart.manifest_url = manifest_url
+      cart.created_at = created_at
+      cart.activated_at = priority
       cart
     end
   end
@@ -161,6 +167,7 @@ class CartridgeType
 
   alias_method :is_obsolete?, :obsolete?
   alias_method :global_identifier, :name
+  alias_method :activated_at, :priority
 
   delegate :requires, :get_component, :usage_rates,
            :additional_control_actions, :cart_data_def,

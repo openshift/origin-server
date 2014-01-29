@@ -21,9 +21,13 @@ class CartridgesController < BaseController
       index
 
     else
-      c = CartridgeCache.find_cartridge(ComponentInstance.check_name!(id)) or
-        raise Mongoid::Errors::DocumentNotFound.new(CartridgeType, name: id)
-      render_success(:ok, "cartridge", get_rest_cartridge(c), "Cartridge #{id} found")
+      c = if id? id
+        CartridgeCache.find_cartridge_by_id(id)
+      else
+        CartridgeCache.find_cartridge(CartridgeType.check_name!(id))
+      end or raise Mongoid::Errors::DocumentNotFound.new(CartridgeType, name: id)
+
+      render_success(:ok, "cartridge", get_rest_cartridge(c), "Cartridge #{c.name} found")
     end
   end
 
@@ -38,31 +42,40 @@ class CartridgesController < BaseController
   # @return [RestReply<Array<RestCartridge>>] Array of cartridge objects
   def index
     searching = false
-    carts = CartridgeType.active.order_by(:name => 1)
+    carts = CartridgeType.all
+    if name = params[:name].presence
+      if (ComponentInstance.check_name!(name) rescue nil)
+        carts = carts.order_by(:name => 1).where(name: name)
+      else
+        carts = []
+      end
+    else
+      carts = carts.active.order_by(:name => 1)
 
-    # Legacy support for cartridges/standalone|embedded
-    feature = params[:feature].presence
-    category = params[:category].presence || params[:id].presence
-    if ['standalone','embedded'].include?(feature)
-      category = feature
-      feature = nil
+      # Legacy support for cartridges/standalone|embedded
+      feature = params[:feature].presence
+      category = params[:category].presence || params[:id].presence
+      if ['standalone','embedded'].include?(feature)
+        category = feature
+        feature = nil
+      end
+
+      category = 'web_framework' if category == 'standalone'
+      if category == "embedded"
+        searching = true
+        carts = carts.not_in(categories: 'web_framework')
+
+      elsif category
+        searching = true
+        carts = carts.in(categories: category)
+      elsif features = feature || params[:features].presence
+        searching = true
+        carts = carts.in(provides: features)
+      end
     end
 
-    category = 'web_framework' if category == 'standalone'
-    if category == "embedded"
-      searching = true
-      carts = carts.not_in(categories: 'web_framework')
-
-    elsif category
-      searching = true
-      carts = carts.in(categories: category)
-
-    elsif feature = params[:feature].presence
-      searching = true
-      carts = carts.in(provides: feature)
-    end
     carts = carts.sort_by(&OpenShift::Cartridge::NAME_PRECEDENCE_ORDER)
 
-    render_success(:ok, "cartridges", carts.map{ |c| get_rest_cartridge(c) }, "#{searching ? "Searching" : "Listing "} cartridges")
+    render_success(:ok, "cartridges", carts.map{ |c| get_rest_cartridge(c) }, "#{searching ? "Searching" : "Listing"} cartridges")
   end
 end

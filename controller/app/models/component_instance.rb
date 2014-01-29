@@ -9,6 +9,7 @@
 #   @return [Moped::BSON::ObjectId] The ID of the {GroupInstance} that hosts this component
 class ComponentInstance
   include Mongoid::Document
+  include Mongoid::Timestamps::Created
   embedded_in :application
 
   field :group_instance_id, type: Moped::BSON::ObjectId
@@ -31,12 +32,13 @@ class ComponentInstance
       component_name: name,
       cartridge_vendor: cartridge.cartridge_vendor,
     )
-    if cartridge.persisted?
-      inst.cartridge_id = cartridge.id
-    else
+    if cartridge.singleton?
       inst._id = Moped::BSON::ObjectId.from_string(cartridge.id) if cartridge.id.present?
       inst.manifest_url = cartridge.manifest_url
       inst.manifest_text = cartridge.manifest_text
+      inst.cartridge_id = inst._id
+    else
+      inst.cartridge_id = cartridge.id
     end
     inst.instance_variable_set(:@cartridge, cartridge)
     inst
@@ -112,18 +114,20 @@ class ComponentInstance
       if data = (manifest_text and attributes)
         cart = CartridgeCache.find_serialized_cartridge(data)
         cart.id = _id.to_s
+        cart.created_at = created_at
+        self.cartridge_id = _id
         self.cartridge_name = cart.name
         self.cartridge_vendor = cart.cartridge_vendor
-        self.cartridge_id = nil
         cart
       # DEPRECATED: this block will be removed when downloaded_cart_map is removed
       elsif data = (cartridge_name and application.downloaded_cart_map and
                     application.downloaded_cart_map.each_value.detect{ |c| c['versioned_name'] == cartridge_name })
         cart = CartridgeCache.cartridge_from_data(data)
         cart.id = _id.to_s
+        cart.created_at = created_at
+        self.cartridge_id = _id
         self.cartridge_name = cart.name
         self.cartridge_vendor = cart.cartridge_vendor
-        self.cartridge_id = nil
         self.manifest_text = cart.manifest_text
         self.manifest_url = cart.manifest_url
         cart
@@ -131,7 +135,7 @@ class ComponentInstance
         self.cartridge_name = cart.name
         self.cartridge_vendor = cart.cartridge_vendor
       elsif cartridge_name && (cart = CartridgeCache.find_cartridge(cartridge_name))
-        self.cartridge_id = cart.id
+        self.cartridge_id = Moped::BSON::ObjectId.from_string(cart.id) if cart.id.present?
         self.cartridge_vendor = cart.cartridge_vendor
       end
       cart or raise OpenShift::UserException.new("The cartridge #{cartridge_name} is used by the application #{self.application.name} but cannot be located.")

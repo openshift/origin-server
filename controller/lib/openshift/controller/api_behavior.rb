@@ -96,6 +96,10 @@ module OpenShift
           end
         end
 
+        def id?(s)
+          s.present? && s =~ /\A[\da-fA-F]{20,36}\Z/
+        end
+
         def get_log_tag_prepend
           tag = "UNKNOWN"
           case request.method
@@ -159,7 +163,7 @@ module OpenShift
         def authorized?(permissions, resource, *resources)
           Ability.authorized?(current_user, current_user.scopes, permissions, resource, *resources)
         end
-        
+
         def check_input
           unless support_valid_encoding?
             # ruby 1.8.7 does have valid_encoding? method so catching the exception and logging

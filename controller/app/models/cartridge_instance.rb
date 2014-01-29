@@ -22,6 +22,10 @@ class CartridgeInstance < SimpleDelegator
   def self.check_feature?(feature)
     feature.present? and feature =~ FEATURE_REGEX
   end
+  ID_REGEX = /\A[\da-fA-F]{20,36}\Z/
+  def self.check_id?(id)
+    id.present? and id =~ ID_REGEX
+  end
 
   #
   # Do a fast check on a set of CartridgeInstance specs

@@ -125,8 +125,8 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert_equal cart.name, carts[0].name
     assert_nil carts[0].manifest_url
     assert carts[0].gear_size.nil?
-    assert_equal cart._id, carts[0]._id
-    assert_equal cart.id, carts[0]._id
+    assert_equal cart._id, carts[0].id
+    assert_equal cart.id, carts[0].id
   end
 
   test "find and download a cartridge" do
@@ -199,6 +199,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert carts = CartridgeCache.find_and_download_cartridges([{name: 'remotemock'}])
     assert_equal 1, carts.length
     assert cart = carts[0]
+    assert cart.singleton?
     assert CartridgeInstance === cart
     assert_equal "mock-remotemock-0.1", cart.name
     assert_equal "manifest://test", cart.manifest_url
@@ -207,6 +208,27 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert_nil manifest['Manifest-Url']
     assert_equal cart.id.to_s, manifest['Id']
   end
+
+  test "find cartridge by id and user" do
+    CloudUser.where(login: 'test_cart_cache').delete
+    Application.where(name: 'test', domain_id: 'foo').delete
+    user = CloudUser.create(login: 'test_cart_cache')
+    id = Moped::BSON::ObjectId.new
+    assert_nil CartridgeCache.find_cartridge_by_id_for_user(id, user)
+
+    attributes = {'Name' => 'foo', 'Id' => id.to_s}
+    cart = OpenShift::Cartridge.new(attributes, true)
+    cart.manifest_text = attributes.to_json
+    app = Application.new(name: 'test', domain_id: 'foo')
+    app.component_instances << ComponentInstance.from(cart)
+    app.save!
+    assert_nil CartridgeCache.find_cartridge_by_id_for_user(id, user)
+
+    app.add_members(user, :admin)
+    app.save!
+    assert cart = CartridgeCache.find_cartridge_by_id_for_user(id, user)
+    assert_equal id.to_s, cart.id
+   end
 
   test "find cartridge with hypothetical cartridges" do
     CartridgeType.where(provides: 'phpy').delete

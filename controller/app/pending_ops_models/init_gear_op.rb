@@ -38,7 +38,7 @@ class InitGearOp < PendingAppOp
           instance = ComponentInstance.from(cartridge, spec.name)
           instance.group_instance_id = group_instance._id
           application.component_instances << instance
-          application.downloaded_cart_map[i.cartridge.original_name] = CartridgeCache.cartridge_to_data(i.cartridge) unless cartridge.persisted? || skip_map
+          application.downloaded_cart_map[i.cartridge.original_name] = CartridgeCache.cartridge_to_data(i.cartridge) if cartridge.singleton? && !skip_map
         end
       end
     end

@@ -9,7 +9,7 @@ require 'httpclient'
 
 class CartridgeCache
 
-  DURATION = 6.hours
+  DURATION = 20.minutes
 
   #
   # Returns an Array of Cartridge objects
@@ -37,14 +37,33 @@ class CartridgeCache
   end
 
   #
-  # Return an exact match for id, nil if no matches exist
+  # Return an exact match for id, nil if no matches exist.  As a special sub case,
+  # allow a cartridge to be located by its id within an application if a user is
+  # provided.  This allows exact recreation of a previous cartridge instance (
+  # if the content in the url has not changed).
+  #
+  def self.find_cartridge_by_id_for_user(id, as_user)
+    if type = CartridgeType.where(id: id).first
+      type.cartridge
+    elsif as_user
+      if app = Application.where('component_instances.cartridge_id' => id).
+               accessible(as_user).only(:component_instances).hint("component_instances.cartridge_id" => 1).
+               first
+        app.cartridges.detect{ |c| id === c.id }
+      end
+    end
+  end
+
+  #
+  # Return an exact match for id, nil if no matches exist.
   #
   def self.find_cartridge_by_id(id, app=nil)
     if app
-      cart = app.cartridges.detect{ |c| c.id === id }
+      cart = app.cartridges.detect{ |c| id === c.id }
       return cart if cart
     end
-    CartridgeType.where(id: id).first
+    type = CartridgeType.where(id: id).first
+    type.cartridge if type
   end
 
   #
@@ -109,7 +128,8 @@ class CartridgeCache
       return cart if cart
     end
 
-    CartridgeType.active.where(name: name).first || CartridgeType.where(name: name).first
+    type = CartridgeType.active.where(name: name).first || CartridgeType.where(name: name).first
+    type.cartridge if type
   end
 
   # Return cartridges in bulk for names
@@ -122,7 +142,7 @@ class CartridgeCache
 
   def self.find_serialized_cartridge(hash, app=nil)
     return nil unless hash.present? && hash['manifest_text'].present?
-    cart = OpenShift::Cartridge.new.from_descriptor(JSON.parse(hash['manifest_text'], safe: true))
+    cart = OpenShift::Cartridge.new(JSON.parse(hash['manifest_text']), true)
     cart.manifest_text = hash['manifest_text']
     cart.manifest_url = hash['manifest_url']
     cart
@@ -150,7 +170,7 @@ class CartridgeCache
   def self.cartridge_from_data(data)
     raw = OpenShift::Runtime::Manifest.manifest_from_yaml(data['original_manifest'])
     manifest = OpenShift::Runtime::Manifest.projected_manifests(raw, data["version"]).manifest
-    cart = OpenShift::Cartridge.new.from_descriptor(manifest)
+    cart = OpenShift::Cartridge.new(manifest, true)
     cart.manifest_text = manifest.to_json
     cart.manifest_url = data['url']
     cart
@@ -175,7 +195,7 @@ class CartridgeCache
   # - version: a specific version of a URL version to download
   # - gear_size: a gear size for this cartridge.  must be valid
   #
-  def self.find_and_download_cartridges(specs, field='cartridge', enforce_download_limit=false)
+  def self.find_and_download_cartridges(specs, field='cartridge', enforce_download_limit=false, as_user=nil)
     downloads = []
 
     if enforce_download_limit
@@ -198,14 +218,19 @@ class CartridgeCache
         next arr
       end
 
-      name = spec[:name]
-      if CartridgeInstance.check_feature?(name)
-        cart = find_cartridge_by_base_name(name)
-      end
+      cart =
+        if (name = spec[:name]) && CartridgeInstance.check_feature?(name)
+          find_cartridge_by_base_name(name) or
+            raise OpenShift::UserException.new("Invalid cartridge '#{name}' specified.", 109, field)
+        elsif (id = spec[:id]) && CartridgeInstance.check_id?(name)
+          find_cartridge_by_id_for_user(id, as_user) or
+            raise OpenShift::UserException.new("Invalid cartridge identifier '#{id}' specified.", 109, field)
+        end
+
       raise OpenShift::UserException.new("Invalid cartridge '#{name}' specified.", 109, field) if cart.nil?
 
       # carts defined with a manifest URL are downloaded each time
-      if cart.manifest_url
+      if cart.manifest_url.present? # && not a reusable docker cart
         downloads << spec.except(:name).merge!(url: cart.manifest_url, version: cart.version, id: cart.id)
         next arr
       end
@@ -233,7 +258,7 @@ class CartridgeCache
         manifest.check_reserved_vendor_name
 
         manifest.manifest["Id"] = id || Moped::BSON::ObjectId.new.to_s
-        cart = OpenShift::Cartridge.new.from_descriptor(manifest.manifest)
+        cart = OpenShift::Cartridge.new(manifest.manifest, true)
         cart.manifest_text = manifest.manifest.to_json
         cart.manifest_url = url
         instance = CartridgeInstance.new(cart, spec)
@@ -298,10 +323,10 @@ class CartridgeCache
 
     def self.scope_to_feature(feature, app=nil)
       if app
-        carts = each_cartridge.select{ |c| c.features.include?(feature) }
+        carts = app.cartridges.select{ |c| c.features.include?(feature) }
         return carts if carts.present?
       end
-      CartridgeType.active.where(provides: feature).select{ |c| c.features.include?(feature) }
+      CartridgeType.active.where(provides: feature).select{ |c| c.features.include?(feature) }.map(&:cartridge)
     end
 
     def self.scope_to_name(name, app=nil)
@@ -310,8 +335,8 @@ class CartridgeCache
         return carts if carts.present?
       end
       if cart = CartridgeType.active.where(name: name).first
-        return [cart]
+        return [cart.cartridge]
       end
-      CartridgeType.active.where(provides: name).select{ |c| c.names.include?(name) }
+      CartridgeType.active.where(provides: name).select{ |c| c.names.include?(name) }.map(&:cartridge)
     end
 end

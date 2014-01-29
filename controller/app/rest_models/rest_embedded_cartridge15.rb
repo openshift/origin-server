@@ -96,14 +96,15 @@
 # @!attribute [r] usage_rates
 #   @return [Array<Object>]
 class RestEmbeddedCartridge15 < OpenShift::Model
-  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, :url,
+  attr_accessor :id, :type, :name, :version, :license, :license_url, :tags, :website, :url,
     :help_topics, :links, :properties, :display_name, :description, :scales_from,
     :scales_to, :current_scale, :supported_scales_from, :supported_scales_to,
     :scales_with, :base_gear_storage, :additional_gear_storage, :gear_profile, :collocated_with,
-    :status_messages, :usage_rates, :obsolete
+    :status_messages, :usage_rates, :obsolete, :creation_time
 
   def initialize(cart, comp, app, cinst, colocated_cinsts, scale, url, status_messages, nolinks=false)
     self.name = cart.name
+    self.id = cart.id
     self.status_messages = status_messages
     self.version = cart.version
     self.display_name = cart.display_name
@@ -112,14 +113,19 @@ class RestEmbeddedCartridge15 < OpenShift::Model
     self.license_url = cart.license_url
     self.tags = cart.categories
     self.website = cart.website
-    if not cart.persisted?
+    if cart.singleton?
       self.url = cart.manifest_url
     end
     self.type = "standalone"
-    self.type = "embedded" if cart.is_embeddable?
+    self.type = "embedded" unless cart.is_web_framework?
     self.usage_rates = cart.usage_rates
-    self.obsolete = cart.is_obsolete?
     self.help_topics = cart.help_topics
+
+    @obsolete = true if cart.is_obsolete?
+    self.creation_time = cart.created_at
+    if cart.activated_at
+      @activation_time = cart.activated_at.in_time_zone
+    end
 
     unless scale.nil?
       self.scales_from = scale[:min]

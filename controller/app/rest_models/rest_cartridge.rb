@@ -86,12 +86,14 @@
 # @!attribute [r] usage_rates
 #   @return [Array<Object>]
 class RestCartridge < OpenShift::Model
-  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
+  attr_accessor :id, :type, :name, :version, :license, :license_url, :tags, :website,
     :help_topics, :properties, :display_name, :description, :scales_from, :scales_to,
-    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates
+    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates,
+    :creation_time
 
   def initialize(cart)
     self.name = cart.name
+    self.id = cart.id
     self.version = cart.version
     self.display_name = cart.display_name
     self.description = cart.description
@@ -100,7 +102,7 @@ class RestCartridge < OpenShift::Model
     self.tags = cart.categories
     self.website = cart.website
     self.type = "standalone"
-    self.type = "embedded" if cart.is_embeddable?
+    self.type = "embedded" unless cart.is_web_framework?
     scale = cart.components.first.scaling
     if not scale.nil?
       self.supported_scales_from = scale.min
@@ -111,6 +113,12 @@ class RestCartridge < OpenShift::Model
     end
     self.help_topics = cart.help_topics
     self.usage_rates = cart.usage_rates
+
+    self.creation_time = cart.created_at
+    if cart.activated_at
+      @activation_time = cart.activated_at.in_time_zone
+    end
+
     @obsolete = true if cart.is_obsolete?
     @url = cart.manifest_url if cart.manifest_url.present?
   end

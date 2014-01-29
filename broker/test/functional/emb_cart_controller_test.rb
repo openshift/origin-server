@@ -52,7 +52,7 @@ class EmbCartControllerTest < ActionController::TestCase
   test "embedded cartridge create with storage" do
     with_app
     name = mysql_version
-$stop = 1
+
     post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name, "additional_gear_storage" => '2'}
     assert_response :created
 
@@ -61,6 +61,7 @@ $stop = 1
     assert json = JSON.parse(response.body)
     assert_equal 'cartridge', json['type']
     assert_equal [1, 1, 1, 1, 1, 2], json['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
+    assert json['data']['creation_time']
 
     delete :destroy , {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
@@ -100,6 +101,49 @@ $stop = 1
 
     delete :destroy , {"id" => "mock-downloadmock-0.1", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+  end
+
+
+  test "add, show, and remove external downloadable cartridge" do
+    with_app
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: externalmock
+      Categories:
+      - external
+      MANIFEST
+    @app_name = "app#{@random}"
+    post :create, {"url" => "manifest://test", "application_id" => @app._id}
+    assert_response :success
+    assert app = assigns(:application)
+    assert !app.scalable
+    assert_equal 2, app.group_instances.length
+    assert_equal 2, app.cartridges.length
+    assert_equal 1, app.gears.length
+    assert cart = app.cartridges.detect{ |c| c.name == 'externalmock-mock-0.1' }
+    assert cart.singleton?
+    assert cart.is_external?
+    assert cart = app.cartridges.detect{ |c| c.name == php_version }
+    assert_equal 1, app.group_instances_with_overrides[0].max_gears
+    assert_equal 0, app.group_instances_with_overrides[1].max_gears
+
+    get :show, {"id" => "externalmock-mock-0.1", "application_id" => @app._id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal ["externalmock-mock-0.1", "0.1", "manifest://test"], json['data'].values_at('name', "version", 'url'), json.inspect
+    assert_equal [0, 0, 1, 1, 1, 0], json['data'].values_at('scales_from', 'scales_to', 'supported_scales_from', 'supported_scales_to', 'base_gear_storage', 'additional_gear_storage'), json.inspect
+    assert json['data']['tags'].include?('external')
+    assert_equal 'embedded', json['data']['type']
+
+    delete :destroy, {"id" => "externalmock-mock-0.1", "application_id" => @app._id}
+    assert_response :success
+    app.reload
+    assert_equal 1, app.group_instances.length
+    assert_equal 1, app.cartridges.length
+    assert_equal 1, app.gears.length
   end
 
   test "embedded cartridge on scalable app create show list and destroy by domain and app name" do

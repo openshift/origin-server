@@ -35,7 +35,7 @@ class RestEmbeddedCartridge10 < OpenShift::Model
   def initialize(cart, app, cinst, url, status_messages, nolinks=false)
     self.name = cart.name
     self.type = "standalone"
-    self.type = "embedded" if cart.categories.include? "embedded"
+    self.type = "embedded" unless cart.is_web_framework?
     self.status_messages = status_messages
 
     self.properties = {}

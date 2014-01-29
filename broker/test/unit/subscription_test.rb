@@ -78,6 +78,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     embed_cart.stubs(:name).returns(embed_cart_name)
     embed_cart_categories = ['service', 'database', 'embedded']
     embed_cart.stubs(:categories).returns(embed_cart_categories)
+    embed_cart.stubs(:is_external?).returns(false)
 
     embed_publishes_array = []
 
@@ -146,6 +147,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     web_cart.stubs(:name).returns(web_cart_name)
     web_cart_categories = ['service', 'webcart', 'web_framework']
     web_cart.stubs(:categories).returns(web_cart_categories)
+    web_cart.stubs(:is_external?).returns(false)
 
     web_publishes_array = []
     web_component.stubs(:publishes).returns(web_publishes_array)

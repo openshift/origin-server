@@ -98,7 +98,7 @@ class Application
   field :config, type: Hash, default: {'auto_deploy' => true, 'deployment_branch' => 'master', 'keep_deployments' => 1, 'deployment_type' => 'git'}
   field :meta, type: Hash
 
-  embeds_many :component_instances, class_name: ComponentInstance.name
+  embeds_many :component_instances, class_name: ComponentInstance.name, cascade_callbacks: true
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :gears, class_name: Gear.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
@@ -336,7 +336,7 @@ class Application
   # Return all of the existing downloaded cartridges in this app.
   #
   def downloaded_cartridges
-    cartridges.reject(&:persisted?)
+    cartridges.select(&:singleton?)
   end
 
   ##
@@ -520,6 +520,8 @@ class Application
       overrides <<
         if comp.is_sparse?
           GroupOverride.new([spec]).implicit
+        elsif spec.cartridge.is_external?
+          GroupOverride.new([spec], 0, 0).implicit
         else
           GroupOverride.new([spec], comp.scaling.min, comp.scaling.max).implicit
         end
@@ -545,7 +547,7 @@ class Application
     overrides = []
 
     # make the web framework min scale 2
-    if primary = specs.find{ |i| i.cartridge.is_web_framework? } || cartridges.find{ |i| i.cartridge.is_service? }
+    if primary = specs.find{ |i| i.cartridge.is_web_framework? } || specs.find{ |i| i.cartridge.is_service? }
       overrides << GroupOverride.new([primary.dup], 2).implicit
     end
 
@@ -561,7 +563,7 @@ class Application
   # located on the same gear.
   #
   def implicit_non_scalable_overrides(specs)
-    [GroupOverride.new(specs.dup, nil, 1).implicit]
+    [GroupOverride.new(specs.select{ |i| not i.cartridge.is_external? }, nil, 1).implicit]
   end
 
   ##
@@ -687,7 +689,7 @@ class Application
       end
 
       # Validate that the cartridges support scalable if necessary
-      if self.scalable && !(cart.is_plugin? || cart.is_service? || cart.is_web_framework?)
+      if self.scalable && !(cart.is_plugin? || cart.is_service? || cart.is_web_framework? || cart.is_external?)
         raise OpenShift::UserException.new("#{cart.name} cannot be embedded in scalable app '#{name}'.", 109, 'cartridge')
       end
 
@@ -1907,8 +1909,8 @@ class Application
         new_component_op = NewCompOp.new(
           group_instance_id: group_instance_id,
           comp_spec: comp_spec,
-          cartridge_vendor: cartridge.cartridge_vendor,
-          version: cartridge.version,
+          cartridge_vendor: cartridge.cartridge_vendor, #remove after sprint 40
+          version: cartridge.version,                   #remove after sprint 40
         )
         new_component_op.prereq = [prereq_id] unless prereq_id.nil?
         component_ops[comp_spec][:new_component] = new_component_op
@@ -2023,9 +2025,19 @@ class Application
 
     # Create group instances and gears in preparation for move or add component operations
     changes.select(&:new?).each do |change|
-      next if change.gear_change < 1
-      add_gears += change.gear_change
+      if change.gear_change < 1
+        change.added.each do |spec|
+          pending_ops << NewCompOp.new(
+            group_instance_id: change.to_instance_id,
+            comp_spec: spec,
+            prereq: [prereq_op].compact.map(&:_id),
+          )
+          (component_ops[spec] ||= {})[:new_component] = pending_ops.last
+        end
+        next
+      end
 
+      add_gears += change.gear_change
       gear_size = change.to.gear_size
       additional_filesystem_gb = change.to.additional_filesystem_gb
 
@@ -2171,16 +2183,16 @@ class Application
     config_order.each_index do |idx|
       next if idx == 0
       prereq_ids = []
-      prereq_ids += component_ops[config_order[idx-1]][:add_broker_auth_keys].map{|op| op._id.to_s}
-      prereq_ids += component_ops[config_order[idx-1]][:adds].map{|op| op._id.to_s}
-      prereq_ids += component_ops[config_order[idx-1]][:post_configures].map{|op| op._id.to_s}
-      prereq_ids += component_ops[config_order[idx-1]][:expose_ports].map {|op| op._id.to_s }
+      prereq_ids += (component_ops[config_order[idx-1]][:add_broker_auth_keys] || []).map{|op| op._id.to_s}
+      prereq_ids += (component_ops[config_order[idx-1]][:adds] || []).map{|op| op._id.to_s}
+      prereq_ids += (component_ops[config_order[idx-1]][:post_configures] || []).map{|op| op._id.to_s}
+      prereq_ids += (component_ops[config_order[idx-1]][:expose_ports] || []).map {|op| op._id.to_s }
 
       component_ops[config_order[idx]][:new_component].prereq += prereq_ids unless component_ops[config_order[idx]][:new_component].nil?
-      component_ops[config_order[idx]][:add_broker_auth_keys].each { |op| op.prereq += prereq_ids }
-      component_ops[config_order[idx]][:adds].each { |op| op.prereq += prereq_ids }
-      component_ops[config_order[idx]][:post_configures].each { |op| op.prereq += prereq_ids }
-      component_ops[config_order[idx]][:expose_ports].each { |op| op.prereq += prereq_ids }
+      (component_ops[config_order[idx]][:add_broker_auth_keys] || []).each { |op| op.prereq += prereq_ids }
+      (component_ops[config_order[idx]][:adds] || []).each { |op| op.prereq += prereq_ids }
+      (component_ops[config_order[idx]][:post_configures] || []).each { |op| op.prereq += prereq_ids }
+      (component_ops[config_order[idx]][:expose_ports] || []).each { |op| op.prereq += prereq_ids }
     end
 
     if pending_ops.present? and !(pending_ops.length == 1 and SetGroupOverridesOp === pending_ops.first)

@@ -163,7 +163,7 @@ module OpenShift
         result = execute_direct(@@C_CONTROLLER, 'cartridge-list', args, false)
         result = parse_result(result)
         cart_data = JSON.parse(result.resultIO.string)
-        cart_data.map! {|c| OpenShift::Cartridge.new.from_descriptor(YAML.load(c))}
+        cart_data.map! {|c| OpenShift::Cartridge.new(YAML.load(c))}
       end
 
       # <<object method>>
@@ -789,7 +789,7 @@ module OpenShift
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
 
-        unless component.cartridge.persisted?
+        if component.cartridge.singleton?
           args['--with-cartridge-manifest'] = component.cartridge.manifest_text
           args['--with-software-version'] = component.cartridge.version
         end

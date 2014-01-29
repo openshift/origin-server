@@ -559,6 +559,37 @@ class ApplicationControllerTest < ActionController::TestCase
     assert messages.one?{ |m| m['text'] =~ %r(None of the specified cartridges is a web cartridge) }, messages.inspect
   end
 
+  test "create downloadable cart stored as cartridge type" do
+    text = <<-MANIFEST.strip_heredoc
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: testcasemock
+      Categories:
+      - web_framework
+      MANIFEST
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(text)
+    CartridgeType.where(provides: 'testcasemock-mock-0.1').delete
+    types = CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(text), 'manifest://test').each(&:activate!)
+
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => ['testcasemock-mock-0.1'], "domain_id" => @domain.namespace}
+    assert_response :created
+
+    assert app = assigns(:application)
+    assert !app.scalable
+    assert comp = app.component_instances.first
+    assert_equal YAML.load(text).tap{ |i| i['Id'] = comp._id }.to_json, comp.manifest_text
+    assert_equal 'manifest://test', comp.manifest_url
+    assert_equal types[0]._id.to_s, comp.cartridge.id
+    assert_equal comp._id, comp.cartridge_id
+    assert comp.cartridge.singleton?
+    assert_equal comp.manifest_text, comp.cartridge.manifest_text
+    assert_equal comp.manifest_url, comp.cartridge.manifest_url
+    assert_equal 1, app.group_instances.length
+  end
+
   test "allow create obsolete downloadable cart" do
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
@@ -639,6 +670,33 @@ class ApplicationControllerTest < ActionController::TestCase
     json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "The cartridge 'mock-mock-0.1' does not support being made scalable." }, ms.inspect }
   end
 
+
+  test "create embedded app with external cartridges" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - external
+      MANIFEST
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => [php_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace}
+    assert_response :success
+    assert app = assigns(:application)
+    assert !app.scalable
+    assert_equal 2, app.group_instances.length
+    assert_equal 2, app.cartridges.length
+    assert_equal 1, app.gears.length
+    assert cart = app.cartridges.detect{ |c| c.name == 'mock-mock-0.1' }
+    assert cart.singleton?
+    assert cart.is_external?
+    assert cart = app.cartridges.detect{ |c| c.name == php_version }
+    assert_equal 1, app.group_instances_with_overrides[0].max_gears
+    assert_equal 0, app.group_instances_with_overrides[1].max_gears
+  end
+
   test "create scalable app with custom web_proxy" do
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
@@ -662,7 +720,7 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal 2, app.cartridges.length
     assert cart = app.cartridges.detect{ |c| c.name == 'mock-mock-0.1' }
     assert cart.is_web_proxy?
-    assert !cart.persisted?
+    assert cart.singleton?
     assert cart = app.cartridges.detect{ |c| c.name == php_version }
     assert_equal -1, app.group_instances_with_overrides[0].max_gears
   end
@@ -741,7 +799,7 @@ class ApplicationControllerTest < ActionController::TestCase
     assert instance = instances[0]
     assert_equal 'manifest://test', instance.manifest_url
     assert_equal 'mock-mock-0.1', instance.cartridge_name
-    assert_nil instance.cartridge_id
+    assert_equal instance._id, instance.cartridge_id
 
     type = OpenShift::Cartridge.new.from_descriptor(YAML.load(instance.manifest_text))
     assert_equal instance._id.to_s, type.id
@@ -869,7 +927,7 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal 2, carts[0].requires.length
 
     assert_equal 3, app.cartridges.length
-    assert cart = app.cartridges.detect{ |c| c.name == mysql_version }
+    assert (cart = app.cartridges.detect{ |c| c.original_name == 'mysql' }), app.cartridges.map(&:name).join(', ')
     assert cart = app.cartridges.detect{ |c| c.original_name == 'phpmyadmin' }
   end
 
