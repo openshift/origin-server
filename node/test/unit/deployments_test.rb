@@ -144,6 +144,29 @@ class DeploymentsTest < OpenShift::NodeTestCase
     assert_equal 0o40750, File.stat(PathUtils.join(deployment_dir, 'build-dependencies')).mode
   end
 
+  def test_skip_create_deployment_dir
+    Etc.stubs(:getpwnam).returns(
+        OpenStruct.new(
+            uid:   5515,
+            gid:   5515,
+            gecos: "OpenShift guest",
+            dir:   "/var/lib/openshift/5515"
+        )
+    )
+
+    # The default in the runtime api is true.  Skipping the initial deployment
+    # directory creation is important for gear moves.  Otherwise the gear end
+    # up trying to register a blank deployment
+    create_initial_deployment_dir = false
+
+    containerization_plugin_mock = mock('OpenShift::Runtime::Containerization::Plugin')
+    containerization_plugin_mock.expects(:create).with(create_initial_deployment_dir).returns(nil)
+    OpenShift::Runtime::Containerization::Plugin.stubs(:new).returns(containerization_plugin_mock)
+
+    @container.expects(:create_deployment_dir).never
+    @container.create(nil, false, create_initial_deployment_dir)
+  end
+
   def test_get_deployment_datetime_for_deployment_id
     deployment_datetime = Time.now
     deployment_datetime_s = time_to_s(deployment_datetime)
