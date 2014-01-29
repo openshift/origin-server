@@ -35,6 +35,7 @@ Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(sass-rails)
 Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
 Requires:      %{?scl:%scl_prefix}rubygem(uglifier)
+Requires:      %{?scl:%scl_prefix}rubygem(syslog-logger)
 
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
@@ -55,6 +56,7 @@ BuildRequires: %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
 BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
 BuildRequires: %{?scl:%scl_prefix}rubygem(uglifier)
+BuildRequires: %{?scl:%scl_prefix}rubygem(syslog-logger)
 
 
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel

@@ -100,7 +100,8 @@ Broker::Application.configure do
     :ha_dns_suffix => conf.get('HA_DNS_SUFFIX', ""),
     :valid_ssh_key_types => OpenShift::Controller::Configuration.parse_list(conf.get('VALID_SSH_KEY_TYPES', nil)),
     :allow_obsolete_cartridges => conf.get_bool('ALLOW_OBSOLETE_CARTRIDGES', "false"),
-    :allow_multiple_haproxy_on_node => conf.get_bool('ALLOW_MULTIPLE_HAPROXY_ON_NODE', "true")
+    :allow_multiple_haproxy_on_node => conf.get_bool('ALLOW_MULTIPLE_HAPROXY_ON_NODE', "true"),
+    :syslog_enabled => conf.get_bool('SYSLOG_ENAVLED', 'false')
   }
 
   config.auth = {
@@ -119,4 +120,8 @@ Broker::Application.configure do
     :connection_timeout => conf.get("CART_DOWNLOAD_CONN_TIMEOUT", "2").to_i,
     :http_proxy => conf.get('HTTP_PROXY', '')
   }
+
+  if config.openshift[:syslog_enabled]
+    config.logger = OpenShift::Syslog.logger_for('openshift-broker', 'app')
+  end
 end

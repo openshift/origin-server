@@ -13,6 +13,7 @@ gem 'mongoid'
 gem 'bson'
 gem 'bson_ext'
 gem 'pry', :require => 'pry' if ENV['PRY']
+gem 'syslog-logger'
 # Fedora 19 splits psych out into its own gem.
 if Gem::Specification.respond_to?(:find_all_by_name) and not Gem::Specification::find_all_by_name('psych').empty?
   gem 'psych'

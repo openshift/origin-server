@@ -97,6 +97,7 @@ Requires:      %{?scl:%scl_prefix}rubygem-tilt
 Requires:      %{?scl:%scl_prefix}rubygem-treetop
 Requires:      %{?scl:%scl_prefix}rubygem-tzinfo
 Requires:      %{?scl:%scl_prefix}rubygem-xml-simple
+Requires:      %{?scl:%scl_prefix}rubygem-syslog-logger
 
 %if %{with_systemd}
 Requires:      systemd-units

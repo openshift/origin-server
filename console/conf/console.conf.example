@@ -122,3 +122,10 @@ CONSOLE_SECURITY=basic
 #
 # REMOTE_USER_COPY_HEADERS=X-Remote-User,Cookies
 
+
+#
+# Should log messages be sent to syslog instead of a log file
+#
+# Optional
+#
+# SYSLOG_ENABLED=true
