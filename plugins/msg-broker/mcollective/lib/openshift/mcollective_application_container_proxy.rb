@@ -329,7 +329,7 @@ module OpenShift
         end
       end
 
-      def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
+      def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false, initial_deployment_dir_required=true)
         app = gear.application
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -339,6 +339,7 @@ module OpenShift
         args['--with-quota-blocks'] = quota_blocks if quota_blocks
         args['--with-quota-files'] = quota_files if quota_files
         args['--with-generate-app-key'] = sshkey_required if sshkey_required
+        args['--with-initial-deployment-dir'] = initial_deployment_dir_required if initial_deployment_dir_required
         args['--with-namespace'] = app.domain_namespace
         args['--with-uid'] = gear.uid if gear.uid
         args['--with-request-id'] = Thread.current[:user_action_log_uuid]
@@ -381,11 +382,11 @@ module OpenShift
       # Constructs a shell command line to be executed by the MCollective agent
       # on the node.
       #
-      def create(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
+      def create(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false, initial_deployment_dir_required=true)
         app = gear.application
         result = nil
         (1..10).each do |i|
-          args = build_base_gear_args(gear, quota_blocks, quota_files, sshkey_required)
+          args = build_base_gear_args(gear, quota_blocks, quota_files, sshkey_required, initial_deployment_dir_required)
 
           # set the secret token for new gear creations
           # log an error if the application does not have its secret_token set
@@ -2159,7 +2160,9 @@ module OpenShift
         reply = ResultIO.new
         source_container = gear.get_proxy
         log_debug "DEBUG: Creating new account for gear '#{gear.name}' on #{destination_container.id}"
-        reply.append destination_container.create(gear, quota_blocks, quota_files)
+        sshkey_required = false
+        initial_deployment_dir_required = false
+        reply.append destination_container.create(gear, quota_blocks, quota_files, sshkey_required, initial_deployment_dir_required)
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
         rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]

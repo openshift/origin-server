@@ -182,7 +182,7 @@ module OpenShift
       # @param secret_token     [String]      value of OPENSHIFT_SECRET_TOKEN for application
       # @param generate_app_key [true, false] Should application ssh key be generated?
       # @return [String] output from operations creating gear
-      def create(secret_token = nil, generate_app_key = false)
+      def create(secret_token = nil, generate_app_key = false, create_initial_deployment_dir = true)
         output = ''
         notify_observers(:before_container_create)
         # lock to prevent race condition between create and delete of gear
@@ -204,7 +204,7 @@ module OpenShift
               end
 
               @container_plugin = Containerization::Plugin.new(self)
-              @container_plugin.create
+              @container_plugin.create(create_initial_deployment_dir)
             ensure
               overcommit_lock.flock(File::LOCK_UN) if no_overcommit_active
             end

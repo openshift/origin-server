@@ -21,7 +21,7 @@ module OpenShift
         #   # ~/app-root/runtime/data -> ../data
         #
         # Returns nil on Success and raises on Failure.
-        def initialize_homedir(basedir, homedir)
+        def initialize_homedir(basedir, homedir, create_initial_deployment_dir = true)
           notify_observers(:before_initialize_homedir)
           homedir = homedir.end_with?('/') ? homedir : homedir + '/'
 
@@ -79,7 +79,8 @@ module OpenShift
           }
 
           # create initial deployment directory
-          deployment_datetime = create_deployment_dir
+          # this step is not needed during application moves
+          deployment_datetime = create_deployment_dir if create_initial_deployment_dir
 
           add_env_var("HISTFILE", PathUtils.join(data_dir, ".bash_history"))
           profile = PathUtils.join(data_dir, ".bash_profile")
