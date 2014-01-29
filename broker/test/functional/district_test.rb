@@ -81,6 +81,42 @@ class DistrictTest < ActiveSupport::TestCase
     assert(Region.where(name: region_name).count == 0)
   end
 
+  test "add node and set and unset region" do
+    orig_d = get_district_obj
+    orig_d.save!
+
+    stubber
+    server, region_name, zone_name = "s1", "g1", "z1"
+    orig_d.add_node(server)
+    Rails.configuration.msg_broker[:regions][:enabled] = true
+    exception_count = 0
+    orig_d.set_region(server, region_name, zone_name) rescue exception_count += 1
+    orig_region = Region.create(region_name)
+    orig_d.set_region(server, region_name, zone_name) rescue exception_count += 1
+    orig_region.add_zone(zone_name)
+    orig_d.set_region(server, region_name, zone_name)
+    orig_d.set_region(server, region_name, zone_name) rescue exception_count += 1
+    assert_equal(3, exception_count)
+
+    exception_count = 0
+    cur_region = Region.find_by(name: region_name)
+    assert(cur_region.zones.size == 1)
+    cur_region.remove_zone(zone_name) rescue exception_count += 1
+    cur_region.delete rescue exception_count += 1
+    orig_d.unset_region(server)
+    orig_d.unset_region(server)
+    assert_equal(2, exception_count)
+
+    cur_d = District.find_by(uuid: orig_d.uuid)
+    cur_d.deactivate_node(server)
+    cur_d.remove_node(server)
+    cur_region.remove_zone(zone_name)
+    cur_region.delete
+    cur_d.destroy
+    assert(District.where(uuid: orig_d.uuid).count == 0)
+    assert(Region.where(name: region_name).count == 0)
+  end
+
   test "reserve district uid" do
     orig_d = get_district_obj
     orig_d.save!
@@ -208,6 +244,7 @@ class DistrictTest < ActiveSupport::TestCase
 
   def teardown
     District.delete_all
+    Region.delete_all
   end
 
   def get_district_obj

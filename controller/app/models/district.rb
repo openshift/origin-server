@@ -254,28 +254,15 @@ class District
   end
 
   def set_region(server_identity, region_name, zone_name)
-    region, zone = get_region_zone(server_identity, region_name, zone_name)
-    res = District.where("_id" => self._id, "server_identities.name" => server_identity).update({"$set" => {"server_identities.$.region_name" => region_name, "server_identities.$.region_id" => region._id, "server_identities.$.zone_name" => zone_name, "server_identities.$.zone_id" => zone._id}})
-    raise OpenShift::OOException.new("Could not set region for node #{server_identity}") if res.nil? or !res["updatedExisting"]
-    self.reload
-  end
-
-  def unset_region(server_identity, region_name, zone_name)
-    region, zone = get_region_zone(server_identity, region_name, zone_name)
-    res = District.where("_id" => self._id, "server_identities.name" => server_identity).update({"$unset" => {"server_identities.$.region_name" => "", "server_identities.$.region_id" => "", "server_identities.$.zone_name" => "", "server_identities.$.zone_id" => ""}})
-    raise OpenShift::OOException.new("Could not unset region for node #{server_identity}") if res.nil? or !res["updatedExisting"]
-    self.reload
-  end
-
-  private
-
-  def get_region_zone(server_identity, region_name, zone_name)
     raise OpenShift::OOException.new("server_identity is required") unless server_identity
     raise OpenShift::OOException.new("region_name is required") unless region_name
     raise OpenShift::OOException.new("zone_name is required") unless zone_name
     unless server_identities.where(name: server_identity).exists?
       raise OpenShift::OOException.new("Node with server identity: #{server_identity} not found in district '#{name}'.")
     end
+    si = server_identities.find_by(name: server_identity)
+    raise OpenShift::OOException.new("Node with server identity: #{server_identity} has region: #{si.region_name}, zone: #{si.zone_name}, " \
+                                     "unset current region/zone and retry the operation.") if si.region_name
     unless Region.where(name: Region.check_name!(region_name)).exists?
       raise OpenShift::OOException.new("Region object not found, you can create new region '#{region_name}' using oo-admin-ctl-region.")
     end
@@ -284,6 +271,18 @@ class District
       raise OpenShift::OOException.new("Zone object not found, you can add zone '#{zone_name}' to region '#{region_name}' using oo-admin-ctl-region.")
     end
     zone = region.zones.find_by(name: zone_name)
-    [region, zone]
+    res = District.where("_id" => self._id, "server_identities.name" => server_identity).update({"$set" => {"server_identities.$.region_name" => region_name, "server_identities.$.region_id" => region._id, "server_identities.$.zone_name" => zone_name, "server_identities.$.zone_id" => zone._id}})
+    raise OpenShift::OOException.new("Could not set region for node #{server_identity}") if res.nil? or !res["updatedExisting"]
+    self.reload
+  end
+
+  def unset_region(server_identity)
+    raise OpenShift::OOException.new("server_identity is required") unless server_identity
+    unless server_identities.where(name: server_identity).exists?
+      raise OpenShift::OOException.new("Node with server identity: #{server_identity} not found in district '#{name}'.")
+    end
+    res = District.where("_id" => self._id, "server_identities.name" => server_identity).update({"$unset" => {"server_identities.$.region_name" => "", "server_identities.$.region_id" => "", "server_identities.$.zone_name" => "", "server_identities.$.zone_id" => ""}})
+    raise OpenShift::OOException.new("Could not unset region for node #{server_identity}") if res.nil? or !res["updatedExisting"]
+    self.reload
   end
 end

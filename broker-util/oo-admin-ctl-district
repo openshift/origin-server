@@ -118,11 +118,11 @@ if uuid || name
     puts "--server_identity is required with command: #{command}"
     exit 1
   end
-  unless region || (command != 'set-region' && command != 'unset-region')
+  unless region || (command != 'set-region')
     puts "--region is required with command: #{command}"
     exit 1
   end
-  unless zone || (command != 'set-region' && command != 'unset-region')
+  unless zone || (command != 'set-region')
     puts "--zone is required with command: #{command}"
     exit 1
   end
