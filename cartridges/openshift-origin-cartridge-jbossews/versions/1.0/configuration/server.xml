@@ -138,6 +138,14 @@
         <Valve className="org.apache.catalina.authenticator.SingleSignOn" />
         -->
 
+        <!-- RemoteIp valve, pass protocol header from proxy. -
+            http://tomcat.apache.org/tomcat-7.0-doc/api/org/apache/catalina/valves/RemoteIpValve.html
+        -->
+        <Valve
+          className="org.apache.catalina.valves.RemoteIpValve"
+          protocolHeader="x-forwarded-proto"
+        />
+
         <!-- Access log processes all example.
              Documentation at: /docs/config/valve.html -->
         <!--

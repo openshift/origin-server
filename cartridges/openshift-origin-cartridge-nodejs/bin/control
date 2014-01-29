@@ -4,7 +4,11 @@ STOPTIMEOUT=10
 FMT="%a %b %d %Y %H:%M:%S GMT%z (%Z)"
 
 function cartridge_bin() {
-  supervisor_bin
+  if force_npm_deploy; then
+    node_bin
+  else
+    supervisor_bin
+  fi
 }
 
 # This is the full path for supervisor in it's SCL context
@@ -38,7 +42,11 @@ function node_pid() {
 
 # Get the correct pid for the running cartridge, dependent on whether hot_deploy is enabled
 function cartridge_pid() {
-  supervisor_pid
+  if force_npm_deploy; then
+    node_pid
+  else
+    supervisor_pid
+  fi
 }
 
 function print_missing_package_json_warning() {
@@ -106,6 +114,13 @@ NODE_EOF
 
 }  #  End of function  get_main_script_from_package_json.
 
+function force_npm_deploy() {
+  if [ -f ${OPENSHIFT_REPO_DIR}.openshift/markers/force_npm_deploy ]; then
+    return 0
+  else
+    return 1
+  fi
+}
 
 function start() {
     echo "Starting NodeJS cartridge"
@@ -135,7 +150,7 @@ function start() {
     } >> $logf
 
 
-    if [ -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
+    if [ -f "${OPENSHIFT_REPO_DIR}package.json" ]; then
         supervisor_opts="$(get_main_script_from_package_json)"
         node_cmd="npm start -d"
     else
@@ -145,7 +160,16 @@ function start() {
         node_cmd="node $node_opts $node_app $node_app_args"
     fi
 
-    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts >& $logf &"
+    if force_npm_deploy; then
+      if hot_deploy_enabled_for_latest_deployment; then
+        echo "hot_deploy is not supported when force_npm_deploy marker is present."
+        exit 1
+      fi
+      echo "force_npm_deploy is enabled, deploying using $node_cmd"
+      nodejs_context "nohup $node_cmd >> $logf 2>&1 &"
+    else
+      nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts >& $logf &"
+    fi
 
     retries=3
     while [ $retries -gt 0 ]; do
@@ -154,7 +178,7 @@ function start() {
       sleep 1
       let retries=${retries}-1
     done
-    
+
     # ensure file is created before printing it to show startup status
     sleep 2
     cat $logf
@@ -280,12 +304,16 @@ function build() {
 }
 
 function is_cartridge_running() {
+  if force_npm_deploy; then
+    is_node_running
+  else
     is_supervisor_running
+  fi
 }
 
 function is_node_running() {
     [ -f "$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid" ]  ||  return 1
-    
+
     nodepid=$(cat "${OPENSHIFT_NODEJS_PID_DIR}/cartridge.pid")
     [ -n "$nodepid" ]  ||  return 1
 
@@ -301,7 +329,7 @@ function is_node_running() {
 
 function is_supervisor_running() {
     [ -f "$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid" ]  ||  return 1
-    
+
     nodepid=$(cat "${OPENSHIFT_NODEJS_PID_DIR}/cartridge.pid")
     [ -n "$nodepid" ]  ||  return 1
 
@@ -317,7 +345,11 @@ function is_supervisor_running() {
 function post-deploy() {
     # Check if supervisor is already running. If not do a restart.
     if hot_deploy_enabled_for_latest_deployment && ! is_supervisor_running ; then
-      restart
+      if force_npm_deploy; then
+        echo "hot_deploy marker is not supported when force_npm_deploy marker exists"
+      else
+        restart
+      fi
     fi
 }
 

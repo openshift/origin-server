@@ -38,9 +38,7 @@ Feature: gear-groups
     Scenarios: RHEL scenarios
     | format | cart_name |
     | JSON   | php-5.3   |
-    | JSON   | php-5.4   |
     | XML    | php-5.3   |
-    | XML    | php-5.4   |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios

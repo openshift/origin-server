@@ -150,7 +150,7 @@ class Application
         gear_sizes[gear_sz] ||= 0
         gear_sizes[gear_sz] += gi.gears.length if gi.gears.present?
       end if app.group_instances.present?
-      apps_info << {"_id" => app._id, "domain_id" => app.domain_id, "gear_sizes" => gear_sizes} 
+      apps_info << {"_id" => app._id, "domain_id" => app.domain_id, "gear_sizes" => gear_sizes}
     end
     apps_info
   end
@@ -1170,16 +1170,8 @@ class Application
     # Alias to be an IP address or a host in the service domain.
     # Since DNS is case insensitive, all names are downcased for
     # indexing/compares.
-    server_alias = fqdn.downcase if fqdn
-    if  (server_alias.nil?) or
-        (server_alias =~ /#{Rails.configuration.openshift[:domain_suffix]}$/) or
-        (server_alias.length > 255 ) or
-        (server_alias.length == 0 ) or
-        (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/) or
-        (server_alias =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/) or
-        (not server_alias.match(/\A[a-z0-9]+([\.]?[\-a-z0-9]+)+\z/))
-      raise OpenShift::UserException.new("The specified alias is not allowed: '#{server_alias}'", 105, "id")
-    end
+    server_alias = validate_alias(fqdn) or
+      raise OpenShift::UserException.new("The specified alias is not allowed: '#{fqdn}'", 105, "id")
     validate_certificate(ssl_certificate, private_key, pass_phrase)
 
     Application.run_in_application_lock(self) do
@@ -1194,6 +1186,20 @@ class Application
       self.run_jobs(result_io)
       result_io
     end
+  end
+
+  def validate_alias(fqdn)
+    return false if fqdn.nil? || fqdn.length > 255 || fqdn.length == 0
+    fqdn.downcase!
+    return false if fqdn =~ /^\d+\.\d+\.\d+\.\d+$/
+    return false if fqdn =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/
+    return false if not fqdn =~ /\A[a-z0-9]+([\.]?[\-a-z0-9]+)+\z/
+    if fqdn.end_with?(cloud_domain = Rails.configuration.openshift[:domain_suffix])
+      return false if ! Rails.configuration.openshift[:allow_alias_in_domain]
+      # still exclude those that could conflict with app names.
+      return false if fqdn.chomp(cloud_domain) =~ /\A\w+-\w+\.\z/
+    end
+    return fqdn
   end
 
   # Removes a DNS alias for the application.
@@ -1576,7 +1582,7 @@ class Application
       rescue Exception => e_orig
         Rails.logger.error "Encountered error during execute '#{e_orig.message}'"
         # don't log the error stacktrace if this exception was raised just to trigger a rollback
-        Rails.logger.debug e_orig.backtrace.join("\n") unless rollback_pending
+        Rails.logger.debug e_orig.backtrace.inspect unless rollback_pending
 
         #rollback
         begin
@@ -1757,8 +1763,8 @@ class Application
 
     prereq_op_id = prereq_op._id.to_s rescue nil
     add, usage = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
-                                      is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
-                                      app_dns_gear_id)
+                                             is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
+                                             app_dns_gear_id)
     ops.concat(add)
     track_usage_ops.concat(usage)
 

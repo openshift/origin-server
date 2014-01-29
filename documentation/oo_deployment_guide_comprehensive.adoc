@@ -2025,7 +2025,7 @@ EOF
 
 .RHEL6
 ----
-cat <<EOF > /opt/rh/ruby193/root/etc/mcollective/server.cfg
+cat <<EOF > /opt/rh/ruby193/root/etc/mcollective/client.cfg
 topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective

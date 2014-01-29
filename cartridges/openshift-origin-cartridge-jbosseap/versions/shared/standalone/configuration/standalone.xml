@@ -486,6 +486,9 @@
 				enable-welcome-root="false">
 				<alias name="localhost" />
 			</virtual-server>
+			<valve name="remoteipvalve" module="org.jboss.as.web" class-name="org.apache.catalina.valves.RemoteIpValve">
+		    	<param param-name="protocolHeader" param-value="x-forwarded-proto"/>
+			</valve>
 		</subsystem>
 		<subsystem xmlns="urn:jboss:domain:webservices:1.2">
 			<modify-wsdl-address>true</modify-wsdl-address>

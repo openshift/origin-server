@@ -68,5 +68,4 @@ Version-Overrides:
     - service
     - python
     - web_framework
-    - community
 Install-Build-Required: false

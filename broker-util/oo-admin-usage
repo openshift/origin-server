@@ -241,7 +241,7 @@ filter = {}
 filter["user_id"] = BSON::ObjectId(user_hash.keys.first) if login
 filter["app_name"] = app if app
 filter["gear_id"] = BSON::ObjectId(gear) if gear
-filter["$or"] = [{"end_time" => nil}, {"end_time" => {"gte" => start_time}}] if start_time
+filter["$or"] = [{"end_time" => nil}, {"end_time" => {"$gte" => start_time}}] if start_time
 filter["begin_time"] = {"$lte" => end_time} if end_time
 selection = {:fields => ['user_id', 'begin_time', 'end_time', 'usage_type', 'gear_size', 'addtl_fs_gb', 'cart_name'], :timeout => false}
 if login

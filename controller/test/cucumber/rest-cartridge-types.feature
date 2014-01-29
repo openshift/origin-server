@@ -10,7 +10,7 @@ Feature: cartridge types
     When I send an unauthenticated GET request to "/cartridges"
     Then the response should be "200"
     And the response should be a list of "cartridges"
-    
+
     Scenarios:
     |format|
     |JSON  |

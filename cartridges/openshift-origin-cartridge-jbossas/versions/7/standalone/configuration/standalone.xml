@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
-<server xmlns="urn:jboss:domain:1.1">
-
+<server xmlns="urn:jboss:domain:1.2">
     <extensions>
         <extension module="org.jboss.as.clustering.infinispan"/>
         <extension module="org.jboss.as.clustering.jgroups"/>
@@ -57,15 +56,17 @@
                     <pattern-formatter pattern="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
                 </formatter>
             </console-handler-->
-            <periodic-rotating-file-handler name="FILE">
+            <size-rotating-file-handler name="FILE">
                 <formatter>
-                    <pattern-formatter pattern="%d{yyyy/MM/dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
+                    <pattern-formatter
+                        pattern="%d{yyyy/MM/dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n" />
                 </formatter>
-                <file relative-to="jboss.server.log.dir" path="server.log"/>
-                <suffix value=".yyyy-MM-dd"/>
-                <append value="true"/>
-            </periodic-rotating-file-handler>
-            <logger category="com.arjuna">
+                <file relative-to="jboss.server.log.dir" path="server.log" />
+                <append value="true" />
+                <rotate-size value="10m" />
+                <max-backup-index value="10" />             
+            </size-rotating-file-handler>
+                <logger category="com.arjuna">
                 <level name="WARN"/>
             </logger>
             <logger category="org.apache.tomcat.util.modeler">
@@ -191,7 +192,7 @@
             </thread-pools>
             <!--iiop enable-by-default="false" use-qualified-name="false"/-->
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:infinispan:1.1" default-cache-container="cluster">
+        <subsystem xmlns="urn:jboss:domain:infinispan:1.2" default-cache-container="cluster">
             <cache-container name="cluster" aliases="ha-partition" default-cache="default">
                 <transport lock-timeout="60000"/>
                 <replicated-cache name="default" mode="SYNC" batching="true">

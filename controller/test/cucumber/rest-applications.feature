@@ -5,33 +5,7 @@ Feature: applications
   In order to do things with domains
   I want to List, Create, Retrieve, Start, Stop, Restart, Force-stop and Delete applications
 
-  Scenario Outline: List applications
-    #Given a new user, create a php-<php_version> application using <format> format and verify application list API
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
-    Then the response should be "201"
-    When I send a GET request to "/domains/api<random>/applications"
-    Then the response should be "200"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | format | php_version |
-      | JSON   |     5.3     |
-      | XML    |     5.3     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version |
-      | JSON   |     5.5     |
-      | XML    |     5.5     |
-
-
-  Scenario Outline: Create application
+  Scenario Outline: Create, Get, Resolve DNS, List, Delete application
     #Given a new user, create a php-<php_version> application using <format> format and verify application creation API
     Given a new user
     And I accept "<format>"
@@ -40,8 +14,20 @@ Feature: applications
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
     Then the response should be "201"
     And the response should be a "application" with attributes "name=app&framework=php-<php_version>"
+    When I send a GET request to "/domains/api<random>/applications/app"
+    Then the response should be "200"
+    And the response should be a "application" with attributes "name=app&framework=php-<php_version>"
+    When I send a GET request to "/domains/api<random>/applications/app/dns_resolvable"
+    Then the response should be one of "200,404"
+    When I send a GET request to "/domains/api<random>/applications"
+    Then the response should be "200"
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
+    When I send a GET request to "/domains/api<random>/applications/app"
+    Then the response should be "404"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "404"
+    And the error message should have "severity=error&exit_code=101"
 
     @rhel-only
     Scenarios: RHEL scenarios
@@ -72,9 +58,7 @@ Feature: applications
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version | database  |
       | JSON   |     5.3     |        4           | mysql-5.1 |
-      | JSON   |     5.3     |        4           | mysql-5.5 |
       | XML    |     5.3     |        4           | mysql-5.1 |
-      | XML    |     5.3     |        4           | mysql-5.5 |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
@@ -97,9 +81,7 @@ Feature: applications
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version | database  | ruby_version |
       | JSON   |     5.3     |        4           | mysql-5.1 |      1.9     |
-      | JSON   |     5.3     |        4           | mysql-5.5 |      1.9     |
       | XML    |     5.3     |        4           | mysql-5.1 |      1.9     |
-      | XML    |     5.3     |        4           | mysql-5.5 |      1.9     |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
@@ -126,32 +108,6 @@ Feature: applications
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=appone1234567890123456789012345678901234567890&cartridge=php-<php_version>"
     Then the response should be "422"
     And the error message should have "field=name&severity=error&exit_code=105"
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | format | php_version |
-      | JSON   |     5.3     |
-      | XML    |     5.3     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version |
-      | JSON   |     5.5     |
-      | XML    |     5.5     |
-
-  Scenario Outline: Retrieve application
-    #Given a new user, create a php-<php_version> application using <format> format verify retrieving application details
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
-    Then the response should be "201"
-    When I send a GET request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-    And the response should be a "application" with attributes "name=app&framework=php-<php_version>"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
 
     @rhel-only
     Scenarios: RHEL scenarios
@@ -202,58 +158,6 @@ Feature: applications
       | JSON   |     5.5     | force-stop  |
       | XML    |     5.5     | force-stop  |
 
-  Scenario Outline: Add and remove application alias
-    #Given a new user, create a php-<php_version> application using <format> format verify adding and removing application aliases
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
-    Then the response should be "201"
-    When I send a GET request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-    And the response should be a "application" with attributes "name=app&framework=php-<php_version>"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | format | php_version |
-      | JSON   |     5.3     |
-      | XML    |     5.3     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version |
-      | JSON   |     5.5     |
-      | XML    |     5.5     |
-
-
-  Scenario Outline: Delete application
-    #Given a new user, create a php-<php_version> application using <format> format verify application deletion
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
-    Then the response should be "201"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-    When I send a GET request to "/domains/api<random>/applications/app"
-    Then the response should be "404"
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | format | php_version |
-      | JSON   |     5.3     |
-      | XML    |     5.3     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version |
-      | JSON   |     5.5     |
-      | XML    |     5.5     |
-
   Scenario Outline: Create duplicate application (RHEL/CentOS)
     #Given a new user, create a php-<php_version> application using <format> format verify that duplicate application creation fails
     Given a new user
@@ -302,131 +206,27 @@ Feature: applications
      | JSON   |
      | XML    |
 
-  Scenario Outline: Retrieve or delete a non-existent application
+  Scenario Outline: Stop Start Restart Remove embedded cartridge
     Given a new user
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
-    When I send a GET request to "/domains/api<random>/applications/app"
-    Then the response should be "404"
-    And the error message should have "severity=error&exit_code=101"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "404"
-    And the error message should have "severity=error&exit_code=101"
-
-    Scenarios:
-     | format |
-     | JSON   |
-     | XML    |
-
-  Scenario Outline: Retrieve application descriptor
-    #Given a new user, create a php-<php_version> application using <format> format verify the application descriptor API
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=mock-0.1"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications/app/cartridges" with the following:"cartridge=<database>"
     Then the response should be "201"
     When I send a GET request to "/domains/api<random>/applications/app/descriptor"
-    Then the response descriptor should have "php-<php_version>,<database>" as dependencies
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | format | php_version | database  |
-      | JSON   |     5.3     | mysql-5.1 |
-      | JSON   |     5.3     | mysql-5.5 |
-      | XML    |     5.3     | mysql-5.1 |
-      | XML    |     5.3     | mysql-5.5 |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version | database  |
-      | JSON   |     5.5     | mariadb-5.5 |
-      | XML    |     5.5     | mariadb-5.5 |
-
-  Scenario Outline: Stop and Start embedded cartridge
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=diy-0.1"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications/app/cartridges" with the following:"cartridge=<database>"
-    Then the response should be "201"
-    When I send a GET request to "/domains/api<random>/applications/app/descriptor"
-    Then the response descriptor should have "diy-0.1,<database>" as dependencies
+    Then the response descriptor should have "mock-0.1,<database>" as dependencies
     When I send a POST request to "/domains/api<random>/applications/app/cartridges/<database>/events" with the following:"event=stop"
     Then the response should be "200"
     When I send a POST request to "/domains/api<random>/applications/app/cartridges/<database>/events" with the following:"event=start"
     Then the response should be "200"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | format | database  |
-      | JSON   | mysql-5.1 |
-      | JSON   | mysql-5.5 |
-      | XML    | mysql-5.1 |
-      | XML    | mysql-5.5 |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | database  |
-      | JSON   | mariadb-5.5 |
-      | XML    | mariadb-5.5 |
-
-  Scenario Outline: Restart embedded cartridge
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=diy-0.1"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications/app/cartridges" with the following:"cartridge=<database>"
-    Then the response should be "201"
-    When I send a GET request to "/domains/api<random>/applications/app/cartridges/<database>"
-    Then the response should be "200"
-    When I send a GET request to "/domains/api<random>/applications/app/descriptor"
-    Then the response descriptor should have "diy-0.1,<database>" as dependencies
     When I send a POST request to "/domains/api<random>/applications/app/cartridges/<database>/events" with the following:"event=restart"
     Then the response should be "200"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | format | database  |
-      | JSON   | mysql-5.1 |
-      | JSON   | mysql-5.5 |
-      | XML    | mysql-5.1 |
-      | XML    | mysql-5.5 |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | database  |
-      | JSON   | mariadb-5.5 |
-      | XML    | mariadb-5.5 |
-
-  Scenario Outline: Remove embedded cartridge
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=diy-0.1"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications/app/cartridges" with the following:"cartridge=<database>"
-    Then the response should be "201"
-    When I send a GET request to "/domains/api<random>/applications/app/descriptor"
-    Then the response descriptor should have "diy-0.1,<database>" as dependencies
     When I send a DELETE request to "/domains/api<random>/applications/app/cartridges/<database>"
     Then the response should be "200"
     When I send a GET request to "/domains/api<random>/applications/app/descriptor"
-    Then the response descriptor should have "diy-0.1" as dependencies
+    Then the response descriptor should have "mock-0.1" as dependencies
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
 
@@ -434,9 +234,7 @@ Feature: applications
     Scenarios: RHEL scenarios
       | format | database  |
       | JSON   | mysql-5.1 |
-      | JSON   | mysql-5.5 |
       | XML    | mysql-5.1 |
-      | XML    | mysql-5.5 |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
@@ -449,7 +247,7 @@ Feature: applications
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=diy-0.1"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=mock-0.1"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=scale-up"
     Then the response should be "422"
@@ -466,23 +264,8 @@ Feature: applications
   Scenario Outline: add application or application event to a non-existent domain creates domain
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains/bog<random>/applications" with the following:"name=app&cartridge=diy-0.1"
+    When I send a POST request to "/domains/bog<random>/applications" with the following:"name=app&cartridge=mock-0.1"
     Then the response should be "201"
-
-    Scenarios: scenarios
-      | format |
-      | JSON   |
-      | XML    |
-
-  Scenario Outline: Resolve application dns
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=diy-0.1"
-    Then the response should be "201"
-    When I send a GET request to "/domains/api<random>/applications/app/dns_resolvable"
-    Then the response should be one of "200,404"
 
     Scenarios: scenarios
       | format |

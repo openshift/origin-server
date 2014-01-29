@@ -63,13 +63,11 @@ Feature: Rest Quick tests
     @rhel-only
     Scenarios: RHEL
       | format | cart_name | db_cart_name |
-      | JSON   |  php-5.3  |  mysql-5.1   |
-      | JSON   |  php-5.4  |  mysql-5.1   |
-      | XML    |  php-5.3  |  mysql-5.1   |
-      | XML    |  php-5.4  |  mysql-5.1   |
+      | JSON   |  mock-0.1  |  mysql-5.1   |
+      | XML    |  mock-0.1  |  mysql-5.1   |
 
     @fedora-19-only
     Scenarios: Fedora 19
       | format | cart_name | db_cart_name   |
-      | JSON   |  php-5.5  |  mariadb-5.5   |
-      | XML    |  php-5.5  |  mariadb-5.5   |
+      | JSON   |  mock-0.1  |  mariadb-5.5   |
+      | XML    |  mock-0.1  |  mariadb-5.5   |

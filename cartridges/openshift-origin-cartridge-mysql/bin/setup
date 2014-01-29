@@ -10,6 +10,6 @@ esac
 
 mkdir -p $OPENSHIFT_MYSQL_DIR/{log,pid,socket,data,run}
 
-cp conf/my.cnf.erb conf/my.cnf.erb.hidden
+cp ${OPENSHIFT_MYSQL_DIR}conf/my.cnf.erb ${OPENSHIFT_MYSQL_DIR}conf/my.cnf.erb.hidden
 
 update_configuration $version

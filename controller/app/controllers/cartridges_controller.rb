@@ -15,11 +15,16 @@ class CartridgesController < BaseController
   # Action: GET
   # @return [RestReply<RestCartridge>] Cartridge Object
   def show
-    name = CartridgeType.check_name!(params[:id].presence)
-    @cartridge = CartridgeCache.find_cartridge(name) or
-      raise Mongoid::Errors::DocumentNotFound.new(CartridgeType, name: name)
+    id = params[:id].presence
+    if id == "embedded" or id == "standalone"
+      #for backward compatibility get all cartridges matching
+      index
 
-    render_success(:ok, "cartridge", get_rest_cartridge(@cartridge), "Showing cartridge #{name}")
+    else
+      c = CartridgeCache.find_cartridge(ComponentInstance.check_name!(id)) or
+        raise Mongoid::Errors::DocumentNotFound.new(CartridgeType, name: id)
+      render_success(:ok, "cartridge", get_rest_cartridge(c), "Cartridge #{id} found")
+    end
   end
 
   ##
