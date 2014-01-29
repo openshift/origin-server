@@ -1,245 +1,142 @@
 #!/bin/bash
 
+# Source utility functions.
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_NODEJS_DIR}/lib/util"
+source "${OPENSHIFT_NODEJS_DIR}/lib/nodejs_context"
+
 STOPTIMEOUT=10
 FMT="%a %b %d %Y %H:%M:%S GMT%z (%Z)"
 
-function cartridge_bin() {
-  if force_npm_deploy; then
-    node_bin
-  else
-    supervisor_bin
-  fi
-}
-
-# This is the full path for supervisor in it's SCL context
-function supervisor_bin() {
-  nodejs_context "which supervisor"
-}
-
-function node_bin() {
-  nodejs_context "which node"
-}
-
-# All PIDs running node (including supervisor)
-# Need to combine double slashes in case our PATH contains them
-function node_pids() {
-  ps -u $(id -u) -o pid= -o cmd= | grep -e '[0-9]\{1,\}\snode\s' | replace '//' '/'
-}
-
-# Only PIDs with node running supervisor
-function supervisor_pid() {
-  pids=$(node_pids)
-  sup_exe=$(supervisor_bin)
-  echo "${pids}" | awk "/${sup_exe//\//\/}/ {print \$1}"
-}
-
-# Only node PIDs without supervisor
-function node_pid() {
-  pids=$(node_pids)
-  sup_exe=$(supervisor_bin)
-  echo "${pids}" | awk "!/${sup_exe//\//\/}/ {print \$1}"
-}
-
-# Get the correct pid for the running cartridge, dependent on whether hot_deploy is enabled
-function cartridge_pid() {
-  if force_npm_deploy; then
-    node_pid
-  else
-    supervisor_pid
-  fi
-}
-
-function print_missing_package_json_warning() {
-       cat <<DEPRECATED
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  It is highly recommended that you add a package.json
-  file to your application.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-DEPRECATED
-}
-
-function print_deprecation_warning() {
-       cat <<DEPRECATED
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  The use of deplist.txt is being deprecated and will soon
-  go away. For the short term, we will continue to support
-  installing the Node modules specified in the deplist.txt
-  file. But please be aware that this will soon go away.
-
-  It is highly recommended that you use the package.json
-  file to specify dependencies on other Node modules.
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-DEPRECATED
-}
-
-function is_node_module_installed() {
-    module_name=${1:-""}
-    if [ -n "$module_name" ]; then
-        pushd "$OPENSHIFT_NODEJS_DIR" > /dev/null
-        if [ -d $m ] ; then
-            popd > /dev/null
-            return 0
-        fi
-        popd > /dev/null
-    fi
-
-    return 1
-}
-
 function status() {
-    if is_cartridge_running; then
-        client_result "Application is running"
-    else
-        client_result "Application is not running"
-    fi
+  if is_cartridge_running; then
+    client_result "Application is running"
+  else
+    client_result "Application is not running"
+  fi
 }  #  End of function  status.
 
-
-function get_main_script_from_package_json() {
-    nodejs_context "node" <<NODE_EOF
-try {
-  var zmain = require('$OPENSHIFT_REPO_DIR/package.json').main;
-  if (typeof zmain === 'undefined') {
-    console.log('server.js');
-  }
-  else {
-    console.log(zmain);
-  }
-} catch(ex) {
-  console.log('server.js');
-}
-NODE_EOF
-
-}  #  End of function  get_main_script_from_package_json.
-
-function force_npm_deploy() {
-  if [ -f ${OPENSHIFT_REPO_DIR}.openshift/markers/force_npm_deploy ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
 function start() {
-    echo "Starting NodeJS cartridge"
+  echo "Starting NodeJS cartridge"
 
-    if is_cartridge_running; then
-        echo "Application is already running"
-        return 0
-    fi
+  if is_cartridge_running; then
+    echo "Application is already running"
+    return 0
+  fi
 
-    envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
-    logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
+  envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
+  logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
-    #  Source environment if it exists.
-    [ -f "$envf" ]  &&  source "$envf"
+  #  Source environment if it exists.
+  [ -f "$envf" ]  &&  source "$envf"
 
-    #  Ensure we have script file.
-    node_app=${node_app:-"server.js"}
+  #  Ensure we have script file.
+  node_app=${node_app:-"server.js"}
 
-    pushd "$OPENSHIFT_REPO_DIR" > /dev/null
-    {
-        echo "`date +"$FMT"`: Starting application '$OPENSHIFT_APP_NAME' ..."
-        if [ ! -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
-            echo "    Script       = $node_app"
-            echo "    Script Args  = $node_app_args"
-            echo "    Node Options = $node_opts"
-        fi
-    } >> $logf
-
-
-    if [ -f "${OPENSHIFT_REPO_DIR}package.json" ]; then
-        supervisor_opts="$(get_main_script_from_package_json)"
-        node_cmd="npm start -d"
-    else
-        #  Backward compatibility for apps without package.json
-        print_missing_package_json_warning
-        supervisor_opts="$node_opts $node_app $node_app_args"
-        node_cmd="node $node_opts $node_app $node_app_args"
-    fi
-
-    if force_npm_deploy; then
-      if hot_deploy_enabled_for_latest_deployment; then
-        echo "hot_deploy is not supported when force_npm_deploy marker is present."
-        exit 1
+  pushd "$OPENSHIFT_REPO_DIR" > /dev/null
+  {
+      echo "`date +"$FMT"`: Starting application '$OPENSHIFT_APP_NAME' ..."
+      if [ ! -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
+          echo "    Script       = $node_app"
+          echo "    Script Args  = $node_app_args"
+          echo "    Node Options = $node_opts"
       fi
-      echo "force_npm_deploy is enabled, deploying using $node_cmd"
-      nodejs_context "nohup $node_cmd >> $logf 2>&1 &"
-    else
-      nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts >& $logf &"
-    fi
+  } >> $logf
 
-    retries=3
-    while [ $retries -gt 0 ]; do
-      cart_pid=$(cartridge_pid)
-      [ -n "${cart_pid}" ] && break
-      sleep 1
-      let retries=${retries}-1
-    done
 
-    # ensure file is created before printing it to show startup status
-    sleep 2
-    cat $logf
+  if [ -f "${OPENSHIFT_REPO_DIR}package.json" ]; then
+      supervisor_opts="$(get_main_script_from_package_json)"
+      node_cmd="npm start -d"
+  else
+      #  Backward compatibility for apps without package.json
+      print_missing_package_json_warning
+      supervisor_opts="$node_opts $node_app $node_app_args"
+      node_cmd="node $node_opts $node_app $node_app_args"
+  fi
 
-    popd > /dev/null
-    if [ -n "${cart_pid}" ]; then
-        echo "$cart_pid" > "$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid"
-    else
-        error "Application '$OPENSHIFT_APP_NAME' failed to start" 1>&2 1
-    fi
+  if use_npm; then
+    echo "*** NodeJS supervisor is disabled due to .openshift/markers/use_npm"
+    echo "*** Starting application using: $node_cmd"
+    nodejs_context "nohup $node_cmd >> $logf 2>&1 &"
+  else
+    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts >& $logf &"
+  fi
+
+  retries=3
+  while [ $retries -gt 0 ]; do
+    cart_pid=$(cartridge_pid)
+    [ -n "${cart_pid}" ] && break
+    sleep 1
+    let retries=${retries}-1
+  done
+
+  # ensure file is created before printing it to show startup status
+  sleep 2
+  cat $logf
+
+  popd > /dev/null
+  if [ -n "${cart_pid}" ]; then
+      echo "$cart_pid" > "$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid"
+  else
+      echo "Application '$OPENSHIFT_APP_NAME' failed to start" 1>&2 1
+  fi
 }
 
 function stop() {
     echo "Stopping NodeJS cartridge"
 
-    if [ -f $OPENSHIFT_NODEJS_PID_DIR/cartridge.pid ]; then
-      cart_pid=$( cat $OPENSHIFT_NODEJS_PID_DIR/cartridge.pid 2> /dev/null )
+    if cartridge_pidfile_exists; then
+      cart_pid=$(cat $OPENSHIFT_NODEJS_PID_DIR/cartridge.pid)
       running_cart_pid=$(cartridge_pid)
 
-      if [ -z "${running_cart_pid}" ]; then
-        warning "Warning: Application '$OPENSHIFT_APP_NAME' is not running."
-      elif [ "${cart_pid}" != "${running_cart_pid}" ]; then
-        error "Warning: Application '$OPENSHIFT_APP_NAME' nodejs PID ($running_cart_pid) does not match '\$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid' ($cart_pid).  Use force-stop to kill." 141
-      else
-        logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
-        echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_APP_NAME' ..." >> $logf
-        /bin/kill $cart_pid
-        ret=$?
-        if [ $ret -eq 0 ]; then
-          TIMEOUT="$STOPTIMEOUT"
-          while [ $TIMEOUT -gt 0 ]  && is_cartridge_running ; do
-            /bin/kill -0 "$cart_pid" >/dev/null 2>&1 || break
-            sleep 1
-            let TIMEOUT=${TIMEOUT}-1
-          done
-        fi
-
-        # Make Node go down forcefully if it is still running.
-        if is_cartridge_running ; then
-          pkill -f "$(cartridge_bin)" 2>&1 || :
-        fi
-
-        if is_cartridge_running ; then
-          error "Warning: Application '$OPENSHIFT_APP_NAME' unable to stop. Use force-stop to kill." 141
-        else
-          echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_APP_NAME'" >> $logf
-          rm -f $OPENSHIFT_NODEJS_PID_DIR/cartridge.pid
-        fi
+      if ! is_cartridge_running; then
+        echo "Warning: Application '${OPENSHIFT_APP_NAME}' is currently not running."
       fi
+
+      logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
+      echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_APP_NAME' ..." >> $logf
+
+      /bin/kill $cart_pid
+      ret=$?
+
+      if [ $ret -eq 0 ]; then
+        TIMEOUT="$STOPTIMEOUT"
+        while [ $TIMEOUT -gt 0 ]  && is_cartridge_running ; do
+          /bin/kill -0 "$cart_pid" >/dev/null 2>&1 || break
+          sleep 1
+          let TIMEOUT=${TIMEOUT}-1
+        done
+      fi
+
+      # Make Node go down forcefully if it is still running.
+      if is_cartridge_running ; then
+        pkill -f "$(cartridge_bin)" 2>&1 || :
+      fi
+
+      # Kill remaining 'node' processes.
+      # When running under 'use_npm', the npm will ignore the 'kill' calls above
+      # and keep running. Killing all node processes will put 'npm' down.
+      #
+      if [ -n "$(node_pid)" ]; then
+        kill $(node_pid)
+      fi
+
+      if is_cartridge_running ; then
+        echo "Warning: Application '$OPENSHIFT_APP_NAME' unable to stop. Use force-stop to kill."
+      else
+        echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_APP_NAME'" >> $logf
+        rm -f $OPENSHIFT_NODEJS_PID_DIR/cartridge.pid
+      fi
+
     else
       if [ -n "$(cartridge_pid)" ]; then
-        error "Warning: Application '$OPENSHIFT_APP_NAME' nodejs exists without a pid file.  Use force-stop to kill." 141
+        echo "Warning: Application '$OPENSHIFT_APP_NAME' exists without a pid file.  Use force-stop to kill."
       fi
     fi
 }
 
 function restart() {
-    if is_cartridge_running; then
-      stop
-    fi
-
+    is_cartridge_running && stop
     start
 }
 
@@ -303,52 +200,22 @@ function build() {
     fi
 }
 
-function is_cartridge_running() {
-  if force_npm_deploy; then
-    is_node_running
-  else
-    is_supervisor_running
-  fi
-}
 
-function is_node_running() {
-    [ -f "$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid" ]  ||  return 1
-
-    nodepid=$(cat "${OPENSHIFT_NODEJS_PID_DIR}/cartridge.pid")
-    [ -n "$nodepid" ]  ||  return 1
-
-    node_command=$(ps --no-heading -ocmd -p $nodepid | replace '//' '/')
-
-    # Ensure this is not a supervisor process
-    if [[ -n "$node_command" && ! "${node_command}" =~ $(supervisor_bin) ]]; then
-       return 0
-    fi
-
-    return 1
-}
-
-function is_supervisor_running() {
-    [ -f "$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid" ]  ||  return 1
-
-    nodepid=$(cat "${OPENSHIFT_NODEJS_PID_DIR}/cartridge.pid")
-    [ -n "$nodepid" ]  ||  return 1
-
-    #  Is the pid a supervisor process.
-    if [[ $(ps --no-heading -ocmd -p $nodepid | replace '//' '/') =~ $(supervisor_bin) ]]; then
-       #  Yes, the app server is a supervisor process.
-       return 0
-    fi
-
-    return 1
-}
 
 function post-deploy() {
-    # Check if supervisor is already running. If not do a restart.
-    if hot_deploy_enabled_for_latest_deployment && ! is_supervisor_running ; then
-      if force_npm_deploy; then
-        echo "hot_deploy marker is not supported when force_npm_deploy marker exists"
-      else
+    if hot_deploy_enabled_for_latest_deployment; then
+      if use_npm; then
+        echo
+        echo "*** WARNING: hot_deploy currently is disabled due to use_npm is present."
+        echo
         restart
+      else
+        # Check if supervisor is already running. If not do a restart.
+        #
+        if ! is_supervisor_running; then
+          echo "Restarting NodeJS supervisor."
+          restart
+        fi
       fi
     fi
 }
@@ -382,11 +249,6 @@ if ! [ $# -eq 1 ]; then
     echo "Usage: $0 [start|restart|graceful|graceful-stop|stop|status]"
     exit 1
 fi
-
-# Source utility functions.
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
-source "${OPENSHIFT_NODEJS_DIR}/lib/util"
-source "${OPENSHIFT_NODEJS_DIR}/lib/nodejs_context"
 
 # Handle commands.
 case "$1" in
