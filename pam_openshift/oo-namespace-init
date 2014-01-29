@@ -16,22 +16,8 @@ if [ "$3" = 1 ]; then
     passwd=($(getent passwd "$uid"))  #       as userids and does not resolve them.
     homedir="${passwd[5]}"
 
-    cartvers=1
-    if [ -e "$homedir/.env/CARTRIDGE_VERSION_2" ]
-    then
-        cartvers=2
-    fi
-
-    #  Don't change ownership on /sandbox in v1 or /dev/shm
-    if [ "$2" != "tmpfs" ]
-    then
-        if [ $cartvers -eq 1 -a "$1" = "/sandbox" ]
-        then
-            /bin/chmod 1755 "$2"
-        else
-            /bin/chown $4 "$2"
-        fi
-    fi
+    #  Don't change ownership on /dev/shm
+    [ "$2" == "tmpfs" ] || /bin/chown $4 "$2"
 
     /sbin/restorecon "$1"
     [ "$2" == "tmpfs" ] || /sbin/restorecon "$2"
@@ -45,19 +31,23 @@ if [ "$3" = 1 ]; then
     semls="${context[3]}"
     semcs="${context[4]}"
 
-    if [ "$setype" = "openshift_var_lib_t" ]
-    then
-        # Reading mcs from the fs is far less expensive than running the generator.
-        if [ -n "$semcs" ]
-        then
-            mcs_level="${semls}:${semcs}"
-        else
-            mcs_level=$(/usr/bin/oo-get-mcs-level "$uid") 2>/dev/null || :
-        fi
+    case "$setype" in
+      openshift_var_lib_t)
+          # Reading mcs from the fs is far less expensive than running the generator.
+          if [ -n "$semcs" ]
+          then
+              mcs_level="${semls}:${semcs}"
+          else
+              mcs_level=$(/usr/bin/oo-get-mcs-level "$uid") 2>/dev/null || :
+          fi
 
-        /usr/bin/chcon -l "$mcs_level" "$1"
-        [ "$2" == "tmpfs" ] || /usr/bin/chcon -l "$mcs_level" "$2"
-    fi
+          /usr/bin/chcon -l "$mcs_level" "$1"
+          [ "$2" == "tmpfs" ] || /usr/bin/chcon -l "$mcs_level" "$2"
+          ;;
+      user_home_dir_t)
+          [ "$1" == "/tmp" -o "$1" == "/var/tmp" ] && /usr/bin/chcon -t tmp_t "$2"
+          ;;
+    esac
 fi
 
 exit 0
