@@ -141,7 +141,7 @@ The frontend configuration must be wiped out.
 
 Remove and install frontend plugin packages as necessary.
 
-    rpm -e rubygem-openshift-origin-frontend-apache-mod-rewrite
+    rpm --nodeps -e rubygem-openshift-origin-frontend-apache-mod-rewrite
     yum -y install rubygem-openshift-origin-frontend-apache-vhost
 
 
@@ -155,7 +155,7 @@ Change the value of `OPENSHIFT_FRONTEND_HTTP_PLUGINS` in
 `/etc/openshift/node.conf` and restart mcollective.
 
     vi /etc/openshift/node.conf
-    service mcollective restart
+    service ruby193-mcollective restart
 
 
 Finally, rebuild the working http frontend configuration from the
