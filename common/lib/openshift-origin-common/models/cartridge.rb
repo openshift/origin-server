@@ -43,11 +43,7 @@ module OpenShift
 
   module CartridgeAspects
     def is_premium?
-      return usage_rates.present?
-    end
-
-    def usage_rates
-      []
+      return !(usage_rates.nil? || usage_rates.empty?)
     end
   end
 
@@ -92,7 +88,7 @@ module OpenShift
                   :provides, :requires, :conflicts, :suggests, :native_requires, :default_profile,
                   :path, :license_url, :categories, :website, :suggests_feature,
                   :help_topics, :cart_data_def, :additional_control_actions, :versions, :cartridge_vendor,
-                  :endpoints, :obsolete
+                  :endpoints, :obsolete, :usage_rates
     attr_reader   :profiles
 
     # Available for downloadable cartridges
@@ -192,6 +188,7 @@ module OpenShift
       self.help_topics = spec_hash["Help-Topics"] || {}
       self.cart_data_def = spec_hash["Cart-Data"] || {}
       self.additional_control_actions = spec_hash["Additional-Control-Actions"] || []
+      self.usage_rates = spec_hash["Usage-Rates"] || []
 
       self.provides = [self.provides] if self.provides.class == String
       self.requires = [self.requires] if self.requires.class == String
@@ -258,6 +255,7 @@ module OpenShift
       h["Help-Topics"] = self.help_topics if self.help_topics and !self.help_topics.empty?
       h["Cart-Data"] = self.cart_data_def if self.cart_data_def and !self.cart_data_def.empty?
       h["Additional-Control-Actions"] = self.additional_control_actions if self.additional_control_actions and !self.additional_control_actions.empty?
+      h["Usage-Rates"] = self.usage_rates if self.usage_rates != []
 
       h["Provides"] = self.provides if self.provides && !self.provides.empty?
       h["Requires"] = self.requires if self.requires && !self.requires.empty?
