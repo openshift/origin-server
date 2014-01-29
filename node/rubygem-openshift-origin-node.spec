@@ -151,6 +151,8 @@ mv %{buildroot}%{gem_instdir}/misc/services/openshift-tc.service %{buildroot}/et
 mv %{buildroot}%{gem_instdir}/misc/services/openshift-iptables-port-proxy.service %{buildroot}/etc/systemd/system/openshift-iptables-port-proxy.service
 %endif
 
+cp %{buildroot}%{gem_instdir}/misc/etc/system-config-firewall-compat %{buildroot}/etc/openshift/
+
 # Don't install or package what's left in the misc directory
 rm -rf %{buildroot}%{gem_instdir}/misc
 rm -rf %{buildroot}%{gem_instdir}/.yardoc
@@ -227,6 +229,7 @@ fi
 %attr(0755,-,-) %{openshift_lib}/cartridge_sdk/ruby
 %attr(0744,-,-) %{openshift_lib}/cartridge_sdk/ruby/*
 %dir /etc/openshift
+%attr(0644,-,-) %config /etc/openshift/system-config-firewall-compat
 %config(noreplace) /etc/openshift/node.conf
 %attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.filter.rules
 %attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.nat.rules
