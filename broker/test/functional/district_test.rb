@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "functional_district_test"
 require 'test_helper'
 
 class DistrictTest < ActiveSupport::TestCase

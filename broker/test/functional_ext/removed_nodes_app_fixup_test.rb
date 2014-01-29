@@ -1,4 +1,4 @@
-ENV["TEST_NAME"] = "integration_ext_removed_nodes_app_fixup_test"
+ENV["TEST_NAME"] = "functional_ext_removed_nodes_app_fixup_test"
 require 'test_helper'
 
 class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest

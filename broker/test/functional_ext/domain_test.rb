@@ -1,4 +1,4 @@
-ENV["TEST_NAME"] = "system_domain_test"
+ENV["TEST_NAME"] = "functional_ext_domain_test"
 require 'test_helper'
 require 'openshift-origin-controller'
 require 'mocha/setup'

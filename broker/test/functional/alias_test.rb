@@ -1,4 +1,4 @@
-ENV["TEST_NAME"] = "unit_alias_test"
+ENV["TEST_NAME"] = "functional_alias_test"
 require 'test_helper'
 
 class AliasTest < ActiveSupport::TestCase

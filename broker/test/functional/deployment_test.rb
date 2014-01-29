@@ -1,4 +1,4 @@
-ENV["TEST_NAME"] = "unit_deployment_test"
+ENV["TEST_NAME"] = "functional_deployment_test"
 require 'test_helper'
 
 class DeploymentTest < ActiveSupport::TestCase

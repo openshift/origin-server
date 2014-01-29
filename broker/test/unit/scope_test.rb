@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "unit_scope_test"
 require File.expand_path('../../test_helper', __FILE__)
 
 class ScopeTest < ActiveSupport::TestCase

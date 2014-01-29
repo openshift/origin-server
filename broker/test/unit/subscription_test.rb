@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "unit_subscription_test"
 require File.expand_path('../../test_helper', __FILE__)
 require 'openshift-origin-controller'
 require 'mocha/setup'

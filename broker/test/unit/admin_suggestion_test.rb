@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "unit_admin_suggestion_test"
 require 'unit/helpers/admin_stats_helper'
 require 'pp'
 require 'yaml'

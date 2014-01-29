@@ -1,4 +1,4 @@
-ENV["TEST_NAME"] = "system_app_events_test"
+ENV["TEST_NAME"] = "functional_ext_app_events_test"
 require 'rubygems'
 require 'test_helper'
 require 'openshift-origin-controller'

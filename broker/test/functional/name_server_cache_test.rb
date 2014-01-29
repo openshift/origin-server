@@ -1,4 +1,4 @@
-ENV["TEST_NAME"] = "unit_name_server_cache_test"
+ENV["TEST_NAME"] = "functional_name_server_cache_test"
 require 'test_helper'
 
 class NameServerCacheTest < ActiveSupport::TestCase

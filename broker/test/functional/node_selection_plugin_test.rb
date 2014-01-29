@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "functional_node_selection_plugin_test"
 require 'test_helper'
 
 class NodeSelectionPluginTest < ActiveSupport::TestCase

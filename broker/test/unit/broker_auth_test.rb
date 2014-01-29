@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "unit_broker_auth_test"
 require File.expand_path('../../test_helper', __FILE__)
 require 'tmpdir'
 

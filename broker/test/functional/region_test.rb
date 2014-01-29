@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "functional_region_test"
 require 'test_helper'
 
 class RegionTest < ActiveSupport::TestCase
