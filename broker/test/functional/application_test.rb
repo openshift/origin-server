@@ -610,7 +610,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     district.max_capacity = district.available_uids.length
     district.gear_size = Rails.configuration.openshift[:default_gear_size]
     district.uuid = uuid
-    district.active_server_identities_size = 0
+    district.active_servers_size = 0
     district
   end
 end

@@ -171,7 +171,7 @@ begin
 
     reply.resultIO << "No districts created yet.  Use 'oo-admin-ctl-district -c create' to create one." if districts.empty?
     districts.each do |district|
-      if district.server_identities.empty?
+      if district.servers.empty?
         reply.resultIO << "District: #{district.name} does not have any server identities, skipping.\n"
       else
         reply.resultIO << "Publishing district UIDs for district: #{district.name} (#{district.uuid})\n"

@@ -201,13 +201,13 @@ If the command was successful, you should see output similar to the following:
 Successfully created district: 513b50508f9f44aeb90090f19d2fd940
 
 {"name"=>"small_district",
- "active_server_identities_size"=>0,
+ "active_servers_size"=>0,
  "gear_size"=>"small",
  "max_uid"=>6999,
  "created_at"=>"2013-01-15T17:18:28-05:00",
  "updated_at"=>"2013-01-15T17:18:28-05:00",
  "max_capacity"=>6000,
- "server_identities"=>{},
+ "servers"=>{},
  "uuid"=>"513b50508f9f44aeb90090f19d2fd940",
  "available_uids"=>"<6000 uids hidden>",
  "available_capacity"=>6000}
@@ -245,20 +245,20 @@ The output should be similar to:
 {
 	"_id": "513b50508f9f44aeb90090f19d2fd940",
 	"name": "small_district",
-	"active_server_identities_size": 0,
+	"active_servers_size": 0,
 	"gear_size": "small",
 	"max_uid": 6999,
 	"created_at": "2013-01-15T17:18:28-05:00",
 	"updated_at": "2013-01-15T17:18:28-05:00",
 	"max_capacity": 6000,
-	"server_identities": [],
+	"servers": [],
 	"uuid": "513b50508f9f44aeb90090f19d2fd940",
 	"available_uids": [1000, .........],
 	"available_capacity": 6000
 }
 ----
 
-NOTE: The _server_identities_ array does not contain any data yet.
+NOTE: The _servers_ array does not contain any data yet.
 
 Exit the Mongo shell using the exit command:
 
@@ -289,23 +289,23 @@ Success!
  "available_uids"=>"<6000 uids hidden>",
  "gear_size"=>"small",
  "uuid"=>"513b50508f9f44aeb90090f19d2fd940",
- "server_identities"=>{"node.example.com"=>{"active"=>true}},
+ "servers"=>{"node.example.com"=>{"active"=>true}},
  "name"=>"small_district",
  "max_capacity"=>6000,
  "max_uid"=>6999,
- "active_server_identities_size"=>1}
+ "active_servers_size"=>1}
  
 ----
 
 NOTE: If you see an error message indicating that you can't add this node to the district because the node already has applications on it, consult the Troubleshooting Guide.
 
-Repeat the steps above to query the database for information about districts. Notice that the _server_identities_ array now contains the following information:
+Repeat the steps above to query the database for information about districts. Notice that the _servers_ array now contains the following information:
 
 ----
-"server_identities" : [ { "name" : "node.example.com", "active" : true } ]
+"servers" : [ { "name" : "node.example.com", "active" : true } ]
 ----
 
-If you continued to add additional nodes to this district, the _server_identities_ array would show all the node hosts that are assigned to the district.
+If you continued to add additional nodes to this district, the _servers_ array would show all the node hosts that are assigned to the district.
 
 This command line tool can be used just to display district information. Simply run the command with no arguments to view the JSON records in the MongoDB database for all districts:
 

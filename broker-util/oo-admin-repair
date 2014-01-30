@@ -566,10 +566,10 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
           begin
             deactivated = false
             district = District.find_by_name(available_servers[server])
-            district.server_identities.each do |si|
+            district.servers.each do |si|
               next if si.name != server
               deactivated = true unless si.active
-              res = District.where(:_id => district._id, :server_identities.name => server).update({"$set" => {"server_identities.$.unresponsive" => true}})
+              res = District.where(:_id => district._id, :servers.name => server).update({"$set" => {"servers.$.unresponsive" => true}})
               raise OpenShift::OOException.new("Could not set unresponsive to true for #{si.name}") if res.nil? or !res["updatedExisting"]
               break
             end

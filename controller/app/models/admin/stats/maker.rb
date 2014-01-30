@@ -179,7 +179,7 @@ class Admin::Stats::Maker
     #   "6e5d3ccc0bb1456399687c0be51676f8" => ...
     # }
 
-    fields = %w[uuid name gear_size server_identities max_capacity available_capacity available_uids]
+    fields = %w[uuid name gear_size servers max_capacity available_capacity available_uids]
     with_each_record(:districts, {}, {:fields => fields }) do |dist|
       entry_for_district[dist['uuid'].to_s] = Admin::Stats::DistrictEntry.new.merge({
         'profile'             => dist['gear_size'],
@@ -197,7 +197,7 @@ class Admin::Stats::Maker
   # perform a manual clone such that we don't get BSON entries
   def district_nodes_clone(district)
     cloned = {}
-    district['server_identities'].each do |node|
+    district['servers'].each do |node|
       cloned[node['name']] = {
           'name' => node['name'],
           'active' => node['active']

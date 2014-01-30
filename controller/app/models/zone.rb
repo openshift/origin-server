@@ -18,8 +18,8 @@ class Zone
 
   def has_servers?
     found = false
-    District.only(:server_identities).each do |district|
-      if district.server_identities.where(zone_id: self._id).exists?
+    District.only(:servers).each do |district|
+      if district.servers.where(zone_id: self._id).exists?
         found = true
         break
       end

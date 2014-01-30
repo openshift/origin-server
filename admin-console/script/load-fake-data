@@ -68,8 +68,8 @@ class FakeData
 
   # node = { "name" => identity, "active" => true/false}
   def add_node_to_district(node, dist)
-    dist.active_server_identities_size += 1
-    dist.server_identities << node
+    dist.active_servers_size += 1
+    dist.servers << node
     dist.save!
   end
 

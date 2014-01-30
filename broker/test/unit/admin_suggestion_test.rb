@@ -262,7 +262,7 @@ class AdminSuggestionTest < ActiveSupport::TestCase
           faux_node_entry(profile, duuid, "true").merge(
             max_active_gears: 200, gears_total_count: 300, gears_active_count: 150)
       @districts << (dist_miss = faux_mongo_district(dist_nodes_hash))
-      dist_miss['server_identities'] << {'name' => 'distmiss-missing', 'active' => true}
+      dist_miss['servers'] << {'name' => 'distmiss-missing', 'active' => true}
       dist_miss['available_capacity'] = 5400
     #write_fake_dataset("profile-test-districts.yaml")
 
@@ -562,9 +562,9 @@ class AdminSuggestionTest < ActiveSupport::TestCase
   test "missing nodes are missed" do
     boring_install_2x4per
     @districts.each do |dist|
-      dist['server_identities'] << {'name' => "missing-#{dist['uuid']}",
+      dist['servers'] << {'name' => "missing-#{dist['uuid']}",
                                   'active' => true}
-      dist['server_identities'] << {'name' => "missing2-#{dist['uuid']}",
+      dist['servers'] << {'name' => "missing2-#{dist['uuid']}",
                                   'active' => true}
     end
     sugs = S::Advisor.query(S::Params.new, admin_stats_results())

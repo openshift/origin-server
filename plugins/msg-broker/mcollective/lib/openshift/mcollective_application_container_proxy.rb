@@ -274,7 +274,7 @@ module OpenShift
           elsif !district_uuid
             if @id
               begin
-                district = District.find_by({"server_identities.name" => @id})
+                district = District.find_by({"servers.name" => @id})
                 district_uuid = district.uuid
               rescue Mongoid::Errors::DocumentNotFound
                 district_uuid = 'NONE'
@@ -311,7 +311,7 @@ module OpenShift
           elsif !district_uuid
             if @id
               begin
-                district = District.find_by({"server_identities.name" => @id})
+                district = District.find_by({"servers.name" => @id})
                 district_uuid = district.uuid
               rescue Mongoid::Errors::DocumentNotFound
                 district_uuid = 'NONE'
@@ -2991,7 +2991,7 @@ module OpenShift
         require_region = Rails.configuration.msg_broker[:regions][:require_for_app_create]
         # Get the active % on the nodes
         rpc_opts = nil
-        rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
+        rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server_identity, capacity|
           found_district = false
           districts.each do |district|
             # skip district servers in these cases:
@@ -3000,17 +3000,18 @@ module OpenShift
             # - server can not accomodate any more gears
             # - server not part of any region when user requested region
             next if required_uid and !district.available_uids.include?(required_uid)
-            if district.server_identities.where(name: server).exists?
-              si = district.server_identities.find_by(name: server)
-              if (gear_exists_in_district || district.available_capacity > 0) && si.active && (!require_region || si.region_id)
-                server_infos << [server, capacity.to_f, district, si.region_id, si.zone_id]
+            if district.servers.where(name: server_identity).exists?
+              server = district.servers.find_by(name: server_identity)
+              if (gear_exists_in_district || district.available_capacity > 0) &&
+                 server.active && (!require_region || server.region_id)
+                server_infos << [server_identity, capacity.to_f, district, server.region_id, server.zone_id]
               end
               found_district = true
               break
             end
           end
           if !found_district && !require_district # Districts aren't required in this case
-            server_infos << [server, capacity.to_f]
+            server_infos << [server_identity, capacity.to_f]
           end
         end
         if server_infos.empty?
@@ -3024,23 +3025,21 @@ module OpenShift
         server_infos.delete_if { |server_info| restricted_servers.include?(server_info[0]) } if restricted_servers.present? and server_infos.present?
         unless server_infos.empty?
           if gear
-            app_server = nil
-            si = nil
+            current_region = nil
             reloaded_app = Application.find_by(_id: gear.application._id)
             reloaded_app.gears.each do |g|
               if g.server_identity
-                app_server = g.server_identity
+                server = District.find_server(g.server_identity, districts)
+                current_region = Region.find_by(_id: server.region_id) if server
                 break
               end
             end
-            si = District.find_server(app_server, districts) if app_server
-            if si
-              current_region = Region.find_by(_id: si.region_id)
+            if current_region
               least_preferred_zone_ids = []
-              least_preferred_servers.each do |server_name|
-                next unless server_name
-                si = District.find_server(server_name, districts)
-                least_preferred_zone_ids << si.zone_id if si.zone_id
+              least_preferred_servers.each do |server_identity|
+                next unless server_identity
+                server = District.find_server(server_identity, districts)
+                least_preferred_zone_ids << server.zone_id if server.zone_id
               end if least_preferred_servers.present?
 
               # Remove servers that does not belong to current region
