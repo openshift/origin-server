@@ -67,11 +67,11 @@ module OpenShift
       # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
       # * If gear_exists_in_district is true, then district_uuid must be passed and cannot be nil
       #
-      def self.find_all_available_impl(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, gear_exists_in_district=false, required_uid=nil)
+      def self.find_all_available_impl(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, restricted_server_identities=nil, gear_exists_in_district=false, required_uid=nil)
         district = nil
-        server_infos = rpc_find_all_available(node_profile, district_uuid, least_preferred_server_identities, false, gear_exists_in_district, required_uid)
+        server_infos = rpc_find_all_available(node_profile, district_uuid, least_preferred_server_identities, restricted_server_identities, false, gear_exists_in_district, required_uid)
         if server_infos.blank?
-          server_infos = rpc_find_all_available(node_profile, district_uuid, least_preferred_server_identities, true, gear_exists_in_district, required_uid)
+          server_infos = rpc_find_all_available(node_profile, district_uuid, least_preferred_server_identities, restricted_server_identities, true, gear_exists_in_district, required_uid)
         end
 
         raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_infos.blank?
@@ -2031,14 +2031,9 @@ module OpenShift
             app.save!
 
           rescue Exception => e
-            gear.server_identity = source_container.id
-            gear.group_instance.gear_size = source_container.get_node_profile
-            # destroy destination
-            log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with delete on '#{destination_container.id}'"
-            reply.append destination_container.destroy(gear, !district_changed, nil, true)
-
-            # if the gear dns was updated, revert it back
+            # if the gear server_identity was updated, revert it back along with the dns
             if gear.server_identity == destination_container.id
+              gear.set :server_identity, source_container.id
               begin
                 dns = OpenShift::DnsService.instance
                 public_hostname = source_container.get_public_hostname
@@ -2048,6 +2043,11 @@ module OpenShift
                 dns.close
               end
             end
+
+            gear.group_instance.gear_size = source_container.get_node_profile
+            # destroy destination
+            log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with delete on '#{destination_container.id}'"
+            reply.append destination_container.destroy(gear, !district_changed, nil, true)
 
             raise
           end
@@ -2153,7 +2153,7 @@ module OpenShift
 
           least_preferred_server_identities = [source_container.id]
           destination_gear_size = node_profile || gear.group_instance.gear_size
-          destination_container = MCollectiveApplicationContainerProxy.find_all_available_impl(destination_gear_size, destination_district_uuid, nil, gear_exists_in_district, required_uid)
+          destination_container = MCollectiveApplicationContainerProxy.find_all_available_impl(destination_gear_size, destination_district_uuid, nil, nil, gear_exists_in_district, required_uid)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
@@ -3013,7 +3013,7 @@ module OpenShift
       # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
       # * If gear_exists_in_district is true, then district_uuid must be passed and cannot be nil
       #
-      def self.rpc_find_all_available(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, force_rediscovery=false, gear_exists_in_district=false, required_uid=nil)
+      def self.rpc_find_all_available(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, restricted_server_identities=nil, force_rediscovery=false, gear_exists_in_district=false, required_uid=nil)
 
         district_uuid = nil if district_uuid == 'NONE'
 
@@ -3097,6 +3097,13 @@ module OpenShift
           raise OpenShift::NodeUnavailableException.new("No district nodes available", 140)
         end
         unless server_infos.empty?
+          # Remove the restricted servers from the list
+          if restricted_server_identities
+            server_infos.delete_if { |server_info| restricted_server_identities.include?(server_info[0]) }
+            # if server_infos is now empty, its because of the the removal of the restricted servers
+            Rails.logger.debug "No nodes available after removing restricted nodes (force_rediscovery: #{force_rediscovery})" if server_infos.empty?
+          end
+
           # Remove the least preferred servers from the list, ensuring there is at least one server remaining
           server_infos.delete_if { |server_info| server_infos.length > 1 && least_preferred_server_identities.include?(server_info[0]) } if least_preferred_server_identities
 
