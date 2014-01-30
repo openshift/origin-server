@@ -249,7 +249,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     s = Scope::Scopes([Scope::DomainBuilder.new(j), Scope::Application.new(:id => j._id, :app_scope => :scale)])
     u.scopes = s
     with_membership do
-      assert_equal ['scopetestbuilder', 'scopetestjenkins'], Application.accessible(u).map(&:name).sort
+      assert_equal ['scopetestapp', 'scopetestbuilder', 'scopetestjenkins'], Application.accessible(u).map(&:name).sort
 
       allows = {
         :change_gear_quota => [false, false, true],

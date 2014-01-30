@@ -33,11 +33,8 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @uid_begin      = 500
 
     @config.stubs(:get).with("PORT_BEGIN").returns(@ports_begin.to_s)
-    @config.stubs(:get).with("PROXY_MIN_PORT_NUM").returns(@ports_begin.to_s)
     @config.stubs(:get).with("PORTS_PER_USER").returns(@ports_per_user.to_s)
-    @config.stubs(:get).with("PROXY_PORTS_PER_GEAR").returns(@ports_per_user.to_s)
     @config.stubs(:get).with("UID_BEGIN").returns(@uid_begin.to_s)
-    @config.stubs(:get).with("GEAR_MIN_UID").returns(@uid_begin.to_s)
     @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
 
     script_dir     = File.expand_path(File.dirname(__FILE__))

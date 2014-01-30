@@ -9,40 +9,41 @@
 require 'rubygems'
 require 'daemons'
 
-raise 'Watchman must run as root' if Process.euid != 0
-
-APP_NAME = 'watchman'
+raise 'Watchman must run as root' unless Process.euid == 0
 
 options = {
-    app_name:   APP_NAME,
+    app_name:   'watchman',
     backtrace:  true,
     ontop:      false,
     log_output: true,
     dir_mode:   :system,
     log_dir:    '/var/log/openshift/node',
     multiple:   false,
+    script:     '/usr/sbin/oo-watchman',
 }
 
-action = case ARGV[0]
-           when 'stop'
-             'Stopping'
-           when 'start'
-             'Starting'
-           when 'restart'
-             'Restarting'
-           else
-             nil
-         end
-
-# This code can be removed when we upgrade beyond Daemons 1.1.0
-if ARGV[0] == 'restart'
-  puts %Q{#{action} Watchman}
-  options[:ARGV] = ['stop']
-  Daemons.run('/usr/sbin/oo-watchman', options)
-
-  options[:ARGV] = ['start']
-  Daemons.run('/usr/sbin/oo-watchman', options)
-else
-  puts %Q{#{action} Watchman} if action
-  Daemons.run('/usr/sbin/oo-watchman', options)
+case ARGV[0]
+  when 'stop'
+    puts 'Stopping Watchman'
+    Daemons.run(options[:script], options)
+  when 'start'
+    puts 'Starting Watchman'
+    Daemons.run(options[:script], options)
+  when 'restart'
+    puts 'Restarting Watchman'
+    # 'restart' code can be removed when we upgrade beyond Daemons 1.1.0
+    Daemons.run(options[:script], options.merge(ARGV: ['stop']))
+    sleep 1
+    Daemons.run(options[:script], options.merge(ARGV: ['start']))
+  when 'status'
+    group = Daemons::ApplicationGroup.new(options[:app_name], options).tap { |g| g.setup }
+    if group.applications.empty? || !group.applications.first.running?
+      puts 'Watchman is not running'
+      exit 1
+    else
+      puts 'Watchman is running'
+      exit 0
+    end
+  else
+    Daemons.run(options[:script], options)
 end

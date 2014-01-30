@@ -10,6 +10,8 @@ RULES_FILE="/etc/openshift/iptables.filter.rules"
 NAT_FILE="/etc/openshift/iptables.nat.rules"
 
 start() {
+    check_firewall true
+
     ROUTE_LOCALNET=`sysctl -n net.ipv4.conf.all.route_localnet`
     if [ $ROUTE_LOCALNET -eq "0" ]; then
         echo "WARNING: net.ipv4.conf.all.route_localnet must be enabled." 1>&2
@@ -34,6 +36,23 @@ stop() {
     iptables -t nat -F
 }
 
+check_firewall() {
+    FALLBACK=$1
+
+    iptables -L | grep 'rhc-app-comm  all' >/dev/null 2>&1
+    RETVAL=$?
+    if [ ! $RETVAL -eq 0 ]; then
+        echo "ERROR: rhc-app-comm INPUT rule not found.  Check /etc/sysconfig/iptables." 1>&2
+        if [ $FALLBACK ]; then
+            iptables -N rhc-app-comm
+            iptables -I INPUT 1 -j rhc-app-comm
+            echo "WARNING: The INPUT rule has been temporarily added."
+        else
+            exit 1
+        fi
+    fi
+}
+
 case "$1" in
     start)
         start
@@ -42,6 +61,8 @@ case "$1" in
         stop
         ;;
     status)
+        check_firewall
+
         if [ ! -f $RULES_FILE ]; then
             echo "ERROR: $RULES_FILE does not exist." 1>&2
             exit 1
@@ -61,7 +82,10 @@ case "$1" in
 
         NAT_ASSERTED=`grep DNAT $NAT_FILE | wc -l`
         NAT=`iptables -t nat -L | grep DNAT | wc -l`
-        if [ ! $NAT_ASSERTED -eq $NAT ]; then
+        # Bug 1040824 - We can't assume the openshift nat rules are the only ones
+        # running.  For that reason we only alert if there are more OpenShift NAT
+        # rules than what we see actually running.
+        if [ $NAT_ASSERTED -gt $NAT ]; then
             echo "ERROR: A difference has been detected between state of $NAT_FILE and the NAT table." 1>&2
             exit 1
         fi

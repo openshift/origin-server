@@ -419,8 +419,8 @@ module OpenShift
               ::OpenShift::Runtime::Frontend::Http::Plugins::reload_httpd
             end
 
-            def with_lock_and_reload
-              self.class.with_lock_and_reload
+            def with_lock_and_reload(&block)
+              self.class.with_lock_and_reload(&block)
             end
 
           end
