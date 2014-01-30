@@ -89,7 +89,7 @@ class RestCartridge < OpenShift::Model
   attr_accessor :id, :type, :name, :version, :license, :license_url, :tags, :website,
     :help_topics, :properties, :display_name, :description, :scales_from, :scales_to,
     :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates,
-    :creation_time
+    :creation_time, :automatic_updates
 
   def initialize(cart)
     self.name = cart.name
@@ -113,6 +113,8 @@ class RestCartridge < OpenShift::Model
     end
     self.help_topics = cart.help_topics
     self.usage_rates = cart.usage_rates
+
+    self.automatic_updates = cart.manifest_url.blank? && !cart.categories.include?('no_updates')
 
     self.creation_time = cart.created_at
     if cart.activated_at

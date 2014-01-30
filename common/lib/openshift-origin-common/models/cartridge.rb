@@ -21,7 +21,7 @@ module OpenShift
     end
 
     def is_web_proxy?
-      features.include?('web_proxy')
+      categories.include?('web_proxy')
     end
 
     def is_web_framework?

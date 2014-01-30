@@ -72,7 +72,7 @@ class PendingAppOpGroup
     while(pending_ops.where(:state.ne => :completed, :pre_save => true).count > 0) do
       Rails.logger.debug "Pre-Executing ops..."
       eligible_pre_execute_ops.each do|op|
-        Rails.logger.debug "Pre-Execute #{op.class.to_s}"
+        Rails.logger.debug "Pre-Execute #{op.to_log_s}"
         # set the pending_op state to queued
         op.set_state(:queued) 
         return_val = op.execute
@@ -91,7 +91,7 @@ class PendingAppOpGroup
         parallel_job_ops = []
 
         eligible_ops.each do|op|
-          Rails.logger.debug "Execute #{op.class.to_s}"
+          Rails.logger.debug "Execute #{op.to_log_s}"
 
           # set the pending_op state to queued
           op.set_state(:queued)
@@ -105,9 +105,9 @@ class PendingAppOpGroup
             if result_io.exitcode != 0
               op.set_state(:failed)
               if result_io.hasUserActionableError
-                raise OpenShift::UserException.new("Unable to execute #{self.class.to_s}", result_io.exitcode, nil, result_io) 
+                raise OpenShift::UserException.new("Unable to execute #{self.to_log_s}", result_io.exitcode, nil, result_io) 
               else
-                raise OpenShift::NodeException.new("Unable to execute #{self.class.to_s}", result_io.exitcode, result_io)
+                raise OpenShift::NodeException.new("Unable to execute #{self.to_log_s}", result_io.exitcode, result_io)
               end
             else
               op.set_state(:completed)
@@ -181,7 +181,7 @@ class PendingAppOpGroup
       parallel_job_ops = []
 
       eligible_rollback_ops.each do|op|
-        Rails.logger.debug "Rollback #{op.class.to_s}"
+        Rails.logger.debug "Rollback #{op.to_log_s}"
 
         if op.is_parallel_executable
           op.add_parallel_rollback_job(handle)

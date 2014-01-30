@@ -629,7 +629,7 @@ class Application
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
   def add_initial_cartridges(cartridges, init_git_url=nil, user_env_vars=nil)
 
-    if self.scalable and not cartridges.any?{ |c| c.features.include?('web_proxy') }
+    if self.scalable and not cartridges.any?(&:is_web_proxy?)
       cartridges << CartridgeInstance.new(CartridgeCache.find_cartridge_by_feature('web_proxy'))
     end
 
@@ -2180,6 +2180,7 @@ class Application
     end
 
     config_order = calculate_configure_order(component_ops.keys)
+binding.pry
     config_order.each_index do |idx|
       next if idx == 0
       prereq_ids = []
@@ -2194,7 +2195,7 @@ class Application
       (component_ops[config_order[idx]][:post_configures] || []).each { |op| op.prereq += prereq_ids }
       (component_ops[config_order[idx]][:expose_ports] || []).each { |op| op.prereq += prereq_ids }
     end
-
+binding.pry
     if pending_ops.present? and !(pending_ops.length == 1 and SetGroupOverridesOp === pending_ops.first)
       # FIXME: this could be arbitrarily large - would be better to set a condition that this
       # operation cannot be skipped
@@ -2463,19 +2464,20 @@ class Application
 
 
   def enforce_system_order(order, categories)
-    web_carts = categories['web_framework'] || []
-    service_carts = (categories['service'] || [])-web_carts
-    plugin_carts = (categories['plugin'] || [])-service_carts
-    web_carts.each { |w|
-      (service_carts+plugin_carts).each { |sp|
+    web_carts = Array(categories['web_framework'])
+    service_carts = Array(categories['service']) - web_carts
+    plugin_carts = Array(categories['plugin']) + Array(categories['ci_builder']) + Array(categories['web_proxy']) - service_carts
+
+    web_carts.each do |w|
+      (service_carts+plugin_carts).each do |sp|
         order.add_component_order([w,sp])
-      }
-    }
-    service_carts.each { |s|
-      plugin_carts.each { |p|
+      end
+    end
+    service_carts.each do |s|
+      plugin_carts.each do |p|
         order.add_component_order([s,p])
-      }
-    }
+      end
+    end
   end
 
   # Returns the configure order specified in the application descriptor or processes the configure
@@ -2531,7 +2533,7 @@ class Application
     #calculate configure order using tsort
     begin
       computed_configure_order = configure_order.tsort
-    rescue Exception
+    rescue
       raise OpenShift::UserException.new("Conflict in calculating configure order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
     end
 

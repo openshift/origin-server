@@ -137,4 +137,28 @@ class PendingAppOp
   def action_message
     "#{self.class.to_s} failed"
   end
+
+  def to_log_s
+    "#{self.class} #{to_important_args.map{ |k,v| "#{k}=#{v}" }.join(' ')}"
+  end
+
+  protected
+    def to_important_args
+      [:comp_spec, :comp_specs, :gear_id, :group_instance_id].inject({}) do |h, sym|
+        if self.respond_to?(sym)
+          v = self.send(sym)
+          h[sym] = to_important_args_type(v)
+        end
+        h
+      end
+    end
+
+    def to_important_args_type(v)
+      case v
+      when Array then "[#{v.map{ |s| to_important_args_type(s) }.join(', ')}]"
+      when ComponentSpec then "component:#{[v.name, v.cartridge_name, v.id].join("/")}"
+      when NilClass then 'nil'
+      else v
+      end
+    end
 end

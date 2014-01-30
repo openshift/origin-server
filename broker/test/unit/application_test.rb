@@ -461,6 +461,11 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert op.saved_comp_specs.any?{ |c| c.id == old_id }
   end
 
+  test "component configure order should prioritize web frameworks" do
+    assert order = Application.new.calculate_configure_order(cartridge_instances_for('jenkins-client', :php).map(&:to_component_spec))
+    assert_equal php_version, order[0].cartridge_name
+  end
+
   test "user info through internal rest" do
     credentials = Base64.encode64("#{$user}:#{$password}")
     headers = {}
