@@ -3035,15 +3035,29 @@ module OpenShift
               end
             end
             if current_region
+              # Remove servers that does not belong to current region
+              server_infos.delete_if { |server_info| current_region._id != server_info[3] }
+
+              # Check if we have min zones for app gear group
+              min_zones_per_gear_group = [Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group], current_region.zones.length].min
+              available_zones_per_region = {}
+              server_infos.each do |server_info|
+                zone_id = server_info[4]
+                if zone_id
+                  available_zones_per_region[zone_id] = 0 unless available_zones_per_region[zone_id]
+                  available_zones_per_region[zone_id] += 1
+                end
+              end
+              if available_zones_per_region.values.max < min_zones_per_gear_group
+                raise OpenShift::OOException.new("Unable to find minimum zones required for application gear group.")
+              end
+
               least_preferred_zone_ids = []
               least_preferred_servers.each do |server_identity|
                 next unless server_identity
                 server = District.find_server(server_identity, districts)
                 least_preferred_zone_ids << server.zone_id if server.zone_id
               end if least_preferred_servers.present?
-
-              # Remove servers that does not belong to current region
-              server_infos.delete_if { |server_info| current_region._id != server_info[3] }
 
               # Remove least preferred zones from the list, ensuring there is at least one server remaining
               server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_zone_ids.include?(server_info[4]) } if least_preferred_zone_ids.present?
