@@ -32,7 +32,7 @@ class Scope::DomainBuilder < Scope::Parameterized
   def limits_access(criteria)
     case criteria.klass
     when Application then
-      (criteria.options[:conditions] ||= []).concat([{:domain_id => @id, :builder => app}, {:_id => app._id}])
+      (criteria.options[:conditions] ||= []).concat([{:domain_id => @id}])
     when Domain then (criteria.options[:for_ids] ||= []) << @id
     else criteria.options[:visible] ||= false
     end
