@@ -1,0 +1,21 @@
+#!/usr/bin/python -tt
+
+import sys
+import os
+
+try:
+    pid = os.fork()
+
+    if pid == 0:
+        os.chdir('app-deployments/current/repo')
+        os.execv(sys.argv[1], [ sys.argv[1] ])
+    elif pid > 0:
+        pid, status = os.wait()
+        if os.WEXITSTATUS(status) == 0:
+            # redirect is there to not polute sftp socket
+            status = os.system("/usr/bin/gear refresh_deployment &>/dev/null")
+        sys.exit(os.WEXITSTATUS(status))
+except Exception, ex:
+    # TODO: log errors
+    pass
+sys.exit(1)
