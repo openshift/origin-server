@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.19.0
+Version: 1.19.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -155,6 +155,17 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
+- Bug 1059804 - Watchman support for UTF-8 (jhonce@redhat.com)
+- Merge pull request #4620 from jwhonce/bug/1058889
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1058889 - Return expected exit code on status operation
+  (jhonce@redhat.com)
+- Merge pull request #4611 from jwhonce/stage
+  (dmcphers+openshiftbot@redhat.com)
+- Revert "Merge pull request #4488 from lsm5/new-node_conf" (jhonce@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
 * Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.18.6-1
 - Bug 998337 (dmcphers@redhat.com)
 - Bug 1034110 (dmcphers@redhat.com)
