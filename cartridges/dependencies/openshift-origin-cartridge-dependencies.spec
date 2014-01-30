@@ -1,6 +1,6 @@
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -337,6 +337,9 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
 - add libicu-devel to optional-ruby (tdawson@redhat.com)
 
