@@ -2238,7 +2238,7 @@ yum install -y openshift-origin-node-proxy rubygem-openshift-origin-frontend-nod
 Start the node-proxy service
 
 ----
-service openshift-node-web-proxy enable
+chkconfig openshift-node-web-proxy on
 service openshift-node-web-proxy start
 ----
 
