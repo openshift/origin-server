@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,11 @@ then
 fi
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.18.1-1
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
 * Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.17.3-1
 - Fix regex for base64 encoded broker auth iv/token values (kraman@gmail.com)
 
