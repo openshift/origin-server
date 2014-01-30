@@ -68,7 +68,7 @@ module OpenShift
             rescue Exception => e
               msg = "Unhandled exception (#{e}) from Watchman plugin #{plugin}: #{e.message}"
               Syslog.notice(msg)
-              logger.debug(%Q{#{msg}\n#{e.backtrace.join("\n")}})
+              @logger.debug(%Q{#{msg}\n#{e.backtrace.join("\n")}})
             end
           end
 
