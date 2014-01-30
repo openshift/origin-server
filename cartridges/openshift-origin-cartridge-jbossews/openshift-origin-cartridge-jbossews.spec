@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.19.0
+Version: 1.19.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -76,6 +76,13 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
+- Merge pull request #4574 from bparees/https
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+- Bug 1057077 - Propagate https information to Java EE cartridgets(JBoss
+  AS/EAP/Tomcat) in standard way (via request.isSecure()) (bparees@redhat.com)
+
 * Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.18.7-1
 - Bug 988756 - Adding Requires: bc to jbossews cartridge (bleanhar@redhat.com)
 
