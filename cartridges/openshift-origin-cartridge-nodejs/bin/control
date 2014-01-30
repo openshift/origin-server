@@ -109,7 +109,7 @@ function stop() {
       fi
 
       # Make Node go down forcefully if it is still running.
-      if is_cartridge_running ; then
+      if is_cartridge_running -a -n "$(cartridge_bin)"; then
         pkill -f "$(cartridge_bin)" 2>&1 || :
       fi
 
