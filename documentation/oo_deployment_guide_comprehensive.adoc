@@ -2308,9 +2308,11 @@ If you are planning to install the openshift-origin-cartridge-jenkins* packages.
 curl -o /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
 rpm --import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
 yum install -y jenkins-1.510
+chkconfig jenkins off
 ----
 
 NOTE: The OpenShift Jenkins plugin currently requires jenkins-1.510. You may need to downgrade your jenkins installation for it to work. "yum downgrade -y jenkins-1.510"
+
 
 As an example, this additional command will install the cartridges needed for scalable PHP applications that can connect to MySQL:
 
