@@ -1,5 +1,6 @@
 namespace :test do
 
+  desc "Sanity tests"
   Rake::TestTask.new :sanity => ['test:prepare'] do |t|
     t.libs << 'test'
     t.test_files = FileList[
@@ -7,9 +8,13 @@ namespace :test do
     ]
   end
 
+  functionals = []
+
+  desc "Functional tests 1"
   Rake::TestTask.new :functionals1 => ['test:prepare'] do |t|
+    t.verbose = true
     t.libs << 'test'
-    t.test_files = FileList[
+    tests = FileList[
       'test/functional/access_controlled_test.rb',
       'test/functional/admin_stats_db_test.rb',
       'test/functional/alias_controller_test.rb',
@@ -27,11 +32,15 @@ namespace :test do
       'test/functional/descriptors_controller_test.rb',
       'test/functional/user_controller_test.rb'
     ]
+    functionals += tests
+    t.test_files = tests
   end
 
+  desc "Functional tests 2"
   Rake::TestTask.new :functionals2 => ['test:prepare'] do |t|
+    t.verbose = true
     t.libs << 'test'
-    t.test_files = FileList[
+    tests = FileList[
       'test/functional/distributed_lock_test.rb',
       'test/functional/district_test.rb',
       'test/functional/dns_resolvable_controller_test.rb',
@@ -49,20 +58,25 @@ namespace :test do
       'test/functional/quickstarts_controller_test.rb',
       'test/functional/region_test.rb'
     ]
+    functionals += tests
+    t.test_files = tests
   end
 
+  desc "Functional tests 3"
   Rake::TestTask.new :functionals3 => ['test:prepare'] do |t|
+    t.verbose = true
     t.libs << 'test'
-    t.test_files = FileList[
-      'test/functional/rest_api_test.rb',
-      'test/functional/sub_user_test.rb',
-      'test/functional/usage_model_test.rb'
-    ]
+    all_functionals = Dir.glob('test/functional/*_test.rb')
+    t.test_files = all_functionals - functionals
   end
 
+  ext_functionals = []
+
+  desc "Extended Functional tests 1"
   Rake::TestTask.new :functionals_ext1 => ['test:prepare'] do |t|
+    t.verbose = true
     t.libs << 'test'
-    t.test_files = FileList[
+    tests = FileList[
       'test/functional_ext/alias_test.rb',
       'test/functional_ext/app_cartridge_events_test.rb',
       'test/functional_ext/app_cartridges_test.rb',
@@ -70,45 +84,53 @@ namespace :test do
       'test/functional_ext/application_test.rb',
       'test/functional_ext/deployment_test.rb'
     ]
+    ext_functionals += tests
+    t.test_files = tests
   end
 
+  desc "Extended Functional tests 2"
   Rake::TestTask.new :functionals_ext2 => ['test:prepare'] do |t|
+    t.verbose = true
     t.libs << 'test'
-    t.test_files = FileList[
-      'test/functional_ext/domain_test.rb',
-      'test/functional_ext/removed_nodes_app_fixup_test.rb',
-      'test/functional_ext/rest_api_nolinks_test.rb'
-    ]
+    all_ext_functionals = Dir.glob('test/functional_ext/*_test.rb')
+    t.test_files = all_ext_functionals - ext_functionals
   end
 
+  desc "Extended Integration tests"
   Rake::TestTask.new :integration_ext => ['test:prepare'] do |t|
+    t.verbose = true
     t.libs << 'test'
     t.test_files = FileList[
       'test/integration_ext/*_test.rb'
     ]
   end
 
+  desc "Admin Console Functional tests"
   Rake::TestTask.new :admin_console_functionals => ['test:prepare'] do |t|
+    t.verbose = true
     t.libs << 'test'
     t.test_files = FileList[
       '../admin-console/test/functional/**/*_test.rb'
     ]
   end
 
+  desc "Admin Console Integration tests"
   Rake::TestTask.new :admin_console_integration => ['test:prepare'] do |t|
+    t.verbose = true
     t.libs << 'test'
     t.test_files = FileList[
       '../admin-console/test/integration/**/*_test.rb'
     ]
   end  
   
+  desc "OO Admin Script tests"
   Rake::TestTask.new :oo_admin_scripts => ['test:prepare'] do |t|
+    t.verbose = true
     t.libs << "test"
     t.test_files = FileList[
       'test/functional/oo_*_test.rb',
       'test/functional_ext/oo_*_test.rb'
     ]
-    t.verbose = true
   end
 
 end
