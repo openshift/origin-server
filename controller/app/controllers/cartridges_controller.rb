@@ -48,7 +48,6 @@ class CartridgesController < BaseController
     if search
       cartridges = CartridgeCache.find_all_cartridges(search)
       rest_cartridges = cartridges.map { |c| get_rest_cartridge(c) }
-      Rails.logger.error "cartridges #{rest_cartridges}"
       return render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
     end
     # return all cartridges
