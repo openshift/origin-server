@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -269,6 +269,28 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- Merge pull request #4630 from jwhonce/bug/1059804
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1059804 - Watchman support for UTF-8 (jhonce@redhat.com)
+- Merge pull request #4626 from jwhonce/bug/1056713
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1056713 - Report cgroup attributes and values in JSON (jhonce@redhat.com)
+- Merge pull request #4545 from brenton/iptables1
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4611 from jwhonce/stage
+  (dmcphers+openshiftbot@redhat.com)
+- Improving oo-admin-ctl-iptables-port-proxy's start method to handle a missing
+  INPUT rule (bleanhar@redhat.com)
+- Various iptables integration fixes (bleanhar@redhat.com)
+- Revert "Merge pull request #4488 from lsm5/new-node_conf" (jhonce@redhat.com)
+- Revert "Merge pull request #4519 from lsm5/new-node_conf" (jhonce@redhat.com)
+- Keeping tests of same type in same group (dmcphers@redhat.com)
+- Fix bug 1055653 for cases when httpd is down (pmorie@gmail.com)
+- Fixing common test case timeout (dmcphers@redhat.com)
+- Speeding up tests (dmcphers@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
 * Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.19.17-1
 - Merge pull request #4581 from jwhonce/wip/head_key_flag
   (dmcphers+openshiftbot@redhat.com)
