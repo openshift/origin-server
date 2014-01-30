@@ -8,7 +8,7 @@ require 'json'
 
 class RestApiNolinksTest < ActiveSupport::TestCase
   test "rest api nolinks" do
-    register_user(true) if registration_required?
+    register_user($user, $password, true) if registration_required?
     REST_CALLS.each do |rest_version|
       rest_version.each do |rest_api|
 #        puts "#{rest_api.method}  #{rest_api.uri}  #{rest_api.request}"

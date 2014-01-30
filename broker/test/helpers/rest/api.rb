@@ -24,52 +24,6 @@ $user = 'test-user' + gen_uuid[0..9]
 $password = 'nopass'
 $credentials = Base64.encode64("#{$user}:#{$password}")
 $default_timeout = 120 # 120 secs
-$auth_warn_once = false
-
-def register_user(prod_env=false)
-  if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
-    if prod_env
-      `oo-register-user -l admin -p admin --username #{$user} --userpass #{$password}`
-    else #test env
-      uri = "/accounts"
-      credentials = Base64.encode64("admin:admin")
-      headers = {}
-      headers["HTTP_ACCEPT"] = "application/json"
-      headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
-      request_via_redirect(:post, "/broker/rest" + uri, {"username" => $user, "password" => $password}, headers)
-    end
-  elsif File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
-    cmd = "/usr/bin/htpasswd -b /etc/openshift/htpasswd #{$user} #{$password}"
-  else
-    #ignore
-    unless $auth_warn_once
-      $auth_warn_once = true
-      puts "WARNING: Unknown auth plugin. Not registering user #{$user}/#{$password}. Modify #{__FILE__}:36 if user registration is required.\n"
-    end
-    cmd = nil
-  end
-  pid, stdin, stdout, stderr = nil, nil, nil, nil
-
-  if not cmd.nil?
-    with_clean_env {
-      pid, stdin, stdout, stderr = Open4::popen4(cmd)
-      stdin.close
-      ignored, status = Process::waitpid2 pid
-#      exitcode = status.exitstatus
-    }
-  end
-end
-
-#From http://spectator.in/2011/01/28/bundler-in-subshells/
-#
-#We can revert to using Bundler.with_clean_env when Bundler 1.1.x hits Fedora
-def with_clean_env
-  bundled_env = ENV.to_hash
-  %w(BUNDLE_GEMFILE RUBYOPT BUNDLE_BIN_PATH).each{ |var| ENV.delete(var) }
-  yield
-ensure
-  ENV.replace(bundled_env.to_hash)
-end
 
 # openshift.com has it's own authentication plugin for integrating with
 # redhat.com

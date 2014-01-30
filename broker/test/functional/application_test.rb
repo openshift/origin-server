@@ -5,14 +5,17 @@ require 'helpers/rest/api'
 
 class ApplicationsTest < ActionDispatch::IntegrationTest
   def setup
-    register_user
+    @random = rand(1000000000)
+    @login = "user#{@random}"
+    @password = 'password'
     @namespace = "domain" + gen_uuid[0..9]
-    @user = CloudUser.new(login: $user)
+    @user = CloudUser.new(login: @login)
     @user.max_gears = 10
     @user.save!
     @domain = Domain.new(namespace: @namespace, owner: @user)
     @domain.save!
     Lock.create_lock(@user)
+    register_user(@login, @password)
     stubber
   end
 
@@ -474,22 +477,22 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "user info through internal rest" do
-    credentials = Base64.encode64("#{$user}:#{$password}")
+    credentials = Base64.encode64("#{@user}:#{@password}")
     headers = {}
     headers["HTTP_ACCEPT"] = "application/json"
     headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
-    headers["REMOTE_USER"] = $user
+    headers["REMOTE_USER"] = @user
     request_via_redirect(:get, "/broker/rest/user", {}, headers)
     assert_equal @response.status, 200
   end
 
   def rest_check(method, resource, params)
     uri = "/domains/#{@namespace}/applications/#{@appname}" + resource
-    credentials = Base64.encode64("#{$user}:#{$password}")
+    credentials = Base64.encode64("#{@user}:#{@password}")
     headers = {}
     headers["HTTP_ACCEPT"] = "application/json"
     headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
-    headers["REMOTE_USER"] = $user
+    headers["REMOTE_USER"] = @user
     request_via_redirect(method, "/broker/rest" + uri, params, headers)
     @response
   end
@@ -507,7 +510,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
     app_name = "a1"
     begin
-      app = Application.create_app(app_name, [PHP_VERSION], @domain)
+      app = Application.create_app(app_name, cartridge_instances_for(:php), @domain)
       assert false
     rescue OpenShift::OOException => e
       assert_equal 140, e.code
@@ -520,7 +523,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     region1 = Region.create("g1")
     region1.add_zone("z10")
     dist.add_node("s10", "g1", "z10")
-    app = Application.create_app(app_name, [PHP_VERSION], @domain)
+    app = Application.create_app(app_name, cartridge_instances_for(:php), @domain)
     assert_equal app.gears.count, 1
     assert_equal "s10", app.gears.first.server_identity
     app.destroy_app
@@ -537,7 +540,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     dist.add_node("s20", "g2", "z20")
     dist.add_node("s21", "g2", "z21")
 
-    app = Application.create_app(app_name, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
+    app = Application.create_app(app_name, cartridge_instances_for(:php, :mysql), @domain, nil, true)
     app = Application.find_by(canonical_name: app_name.downcase, domain_id: @domain._id) rescue nil
     web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
     app.scale_by(web_framework_component_instance.group_instance_id, 1)
