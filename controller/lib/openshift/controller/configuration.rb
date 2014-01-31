@@ -24,6 +24,32 @@ module OpenShift::Controller
         list.split(',').map(&:strip).map(&:presence).compact
       end
     end
-    
+
+    # Parses a whitespace-separated string with |-separated elements to a hash.
+    # So e.g.:
+    # first|http://first-url/ second|git://second-url/ =>
+    # {"first"=>"http://first-url/", "second"=>"git://second-url/"}
+    # Nil/empty input returns empty hash. Malformed URL raises exception.
+    def self.parse_url_hash(str)
+      url_hash = Hash.new
+      unless str.nil? || str.empty?
+        broken_urls = []
+        str.split(/\s+/).each do |el|
+          name, url = el.split '|'
+          url.nil? and broken_urls.push(%Q[#{el} defines no URL; use "empty" for an empty git template.]) and next
+          begin
+            url_parts = OpenShift::Git.safe_clone_spec(url, OpenShift::Git::ALLOWED_NODE_SCHEMES)
+            url_parts.nil? and broken_urls.push(%Q[#{el} does not specify a valid git URL.]) and next
+            url_hash[name] = url_parts.compact.join('#')
+          rescue
+            broken_urls.push "#{el} is invalid: #{$!}"
+          end
+        end
+        # Rails.logger not defined yet. Best we can do is raise an error.
+        broken_urls.empty? or raise %Q[Invalid git URLs are configured:\n#{broken_urls.join "\n"}]
+      end
+      url_hash
+    end
+
   end
 end

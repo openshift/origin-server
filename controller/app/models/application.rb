@@ -634,6 +634,11 @@ class Application
     group_overrides = CartridgeInstance.overrides_for(cartridges, self)
     self.validate_cartridge_instances!(cartridges)
 
+    # supply initial app template if configured in broker conf
+    template_for = Rails.application.config.openshift[:app_template_for]
+    init_git_url ||= cartridges.select(&:is_web_framework?).
+                     map {|c| template_for[c.name] || template_for[c.short_name] }.
+                     select.first
     add_cartridges(cartridges.map(&:cartridge), group_overrides, init_git_url, user_env_vars)
 
   rescue => e
@@ -1937,11 +1942,11 @@ class Application
         component_ops[comp_spec][:adds] << add_component_op
         usage_op_prereq = [add_component_op._id.to_s]
 
-        # if this is a web_proxy, send any existing alias and SSL cert information to it 
+        # if this is a web_proxy, send any existing alias and SSL cert information to it
         if cartridge.is_web_proxy? and self.aliases.present?
           resend_aliases_op = ResendAliasesOp.new(gear_id: gear_id, fqdns: self.aliases.map {|app_alias| app_alias.fqdn}, prereq: [add_component_op._id.to_s])
           ops.push resend_aliases_op
-          
+
           aliases_with_certs = self.aliases.select {|app_alias| app_alias.has_private_ssl_certificate}
           if aliases_with_certs.present?
             resend_ssl_certs_op = ResendSslCertsOp.new(gear_id: gear_id, fqdns: aliases_with_certs.map {|app_alias| app_alias.fqdn}, prereq: [resend_aliases_op._id.to_s])
