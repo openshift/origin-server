@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.19.12
+Version: 1.19.13
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -99,6 +99,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Fri Jan 31 2014 Adam Miller <admiller@redhat.com> 1.19.13-1
+- Bug 1060290: Fix variable reference typo causing an exception
+  (ironcladlou@gmail.com)
+
 * Tue Jan 28 2014 Adam Miller <admiller@redhat.com> 1.19.12-1
 - Bug 1058181 - Fix query filter in oo-admin-usage (rpenta@redhat.com)
 
