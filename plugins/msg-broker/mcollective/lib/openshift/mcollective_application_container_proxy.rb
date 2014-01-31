@@ -3140,6 +3140,24 @@ module OpenShift
       end
 
       def self.select_best_fit_node_impl(server_infos)
+        # When region/zones available, pick zones that are least consumed/have max available capacity
+        zones_available_capacity = {}
+        server_infos.each do |server_info|
+          zone_id = server_info[4]
+          if zone_id
+            zones_available_capacity[zone_id] = 0 unless zones_available_capacity[zone_id]
+            zones_available_capacity[zone_id] += server_info[1]
+          end
+        end
+       
+        if zones_available_capacity.present?
+          max_available_capacity = zones_available_capacity.values.max
+          preferred_zones = zones_available_capacity.select{ |zone_id, capacity| true if capacity >= max_available_capacity }.keys
+         
+          # Remove the servers from the list that does not belong to preferred zones
+          server_infos.delete_if { |server_info| !preferred_zones.include?(server_info[4]) } if preferred_zones.present?
+        end
+ 
         # Sort by node active capacity (consumed capacity) and take the best half
         server_infos = server_infos.sort_by { |server_info| server_info[1] }
         # consider the top half and no less than min(4, the actual number of available)
