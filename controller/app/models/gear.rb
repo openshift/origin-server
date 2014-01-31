@@ -94,7 +94,8 @@ class Gear
 
   def reserve_uid(gear_size = nil)
     gear_size = group_instance.gear_size unless gear_size
-    @container = OpenShift::ApplicationContainerProxy.find_available(gear_size, nil, group_instance.server_identities, self)
+    
+    @container = OpenShift::ApplicationContainerProxy.find_available(gear_size, nil, non_ha_server_identities, restricted_server_identities, self)
     reserved_uid = @container.reserve_uid
     Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => @container.id, "gears.$.uid" => reserved_uid}})
     self.server_identity = @container.id
@@ -295,6 +296,28 @@ class Gear
   # @return [String] Public IP address of the node the gear is hosted on.
   def get_public_ip_address
     get_proxy.get_public_ip_address
+  end
+
+  # Gets the list of server identities where gears from this gear's group instance are hosted
+  # == Returns:
+  # @return [Array] List of server identities where gears from this gear's group instance are hosted.
+  def non_ha_server_identities
+    group_instance.server_identities.uniq
+  end
+
+  # Gets the list of server identities where this gear cannot be hosted  
+  # == Returns:
+  # @return [Array] List of server identities where this gear cannnot be hosted
+  def restricted_server_identities
+    restricted_nodes = []
+    if !Rails.configuration.openshift[:allow_multiple_haproxy_on_node] and self.application.scalable and self.component_instances.select { |ci| ci.is_web_proxy? }.present?
+      self.group_instance.gears.each do |gear|
+        # skip if this is the current gear itself or if it's node hasn't been determined yet  
+        next if gear.uuid == self.uuid or gear.server_identity.nil?
+        restricted_nodes << gear.server_identity if gear.component_instances.select { |ci| ci.is_web_proxy? }.present?
+      end
+    end
+    restricted_nodes
   end
 
   # Given a set of gears, retrieve the state of the gear

@@ -8,8 +8,12 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     @@appname = "app#{gen_uuid[0..9]}"
     @@gi_id = Moped::BSON::ObjectId.new
     @@gear_id = Moped::BSON::ObjectId.new
-    @@cart_name = "php-5.3"
-    @@comp_name = "php-5.3"
+    @@web_cart_name = php_version
+    @@web_comp_name = php_version
+    @@proxy_cart_name = "haproxy-1.4"
+    @@proxy_comp_name = "web_proxy"
+    @@group_overrides = { "0" => { "components" => { "0" => { "cart" => "haproxy-1.4", "comp" => "web_proxy", "multiplier" => 1 },
+                                                     "1" => { "cart" => php_version, "comp" => php_version, "multiplier" => 1 } } } }
     @@server_id = `oo-mco ping`.chomp.split(" ")[0]
   end
 
@@ -30,8 +34,8 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     
     raise Exception.new("Component instances not specified") if comp_list.empty?
     raise Exception.new("Component count mismatch") if comp_list.length != 1
-    raise Exception.new("Cartridge name mismatch") if comp_list[0].cartridge_name != @@cart_name
-    raise Exception.new("Component name mismatch") if comp_list[0].component_name != @@comp_name
+    raise Exception.new("Cartridge name mismatch") if comp_list[0].cartridge_name != @@web_cart_name
+    raise Exception.new("Component name mismatch") if comp_list[0].component_name != @@web_comp_name
 
     raise Exception.new("Request time not specified") if request_time.nil?
 
@@ -53,11 +57,11 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     app.gears.push gear
     new_gear = Gear.new({:custom_id => Moped::BSON::ObjectId.new, :group_instance => gi})
     app.gears.push new_gear
-    ci = ComponentInstance.new(cartridge_name: @@cart_name, component_name: @@comp_name, group_instance_id: gi._id)
+    ci = ComponentInstance.new(cartridge_name: @@web_cart_name, component_name: @@web_comp_name, group_instance_id: gi._id)
     app.component_instances.push ci
     app.save
     
-    p = OpenShift::ApplicationContainerProxy.find_available("small", nil, nil, new_gear)
+    p = OpenShift::ApplicationContainerProxy.find_available("small", nil, nil, nil, new_gear)
     assert p.id == "serverid", "The expected node was not returned"
   end
 
@@ -65,6 +69,58 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     OpenShift::ApplicationContainerProxy.node_selector_plugin = nil
     p = OpenShift::ApplicationContainerProxy.find_available("small")
     assert p.id == @@server_id, "The expected node was not returned"
+  end
+
+  test "least preferred node selection" do
+    OpenShift::ApplicationContainerProxy.node_selector_plugin = nil
+    begin
+      p = OpenShift::ApplicationContainerProxy.find_available("small", nil, [@@server_id])
+      assert p.id == @@server_id, "The expected node was not returned"
+    rescue OpenShift::NodeUnavailableException
+      assert false, "The least preferred node was not selected and NodeUnavailableException was raised"
+    end
+  end
+
+  test "restricted node selection" do
+    OpenShift::ApplicationContainerProxy.node_selector_plugin = nil
+
+    user = CloudUser.new(login: @@login)
+    user.save
+    domain = Domain.new(namespace: @@namespace, owner: user)
+    domain.save
+    app = Application.new(name: @@appname, domain: domain, ha: true, scalable: true)
+    gi = GroupInstance.new({:custom_id => @@gi_id})
+    app.group_instances.push gi
+    app.group_overrides = @@group_overrides
+    web_ci = ComponentInstance.new(cartridge_name: @@web_cart_name, component_name: @@web_comp_name, group_instance_id: gi._id)
+    app.component_instances.push web_ci
+    proxy_ci = ComponentInstance.new(cartridge_name: @@proxy_cart_name, component_name: @@proxy_comp_name, group_instance_id: gi._id)
+    app.component_instances.push proxy_ci
+    gear = Gear.new({:custom_id => @@gear_id, :group_instance => gi})
+    gear.server_identity = @@server_id
+    gear.sparse_carts.push proxy_ci._id
+    app.gears.push gear
+    new_gear = Gear.new({:custom_id => Moped::BSON::ObjectId.new, :group_instance => gi})
+    app.gears.push new_gear
+    app.save
+
+    # test when multiple web proxies are allowed on the same node
+    begin
+      assert Rails.configuration.openshift[:allow_multiple_haproxy_on_node] == true, "Broker configuration for allowing multiple web proxies on the same node is not as expected"
+      OpenShift::ApplicationContainerProxy.find_available("small", nil, new_gear.non_ha_server_identities, new_gear.restricted_server_identities, new_gear)
+    rescue OpenShift::NodeUnavailableException
+      assert false, "NodeUnavailableException was raised even though multiple web proxies are allowed on the same node"
+    end
+
+    # test when multiple web proxies are not allowed on the same node
+    # this is being simulated by setting the restricted server identities directly instead of relying on the gear
+    begin
+      OpenShift::ApplicationContainerProxy.find_available("small", nil, new_gear.non_ha_server_identities, [@@server_id], new_gear)
+    rescue OpenShift::NodeUnavailableException
+      #this is expected
+    else
+      assert false, "NodeUnavailableException was not raised even though the node was restricted"
+    end
   end
 
   def teardown
