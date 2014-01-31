@@ -34,6 +34,7 @@ module OpenShift
             def self.purge_by_fqdn(fqdn)
               NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
                 d.delete_if { |k, v| (k == fqdn) or (v["alias"] == fqdn) }
+                d.delete_if { |k, v| k.split('/')[0] == fqdn }
               end
             end
 
@@ -45,12 +46,11 @@ module OpenShift
               reported_urls = []
               NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
                 elements.each do |path, uri, options|
+                  # Check if the path supports websockets
+                  next unless options["websocket"]
 
-                  next unless path == ""
-
-                  if not options["websocket"]
-                    next if options["protocols"] and ["ws"].select { |proto| options["protocols"].include?(proto) }.empty?
-                  end
+                  # Check if the endpoints support websockets
+                  next if options["protocols"] and ["ws"].select { |proto| options["protocols"].include?(proto) }.empty?
 
                   conn = options["connections"]
                   if conn.nil?
@@ -76,7 +76,7 @@ module OpenShift
                     }
                   }
 
-                  d.store(@fqdn, routes_ent)
+                  d.store(@fqdn + path, routes_ent)
 
                   d.select { |k, v| v["alias"] == @fqdn }.each do |k, v|
                     v.merge!(routes_ent)
@@ -108,9 +108,9 @@ module OpenShift
 
 
             def disconnect(*paths)
-              if paths.flatten.include?("")
-                NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
-                  d.delete(@fqdn)
+              NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
+                paths.flatten.each do |p|
+                  d.delete(@fqdn + p)
                 end
               end
             end
