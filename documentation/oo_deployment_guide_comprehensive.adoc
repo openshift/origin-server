@@ -1720,7 +1720,7 @@ cp openshift-origin-auth-remote-user-basic.conf.sample openshift-origin-auth-rem
 ----
 
 
-=== SSL Configuration
+==== SSL Configuration
 Check your SSL configuration. Don’t forget to remove entirely _<VirtualHost *:443>_ section into _/etc/httpd/conf.d/ssl.conf_.
 
 
