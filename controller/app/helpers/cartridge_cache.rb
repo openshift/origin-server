@@ -9,7 +9,7 @@ class CartridgeCache
 
   # Returns an Array of Cartridge objects
   def self.cartridges(show_obsolete=nil)
-    show_obsolete = show_obsolete || Rails.configuration.openshift[:allow_obsolete_cartridges]
+    show_obsolete = Rails.configuration.openshift[:allow_obsolete_cartridges] if show_obsolete.nil?
     get_all_cartridges.select{ |cart| show_obsolete || !cart.is_obsolete? }
   end
 
