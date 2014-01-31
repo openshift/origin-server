@@ -25,8 +25,7 @@ module OpenShift
       # NOTE: The +trace+ method is unimplemented.
       #
       class StderrLogger
-        def initialize(config=nil, context=nil)
-          @context = context
+        def initialize(config=nil)
           reinitialize
         end
 

@@ -104,7 +104,7 @@ module OpenShift
             }
         }
 
-        logger = NodeLogger::SplitTraceLogger.new(config, NodeLogger.context, logger_profiles)
+        logger = NodeLogger::SplitTraceLogger.new(config, logger_profiles)
 
         NodeLogger.set_logger(logger)
         logger

@@ -42,7 +42,6 @@ require 'json'
 require 'rest-client'
 require 'openshift-origin-node/utils/managed_files'
 require 'timeout'
-require 'parallel'
 
 module OpenShift
   module Runtime

@@ -21,6 +21,7 @@ require 'openshift-origin-node/utils/logger/split_trace_logger'
 require 'openshift-origin-node/utils/logger/null_logger'
 require 'openshift-origin-node/utils/logger/stdout_logger'
 require 'openshift-origin-node/utils/logger/stderr_logger'
+require 'openshift-origin-node/utils/logger/syslog_logger'
 
 module OpenShift
   module Runtime
@@ -40,7 +41,7 @@ module OpenShift
     #   module OpenShift
     #     module NodeLogger
     #       class CustomLogger
-    #         def initialize(config, context); end
+    #         def initialize(config); end
     #
     #         def info(*args, &block); end
     #         def warn(*args, &block); end
@@ -54,13 +55,12 @@ module OpenShift
     #     end
     #   end
     #
-    # NodeLogger maintains a +context+ Hash which is passed to logger implementations. Callers
-    # may set and remove keys from the context at-will, to provide information such as transaction
-    # IDs or any other data which may be useful for loggers. The context object is NOT thread-safe.
-    #
     # A +disable+ method is provided for convenience to initialize NodeLogger with the +NullLogger+,
     # effectively disabling logging. This is equivalent to using external configuration, but provides
     # a programmatic entrypoint.
+    #
+    # NodeLogger exposes a `context` hash which is a thread-local containing data logging implementations
+    # may choose to include on each log entry (e.g. via the formatting capabilities of +LoggerSupport+).
     #
     # Example:
     #
@@ -82,13 +82,14 @@ module OpenShift
     #
     module NodeLogger
       DEFAULT_LOGGER_CLASS = "SplitTraceLogger"
+      CONTEXT_KEY = :OPENSHIFT_LOGGER_CONTEXT
 
       def self.create_logger
         config = self.load_config
         logger_class = config.get("PLATFORM_LOG_CLASS") || DEFAULT_LOGGER_CLASS
 
         begin
-          logger = ::OpenShift::Runtime::NodeLogger.const_get(logger_class).new(config, self.context)
+          logger = ::OpenShift::Runtime::NodeLogger.const_get(logger_class).new(config)
         rescue => e
           raise "Couldn't create NodeLogger class #{logger_class}: #{e.message}"
         end
@@ -121,7 +122,7 @@ module OpenShift
       end
 
       def self.context
-        @context ||= {}
+        Thread.current[CONTEXT_KEY] ||= {}
       end
 
       def self.set_logger(logger)
