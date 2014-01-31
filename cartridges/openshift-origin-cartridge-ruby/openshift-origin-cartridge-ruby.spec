@@ -4,6 +4,7 @@
 %endif
 
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
+%global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
 Version: 1.20.1
@@ -158,6 +159,7 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+%__mkdir -p %{buildroot}%{httpdconfdir}
 
 %if 0%{?fedora}%{?rhel} <= 6
 %__mv %{buildroot}%{cartridgedir}/versions/1.9-scl %{buildroot}%{cartridgedir}/versions/1.9
@@ -180,6 +182,8 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+%dir %{httpdconfdir}
+%attr(0755,-,-) %{httpdconfdir}
 
 %changelog
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
