@@ -719,6 +719,9 @@ legend + .control-group {
     &:first-child {
       *padding-left: $horizontalComponentOffset;
     }
+    .inline:first-child {
+      padding-top: 5px;
+    }
   }
   // Remove bottom margin on block level help text since that's accounted for on .control-group
   .help-block {
