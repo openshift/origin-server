@@ -1721,10 +1721,13 @@ cp openshift-origin-auth-remote-user-basic.conf.sample openshift-origin-auth-rem
 
 
 ==== SSL Configuration
-Check your SSL configuration. Don’t forget to remove entirely _<VirtualHost *:443>_ section into _/etc/httpd/conf.d/ssl.conf_.
+The broker proxy configuration for apache adds a VirtualHost configuration to listen on port 443. 
+
+This may conflict with the default SSL VirtualHost configuration. 
+Check _/etc/httpd/conf.d/ssl.conf_ and completely remove the configuration if you find one there.
 
 
-This virtualhost section is already defined into the following file : _/etc/httpd/conf.d/000002_openshift_origin_broker_proxy.conf_.
+The broker proxy configuration itself can be found in _/etc/httpd/conf.d/*openshiftorigin_broker_proxy.conf_ :
 
 ----
 <VirtualHost *:443>
@@ -1748,11 +1751,11 @@ This virtualhost section is already defined into the following file : _/etc/http
   ProxyPass /broker http://127.0.0.1:8080/broker
   ProxyPassReverse /broker http://127.0.0.1:8080/broker
 
-  ProxyPass /assets http://127.0.0.1:8118/console/assets
-  ProxyPassReverse /assets http://127.0.0.1:8118/console/assets
+  ProxyPass /assets http://127.0.0.1:8118/console/assets <1>
+  ProxyPassReverse /assets http://127.0.0.1:8118/console/assets <1>
 </VirtualHost>
 ----
-
+<1> In order for icons to show up correctly on the web console, you should ensure that the VirtualHost definition in that file contains the _ProxyPass_ and _ProxyPassReverse_ lines.
 
 
 
