@@ -11,6 +11,12 @@ class ArrayTest < OpenShift::NodeTestCase
     assert_equal 2, x.average
   end
 
+  def test_average_zero
+    x = []
+
+    assert_equal 0, x.average
+  end
+
   def test_divide_array
     x = [10,20,30,50]
     y = [2,4,3,20]
@@ -20,8 +26,17 @@ class ArrayTest < OpenShift::NodeTestCase
     assert_equal correct, x.divide(y)
   end
 
-  def test_divide_const
+  def test_divide_zero
     x = [10,20,30,50]
+    y = 0
+
+    correct = [0, 0, 0, 0]
+
+    assert_equal correct, x.divide(y)
+  end
+
+  def test_divide_const
+    x = [10, 20, 30, 50]
     y = 5
 
     correct = [2, 4, 6, 10]
