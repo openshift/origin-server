@@ -1027,6 +1027,7 @@ module OpenShift
         frontend       = FrontendHttpServer.new(@container)
         gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         web_proxy_cart = web_proxy
+        app_dns        = gear_env["OPENSHIFT_APP_DNS"]
 
         output = ""
         begin
@@ -1063,6 +1064,15 @@ module OpenShift
               logger.info("Connecting frontend mapping for #{@container.uuid}/#{cartridge.name}: "\
                       "[#{mapping.frontend}] => [#{backend_uri}] with options: #{mapping.options}")
               reported_urls = frontend.connect(mapping.frontend, backend_uri, options)
+              if cartridge.web_proxy?
+                gear_fqdn = frontend.fqdn
+                if gear_fqdn != app_dns
+                  # secondary web-proxy gear
+                  frontend.fqdn = app_dns
+                  reported_urls += frontend.connect(mapping.frontend, backend_uri, options)
+                  frontend.fqdn = gear_fqdn
+                end
+              end
               if reported_urls
                 reported_urls.each do |url|
                   outstr = "Cartridge #{cartridge.name} exposed URL #{url}"
