@@ -1,4 +1,5 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
+%global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
 Version: 1.20.1
@@ -83,6 +84,7 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+%__mkdir -p %{buildroot}%{httpdconfdir}
 
 %__mkdir -p %{buildroot}%{cartridgedir}/env
 
@@ -111,6 +113,8 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
+%dir %{httpdconfdir}
+%attr(0755,-,-) %{httpdconfdir}
 %if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-) %{cartridgedir}/usr/versions/2.6/bin/
 %attr(0755,-,-) %{cartridgedir}/usr/versions/2.6/bin/*
