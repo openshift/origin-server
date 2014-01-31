@@ -486,17 +486,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal @response.status, 200
   end
 
-  def rest_check(method, resource, params)
-    uri = "/domains/#{@namespace}/applications/#{@appname}" + resource
-    credentials = Base64.encode64("#{@user}:#{@password}")
-    headers = {}
-    headers["HTTP_ACCEPT"] = "application/json"
-    headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
-    headers["REMOTE_USER"] = @user
-    request_via_redirect(method, "/broker/rest" + uri, params, headers)
-    @response
-  end
-
   test "create scalable app and ensure gears belong to single region and different zones" do
     return unless OpenShift.const_defined?('MCollectiveApplicationContainerProxy')
     dist = get_district_obj
@@ -566,8 +555,22 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal si1.region_id, si2.region_id
     assert_equal si2.region_id, si3.region_id
     assert_not_equal si1.zone_id, si2.zone_id
+    app.destroy_app
+   
+    # test min zones per gear group 
+    Rails.configuration.msg_broker[:regions][:enabled] = true
+    Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
+    Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group] = 3
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100], ["s20", 100])
+    app = Application.create_app(app_name, cartridge_instances_for(:php), @domain, nil, true)
+    assert_equal 1, app.gears.length
+    assert_equal "s20", app.gears[0].server_identity
+    web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
+    exception_count = 0
+    app.scale_by(web_framework_component_instance.group_instance_id, 1) rescue exception_count += 1
+    assert_equal 1, exception_count
+    app.destroy_app
 
-    app.destroy_app 
     dist.deactivate_node("s00")
     dist.deactivate_node("s10")
     dist.deactivate_node("s11")
@@ -597,6 +600,17 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def rest_check(method, resource, params)
+    uri = "/domains/#{@namespace}/applications/#{@appname}" + resource
+    credentials = Base64.encode64("#{@login}:#{@password}")
+    headers = {}
+    headers["HTTP_ACCEPT"] = "application/json"
+    headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
+    headers["REMOTE_USER"] = @login
+    request_via_redirect(method, "/broker/rest" + uri, params, headers)
+    @response
+  end
 
   def get_district_obj
     uuid = gen_uuid
