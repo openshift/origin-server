@@ -38,9 +38,14 @@ class ApiController < BaseController
         Param.new(":domain_name", "string", "Unique name of the domain", nil, []),
         Param.new(":name", "string", "Name of the application", nil, []),
       ]),
-      "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
-      "SHOW_CARTRIDGE"  => Link.new("Retrieve a cartridge by name", "GET", URI::join(get_url, "cartridge/:id"), [
-        Param.new(":id", "string", "Name of the cartridge", nil, [])
+      "LIST_CARTRIDGES" => Link.new("List public cartridges", "GET", URI::join(get_url, "cartridges"), [
+        OptionalParam.new("category", "string", "Show all cartridges with the given category"),
+      ]),
+      "SHOW_CARTRIDGE"  => Link.new("Retrieve a public cartridge by name", "GET", URI::join(get_url, "cartridge/:name"), [
+        Param.new(":name", "string", "Name of the cartridge", nil, [])
+      ]),
+      "SHOW_CARTRIDGE_BY_ID"  => Link.new("Retrieve a cartridge by id", "GET", URI::join(get_url, "cartridge/:id"), [
+        Param.new(":id", "string", "Unique identifier of the cartridge", nil, [])
       ]),
     }
 

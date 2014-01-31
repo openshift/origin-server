@@ -710,6 +710,8 @@ class ApplicationControllerTest < ActionController::TestCase
         - web_proxy
       Provides:
       - web_proxy
+      Categories:
+      - web_proxy
       MANIFEST
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => [php_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
@@ -733,6 +735,8 @@ class ApplicationControllerTest < ActionController::TestCase
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
       Provides:
+      - web_proxy
+      Categories:
       - web_proxy
       MANIFEST
     @app_name = "app#{@random}"

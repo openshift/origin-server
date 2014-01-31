@@ -8,9 +8,16 @@ PATH = "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/env
 class Command
   def import_node(options)
     env!(options)
-    carts = OpenShift::ApplicationContainerProxy.find_one(options.node).get_available_cartridges
+    carts = OpenShift::ApplicationContainerProxy.send(options.node ? :instance : :find_one, *[options.node].compact).get_available_cartridges
     types = CartridgeType.update_from(carts, nil, options.force)
     update_types(options, types)
+  rescue OpenShift::NodeException
+    if options.node
+      warn "The server #{options.node} did not respond to the request to get installed cartridges."
+    else
+      warn "Unable to communicate with a node to get installed cartridges: #{$!}"
+    end
+    1
   end
 
   def clean(options)
@@ -19,13 +26,14 @@ class Command
     CartridgeType.inactive.each do |t|
       found = Application.where('component_instances.cartridge_id' => t._id).count
       if found == 0
-        t.delete
+        unless options.dry_run
+          t.delete
+        end
         puts "#{t._id} # %-35s" % [t.name, found]
       else
         warn "# #{t._id} %-35s %s" % [t.name, found]
       end
     end
-    Rails.cache.clear
     0
   rescue => e
     exception e, "Failed to delete some cartridges"
@@ -92,8 +100,9 @@ class Command
       return 2
     end
     names = carts.map{ |s| "'#{s}'" }.join(', ')
-    carts.delete
-    Rails.cache.clear
+    unless options.dry_run
+      carts.delete
+    end
     puts "#{names} were deleted."
     0
   rescue ArgumentError
@@ -109,10 +118,11 @@ class Command
     env!(options)
     CartridgeType.or({:name.in => ids}, {:_id.in => ids}).each do |cart|
       if cart.priority
-        cart.priority = nil
-        cart.save!
+        unless options.dry_run
+          cart.priority = nil
+          cart.save!
+        end
         puts "#{cart.name} was deactivated."
-        Rails.cache.clear
       else
         puts "#{cart.name} was not active."
       end
@@ -133,9 +143,10 @@ class Command
     CartridgeType.or({:name.in => ids}, {:_id.in => ids}).each do |cart|
       if cart.obsolete? && !options.force
         warn "#{cart.name} is obsolete. Please pass --force to activate."
+      elsif options.dry_run
+        puts "#{cart._id} # now the active cartridge for #{cart.name}"
       elsif cart.activate
         puts "#{cart._id} # now the active cartridge for #{cart.name}"
-        Rails.cache.clear
       else
         warn "Unable to activate #{options.id}"
         type.errors.full_messages.each do |m|
@@ -202,8 +213,12 @@ class Command
     CartridgeType.inactive.each do |t|
       if active = CartridgeType.active.where(name: t.name).first
         cartridges += 1
-        result = Application.where(:pending_op_groups.with_size => 0, 'component_instances.cartridge_id' => t._id).update_all('$set' => {'component_instances.$.cartridge_id' => active._id})
-        updated = result['n']
+        if options.dry_run
+          result = Application.where(:pending_op_groups.with_size => 0, 'component_instances.cartridge_id' => t._id).update_all('$set' => {'component_instances.$.cartridge_id' => active._id})
+          updated = result['n']
+        else
+          updated = Application.where(:pending_op_groups.with_size => 0, 'component_instances.cartridge_id' => t._id).count
+        end
         applications += updated
         if (remaining = Application.where('component_instances.cartridge_id' => t._id).count) > 0
           warn "#{t._id} ! -> #{active._id} INCOMPLETE %7s / %3s left %s" % [updated, remaining, active.name]
@@ -297,7 +312,6 @@ class Command
       if types.inject(0){ |f, type| f + save_cart(options, type) } > 0
         1
       else
-        Rails.cache.clear
         0
       end
     end
@@ -305,8 +319,10 @@ class Command
     def save_cart(options, type)
       op = type.persisted? || type.has_predecessor? ? "update" : "add"
       activate = options.activate && (!type.obsolete? || options.force)
-      if type.send(activate ? :activate : :save)
-        puts "#{type._id} # #{op.capitalize[0]} #{type.name} #{ " (obsolete)" if type.obsolete?}#{ " (active)" if activate}"
+      if options.dry_run
+        puts "#{type._id} # #{op.capitalize[0]} #{type.name}#{ " (obsolete)" if type.obsolete? }#{ " (active)" if activate }"
+      elsif type.send(activate ? :activate : :save)
+        puts "#{type._id} # #{op.capitalize[0]} #{type.name}#{ " (obsolete)" if type.obsolete? }#{ " (active)" if activate }"
       else
         warn "Failed to #{op} #{type.name}"
         type.errors.full_messages.each do |m|
@@ -441,7 +457,11 @@ or names.
     options.activate = true
   end
 
-  opts.on('--name NAMES', "Comma-delimited cartridge names.") do |names|
+  opts.on('--dry-run', "Show the results of the update without changing anything.") do
+    options.dry_run = true
+  end
+
+  opts.on('-n', '--name NAMES', "Comma-delimited cartridge names.") do |names|
     options.names = names.split(/[\, ]/)
   end
 

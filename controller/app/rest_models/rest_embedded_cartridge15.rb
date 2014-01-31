@@ -100,7 +100,7 @@ class RestEmbeddedCartridge15 < OpenShift::Model
     :help_topics, :links, :properties, :display_name, :description, :scales_from,
     :scales_to, :current_scale, :supported_scales_from, :supported_scales_to,
     :scales_with, :base_gear_storage, :additional_gear_storage, :gear_profile, :collocated_with,
-    :status_messages, :usage_rates, :obsolete, :creation_time, :automatic_updates
+    :status_messages, :usage_rates, :obsolete, :creation_time, :added_time, :automatic_updates
 
   def initialize(cart, comp, app, cinst, colocated_cinsts, scale, url, status_messages, nolinks=false)
     self.name = cart.name
@@ -124,6 +124,7 @@ class RestEmbeddedCartridge15 < OpenShift::Model
     self.automatic_updates = cart.manifest_url.blank? && !cart.categories.include?('no_updates')
 
     @obsolete = true if cart.is_obsolete?
+    self.added_time = cinst.created_at || app.created_at
     self.creation_time = cart.created_at
     if cart.activated_at
       @activation_time = cart.activated_at.in_time_zone

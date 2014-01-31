@@ -2186,7 +2186,7 @@ class Application
     end
 
     config_order = calculate_configure_order(component_ops.keys)
-binding.pry
+
     config_order.each_index do |idx|
       next if idx == 0
       prereq_ids = []
@@ -2201,7 +2201,7 @@ binding.pry
       (component_ops[config_order[idx]][:post_configures] || []).each { |op| op.prereq += prereq_ids }
       (component_ops[config_order[idx]][:expose_ports] || []).each { |op| op.prereq += prereq_ids }
     end
-binding.pry
+
     if pending_ops.present? and !(pending_ops.length == 1 and SetGroupOverridesOp === pending_ops.first)
       # FIXME: this could be arbitrarily large - would be better to set a condition that this
       # operation cannot be skipped
