@@ -1,4 +1,5 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/phpmyadmin
+%global httpdconfdir /etc/openshift/cart.conf.d/httpd/phpmyadmin
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
@@ -28,6 +29,7 @@ Provides phpMyAdmin cartridge support. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+%__mkdir -p %{buildroot}%{httpdconfdir}
 %if 0%{?fedora}%{?rhel} <= 6
 rm -rf %{buildroot}%{cartridgedir}/versions/3.5
 mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
@@ -49,6 +51,8 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+%dir %{httpdconfdir}
+%attr(0755,-,-) %{httpdconfdir}
 
 %changelog
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.18.1-1

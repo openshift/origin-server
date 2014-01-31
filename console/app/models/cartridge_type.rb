@@ -62,7 +62,7 @@ class CartridgeType < RestApi::Base
   end
 
   def to_param
-    url || name
+    name || url
   end
 
   def url_suggested_name
@@ -81,6 +81,23 @@ class CartridgeType < RestApi::Base
     name.presence || url
   rescue
     url
+  end
+
+  def support_type
+    @support_type ||=
+      if vendor = @attributes[:vendor].presence
+        vendor == 'redhat' ? :openshift : :community
+      else
+        :community
+      end
+  end
+
+  def automatic_updates?
+    v = @attributes[:automatic_updates]
+    if v.nil?
+      v = !(tags.include?('no_updates') || custom?)
+    end
+    v
   end
 
   # Legacy, use #tags

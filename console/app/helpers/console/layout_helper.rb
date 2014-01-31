@@ -71,7 +71,7 @@ module Console::LayoutHelper
     classes << 'control-group-important' if opts[:important]
     data = if opts[:errors] || args.first == true
         classes << 'error'
-        {:server_error => true}    
+        {:server_error => true}
       end
     content_tag(:div, capture_haml{ yield }.html_safe, :class => classes.join(' '), :data => data)
   end

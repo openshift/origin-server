@@ -1,3 +1,4 @@
+require 'openshift-origin-node/utils/threads'
 require 'json'
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/hash'
@@ -702,7 +703,7 @@ module OpenShift
 
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
-          gear_results = Parallel.map(gears, :in_threads => MAX_THREADS) do |gear|
+          gear_results = OpenShift::Runtime::Threads::Parallel.map(gears, :in_threads => MAX_THREADS) do |gear|
             gear_result = distribute_to_gear(gear, gear_env)
           end
 
@@ -1070,7 +1071,7 @@ module OpenShift
           batch_size = calculate_batch_size(gears.size, parallel_concurrency_ratio)
           threads = [batch_size, MAX_THREADS].min
 
-          parallel_output = Parallel.map(gears, :in_threads => threads) do |target_gear|
+          parallel_output = OpenShift::Runtime::Threads::Parallel.map(gears, :in_threads => threads) do |target_gear|
             rotate_and_yield(target_gear, local_gear_env, options, &block)
           end
         end
@@ -1424,7 +1425,7 @@ module OpenShift
         end
 
         def sync_git_repo(ssh_urls, gear_env)
-          Parallel.map(ssh_urls, :in_threads => MAX_THREADS) do |gear|
+          OpenShift::Runtime::Threads::Parallel.map(ssh_urls, :in_threads => MAX_THREADS) do |gear|
             out, err, rc = run_in_container_context("rsync -avz --delete --exclude hooks --rsh=/usr/bin/oo-ssh git/#{application_name}.git/ #{gear}:git/#{application_name}.git/",
                                                     env: gear_env,
                                                     chdir: container_dir,
@@ -1435,7 +1436,7 @@ module OpenShift
         def sync_private_key(ssh_urls, gear_env)
           ssh_dir        = PathUtils.join(container_dir, '.openshift_ssh')
           ssh_key        = PathUtils.join(ssh_dir, 'id_rsa')
-          Parallel.map(ssh_urls, :in_threads => MAX_THREADS) do |gear|
+          OpenShift::Runtime::Threads::Parallel.map(ssh_urls, :in_threads => MAX_THREADS) do |gear|
             out, err, rc = run_in_container_context("rsync -aAX --rsh=/usr/bin/oo-ssh #{ssh_key}{,.pub} #{gear}:.openshift_ssh/", 
                                                     env: gear_env, 
                                                     chdir: container_dir, 
@@ -1611,7 +1612,7 @@ module OpenShift
             # the initial proxy gear can be elected
             proxy_entries = gear_registry.entries[:proxy].values
 
-            parallel_results = Parallel.map(proxy_entries, :in_threads => MAX_THREADS) do |entry|
+            parallel_results = OpenShift::Runtime::Threads::Parallel.map(proxy_entries, :in_threads => MAX_THREADS) do |entry|
               update_remote_proxy_status(current_gear: self.uuid,
                                          proxy_gear: entry,
                                          target_gear: gear_uuid,

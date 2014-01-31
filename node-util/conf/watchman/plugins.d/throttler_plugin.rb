@@ -144,6 +144,7 @@ module OpenShift
               refuse_action(:throttle, uuid, 'gear is boosted')
             end
 
+            (restore_gears.keys & bad_gears.keys).each {|k| bad_gears.delete(k)}
             apply_action({restore: restore_gears, throttle: bad_gears}, util)
           end
 

@@ -39,12 +39,8 @@ dl {
     margin-bottom: $baseLineHeight / 3;
   }
   dd {
-    margin: 0 0 $baseLineHeight + 7 $baseLineHeight; 
+    margin: 0 0 $baseLineHeight + 7 $baseLineHeight;
     font-size: $baseFontSize;
-    a {
-      color: inherit;
-      font-style: italic;
-    }
   }
 }
 

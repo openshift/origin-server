@@ -114,7 +114,7 @@ class ApplicationType
   end
 
   def automatic_updates?
-    cartridge? && !tags.include?(:community)
+    automatic_updates.nil? ? (cartridge && !tags.include?(:community)) : automatic_updates
   end
 
   def cartridge?; source == :cartridge; end
@@ -211,6 +211,8 @@ class ApplicationType
   end
 
   protected
+    attr_accessor :automatic_updates
+
     def self.find_single(id, *arguments)
       case (match = /^([^!]+)!(.+)/.match(id) || [])[1]
       when 'quickstart'; from_quickstart(Quickstart.cached.find match[2])
@@ -258,6 +260,8 @@ class ApplicationType
       [:display_name, :tags, :description, :website, :version, :license, :license_url, :help_topics, :priority, :scalable, :usage_rates].each do |m|
         attrs[m] = type.send(m)
       end
+      attrs[:provider] = type.support_type
+      attrs[:automatic_updates] = type.automatic_updates?
       attrs[:cartridges] = [type.name]
 
       new(attrs, type.persisted?)
@@ -267,7 +271,7 @@ class ApplicationType
       [:display_name, :tags, :description, :website, :initial_git_url, :cartridges_spec, :priority, :scalable, :may_not_scale, :learn_more_url, :provider].each do |m|
         attrs[m] = type.send(m)
       end
-
+      attrs[:automatic_updates] = false
       new(attrs, type.persisted?)
     end
 

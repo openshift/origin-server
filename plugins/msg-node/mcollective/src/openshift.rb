@@ -126,7 +126,13 @@ module MCollective
       def execute_action(action, args)
         start = Time.now
         action_method = "oo_#{action.gsub('-', '_')}"
-        request_id    = args['--with-request-id'].to_s if args['--with-request-id']
+
+        logger_context_entries = {
+          action_method: action_method,
+          request_id: args['--with-request-id'],
+          container_uuid: args['--with-container-uuid'],
+          app_uuid: args['--with-app-uuid']
+        }
 
         exitcode = 0
         output   = ""
@@ -138,9 +144,8 @@ module MCollective
         else
           Log.instance.info("Executing action [#{action}] using method #{action_method} with args [#{args}]")
           begin
-            OpenShift::Runtime::NodeLogger.context[:request_id]    = request_id if request_id
-            OpenShift::Runtime::NodeLogger.context[:action_method] = action_method if action_method
-            
+            logger_context_entries.each {|k, v| OpenShift::Runtime::NodeLogger.context[k] = v.to_s if v}
+
             exitcode, output, addtl_params = self.send(action_method.to_sym, args)
           rescue Exception => e
             report_exception e
@@ -149,8 +154,7 @@ module MCollective
             exitcode = 127
             output   = "An internal exception occurred processing action #{action}: #{e.message}"
           ensure
-            OpenShift::Runtime::NodeLogger.context.delete(:request_id)
-            OpenShift::Runtime::NodeLogger.context.delete(:action_method)
+            logger_context_entries.each {|k, v| OpenShift::Runtime::NodeLogger.context.delete(k)}
           end
           Log.instance.info("Finished executing action [#{action}] (#{exitcode}) Time to execute #{Time.now - start}")
         end

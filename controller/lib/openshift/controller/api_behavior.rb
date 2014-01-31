@@ -15,7 +15,7 @@ module OpenShift
 
         def check_version
           version = catch(:version) do
-            (request.accept || "").split(',').each do |mime_type|
+            "#{request.accept},#{request.env['CONTENT_TYPE']}".split(',').each do |mime_type|
               values = mime_type.split(';').map(&:strip)
               @nolinks = true if values.include? 'nolinks'
               values.map(&:strip).map(&:downcase).each do |value|

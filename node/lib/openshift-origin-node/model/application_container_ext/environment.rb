@@ -1,3 +1,4 @@
+require 'openshift-origin-node/utils/threads'
 require 'openshift-origin-node/model/application_container_ext/ssh_authorized_keys'
 require 'openshift-origin-node/model/application_container_ext/kerberos'
 
@@ -336,7 +337,7 @@ module OpenShift
             gears.each do |gear|
               logger.debug("Updating #{gear} from #{source}")
               ssh_command ="ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=#{@container_dir}/.openshift_ssh/known_hosts -F #{@container_dir}/.openshift_ssh/config -i #{@container_dir}/.openshift_ssh/id_rsa"
-              threads[gear] = Thread.new(gear) do |fqdn|
+              threads[gear] = OpenShift::Runtime::Threads.new_thread(gear) do |fqdn|
                 gear_dns = fqdn
                 retries  = 2
                 begin

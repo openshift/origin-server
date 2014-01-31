@@ -1,5 +1,6 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/php
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
+%global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
 Version: 1.20.1
@@ -82,6 +83,7 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 %__mkdir -p %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
+%__mkdir -p %{buildroot}%{httpdconfdir}
 
 %if 0%{?fedora}%{?rhel} <= 6
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel6 %{buildroot}%{cartridgedir}/metadata/manifest.yml
@@ -99,6 +101,8 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %attr(0755,-,-) %{cartridgedir}/bin/
 %{cartridgedir}
 %doc %{cartridgedir}/README.md
+%dir %{httpdconfdir}
+%attr(0755,-,-) %{httpdconfdir}
 
 
 %changelog
