@@ -22,15 +22,19 @@ require 'openshift-origin-node/utils/cgroups'
 class Array
   # Get the average value for an array
   def average
-    inject(&:+) / length
+    inject(&:+) / length rescue 0
   end
 
   # Perform division
   # - If provided with an array, will divide all values
   # - If provided with an integer, will divide all values by that value
   def divide(arr)
-    do_math(arr) do |a,b|
-      a.to_f / b
+    do_math(arr) do |a, b|
+      if 0 == a || 0 == b
+        0
+      else
+        a.to_f / b rescue 0
+      end
     end
   end
 
