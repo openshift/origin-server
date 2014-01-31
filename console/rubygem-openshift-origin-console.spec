@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
 * Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.19.16-1
 - Adding back zend-5.6 until bug 1054654 is fixed (lnader@redhat.com)
 

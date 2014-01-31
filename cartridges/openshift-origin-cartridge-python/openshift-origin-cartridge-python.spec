@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -123,6 +123,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- Remove community tag from Python manifests (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
 - Bump up cartridge versions (bparees@redhat.com)
 

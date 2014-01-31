@@ -24,6 +24,7 @@ action "cartridge_do", :description => "run a cartridge action" do
         :type           => :list,
         :list           => %w(
                               add-alias
+                              add-aliases
                               aliases
                               app-create
                               app-destroy
@@ -68,6 +69,7 @@ action "cartridge_do", :description => "run a cartridge action" do
                               pre-install
                               reload
                               remove-alias
+                              remove-aliases
                               remove-httpd-proxy
                               restart
                               set-quota

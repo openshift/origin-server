@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.19.0
+Version: 1.19.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,14 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
+- Fixing typo (bleanhar@redhat.com)
+- Various iptables integration fixes (bleanhar@redhat.com)
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- Make it possible to run oo-admin-* scripts from source (ccoleman@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
 * Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.18.9-1
 - Bug 1034110 (dmcphers@redhat.com)
 

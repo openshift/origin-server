@@ -103,6 +103,8 @@ def stubber
   c.stubs(:start).returns(ResultIO.new)
   c.stubs(:add_alias).returns(ResultIO.new)
   c.stubs(:remove_alias).returns(ResultIO.new)
+  c.stubs(:add_aliases).returns(ResultIO.new)
+  c.stubs(:remove_aliases).returns(ResultIO.new)
   c.stubs(:add_ssl_cert).returns(ResultIO.new)
   c.stubs(:remove_ssl_cert).returns(ResultIO.new)
   c.stubs(:tidy).returns(ResultIO.new)

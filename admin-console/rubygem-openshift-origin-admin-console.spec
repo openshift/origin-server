@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,9 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.18.1-1
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
 * Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.17.2-1
 - Allow downloadable cartridges to appear in rhc cartridge list
   (ccoleman@redhat.com)

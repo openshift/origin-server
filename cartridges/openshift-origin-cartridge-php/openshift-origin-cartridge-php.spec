@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -102,6 +102,9 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
 - Bump up cartridge versions (bparees@redhat.com)
 

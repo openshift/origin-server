@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.13.0
+Version: 2.13.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,13 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 2.13.1-1
+- Merge pull request #4574 from bparees/https
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+- Bug 1057077 - Propagate https information to Java EE cartridgets(JBoss
+  AS/EAP/Tomcat) in standard way (via request.isSecure()) (bparees@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 2.12.8-1
 - Bug 974933 - Inconsistent message is shown when rhc threaddump for a scaled
   up app (jhadvig@redhat.com)

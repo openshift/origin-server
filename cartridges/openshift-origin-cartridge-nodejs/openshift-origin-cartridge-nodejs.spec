@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,16 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- Bug 1059374 - Sanity check pkill in nodejs control script
+  (mfojtik@redhat.com)
+- Bug 1059144 - Refactored nodejs control script (mfojtik@redhat.com)
+- Merge pull request #4593 from mfojtik/card/89
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_cartridge_89 - Make npm optional and restrict hot_deploy to
+  supervisor only (mfojtik@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.20.6-1
 - Bump up cartridge versions (bparees@redhat.com)
 

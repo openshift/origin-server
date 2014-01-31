@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,13 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.17.1-1
+- Merge pull request #4532 from bparees/jenkins_by_uuid
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+- Bug 995807 - Jenkins builds fail on downloadable cartridges
+  (bparees@redhat.com)
+
 * Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.16.6-1
 - Merge pull request #4578 from bparees/jenkins_utf
   (dmcphers+openshiftbot@redhat.com)

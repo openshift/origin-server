@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,40 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- Merge pull request #4610 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4532 from bparees/jenkins_by_uuid
+  (dmcphers+openshiftbot@redhat.com)
+- Card #185: sending app alias to all web_proxy gears (abhgupta@redhat.com)
+- Bug 1048758 (dmcphers@redhat.com)
+- Merge pull request #4608 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4401 from sosiouxme/bug1040257
+  (dmcphers+openshiftbot@redhat.com)
+- bug 1054654 (lnader@redhat.com)
+- <broker> always prevent alias conflicts with app names (lmeyer@redhat.com)
+- <broker> conf to allow alias under cloud domain - bug 1040257
+  (lmeyer@redhat.com)
+- <models/application.rb> standardize whitespace (lmeyer@redhat.com)
+- Speeding up merges (dmcphers@redhat.com)
+- Pairing down cuc tests (dmcphers@redhat.com)
+- Pairing down cuc tests (dmcphers@redhat.com)
+- Merge pull request #4596 from smarterclayton/allow_local_spec_dev
+  (dmcphers+openshiftbot@redhat.com)
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- Keeping tests of same type in same group (dmcphers@redhat.com)
+- Make it possible to run oo-admin-* scripts from source (ccoleman@redhat.com)
+- Fixing common test case timeout (dmcphers@redhat.com)
+- Speeding up tests (dmcphers@redhat.com)
+- Speeding up tests (dmcphers@redhat.com)
+- Rebalancing tests (dmcphers@redhat.com)
+- Speeding up cart test cases (dmcphers@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+- Bug 995807 - Jenkins builds fail on downloadable cartridges
+  (bparees@redhat.com)
+
 * Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.19.16-1
 - Merge pull request #4580 from pravisankar/dev/ravi/admin-repair-fixes
   (dmcphers+openshiftbot@redhat.com)

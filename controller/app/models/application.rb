@@ -1939,6 +1939,12 @@ class Application
         component_ops[comp_spec][:adds] << add_component_op
         usage_op_prereq = [add_component_op._id.to_s]
 
+        # if this is a web_proxy, send any existing alias information to it 
+        if cartridge.is_web_proxy? and self.aliases.present?
+          resend_aliases_op = ResendAliasesOp.new(gear_id: gear_id, fqdns: self.aliases.map {|app_alias| app_alias.fqdn}, prereq: [add_component_op._id.to_s])
+          ops.push resend_aliases_op
+        end
+
         # in case of deployable carts, the post-configure op is executed at the end
         # to ensure this, it is removed from the prerequisite list for any other pending_op
         # to avoid issues, pending_ops should not depend ONLY on post-configure op to manage execution order

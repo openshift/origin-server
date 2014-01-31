@@ -46,7 +46,7 @@ class JbossPlugin < OpenShift::Runtime::WatchmanPlugin
         # skip missing log files as jboss may be coming up.
         next unless File.exist?(log)
 
-        File.open(log).grep(/ java.lang.OutOfMemoryError/) do |event|
+        File.open(log, 'r:utf-8').grep(/ java.lang.OutOfMemoryError/) do |event|
           # timezones are just a PITA. server.log message doesn't include timezone or date so inject both from today
           #
           # Set the timestamp for messages with invalid timestamps to the 'epoch',

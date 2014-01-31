@@ -786,6 +786,24 @@ module MCollective
         end
       end
 
+      def oo_add_aliases(args)
+        alias_names = args['--with-aliases']
+        with_frontend_from_args(args) do |f, o|
+          alias_names.each do |alias_name|
+            f.add_alias(alias_name)
+          end
+        end
+      end
+
+      def oo_remove_aliases(args)
+        alias_names = args['--with-aliases']
+        with_frontend_from_args(args) do |f, o|
+          alias_names.each do |alias_name|
+            f.remove_alias(alias_name)
+          end
+        end
+      end
+
       def oo_aliases(args)
         with_frontend_returns_data(args) do |f, o|
           f.aliases(alias_name)

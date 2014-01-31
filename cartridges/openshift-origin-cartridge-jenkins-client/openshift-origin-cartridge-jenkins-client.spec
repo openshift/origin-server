@@ -7,7 +7,7 @@
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client
-Version: 1.18.0
+Version: 1.18.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -49,6 +49,13 @@ Provides plugin jenkins client support. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.18.1-1
+- Merge pull request #4532 from bparees/jenkins_by_uuid
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+- Bug 995807 - Jenkins builds fail on downloadable cartridges
+  (bparees@redhat.com)
+
 * Thu Jan 23 2014 Adam Miller <admiller@redhat.com> 1.17.7-1
 - Bump up cartridge versions (bparees@redhat.com)
 
