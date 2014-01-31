@@ -841,7 +841,7 @@ module OpenShift
         if framework_carts(gear.application).include?(cart) or embedded_carts(gear.application).include?(cart)
           result_io = run_cartridge_command(cart, gear, "post-configure", args)
         else
-          #no-op
+          Rails.logger.warn "post-configure not executed due to cartridge #{cart} not being web_framework or embedded"
         end
 
         component_details = result_io.appInfoIO.string.empty? ? '' : result_io.appInfoIO.string
@@ -1148,6 +1148,7 @@ module OpenShift
         if framework_carts(gear.application).include?(cart)
           run_cartridge_command(cart, gear, "threaddump", args)
         else
+          Rails.logger.warn "threaddump not executed due to cartridge #{cart} not being web_framework"
           ResultIO.new
         end
       end
@@ -1182,6 +1183,7 @@ module OpenShift
         if framework_carts(gear.application).include?(cart)
           run_cartridge_command(cart, gear, "system-messages", args)
         else
+          Rails.logger.warn "system-messages not executed due to cartridge #{cart} not being web_framework"
           ResultIO.new
         end
       end
@@ -2529,7 +2531,7 @@ module OpenShift
       # * that is: Why use an instance var at all?
       #
       def framework_carts(app=nil)
-        @framework_carts ||= CartridgeCache.cartridge_names('web_framework', app)
+        @framework_carts ||= CartridgeCache.cartridge_names('web_framework', app, true)
       end
 
       #
@@ -2548,7 +2550,7 @@ module OpenShift
       # * Why not just ask the CartridgeCache every time?
       #
       def embedded_carts(app=nil)
-        @embedded_carts ||= CartridgeCache.cartridge_names('embedded',app)
+        @embedded_carts ||= CartridgeCache.cartridge_names('embedded',app, true)
       end
 
       #
@@ -2905,6 +2907,7 @@ module OpenShift
         if framework_carts(gear.application).include?(cart) || embedded_carts(gear.application).include?(cart)
           result = run_cartridge_command(cart, gear, command, arguments, allow_move)
         else
+          Rails.logger.warn "#{command} not executed due to cartridge: #{cart} not being web_framework or embedded"
           result = ResultIO.new
         end
         result

@@ -9,7 +9,7 @@ class CartridgeCache
 
   # Returns an Array of Cartridge objects
   def self.cartridges(show_obsolete=nil)
-    show_obsolete = show_obsolete || Rails.configuration.openshift[:allow_obsolete_cartridges]
+    show_obsolete = Rails.configuration.openshift[:allow_obsolete_cartridges] if show_obsolete.nil?
     get_all_cartridges.select{ |cart| show_obsolete || !cart.is_obsolete? }
   end
 
@@ -18,19 +18,19 @@ class CartridgeCache
   # == Parameters:
   # cart_type::
   #   Specify to return only names of cartridges which have specified cartridge categories
-  def self.cartridge_names(type=nil, app=nil)
+  def self.cartridge_names(type=nil, app=nil, show_obsolete=nil)
     if type.nil?
-      names = Rails.cache.fetch("cart_names_all", :expires_in => DURATION){ cartridges.map(&:name) }
+      names = cartridges(show_obsolete).map(&:name) 
       names.concat(app.downloaded_cartridge_instances.keys) if app
       names
     else
       type = "web_framework" if type == "standalone"
-      find_cartridge_by_category(type, app).map(&:name)
+      find_cartridge_by_category(type, app, show_obsolete).map(&:name)
     end
   end
 
-  def self.find_cartridge_by_category(category, app=nil)
-    carts = Rails.cache.fetch("cartridges_by_cat_#{category}", :expires_in => DURATION){ cartridges.select{ |cart| cart.categories.include?(category) } }
+  def self.find_cartridge_by_category(category, app=nil, show_obsolete=nil)
+    carts = cartridges(show_obsolete).select{ |cart| cart.categories.include?(category) } 
     carts.concat(app.downloaded_cartridge_instances.values.select{ |cart| cart.categories.include?(category) }) if app
     carts
   end
@@ -53,7 +53,7 @@ class CartridgeCache
       end
     end
 
-    matches = Rails.cache.fetch("carts_by_feature_#{requested_feature}", :expires_in => DURATION){ self.find_all_cartridges(requested_feature) }
+    matches = self.find_all_cartridges(requested_feature) 
 
     return nil if matches.blank?
 
