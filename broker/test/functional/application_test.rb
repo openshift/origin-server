@@ -529,7 +529,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     dist.add_node("s20", "g2", "z20")
     dist.add_node("s21", "g2", "z21")
 
-    app = Application.create_app(app_name, cartridge_instances_for(:php, :mysql), @domain, nil, true)
+    app = Application.create_app(app_name, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: app_name.downcase, domain_id: @domain._id) rescue nil
     web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
     app.scale_by(web_framework_component_instance.group_instance_id, 1)
@@ -562,7 +562,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
     Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group] = 3
     OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100], ["s20", 100])
-    app = Application.create_app(app_name, cartridge_instances_for(:php), @domain, nil, true)
+    app = Application.create_app(app_name, cartridge_instances_for(:php), @domain, :scalable => true)
     assert_equal 1, app.gears.length
     assert_equal "s20", app.gears[0].server_identity
     web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first

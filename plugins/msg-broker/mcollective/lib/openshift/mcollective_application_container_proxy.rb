@@ -3024,6 +3024,7 @@ module OpenShift
         # Remove the restricted servers from the list
         server_infos.delete_if { |server_info| restricted_servers.include?(server_info[0]) } if restricted_servers.present? and server_infos.present?
         unless server_infos.empty?
+          zones_available_capacity = {}
           if gear
             current_region = nil
             reloaded_app = Application.find_by(_id: gear.application._id)
@@ -3040,15 +3041,17 @@ module OpenShift
 
               # Check if we have min zones for app gear group
               min_zones_per_gear_group = [Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group], current_region.zones.length].min
-              available_zones_per_region = {}
+              zones_available_per_region = {}
               server_infos.each do |server_info|
                 zone_id = server_info[4]
                 if zone_id
-                  available_zones_per_region[zone_id] = 0 unless available_zones_per_region[zone_id]
-                  available_zones_per_region[zone_id] += 1
+                  zones_available_per_region[zone_id] = 0 unless zones_available_per_region[zone_id]
+                  zones_available_per_region[zone_id] += 1
+                  zones_available_capacity[zone_id] = 0 unless zones_available_capacity[zone_id]
+                  zones_available_capacity[zone_id] += server_info[1]
                 end
               end
-              if available_zones_per_region.values.max < min_zones_per_gear_group
+              if zones_available_per_region.values.max < min_zones_per_gear_group
                 raise OpenShift::OOException.new("Unable to find minimum zones required for application gear group.")
               end
 
@@ -3067,6 +3070,15 @@ module OpenShift
           # Remove the least preferred servers from the list, ensuring there is at least one server remaining
           server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_servers.include?(server_info[0]) } if least_preferred_servers.present?
 
+          # When region/zones available, pick zones that are least consumed/have max available capacity
+          if zones_available_capacity.present?
+            max_available_capacity = zones_available_capacity.values.max
+            preferred_zones = zones_available_capacity.select{ |zone_id, capacity| true if capacity >= max_available_capacity }.keys
+         
+            # Remove the servers from the list that does not belong to preferred zones
+            server_infos.delete_if { |server_info| (server_infos.length > 1) && !preferred_zones.include?(server_info[4]) } if preferred_zones.present?
+          end
+ 
           # Remove any non districted nodes if you prefer districts
           if prefer_district && !require_district && !districts.empty?
             has_districted_node = false
@@ -3140,24 +3152,6 @@ module OpenShift
       end
 
       def self.select_best_fit_node_impl(server_infos)
-        # When region/zones available, pick zones that are least consumed/have max available capacity
-        zones_available_capacity = {}
-        server_infos.each do |server_info|
-          zone_id = server_info[4]
-          if zone_id
-            zones_available_capacity[zone_id] = 0 unless zones_available_capacity[zone_id]
-            zones_available_capacity[zone_id] += server_info[1]
-          end
-        end
-       
-        if zones_available_capacity.present?
-          max_available_capacity = zones_available_capacity.values.max
-          preferred_zones = zones_available_capacity.select{ |zone_id, capacity| true if capacity >= max_available_capacity }.keys
-         
-          # Remove the servers from the list that does not belong to preferred zones
-          server_infos.delete_if { |server_info| !preferred_zones.include?(server_info[4]) } if preferred_zones.present?
-        end
- 
         # Sort by node active capacity (consumed capacity) and take the best half
         server_infos = server_infos.sort_by { |server_info| server_info[1] }
         # consider the top half and no less than min(4, the actual number of available)
