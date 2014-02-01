@@ -89,7 +89,7 @@ module AdminHelper
   def get_premium_carts
     return $premium_carts unless $premium_carts.empty?
 
-    CartridgeCache.cartridges.each do |cart|
+    CartridgeType.active.each do |cart|
       $premium_carts.push(cart.name) if cart.is_premium?
     end
     return $premium_carts

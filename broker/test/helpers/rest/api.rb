@@ -87,6 +87,9 @@ def hosted?
   ignored, status = Process::waitpid2 pid
 
   status == 0
+rescue
+  puts "WARNING: Failed to check for hosted: #{$!}"
+  false
 end
 
 def http_call(api, internal_test=false)

@@ -12,13 +12,6 @@ class CartridgeCache
   DURATION = 20.minutes
 
   #
-  # Returns an Array of Cartridge objects
-  #
-  def self.cartridges
-    get_all_cartridges
-  end
-
-  #
   # Returns an Array of web framework cartridge names.
   #
   def self.web_framework_names
@@ -43,9 +36,13 @@ class CartridgeCache
   # if the content in the url has not changed).
   #
   def self.find_cartridge_by_id_for_user(id, as_user)
+    if cart = LRU_CACHE[id]
+      return cart
+    end
     if type = CartridgeType.where(id: id).first
-      type.cartridge
-    elsif as_user
+      return lru_cache(type.cartridge)
+    end
+    if as_user
       if app = Application.where('component_instances.cartridge_id' => id).
                accessible(as_user).only(:component_instances).hint("component_instances.cartridge_id" => 1).
                first
@@ -58,12 +55,14 @@ class CartridgeCache
   # Return an exact match for id, nil if no matches exist.
   #
   def self.find_cartridge_by_id(id, app=nil)
-    if app
-      cart = app.cartridges.detect{ |c| id === c.id }
-      return cart if cart
+    if app && (cart = app.cartridges.detect{ |c| id === c.id })
+      return cart
+    end
+    if cart = LRU_CACHE[id]
+      return cart
     end
     type = CartridgeType.where(id: id).first
-    type.cartridge if type
+    lru_cache(type.cartridge) if type
   end
 
   #
@@ -87,6 +86,7 @@ class CartridgeCache
   def self.find_cartridges_by_base_name(name, app=nil)
     matches = scope_to_name(name, app)
     return [] if matches.blank?
+    matches.each{ |m| lru_cache(m) }
     return matches if matches.length == 1
 
     redhat = matches.select{ |c| c.cartridge_vendor == "redhat"}
@@ -129,7 +129,7 @@ class CartridgeCache
     end
 
     type = CartridgeType.active.where(name: name).first || CartridgeType.where(name: name).first
-    type.cartridge if type
+    lru_cache(type.cartridge) if type
   end
 
   # Return cartridges in bulk for names
@@ -145,7 +145,7 @@ class CartridgeCache
     cart = OpenShift::Cartridge.new(JSON.parse(hash['manifest_text']), true)
     cart.manifest_text = hash['manifest_text']
     cart.manifest_url = hash['manifest_url']
-    cart
+    lru_cache(cart)
   end
 
   def self.find_serialized_cartridges(hashes, app=nil)
@@ -161,7 +161,7 @@ class CartridgeCache
       return [cart] if cart === requested_feature
       if cart.has_feature?(requested_feature)
         cart = cart.cartridge if cart.respond_to? :cartridge
-        matching_carts << cart
+        matching_carts << lru_cache(cart)
       end
     end
     matching_carts
@@ -173,7 +173,7 @@ class CartridgeCache
     cart = OpenShift::Cartridge.new(manifest, true)
     cart.manifest_text = manifest.to_json
     cart.manifest_url = data['url']
-    cart
+    lru_cache(cart)
   end
 
   def self.cartridge_to_data(cart)
@@ -316,6 +316,13 @@ class CartridgeCache
   end
 
   private
+    LRU_CACHE = AgedCache.new(200)
+
+    def self.lru_cache(cartridge)
+      LRU_CACHE[cartridge.id.to_s] = cartridge if cartridge.id
+      cartridge
+    end
+
     # Returns a Criteria scope of all active cartridges
     def self.get_all_cartridges
       CartridgeType.active

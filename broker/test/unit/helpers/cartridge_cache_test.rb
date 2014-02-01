@@ -303,7 +303,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
   end
 
   test "find cartridge with real cartridges" do
-    carts = CartridgeCache.cartridges
+    carts = CartridgeType.active
     carts.each do |cart|
       assert CartridgeCache.find_cartridge(cart.name), "Cartridge #{cart.name} not found"
 
