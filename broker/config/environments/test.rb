@@ -91,6 +91,7 @@ Broker::Application.configure do
     :ssl_endpoint => conf.get("SSL_ENDPOINT", "allow"),
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
     :allow_ha_applications => conf.get_bool('ALLOW_HA_APPLICATIONS', "false"),
+    :default_ha_multiplier => (conf.get("DEFAULT_HA_MULTIPLIER", "0")).to_i,
     :router_hostname => conf.get('ROUTER_HOSTNAME', "www.example.com"),
     :ha_dns_prefix => conf.get('HA_DNS_PREFIX', "ha-"),
     :ha_dns_suffix => conf.get('HA_DNS_SUFFIX', ""),

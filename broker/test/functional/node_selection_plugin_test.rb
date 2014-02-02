@@ -8,13 +8,16 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     @@appname = "app#{gen_uuid[0..9]}"
     @@gi_id = Moped::BSON::ObjectId.new
     @@gear_id = Moped::BSON::ObjectId.new
-    @@web_cart_name = php_version
-    @@web_comp_name = php_version
-    @@proxy_cart_name = "haproxy-1.4"
-    @@proxy_comp_name = "web_proxy"
-    @@group_overrides = { "0" => { "components" => { "0" => { "cart" => "haproxy-1.4", "comp" => "web_proxy", "multiplier" => 1 },
-                                                     "1" => { "cart" => php_version, "comp" => php_version, "multiplier" => 1 } } } }
-    @@server_id = `oo-mco ping`.chomp.split(" ")[0]
+
+    @@server_id = OpenShift::MCollectiveApplicationContainerProxy.find_one_impl
+
+    php, haproxy = cartridge_instances_for(:php, :haproxy)
+
+    @@web_cart_name = php.name
+    @@web_comp_name = php.components.first.name
+    @@proxy_cart_name = haproxy.name
+    @@proxy_comp_name = haproxy.components.first.name
+    @@group_overrides = [GroupOverride.new([ComponentOverrideSpec.new(haproxy.to_component_spec, nil, nil, 1)], [ComponentOverrideSpec.new(php.to_component_spec, nil, nil, 1)])]
   end
 
   def self.select_best_fit_node_impl(node_list, app_props, current_gears, comp_list, user_props, request_time)

@@ -153,6 +153,8 @@ def analyze_app(app, unresponsive_servers)
          :backup_available => false, :remove_features => [] }
   app_recoverable = false
 
+  ci = app.component_instances.detect{ |i| i.cartridge.is_web_proxy? }
+
   # Gather required info on this app
   app.gears.each do |gear|
     unless unresponsive_servers.include?(gear.server_identity)
@@ -161,8 +163,6 @@ def analyze_app(app, unresponsive_servers)
         if gear.app_dns
           framework[:available] = true
         elsif app.ha
-          ci = nil
-          ci = app.component_instances.find_by(:cartridge_name => "haproxy-1.4") if app.component_instances.present?
           if gear.has_component?(ci)
             framework[:available] = true
           else
@@ -183,7 +183,7 @@ def analyze_app(app, unresponsive_servers)
       else
         db[:unresponsive_gears] << gear
       end
-    end 
+    end
   end if app and app.gears.present?
 
   if !framework[:available] and !db[:available]
@@ -223,8 +223,8 @@ end
 def recover_app(app, framework, db)
   begin
     unless db[:remove_features].empty?
-      app.remove_features(db[:remove_features])
-      puts "Removed features: #{db[:remove_features].join(',')} from application with id: #{app._id}." if $verbose
+      app.remove_cartridges(db[:remove_features])
+      puts "Removed cartridges: #{db[:remove_features].join(',')} from application with id: #{app._id}." if $verbose
     end
     (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear._id.to_s) }
     puts "Application with id: #{app._id} fixed." if $verbose

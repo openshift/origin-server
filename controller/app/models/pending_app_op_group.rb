@@ -7,11 +7,11 @@
 #   @return [Hash] Group level arguments hash
 class PendingAppOpGroup
   include Mongoid::Document
-  include Mongoid::Timestamps
+  include Mongoid::Timestamps::Created
   include TSort
 
   embedded_in :application, class_name: Application.name
-  embeds_many :pending_ops, class_name: PendingAppOp.name
+  embeds_many :pending_ops, class_name: PendingAppOp.name, cascade_callbacks: true
 
   field :parent_op_id, type: Moped::BSON::ObjectId
   field :num_gears_added,   type: Integer, default: 0
@@ -62,7 +62,7 @@ class PendingAppOpGroup
       self.pending_ops = op_group.pending_ops
     end
 
-    pending_ops.where(:state.ne => :completed, :pre_save => true).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
+    pending_ops.where(:state.ne => :completed, :pre_save => true).select{ |op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0 }
   end
 
   # The pre_execute method does not handle parallel executions
@@ -72,7 +72,7 @@ class PendingAppOpGroup
     while(pending_ops.where(:state.ne => :completed, :pre_save => true).count > 0) do
       Rails.logger.debug "Pre-Executing ops..."
       eligible_pre_execute_ops.each do|op|
-        Rails.logger.debug "Pre-Execute #{op.class.to_s}"
+        Rails.logger.debug "Pre-Execute #{op.to_log_s}"
         # set the pending_op state to queued
         op.set_state(:queued) 
         return_val = op.execute
@@ -91,11 +91,10 @@ class PendingAppOpGroup
         parallel_job_ops = []
 
         eligible_ops.each do|op|
-          Rails.logger.debug "Execute #{op.class.to_s}"
+          Rails.logger.debug "Execute #{op.to_log_s}"
 
           # set the pending_op state to queued
           op.set_state(:queued)
-
 
           if op.is_parallel_executable
             op.add_parallel_execute_job(handle)
@@ -106,9 +105,9 @@ class PendingAppOpGroup
             if result_io.exitcode != 0
               op.set_state(:failed)
               if result_io.hasUserActionableError
-                raise OpenShift::UserException.new("Unable to execute #{self.class.to_s}", result_io.exitcode, nil, result_io) 
+                raise OpenShift::UserException.new("Unable to execute #{self.to_log_s}", result_io.exitcode, nil, result_io) 
               else
-                raise OpenShift::NodeException.new("Unable to execute #{self.class.to_s}", result_io.exitcode, result_io)
+                raise OpenShift::NodeException.new("Unable to execute #{self.to_log_s}", result_io.exitcode, result_io)
               end
             else
               op.set_state(:completed)
@@ -169,7 +168,7 @@ class PendingAppOpGroup
       end
     rescue Exception => e_orig
       Rails.logger.error e_orig.message
-      Rails.logger.error e_orig.backtrace.inspect
+      Rails.logger.error e_orig.backtrace.join("\n")
       raise e_orig
     end
   end
@@ -182,7 +181,7 @@ class PendingAppOpGroup
       parallel_job_ops = []
 
       eligible_rollback_ops.each do|op|
-        Rails.logger.debug "Rollback #{op.class.to_s}"
+        Rails.logger.debug "Rollback #{op.to_log_s}"
 
         if op.is_parallel_executable
           op.add_parallel_rollback_job(handle)
@@ -222,9 +221,9 @@ class PendingAppOpGroup
         raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.max_gears} limit and this application requires #{num_gears_added} additional gears.")
       end
       owner.consumed_gears += num_gears_added
-      self.pending_ops.push ops
       self.num_gears_added = num_gears_added
       self.num_gears_removed = num_gears_removed
+      self.pending_ops.concat(ops)
       self.save! if app.persisted?
       owner.save!
     ensure
@@ -247,16 +246,10 @@ class PendingAppOpGroup
     end
   end
 
-  def serializable_hash_with_timestamp
-    unless self.persisted?
-      if self.created_at.nil?
-        self.set_created_at
-      end
-      if self.updated_at.nil? and self.able_to_set_updated_at?
-        self.set_updated_at
-      end
+  def get_component_instance
+    if spec = comp_spec
+      spec.application = application
+      application.component_instances.detect{ |i| i.matches_spec?(spec) }
     end
-
-    self.serializable_hash
   end
 end

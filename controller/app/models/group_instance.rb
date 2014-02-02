@@ -17,7 +17,8 @@ class GroupInstance
   include Mongoid::Document
   embedded_in :application, class_name: Application.name
 
-  attr_accessor :min, :max
+  field :gear_size, type: String
+  field :addtl_fs_gb, type: Integer
 
   # Initializes the application
   #
@@ -35,39 +36,31 @@ class GroupInstance
   end
 
   def gears
-    application.gears.select {|g| g.group_instance_id == self._id}
+    application.gears.select{ |g| g.group_instance_id == _id }
   end
 
-  def component_instances
-    all_component_instances.select{|c| !c.is_sparse?}
-  end
-
-  def sparse_instances
-    all_component_instances.select{|c| c.is_sparse?}
-  end
-
-  def all_component_instances
-    application.component_instances.where(group_instance_id: self._id)
-  end
-
-  def gear_size
-    get_group_override("gear_size") || application.default_gear_size
-  end
-
-  def gear_size=(value)
-    if value == application.default_gear_size
-      unset_group_override("gear_size")
-    else
-      set_group_override("gear_size", value)
+  def application_dns_gear
+    application.gears.each do |gear|
+      if gear.app_dns
+        return (gear.group_instance_id == _id) ? gear : nil
+      end
     end
   end
 
-  def addtl_fs_gb
-    get_group_override("additional_filesystem_gb") || 0
+  def component_instances
+    all_component_instances.reject(&:is_sparse?)
   end
 
-  def addtl_fs_gb=(value)
-    set_group_override("additional_filesystem_gb", value)
+  def all_component_instances
+    application.component_instances.select{ |i| i.group_instance_id == self._id }
+  end
+
+  def gear_size
+    super || group_override.gear_size
+  end
+
+  def addtl_fs_gb
+    super || group_override.additional_filesystem_gb
   end
 
   def server_identities
@@ -77,10 +70,9 @@ class GroupInstance
   end
 
   def has_component?(comp_spec)
-    all_component_instances.each do |ci|
-      return true if ci.component_name == comp_spec["comp"] and ci.cartridge_name == comp_spec["cart"]
+    all_component_instances.any? do |ci|
+      ci.component_name == comp_spec.name and ci.cartridge_name == comp_spec.cartridge.name
     end
-    return false
   end
 
   # Adds ssh keys to all gears within the group instance.
@@ -89,7 +81,7 @@ class GroupInstance
   # add_keys::
   #   Array of Hash containing name, type, content of the ssh keys
   # remove_keys::
-  #   Array of Hash containing name, type, content of the ssh keys  
+  #   Array of Hash containing name, type, content of the ssh keys
   # add_envs::
   #   Array of Hash containing key, value of the environment variables
   # remove_envs::
@@ -119,47 +111,9 @@ class GroupInstance
     result_io
   end
 
-  # @return [Hash] a simplified hash representing this {GroupInstance} object which is used by {Application#compute_diffs}  
-  def to_hash
-    comps = all_component_instances.map{ |c| c.to_hash }
-    {component_instances: comps, scale: {current: self.gears.length, additional_filesystem_gb: self.addtl_fs_gb, gear_size: self.gear_size}, _id: _id}
-  end
-
-  def get_group_override(key=nil)
-    comps = all_component_instances.map{ |c| c.to_hash }
-    comps.each do |comp|
-      application.group_overrides.each do |group_override|
-        if group_override["components"].any? { |go_comp| go_comp["comp"]==comp["comp"] and go_comp["cart"]==comp["cart"] }
-          if key
-            return group_override[key]
-          else
-            return group_override
-          end
-        end
-      end if application.group_overrides
-    end
-    if !key
-      return { "components" => comps }
-    end
-    return nil 
-  end
-
-  def set_group_override(key, value)
-    return unless key
-    group_override = get_group_override
-    if group_override
-      group_override[key] = value
-    else
-      comps = all_component_instances.map{ |c| c.to_hash }
-      new_group_override = { "components" => comps }
-      new_group_override[key] = value
-      application.group_overrides << new_group_override
-    end
-  end
-
-  def unset_group_override(key)
-    group_override = get_group_override(key)
-    group_override.delete(key) if group_override
+  def group_override
+    # FIXME: May not be safe to cache
+    @group_override ||= GroupOverride.reduce_to([GroupOverride.for_instance(self)], application.application_overrides).first.defaults(1, -1, application.default_gear_size, 0)
   end
 
   protected
@@ -210,5 +164,5 @@ class GroupInstance
       end
     end
     [successful_runs,failed_runs]
-  end 
+  end
 end

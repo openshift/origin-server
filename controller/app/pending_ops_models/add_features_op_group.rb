@@ -1,32 +1,32 @@
+#TODO: Rename to AddCartridgesOpGroup and do a migration
 class AddFeaturesOpGroup < PendingAppOpGroup
 
-  field :features, type: Array, default: []
-  field :group_overrides, type: Array, default: []
+  field :features, type: Array, default: []  # DEPRECATED: migrated out of use
+  field :cartridges, type: Array #<Hash>     # May be nil on unmigrated apps
+  field :group_overrides, type: TypedArray[GroupOverride]
   field :init_git_url, type: String
   field :user_env_vars, type: Array
 
   def elaborate(app)
-    final_features = app.requires + features
-    existing_group_overrides = app.group_overrides || []
-    existing_group_overrides.map! do |go| 
-      go['gear_size'] = app.default_gear_size unless go['gear_size']
-      go
-    end 
-    final_group_overrides = existing_group_overrides + (group_overrides || [])
-    ops, add_gear_count, rm_gear_count = app.update_requirements(final_features, final_group_overrides, init_git_url, user_env_vars)
-    try_reserve_gears(add_gear_count, rm_gear_count, app, ops)
+    # use the newer versions of a cartridge
+    carts = {}
+    cartridges.each{ |c| carts[c.name] = c unless carts.has_key?(c.name) }
+    app.cartridges.each{ |c| carts[c.name] = c unless carts.has_key?(c.name) }
+
+    overrides = (app.group_overrides || []) + (group_overrides || [])
+    ops, gears_added, gears_removed = app.update_requirements(carts.values, nil, overrides, init_git_url, user_env_vars)
+    try_reserve_gears(gears_added, gears_removed, app, ops)
   end
 
-  def execute_rollback(result_io=nil)
-    super(result_io)
-    
-    # if this was a rollback for an app creation operation,
-    # and if the app no longer has group_instances or component_instances,
-    # then delete this application
-    if self.application.group_instances.blank? and self.application.component_instances.blank?
-      self.application.delete
-      self.application.pending_op_groups.clear
+  def cartridges
+    @cartridges ||= begin
+      if attributes['cartridges'].presence
+        CartridgeCache.find_serialized_cartridges(attributes['cartridges'])
+      elsif features.presence
+        CartridgeCache.find_cartridges(features.presence)
+      else
+        []
+      end
     end
   end
-
 end

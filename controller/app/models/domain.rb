@@ -31,6 +31,7 @@ class Domain
   include Mongoid::Document
   include Mongoid::Timestamps
   include Membership
+  extend PreAndPostCondition
 
   field :namespace, type: String
   field :canonical_namespace, type: String
@@ -39,7 +40,7 @@ class Domain
   embeds_many :system_ssh_keys, class_name: SystemSshKey.name
   belongs_to :owner, class_name: CloudUser.name
   has_many :applications, class_name: Application.name, dependent: :restrict
-  embeds_many :pending_ops, class_name: PendingDomainOps.name
+  embeds_many :pending_ops, class_name: PendingDomainOps.name, cascade_callbacks: true
 
   has_members default_role: :admin
 
@@ -51,7 +52,7 @@ class Domain
   attr_accessor :application_count
   attr_accessor :gear_counts
   attr_accessor :available_gears
-  attr_accessor :max_storage_per_gear  
+  attr_accessor :max_storage_per_gear
 
   validates :namespace,
     #presence: {message: "Namespace is required and cannot be blank."},
@@ -78,6 +79,22 @@ class Domain
 
   def self.validation_map
     {namespace: 106, allowed_gear_sizes: 110, members: 222}
+  end
+
+  def self.create!(opts)
+    owner = opts[:owner]
+    allowed_domains = opts[:_allowed_domains] || owner.max_domains
+    opts.delete(:allowed_gear_sizes) if opts[:allowed_gear_sizes].nil?
+    domain = Domain.new(opts)
+    unless pre_and_post_condition(
+             lambda{ Domain.where(owner: owner).count < allowed_domains },
+             lambda{ Domain.where(owner: owner).count <= allowed_domains },
+             lambda{ domain.save_with_duplicate_check! },
+             lambda{ domain.destroy rescue nil }
+           )
+      raise OpenShift::UserException.new("You may not have more than #{pluralize(allowed_domains, "domain")}.", 103, nil, nil, :conflict)
+    end
+    domain
   end
 
   def self.sort_by_original(user)
@@ -113,6 +130,10 @@ class Domain
 
   def with_gear_counts
     self.class.with_gear_counts([self]).first
+  end
+
+  before_save prepend: true do
+    self.namespace.downcase!
   end
 
   before_save prepend: true do
@@ -166,7 +187,7 @@ class Domain
 
     keys_attrs = ssh_keys.map { |k| k.serializable_hash }
     pending_op = AddSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
-    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { system_ssh_keys: keys_attrs }})
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pushAll" => { system_ssh_keys: keys_attrs }})
   end
 
   def remove_system_ssh_keys(remove_key)
@@ -179,7 +200,7 @@ class Domain
     return if ssh_keys.empty?
     keys_attrs = ssh_keys.map { |k| k.serializable_hash }
     pending_op = RemoveSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
-    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { system_ssh_keys: keys_attrs }})
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { system_ssh_keys: keys_attrs }})
   end
 
   def add_env_variables(variables)
@@ -196,7 +217,7 @@ class Domain
     Domain.where(_id: self.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) unless env_vars_to_rm.empty?
 
     pending_op = AddEnvVarsDomainOp.new(variables: variables, on_apps: applications)
-    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { env_vars: variables }})
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pushAll" => { env_vars: variables }})
   end
 
   def remove_env_variables(remove_key)
@@ -207,7 +228,7 @@ class Domain
     end
     return if variables.empty?
     pending_op = RemoveEnvVarsDomainOp.new(variables: variables, on_apps: applications)
-    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { env_vars: variables }})
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { env_vars: variables }})
   end
 
   def members_changed(added, removed, changed_roles)
@@ -215,7 +236,7 @@ class Domain
     self.pending_ops.push pending_op
   end
 
-  def check_gear_sizes!(gear_sizes, field="gear_size")
+  def validate_gear_sizes!(gear_sizes, field="gear_size")
     valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & allowed_gear_sizes & owner.allowed_gear_sizes
 
     if valid_sizes.empty?
@@ -273,4 +294,7 @@ class Domain
       raise e
     end
   end
+
+  private
+    extend ActionView::Helpers::TextHelper # for pluralize()
 end

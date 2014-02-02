@@ -1,0 +1,6 @@
+Name: external
+Version: '0.1'
+Cartridge-Short-Name: EXTERNAL
+Cartridge-Vendor: testexternal
+Categories:
+- external

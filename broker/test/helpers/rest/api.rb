@@ -24,6 +24,7 @@ $user = 'test-user' + gen_uuid[0..9]
 $password = 'nopass'
 $credentials = Base64.encode64("#{$user}:#{$password}")
 $default_timeout = 120 # 120 secs
+$auth_warn_once = false
 
 def register_user(prod_env=false)
   if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
@@ -41,8 +42,10 @@ def register_user(prod_env=false)
     cmd = "/usr/bin/htpasswd -b /etc/openshift/htpasswd #{$user} #{$password}"
   else
     #ignore
-    print "Unknown auth plugin. Not registering user #{$user}/#{$password}."
-    print "Modify #{__FILE__}:36 if user registration is required."
+    unless $auth_warn_once
+      $auth_warn_once = true
+      puts "WARNING: Unknown auth plugin. Not registering user #{$user}/#{$password}. Modify #{__FILE__}:36 if user registration is required.\n"
+    end
     cmd = nil
   end
   pid, stdin, stdout, stderr = nil, nil, nil, nil
@@ -84,6 +87,9 @@ def hosted?
   ignored, status = Process::waitpid2 pid
 
   status == 0
+rescue
+  puts "WARNING: Failed to check for hosted: #{$!}"
+  false
 end
 
 def http_call(api, internal_test=false)

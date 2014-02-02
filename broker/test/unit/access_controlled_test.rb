@@ -15,15 +15,6 @@ class AccessControlledTest < ActiveSupport::TestCase
     # do nothing
   end
 
-  def with_config(sym, value, base=:openshift, &block)
-    c = Rails.configuration.send(base)
-    @old =  c[sym]
-    c[sym] = value
-    yield
-  ensure
-    c[sym] = @old
-  end
-
   def test_member_equivalent
     assert_equal Member.new(_id: 'a'), Member.new(_id: 'a')
     assert_equal Member.new(_id: 'a'), CloudUser.new{ |u| u._id = 'a' }

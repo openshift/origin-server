@@ -3,7 +3,7 @@ require 'test_helper'
 class EmbCartEventsControllerTest < ActionController::TestCase
 
   def setup
-    @controller = EmbCartEventsController.new
+    @controller = allow_multiple_execution(EmbCartEventsController.new)
 
     @random = rand(1000000000)
     @login = "user#{@random}"
@@ -12,7 +12,7 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     @user.private_ssl_certificates = true
     @user.save
     Lock.create_lock(@user)
-    register_user(@login, @password)    
+    register_user(@login, @password)
 
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['REMOTE_USER'] = @login

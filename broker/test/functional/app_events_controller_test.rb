@@ -22,7 +22,7 @@ class AppEventsControllerTest < ActionController::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain, nil, true)
+    @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain, :scalable => true)
     @app.save
 
     d1 = Deployment.new(deployment_id: "1", ref: "mybranch", created_at: Time.now, activations: [Time.now.to_f])
@@ -50,13 +50,33 @@ class AppEventsControllerTest < ActionController::TestCase
 
     post :create, {"event" => "scale-down", "to" => "0", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
-    json_messages{ |a| assert a.any?{ |m| m['text'] =~ /Cannot scale below minimum gear requirements/ }, a.inspect }
+    json_messages{ |a| assert a.any?{ |m| m['text'] =~ /Cannot scale down below gear limit of 1/ }, a.inspect }
 
     post :create, {"event" => "scale-up", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success, json_messages.inspect
     assert @app.reload.gears.count == 2
 
+    post :create, {"event" => "scale-down", "by" => "2", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :unprocessable_entity
+    json_messages{ |a| assert a.any?{ |m| m['text'] =~ /Cannot scale down below gear limit of 1/ }, a.inspect }
+
     post :create, {"event" => "scale-down", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert @app.reload.gears.count == 1
+
+    post :create, {"event" => "scale-up", "to" => "2", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert @app.reload.gears.count == 2
+
+    post :create, {"event" => "scale-down", "to" => "1", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert @app.reload.gears.count == 1
+
+    post :create, {"event" => "scale-down", "by" => "-2", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert @app.reload.gears.count == 3
+
+    post :create, {"event" => "scale-up", "by" => "-2", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
     assert @app.reload.gears.count == 1
 
@@ -108,13 +128,14 @@ class AppEventsControllerTest < ActionController::TestCase
     assert !@app.ha
     post :create, "event" => "make-ha", "application_id" => @app.id
     assert_response :success
-    overrides = @app.reload.group_instances_with_scale
+    overrides = @app.reload.group_instances_with_overrides
     assert @app.ha
     assert_equal 1, overrides.length
-    assert_equal 2, overrides[0].min
-    assert_equal(-1, overrides[0].max)
-    assert comp = overrides[0].all_component_instances.detect{ |i| i.cartridge.is_web_proxy? }
-    assert_equal 2, comp.min
+    assert_equal 2, overrides[0].min_gears
+    assert_equal(-1, overrides[0].max_gears)
+    assert comp = overrides[0].components.detect{ |i| i.cartridge.is_web_proxy? }
+    assert_equal 2, comp.min_gears
+    assert_equal 0, comp.multiplier
   end
 
   test "no app name or domain name" do

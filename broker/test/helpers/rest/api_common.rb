@@ -1,3 +1,5 @@
+require 'securerandom'
+
 $nolinks = false
 
 class BaseObj
@@ -46,7 +48,5 @@ def raise_ex(msg, *kw)
 end
 
 def gen_uuid
-  File.open("/proc/sys/kernel/random/uuid", "r") do |file|
-    file.gets.strip.gsub("-","")
-  end
+  SecureRandom.uuid.gsub('-','')
 end

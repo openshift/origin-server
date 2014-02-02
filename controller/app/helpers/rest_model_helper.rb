@@ -43,49 +43,35 @@ module RestModelHelper
   end
 
   def get_application_rest_cartridges(application)
-    group_instances = application.group_instances_with_scale
-
-    cartridges = []
-    group_instances.each do |group_instance|
-      component_instances = group_instance.all_component_instances
-      component_instances.each do |component_instance|
+    application.group_instances_with_overrides.inject([]) do |cartridges, group|
+      instances = group.instance.all_component_instances
+      instances.each do |component|
         if requested_api_version == 1.0
-          cartridges << get_embedded_rest_cartridge(application, component_instance, group_instances, application.group_overrides) if component_instance.is_embeddable?
+          cartridges << get_embedded_rest_cartridge(application, component, instances, group) if component.is_embeddable?
         else
-          cartridges << get_embedded_rest_cartridge(application, component_instance, group_instances, application.group_overrides)
+          cartridges << get_embedded_rest_cartridge(application, component, instances, group)
         end
       end
+      cartridges
     end
-    cartridges
   end
 
-  def get_embedded_rest_cartridge(application, component_instance, group_instances_with_scale, group_overrides, include_status_messages=false)
-    group_instance = group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
-    group_component_instances = group_instance.all_component_instances
-    colocated_instances = group_component_instances - [component_instance]
-    messages = application.component_status(component_instance) if include_status_messages
+  def get_embedded_rest_cartridge(application, component, others, group, include_status_messages=false)
+    colocated = others - [component]
+    messages = application.component_status(component) if include_status_messages
+    scale = {min: group.min_gears, max: group.max_gears, gear_size: group.gear_size, additional_storage: group.additional_filesystem_gb, current: group.instance.gears.count}
+    cart = component.cartridge
+    comp = component.component
 
-    additional_storage = 0
-    group_override = group_overrides.nil? ? nil : group_overrides.select{ |go| go["components"].any?{ |c| c['cart'] == component_instance.cartridge_name && c['comp'] == component_instance.component_name } }.first
-    additional_storage = group_override["additional_filesystem_gb"] if !group_override.nil? and group_override.has_key?("additional_filesystem_gb")
-
-    scale = {min: group_instance.min, max: group_instance.max, gear_size: group_instance.gear_size, additional_storage: additional_storage, current: group_instance.gears.count}
-
-    cart = CartridgeCache.find_cartridge(component_instance.cartridge_name, application)
-
-    # raise an exception in case the application cartridge is not found
-    raise OpenShift::OOException.new("The application '#{application.name}' requires '#{component_instance.cartridge_name}' but a matching cartridge could not be found") if cart.nil?
-
-    comp = cart.get_component(component_instance.component_name)
     if requested_api_version == 1.0
-      RestEmbeddedCartridge10.new(cart, application, component_instance, get_url, messages, nolinks)
+      RestEmbeddedCartridge10.new(cart, application, component, get_url, messages, nolinks)
     elsif requested_api_version <= 1.5
-      RestEmbeddedCartridge15.new(cart, comp, application, component_instance, colocated_instances, scale, get_url, messages, nolinks)
+      RestEmbeddedCartridge15.new(cart, comp, application, component, colocated, scale, get_url, messages, nolinks)
     else
-      RestEmbeddedCartridge.new(cart, comp, application, component_instance, colocated_instances, scale, get_url, messages, nolinks)
+      RestEmbeddedCartridge.new(cart, comp, application, component, colocated, scale, get_url, messages, nolinks)
     end
   end
- 
+
   def get_rest_cartridge(cartridge)
     if requested_api_version == 1.0
       RestCartridge10.new(cartridge)
@@ -93,7 +79,7 @@ module RestModelHelper
       RestCartridge.new(cartridge)
     end
   end
- 
+
   def get_rest_alias(al1as)
     if requested_api_version <= 1.5
       RestAlias15.new(@application, al1as, get_url, nolinks)
@@ -101,7 +87,7 @@ module RestModelHelper
       RestAlias.new(@application, al1as, get_url, nolinks)
     end
   end
- 
+
   def get_rest_environment_variable(env_var)
     if requested_api_version <= 1.5
       RestEnvironmentVariable15.new(@application, env_var, get_url, nolinks)
@@ -109,15 +95,15 @@ module RestModelHelper
       RestEnvironmentVariable.new(@application, env_var, get_url, nolinks)
     end
   end
- 
+
   def get_rest_gear_group(group_inst, gear_states, application, get_url, nolinks, include_endpoints)
     if requested_api_version <= 1.5
       RestGearGroup15.new(group_inst, gear_states, application, get_url, nolinks)
     else
-      RestGearGroup.new(group_inst, gear_states, application, get_url, nolinks, include_endpoints) 
+      RestGearGroup.new(group_inst, gear_states, application, get_url, nolinks, include_endpoints)
     end
   end
-  
+
   def get_rest_deployment(deployment)
     RestDeployment.new(deployment)
   end

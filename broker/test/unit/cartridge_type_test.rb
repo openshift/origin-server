@@ -7,15 +7,6 @@ class CartridgeTypeTest < ActiveSupport::TestCase
     Lock.stubs(:unlock_application).returns(true)
   end
 
-  def with_config(sym, value, base=:openshift, &block)
-    c = Rails.configuration.send(base)
-    @old =  c[sym]
-    c[sym] = value
-    yield
-  ensure
-    c[sym] = @old
-  end
-
   def test_create_type
     CartridgeType.where(:name => 'mock').delete
 
@@ -37,16 +28,26 @@ class CartridgeTypeTest < ActiveSupport::TestCase
     assert !cart.obsolete?
   end
 
+  def test_is_premium
+    cart = stub(:usage_rates => [1])
+    CartridgeType.any_instance.expects(:cartridge).returns(cart)
+    assert CartridgeType.new.is_premium?
+  end
+
+  def test_is_not_premium
+    cart = stub(:usage_rates => [])
+    CartridgeType.any_instance.expects(:cartridge).returns(cart)
+    assert !CartridgeType.new.is_premium?
+  end
+
   def test_duplicate_error
     CartridgeType.where(:name => 'mock-1.0').delete
 
     cart = CartridgeType.new(:name => 'mock-1.0', :base_name => 'mock', :version => '1.0', :cartridge_vendor => 'redhat', :provides => ['mock-1.0'])
     cart.save!
     cart = CartridgeType.new(:name => 'mock-1.0', :base_name => 'mock', :version => '1.0', :cartridge_vendor => 'redhat', :provides => ['mock-1.0'])
-    cart.save!
-    assert cart.activate
-    assert c = CartridgeType.active.where(name: 'mock-1.0').first
-    assert_equal cart._id, c._id
+    assert cart.activate, cart.errors.full_messages.join("\n")
+    assert_equal cart._id, CartridgeType.active.where(name: 'mock-1.0').first._id
   end
 
   def test_latest_cdk
@@ -140,6 +141,7 @@ class CartridgeTypeTest < ActiveSupport::TestCase
         Version: '0.2'
         Versions: ['0.1', '0.2']
         Cartridge-Vendor: redhat
+        Cartridge-Version: 0.1.0-ab3c4
         Categories:
         - mock
         - web_framework
@@ -151,7 +153,7 @@ class CartridgeTypeTest < ActiveSupport::TestCase
     types = CartridgeType.update_from(versions, "manifest://test2")
     assert_equal 2, types.length
 
-    assert type = types.find{ |t| !t.persisted? && t.has_predecessor? }
+    assert type = types.find{ |t| t.has_predecessor? }
     assert_equal 'mock-0.1', type.name
     assert type.changed?
     assert type.display_name_changed?
@@ -163,11 +165,13 @@ class CartridgeTypeTest < ActiveSupport::TestCase
     assert type.is_obsolete?
     assert type.manifest_url_changed?
     assert_equal "manifest://test2", type.manifest_url
+    assert_equal "0.1.0-ab3c4", type.cartridge_version
     assert type.save!
 
     assert type = types.find{ |t| !t.persisted? && !t.has_predecessor? }
     assert_equal 'mock-0.2', type.name
     assert_equal "manifest://test2", type.manifest_url
+    assert_equal "0.1.0-ab3c4", type.cartridge_version
     assert type.changed?
     assert type.save!
   end

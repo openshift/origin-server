@@ -86,12 +86,14 @@
 # @!attribute [r] usage_rates
 #   @return [Array<Object>]
 class RestCartridge < OpenShift::Model
-  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, 
+  attr_accessor :id, :type, :name, :version, :license, :license_url, :tags, :website,
     :help_topics, :properties, :display_name, :description, :scales_from, :scales_to,
-    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates, :obsolete
+    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates,
+    :creation_time, :automatic_updates
 
   def initialize(cart)
     self.name = cart.name
+    self.id = cart.id
     self.version = cart.version
     self.display_name = cart.display_name
     self.description = cart.description
@@ -100,21 +102,26 @@ class RestCartridge < OpenShift::Model
     self.tags = cart.categories
     self.website = cart.website
     self.type = "standalone"
-    self.type = "embedded" if cart.is_embeddable?
-    scale = cart.components_in_profile(nil).first.scaling
+    self.type = "embedded" unless cart.is_web_framework?
+    scale = cart.components.first.scaling
     if not scale.nil?
-      self.scales_from = self.supported_scales_from = scale.min
-      self.scales_to = self.supported_scales_to = scale.max
+      self.supported_scales_from = scale.min
+      self.supported_scales_to = scale.max
     else
-      self.scales_from = self.supported_scales_from = 1
-      self.scales_to = self.supported_scales_to = -1
+      self.supported_scales_from = 1
+      self.supported_scales_to = -1
     end
-    self.current_scale = 0
-    scaling_cart = CartridgeCache.find_cartridge_by_category("scales")[0]
-    self.scales_with = scaling_cart.name unless scaling_cart.nil?
     self.help_topics = cart.help_topics
     self.usage_rates = cart.usage_rates
-    self.obsolete = cart.is_obsolete?
+
+    self.automatic_updates = cart.manifest_url.blank? && !cart.categories.include?('no_updates')
+
+    self.creation_time = cart.created_at
+    if cart.activated_at
+      @activation_time = cart.activated_at.in_time_zone
+    end
+
+    @obsolete = true if cart.is_obsolete?
     @url = cart.manifest_url if cart.manifest_url.present?
   end
 

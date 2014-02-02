@@ -16,10 +16,24 @@ class ActiveSupport::TestCase
     end
   end
 
-  [:php, :ruby, :mysql].each do |sym|
+  [:php, :ruby, :mysql, :'jenkins-client', :jenkins, :haproxy, :jbosseap].each do |sym|
     define_method "#{sym}_version" do
       (@version ||= {})[sym] ||= cartridge_instances_for(sym).first.name
     end
+  end
+
+  def stubs_config(sym, with)
+    os = Rails.configuration.openshift
+    Rails.configuration.stubs(sym).returns(os.merge(with))
+  end
+
+  def with_config(sym, value, base=:openshift, &block)
+    c = Rails.configuration.send(base)
+    @old =  c[sym]
+    c[sym] = value
+    yield
+  ensure
+    c[sym] = @old
   end
 end
 
@@ -108,6 +122,7 @@ def stubber
   c.stubs(:update_cluster).returns(ResultIO.new)
   c.stubs(:deploy).returns(ResultIO.new)
   c.stubs(:activate).returns(ResultIO.new)
+  c.stubs(:status).returns(ResultIO.new)
   c.stubs(:update_cluster).returns(ResultIO.new)
   c.stubs(:get_quota_files).returns(10000)
   c.stubs(:get_update_cluster_job).returns(RemoteJob.new(nil, nil, nil))

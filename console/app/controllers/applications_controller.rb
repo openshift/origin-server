@@ -82,7 +82,7 @@ class ApplicationsController < ConsoleController
     else
       async{ @applications = Application.find :all, :as => current_user, :params => {:include => :cartridges} }
       async{ @domains = user_domains }
-      join(10)
+      join!(10)
     end
 
     render :first_steps and return if @applications.blank?

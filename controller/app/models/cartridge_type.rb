@@ -2,6 +2,11 @@ class CartridgeType
   include Mongoid::Document
   include Mongoid::Timestamps
 
+  def self.check_name!(name)
+    CartridgeInstance.check_feature?(name) or raise Mongoid::Errors::DocumentNotFound.new(CartridgeInstance, name: name)
+    name
+  end
+
   field :name, type: String
   field :priority, type: DateTime
   has_many :successors, class_name: 'CartridgeType', inverse_of: :predecessor
@@ -30,10 +35,10 @@ class CartridgeType
 
   # Attributes that are loaded from the descriptor
   delegate :license, :license_url, :website, :help_topics,
-           :properties, :usage_rates,
+           :properties, :usage_rates, :features,
            to: :cartridge
 
-  index({ name: 1, priority: -1 }, { sparse: true })
+  index({ name: 1, priority: -1, created_at: -1 }, { sparse: true })
   index({ provides: 1 })
 
   create_indexes
@@ -46,19 +51,21 @@ class CartridgeType
   validate :name_matches_components
 
   scope :active, lambda{ ne(priority: nil) }
+  scope :inactive, lambda{ where(priority: nil) }
+  scope :latest, lambda{ order_by(priority: -1, created_at: -1) }
 
   def self.provides(name)
     self.in(provides: name)
   end
 
-  def self.update_from(sources, url=nil)
+  def self.update_from(sources, url=nil, force=false)
     missing = sources.inject({}){ |h, m| h[m.global_identifier] = m; h }
     updated = []
-    self.in(name: missing.keys).each do |type|
+    self.in(name: missing.keys).latest.each do |type|
       latest = missing.delete(type.name) or next
       old = type
       old.attributes = cartridge_attributes(latest, url)
-      if old.changed?
+      if old.changed? || force
         type = new(old.attributes)
         type.predecessor = old
         updated << type
@@ -75,13 +82,13 @@ class CartridgeType
       case source
       when OpenShift::Runtime::Manifest
         text ||= source.manifest.to_json
-        OpenShift::Cartridge.new.from_descriptor(source.manifest)
+        OpenShift::Cartridge.new(source.manifest)
       when OpenShift::Cartridge
         text ||= source.to_descriptor.to_json
         source
       when Hash
         text ||= source.to_json
-        OpenShift::Cartridge.new.from_descriptor(source)
+        OpenShift::Cartridge.new(source)
       else
         raise "Invalid source"
       end
@@ -96,6 +103,7 @@ class CartridgeType
       obsolete: c.is_obsolete?,
       provides: (c.features + c.names).uniq,
       categories: c.categories,
+      cartridge_version: c.cartridge_version,
       text: text,
     }
   end
@@ -118,10 +126,26 @@ class CartridgeType
     end
   end
 
+  def activate!
+    activate or raise Mongoid::Errors::Validations.new(self)
+  end
+
+  def activated?
+    priority?
+  end
+
+  def has_name?(feature)
+    names.include?(feature)
+  end
+
   def cartridge
     @cartridge ||= begin
-      cart = OpenShift::Cartridge.new.from_descriptor(JSON.parse(text))
+      json = JSON.parse(text)
+      json["Id"] = self._id
+      cart = OpenShift::Cartridge.new(json)
       cart.manifest_url = manifest_url
+      cart.created_at = created_at
+      cart.activated_at = priority
       cart
     end
   end
@@ -133,18 +157,23 @@ class CartridgeType
   include OpenShift::CartridgeNaming
   include OpenShift::CartridgeAspects
 
+  def id
+    _id
+  end
+
   alias_method :original_name, :base_name
+
+  alias_method :manifest_text, :text
 
   alias_method :is_obsolete?, :obsolete?
   alias_method :global_identifier, :name
-  alias_method :manifest_text, :text
+  alias_method :activated_at, :priority
 
-  delegate :requires, :get_component,
+  delegate :requires, :get_component, :usage_rates,
            :additional_control_actions, :cart_data_def,
            :components, :connections, :group_overrides,
            :start_order, :stop_order, :configure_order,
-           :get_profile_for_component, :components_in_profile,
-           :profile_for_feature,
+           :specification_hash, :to_descriptor,
            to: :cartridge
 
   def has_feature?(feature)
@@ -160,10 +189,6 @@ class CartridgeType
         name == other
       end
     end
-  end
-
-  def usage_rates
-    @usage_rates || []
   end
 
   protected

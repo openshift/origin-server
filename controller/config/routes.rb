@@ -72,7 +72,9 @@ Rails.application.routes.draw do
     # DEPRECATED - Plural member resources, will be removed when API 1.1 is removed.
     #              New APIs should NOT add plural member paths.
     #
-    resources :cartridges,   :only => [:show], :id => id_with_format
+    # Direct match legacy cartridges/:id to show
+    match 'cartridges/:feature' => 'cartridges#index', :via => :get, :feature => id_with_format
+    #resources :cartridges,   :only => [:show], :id => id_with_format
     resources :quickstarts,  :only => [:show]
     resources :estimates,    :only => [:show], :id => id_with_format
     scope '/user' do

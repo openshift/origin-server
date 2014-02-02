@@ -8,16 +8,32 @@ PATH = "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/env
 class Command
   def import_node(options)
     env!(options)
-    carts = OpenShift::ApplicationContainerProxy.find_one(options.node).get_available_cartridges
-    types = CartridgeType.update_from(carts)
+    carts = OpenShift::ApplicationContainerProxy.send(options.node ? :instance : :find_one, *[options.node].compact).get_available_cartridges
+    types = CartridgeType.update_from(carts, nil, options.force)
     update_types(options, types)
+  rescue OpenShift::NodeException
+    if options.node
+      warn "The server #{options.node} did not respond to the request to get installed cartridges."
+    else
+      warn "Unable to communicate with a node to get installed cartridges: #{$!}"
+    end
+    1
   end
 
   def clean(options)
     env!(options)
-    puts "Deleting all cartridges from the broker ..."
-    CartridgeType.delete_all
-    Rails.cache.clear
+    puts "Deleting all unused cartridges from the broker ..."
+    CartridgeType.inactive.each do |t|
+      found = Application.where('component_instances.cartridge_id' => t._id).count
+      if found == 0
+        unless options.dry_run
+          t.delete
+        end
+        puts "#{t._id} # %-35s" % [t.name, found]
+      else
+        warn "# #{t._id} %-35s %s" % [t.name, found]
+      end
+    end
     0
   rescue => e
     exception e, "Failed to delete some cartridges"
@@ -47,6 +63,7 @@ class Command
         when type.is_web_proxy? then "web_proxy"
         when type.is_web_framework? then "web"
         when type.is_plugin? then "plugin"
+        when type.is_external? then "external"
         else "service"
         end,
         type.display_name,
@@ -83,8 +100,9 @@ class Command
       return 2
     end
     names = carts.map{ |s| "'#{s}'" }.join(', ')
-    carts.delete
-    Rails.cache.clear
+    unless options.dry_run
+      carts.delete
+    end
     puts "#{names} were deleted."
     0
   rescue ArgumentError
@@ -100,10 +118,11 @@ class Command
     env!(options)
     CartridgeType.or({:name.in => ids}, {:_id.in => ids}).each do |cart|
       if cart.priority
-        cart.priority = nil
-        cart.save!
+        unless options.dry_run
+          cart.priority = nil
+          cart.save!
+        end
         puts "#{cart.name} was deactivated."
-        Rails.cache.clear
       else
         puts "#{cart.name} was not active."
       end
@@ -124,9 +143,10 @@ class Command
     CartridgeType.or({:name.in => ids}, {:_id.in => ids}).each do |cart|
       if cart.obsolete? && !options.force
         warn "#{cart.name} is obsolete. Please pass --force to activate."
+      elsif options.dry_run
+        puts "#{cart._id} # now the active cartridge for #{cart.name}"
       elsif cart.activate
         puts "#{cart._id} # now the active cartridge for #{cart.name}"
-        Rails.cache.clear
       else
         warn "Unable to activate #{options.id}"
         type.errors.full_messages.each do |m|
@@ -145,12 +165,23 @@ class Command
   end
 
   def import(options)
+    raise ArgumentError, "Use --url URL or specify a list of files via STDIN" if (options.url.nil? || options.url.empty?) && (files = ARGF.readlines).empty?
     env!(options)
-    raise ArgumentError, "--url URL is a required argument for import" if options.url.nil? || options.url.empty?
 
-    text = CartridgeCache.download_from_url(options.url)
-    versions = OpenShift::Runtime::Manifest.manifests_from_yaml(text)
-    types = CartridgeType.update_from(versions, options.url)
+    if options.url
+      text = CartridgeCache.download_from_url(options.url)
+      versions = OpenShift::Runtime::Manifest.manifests_from_yaml(text)
+      types = CartridgeType.update_from(versions, options.url)
+    else
+      types = []
+      files.each do |s|
+        s.chomp!
+        warn "Importing #{s} ..."
+        text = IO.read(File.expand_path(s))
+        versions = OpenShift::Runtime::Manifest.manifests_from_yaml(text)
+        types.concat(CartridgeType.update_from(versions, nil, options.force))
+      end
+    end
 
     if not options.force
       source_change, types = types.partition{ |t| t.manifest_url_changed? && t.persisted? }
@@ -170,6 +201,75 @@ class Command
   rescue => e
     exception e, "Failed to import cartridge"
     1
+  end
+
+  def migrate(options)
+    env!(options)
+
+    cartridges = 0
+    completed = 0
+    applications = 0
+    incomplete = 0
+    CartridgeType.inactive.each do |t|
+      if active = CartridgeType.active.where(name: t.name).first
+        cartridges += 1
+        if options.dry_run
+          result = Application.where(:pending_op_groups.with_size => 0, 'component_instances.cartridge_id' => t._id).update_all('$set' => {'component_instances.$.cartridge_id' => active._id})
+          updated = result['n']
+        else
+          updated = Application.where(:pending_op_groups.with_size => 0, 'component_instances.cartridge_id' => t._id).count
+        end
+        applications += updated
+        if (remaining = Application.where('component_instances.cartridge_id' => t._id).count) > 0
+          warn "#{t._id} ! -> #{active._id} INCOMPLETE %7s / %3s left %s" % [updated, remaining, active.name]
+          incomplete += remaining
+        else
+          puts "#{t._id} # -> #{active._id} DONE       %7s   %3s      %s" % [updated, nil, active.name]
+          completed += 1
+        end
+      else
+        if (count = Application.where('component_instances.cartridge_id' => t._id).count > 0)
+          warn "No active upgrade for #{t.name} (#{t._id}) - #{count} applications found"
+        end
+      end
+    end
+    if completed > 0 || incomplete > 0
+      warn "Migrated #{completed}/#{cartridges} cartridges"
+      warn "Updated #{applications} applications"
+      warn "Skipped #{incomplete} applications with pending jobs"
+    else
+      warn "No cartridges can be migrated"
+    end
+    incomplete == 0 ? 0 : 2
+  end
+
+  def diff(options)
+    raise ArgumentError, "diff requires exactly two IDs or names" if (options.names || []).length != 2 && (options.ids || []).uniq.length != 2
+    env!(options)
+    carts =
+      if options.names
+        if options.names.uniq.length == 1
+          [CartridgeType.active.where(name: options.names.first).first, CartridgeType.inactive.where(name: options.names.last).order_by(created_at: 1).first]
+        else
+          [CartridgeType.active.where(name: options.names.first).first, CartridgeType.active.where(name: options.names.last).first]
+        end
+      else
+        CartridgeType.find(*options.ids)
+      end
+    if carts.uniq.length == 1
+      warn "No differences between the specified carts #{carts.map(&:_id)}"
+      return 0
+    end
+    warn "#{cartridge_label(carts.first)}\n#{cartridge_label(carts.last)}\n---"
+
+    objs = carts.map(&:to_descriptor).each{ |o| o.delete('Id') }
+    if diffs = different?(*objs)
+      puts JSON.pretty_generate(diffs)
+      1
+    else
+      warn "Manifests are identical"
+      0
+    end
   end
 
   protected
@@ -199,6 +299,10 @@ class Command
       output.each{ |line| puts (fmt % line).rstrip }
     end
 
+    def cartridge_label(cart)
+      "#{cart.name} #{cart._id}#{cart.priority? ? ' *' : ''}"
+    end
+
     def update_types(options, types, source=nil)
       if types.empty?
         warn "No changes#{ " #{source}" if source }"
@@ -208,7 +312,6 @@ class Command
       if types.inject(0){ |f, type| f + save_cart(options, type) } > 0
         1
       else
-        Rails.cache.clear
         0
       end
     end
@@ -216,8 +319,10 @@ class Command
     def save_cart(options, type)
       op = type.persisted? || type.has_predecessor? ? "update" : "add"
       activate = options.activate && (!type.obsolete? || options.force)
-      if type.send(activate ? :activate : :save)
-        puts "#{type._id} # #{op.capitalize[0]} #{type.name} #{ " (obsolete)" if type.obsolete?}#{ " (active)" if activate}"
+      if options.dry_run
+        puts "#{type._id} # #{op.capitalize[0]} #{type.name}#{ " (obsolete)" if type.obsolete? }#{ " (active)" if activate }"
+      elsif type.send(activate ? :activate : :save)
+        puts "#{type._id} # #{op.capitalize[0]} #{type.name}#{ " (obsolete)" if type.obsolete? }#{ " (active)" if activate }"
       else
         warn "Failed to #{op} #{type.name}"
         type.errors.full_messages.each do |m|
@@ -238,6 +343,53 @@ class Command
       $stderr.puts(*args)
       $stderr.puts e.message
       $stderr.puts "  #{e.backtrace.join("  \n")}"
+    end
+
+    #
+    # Based on https://gist.github.com/agius/2631752
+    #
+    def different?(a, b, bi_directional=true)
+      return [a.class.name, nil] if !a.nil? && b.nil?
+      return [nil, b.class.name] if !b.nil? && a.nil?
+
+      differences = {}
+      a.each do |k, v|
+        if !v.nil? && b[k].nil?
+          differences[k] = [v, nil]
+          next
+        elsif !b[k].nil? && v.nil?
+          differences[k] = [nil, b[k]]
+          next
+        end
+        if v.is_a?(Hash)
+          unless b[k].is_a?(Hash)
+            differences[k] = "Different types"
+            next
+          end
+          diff = different?(a[k], b[k])
+          differences[k] = diff if !diff.nil? && diff.count > 0
+        elsif v.is_a?(Array)
+          unless b[k].is_a?(Array)
+            differences[k] = "Different types"
+            next
+          end
+          c = 0
+          diff = v.map do |n|
+            if n.is_a?(Hash)
+              diffs = different?(n, b[k][c])
+              c += 1
+              ["Differences: ", diffs] unless diffs.nil?
+            else
+              c += 1
+              [n , b[c]] unless b[c] == n
+            end
+          end.compact
+          differences[k] = diff if diff.count > 0
+        else
+          differences[k] = [v, b[k]] unless v == b[k]
+        end
+      end
+      return differences if !differences.nil? && differences.count > 0
     end
 end
 
@@ -266,6 +418,10 @@ Commands:
   import-node - Import the latest cartridges from a randomly selected node.
 
   list        - List all cartridges
+
+  migrate     - Run a migration of old cartridge versions to the latest
+                active version.  Does not migrate cartridges without an
+                active version.
 
 For delete, activate, and deactivate, you may pass a file containing ids
 or names.
@@ -301,7 +457,11 @@ or names.
     options.activate = true
   end
 
-  opts.on('--name NAMES', "Comma-delimited cartridge names.") do |names|
+  opts.on('--dry-run', "Show the results of the update without changing anything.") do
+    options.dry_run = true
+  end
+
+  opts.on('-n', '--name NAMES', "Comma-delimited cartridge names.") do |names|
     options.names = names.split(/[\, ]/)
   end
 
