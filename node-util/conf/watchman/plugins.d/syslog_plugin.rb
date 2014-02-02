@@ -34,6 +34,8 @@ class SyslogPlugin < OpenShift::Runtime::WatchmanPlugin
 
   # execute plugin code
   def apply
+    return if @gears.empty?
+
     results, error, rc = OpenShift::Runtime::Utils.oo_spawn(%Q{/bin/grep ' killed as a result of limit of ' #{@log_file}})
     case rc
       when 1
