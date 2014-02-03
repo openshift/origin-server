@@ -216,11 +216,7 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
 
 
   /*  Get the routes to the destination (try with request URI first).  */
-  var routes = proxy_server.getRoute(reqhost + request_uri);
-  if (routes.length < 1) {
-    /*  No specific route, try the more general route.  */
-    routes = proxy_server.getRoute(reqhost);
-  }
+  var routes = proxy_server.getRoute(reqhost, request_uri);
 
   /*  No route, no milk [, no cookies] ... return a temporary redirect.  */
   if (!routes  ||  (routes.length < 1)  ||  (routes[0].length < 1) ) {
@@ -236,14 +232,22 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
 
   /*  Get the endpoint we need to send this request to.  */
   var ep = routes[0].split(':');
+  var matched_path = ep[2];
   var ep_host = ep[0];
-  var ep_port = ep[1] || 8080;
+  var parts = ep[1].split('/');
+  var ep_port = parts[0] || 8080;
+  var req_path = request_uri;
+  var ep_path = undefined;
+  if (parts.length > 1) {
+    ep_path = '/' + parts.slice(1).join('/');
+    req_path = req_path.replace(matched_path, ep_path);
+  }
 
-  proxy_server.debug()  &&  Logger.debug('Sending a proxy request to %s', ep);
+  proxy_server.debug()  &&  Logger.debug('Sending a proxy request to %s %s', ep_host, req_path);
 
   /*  Create a proxy request we need to send & set appropriate headers.  */
   var proxy_req = { host: ep_host, port: ep_port,
-    method: req.method, path: request_uri,
+    method: req.method, path: req_path,
     headers: req.headers
   };
   _setProxyRequestHeaders(proxy_req, req);
@@ -421,11 +425,13 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   var upg_requri = upgrade_req.url ? upgrade_req.url : '/';
 
   /*  Get the routes to the destination (try with request URI first).  */
-  var routes = proxy_server.getRoute(upg_reqhost + upg_requri);
+  var routes = proxy_server.getRoute(upg_reqhost, upg_requri);
+  /*
   if (routes.length < 1) {
-    /*  No specific route, try the more general route.  */
+    /*  No specific route, try the more general route.
     routes = proxy_server.getRoute(upg_reqhost);
   }
+  */
 
   /*  No route, no milk [, no cookies] ... return unexpected condition.  */
   if (!routes  ||  (routes.length < 1)  ||  (routes[0].length < 1) ) {
@@ -440,10 +446,12 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   }
 
 
-  var ws_endpoint = routes[0];
+  /* Take out the matched endpoint from the result */
+  var ws_endpoint = routes[0].split(":").slice(0, 2).join(":");
+  var req_path = routes[0].split(":")[1];
 
   proxy_server.debug()  &&  Logger.debug('Sending a websocket request to %s',
-                                         ws_endpoint);
+                                         util.inspect(ws_endpoint));
 
   proxy_server.debug()  &&  Logger.debug(JSON.stringify(upgrade_req.headers));
 
@@ -461,7 +469,7 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   }
 
   /*  Create a proxy websocket request we need to send.  */
-  var proxy_ws = new WebSocket('ws://' + ws_endpoint + upg_requri, zheaders);
+  var proxy_ws = new WebSocket('ws://' + ws_endpoint, zheaders);
 
   /*  Set surrogate's backend information.  */
   surrogate.setBackendInfo(proxy_ws);
@@ -803,9 +811,25 @@ ProxyServer.prototype.debug = function(d) {
  *  @return  {Array}   Associated endpoints/routes.
  *  @api     public
  */
-ProxyServer.prototype.getRoute = function(dest) {
-  return((this.routes)? this.routes.get(dest) : [ ]);
+ProxyServer.prototype.getRoute = function(host, path) {
+  var path_segments = path.split('/');
+  var max_segs = path_segments.length > 3? path_segments.length : 3;
 
+  if (!this.routes)
+    return this.routes;
+
+  for (i = max_segs; i > 0; i--) {
+    candidate_path = path_segments.slice(0, i).join('/');
+    full_path = host + candidate_path;
+    dest = this.routes.get(full_path);
+    if (dest.length > 0) {
+      dret = [];
+      for (idx in dest) { dret.push(dest[idx] + ":" + candidate_path); }
+      return dret;
+    }
+  }
+
+  return [ ];
 };  /*  End of function  getRoute.  */
 
 

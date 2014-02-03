@@ -48,7 +48,7 @@ function _format(payload) {
                                    dateutils.strftime('%d/%b/%Y:%T'),
                                    tzoffset);
 
-  console.log("playload.websocket: " + payload.websocket);
+  console.log("payload.websocket: " + payload.websocket);
   if (!(typeof(payload.websocket) === 'undefined')) {
     user_agent = payload.websocket.protoinfo;
   }
