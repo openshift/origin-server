@@ -1939,10 +1939,16 @@ class Application
         component_ops[comp_spec][:adds] << add_component_op
         usage_op_prereq = [add_component_op._id.to_s]
 
-        # if this is a web_proxy, send any existing alias information to it 
+        # if this is a web_proxy, send any existing alias and SSL cert information to it 
         if cartridge.is_web_proxy? and self.aliases.present?
           resend_aliases_op = ResendAliasesOp.new(gear_id: gear_id, fqdns: self.aliases.map {|app_alias| app_alias.fqdn}, prereq: [add_component_op._id.to_s])
           ops.push resend_aliases_op
+          
+          aliases_with_certs = self.aliases.select {|app_alias| app_alias.has_private_ssl_certificate}
+          if aliases_with_certs.present?
+            resend_ssl_certs_op = ResendSslCertsOp.new(gear_id: gear_id, fqdns: aliases_with_certs.map {|app_alias| app_alias.fqdn}, prereq: [resend_aliases_op._id.to_s])
+            ops.push resend_aliases_op
+          end
         end
 
         # in case of deployable carts, the post-configure op is executed at the end
