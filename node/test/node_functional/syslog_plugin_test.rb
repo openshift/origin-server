@@ -30,12 +30,22 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
     FileUtils.rm_f(@logs)
   end
 
+  def test_no_gears
+    teardown
+
+    counter = 0
+    restart = lambda { |u, t| counter += 1 }
+    SyslogPlugin.new(nil, [], restart, DateTime.now, @logs).apply
+
+    assert_equal 0, counter, 'Failed to handle missing file'
+  end
+
   def test_no_log
     teardown
 
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, nil, restart, DateTime.now, @logs).apply
+    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, DateTime.now, @logs).apply
 
     assert_equal 0, counter, 'Failed to handle missing file'
   end
@@ -47,7 +57,7 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
 
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, nil, restart, DateTime.now, @logs).apply
+    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, DateTime.now, @logs).apply
 
     assert_equal 0, counter, 'Failed to process empty file'
   end
@@ -61,7 +71,7 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
 
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, nil, restart, start_time, @logs).apply
+    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, start_time, @logs).apply
 
     assert_equal 1, counter, 'Failed to find single entry'
   end
@@ -75,7 +85,7 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
 
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, nil, restart, start_time, @logs).apply
+    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, start_time, @logs).apply
 
     assert_equal 1, counter, 'Failed floor test'
   end
@@ -90,7 +100,7 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
 
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, nil, restart, start_time, @logs).apply
+    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, start_time, @logs).apply
 
     assert_equal 2, counter, 'Failed to find 2 entries'
   end
@@ -104,7 +114,7 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
     end
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, nil, restart, start_time, @logs).apply
+    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, start_time, @logs).apply
 
     assert_equal 1, counter, 'Failed to compress repeats'
   end
