@@ -14,6 +14,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     @user.save!
     @domain = Domain.new(namespace: @namespace, owner: @user)
     @domain.save!
+    @appname = "test" + + gen_uuid[0..9]
     Lock.create_lock(@user)
     register_user(@login, @password)
     stubber
@@ -32,7 +33,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   test "create update and destroy application" do
     Gear.any_instance.expects(:publish_routing_info).never
     Gear.any_instance.expects(:unpublish_routing_info).never
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     assert_equal 1, app.group_instances.length
@@ -59,7 +59,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     Application.any_instance.expects(:save!).raises(e)
     assert_difference "@user.consumed_gears", 0 do
       assert_difference "Application.all.count", 0 do
-        assert_raises(RuntimeError){ Application.create_app("test", cartridge_instances_for(:php), @domain) }
+        assert_raises(RuntimeError){ Application.create_app(@appname, cartridge_instances_for(:php), @domain) }
       end
     end
   end
@@ -79,7 +79,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal [], app.cartridges.to_a
     assert_equal [php_version], app.cartridges(true).to_a.map(&:name)
 
-    @appname = "test"
     Application.any_instance.expects(:save!)
     Application.any_instance.expects(:run_jobs)
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
@@ -92,7 +91,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "create update and destroy scalable application" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true, :initial_git_url => "https://a:b@github.com/foobar/test.git")
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -112,7 +110,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "create test and destroy available application" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :available => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -124,7 +121,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "make an application highly available" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -177,7 +173,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "jenkins-client and builders are dependent on jenkins app" do
-    @appname = "test"
     builder = Application.create_app("#{@appname}j", cartridge_instances_for(:jenkins), @domain)
     builder =  Application.find(builder._id)
     assert_equal 1, builder.gears.count
@@ -202,7 +197,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "app config validation" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -238,7 +232,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "app metadata validation" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -265,7 +258,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "scalable application events" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.restart
@@ -282,7 +274,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "threaddump application events" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.threaddump
@@ -290,8 +281,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "scaling and storage events on application" do
-    @appname = "test"
-
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     assert_equal 2, app.gears.length
@@ -342,7 +331,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "application events through internal rest" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -376,7 +364,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "application elaborate does not change overrides" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain, :scalable => true)
     assert app.group_overrides.empty?
 
@@ -455,7 +442,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
 
   test "update_requirements should detect new cartridge versions by id and add a pending op" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain)
 
     cart = OpenShift::Cartridge.new.from_descriptor(app.cartridges.first.to_descriptor)
@@ -497,9 +483,8 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     dist.add_node("s00")
     Rails.configuration.msg_broker[:regions][:enabled] = false
     Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
-    app_name = "a1"
     begin
-      app = Application.create_app(app_name, cartridge_instances_for(:php), @domain)
+      app = Application.create_app(@appname, cartridge_instances_for(:php), @domain)
       assert false
     rescue OpenShift::OOException => e
       assert_equal 140, e.code
@@ -512,7 +497,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     region1 = Region.create("g1")
     region1.add_zone("z10")
     dist.add_node("s10", "g1", "z10")
-    app = Application.create_app(app_name, cartridge_instances_for(:php), @domain)
+    app = Application.create_app(@appname, cartridge_instances_for(:php), @domain)
     assert_equal app.gears.count, 1
     assert_equal "s10", app.gears.first.server_identity
     app.destroy_app
@@ -529,8 +514,8 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     dist.add_node("s20", "g2", "z20")
     dist.add_node("s21", "g2", "z21")
 
-    app = Application.create_app(app_name, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
-    app = Application.find_by(canonical_name: app_name.downcase, domain_id: @domain._id) rescue nil
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
     app.scale_by(web_framework_component_instance.group_instance_id, 1)
     app.reload
@@ -562,7 +547,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
     Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group] = 3
     OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100], ["s20", 100])
-    app = Application.create_app(app_name, cartridge_instances_for(:php), @domain, :scalable => true)
+    app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
     assert_equal 1, app.gears.length
     assert_equal "s20", app.gears[0].server_identity
     web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first

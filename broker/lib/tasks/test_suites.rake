@@ -22,7 +22,6 @@ namespace :test do
       'test/functional/api_controller_test.rb',
       'test/functional/app_events_controller_test.rb',
       'test/functional/application_controller_test.rb',
-      'test/functional/application_test.rb',
       'test/functional/authorizations_controller_test.rb',
       'test/functional/cartridges_controller_test.rb',
       'test/functional/cartridge_type_test.rb',
@@ -30,7 +29,8 @@ namespace :test do
       'test/functional/deployments_controller_test.rb',
       'test/functional/deployment_test.rb',
       'test/functional/descriptors_controller_test.rb',
-      'test/functional/user_controller_test.rb'
+      'test/functional/user_controller_test.rb',
+      'test/functional/distributed_lock_test.rb'
     ]
     functionals += tests
     t.test_files = tests
@@ -41,7 +41,7 @@ namespace :test do
     t.verbose = true
     t.libs << 'test'
     tests = FileList[
-      'test/functional/distributed_lock_test.rb',
+      'test/functional/application_test.rb',
       'test/functional/district_test.rb',
       'test/functional/dns_resolvable_controller_test.rb',
       'test/functional/domains_controller_test.rb',
