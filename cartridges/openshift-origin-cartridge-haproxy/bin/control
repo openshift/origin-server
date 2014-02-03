@@ -72,7 +72,7 @@ function _start_haproxy_service() {
         # support auto reloading of this action hook on git push
         if [ -x "$OPENSHIFT_REPO_DIR/.openshift/action_hooks/haproxy_ctld.rb" ]; then
             echo "Action hook haproxy_ctld.rb detected"
-            _stop_haproxy_ctld_daemon
+            _stop_haproxy_ctld_daemon || :
             _start_haproxy_ctld_daemon
             echo "Action hook haproxy_ctld.rb restarted"
         fi
