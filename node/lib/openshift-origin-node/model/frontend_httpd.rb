@@ -204,6 +204,15 @@ module OpenShift
         @plugins = self.class.plugins.map { |pl| pl.new(@container_uuid, @fqdn, @container_name, @namespace) }
       end
 
+      # Public: Change the fqdn for the plugins
+      # 
+      # Useful when multiple fqdns are used for a given gear
+      # Returns nil On Success or raises on Failure
+      def set_fqdn(new_fqdn)
+        @fqdn = new_fqdn
+        @plugins.each { |pl| pl.fqdn = new_fqdn }
+      end
+
       # Public: Initialize a new configuration for this gear
       #
       # Examples

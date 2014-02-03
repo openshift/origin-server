@@ -341,24 +341,28 @@ EOFZ
       proxy_status_csv = `curl "http://#{proxy.dns}/haproxy-status/;csv" 2>/dev/null`
 
       if proxy.uuid == target_gear.uuid
-        name = 'local-gear'
+        names = [ 'local-gear' ]
       else
         gear_name = target_gear.dns.split('-')[0]
-        name = "gear-#{gear_name}-#{target_gear.namespace}"
+        names = [ "gear-#{gear_name}-#{target_gear.namespace}" ]
+        gear_name = proxy.dns.split('-')[0]
+        names << "gear-#{gear_name}-#{target_gear.namespace}" 
       end
 
       proxy_status_csv.split("\n").each do |line|
-        if line =~ /#{name}/
-          assert_match /#{status}/, line
-          passed = true
-          break
+        names.each do |name|
+          if line =~ /#{name}/
+            assert_match /#{status}/, line
+            passed = true
+            break
+          end
         end
       end
       break if passed
       sleep 1
     end
 
-    flunk("Target gear #{name} did not have expected status #{status}") unless passed
+    flunk("Target gear #{target_gear.name} did not have expected status #{status}") unless passed
   end
 
   def restart_cartridge(app_name, cartridge)

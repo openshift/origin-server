@@ -1010,6 +1010,9 @@ module OpenShift
       #
       # This is only called when a cartridge is removed from a cartridge not a gear delete
       def disconnect_frontend(cartridge)
+        gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+        app_dns        = gear_env["OPENSHIFT_APP_DNS"]
+
         mappings = []
         cartridge.endpoints.each do |endpoint|
           endpoint.mappings.each do |mapping|
@@ -1019,7 +1022,17 @@ module OpenShift
 
         logger.info("Disconnecting frontend mapping for #{@container.uuid}/#{cartridge.name}: #{mappings.inspect}")
         unless mappings.empty?
-          FrontendHttpServer.new(@container).disconnect(*mappings)
+          fe_server =  FrontendHttpServer.new(@container)
+          fe_server.disconnect(*mappings)
+          if cartridge.web_proxy?
+            gear_fqdn = fe_server.fqdn
+            if gear_fqdn != app_dns
+              # secondary web-proxy gear
+              fe_server.set_fqdn(app_dns)
+              fe_server.disconnect(*mappings)
+              fe_server.set_fqdn(gear_fqdn)
+            end
+          end
         end
       end
 
@@ -1068,9 +1081,9 @@ module OpenShift
                 gear_fqdn = frontend.fqdn
                 if gear_fqdn != app_dns
                   # secondary web-proxy gear
-                  frontend.fqdn = app_dns
+                  frontend.set_fqdn(app_dns)
                   reported_urls += frontend.connect(mapping.frontend, backend_uri, options)
-                  frontend.fqdn = gear_fqdn
+                  frontend.set_fqdn(gear_fqdn)
                 end
               end
               if reported_urls
