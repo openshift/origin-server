@@ -244,7 +244,7 @@ class AppEventsTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     #set gear limit
-    system "oo-admin-ctl-user -l #{@login} --setmaxgears 3"
+    system "oo-broker --non-interactive oo-admin-ctl-user -l #{@login} --setmaxgears 3"
 
     # create non-scalable application
     request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "appnoscale", :cartridge => php_version}, @headers)
