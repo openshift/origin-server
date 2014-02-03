@@ -211,6 +211,10 @@ module OpenShift
       #   @return [Fixnum] the DateTime when cache last updated
       attr_reader :last_updated
 
+      # @!attribute [r] all gears on system
+      #   @return [Array<String>] total number of gears on node
+      attr_reader :ids
+
       # @!attribute [r] total_count
       #   @return [Fixnum] total number of gears on node
       attr_reader :total_count
@@ -222,6 +226,7 @@ module OpenShift
       def initialize(config, passwd = '/etc/passwd')
         @config      = config
         @gears       = []
+        @ids          = []
         @total_count = 0
         @passwd      = passwd
         @mutex       = Mutex.new
@@ -267,7 +272,7 @@ module OpenShift
 
       # update cache if passwd has changed
       # @param force [true, false] Force cache update
-      def import_gears(force = true)
+      def import_gears(force = false)
         updated = File.stat(@passwd).mtime
         @mutex.synchronize do
           return if @last_updated == updated && !force
@@ -278,14 +283,14 @@ module OpenShift
                                          expected_exitstatus: 0)
 
           if results.nil? or results.empty?
-            @gears.clear
+            @ids.clear
             @total_count = 0
           else
-            ids          = results.split("\n")
-            @gears       = ids.find_all { |gear| running?(gear) }
-            @total_count = ids.length
+            @ids          = results.split("\n")
+            @total_count = @ids.length
           end
         end
+        @gears = @ids.find_all { |gear| running?(gear) }
       end
     end
   end
