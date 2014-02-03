@@ -1,3 +1,4 @@
+# encoding: utf-8
 #--
 # Copyright 2014 Red Hat, Inc.
 #
@@ -124,5 +125,16 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
     JbossPlugin.new(@config, @gears, restart, start_time).apply
 
     assert_equal 2, counter, 'Failed to find 2 entries'
+  end
+
+  def test_utf8
+    start_time = DateTime.civil(2012, 2, 7, 12, 0, 0, -6)
+    File.open(@server_log, 'w') do |file|
+      file.write('2012/02/07 17:57:11,034 INFO  [stdout] (Ergebnisse_Holen) {pointsTeam2=2, matchIsFinished=true, pointsTeam1=0, nameTeam1=Borussia Mönchengladbach, nameTeam2=Bayern München}')
+      file.write("\n")
+    end
+
+    restart = lambda { |u, t| raise 'This should never happen!' }
+    JbossPlugin.new(@config, @gears, restart, start_time).apply
   end
 end
