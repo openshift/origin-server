@@ -74,7 +74,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
   end
 
   test 'sort cartridges' do
-    array = ['diy-0.1','mongodb-2.2'].map{ |s| Cartridge.new(:name => s) }
+    array = ['diy-0.1','mongodb-2.4'].map{ |s| Cartridge.new(:name => s) }
     assert_equal array.map(&:name), array.sort.map(&:name)
   end
 
@@ -82,7 +82,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     ruby18 = CartridgeType.find 'ruby-1.8'
     ruby = CartridgeType.find 'ruby-1.9'
     php = CartridgeType.find 'php-5.3'
-    mongo = CartridgeType.find 'mongodb-2.2'
+    mongo = CartridgeType.find 'mongodb-2.4'
     cron = CartridgeType.find 'cron-1.4'
     jenkins = CartridgeType.find 'jenkins-client-1'
 

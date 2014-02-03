@@ -96,7 +96,7 @@ Each response from the REST API may contain 0 or more messages.
   <tr><td>exit code</td><td>Exit code returned from API (0 if everyhting is ok)</td></tr>
 </table>
 <br/>
-Note: Messages with severity=result contain information that should be passed on to the user.  For example the database username and password. 
+Note: Messages with severity=result contain information that should be passed on to the user.  For example the database username and password.
 <br/>
 
 <a name="version"></a>
@@ -116,10 +116,10 @@ For example:
   "api_version": 1.5
 }
 </pre>
-To request a specific API version, the client must include a HTTP header with the request. 
+To request a specific API version, the client must include a HTTP header with the request.
 <pre>
   JSON Clients       Accept: application/json; version=1.4
- 
+
   XML Clients        Accept: application/xml; version=1.4
 </pre>
 
@@ -345,7 +345,7 @@ The table below describes each parameter associated with a user account.
 <tr><td>plan_state  </td><td>State of the account for the specified user. </td></tr>
 </table>
 <br />
-The table below further describes each available capability for the user. 
+The table below further describes each available capability for the user.
 <br />
 <table border="1">
 <tr><td>Name</td><td>Description</td></tr>
@@ -603,7 +603,7 @@ The table below describes each parameter associated with SSH keys.
 <h2>Authorization</h2>
 This chapter provides information on API resources to add, view, and manage authorization tokens. An authorization token is a secret value that allows access to an OpenShift account without having to supply login information each time. An authorization token can also be used to grant another user access to your account. Authorization tokens use scopes to determine the type of access a user is granted and what they can do with that token; for example full access versus limited access.
 Authorization tokens are easily managed, and offer better security because you are not repeatedly supplying your login credentials. For example, if your password is ever compromised, the password must be reset. If a secret authorization token is compromised, that token can be revoked and another one created.
-The table below describes each parameter associated with an OpenShift authorization token. 
+The table below describes each parameter associated with an OpenShift authorization token.
 
 <table border=1>
 <tr><td>Name</td><td>Description</td></tr>
@@ -2567,7 +2567,7 @@ The table below describes each parameter associated with only embedded cartridge
     {
       "current_scale": 0,
       "description": "MongoDB is a scalable, high-performance, open source NoSQL database.",
-      "display_name": "MongoDB 2.2",
+      "display_name": "MongoDB 2.4",
       "help_topics": {
         "Building with Mong...<a target="_new" href="cartridge-response-listcartridges-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
@@ -2577,7 +2577,7 @@ The table below describes each parameter associated with only embedded cartridge
 <h5>Request Parameters</h5>
 <table border=1>
 <tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>
-<tr><td>name</td><td>Name of the cartridge.<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>Yes</td><td>mongodb-2.2, cron-1.4, phpmyadmin-4, haproxy-1.4, mock-plugin-0.2, mock-plugin-0.1, 10gen-mms-agent-0.1, postgresql-9.2, postgresql-8.4, switchyard-0, metrics-0.1, jenkins-client-1, mysql-5.1, rockmongo-1.1</td><td>N/A</td></tr>
+<tr><td>name</td><td>Name of the cartridge.<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>Yes</td><td>mongodb-2.4, cron-1.4, phpmyadmin-4, haproxy-1.4, mock-plugin-0.2, mock-plugin-0.1, 10gen-mms-agent-0.1, postgresql-9.2, postgresql-8.4, switchyard-0, metrics-0.1, jenkins-client-1, mysql-5.1, rockmongo-1.1</td><td>N/A</td></tr>
 <tr><td>colocate_with</td><td>The component to colocate with</td><td>No</td><td>ruby-1.9, haproxy-1.4</td><td></td></tr>
 <tr><td>scales_from</td><td>Minimum number of gears to run the component on.</td><td>No</td><td></td><td></td></tr>
 <tr><td>scales_to</td><td>Maximum number of gears to run the component on.</td><td>No</td><td></td><td></td></tr>

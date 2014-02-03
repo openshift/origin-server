@@ -105,7 +105,7 @@ V1_DIRECTORIES=%w(ruby-1.8 ruby-1.9 nodejs-0.6
                   jbosseap-6.0 jbossews-1.0 jbossews-2.0 jbossas-7
                   php-5.3 python-2.6 python-2.7 python-3.3 10gen-mms-agent-0.1
                   metrics-0.1 jenkins-1.4 jenkins-client-1.4 perl-5.10 zend-5.6
-                  mysql-5.1 postgresql-8.4 mongodb-2.2 rockmongo-1.1 phpmyadmin-4
+                  mysql-5.1 postgresql-8.4 mongodb-2.4 rockmongo-1.1 phpmyadmin-4
                   diy-0.1 haproxy-1.4 cron-1.4)
 
 $SEBOOL_LIST="SEBOOL_LIST"
@@ -292,7 +292,7 @@ def check_node_public_resolution
       resolved_host = IPSocket.getaddress(broker)
       # on devenv or livecd, BROKER_HOST=localhost is considered legit. Will let that be for now.
       #localhost.member?(resolved_host) and
-        #do_fail("#{$NODE_CONF_FILE}: BROKER_HOST #{broker} should be public address, not localhost") 
+        #do_fail("#{$NODE_CONF_FILE}: BROKER_HOST #{broker} should be public address, not localhost")
     rescue Exception => e
       do_fail("#{$NODE_CONF_FILE}: BROKER_HOST #{broker} does not resolve (#{e})")
     end
@@ -461,7 +461,7 @@ def check_cgroup_procs
     ### Gather cgroup procs ###
     cgroup_procs = Hash.new{|hash, key| hash[key] = Hash.new{|hash, key| hash[key] = Array.new}}
 
-    # Support mounting cgroup controllers under /cgroup/all or 
+    # Support mounting cgroup controllers under /cgroup/all or
     # /cgroup/<controller>
     Dir.glob("/cgroup/*/openshift/*/cgroup.procs").each do |file|
         controller = file.split("/")[2]
@@ -814,7 +814,7 @@ def check_upgrades
       user_fail(entry, "directory #{entry} contains a V1 cartridge directory")
     end
 
-    if upgrade_markers_found 
+    if upgrade_markers_found
       user_fail(entry, "directory #{entry} contains upgrade data")
     end
 
