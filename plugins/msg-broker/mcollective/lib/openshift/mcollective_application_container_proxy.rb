@@ -329,7 +329,7 @@ module OpenShift
         end
       end
 
-      def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false, initial_deployment_dir_required=true)
+      def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
         app = gear.application
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -339,7 +339,6 @@ module OpenShift
         args['--with-quota-blocks'] = quota_blocks if quota_blocks
         args['--with-quota-files'] = quota_files if quota_files
         args['--with-generate-app-key'] = sshkey_required if sshkey_required
-        args['--with-initial-deployment-dir'] = initial_deployment_dir_required if initial_deployment_dir_required
         args['--with-namespace'] = app.domain_namespace
         args['--with-uid'] = gear.uid if gear.uid
         args['--with-request-id'] = Thread.current[:user_action_log_uuid]
@@ -386,7 +385,7 @@ module OpenShift
         app = gear.application
         result = nil
         (1..10).each do |i|
-          args = build_base_gear_args(gear, quota_blocks, quota_files, sshkey_required, initial_deployment_dir_required)
+          args = build_base_gear_args(gear, quota_blocks, quota_files, sshkey_required)
 
           # set the secret token for new gear creations
           # log an error if the application does not have its secret_token set
@@ -395,6 +394,8 @@ module OpenShift
           else
             Rails.logger.error "The application #{app.name} (#{app._id.to_s}) does not have its secret token set"
           end
+
+          args['--with-initial-deployment-dir'] = initial_deployment_dir_required
 
           mcoll_reply = execute_direct(@@C_CONTROLLER, 'app-create', args)
 
