@@ -7,7 +7,7 @@ class RegionTest < ActiveSupport::TestCase
   end
 
   test "create and find and delete region" do
-    region_name = "region" + gen_uuid
+    region_name = "region_" + gen_uuid
     orig_region = Region.create(region_name) 
     cur_region = Region.find_by(name: region_name)
     assert_equal(orig_region, cur_region)
@@ -26,7 +26,7 @@ class RegionTest < ActiveSupport::TestCase
   end
 
   test "add and remove zones from region" do
-    region_name = "region" + gen_uuid
+    region_name = "region_" + gen_uuid
     orig_region = Region.create(region_name) 
     assert(orig_region.zones.size == 0)
     orig_region.add_zone("z1")
@@ -46,8 +46,8 @@ class RegionTest < ActiveSupport::TestCase
   end
 
   test "list regions and zones" do
-    region_name1 = "region" + gen_uuid
-    region_name2 = "region" + gen_uuid
+    region_name1 = "region_" + gen_uuid
+    region_name2 = "region_" + gen_uuid
     region1 = Region.create(region_name1) 
     region2 = Region.create(region_name2) 
     region1.add_zone("z1")

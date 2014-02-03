@@ -18,9 +18,9 @@ Options:
 -c|--command <command>
     #{CTL_REGION_COMMANDS}
 -r|--region <region_name>
-    Region name (alphanumeric)
+    Region name (alphanumeric, underscore, hyphen, dot)
 -z|--zone <zone_name>
-    Zone name within the given region (alphanumeric)
+    Zone name within the given region (alphanumeric, underscore, hyphen, dot)
 -b|--bypass
     Ignore warnings
 -h|--help

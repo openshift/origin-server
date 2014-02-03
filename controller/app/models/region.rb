@@ -10,7 +10,7 @@ class Region
   index({:name => 1}, {:unique => true})
   create_indexes
 
-  REGION_NAME_REGEX = /\A[A-Za-z0-9]*\z/
+  REGION_NAME_REGEX = /\A[\w\.\-]+\z/
   def self.check_name!(name)
     if name.blank? or name !~ REGION_NAME_REGEX
       raise Mongoid::Errors::DocumentNotFound.new(Region, nil, [name])

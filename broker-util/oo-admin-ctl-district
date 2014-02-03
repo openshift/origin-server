@@ -22,7 +22,7 @@ Options:
 -c|--command <command>
     #{CTL_DISTRICT_COMMANDS}
 -n|--name <district name>
-    District name (Used on create or in place of uuid on other commands)
+    District name (Used on create or in place of uuid on other commands) Allowed chars: alphanumeric, underscore, hyphen, dot
 -p|--node_profile <gear_size>
     #{Gear::gear_sizes_display_string} Only needed for create
 -i|--server_identity

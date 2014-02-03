@@ -24,7 +24,7 @@ OPTIONS
 
   -n|--name district_name  
     District name. Arbitrary identifier used on create or in place of uuid for
-    other commands.
+    other commands. (alphanumeric, underscore, hyphen, dot)
 
   -p|--node_profile gear_size  
     Specify gear profile when creating a district. Example: small|medium

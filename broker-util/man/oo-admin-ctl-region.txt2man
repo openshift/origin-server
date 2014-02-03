@@ -17,10 +17,10 @@ OPTIONS
     Available commands: create, destroy, add-zone, remove-zone, list
 
   -r|--region region_name
-    Name of the region.
+    Name of the region. (alphanumeric, underscore, hyphen, dot)
 
   -z|--zone zone_name
-    Zone within the region.
+    Zone within the region. (alphanumeric, underscore, hyphen, dot)
 
   -b|--bypass  
     Ignore all warnings.

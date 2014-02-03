@@ -17,7 +17,7 @@ class District
   index({:gear_size => 1})
   create_indexes
 
-  DISTRICT_NAME_REGEX = /\A[A-Za-z0-9]*\z/
+  DISTRICT_NAME_REGEX = /\A[\w\.\-]+\z/
   def self.check_name!(name)
     if name.blank? or name !~ DISTRICT_NAME_REGEX
       raise Mongoid::Errors::DocumentNotFound.new(District, nil, [name])
