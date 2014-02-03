@@ -41,8 +41,6 @@ function install_setup_tools() {
   easy_install pip
   
   popd > /dev/null
-  
-  make_virtualenv_relocatable
 }
 
 function activate-virtenv {
