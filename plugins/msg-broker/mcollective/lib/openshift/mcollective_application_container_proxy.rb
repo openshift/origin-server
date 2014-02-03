@@ -1793,7 +1793,7 @@ module OpenShift
 
         log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.name}' after move"
         log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
-        gear.server_identity = destination_container.id
+        gear.set :server_identity, destination_container.id
         gear.group_instance.gear_size = destination_container.get_node_profile
         begin
           dns = OpenShift::DnsService.instance
@@ -2990,7 +2990,7 @@ module OpenShift
           if restricted_server_identities
             server_infos.delete_if { |server_info| restricted_server_identities.include?(server_info[0]) }
             # if server_infos is now empty, its because of the the removal of the restricted servers
-            Rails.logger.debug "No nodes available after removing restricted nodes (force_rediscovery: #{force_rediscovery})" if server_infos.empty?
+            Rails.logger.warn "No nodes available after removing restricted nodes (force_rediscovery: #{force_rediscovery})" if server_infos.empty?
           end
 
           # Remove the least preferred servers from the list, ensuring there is at least one server remaining
