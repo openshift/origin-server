@@ -52,7 +52,8 @@ Broker::Application.configure do
     :user => conf.get("MONGO_USER", "openshift"),
     :password => conf.get("MONGO_PASSWORD", "mooo"),
     :db => conf.get("MONGO_TEST_DB", "openshift_broker_test"),
-    :ssl => conf.get_bool("MONGO_SSL", "false")
+    :ssl => conf.get_bool("MONGO_SSL", "false"),
+    :write_replicas => conf.get("MONGO_WRITE_REPLICAS", 1).to_i
   }
 
   config.usage_tracking = {

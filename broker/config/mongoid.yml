@@ -16,6 +16,8 @@ production:
         consistency: :strong
         safe: true
         ssl: <%= config[:ssl] %>
+        write:
+          w: <%= config[:write_replicas] %>
   options:
     raise_not_found_error: true
     include_type_for_serialization: true
@@ -37,6 +39,8 @@ development:
         consistency: :strong
         safe: true
         ssl: <%= config[:ssl] %>
+        write:
+          w: <%= config[:write_replicas] %>
   options:
     raise_not_found_error: true
     include_type_for_serialization: true
@@ -58,6 +62,8 @@ test:
         consistency: :strong
         safe: true
         ssl: <%= config[:ssl] %>
+        write:
+          w: <%= config[:write_replicas] %>
   options:
     raise_not_found_error: true
     include_type_for_serialization: true
