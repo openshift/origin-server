@@ -439,6 +439,10 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
         end
 
+        def chcon(path, label = nil, type=nil, role=nil, user=nil)
+          ::OpenShift::Runtime::Utils::SELinux.chcon(path, label, type, role, user)
+        end
+
         # retrieve the default maximum memory limit
         def memory_in_bytes(uuid)
           OpenShift::Runtime::Utils::Cgroups.new(uuid).templates[:default]['memory.limit_in_bytes'].to_i

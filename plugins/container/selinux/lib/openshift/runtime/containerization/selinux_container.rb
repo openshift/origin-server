@@ -66,7 +66,7 @@ module OpenShift
                   ) unless rc == 0
 
             set_ro_permission(@container.container_dir)
-            FileUtils.chmod 0o0750, @container.container_dir
+            FileUtils.chmod 0750, @container.container_dir
           end
 
           enable_cgroups
@@ -367,6 +367,10 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def set_rw_permission(paths)
           PathUtils.oo_chown(@container.uid, @container.gid, paths)
           ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, paths)
+        end
+
+        def chcon(path, label = nil, type=nil, role=nil, user=nil)
+          ::OpenShift::Runtime::Utils::SELinux.chcon(path, label, type, role, user)
         end
 
         # retrieve the default maximum memory limit
