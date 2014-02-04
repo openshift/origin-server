@@ -214,10 +214,10 @@ class Command
       if active = CartridgeType.active.where(name: t.name).first
         cartridges += 1
         if options.dry_run
-          result = Application.where(:pending_op_groups.with_size => 0, 'component_instances.cartridge_id' => t._id).update_all('$set' => {'component_instances.$.cartridge_id' => active._id})
-          updated = result['n']
-        else
           updated = Application.where(:pending_op_groups.with_size => 0, 'component_instances.cartridge_id' => t._id).count
+        else
+          result  = Application.where(:pending_op_groups.with_size => 0, 'component_instances.cartridge_id' => t._id).update_all('$set' => {'component_instances.$.cartridge_id' => active._id})
+          updated = result['n']
         end
         applications += updated
         if (remaining = Application.where('component_instances.cartridge_id' => t._id).count) > 0
