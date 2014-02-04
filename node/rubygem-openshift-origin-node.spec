@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.18
+Version: 1.19.19
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Feb 04 2014 Adam Miller <admiller@redhat.com> 1.19.19-1
+- Bug 1059804 - Watchman support for UTF-8 (jhonce@redhat.com)
+
 * Tue Jan 28 2014 Adam Miller <admiller@redhat.com> 1.19.18-1
 - Revert "Merge pull request #4488 from lsm5/new-node_conf" (jhonce@redhat.com)
 - Revert "Merge pull request #4519 from lsm5/new-node_conf" (jhonce@redhat.com)
