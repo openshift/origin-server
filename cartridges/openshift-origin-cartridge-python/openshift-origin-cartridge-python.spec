@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.19.9
+Version: 1.19.10
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -123,6 +123,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Feb 04 2014 Adam Miller <admiller@redhat.com> 1.19.10-1
+- Bug 1060902: Fix relative venv function during install_setup_tools
+  (ironcladlou@gmail.com)
+
 * Fri Jan 31 2014 Adam Miller <admiller@redhat.com> 1.19.9-1
 - Bug 1060295: Make setup reentrant for cp operations (ironcladlou@gmail.com)
 
