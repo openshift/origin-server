@@ -29,6 +29,40 @@ class ApplicationControllerTest < ActionController::TestCase
     @user.force_delete rescue nil
   end
 
+  def default_git_url_setup
+    @default_git_url = "https://default.github.com/default.git"
+    @app_name = "app#{@random}"
+    @seen_urls = seen_urls = []
+    stubs_config :openshift, app_template_for: OpenShift::Controller::Configuration.parse_url_hash(
+                                      "foo|http://example.com/ #{php_version}|#{@default_git_url}")
+    # the way this is done, the git url isn't recorded anywhere on the broker,
+    # so we need to intercept a call... better approaches welcome
+    afog = AddFeaturesOpGroup.new() # test hinges on nothing important happening at first initialize
+    AddFeaturesOpGroup.expects(:new).with() do |hash|
+      afog.__send__(:initialize, hash)   # initialize the stand-in to return later
+      seen_urls.push hash[:init_git_url] # compare later to expectation
+      true # if we tested expectation here, would get 500 error and have to look in logs
+    end.returns(afog)
+  end
+
+  test "app created with admin-defined default initial_git_url" do
+    default_git_url_setup
+    # try it with no git URL provided
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace}
+    assert_response :created
+    assert_equal @default_git_url, @seen_urls[0]
+  end
+
+  test "app created overriding admin-defined default initial_git_url" do
+    default_git_url_setup
+    # try it WITH git URL provided
+    test_url="https://test.github.com/test.git"
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace,
+                   "initial_git_url" => test_url}
+    assert_response :created
+    assert_equal test_url, @seen_urls[0]
+  end
+
   test "app create show list update and destroy by domain and app name" do
     @app_name = "app#{@random}"
 

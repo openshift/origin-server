@@ -2,7 +2,7 @@ require 'active_support/test_case'
 require 'action_controller/test_case'
 
 def gen_uuid
-  %x[/usr/bin/uuidgen].gsub('-', '').strip 
+  %x[/usr/bin/uuidgen].gsub('-', '').strip
 end
 
 class ActiveSupport::TestCase
@@ -22,9 +22,10 @@ class ActiveSupport::TestCase
     end
   end
 
+  # e.g.: stubs_config :openshift, :foo => "bar", :baz => "booyah"
   def stubs_config(sym, with)
-    os = Rails.configuration.openshift
-    Rails.configuration.stubs(sym).returns(os.merge(with))
+    hash = Rails.configuration.send sym
+    Rails.configuration.stubs(sym).returns(hash.merge(with))
   end
 
   def with_config(sym, value, base=:openshift, &block)
