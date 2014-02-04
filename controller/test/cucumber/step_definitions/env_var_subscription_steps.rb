@@ -47,7 +47,7 @@ Given /^a version of the ([^ ]+)\-([\d\.]+) cartridge with(out)? wildcard ENV su
 end
 
 Given /^the broker cache is cleared$/ do
-  %x(/usr/sbin/oo-admin-broker-cache --clear)
+  %x(/usr/sbin/oo-admin-ctl-cartridge -c import-node --activate)
 end
 
 Then /^the ([^ ]+) application environment variable ([^ ]+) will( not)? exist$/ do |cart_name, cart_var, negate|
