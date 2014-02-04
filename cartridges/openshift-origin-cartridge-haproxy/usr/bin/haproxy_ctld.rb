@@ -175,7 +175,7 @@ class Haproxy
 
         @last_scale_up_time=Time.now
         # remove_count_threshold defines how long @session_gear_pct must be
-        # below @remove_gear_pct.
+        # below @gear_remove_pct.
         @remove_count_threshold = 20
         @remove_count = 0
         self.populate_status_urls
