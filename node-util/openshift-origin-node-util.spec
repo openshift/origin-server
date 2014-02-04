@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.18.7
+Version: 1.18.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -155,6 +155,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue Feb 04 2014 Adam Miller <admiller@redhat.com> 1.18.8-1
+- Bug 1059804 - Watchman support for UTF-8 (jhonce@redhat.com)
+
 * Tue Jan 28 2014 Adam Miller <admiller@redhat.com> 1.18.7-1
 - Revert "Merge pull request #4488 from lsm5/new-node_conf" (jhonce@redhat.com)
 
