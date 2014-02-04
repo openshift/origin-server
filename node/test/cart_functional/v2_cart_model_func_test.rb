@@ -38,6 +38,7 @@ module OpenShift
       @config.stubs(:get).with("PORTS_PER_USER").returns(5)
       @config.stubs(:get).with("UID_BEGIN").returns(@uid)
       @config.stubs(:get).with("BROKER_HOST").returns('localhost')
+      @config.stubs(:get).with('REPORT_BUILD_ANALYTICS').returns(false)
 
       script_dir     = File.expand_path(File.dirname(__FILE__))
       cart_base_path = File.join(script_dir, '..', '..', '..', 'cartridges')
