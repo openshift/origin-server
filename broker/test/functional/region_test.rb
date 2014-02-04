@@ -14,11 +14,6 @@ class RegionTest < ActiveSupport::TestCase
     cur_region.delete
     assert_equal(false, Region.where(name: region_name).exists?)
 
-    Rails.configuration.msg_broker[:regions][:enabled] = false
-    exception_count = 0
-    region = Region::create("g1") rescue exception_count += 1
-    assert_equal(1, exception_count)
-    Rails.configuration.msg_broker[:regions][:enabled] = true
     region = Region::create("g1")
     assert_not_nil(region)
     region.destroy

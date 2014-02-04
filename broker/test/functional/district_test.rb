@@ -57,7 +57,6 @@ class DistrictTest < ActiveSupport::TestCase
     server, region_name, zone_name = "s1", "g1", "z1"
     exception_count = 0
     orig_d.add_node(server, region_name) rescue exception_count += 1
-    Rails.configuration.msg_broker[:regions][:enabled] = true
     orig_region = Region.create(region_name)
     orig_d.add_node(server, region_name, zone_name) rescue exception_count += 1
     orig_region.add_zone(zone_name)
@@ -88,7 +87,6 @@ class DistrictTest < ActiveSupport::TestCase
     stubber
     server, region_name, zone_name = "s1", "g1", "z1"
     orig_d.add_node(server)
-    Rails.configuration.msg_broker[:regions][:enabled] = true
     exception_count = 0
     orig_d.set_region(server, region_name, zone_name) rescue exception_count += 1
     orig_region = Region.create(region_name)

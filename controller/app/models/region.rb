@@ -19,9 +19,6 @@ class Region
   end
 
   def self.create(name)
-    unless Rails.configuration.msg_broker[:regions][:enabled]
-      raise OpenShift::OOException.new("Region creation disabled by the platform.")
-    end
     if Region.where(name: Region.check_name!(name)).exists?
       raise OpenShift::OOException.new("Region by name '#{name}' already exists")
     end

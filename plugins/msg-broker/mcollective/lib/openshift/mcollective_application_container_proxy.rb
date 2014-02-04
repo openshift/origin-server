@@ -2137,14 +2137,12 @@ module OpenShift
           raise OpenShift::UserException.new("Error moving gear. Old and new servers are the same: #{source_container.id}", 1)
         end
 
-        if Rails.configuration.msg_broker[:regions][:enabled]
-          districts = District.find_all(destination_gear_size)
-          source_si = District.find_server(source_container.id, districts)
-          destination_si = District.find_server(destination_container.id, districts)
-          if source_si && destination_si && (source_si.region_id != destination_si.region_id)
-            raise OpenShift::UserException.new("Error moving gear. Old and new servers must belong to the same region, source region: #{source_si.region_name} destination region: #{destination_si.region_name}")
-          end 
-        end
+        districts = District.find_all(destination_gear_size)
+        source_server = District.find_server(source_container.id, districts)
+        dest_server = District.find_server(destination_container.id, districts)
+        if source_server && dest_server && (source_server.region_id != dest_server.region_id)
+          raise OpenShift::UserException.new("Error moving gear. Old and new servers must belong to the same region, source region: #{source_server.region_name} destination region: #{dest_server.region_name}")
+        end 
 
         return [destination_container, destination_district_uuid, district_changed]
       end
@@ -3024,61 +3022,70 @@ module OpenShift
         # Remove the restricted servers from the list
         server_infos.delete_if { |server_info| restricted_servers.include?(server_info[0]) } if restricted_servers.present? and server_infos.present?
         unless server_infos.empty?
-          zones_available_capacity = {}
           if gear
-            current_region = nil
+            server = nil
             reloaded_app = Application.find_by(_id: gear.application._id)
             reloaded_app.gears.each do |g|
               if g.server_identity
                 server = District.find_server(g.server_identity, districts)
-                current_region = Region.find_by(_id: server.region_id) if server
                 break
               end
             end
-            if current_region
+            if server and server.region_id
               # Remove servers that does not belong to current region
-              server_infos.delete_if { |server_info| current_region._id != server_info[3] }
+              server_infos.delete_if { |server_info| server.region_id != server_info[3] }
 
               # Check if we have min zones for app gear group
-              min_zones_per_gear_group = [Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group], current_region.zones.length].min
-              zones_available_per_region = {}
+              zones_available_capacity = {}
               server_infos.each do |server_info|
                 zone_id = server_info[4]
                 if zone_id
-                  zones_available_per_region[zone_id] = 0 unless zones_available_per_region[zone_id]
-                  zones_available_per_region[zone_id] += 1
                   zones_available_capacity[zone_id] = 0 unless zones_available_capacity[zone_id]
                   zones_available_capacity[zone_id] += server_info[1]
                 end
               end
-              if zones_available_per_region.values.max < min_zones_per_gear_group
-                raise OpenShift::OOException.new("Unable to find minimum zones required for application gear group.")
+              available_zones_count = zones_available_capacity.keys.length
+              min_zones_per_gear_group = Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group]
+              if available_zones_count < min_zones_per_gear_group
+                zones = Region.find_by(_id: server.region_id).zones
+                required_min_zones = [zones.length, min_zones_per_gear_group].min
+                if available_zones_count < required_min_zones
+                  raise OpenShift::OOException.new("Unable to find minimum zones required for application gear group. " \
+                                                   "Available zones:#{available_zones_count}, Needed min zones:#{required_min_zones}")
+                end
               end
 
+              # Find least preferred zones
               least_preferred_zone_ids = []
               least_preferred_servers.each do |server_identity|
                 next unless server_identity
                 server = District.find_server(server_identity, districts)
                 least_preferred_zone_ids << server.zone_id if server.zone_id
               end if least_preferred_servers.present?
+              least_preferred_zone_ids = least_preferred_zone_ids.uniq
 
-              # Remove least preferred zones from the list, ensuring there is at least one server remaining
-              server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_zone_ids.include?(server_info[4]) } if least_preferred_zone_ids.present?
+              if least_preferred_zone_ids.present?
+                available_zone_ids = zones_available_capacity.keys
+                # Consider least preferred zones only when we have at least one available zone that is not in least preferred zones. 
+                unless (available_zone_ids - least_preferred_zone_ids).empty?
+                  # Remove least preferred zones from the list, ensuring there is at least one server remaining
+                  server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_zone_ids.include?(server_info[4]) }
+                  zones_available_capacity.delete_if { |zone_id, capacity| least_preferred_zone_ids.include?(zone_id) }
+                end
+              end
+
+              # Distribute zones evenly, pick zones that are least consumed/have max available capacity
+              max_available_capacity = zones_available_capacity.values.max
+              preferred_zones = zones_available_capacity.select { |zone_id, capacity| capacity >= max_available_capacity }.keys
+ 
+              # Remove the servers from the list that does not belong to preferred zones
+              server_infos.delete_if { |server_info| (server_infos.length > 1) && !preferred_zones.include?(server_info[4]) }
             end
           end
 
           # Remove the least preferred servers from the list, ensuring there is at least one server remaining
           server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_servers.include?(server_info[0]) } if least_preferred_servers.present?
 
-          # When region/zones available, pick zones that are least consumed/have max available capacity
-          if zones_available_capacity.present?
-            max_available_capacity = zones_available_capacity.values.max
-            preferred_zones = zones_available_capacity.select{ |zone_id, capacity| true if capacity >= max_available_capacity }.keys
-         
-            # Remove the servers from the list that does not belong to preferred zones
-            server_infos.delete_if { |server_info| (server_infos.length > 1) && !preferred_zones.include?(server_info[4]) } if preferred_zones.present?
-          end
- 
           # Remove any non districted nodes if you prefer districts
           if prefer_district && !require_district && !districts.empty?
             has_districted_node = false
@@ -3092,7 +3099,7 @@ module OpenShift
           end
 
           # Prefer region nodes over non region nodes when region is not requested
-          if Rails.configuration.msg_broker[:regions][:enabled] && !require_region
+          unless require_region
             has_region_node = false
             server_infos.each do |server_info|
               if server_info[3]
