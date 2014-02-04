@@ -316,6 +316,8 @@ git clone --bare --no-hardlinks '<%= OpenShift::Runtime::Utils.sanitize_url_argu
 GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
 <% if @commit && !@commit.empty? %>
 GIT_DIR=./<%= @application_name %>.git git reset --soft '<%= OpenShift::Runtime::Utils.sanitize_argument(@commit) %>';
+# || true to ensure we don't error out if the branch already exists
+GIT_DIR=./<%= @application_name %>.git git branch master || true;
 <% end %>
 GIT_DIR=./<%= @application_name %>.git git repack;
 }
