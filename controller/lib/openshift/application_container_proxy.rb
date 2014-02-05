@@ -52,11 +52,9 @@ module OpenShift
       district = nil
       if @node_selector.nil?
         server_info = @proxy_provider.select_best_fit_node_impl(server_infos)
-        server_id = server_info[0]
-        district = server_info[2]
+        server_id = server_info.name
+        district = District.find_by(:_id => server_info.district_id) if server_info.district_id
       else
-        node_list = server_infos.map {|server| NodeProperties.new(server[0], server[1], server[2], server[3], server[4])}
-        
         if gear
           app_props = ApplicationProperties.new(gear.application)
           user_props = UserProperties.new(gear.application.domain.owner)
@@ -69,7 +67,7 @@ module OpenShift
         # since the request is processed inline currently, sending Time.now for now
         # later, if asynchronous request processing is performed, we will store the request time and pass it along 
         request_time = Time.now
-        node = @node_selector.select_best_fit_node_impl(node_list, app_props, current_gears, comp_list, user_props, request_time)
+        node = @node_selector.select_best_fit_node_impl(server_infos, app_props, current_gears, comp_list, user_props, request_time)
         server_id = node.name
         district = District.find_by(:_id => node.district_id) if node.district_id
       end

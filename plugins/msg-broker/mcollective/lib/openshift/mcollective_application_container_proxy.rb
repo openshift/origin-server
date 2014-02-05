@@ -3017,14 +3017,14 @@ module OpenShift
               server = district.servers.find_by(name: server_identity)
               if (gear_exists_in_district || district.available_capacity > 0) &&
                  server.active && (!require_region || server.region_id)
-                server_infos << [server_identity, capacity.to_f, district, server.region_id, server.zone_id]
+                server_infos << NodeProperties.new(server_identity, capacity.to_f, district, server)
               end
               found_district = true
               break
             end
           end
           if !found_district && !require_district # Districts aren't required in this case
-            server_infos << [server_identity, capacity.to_f]
+            server_infos << NodeProperties.new(server_identity, capacity.to_f)
           end
         end
         if server_infos.empty?
@@ -3035,7 +3035,7 @@ module OpenShift
           end
         end
         # Remove the restricted servers from the list
-        server_infos.delete_if { |server_info| restricted_servers.include?(server_info[0]) } if restricted_servers.present? and server_infos.present?
+        server_infos.delete_if { |server_info| restricted_servers.include?(server_info.name) } if restricted_servers.present? and server_infos.present?
         unless server_infos.empty?
           if gear
             server = nil
@@ -3048,18 +3048,18 @@ module OpenShift
             end
             if server and server.region_id
               # Remove servers that does not belong to current region
-              server_infos.delete_if { |server_info| server.region_id != server_info[3] }
+              server_infos.delete_if { |server_info| server.region_id != server_info.region_id }
 
               # Check if we have min zones for app gear group
-              zones_available_capacity = {}
+              zones_consumed_capacity = {}
               server_infos.each do |server_info|
-                zone_id = server_info[4]
+                zone_id = server_info.zone_id
                 if zone_id
-                  zones_available_capacity[zone_id] = 0 unless zones_available_capacity[zone_id]
-                  zones_available_capacity[zone_id] += server_info[1]
+                  zones_consumed_capacity[zone_id] = 0 unless zones_consumed_capacity[zone_id]
+                  zones_consumed_capacity[zone_id] += server_info.node_consumed_capacity
                 end
               end
-              available_zones_count = zones_available_capacity.keys.length
+              available_zones_count = zones_consumed_capacity.keys.length
               min_zones_per_gear_group = Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group]
               if available_zones_count < min_zones_per_gear_group
                 active_zones = []
@@ -3084,49 +3084,49 @@ module OpenShift
               least_preferred_zone_ids = least_preferred_zone_ids.uniq
 
               if least_preferred_zone_ids.present?
-                available_zone_ids = zones_available_capacity.keys
-                # Consider least preferred zones only when we have at least one available zone that is not in least preferred zones. 
+                available_zone_ids = zones_consumed_capacity.keys
+                # Consider least preferred zones only when we have no available zone that's not in least preferred zones. 
                 unless (available_zone_ids - least_preferred_zone_ids).empty?
                   # Remove least preferred zones from the list, ensuring there is at least one server remaining
-                  server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_zone_ids.include?(server_info[4]) }
-                  zones_available_capacity.delete_if { |zone_id, capacity| least_preferred_zone_ids.include?(zone_id) }
+                  server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_zone_ids.include?(server_info.zone_id) }
+                  zones_consumed_capacity.delete_if { |zone_id, capacity| least_preferred_zone_ids.include?(zone_id) }
                 end
               end
 
               # Distribute zones evenly, pick zones that are least consumed/have max available capacity
-              max_available_capacity = zones_available_capacity.values.max
-              preferred_zones = zones_available_capacity.select { |zone_id, capacity| capacity >= max_available_capacity }.keys
+              min_consumed_capacity = zones_consumed_capacity.values.min
+              preferred_zones = zones_consumed_capacity.select { |zone_id, capacity| capacity <= min_consumed_capacity }.keys
  
               # Remove the servers from the list that does not belong to preferred zones
-              server_infos.delete_if { |server_info| (server_infos.length > 1) && !preferred_zones.include?(server_info[4]) }
+              server_infos.delete_if { |server_info| (server_infos.length > 1) && !preferred_zones.include?(server_info.zone_id) }
             end
           end
 
           # Remove the least preferred servers from the list, ensuring there is at least one server remaining
-          server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_servers.include?(server_info[0]) } if least_preferred_servers.present?
+          server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_servers.include?(server_info.name) } if least_preferred_servers.present?
 
           # Remove any non districted nodes if you prefer districts
           if prefer_district && !require_district && !districts.empty?
             has_districted_node = false
             server_infos.each do |server_info|
-              if server_info[2]
+              if server_info.district_id
                 has_districted_node = true
                 break
               end
             end
-            server_infos.delete_if { |server_info| !server_info[2] } if has_districted_node
+            server_infos.delete_if { |server_info| !server_info.district_id } if has_districted_node
           end
 
           # Prefer region nodes over non region nodes when region is not requested
           unless require_region
             has_region_node = false
             server_infos.each do |server_info|
-              if server_info[3]
+              if server_info.region_id
                 has_region_node = true
                 break
               end
             end
-            server_infos.delete_if { |server_info| !server_info[3] } if has_region_node
+            server_infos.delete_if { |server_info| !server_info.region_id } if has_region_node
           end
         end
         
@@ -3179,12 +3179,12 @@ module OpenShift
 
       def self.select_best_fit_node_impl(server_infos)
         # Sort by node active capacity (consumed capacity) and take the best half
-        server_infos = server_infos.sort_by { |server_info| server_info[1] }
+        server_infos = server_infos.sort_by { |server_info| server_info.node_consumed_capacity }
         # consider the top half and no less than min(4, the actual number of available)
         server_infos = server_infos.first([4, (server_infos.length / 2).to_i].max)
 
         # Sort by district available capacity and take the best half
-        server_infos = server_infos.sort_by { |server_info| (server_info[2] && server_info[2].available_capacity) ? server_info[2].available_capacity : 1 }
+        server_infos = server_infos.sort_by { |server_info| (server_info.district_available_capacity ? server_info.district_available_capacity : 1) }
         # consider the top half and no less than min(4, the actual number of available)
         server_infos = server_infos.last([4, (server_infos.length / 2).to_i].max) 
 
@@ -3192,7 +3192,7 @@ module OpenShift
         unless server_infos.empty?
           # Randomly pick one of the best options
           server_info = server_infos[rand(server_infos.length)]
-          Rails.logger.debug "Selecting best fit node: server: #{server_info[0]} capacity: #{server_info[1]}"
+          Rails.logger.debug "Selecting best fit node: server: #{server_info.name} capacity: #{server_info.node_consumed_capacity}"
         end
 
         raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_info.nil?
