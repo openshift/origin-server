@@ -998,7 +998,7 @@ To use the OpenShift mirror:
 . Edit your Gemfile and replace
 +
 ....
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 ....
 +
 with
@@ -1009,7 +1009,7 @@ source 'http://mirror1.ops.rhcloud.com/mirror/ruby/'
 . Edit your Gemfile.lock and replace
 +
 ....
-remote: http://rubygems.org/
+remote: https://rubygems.org/
 ....
 +
 with
