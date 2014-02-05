@@ -61,7 +61,7 @@ class AppCartridgeEventsTest < ActionDispatch::IntegrationTest
     assert_response :created
 
     # stop a different application cartridge
-    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", "mongodb-2.2"], {:event => "stop"}, @headers)
+    request_via_redirect(:post, APP_CARTRIDGE_EVENTS_URL_FORMAT % [ns, "app1", "mongodb-2.4"], {:event => "stop"}, @headers)
     assert_response :not_found
     body = JSON.parse(@response.body)
     assert_equal(body["messages"][0]["exit_code"], 129)

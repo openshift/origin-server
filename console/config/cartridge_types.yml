@@ -1,10 +1,10 @@
 ---
-- :categories: 
+- :categories:
   - :blacklist
   - :administration
   :name: 10gen-mms-agent-0.1
 
-- :categories: 
+- :categories:
   - :administration
   :display_name: phpMyAdmin 4
   :requires:
@@ -14,17 +14,17 @@
 - :name: cron-1.4
   :priority: 2
 
-- :categories: 
+- :categories:
   - :administration
-  :requires: 
-  - mongodb-2.2
+  :requires:
+  - mongodb-2.4
   :name: rockmongo-1.1
 
-- :categories: 
+- :categories:
   - :blacklist
   :name: haproxy-1.4
 
-- :categories: 
+- :categories:
   - :featured
   :name: jbosseap-6
 
@@ -36,7 +36,7 @@
   :name: ruby-1.8
   :priority: 2
 
-- :categories: 
+- :categories:
   - :custom
   :name: diy-0.1
   :priority: 1

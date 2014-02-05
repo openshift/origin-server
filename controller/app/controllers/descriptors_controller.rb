@@ -13,7 +13,7 @@ class DescriptorsController < BaseController
   #   Name: appname
   #   Requires:
   #   - mysql-5.1
-  #   - mongodb-2.2
+  #   - mongodb-2.4
   #   - php-5.4
   #   Group-Overrides:
   #   - components:
