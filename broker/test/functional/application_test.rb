@@ -558,14 +558,14 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     # test zones even distribution
     Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
     Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group] = 1
-    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 100], ["s21", 99], ["s10", 50])
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 100], ["s21", 99])
     app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
     web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
-    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 99], ["s21", 100], ["s10", 50])
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 99], ["s21", 100])
     app.scale_by(web_framework_component_instance.group_instance_id, 1)
-    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 100], ["s21", 99], ["s10", 50])
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 100], ["s21", 99])
     app.scale_by(web_framework_component_instance.group_instance_id, 1)
-    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 99], ["s21", 100], ["s10", 50])
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 99], ["s21", 100])
     app.scale_by(web_framework_component_instance.group_instance_id, 1)
     assert_equal 4, app.gears.count
     servers = []
