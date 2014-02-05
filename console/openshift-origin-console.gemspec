@@ -24,5 +24,4 @@ Gem::Specification.new do |s|
   s.add_dependency 'haml',                    '>= 3.1.7', '< 4.1'
   s.add_dependency 'rdiscount',               '> 1.6.3'
   s.add_dependency 'sass-twitter-bootstrap',  '~> 2.0.1'
-  s.add_dependency 'syslog-logger',           '~> 1.6.8'
 end

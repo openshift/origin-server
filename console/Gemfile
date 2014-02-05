@@ -4,6 +4,7 @@ gemspec
 
 gem 'pry', :require => 'pry' if ENV['PRY']
 gem 'perftools.rb', :require => 'perftools' if ENV['PERFTOOLS']
+gem 'syslog-logger', '~> 1.6.8', :require => false
 
 # NON-RUNTIME BEGIN
 
