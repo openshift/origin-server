@@ -99,10 +99,6 @@ RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_LOOKUP}} ^(.+)$ [OR]
 RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_DEFAULT}} ^(.+)$
 RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:/,E=V_PATH:%{ENV:V_TMP_PATH},NS]
 
-# Extract app uuid and gear uuid
-RewriteCond %{ENV:V_ROUTE} ^([^|]+)\|([^|]+)\|(.+)$
-RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=APP_UUID:%2,E=GEAR_UUID:%3,NS]
-
 
 # One path element (/a)
 RewriteRule ^(/[^/]+)(.*)$ - [E=V_TMP_MATCH_PATH:$1,E=V_TMP_PATH:$2,E=V_TMP_LVL:1,NS]
@@ -142,6 +138,10 @@ RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_LOOKUP}} ^(.+)$ [OR]
 RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_DEFAULT}} ^(.+)$
 RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:%{ENV:V_TMP_MATCH_PATH},E=V_PATH:%{ENV:V_TMP_PATH},NS]
 
+
+# Extract app uuid and gear uuid
+RewriteCond %{ENV:V_ROUTE} ^([^|]+)\|([^|]+)\|(.+)$
+RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=APP_UUID:%2,E=GEAR_UUID:%3,NS]
 
 
 # Route based on the populated variables,
