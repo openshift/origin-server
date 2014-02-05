@@ -19,7 +19,7 @@
 
   # Log custom format for OpenShift parsing.
   # Log format is:
-  LogFormat "%h %{V_MATCH_HOST}e %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X" openshift
+  LogFormat "%h %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X" openshift
   CustomLog logs/openshift_log openshift
 
   ProxyTimeout 300
