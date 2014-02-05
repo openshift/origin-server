@@ -24,9 +24,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency('openshift-origin-controller')
-  s.add_dependency('json')
   s.add_dependency('krb5-auth')
   s.add_development_dependency('rake')
   s.add_development_dependency('bundler')
-  s.add_development_dependency('mocha')
 end
