@@ -1257,7 +1257,7 @@ module MCollective
           cartridge        = container.get_cartridge(cart_name)
           reply[:output]   = (not cartridge.nil?)
           reply[:exitcode] = 0
-        rescue RuntimeError
+        rescue RuntimeError => e
           Log.instance.error e.message
           reply[:output]   = false
           reply[:exitcode] = 0
