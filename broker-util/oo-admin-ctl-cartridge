@@ -141,8 +141,8 @@ class Command
     env!(options)
     code = 0
     CartridgeType.or({:name.in => ids}, {:_id.in => ids}).each do |cart|
-      if cart.obsolete? && !options.force
-        warn "#{cart.name} is obsolete. Please pass --force to activate."
+      if cart.obsolete? && !options.obsolete
+        warn "#{cart.name} is obsolete. Please pass --obsolete to activate."
       elsif options.dry_run
         puts "#{cart._id} # now the active cartridge for #{cart.name}"
       elsif cart.activate
@@ -318,7 +318,7 @@ class Command
 
     def save_cart(options, type)
       op = type.persisted? || type.has_predecessor? ? "update" : "add"
-      activate = options.activate && (!type.obsolete? || options.force)
+      activate = options.activate && (!type.obsolete? || options.obsolete)
       if options.dry_run
         puts "#{type._id} # #{op.capitalize[0]} #{type.name}#{ " (obsolete)" if type.obsolete? }#{ " (active)" if activate }"
       elsif type.send(activate ? :activate : :save)
@@ -445,8 +445,12 @@ or names.
     options.raw = true
   end
 
-  opts.on('--force', "Force activation of obsolete cartridges") do
+  opts.on('--force', "Replace with new version even if unchanged") do
     options.force = true
+  end
+
+  opts.on('--obsolete', "Force activation of obsolete cartridges") do
+    options.obsolete = true
   end
 
   opts.on('-a', '--active', "Show only active cartridges") do |url|

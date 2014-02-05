@@ -2,7 +2,7 @@ NAME
   oo-admin-ctl-cartridge
 
 SYNOPSIS
-  oo-admin-ctl-cartridge [ --command (activate|clean|deactivate|delete|import|import-node|list) ] [ --help ]
+  oo-admin-ctl-cartridge -c (activate|clean|deactivate|delete|import|import-node|list) [ --help ]
 
 DESCRIPTION
 
@@ -32,6 +32,10 @@ OPTIONS
   -h|--help
     Display a simple usage page.
 
+  --dry-run
+    Display the results of running an operation, but do not make any changes
+    to the database.
+
   --raw
     When outputting cartridge information, display each manifest as JSON
 
@@ -42,7 +46,7 @@ OPTIONS
     Mark imported or updated cartridges as active.
 
   -n|--name NAMES
-    A comma-delimited list of cartridge names.  Used by the "delete" command.
+    A comma-delimited list of cartridge names. Used by the "delete" command.
 
   --ids IDS
     ID for a cartridge version to activate or deactivate (comma-delimited).
@@ -55,6 +59,14 @@ OPTIONS
 
   --broker PATH
     The path to the broker (default /var/www/openshift/broker/config/environment)
+
+  --force
+    By default, import and import-node will skip unchanged cartridges. Use this
+    switch to force them to create a new version.
+
+  --obsolete
+    By default, obsolete cartridges will not be activated. Use this switch to
+    automatically update obsolete cartridges.
 
   -q
     Display only ids
