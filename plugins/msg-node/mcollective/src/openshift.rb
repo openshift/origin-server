@@ -710,6 +710,24 @@ module MCollective
         end
       end
 
+      def oo_frontend_reconnect(args)
+        only_proxy_carts = args['--only-proxy-carts']
+        with_container_from_args(args) do |container|
+          final_carts = []
+          container.cartridge_model.each_cartridge do |cart|
+            if cart.web_proxy?
+              final_carts << cart
+            else
+              container.cartridge_model.connect_frontend(cart) unless only_proxy_carts
+            end
+          end
+
+          final_carts.each do |cart|
+            container.cartridge_model.connect_frontend(cart, true)
+          end
+        end
+      end
+
       #
       # The path-target-option is an array of the path, target and
       # options.  Multiple arrays may be specified and they are in
