@@ -117,8 +117,6 @@ Broker::Application.configure do
     :max_download_time => conf.get("MAX_DOWNLOAD_TIME", "10").to_i
   }
 
-  if config.openshift[:syslog_enabled]
-    config.logger = OpenShift::Syslog.logger_for('openshift-broker', 'app')
-  end
+  config.logger = OpenShift::Syslog.logger_for('openshift-broker', 'app') if config.openshift[:syslog_enabled]
 
 end
