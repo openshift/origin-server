@@ -203,6 +203,44 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     assert_bare_repository(repo)
   end
 
+  # test against a git repo that has no master branch
+  def test_from_url_no_master
+    create_template(File.join(@cartridge_home, 'template', 'perl'))
+    branch = "dummy"
+    create_bare(File.join(@cartridge_home, 'template'),branch)
+
+    cartridge_template_git = File.join(@cartridge_home, 'template.git')
+    assert_path_exist cartridge_template_git
+    refute_path_exist File.join(@cartridge_home, 'template')
+    cartridge_template_url = "file://#{cartridge_template_git}##{branch}"    
+
+    expected_path = File.join(@container.container_dir, 'git', @container.application_name + '.git')
+
+    repo = OpenShift::Runtime::ApplicationRepository.new(@container)
+    puts "destroying old container"
+    repo.destroy
+    puts "starting population"
+    begin
+      repo.populate_from_url(@cartridge_name, cartridge_template_url)
+    rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+      puts %Q{
+        Failed to create git repo from cartridge template: rc(#{e.rc})
+        stdout ==> #{e.stdout}
+        stderr ==> #{e.stderr}
+           #{e.backtrace.join("\n")}}
+      raise
+    end
+
+    assert_equal expected_path, repo.path
+    assert_bare_repository(repo)
+    
+    runtime_repo = "#{@container.container_dir}/app-deployments/#{@container.latest_deployment_datetime}/repo"
+    repo.archive(runtime_repo, 'master')
+    assert_path_exist File.join(runtime_repo, 'perl', 'index.pl')
+
+  end
+
+
   def test_from_ssh_url
     skip "Restore this test using webmock"
     #e = assert_raise(::OpenShift::Runtime::Utils::ShellExecutionException) do
@@ -411,7 +449,7 @@ EOF
     }
   end
 
-  def create_bare(template)
+  def create_bare(template,master_name='master')
     Dir.chdir(@cartridge_home) do
       output = %x{set -xe;
 pushd #{template};
@@ -423,12 +461,12 @@ git </dev/null commit -a -m "Creating mocking template" 2>&1;
 touch secondcommit
 git add -f .;
 git </dev/null commit -a -m "Second commit" 2>&1;
+git branch -m #{master_name} || true
 cd ..;
 git </dev/null clone --bare --no-hardlinks template template.git 2>&1;
 chown -R #{@container.uid}:#{@container.uid} template template.git;
 popd;
 }
-
       #puts "\ncreate_bare: #{output}"
 
       FileUtils.rm_r(template)
