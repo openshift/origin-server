@@ -1392,6 +1392,27 @@ module OpenShift
       end
 
       #
+      # Re-establishes the frontend httpd server's configuration for all cartridges on a gear.
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * proxy_only : flag to suggest only re-establishing proxy cartridge's connections
+      #
+      # RETURNS:
+      # * Endpoint data
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * executes the 'frontend-reconnect' action on the gear.
+      # * and the eventually connect method on the FrontendHttpd class
+      #
+      def frontend_reconnect(gear, proxy_only=false)
+        args = build_base_gear_args(gear)
+        args['--only-proxy-carts'] = true if proxy_only
+        result = execute_direct(@@C_CONTROLLER, 'frontend-reconnect', args)
+      end
+
+      #
       # Extracts the frontend httpd server configuration from a gear.
       #
       # INPUTS:
@@ -1978,6 +1999,15 @@ module OpenShift
             reply.append move_gear_post(gear, destination_container, state_map)
             # app.elaborate_descriptor
 
+            # if app has multiple proxy gears and if this gear resides on a node 
+            # where another proxy gear is living, then we need to reconnect the frontend of the other gear
+            # because this gear may have overridden the aliases/app-dns
+            if app.scalable and app.ha and gear.component_instances.any? { |ci| ci.cartridge.is_web_proxy? }
+              fix_frontend_gears = app.get_web_proxy_gears.select { |proxy_gear| proxy_gear.server_identity==source_container.id and proxy_gear!=gear }
+              fix_frontend_gears.each { |proxy_gear| proxy_gear.frontend_reconnect(true) }
+              gear.frontend_reconnect(true) if gear.name!=app.name and fix_frontend_gears.length>0
+            end
+
             # update all proxy gear registries and configs
             app.update_cluster if app.scalable
 
@@ -1988,7 +2018,7 @@ module OpenShift
                 next if not gear_comps.include? cinst
                 cart = cinst.cartridge
                 idle, leave_stopped = state_map[cart.name]
-                if leave_stopped and carts.is_web_proxy?
+                if leave_stopped and cart.is_web_proxy?
                   log_debug "DEBUG: Explicitly stopping cartridge '#{cart.name}' in '#{app.name}' after move on #{destination_container.id}"
                   reply.append destination_container.stop(gear, cinst)
                 end
