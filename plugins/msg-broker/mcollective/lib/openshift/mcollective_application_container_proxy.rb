@@ -493,6 +493,23 @@ module OpenShift
         parse_result(result)
       end
 
+      # fetches all SSL certificates from a gear on the remote node.
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      #
+      # RETURNS: an array of arrays
+      #  * each array consists of three elements
+      #     - the SSL certificate
+      #     - the private key
+      #     - the alias
+      #
+      def get_all_ssl_certs(gear)
+        args = build_base_gear_args(gear)
+        result = execute_direct(@@C_CONTROLLER, 'ssl-certs', args)
+        JSON.parse(parse_result(result).resultIO.string)
+      end
+
       #
       # Add an environment variable on gear on a remote node.
       # Calls oo-env-var-add on the remote node
@@ -2990,7 +3007,7 @@ module OpenShift
           if restricted_server_identities
             server_infos.delete_if { |server_info| restricted_server_identities.include?(server_info[0]) }
             # if server_infos is now empty, its because of the the removal of the restricted servers
-            Rails.logger.debug "No nodes available after removing restricted nodes (force_rediscovery: #{force_rediscovery})" if server_infos.empty?
+            Rails.logger.warn "No nodes available after removing restricted nodes (force_rediscovery: #{force_rediscovery})" if server_infos.empty?
           end
 
           # Remove the least preferred servers from the list, ensuring there is at least one server remaining
