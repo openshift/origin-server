@@ -23,9 +23,19 @@ module OpenShift
       @proxy_provider.new(id)
     end
 
-    def self.find_available(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, restricted_server_identities=nil, gear=nil)
-      server_infos = @proxy_provider.find_all_available_impl(node_profile, district_uuid, non_ha_server_identities, restricted_server_identities, gear)
-      server_id, district = select_best_fit_node(server_infos, gear)
+    ##
+    # Finds a server that matches the required criteria.
+    #
+    # @param opts [Hash] Flexible array of optional parameters
+    #   node_profile [String] Gear size to filter
+    #   disrict_uuid [String] Unique identifier for district
+    #   least_preferred_servers [Array<String>] List of least preferred server identities
+    #   restricted_servers [Array<String>] List of restricted server identities
+    #   gear [Gear] Gear object
+    def self.find_available(opts=nil)
+      opts ||= {}
+      server_infos = @proxy_provider.find_all_available_impl(opts)
+      server_id, district = select_best_fit_node(server_infos, opts[:gear])
       
       raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_id.nil?
       @proxy_provider.new(server_id, district)

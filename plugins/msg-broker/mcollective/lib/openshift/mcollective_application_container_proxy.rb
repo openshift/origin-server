@@ -67,11 +67,13 @@ module OpenShift
       # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
       # * If gear_exists_in_district is true, then district_uuid must be passed and cannot be nil
       #
-      def self.find_all_available_impl(node_profile=nil, district_uuid=nil, least_preferred_servers=nil, restricted_servers=nil, gear=nil, gear_exists_in_district=false, required_uid=nil)
+      def self.find_all_available_impl(opts=nil)
+        opts ||= {}
         district = nil
-        server_infos = rpc_find_all_available(node_profile, district_uuid, least_preferred_servers, restricted_servers, gear, false, gear_exists_in_district, required_uid)
+        server_infos = rpc_find_all_available(opts)
         if server_infos.blank?
-          server_infos = rpc_find_all_available(node_profile, district_uuid, least_preferred_servers, restricted_servers, gear, true, gear_exists_in_district, required_uid)
+          opts[:force_rediscovery] = true
+          server_infos = rpc_find_all_available(opts)
         end
         raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_infos.blank?
         return server_infos
@@ -96,7 +98,7 @@ module OpenShift
           Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
           return current_server
         else
-          server_infos = find_all_available_impl(node_profile)
+          server_infos = find_all_available_impl(:node_profile => node_profile)
           Rails.logger.debug "DEBUG: find_one_impl: Returning #{server_infos[0][0]} from a list of #{server_infos.length} servers"
           # we are returning the server for the first server_info
           return server_infos[0][0]
@@ -2119,7 +2121,9 @@ module OpenShift
           end
 
           least_preferred_servers = [source_container.id]
-          destination_container = MCollectiveApplicationContainerProxy.find_all_available_impl(destination_gear_size, destination_district_uuid, nil, nil, gear, gear_exists_in_district, required_uid)
+          opts = { :node_profile => destination_gear_size, :district_uuid => destination_district_uuid,
+                   :gear => gear, :gear_exists_in_district => gear_exists_in_district, :required_uid => required_uid }
+          destination_container = MCollectiveApplicationContainerProxy.find_all_available_impl(opts)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
@@ -2137,9 +2141,8 @@ module OpenShift
           raise OpenShift::UserException.new("Error moving gear. Old and new servers are the same: #{source_container.id}", 1)
         end
 
-        districts = District.find_all(destination_gear_size)
-        source_server = District.find_server(source_container.id, districts)
-        dest_server = District.find_server(destination_container.id, districts)
+        source_server = District.find_server(source_container.id)
+        dest_server = District.find_server(destination_container.id)
         if source_server && dest_server && (source_server.region_id != dest_server.region_id)
           raise OpenShift::UserException.new("Error moving gear. Old and new servers must belong to the same region, source region: #{source_server.region_name} destination region: #{dest_server.region_name}")
         end 
@@ -2925,7 +2928,19 @@ module OpenShift
       # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
       # * If gear_exists_in_district is true, then district_uuid must be passed and cannot be nil
       #
-      def self.rpc_find_all_available(node_profile=nil, district_uuid=nil, least_preferred_servers=nil, restricted_servers=nil, gear=nil, force_rediscovery=false, gear_exists_in_district=false, required_uid=nil)
+      def self.rpc_find_all_available(opts=nil)
+        opts ||= {}
+        force_rediscovery = false
+        gear_exists_in_district = false
+
+        node_profile = opts[:node_profile]
+        district_uuid = opts[:disrict_uuid]
+        least_preferred_servers = opts[:least_preferred_servers]
+        restricted_servers = opts[:restricted_servers]
+        gear = opts[:gear]
+        force_rediscovery = opts[:force_rediscovery] if opts[:force_rediscovery]
+        gear_exists_in_district = opts[:gear_exists_in_district] if opts[:gear_exists_in_district]
+        required_uid = opts[:required_uid]
         district_uuid = nil if district_uuid == 'NONE'
 
         # validate to ensure incompatible parameters are not passed
