@@ -3,25 +3,6 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class ScopeTest < ActiveSupport::TestCase
 
-  def parse_exp(*args)
-    OpenShift::Controller::Configuration.send(:parse_expiration, *args)
-  end
-
-  test 'parse scope expirations' do
-    assert_equal({nil => [1.seconds]}, 
-                 parse_exp('', 1))
-    assert_equal({nil => [1.days.seconds]}, 
-                 parse_exp('* = 1.days', 1))
-    assert_equal({nil => [1.days.seconds, 2.days.seconds]}, 
-                 parse_exp('* = 1.days | 2.days', 1))
-    assert_equal({nil => [1.seconds], 'session' => [1.days.seconds]}, 
-                 parse_exp('session = 1.days', 1))
-    assert_equal({nil => [1.seconds], 'session' => [1.days.seconds, 2.days.seconds]}, 
-                 parse_exp('session = 1.days | 2.days', 1))
-    assert_equal({nil => [1.seconds], 'a' => [1.days.seconds]}, 
-                 parse_exp('a = 2, a = 1.days', 1))
-  end
-
   test 'configured expirations' do
     assert_equal 1.month.seconds, Scope.for!('userinfo').default_expiration
     assert_equal 1.month.seconds, Scope.for!('userinfo').maximum_expiration
@@ -154,5 +135,5 @@ class ScopeTest < ActiveSupport::TestCase
     assert s[1] =~ /Grant read-only/
     assert s[2].is_a? Numeric
     assert s[3].is_a? Numeric
-  end  
+  end
 end
