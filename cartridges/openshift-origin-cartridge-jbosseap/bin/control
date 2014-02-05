@@ -241,7 +241,7 @@ function build() {
           fi
 
           if [ -z "$MAVEN_ARGS" ]; then
-          export MAVEN_ARGS="clean package -Popenshift -DskipTests"
+            export MAVEN_ARGS="clean package -Popenshift -DskipTests"
           fi
 
           echo "Found pom.xml... attempting to build with 'mvn -e ${MAVEN_ARGS}'"
