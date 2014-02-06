@@ -13,7 +13,7 @@ might need when building common applications using
 an OpenShift cartrige.
 
 #===================
-# All Dependancy Packages
+# All Dependency Packages
 #===================
 # All Recommended Packages
 %package recommended-all
@@ -348,7 +348,7 @@ an OpenShift cartrige.
 
 * Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Adding recommended-all and optional-all packages (tdawson@redhat.com)
-- Add dependancy packages for all supported languages. (tdawson@redhat.com)
+- Add dependency packages for all supported languages. (tdawson@redhat.com)
 
 * Wed Jan 15 2014 Troy Dawson <tdawson@redhat.com> 1.19.2-1
 - Adding source to spec file (tdawson@redhat.com)
