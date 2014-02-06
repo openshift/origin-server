@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "functional_district_test"
 require 'test_helper'
 
 class DistrictTest < ActiveSupport::TestCase
@@ -20,10 +21,19 @@ class DistrictTest < ActiveSupport::TestCase
     assert_equal(orig_d, d)
     d.destroy
     assert(District.where(uuid: orig_d.uuid).count == 0)
+
+    Rails.configuration.msg_broker[:districts][:enabled] = false
+    exception_count = 0
+    district = District::create_district("d1") rescue exception_count += 1
+    assert_equal(1, exception_count)
+    Rails.configuration.msg_broker[:districts][:enabled] = true
+    district = District::create_district("d1")
+    assert_not_nil(district)
+    district.destroy
+    assert(District.where(uuid: district.uuid).count == 0)
   end
 
   test "add and remove node from district" do
-
     orig_d = get_district_obj
     orig_d.save!
 
@@ -37,6 +47,72 @@ class DistrictTest < ActiveSupport::TestCase
     assert_equal(orig_d, d)
     d.destroy
     assert(District.where(uuid: orig_d.uuid).count == 0)
+  end
+
+  test "add and remove node from district when region enabled" do
+    orig_d = get_district_obj
+    orig_d.save!
+
+    stubber
+    server, region_name, zone_name = "s1", "g1", "z1"
+    exception_count = 0
+    orig_d.add_node(server, region_name) rescue exception_count += 1
+    orig_region = Region.create(region_name)
+    orig_d.add_node(server, region_name, zone_name) rescue exception_count += 1
+    orig_region.add_zone(zone_name)
+    orig_d.add_node(server, region_name, zone_name)
+    assert_equal(2, exception_count)
+
+    exception_count = 0
+    cur_region = Region.find_by(name: region_name)
+    assert(cur_region.zones.size == 1)
+    cur_region.remove_zone(zone_name) rescue exception_count += 1
+    cur_region.delete rescue exception_count += 1
+    assert_equal(2, exception_count)
+
+    cur_d = District.find_by(uuid: orig_d.uuid)
+    cur_d.deactivate_node(server)
+    cur_d.remove_node(server)
+    cur_region.remove_zone(zone_name)
+    cur_region.delete
+    cur_d.destroy
+    assert(District.where(uuid: orig_d.uuid).count == 0)
+    assert(Region.where(name: region_name).count == 0)
+  end
+
+  test "add node and set and unset region" do
+    orig_d = get_district_obj
+    orig_d.save!
+
+    stubber
+    server, region_name, zone_name = "s1", "g1", "z1"
+    orig_d.add_node(server)
+    exception_count = 0
+    orig_d.set_region(server, region_name, zone_name) rescue exception_count += 1
+    orig_region = Region.create(region_name)
+    orig_d.set_region(server, region_name, zone_name) rescue exception_count += 1
+    orig_region.add_zone(zone_name)
+    orig_d.set_region(server, region_name, zone_name)
+    orig_d.set_region(server, region_name, zone_name) rescue exception_count += 1
+    assert_equal(3, exception_count)
+
+    exception_count = 0
+    cur_region = Region.find_by(name: region_name)
+    assert(cur_region.zones.size == 1)
+    cur_region.remove_zone(zone_name) rescue exception_count += 1
+    cur_region.delete rescue exception_count += 1
+    orig_d.unset_region(server)
+    orig_d.unset_region(server)
+    assert_equal(2, exception_count)
+
+    cur_d = District.find_by(uuid: orig_d.uuid)
+    cur_d.deactivate_node(server)
+    cur_d.remove_node(server)
+    cur_region.remove_zone(zone_name)
+    cur_region.delete
+    cur_d.destroy
+    assert(District.where(uuid: orig_d.uuid).count == 0)
+    assert(Region.where(name: region_name).count == 0)
   end
 
   test "reserve district uid" do
@@ -164,61 +240,9 @@ class DistrictTest < ActiveSupport::TestCase
     Rails.application.config.openshift[:default_gear_size] = o_default_gear_size
   end
 
-=begin
-  test "district nodes" do
-    orig_d = get_district_obj
-    orig_d.save!
-    begin
-      hostname = `oo-mco ping | xargs | cut -d' ' -f1`
-      hostname.chomp!
-      orig_d.add_node(hostname)
-      new_d = District.find_by(uuid: orig_d.uuid)
-      assert(new_d.server_identities_hash[hostname]["active"])
-
-      d = District.find_available
-      assert_not_nil(d)
-      assert(d.available_capacity > 0)
-
-      new_d = District.in("server_identities.name" => [hostname]).first 
-      assert_equal(new_d.uuid, orig_d.uuid)
-
-      exception = nil
-      begin
-        new_d.remove_node(hostname)
-      rescue Exception => e
-        exception = e
-      end
-      assert(!exception.nil?)
-
-      new_d = District.find_by(uuid: orig_d.uuid)
-      assert(new_d.server_identities_hash[hostname]["active"])
-
-      new_d.deactivate_node(hostname)
-      new_d = District.find_by(uuid: orig_d.uuid)
-      assert(!new_d.server_identities_hash[hostname]["active"])
-
-      new_d.activate_node(hostname)
-      new_d = District.find_by(uuid: orig_d.uuid)
-      assert(new_d.server_identities_hash[hostname]["active"])
-      new_d.deactivate_node(hostname)
-      new_d = District.find_by(uuid: orig_d.uuid)
-      assert(!new_d.server_identities_hash[hostname]["active"])
-
-      new_d.remove_node(hostname)
-      new_d = District.find_by(uuid: orig_d.uuid)
-      assert(!new_d.server_identities_hash[hostname])
-
-      orig_d.destroy
-      assert(District.where(uuid: orig_d.uuid).count == 0)
-    ensure
-      District.delete_all
-      system("rm -f /var/lib/openshift/.settings/district.info")
-    end
-  end
-=end
-
   def teardown
     District.delete_all
+    Region.delete_all
   end
 
   def get_district_obj
@@ -233,7 +257,7 @@ class DistrictTest < ActiveSupport::TestCase
     district.max_capacity = district.available_uids.length
     district.gear_size = Rails.configuration.openshift[:default_gear_size]
     district.uuid = uuid
-    district.active_server_identities_size = 0
+    district.active_servers_size = 0
     district
   end
 end

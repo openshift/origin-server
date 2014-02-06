@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "functional_cloud_user_test"
 require File.expand_path('../../test_helper', __FILE__)
 require 'openshift-origin-controller'
 require 'mocha/setup'

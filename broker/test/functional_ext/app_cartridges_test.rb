@@ -1,4 +1,4 @@
-ENV["TEST_NAME"] = "system_cartridges_test"
+ENV["TEST_NAME"] = "functional_ext_cartridges_test"
 require 'test_helper'
 require 'openshift-origin-controller'
 require 'mocha/setup'

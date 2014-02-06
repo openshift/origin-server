@@ -1,4 +1,4 @@
-ENV["TEST_NAME"] = "unit_domain_test"
+ENV["TEST_NAME"] = "functional_domain_test"
 require 'test_helper'
 
 class DomainTest < ActiveSupport::TestCase

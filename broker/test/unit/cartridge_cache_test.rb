@@ -1,5 +1,5 @@
 ENV["TEST_NAME"] = "unit_cartridge_cache_test"
-require_relative '../../test_helper'
+require_relative '../test_helper'
 
 class CartridgeCacheTest < ActiveSupport::TestCase
   setup{ Rails.cache.clear }

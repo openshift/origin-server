@@ -1,29 +1,38 @@
-ENV["TEST_NAME"] = "unit_application_test"
+ENV["TEST_NAME"] = "functional_application_test"
 require 'test_helper'
 require 'openshift-origin-controller'
 require 'helpers/rest/api'
 
 class ApplicationsTest < ActionDispatch::IntegrationTest
   def setup
-    register_user
+    @random = rand(1000000000)
+    @login = "user#{@random}"
+    @password = 'password'
     @namespace = "domain" + gen_uuid[0..9]
-    @user = CloudUser.new(login: $user)
+    @user = CloudUser.new(login: @login)
     @user.max_gears = 10
     @user.save!
     @domain = Domain.new(namespace: @namespace, owner: @user)
     @domain.save!
+    @appname = "test" + gen_uuid[0..9]
     Lock.create_lock(@user)
+    register_user(@login, @password)
     stubber
   end
 
-  def teardown
-    @user.force_delete rescue nil
+  def region_stubber
+    OpenShift::ApplicationContainerProxy.unstub(:find_available)
+    Rails.configuration.msg_broker[:districts][:enabled] = true
+    container = OpenShift::ApplicationContainerProxy.instance("node_dns")
+    OpenShift::ApplicationContainerProxy.stubs(:instance).returns(container)
+    container.stubs(:get_capacity).returns(0)
+    container.stubs(:get_node_profile).returns(Rails.configuration.openshift[:default_gear_size])
+    container.stubs(:set_district)
   end
 
   test "create update and destroy application" do
     Gear.any_instance.expects(:publish_routing_info).never
     Gear.any_instance.expects(:unpublish_routing_info).never
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     assert_equal 1, app.group_instances.length
@@ -42,6 +51,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert app.config['deployment_type'] == "binary"
 
     app.destroy_app
+    assert_equal(false, Application.where(canonical_name: @appname.downcase).exists?)
   end
 
   test "initial app save failure should clean up gears" do
@@ -49,7 +59,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     Application.any_instance.expects(:save!).raises(e)
     assert_difference "@user.consumed_gears", 0 do
       assert_difference "Application.all.count", 0 do
-        assert_raises(RuntimeError){ Application.create_app("test", cartridge_instances_for(:php), @domain) }
+        assert_raises(RuntimeError){ Application.create_app(@appname, cartridge_instances_for(:php), @domain) }
       end
     end
   end
@@ -69,7 +79,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal [], app.cartridges.to_a
     assert_equal [php_version], app.cartridges(true).to_a.map(&:name)
 
-    @appname = "test"
     Application.any_instance.expects(:save!)
     Application.any_instance.expects(:run_jobs)
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)
@@ -82,7 +91,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "create update and destroy scalable application" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true, :initial_git_url => "https://a:b@github.com/foobar/test.git")
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -102,7 +110,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "create test and destroy available application" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :available => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -114,7 +121,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "make an application highly available" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -167,7 +173,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "jenkins-client and builders are dependent on jenkins app" do
-    @appname = "test"
     builder = Application.create_app("#{@appname}j", cartridge_instances_for(:jenkins), @domain)
     builder =  Application.find(builder._id)
     assert_equal 1, builder.gears.count
@@ -192,7 +197,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "app config validation" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -228,7 +232,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "app metadata validation" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -255,7 +258,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "scalable application events" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.restart
@@ -272,7 +274,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "threaddump application events" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.threaddump
@@ -280,8 +281,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "scaling and storage events on application" do
-    @appname = "test"
-
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     assert_equal 2, app.gears.length
@@ -332,7 +331,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "application events through internal rest" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
@@ -366,7 +364,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "application elaborate does not change overrides" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain, :scalable => true)
     assert app.group_overrides.empty?
 
@@ -445,7 +442,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
 
   test "update_requirements should detect new cartridge versions by id and add a pending op" do
-    @appname = "test"
     app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain)
 
     cart = OpenShift::Cartridge.new.from_descriptor(app.cartridges.first.to_descriptor)
@@ -467,32 +463,169 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "user info through internal rest" do
-    credentials = Base64.encode64("#{$user}:#{$password}")
+    credentials = Base64.encode64("#{@user}:#{@password}")
     headers = {}
     headers["HTTP_ACCEPT"] = "application/json"
     headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
-    headers["REMOTE_USER"] = $user
+    headers["REMOTE_USER"] = @user
     request_via_redirect(:get, "/broker/rest/user", {}, headers)
     assert_equal @response.status, 200
   end
 
+  test "create scalable app and ensure gears belong to single region and different zones" do
+    return unless OpenShift.const_defined?('MCollectiveApplicationContainerProxy')
+    dist = get_district_obj
+    dist.save!
+
+    region_stubber
+    # test require region for app create
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100])
+    dist.add_node("s00")
+    Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
+    begin
+      app = Application.create_app(@appname, cartridge_instances_for(:php), @domain)
+      assert false
+    rescue OpenShift::OOException => e
+      assert_equal 140, e.code
+    end
+
+    # test prefer region for app create when region enabled
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100], ["s10", 100])
+    Rails.configuration.msg_broker[:regions][:require_for_app_create] = false
+    region1 = Region.create("g1")
+    region1.add_zone("z10")
+    dist.add_node("s10", "g1", "z10")
+    app = Application.create_app(@appname, cartridge_instances_for(:php), @domain)
+    assert_equal app.gears.count, 1
+    assert_equal "s10", app.gears.first.server_identity
+    app.destroy_app
+
+    # test all app gears in same region and gears in group instance should belong to different zones
+    Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100], ["s10", 100], ["s20", 100], ["s11", 100], ["s21", 100])
+    region1.add_zone("z11")
+    dist.add_node("s11", "g1", "z11")
+    region2 = Region.create("g2")
+    region2.add_zone("z20")
+    region2.add_zone("z21")
+    dist.add_node("s20", "g2", "z20")
+    dist.add_node("s21", "g2", "z21")
+
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+    web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
+    app.scale_by(web_framework_component_instance.group_instance_id, 1)
+    app.reload
+    assert_equal app.gears.count, 3
+    assert_equal app.group_instances.count, 2
+    si1, si2, si3 = nil, nil, nil
+    districts = District.find_all
+    app.group_instances.each do |gi|
+      if gi.gears.count == 2
+        si1 = District.find_server(gi.gears.first.server_identity, districts)
+        si2 = District.find_server(gi.gears.last.server_identity, districts)
+        assert_not_equal "s00", si1.name
+        assert_not_equal "s00", si2.name
+      else
+        si3 = District.find_server(gi.gears.first.server_identity, districts)
+        assert_not_equal "s00", si3.name
+      end
+    end
+    assert_not_nil si1
+    assert_not_nil si2
+    assert_not_nil si3
+    assert_equal si1.region_id, si2.region_id
+    assert_equal si2.region_id, si3.region_id
+    assert_not_equal si1.zone_id, si2.zone_id
+    app.destroy_app
+   
+    # test min zones per gear group 
+    Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
+    Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group] = 3
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100], ["s20", 100])
+    app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
+    assert_equal 1, app.gears.length
+    assert_equal "s20", app.gears[0].server_identity
+    web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
+    exception_count = 0
+    app.scale_by(web_framework_component_instance.group_instance_id, 1) rescue exception_count += 1
+    assert_equal 1, exception_count
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100], ["s20", 100], ["s21", 100])
+    app.scale_by(web_framework_component_instance.group_instance_id, 1)
+    assert_equal 2, app.gears.count
+    app.destroy_app
+
+    # test zones even distribution
+    Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
+    Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group] = 1
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 100], ["s21", 99])
+    app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
+    web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 99], ["s21", 100])
+    app.scale_by(web_framework_component_instance.group_instance_id, 1)
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 100], ["s21", 99])
+    app.scale_by(web_framework_component_instance.group_instance_id, 1)
+    OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 99], ["s21", 100])
+    app.scale_by(web_framework_component_instance.group_instance_id, 1)
+    assert_equal 4, app.gears.count
+    servers = []
+    app.gears.each {|gear| servers << gear.server_identity }
+    assert_equal ["s20", "s20", "s21", "s21"], servers.sort
+
+    dist.deactivate_node("s00")
+    dist.deactivate_node("s10")
+    dist.deactivate_node("s11")
+    dist.deactivate_node("s20")
+    dist.deactivate_node("s21")
+    dist.remove_node("s00")
+    dist.remove_node("s10")
+    dist.remove_node("s11")
+    dist.remove_node("s20")
+    dist.remove_node("s21")
+    region1.remove_zone("z10")
+    region1.remove_zone("z11")
+    region2.remove_zone("z20")
+    region2.remove_zone("z21")
+    region1.delete
+    region2.delete
+    dist.destroy
+    assert(District.count == 0)
+    assert(Region.count == 0)
+  end
+
+  def teardown
+    @user.force_delete rescue nil
+    District.delete_all
+    Region.delete_all
+    Mocha::Mockery.instance.stubba.unstub_all
+  end
+
+  private
+
   def rest_check(method, resource, params)
     uri = "/domains/#{@namespace}/applications/#{@appname}" + resource
-    credentials = Base64.encode64("#{$user}:#{$password}")
+    credentials = Base64.encode64("#{@login}:#{@password}")
     headers = {}
     headers["HTTP_ACCEPT"] = "application/json"
     headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
-    headers["REMOTE_USER"] = $user
+    headers["REMOTE_USER"] = @login
     request_via_redirect(method, "/broker/rest" + uri, params, headers)
     @response
   end
 
-  def teardown
-    @domain.reload
-    @domain.applications.each do |app|
-      app.delete
-    end
-    @domain.reload.delete
-    @user.reload.delete
+  def get_district_obj
+    uuid = gen_uuid
+    name = "dist_" + uuid
+    district = District.new(name: name)
+    # let the initial available_uids be sorted
+    # this allows to separately test if additional UIDs are randomized 
+    district.available_uids = (1..100).to_a
+    district.max_uid = district.available_uids.max
+    district.available_capacity = district.available_uids.length
+    district.max_capacity = district.available_uids.length
+    district.gear_size = Rails.configuration.openshift[:default_gear_size]
+    district.uuid = uuid
+    district.active_servers_size = 0
+    district
   end
 end

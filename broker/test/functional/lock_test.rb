@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "functional_lock_test"
 require 'test_helper'
 
 class LockTest < ActiveSupport::TestCase

@@ -1,0 +1,39 @@
+NAME
+  oo-admin-ctl-region 
+  
+SYNOPSIS
+  oo-admin-ctl-region [-h|--help] [-c|--command cmd]
+  [-r|--region region_name] [-z|--zone zone_name]
+  [-b|--bypass]
+
+DESCRIPTION
+  This is an utility for all region/zone operations on OpenShift Origin.
+
+OPTIONS
+  -h|--help  
+    Display a simple help dialog.
+  
+  -c|--command cmd  
+    Available commands: create, destroy, add-zone, remove-zone, list
+
+  -r|--region region_name
+    Name of the region. (alphanumeric, underscore, hyphen, dot)
+
+  -z|--zone zone_name
+    Zone within the region. (alphanumeric, underscore, hyphen, dot)
+
+  -b|--bypass  
+    Ignore all warnings.
+
+EXAMPLE
+
+  $ oo-admin-ctl-region -c create -g USA
+  
+SEE ALSO
+  oo-admin-ctl-district(8), oo-admin-move(8),
+  oo-admin-chk(8), oo-accept-broker(8),
+  oo-admin-ctl-app(8), oo-admin-ctl-domain(8),
+  oo-admin-ctl-user(8), oo-register-dns(8)
+ 
+AUTHOR
+  Ravi Sankar Penta <rpenta@redhat.com> - man page written for OpenShift Origin 

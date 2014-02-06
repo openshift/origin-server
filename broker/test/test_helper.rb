@@ -5,15 +5,48 @@ require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'
 require 'mocha/setup'
 
-def register_user(login=nil, password=nil)
+$auth_warn_once = false
+
+def register_user(login=nil, password=nil, prod_env=false)
   if ENV['REGISTER_USER']
     if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
-      `/usr/bin/htpasswd -b /etc/openshift/htpasswd #{login} #{password} > /dev/null 2>&1`
+      cmd = "/usr/bin/htpasswd -b /etc/openshift/htpasswd #{login} #{password}"
+      with_clean_env do
+        pid, stdin, stdout, stderr = Open4::popen4(cmd)
+        stdin.close
+        ignored, status = Process::waitpid2 pid
+#       exitcode = status.exitstatus
+      end
+    elsif File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
+      if prod_env
+        `oo-register-user -l admin -p admin --username #{login} --userpass #{password}`
+      else # dev/test env
+        uri = "/accounts"
+        credentials = Base64.encode64("admin:admin")
+        headers = {}
+        headers["HTTP_ACCEPT"] = "application/json"
+        headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
+        request_via_redirect(:post, "/broker/rest" + uri, {"username" => login, "password" => password}, headers)
+      end
     else
-      accnt = UserAccount.new(user: login, password: password)
-      accnt.save
+      #ignore
+      unless $auth_warn_once
+        $auth_warn_once = true
+        puts "Unknown auth plugin. Not registering user #{login}/#{password}. Modify #{__FILE__} if user registration is required."
+      end
     end
   end
+end
+
+#From http://spectator.in/2011/01/28/bundler-in-subshells/
+#
+#We can revert to using Bundler.with_clean_env when Bundler 1.1.x hits Fedora
+def with_clean_env
+  bundled_env = ENV.to_hash
+  %w(BUNDLE_GEMFILE RUBYOPT BUNDLE_BIN_PATH).each{ |var| ENV.delete(var) }
+  yield
+ensure
+  ENV.replace(bundled_env.to_hash)
 end
 
 # Load support files

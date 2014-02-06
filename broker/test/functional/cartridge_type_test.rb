@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "functional_cartridge_type_test"
 require_relative '../test_helper'
 
 class CartridgeTypeTest < ActiveSupport::TestCase

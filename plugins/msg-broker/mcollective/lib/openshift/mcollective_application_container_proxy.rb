@@ -47,7 +47,7 @@ module OpenShift
       # INPUTS:
       # * node_profile: string identifier for a set of node characteristics
       # * district_uuid: identifier for the district
-      # * least_preferred_server_identities: list of server identities that are least preferred. These could be the ones that won't allow the gear group to be highly available
+      # * least_preferred_servers: list of server identities that are least preferred. These could be the ones that won't allow the gear group to be highly available
       # * gear_exists_in_district: true if the gear belongs to a node in the same district
       # * required_uid: the uid that is required to be available in the destination district
       #
@@ -67,15 +67,15 @@ module OpenShift
       # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
       # * If gear_exists_in_district is true, then district_uuid must be passed and cannot be nil
       #
-      def self.find_all_available_impl(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, restricted_server_identities=nil, gear_exists_in_district=false, required_uid=nil)
+      def self.find_all_available_impl(opts=nil)
+        opts ||= {}
         district = nil
-        server_infos = rpc_find_all_available(node_profile, district_uuid, least_preferred_server_identities, restricted_server_identities, false, gear_exists_in_district, required_uid)
+        server_infos = rpc_find_all_available(opts)
         if server_infos.blank?
-          server_infos = rpc_find_all_available(node_profile, district_uuid, least_preferred_server_identities, restricted_server_identities, true, gear_exists_in_district, required_uid)
+          opts[:force_rediscovery] = true
+          server_infos = rpc_find_all_available(opts)
         end
-
         raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_infos.blank?
-
         return server_infos
       end
 
@@ -98,7 +98,7 @@ module OpenShift
           Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
           return current_server
         else
-          server_infos = find_all_available_impl(node_profile)
+          server_infos = find_all_available_impl(:node_profile => node_profile)
           Rails.logger.debug "DEBUG: find_one_impl: Returning #{server_infos[0][0]} from a list of #{server_infos.length} servers"
           # we are returning the server for the first server_info
           return server_infos[0][0]
@@ -276,7 +276,7 @@ module OpenShift
           elsif !district_uuid
             if @id
               begin
-                district = District.find_by({"server_identities.name" => @id})
+                district = District.find_by({"servers.name" => @id})
                 district_uuid = district.uuid
               rescue Mongoid::Errors::DocumentNotFound
                 district_uuid = 'NONE'
@@ -313,7 +313,7 @@ module OpenShift
           elsif !district_uuid
             if @id
               begin
-                district = District.find_by({"server_identities.name" => @id})
+                district = District.find_by({"servers.name" => @id})
                 district_uuid = district.uuid
               rescue Mongoid::Errors::DocumentNotFound
                 district_uuid = 'NONE'
@@ -2138,6 +2138,7 @@ module OpenShift
           node_profile = nil
         end
 
+        destination_gear_size = node_profile || gear.group_instance.gear_size
         if destination_container.nil?
           if !destination_district_uuid and !change_district
             destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
@@ -2149,9 +2150,10 @@ module OpenShift
             required_uid = nil
           end
 
-          least_preferred_server_identities = [source_container.id]
-          destination_gear_size = node_profile || gear.group_instance.gear_size
-          destination_container = MCollectiveApplicationContainerProxy.find_all_available_impl(destination_gear_size, destination_district_uuid, nil, nil, gear_exists_in_district, required_uid)
+          least_preferred_servers = [source_container.id]
+          opts = { :node_profile => destination_gear_size, :district_uuid => destination_district_uuid,
+                   :gear => gear, :gear_exists_in_district => gear_exists_in_district, :required_uid => required_uid }
+          destination_container = MCollectiveApplicationContainerProxy.find_all_available_impl(opts)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
@@ -2166,8 +2168,15 @@ module OpenShift
         district_changed = (destination_district_uuid != source_district_uuid)
 
         if source_container.id == destination_container.id
-          raise OpenShift::UserException.new("Error moving gear.  Old and new servers are the same: #{source_container.id}", 1)
+          raise OpenShift::UserException.new("Error moving gear. Old and new servers are the same: #{source_container.id}", 1)
         end
+
+        source_server = District.find_server(source_container.id)
+        dest_server = District.find_server(destination_container.id)
+        if source_server && dest_server && (source_server.region_id != dest_server.region_id)
+          raise OpenShift::UserException.new("Error moving gear. Old and new servers must belong to the same region, source region: #{source_server.region_name} destination region: #{dest_server.region_name}")
+        end 
+
         return [destination_container, destination_district_uuid, district_changed]
       end
 
@@ -2934,7 +2943,7 @@ module OpenShift
       # INPUTS:
       # * node_profile: String identifier for a set of node characteristics
       # * district_uuid: String identifier for the district
-      # * least_preferred_server_identities: list of server identities that are least preferred. These could be the ones that won't allow the gear group to be highly available
+      # * least_preferred_servers: list of server identities that are least preferred. These could be the ones that won't allow the gear group to be highly available
       # * force_rediscovery: Boolean
       # * gear_exists_in_district: Boolean - true if the gear belongs to a node in the same district
       # * required_uid: String - the uid that is required to be available in the destination district
@@ -2949,8 +2958,19 @@ module OpenShift
       # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
       # * If gear_exists_in_district is true, then district_uuid must be passed and cannot be nil
       #
-      def self.rpc_find_all_available(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, restricted_server_identities=nil, force_rediscovery=false, gear_exists_in_district=false, required_uid=nil)
+      def self.rpc_find_all_available(opts=nil)
+        opts ||= {}
+        force_rediscovery = false
+        gear_exists_in_district = false
 
+        node_profile = opts[:node_profile]
+        district_uuid = opts[:disrict_uuid]
+        least_preferred_servers = opts[:least_preferred_servers]
+        restricted_servers = opts[:restricted_servers]
+        gear = opts[:gear]
+        force_rediscovery = opts[:force_rediscovery] if opts[:force_rediscovery]
+        gear_exists_in_district = opts[:gear_exists_in_district] if opts[:gear_exists_in_district]
+        required_uid = opts[:required_uid]
         district_uuid = nil if district_uuid == 'NONE'
 
         # validate to ensure incompatible parameters are not passed
@@ -3011,51 +3031,135 @@ module OpenShift
         # Get the districts
         districts = prefer_district ? District.find_all((require_district && node_profile ) ? node_profile : nil, required_uid) : []
 
+        require_region = Rails.configuration.msg_broker[:regions][:require_for_app_create]
         # Get the active % on the nodes
         rpc_opts = nil
-        rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
+        rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server_identity, capacity|
           found_district = false
           districts.each do |district|
-            if district.server_identities_hash.has_key?(server)
-              next if required_uid and !district.available_uids.include?(required_uid)
-              if (gear_exists_in_district || district.available_capacity > 0) && district.server_identities_hash[server]["active"]
-                server_infos << [server, capacity.to_f, district]
+            # skip district servers in these cases:
+            # - if required uid is not availabe in the district
+            # - server is not active
+            # - server can not accomodate any more gears
+            # - server not part of any region when user requested region
+            next if required_uid and !district.available_uids.include?(required_uid)
+            if district.servers.where(name: server_identity).exists?
+              server = district.servers.find_by(name: server_identity)
+              if (gear_exists_in_district || district.available_capacity > 0) &&
+                 server.active && (!require_region || server.region_id)
+                server_infos << NodeProperties.new(server_identity, capacity.to_f, district, server)
               end
               found_district = true
               break
             end
           end
           if !found_district && !require_district # Districts aren't required in this case
-            server_infos << [server, capacity.to_f]
+            server_infos << NodeProperties.new(server_identity, capacity.to_f)
           end
         end
-        if require_district && server_infos.empty?
-          raise OpenShift::NodeUnavailableException.new("No district nodes available", 140)
+        if server_infos.empty?
+          if require_district && require_region
+            raise OpenShift::NodeUnavailableException.new("No districted region nodes available", 140)
+          elsif require_district
+            raise OpenShift::NodeUnavailableException.new("No district nodes available", 140)
+          end
         end
+        # Remove the restricted servers from the list
+        server_infos.delete_if { |server_info| restricted_servers.include?(server_info.name) } if restricted_servers.present? and server_infos.present?
         unless server_infos.empty?
-          # Remove the restricted servers from the list
-          if restricted_server_identities
-            server_infos.delete_if { |server_info| restricted_server_identities.include?(server_info[0]) }
-            # if server_infos is now empty, its because of the the removal of the restricted servers
-            Rails.logger.warn "No nodes available after removing restricted nodes (force_rediscovery: #{force_rediscovery})" if server_infos.empty?
+          if gear
+            server = nil
+            reloaded_app = Application.find_by(_id: gear.application._id)
+            reloaded_app.gears.each do |g|
+              if g.server_identity
+                server = District.find_server(g.server_identity, districts)
+                break
+              end
+            end
+            if server and server.region_id
+              # Remove servers that does not belong to current region
+              server_infos.delete_if { |server_info| server.region_id != server_info.region_id }
+
+              # Check if we have min zones for app gear group
+              zones_consumed_capacity = {}
+              server_infos.each do |server_info|
+                zone_id = server_info.zone_id
+                if zone_id
+                  zones_consumed_capacity[zone_id] = 0 unless zones_consumed_capacity[zone_id]
+                  zones_consumed_capacity[zone_id] += server_info.node_consumed_capacity
+                end
+              end
+              available_zones_count = zones_consumed_capacity.keys.length
+              min_zones_per_gear_group = Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group]
+              if available_zones_count < min_zones_per_gear_group
+                active_zones = []
+                districts.each do |district|
+                  district.servers.where(region_id: server.region_id).each { |s| active_zones << s.zone_id }
+                end
+                active_zones = active_zones.uniq.compact
+                required_min_zones = [active_zones.length, min_zones_per_gear_group].min
+                if available_zones_count < required_min_zones
+                  raise OpenShift::OOException.new("Unable to find minimum zones required for application gear group. " \
+                                                   "Available zones:#{available_zones_count}, Needed min zones:#{required_min_zones}")
+                end
+              end
+
+              # Find least preferred zones
+              least_preferred_zone_ids = []
+              least_preferred_servers.each do |server_identity|
+                next unless server_identity
+                server = District.find_server(server_identity, districts)
+                least_preferred_zone_ids << server.zone_id if server.zone_id
+              end if least_preferred_servers.present?
+              least_preferred_zone_ids = least_preferred_zone_ids.uniq
+
+              if least_preferred_zone_ids.present?
+                available_zone_ids = zones_consumed_capacity.keys
+                # Consider least preferred zones only when we have no available zone that's not in least preferred zones. 
+                unless (available_zone_ids - least_preferred_zone_ids).empty?
+                  # Remove least preferred zones from the list, ensuring there is at least one server remaining
+                  server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_zone_ids.include?(server_info.zone_id) }
+                  zones_consumed_capacity.delete_if { |zone_id, capacity| least_preferred_zone_ids.include?(zone_id) }
+                end
+              end
+
+              # Distribute zones evenly, pick zones that are least consumed/have max available capacity
+              min_consumed_capacity = zones_consumed_capacity.values.min
+              preferred_zones = zones_consumed_capacity.select { |zone_id, capacity| capacity <= min_consumed_capacity }.keys
+ 
+              # Remove the servers from the list that does not belong to preferred zones
+              server_infos.delete_if { |server_info| (server_infos.length > 1) && !preferred_zones.include?(server_info.zone_id) }
+            end
           end
 
           # Remove the least preferred servers from the list, ensuring there is at least one server remaining
-          server_infos.delete_if { |server_info| server_infos.length > 1 && least_preferred_server_identities.include?(server_info[0]) } if least_preferred_server_identities
+          server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_servers.include?(server_info.name) } if least_preferred_servers.present?
 
           # Remove any non districted nodes if you prefer districts
           if prefer_district && !require_district && !districts.empty?
             has_districted_node = false
             server_infos.each do |server_info|
-              if server_info[2]
+              if server_info.district_id
                 has_districted_node = true
                 break
               end
             end
-            server_infos.delete_if { |server_info| !server_info[2] } if has_districted_node
+            server_infos.delete_if { |server_info| !server_info.district_id } if has_districted_node
+          end
+
+          # Prefer region nodes over non region nodes when region is not requested
+          unless require_region
+            has_region_node = false
+            server_infos.each do |server_info|
+              if server_info.region_id
+                has_region_node = true
+                break
+              end
+            end
+            server_infos.delete_if { |server_info| !server_info.region_id } if has_region_node
           end
         end
-
+        
         return server_infos
       end
 
@@ -3105,12 +3209,12 @@ module OpenShift
 
       def self.select_best_fit_node_impl(server_infos)
         # Sort by node active capacity (consumed capacity) and take the best half
-        server_infos = server_infos.sort_by { |server_info| server_info[1] }
+        server_infos = server_infos.sort_by { |server_info| server_info.node_consumed_capacity }
         # consider the top half and no less than min(4, the actual number of available)
         server_infos = server_infos.first([4, (server_infos.length / 2).to_i].max)
 
         # Sort by district available capacity and take the best half
-        server_infos = server_infos.sort_by { |server_info| (server_info[2] && server_info[2].available_capacity) ? server_info[2].available_capacity : 1 }
+        server_infos = server_infos.sort_by { |server_info| (server_info.district_available_capacity ? server_info.district_available_capacity : 1) }
         # consider the top half and no less than min(4, the actual number of available)
         server_infos = server_infos.last([4, (server_infos.length / 2).to_i].max) 
 
@@ -3118,7 +3222,7 @@ module OpenShift
         unless server_infos.empty?
           # Randomly pick one of the best options
           server_info = server_infos[rand(server_infos.length)]
-          Rails.logger.debug "Selecting best fit node: server: #{server_info[0]} capacity: #{server_info[1]}"
+          Rails.logger.debug "Selecting best fit node: server: #{server_info.name} capacity: #{server_info.node_consumed_capacity}"
         end
 
         raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_info.nil?

@@ -23,9 +23,19 @@ module OpenShift
       @proxy_provider.new(id)
     end
 
-    def self.find_available(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, restricted_server_identities=nil, gear=nil)
-      server_infos = @proxy_provider.find_all_available_impl(node_profile, district_uuid, non_ha_server_identities, restricted_server_identities)
-      server_id, district = select_best_fit_node(server_infos, gear)
+    ##
+    # Finds a server that matches the required criteria.
+    #
+    # @param opts [Hash] Flexible array of optional parameters
+    #   node_profile [String] Gear size to filter
+    #   disrict_uuid [String] Unique identifier for district
+    #   least_preferred_servers [Array<String>] List of least preferred server identities
+    #   restricted_servers [Array<String>] List of restricted server identities
+    #   gear [Gear] Gear object
+    def self.find_available(opts=nil)
+      opts ||= {}
+      server_infos = @proxy_provider.find_all_available_impl(opts)
+      server_id, district = select_best_fit_node(server_infos, opts[:gear])
       
       raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_id.nil?
       @proxy_provider.new(server_id, district)
@@ -42,11 +52,9 @@ module OpenShift
       district = nil
       if @node_selector.nil?
         server_info = @proxy_provider.select_best_fit_node_impl(server_infos)
-        server_id = server_info[0]
-        district = server_info[2]
+        server_id = server_info.name
+        district = District.find_by(:_id => server_info.district_id) if server_info.district_id
       else
-        node_list = server_infos.map {|server| NodeProperties.new(server[0], server[1], server[2])}
-        
         if gear
           app_props = ApplicationProperties.new(gear.application)
           user_props = UserProperties.new(gear.application.domain.owner)
@@ -59,7 +67,7 @@ module OpenShift
         # since the request is processed inline currently, sending Time.now for now
         # later, if asynchronous request processing is performed, we will store the request time and pass it along 
         request_time = Time.now
-        node = @node_selector.select_best_fit_node_impl(node_list, app_props, current_gears, comp_list, user_props, request_time)
+        node = @node_selector.select_best_fit_node_impl(server_infos, app_props, current_gears, comp_list, user_props, request_time)
         server_id = node.name
         district = District.find_by(:_id => node.district_id) if node.district_id
       end

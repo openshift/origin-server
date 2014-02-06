@@ -23,14 +23,18 @@ Broker::Application.configure do
         :verbose => conf.get_bool("MCOLLECTIVE_VERBOSE", "false"),
         :progress_bar => conf.get_bool("MCOLLECTIVE_PROGRESS_BAR", false),
         :filter => {"identity" => [], "fact" => [], "agent" => [], "cf_class" => [], "compound" => []},
-        :config => conf.get("MCOLLECTIVE_CONFIG", "#{scl_root}/etc/mcollective/client.cfg"),
+        :config => conf.get("MCOLLECTIVE_CONFIG", "#{scl_root}/etc/mcollective/client.cfg")
       },
       :fact_timeout => conf.get("MCOLLECTIVE_FACT_TIMEOUT", 10).to_i,
       :districts => {
         :enabled => conf.get_bool("DISTRICTS_ENABLED", "false"),
         :require_for_app_create => conf.get_bool("DISTRICTS_REQUIRE_FOR_APP_CREATE", "false"),
         :max_capacity => conf.get("DISTRICTS_MAX_CAPACITY", 6000).to_i,
-        :first_uid => conf.get("DISTRICTS_FIRST_UID", 1000).to_i,
+        :first_uid => conf.get("DISTRICTS_FIRST_UID", 1000).to_i
+      },
+      :regions => {
+        :require_for_app_create => conf.get_bool("REGIONS_REQUIRE_FOR_APP_CREATE", "false"),
+        :min_zones_per_gear_group => conf.get("ZONES_MIN_PER_GEAR_GROUP", 1).to_i
       },
       :node_profile_enabled => conf.get_bool("NODE_PROFILE_ENABLED", "false")
     }

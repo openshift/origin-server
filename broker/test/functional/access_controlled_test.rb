@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "functional_access_controlled_test"
 require_relative '../test_helper'
 
 class AccessControlledTest < ActiveSupport::TestCase

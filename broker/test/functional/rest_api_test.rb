@@ -1,16 +1,17 @@
+ENV["TEST_NAME"] = "functional_rest_api_test"
 require_relative '../test_helper'
 require 'openshift-origin-controller'
 require 'helpers/rest/api'
 require 'json'
 
-class RestApiUnitTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
+class RestApiTest < ActionDispatch::IntegrationTest
   def setup
     https!
     stubber
   end
 
   test "rest api" do
-    register_user if registration_required?
+    register_user($user, $password) if registration_required?
     REST_CALLS.each do |rest_version|
       rest_version.each do |rest_api|
         #puts

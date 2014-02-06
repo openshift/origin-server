@@ -1,4 +1,4 @@
-ENV["TEST_NAME"] = "system_alias_test"
+ENV["TEST_NAME"] = "functional_ext_alias_test"
 require 'test_helper'
 require 'openshift-origin-controller'
 

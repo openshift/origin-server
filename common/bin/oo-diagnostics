@@ -631,10 +631,10 @@ class OODiag
       profile = district.attributes.has_key?('node_profile') ? district.node_profile : district.gear_size
                             # model refactor renamed :node_profile => :gear_size
       verbose "district '#{district.name}' has profile '#{profile}'"
-      if district.server_identities.empty?
+      if district.servers.empty?
         do_warn "There are no node hosts in district '#{district.name}'"
       end
-      district.server_identities.each do |node|
+      district.servers.each do |node|
         d_profile_for[node["name"]] = profile
         d_district_for[node["name"]] = district.name
         d_profile_active[profile] = true if node["active"]

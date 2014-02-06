@@ -8,6 +8,7 @@
 class PendingAppOpGroup
   include Mongoid::Document
   include Mongoid::Timestamps::Created
+  include ModelHelper
   include TSort
 
   embedded_in :application, class_name: Application.name

@@ -234,7 +234,6 @@ class Application
   # @param gear_uuid [String] The UUID of the gear
   # @return [[Application,Gear]] The application and gear objects or nil array if no application matches
   def self.find_by_gear_uuid(gear_uuid)
-    # obj_id = Moped::BSON::ObjectId(gear_uuid)
     obj_id = gear_uuid.to_s
     app = Application.where("gears.uuid" => obj_id).first
     return [nil, nil] if app.nil?
@@ -247,7 +246,6 @@ class Application
   def initialize(attrs = nil, options = nil)
     super
     self.app_ssh_keys = []
-    #self.pending_op_groups = []
     self.analytics ||= {}
 
     # the resultant string length is 4/3 times the number specified as the first argument
