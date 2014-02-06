@@ -134,9 +134,19 @@ module AdminHelper
     user_info
   end
 
-  def populate_user_hash(options={})
+  def get_user_hash(user_id)
+    unless $user_hash[user_id.to_s]
+      populate_user_hash({:read => :primary}, user_id) 
+    end
+    $user_hash[user_id.to_s]
+  end
+
+  def populate_user_hash(options=nil, user_id=nil)
+    options ||= {}
     options.reverse_merge!({:timeout => false})
-    OpenShift::DataStore.find(:cloud_users, {}, options) do |user|
+    query = {}
+    query['_id'] = BSON::ObjectId(user_id.to_s) if user_id
+    OpenShift::DataStore.find(:cloud_users, query, options) do |user|
       unless user["login"].present?
         print_message "User with Id #{user['_id']} has a null, empty, or missing login."
       else
@@ -145,19 +155,24 @@ module AdminHelper
     end
   end
 
-  def populate_domain_hash(options={})
+  def get_domain_hash(domain_id)
+    unless $domain_hash[domain_id.to_s]
+      populate_domain_hash({:read => :primary}, domain_id)
+    end
+    $domain_hash[domain_id.to_s]
+  end
+
+  def populate_domain_hash(options=nil, domain_id=nil)
+    options ||= {}
     options.reverse_merge!({:timeout => false})
-    OpenShift::DataStore.find(:domains, {}, options) do |domain|
+    query = {}
+    query['_id'] = BSON::ObjectId(domain_id.to_s) if domain_id
+    OpenShift::DataStore.find(:domains, query, options) do |domain|
       owner_id = domain["owner_id"].to_s
       $domain_hash[domain["_id"].to_s] = {"owner_id" => owner_id, "canonical_namespace" => domain["canonical_namespace"]}
       system_ssh_keys = []
       domain["system_ssh_keys"].each { |k| system_ssh_keys << "domain-#{k['name']}#{SSH_KEY_COMMENT_DELIMITER}#{Digest::MD5.hexdigest(k["content"])}" if k["content"] } if domain["system_ssh_keys"].present?
-
-      if owner_id.present? and !$user_hash[owner_id]
-        OpenShift::DataStore.find(:cloud_users, {"_id" => domain["owner_id"]}, {:read => :primary}) do |user|
-          $user_hash[user["_id"].to_s] = get_user_info(user)
-        end
-      end
+      get_user_hash(owner_id)
 
       print_message "Domain '#{domain['_id']}' has no members in mongo." unless domain['members'].present?
 
@@ -186,7 +201,9 @@ module AdminHelper
       login = nil
       creation_time = app['created_at'].utc
       domain_id = app['domain_id'].to_s
+      get_domain_hash(domain_id)
       owner_id = $domain_hash[domain_id]["owner_id"]
+      get_user_hash(owner_id)
       app_life_time = Time.now.utc - creation_time
 
       if $chk_app or $chk_gear_mongo_node
