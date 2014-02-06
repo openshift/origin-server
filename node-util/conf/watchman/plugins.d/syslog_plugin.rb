@@ -36,18 +36,19 @@ class SyslogPlugin < OpenShift::Runtime::WatchmanPlugin
   def apply
     return if @gears.empty?
 
-    results, error, rc = OpenShift::Runtime::Utils.oo_spawn(%Q{/bin/grep ' killed as a result of limit of ' #{@log_file}})
+    results, error, rc = OpenShift::Runtime::Utils.oo_spawn(%Q{/bin/grep ' killed as a result of limit of ' #{@log_file}},
+                                                            quiet: true)
     case rc
       when 1
         ; # grep found no matches
       when 0
         incidents = {}
         results.split("\n").each do |event|
-          ts              = DateTime.strptime(event, '%b %d %T')
+          ts        = DateTime.strptime(event, '%b %d %T')
 
           # timezones are just a PITA. Syslog message doesn't include timezone so inject timezone from epoch
-          timestamp       = DateTime.civil(ts.year, ts.month, ts.day, ts.hour, ts.min, ts.sec, @epoch.zone)
-          uuid            = event.scan(/[a-f0-9]{24,32}/).first
+          timestamp = DateTime.civil(ts.year, ts.month, ts.day, ts.hour, ts.min, ts.sec, @epoch.zone)
+          uuid      = event.scan(/[a-f0-9]{24,32}/).first
 
           # Skip any messages that occurred before we were started.
           # Assume those have been dealt with manually or on a previous run.

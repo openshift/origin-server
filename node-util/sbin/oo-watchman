@@ -137,15 +137,18 @@ module OpenShift
         name = IO.read(file).chomp rescue '(Unknown)'
 
         restart_gear = lambda do
-          Utils.oo_spawn(%Q{/usr/sbin/oo-admin-ctl-gears restartgear #{uuid}})
+          out, err, rc = Utils.oo_spawn(%Q{/usr/sbin/oo-admin-ctl-gears restartgear #{uuid}})
           Syslog.info("watchman restarted user #{uuid}: application #{name}")
+          unless 0 == rc
+            Syslog.warning("watchman results for #{uuid} restart: exitcode: #{rc}\nstdout: #{out}\nstderr: #{err}")
+          end
         end
 
         begin
-          restart_gear if @gears.running?(uuid)
+          restart_gear.call if @gears.running?(uuid)
         rescue Errno::ENOENT
           # .state file missing is there a stop_lock?
-          restart_gear unless @gears.stop_lock?(uuid)
+          restart_gear.call unless @gears.stop_lock?(uuid)
         end
       end
     end

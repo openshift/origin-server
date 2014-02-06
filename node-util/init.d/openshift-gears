@@ -9,26 +9,32 @@
 # source function library
 . /etc/rc.d/init.d/functions
 
+test -f /etc/sysconfig/openshift-gears && . /etc/sysconfig/openshift-gears
+
+test -n "$NTHREADS" && THREADS="-n $NTHREADS"
+test -n "$TIMEOUT"  && TM="-w $TIMEOUT"
+OPTIONS="$THREADS $TM"
+
 case "$1" in
   start)
-    /usr/sbin/oo-admin-ctl-gears startall
+    /usr/sbin/oo-admin-ctl-gears startall $OPTIONS
     ;;
   stop)
-    /usr/sbin/oo-admin-ctl-gears stopall
+    /usr/sbin/oo-admin-ctl-gears stopall  $OPTIONS
     ;;
   restart|force-reload)
-    /usr/sbin/oo-admin-ctl-gears restartall
+    /usr/sbin/oo-admin-ctl-gears restartall $OPTIONS
     ;;
   reload)
     ;;
   condrestart)
-    /usr/sbin/oo-admin-ctl-gears condrestartall
+    /usr/sbin/oo-admin-ctl-gears condrestartall $OPTIONS
     ;;
   waited-start)
-    /usr/sbin/oo-admin-ctl-gears waited-startall
+    /usr/sbin/oo-admin-ctl-gears waited-startall $OPTIONS
     ;;
   status)
-    /usr/sbin/oo-admin-ctl-gears status
+    /usr/sbin/oo-admin-ctl-gears status $OPTIONS
     ;;
   *)
     echo "Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"
