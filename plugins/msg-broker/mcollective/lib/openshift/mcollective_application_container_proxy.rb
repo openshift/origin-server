@@ -374,7 +374,7 @@ module OpenShift
       # Constructs a shell command line to be executed by the MCollective agent
       # on the node.
       #
-      def create(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
+      def create(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false, initial_deployment_dir_required=true)
         app = gear.application
         result = nil
         (1..10).each do |i|
@@ -387,6 +387,8 @@ module OpenShift
           else
             Rails.logger.error "The application #{app.name} (#{app._id.to_s}) does not have its secret token set"
           end
+
+          args['--with-initial-deployment-dir'] = initial_deployment_dir_required
 
           mcoll_reply = execute_direct(@@C_CONTROLLER, 'app-create', args)
 
@@ -2209,7 +2211,9 @@ module OpenShift
         reply = ResultIO.new
         source_container = gear.get_proxy
         log_debug "DEBUG: Creating new account for gear '#{gear.name}' on #{destination_container.id}"
-        reply.append destination_container.create(gear, quota_blocks, quota_files)
+        sshkey_required = false
+        initial_deployment_dir_required = false
+        reply.append destination_container.create(gear, quota_blocks, quota_files, sshkey_required, initial_deployment_dir_required)
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
         rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]

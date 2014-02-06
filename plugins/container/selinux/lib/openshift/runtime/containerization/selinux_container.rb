@@ -40,7 +40,7 @@ module OpenShift
         #   # Setup permissions
         #
         # Returns nil on Success or raises on Failure
-        def create
+        def create(create_initial_deployment_dir = true)
           # Lock to prevent race condition on obtaining a UNIX user uid.
           # When running without districts, there is a simple search on the
           #   passwd file for the next available uid.
@@ -72,7 +72,7 @@ module OpenShift
           enable_cgroups
           enable_traffic_control
 
-          @container.initialize_homedir(@container.base_dir, @container.container_dir)
+          @container.initialize_homedir(@container.base_dir, @container.container_dir, create_initial_deployment_dir)
 
           enable_fs_limits
           delete_all_public_endpoints
