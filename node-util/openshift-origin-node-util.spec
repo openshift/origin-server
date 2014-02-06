@@ -107,6 +107,7 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0750,-,-) %{_sbindir}/oo-list-access
 %attr(0750,-,-) %{_sbindir}/oo-restorecon
 %attr(0750,-,-) %{_sbindir}/oo-restorer
+%attr(0750,-,-) %{_sbindir}/oo-admin-gear
 %attr(0750,-,apache) %{_sbindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_sbindir}/oo-httpd-singular
 %attr(0750,-,-) %{_sbindir}/oo-su
