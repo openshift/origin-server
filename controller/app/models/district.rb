@@ -133,8 +133,13 @@ class District
       server.zone_name = zone_name
       server.zone_id = zone_id
     end
-    res = District.where(:uuid => self.uuid).update({"$push" => {"servers" => server.serializable_hash_with_timestamp}, "$inc" => {"active_servers_size" => 1}})
-    raise OpenShift::OOException.new("Could not add node #{server_identity}") if res.nil? or !res["updatedExisting"]
+    begin
+      res = District.where(:uuid => self.uuid).update({"$push" => {"servers" => server.serializable_hash_with_timestamp}, "$inc" => {"active_servers_size" => 1}})
+      raise OpenShift::OOException.new("Could not add node #{server_identity}") if res.nil? or !res["updatedExisting"]
+    rescue Exception => e
+      container.set_district('NONE', false, first_uid, max_uid)
+      raise e
+    end
     self.reload
   end
 
