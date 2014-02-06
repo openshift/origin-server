@@ -211,11 +211,6 @@ module OpenShift
         end
       end
 
-      def self.find_system_messages(pattern)
-        regex = Regexp.new(pattern)
-        open('/var/log/messages') { |f| f.grep(regex) }.join("\n")
-      end
-
       def self.init_pam_limits_all
         config = OpenShift::Config.new
         gecos = (config.get("GEAR_GECOS") || "OO application container")

@@ -62,7 +62,6 @@ action "cartridge_do", :description => "run a cartridge action" do
                               frontend-unidle
                               frontend-update-name
                               get-quota
-                              info
                               post-configure
                               post-install
                               post-remove
@@ -80,7 +79,6 @@ action "cartridge_do", :description => "run a cartridge action" do
                               start
                               status
                               stop
-                              system-messages
                               threaddump
                               tidy
                               user-var-add
