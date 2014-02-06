@@ -21,6 +21,7 @@ Options:
     Region name (alphanumeric, underscore, hyphen, dot)
 -z|--zone <zone_name>
     Zone name within the given region (alphanumeric, underscore, hyphen, dot)
+    Only valid for add-zone and remove-zone commands
 -b|--bypass
     Ignore warnings
 -h|--help
@@ -75,7 +76,7 @@ if !zone_name and ((command == 'add-zone') or (command == 'remove-zone'))
   puts "Error: --zone is required with command: #{command}"
   exit 2
 end
-if zone_name and ((command == 'create') or (command == 'destroy'))
+if zone_name and ((command != 'add-zone') or (command == 'remove-zone'))
   puts "Warning: Ignoring --zone, not valid for command: #{command}"
 end
 

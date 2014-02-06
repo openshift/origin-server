@@ -21,6 +21,7 @@ OPTIONS
 
   -z|--zone zone_name
     Zone within the region. (alphanumeric, underscore, hyphen, dot)
+    Only valid for add-zone and remove-zone commands
 
   -b|--bypass  
     Ignore all warnings.

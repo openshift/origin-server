@@ -30,9 +30,10 @@ Options:
 -s|--size
     Size to add or remove (positive number) (required)
 -r|--region <region_name>
-    Region name of the server identitiy. Only for add-node (optional)
+    Region name of the server identitiy.
+    Only valid for add-node (optional), set-region and unset-region
 -z|--zone <zone_name>
-    Zone within the region. Only for add-node when region is specified
+    Zone within the region. Only valid when region is specified
 -b|--bypass
     Ignore warnings
 -h|--help
