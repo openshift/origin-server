@@ -691,7 +691,7 @@ module OpenShift
             end
           end
 
-          pwents.each do |pwent|
+          pwents.shuffle.each do |pwent|
             # The path is a performance hack to load only the variables we need
             if loadenv
               env = ::OpenShift::Runtime::Utils::Environ.load(File.join(pwent.dir, '.env', 'OPENSHIFT_{APP,GEAR}_{UUID,NAME,DNS}*'))
