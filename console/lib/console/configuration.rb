@@ -38,6 +38,7 @@ module Console
     config_accessor :community_url
     config_accessor :cache_store
     config_accessor :prohibited_email_domains
+    config_accessor :syslog_enabled
 
     #
     # A class that represents the capabilities object
@@ -146,6 +147,11 @@ module Console
 
         self.prohibited_email_domains = config[:PROHIBITED_EMAIL_DOMAINS].split(',').map { |email| email.strip } rescue []
 
+        if self.syslog_enabled = config[:SYSLOG_ENABLED]
+          require 'syslog-logger'
+          Rails.configuration.logger = Logger::Syslog.new('openshift-console')
+        end
+
         if cache_store = config[:CACHE_STORE]
           Rails.configuration.send(:cache_store=, eval("[#{cache_store}]"))
         end
@@ -160,7 +166,7 @@ module Console
 
         if asset_host = config[:ASSET_HOST]
           Rails.configuration.action_controller.asset_host = asset_host
-        end        
+        end
 
         case config[:CONSOLE_SECURITY]
         when 'basic'
