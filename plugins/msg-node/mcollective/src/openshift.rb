@@ -982,22 +982,6 @@ module MCollective
         end
       end
 
-      def oo_system_messages(args)
-        cart_name = args['--cart-name']
-
-        output = ""
-        begin
-          output = OpenShift::Runtime::Node.find_system_messages(cart_name)
-        rescue Exception => e
-          report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 1, e.message
-        else
-          return 0, output
-        end
-      end
-
       def oo_start(args)
         cart_name = args['--cart-name']
 
