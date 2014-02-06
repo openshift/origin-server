@@ -2684,17 +2684,20 @@ class Application
       keys = {}
       user_env_vars.each do |ev|
         name = ev['name']
+        value = ev['value']
         unless name and (ev.keys - ['name', 'value']).empty?
-          raise OpenShift::UserException.new("Invalid environment variable #{ev}. Valid keys 'name'(required), 'value'", 187, "environment_variables")
+          raise OpenShift::UserException.new("Invalid environment variable #{ev}. Valid keys 'name'(required), 'value'", 186, "environment_variables")
         end
         raise OpenShift::UserException.new("Invalid environment variable name #{name}: specified multiple times", 188, "environment_variables") if keys[name]
         keys[name] = true
+        raise OpenShift::UserException.new("Name must be 128 characters or less.", 188, "environment_variables") if name.length > 128
         match = /\A([a-zA-Z_][\w]*)\z/.match(name)
-        raise OpenShift::UserException.new("Name can only contain letters, digits and underscore and can't begin with a digit.", 194, "name") if match.nil?
+        raise OpenShift::UserException.new("Name can only contain letters, digits and underscore and can't begin with a digit.", 188, "environment_variables") if match.nil?
+        raise OpenShift::UserException.new("Value must be 512 characters or less.", 190, "environment_variables") if value.length > 512
       end
       if no_delete
         set_vars, unset_vars = sanitize_user_env_variables(user_env_vars)
-        raise OpenShift::UserException.new("Environment variable deletion not allowed for this operation", 193, "environment_variables") unless unset_vars.empty?
+        raise OpenShift::UserException.new("Environment variable deletion not allowed for this operation", 186, "environment_variables") unless unset_vars.empty?
       end
     end
   end

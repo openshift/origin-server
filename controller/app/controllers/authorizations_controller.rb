@@ -15,7 +15,7 @@ class AuthorizationsController < BaseController
     scopes = if s = params[:scope] || params[:scopes]
         Scope.list!(s) rescue (
           return render_error(:unprocessable_entity, "One or more of the scopes you provided are not allowed. Valid scopes are #{Scope.describe_all.map(&:first).to_sentence}.",
-                              194, "scopes"))
+                              1, "scopes"))
       end
     scopes = Scope.default if scopes.blank?
 
