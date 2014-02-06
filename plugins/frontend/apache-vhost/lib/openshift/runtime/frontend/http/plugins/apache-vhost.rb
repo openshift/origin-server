@@ -41,11 +41,11 @@ module OpenShift
 
             attr_reader :basedir, :token, :app_path
 
-            def initialize(container_uuid, fqdn, container_name, namespace)
+            def initialize(container_uuid, fqdn, container_name, namespace, application_uuid=nil)
               @config = ::OpenShift::Config.new
               @basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
 
-              super(container_uuid, fqdn, container_name, namespace)
+              super(container_uuid, fqdn, container_name, namespace, application_uuid)
 
               @token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
               @app_path = File.join(@basedir, token)
@@ -127,6 +127,9 @@ module OpenShift
                   File.open(conf_path, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                     server_name = @fqdn
                     include_path = @app_path
+                    app_uuid = @application_uuid
+                    gear_uuid = @container_uuid
+                    app_namespace = @namespace
                     ssl_certificate_file = '/etc/pki/tls/certs/localhost.crt'
                     ssl_key_file = '/etc/pki/tls/private/localhost.key'
                     f.write(ERB.new(File.read(@template_http)).result(binding))
@@ -375,6 +378,9 @@ module OpenShift
                 File.open(ssl_conf_path(server_alias), File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                   server_name = server_alias
                   include_path = @app_path
+                  app_uuid = @application_uuid
+                  gear_uuid = @container_uuid
+                  app_namespace = @namespace
                   f.write(ERB.new(File.read(@template_http)).result(binding))
                   f.write("\n")
                   f.write(ERB.new(File.read(@template_https)).result(binding))

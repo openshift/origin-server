@@ -19,7 +19,12 @@
 
   # Log custom format for OpenShift parsing.
   # Log format is:
-  LogFormat "%h %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X" openshift
+  <IfDefine OpenShiftAnnotateFrontendAccessLog>
+    LogFormat "%h %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X <%= app_uuid %> <%= gear_uuid %>" openshift
+  </IfDefine>
+  <IfDefine !OpenShiftAnnotateFrontendAccessLog>
+    LogFormat "%h %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X" openshift
+  </IfDefine>
 
   #
   # If the `OpenShiftFrontendSyslogEnabled` option is defined, pipe output to syslog rather than a file.

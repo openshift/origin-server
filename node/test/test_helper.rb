@@ -1,12 +1,12 @@
 #--
 # Copyright 2010 Red Hat, Inc.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -105,6 +105,7 @@ module OpenShift
     #  4. Use the exercise_* routines to drive functional tests
 
     def before_setup
+      @application_uuid = SecureRandom.uuid.gsub('-', '')
       @container_uuid = SecureRandom.uuid.gsub('-', '')
       @container_name = "test" + SecureRandom.uuid.gsub('-', '')[0,8]
       @domain = "example.com"
@@ -134,7 +135,16 @@ module OpenShift
       end
       yield(:set) if block_given?
 
-      assert_equal @elements.sort, @plugin.connections.sort, "Connections should return the same as input"
+      # nasty hack - the mod_rewrite plugin appends |<app uuid|<gear uuid>
+      # to the destination (e.g. 127.x.x.x:8080|uuid|uuid) but the assertion below
+      # expects that the input destination passed to #connect is not modified, so
+      # this creates a copy of the plugin's connections and removes the app and
+      # gear uuids from the destination
+      plugin_connections = @plugin.connections.map do |c|
+        [c[0], c[1].gsub(/\|[^|]+\|.+$/, ""), c[2]]
+      end
+
+      assert_equal @elements.sort, plugin_connections.sort, "Connections should return the same as input"
 
       yield(:pre_unset) if block_given?
       @plugin.disconnect(*(@elements.map { |a,b,c| a }))
