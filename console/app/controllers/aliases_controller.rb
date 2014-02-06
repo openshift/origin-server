@@ -34,14 +34,14 @@ class AliasesController < ConsoleController
     @alias.application = @application
 
     if @alias.save
-      redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been created"}
+      redirect_to @application, :flash => flash_messages(@alias.messages).merge({:success => "Alias '#{@alias.id}' has been created"})
     else
       render :new
     end
   rescue ActiveResource::ResetConnectionError => e
     raise unless Rails.env.test? || Rails.env.devenv? || Rails.env.development?
     @alias = @application.find_alias params[:alias][:id]
-    redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been created"}
+    redirect_to @application, :flash => flash_messages(@alias.messages).merge({:success => "Alias '#{@alias.id}' has been created"})
   end
 
   def delete
@@ -54,7 +54,7 @@ class AliasesController < ConsoleController
     @alias = @application.find_alias params[:id]
     if @alias.destroy
       message = "Alias '#{params[:id]}' has been removed"
-      redirect_to @application, :flash => {:success => message.to_s}
+      redirect_to @application, :flash => flash_messages(@alias.messages).merge({:success => message.to_s})
     else
       render :delete
     end
@@ -74,7 +74,7 @@ class AliasesController < ConsoleController
     end
 
     if @alias.save
-      redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been updated"}
+      redirect_to @application, :flash => flash_messages(@alias.messages).merge({:success => "Alias '#{@alias.id}' has been updated"})
     else
       render :edit
     end

@@ -3,6 +3,7 @@ require 'formtastic'
 module Console
   module Formtastic
     class BootstrapFormBuilder < ::Formtastic::SemanticFormBuilder
+      include ::Formtastic::Util
 
       def initialize(object_name, object, template, options, proc)
         options[:html] ||= {}
@@ -93,9 +94,29 @@ module Console
 
         return nil if full_errors.blank?
         #html_options[:class] ||= "errors"
-        template.content_tag(:ul, html_options) do
-          ::Formtastic::Util.html_safe(full_errors.map { |error| template.content_tag(:li, error) }.join)
+
+        with_details = full_errors.length > 1
+        html_options[:class] += ' with-alert-details' if with_details
+
+        error_content = template.content_tag(:ul, html_options) do
+          if with_details
+            html_safe(template.content_tag(:li) do
+              html_safe('Unable to complete the requested operation. ') <<
+              html_safe(template.content_tag(:a, {:href => '#'}) { 'Show more' })
+            end)
+          else
+            html_safe(full_errors.map { |error| template.content_tag(:li, error) }.join)
+          end
         end
+        details_content = ''
+        if with_details
+          details_content = template.content_tag(:pre, {:class => 'alert-details hide'}) do
+            template.content_tag(:ul, {:class => 'unstyled'}) do
+              html_safe(full_errors.map { |error| template.content_tag(:li, error.strip) }.join)
+            end
+          end
+        end
+        error_content + details_content
       end
 
       def inline_hints_for(method, options) #:nodoc:
