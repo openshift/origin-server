@@ -68,8 +68,3 @@ Provides mariadb cartridge support to OpenShift. (Cartridge Format V2)
   (jhonce@redhat.com)
 - Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
 - remove v2 folder from cart install (dmcphers@redhat.com)
-
-* Wed May 08 2013 Krishna Raman <kraman@gmail.com> 0.0.2-1
-- new package built with tito
-
-

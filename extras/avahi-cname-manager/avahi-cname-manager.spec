@@ -106,10 +106,3 @@ touch %{buildroot}%{_var}/lib/avahi-cname-manager/aliases
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 0.2.1-1
 - Bump up version (tdawson@redhat.com)
 - Bug 928675 (asari.ruby@gmail.com)
-
-* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 0.0.2-1
-- Fix for add_alias on avahi-cname-manager (kraman@gmail.com)
-
-* Sat Mar 09 2013 Krishna Raman <kraman@gmail.com> 0.0.1-1
-- new package built with tito
-
