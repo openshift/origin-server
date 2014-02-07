@@ -85,14 +85,4 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - Bug 928675 (asari.ruby@gmail.com)
 
-* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.1-1
-- Bump up version to 1.10
-
-* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 0.0.2-1
-- Updating rest-client and rake gem versions to match F18 (kraman@gmail.com)
-- Make packages build/install on F19+ (tdawson@redhat.com)
-
-* Sat Mar 09 2013 Krishna Raman <kraman@gmail.com> 0.0.1-1
-- new package built with tito
-
 

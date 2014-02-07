@@ -80,16 +80,3 @@ cp conf/openshift-origin-routing-activemq.conf.example %{buildroot}/etc/openshif
 * Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 0.2.3-1
 - Route changes (ccoleman@redhat.com)
 
-* Fri Dec 20 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
-- Use denormalized domain_namespace (ccoleman@redhat.com)
-
-* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
-- fix version string to be uniform with rest of packages, build scripts assume
-  this (admiller@redhat.com)
-
-* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.2-1
-- typo fix (rchopra@redhat.com)
-
-* Tue Oct 15 2013 Adam Miller <admiller@redhat.com> 0.1-1
-- fixing tito tags
-
