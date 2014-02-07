@@ -294,7 +294,7 @@ module OpenShift
             end
 
             if name.to_s.length > USER_VARIABLE_NAME_MAX_SIZE
-              return 127, "CLIENT_ERROR: name '#{name}' exceeds maximum size of #{USER_VARIABLE_NAME_MAX_SIZE}b"
+              return 127, "CLIENT_ERROR: Name '#{name}' exceeds maximum size of #{USER_VARIABLE_NAME_MAX_SIZE}b"
             end
             if value.to_s.length > USER_VARIABLE_VALUE_MAX_SIZE
               return 127, "CLIENT_ERROR: '#{name}' value exceeds maximum size of #{USER_VARIABLE_VALUE_MAX_SIZE}b"
