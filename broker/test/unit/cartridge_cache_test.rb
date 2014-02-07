@@ -302,6 +302,15 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     end
   end
 
+  test "find requires for cartridges" do
+    mysql_carts = CartridgeType.active.provides('mysql').select{ |c| c.names.include?('mysql') }.sort_by(&OpenShift::Cartridge::NAME_PRECEDENCE_ORDER).map(&:name)
+    assert_equal [mysql_carts], CartridgeCache.find_requires_for(OpenShift::Cartridge.new('Id' => 'test1', 'Requires' => ["mysql"]))
+    assert_equal [mysql_carts], CartridgeCache.find_requires_for(OpenShift::Cartridge.new('Id' => 'test2', 'Requires' => ["redhat-mysql"]))
+    assert_equal [["unknown"], mysql_carts], CartridgeCache.find_requires_for(OpenShift::Cartridge.new('Id' => 'test3', 'Requires' => ["unknown", "redhat-mysql"]))
+    assert_equal [mysql_carts], CartridgeCache.find_requires_for(OpenShift::Cartridge.new('Id' => 'test4', 'Requires' => [nil, "redhat-mysql"]))
+    assert_equal [], CartridgeCache.find_requires_for(OpenShift::Cartridge.new('Id' => 'test5', 'Requires' => [nil, []]))
+  end
+
   test "find cartridge with real cartridges" do
     carts = CartridgeType.active
     carts.each do |cart|

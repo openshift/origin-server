@@ -66,9 +66,11 @@ module RestModelHelper
     if requested_api_version == 1.0
       RestEmbeddedCartridge10.new(cart, application, component, get_url, messages, nolinks)
     elsif requested_api_version <= 1.5
-      RestEmbeddedCartridge15.new(cart, comp, application, component, colocated, scale, get_url, messages, nolinks)
+      requires = CartridgeCache.find_requires_for(cart)
+      RestEmbeddedCartridge15.new(cart, comp, application, component, colocated, scale, get_url, requires, messages, nolinks)
     else
-      RestEmbeddedCartridge.new(cart, comp, application, component, colocated, scale, get_url, messages, nolinks)
+      requires = CartridgeCache.find_requires_for(cart)
+      RestEmbeddedCartridge.new(cart, comp, application, component, colocated, scale, get_url, requires, messages, nolinks)
     end
   end
 
@@ -76,6 +78,7 @@ module RestModelHelper
     if requested_api_version == 1.0
       RestCartridge10.new(cartridge)
     else
+      requires = CartridgeCache.find_requires_for(cartridge)
       RestCartridge.new(cartridge)
     end
   end

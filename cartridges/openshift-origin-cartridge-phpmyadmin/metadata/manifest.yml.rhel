@@ -21,6 +21,10 @@ Cart-Data:
 Provides:
 - phpmyadmin-4
 - phpmyadmin
+Requires:
+-
+  - mysql
+  - mariadb
 Publishes:
   get-serve-info:
     Type: NET_TCP:db-config:url
