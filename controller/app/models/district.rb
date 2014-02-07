@@ -20,7 +20,7 @@ class District
   DISTRICT_NAME_REGEX = /\A[\w\.\-]+\z/
   def self.check_name!(name)
     if name.blank? or name !~ DISTRICT_NAME_REGEX
-      raise Mongoid::Errors::DocumentNotFound.new(District, nil, [name])
+      raise OpenShift::OOException.new("Invalid district name '#{name}'")
     end
     name
   end

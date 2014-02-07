@@ -13,7 +13,7 @@ class Region
   REGION_NAME_REGEX = /\A[\w\.\-]+\z/
   def self.check_name!(name)
     if name.blank? or name !~ REGION_NAME_REGEX
-      raise Mongoid::Errors::DocumentNotFound.new(Region, nil, [name])
+      raise OpenShift::OOException.new("Invalid region name '#{name}'")
     end
     name
   end

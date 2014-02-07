@@ -11,7 +11,7 @@ class Zone
   ZONE_NAME_REGEX = /\A[\w\.\-]+\z/
   def self.check_name!(name)
     if name.blank? or name !~ ZONE_NAME_REGEX
-      raise Mongoid::Errors::DocumentNotFound.new(Zone, nil, [name])
+      raise OpenShift::OOException.new("Invalid zone name '#{name}'")
     end
     name
   end
