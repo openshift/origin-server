@@ -2,34 +2,23 @@
 @not-fedora-19
 Feature: MySQL Application Sub-Cartridge
 
-  Scenario: Create Delete one application with a MySQL 5.1 database
+  Scenario Outline: Create Delete one application with a MySQL database
     Given a new mock-0.1 type application
 
-    When I embed a mysql-5.1 cartridge into the application
+    When I embed a <cart_name> cartridge into the application
     Then a mysqld process will be running
-    And the mysql-5.1 cartridge instance directory will exist
+    And the <cart_name> cartridge instance directory will exist
 
-    When I stop the mysql-5.1 cartridge
+    When I stop the <cart_name> cartridge
     Then a mysqld process will not be running
 
-    When I start the mysql-5.1 cartridge
+    When I start the <cart_name> cartridge
     Then a mysqld process will be running
 
     When I destroy the application
     Then a mysqld process will not be running
 
-  Scenario: Create Delete one application with a MySQL 5.5 database
-    Given a new mock-0.1 type application
-
-    When I embed a mysql-5.5 cartridge into the application
-    Then a mysqld process will be running
-    And the mysql-5.5 cartridge instance directory will exist
-
-    When I stop the mysql-5.5 cartridge
-    Then a mysqld process will not be running
-
-    When I start the mysql-5.5 cartridge
-    Then a mysqld process will be running
-
-    When I destroy the application
-    Then a mysqld process will not be running
+    Scenarios: MySQL versions
+      | cart_name |
+      | mysql-5.1 |
+      | mysql-5.5 |
