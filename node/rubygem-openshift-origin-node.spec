@@ -6,14 +6,14 @@
 %{?scl:%scl_package rubygem-%{gem_name}}
 %global gem_name openshift-origin-node
 %global rubyabi 1.9.1
-%global appdir %{_var}/lib/openshift
-%global apprundir %{_var}/run/openshift
-%global openshift_lib %{_usr}/lib/openshift
+%global appdir %{_localstatedir}/lib/openshift
+%global apprundir %{_localstatedir}/run/openshift
+%global openshift_lib %{_prefix}/lib/openshift
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.20.1
-Release:       1%{?dist}
+Version:       1.20.1
+Release:       2%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -105,35 +105,36 @@ gem install -V \
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
-mkdir -p %{buildroot}/usr/bin
-mkdir -p %{buildroot}/usr/sbin
-mkdir -p %{buildroot}%{appdir}/.tc_user_dir
-mkdir -p %{buildroot}%{_var}/log/openshift/node
+mkdir -p %{buildroot}%{_bindir}
+mkdir -p %{buildroot}%{_sbindir}
+mkdir -p %{buildroot}%{appdir}/{.httpd.d,.tc_user_dir}
+mkdir -p %{buildroot}%{_localstatedir}/log/openshift/node
 
 # Move the gem configs to the standard filesystem location
-mkdir -p %{buildroot}/etc/openshift
+mkdir -p %{buildroot}%{_sysconfdir}/openshift
 rm -rf %{buildroot}%{gem_instdir}/conf/plugins.d/README
-mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
+mv %{buildroot}%{gem_instdir}/conf/iptables.*.rules %{buildroot}%{appdir}/.httpd.d
+mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}%{_sysconfdir}/openshift
 
 #move pam limit binaries to proper location
-mkdir -p %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/libexec/lib/quota_attrs.sh %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/libexec/lib/archive_git_submodules.sh %{buildroot}/usr/libexec/openshift/lib
+mkdir -p %{buildroot}%{_libexecdir}/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/libexec/lib/quota_attrs.sh %{buildroot}%{_libexecdir}/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/libexec/lib/archive_git_submodules.sh %{buildroot}%{_libexecdir}/openshift/lib
 
 # Install the cartridge SDK files and environment variables for each
 mkdir -p %{buildroot}%{openshift_lib}/cartridge_sdk
 mv %{buildroot}%{gem_instdir}/misc/usr/lib/cartridge_sdk/* %{buildroot}%{openshift_lib}/cartridge_sdk
-echo '%{openshift_lib}/cartridge_sdk/bash/sdk' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_BASH
-echo '%{openshift_lib}/cartridge_sdk/ruby/sdk.rb' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_RUBY
+echo '%{openshift_lib}/cartridge_sdk/bash/sdk' > %{buildroot}%{_sysconfdir}/openshift/env/OPENSHIFT_CARTRIDGE_SDK_BASH
+echo '%{openshift_lib}/cartridge_sdk/ruby/sdk.rb' > %{buildroot}%{_sysconfdir}/openshift/env/OPENSHIFT_CARTRIDGE_SDK_RUBY
 
 #move the shell binaries into proper location
-mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
-mv %{buildroot}%{gem_instdir}/misc/sbin/* %{buildroot}/usr/sbin/
+mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}%{_bindir}
+mv %{buildroot}%{gem_instdir}/misc/sbin/* %{buildroot}%{_sbindir}
 
 # Create run dir for openshift "services"
 %if 0%{?fedora} >= 15
-mkdir -p %{buildroot}/etc/tmpfiles.d
-mv %{buildroot}%{gem_instdir}/misc/etc/openshift-run.conf %{buildroot}/etc/tmpfiles.d
+mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
+mv %{buildroot}%{gem_instdir}/misc/etc/openshift-run.conf %{buildroot}%{_sysconfdir}/tmpfiles.d
 %endif
 mkdir -p %{buildroot}%{apprundir}
 
@@ -142,16 +143,16 @@ mkdir -p %{buildroot}%{apprundir}
 mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{gem_docdir}/cgconfig.conf
 
 %if 0%{?fedora}%{?rhel} <= 6
-mkdir -p %{buildroot}/etc/rc.d/init.d/
-cp %{buildroot}%{gem_instdir}/misc/init/openshift-tc %{buildroot}/etc/rc.d/init.d/
-cp %{buildroot}%{gem_instdir}/misc/init/openshift-iptables-port-proxy %{buildroot}/etc/rc.d/init.d/
+mkdir -p %{buildroot}%{_sysconfdir}/rc.d/init.d/
+cp %{buildroot}%{gem_instdir}/misc/init/openshift-tc %{buildroot}%{_sysconfdir}/rc.d/init.d/
+cp %{buildroot}%{gem_instdir}/misc/init/openshift-iptables-port-proxy %{buildroot}%{_sysconfdir}/rc.d/init.d/
 %else
-mkdir -p %{buildroot}/etc/systemd/system
-mv %{buildroot}%{gem_instdir}/misc/services/openshift-tc.service %{buildroot}/etc/systemd/system/openshift-tc.service
-mv %{buildroot}%{gem_instdir}/misc/services/openshift-iptables-port-proxy.service %{buildroot}/etc/systemd/system/openshift-iptables-port-proxy.service
+mkdir -p %{buildroot}%{_sysconfdir}/systemd/system
+mv %{buildroot}%{gem_instdir}/misc/services/openshift-tc.service %{buildroot}%{_sysconfdir}/systemd/system/openshift-tc.service
+mv %{buildroot}%{gem_instdir}/misc/services/openshift-iptables-port-proxy.service %{buildroot}%{_sysconfdir}/systemd/system/openshift-iptables-port-proxy.service
 %endif
 
-cp %{buildroot}%{gem_instdir}/misc/etc/system-config-firewall-compat %{buildroot}/etc/openshift/
+cp %{buildroot}%{gem_instdir}/misc/etc/system-config-firewall-compat %{buildroot}%{_sysconfdir}/openshift/
 
 # Don't install or package what's left in the misc directory
 rm -rf %{buildroot}%{gem_instdir}/misc
@@ -159,29 +160,29 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc
 chmod 755 %{buildroot}%{gem_instdir}/test/unit/*.rb
 
 # Cron configuration that enables running each gear's cron jobs
-mkdir -p %{buildroot}/etc/cron.d
-mkdir -p %{buildroot}/etc/cron.minutely
-mkdir -p %{buildroot}/etc/cron.hourly
-mkdir -p %{buildroot}/etc/cron.daily
-mkdir -p %{buildroot}/etc/cron.weekly
-mkdir -p %{buildroot}/etc/cron.monthly
+mkdir -p %{buildroot}%{_sysconfdir}/cron.d
+mkdir -p %{buildroot}%{_sysconfdir}/cron.minutely
+mkdir -p %{buildroot}%{_sysconfdir}/cron.hourly
+mkdir -p %{buildroot}%{_sysconfdir}/cron.daily
+mkdir -p %{buildroot}%{_sysconfdir}/cron.weekly
+mkdir -p %{buildroot}%{_sysconfdir}/cron.monthly
 mkdir -p %{buildroot}%{openshift_lib}/node/jobs
 
 mv %{buildroot}%{gem_instdir}/jobs/* %{buildroot}%{openshift_lib}/node/jobs/
-ln -s %{openshift_lib}/node/jobs/1minutely %{buildroot}/etc/cron.d/
-ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-minutely %{buildroot}/etc/cron.minutely/
-ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-hourly %{buildroot}/etc/cron.hourly/
-ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-daily %{buildroot}/etc/cron.daily/
-ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/cron.weekly/
-ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
-ln -s %{openshift_lib}/node/jobs/openshift-origin-stale-lockfiles %{buildroot}/etc/cron.daily/
+ln -s %{openshift_lib}/node/jobs/1minutely %{buildroot}%{_sysconfdir}/cron.d/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-minutely %{buildroot}%{_sysconfdir}/cron.minutely/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-hourly %{buildroot}%{_sysconfdir}/cron.hourly/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-daily %{buildroot}%{_sysconfdir}/cron.daily/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-weekly %{buildroot}%{_sysconfdir}/cron.weekly/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-monthly %{buildroot}%{_sysconfdir}/cron.monthly/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-stale-lockfiles %{buildroot}%{_sysconfdir}/cron.daily/
 
 %post
-/bin/rm -f /etc/openshift/env/*.rpmnew
+/bin/rm -f %{_sysconfdir}/openshift/env/*.rpmnew
 
-if ! grep -q "/usr/bin/oo-trap-user" /etc/shells
+if ! grep -q "%{_bindir}/oo-trap-user" %{_sysconfdir}/shells
 then
-  echo "/usr/bin/oo-trap-user" >> /etc/shells
+  echo "%{_bindir}/oo-trap-user" >> %{_sysconfdir}/shells
 fi
 
 # Start the cron service so that each gear gets its cron job run, if they're enabled
@@ -211,46 +212,46 @@ oo-admin-ctl-tc stop >/dev/null 2>&1 || :
 
 fi
 
-
 %files
 %doc LICENSE COPYRIGHT
 %doc %{gem_docdir}
 %{gem_instdir}
 %{gem_cache}
 %{gem_spec}
-%attr(0750,-,-) /usr/sbin/*
-%attr(0755,-,-) /usr/bin/*
-%attr(0750,-,-) %{_var}/log/openshift/node
-/usr/libexec/openshift/lib/quota_attrs.sh
-/usr/libexec/openshift/lib/archive_git_submodules.sh
-%attr(0755,-,-) %{openshift_lib}/cartridge_sdk
-%attr(0755,-,-) %{openshift_lib}/cartridge_sdk/bash
+%attr(0750,-,-) %{_sbindir}/*
+%attr(0755,-,-) %{_bindir}/*
+%attr(0750,-,-) %{_localstatedir}/log/openshift/node
+%{_libexecdir}/openshift/lib/quota_attrs.sh
+%{_libexecdir}/openshift/lib/archive_git_submodules.sh
+%dir %attr(0755,-,-) %{openshift_lib}/cartridge_sdk
+%dir %attr(0755,-,-) %{openshift_lib}/cartridge_sdk/bash
 %attr(0744,-,-) %{openshift_lib}/cartridge_sdk/bash/*
-%attr(0755,-,-) %{openshift_lib}/cartridge_sdk/ruby
+%dir %attr(0755,-,-) %{openshift_lib}/cartridge_sdk/ruby
 %attr(0744,-,-) %{openshift_lib}/cartridge_sdk/ruby/*
-%dir /etc/openshift
-%attr(0644,-,-) %config /etc/openshift/system-config-firewall-compat
-%config(noreplace) /etc/openshift/node.conf
-%attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.filter.rules
-%attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.nat.rules
-%config(noreplace) /etc/openshift/env/*
-%attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
+%dir %{_sysconfdir}/openshift
+%attr(0644,-,-) %config %{_sysconfdir}/openshift/system-config-firewall-compat
+%config(noreplace) %{_sysconfdir}/openshift/node.conf
+%config(noreplace) %{_sysconfdir}/openshift/env/*
+%attr(0640,-,-) %config(noreplace) %{_sysconfdir}/openshift/resource_limits.conf
 %dir %attr(0755,-,-) %{appdir}
 %dir %attr(0750,-,-) %{appdir}/.tc_user_dir
+%dir %attr(0750,-,-) %{appdir}/.httpd.d
+%attr(0600,-,-) %config(noreplace) %{appdir}/.httpd.d/iptables.filter.rules
+%attr(0600,-,-) %config(noreplace) %{appdir}/.httpd.d/iptables.nat.rules
 
 %if 0%{?fedora}%{?rhel} <= 6
-%attr(0755,-,-) /etc/rc.d/init.d/openshift-tc
-%attr(0755,-,-) /etc/rc.d/init.d/openshift-iptables-port-proxy
+%attr(0755,-,-) %{_sysconfdir}/rc.d/init.d/openshift-tc
+%attr(0755,-,-) %{_sysconfdir}/rc.d/init.d/openshift-iptables-port-proxy
 %else
-%attr(0750,-,-) /etc/systemd/system/openshift-tc.service
-%attr(0750,-,-) /etc/systemd/system/openshift-iptables-port-proxy.service
+%attr(0750,-,-) %{_sysconfdir}/systemd/system/openshift-tc.service
+%attr(0750,-,-) %{_sysconfdir}/systemd/system/openshift-iptables-port-proxy.service
 %endif
 
 %if 0%{?fedora} >= 15
-/etc/tmpfiles.d/openshift-run.conf
+%{_sysconfdir}/tmpfiles.d/openshift-run.conf
 %endif
 # upstart files
-%attr(0755,-,-) %{_var}/run/openshift
+%attr(0755,-,-) %{apprundir}
 %dir %attr(0755,-,-) %{openshift_lib}/node/jobs
 %config(noreplace) %attr(0644,-,-) %{openshift_lib}/node/jobs/1minutely
 %attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-minutely
@@ -259,16 +260,20 @@ fi
 %attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-weekly
 %attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-monthly
 %attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-stale-lockfiles
-%dir /etc/cron.minutely
-%config(noreplace) %attr(0644,-,-) /etc/cron.d/1minutely
-%attr(0755,-,-) /etc/cron.minutely/openshift-origin-cron-minutely
-%attr(0755,-,-) /etc/cron.hourly/openshift-origin-cron-hourly
-%attr(0755,-,-) /etc/cron.daily/openshift-origin-cron-daily
-%attr(0755,-,-) /etc/cron.weekly/openshift-origin-cron-weekly
-%attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
-%attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
+%dir %{_sysconfdir}/cron.minutely
+%config(noreplace) %attr(0644,-,-) %{_sysconfdir}/cron.d/1minutely
+%attr(0755,-,-) %{_sysconfdir}/cron.minutely/openshift-origin-cron-minutely
+%attr(0755,-,-) %{_sysconfdir}/cron.hourly/openshift-origin-cron-hourly
+%attr(0755,-,-) %{_sysconfdir}/cron.daily/openshift-origin-cron-daily
+%attr(0755,-,-) %{_sysconfdir}/cron.weekly/openshift-origin-cron-weekly
+%attr(0755,-,-) %{_sysconfdir}/cron.monthly/openshift-origin-cron-monthly
+%attr(0755,-,-) %{_sysconfdir}/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Sun Feb 09 2014 Lokesh Mandvekar <lsm5@redhat.com> 1.20.1-2
+- replace dirs with macros wherever applicable
+- install iptables.*.rules in /var/lib/openshift/.httpd.d/ BZ 1045224
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - Merge pull request #4630 from jwhonce/bug/1059804
   (dmcphers+openshiftbot@redhat.com)
