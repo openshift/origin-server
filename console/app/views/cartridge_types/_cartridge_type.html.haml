@@ -91,7 +91,7 @@
   - if reason
     - case reason
     - when :requires
-      .warning Requires #{cartridge_type.requires.join(',')}
+      .warning Requires #{cartridge_type.requires.map{ |r| r.join(' or ') }.join(' and ')}
     - when :conflicts
       .warning Conflicts with #{cartridge_type.conflicts.join(',')}
     - when :blocked

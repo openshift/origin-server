@@ -63,12 +63,12 @@ class CartridgeTypesController < ConsoleController
   def requires?(cart_type)
     t = cart_type
 
-    return true if @installed.nil? && !t.requires.empty?
-    return false if t.requires.empty?
+    return true if @installed.nil? && !t.requires.blank?
+    return false if t.requires.blank?
 
     # if this cart has requirements and the required cart is not
     # installed add this cart to the requires list
-    @installed.each { |c| return false if t.requires.include? c.name }
+    @installed.each { |c| return false if t.requires.any?{ |r| r.include? c.name } }
     return true
   end
 

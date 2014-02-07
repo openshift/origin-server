@@ -159,7 +159,7 @@ class CartridgeType < RestApi::Base
   end
 
   def scalable
-    self.attributes['supported_scales_to'] != self.attributes['supported_scales_from']
+    @attributes['supported_scales_to'] != @attributes['supported_scales_from']
   end
   alias_method :scalable?, :scalable
 
