@@ -16,7 +16,6 @@
 class PendingUserOps
   include Mongoid::Document
   include Mongoid::Timestamps::Created
-  include ModelHelper
 
   embedded_in :cloud_user, class_name: CloudUser.name
   field :state, type: Symbol, :default => :init

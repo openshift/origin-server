@@ -1,7 +1,6 @@
 class Zone
   include Mongoid::Document
   include Mongoid::Timestamps
-  include ModelHelper
 
   embedded_in :region, class_name: Region.name
   field :name, type: String

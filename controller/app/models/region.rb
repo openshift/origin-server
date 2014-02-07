@@ -36,10 +36,9 @@ class Region
       raise OpenShift::OOException.new("Zone '#{name}' already exists in region '#{self.name}'")
     end
     zone = Zone.new(name: name)
-    res = Region.where(:_id => self._id).update({"$push" => {"zones" => zone.serializable_hash_with_timestamp}})
-    raise OpenShift::OOException.new("Could not add zone #{name} to region #{self.name}") if res.nil? or !res["updatedExisting"]
+    self.zones << zone rescue raise OpenShift::OOException.new("Could not add zone #{name} to region #{self.name}: #{$!.message}")
     self.reload
-  end 
+  end
 
   def remove_zone(name)
     raise OpenShift::OOException.new("Zone name is required") unless name
@@ -50,8 +49,7 @@ class Region
     if zone.has_servers?
       raise OpenShift::OOException.new("Couldn't delete zone '#{name}' because it still contains servers")
     end
-    res = Region.where(:_id => self._id).update({"$pull" => {"zones" => zone.serializable_hash}})
-    raise OpenShift::OOException.new("Could not remove zone #{name} from region #{self.name}") if res.nil? or !res["updatedExisting"]
+    zone.delete rescue raise OpenShift::OOException.new("Could not remove zone #{name} from region #{self.name}: #{$!.message}")
     self.reload
   end
 

@@ -134,7 +134,7 @@ class District
       server.zone_id = zone_id
     end
     begin
-      res = District.where(:uuid => self.uuid).update({"$push" => {"servers" => server.serializable_hash_with_timestamp}, "$inc" => {"active_servers_size" => 1}})
+      res = District.where(:uuid => self.uuid).update({"$push" => {"servers" => server.as_document}, "$inc" => {"active_servers_size" => 1}})
       raise OpenShift::OOException.new("Could not add node #{server_identity}") if res.nil? or !res["updatedExisting"]
     rescue Exception => e
       container.set_district('NONE', false, first_uid, max_uid)
@@ -162,7 +162,7 @@ class District
       Rails.logger.error ex.backtrace.inspect
       raise OpenShift::OOException.new("Node with server identity: #{server_identity} might be unresponsive, run oo-admin-repair --removed-nodes and retry the current operation.")
     end
-    res = District.where(:uuid => self.uuid).update({"$pull" => {"servers" => server.serializable_hash}})
+    res = District.where(:uuid => self.uuid).update({"$pull" => {"servers" => server.as_document}})
     raise OpenShift::OOException.new("Could not remove node #{server_identity}") if res.nil? or !res["updatedExisting"]
     self.reload
   end

@@ -1,7 +1,6 @@
 class Server
   include Mongoid::Document
   include Mongoid::Timestamps
-  include ModelHelper
 
   embedded_in :district, class_name: District.name
   field :name, type: String
