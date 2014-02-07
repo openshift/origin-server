@@ -1,7 +1,6 @@
 @cartridge_extended1
 Feature: V2 SDK Python Cartridge
 
-  @not-fedora-19
   Scenario: Add 2.6 cartridge
   Given a new python-2.6 type application
   Then the application git repo will exist

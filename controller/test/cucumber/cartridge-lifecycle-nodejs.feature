@@ -1,7 +1,6 @@
 @cartridge_extended3
 @cartridge_nodejs
 @cartridge_extended
-@not-fedora-19
 Feature: Cartridge Lifecycle NodeJS Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
@@ -33,18 +32,11 @@ Feature: Cartridge Lifecycle NodeJS Verification Tests
     When the application is destroyed
     Then the application should not be accessible
 
-    @rhel-only
     Scenarios: RHEL SCL scenarios
       |  cart_name  |
       | nodejs-0.10 |
 
-    @rhel-only 
     @not-enterprise
     Scenarios: RHEL non-SCL scenarios
       |  cart_name  |
       | nodejs-0.6  |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      |  cart_name  |
-      | nodejs-0.10 |

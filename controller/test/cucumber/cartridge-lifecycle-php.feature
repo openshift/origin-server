@@ -39,13 +39,7 @@ Feature: Cartridge Lifecycle PHP Verification Tests
     Then the application should not be accessible
     Then the application should not be accessible via node-web-proxy
 
-  @rhel-only
   Scenarios: RHEL scenarios
     | cart_name |
     | php-5.3   |
     | php-5.4   |
-
-  @fedora-19-only
-  Scenarios: RHEL scenarios
-    | cart_name |
-    | php-5.5   |

@@ -13,21 +13,12 @@ Feature: V2 SDK Ruby Cartridge
     When I destroy the application
     Then the application git repo will not exist
 
-    @fedora-19-only
-    @cartridge_v2_ruby_20
-    @cartridge_extended1
-    Scenarios: r2.0
-      | cart_version | label     | proc_name |
-      |      2.0     | Passenger | ruby-mri  |
-
-    @not-fedora-19
     @cartridge_v2_ruby_19
     @cartridge_extended1
     Scenarios: r1.9
       | cart_version | label     | proc_name |
       |      1.9     | Passenger | ruby      |
 
-    @rhel-only
     @cartridge_extended1
     @cartridge_v2_ruby_18
     Scenarios: r1.8

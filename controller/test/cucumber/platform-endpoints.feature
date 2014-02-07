@@ -1,7 +1,5 @@
 @node
 @node3
-@not-fedora-19
-@not-origin
 Feature: V2 Platform Endpoint tests
 
   Scenario: SSL to Gear is specified in the cartridge's manifest.yml

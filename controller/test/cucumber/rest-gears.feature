@@ -34,14 +34,7 @@ Feature: gear-groups
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
 
-    @rhel-only
     Scenarios: RHEL scenarios
     | format | cart_name |
     | JSON   | php-5.3   |
     | XML    | php-5.3   |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-    | format | cart_name |
-    | JSON   | php-5.5   |
-    | XML    | php-5.5   |

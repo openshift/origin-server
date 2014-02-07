@@ -1,5 +1,4 @@
 @cartridge_extended1
-@not-fedora-19
 Feature: MySQL Tests
   Scenario Outline: Snapshot/Restore an application with a MySQL database
     Given a new client created mock-0.1 application

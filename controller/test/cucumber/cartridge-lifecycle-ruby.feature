@@ -44,13 +44,7 @@ Feature: Cartridge Lifecycle Ruby Verification Tests
     Then the application should not be accessible
     Then the application should not be accessible via node-web-proxy
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | cart_name |
       | ruby-1.8  |
       | ruby-1.9  |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | cart_name |
-      | ruby-2.0  |

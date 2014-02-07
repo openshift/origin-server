@@ -12,13 +12,7 @@ Feature: V2 SDK PHP Cartridge
     When I destroy the application
     Then the application git repo will not exist
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | cart_name |
       | php-5.3   |
       | php-5.4   |
-
-    @fedora-19-only
-    Scenarios: RHEL scenarios
-      | cart_name |
-      | php-5.5   |
