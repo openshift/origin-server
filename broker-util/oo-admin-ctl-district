@@ -31,7 +31,7 @@ Options:
     Size to add or remove (positive number) (required)
 -r|--region <region_name>
     Region name of the server identitiy.
-    Only valid for add-node (optional), set-region and unset-region
+    Only valid for add-node (optional) and set-region
 -z|--zone <zone_name>
     Zone within the region. Only valid when region is specified
 -b|--bypass
@@ -165,7 +165,7 @@ begin
     district.set_region(server_identity, region, zone)
     reply.resultIO << "Success!"
   when "unset-region"
-    district.unset_region(server_identity, region, zone)
+    district.unset_region(server_identity)
     reply.resultIO << "Success!"
   when "publish-uids"
     districts = district ? [district] : District.find_all
