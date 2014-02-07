@@ -45,12 +45,6 @@ Feature: Cartridge Lifecycle Perl Verification Tests
     Then the application should not be accessible
     Then the application should not be accessible via node-web-proxy
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | cart_name |
       | perl-5.10 |
-
-    @fedora-19-only
-    Scenarios: RHEL scenarios
-      | cart_name |
-      | perl-5.16 |

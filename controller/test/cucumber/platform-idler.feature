@@ -9,12 +9,6 @@ Feature: Explicit idle/restore checks
     Then a <ruby_proc> process for mock_server will not be running
     And the active capacity has been reduced
 
-    @fedora-19-only
-    Scenarios: Fedora 19
-      | ruby_proc |
-      | ruby-mri  |
-
-    @rhel-only
     Scenarios: RHEL
       | ruby_proc |
       | ruby      |
@@ -33,12 +27,6 @@ Feature: Explicit idle/restore checks
     Then a <ruby_proc> process for mock_server will be running
     And the active capacity has been increased
 
-    @fedora-19-only
-    Scenarios: Fedora 19
-      | ruby_proc |
-      | ruby-mri  |
-
-    @rhel-only
     Scenarios: RHEL
       | ruby_proc |
       | ruby      |
@@ -57,12 +45,6 @@ Feature: Explicit idle/restore checks
     Then a <ruby_proc> process for mock_server will be running
     And the active capacity has been increased
 
-    @fedora-19-only
-    Scenarios: Fedora 19
-      | ruby_proc |
-      | ruby-mri  |
-
-    @rhel-only
     Scenarios: RHEL
       | ruby_proc |
       | ruby      |

@@ -29,17 +29,10 @@ Feature: applications
     Then the response should be "404"
     And the error message should have "severity=error&exit_code=101"
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version |
       | JSON   |     5.3     |
       | XML    |     5.3     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version |
-      | JSON   |     5.5     |
-      | XML    |     5.5     |
 
 
   Scenario Outline: Create application with multiple cartridges
@@ -54,17 +47,10 @@ Feature: applications
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version | database  |
       | JSON   |     5.3     |        4           | mysql-5.1 |
       | XML    |     5.3     |        4           | mysql-5.1 |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version | phpmyadmin_version | database    |
-      | JSON   |     5.5     |        3           | mariadb-5.5 |
-      | XML    |     5.5     |        3           | mariadb-5.5 |
 
   Scenario Outline: Create application with invalid cartridge combinations
     #Given a new user, create an invalid application with php-<php_version>, ruby-1.9, mysql-5.1, phpmyadmin-<phpmyadmin_version> using <format> format and verify application creation API
@@ -77,17 +63,10 @@ Feature: applications
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridges=php-<php_version>&cartridges=ruby-<ruby_version>"
     Then the response should be "422"
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version | database  | ruby_version |
       | JSON   |     5.3     |        4           | mysql-5.1 |      1.9     |
       | XML    |     5.3     |        4           | mysql-5.1 |      1.9     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version | phpmyadmin_version | database    | ruby_version |
-      | JSON   |     5.5     |        3           | mariadb-5.5 |      2.0     |
-      | XML    |     5.5     |        3           | mariadb-5.5 |      2.0     |
 
 
   Scenario Outline: Create application with blank, missing, too long and invalid name
@@ -109,17 +88,10 @@ Feature: applications
     Then the response should be "422"
     And the error message should have "field=name&severity=error&exit_code=105"
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version |
       | JSON   |     5.3     |
       | XML    |     5.3     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version |
-      | JSON   |     5.5     |
-      | XML    |     5.5     |
 
   Scenario Outline: Start/Stop/Restart application
     #Given a new user, create a php-<php_version> application using <format> format verify application <event> API
@@ -134,7 +106,6 @@ Feature: applications
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version |    event    |
       | JSON   |     5.3     |    start    |
@@ -145,18 +116,6 @@ Feature: applications
       | XML    |     5.3     |   restart   |
       | JSON   |     5.3     | force-stop  |
       | XML    |     5.3     | force-stop  |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version |    event    |
-      | JSON   |     5.5     |    start    |
-      | XML    |     5.5     |    start    |
-      | JSON   |     5.5     |    stop     |
-      | XML    |     5.5     |    stop     |
-      | JSON   |     5.5     |   restart   |
-      | XML    |     5.5     |   restart   |
-      | JSON   |     5.5     | force-stop  |
-      | XML    |     5.5     | force-stop  |
 
   Scenario Outline: Create duplicate application (RHEL/CentOS)
     #Given a new user, create a php-<php_version> application using <format> format verify that duplicate application creation fails
@@ -172,17 +131,10 @@ Feature: applications
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version |
       | JSON   |     5.3     |
       | XML    |     5.3     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version |
-      | JSON   |     5.5     |
-      | XML    |     5.5     |
 
   Scenario Outline: Create application with invalid, blank or missing cartridge
     Given a new user
@@ -230,17 +182,10 @@ Feature: applications
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | format | database  |
       | JSON   | mysql-5.1 |
       | XML    | mysql-5.1 |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | database  |
-      | JSON   | mariadb-5.5 |
-      | XML    | mariadb-5.5 |
 
   Scenario Outline: Scale-up and scale-down as application that is not scalable
     Given a new user
@@ -284,14 +229,7 @@ Feature: applications
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | format | ruby_version |
       | JSON   |      1.9     |
       | XML    |      1.9     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | ruby_version |
-      | JSON   |      2.0     |
-      | XML    |      2.0     |

@@ -9,15 +9,9 @@ Feature: Application Container Proxy gear retrieval
     When the applications are destroyed
     Then the applications should not be accessible
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | php_version |
       | php-5.3     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | php_version |
-      | php-5.5     |
 
   Scenario Outline: Get gears with Broker auth tokens (non-scalable)
     Given the libra client tools
@@ -26,12 +20,6 @@ Feature: Application Container Proxy gear retrieval
     When the applications are destroyed
     Then the applications should not be accessible
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | php_version |
       | php-5.3     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | php_version |
-      | php-5.5     |

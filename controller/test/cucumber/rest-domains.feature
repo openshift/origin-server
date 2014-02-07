@@ -129,17 +129,10 @@ Feature: domains
     When I send a DELETE request to "/domains/api<random>?force=true"
     Then the response should be "200"
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version |
       | JSON   |     5.3     |
       | XML    |     5.3     |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenarios
-      | format | php_version |
-      | JSON   |     5.5     |
-      | XML    |     5.5     |
 
   Scenario Outline: Update the domain of another user
     Given a new user

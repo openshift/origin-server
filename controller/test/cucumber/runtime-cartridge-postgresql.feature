@@ -17,15 +17,9 @@ Feature: Postgres Application Sub-Cartridge
     When I destroy the application
     Then a postgres process will not be running
 
-    @rhel-only
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
-      |       9.2        |
-
-    @fedora-19-only
-    Scenarios: Fedora-19
-      | postgres_version |
       |       9.2        |
 
   @cartridge_extended3
@@ -65,15 +59,9 @@ Feature: Postgres Application Sub-Cartridge
     Then the test data will be present in postgres
     And the additional test data will not be present in postgres
 
-    @rhel-only
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
-      |       9.2        |
-
-    @fedora-19-only
-    Scenarios: Fedora-19
-      | postgres_version |
       |       9.2        |
 
   @cartridge_extended3
@@ -139,13 +127,7 @@ Feature: Postgres Application Sub-Cartridge
 
     Then all databases will have the correct ownership
 
-    @rhel-only
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
-      |       9.2        |
-
-    @fedora-19-only
-    Scenarios: Fedora-19
-      | postgres_version |
       |       9.2        |

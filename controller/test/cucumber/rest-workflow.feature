@@ -60,14 +60,7 @@ Feature: Rest Quick tests
     When I send a DELETE request to "/user/keys/api"
     Then the response should be "200"
 
-    @rhel-only
     Scenarios: RHEL
       | format | cart_name | db_cart_name |
       | JSON   |  mock-0.1  |  mysql-5.1   |
       | XML    |  mock-0.1  |  mysql-5.1   |
-
-    @fedora-19-only
-    Scenarios: Fedora 19
-      | format | cart_name | db_cart_name   |
-      | JSON   |  mock-0.1  |  mariadb-5.5   |
-      | XML    |  mock-0.1  |  mariadb-5.5   |

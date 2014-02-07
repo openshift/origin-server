@@ -1,6 +1,5 @@
 @node
 @cartridge_extended3
-@rhel-only
 @jboss
 @not-enterprise
 Feature: SwitchYard Application Sub-Cartridge

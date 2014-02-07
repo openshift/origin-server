@@ -1,7 +1,5 @@
 @cartridge_extended2
 @cartridge_extended
-@rhel-only
-@not-fedora-19
 @jboss
 @jbossews2
 
