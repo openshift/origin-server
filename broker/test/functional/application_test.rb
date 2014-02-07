@@ -481,7 +481,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     # test require region for app create
     OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100])
     dist.add_node("s00")
-    Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
+    Rails.configuration.msg_broker[:regions][:require_zones_for_app_create] = true
     begin
       app = Application.create_app(@appname, cartridge_instances_for(:php), @domain)
       assert false
@@ -491,7 +491,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
     # test prefer region for app create when region enabled
     OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100], ["s10", 100])
-    Rails.configuration.msg_broker[:regions][:require_for_app_create] = false
+    Rails.configuration.msg_broker[:regions][:require_zones_for_app_create] = false
     region1 = Region.create("g1")
     region1.add_zone("z10")
     dist.add_node("s10", "g1", "z10")
@@ -501,7 +501,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.destroy_app
 
     # test all app gears in same region and gears in group instance should belong to different zones
-    Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
+    Rails.configuration.msg_broker[:regions][:require_zones_for_app_create] = true
     OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100], ["s10", 100], ["s20", 100], ["s11", 100], ["s21", 100])
     region1.add_zone("z11")
     dist.add_node("s11", "g1", "z11")
@@ -540,7 +540,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.destroy_app
    
     # test min zones per gear group 
-    Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
+    Rails.configuration.msg_broker[:regions][:require_zones_for_app_create] = true
     Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group] = 3
     OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s00", 100], ["s20", 100])
     app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
@@ -556,7 +556,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.destroy_app
 
     # test zones even distribution
-    Rails.configuration.msg_broker[:regions][:require_for_app_create] = true
+    Rails.configuration.msg_broker[:regions][:require_zones_for_app_create] = true
     Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group] = 1
     OpenShift::MCollectiveApplicationContainerProxy.stubs('rpc_get_fact').multiple_yields(["s20", 100], ["s21", 99])
     app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
