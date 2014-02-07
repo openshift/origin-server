@@ -41,6 +41,10 @@ class DomainsControllerTest < ActionController::TestCase
     assert json = JSON.parse(response.body)
     assert_nil json['data']['application_count']
     assert_nil json['data']['gear_counts']
+    assert_equal Array,  json['data']['allowed_gear_sizes'].class
+    assert_equal Fixnum, json['data']['available_gears'].class
+    assert_equal Fixnum, json['data']['max_storage_per_gear'].class
+    assert_equal Hash,   json['data']['usage_rates'].class
     assert link = json['data']['links']['ADD_APPLICATION']
     assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'cartridges[][url]' }
 
@@ -50,6 +54,10 @@ class DomainsControllerTest < ActionController::TestCase
     assert_equal 0, json['data']['application_count']
     assert (gears = json['data']['gear_counts']).is_a?(Hash)
     assert gears.empty?
+    assert_equal Array,  json['data']['allowed_gear_sizes'].class
+    assert_equal Fixnum, json['data']['available_gears'].class
+    assert_equal Fixnum, json['data']['max_storage_per_gear'].class
+    assert_equal Hash,   json['data']['usage_rates'].class
 
     get :index , {}
     assert_response :success

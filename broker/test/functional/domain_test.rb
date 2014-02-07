@@ -58,6 +58,15 @@ class DomainTest < ActiveSupport::TestCase
     
   end
  
+  test "usage rate from owner" do
+    namespace = "ns#{@random}"
+    namespace.downcase!
+    @domain = Domain.new(namespace: namespace, owner:@user)
+    @domain.save
+
+    assert_equal @user.usage_rates, @domain.usage_rates
+  end
+
   test "add and remove ssh keys to domain" do
     namespace = "ns#{@random}"
     namespace.downcase!

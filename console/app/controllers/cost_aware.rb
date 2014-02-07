@@ -9,7 +9,7 @@ module CostAware
 
   protected
     def user_currency_cd
-      :usd
+      'usd'
     end
 
     def user_currency_symbol
@@ -23,7 +23,7 @@ module CostAware
       end
     end
 
-    def number_to_user_currency(number)
+    def number_to_user_currency(number, truncate=true)
       return nil if number.nil?
 
       case user_currency_cd
@@ -41,6 +41,11 @@ module CostAware
       options = {}
       options[:unit] = unit
       options[:format] = format
+      if !truncate && number > 0 && (number % 1) != 0
+        # Set precision to fully display the number (min of 2, max of 6)
+        fraction_string = number.to_s.sub(/^.*\.([0-9]*?)0*$/, '\1')
+        options[:precision] = [2, fraction_string.length, 6].sort[1]
+      end
       number_to_currency(number, options)
     end
 

@@ -21,7 +21,7 @@
 # @!attribute [r] suffix
 #   @return [String] DNS suffix under which the application is created. Eg: rhcloud.com
 class RestDomain < OpenShift::Model
-  attr_accessor :id, :name, :suffix, :members, :allowed_gear_sizes, :creation_time, :links
+  attr_accessor :id, :name, :suffix, :members, :allowed_gear_sizes, :creation_time, :links, :available_gears, :max_storage_per_gear, :usage_rates
 
   def initialize(domain, url, nolinks=false)
     self.id = domain._id
@@ -29,13 +29,16 @@ class RestDomain < OpenShift::Model
     self.suffix = Rails.application.config.openshift[:domain_suffix]
     self.creation_time = domain.created_at
     self.members = domain.members.map{ |m| RestMember.new(m, domain.owner_id == m._id, url, nolinks) }
+
+    # Capabilities
     self.allowed_gear_sizes = (domain.allowed_gear_sizes & domain.owner.allowed_gear_sizes)
+    self.available_gears = domain.available_gears
+    self.max_storage_per_gear = domain.max_storage_per_gear
+    self.usage_rates = domain.usage_rates
 
     if not domain.application_count.nil?
       @application_count = domain.application_count
       @gear_counts = domain.gear_counts || {}
-      @available_gears = domain.available_gears
-      @max_storage_per_gear = domain.max_storage_per_gear
     end
 
     unless nolinks

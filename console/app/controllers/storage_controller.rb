@@ -31,6 +31,7 @@ class StorageController < ConsoleController
   def application_information
     @application = Application.find(params[:application_id], :as => current_user)
     @max_storage = @application.domain.capabilities.max_storage_per_gear || 0
+    @usage_rates = @application.domain.usage_rates || {}
     @can_modify_storage = @max_storage > 0
     @gear_groups = @application.cartridge_gear_groups
   end
