@@ -1078,7 +1078,10 @@ module OpenShift
                 if gear_fqdn != app_dns
                   # secondary web-proxy gear
                   frontend.set_fqdn(app_dns)
-                  reported_urls += frontend.connect(mapping.frontend, backend_uri, options)
+                  new_options = options.dup
+                  # target_update will misfire because fqdn has changed
+                  new_options.delete("target_update")
+                  reported_urls += frontend.connect(mapping.frontend, backend_uri, new_options)
                   frontend.set_fqdn(gear_fqdn)
                 end
               end
