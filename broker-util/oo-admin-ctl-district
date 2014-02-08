@@ -31,7 +31,7 @@ Options:
     Size to add or remove (positive number) (required)
 -r|--region <region_name>
     Region name of the server identitiy.
-    Only valid for add-node (optional), set-region and unset-region
+    Only valid for add-node (optional) and set-region
 -z|--zone <zone_name>
     Zone within the region. Only valid when region is specified
 -b|--bypass
@@ -92,16 +92,21 @@ bypass   = args['--bypass']
 name     = args['--name']
 node_profile = args['--node_profile']
 
-if node_profile && !Gear::valid_gear_size?(node_profile)
-  puts "Node profile must be one of: #{Gear::gear_sizes_display_string}"
-  exit 1
+if !command && (args.length > 0)
+  puts "Error: --command is required with any arguments"
+  exit 255
 end
-  
+
 if command && !(command =~ /\A(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy|publish-uids|set-region|unset-region)\z/)
   puts "Command must be one of: #{CTL_DISTRICT_COMMANDS}"
   exit 255
 end
 
+if node_profile && !Gear::valid_gear_size?(node_profile)
+  puts "Node profile must be one of: #{Gear::gear_sizes_display_string}"
+  exit 1
+end
+  
 district = nil
 if uuid || name
   district = get_district(uuid, name)
@@ -165,7 +170,7 @@ begin
     district.set_region(server_identity, region, zone)
     reply.resultIO << "Success!"
   when "unset-region"
-    district.unset_region(server_identity, region, zone)
+    district.unset_region(server_identity)
     reply.resultIO << "Success!"
   when "publish-uids"
     districts = district ? [district] : District.find_all

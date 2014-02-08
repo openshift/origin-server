@@ -63,6 +63,11 @@ region_name = args['--region']
 zone_name   = args['--zone']
 bypass      = args['--bypass']
 
+if !command && (args.length > 0)
+  puts "Error: --command is required with any arguments"
+  exit 255
+end
+
 if command && !(command =~ /\A(create|destroy|add-zone|remove-zone|list)\z/)
   puts "Error: Command must be one of: #{CTL_REGION_COMMANDS}"
   exit 255

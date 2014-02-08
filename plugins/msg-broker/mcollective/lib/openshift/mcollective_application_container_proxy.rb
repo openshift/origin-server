@@ -3035,7 +3035,7 @@ module OpenShift
         # Get the districts
         districts = prefer_district ? District.find_all((require_district && node_profile ) ? node_profile : nil, required_uid) : []
 
-        require_region = Rails.configuration.msg_broker[:regions][:require_for_app_create]
+        require_zone = Rails.configuration.msg_broker[:regions][:require_zones_for_app_create]
         # Get the active % on the nodes
         rpc_opts = nil
         rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server_identity, capacity|
@@ -3045,12 +3045,12 @@ module OpenShift
             # - if required uid is not availabe in the district
             # - server is not active
             # - server can not accomodate any more gears
-            # - server not part of any region when user requested region
+            # - server not part of any zone when user requested zone
             next if required_uid and !district.available_uids.include?(required_uid)
             if district.servers.where(name: server_identity).exists?
               server = district.servers.find_by(name: server_identity)
               if (gear_exists_in_district || district.available_capacity > 0) &&
-                 server.active && (!require_region || server.region_id)
+                 server.active && (!require_zone || server.zone_id)
                 server_infos << NodeProperties.new(server_identity, capacity.to_f, district, server)
               end
               found_district = true
@@ -3062,8 +3062,8 @@ module OpenShift
           end
         end
         if server_infos.empty?
-          if require_district && require_region
-            raise OpenShift::NodeUnavailableException.new("No districted region nodes available", 140)
+          if require_district && require_zone
+            raise OpenShift::NodeUnavailableException.new("No districted zone nodes available", 140)
           elsif require_district
             raise OpenShift::NodeUnavailableException.new("No district nodes available", 140)
           end
@@ -3151,16 +3151,16 @@ module OpenShift
             server_infos.delete_if { |server_info| !server_info.district_id } if has_districted_node
           end
 
-          # Prefer region nodes over non region nodes when region is not requested
-          unless require_region
-            has_region_node = false
+          # Prefer zone nodes over non zone nodes when zone is not requested
+          unless require_zone
+            has_zone_node = false
             server_infos.each do |server_info|
-              if server_info.region_id
-                has_region_node = true
+              if server_info.zone_id
+                has_zone_node = true
                 break
               end
             end
-            server_infos.delete_if { |server_info| !server_info.region_id } if has_region_node
+            server_infos.delete_if { |server_info| !server_info.zone_id } if has_zone_node
           end
         end
         

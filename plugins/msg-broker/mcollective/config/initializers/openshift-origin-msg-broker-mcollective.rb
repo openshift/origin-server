@@ -33,7 +33,7 @@ Broker::Application.configure do
         :first_uid => conf.get("DISTRICTS_FIRST_UID", 1000).to_i
       },
       :regions => {
-        :require_for_app_create => conf.get_bool("REGIONS_REQUIRE_FOR_APP_CREATE", "false"),
+        :require_zones_for_app_create => conf.get_bool("ZONES_REQUIRE_FOR_APP_CREATE", "false"),
         :min_zones_per_gear_group => conf.get("ZONES_MIN_PER_GEAR_GROUP", 1).to_i
       },
       :node_profile_enabled => conf.get_bool("NODE_PROFILE_ENABLED", "false")
