@@ -54,11 +54,12 @@ class ApplicationsController < BaseController
     config = (params[:config].is_a?(Hash) and params[:config])
 
     if init_git_url = String(params[:initial_git_url]).presence
-      repo_spec, _ = (OpenShift::Git.safe_clone_spec(init_git_url) rescue nil)
+      repo_spec, commit = (OpenShift::Git.safe_clone_spec(init_git_url, OpenShift::Git::ALLOWED_SCHEMES, params[:initial_git_branch].presence) rescue nil)
       if repo_spec.blank?
         return render_error(:unprocessable_entity, "Invalid initial git URL",
                             216, "initial_git_url")
       end
+      init_git_url = [repo_spec, commit].compact.join('#')
     end
 
     specs = []

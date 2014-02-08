@@ -127,8 +127,10 @@ class ApplicationType
 
   def >>(app)
     app.cartridges = cartridges.map{ |s| to_cart(s) } if cartridges.present?
-    app.initial_git_url = initial_git_url if initial_git_url
-    app.initial_git_branch = initial_git_branch if initial_git_branch
+    if initial_git_url.present?
+      app.initial_git_url = initial_git_url
+      app.initial_git_branch = initial_git_branch if initial_git_branch.present?
+    end
     app
   end
 
@@ -180,8 +182,10 @@ class ApplicationType
 
   def self.matching_cartridges(cartridge_specs)
     valid, invalid = {}, []
-    Array(cartridge_specs).uniq.each do |c|
-      if c.is_a? Hash
+    Array(cartridge_specs).uniq.each_with_index do |c, i|
+      if c.is_a? Array
+        valid[i] = c.map{ |name| CartridgeType.cached.find(name) }.compact
+      elsif c.is_a? Hash
         if c['name'].present?
           if cart = CartridgeType.cached.find(c['name']) rescue nil
             valid[c['name']] = [cart]
@@ -263,6 +267,7 @@ class ApplicationType
       attrs[:provider] = type.support_type
       attrs[:automatic_updates] = type.automatic_updates?
       attrs[:cartridges] = [type.name]
+      attrs[:cartridges_spec] = attrs[:cartridges] + (type.requires.presence || [])
 
       new(attrs, type.persisted?)
     end

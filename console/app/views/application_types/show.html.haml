@@ -122,8 +122,7 @@
       %h3.control-label Source Code
       .controls.first
         = f.text_field :initial_git_url, :class => 'expand', :placeholder => 'Optional URL to a Git repository'
-        -#= f.text_field :initial_git_branch, :class => 'narrow', :placeholder => 'Git branch (optional)'
-        %span.help-inline branch 'master'
+        = f.text_field :initial_git_branch, :class => 'narrow', :placeholder => 'Branch/tag'
         = f.inline_errors_for :initial_git_url
         = f.inline_errors_for :initial_git_branch
 

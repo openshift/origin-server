@@ -85,7 +85,7 @@ class CartridgeType < RestApi::Base
 
   def support_type
     @support_type ||=
-      if vendor = @attributes[:vendor].presence
+      if vendor = @attributes[:maintained_by].presence
         vendor == 'redhat' ? :openshift : :community
       else
         :community
@@ -234,7 +234,7 @@ class CartridgeType < RestApi::Base
 
   def self.suggest_useful!(app, carts, *filters)
     carts = carts.select{ filters.any?{ |sym| c.send(sym) } } if filters.present?
-    requires = app.cartridges.inject([]){ |arr, cart| arr.concat(carts.select{ |c| c.requires.include?(cart.name) }) }
+    requires = app.cartridges.inject([]){ |arr, cart| arr.concat(carts.select{ |c| c.requires.any?{ |r| r.include?(cart.name) } }) }
     carts.delete_if{ |c| requires.include?(c) }
     requires
   end

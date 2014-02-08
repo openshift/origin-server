@@ -122,6 +122,7 @@ class RestEmbeddedCartridge < OpenShift::Model
     self.help_topics = cart.help_topics
     @requires = requires if requires.present?
 
+    @maintained_by = "redhat" if cart.cartridge_vendor == "redhat"
     self.automatic_updates = cart.manifest_url.blank? && !cart.categories.include?('no_updates')
 
     @obsolete = true if cart.is_obsolete?
