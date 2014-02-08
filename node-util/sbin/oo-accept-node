@@ -864,7 +864,7 @@ def check_cartridge_repository
       if matched_ct.nil?
         do_fail("no manifest in the cart repo matches #{f}")
       elsif matched_ct < src_ct
-        do_fail("cart repo version is older than #{f}")
+        do_fail("cart repo version mismatch for #{f}")
       end
 
     rescue Psych::SyntaxError
