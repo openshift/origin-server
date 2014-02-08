@@ -339,7 +339,7 @@ module OpenShift
           @source_url = @manifest['Source-Url']
           @source_md5 = @manifest['Source-Md5']
         else
-          raise MissingElementError.new('Source-Url', 'Source-Url is required in manifest to obtain cartridge via URL',
+          raise MissingElementError.new('Source-Url', 'is required in manifest to obtain cartridge via URL',
                                         ) if :url == @manifest_path
         end
 
