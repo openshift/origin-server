@@ -21,13 +21,8 @@ class PatchUserEnvVarsOp < PendingAppOp
 
       gears_endpoint = get_gears_ssh_endpoint(application)
 
-      begin
-        result_io = gear.unset_user_env_vars(unset_vars, gears_endpoint) if unset_vars.present?
-        result_io.append gear.set_user_env_vars(set_vars, gears_endpoint) if set_vars.present? or push_vars
-      rescue OpenShift::OOException => ooe
-        # Give a more user friendly error than what comes back directly from the node
-        raise OpenShift::ApplicationOperationFailed.new("Failed to update environment variable(s) on your application's gear(s).  Please try again and contact support if the issue persists.", result_io.exitcode, result_io)
-      end
+      result_io = gear.unset_user_env_vars(unset_vars, gears_endpoint) if unset_vars.present?
+      result_io.append gear.set_user_env_vars(set_vars, gears_endpoint) if set_vars.present? or push_vars
     end
     result_io
   end

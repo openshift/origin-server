@@ -353,7 +353,7 @@ module OpenShift
               end
             end
           rescue Exception => e
-            logger.warn("Failed to update #{gear_dns} from #{@container_dir}/#{source}. #{e.message}")
+            logger.error("Failed to update #{gear_dns} from #{@container_dir}/#{source}. #{e.message}")
             return 127, "CLIENT_ERROR: #{e.message}"
           ensure
             loop do
@@ -362,11 +362,12 @@ module OpenShift
                   when false
                     thread.join
                     if thread[:exception]
+                      output << "CLIENT_ERROR: Sync for #{id} user variables failed.\n"
                       if thread[:exception].is_a?(::OpenShift::Runtime::Utils::ShellExecutionException)
-                        output << "CLIENT_ERROR: Sync for #{id} user variables failed.\n"
-                        output << thread[:exception].stderr.split("\n").map { |l| "CLIENT_ERROR: #{l}" }.join("\n")
+                        logger.error("Sync for #{id} user variables failed.")
+                        logger.error(thread[:exception].stderr)
                       else
-                        output << "CLIENT_ERROR: Sync for #{id} user variables failed #{thread[:exception].message}\n"
+                        logger.error("Sync for #{id} user variables failed #{thread[:exception].message}")
                       end
                     end
                     threads.delete(id)
