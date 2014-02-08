@@ -7,8 +7,6 @@
 - :categories:
   - :administration
   :display_name: phpMyAdmin 4
-  :requires:
-  - mysql-5.1
   :name: phpmyadmin-4
 
 - :name: cron-1.4
@@ -16,8 +14,6 @@
 
 - :categories:
   - :administration
-  :requires:
-  - mongodb-2.4
   :name: rockmongo-1.1
 
 - :categories:

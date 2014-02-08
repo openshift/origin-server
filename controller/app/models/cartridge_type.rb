@@ -143,6 +143,7 @@ class CartridgeType
       json = JSON.parse(text)
       json["Id"] = self._id
       cart = OpenShift::Cartridge.new(json)
+      cart.categories = categories
       cart.manifest_url = manifest_url
       cart.created_at = created_at
       cart.activated_at = priority

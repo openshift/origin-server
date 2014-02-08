@@ -19,7 +19,6 @@
 class PendingDomainOps
   include Mongoid::Document
   include Mongoid::Timestamps::Created
-  include ModelHelper
 
   embedded_in :domain, class_name: Domain.name
 

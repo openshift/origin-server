@@ -164,6 +164,41 @@ class Command
     1
   end
 
+  def categorize(options)
+    ids = from_options_or_stdin(options, [:names, :ids], '--ids IDS')
+    add = ARGV.select{ |i| i[0] == '+' }.map{ |i| i[1..-1] }.uniq
+    remove = ARGV.select{ |i| i[0] == '=' }.map{ |i| i[1..-1] }.uniq
+    r = remove
+    remove = remove - add
+    add = add - r
+    raise ArgumentError, "Must specify categories to add with '+' or remove with 'x' like '+foo =bar' " if add.empty? && remove.empty?
+    env!(options)
+    code = 0
+    CartridgeType.or({:name.in => ids}, {:_id.in => ids}).each do |cart|
+      cart.categories -= remove
+      cart.categories += add
+      cart.categories.uniq!
+      if options.dry_run
+        puts "#{cart._id} # #{cart.categories.sort.join(', ')}"
+      elsif cart.save
+        puts "#{cart._id} # #{cart.categories.sort.join(', ')}"
+      else
+        warn "Unable to save #{cart._id}"
+        type.errors.full_messages.each do |m|
+          warn "  #{m}"
+        end
+        code = 1
+      end
+    end
+    code
+  rescue ArgumentError
+    warn $!
+    1
+  rescue => e
+    exception e, "Failed to activate cartridge"
+    1
+  end
+
   def import(options)
     raise ArgumentError, "Use --url URL or specify a list of files via STDIN" if (options.url.nil? || options.url.empty?) && (files = ARGF.readlines).empty?
     env!(options)
@@ -407,6 +442,10 @@ Commands:
 
   deactivate  - Disable a cartridge from being visible to users
                 Requires id or name, or input from STDIN.
+
+  categorize  - Add/remove categories on a cartridge.
+                Requires id or name, or input from STDIN. Pass categories
+                to set with '+<category>' or remove with '=<category>'
 
   clean       - Delete all cartridges in the broker
 

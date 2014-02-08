@@ -113,7 +113,11 @@ class RestCartridge < OpenShift::Model
     end
     self.help_topics = cart.help_topics
     self.usage_rates = cart.usage_rates
+    if requires = CartridgeCache.find_requires_for(cart).presence
+      @requires = requires
+    end
 
+    @maintained_by = "redhat" if cart.cartridge_vendor == "redhat"
     self.automatic_updates = cart.manifest_url.blank? && !cart.categories.include?('no_updates')
 
     self.creation_time = cart.created_at

@@ -344,12 +344,44 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal builder_app.builder, app
   end
 
-  test "create strips sensitive data from initial_git_url" do
+  def assert_convert_git_url(expected, opts)
     @app_name = "app#{@random}"
-    post :create, {"name" => @app_name, "cartridge" => php_version, "initial_git_url" => 'https://foo:bar@test.com', "domain_id" => @domain.namespace}
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace}.merge(opts)
     assert_response :created
-    app = assigns(:application)
-    assert_equal 'https://test.com', app.init_git_url
+    assert app = assigns(:application)
+    assert_equal expected, app.init_git_url
+  end
+
+  test "create strips sensitive data from initial_git_url" do
+    assert_convert_git_url 'https://test.com', "initial_git_url" => 'https://foo:bar@test.com'
+  end
+
+  test "create strips invalid url fragment" do
+    assert_convert_git_url 'https://test.com', "initial_git_url" => 'https://foo:bar@test.com#!!original'
+  end
+
+  test "create allows initial_git_branch to override url" do
+    assert_convert_git_url 'https://test.com#override', "initial_git_url" => 'https://foo:bar@test.com', "initial_git_branch" => 'override'
+  end
+
+  test "create allows initial_git_branch to override url fragment" do
+    assert_convert_git_url 'https://test.com#override', "initial_git_url" => 'https://foo:bar@test.com#original', "initial_git_branch" => 'override'
+  end
+
+  test "create allows initial_git_branch to override invalid url fragment" do
+    assert_convert_git_url 'https://test.com#override', "initial_git_url" => 'https://foo:bar@test.com#!!test', "initial_git_branch" => 'override'
+  end
+
+  test "create prevents invalid initial_git_branch to override url fragment" do
+    assert_convert_git_url 'https://test.com#original', "initial_git_url" => 'https://foo:bar@test.com#original', "initial_git_branch" => '!!override'
+  end
+
+  test "create allows override url fragment for git@ urls" do
+    assert_convert_git_url 'git@test.com:bar.git#override', "initial_git_url" => 'git@test.com:bar.git#original', "initial_git_branch" => 'override'
+  end
+
+  test "create prevents override url fragment for git@ urls" do
+    assert_convert_git_url 'git@test.com:bar.git', "initial_git_url" => 'git@test.com:bar.git#!!original', "initial_git_branch" => '!!override'
   end
 
   test "attempt to create when all gear sizes are disabled" do

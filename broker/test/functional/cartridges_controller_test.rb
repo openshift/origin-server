@@ -1,5 +1,5 @@
 ENV["TEST_NAME"] = "functional_cartridges_controller_test"
-require 'test_helper'
+require_relative '../test_helper'
 require 'openshift-origin-controller'
 require 'mocha/setup'
 
@@ -117,6 +117,7 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     assert (data = JSON.parse(@response.body)["data"]).is_a?(Hash)
     assert_equal cart._id.to_s, data['id']
     assert data['activation_time'].present?
+    assert_nil data['requires']
 
     inactive = CartridgeType.create(CartridgeType.active.first.attributes)
     assert !inactive.activated?
@@ -125,6 +126,36 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     assert (data = JSON.parse(@response.body)["data"]).is_a?(Hash)
     assert_equal inactive._id.to_s, data['id']
     assert_nil data['activation_time']
+    assert_nil data['requires']
+  end
+
+  test 'get cartridge complex requires' do
+    mysql_carts = CartridgeType.active.provides('mysql').select{ |c| c.names.include?('mysql') }.sort_by(&OpenShift::Cartridge::NAME_PRECEDENCE_ORDER).map(&:name)
+    mariadb_carts = CartridgeType.active.provides('mariadb').select{ |c| c.names.include?('mariadb') }.sort_by(&OpenShift::Cartridge::NAME_PRECEDENCE_ORDER).map(&:name)
+    CartridgeType.where(provides: 'phpx').delete
+    CartridgeType.update_from(OpenShift::Runtime::Manifest.manifests_from_yaml(<<-BODY.strip_heredoc)).each(&:activate!)
+      ---
+      Name: phpx
+      Version: '5.3'
+      Display-Name: PHPX
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Categories:
+      - mock
+      - web_framework
+      Provides:
+      - phpy
+      Requires:
+      -
+        - mysql
+        - mariadb
+      - web_proxy
+      BODY
+    request_via_redirect(:get, "/broker/rest/cartridges", {}, @headers)
+    assert_response :ok
+    assert (data = JSON.parse(@response.body)["data"]).is_a?(Array)
+    assert cart = data.detect{ |c| c['name'] == 'mock-phpx-5.3' }
+    assert_equal [mariadb_carts+mysql_carts, ["web_proxy"]], cart['requires']
   end
 
   test "get cartridge in all versions" do

@@ -167,6 +167,22 @@ class CartridgeCache
     matching_carts
   end
 
+  def self.find_requires_for(cartridge)
+    Rails.cache.fetch("cartridge_requires_for_#{cartridge.id}", :expires_in => DURATION) do
+      Array(cartridge.requires).map do |required|
+        matches = []
+        if names = Array(required).compact.map(&:to_s).presence
+          CartridgeType.active.provides(names).each do |cart|
+            if (cart.names & names).present?
+              matches << lru_cache(cart.cartridge)
+            end
+          end
+          matched = matches.compact.sort_by(&OpenShift::Cartridge::NAME_PRECEDENCE_ORDER).map(&:name).uniq.presence || Array(required)
+        end
+      end.compact
+    end
+  end
+
   def self.cartridge_from_data(data)
     raw = OpenShift::Runtime::Manifest.manifest_from_yaml(data['original_manifest'])
     manifest = OpenShift::Runtime::Manifest.projected_manifests(raw, data["version"]).manifest
