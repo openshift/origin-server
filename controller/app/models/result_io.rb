@@ -96,13 +96,13 @@ class ResultIO
             self.hasUserActionableError = true
           end
         elsif line.start_with?('CART_DATA: ')
-          key,value = line['CART_DATA: '.length..-1].chomp.split('=')
+          key,value = line['CART_DATA: '.length..-1].chomp.split('=', 2)
           self.set_cart_property(gear_id, "attributes", key, value)
         elsif line.start_with?('CART_PROPERTIES: ')
-          key,value = line['CART_PROPERTIES: '.length..-1].chomp.split('=')
+          key,value = line['CART_PROPERTIES: '.length..-1].chomp.split('=', 2)
           self.set_cart_property(gear_id, "component-properties", key, value)
         elsif line.start_with?('ATTR: ')
-          key,value = line['ATTR: '.length..-1].chomp.split('=')
+          key,value = line['ATTR: '.length..-1].chomp.split('=', 2)
           self.set_cart_property(gear_id, "attributes", key, value)              
         elsif line.start_with?('APP_INFO: ')
           self.appInfoIO << line['APP_INFO: '.length..-1]
