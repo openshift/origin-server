@@ -1023,7 +1023,7 @@ class UpgraderCli < Thor
   method_option :version, :type => :string, :required => true, :desc => "Target version number"
   method_option :ignore_cartridge_version, :type => :boolean, :default => false, :desc => "Force cartridge upgrade even if cartridge versions match"
   method_option :upgrade_node, :type => :string, :required => false, :desc => "Server identity of the node to upgrade"
-  method_option :upgrade_position, :type => :numeric, :required => false, :desc => "Postion of this upgrader (1 based) amongst the num of upgraders"
+  method_option :upgrade_position, :type => :numeric, :required => false, :desc => "Position of this upgrader (1 based) amongst the num of upgraders"
   method_option :num_upgraders, :type => :numeric, :required => false, :desc => "The total number of upgraders to be run.  Each upgrade-position will be a "\
                                                                                 "upgrade-position of num-upgraders.  All positions must to taken to upgrade "\
                                                                                 "all gears."

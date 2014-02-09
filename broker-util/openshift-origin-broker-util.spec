@@ -92,6 +92,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-user.8.gz
 %{_mandir}/man8/oo-admin-move.8.gz
 %{_mandir}/man8/oo-admin-repair.8.gz
+%{_mandir}/man8/oo-admin-upgrade.8.gz
 %{_mandir}/man8/oo-admin-usage.8.gz
 %{_mandir}/man8/oo-app-info.8.gz
 %{_mandir}/man8/oo-register-dns.8.gz
