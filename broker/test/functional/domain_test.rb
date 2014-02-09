@@ -36,7 +36,12 @@ class DomainTest < ActiveSupport::TestCase
   end
   
   test "create find and delete domain" do
-    namespace = "ns#{@random}"
+    blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
+    if blacklisted_words.present?
+      namespace = blacklisted_words.first
+    else
+      namespace = "ns#{@random}"
+    end
     @domain = Domain.new(namespace: namespace, owner:@user)
     @domain.save
     
@@ -52,7 +57,7 @@ class DomainTest < ActiveSupport::TestCase
     assert_equal(0, domains.length)
     
   end
-  
+ 
   test "add and remove ssh keys to domain" do
     namespace = "ns#{@random}"
     namespace.downcase!
@@ -126,7 +131,12 @@ class DomainTest < ActiveSupport::TestCase
   end
   
   test "update domain" do
-    namespace = "ns#{@random}"
+    blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
+    if blacklisted_words.present?
+      namespace = blacklisted_words.first
+    else
+      namespace = "ns#{@random}"
+    end
     namespace.downcase!
     @domain = Domain.new(namespace: namespace, owner:@user)
     @domain.save
@@ -139,12 +149,12 @@ class DomainTest < ActiveSupport::TestCase
     
     new_namespace = "xns#{@random}"
     @domain.namespace = new_namespace
-    assert_raise(OpenShift::UserException){ @domain.save_with_duplicate_check! }
+    assert_raise(OpenShift::UserException){ @domain.save! }
     
     @app.destroy_app
     @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
     @domain.namespace = new_namespace
-    @domain.save_with_duplicate_check!
+    @domain.save!
     assert_raise(Mongoid::Errors::DocumentNotFound){Domain.find_by(owner: @user, canonical_namespace: namespace)}
     @domain = Domain.find_by(owner: @user, canonical_namespace: new_namespace)
     assert_equal(new_namespace, @domain.namespace)

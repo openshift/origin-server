@@ -84,11 +84,7 @@ module OpenShift
     end
 
     def self.blacklisted?(name)
-      @proxy_provider.blacklisted_in_impl?(name)
-    end
-
-    def self.blacklisted_in_impl?(name)
-      false
+      self.get_blacklisted.include?(name)
     end
 
     def self.get_all_gears_endpoints(opts = {})

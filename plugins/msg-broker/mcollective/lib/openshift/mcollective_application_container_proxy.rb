@@ -124,23 +124,6 @@ module OpenShift
         []
       end
 
-      # <<orphan>>
-      #
-      # <<class method>>
-      #
-      # INPUTS:
-      # * name: String.  A name to be checked against the blacklist
-      #
-      # RETURNS:
-      # * Boolean.  True if the name is in the blacklist
-      #
-      # NOTES:
-      # * This is really a function of the broker
-      #
-      def self.blacklisted_in_impl?(name)
-        false
-      end
-
       # <<class method>>
       #
       # <<query>>

@@ -136,6 +136,7 @@ def stubber
   RemoteJob.stubs(:get_parallel_run_results)
   OpenShift::ApplicationContainerProxy.stubs(:find_available).returns(@container)
   OpenShift::ApplicationContainerProxy.stubs(:find_one).returns(@container)
+  OpenShift::ApplicationContainerProxy.stubs(:get_blacklisted).returns(["redhat", "openshift"])
 
   dns = mock()
   OpenShift::DnsService.stubs(:instance).returns(dns)
