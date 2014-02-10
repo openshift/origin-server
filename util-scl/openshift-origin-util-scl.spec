@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util-scl
-Version: 1.16.1
+Version: 1.16.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -28,5 +28,8 @@ cp oo-* %{buildroot}%{_bindir}/
 
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.16.2-1
+- Cleaning specs (dmcphers@redhat.com)
+
 * Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
 - bump_minor_versions for sprint 35 (admiller@redhat.com)
