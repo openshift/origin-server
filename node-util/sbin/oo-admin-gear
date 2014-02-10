@@ -23,24 +23,22 @@ require 'openshift-origin-node'
 GEAR_ADMIN_OPTIONS = {}
 
 optparse = OptionParser.new { |opts|
-    opts.banner = "Usage: oo-admin-gear --action ACTION --uuid UUID --app APP"
+    opts.banner = "Usage: oo-admin-gear --action ACTION --uuid UUID\n
+Mandatory arguments: ACTION and gear UUID\n\n"
 
-    opts.on('-A', '--action ACTION', String, 'Specify action') do |action|
+    opts.on('-a', '--action ACTION', String, "Specify action
+Available actions: destroygear (cleanup stale files for a gear)\n\n") do |action|
         GEAR_ADMIN_OPTIONS[:action] = action
     end
 
-    opts.on('-u', '--uuid UUID', String, 'Requires user id') do |uuid|
+    opts.on('-u', '--uuid UUID', String, 'Specify gear uuid') do |uuid|
         GEAR_ADMIN_OPTIONS[:uuid] = uuid
-    end
-
-    opts.on('-a', '--app APP', String, 'Requires app name') do |app|
-        GEAR_ADMIN_OPTIONS[:app] = app
     end
 }
 
 begin
     optparse.parse!
-    mandatory = [:action, :uuid, :app]
+    mandatory = [:action, :uuid]
     missing = mandatory.select{ |param| GEAR_ADMIN_OPTIONS[param].nil? }
     if not missing.empty?
         puts optparse
@@ -54,7 +52,6 @@ end
 
 action = GEAR_ADMIN_OPTIONS[:action]
 uuid = GEAR_ADMIN_OPTIONS[:uuid]
-app = GEAR_ADMIN_OPTIONS[:app]
 
 if action == 'destroygear'
     puts 'Deleting user...'
@@ -65,13 +62,13 @@ if action == 'destroygear'
     tc_user_delete = %x[rm /var/lib/openshift/.tc_user_dir/#{uuid}_throttle]
     puts tc_user_delete if $?.exitstatus != 0
 
-    puts 'Deleting remaining gear access info...'
-    app_last_access_delete = %x[rm -r /var/lib/openshift/.last_access/#{app}]
-    puts app_last_access_delete if $?.exitstatus != 0
-
     puts 'Deleting stale user home dir...'
     user_home_delete = %x[rm -r /var/lib/openshift/#{uuid}]
     puts user_home_delete if $?.exitstatus != 0
+
+    puts 'Deleting gear access info...'
+    app_last_access_delete = %x[rm -r /var/lib/openshift/.last_access/#{uuid}]
+    puts app_last_access_delete if $?.exitstatus != 0
 
     puts 'Deleting gear pam limits files...'
     user_pam_limits_delete = %x[rm /etc/security/limits.d/*-#{uuid}.conf]
@@ -80,7 +77,7 @@ if action == 'destroygear'
     puts 'Deleting cgroup info...'
     OpenShift::Runtime::Utils::Cgroups::Libcgroup.new(uuid).delete
 
-    puts 'Deleting stale info from *.json files...'
+    puts 'Deleting stale info from /var/lib/openshift/.httpd.d/ files...'
     OpenShift::Runtime::FrontendHttpServer.purge(uuid)
 else
     puts 'No matching action found'
