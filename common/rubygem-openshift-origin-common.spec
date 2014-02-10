@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.19.1
+Version: 1.19.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -119,6 +119,32 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
+- Merge pull request #4688 from
+  smarterclayton/bug_1059858_expose_requires_to_clients
+  (dmcphers+openshiftbot@redhat.com)
+- Support changing categorizations (ccoleman@redhat.com)
+- Bug 1062539 - UseMissingElementError as intended (dmcphers@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Rename 'server_identities' to 'servers' and 'active_server_identities_size'
+  to 'active_servers_size' in district model (rpenta@redhat.com)
+- Merge pull request #4599 from Miciah/bug-1058527-oo-diagnostics-is-missing-a
+  -dependency-on-bind-utils (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Add external cartridge support to model (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Add external cartridge support to model (ccoleman@redhat.com)
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- Move cartridges into Mongo (ccoleman@redhat.com)
+- Add depends on bind-utils for oo-diagnostics (miciah.masters@gmail.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
 - Fixing typo (bleanhar@redhat.com)
 - Various iptables integration fixes (bleanhar@redhat.com)
