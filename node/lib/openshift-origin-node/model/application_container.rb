@@ -405,6 +405,8 @@ module OpenShift
       ##
       # Idles the gear if there is no stop lock and state is not already +STOPPED+.
       #
+      # +Note: + stop_lock is created here so Node start up scripts skip idled gears.
+      #   stop_lock removed during unidle
       def idle_gear(options={})
         if not stop_lock? and (state.value != State::STOPPED)
           frontend = FrontendHttpServer.new(self)
