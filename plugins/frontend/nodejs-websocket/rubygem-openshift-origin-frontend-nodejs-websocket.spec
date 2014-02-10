@@ -10,7 +10,7 @@
 
 Summary:       OpenShift NodeJS Websocket frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.3.1
+Version: 0.3.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,14 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Changes for supporting frontend paths in node web proxy. (mrunalp@gmail.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
 - bump_minor_versions for sprint 37 (admiller@redhat.com)
 
