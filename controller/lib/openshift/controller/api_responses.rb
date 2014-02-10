@@ -131,20 +131,20 @@ module OpenShift
             internal_error = false
 
           when OpenShift::AuthServiceException
-            status = :service_unavailable
+            status = :internal_server_error
             message = "Unable to authenticate the user. Please try again and contact support if the issue persists. \nReference ID: #{request.uuid}"
 
           when OpenShift::DNSException
-            status = :service_unavailable
+            status = :internal_server_error
 
           when OpenShift::LockUnavailableException
-            status = :service_unavailable
+            status = :internal_server_error
             message ||= "Another operation is already in progress. Please try again in a minute."
             internal_error = false
 
           when OpenShift::NodeUnavailableException
             Rails.logger.error "Got Node Unavailable Exception"
-            status = :service_unavailable
+            status = :internal_server_error
             message = ""
             if ex.resultIO
               error_code = ex.resultIO.exitcode
