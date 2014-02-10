@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for publishing routing information on ActiveMQ
 Name:          rubygem-%{gem_name}
-Version: 0.3.1
+Version: 0.3.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -72,6 +72,13 @@ cp conf/openshift-origin-routing-activemq.conf.example %{buildroot}/etc/openshif
 /etc/openshift/plugins.d/openshift-origin-routing-activemq.conf.example
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 0.3.1-1
 - Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
   (ccoleman@redhat.com)
