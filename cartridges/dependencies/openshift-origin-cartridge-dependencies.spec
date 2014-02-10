@@ -227,6 +227,12 @@ an OpenShift cartrige.
 %package recommended-php
 Summary:   Recommended user dependencies for PHP OpenShift Cartridges
 BuildArch: noarch
+Requires:  php-mysql
+Requires:  php-pgsql
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:  php54-php-mysqlnd
+Requires:  php54-php-pgsql
+%endif
 
 %description recommended-php
 This package pulls in other packages that a user
@@ -239,6 +245,36 @@ an OpenShift cartrige.
 %package optional-php
 Summary:   Optional user dependencies for Ruby OpenShift Cartridges
 BuildArch: noarch
+Requires:  php-bcmath
+Requires:  php-devel
+Requires:  php-fpm
+Requires:  php-gd
+Requires:  php-imap
+Requires:  php-intl
+Requires:  php-mbstring
+Requires:  php-mcrypt
+Requires:  php-pdo
+Requires:  php-pecl-apc
+Requires:  php-pecl-imagick
+Requires:  php-pecl-mongo
+Requires:  php-pecl-xdebug
+Requires:  php-process
+Requires:  php-soap
+Requires:  php-xml
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:  php54-php-bcmath
+Requires:  php54-php-devel
+Requires:  php54-php-fpm
+Requires:  php54-php-gd
+Requires:  php54-php-intl
+Requires:  php54-php-ldap
+Requires:  php54-php-mbstring
+Requires:  php54-php-pdo
+Requires:  php54-php-pecl-apc
+Requires:  php54-php-process
+Requires:  php54-php-soap
+Requires:  php54-php-xml
+%endif
 
 %description optional-php
 This package pulls in other packages that a user
@@ -315,6 +351,18 @@ an OpenShift cartrige.
 %package recommended-ruby
 Summary:   Recommended user dependencies for Ruby OpenShift Cartridges
 BuildArch: noarch
+Requires:  mysql-devel
+Requires:  sqlite-devel
+Requires:  %{?scl:%scl_prefix}ruby-devel
+Requires:  %{?scl:%scl_prefix}ruby-irb
+Requires:  %{?scl:%scl_prefix}ruby-mysql
+Requires:  %{?scl:%scl_prefix}rubygem-sqlite3
+%if 0%{?rhel}
+Requires:  ruby-devel
+Requires:  ruby-mysql
+Requires:  ruby-sqlite3
+Requires:  rubygem-sqlite3
+%endif
 
 %description recommended-ruby
 This package pulls in other packages that a user
@@ -327,7 +375,91 @@ an OpenShift cartrige.
 %package optional-ruby
 Summary:   Optional user dependencies for Ruby OpenShift Cartridges
 BuildArch: noarch
+Requires:  gcc-c++
+Requires:  gmp-devel
+Requires:  ImageMagick-devel
+Requires:  libev-devel
 Requires:  libicu-devel
+Requires:  libxml2-devel
+Requires:  libxslt-devel
+Requires:  ruby-RMagick
+%if 0%{?rhel}
+Requires:  js
+Requires:  ruby-nokogiri
+Requires:  rubygem-bson_ext
+Requires:  rubygem-rack >= 1.1.0
+%endif
+%if 0%{?fedora}
+Requires:  rubygem-nokogiri
+%endif
+Requires:  %{?scl:%scl_prefix}js-devel
+Requires:  %{?scl:%scl_prefix}libyaml-devel
+Requires:  %{?scl:%scl_prefix}ruby-tcltk
+Requires:  %{?scl:%scl_prefix}rubygem-actionmailer
+Requires:  %{?scl:%scl_prefix}rubygem-actionpack
+Requires:  %{?scl:%scl_prefix}rubygem-activemodel
+Requires:  %{?scl:%scl_prefix}rubygem-activerecord
+Requires:  %{?scl:%scl_prefix}rubygem-activeresource
+Requires:  %{?scl:%scl_prefix}rubygem-activesupport
+Requires:  %{?scl:%scl_prefix}rubygem-arel
+Requires:  %{?scl:%scl_prefix}rubygem-bacon
+Requires:  %{?scl:%scl_prefix}rubygem-bcrypt-ruby
+Requires:  %{?scl:%scl_prefix}rubygem-bigdecimal
+Requires:  %{?scl:%scl_prefix}rubygem-bson
+Requires:  %{?scl:%scl_prefix}rubygem-bson_ext
+Requires:  %{?scl:%scl_prefix}rubygem-builder
+Requires:  %{?scl:%scl_prefix}rubygem-bundler
+Requires:  %{?scl:%scl_prefix}rubygem-coffee-rails
+Requires:  %{?scl:%scl_prefix}rubygem-coffee-script
+Requires:  %{?scl:%scl_prefix}rubygem-daemon_controller
+Requires:  %{?scl:%scl_prefix}rubygem-diff-lcs
+Requires:  %{?scl:%scl_prefix}rubygem-erubis
+Requires:  %{?scl:%scl_prefix}rubygem-execjs
+Requires:  %{?scl:%scl_prefix}rubygem-fakeweb
+Requires:  %{?scl:%scl_prefix}rubygem-fssm
+Requires:  %{?scl:%scl_prefix}rubygem-hike
+Requires:  %{?scl:%scl_prefix}rubygem-http_connection
+Requires:  %{?scl:%scl_prefix}rubygem-i18n
+Requires:  %{?scl:%scl_prefix}rubygem-introspection
+Requires:  %{?scl:%scl_prefix}rubygem-io-console
+Requires:  %{?scl:%scl_prefix}rubygem-journey
+Requires:  %{?scl:%scl_prefix}rubygem-jquery-rails
+Requires:  %{?scl:%scl_prefix}rubygem-json
+Requires:  %{?scl:%scl_prefix}rubygem-json_pure
+Requires:  %{?scl:%scl_prefix}rubygem-mail
+Requires:  %{?scl:%scl_prefix}rubygem-metaclass
+Requires:  %{?scl:%scl_prefix}rubygem-mime-types
+Requires:  %{?scl:%scl_prefix}rubygem-minitest
+Requires:  %{?scl:%scl_prefix}rubygem-mocha
+Requires:  %{?scl:%scl_prefix}rubygem-mongo
+Requires:  %{?scl:%scl_prefix}rubygem-multi_json
+Requires:  %{?scl:%scl_prefix}rubygem-open4
+Requires:  %{?scl:%scl_prefix}rubygem-pg
+Requires:  %{?scl:%scl_prefix}rubygem-polyglot
+Requires:  %{?scl:%scl_prefix}rubygem-rack
+Requires:  %{?scl:%scl_prefix}rubygem-rack-cache
+Requires:  %{?scl:%scl_prefix}rubygem-rack-ssl
+Requires:  %{?scl:%scl_prefix}rubygem-rack-test
+Requires:  %{?scl:%scl_prefix}rubygem-rails
+Requires:  %{?scl:%scl_prefix}rubygem-railties
+Requires:  %{?scl:%scl_prefix}rubygem-rake
+Requires:  %{?scl:%scl_prefix}rubygem-rdoc
+Requires:  %{?scl:%scl_prefix}rubygem-rspec
+Requires:  %{?scl:%scl_prefix}rubygem-ruby2ruby
+Requires:  %{?scl:%scl_prefix}rubygem-ruby_parser
+Requires:  %{?scl:%scl_prefix}rubygem-sass
+Requires:  %{?scl:%scl_prefix}rubygem-sass-rails
+Requires:  %{?scl:%scl_prefix}rubygem-sexp_processor
+Requires:  %{?scl:%scl_prefix}rubygem-sinatra
+Requires:  %{?scl:%scl_prefix}rubygem-sprockets
+Requires:  %{?scl:%scl_prefix}rubygem-test_declarative
+Requires:  %{?scl:%scl_prefix}rubygem-thor
+Requires:  %{?scl:%scl_prefix}rubygem-tilt
+Requires:  %{?scl:%scl_prefix}rubygem-treetop
+Requires:  %{?scl:%scl_prefix}rubygem-tzinfo
+Requires:  %{?scl:%scl_prefix}rubygem-uglifier
+Requires:  %{?scl:%scl_prefix}rubygem-xml-simple
+Requires:  %{?scl:%scl_prefix}rubygem-ZenTest
 
 %description optional-ruby
 This package pulls in other packages that a user
