@@ -80,6 +80,8 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 
 %build
 %__rm %{name}.spec
+%__rm logs/.gitkeep
+%__rm run/.gitkeep
 
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}

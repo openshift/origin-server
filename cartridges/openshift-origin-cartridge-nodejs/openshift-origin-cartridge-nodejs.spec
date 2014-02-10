@@ -59,6 +59,9 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 
 %build
 %__rm %{name}.spec
+%__rm logs/.gitkeep
+find versions/ -name .gitignore -delete
+find versions/ -name .gitkeep -delete
 
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
