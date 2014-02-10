@@ -300,6 +300,10 @@ module OpenShift
 end
 
 if ENV['DAEMONS_ARGV']
+  # Override Daemons gem explicate 0000 mask
+  ::OpenShift::Runtime::Utils.oo_spawn %q{chmod -f 0600 /var/log/watchman.*}
+  ::OpenShift::Runtime::Utils.oo_spawn %q{chmod -f 0644 /var/run/watchman.pid}
+
   conf_dir       = ENV['OPENSHIFT_CONF_DIR'] || OPENSHIFT_CONF_DIR
   node_conf_file = PathUtils.join(conf_dir, 'node.conf')
 
