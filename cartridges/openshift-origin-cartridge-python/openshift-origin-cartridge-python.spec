@@ -9,7 +9,6 @@ Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      facter
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 %if 0%{?fedora}%{?rhel} <= 6
@@ -21,49 +20,13 @@ BuildRequires: scl-utils-build
 Requires:      python27
 Requires:      mod_wsgi >= 3.2
 Requires:      mod_wsgi < 3.4
-Requires:      httpd < 2.4
 %endif
 %if 0%{?fedora} >= 19
 Requires:      python >= 2.7
 Requires:      python < 2.8
 Requires:      mod_wsgi >= 3.4
 Requires:      mod_wsgi < 3.5
-Requires:      httpd > 2.3
-Requires:      httpd < 2.5
 %endif
-
-Requires:      MySQL-python
-Requires:      pymongo
-Requires:      pymongo-gridfs
-Requires:      python-psycopg2
-Requires:      python-virtualenv
-Requires:      python-magic
-%if 0%{?fedora}%{?rhel} <= 6
-Requires:      python27-MySQL-python
-Requires:      python27-python-psycopg2
-Requires:      python27-mod_wsgi
-Requires:      python27-python-pip-virtualenv
-Requires:      python27-numpy
-Requires:      python33-python-virtualenv
-Requires:      python33-mod_wsgi
-Requires:      python33-python-pymongo
-Requires:      python33-python-psycopg2
-Requires:      python33-numpy
-%endif
-Requires:      libjpeg
-Requires:      libjpeg-devel
-Requires:      libcurl
-Requires:      libcurl-devel
-Requires:      numpy
-Requires:      numpy-f2py
-Requires:      gcc-gfortran
-Requires:      freetype-devel
-Requires:      atlas-devel
-Requires:      lapack-devel
-Requires:      redhat-lsb-core
-Requires:      ta-lib-devel
-Requires:      symlinks
-Requires:      libffi-devel
 
 Obsoletes: openshift-origin-cartridge-community-python-2.7
 Obsoletes: openshift-origin-cartridge-community-python-3.3

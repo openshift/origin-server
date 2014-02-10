@@ -10,61 +10,23 @@ Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      facter
 Requires:      rubygem(openshift-origin-node)
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      php >= 5.3.2
 Requires:      php < 5.4
-Requires:      httpd < 2.4
 %endif
 %if 0%{?fedora} >= 19
 Requires:      php >= 5.5
 Requires:      php < 5.6
-Requires:      httpd > 2.3
-Requires:      httpd < 2.5
 %endif
 Requires:      php
-Requires:      php-devel
-Requires:      php-pdo
-Requires:      php-gd
-Requires:      php-xml
-Requires:      php-mysql
-Requires:      php-pecl-mongo
-Requires:      php-pgsql
-Requires:      php-mbstring
 Requires:      php-pear
-Requires:      php-imap
-Requires:      php-pecl-apc
-Requires:      php-mcrypt
-Requires:      php-soap
-Requires:      php-bcmath
-Requires:      php-process
-Requires:      php-pecl-imagick
-Requires:      php-pecl-xdebug
-Requires:      php-fpm
-Requires:      php-intl
 
 #  RHEL-6 PHP 5.4 SCL
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      php54
 Requires:      php54-php
-Requires:      php54-php-devel
-Requires:      php54-php-pdo
-Requires:      php54-php-gd
-Requires:      php54-php-xml
-Requires:      php54-php-mysqlnd
-Requires:      php54-php-pgsql
-Requires:      php54-php-mbstring
 Requires:      php54-php-pear
-Requires:      php54-php-pecl-apc
-Requires:      php54-php-soap
-Requires:      php54-php-bcmath
-Requires:      php54-php-process
-Requires:      php54-php-intl
-Requires:      php54-php-ldap
-Requires:      php54-php-process
-Requires:      php54-php-fpm
-Requires:      php54-php-intl
 %endif
 
 BuildArch:     noarch
