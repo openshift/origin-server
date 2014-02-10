@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: domain.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-10 11:30:36 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>Represents a <a href="../../../OpenShift.html">OpenShift</a> <a
+href="../../../Domain.html">Domain</a>. A {CloudUser} can own multiple
+domains. @!attribute [r] namespace</p>
+
+<pre>@return [String] Namespace reserved for this domain.
+  @see {Domain#update_namespace}</pre>
+
+<p>@!attribute [r] env_vars</p>
+
+<pre>@return [Array[Hash]] List of domain wide environment variables to be created on all {Application}s under the domain.
+  @see {Domain#add_env_variables}, {Domain#remove_env_variables}</pre>
+
+<p>@!attribute [r] system_ssh_keys</p>
+
+<pre>@return [Array[SystemSshKey]] List of SSH keys to be made available on all {Application}s under the domain.
+  These keys are used when applications need to push code to each other. Eg: Jenkins
+  @see {Domain#add_domain_ssh_keys}, {Domain#remove_domain_ssh_key}</pre>
+
+<p>@!attribute [r] owner</p>
+
+<pre>@return [CloudUser] The {CloudUser} that owns this domain.</pre>
+
+<p>@!attribute [r] applications</p>
+
+<pre>@return [Array[Application]] List of {Application}s under the domain.</pre>
+
+<p>@!attribute [r] pending_ops</p>
+
+<pre>@return [Array[PendingDomainOps]] List of {PendingDomainOps} that need to be performed on this domain.</pre>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+

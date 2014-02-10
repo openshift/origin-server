@@ -1,0 +1,3 @@
+U:RDoc::Attr[iI"max_active_gears:EFI"JAdmin::Suggestion::Capacity::Remove::CompactDistrict#max_active_gears;FI"RW;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[
+I"Gwe use the smallest node to estimate what how many nodes should go;TI"Cin the district - this makes it generous so we don't recommend;TI"Icompacting just because one node is larger; OTOH we may refrain from;TI"Grecommending compacting just because one node is smaller. What can;TI"2ya do? Better if all nodes are the same size:;T:
+@file0FI"-controller/lib/admin/suggestion/types.rb;T

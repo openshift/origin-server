@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"create_domain_code:EFI"*AppHelper::TestApp#create_domain_code;FI"RW;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I"Cattributes to represent the state of the rhc_create_* commands;T:
+@file0FI"3controller/test/cucumber/support/app_helper.rb;T

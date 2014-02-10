@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"user_agent:EFI"Application#user_agent;FI"RW;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I"Dnon-persisted field used to store user agent of current request;T:
+@file0FI")controller/app/models/application.rb;T

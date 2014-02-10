@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"action_log_tag:EFI"4OpenShift::Controller::ActionLog#action_log_tag;FI"W;F:protectedo:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I"HOverride the action log tag for a particular action.  Should be set;TI"/as early as possible in the request chain.;T:
+@file0FI"6controller/lib/openshift/controller/action_log.rb;T

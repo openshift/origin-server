@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: haproxy_ctld.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-13 19:37:26 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+          <li>socket</li>
+        
+          <li>logger</li>
+        
+          <li>getoptlong</li>
+        
+          <li>net/http</li>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>Introduction</p>
+
+<h12></h12>
+
+<p>haproxy_ctld.rb is the primary daemon that controls autoscaling on <a
+href="../../../../OpenShift.html">OpenShift</a>. By customizing this script
+users can change the thresholds and algorithms used to control scale up and
+down behavior.</p>
+
+<p>Without changes, this script uses concurrent connections to determine when
+scale up and down events should occur.  This behavior was chosen by default
+because as more people are using the site, it’s a common behavior to add
+more backends.  Also, as backends slow down, requests take longer and thus
+the number of requests outstanding at any point in time goes up which can
+be a good indication that more backends are needed.</p>
+
+<p>There are, however, several scenarios where using this method won’t work or
+in some cases could be harmful to the performance of your application.  For
+example, if your data backend is the primary bottleneck, adding more
+application gears could actually harm performance, not increase it.  The
+documentation contained in this script are intended as a starting point for
+advanced users who wish to customize this script to be more application
+specific.</p>
+
+<p>Overview</p>
+
+<h7></h7>
+
+<p>haproxy_ctld.rb runs inside the same gear as haproxy does.  <a
+href="../../../../Haproxy.html">Haproxy</a> is our primary load balancing
+software.  <a href="../../../../Haproxy.html">Haproxy</a> and
+haproxy_ctld.rb are both run as your user inside the gear and both are
+daemonized.  The default behavior is to have haproxy_ctld.rb watch haproxy
+via it’s unix socket “status” port to obtain basic statistics about
+haproxy.  When a scale up or down event is required, haproxy_ctld.rb
+contacts the broker via the standard REST API and issues a scale-up or
+scale-down event.  Authentication is handled by an auth token stored in the
+haproxy gear.  This token allows haproxy_ctld.rb to behave as the user, but
+with far reduced permissions.</p>
+
+<p>The goals of customizing this script to your own needs are as follows:</p>
+
+<p>1) Determine clear metrics for when you would like your application to
+scale</p>
+
+<pre>up and scale down.</pre>
+
+<p>2) Find a mechanism for monitoring those metrics. 3) Customize this script
+accordingly 4) <a href="../../../../Test.html">Test</a> it out.</p>
+
+<p>One common request is something like: “I want to scale up with CPU reaches
+90%.”  To break that request down into an actionable item, first we have to
+identify which cpu is being discussed.  Presumably one of the application
+gears.  Keep in mind the haproxy gear doesn’t have direct access to those
+gears but there is an SSH key on the haproxy that has ssh access.  This
+allows the haproxy to log in to remote gears and run commands in them to
+get whatever desired metrics might be required.</p>
+
+<p>The next step might be to determine what thresholds to use.  Should we
+scale up when just one gear is at 90%?  Should we scale up when 30% of the
+gears are at 90%?</p>
+
+<p>As your customizations mature, you’ll need to add anti-flap and other
+protections.  In our 90% CPU example above, you wouldn’t want to keep
+scaling up just because one gear is at 90%.  It could be a code bug that
+hit an infinite loop and without proper protections, your haproxy_ctld.rb
+script could keep issuing scale up events indefinitely.</p>
+
+<p>Advanced Topics and Ideas</p>
+
+<h25></h25>
+
+<p>In addition to scale up and down events, it should be possible to
+dynamically alter some haproxy settings.  In our 90% CPU example above,
+perhaps one out of 10 gears is at 90% while the others are only at 20. 
+Using the unix control port, users could dynamically change the weight of
+the busy gear so it is less favored until things even out.</p>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+

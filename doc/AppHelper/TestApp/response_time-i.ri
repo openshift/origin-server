@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"response_time:EFI"%AppHelper::TestApp#response_time;FI"RW;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I"Aattributes that contain statistics based on calls to connect;T:
+@file0FI"3controller/test/cucumber/support/app_helper.rb;T

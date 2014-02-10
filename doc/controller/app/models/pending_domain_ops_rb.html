@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: pending_domain_ops.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-10 11:30:36 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>Class to represent pending operations that need to occur for the {Domain}
+@!attribute [rw] domain</p>
+
+<pre>@return [Domain] The {Domain} that operation needs to be applied on.</pre>
+
+<p>@!attribute [r] op_type</p>
+
+<pre>@return [Symbol] Operation type.</pre>
+
+<p>@!attribute [rw] state</p>
+
+<pre>@return [Symbol] Operation state. One of init, queued or completed.</pre>
+
+<p>@!attribute [r] arguments</p>
+
+<pre>@return [Hash] Arguments hash.</pre>
+
+<p>@!attribute [rw] parent_op_id</p>
+
+<pre>@return [Moped::BSON::ObjectId] ID of the {PendingUserOps} operation that this operation is part of.</pre>
+
+<p>@!attribute [r] on_apps</p>
+
+<pre>@return [Array[Moped::BSON::ObjectId]] IDs of the {Application} that are part of this operation.</pre>
+
+<p>@!attribute [r] completed_apps</p>
+
+<pre>@return [Array[Moped::BSON::ObjectId]] IDs of the {Application} that have completed their sub-tasks.
+  @see {PendingDomainOps#child_completed}</pre>
+
+<p>@!attribute [r] on_completion_method</p>
+
+<pre>@return [Symbol] Method to call on the {Domain} once this operation is complete.</pre>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+

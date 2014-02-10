@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: rest_application15.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-10 11:30:36 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>@api REST Describes an <a href="../../../Application.html">Application</a>
+@version 1.1 @see <a
+href="../../../RestApplication10.html">RestApplication10</a></p>
+
+<p>Example:</p>
+
+<pre>```
+&lt;application&gt;
+  &lt;embedded&gt;
+  &lt;/embedded&gt;
+  &lt;framework&gt;php-5.4&lt;/framework&gt;
+  &lt;name&gt;testapp&lt;/name&gt;
+  &lt;creation-time&gt;2013-02-20T08:29:49Z&lt;/creation-time&gt;
+  &lt;uuid&gt;5124897d6892dfe819000005&lt;/uuid&gt;
+  &lt;aliases/&gt;
+  &lt;gear-count&gt;1&lt;/gear-count&gt;
+  &lt;domain-id&gt;localns&lt;/domain-id&gt;
+  &lt;gear-profile&gt;small&lt;/gear-profile&gt;
+  &lt;scalable&gt;false&lt;/scalable&gt;
+  &lt;git-url&gt;ssh://5124897d6892dfe819000005@testapp-localns.example.com/~/git/testapp.git/&lt;/git-url&gt;
+  &lt;app-url&gt;http://testapp-localns.example.com/&lt;/app-url&gt;
+  &lt;ssh-url&gt;ssh://5124897d6892dfe819000005@testapp-localns.example.com&lt;/ssh-url&gt;
+  &lt;health-check-path&gt;health_check.php&lt;/health-check-path&gt;
+  &lt;building-with nil=&quot;true&quot;/&gt;
+  &lt;building-app nil=&quot;true&quot;/&gt;
+  &lt;build-job-url nil=&quot;true&quot;/&gt;
+  &lt;initial-git-url nil=&quot;true&quot;/&gt;
+  &lt;links&gt;
+    ...
+  &lt;/links&gt;
+&lt;/applications&gt;
+```</pre>
+
+<p>@!attribute [r] name</p>
+
+<pre>@return [String] Application name</pre>
+
+<p>@!attribute [r] framework</p>
+
+<pre>@return [String] Web framework that runs on this application</pre>
+
+<p>@!attribute [r] creation_time</p>
+
+<pre>@return [DateTime] Date and time the application was created</pre>
+
+<p>@!attribute [r] uuid</p>
+
+<pre>@return [String] UUID for this application</pre>
+
+<p>@!attribute [r] embedded</p>
+
+<pre>@return [Array&lt;RestEmbeddedCartridge&gt;] Array of support cartridges running in this application</pre>
+
+<p>@!attribute [r] aliases</p>
+
+<pre>@return [Array&lt;String&gt;] Array of DNS aliases associated with this application</pre>
+
+<p>@!attribute [r] gear_count</p>
+
+<pre>@return [Integer] Number of gears used by this application</pre>
+
+<p>@!attribute [r] domain_id</p>
+
+<pre>@return [String] Namespace associated with this application</pre>
+
+<p>@!attribute [r] git_url</p>
+
+<pre>@return [String] {http://git-scm.com/ Git} URL to access code for this application</pre>
+
+<p>@!attribute [r] app_url</p>
+
+<pre>@return [String] The FQDN to access this application</pre>
+
+<p>@!attribute [r] ssh_url</p>
+
+<pre>@return [String] username and FQDN that can be used to ssh into the primary application gear</pre>
+
+<p>@!attribute [r] gear_profile</p>
+
+<pre>@return [String] The default gear profile that will be used to create gears for this application</pre>
+
+<p>@!attribute [r] scalable</p>
+
+<pre>@return [Boolean] Indicates if the application is scalable (uses multiple gears) or not (all cartridges on the same gear)</pre>
+
+<p>@!attribute [r] health_check_path</p>
+
+<pre>@return [String] HTTP URI which can be used to determine if the application is up and serving requests.</pre>
+
+<p>@!attribute [r] building_with</p>
+
+<pre>@return [String] Name of cartridge used to initiate CI builds</pre>
+
+<p>@!attribute [r] building_app</p>
+
+<pre>@return [String] Name of Application on which builds are run</pre>
+
+<p>@!attribute [r] build_job_url</p>
+
+<pre>@return [String] URI on the CI server which represents the build job</pre>
+
+<p>@!attribute [r] initial_git_url</p>
+
+<pre>@return [String] URI which was used to initialize the GIT repository for this application</pre>
+
+<p>@!attribute [r] auto_deploy</p>
+
+<pre>@return [Boolean] Boolean indicating whether auto deploy is enabled for this application</pre>
+
+<p>@!attribute [r] deployment_branch</p>
+
+<pre>@return [String] The HEAD of the branch to deploy from by default</pre>
+
+<p>@!attribute [r] keep_deployments</p>
+
+<pre>@return [Integer] The number of deployments to keep around including the active one</pre>
+
+<p>@!attribute [r] deployment_type</p>
+
+<pre>@return [String] deployment_type The deployment type (binary|git)</pre>
+
+<p>@!attribute [r] cartridges</p>
+
+<pre>@return [Array&lt;RestCartridge&gt;] List of cartridges in application. Used only when requesting application and included cartridges.
+@see [ApplicationsController#index]</pre>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+
