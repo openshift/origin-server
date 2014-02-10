@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.19.20
+Version: 1.19.21
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -266,6 +266,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.21-1
+- Bug 1063142 - Ignore .stop_lock on gear operations (jhonce@redhat.com)
+
 * Fri Feb 07 2014 Adam Miller <admiller@redhat.com> 1.19.20-1
 - origin_node_185 - Refactor oo-admin-ctl-gears (jhonce@redhat.com)
 
