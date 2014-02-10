@@ -8,7 +8,7 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.18.2
+Version: 1.18.3
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -34,6 +34,12 @@ chmod 644 %{buildroot}%{mco_root}agent/*
 %{mco_root}agent/*
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.18.3-1
+- Merge pull request #4682 from danmcp/cleaning_specs
+  (dmcphers+openshiftbot@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Cleanup mco ddl (dmcphers@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.18.2-1
 - Card #185: sending app alias to all web_proxy gears (abhgupta@redhat.com)
 
