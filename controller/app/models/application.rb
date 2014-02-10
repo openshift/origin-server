@@ -1950,7 +1950,7 @@ class Application
           aliases_with_certs = self.aliases.select {|app_alias| app_alias.has_private_ssl_certificate}
           if aliases_with_certs.present?
             resend_ssl_certs_op = ResendSslCertsOp.new(gear_id: gear_id, fqdns: aliases_with_certs.map {|app_alias| app_alias.fqdn}, prereq: [resend_aliases_op._id.to_s])
-            ops.push resend_aliases_op
+            ops.push resend_ssl_certs_op
           end
         end
 
