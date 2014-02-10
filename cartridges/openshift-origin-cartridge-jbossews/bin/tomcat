@@ -66,7 +66,12 @@ replacement_conf_files=(
 )
 
 for conf_file in "${replacement_conf_files[@]}"; do
-  sed ${sed_replace_env} ${OPENSHIFT_REPO_DIR}/.openshift/config/${conf_file} > ${OPENSHIFT_JBOSSEWS_DIR}/conf/${conf_file}
+  if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/config/${conf_file} ]
+  then
+    sed ${sed_replace_env} ${OPENSHIFT_REPO_DIR}/.openshift/config/${conf_file} > ${OPENSHIFT_JBOSSEWS_DIR}/conf/${conf_file}
+  else 
+    sed ${sed_replace_env} template/.openshift/config/${conf_file} > ${OPENSHIFT_JBOSSEWS_DIR}/conf/${conf_file}    
+  fi
 done
 
 # Control the Tomcat instance
