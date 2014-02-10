@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.19.1
+Version: 1.19.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -76,6 +76,12 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
+- Bug 1061392 - Can't create Java Application using Tomcat7 with existing
+  sources (bparees@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Update README.md (dereckson@espace-win.org)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
 - Merge pull request #4574 from bparees/https
   (dmcphers+openshiftbot@redhat.com)
