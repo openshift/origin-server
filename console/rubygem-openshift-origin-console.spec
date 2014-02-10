@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,31 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Support changing categorizations (ccoleman@redhat.com)
+- UI uses "requires" value from broker (ccoleman@redhat.com)
+- Bug 1059858 - Expose requires via REST API (ccoleman@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4649 from ncdc/dev/rails-syslog
+  (dmcphers+openshiftbot@redhat.com)
+- Add/correct syslog-logger in Gemfiles (andy.goldstein@gmail.com)
+- Merge pull request #4602 from jhadvig/mongo_update
+  (dmcphers+openshiftbot@redhat.com)
+- Add optional syslog support to Rails apps (andy.goldstein@gmail.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- MongoDB version update to 2.4 (jhadvig@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Merge pull request #4594 from smarterclayton/tolerate_custom_carts_in_broker
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Tolerate custom cartridges in the broker in the console (ccoleman@redhat.com)
+- Add external cartridge support to model (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - bump_minor_versions for sprint 40 (admiller@redhat.com)
 
