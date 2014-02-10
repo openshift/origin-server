@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.16
+Version: 1.19.17
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.17-1
+- Bug 1063142 - Ignore .stop_lock on gear operations (jhonce@redhat.com)
+
 * Fri Jan 24 2014 Adam Miller <admiller@redhat.com> 1.19.16-1
 - Merge pull request #4580 from pravisankar/dev/ravi/admin-repair-fixes
   (dmcphers+openshiftbot@redhat.com)
