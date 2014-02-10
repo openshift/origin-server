@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,107 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Merge pull request #4688 from
+  smarterclayton/bug_1059858_expose_requires_to_clients
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1055456 - Handle node env messages better (dmcphers@redhat.com)
+- Support changing categorizations (ccoleman@redhat.com)
+- Merge pull request #4690 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4692 from liggitt/usage_sync_multiplier
+  (dmcphers+openshiftbot@redhat.com)
+- Compute usage multiplier (jliggitt@redhat.com)
+- fix https://bugzilla.redhat.com/show_bug.cgi?id=1062531 (rchopra@redhat.com)
+- Bug 1059858 - Expose requires via REST API (ccoleman@redhat.com)
+- Use as_document instead of serializable_hash (ccoleman@redhat.com)
+- Merge pull request #4685 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Removing os specific logic from tests (dmcphers@redhat.com)
+- Bug 106321 - Stop cartridge is running on the wrong cart
+  (ccoleman@redhat.com)
+- test cleanup (dmcphers@redhat.com)
+- Merge pull request #4681 from pravisankar/dev/ravi/misc-bugfixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4682 from danmcp/cleaning_specs
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4678 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4677 from pravisankar/dev/ravi/bug1059902
+  (dmcphers+openshiftbot@redhat.com)
+- Fix error message in case of invalid name for region/zone/district
+  (rpenta@redhat.com)
+- Bug 1061098 (dmcphers@redhat.com)
+- Merge pull request #4668 from sosiouxme/custom-app-templates-2
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1055781 - Rollback in case of district add node failure
+  (rpenta@redhat.com)
+- Bug 1059902 - oo-admin-chk fix: Try to re-populate user/domain info for
+  user_id/domain_id if not found (rpenta@redhat.com)
+- Bug 1060834 (dmcphers@redhat.com)
+- <broker func tests> for custom default templates (lmeyer@redhat.com)
+- <broker> enable customizing default app templates (lmeyer@redhat.com)
+- Merge pull request #4454 from pravisankar/dev/ravi/card178
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4649 from ncdc/dev/rails-syslog
+  (dmcphers+openshiftbot@redhat.com)
+- Use NodeProperties model for server_infos in find_all_available_impl and
+  related methods (rpenta@redhat.com)
+- Use flexible array of optional parameters for find_available and underlying
+  methods (rpenta@redhat.com)
+- Removed REGIONS_ENABLED config param and preferred zones fixes
+  (rpenta@redhat.com)
+- Allow alphanumeric, underscore, hyphen, dot chars for district/region/zone
+  name (rpenta@redhat.com)
+- Bug 1055781 - Update district info in mongo only when node operation is
+  successful (rpenta@redhat.com)
+- Rename 'server_identities' to 'servers' and 'active_server_identities_size'
+  to 'active_servers_size' in district model (rpenta@redhat.com)
+- Added test case for set/unset region (rpenta@redhat.com)
+- Add set-region/unset-region options to oo-admin-ctl-distict to allow
+  set/unset of region/zone after node addition to district (rpenta@redhat.com)
+- Bug fixes: 1055382, 1055387, 1055433 (rpenta@redhat.com)
+- Added oo-admin-ctl-region script to manipulate regions/zones
+  (rpenta@redhat.com)
+- Merge pull request #4602 from jhadvig/mongo_update
+  (dmcphers+openshiftbot@redhat.com)
+- Add optional syslog support to Rails apps (andy.goldstein@gmail.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4662 from danmcp/fix_cart_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing cart tests (dmcphers@redhat.com)
+- Card #185: Adding SSL certs to secondary web_proxy gears
+  (abhgupta@redhat.com)
+- MongoDB version update to 2.4 (jhadvig@redhat.com)
+- Fix failing test, add an LRU cache for cart by id (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Support --node correctly on oo-admin-ctl-cartridge (ccoleman@redhat.com)
+- Preventing multiple web proxies for an app to live on the same node
+  (abhgupta@redhat.com)
+- Merge pull request #4625 from mfojtik/card_89_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Broker should allow version to be specified in Content-Type as well
+  (ccoleman@redhat.com)
+- Add external cartridge support to model (ccoleman@redhat.com)
+- default to Rails.configuration if show_obsolete is nil (lnader@redhat.com)
+- Bug 1059458 (lnader@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Test cases for the nodejs use_npm marker (mfojtik@redhat.com)
+- Add external cartridge support to model (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- Move cartridges into Mongo (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - Merge pull request #4610 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
