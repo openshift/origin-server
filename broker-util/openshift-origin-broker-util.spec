@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -102,6 +102,51 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Bug 1034554 - Add man page for oo-admin-upgrade (dmcphers@redhat.com)
+- Merge pull request #4688 from
+  smarterclayton/bug_1059858_expose_requires_to_clients
+  (dmcphers+openshiftbot@redhat.com)
+- Support changing categorizations (ccoleman@redhat.com)
+- Merge pull request #4692 from liggitt/usage_sync_multiplier
+  (dmcphers+openshiftbot@redhat.com)
+- Compute usage multiplier (jliggitt@redhat.com)
+- Bug 1062543 - Fix missing command validation in oo-admin-ctl-region/oo-admin-
+  ctl-district (rpenta@redhat.com)
+- Bug 1062546 - Fix unset-region in oo-admin-ctl-district (rpenta@redhat.com)
+- Merge pull request #4681 from pravisankar/dev/ravi/misc-bugfixes
+  (dmcphers+openshiftbot@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Fix error message in case of invalid name for region/zone/district
+  (rpenta@redhat.com)
+- Minor fixes in oo-admin-ctl-district/oo-admin-ctl-region (rpenta@redhat.com)
+- Allow alphanumeric, underscore, hyphen, dot chars for district/region/zone
+  name (rpenta@redhat.com)
+- Rename 'server_identities' to 'servers' and 'active_server_identities_size'
+  to 'active_servers_size' in district model (rpenta@redhat.com)
+- Added test case for set/unset region (rpenta@redhat.com)
+- Add set-region/unset-region options to oo-admin-ctl-distict to allow
+  set/unset of region/zone after node addition to district (rpenta@redhat.com)
+- Added oo-admin-ctl-region script to manipulate regions/zones
+  (rpenta@redhat.com)
+- Merge pull request #4664 from
+  smarterclayton/make_obsolete_activate_by_default
+  (dmcphers+openshiftbot@redhat.com)
+- Obsolete should activate if --obsolete passed (ccoleman@redhat.com)
+- oo-admin-ctl-cartridge dry-run condition reversed for migrate
+  (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Support --node correctly on oo-admin-ctl-cartridge (ccoleman@redhat.com)
+- Bug 1060290: Fix variable reference typo causing an exception
+  (ironcladlou@gmail.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Add external cartridge support to model (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Move cartridges into Mongo (ccoleman@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - Bug 1058181 - Fix query filter in oo-admin-usage (rpenta@redhat.com)
 - Make it possible to run oo-admin-* scripts from source (ccoleman@redhat.com)
