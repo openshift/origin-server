@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.19.1
+Version: 1.19.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -156,6 +156,26 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
+- Bug 1057018 - More accurate message on time mismatch (dmcphers@redhat.com)
+- origin_node_185 - Refactor oo-admin-ctl-gears (jhonce@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- origin_node_324 (lsm5@redhat.com)
+- Merge pull request #4602 from jhadvig/mongo_update
+  (dmcphers+openshiftbot@redhat.com)
+- Node Platform - Improve Watchman performance (jhonce@redhat.com)
+- Bug 1054449 - Watchman support for chkconfig (jhonce@redhat.com)
+- MongoDB version update to 2.4 (jhadvig@redhat.com)
+- Merge pull request #4640 from jwhonce/bug/1018342
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4635 from jwhonce/bug/1057734
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1018342 - Stop restore/throttle flapping (jhonce@redhat.com)
+- Bug 1057734 - Protect against divide by zero (jhonce@redhat.com)
+- Merge pull request #4624 from ironcladlou/dev/syslog
+  (dmcphers+openshiftbot@redhat.com)
+- Platform logging enhancements (ironcladlou@gmail.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
 - Bug 1059804 - Watchman support for UTF-8 (jhonce@redhat.com)
 - Merge pull request #4620 from jwhonce/bug/1058889
