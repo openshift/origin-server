@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,9 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Cleaning specs (dmcphers@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.17.1-1
 - Merge pull request #4532 from bparees/jenkins_by_uuid
   (dmcphers+openshiftbot@redhat.com)
