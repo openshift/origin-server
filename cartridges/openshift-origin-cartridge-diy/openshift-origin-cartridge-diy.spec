@@ -23,6 +23,7 @@ DIY cartridge for openshift. (Cartridge Format V2)
 
 %build
 %__rm %{name}.spec
+%__rm hooks/.gitkeep
 
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
