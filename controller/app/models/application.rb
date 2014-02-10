@@ -2406,12 +2406,9 @@ class Application
   end
 
   def component_specs_from(cartridges)
-    # Calculate initial list based on user provided dependencies
-    all = self.class.only_satisfied_dependencies(cartridges, true)
-
     # All of the components that will be available
     specs = []
-    all.each do |cart|
+    cartridges.each do |cart|
       cart.components.each do |component|
         specs << ComponentSpec.for_model(component, cart, self)
       end
