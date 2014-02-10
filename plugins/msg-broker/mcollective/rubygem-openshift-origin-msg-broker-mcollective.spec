@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,58 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Rename config param REGIONS_REQUIRE_FOR_APP_CREATE to
+  ZONES_REQUIRE_FOR_APP_CREATE (rpenta@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4616 from brenton/deployment_dir1
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4454 from pravisankar/dev/ravi/card178
+  (dmcphers+openshiftbot@redhat.com)
+- Use NodeProperties model for server_infos in find_all_available_impl and
+  related methods (rpenta@redhat.com)
+- Use flexible array of optional parameters for find_available and underlying
+  methods (rpenta@redhat.com)
+- Get zones count for the current region from cached districts instead of
+  querying Region collection (rpenta@redhat.com)
+- Removed REGIONS_ENABLED config param and preferred zones fixes
+  (rpenta@redhat.com)
+- When region/zones present, allocate gears evenly among the available zones.
+  (rpenta@redhat.com)
+- Distribute gears between the zones evenly (rpenta@redhat.com)
+- Add ZONES_MIN_PER_GEAR_GROUP config param and related changes
+  (rpenta@redhat.com)
+- Rename 'server_identities' to 'servers' and 'active_server_identities_size'
+  to 'active_servers_size' in district model (rpenta@redhat.com)
+- Reuse loaded districts instead of querying mongo again to find Server object
+  (rpenta@redhat.com)
+- Bug fixes: 1055382, 1055387, 1055433 (rpenta@redhat.com)
+- Added oo-admin-ctl-region script to manipulate regions/zones
+  (rpenta@redhat.com)
+- fix the occluded haproxy gear's frontend upon move when two proxy gears clash
+  on a node (rchopra@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Card #185: Adding SSL certs to secondary web_proxy gears
+  (abhgupta@redhat.com)
+- --with-initial-deployment-dir only applies to gear creation
+  (bleanhar@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Preventing multiple web proxies for an app to live on the same node
+  (abhgupta@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Bug 1059458 (lnader@redhat.com)
+- Add external cartridge support to model (ccoleman@redhat.com)
+- First pass at avoiding deployment dir create on app moves
+  (bleanhar@redhat.com)
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- Move cartridges into Mongo (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - Card #185: sending app alias to all web_proxy gears (abhgupta@redhat.com)
 - Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
