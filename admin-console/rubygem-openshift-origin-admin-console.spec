@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,18 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.18.2-1
+- Cleaning specs (dmcphers@redhat.com)
+- Rename 'server_identities' to 'servers' and 'active_server_identities_size'
+  to 'active_servers_size' in district model (rpenta@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Move cartridges into Mongo (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.18.1-1
 - bump_minor_versions for sprint 40 (admiller@redhat.com)
 
