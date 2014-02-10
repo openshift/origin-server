@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.3.2
+Version: 0.3.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -107,5 +107,17 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshif
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 0.3.3-1
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4666 from ncdc/dev/node-access-log-gear-info
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Add app, gear UUIDs to openshift_log (andy.goldstein@gmail.com)
+- Enable syslog configurability for frontend access logging
+  (ironcladlou@gmail.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 0.3.2-1
 - Fix the Apache vhost plugin (andy.goldstein@gmail.com)
