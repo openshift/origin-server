@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.19.1
+Version: 1.19.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -76,6 +76,11 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
+- Cleaning specs (dmcphers@redhat.com)
+- <httpd carts> bug 1060068: ensure extra httpd conf dirs exist
+  (lmeyer@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
 - bump_minor_versions for sprint 40 (admiller@redhat.com)
 
