@@ -267,12 +267,12 @@ module OpenShift
 
                 FileUtils.mkdir_p(alias_conf_dir_path)
 
-                File.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
+                File.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC, 0600) do |f|
                   f.puts(ssl_cert)
                   f.fsync
                 end
 
-                File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
+                File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC, 0600) do |f|
                   f.puts(priv_key)
                   f.fsync
                 end
