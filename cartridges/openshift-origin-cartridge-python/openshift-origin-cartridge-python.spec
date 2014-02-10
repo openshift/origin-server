@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -127,6 +127,14 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Cleaning specs (dmcphers@redhat.com)
+- Bug 1060902: Fix relative venv function during install_setup_tools
+  (ironcladlou@gmail.com)
+- Bug 1060295: Make setup reentrant for cp operations (ironcladlou@gmail.com)
+- <httpd carts> bug 1060068: ensure extra httpd conf dirs exist
+  (lmeyer@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - Remove community tag from Python manifests (ironcladlou@gmail.com)
 - bump_minor_versions for sprint 40 (admiller@redhat.com)
