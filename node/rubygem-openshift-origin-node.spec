@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -269,6 +269,67 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Bug 1055456 - Handle node env messages better (dmcphers@redhat.com)
+- origin_node_185 - Refactor oo-admin-ctl-gears (jhonce@redhat.com)
+- Merge pull request #4682 from danmcp/cleaning_specs
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4678 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4679 from danmcp/cleanup_mco_ddl
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1061098 (dmcphers@redhat.com)
+- Cleanup mco ddl (dmcphers@redhat.com)
+- Merge pull request #4616 from brenton/deployment_dir1
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4666 from ncdc/dev/node-access-log-gear-info
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Add app, gear UUIDs to openshift_log (andy.goldstein@gmail.com)
+- Merge pull request #4659 from bparees/from_url
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1054075 - Fail to create drupal quickstart (bparees@redhat.com)
+- Bug 1061400 - Add REPORT_BROKER_ANALYTICS (jhonce@redhat.com)
+- Merge pull request #4654 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4653 from jwhonce/wip/watchman
+  (dmcphers+openshiftbot@redhat.com)
+- fix frontend fqdn for ha (rchopra@redhat.com)
+- Merge pull request #4655 from jwhonce/bug/1049089
+  (dmcphers+openshiftbot@redhat.com)
+- Node Platform - Fix tests since performance enhancements (jhonce@redhat.com)
+- Bug 1049089 - Speed up selinux labeling usage (jhonce@redhat.com)
+- Bug 1045972 - Removing whitespace on default MOTD_FILE value
+  (bleanhar@redhat.com)
+- Merge pull request #4590 from smarterclayton/origin_broker_193_carts_in_mongo
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4631 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- add app-dns to secondary haproxy gears (rchopra@redhat.com)
+- Bug 1038745 - Use oo-ssh when rsync'ing user variables (jhonce@redhat.com)
+- Merge pull request #4635 from jwhonce/bug/1057734
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1057734 - Protect against divide by zero (jhonce@redhat.com)
+- Merge pull request #4624 from ironcladlou/dev/syslog
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Platform logging enhancements (ironcladlou@gmail.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Adding a unit test (bleanhar@redhat.com)
+- First pass at avoiding deployment dir create on app moves
+  (bleanhar@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Move cartridges into Mongo (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - Merge pull request #4630 from jwhonce/bug/1059804
   (dmcphers+openshiftbot@redhat.com)
