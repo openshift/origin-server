@@ -109,9 +109,15 @@ function stop() {
       fi
 
       if is_supervisor_running; then
-        pkill -f "$(supervisor_bin)" 2>&1 || :
+        supervisor=$(supervisor_bin)
+        if [ -n "$supervisor" ]; then
+          pkill -f "${supervisor}" 2>&1 || :
+        fi
       elif is_node_running; then
-        pkill -f "$(node_bin)" 2>&1 || :
+        node=$(node_bin)
+        if [ -n "$node" ]; then
+          pkill -f "${node}" 2>&1 || :
+        fi
       fi
 
       # Kill remaining 'node' processes.
