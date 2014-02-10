@@ -10,7 +10,7 @@
 
 Summary:       OpenShift HAProxy SNI Proxy frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.2.1
+Version: 0.2.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -113,6 +113,11 @@ fi
 %attr(0644,root,root) %config(noreplace) /etc/openshift/node-plugins.d/openshift-origin-frontend-haproxy-sni-proxy.conf
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Cleaning specs (dmcphers@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - Bug 1026969 - rebuild the SNI proxy on start to track changing IP address.
   (rmillner@redhat.com)
