@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,14 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- Bug 1059374 - Sanitize supervisor_bin/node_bin before pkill
+  (mfojtik@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Bug 1059142 - Fix 'cartridge_bin' command in nodejs control script
+  (mfojtik@redhat.com)
+- Store cartridge_pid in bash variable (mfojtik@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - Bug 1059374 - Sanity check pkill in nodejs control script
   (mfojtik@redhat.com)
