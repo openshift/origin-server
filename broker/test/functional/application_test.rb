@@ -196,6 +196,38 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.destroy_app
   end
 
+  test "cartridges are added based on requirements" do
+    app = Application.create_app(@appname, cartridge_instances_for(:php), @domain)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+$stop = 1
+    phpmyadmin = cartridge_instances_for(:phpmyadmin).map(&:cartridge)
+    app.add_cartridges(phpmyadmin)
+    assert app.reload.cartridges.detect{ |c| c.name == phpmyadmin.first.name }
+  end
+
+  test "cartridges ignore existing requirements" do
+    app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql, :phpmyadmin), @domain)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+
+    assert_equal 3, app.cartridges.length, app.cartridges.map(&:name)
+    assert_equal 1, app.cartridges.select{ |c| c.names.include?('php') }.count
+    assert_equal 1, app.cartridges.select{ |c| c.names.include?('mysql') }.count
+    assert_equal 1, app.cartridges.select{ |c| c.names.include?('phpmyadmin') }.count
+  end
+
+  test "cartridges check conflicts" do
+    app = Application.create_app(@appname, cartridge_instances_for(:php), @domain)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+
+    carts = cartridge_instances_for(:mysql, :phpmyadmin).map(&:cartridge)
+    app.add_cartridges(carts)
+
+    assert_equal 3, app.cartridges.length, app.cartridges.map(&:name)
+    assert_equal 1, app.cartridges.select{ |c| c.names.include?('php') }.count
+    assert_equal 1, app.cartridges.select{ |c| c.names.include?('mysql') }.count
+    assert_equal 1, app.cartridges.select{ |c| c.names.include?('phpmyadmin') }.count
+  end
+
   test "app config validation" do
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
