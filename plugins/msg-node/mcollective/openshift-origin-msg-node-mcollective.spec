@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,29 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Merge pull request #4682 from danmcp/cleaning_specs
+  (dmcphers+openshiftbot@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4679 from danmcp/cleanup_mco_ddl
+  (dmcphers+openshiftbot@redhat.com)
+- Cleanup mco ddl (dmcphers@redhat.com)
+- Merge pull request #4616 from brenton/deployment_dir1
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4671 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix the occluded haproxy gear's frontend upon move when two proxy gears clash
+  on a node (rchopra@redhat.com)
+- Fix for bug 1060760: Missing variable assignment for exception
+  (abhgupta@redhat.com)
+- Insure --with-initial-deployment-dir defaults to true in case the args isn't
+  supplied. (bleanhar@redhat.com)
+- Merge pull request #4624 from ironcladlou/dev/syslog
+  (dmcphers+openshiftbot@redhat.com)
+- Platform logging enhancements (ironcladlou@gmail.com)
+- First pass at avoiding deployment dir create on app moves
+  (bleanhar@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - Card #185: sending app alias to all web_proxy gears (abhgupta@redhat.com)
 - bump_minor_versions for sprint 40 (admiller@redhat.com)
