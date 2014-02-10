@@ -155,7 +155,7 @@ module OpenShift
       end
 
       def stop(force = false)
-        results = Parallel.map(gears, @options) do |gear|
+        results = Parallel.map(gears(false), @options) do |gear|
           opt = {user_initiated: false}
           opt.merge(@forced_options) if force
           gear_action(gear, "Stopping gear #{gear.uuid} ... ") { |g| g.stop_gear(opt) }
@@ -164,7 +164,7 @@ module OpenShift
       end
 
       def restart
-        results = Parallel.map(gears, @options) do |gear|
+        results = Parallel.map(gears(false), @options) do |gear|
           opt = {user_initiated: false}
           opt.merge(@forced_options)
           [
@@ -201,7 +201,7 @@ module OpenShift
       end
 
       def idle
-        results = Parallel.map(gears, @options) do |gear|
+        results = Parallel.map(gears(false), @options) do |gear|
           msg = "Idling gear #{gear.uuid} ... "
           gear_action(gear, msg) { |g| g.idle_gear }
         end
@@ -209,7 +209,7 @@ module OpenShift
       end
 
       def unidle
-        results = Parallel.map(gears, @options) do |gear|
+        results = Parallel.map(gears(false), @options) do |gear|
           msg = "Unidling gear #{gear.uuid} ... "
           gear_action(gear, msg) { |g| g.unidle_gear }
         end
