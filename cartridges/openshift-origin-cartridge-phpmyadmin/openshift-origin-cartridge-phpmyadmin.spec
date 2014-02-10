@@ -3,7 +3,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.18.1
+Version: 1.18.2
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -55,6 +55,12 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.18.2-1
+- Bug 1059858 - Expose requires via REST API (ccoleman@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- <httpd carts> bug 1060068: ensure extra httpd conf dirs exist
+  (lmeyer@redhat.com)
+
 * Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.18.1-1
 - bump_minor_versions for sprint 40 (admiller@redhat.com)
 
