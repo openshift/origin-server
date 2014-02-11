@@ -11,7 +11,6 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      openshift-origin-cartridge-mongodb
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-Requires:      pymongo
 Requires:      mms-agent
 
 Obsoletes: openshift-origin-cartridge-10gen-mms-agent-0.1

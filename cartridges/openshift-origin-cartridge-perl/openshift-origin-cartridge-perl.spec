@@ -9,31 +9,11 @@ Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      facter
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      mod_perl
-Requires:      perl-DBD-SQLite
-Requires:      perl-DBD-MySQL
-Requires:      perl-MongoDB
-Requires:      ImageMagick-perl
-Requires:      gd-devel
 Requires:      perl-App-cpanminus
-Requires:      perl-CPAN
-Requires:      perl-CPANPLUS
-Requires:      db4-devel
-Requires:      rpm-build
-Requires:      expat-devel
 Requires:      perl-IO-Socket-SSL
-Requires:      gdbm-devel
-
-%if 0%{?fedora}%{?rhel} <= 6
-Requires:      httpd < 2.4
-%endif
-%if 0%{?fedora} >= 19
-Requires:      httpd > 2.3
-Requires:      httpd < 2.5
-%endif
 
 Obsoletes: openshift-origin-cartridge-perl-5.10
 

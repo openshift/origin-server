@@ -12,7 +12,6 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      phpMyAdmin < 5.0
-Requires:      httpd
 BuildArch:     noarch
 
 Obsoletes: openshift-origin-cartridge-phpmyadmin-3.4
