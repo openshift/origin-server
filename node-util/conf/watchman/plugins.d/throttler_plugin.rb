@@ -152,7 +152,7 @@ module OpenShift
           def start
             Thread.new do
               loop do
-                tick unless @gears.empty?
+                tick
                 sleep MonitoredGear.delay
               end
             end
