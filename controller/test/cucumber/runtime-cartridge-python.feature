@@ -1,4 +1,4 @@
-@cartridge_extended1
+@cartridge_extended2
 Feature: V2 SDK Python Cartridge
 
   Scenario: Add 2.6 cartridge
