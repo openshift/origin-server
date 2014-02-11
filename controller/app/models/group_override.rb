@@ -54,7 +54,9 @@ class GroupOverride
     if limit_to
       limit_to.inject([]) do |arr, i|
         if override = by_path[i.path]
-          arr << override unless arr.include?(override)
+          unless arr.include?(override)
+            arr << override.only_on(limit_to)
+          end
         end
         arr
       end
@@ -207,8 +209,13 @@ class GroupOverride
 
   def merge_strict(other)
     return self unless GroupOverride === other
-    changed = apply(components && other.components, other.min_gears, other.max_gears, other.gear_size, other.additional_filesystem_gb)
+    changed = apply(other.components.select{ |i| components.include?(i) }, other.min_gears, other.max_gears, other.gear_size, other.additional_filesystem_gb)
     @implicit = nil unless other.implicit? || !changed
+    self
+  end
+
+  def only_on(components)
+    (@components ||= []).keep_if{ |c| components.include?(c) }
     self
   end
 
