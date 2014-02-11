@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.13.2
+Version: 2.13.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -79,6 +79,19 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 2.13.3-1
+- Merge pull request #4712 from tdawson/2014-02/tdawson/cartridge-deps
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4714 from bparees/eap_restore
+  (dmcphers+openshiftbot@redhat.com)
+- Cleanup cartridge dependencies (tdawson@redhat.com)
+- Merge pull request #4559 from fabianofranz/dev/441
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1062894 - Fail to restore the snapshot of a jbosseap-6 app to the
+  existing one (bparees@redhat.com)
+- Removed references to OpenShift forums in several places
+  (contact@fabianofranz.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 2.13.2-1
 - Cleaning specs (dmcphers@redhat.com)
 - fix indentation (bparees@redhat.com)
