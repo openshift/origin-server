@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -87,6 +87,17 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- Merge pull request #4712 from tdawson/2014-02/tdawson/cartridge-deps
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4707 from danmcp/master (dmcphers@redhat.com)
+- Cleanup cartridge dependencies (tdawson@redhat.com)
+- Merge pull request #4559 from fabianofranz/dev/441
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 888714 - Remove gitkeep files from rpms (dmcphers@redhat.com)
+- Removed references to OpenShift forums in several places
+  (contact@fabianofranz.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
 - Bug 1059374 - Sanitize supervisor_bin/node_bin before pkill
   (mfojtik@redhat.com)
