@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -156,6 +156,21 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Bug 1063278 - kill user processes before user (lsm5@redhat.com)
+- Merge pull request #4704 from lsm5/oo-admin-gear
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4717 from jwhonce/bug/1063172
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4715 from jwhonce/bug/1062573
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1063172 - Watchman pid and log files world writable (jhonce@redhat.com)
+- Merge pull request #4710 from jwhonce/bug/1063142
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1062573 -  abused gear will not be throttled (jhonce@redhat.com)
+- Bug 1063142 - Ignore .stop_lock on gear operations (jhonce@redhat.com)
+- Bug 1062768 (lsm5@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Bug 1057018 - More accurate message on time mismatch (dmcphers@redhat.com)
 - origin_node_185 - Refactor oo-admin-ctl-gears (jhonce@redhat.com)
