@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"	path:EFI"1OpenShift::Runtime::CartridgeRepository#path;FI"R;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I"6Filesystem path to where cartridges are installed;T:
+@file0FI"Anode/lib/openshift-origin-node/model/cartridge_repository.rb;T

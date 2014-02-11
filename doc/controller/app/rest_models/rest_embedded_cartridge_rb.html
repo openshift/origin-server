@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: rest_embedded_cartridge.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-10 11:30:36 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>@api REST Describes an <a href="../../../Cartridge.html">Cartridge</a>
+@version 1.1</p>
+
+<p>Example:</p>
+
+<pre>```
+&lt;cartridge&gt;
+  &lt;name&gt;php-5.4&lt;/name&gt;
+  &lt;status-messages nil=&quot;true&quot;/&gt;
+  &lt;version&gt;5.4.10&lt;/version&gt;
+  &lt;display-name&gt;PHP 5.4&lt;/display-name&gt;
+  &lt;description&gt;PHP is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePHP, Zend, Symfony, and Code Igniter.&lt;/description&gt;
+  &lt;license&gt;The PHP License, version 3.0&lt;/license&gt;
+  &lt;license-url&gt;http://www.php.net/license/3_0.txt&lt;/license-url&gt;
+  &lt;tags&gt;
+    &lt;tag&gt;service&lt;/tag&gt;
+    &lt;tag&gt;php&lt;/tag&gt;
+    &lt;tag&gt;web_framework&lt;/tag&gt;
+  &lt;/tags&gt;
+  &lt;website&gt;http://www.php.net&lt;/website&gt;
+  &lt;type&gt;standalone&lt;/type&gt;
+  &lt;usage-rates/&gt;
+  &lt;scales-from&gt;1&lt;/scales-from&gt;
+  &lt;scales-to&gt;1&lt;/scales-to&gt;
+  &lt;current-scale&gt;1&lt;/current-scale&gt;
+  &lt;gear-profile&gt;small&lt;/gear-profile&gt;
+  &lt;base-gear-storage&gt;1&lt;/base-gear-storage&gt;
+  &lt;additional-gear-storage&gt;0&lt;/additional-gear-storage&gt;
+  &lt;collocated-with/&gt;
+  &lt;supported-scales-from&gt;1&lt;/supported-scales-from&gt;
+  &lt;supported-scales-to&gt;1&lt;/supported-scales-to&gt;
+  &lt;properties&gt;
+    &lt;property&gt;
+      &lt;name&gt;OPENSHIFT_TMP_DIR&lt;/name&gt;
+      &lt;type&gt;environment&lt;/type&gt;
+      &lt;description&gt;Directory to store application temporary files.&lt;/description&gt;
+    &lt;/property&gt;
+    ...
+  &lt;/properties&gt;
+  &lt;scales-with nil=&quot;true&quot;/&gt;
+  &lt;help-topics&gt;
+    &lt;Developer-Center&gt;https://openshift.redhat.com/community/developers&lt;/Developer-Center&gt;
+  &lt;/help-topics&gt;
+  &lt;links&gt;
+    ...
+  &lt;/links&gt;
+&lt;/cartridge&gt;
+```</pre>
+
+<p>@!attribute [r] type</p>
+
+<pre>@deprecated
+@return [String] &quot;standalone&quot; or &quot;embedded&quot;.</pre>
+
+<p>@!attribute [r] name</p>
+
+<pre>@return [String] Name of the cartridge</pre>
+
+<p>@!attribute [r] version</p>
+
+<pre>@return [String] Version of the packaged software in the cartridge</pre>
+
+<p>@!attribute [r] license</p>
+
+<pre>@return [String] License of the packaged software in the cartridge</pre>
+
+<p>@!attribute [r] license_url</p>
+
+<pre>@return [String] URI to the license file for the packaged software in the cartridge</pre>
+
+<p>@!attribute [r] tags</p>
+
+<pre>@return [Array&lt;String&gt;] Array of tags associated with the cartridge</pre>
+
+<p>@!attribute [r] website</p>
+
+<pre>@return [String] URI to the website for the packaged software in the cartridge</pre>
+
+<p>@!attribute [r] help_topics</p>
+
+<pre>@return [Hash] Map of topics and associated URIs that can provide help on how to use and configure this cartridge</pre>
+
+<p>@!attribute [r] properties</p>
+
+<pre>@return [Array&lt;Property&gt;] List of environment variables and property values that are exposed by this cartridge and usable in application code.</pre>
+
+<p>@!attribute [r] display_name</p>
+
+<pre>@return [String] Formatted name used by CLI and UIs</pre>
+
+<p>@!attribute [r] description</p>
+
+<pre>@return [String] Description of the cartridge used by CLI and UIs</pre>
+
+<p>@!attribute [r] scales_from</p>
+
+<pre>@return [Integer] User specified minimum scale for the cartridge</pre>
+
+<p>@!attribute [r] scales_to</p>
+
+<pre>@return [Integer] User specified maximum scale for the cartridge</pre>
+
+<p>@!attribute [r] supported_scales_from</p>
+
+<pre>@return [Integer] Cartridge supported minimum scale</pre>
+
+<p>@!attribute [r] supported_scales_from</p>
+
+<pre>@return [Integer] Cartridge supported maximum scale</pre>
+
+<p>@!attribute [r] current_scale</p>
+
+<pre>@return [Integer] Current number of gears used to run this cartridge</pre>
+
+<p>@!attribute [r] scales_with</p>
+
+<pre>@return [Array&lt;String&gt;] Names of other cartridges that scale along with this cartridge and run on the same set of gears</pre>
+
+<p>@!attribute [r] base_gear_storage</p>
+
+<pre>@return [Integer] Number of GB of disk space assoicated with gear profile that this cartridge is running on</pre>
+
+<p>@!attribute [r] additional_gear_storage</p>
+
+<pre>@return [Integer] Additional number of GB of disk space (beyond the base provided by the gear profile)</pre>
+
+<p>@!attribute [r] gear_profile</p>
+
+<pre>@return [Integer] Gear profile fo the gears this cartridge is running on</pre>
+
+<p>@!attribute [r] collocated_with</p>
+
+<pre>@return [Array&lt;String&gt;] Array of names of other cartridge that share the same gear(s) with this cartridge</pre>
+
+<p>@!attribute [r] status_messages</p>
+
+<pre>@return [Array&lt;String&gt;] Status messages returned back from the cartridge</pre>
+
+<p>@!attribute [r] usage_rates</p>
+
+<pre>@return [Array&lt;Object&gt;]</pre>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+

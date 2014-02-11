@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: singular_resources.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-10 11:30:36 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>Overrides the default behavior of route generation to support singular
+resources by adding two symbols on the resources / resource functions</p>
+
+<p>:singular_resource - if true creates routes that reference a resource by id
+with</p>
+
+<pre>the singular resource name, which prevents id clashes on new and edit actions
+Example:
+   resources comments :singular_resource =&gt; true
+
+Generates the following routes:
+   GET     /comments
+   GET     /comments/new
+   POST    /comments
+   GET     /comment/:id
+   GET     /comment/:id/edit
+   PUT     /comment/:id
+   DELETE  /comment/:id</pre>
+
+<p>:expose_legacy_api - if true and :singular_resource is true then generate
+the legacy non-singular routes first</p>
+
+<pre>followed by the new singular routes</pre>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+

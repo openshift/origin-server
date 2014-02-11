@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"unmatched:EFI"0Mongoid::Errors::DocumentNotFound#unmatched;FI"R;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I"?Provide access to the unmatched ids if they are specified.;TI"May be an empty Array.;T:
+@file0FI"8controller/config/initializers/mongoid_overrides.rb;T

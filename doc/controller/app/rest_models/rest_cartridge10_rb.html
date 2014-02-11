@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: rest_cartridge10.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-10 11:30:36 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>@api REST Describes an <a href="../../../Cartridge.html">Cartridge</a>
+@version 1.0</p>
+
+<p>Example:</p>
+
+<pre>```
+&lt;cartridge&gt;
+  &lt;name&gt;mysql-5.1&lt;/name&gt;
+  &lt;type&gt;embedded&lt;/type&gt;
+  &lt;status-messages nil=&quot;true&quot;/&gt;
+  &lt;properties&gt;
+    &lt;connection-url&gt;mysql://127.0.250.129:3306/&lt;/connection-url&gt;
+    &lt;username&gt;foo&lt;/username&gt;
+    &lt;password&gt;bar&lt;/password&gt;
+    &lt;database-name&gt;baz&lt;/database-name&gt;
+  &lt;/properties&gt;
+  &lt;links&gt;
+  ...
+  &lt;/links&gt;
+&lt;/cartridge&gt;
+```</pre>
+
+<p>@!attribute [r] name</p>
+
+<pre>@return [String] Name of the cartridge</pre>
+
+<p>@!attribute [r] type</p>
+
+<pre>@return [String] &quot;standalone&quot; or &quot;embedded&quot;.</pre>
+
+<p>@!attribute [r] status_messages</p>
+
+<pre>@return [Array&lt;String&gt;] Messages</pre>
+
+<p>@!attribute [r] properties</p>
+
+<pre>@return [Hash] Map of propery names and associated values</pre>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+

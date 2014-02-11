@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: rest_user10.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-10 11:30:36 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>@api REST @version 1.0 Describes a <a href="../../../User.html">User</a></p>
+
+<p>Example:</p>
+
+<pre>```
+&lt;user&gt;
+  &lt;login&gt;admin&lt;/login&gt;
+  &lt;consumed-gears&gt;4&lt;/consumed-gears&gt;
+  &lt;max-gears&gt;100&lt;/max-gears&gt;
+  &lt;capabilities&gt;
+    &lt;subaccounts&gt;false&lt;/subaccounts&gt;
+    &lt;gear-sizes&gt;
+      &lt;gear-size&gt;small&lt;/gear-size&gt;
+    &lt;/gear-sizes&gt;
+  &lt;/capabilities&gt;
+  &lt;plan-id nil=&quot;true&quot;/&gt;
+  &lt;usage-account-id nil=&quot;true&quot;/&gt;
+  &lt;links&gt;
+  ...
+  &lt;/links&gt;
+&lt;/user&gt;
+```</pre>
+
+<p>@!attribute [r] login</p>
+
+<pre>@return [String] The login name of the user</pre>
+
+<p>@!attribute [r] consumed_gears</p>
+
+<pre>@return [Integer] Number of gears currently being used in applications</pre>
+
+<p>@!attribute [r] max_gears</p>
+
+<pre>@return [Integer] Maximum number of gears avaiable to the user</pre>
+
+<p>@!attribute [r] capabilities</p>
+
+<pre>@return [Hash] Map of user capabilities</pre>
+
+<p>@!attribute [r] plan_id</p>
+
+<pre>@return [String] Plan ID</pre>
+
+<p>@!attribute [r] usage_account_id</p>
+
+<pre>@return [String] Account ID</pre>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"aws_hosted_zone_id:EFI"0OpenShift::Route53Plugin#aws_hosted_zone_id;FI"R;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I"DEPENDENCIES;TI"7Rails.application.config.openshift[:domain_suffix];TI"&Rails.application.config.dns[...];T:
+@file0FI"8plugins/dns/route53/lib/openshift/route53_plugin.rb;T

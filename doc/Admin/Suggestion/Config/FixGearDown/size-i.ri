@@ -1,0 +1,4 @@
+U:RDoc::Attr[iI"	size:EFI"0Admin::Suggestion::Config::FixGearDown#size;FI"RW;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I""size: integer number of gears;To:RDoc::Markup::List:
+@type:BULLET:@items[o:RDoc::Markup::ListItem:@label0;	[o;
+;	[I"5down should be at least this much larger than up;T:
+@file0FI"-controller/lib/admin/suggestion/types.rb;T

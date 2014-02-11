@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"mcollective_timeout:EFI"2Admin::Suggestion::Params#mcollective_timeout;FI"RW;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I"UNumeric mcollective timeout (seconds) for admin stats to override broker default;T:
+@file0FI"5controller/app/models/admin/suggestion/params.rb;T

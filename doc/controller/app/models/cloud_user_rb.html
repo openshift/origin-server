@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: cloud_user.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-10 11:30:36 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>Primary <a href="../../../User.html">User</a> model for the broker. It
+keeps track of plan details, capabilities and ssh-keys for the user.
+@!attribute [r] login</p>
+
+<pre>@return [String] Login name for the user.</pre>
+
+<p>@!attribute [r] capabilities</p>
+
+<pre>@return [Hash] Hash representing the capabilities of the user. It is updated using the oo-admin-ctl-user scripts or when a plan changes.</pre>
+
+<p>@!attribute [r] parent_user_id</p>
+
+<pre>@return [Moped::BSON::ObjectId] ID of the parent user object if this object represents a sub-account.</pre>
+
+<p>@!attribute [rw] plan_id @!attribute [rw] pending_plan_id @!attribute [rw]
+pending_plan_uptime @!attribute [rw] usage_account_id @!attribute [rw]
+consumed_gears</p>
+
+<pre>@return [Integer] Number of gears that are being consumed by applications owned by this user</pre>
+
+<p>@!attribute [r] ssh_keys</p>
+
+<pre>@return [Array[SshKey]] SSH keys used to access applications that the user has access to or owns
+  @see {#add_ssh_key}, {#remove_ssh_key}, and {#update_ssh_key}</pre>
+
+<p>@!attribute [r] pending_ops</p>
+
+<pre>@return [Array[PendingUserOps]] List of {PendingUserOps} objects</pre>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"district_quantity:EFI"AAdmin::Suggestion::Capacity::Add::District#district_quantity;FI"RW;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[	I">why not use an existing district? given current usage and;TI"<expected active percentage, existing districts would be;TI"#overly full with another node.;TI"&so, create this many districts...;T:
+@file0FI"-controller/lib/admin/suggestion/types.rb;T

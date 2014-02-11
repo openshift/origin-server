@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"excess_gears:EFI"FAdmin::Suggestion::Capacity::Remove::CompactDistrict#excess_gears;FI"RW;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I"Eavailable capacity in this node that could never be used because;TI"&it is too full of inactive gears.;T:
+@file0FI"-controller/lib/admin/suggestion/types.rb;T

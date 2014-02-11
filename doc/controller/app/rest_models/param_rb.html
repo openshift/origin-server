@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: param.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-10 11:30:36 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>@api REST Describes an required parameter for a REST API endpoint @see <a
+href="../../../Link.html">Link</a></p>
+
+<p>Example:</p>
+
+<pre>```
+&lt;link&gt;
+  &lt;rel&gt;Update domain&lt;/rel&gt;
+  &lt;method&gt;PUT&lt;/method&gt;
+  &lt;href&gt;https://broker.example.com/broker/rest/domains/localns&lt;/href&gt;
+  &lt;required-params&gt;
+    &lt;param&gt;
+      &lt;name&gt;id&lt;/name&gt;
+      &lt;type&gt;string&lt;/type&gt;
+      &lt;description&gt;Name of the domain&lt;/description&gt;
+      &lt;valid-options/&gt;
+      &lt;invalid-options/&gt;
+    &lt;/param&gt;
+  &lt;/required-params&gt;
+  &lt;optional-params/&gt;
+&lt;/link&gt;
+```</pre>
+
+<p>@!attribute [r] name</p>
+
+<pre>@return [String] Parameter name</pre>
+
+<p>@!attribute [r] type</p>
+
+<pre>@return [String] Parameter type</pre>
+
+<p>@!attribute [r] description</p>
+
+<pre>@return [String] Parameter desctiption</pre>
+
+<p>@!attribute [r] valid_options</p>
+
+<pre>@return [Array&lt;String&gt;] List of valid options</pre>
+
+<p>@!attribute [r] invalid_options</p>
+
+<pre>@return [Array&lt;String&gt;] List of options that are not valid</pre>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+

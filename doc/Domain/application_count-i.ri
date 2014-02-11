@@ -1,0 +1,2 @@
+U:RDoc::Attr[iI"application_count:EFI"Domain#application_count;FI"RW;F:publico:RDoc::Markup::Document:@parts[o:RDoc::Markup::Paragraph;	[I"Rnon-persisted fields used to store info about the applications in this domain;T:
+@file0FI"$controller/app/models/domain.rb;T

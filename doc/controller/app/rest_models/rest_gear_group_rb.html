@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+
+  <title>File: rest_gear_group.rb [RDoc Documentation]</title>
+
+  <link type="text/css" media="screen" href="../../../rdoc.css" rel="stylesheet" />
+
+  <script src="../../../js/jquery.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/thickbox-compressed.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/quicksearch.js" type="text/javascript"
+    charset="utf-8"></script>
+  <script src="../../../js/darkfish.js" type="text/javascript"
+    charset="utf-8"></script>
+</head>
+
+<body class="file file-popup">
+  <div id="metadata">
+    <dl>
+      <dt class="modified-date">Last Modified</dt>
+      <dd class="modified-date">2014-01-10 11:30:36 -0500</dd>
+
+      
+      <dt class="requires">Requires</dt>
+      <dd class="requires">
+        <ul>
+        
+        </ul>
+      </dd>
+      
+
+      
+    </dl>
+  </div>
+
+  <div id="documentation">
+    
+    <div class="description">
+      <h2>Description</h2>
+      
+<p>@api REST Describes an set of gears which run the same cartridges and share
+scaling limits. All cartridges in the gear group scale together.</p>
+
+<p>Example:</p>
+
+<pre>```
+&lt;gear-group&gt;
+  &lt;uuid&gt;51266cda6892df395200002b&lt;/uuid&gt;
+  &lt;name&gt;51266cda6892df395200002b&lt;/name&gt;
+  &lt;gear-profile&gt;small&lt;/gear-profile&gt;
+  &lt;gears&gt;
+    &lt;gear&gt;
+      &lt;id&gt;51266cda6892df3952000001&lt;/id&gt;
+      &lt;state&gt;&lt;/state&gt;
+    &lt;/gear&gt;
+  &lt;/gears&gt;
+  &lt;cartridges&gt;
+    &lt;cartridge&gt;
+      &lt;name&gt;php-5.4&lt;/name&gt;
+      &lt;display-name&gt;PHP 5.4&lt;/display-name&gt;
+      &lt;tags&gt;
+        &lt;tag&gt;service&lt;/tag&gt;
+        &lt;tag&gt;php&lt;/tag&gt;
+        &lt;tag&gt;web_framework&lt;/tag&gt;
+      &lt;/tags&gt;
+    &lt;/cartridge&gt;
+    &lt;cartridge&gt;
+      &lt;name&gt;haproxy-1.4&lt;/name&gt;
+      &lt;display-name&gt;OpenShift Web Balancer&lt;/display-name&gt;
+      &lt;tags&gt;
+        &lt;tag&gt;web_proxy&lt;/tag&gt;
+        &lt;tag&gt;scales&lt;/tag&gt;
+        &lt;tag&gt;embedded&lt;/tag&gt;
+      &lt;/tags&gt;
+    &lt;/cartridge&gt;
+  &lt;/cartridges&gt;
+  &lt;scales-from&gt;1&lt;/scales-from&gt;
+  &lt;scales-to&gt;-1&lt;/scales-to&gt;
+  &lt;base-gear-storage&gt;1&lt;/base-gear-storage&gt;
+  &lt;additional-gear-storage&gt;0&lt;/additional-gear-storage&gt;
+  &lt;ssh-url&gt;ssh://5124897d6892dfe819000005@testapp-localns.example.com&lt;/ssh-url&gt;
+&lt;/gear-group&gt;
+```</pre>
+
+<p>@!attribute [r] uuid</p>
+
+<pre>@return [String] UUID that identified the gear group</pre>
+
+<p>@!attribute [r] name</p>
+
+<pre>@return [String] UUID that identified the gear group</pre>
+
+<p>@!attribute [r] gear_profile</p>
+
+<pre>@return [String] The profile of all gears in the gear group</pre>
+
+<p>@!attribute [r] cartridges</p>
+
+<pre>@return [Array&lt;Hash&gt;] List of cartridges running on the gears within this gear group.</pre>
+
+<p>@!attribute [r] gears</p>
+
+<pre>@return [Array&lt;Hash&gt;] List of gears running within this gear group.</pre>
+
+<p>@!attribute [r] scales_from</p>
+
+<pre>@return [Integer] Minimum number of gears within this gear group</pre>
+
+<p>@!attribute [r] scales_to</p>
+
+<pre>@return [Integer] Maximum number of gears within this gear group</pre>
+
+<p>@!attribute [r] base_gear_storage @!attribute [r] base_gear_storage</p>
+
+<pre>@return [Integer] Number of GB of disk space assoicated with gear profile</pre>
+
+<p>@!attribute [r] additional_gear_storage</p>
+
+<pre>@return [Integer] Additional number of GB of disk space (beyond the base provided by the gear profile)</pre>
+
+<p>@!attribute [r] ssh_url</p>
+
+<pre>@return [String] username and FQDN that can be used to ssh into the this gear</pre>
+
+    </div>
+    
+  </div>
+</body>
+</html>
+

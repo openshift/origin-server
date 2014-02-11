@@ -13,7 +13,7 @@
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
 Version: 1.20.2
-Release:       1%{?dist}
+Release:       2%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -109,10 +109,12 @@ mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/sbin
 mkdir -p %{buildroot}%{appdir}/.tc_user_dir
 mkdir -p %{buildroot}%{_var}/log/openshift/node
+mkdir -p %{buildroot}%{_var}/lib/openshift/.httpd.d
 
 # Move the gem configs to the standard filesystem location
 mkdir -p %{buildroot}/etc/openshift
 rm -rf %{buildroot}%{gem_instdir}/conf/plugins.d/README
+mv %{buildroot}%{gem_instdir}/conf/iptables.*.rules %{buildroot}/%{_var}/lib/openshift/.httpd.d
 mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
 
 #move pam limit binaries to proper location
@@ -223,16 +225,17 @@ fi
 %attr(0750,-,-) %{_var}/log/openshift/node
 /usr/libexec/openshift/lib/quota_attrs.sh
 /usr/libexec/openshift/lib/archive_git_submodules.sh
-%attr(0755,-,-) %{openshift_lib}/cartridge_sdk
-%attr(0755,-,-) %{openshift_lib}/cartridge_sdk/bash
+%dir %attr(0755,-,-) %{openshift_lib}/cartridge_sdk
+%dir %attr(0755,-,-) %{openshift_lib}/cartridge_sdk/bash
 %attr(0744,-,-) %{openshift_lib}/cartridge_sdk/bash/*
-%attr(0755,-,-) %{openshift_lib}/cartridge_sdk/ruby
+%dir %attr(0755,-,-) %{openshift_lib}/cartridge_sdk/ruby
 %attr(0744,-,-) %{openshift_lib}/cartridge_sdk/ruby/*
 %dir /etc/openshift
 %attr(0644,-,-) %config /etc/openshift/system-config-firewall-compat
 %config(noreplace) /etc/openshift/node.conf
-%attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.filter.rules
-%attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.nat.rules
+%dir %{_var}/lib/openshift/.httpd.d
+%attr(0600,-,-) %config(noreplace) %{_var}/lib/openshift/.httpd.d/iptables.filter.rules
+%attr(0600,-,-) %config(noreplace) %{_var}/lib/openshift/.httpd.d/iptables.nat.rules
 %config(noreplace) /etc/openshift/env/*
 %attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
 %dir %attr(0755,-,-) %{appdir}
@@ -269,6 +272,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Feb 10 2014 Lokesh Mandvekar <lsm5@redhat.com> 1.20.2-2
+- Bug 1045224 - install iptables.*.rules to /var/lib/openshift/.httpd.d
+- get rid of 'files listed twice' warning
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Bug 1055456 - Handle node env messages better (dmcphers@redhat.com)
 - origin_node_185 - Refactor oo-admin-ctl-gears (jhonce@redhat.com)
