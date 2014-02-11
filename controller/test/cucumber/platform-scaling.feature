@@ -1,4 +1,5 @@
 @gear_extended
+@gear_extended3
 Feature: Platform Scaling Tests
   Scenario: Basic scaling test for mock
     And a new client created scalable mock-0.1 application
