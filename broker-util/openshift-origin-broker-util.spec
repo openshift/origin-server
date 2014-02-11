@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -102,6 +102,17 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Bug 997374 - Fix typo (dmcphers@redhat.com)
+- Merge pull request #4719 from pravisankar/dev/ravi/bug1063249
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1063249 - Fix end_time in oo-admin-usage (rpenta@redhat.com)
+- Merge pull request #4700 from pravisankar/dev/ravi/bug1060339
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1060339 - Move blacklisted check for domain/application to the controller
+  layer. oo-admin-ctl-domain/oo-admin-ctl-app will use domain/application model
+  and will be able to create/update blacklisted name. (rpenta@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Bug 1034554 - Add man page for oo-admin-upgrade (dmcphers@redhat.com)
 - Merge pull request #4688 from
