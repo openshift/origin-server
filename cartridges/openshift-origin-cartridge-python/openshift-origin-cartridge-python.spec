@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -92,6 +92,19 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Merge pull request #4712 from tdawson/2014-02/tdawson/cartridge-deps
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1063677 - Show apache running info when run "rhc cartridge status" for
+  python app (jhadvig@redhat.com)
+- Merge pull request #4707 from danmcp/master (dmcphers@redhat.com)
+- Cleanup cartridge dependencies (tdawson@redhat.com)
+- Merge pull request #4559 from fabianofranz/dev/441
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 888714 - Remove gitkeep files from rpms (dmcphers@redhat.com)
+- Removed references to OpenShift forums in several places
+  (contact@fabianofranz.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Cleaning specs (dmcphers@redhat.com)
 - Bug 1060902: Fix relative venv function during install_setup_tools
