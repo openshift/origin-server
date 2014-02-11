@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,19 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Merge pull request #4718 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4708 from smarterclayton/bug_1063109_trim_required_carts
+  (dmcphers+openshiftbot@redhat.com)
+- Obsoleted zend-5.6 cartridge (lnader@redhat.com)
+- Merge pull request #4559 from fabianofranz/dev/441
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1063109 - Required carts should be handled higher in the model
+  (ccoleman@redhat.com)
+- Removed references to OpenShift forums in several places
+  (contact@fabianofranz.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Support changing categorizations (ccoleman@redhat.com)
 - UI uses "requires" value from broker (ccoleman@redhat.com)
