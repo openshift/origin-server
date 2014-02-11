@@ -46,7 +46,7 @@ def get_time(date)
       time = current_time.to_i
     end
   rescue Exception => ex
-    puts "Error: Please specify the start date as yyyy-mm-dd"
+    puts "Error: Please specify the date as yyyy-mm-dd"
     show_usage
   end
   Time.at(time).utc
@@ -189,7 +189,6 @@ end
 
 if end_date
   end_time = get_time(end_date)
-  end_time = end_time.at_end_of_month.utc
 else
   end_time = current_time
 end
