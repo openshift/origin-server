@@ -656,6 +656,13 @@ class Application
     ssl_endpoint = Rails.application.config.openshift[:ssl_endpoint]
     cart_name_map = {}
 
+    all = self.cartridges + cartridges
+    dependencies = add_required_dependencies(self.cartridges + cartridges) - all
+    if dependencies.present?
+      Rails.logger.debug("Adding dependencies #{dependencies.map(&:name).to_sentence} to requested #{cartridges.map(&:name).to_sentence}")
+      cartridges += dependencies
+    end
+
     cartridges.each do |cart|
 
       # ensure that the user isn't trying to add multiple versions of the same cartridge
@@ -783,18 +790,23 @@ class Application
         self.cartridges
       else
         component_ids = []
-        cartridges.map do |cart|
+        explicit = cartridges.map do |cart|
           cart = CartridgeCache.find_cartridge(cart, self) if cart.is_a? String
           raise OpenShift::UserException.new("The cartridge '#{cart}' can not be found.", 109) if cart.nil?
 
           instances = self.component_instances.where(cartridge_name: cart.name)
-          unless remove_all_cartridges
-            raise OpenShift::UserException.new("'#{cart.name}' cannot be removed", 137) if (cart.is_web_proxy? and self.scalable) or cart.is_web_framework?
-            raise OpenShift::UserException.new("'#{cart.name}' is not a cartridge of '#{self.name}'", 135) if instances.blank?
-          end
+          raise OpenShift::UserException.new("'#{cart.name}' cannot be removed", 137) if (cart.is_web_proxy? and self.scalable) or cart.is_web_framework?
+          raise OpenShift::UserException.new("'#{cart.name}' is not a cartridge of '#{self.name}'", 135) if instances.blank?
           component_ids += instances.map(&:_id).map(&:to_s)
           cart
         end
+
+        original = self.cartridges.to_a
+        removed = original - self.class.only_satisfied_dependencies(original - explicit)
+        if (removed - explicit).present?
+          Rails.logger.debug("Removing dependencies #{(removed - explicit).map(&:name).to_sentence} along with #{explicit.map(&:name).to_sentence}")
+        end
+        removed
       end
 
     cartridges.each{ |cart| remove_dependent_cartridges(cart, io) }
@@ -2271,6 +2283,8 @@ class Application
   # moves::
   #   A list of components which need to move from one group instance to another
   def compute_diffs(existing, added, upgrades)
+    return [[GroupChange.new(existing.first, added.first, upgrades.slice(*existing.first))], []] if existing.length == 1 && added.length == 1
+
     total = existing.length + added.length - 1
     costs = Matrix.build(total+1, total+1){0}
     #compute cost of moves
@@ -2391,49 +2405,65 @@ class Application
   end
 
   def component_specs_from(cartridges)
-    # Calculate initial list based on user provided dependencies
-    all = []
-    added = []
-    cartridges.each do |cart|
-      all << cart
-      added << cart
-    end
-
-    # Solve for transitive dependencies
-    depth = 0
-    while added.present? do
-      process = added
-      added = []
-      process.each do |cart|
-        cart.requires.each do |required|
-          located = nil
-          Array(required).each do |feature|
-            if added.any?{ |d| d.features.include?(feature) || d.names.include?(feature) }
-              located = true
-              break
-            end
-            if located = CartridgeCache.find_cartridge_by_base_name(feature, self)
-              all << located
-              added << located
-              break
-            end
-          end
-          raise OpenShift::UnfulfilledRequirementException.new(required, cart.name) unless located
-        end
-      end
-      if (depth += 1) > MAX_CARTRIDGE_RECURSION
-        raise OpenShift::UserException.new("Too much recursion on cartridge dependency processing.")
-      end
-    end
-
     # All of the components that will be available
     specs = []
-    all.each do |cart|
+    cartridges.each do |cart|
       cart.components.each do |component|
         specs << ComponentSpec.for_model(component, cart, self)
       end
     end
     specs
+  end
+
+  def add_required_dependencies(cartridges)
+    all = [].concat(cartridges)
+    added = [].concat(cartridges)
+    depth = 0
+    begin
+      process = added
+      added = []
+      process.each do |cart|
+        cart.requires.each do |required|
+          satisfied = Array(required).any? do |feature|
+            all.any?{ |d| d.features.include?(feature) || d.names.include?(feature) }
+          end
+          if !satisfied
+            Array(required).any? do |feature|
+              if located = CartridgeCache.find_cartridge_by_base_name(feature, self)
+                all << located
+                added << located
+                true
+              end
+            end or raise OpenShift::UnfulfilledRequirementException.new(required, cart.name)
+          end
+        end
+      end
+      if (depth += 1) > MAX_CARTRIDGE_RECURSION
+        raise OpenShift::UserException.new("Too much recursion on cartridge dependency processing.")
+      end
+    end while added.present?
+    all
+  end
+
+  def self.only_satisfied_dependencies(cartridges, raise_on_failure=false)
+    all = [].concat(cartridges)
+    changed = false
+    begin
+      changed = all.select! do |cart|
+        cart.requires.all? do |required|
+          located = nil
+          Array(required).each do |feature|
+            if all.any?{ |d| d.features.include?(feature) || d.names.include?(feature) }
+              located = true
+              break
+            end
+          end
+          raise OpenShift::UnfulfilledRequirementException.new(required, cart.name) if !located && raise_on_failure
+          located
+        end
+      end
+    end while changed && all.present?
+    all
   end
 
   def connections_from_component_specs(specs)

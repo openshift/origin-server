@@ -74,6 +74,32 @@ class EmbCartControllerTest < ActionController::TestCase
     json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "haproxy-1.4 cannot be added to existing applications. It is automatically added when you create a scaling application." }, ms.inspect }
   end
 
+  test "embedded cartridge create with requirements pulls in req" do
+    with_app
+    name = cartridge_instances_for(:phpmyadmin).first.name
+
+    post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :created
+    assert_equal 1, @app.reload.group_instances.length
+    assert @app.cartridges.detect{ |i| i.names.include?('mysql') }
+    assert @app.cartridges.detect{ |i| i.names.include?('phpmyadmin') }
+
+    get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+
+    get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+
+    # destroying req removes phpmyadmin
+    delete :destroy , {"id" => mysql_version, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+
+    assert_equal 1, @app.reload.group_instances.length
+    assert !@app.cartridges.detect{ |i| i.names.include?('mysql') }
+    assert !@app.cartridges.detect{ |i| i.names.include?('phpmyadmin') }
+    assert @app.cartridges.detect{ |i| i.names.include?('php') }
+  end
+
   test "add show and remove downloaded cartridge to application" do
     with_app
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
@@ -102,7 +128,6 @@ class EmbCartControllerTest < ActionController::TestCase
     delete :destroy , {"id" => "mock-downloadmock-0.1", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
   end
-
 
   test "add, show, and remove external downloadable cartridge" do
     with_app
