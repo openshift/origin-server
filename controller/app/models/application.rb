@@ -637,7 +637,7 @@ class Application
     template_for = Rails.application.config.openshift[:app_template_for]
     init_git_url ||= cartridges.select(&:is_web_framework?).
                      map {|c| template_for[c.name] || template_for[c.short_name] }.
-                     select.first
+                     compact.first
     add_cartridges(cartridges.map(&:cartridge), group_overrides, init_git_url, user_env_vars)
 
   rescue => e
