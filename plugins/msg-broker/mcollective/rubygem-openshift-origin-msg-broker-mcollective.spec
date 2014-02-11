@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Merge pull request #4700 from pravisankar/dev/ravi/bug1060339
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1060339 - Move blacklisted check for domain/application to the controller
+  layer. oo-admin-ctl-domain/oo-admin-ctl-app will use domain/application model
+  and will be able to create/update blacklisted name. (rpenta@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Rename config param REGIONS_REQUIRE_FOR_APP_CREATE to
   ZONES_REQUIRE_FOR_APP_CREATE (rpenta@redhat.com)
