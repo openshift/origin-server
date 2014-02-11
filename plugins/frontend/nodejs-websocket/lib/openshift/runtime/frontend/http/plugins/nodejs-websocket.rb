@@ -50,7 +50,7 @@ module OpenShift
                   next unless options["websocket"]
 
                   # Check if the endpoints support websockets
-                  next if options["protocols"] and ["ws"].select { |proto| options["protocols"].include?(proto) }.empty?
+                  # next if options["protocols"] and ["ws"].select { |proto| options["protocols"].include?(proto) }.empty?
 
                   conn = options["connections"]
                   if conn.nil?
