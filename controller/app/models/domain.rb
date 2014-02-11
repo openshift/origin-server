@@ -57,8 +57,7 @@ class Domain
   validates :namespace,
     #presence: {message: "Namespace is required and cannot be blank."},
     format:   {with: DOMAIN_NAME_REGEX, message: "Invalid namespace. Namespace must only contain alphanumeric characters.", allow_nil: true},
-    length:   {maximum: NAMESPACE_MAX_LENGTH, minimum: NAMESPACE_MIN_LENGTH, message: "Must be a minimum of #{NAMESPACE_MIN_LENGTH} and maximum of #{NAMESPACE_MAX_LENGTH} characters."},
-    blacklisted: {message: "Namespace is not allowed.  Please choose another."}
+    length:   {maximum: NAMESPACE_MAX_LENGTH, minimum: NAMESPACE_MIN_LENGTH, message: "Must be a minimum of #{NAMESPACE_MIN_LENGTH} and maximum of #{NAMESPACE_MAX_LENGTH} characters."}
 
   validate do |d|
     if d.allowed_gear_sizes_changed?
@@ -81,6 +80,17 @@ class Domain
     {namespace: 106, allowed_gear_sizes: 110, members: 222}
   end
 
+  # Invoke save with a rescue for a duplicate exception
+  #
+  # == Returns:
+  #   True if the domain was saved.
+  def save(options={})
+    super(options)
+  rescue Moped::Errors::OperationFailure => e
+    raise OpenShift::UserException.new("Namespace '#{namespace}' is already in use. Please choose another.", 103, "id") if [11000, 11001].include?(e.details['code'])
+    raise
+  end
+
   def self.create!(opts)
     owner = opts[:owner]
     allowed_domains = opts[:_allowed_domains] || owner.max_domains
@@ -89,7 +99,7 @@ class Domain
     unless pre_and_post_condition(
              lambda{ Domain.where(owner: owner).count < allowed_domains },
              lambda{ Domain.where(owner: owner).count <= allowed_domains },
-             lambda{ domain.save_with_duplicate_check! },
+             lambda{ domain.save! },
              lambda{ domain.destroy rescue nil }
            )
       raise OpenShift::UserException.new("You may not have more than #{pluralize(allowed_domains, "domain")}.", 103, nil, nil, :conflict)
@@ -133,7 +143,7 @@ class Domain
   end
 
   before_save prepend: true do
-    self.namespace.downcase!
+    self.namespace = self.namespace.downcase
   end
 
   before_save prepend: true do
@@ -154,18 +164,6 @@ class Domain
   def namespace=(domain_name)
     self.canonical_namespace = domain_name.downcase
     super
-  end
-
-
-  # Invoke save! with a rescue for a duplicate exception
-  #
-  # == Returns:
-  #   True if the domain was saved.
-  def save_with_duplicate_check!
-    self.save!
-  rescue Moped::Errors::OperationFailure => e
-    raise OpenShift::UserException.new("Namespace '#{namespace}' is already in use. Please choose another.", 103, "id") if [11000, 11001].include?(e.details['code'])
-    raise
   end
 
   def inherit_membership

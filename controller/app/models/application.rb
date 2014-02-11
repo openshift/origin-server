@@ -113,8 +113,7 @@ class Application
   validates :name,
     presence: {message: "Application name is required and cannot be blank."},
     format:   {with: APP_NAME_REGEX, message: "Application name must contain only alphanumeric characters (a-z, A-Z, or 0-9)."},
-    length:   {maximum: APP_NAME_MAX_LENGTH, minimum: 0, message: "Application name must be a minimum of 1 and maximum of #{APP_NAME_MAX_LENGTH} characters."},
-    blacklisted: {message: "Application name is not allowed.  Please choose another."}
+    length:   {maximum: APP_NAME_MAX_LENGTH, minimum: 0, message: "Application name must be a minimum of 1 and maximum of #{APP_NAME_MAX_LENGTH} characters."}
   validate :extended_validator
 
   # Returns a map of field to error code for validation failures

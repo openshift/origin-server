@@ -129,6 +129,9 @@ module OpenShift
         rescue Mongoid::Errors::DocumentNotFound
           raise if params[:domain_id].blank?
           begin
+            if OpenShift::ApplicationContainerProxy.blacklisted? params[:domain_id]
+              raise OpenShift::UserException.new("Namespace is not allowed.  Please choose another.", 106) 
+            end
             @domain = Domain.create!(namespace: params[:domain_id], owner: current_user)
           rescue OpenShift::UserException => e
             e.field = 'domain_id'

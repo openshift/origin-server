@@ -31,6 +31,9 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "create update and destroy application" do
+    blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
+    @appname = blacklisted_words.first if blacklisted_words.present?
+
     Gear.any_instance.expects(:publish_routing_info).never
     Gear.any_instance.expects(:unpublish_routing_info).never
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain)

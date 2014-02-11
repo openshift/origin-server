@@ -240,6 +240,15 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal 103, json['messages'][0]['exit_code']
   end
 
+  test "app create with blacklisted name" do
+    blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
+    return unless blacklisted_words.present?
+    @app_name = blacklisted_words.first
+
+    post :create, {"name" => @app_name, "cartridge" => php_version, "domain_id" => @domain.namespace}
+    assert_response :forbidden
+  end
+
   test "app create available show destroy by domain and app name" do
     @app_name = "app#{@random}"
 

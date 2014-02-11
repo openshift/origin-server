@@ -60,6 +60,13 @@ class DomainsControllerTest < ActionController::TestCase
     assert_response :ok
   end
 
+  test "domain create with blacklisted name" do
+    blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
+    return unless blacklisted_words.present?
+
+    post :create, {"name" => blacklisted_words.first}
+    assert_response :forbidden
+  end
 
   test "invalid empty or non-existent domain name" do
     post :create, {}

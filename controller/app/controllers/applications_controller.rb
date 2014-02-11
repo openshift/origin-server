@@ -53,6 +53,10 @@ class ApplicationsController < BaseController
     default_gear_size = (params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]).downcase
     config = (params[:config].is_a?(Hash) and params[:config])
 
+    if OpenShift::ApplicationContainerProxy.blacklisted? app_name
+      return render_error(:forbidden, "Application name is not allowed.  Please choose another.", 105)
+    end
+
     if init_git_url = String(params[:initial_git_url]).presence
       repo_spec, commit = (OpenShift::Git.safe_clone_spec(init_git_url, OpenShift::Git::ALLOWED_SCHEMES, params[:initial_git_branch].presence) rescue nil)
       if repo_spec.blank?

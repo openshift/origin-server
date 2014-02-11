@@ -54,6 +54,9 @@ class DomainsController < BaseController
     authorize! :create_domain, current_user
 
     namespace = (params[:name] || params[:id] || params[:namespace] || '').downcase
+    if OpenShift::ApplicationContainerProxy.blacklisted? namespace
+      return render_error(:forbidden, "Namespace is not allowed.  Please choose another.", 106)
+    end
 
     allowed_domains = current_user.max_domains
     allowed_domains = 1 if requested_api_version < 1.2
@@ -78,6 +81,9 @@ class DomainsController < BaseController
     id = params[:existing_name].presence || params[:existing_id].presence
 
     new_namespace = params[:name] || params[:id]
+    if OpenShift::ApplicationContainerProxy.blacklisted? new_namespace
+      return render_error(:forbidden, "Namespace is not allowed.  Please choose another.", 106)
+    end
 
     domain = Domain.accessible(current_user).find_by(canonical_namespace: Domain.check_name!(id).downcase)
 
@@ -101,7 +107,7 @@ class DomainsController < BaseController
 
     return render_error(:unprocessable_entity, "No changes specified to the domain.", 133) unless domain.changed?
 
-    domain.save_with_duplicate_check!
+    domain.save!
     render_success(:ok, "domain", get_rest_domain(domain), messages.join(" "), domain)
   end
 
