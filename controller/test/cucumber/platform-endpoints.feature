@@ -1,6 +1,6 @@
 @node
 @node3
-Feature: V2 Platform Endpoint tests
+Feature: Platform Endpoint tests
 
   Scenario: SSL to Gear is specified in the cartridge's manifest.yml
     Given a new client created scalable mock-0.3 application

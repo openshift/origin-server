@@ -1,5 +1,5 @@
-@cartridge_extended2
-Feature: V2 Platform Scaling Tests
+@gear_extended
+Feature: Platform Scaling Tests
   Scenario: Basic scaling test for mock
     And a new client created scalable mock-0.1 application
     Then the application should be accessible
