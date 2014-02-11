@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -272,6 +272,23 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Merge pull request #4720 from lsm5/new-iptables2
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1045224 - install iptables rules in new dir (lsm5@redhat.com)
+- Bug 1019219 - PassEnv warning messages are shown when deploy app
+  (jhadvig@redhat.com)
+- Splitting out gear tests (dmcphers@redhat.com)
+- Merge pull request #4696 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4709 from danmcp/dev/bug1035046
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4710 from jwhonce/bug/1063142
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1035046 - Increase user set env vars to 50 (dmcphers@redhat.com)
+- Bug 1063142 - Ignore .stop_lock on gear operations (jhonce@redhat.com)
+- fix https://bugzilla.redhat.com/show_bug.cgi?id=1062775 (rchopra@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Bug 1055456 - Handle node env messages better (dmcphers@redhat.com)
 - origin_node_185 - Refactor oo-admin-ctl-gears (jhonce@redhat.com)
