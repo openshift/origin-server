@@ -33,11 +33,13 @@ link:oo_client_tools_installation_guide.html[Client Tools Installation Guide]
 
 a|link:oo_administration_guide.html[Administration Guide] +
 link:oo_cartridge_guide.html[Cartridge Guide] +
-link:oo_troubleshooting_guide.html[Troubleshooting Guide]
+link:oo_troubleshooting_guide.html[Troubleshooting Guide] +
+link:oo_notes_running_a_local_ddns.html[Notes on Running a Local DNS]
 
 a|link:oo_cartridge_developers_guide.html[Cartridge Developers Guide] +
 link:oo_user_guide.html[User Guide] +
-link:rest_api/rest-api-1-6.html[Broker REST API]
+link:rest_api/rest-api-1-6.html[Broker REST API] +
+link:oo_notes_building_rpms_from_source.html[Notes on Building from Source]
 
 |===
 
