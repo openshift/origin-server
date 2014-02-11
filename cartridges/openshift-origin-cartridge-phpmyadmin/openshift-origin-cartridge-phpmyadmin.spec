@@ -3,7 +3,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.18.2
+Version: 1.18.3
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -54,6 +54,15 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.18.3-1
+- Merge pull request #4712 from tdawson/2014-02/tdawson/cartridge-deps
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4708 from smarterclayton/bug_1063109_trim_required_carts
+  (dmcphers+openshiftbot@redhat.com)
+- Cleanup cartridge dependencies (tdawson@redhat.com)
+- Bug 1063109 - Required carts should be handled higher in the model
+  (ccoleman@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.18.2-1
 - Bug 1059858 - Expose requires via REST API (ccoleman@redhat.com)
 - Cleaning specs (dmcphers@redhat.com)
