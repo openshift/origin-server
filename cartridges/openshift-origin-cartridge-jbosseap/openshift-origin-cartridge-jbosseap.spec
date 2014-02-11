@@ -23,9 +23,9 @@ Requires:      maven3
 Requires:      maven
 %endif
 BuildRequires: jpackage-utils
+Provides:      openshift-origin-cartridge-jbosseap-6.0 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-jbosseap-6.0 <= 1.99.9
 BuildArch:     noarch
-
-Obsoletes: openshift-origin-cartridge-jbosseap-6.0
 
 %description
 Provides JBossEAP support to OpenShift. (Cartridge Format V2)

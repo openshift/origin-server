@@ -14,9 +14,9 @@ Requires:      java >= 1.6
 Requires:      jenkins
 Requires:      jenkins-plugin-openshift
 Requires:      openshift-origin-node-util
+Provides:      openshift-origin-cartridge-jenkins-1.4 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-jenkins-1.4 <= 1.99.9
 BuildArch:     noarch
-
-Obsoletes: openshift-origin-cartridge-jenkins-1.4
 
 %description
 Provides Jenkins cartridge to OpenShift. (Cartridge Format V2)

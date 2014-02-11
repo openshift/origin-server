@@ -18,9 +18,8 @@ Requires:      haproxy
 Requires:      socat
 Requires:      %{?scl:%scl_prefix}rubygem-daemons
 Requires:      %{?scl:%scl_prefix}rubygem-rest-client
-
-Obsoletes: openshift-origin-cartridge-haproxy-1.4
-
+Provides:      openshift-origin-cartridge-haproxy-1.4 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-haproxy-1.4 <= 1.99.9
 BuildArch:     noarch
 
 %description

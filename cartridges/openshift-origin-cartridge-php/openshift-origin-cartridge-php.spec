@@ -14,6 +14,9 @@ Requires:      rubygem(openshift-origin-node)
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      php >= 5.3.2
 Requires:      php < 5.4
+Requires:      php54
+Requires:      php54-php
+Requires:      php54-php-pear
 %endif
 %if 0%{?fedora} >= 19
 Requires:      php >= 5.5
@@ -21,17 +24,10 @@ Requires:      php < 5.6
 %endif
 Requires:      php
 Requires:      php-pear
-
-#  RHEL-6 PHP 5.4 SCL
-%if 0%{?fedora}%{?rhel} <= 6
-Requires:      php54
-Requires:      php54-php
-Requires:      php54-php-pear
-%endif
-
+Provides:      openshift-origin-cartridge-php-5.3 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-php-5.3 <= 1.99.9
 BuildArch:     noarch
 
-Obsoletes: openshift-origin-cartridge-php-5.3
 
 %description
 PHP cartridge for openshift. (Cartridge Format V2)

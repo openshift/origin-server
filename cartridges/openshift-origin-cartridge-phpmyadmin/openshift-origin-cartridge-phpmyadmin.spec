@@ -12,9 +12,9 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      phpMyAdmin < 5.0
+Provides:      openshift-origin-cartridge-phpmyadmin-3.4 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-phpmyadmin-3.4 <= 1.99.9
 BuildArch:     noarch
-
-Obsoletes: openshift-origin-cartridge-phpmyadmin-3.4
 
 %description
 Provides phpMyAdmin cartridge support. (Cartridge Format V2)
