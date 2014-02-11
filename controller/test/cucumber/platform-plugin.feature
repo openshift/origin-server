@@ -1,4 +1,5 @@
 @gear_extended
+@gear_extended1
 Feature: Platform Plugin Tests
   Scenario: Basic state checks for an application with an embedded cartridge
     Given a new mock-0.1 type application
