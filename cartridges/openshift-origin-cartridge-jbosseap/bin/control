@@ -367,11 +367,18 @@ function threaddump() {
     fi
 }
 
+function pre_restore() {
+  # this directory contains cached versions of the built jsps which will continue
+  # to get used because they have newer dates than the restored archive.
+  rm -rf $OPENSHIFT_JBOSSEAP_DIR/standalone/tmp/* 
+}
+
 export OPENSHIFT_SECRET_TOKEN=${OPENSHIFT_SECRET_TOKEN:-OPENSHIFT_APP_UUID}
 
 case "$1" in
   build)           build ;;
   deploy)          deploy ;;
+  pre-restore)     pre_restore ;;
   start)           start ;;
   stop)            stop ;;
   restart)         restart ;;
