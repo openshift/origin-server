@@ -1,5 +1,5 @@
-@cartridge_extended3
-Feature: V2 Platform Plugin Tests
+@gear_extended
+Feature: Platform Plugin Tests
   Scenario: Basic state checks for an application with an embedded cartridge
     Given a new mock-0.1 type application
 

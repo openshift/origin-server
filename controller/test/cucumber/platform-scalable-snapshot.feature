@@ -1,4 +1,4 @@
-@cartridge_extended3
+@gear_extended
 Feature: V2 SDK scalable snapshot and restore
   Scenario: Create, snapshot, and restore scalable application with plugin with client tools
     And the libra client tools
