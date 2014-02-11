@@ -143,8 +143,22 @@ def set_max_untracked_storage(user, maxuntrackedstorage)
   end
 
   print "Setting max_untracked_addtl_storage_per_gear to #{maxuntrackedstorage}... "
+  old_untracked = user.max_untracked_additional_storage
   user.max_untracked_additional_storage = maxuntrackedstorage
   if user.save
+
+    # Update addl_fs_gb usage records if untracked storage limits changed
+    begin
+      user.domains.each do |domain|
+        domain.applications.each do |app|
+          app.change_max_untracked_storage(old_untracked, maxuntrackedstorage)
+        end
+      end
+    rescue Exception => e
+      $stderr.puts "An error occurred updating usage tracking for the user #{user.login}."
+      $stderr.puts e.message
+    end
+
     puts "Done."
   else
     $stderr.puts "An error occurred saving the user #{user.login}."

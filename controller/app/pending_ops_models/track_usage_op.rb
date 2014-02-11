@@ -7,6 +7,7 @@ class TrackUsageOp < PendingAppOp
   field :event, type: String
   field :usage_type, type: String
   field :additional_filesystem_gb, type: Integer
+  field :max_untracked_additional_storage, type: Integer
   field :gear_size, type: String
   field :cart_name, type: String
 
@@ -20,7 +21,7 @@ class TrackUsageOp < PendingAppOp
       storage_usage_type = ( usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb] )
       tracked_storage = nil
       if storage_usage_type
-        max_untracked_storage = application.domain.owner.max_untracked_additional_storage
+        max_untracked_storage = max_untracked_additional_storage || application.domain.owner.max_untracked_additional_storage
         tracked_storage = additional_filesystem_gb - max_untracked_storage
       end
       if !storage_usage_type or (tracked_storage > 0)
@@ -35,7 +36,7 @@ class TrackUsageOp < PendingAppOp
       storage_usage_type = (usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb])
       tracked_storage = nil
       if storage_usage_type
-        max_untracked_storage = application.domain.owner.max_untracked_additional_storage
+        max_untracked_storage = max_untracked_additional_storage || application.domain.owner.max_untracked_additional_storage
         tracked_storage = additional_filesystem_gb - max_untracked_storage
       end
       if !storage_usage_type or (tracked_storage > 0)
