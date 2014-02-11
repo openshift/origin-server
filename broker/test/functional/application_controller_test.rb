@@ -512,44 +512,14 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "attempt to create an application with obsolete cartridge" do
-    begin
-      carts = []
-      cart = OpenShift::Cartridge.new
-      cart.cartridge_vendor = "redhat"
-      cart.name = "ruby-1.8"
-      cart.provides = ["ruby"]
-      cart.version = "1.8"
-      cart.categories = ['web_framework']
-      cart.obsolete = true
+    os = Rails.configuration.openshift
+    Rails.configuration.stubs(:openshift).returns(os.merge(:allow_obsolete_cartridges => false))
+    OpenShift::Cartridge.any_instance.expects(:obsolete).returns(true)
 
-      carts << cart
-      cart = OpenShift::Cartridge.new
-      cart.cartridge_vendor = "redhat"
-      cart.name = "ruby-1.9"
-      cart.provides = ["ruby"]
-      cart.version = "1.9"
-      cart.categories = ['web_framework']
-      carts << cart
-
-      cart = OpenShift::Cartridge.new
-      cart.cartridge_vendor = "other"
-      cart.name = "ruby-1.10"
-      cart.provides = ["ruby"]
-      cart.version = "1.10"
-      cart.categories = ['web_framework']
-      carts << cart
-      CartridgeCache.stubs(:get_all_cartridges).returns(carts)
-
-      os = Rails.configuration.openshift
-      Rails.configuration.stubs(:openshift).returns(os.merge(:allow_obsolete_cartridges => false))
-
-      @app_name = "app#{@random}"
-      post :create, {"name" => @app_name, "cartridge" => "ruby-1.8", "domain_id" => @domain.namespace}
-      # CHANGED: This is now allowed - deactivate the cart otherwise.
-      assert_response :created
-    ensure
-      Rails.cache.clear
-    end
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => "ruby-1.8", "domain_id" => @domain.namespace}
+    # CHANGED: This is now allowed - deactivate the cart otherwise.
+    assert_response :unprocessable_entity
   end
 
   def assert_invalid_manifest

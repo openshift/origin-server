@@ -53,6 +53,10 @@ class EmbCartController < BaseController
     group_overrides = CartridgeInstance.overrides_for(cartridges, @application)
     @application.validate_cartridge_instances!(cartridges)
 
+    if !Rails.configuration.openshift[:allow_obsolete_cartridges] && (obsolete = cartridges.select{ |c| !c.singleton? && c.obsolete }.presence)
+      raise OpenShift::UserException.new("The following cartridges are no longer available: #{obsolete.map(&:name).to_sentence}", 109, "cartridges")
+    end
+
     result = @application.add_cartridges(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
 
     overrides = @application.group_instances_with_overrides

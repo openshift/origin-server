@@ -150,6 +150,10 @@ class ApplicationsController < BaseController
                                          "web_framework cartridge.", 109, "cartridge")
     end
 
+    if !Rails.configuration.openshift[:allow_obsolete_cartridges] && !builder_id && (obsolete = cartridges.select{ |c| !c.singleton? && c.obsolete }.presence)
+      raise OpenShift::UserException.new("The following cartridges are no longer available: #{obsolete.map(&:name).to_sentence}", 109, "cartridges")
+    end
+
     result = app.add_initial_cartridges(cartridges, init_git_url, user_env_vars)
 
     include_cartridges = (params[:include] == "cartridges")
