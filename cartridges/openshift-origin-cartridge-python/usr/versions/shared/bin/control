@@ -102,7 +102,6 @@ function status() {
     if [ $res -eq 0 ]
     then
         client_result "Application is running"
-        client_result "$output"
     else
         client_result "Application is either stopped or inaccessible"
     fi
