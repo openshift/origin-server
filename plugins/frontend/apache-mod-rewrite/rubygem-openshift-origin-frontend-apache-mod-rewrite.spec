@@ -15,7 +15,7 @@
 
 Summary:       OpenShift Apache mod_rewrite frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.3.2
+Version: 0.3.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -131,6 +131,11 @@ mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 0.3.3-1
+- Merge pull request #4716 from rajatchopra/bz_1058496
+  (dmcphers+openshiftbot@redhat.com)
+- fix file permissions for key/crt, bz1058496 (rchopra@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 0.3.2-1
 - Cleaning specs (dmcphers@redhat.com)
 - Merge pull request #4666 from ncdc/dev/node-access-log-gear-info
