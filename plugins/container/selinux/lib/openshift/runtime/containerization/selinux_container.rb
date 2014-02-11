@@ -104,7 +104,7 @@ module OpenShift
           freeze_cgroups
           disable_traffic_control
           last_access_dir = @config.get("LAST_ACCESS_DIR")
-          ::OpenShift::Runtime::Utils::oo_spawn("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
+          ::OpenShift::Runtime::Utils::oo_spawn("rm #{last_access_dir}/#{@container.uuid}")
           @container.kill_procs
 
           purge_sysvipc
