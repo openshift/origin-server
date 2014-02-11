@@ -2273,11 +2273,19 @@ NOTE: This plugin conflicts with the apache-mod-rewrite plugin.
 ==== nodejs-websocket Plugin
 
 ----
-yum install -y openshift-origin-node-proxy rubygem-openshift-origin-frontend-nodejs-websocket
+yum install -y openshift-origin-node-proxy rubygem-openshift-origin-frontend-nodejs-websocket facter
 ----
 
 Start the node-proxy service
 
+.Fedora
+
+----
+systemctl enable openshift-node-web-proxy.service
+systemctl start openshift-node-web-proxy.service
+----
+
+.RHEL6
 ----
 chkconfig openshift-node-web-proxy on
 service openshift-node-web-proxy start
@@ -2542,10 +2550,6 @@ systemctl start cgred.service
 ----
 
 In order for cgroups to work correctly, you need to ensure that services are started in the correct order.
-
-* service cgconfig start
-* service cgcred start
-* service openshift-cgroups start
 
 === Configure Disk Quotas
 When a consumer of OpenShift Origin creates an application gear, you will need to be able to control and set the amount of disk space that the gear can consume. This configuration is located in the _/etc/openshift/resource_limits.conf_ file. The two settings of interest are the qouta_files and the quota_blocks. The usrquota setting specifies the total number of files that a gear / user is allowed to own. The quota_blocks is the actual amount of disk storage that the gear is allowed to consume — where 1 block is equal to 1024 bytes.
