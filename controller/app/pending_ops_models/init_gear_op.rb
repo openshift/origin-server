@@ -25,10 +25,8 @@ class InitGearOp < PendingAppOp
           get_group_instance
         end
 
-      # add the gear
-      application.gears << Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns)
-
       # create the component instances, if they are not present
+      sparse_carts = []
       skip_map = application.downloaded_cart_map.nil? # some apps will be unreadable by old code during the switchover
       comp_specs.compact.each do |spec|
         spec.application = self.application
@@ -40,7 +38,18 @@ class InitGearOp < PendingAppOp
           application.component_instances << instance
           application.downloaded_cart_map[instance.cartridge.original_name] = CartridgeCache.cartridge_to_data(instance.cartridge) if cartridge.singleton? && !skip_map
         end
+        
+        # FIXME: this is a hack - need to move this to a common method in the application
+        # ensure the proxy has the appropriate min scale and multiplier
+        if spec.cartridge.is_web_proxy?
+          spec = ComponentOverrideSpec.new(spec.dup, 2, -1, Rails.configuration.openshift[:default_ha_multiplier] || 0).merge(spec)
+        end
+        # check if this gear has a sparse cart
+        sparse_carts << application.find_component_instance_for(spec)._id if spec.component.is_sparse? and application.add_sparse_cart?(0, 0, spec, true)
       end
+
+      # add the gear
+      application.gears << Gear.new(custom_id: gear_id, group_instance: group_instance, host_singletons: host_singletons, app_dns: app_dns, sparse_carts: sparse_carts)
     end
   end
 
