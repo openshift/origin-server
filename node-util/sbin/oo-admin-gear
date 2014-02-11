@@ -54,6 +54,10 @@ action = GEAR_ADMIN_OPTIONS[:action]
 uuid = GEAR_ADMIN_OPTIONS[:uuid]
 
 if action == 'destroygear'
+    puts 'Killing user processes...'
+    process_delete = %x[skill #{uuid}]
+    puts process_delete if $?.exitstatus != 0
+
     puts 'Deleting user...'
     user_delete = %x[userdel --remove -f #{uuid}]
     puts user_delete if $?.exitstatus != 0
