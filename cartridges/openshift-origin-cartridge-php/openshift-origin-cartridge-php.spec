@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -68,6 +68,15 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Merge pull request #4712 from tdawson/2014-02/tdawson/cartridge-deps
+  (dmcphers+openshiftbot@redhat.com)
+- Cleanup cartridge dependencies (tdawson@redhat.com)
+- Merge pull request #4559 from fabianofranz/dev/441
+  (dmcphers+openshiftbot@redhat.com)
+- Removed references to OpenShift forums in several places
+  (contact@fabianofranz.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Cleaning specs (dmcphers@redhat.com)
 - <httpd carts> bug 1060068: ensure extra httpd conf dirs exist
