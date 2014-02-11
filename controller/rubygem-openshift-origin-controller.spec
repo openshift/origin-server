@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,31 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Rebalancing cart extended tests (dmcphers@redhat.com)
+- Splitting out gear tests (dmcphers@redhat.com)
+- Merge pull request #4708 from smarterclayton/bug_1063109_trim_required_carts
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4700 from pravisankar/dev/ravi/bug1060339
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4713 from smarterclayton/report_503_only_in_maintenance
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4710 from jwhonce/bug/1063142
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4706 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1060339 - Move blacklisted check for domain/application to the controller
+  layer. oo-admin-ctl-domain/oo-admin-ctl-app will use domain/application model
+  and will be able to create/update blacklisted name. (rpenta@redhat.com)
+- Report 503 only when server actually in maintenance (ccoleman@redhat.com)
+- Only check dependencies on add/remove, not during elaborate
+  (ccoleman@redhat.com)
+- Bug 1063109 - Required carts should be handled higher in the model
+  (ccoleman@redhat.com)
+- Bug 1063142 - Ignore .stop_lock on gear operations (jhonce@redhat.com)
+- Bug 1063277: Fixing typo where ResendAliasesOp was being added twice
+  (abhgupta@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Merge pull request #4688 from
   smarterclayton/bug_1059858_expose_requires_to_clients
