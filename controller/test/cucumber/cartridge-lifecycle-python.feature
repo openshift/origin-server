@@ -1,5 +1,5 @@
 @cartridge_extended
-@cartridge_extended1
+@cartridge_extended2
 Feature: Cartridge Lifecycle Python Verification Tests
   Scenario Outline: Application Creation
   #Given a new <cart_name> application, verify its availability
