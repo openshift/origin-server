@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.20.3
+Version: 1.20.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
+- Merge pull request #4739 from fabianofranz/bugs/1063470
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1063470 - handle different encodings in files provided by ssl cert
+  issuers (contact@fabianofranz.com)
+
 * Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
 - Merge pull request #4718 from lnader/master
   (dmcphers+openshiftbot@redhat.com)
