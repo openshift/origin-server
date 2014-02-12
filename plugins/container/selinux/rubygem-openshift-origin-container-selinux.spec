@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.6.2
+Version: 0.6.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,10 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 0.6.3-1
+- Bug 1056426 - last-access info not deleted when gear deleted
+  (jhonce@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 0.6.2-1
 - Cleaning specs (dmcphers@redhat.com)
 - Merge pull request #4616 from brenton/deployment_dir1
