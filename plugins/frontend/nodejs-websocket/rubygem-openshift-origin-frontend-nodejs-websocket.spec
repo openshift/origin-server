@@ -10,7 +10,7 @@
 
 Summary:       OpenShift NodeJS Websocket frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.3.2
+Version: 0.3.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 0.3.3-1
+- Bug 1063703: Assume ws if websocket is true. (mrunalp@gmail.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 0.3.2-1
 - Cleaning specs (dmcphers@redhat.com)
 - Merge pull request #4149 from mfojtik/fixes/bundler
