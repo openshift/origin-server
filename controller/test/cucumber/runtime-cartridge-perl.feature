@@ -1,5 +1,5 @@
 @cartridge_extended3
-Feature: V2 SDK Perl Cartridge
+Feature: Perl Cartridge
 
   Scenario Outline: Add cartridge
     Given a new <cart_name> type application

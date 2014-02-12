@@ -1,6 +1,6 @@
 @gear_extended
 @gear_extended2
-Feature: V2 SDK scalable snapshot and restore
+Feature: Scalable snapshot and restore
   Scenario: Create, snapshot, and restore scalable application with plugin with client tools
     And the libra client tools
     And a new client created scalable mock-0.1 application

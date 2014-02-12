@@ -1,5 +1,5 @@
 @cartridge_extended3
-Feature: V2 SDK DIY Cartridge
+Feature: DIY Cartridge
   Scenario: Add cartridge
     Given a new diy-0.1 type application
     Then the application git repo will exist

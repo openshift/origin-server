@@ -2,7 +2,7 @@
 @jboss
 @jbossas
 @not-enterprise
-Feature: V2 SDK JBossAS Cartridge
+Feature: JBossAS Cartridge
 
   Scenario: Add cartridge
     Given a new jbossas-7 type application

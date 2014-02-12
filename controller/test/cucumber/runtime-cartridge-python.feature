@@ -1,24 +1,17 @@
 @cartridge_extended2
-Feature: V2 SDK Python Cartridge
+Feature: Python Cartridge
 
-  Scenario: Add 2.6 cartridge
-  Given a new python-2.6 type application
-  Then the application git repo will exist
-  And the platform-created default environment variables will exist
-  And the python-2.6 cartridge private endpoints will be exposed
-  And the python-2.6 PYTHON_DIR env entry will exist
-  And the python-2.6 PYTHON_LOG_DIR env entry will exist
-  And the python-2.6 PYTHON_VERSION env entry will exist
-  When I destroy the application
-  Then the application git repo will not exist
+  Scenario Outline: Add python cartridge
+    Given a new <cart_name> type application
+    Then the application git repo will exist
+    And the platform-created default environment variables will exist
+    And the <cart_name> cartridge private endpoints will be exposed
+    And the <cart_name> PYTHON_DIR env entry will exist
+    And the <cart_name> PYTHON_LOG_DIR env entry will exist
+    And the <cart_name> PYTHON_VERSION env entry will exist
+    When I destroy the application
+    Then the application git repo will not exist
 
-  Scenario: Add 2.7 cartridge
-  Given a new python-2.7 type application
-  Then the application git repo will exist
-  And the platform-created default environment variables will exist
-  And the python-2.7 cartridge private endpoints will be exposed
-  And the python-2.7 PYTHON_DIR env entry will exist
-  And the python-2.7 PYTHON_LOG_DIR env entry will exist
-  And the python-2.7 PYTHON_VERSION env entry will exist
-  When I destroy the application
-  Then the application git repo will not exist
+    Scenarios: Python Versions
+      |    cart_name     |
+      |    python-2.7    |

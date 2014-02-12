@@ -1,7 +1,7 @@
 @cartridge_extended2
 @jboss
 @jbosseap
-Feature: V2 SDK JBossEAP Cartridge
+Feature: JBossEAP Cartridge
 
   Scenario: Add cartridge
     Given a new jbosseap-6 type application

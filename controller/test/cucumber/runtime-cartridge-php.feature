@@ -1,5 +1,5 @@
 @cartridge2
-Feature: V2 SDK PHP Cartridge
+Feature: PHP Cartridge
 
   Scenario Outline: Add cartridge
     Given a new <cart_name> type application
@@ -15,4 +15,3 @@ Feature: V2 SDK PHP Cartridge
     Scenarios: RHEL scenarios
       | cart_name |
       | php-5.3   |
-      | php-5.4   |

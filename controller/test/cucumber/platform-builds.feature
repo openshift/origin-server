@@ -1,5 +1,5 @@
 @cartridge3
-Feature: V2 SDK Mock Cartridge Build Tests
+Feature: Mock Cartridge Build Tests
 
   Scenario: Exercise hot deployment
     Given a new mock-0.1 type application

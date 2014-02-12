@@ -61,7 +61,6 @@ Feature: Postgres Application Sub-Cartridge
 
     Scenarios: RHEL
       | postgres_version |
-      |       8.4        |
       |       9.2        |
 
   @cartridge_extended3
@@ -129,5 +128,4 @@ Feature: Postgres Application Sub-Cartridge
 
     Scenarios: RHEL
       | postgres_version |
-      |       8.4        |
       |       9.2        |

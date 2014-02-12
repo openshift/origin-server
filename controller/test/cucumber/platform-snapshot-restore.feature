@@ -1,5 +1,5 @@
 @cartridge1
-Feature: V2 SDK snapshot and restore
+Feature: Snapshot and restore
   Scenario: Create, snapshot, and restore application with client tools
     Given the libra client tools
     And a new client created mock-0.1 application

@@ -1,6 +1,6 @@
 @cartridge_extended3
 @cartridge_nodejs
-Feature: V2 SDK Node.js Cartridge
+Feature: Node.js Cartridge
 
   Scenario Outline: Add cartridge
     Given a new nodejs-<nodejs_version> type application

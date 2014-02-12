@@ -19,5 +19,4 @@ Feature: MySQL Application Sub-Cartridge
 
     Scenarios: MySQL versions
       | cart_name |
-      | mysql-5.1 |
       | mysql-5.5 |
