@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version:       1.15.2
+Version:       1.15.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -50,6 +50,9 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.15.3-1
+- Fix obsoletes and provides (tdawson@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.15.2-1
 - Cleaning specs (dmcphers@redhat.com)
 
