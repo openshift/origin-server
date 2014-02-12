@@ -1674,6 +1674,7 @@ class Application
   def update_requirements(cartridges, replacements, overrides, init_git_url=nil, user_env_vars=nil)
     current = group_instances_with_overrides
     connections, updated = elaborate(cartridges, overrides)
+
     upgrades = compute_upgrades(replacements)
     changes, moves = compute_diffs(current, updated, upgrades)
     if moves.present?
@@ -2116,6 +2117,10 @@ class Application
           if change.removed?
             ops = calculate_remove_component_ops(change.removed)
             pending_ops.concat(ops)
+          end
+
+          if change.from.gear_size != change.to.gear_size
+            raise OpenShift::UserException.new("Incompatible gear sizes: #{@gear_size} and #{gear_size} for cartridges #{change.to.components.map(&:name).uniq.to_sentence} that will reside on the same gear.", 142)
           end
 
           if change.added?

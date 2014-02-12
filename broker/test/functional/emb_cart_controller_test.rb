@@ -47,6 +47,8 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :success
     delete :destroy , {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+    assert_equal 1, @app.reload.group_instances.length
+    assert_equal 1, @app.component_instances.length
   end
 
   test "embedded cartridge create with storage" do
