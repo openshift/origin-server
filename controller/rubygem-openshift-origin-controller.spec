@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.20.3
+Version: 1.20.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,32 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
+- Gear size conflicts should be covered by a unit test (ccoleman@redhat.com)
+- Test case cleanup (dmcphers@redhat.com)
+- Merge pull request #4732 from
+  smarterclayton/bug_1062852_cant_remove_shared_cart
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4738 from
+  smarterclayton/bug_1063654_prevent_obsolete_cart_creation
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1062852 - Can't remove mysql from shared gear (ccoleman@redhat.com)
+- Merge pull request #4735 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4736 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4699 from caruccio/fix-cart-props
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1063654 - Prevent obsolete cartridge use except for builders
+  (ccoleman@redhat.com)
+- Adding groups for gear extended (dmcphers@redhat.com)
+- Merge pull request #4731 from sosiouxme/duhhhh
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1063455: Rescuing user ops in case the app gets deleted mid-way
+  (abhgupta@redhat.com)
+- <application model> select => compact (lmeyer@redhat.com)
+- Fix cart props split value (mateus.caruccio@getupcloud.com)
+
 * Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
 - Rebalancing cart extended tests (dmcphers@redhat.com)
 - Splitting out gear tests (dmcphers@redhat.com)
