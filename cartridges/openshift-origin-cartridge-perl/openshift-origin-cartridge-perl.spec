@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.19.3
+Version: 1.19.4
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -56,6 +56,19 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Merge pull request #4744 from mfojtik/latest_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_cartridge_111 - Updated cartridge versions for stage cut
+  (mfojtik@redhat.com)
+- Merge pull request #4729 from tdawson/2014-02/tdawson/fix-obsoletes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4372 from maxamillion/admiller/no_defaulttype_apache24
+  (dmcphers+openshiftbot@redhat.com)
+- Fix obsoletes and provides (tdawson@redhat.com)
+- This directive throws a deprecation warning in apache 2.4
+  (admiller@redhat.com)
+
 * Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Merge pull request #4712 from tdawson/2014-02/tdawson/cartridge-deps
   (dmcphers+openshiftbot@redhat.com)
