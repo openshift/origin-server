@@ -12,8 +12,9 @@ Provides:
 License: The PHP License, version 3.0
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: php.net
-Cartridge-Version: 0.0.10
-Compatible-Versions: []
+Cartridge-Version: 0.0.11
+Compatible-Versions:
+- 0.0.10
 Cartridge-Vendor: redhat
 Categories:
 - service

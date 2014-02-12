@@ -12,11 +12,9 @@ Versions:
 License: The Python License, version 2.7
 License-Url: http://docs.python.org/3/license.html
 Vendor: python.org
-Cartridge-Version: 0.0.12
+Cartridge-Version: 0.0.13
 Compatible-Versions:
-- 0.0.11
-- 0.0.10
-Compatible-Versions: []
+- 0.0.12
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -55,7 +53,7 @@ Endpoints:
     Backend: ''
     Options:
       websocket: true
-  - Frontend: /health
+  - Frontend: "/health"
     Backend: ''
     Options:
       health: true
