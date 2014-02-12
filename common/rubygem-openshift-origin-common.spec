@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -119,6 +119,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Bug 1064157 - new filepaths in oo-diagnostics (lsm5@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Merge pull request #4688 from
   smarterclayton/bug_1059858_expose_requires_to_clients
