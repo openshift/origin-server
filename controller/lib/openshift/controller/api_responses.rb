@@ -124,7 +124,10 @@ module OpenShift
 
           when OpenShift::UserException
             status = ex.response_code || :unprocessable_entity
-            internal_error = false
+            error_code, node_message, messages = extract_node_messages(ex, error_code, message, field)
+            message = node_message || "Unable to complete the requested operation. \nReference ID: #{request.uuid}"           
+            messages.push(Message.new(:error, message, error_code, field))
+            return render_error(status, message, error_code, field, nil, messages, false)
 
           when OpenShift::AccessDeniedException
             status = :forbidden

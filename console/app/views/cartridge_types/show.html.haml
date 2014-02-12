@@ -10,15 +10,19 @@
 - else
   %h1 Add Cartridge to #{link_to @application.name, application_path(@application)}
 
-= render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true, :application => @application}
-
-= render :partial => 'cartridge_types/cartridge_type_notifications', :locals => { :type => @cartridge_type }
-
 = semantic_form_for @cartridge, :url => application_cartridges_path(@application), :html => {:class => 'form form-important'} do |f|
   = f.hidden_field :name, :value => @cartridge_type.name
   = f.hidden_field :url, :value => @cartridge_type.url
 
   = f.semantic_errors
+
+  - if @cartridge_type.custom?
+    .alert.alert-info
+      This cartridge will be downloaded into your application.  The cart will have access to all of your application data - be sure this is what you really want to do!
+      = link_to "Learn more", downloadable_cartridges_help_url
+
+  = render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true, :application => @application}
+  = render :partial => 'cartridge_types/cartridge_type_notifications', :locals => { :type => @cartridge_type }
 
   = f.inputs :class => 'inputs form-horizontal add-cartridge' do
     = control_group(false) do
@@ -37,11 +41,6 @@
       - else
         = @cartridge_type.display_name
     cartridge to your application?
-
-  - if @cartridge_type.custom?
-    .alert.alert-info
-      This cartridge will be downloaded into your application.  The cart will have access to all of your application data - be sure this is what you really want to do!
-      = link_to "Learn more", downloadable_cartridges_help_url
 
   = f.buttons do
     = link_to "Back", @wizard ? application_cartridge_types_path(@application) : application_path(@application), :class => 'btn'

@@ -6,6 +6,7 @@ class ConsoleController < Console.config.parent_controller.constantize
   include CostAware
   include Console::CommunityAware
   include Console::LogHelper
+  include Console::ErrorsHelper
 
   layout 'console'
 
