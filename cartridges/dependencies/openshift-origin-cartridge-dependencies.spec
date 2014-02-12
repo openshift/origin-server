@@ -233,9 +233,11 @@ an OpenShift cartrige.
 Summary:   Recommended user dependencies for PHP OpenShift Cartridges
 BuildArch: noarch
 Requires:  php-mysql
+Requires:  php-pecl-mongo
 Requires:  php-pgsql
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:  php54-php-mysqlnd
+Requires:  php54-php-pecl-mongo
 Requires:  php54-php-pgsql
 %endif
 
@@ -261,7 +263,6 @@ Requires:  php-mcrypt
 Requires:  php-pdo
 Requires:  php-pecl-apc
 Requires:  php-pecl-imagick
-Requires:  php-pecl-mongo
 Requires:  php-pecl-xdebug
 Requires:  php-process
 Requires:  php-soap
@@ -276,6 +277,7 @@ Requires:  php54-php-ldap
 Requires:  php54-php-mbstring
 Requires:  php54-php-pdo
 Requires:  php54-php-pecl-apc
+Requires:  php54-php-pecl-imagick
 Requires:  php54-php-process
 Requires:  php54-php-soap
 Requires:  php54-php-xml
