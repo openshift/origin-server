@@ -3,7 +3,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.18.3
+Version: 1.18.4
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -54,6 +54,19 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
+- Merge pull request #4744 from mfojtik/latest_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_cartridge_111 - Updated cartridge versions for stage cut
+  (mfojtik@redhat.com)
+- Merge pull request #4729 from tdawson/2014-02/tdawson/fix-obsoletes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4372 from maxamillion/admiller/no_defaulttype_apache24
+  (dmcphers+openshiftbot@redhat.com)
+- Fix obsoletes and provides (tdawson@redhat.com)
+- This directive throws a deprecation warning in apache 2.4
+  (admiller@redhat.com)
+
 * Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.18.3-1
 - Merge pull request #4712 from tdawson/2014-02/tdawson/cartridge-deps
   (dmcphers+openshiftbot@redhat.com)
