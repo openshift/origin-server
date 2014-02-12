@@ -2,6 +2,11 @@
     %global scl ruby193
     %global scl_prefix ruby193-
 %endif
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
+    %global with_systemd 1
+%else
+    %global with_systemd 0
+%endif
 %{!?scl:%global pkg_name %{name}}
 %{?scl:%scl_package rubygem-%{gem_name}}
 %global gem_name openshift-origin-node
@@ -114,6 +119,14 @@ mkdir -p %{buildroot}%{_var}/log/openshift/node
 mkdir -p %{buildroot}/etc/openshift
 rm -rf %{buildroot}%{gem_instdir}/conf/plugins.d/README
 mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
+
+# Install logrotate files
+mkdir -p %{buildroot}/etc/logrotate.d
+%if %{with_systemd}
+install -D -p -m 644 %{buildroot}%{gem_instdir}/misc/etc/openshift-origin-node.logrotate.systemd %{buildroot}/etc/logrotate.d/%{name}
+%else
+install -D -p -m 644 %{buildroot}%{gem_instdir}/misc/etc/openshift-origin-node.logrotate.service %{buildroot}/etc/logrotate.d/%{name}
+%endif
 
 #move pam limit binaries to proper location
 mkdir -p %{buildroot}/usr/libexec/openshift/lib
@@ -232,6 +245,7 @@ fi
 %attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.filter.rules
 %attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.nat.rules
 %config(noreplace) /etc/openshift/env/*
+%config(noreplace) /etc/logrotate.d/%{name}
 %attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
 %dir %attr(0755,-,-) %{appdir}
 %dir %attr(0750,-,-) %{appdir}/.tc_user_dir
