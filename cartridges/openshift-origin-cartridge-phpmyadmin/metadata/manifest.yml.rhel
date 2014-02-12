@@ -20,9 +20,6 @@ Cart-Data:
 Provides:
 - phpmyadmin-4
 - phpmyadmin
-Requires:
-- - mysql
-  - mariadb
 Publishes:
   get-serve-info:
     Type: NET_TCP:db-config:url
@@ -37,7 +34,8 @@ Scaling:
   Min: 1
   Max: 1
 Configure-Order:
-- mysql
+- - mysql
+  - mariadb
 - phpmyadmin
 Endpoints:
 - Private-IP-Name: IP

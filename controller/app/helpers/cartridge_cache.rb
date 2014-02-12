@@ -169,15 +169,17 @@ class CartridgeCache
 
   def self.find_requires_for(cartridge)
     Rails.cache.fetch("cartridge_requires_for_#{cartridge.id}", :expires_in => DURATION) do
-      Array(cartridge.requires).map do |required|
+      Array(cartridge.requires + cartridge.configure_order).uniq.map do |required|
+        required = Array(required)
+        next if (required & cartridge.names).present?
         matches = []
-        if names = Array(required).compact.map(&:to_s).presence
+        if names = required.compact.map(&:to_s).presence
           CartridgeType.active.provides(names).each do |cart|
             if (cart.names & names).present?
               matches << lru_cache(cart.cartridge)
             end
           end
-          matched = matches.compact.sort_by(&OpenShift::Cartridge::NAME_PRECEDENCE_ORDER).map(&:name).uniq.presence || Array(required)
+          matches.compact.sort_by(&OpenShift::Cartridge::NAME_PRECEDENCE_ORDER).map(&:name).uniq.presence || required
         end
       end.compact
     end
@@ -238,7 +240,7 @@ class CartridgeCache
         if (name = spec[:name]) && CartridgeInstance.check_feature?(name)
           find_cartridge_by_base_name(name) or
             raise OpenShift::UserException.new("Invalid cartridge '#{name}' specified.", 109, field)
-        elsif (id = spec[:id]) && CartridgeInstance.check_id?(name)
+        elsif (id = spec[:id]) && CartridgeInstance.check_id?(id)
           find_cartridge_by_id_for_user(id, as_user) or
             raise OpenShift::UserException.new("Invalid cartridge identifier '#{id}' specified.", 109, field)
         end

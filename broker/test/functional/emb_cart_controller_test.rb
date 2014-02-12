@@ -78,12 +78,20 @@ class EmbCartControllerTest < ActionController::TestCase
 
   test "embedded cartridge create with requirements pulls in req" do
     with_app
-    name = cartridge_instances_for(:phpmyadmin).first.name
+    cart = cartridge_instances_for(:phpmyadmin).first
+    type = CartridgeType.new(CartridgeType.cartridge_attributes(cart.cartridge))
+    j = JSON.parse(type.manifest_text)
+    j['Configure-Order'] = [['mysql', 'mariadb'], 'phpmyadmin']
+    j['Requires'] = [['mysql', 'mariadb']]
+    type.text = j.to_json
+    type.save!
+    cart = type.cartridge
+    name = cart.name
 
-    post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
-    assert_response :created
+    post :create, {"cartridges" => [{'id' => cart.id}], "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :created, @response.inspect
     assert_equal 1, @app.reload.group_instances.length
-    assert @app.cartridges.detect{ |i| i.names.include?('mysql') }
+    assert db_cart = @app.cartridges.detect{ |i| i.names.include?('mysql') or i.names.include?('mariadb') }
     assert @app.cartridges.detect{ |i| i.names.include?('phpmyadmin') }
 
     get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -93,11 +101,11 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :success
 
     # destroying req removes phpmyadmin
-    delete :destroy , {"id" => mysql_version, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    delete :destroy , {"id" => db_cart.name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
 
     assert_equal 1, @app.reload.group_instances.length
-    assert !@app.cartridges.detect{ |i| i.names.include?('mysql') }
+    assert !@app.cartridges.detect{ |i| i.names.include?('mysql') or i.names.include?('mariadb') }
     assert !@app.cartridges.detect{ |i| i.names.include?('phpmyadmin') }
     assert @app.cartridges.detect{ |i| i.names.include?('php') }
   end

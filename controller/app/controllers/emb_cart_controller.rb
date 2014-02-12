@@ -45,7 +45,7 @@ class EmbCartController < BaseController
       specs << params
     end
     CartridgeInstance.check_cartridge_specifications!(specs)
-    return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109) unless specs.all?{ |f| f[:name] or f[:url] }
+    return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109) unless specs.all?{ |f| f[:name] or f[:url] or f[:id] }
 
     @application.domain.validate_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "gear_size")
 

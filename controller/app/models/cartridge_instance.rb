@@ -34,6 +34,7 @@ class CartridgeInstance < SimpleDelegator
     specs.each do |cart|
       cart[:name] = String(cart[:name]).presence
       cart[:url]  = String(cart[:url]).presence
+      cart[:id]   = String(cart[:id]).presence
       cart
     end
   end
