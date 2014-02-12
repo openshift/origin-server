@@ -1025,8 +1025,8 @@ class OODiag
          installed in #{conf_file}:
 
          --custom-rules=ipv4:filter:/etc/openshift/system-config-firewall-compat
-         --custom-rules=ipv4:filter:/etc/openshift/iptables.filter.rules
-         --custom-rules=ipv4:nat:/etc/openshift/iptables.nat.rules
+         --custom-rules=ipv4:filter:/var/lib/openshift/.httpd.d/iptables.filter.rules
+         --custom-rules=ipv4:nat:/var/lib/openshift/.httpd.d/iptables.nat.rules
        WARN
      end
     
