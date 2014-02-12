@@ -3581,36 +3581,41 @@ module OpenShift
       # * uses MCollective::RPC::Client
       #
       def self.execute_parallel_jobs_impl(handle)
+        custom_options = {}
+        mc_args = {}
         if handle.present?
-          start_time = Time.new
-          begin
-            mc_args = handle.clone
-            options = MCollectiveApplicationContainerProxy.rpc_options.merge(handle.delete(:args) || {})
-            rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
-            identities = handle.keys
-            rpc_client.custom_request('execute_parallel', mc_args, identities, {'identity' => identities}).each { |mcoll_reply|
-              if mcoll_reply.results[:statuscode] == 0
-                output = mcoll_reply.results[:data][:output]
-                exitcode = mcoll_reply.results[:data][:exitcode]
-                sender = mcoll_reply.results[:sender]
-                Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}  (Request ID: #{Thread.current[:user_action_log_uuid]})")
-
-                handle[sender] = output if exitcode == 0
-              else
-                Rails.logger.debug("ERROR: Error in output of parallel execute: #{mcoll_reply.results.inspect}")
-                sender = mcoll_reply.results[:sender]
-                # plant the statuscode error in each gear job
-                handle[sender].each { |gear_info|
-                  gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{mcoll_reply.results[:statusmsg]}"
-                  gear_info[:result_exit_code] = mcoll_reply.results[:statuscode]
-                }
-              end
-            }
-          ensure
-            rpc_client.disconnect
-          end
-          Rails.logger.debug "DEBUG: MCollective Response Time (execute_parallel): #{((Time.new - start_time)*1000).round}ms  (Request ID: #{Thread.current[:user_action_log_uuid]})"
+          mc_args = handle.clone
+          custom_options = handle.delete(:args) || {}
         end
+        return unless handle.present?
+
+        start_time = Time.new
+        begin
+          options = MCollectiveApplicationContainerProxy.rpc_options.merge(custom_options)
+          rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
+          identities = handle.keys
+          rpc_client.custom_request('execute_parallel', mc_args, identities, {'identity' => identities}).each { |mcoll_reply|
+            if mcoll_reply.results[:statuscode] == 0
+              output = mcoll_reply.results[:data][:output]
+              exitcode = mcoll_reply.results[:data][:exitcode]
+              sender = mcoll_reply.results[:sender]
+              Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}  (Request ID: #{Thread.current[:user_action_log_uuid]})")
+
+              handle[sender] = output if exitcode == 0
+            else
+              Rails.logger.debug("ERROR: Error in output of parallel execute: #{mcoll_reply.results.inspect}")
+              sender = mcoll_reply.results[:sender]
+              # plant the statuscode error in each gear job
+              handle[sender].each { |gear_info|
+                gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{mcoll_reply.results[:statusmsg]}"
+                gear_info[:result_exit_code] = mcoll_reply.results[:statuscode]
+              }
+            end
+          }
+        ensure
+          rpc_client.disconnect
+        end
+        Rails.logger.debug "DEBUG: MCollective Response Time (execute_parallel): #{((Time.new - start_time)*1000).round}ms  (Request ID: #{Thread.current[:user_action_log_uuid]})"
       end
 
       private

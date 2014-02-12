@@ -202,7 +202,7 @@ class Admin::Stats::Maker
           'name' => node['name'],
           'active' => node['active']
       }
-    end
+    end if district['servers']
     return cloned
   end
 
