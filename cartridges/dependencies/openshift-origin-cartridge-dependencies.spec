@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.20.3
+Version: 1.20.4
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -476,6 +476,9 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
+- PHP 5.4 - add mongo and imagick dependencies (vvitek@redhat.com)
+
 * Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
 - Merge pull request #4712 from tdawson/2014-02/tdawson/cartridge-deps
   (dmcphers+openshiftbot@redhat.com)
