@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.20.3
+Version: 1.20.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -272,6 +272,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
+- Speeding up multi ha test and fixing retries (dmcphers@redhat.com)
+
 * Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
 - Merge pull request #4720 from lsm5/new-iptables2
   (dmcphers+openshiftbot@redhat.com)
