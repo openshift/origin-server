@@ -9,6 +9,7 @@ class EmbCartControllerTest < ActionController::TestCase
     @login = "user#{@random}"
     @password = "password"
     @user = CloudUser.new(login: @login)
+    @user.add_gear_size("medium")
     @user.private_ssl_certificates = true
     @user.max_untracked_additional_storage = 10
     @user.save
@@ -49,6 +50,15 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :success
     assert_equal 1, @app.reload.group_instances.length
     assert_equal 1, @app.component_instances.length
+  end
+
+  test "embedded cartridge add with different gear size" do
+    with_app
+    name = mysql_version
+    post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name, "gear_size" => "medium"}
+    assert_response :unprocessable_entity
+    assert_equal 1, @app.reload.group_instances.length
+    json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "Incompatible gear sizes: small and medium for cartridges" }, ms.inspect }
   end
 
   test "embedded cartridge create with storage" do
