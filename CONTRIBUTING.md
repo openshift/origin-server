@@ -87,23 +87,32 @@ this obscures the purpose and makes rollback of individual changes harder.
 DO:
 
 * `git commit` without `-m` for multiline messages.
-* Format log messages like this:
+* Format commit messages like this:
 
-    `<script, class, or component> short description of the work done`
+~~~
+script/class/component: short description of the work done
 
-    `(Line 2) Link to Trello card, PEP, mailing list, or other planning documentation`
+Link to Trello card, PEP, mailing list, or other planning documentation
+Detailed explanation
+~~~
 
-    `(Remainder) Detailed explanation as needed`
+This makes later searches of the commit log much easier.
 
 AVOID:
 
-* Minimalist commit messages like this:
+* Non-descriptive one-line commit messages like this:
 
-    `Changed foo to bar (where, why?)`
+~~~
+Changed foo to bar
+~~~
 
-    `<broker> updated some things`
+(where, why?)
 
-These make later viewers work harder to figure out what it is.
+~~~
+broker card 123
+~~~
+
+(You have the card open; at least cut and paste the description and link.)
 
 
 ### Bug fixes ###
@@ -111,34 +120,37 @@ These make later viewers work harder to figure out what it is.
 DO:
 
 * `git commit` without `-m` for multiline messages.
-* Format a commit message like this:
+* Format commit messages like this:
 
-    `<script, class, or component> Bug <number> - short description of the fix, symptom, or bug`
+~~~
+script/class/component: short description of the fix, symptom, or bug
 
-    `(Line 2) Bugzilla link <https://bugzilla.redhat.com/show_bug.cgi?id=number>`
-
-    `(Remainder) Detailed explanation as needed`
+Bug <number>
+Bugzilla link <https://bugzilla.redhat.com/show_bug.cgi?id=number>
+Detailed explanation
+~~~
 
 Some benefits from this:
 
-1. By doing "bug `number`" ("bug" or "Bug" but not "BZ" or "Bugzilla")
-our GitHub detector will **automatically** put a message into the bug
-record once your commit hits master (which means test will know that
-your code is really in master).
-2. Adding the short description helps folks scan the commit log more
-easily. Including the BZ link (which you probably have handy) makes it
+1. Adding the short description helps readers search the commit log.
+2. Seeing "bug `number`" (but not "BZ" or "Bugzilla"),
+our GitHub detector will **automatically** add a comment on the bug
+once your commit merges to master (which lets QE know that
+your code is in). This can be anywhere in the message.
+3. Including the BZ link (which you probably have handy) makes it
 that much easier to get to it later (when you probably do not).
 
 AVOID:
 
-* Minimalist commit messages like this:
+* Non-descriptive commit messages like this:
 
-    `Bug <number>`
+~~~
+Bug <number>
+~~~
 
-    `Fixed a bug`
-
-These make later viewers work harder to figure out what it is.
-
+~~~
+Tiny fix
+~~~
 
 Various expectations
 ====================
@@ -149,6 +161,8 @@ DO:
 
 * Expect and check for failure conditions and raise or wrap as appropriate.
 * Set a timeout (preferably configurable) on any operation that could block forever.
+* If possible, provide error messages that help the user understand the
+context of the error and what to do about it.
 
 ### Secrets in quickstarts ###
 
@@ -168,7 +182,8 @@ Some environment variables and data from gears might be considered sensitive. Pr
 AVOID:
 
 * Your cartridge storing any sensitive data in MongoDB. DB contents are too likely to be displayed indiscreetly.
-* Log messages outside the gear (e.g. mcollective.log) that might log sensitive data. These should be scrubbed of sensitive data.
+* Logging messages outside the gear (e.g. in mcollective.log) that contain sensitive data.
+These messages should be scrubbed of sensitive data.
 
 ### Provide machine-readable script outputs ###
 
