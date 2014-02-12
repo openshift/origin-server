@@ -2120,7 +2120,7 @@ class Application
           end
 
           if change.from.gear_size != change.to.gear_size
-            raise OpenShift::UserException.new("Incompatible gear sizes: #{@gear_size} and #{gear_size} for cartridges #{change.to.components.map(&:name).uniq.to_sentence} that will reside on the same gear.", 142)
+            raise OpenShift::UserException.new("Incompatible gear sizes: #{change.from.gear_size} and #{change.to.gear_size} for cartridges #{change.to.components.map(&:name).uniq.to_sentence} that will reside on the same gear.", 142)
           end
 
           if change.added?
