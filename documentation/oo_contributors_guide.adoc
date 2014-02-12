@@ -1,0 +1,284 @@
+= OpenShift Contributors Guide
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+LATEST DOC UPDATES
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+This document describes the recommended workflow to maintain a fork of a GitHub repository and how to submit pull requests for new features or bug fixes. Additionally you will find information on specific code areas within OpenShift and how to contribute to them.
+
+== Creating a Development Environment
+
+=== Shell/Terminal Installation
+
+Linux- and OS X-based systems come packaged with a shell or terminal environment that is suitable for Origin development. Windows users will need to install a shell environment, and currently the most active project for delivering this kind of environment is http://www.cygwin.com/[Cygwin]. The rest of this document assumes that if you are working on a Windows system that you are working within the Cygwin environment.
+
+=== `git` Installation
+
+Once you have a working shell, you will need to install http://git-scm.com/[git]. There are a number of projects that provide a graphical interface to git, and these are fine to use. However, it is also necessary to run `git` directly from the command line.
+
+* Fedora / RHEL / CentOS: `yum install git`
+* OS X: git may be installed by default, but can also be installed by installing https://developer.apple.com/xcode/[XCode] or via a package manager like http://brew.sh/[Homebrew] or http://www.macports.org/[MacPorts].
+* Windows: Cygwin's package manager should include the latest version of git for Windows systems.
+
+=== Creating a Local Repository
+
+With a working shell environment and access to the `git` source control utility, you have the basic tools you'll need to copy the Origin code from https://github.com/[GitHub] and push your changes back when they're ready. Next you need to head to GitHub to set up a working repository for yourself.
+
+==== Create a GitHub Account
+
+If you don't have one already, head to GitHub and create an account for yourself. Registration is free and you won't be able to submit code changes without an account!
+
+==== Fork a Repository
+
+To start working with the code, you must first create a _fork_ of the GitHub repository that you wish to contribute to.
+
+1. Navigate to the GitHub page of the repository you wish to fork.
+2. Click on the fork button on the top right corner of the page.
+
+image:bootcamp_3_fork.jpg[image]
+
+This creates a copy of the repository in your own GitHub space.
+
+==== Cloning Your Fork
+_Cloning_ is the process of copying your forked code to your local system. The `git` utility does this in a way that establishes a relationship between your local copy of the code and the GitHub copy.
+
+===== Clone the repository from your fork
+
+----
+git clone git@github.com:<username>/<repo-name>.git
+git clone git@github.com:kraman/origin-server.git
+----
+
+===== Add the upstream repo so that you can pull changes
+
+----
+git remote add upstream <original repo git url>
+git remote add upstream git@github.com:openshift/origin-server.git
+----
+
+==== Working on a Topic Branch
+
+Always try to avoid working on the master branch.
+It usually results in merge conflicts and/or update issues.
+Instead, work on a bug/feature/topic branch whenever possible.
+
+----
+#start from the master branch
+git checkout master
+
+#create a new branch
+git branch dev/kraman/bug/12345
+
+#switch to the new branch
+git checkout dev/kraman/bug/12345
+
+#...make changes...
+----
+
+==== Staying Updated
+
+Once a fork has been created, it does not automatically track the upstream repository.
+Follow the steps outlined below to keep the master branch up-to-date.
+
+----
+#pull the latest changes from upstream
+git fetch upstream
+git fetch upstream --tags
+
+#make sure there are no un-committed changes
+git stash
+
+#make sure we are working on the master branch
+git checkout master
+
+#merge the latest changes
+git merge upstream/master
+
+#push the updates changes to our GitHub fork
+git push origin master
+git push origin --tags
+
+#return to your bug/feature branch
+git checkout dev/kraman/bug/12345
+
+#rebase this branch onto latest code from master (expect conflicts)
+git rebase master
+
+#... resolve conflicts
+
+#push the rebased branch back to your fork
+git push origin dev/kraman/bug/12345 -f
+
+#Restore any un-committed changes
+git stash pop
+----
+
+NOTE: The `git stash` steps are optional. It is easier if you commit all changes before attempting a rebase.
+
+== Hacking on OpenShift
+OpenShift development is divided roughly into the following areas:
+
+* link:#broker[_Broker_], which describes the Rails application that drives the REST API, plus management of Nodes via the message queuing service.
+* link:#runtime[_Runtime_], which describes the operating environment of the Nodes and the cartridge framework
+* link:#user-interface[_User Interface_], which covers the web console, the admin console, and the `rhc` client utility
+* link:#release-engineering[_Release Engineering_], which covers the packaging and distribution of OpenShift via RPM, vagrant, puppet, and `oo-install`
+
+Each section below explains how and where to look for the feature backlog, bug records, and source code relevant to these areas.
+
+=== General Notes
+
+**Feature Backlogs**: Our backlogs of user stories are currently maintained on https://trello.com/[Trello]. If you are not familiar with Trello, take a few minutes to look at https://trello.com/b/I7TjiplA/trello-tutorial[the tutorial].
+
+**Bug Tracking**: We use https://bugzilla.redhat.com/[Bugzilla] to track the reports and resolutions of OpenShift bugs. If you hit weird behavior with an OpenShift component:
+
+* Run a https://bugzilla.redhat.com/query.cgi[Bugzilla search] - product "OpenShift Origin"
+* Email the http://lists.openshift.redhat.com/openshiftmm/listinfo/dev[Origin Developers' mail list]
+* Ask someone on the http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4[#openshift-dev IRC channel]
+
+Once you know you're dealing with an unreported bug, please don't hesitate to submit it. The Bugzilla submission form will ask you which component of OpenShift the bug belongs under. See the development area information below which includes the relevant bugzilla groups.
+
+**Source Control**: The source code for OpenShift origin lives in public repositories on https://github.com/[GitHub]. If you aren't familiar with http://git-scm.com/[git], there are numerous primers available on the web.
+
+=== Broker
+The Broker itself is a Rails application that serves as the nerve center for OpenShift Origin. Everything from user creation to app deployment is handled through the Broker. The Broker exposes a http://openshift.github.io/documentation/rest_api/rest-api-1-6.html[REST API] and communicates with Node hosts via http://www.amqp.org/[AMQP].
+
+* https://trello.com/b/nbkIrqKa[Feature Backlog]
+* https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=MODIFIED&component=Broker&component=REST%20API&product=OpenShift%20Origin&query_format=advanced[Bugzilla Records] (components: Broker, REST API)
+* GitHub repo: https://github.com/openshift/origin-server[origin-server]
+
+=== Runtime
+
+"Runtime" refers to the components of OpenShift that are related to the hosted applications. This includes both the Node and the application http://openshift.github.io/documentation/oo_cartridge_developers_guide.html[Cartridges].
+
+* https://trello.com/b/qjfQ62lZ/openshift-origin-node[Feature Backlog]
+* https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=MODIFIED&component=Cartridge&component=Node&list_id=2209237&product=OpenShift%20Origin&query_format=advanced[Bugzilla Records] (components: Cartridge, Node)
+* GitHub repo: https://github.com/openshift/origin-server[origin-server]
+
+=== User Interface
+
+The user interface components include all of the things that users directly interact with when using OpenShift. Like the Broker, the web console and administrative consoles are Rails applications. Together with the `rhc` command-line utility, the consoles act as clients to the Broker's REST API.
+
+* https://trello.com/b/M0rP0aLj/openshift-origin-user-interface[Feature Backlog]
+* https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=MODIFIED&component=Command%20Line%20Interface&component=Management%20Console&component=Website&list_id=2209262&product=OpenShift%20Origin&query_format=advanced[Bugzilla Records] (components: Command Line Interface, Management Console, Website)
+* GitHub repos:
+** https://github.com/openshift/origin-server[origin-server]
+** https://github.com/openshift/rhc[rhc]
+
+=== Release Engineering
+
+Release engineering covers Origin testing, documentation and packaging.
+
+* https://trello.com/b/9jLHsM7K/openshift-origin-release-engineering[Feature Backlog]
+* https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=MODIFIED&component=Documentation&component=Installer&list_id=2209287&product=OpenShift%20Origin&query_format=advanced[Bugzilla Records] (components: Documentation, Installer)
+* GitHub repos:
+** Origin: https://github.com/openshift/origin-server[origin-server]
+** `oo-install`: https://github.com/openshift/openshift-extras/tree/master/oo-install[openshift-extras]
+** openshift/openshift-origin Puppet module: https://github.com/openshift/puppet-openshift_origin[puppet-openshift_origin]
+** Vagrant plugin: https://github.com/openshift/vagrant-openshift[vagrant-openshift]
+
+== Submitting Code
+
+If you are looking for information on specific code areas within OpenShift, jump to the next section. This section covers the basics of preparing modified code for being merged back into the Origin source.
+
+Once your code is ready to be submitted, you will need to submit a pull request with your changes:
+
+1. Update your branch and make sure you are rebased off the latest upstream/master:
+    a. `git fetch upstream`
+    b. `git rebase upstream/<source_branch>`
+    c. `git push origin <working_branch>`
+2. Squash your commits onto a single revision (described below)
+3. Submit a pull request on GitHub (described below)
+
+=== Combining multiple commits
+
+Before you can submit a request, you should rebase and then _squash_ all your changes on to a single commit. This makes it easier to review
+and also makes reverting the code easier in case of any build breakages.
+
+To do this, first have a look at the recent commits to your local repository with `git log`:
+
+----
+$ git log
+commit 0681b5f7be31457f3c56928e63a8bee1696e2cdc
+Author: Jane Doe <jane.doe@corp.com>
+Date:   Fri Jan 24 17:19:46 2014 -0500
+
+    Completed changes for the fix for Bug 1234
+
+commit 8e63a8bee1696e2cdc0681b5f7be31457f3c5692
+Author: Jane Doe <jane.doe@corp.com>
+Date:   Fri Jan 24 17:16:46 2014 -0500
+
+    Working on a fix for Bug 1234
+
+commit fb35b5f8063485560494af0f7fcb600cb3adfe4c
+Merge: d8929c2 a703b5f
+Author: John Doe <john.doe@acme.com>
+Date:   Fri Feb 14 09:54:59 2014 +0800
+
+    Merge pull request #2121 from other_coder/working_branch
+
+    Fixed a bug in foo.bar
+----
+
+In this instance, the top two items in the log represent local commits to Jane Doe's working branch. The third commit is a merge against upstream that was pulled in when Jane rebased her local repo directory. So in order to squash her intermediate commits into a single one, Jane will do an interactive rebase ("-i") starting from the most recent merge commit:
+
+----
+$ git rebase -i fb35b5f8063485560494af0f7fcb600cb3adfe4c
+----
+
+TIP: You don't need to enter the whole commit ID, but use copy and paste so that you don't have to type any of it.
+
+The rebase editor will appear, and from here Jane can squash the commits:
+
+----
+pick 8e63a8b Working on a fix for Bug 1234 <1>
+pick 0681b5f Completed changes for the fix for Bug 1234 <2>
+
+# Rebase fb35b5f..0681b5f onto fb35b5f
+#
+# Commands:
+#  p, pick = use commit
+#  r, reword = use commit, but edit the commit message
+#  e, edit = use commit, but stop for amending
+#  s, squash = use commit, but meld into previous commit
+#  f, fixup = like "squash", but discard this commit's log message
+#  x, exec = run command (the rest of the line) using shell
+#
+# These lines can be re-ordered; they are executed from top to bottom.
+#
+# If you remove a line here THAT COMMIT WILL BE LOST.
+#
+# However, if you remove everything, the rebase will be aborted.
+#
+# Note that empty commits are commented out
+----
+<1> Replace "pick" with "r" or "reword" to make the initial commit's message more explanatory: "Fix for Bug 1234 - broker.conf missing FOO_BAR setting."
+<2> On this line, replace "pick" with "f" or "fixup" to merge this commit into the initial commit.
+
+Now she can do a push to her forked repo on GitHub. If she previously pushed the intermediate commits, she will need to add the `--force` flag to overwrite those with the new squashed commit:
+
+----
+$ git push origin my_working_branch --force
+----
+
+For more information about squashing commits, read http://git-scm.com/book/en/Git-Tools-Rewriting-History#Squashing-Commits
+
+=== Creating a pull request
+
+https://help.github.com/articles/using-pull-requests[GitHub instructions on creating a pull request]
+
+If you need to make changes to your commit after a pull request has been issues,
+you can go back to the pull request page and update the commit range rather than
+submit a new pull requests.
+
+=== Getting Your Pull Request Reviewed
+The main OpenShift repos get dozens of pull requests per day. In order to make sure that your pull request is reviewed, please do one of these three things:
+
+1. If you know the GitHub ID of the person who should review your code, you can alert them in a comment on your pull request by including the GitHub username preceded by the '@' symbol.
+2. You can log into the OpenShift developers' IRC channel, http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4[#openshift-dev] on FreeNode, and ask for a code review.
+3. You can send an e-mail to the http://lists.openshift.redhat.com/openshiftmm/listinfo/dev[OpenShift developers' mail list] asking for a code review (don't forget to include a link to the pull request).
+
+Especially if you go with the mail list route, be sure to follow up if you don't hear from anyone within a business day. In general the response time should be much shorter.
+
