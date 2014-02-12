@@ -337,7 +337,8 @@ EOFZ
 
   def assert_gear_status_in_proxy(proxy, target_gear, status)
     passed = false
-    3.times do
+    num_tries = 3
+    (1..num_tries).each do |i|
       proxy_status_csv = `curl "http://#{proxy.dns}/haproxy-status/;csv" 2>/dev/null`
 
       if proxy.uuid == target_gear.uuid
@@ -352,14 +353,17 @@ EOFZ
       proxy_status_csv.split("\n").each do |line|
         names.each do |name|
           if line =~ /#{name}/
-            assert_match /#{status}/, line
-            passed = true
+            if line =~ /#{status}/
+              passed = true
+            elsif i == num_tries
+              assert_match /#{status}/, line
+            end
             break
           end
         end
       end
       break if passed
-      sleep 1
+      sleep 2
     end
 
     flunk("Target gear #{target_gear.name} did not have expected status #{status}") unless passed
