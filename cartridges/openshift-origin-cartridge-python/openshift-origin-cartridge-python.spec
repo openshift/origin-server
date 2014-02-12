@@ -27,11 +27,12 @@ Requires:      python < 2.8
 Requires:      mod_wsgi >= 3.4
 Requires:      mod_wsgi < 3.5
 %endif
-
-Obsoletes: openshift-origin-cartridge-community-python-2.7
-Obsoletes: openshift-origin-cartridge-community-python-3.3
-Obsoletes: openshift-origin-cartridge-python-2.6
-
+Provides:      openshift-origin-cartridge-community-python-2.7 = 2.0.0
+Provides:      openshift-origin-cartridge-community-python-3.3 = 2.0.0
+Provides:      openshift-origin-cartridge-python-2.6 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-community-python-2.7 <= 1.99.9
+Obsoletes:     openshift-origin-cartridge-community-python-3.3 <= 1.99.9
+Obsoletes:     openshift-origin-cartridge-python-2.6 <= 1.99.9
 BuildArch:     noarch
 
 %description

@@ -22,9 +22,9 @@ Requires:      java-1.7.0-openjdk
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem-json
+Provides:      openshift-origin-cartridge-jenkins-client-1.4 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-jenkins-client-1.4 <= 1.99.9
 BuildArch:     noarch
-
-Obsoletes: openshift-origin-cartridge-jenkins-client-1.4
 
 %description
 Provides plugin jenkins client support. (Cartridge Format V2)

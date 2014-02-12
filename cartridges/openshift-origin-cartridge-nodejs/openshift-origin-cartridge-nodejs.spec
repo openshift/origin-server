@@ -15,26 +15,21 @@ Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      %{scl}
 %endif
-
 Requires:      %{?scl:%scl_prefix}npm
 Requires:      %{?scl:%scl_prefix}nodejs-pg
 Requires:      %{?scl:%scl_prefix}nodejs-options
 Requires:      %{?scl:%scl_prefix}nodejs-supervisor
 Requires:      %{?scl:%scl_prefix}nodejs-async
-
 Requires:      %{?scl:%scl_prefix}nodejs-express
 Requires:      %{?scl:%scl_prefix}nodejs-connect
 Requires:      %{?scl:%scl_prefix}nodejs-mongodb
 Requires:      %{?scl:%scl_prefix}nodejs-mysql
 Requires:      %{?scl:%scl_prefix}nodejs-node-static
-
 Requires:      nodejs
 Requires:      nodejs-async
 Requires:      nodejs-connect
@@ -45,9 +40,8 @@ Requires:      nodejs-node-static
 Requires:      nodejs-pg
 Requires:      nodejs-supervisor
 Requires:      nodejs-options
-
-Obsoletes: openshift-origin-cartridge-nodejs-0.6
-
+Provides:      openshift-origin-cartridge-nodejs-0.6 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-nodejs-0.6 <= 1.99.9
 BuildArch:     noarch
 
 %description

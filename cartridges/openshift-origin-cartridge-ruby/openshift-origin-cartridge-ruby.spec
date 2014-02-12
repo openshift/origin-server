@@ -16,7 +16,6 @@ URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      openshift-origin-node-util
 Requires:      rubygem(openshift-origin-node)
-
 # For the ruby 1.8 cartridge
 %if 0%{?rhel}
 Requires:      mod_passenger
@@ -30,7 +29,6 @@ Requires:      rubygem-thread-dump
 Requires:      %{?scl:%scl_prefix}rubygem-fastthread
 Requires:      %{?scl:%scl_prefix}runtime
 %endif
-
 Requires:      %{?scl:%scl_prefix}js
 Requires:      %{?scl:%scl_prefix}libyaml
 Requires:      %{?scl:%scl_prefix}mod_passenger
@@ -42,10 +40,10 @@ Requires:      %{?scl:%scl_prefix}rubygem-passenger-devel
 Requires:      %{?scl:%scl_prefix}rubygem-passenger-native
 Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
 Requires:      %{?scl:%scl_prefix}rubygems
-
-Obsoletes: openshift-origin-cartridge-ruby-1.8
-Obsoletes: openshift-origin-cartridge-ruby-1.9-scl
-
+Provides:      openshift-origin-cartridge-ruby-1.8 = 2.0.0
+Provides:      openshift-origin-cartridge-ruby-1.9-scl = 2.0.0
+Obsoletes:     openshift-origin-cartridge-ruby-1.8 <= 1.99.9
+Obsoletes:     openshift-origin-cartridge-ruby-1.9-scl <= 1.99.9
 BuildArch:     noarch
 
 %description

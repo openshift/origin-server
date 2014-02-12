@@ -11,18 +11,16 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      mysql-server
 Requires:      mysql-devel
 Requires:      mysql-connector-java
-
 # For RHEL6 install mysql55 from SCL
 %if 0%{?rhel}
 Requires:      mysql55
 Requires:      mysql55-mysql-devel
 %endif
-
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+Provides:      openshift-origin-cartridge-mysql-5.1 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-mysql-5.1 <= 1.99.9
 BuildArch:     noarch
-
-Obsoletes: openshift-origin-cartridge-mysql-5.1
 
 %description
 Provides mysql cartridge support to OpenShift. (Cartridge Format V2)

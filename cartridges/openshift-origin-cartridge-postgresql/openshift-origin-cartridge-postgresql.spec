@@ -60,9 +60,9 @@ Requires:      %{?scl_ruby:%scl_prefix_ruby}rubygem-pg
 Requires:      rhdb-utils
 Requires:      uuid-pgsql
 Requires:      proj-nad
+Provides:      openshift-origin-cartridge-postgresql-8.4 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-postgresql-8.4 <= 1.99.9
 BuildArch:     noarch
-
-Obsoletes: openshift-origin-cartridge-postgresql-8.4
 
 %description
 Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)

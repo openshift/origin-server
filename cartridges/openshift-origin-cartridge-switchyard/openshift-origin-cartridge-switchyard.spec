@@ -11,9 +11,9 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      switchyard-as7-modules
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+Provides:      openshift-origin-cartridge-switchyard-0.6 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-switchyard-0.6 <= 1.99.9
 BuildArch:     noarch
-
-Obsoletes: openshift-origin-cartridge-switchyard-0.6
 
 %description
 Provides switchyard cartridge support to OpenShift

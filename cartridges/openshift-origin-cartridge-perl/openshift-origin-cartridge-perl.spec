@@ -14,10 +14,9 @@ Requires:      openshift-origin-node-util
 Requires:      mod_perl
 Requires:      perl-App-cpanminus
 Requires:      perl-IO-Socket-SSL
-
-Obsoletes: openshift-origin-cartridge-perl-5.10
-
-BuildArch: noarch
+Provides:      openshift-origin-cartridge-perl-5.10 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-perl-5.10 <= 1.99.9
+BuildArch:     noarch
 
 %description
 Perl cartridge for OpenShift. (Cartridge Format V2)

@@ -12,10 +12,8 @@ Requires:      openshift-origin-cartridge-mongodb
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      mms-agent
-
-Obsoletes: openshift-origin-cartridge-10gen-mms-agent-0.1
-
-
+Provides:      openshift-origin-cartridge-10gen-mms-agent-0.1 = 2.0.0
+Obsoletes:     openshift-origin-cartridge-10gen-mms-agent-0.1 <= 1.99.9
 BuildArch:     noarch
 
 %description
