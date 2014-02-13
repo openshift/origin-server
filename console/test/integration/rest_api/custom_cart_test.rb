@@ -46,7 +46,8 @@ class RestApiCustomCartTest < ActiveSupport::TestCase
     setup_domain
     assert_create_app_fails({:include => :cartridges, :cartridges => [{:url => 'https://cdk-claytondev.rhcloud.com/manifest/failure_output'}]}, "Create an app with a failing cartridge control script and output") do |app|
       assert app.errors.full_messages.one?{ |m| m =~ /Stderr output/ }, app.errors.inspect
-      assert app.errors.full_messages.one?{ |m| m =~ /Deliberate failure/ }, app.errors.inspect
+      assert app.errors.full_messages.any?{ |m| m =~ /Deliberate failure/ }, app.errors.inspect
+      assert app.errors.full_messages.one?{ |m| m.include? "Failed to execute: 'control start'" }, app.errors.inspect
     end
   end
 
