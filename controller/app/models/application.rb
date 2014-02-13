@@ -664,7 +664,6 @@ class Application
     end
 
     cartridges.each do |cart|
-
       # ensure that the user isn't trying to add multiple versions of the same cartridge
       if cart_name_map.has_key?(cart.original_name)
         raise OpenShift::UserException.new("#{cart.name} cannot co-exist with #{cart_name_map[cart.original_name]} in the same application", 136, "cartridge")
@@ -2428,7 +2427,7 @@ class Application
       process = added
       added = []
       process.each do |cart|
-        cart.requires.each do |required|
+        (cart.requires).each do |required|
           satisfied = Array(required).any? do |feature|
             all.any?{ |d| d.features.include?(feature) || d.names.include?(feature) }
           end
@@ -2543,37 +2542,35 @@ class Application
   def calculate_configure_order(specs)
     configure_order = ComponentOrder.new
 
-    existing_categories = {}
-    self.component_instances.each do |instance|
-      cart = instance.cartridge
-
-      [[instance.cartridge_name], cart.categories, cart.provides].flatten.each do |cat|
-        existing_categories[cat] = [] if existing_categories[cat].nil?
-        existing_categories[cat] << instance
-      end
-    end
-
-    comps = []
-    categories = {}
-    specs.each do |spec|
-      cart = spec.cartridge
-
-      comps << spec
-      [cart.name, cart.categories, cart.provides].flatten.each do |cat|
-        categories[cat] = [] if categories[cat].nil?
-        categories[cat] << spec
-      end
-      configure_order.add_component_order([spec])
-    end
+    specs.each{ |spec| configure_order.add_component_order([spec]) }
 
     #use the map to build DAG for order calculation
-    comps.each do |spec|
-      spec.cartridge.configure_order.each do |dep_cart|
-        if !categories[dep_cart] and !existing_categories[dep_cart]
-          raise OpenShift::UserException.new("Cartridge '#{spec.cartridge_name}' can not be added without cartridge '#{dep_cart}'.", 185)
+    specs.each do |spec|
+      order = []
+      spec.cartridge.configure_order.each do |deps|
+        # does an existing cartridge satisfy the order requirement
+        next if Array(deps).any?{ |name| self.component_instances.any?{ |i| i.cartridge.names.include?(name) || i.cartridge.categories.include?(name) } }
+
+        # does a newly installed cartridge satisfy the order requirement
+        match = false
+        Array(deps).each do |name|
+          if match = specs.detect{ |i| i.cartridge.names.include?(name) } || specs.detect{ |i| i.cartridge.categories.include?(name) }
+            break
+          end
         end
+        raise OpenShift::UserException.new("Cartridge '#{spec.cartridge_name}' can not be added without #{Array(deps).join(' or ')}.", 185) if !match
+        order << match
       end
-      configure_order.add_component_order(spec.cartridge.configure_order.map{ |c| categories[c] }.flatten)
+      next if order.empty?
+      configure_order.add_component_order(order)
+    end
+
+    categories = {}
+    specs.each do |spec|
+      cats = spec.cartridge.categories
+      ['web_framework', 'plugin', 'service', 'ci_builder', 'web_proxy'].each do |cat|
+        (categories[cat] ||= []) << spec if cats.include?(cat)
+      end
     end
 
     # enforce system order of components (web_framework first etc)

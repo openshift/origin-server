@@ -27,8 +27,6 @@ Cart-Data:
 Provides:
 - 10gen-mms-agent-0.1
 - 10gen-mms-agent
-Requires:
-- mongodb
 Subscribes:
   set-mongo-connection-info:
     Type: NET_TCP:db:mongodb

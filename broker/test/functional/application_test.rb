@@ -202,10 +202,14 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   test "cartridges are added based on requirements" do
     app = Application.create_app(@appname, cartridge_instances_for(:php), @domain)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
-$stop = 1
+
     phpmyadmin = cartridge_instances_for(:phpmyadmin).map(&:cartridge)
-    app.add_cartridges(phpmyadmin)
-    assert app.reload.cartridges.detect{ |c| c.name == phpmyadmin.first.name }
+    assert_raises(OpenShift::UserException){ app.add_cartridges(phpmyadmin) }
+    begin
+      app.add_cartridges(phpmyadmin)
+    rescue OpenShift::UserException => e
+      assert e.message =~ /Cartridge .* can not be added without/, e.message
+    end
   end
 
   test "cartridges ignore existing requirements" do
@@ -214,7 +218,7 @@ $stop = 1
 
     assert_equal 3, app.cartridges.length, app.cartridges.map(&:name)
     assert_equal 1, app.cartridges.select{ |c| c.names.include?('php') }.count
-    assert_equal 1, app.cartridges.select{ |c| c.names.include?('mysql') }.count
+    assert_equal 1, app.cartridges.select{ |c| c.names.include?('mysql') || c.names.include?('mariadb') }.count
     assert_equal 1, app.cartridges.select{ |c| c.names.include?('phpmyadmin') }.count
   end
 
@@ -227,7 +231,7 @@ $stop = 1
 
     assert_equal 3, app.cartridges.length, app.cartridges.map(&:name)
     assert_equal 1, app.cartridges.select{ |c| c.names.include?('php') }.count
-    assert_equal 1, app.cartridges.select{ |c| c.names.include?('mysql') }.count
+    assert_equal 1, app.cartridges.select{ |c| c.names.include?('mysql') || c.names.include?('mariadb') }.count
     assert_equal 1, app.cartridges.select{ |c| c.names.include?('phpmyadmin') }.count
   end
 
