@@ -37,10 +37,6 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert type.tags.include? :administration
     assert_not_equal type.name, type.display_name
 
-    assert type = types.find{ |t| t.name.starts_with?('rockmongo-') }
-    assert type.requires.find{ |r| r.any?{ |s| s.starts_with?('mongodb-') } }, type.requires.inspect
-    assert type.tags.include? :administration
-
     assert (required = types.select{ |t| t.requires.present? }).length > 1
     assert types.all?{ |t| t.tags.present? }
     assert types.all?{ |t| t.tags.present? }
@@ -58,7 +54,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
   end
 
   test 'should load metadata from broker' do
-    assert type = CartridgeType.find('zend-6.1')
+    assert type = CartridgeType.find('python-3.3')
     assert type.tags.include?(:web_framework), type.tags.inspect
     assert_not_equal type.name, type.display_name
   end
@@ -116,7 +112,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('ruby').map(&:name)
     assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('ruby*').map(&:name)
     assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('*uby*').map(&:name)
-    assert_equal ['zend-6.1','php-5.4','php-5.3'], CartridgeType.cached.matches('zend-|php-').map(&:name)
-    assert_equal ['php-5.4','php-5.3','zend-6.1'], CartridgeType.cached.matches('php-|zend-').map(&:name)
+    assert_equal ['python-3.3','python-2.7','python-2.6','php-5.4','php-5.3'], CartridgeType.cached.matches('python-|php-').map(&:name)
+    assert_equal ['php-5.4','php-5.3','python-3.3','python-2.7','python-2.6'], CartridgeType.cached.matches('php-|python-').map(&:name)
   end
 end
