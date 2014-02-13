@@ -975,7 +975,7 @@ topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /usr/libexec/mcollective
-#logfile = /var/log/mcollective-client.log
+logfile = /var/log/openshift/broker/mcollective-client.log
 loglevel = debug
 
 # Plugins
@@ -998,7 +998,7 @@ topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /opt/rh/ruby193/root/usr/libexec/mcollective
-#logfile = /var/log/mcollective-client.log
+logfile = /var/log/openshift/broker/ruby193-mcollective-client.log
 loglevel = debug
 
 # Plugins
@@ -1013,7 +1013,6 @@ plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette
 EOF
 ----
-
 
 Update the _plugin.activemq.pool.1.password_ password to match what you set up in the active configuration.
 
@@ -2041,7 +2040,7 @@ topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /usr/libexec/mcollective
-logfile = /var/log/mcollective.log
+logfile = /var/log/openshift/node/mcollective.log
 loglevel = debug
 daemonize = 0
 direct_addressing = 1
@@ -2071,7 +2070,7 @@ topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /opt/rh/ruby193/root/usr/libexec/mcollective
-logfile = /var/log/mcollective.log
+logfile = /var/log/openshift/node/ruby193-mcollective.log
 loglevel = debug
 daemonize = 1
 direct_addressing = 1
@@ -2628,7 +2627,6 @@ setsebool -P httpd_unified=on httpd_can_network_connect=on httpd_can_network_rel
              httpd_read_user_content=on httpd_enable_homedirs=on httpd_run_stickshift=on \
              allow_polyinstantiation=on httpd_run_stickshift=on httpd_execmem=on
 restorecon -rv /var/run
-restorecon -rv /usr/sbin/mcollectived /var/log/mcollective.log /var/run/mcollectived.pid
 restorecon -rv /var/lib/openshift /etc/openshift/node.conf /etc/httpd/conf.d/openshift
 ----
 
