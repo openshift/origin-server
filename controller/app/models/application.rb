@@ -1706,6 +1706,21 @@ class Application
     gear_id_prereqs = {}
     maybe_notify_app_create_op = []
     app_dns_gear_id = nil
+
+    comp_spec_gears = {}
+    gear_comp_specs = {}
+    comp_specs.each do |comp_spec|
+      sparse_carts_added_count = 0
+      gear_ids.each_with_index do |gear_id, index|
+        next if not add_sparse_cart?(index, sparse_carts_added_count, comp_spec, is_scale_up)
+        sparse_carts_added_count += 1
+        comp_spec_gears[comp_spec] = [] unless comp_spec_gears[comp_spec]
+        comp_spec_gears[comp_spec] << gear_id
+        gear_comp_specs[gear_id] = [] unless gear_comp_specs[gear_id]
+        gear_comp_specs[gear_id] << comp_spec
+      end
+    end
+
     gear_ids.each do |gear_id|
       host_singletons = (gear_id == deploy_gear_id)
       app_dns = (host_singletons && hosts_app_dns)
@@ -1720,7 +1735,7 @@ class Application
 
       init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id,
                                     gear_size: gear_size, addtl_fs_gb: additional_filesystem_gb,
-                                    comp_specs: comp_specs, host_singletons: host_singletons,
+                                    comp_specs: gear_comp_specs[gear_id], host_singletons: host_singletons,
                                     app_dns: app_dns, pre_save: (not self.persisted?))
       init_gear_op.prereq << prereq_op._id.to_s unless prereq_op.nil?
 
@@ -1778,7 +1793,7 @@ class Application
     end
 
     prereq_op_id = prereq_op._id.to_s rescue nil
-    add, usage = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
+    add, usage = calculate_add_component_ops(gear_comp_specs, comp_spec_gears, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
                                              is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
                                              app_dns_gear_id)
     ops.concat(add)
@@ -1910,11 +1925,11 @@ class Application
     false
   end
 
-  def calculate_add_component_ops(comp_specs, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil, app_dns_gear_id=nil)
+  def calculate_add_component_ops(gear_comp_specs, comp_spec_gears, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil, app_dns_gear_id=nil)
     ops = []
     usage_ops = []
 
-    comp_specs.each do |comp_spec|
+    comp_spec_gears.keys.each do |comp_spec|
       component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: [], expose_ports: [], add_broker_auth_keys: []} if component_ops[comp_spec].nil?
       cartridge = comp_spec.cartridge
 
@@ -1932,11 +1947,13 @@ class Application
         ops << new_component_op
       end
 
-      sparse_carts_added_count = 0
-      gear_id_prereqs.each_with_index do |prereq, index|
-        gear_id, prereq_id = prereq
-        next if not add_sparse_cart?(index, sparse_carts_added_count, comp_spec, is_scale_up)
-        sparse_carts_added_count += 1
+      #sparse_carts_added_count = 0
+      #gear_id_prereqs.each_with_index do |prereq, index|
+      comp_spec_gears[comp_spec].each do |gear_id|
+        #gear_id, prereq_id = prereq
+        prereq_id = gear_id_prereqs[gear_id]
+        #next if not add_sparse_cart?(index, sparse_carts_added_count, comp_spec, is_scale_up)
+        #sparse_carts_added_count += 1
 
         # Ensure that all web_proxies get broker auth
         if cartridge.is_web_proxy?
@@ -1960,7 +1977,7 @@ class Application
 
           aliases_with_certs = self.aliases.select {|app_alias| app_alias.has_private_ssl_certificate}
           if aliases_with_certs.present?
-            resend_ssl_certs_op = ResendSslCertsOp.new(gear_id: gear_id, fqdns: aliases_with_certs.map {|app_alias| app_alias.fqdn}, prereq: [resend_aliases_op._id.to_s])
+            resend_ssl_certs_op = ResendSslCertsOp.new(gear_id: gear_id, ssl_certs: get_ssl_certs(), prereq: [resend_aliases_op._id.to_s])
             ops.push resend_ssl_certs_op
           end
         end
@@ -2124,9 +2141,24 @@ class Application
 
           if change.added?
             gear_id_prereqs = {}
-            group_instance.gears.each{ |g| gear_id_prereqs[g._id.to_s] = []}
+            gear_comp_specs = {}
+            comp_spec_gears = {}
+            change.added.each do |cs|
+              sparse_carts_added_count = 0
+              group_instance.gears.each_with_index do |g, i|
+                gear_id_prereqs[g._id.to_s] = [] unless gear_id_prereqs[g._id.to_s]
+                gear_comp_specs[g._id.to_s] = [] unless gear_comp_specs[g._id.to_s]
+                comp_spec_gears[cs] = [] unless comp_spec_gears[cs]
+                
+                if add_sparse_cart?(i, sparse_carts_added_count, cs, false)
+                  gear_comp_specs[g._id.to_s].concat change.added
+                  comp_spec_gears[cs] << g._id.to_s
+                  sparse_carts_added_count += 1
+                end
+              end
+            end
 
-            ops, usage_ops = calculate_add_component_ops(change.added, change.existing_instance_id.to_s, deploy_gear_id, gear_id_prereqs, component_ops, false, prereq_op_id, nil)
+            ops, usage_ops = calculate_add_component_ops(gear_comp_specs, comp_spec_gears, change.existing_instance_id.to_s, deploy_gear_id, gear_id_prereqs, component_ops, false, prereq_op_id, nil)
             pending_ops.concat(ops)
             begin_usage_ops.concat(usage_ops)
           end
@@ -2646,6 +2678,28 @@ class Application
     computed_stop_order.compact!
 
     [computed_start_order, computed_stop_order]
+  end
+
+  def get_ssl_certs(fqdns=[])
+    # get all the SSL certs from the HAProxy DNS gear 
+    haproxy_gears = self.gears.select { |g| g.component_instances.select { |ci| ci.get_cartridge.is_web_proxy? }.present? }
+    dns_haproxy_gear = haproxy_gears.select { |g| g.app_dns }.first
+    certs = dns_haproxy_gear.get_all_ssl_certs()
+    
+    # if the certs are not avaialble on the dns haproxy gear, make another check on a different haproxy gear
+    if certs.blank?
+      non_dns_haproxy_gears = haproxy_gears.select { |g| !g.app_dns }
+      non_dns_haproxy_gears.each do |g|
+        certs = g.get_all_ssl_certs()
+        break if certs.present?
+      end
+    end
+
+    # if SSL certs are still not received, log this as an error, but continue
+    Rails.logger.error "SSL certificate information not received from haproxy gears for application #{application.canonical_name}" if certs.blank?
+     
+    # send the SSL certs for the specified aliases to the gear 
+    certs.select { |cert_info| fqdns.blank? or fqdns.include? cert_info[2] }
   end
 
   def get_all_updated_ssh_keys

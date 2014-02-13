@@ -1,22 +1,15 @@
 class ResendSslCertsOp < PendingAppOp
 
-  field :fqdns, type: Array
   field :gear_id, type: String
+  field :ssl_certs, type: Array
 
   def execute
     result_io = ResultIO.new
     gear = get_gear()
     unless gear.removed
-      # get all the SSL certs from the HAProxy DNS gear 
-      haproxy_gears = application.gears.select { |g| g.component_instances.select { |ci| ci.get_cartridge.is_web_proxy? }.present? }
-      dns_haproxy_gear = haproxy_gears.select { |g| g.app_dns }.first
-      certs = dns_haproxy_gear.get_all_ssl_certs()
-
-      # send the SSL certs for the specified aliases to the gear 
-      certs.each do |cert_info|
-        if fqdns.include? cert_info[2]
-          result_io.append gear.add_ssl_cert(cert_info[0], cert_info[1], cert_info[2])
-        end
+      # send the specified SSL certs to the gear 
+      ssl_certs.each do |cert_info|
+        result_io.append gear.add_ssl_cert(cert_info[0], cert_info[1], cert_info[2])
       end 
     end
     result_io
@@ -26,8 +19,8 @@ class ResendSslCertsOp < PendingAppOp
     result_io = ResultIO.new
     gear = get_gear()
     unless gear.removed
-      fqdns.each do |fqdn|
-        result_io.append gear.remove_ssl_cert(fqdn)
+      ssl_certs.each do |cert_info|
+        result_io.append gear.remove_ssl_cert(cert_info[2])
       end
     end
     result_io

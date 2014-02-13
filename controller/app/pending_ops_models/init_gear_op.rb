@@ -39,13 +39,8 @@ class InitGearOp < PendingAppOp
           application.downloaded_cart_map[instance.cartridge.original_name] = CartridgeCache.cartridge_to_data(instance.cartridge) if cartridge.singleton? && !skip_map
         end
         
-        # FIXME: this is a hack - need to move this to a common method in the application
-        # ensure the proxy has the appropriate min scale and multiplier
-        if application.ha and spec.cartridge.is_web_proxy?
-          spec = ComponentOverrideSpec.new(spec.dup, 2, -1, Rails.configuration.openshift[:default_ha_multiplier] || 0).merge(spec)
-        end
-        # check if this gear has a sparse cart
-        sparse_carts << application.find_component_instance_for(spec)._id if spec.component.is_sparse? and application.add_sparse_cart?(0, 0, spec, true)
+        # check if this is a sparse cart
+        sparse_carts << application.find_component_instance_for(spec)._id if spec.component.is_sparse?
       end
 
       # add the gear
