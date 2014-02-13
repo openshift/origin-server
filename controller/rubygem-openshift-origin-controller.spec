@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.20.4
+Version: 1.20.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,30 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 13 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
+- Merge pull request #4753 from
+  smarterclayton/make_configure_order_define_requires
+  (dmcphers+openshiftbot@redhat.com)
+- Configure-Order should influence API requires (ccoleman@redhat.com)
+- Fix for bug 1064838 and partial fix for bug 1064141  - Setting comp_spec
+  attributes for ha apps only if the app is ha  - fixing a typo in variable
+  name where 'gear' was used instead of 'g' (abhgupta@redhat.com)
+- Merge pull request #4752 from bparees/restore_test
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1063764 and 1064239:  - Unsubscribe connections was not being called  -
+  ALLOW_MULTIPLE_HAPROXY_ON_NODE config was not being honored
+  (abhgupta@redhat.com)
+- add test for jboss snapshot/restore that includes app content
+  (bparees@redhat.com)
+- Merge pull request #4750 from pravisankar/dev/ravi/bug1028919
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4674 from fabianofranz/dev/155
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1064107 - Minor fix in district_nodes_clone(), maker.rb
+  (rpenta@redhat.com)
+- [origin-ui-155] Improves error and debug messages on the REST API and web
+  console (contact@fabianofranz.com)
+
 * Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
 - Gear size conflicts should be covered by a unit test (ccoleman@redhat.com)
 - Test case cleanup (dmcphers@redhat.com)
