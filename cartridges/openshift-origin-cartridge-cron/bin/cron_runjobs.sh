@@ -37,7 +37,7 @@ fi
 
 export PATH=$path
 
-CART_CONF_DIR=$OPENSHIFT_CRON_DIR/versions/$OPENSHIFT_CRON_VERSION/configuration
+CART_CONF_DIR=$OPENSHIFT_CRON_DIR/configuration
 
 function log_message() {
    msg=${1-""}
@@ -68,7 +68,10 @@ SCRIPTS_DIR="$OPENSHIFT_REPO_DIR/.openshift/cron/$freq"
 if [ -d "$SCRIPTS_DIR" ]; then
    # Run all scripts in the scripts directory serially.
    executor="run-parts"
-   [ -n "$MAX_RUN_TIME" ]  &&  executor="timeout $MAX_RUN_TIME run-parts"
+   if [ -n "$MAX_RUN_TIME" ]; then
+     # TODO: use signal -s 1 --kill-after=$KILL_AFTER_TIME" when available
+     executor="timeout -s 9 $MAX_RUN_TIME run-parts"
+   fi
 
    (
       flock -e -n 9
@@ -93,7 +96,7 @@ if [ -d "$SCRIPTS_DIR" ]; then
               #  Use run-parts - gives us jobs.{deny,allow} and whitelists.
               $executor "$SCRIPTS_DIR"
               status=$?
-              if [ 124 -eq $status ]; then
+              if [ 124 -eq $status -o 137 -eq $status ]; then
                   wmsg="Warning: $freq cron run terminated as it exceeded max run time"
                   log_message "$wmsg [$MAX_RUN_TIME] for openshift user '$OPENSHIFT_GEAR_UUID'" > /dev/null 2>&1
                   echo "$wmsg"
