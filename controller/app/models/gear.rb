@@ -176,7 +176,7 @@ class Gear
       application.process_commands(result_io, component._id, self)
     end
     raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
-    if component.is_sparse?
+    if component.is_sparse? and !self.sparse_carts.include?(component._id)
       self.sparse_carts << component._id
       self.save!
     end
