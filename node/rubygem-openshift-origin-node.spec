@@ -178,9 +178,26 @@ ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/c
 ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
 ln -s %{openshift_lib}/node/jobs/openshift-origin-stale-lockfiles %{buildroot}/etc/cron.daily/
 
-%post
-/bin/rm -f /etc/openshift/env/*.rpmnew
+%pre
+# iptables.*.rules will be installed in /var/lib/openshift/.httpd.d moving
+# forward. Following script ensures that existing rules in /etc/openshift are
+# first moved over to the new dir before installing new files.
+# See: https://bugzilla.redhat.com/show_bug.cgi?id=1045224
+# and https://bugzilla.redhat.com/show_bug.cgi?id=1064219#c2
+if [[ -f /etc/openshift/iptables.filter.rules ]]; then
+/bin/cp /etc/openshift/iptables.filter.rules %{_var}/lib/openshift/.httpd.d/
+fi
+if [[ -f /etc/openshift/iptables.nat.rules ]]; then
+/bin/cp /etc/openshift/iptables.nat.rules %{_var}/lib/openshift/.httpd.d/
+fi
+if [[ -f /etc/openshift/iptables.filter.rules.bak ]]; then
+/bin/cp /etc/openshift/iptables.filter.rules.bak %{_var}/lib/openshift/.httpd.d/
+fi
+if [[ -f /etc/openshift/iptables.nat.rules.bak ]]; then
+/bin/cp /etc/openshift/iptables.nat.rules.bak %{_var}/lib/openshift/.httpd.d/
+fi
 
+%post
 if ! grep -q "/usr/bin/oo-trap-user" /etc/shells
 then
   echo "/usr/bin/oo-trap-user" >> /etc/shells
@@ -211,6 +228,23 @@ oo-admin-ctl-tc stop >/dev/null 2>&1 || :
   chkconfig --del openshift-iptables-port-proxy || :
 %endif
 
+fi
+
+%posttrans
+# ensure old config files are actually deleted
+# See: https://bugzilla.redhat.com/show_bug.cgi?id=1045224
+# and: https://bugzilla.redhat.com/show_bug.cgi?id=1064219#c2
+if [[ -f /etc/openshift/iptables.filter.rules ]]; then
+/bin/rm /etc/openshift/iptables.filter.rules
+fi
+if [[ -f /etc/openshift/iptables.nat.rules ]]; then
+/bin/rm /etc/openshift/iptables.nat.rules
+fi
+if [[ -f /etc/openshift/iptables.filter.rules.bak ]]; then
+/bin/rm /etc/openshift/iptables.filter.rules.bak
+fi
+if [[ -f /etc/openshift/iptables.nat.rules.bak ]]; then
+/bin/rm /etc/openshift/iptables.nat.rules.bak
 fi
 
 
