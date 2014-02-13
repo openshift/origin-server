@@ -8,7 +8,7 @@ class ResendSslCertsOp < PendingAppOp
     gear = get_gear()
     unless gear.removed
       # get all the SSL certs from the HAProxy DNS gear 
-      haproxy_gears = application.gears.select { |g| gear.component_instances.select { |ci| ci.get_cartridge.is_web_proxy? }.present? }
+      haproxy_gears = application.gears.select { |g| g.component_instances.select { |ci| ci.get_cartridge.is_web_proxy? }.present? }
       dns_haproxy_gear = haproxy_gears.select { |g| g.app_dns }.first
       certs = dns_haproxy_gear.get_all_ssl_certs()
 

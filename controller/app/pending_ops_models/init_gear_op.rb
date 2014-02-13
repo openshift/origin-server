@@ -41,7 +41,7 @@ class InitGearOp < PendingAppOp
         
         # FIXME: this is a hack - need to move this to a common method in the application
         # ensure the proxy has the appropriate min scale and multiplier
-        if spec.cartridge.is_web_proxy?
+        if application.ha and spec.cartridge.is_web_proxy?
           spec = ComponentOverrideSpec.new(spec.dup, 2, -1, Rails.configuration.openshift[:default_ha_multiplier] || 0).merge(spec)
         end
         # check if this gear has a sparse cart
