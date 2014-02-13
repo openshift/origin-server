@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.20.3
+Version: 1.20.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Thu Feb 13 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
+- Bug 1028919 - Avoid spurious calls to mcollective rpc interface in case of
+  parallel op execution (rpenta@redhat.com)
+
 * Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
 - Merge pull request #4700 from pravisankar/dev/ravi/bug1060339
   (dmcphers+openshiftbot@redhat.com)
