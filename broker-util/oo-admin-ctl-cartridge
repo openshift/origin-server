@@ -290,10 +290,13 @@ class Command
         end
       else
         CartridgeType.find(*options.ids)
-      end
+      end.compact
     if carts.uniq.length == 1
       warn "No differences between the specified carts #{carts.map(&:_id)}"
       return 0
+    elsif carts.empty?
+      warn "No cartridges match"
+      return 1
     end
     warn "#{cartridge_label(carts.first)}\n#{cartridge_label(carts.last)}\n---"
 
