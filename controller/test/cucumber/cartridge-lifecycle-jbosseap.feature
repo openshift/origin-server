@@ -34,11 +34,6 @@ Feature: Cartridge Lifecycle JBossEAP Verification Tests
     When the jboss management interface is disabled
     Then deployment verification should be skipped with management unavailable message
 
-  #Scenario: Application Modification
-    When the application is changed
-    Then it should be updated successfully
-    And the application should be accessible
-
   #Scenario: Application Restarting
     When the application is restarted
     Then the application should be accessible
@@ -47,12 +42,16 @@ Feature: Cartridge Lifecycle JBossEAP Verification Tests
     When I tidy the application
     Then the application should be accessible
 
-  #Scenario: Application Snapshot
+  #Scenario: Application Modification and Snapshot 
     When I snapshot the application
     Then the application should be accessible
     When a new file is added and pushed to the client-created application repo
+    And the application is changed
+    Then it should be updated successfully
+    And the application should be accessible
     When I restore the application
     Then the application should be accessible
+    And the application should display default content on first attempt
     And the new file will not be present in the gear app-root repo
 
   #Scenario: Application Destroying
