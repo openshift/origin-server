@@ -336,7 +336,16 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.owner.reload
 
     component_instance = app.component_instances.find_by(cartridge_name: php_version)
+    web_instance = app.web_component_instance
     specs = component_instance.group_instance.all_component_instances.map(&:to_component_spec)
+
+    app.update_component_limits(component_instance, 1, 2, nil)
+    assert_equal 2, (app = Application.find(app._id)).gears.length
+    assert_equal [GroupOverride.new(specs, nil, 2)], app.group_overrides
+$stop = 1
+    app.scale_by(web_instance.group_instance_id, 1)
+    assert_equal 3, (app = Application.find(app._id)).gears.length
+    assert_equal [GroupOverride.new(specs, nil, 2)], app.group_overrides
 
     app.update_component_limits(component_instance, 2, 2, nil)
     assert_equal 3, (app = Application.find(app._id)).gears.length
@@ -354,7 +363,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal 3, (app = Application.find(app._id)).gears.length
     assert_equal [], app.group_overrides
 
-    web_instance = app.web_component_instance
     app.scale_by(web_instance.group_instance_id, 1)
     app.reload
     assert_equal 4, app.gears.count
