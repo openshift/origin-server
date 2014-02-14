@@ -2,7 +2,7 @@ NAME
   oo-admin-upgrade
 
 SYNOPSIS
-  oo-admin-upgrade upgrade-node|upgrade-gear|upgrade-from-file|archive [<command_specific_options>]
+  oo-admin-upgrade (upgrade-node|upgrade-gear|upgrade-from-file|archive) [<command_specific_options>]
 
 DESCRIPTION
   Coordinates upgrade of cartridges across all nodes. Designed around the principal that each gear upgrade is reentrant 
