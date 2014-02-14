@@ -454,6 +454,9 @@ Commands:
 
   delete      - Remove one or more named cartridges
 
+  diff        - Compare two cartridges
+                Requires two ids or names
+
   import      - Import a manifest as one or more cartridges
                 Requires --url
 

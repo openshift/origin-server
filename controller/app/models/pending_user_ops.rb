@@ -61,7 +61,7 @@ class PendingUserOps
     updated_op = update_with_retries(5, failure_message) do |current_user, current_op, op_index|
       CloudUser.where({ "_id" => current_user._id, "pending_ops.#{op_index}._id" => current_op._id }).update({"$set" => { "pending_ops.#{op_index}.state" => new_state }})
     end
-    
+
     # set the state in the object in mongoid memory for access by the caller
     self.state = updated_op.state
   end
