@@ -502,7 +502,7 @@ class Application
   def implicit_application_overrides(specs=nil)
     specs ||= component_instances.map(&:to_component_spec)
 
-    # Overides from the basic cartridge definitions.
+    # Overrides from the basic cartridge definitions.
     overrides = []
     specs.each do |spec|
       # Cartridges can contribute overrides
@@ -2149,7 +2149,7 @@ class Application
                 gear_id_prereqs[g._id.to_s] = [] unless gear_id_prereqs[g._id.to_s]
                 gear_comp_specs[g._id.to_s] = [] unless gear_comp_specs[g._id.to_s]
                 comp_spec_gears[cs] = [] unless comp_spec_gears[cs]
-                
+
                 if add_sparse_cart?(i, sparse_carts_added_count, cs, false)
                   gear_comp_specs[g._id.to_s].concat change.added
                   comp_spec_gears[cs] << g._id.to_s
@@ -2685,7 +2685,7 @@ class Application
     haproxy_gears = self.gears.select { |g| g.component_instances.select { |ci| ci.get_cartridge.is_web_proxy? }.present? }
     dns_haproxy_gear = haproxy_gears.select { |g| g.app_dns }.first
     certs = dns_haproxy_gear.get_all_ssl_certs()
-    
+
     # if the certs are not avaialble on the dns haproxy gear, make another check on a different haproxy gear
     if certs.blank?
       non_dns_haproxy_gears = haproxy_gears.select { |g| !g.app_dns }
@@ -2697,7 +2697,7 @@ class Application
 
     # if SSL certs are still not received, log this as an error, but continue
     Rails.logger.error "SSL certificate information not received from haproxy gears for application #{application.canonical_name}" if certs.blank?
-     
+
     # send the SSL certs for the specified aliases to the gear 
     certs.select { |cert_info| fqdns.blank? or fqdns.include? cert_info[2] }
   end

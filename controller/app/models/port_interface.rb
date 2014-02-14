@@ -70,7 +70,7 @@ class PortInterface
   end
 
   def to_hash
-    { 
+    {
       "cartridge_name" => self.cartridge_name,
       "external_address" => self.external_address,
       "external_port" => self.external_port,

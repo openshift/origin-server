@@ -3146,7 +3146,7 @@ module OpenShift
             server_infos.delete_if { |server_info| !server_info.zone_id } if has_zone_node
           end
         end
-        
+
         return server_infos
       end
 

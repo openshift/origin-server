@@ -7,7 +7,7 @@ module AdminHelper
   $datastore_hash = {}
   $gear_uid_hash = {}
   $district_hash = {}
-  
+
   $user_hash = {}
   $domain_hash = {}
   $app_gear_hash = {}
@@ -209,7 +209,7 @@ module AdminHelper
       if $chk_app or $chk_gear_mongo_node
         app_ssh_keys = []
         app['app_ssh_keys'].each { |k| app_ssh_keys << "#{k['name']}#{SSH_KEY_COMMENT_DELIMITER}#{Digest::MD5.hexdigest(k["content"])}" if k["content"] } if app['app_ssh_keys']
-  
+
         if owner_id.nil?
           print_message "Application '#{app['name']}' does not have a domain '#{domain_id}' in mongo." if app_life_time > 600
         elsif $user_hash[owner_id].nil?
@@ -228,7 +228,7 @@ module AdminHelper
         if app['members'].present?
           # add the member ssh keys
           app['members'].each do |m|
-            # we are passsing the resource as nil for now since we don't have the mongoid object 
+            # we are passing the resource as nil for now since we don't have the mongoid object 
             # and the resource is ignored for :ssh_to_gears 
             if Ability.has_permission?(m["_id"], :ssh_to_gears, Application, m["r"], nil)
               app_ssh_keys |= $user_hash[m["_id"].to_s]["ssh_keys"] unless $user_hash[m["_id"].to_s].nil?
@@ -244,7 +244,7 @@ module AdminHelper
       app['gears'].each do |gear|
         gear_count += 1
         has_dns_gear = true if gear["app_dns"]
-    
+
         $datastore_hash[gear['uuid'].to_s] = { 'login' => login, 'creation_time' => creation_time, 'gear_uid' => gear['uid'], 'server_identity' => gear['server_identity'], 'app_id' => app["_id"].to_s, 'app_ssh_keys' => app_ssh_keys } if $chk_app or $chk_gear_mongo_node
 
         if $districts_enabled and $chk_district
@@ -299,8 +299,8 @@ module AdminHelper
           else
             print_message "Application '#{app['name']}' with Id '#{app['_id']}' doesn't have any component instances"
           end
-  
-          # check for applications without any gears in the group instance and viceversa
+
+          # check for applications without any gears in the group instance and vice versa
           if app["gears"]
             gi_hash.each {|k,v| gi_hash[k] = false}
             app["gears"].each do |gear|
@@ -490,19 +490,19 @@ module AdminHelper
           db_sshkeys_list = db_sshkeys.uniq.map! {|key| "OPENSHIFT-#{gear_uuid}-#{key}"}.uniq.sort
           if db_sshkeys_list != gear_sshkeys_list
             puts "#{gear_uuid}...FAIL" if $verbose
-            
+
             common_sshkeys = gear_sshkeys_list & db_sshkeys_list
             extra_gear_sshkeys = gear_sshkeys_list - common_sshkeys
             extra_gear_sshkeys.each do |key|
               print_message "Gear '#{gear_uuid}' has key with hash '#{key.split(SSH_KEY_COMMENT_DELIMITER)[1]}' and comment '#{key.split(SSH_KEY_COMMENT_DELIMITER)[0]}' on the node but not in mongo."
             end
-            
+
             extra_db_sshkeys = db_sshkeys_list - common_sshkeys
             extra_db_sshkeys.each do |key|
               remove_str = "OPENSHIFT-#{gear_uuid}-"
               print_message "Gear '#{gear_uuid}' has key with hash '#{key.split(SSH_KEY_COMMENT_DELIMITER)[1]}' and updated name '#{key.split(SSH_KEY_COMMENT_DELIMITER)[0].sub(remove_str, '')}' in mongo but not on the node."
             end
-          
+
             error_ssh_keys_app_ids << app_id
           end
         end
@@ -530,7 +530,7 @@ module AdminHelper
                     !district_has_available_uid?(district_uuid, unreserved_uid)
             puts "Re-checking UID #{unreserved_uid} in district #{district_info['name']} in the database...FAIL\t" if $verbose
             print_message "UID '#{unreserved_uid}' is available in district '#{district_info['name']}' but used by a gear on node '#{server_identity}'"
-              
+
             error_unreserved_district_uid_map[district_uuid] = [] unless error_unreserved_district_uid_map.has_key? district_uuid
             error_unreserved_district_uid_map[district_uuid] << unreserved_uid
           end
@@ -538,7 +538,7 @@ module AdminHelper
         end
       end
     end
-    
+
     # check for any unused uid in the district
     # these are uids that are reserved in the district, but no gear is using
     puts "Checking for unused UIDs in the district" if $verbose 
@@ -546,19 +546,19 @@ module AdminHelper
     $district_hash.each do |district_uuid, district_info|
       # collect gear uids from all nodes with server identities within this district
       district_info['server_names'].each {|si| district_used_uids |= ($gear_uid_hash[si] || [])}
-     
+
       first_uuid = Rails.configuration.msg_broker[:districts][:first_uid]
       district_all_uids = []
       district_all_uids.fill(0, district_info['max_capacity']) {|i| first_uuid + i}
       district_unused_uids = district_all_uids - district_info['available_uids'] - district_used_uids 
-      
+
       district_unused_uids.each do |unused_uid|
         # skip if found a gear that uses this UID or UID is no longer reserved in the district
         next if datastore_has_gear_uid?(unused_uid, district_info['server_names']) or
                 district_has_available_uid?(district_uuid, unused_uid)
         puts "Re-checking UID #{unused_uid} in district #{district_info['name']} in the database...FAIL\t" if $verbose
         print_message "UID '#{unused_uid}' is reserved in district '#{district_info['name']}' but not used by any gear"
-                
+
         error_unused_district_uid_map[district_uuid] = [] unless error_unused_district_uid_map.has_key? district_uuid
         error_unused_district_uid_map[district_uuid] << unused_uid
       end

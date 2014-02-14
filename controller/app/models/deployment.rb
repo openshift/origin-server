@@ -47,7 +47,7 @@ class Deployment
       self.errors[:base] << "You can either use an artifact URL or ref.  You cannot use both."
     end
   end
-  
+
   def validate_ref
     if self.ref and self.ref !~ GIT_REF_REGEX
       self.errors[:ref] << "The ref is not well-formed.  See git-check-ref-format man page for rules"
