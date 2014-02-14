@@ -15,7 +15,7 @@ class Server
   validates :zone_name, :presence => true, :if => :validate_zone_name?
   validates :zone_id, :presence => true, :if => :validate_zone_id?
   validates :region_id, :presence => true, :if => :validate_region_id?
-  
+
   def validate_zone_name?
     (region_name.present? ? true : false)
   end

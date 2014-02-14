@@ -68,7 +68,7 @@ class UsageRecord
   def self.find_latest_by_user_gear(user_id, gear_id, usage_type)
     where(:user_id => user_id, :gear_id => gear_id, :usage_type => usage_type).desc(:time).first
   end
- 
+
   def self.find_latest_by_gear(gear_id, usage_type)
     where(:gear_id => gear_id, :usage_type => usage_type).desc(:time).first
   end

@@ -107,7 +107,7 @@ class PendingAppOp
     unless success
       Rails.logger.error(failure_message)
     end
-    
+
     return current_op
   end
 

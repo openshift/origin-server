@@ -1029,7 +1029,7 @@ class OODiag
          --custom-rules=ipv4:nat:/var/lib/openshift/.httpd.d/iptables.nat.rules
        WARN
      end
-    
+
   end
 
   def test_node_quota_bug

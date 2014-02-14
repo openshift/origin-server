@@ -45,7 +45,7 @@ class NameServerCache
     @nameservers = []
     resources.each do |resource|
       @nameservers.push(resource.domainname.to_s)
-    end                
+    end
     get_cached("name_servers", :expires_in => 1.hour) {@nameservers}
   end
 end

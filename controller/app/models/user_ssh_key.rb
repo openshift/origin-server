@@ -6,7 +6,7 @@
 class UserSshKey < SshKey
   include Mongoid::Document
   embedded_in :cloud_user, class_name: CloudUser.name
-  
+
   def to_obj(args={}, cloud_user)
     self.name = args["name"] if args["name"]
     self.type = args["type"] if args["type"]

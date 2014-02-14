@@ -51,7 +51,7 @@ class SshKey
                       :with => /\A[^#\r\n][^\r\n]*\z/,
                       :message => 'Invalid key content.',
                       :if => :is_kerberos?
-    
+
   validate :does_not_start_with_dot
 
   ##
@@ -63,7 +63,7 @@ class SshKey
   def self.validation_map
     {name: 117, type: 116, content: 108}
   end
-  
+
   def does_not_start_with_dot
     errors.add(:name, "Invalid key name. Name cannot start with \".\"") unless self.name !~ /^\./
   end

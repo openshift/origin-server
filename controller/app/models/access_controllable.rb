@@ -12,7 +12,7 @@ module AccessControllable
 
   def member_of?(o)
     o.members.include? self
-  end  
+  end
 
   module ClassMethods
     def member_as(s)
