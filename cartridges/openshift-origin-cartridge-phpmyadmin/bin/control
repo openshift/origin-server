@@ -9,9 +9,9 @@ HTTPD_PASSENV_FILE=${OPENSHIFT_PHPMYADMIN_DIR}conf.d/passenv.conf
 HTTPD_PID_FILE=${OPENSHIFT_PHPMYADMIN_DIR}run/httpd.pid
 
 # construct the configuration directives for httpd
-HTTPD_CMD_CONF="-f $HTTPD_CFG_FILE"
-for dir in ${OPENSHIFT_PHPMYADMIN_DIR}conf.d /etc/openshift/cart.conf.d/httpd{,/phpmyadmin} ; do
-    [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -C 'Include $dir/*.conf'"
+HTTPD_CMD_CONF="-C 'Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf' -f $HTTPD_CFG_FILE"
+for dir in /etc/openshift/cart.conf.d/httpd{,/phpmyadmin} ; do
+    [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -c 'Include $dir/*.conf'"
 done
 
 function start {
