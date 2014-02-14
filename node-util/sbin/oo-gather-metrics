@@ -1,4 +1,4 @@
-#!/usr/bin/env oo-ruby
+#!/usr/bin/ruby
 #--
 # Copyright 2013 Red Hat, Inc.
 #
@@ -15,11 +15,45 @@
 # limitations under the License.
 #++
 
-require 'daemons'
 
-module OpenShift
-    module RunTime
+class InvalidTimeError < StandardError; end
 
-    end
+def time_method method
+   start = Time.now
+   method.call
+   Time.now - start
 end
 
+def call_cartridge_metrics
+    puts "These are the cartridge metrics"
+end
+
+
+def call_gear_metrics
+    puts "These are the gear metrics"
+end
+
+def call_application_metrics
+     puts "These are the gear metrics"
+end
+
+def main
+    raise InvalidTimeError unless ARGV[0]
+    sleep_time = ARGV[0].to_i
+    while
+        start_time = Time.now
+
+        cartridge_metric_time = time_method ->{call_cartridge_metrics}
+        puts cartridge_metric_time
+        gear_metric_time = time_method ->{call_gear_metrics}
+        puts gear_metric_time
+        application_metric_time = time_method ->{call_application_metrics}
+        puts application_metric_time
+        total_elapsed_time = Time.now - start_time
+        puts "All metrics took #{total_elapsed_time} to run"
+        sleep (sleep_time - total_elapsed_time)
+    end
+
+end
+
+main
