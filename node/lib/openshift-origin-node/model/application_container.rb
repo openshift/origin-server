@@ -830,6 +830,16 @@ module OpenShift
         end
         params
       end
+
+      #
+      # Invokes all the cartridges bin/metrics + metrics action hook
+      #
+      def metrics
+        @cartridge_model.each do |cart|
+          # Do something with these
+          result, error, exit_status  = oo_spawn(cart.path + "bin/metrics")
+        end
+      end
     end
   end
 end
