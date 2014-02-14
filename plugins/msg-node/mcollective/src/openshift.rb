@@ -926,7 +926,7 @@ module MCollective
       end
 
       def oo_post_configure(args)
-        cart_name = args['--cart-name']
+        cart_name        = args['--cart-name']
         template_git_url = args['--with-template-git-url']
 
         deployments = nil
@@ -935,7 +935,9 @@ module MCollective
           output << container.post_configure(cart_name, template_git_url)
 
           if container.cartridge_model.get_cartridge(cart_name).deployable?
-            deployments = {deployments: container.calculate_deployments}
+            ::OpenShift::Runtime::Utils::Cgroups.new(container.uuid).boost do
+              deployments = {deployments: container.calculate_deployments}
+            end
           end
         end
 
