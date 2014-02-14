@@ -115,7 +115,7 @@ class GroupOverride
   def self.required_for(components, hash)
     return nil unless components.present?
     values = hash.values_at(*KEYS)
-    if components.length > 1 || values.any?(&:present?)
+    if components.length > 1 || values.any?(&:present?) || components.any?{ |c| ComponentOverrideSpec === c && !c.default? }
       GroupOverride.new(components, *values)
     end
   end
