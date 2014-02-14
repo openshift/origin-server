@@ -109,12 +109,10 @@ mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/sbin
 mkdir -p %{buildroot}%{appdir}/.tc_user_dir
 mkdir -p %{buildroot}%{_var}/log/openshift/node
-mkdir -p %{buildroot}%{_var}/lib/openshift/.httpd.d
 
 # Move the gem configs to the standard filesystem location
 mkdir -p %{buildroot}/etc/openshift
 rm -rf %{buildroot}%{gem_instdir}/conf/plugins.d/README
-mv %{buildroot}%{gem_instdir}/conf/iptables.*.rules %{buildroot}%{_var}/lib/openshift/.httpd.d
 mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
 
 #move pam limit binaries to proper location
@@ -178,25 +176,6 @@ ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/c
 ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
 ln -s %{openshift_lib}/node/jobs/openshift-origin-stale-lockfiles %{buildroot}/etc/cron.daily/
 
-%pre
-# iptables.*.rules will be installed in /var/lib/openshift/.httpd.d moving
-# forward. Following script ensures that existing rules in /etc/openshift are
-# first moved over to the new dir before installing new files.
-# See: https://bugzilla.redhat.com/show_bug.cgi?id=1045224
-# and https://bugzilla.redhat.com/show_bug.cgi?id=1064219#c2
-if [[ -f /etc/openshift/iptables.filter.rules ]]; then
-/bin/cp /etc/openshift/iptables.filter.rules %{_var}/lib/openshift/.httpd.d/
-fi
-if [[ -f /etc/openshift/iptables.nat.rules ]]; then
-/bin/cp /etc/openshift/iptables.nat.rules %{_var}/lib/openshift/.httpd.d/
-fi
-if [[ -f /etc/openshift/iptables.filter.rules.bak ]]; then
-/bin/cp /etc/openshift/iptables.filter.rules.bak %{_var}/lib/openshift/.httpd.d/
-fi
-if [[ -f /etc/openshift/iptables.nat.rules.bak ]]; then
-/bin/cp /etc/openshift/iptables.nat.rules.bak %{_var}/lib/openshift/.httpd.d/
-fi
-
 %post
 if ! grep -q "/usr/bin/oo-trap-user" /etc/shells
 then
@@ -230,23 +209,6 @@ oo-admin-ctl-tc stop >/dev/null 2>&1 || :
 
 fi
 
-%posttrans
-# ensure old config files are actually deleted
-# See: https://bugzilla.redhat.com/show_bug.cgi?id=1045224
-# and: https://bugzilla.redhat.com/show_bug.cgi?id=1064219#c2
-if [[ -f /etc/openshift/iptables.filter.rules ]]; then
-/bin/rm /etc/openshift/iptables.filter.rules
-fi
-if [[ -f /etc/openshift/iptables.nat.rules ]]; then
-/bin/rm /etc/openshift/iptables.nat.rules
-fi
-if [[ -f /etc/openshift/iptables.filter.rules.bak ]]; then
-/bin/rm /etc/openshift/iptables.filter.rules.bak
-fi
-if [[ -f /etc/openshift/iptables.nat.rules.bak ]]; then
-/bin/rm /etc/openshift/iptables.nat.rules.bak
-fi
-
 
 %files
 %doc LICENSE COPYRIGHT
@@ -267,9 +229,8 @@ fi
 %dir /etc/openshift
 %attr(0644,-,-) %config /etc/openshift/system-config-firewall-compat
 %config(noreplace) /etc/openshift/node.conf
-%dir %{_var}/lib/openshift/.httpd.d
-%attr(0600,-,-) %config(noreplace) %{_var}/lib/openshift/.httpd.d/iptables.filter.rules
-%attr(0600,-,-) %config(noreplace) %{_var}/lib/openshift/.httpd.d/iptables.nat.rules
+%attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.filter.rules
+%attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.nat.rules
 %config(noreplace) /etc/openshift/env/*
 %attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
 %dir %attr(0755,-,-) %{appdir}

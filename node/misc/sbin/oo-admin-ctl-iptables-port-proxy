@@ -6,8 +6,8 @@
 # Description: Script to apply the openshift port proxy iptables rules.
 ### END INIT INFO
 
-RULES_FILE="/var/lib/openshift/.httpd.d/iptables.filter.rules"
-NAT_FILE="/var/lib/openshift/.httpd.d/iptables.nat.rules"
+RULES_FILE="/etc/openshift/iptables.filter.rules"
+NAT_FILE="/etc/openshift/iptables.nat.rules"
 
 start() {
     check_firewall true

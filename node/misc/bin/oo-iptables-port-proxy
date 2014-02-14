@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 source /etc/openshift/node.conf
-nat_rules_file=/var/lib/openshift/.httpd.d/iptables.nat.rules
-filter_rules_file=/var/lib/openshift/.httpd.d/iptables.filter.rules
+nat_rules_file=/etc/openshift/iptables.nat.rules
+filter_rules_file=/etc/openshift/iptables.filter.rules
 lock_file=/var/lock/oo-iptables-port-proxy.rules.lock
 
 function help() {
