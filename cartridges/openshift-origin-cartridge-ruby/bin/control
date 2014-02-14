@@ -11,9 +11,9 @@ HTTPD_PID_FILE=$OPENSHIFT_RUBY_DIR/run/httpd.pid
 RAILS_ENV=${RAILS_ENV:-production}
 
 # construct the configuration directives for httpd
-HTTPD_CMD_CONF="-f $HTTPD_CFG_FILE"
-for dir in $OPENSHIFT_RUBY_DIR/etc/conf.d/ /etc/openshift/cart.conf.d/httpd{,/ruby} ; do
-    [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -C 'Include $dir/*.conf'"
+HTTPD_CMD_CONF="-C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE"
+for dir in /etc/openshift/cart.conf.d/httpd{,/ruby} ; do
+    [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -c 'Include $dir/*.conf'"
 done
 
 function start() {
