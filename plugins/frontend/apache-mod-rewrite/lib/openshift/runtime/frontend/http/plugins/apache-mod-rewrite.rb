@@ -128,7 +128,7 @@ module OpenShift
                 entry[2][$~[1].downcase] = 1
                 entry[1] = $~[2]
               else
-                entry[1] = connection
+                entry[1] = connection.split("|").first
               end
 
               if entry[2]["ssl_to_gear"]
