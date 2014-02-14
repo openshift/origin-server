@@ -38,7 +38,7 @@ def call_application_metrics
 end
 
 def main
-    raise InvalidTimeError unless ARGV[0]
+    raise InvalidTimeError unless ARGV[0] && ARGV[0].to_i > 0
     sleep_time = ARGV[0].to_i
     while
         start_time = Time.now
