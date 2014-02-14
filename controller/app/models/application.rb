@@ -1898,19 +1898,13 @@ class Application
 
     comp = spec.component
     unless comp.is_sparse?
-      if spec.respond_to?(:max_gears)
-        if total > spec.max_gears && gi.max_gears > 0
-          return false
-        end
-      elsif total > comp.scaling.max && comp.scaling.max != -1
-        return false
-      end
-      return true
+      max = (spec.respond_to?(:max_gears) ? spec.max_gears : comp.scaling.max) || -1
+      return max == -1 || total <= max
     end
 
-    multiplier = spec.multiplier rescue comp.scaling.multiplier
-    min = spec.min_gears rescue comp.scaling.min
-    max = spec.max_gears rescue comp.scaling.max
+    multiplier = (spec.multiplier rescue comp.scaling.multiplier)
+    min = (spec.min_gears rescue comp.scaling.min)
+    max = (spec.max_gears rescue comp.scaling.max)
 
     # check on min first
     return true if gears < min

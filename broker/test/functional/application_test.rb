@@ -342,7 +342,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.update_component_limits(component_instance, 1, 2, nil)
     assert_equal 2, (app = Application.find(app._id)).gears.length
     assert_equal [GroupOverride.new(specs, nil, 2)], app.group_overrides
-$stop = 1
+
     app.scale_by(web_instance.group_instance_id, 1)
     assert_equal 3, (app = Application.find(app._id)).gears.length
     assert_equal [GroupOverride.new(specs, nil, 2)], app.group_overrides
