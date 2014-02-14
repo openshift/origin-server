@@ -2979,6 +2979,8 @@ module OpenShift
           end
         end
         require_district = true if required_uid
+        require_zone = Rails.configuration.msg_broker[:regions][:require_zones_for_app_create]
+        require_district = true if require_zone
         current_server, current_capacity = nil, nil
         server_infos = []
 
@@ -3018,7 +3020,6 @@ module OpenShift
         # Get the districts
         districts = prefer_district ? District.find_all((require_district && node_profile ) ? node_profile : nil, required_uid) : []
 
-        require_zone = Rails.configuration.msg_broker[:regions][:require_zones_for_app_create]
         # Get the active % on the nodes
         rpc_opts = nil
         rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server_identity, capacity|

@@ -638,6 +638,7 @@ $stop = 1
     dist.destroy
     assert(District.count == 0)
     assert(Region.count == 0)
+    Rails.configuration.msg_broker[:regions][:require_zones_for_app_create] = false
   end
 
   def teardown
@@ -645,6 +646,7 @@ $stop = 1
     District.delete_all
     Region.delete_all
     Mocha::Mockery.instance.stubba.unstub_all
+    Rails.cache.clear
   end
 
   private
