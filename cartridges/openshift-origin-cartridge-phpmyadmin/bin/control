@@ -38,11 +38,15 @@ function restart {
 }
 
 function status {
-  if ps --no-headers --pid $(< $HTTPD_PID_FILE) > /dev/null; then
-    client_result 'PHPMyAdmin is running'
-  else
-    client_result 'PHPMyAdmin is either stopped or inaccessible'
+  if [ -f $HTTPD_PID_FILE ]
+  then
+    if ps --no-headers --pid $(< $HTTPD_PID_FILE) > /dev/null
+    then
+      client_result 'PHPMyAdmin is running'
+      exit 0
+    fi
   fi
+  client_result 'PHPMyAdmin is either stopped or inaccessible'
 }
 
 # Clean up any log files
