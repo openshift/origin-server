@@ -638,6 +638,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     dist.destroy
     assert(District.count == 0)
     assert(Region.count == 0)
+    Rails.configuration.msg_broker[:regions][:require_zones_for_app_create] = false
   end
 
   def teardown
@@ -645,6 +646,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     District.delete_all
     Region.delete_all
     Mocha::Mockery.instance.stubba.unstub_all
+    Rails.cache.clear
   end
 
   private
