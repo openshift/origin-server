@@ -293,8 +293,8 @@ module OpenShift
           deployment_datetime = create_deployment_dir
           options[:deployment_datetime] = deployment_datetime
 
-          configure_deployment_metadata(deployment_datetime,options)        
-          
+          configure_deployment_metadata(deployment_datetime,options)
+
           message = "Preparing deployment"
           options[:out].puts message if options[:out]
 
@@ -1395,7 +1395,8 @@ module OpenShift
 
               old_proxy_gears = old_registry[:proxy]
               new_proxy_gears = updated_entries[:proxy].values.select do |entry|
-                entry.uuid != self.uuid and not old_proxy_gears.keys.include?(entry.uuid)
+                # old_proxy_gears may be nil if this is a brand new HA app
+                entry.uuid != self.uuid and old_proxy_gears and not old_proxy_gears.keys.include?(entry.uuid)
               end
 
               unless new_proxy_gears.empty?
@@ -1437,9 +1438,9 @@ module OpenShift
           ssh_dir        = PathUtils.join(container_dir, '.openshift_ssh')
           ssh_key        = PathUtils.join(ssh_dir, 'id_rsa')
           OpenShift::Runtime::Threads::Parallel.map(ssh_urls, :in_threads => MAX_THREADS) do |gear|
-            out, err, rc = run_in_container_context("rsync -aAX --rsh=/usr/bin/oo-ssh #{ssh_key}{,.pub} #{gear}:.openshift_ssh/", 
-                                                    env: gear_env, 
-                                                    chdir: container_dir, 
+            out, err, rc = run_in_container_context("rsync -aAX --rsh=/usr/bin/oo-ssh #{ssh_key}{,.pub} #{gear}:.openshift_ssh/",
+                                                    env: gear_env,
+                                                    chdir: container_dir,
                                                     expected_exitstatus: 0)
             if rc==0
               # rsync drops the system_u context on the files, reset it
@@ -1640,9 +1641,9 @@ module OpenShift
 
           result
         end
-        
+
         private
-          def configure_deployment_metadata(deployment_datetime,options={}) 
+          def configure_deployment_metadata(deployment_datetime,options={})
             gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
             git_ref = determine_deployment_ref(gear_env, options[:ref])
             deployment_metadata = deployment_metadata_for(deployment_datetime)
