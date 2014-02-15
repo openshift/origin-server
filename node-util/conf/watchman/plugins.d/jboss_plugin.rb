@@ -23,14 +23,12 @@ class JbossPlugin < OpenShift::Runtime::WatchmanPlugin
   # @param config  [Config]                   node configuration
   # @param gears   [CachedGears]              collection of running gears on node
   # @param restart [lambda<String, DateTime>] block to call to cause gear restart
-  # @param epoch   [DateTime]                 Time when this plugin was started
-  def initialize(config, gears, restart, epoch = DateTime.now)
-    super(config, gears, restart)
-    @epoch = epoch
+  def initialize(config, gears, restart)
+    super
   end
 
   # execute plugin code
-  def apply
+  def apply(iteration)
     @gears.each do |uuid|
       path    = PathUtils.join(@config.get('GEAR_BASE_DIR', '/var/lib/openshift'),
                                uuid,
@@ -51,9 +49,9 @@ class JbossPlugin < OpenShift::Runtime::WatchmanPlugin
           #
           # Set the timestamp for messages with invalid timestamps to the 'epoch',
           # which will prevent to retry the parsing and exceptions in the log (BZ#999183)
-          ts = DateTime.strptime(event, '%Y/%m/%d %T') rescue @epoch
-          timestamp = DateTime.civil(ts.year, ts.month, ts.day, ts.hour, ts.min, ts.sec, @epoch.zone)
-          next if @epoch > timestamp
+          ts = DateTime.strptime(event, '%Y/%m/%d %T') rescue iteration.epoch
+          timestamp = DateTime.civil(ts.year, ts.month, ts.day, ts.hour, ts.min, ts.sec, iteration.epoch.zone)
+          next if iteration.last_run > timestamp
 
           @restart.call(uuid, timestamp)
         end

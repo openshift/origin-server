@@ -13,20 +13,29 @@ oo-watchman \- monitor the status and state of gears and cartridges
 .B "oo-watchman"
 Provides a plugin framework for monitoring the status and state of gears/cartridges on a node.
 .P
-Plugins inherit from the base class
-.B
-WatchmanPlugin
-implementing the optional methods
-.I
-initialize
-and
-.I
-apply.
+Plugins inherit from the base class \fBWatchmanPlugin\fR implementing the optional methods
+\fIinitialize()\fR and \fIapply()\fR.
+.P
+A plugin may request a gear to be restarted no more than \fBGEAR_RETRIES\fR times within the \fBRETRY_PERIOD\fR
+but no sooner than \fBRETRY_DELAY\fR. Additional requests made within the \fBRETRY_DELAY\fR are ignored.
 .P
 The scripts /etc/init.d/openshift-watchman and openshift-watchman.service are provided to start oo-watchman.
 .SH EXIT STATUS
 The program only returns when an exception is thrown
+.SH ENVIRONMENT
+.TP
+.B  GEAR_RETRIES
+Number of restarts to attempt before waiting \fBRETRY_PERIOD\fR. Default: 3
+.TP
+.B  RETRY_DELAY
+Number of seconds to wait before accepting another gear restart. Default: 5 minutes
+.TP
+.B  RETRY_PERIOD
+Number of seconds to wait before resetting retries. Default: 8 hours
 .SH FILES
+.TP
+.FN /etc/sysconfig/watchman.conf
+configuration file for overriding default settings of \fBENVIRONMENT\fR variables.
 .TP
 .FN /etc/openshift/node.conf
 Node configuration elements
@@ -47,26 +56,14 @@ STDOUT and STDERR from watchman and plugins are logged here
 Watchman initiated changes in gear state or status is logged
 .SH EXAMPLE
 .P
-The
-.B
-SyslogPlugin
-searches /var/log/messages for messages logged by cgroups when killing off a gear.
+The \fBSyslogPlugin\fR searches /var/log/messages for messages logged by cgroups when killing off a gear.
 The gear is restarted, if needed.
 .P
-The
-.B
-JbossPlugin
-searches JBoss cartridges' server.log files for OutOfMemoryExceptions.
+The \fBJbossPlugin\fR searches JBoss cartridges' server.log files for OutOfMemoryExceptions.
 The gear is restarted, if needed.
 .P
-The
-.B
-StoplockPlugin
-removes .stop_lock files from running applications
+The \fBStoplockPlugin\fR removes any .stop_lock files from running applications.
 .P
-The
-.B
-ThrottlerPlugin
-monitors CPU usage via cgroups and restricts usage if needed.
+The \fBThrottlerPlugin\fR monitors CPU usage via cgroups and restricts usage, if needed.
 
 .SH SEE ALSO

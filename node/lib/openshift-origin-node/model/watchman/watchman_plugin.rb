@@ -14,6 +14,8 @@
 # limitations under the License.
 #++
 
+require 'date'
+
 module OpenShift
   module Runtime
     module WatchmanPluginTemplate
@@ -50,7 +52,26 @@ module OpenShift
       end
 
       # Execute plugin code
-      def apply
+      # @param iteration  [Iteration] timestamps of events
+      def apply(iteration)
+      end
+    end
+
+    # Provide Plugins with a timestamp of given events
+    #
+    # @!attribute [r] epoch
+    #   @return [DateTime] when was Watchman started?
+    # @!attribute [r] last_run
+    #   @return [DateTime] when did the last iteration of Watchman start?
+    # @!attribute [r] current_run
+    #   @return [DateTime] when did this iteration of Watchman start?
+    class Iteration
+      attr_accessor :epoch, :last_run, :current_run
+
+      def initialize(epoch, last_run, current_run = DateTime.now)
+        @epoch       = epoch
+        @last_run    = last_run
+        @current_run = current_run
       end
     end
   end

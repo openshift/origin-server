@@ -24,16 +24,14 @@ class SyslogPlugin < OpenShift::Runtime::WatchmanPlugin
   # @param config   [Config]                   node configuration
   # @param gears    [CachedGears]              collection of running gears on node
   # @param restart  [lambda<String, DateTime>] block to call to cause gear restart
-  # @param epoch    [DateTime]                 time when this plugin was started
   # @param log_file [String]                   location of cgroups output
-  def initialize(config, gears, restart, epoch = DateTime.now, log_file = '/var/log/messages')
+  def initialize(config, gears, restart, log_file = '/var/log/messages')
     super(config, gears, restart)
-    @epoch    = epoch
     @log_file = log_file
   end
 
   # execute plugin code
-  def apply
+  def apply(iteration)
     return if @gears.empty?
 
     results, error, rc = OpenShift::Runtime::Utils.oo_spawn(%Q{/bin/grep ' killed as a result of limit of ' #{@log_file}},
@@ -47,13 +45,13 @@ class SyslogPlugin < OpenShift::Runtime::WatchmanPlugin
           ts        = DateTime.strptime(event, '%b %d %T')
 
           # timezones are just a PITA. Syslog message doesn't include timezone so inject timezone from epoch
-          timestamp = DateTime.civil(ts.year, ts.month, ts.day, ts.hour, ts.min, ts.sec, @epoch.zone)
+          timestamp = DateTime.civil(ts.year, ts.month, ts.day, ts.hour, ts.min, ts.sec, iteration.epoch.zone)
           uuid      = event.scan(/[a-f0-9]{24,32}/).first
 
           # Skip any messages that occurred before we were started.
           # Assume those have been dealt with manually or on a previous run.
           # We don't want to restart any application that may already be running.
-          next if @epoch > timestamp
+          next if iteration.last_run > timestamp
 
           # Report only last instance of gear death
           incidents[uuid] = timestamp

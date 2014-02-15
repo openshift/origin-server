@@ -1,12 +1,27 @@
 #!/usr/bin/env oo-ruby
+#--
+# Copyright 2013-2014 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
 
 require 'rubygems'
-require 'date'
 require 'forwardable'
 require 'open4'
 require 'parseconfig'
 require 'syslog'
 require 'thread'
+require 'date'
 require 'openshift-origin-node'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/node_logger'
@@ -22,27 +37,48 @@ module OpenShift
   module Runtime
 
     # Provides framework for monitoring gears on node.  Plugins provide the actual business logic.
+    #
+    # @!attribute [r] logger
+    #   @return [NodeLogger] logger instance being used
+    # @!attribute [r] config
+    #   @return [Config] elements from node.conf
+    # @!attribute [r] gears
+    #   @return [CachedGears] collection of running gears on node
+    # @!attribute [r] incidents
+    #   @return [Hash<String, DateTime>] record last restart for gear by uuid
+    # @!attribute [r] epoch
+    #   @return [DateTime] timestamp of when Watchman was started
+    #
+    # @!attribute [rw] retry_delay
+    #  @return [Rational] number of seconds to wait before accepting another gear restart. Default: 5 minutes
+    # @!attrubyte [rw] retry_period
+    #  @return [Rational] number of seconds to wait before resetting retries. Default: 8 hours
+    # @!attribute [rw] gear_retries
+    #  @return [Integer] number of restarts to attempt before waiting +retry_period+. Default: 3
     class Watchman
 
-      attr_reader :logger, :config, :epoch, :gears, :incidents
+      attr_reader :logger, :config, :gears, :incidents, :epoch
+      attr_accessor :retry_delay, :gear_retries, :retry_period
 
       # @param config [Config] elements from node.conf
       # @param gears [CachedGears] collection of running gears on node
       # @period_seconds [Integer] amount of time to wait between checks
-      def initialize(config, gears, period_seconds = 20)
-        @config    = config
-        @logger    = logger(config)
-        @period    = period_seconds
-        @gears     = gears
-        @incidents = {}
+      def initialize(config, gears, period_seconds = 20, epoch = DateTime.now)
+        @config = config
+        @period = period_seconds
+        @gears  = gears
+        @epoch  = epoch
+
+        @retry_delay  = 300
+        @gear_retries = 3
+        @retry_period = 28800
+        @logger       = logger(config)
+        @incidents    = {}
 
         Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
 
         plugin_dir   = @config.get('WATCHMAN_PLUGIN_DIR', WATCHMAN_PLUGIN_DIR)
         plugin_files = Dir.glob(PathUtils.join(plugin_dir, '*')).find_all { |e| File.file?(e) }
-
-        raise "No plugins for Watchman found in #{plugin_dir}. Watchman shutting down." if plugin_files.nil? || plugin_files.empty?
-        Syslog.debug("Watchman found plugins: #{plugin_files.join(', ')}")
 
         plugin_files.each { |p| require p }
         @plugins = WatchmanPlugin.repository.collect do |plugin|
@@ -51,26 +87,54 @@ module OpenShift
                        @gears,
                        lambda { |uuid, timestamp| cache_incident(uuid, timestamp) })
           rescue Exception => e
-            Syslog.warning("Failed to instantiate Watchman Plugin #{plugin}")
+            Syslog.warning("Failed to instantiate Watchman Plugin #{plugin}: #{e.message}")
+            nil
           end
-        end
+        end.to_a.compact
 
-        Syslog.info("Starting Watchman => delay: #{period_seconds}s")
+        raise "No valid plugins for Watchman found in #{plugin_dir}. Watchman shutting down." if @plugins.empty?
+        Syslog.info("Watchman found plugins: #{@plugins.join(', ')}")
+
+        Syslog.info("Starting Watchman => iteration delay: #{period_seconds}s")
+      end
+
+      # Override setter to auto-convert to Rational in seconds
+      # @param seconds [Fixnum] seconds of delay between restarts
+      def retry_delay=(seconds)
+        Syslog.info("Watchman retry delay changed from: #{@retry_delay} to: #{seconds}")
+        @retry_delay = seconds.instance_of?(Rational) ? seconds : Rational(seconds, 86400)
+      end
+
+      # Override setter to auto-convert to Rational in seconds
+      # @param seconds [Fixnum] seconds of delay before resetting retries
+      def retry_period=(seconds)
+        Syslog.info("Watchman retry period changed from: #{@retry_period} to: #{seconds}")
+        @retry_period = seconds.instance_of?(Rational) ? seconds : Rational(seconds, 86400)
+      end
+
+      def gear_retries=(retries)
+        Syslog.info("Watchman gear_retries changed from: #{@gear_retries} to: #{retries}")
+        @gear_retries = retries
       end
 
       # loop through plugins until stopped
-      # @return [] never
-      def apply
+      # @param daemon [true, false] Loop more than once?
+      def apply(daemon = true)
+        iteration = Iteration.new(@epoch, DateTime.now)
         loop do
+          iteration = Iteration.new(@epoch, iteration.current_run)
+
           @plugins.each do |plugin|
             begin
-              plugin.apply
+              plugin.apply(iteration)
             rescue Exception => e
               msg = "Unhandled exception (#{e}) from Watchman plugin #{plugin}: #{e.message}"
               Syslog.notice(msg)
               @logger.debug(%Q{#{msg}\n#{e.backtrace.join("\n")}})
             end
           end
+
+          break unless daemon
 
           sleep (case
                    when @gears.total_count == 0 || @gears.count == 0
@@ -113,18 +177,25 @@ module OpenShift
       # Record incident and restart gear if appropriate
       #
       # @param uuid [String] gear identifier
-      # @param timestamp [DateTime] of incident
+      # @param timestamp [DateTime] of the incident
       def cache_incident(uuid, timestamp)
         if @incidents.has_key?(uuid)
-          # Only restart, if this death is newer that last death...
-          if @incidents[uuid][:last_updated] < timestamp
-            restart(uuid)
-            @incidents[uuid] = {last_updated: timestamp}
+          # Is this event newer than cache?
+          delta                      = DateTime.now - @incidents[uuid][:last_updated]
+
+          # If we haven't attempted to restart in last 8 hours, do so...
+          @incidents[uuid][:retries] = (delta > @retry_period) ? 0 : @incidents[uuid][:retries].succ
+
+          # Have we tried to restart in the last @retry_delay seconds but not more that @gear_retries times in total?
+          if @incidents[uuid][:retries] < @gear_retries && delta > @retry_delay
+            restart(uuid, @incidents[uuid][:retries])
+            @incidents[uuid][:last_updated] = DateTime.now
+            @incidents[uuid][:last_event]   = timestamp
           end
         else
           # First death. Restart and move on...
-          @incidents[uuid] = {last_updated: timestamp}
-          restart(uuid)
+          @incidents[uuid] = {last_event: timestamp, last_updated: DateTime.now, retries: 0}
+          restart(uuid, @incidents[uuid][:retries])
         end
       end
 
@@ -132,13 +203,14 @@ module OpenShift
       # Don't restart if application has been marked down
       #
       # @param uuid [String] gear identifier
-      def restart(uuid)
+      # @param retries [Fixnum] number of retries for restart
+      def restart(uuid, retries)
         file = PathUtils.join(@config.get('GEAR_BASE_DIR', GEAR_BASE_DIR), uuid, '.env', 'OPENSHIFT_GEAR_NAME')
         name = IO.read(file).chomp rescue '(Unknown)'
 
         restart_gear = lambda do
           out, err, rc = Utils.oo_spawn(%Q{/usr/sbin/oo-admin-ctl-gears restartgear #{uuid}})
-          Syslog.info("watchman restarted user #{uuid}: application #{name}")
+          Syslog.info("watchman restarted user #{uuid}: application #{name} (retries: #{retries}")
           unless 0 == rc
             Syslog.warning("watchman results for #{uuid} restart: exitcode: #{rc}\nstdout: #{out}\nstderr: #{err}")
           end
@@ -229,7 +301,7 @@ module OpenShift
       def initialize(config, passwd = '/etc/passwd')
         @config      = config
         @gears       = []
-        @ids          = []
+        @ids         = []
         @total_count = 0
         @passwd      = passwd
         @mutex       = Mutex.new
@@ -283,13 +355,14 @@ module OpenShift
 
           gecos         = @config.get('GEAR_GECOS', GEAR_GECOS)
           results, _, _ = Utils.oo_spawn(%Q{/bin/grep '#{gecos}' #{@passwd} | cut -d: -f1},
+                                         quiet: true,
                                          expected_exitstatus: 0)
 
           if results.nil? or results.empty?
             @ids.clear
             @total_count = 0
           else
-            @ids          = results.split("\n")
+            @ids         = results.split("\n")
             @total_count = @ids.length
           end
         end
@@ -299,6 +372,7 @@ module OpenShift
   end
 end
 
+# Guard starting daemons to allow automated testing
 if ENV['DAEMONS_ARGV']
   # Override Daemons gem explicate 0000 mask
   ::OpenShift::Runtime::Utils.oo_spawn %q{chmod -f 0600 /var/log/watchman.*}
@@ -309,5 +383,10 @@ if ENV['DAEMONS_ARGV']
 
   config = OpenShift::Runtime::CachedConfig.new(node_conf_file)
   gears  = OpenShift::Runtime::CachedGears.new(config, '/etc/passwd')
-  OpenShift::Runtime::Watchman.new(config, gears).apply
+
+  watcher              = OpenShift::Runtime::Watchman.new(config, gears)
+  watcher.gear_retries = ENV['GEAR_RETRIES'].to_i unless ENV['GEAR_RETRIES'].nil?
+  watcher.retry_delay  = ENV['RETRY_DELAY'].to_i unless ENV['RETRY_DELAY'].nil?
+  watcher.retry_period = ENV['RETRY_PERIOD'].to_i unless ENV['RETRY_PERIOD'].nil?
+  watcher.apply
 end
