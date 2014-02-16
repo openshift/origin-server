@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.20.4
+Version: 1.20.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -102,6 +102,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
+- Bug 1055356 - Man page and help fixes (dmcphers@redhat.com)
+- Bug 1065243: fixing invalid mongo query attribute (abhgupta@redhat.com)
+
 * Thu Feb 13 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
 - Bug 1064650 - oo-admin-ctl-cartridge handles bad input (ccoleman@redhat.com)
 
