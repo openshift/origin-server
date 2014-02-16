@@ -12,7 +12,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.20.5
+Version: 1.20.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -267,6 +267,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 1.20.6-1
+- Merge pull request #4769 from ncdc/new-ha-app-fix-update-cluster
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1064219 - revert iptables location change (lsm5@redhat.com)
+- Allow new HA app to be created successfully (andy.goldstein@gmail.com)
+- Merge pull request #4764 from jwhonce/bug/1065045
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1065045 - Enforce cronjob timeout (jhonce@redhat.com)
+
 * Thu Feb 13 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
 - Bug 1064219 - handle iptables rules (lsm5@redhat.com)
 
