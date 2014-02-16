@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.20.4
+Version: 1.20.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
+- Merge pull request #4767 from pravisankar/dev/ravi/bug1055475
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1055475 - Mark require_district = true when zones are required in
+  rpc_find_all_available (rpenta@redhat.com)
+- cleanup (dmcphers@redhat.com)
+
 * Thu Feb 13 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
 - Bug 1028919 - Avoid spurious calls to mcollective rpc interface in case of
   parallel op execution (rpenta@redhat.com)
