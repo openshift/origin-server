@@ -59,7 +59,7 @@
 #   @return [Integer] Maximum number of gears within this gear group
 # @!attribute [r] base_gear_storage
 # @!attribute [r] base_gear_storage
-#   @return [Integer] Number of GB of disk space assoicated with gear profile
+#   @return [Integer] Number of GB of disk space associated with gear profile
 # @!attribute [r] additional_gear_storage
 #   @return [Integer] Additional number of GB of disk space (beyond the base provided by the gear profile)
 # @!attribute [r] ssh_url

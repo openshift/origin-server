@@ -84,7 +84,7 @@
 # @!attribute [r] scales_with
 #   @return [Array<String>] Names of other cartridges that scale along with this cartridge and run on the same set of gears
 # @!attribute [r] base_gear_storage
-#   @return [Integer] Number of GB of disk space assoicated with gear profile that this cartridge is running on
+#   @return [Integer] Number of GB of disk space associated with gear profile that this cartridge is running on
 # @!attribute [r] additional_gear_storage
 #   @return [Integer] Additional number of GB of disk space (beyond the base provided by the gear profile)
 # @!attribute [r] gear_profile
