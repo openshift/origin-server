@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.20.5
+Version: 1.20.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,26 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 1.20.6-1
+- Fixing typos (dmcphers@redhat.com)
+- Merge pull request #4773 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4772 from smarterclayton/bug_1065318_multiplier_lost
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1055356 - Man page and help fixes (dmcphers@redhat.com)
+- Bug 1065318 - Multiplier overrides lost during deserialization
+  (ccoleman@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Merge pull request #4761 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4762 from
+  smarterclayton/bug_1064720_group_overrides_lost_in_scale
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1064239 and 1064141:  - Determining what components go on a gear upfront
+  - Fetching ssl certs from an alternate haproxy gear, in case the previous one
+  did not return it (abhgupta@redhat.com)
+- Bug 1064720 - Group overrides lost during scale (ccoleman@redhat.com)
+
 * Thu Feb 13 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
 - Merge pull request #4753 from
   smarterclayton/make_configure_order_define_requires
