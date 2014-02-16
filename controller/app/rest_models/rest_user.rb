@@ -28,7 +28,7 @@
 # @!attribute [r] consumed_gears
 #   @return [Integer] Number of gears currently being used in applications
 # @!attribute [r] max_gears
-#   @return [Integer] Maximum number of gears avaiable to the user
+#   @return [Integer] Maximum number of gears available to the user
 # @!attribute [r] capabilities
 #   @return [Hash] Map of user capabilities
 # @!attribute [r] plan_id
