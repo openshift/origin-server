@@ -49,7 +49,7 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     gear.server_identity = @unresponsive_server
     gear.save!
     gear0 = gear._id
-    
+
     #test_scalable_app_no_ha_framework_down
     @apps[1] = Application.create_app(@appnames[1], cartridge_instances_for(:php), @domain, :scalable => true)
     gear = @apps[1].gears[0]
