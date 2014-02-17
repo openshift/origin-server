@@ -53,6 +53,7 @@ action "cartridge_do", :description => "run a cartridge action" do
                               frontend-create
                               frontend-destroy
                               frontend-disconnect
+                              frontend-reconnect
                               frontend-get-sts
                               frontend-idle
                               frontend-no-sts
