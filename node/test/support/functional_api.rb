@@ -71,7 +71,7 @@ class FunctionalApi
     response['data'].each do |app_data|
       id = app_data['id']
       logger.info("Deleting application id #{id}")
-      RestClient.delete("#{@url_base}/applications/#{id}", {timeout: 360})
+      RestClient.delete("#{@url_base}/applications/#{id}", {timeout: 480})
     end
 
     logger.info("Deleting domain #{@namespace}")
