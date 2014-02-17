@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.21.4
+Version: 1.21.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -81,6 +81,12 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Feb 17 2014 Adam Miller <admiller@redhat.com> 1.21.5-1
+- Bug 1065506 - Increase OPENSHIFT_NODEJS_POLL_INTERVAL default value to 10000
+  (mfojtik@redhat.com)
+- Bug 1065681 - Allows users to specify what folder/files supervisor will watch
+  (mfojtik@redhat.com)
+
 * Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
 - Merge pull request #4744 from mfojtik/latest_versions
   (dmcphers+openshiftbot@redhat.com)
