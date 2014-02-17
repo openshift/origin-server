@@ -93,4 +93,11 @@ class GroupOverrideTest < ActiveSupport::TestCase
     assert_equal GroupOverride.new([ComponentOverrideSpec.new(ComponentSpec.new('a','a'), 2, 10, 1)]), 
                  GroupOverride.new([ComponentOverrideSpec.new(ComponentSpec.new('a','a'), 1, -1, 0)]).merge(GroupOverride.new([ComponentOverrideSpec.new(ComponentSpec.new('a','a'), 2, 10, 1)]))
   end
+
+  test "merge resets component override implicit" do
+    implicit = GroupOverride.new([ComponentSpec.new('b','b'), ComponentSpec.new('a','a')]).implicit
+    merged = implicit.merge(GroupOverride.new([ComponentSpec.new('b','b'), ComponentOverrideSpec.new(ComponentSpec.new('a','a'), 2, -1, 2)]))
+    assert_equal GroupOverride.new([ComponentSpec.new('b','b'), ComponentOverrideSpec.new(ComponentSpec.new('a','a'), 2, -1, 2)]), merged
+    assert !merged.implicit?
+  end
 end
