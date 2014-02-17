@@ -1,0 +1,23 @@
+/var/log/openshift/node/cgroups*.log {
+ copytruncate
+ rotate 30
+ daily
+ missingok
+ notifempty
+ compress
+ postrotate
+    /sbin/service openshift-watchman restart > /dev/null 2>/dev/null || true
+ endscript
+}
+
+/var/log/openshift/node/platform*.log {
+ copytruncate
+ rotate 30
+ daily
+ missingok
+ notifempty
+ compress
+ postrotate
+    /sbin/service ruby193-mcollective restart > /dev/null 2>/dev/null || true
+ endscript
+}
