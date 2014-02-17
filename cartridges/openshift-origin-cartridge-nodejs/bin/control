@@ -66,7 +66,7 @@ function start() {
     echo "*** Starting application using: $node_cmd"
     nodejs_context "nohup $node_cmd >> $logf 2>&1 &"
   else
-    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} ${supervisor_watch_opts} -- $supervisor_opts >& $logf &"
+    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-10000} ${supervisor_watch_opts} -- $supervisor_opts >& $logf &"
   fi
 
   retries=3
