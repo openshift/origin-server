@@ -508,6 +508,9 @@ module OpenShift
         ensure
           if reset_quota
             begin
+              quota = OpenShift::Runtime::Node.get_quota(uuid)
+              reset_block_quota = [reset_block_quota, quota[:blocks_used]].max
+              reset_inode_quota = [reset_inode_quota, quota[:inodes_used]].max
               progress.log "Resetting quota blocks: #{reset_block_quota}  inodes: #{reset_inode_quota}"
               OpenShift::Runtime::Node.set_quota(uuid, reset_block_quota, reset_inode_quota)
             rescue NodeCommandException => e
