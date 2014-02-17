@@ -573,6 +573,8 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
               raise OpenShift::OOException.new("Could not set unresponsive to true for #{si.name}") if res.nil? or !res["updatedExisting"]
               break
             end
+            # reload district object to reflect the above mongo updates
+            district.reload
             district.deactivate_node(server) unless deactivated
             district.remove_node(server)
             puts "Server: #{server} removed from district: #{available_servers[server]}" if $verbose
