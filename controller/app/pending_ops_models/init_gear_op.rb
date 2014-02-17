@@ -27,7 +27,7 @@ class InitGearOp < PendingAppOp
 
       # create the component instances, if they are not present
       sparse_carts = []
-      skip_map = application.downloaded_cart_map.nil? # some apps will be unreadable by old code during the switchover
+      skip_map = application.downloaded_cart_map.nil? # some apps will be unreadable by old code during the switch over
       comp_specs.compact.each do |spec|
         spec.application = self.application
         unless group_instance.has_component?(spec)
@@ -38,7 +38,7 @@ class InitGearOp < PendingAppOp
           application.component_instances << instance
           application.downloaded_cart_map[instance.cartridge.original_name] = CartridgeCache.cartridge_to_data(instance.cartridge) if cartridge.singleton? && !skip_map
         end
-        
+
         # check if this is a sparse cart
         sparse_carts << application.find_component_instance_for(spec)._id if spec.component.is_sparse?
       end

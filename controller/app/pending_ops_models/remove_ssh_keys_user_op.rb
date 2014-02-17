@@ -11,6 +11,6 @@ class RemoveSshKeysUserOp < PendingUserOps
         # ignore if the application is already deleted
         raise unless Application.where("_id" => app._id).count == 0
       end
-    end    
+    end
   end
 end
