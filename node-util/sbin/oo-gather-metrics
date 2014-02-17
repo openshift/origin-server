@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env oo-ruby
 #--
 # Copyright 2013 Red Hat, Inc.
 #
@@ -15,6 +15,13 @@
 # limitations under the License.
 #++
 
+# Questions: Granularity of meta-metrics
+# TODO: write metrics for gear level, format meta-metrics output to decided upon standard, discover how to =90l
+#
+#
+#
+#
+
 
 class InvalidTimeError < StandardError; end
 
@@ -24,19 +31,22 @@ def time_method method
    Time.now - start
 end
 
+# Execute bin/control metrics for each cartridge whose manifest specifies that they support metrics
 def call_cartridge_metrics
     puts "These are the cartridge metrics"
 end
 
-
+# Look into Julian's old code for some metrics such as cgroups
 def call_gear_metrics
     puts "These are the gear metrics"
 end
 
+# Execute the applications' metric's hooks
 def call_application_metrics
      puts "These are the gear metrics"
 end
 
+# Main daemon process
 def main
     raise InvalidTimeError unless ARGV[0] && ARGV[0].to_i > 0
     sleep_time = ARGV[0].to_i
@@ -45,15 +55,17 @@ def main
 
         cartridge_metric_time = time_method ->{call_cartridge_metrics}
         puts cartridge_metric_time
+
         gear_metric_time = time_method ->{call_gear_metrics}
         puts gear_metric_time
+
         application_metric_time = time_method ->{call_application_metrics}
         puts application_metric_time
+
         total_elapsed_time = Time.now - start_time
         puts "All metrics took #{total_elapsed_time} to run"
         sleep (sleep_time - total_elapsed_time)
     end
-
 end
 
 main
