@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.20.6
+Version: 1.20.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -281,6 +281,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Feb 17 2014 Adam Miller <admiller@redhat.com> 1.20.7-1
+- Merge pull request #4782 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Increase timeout (dmcphers@redhat.com)
+- node: proper logrotate files for the service (mmahut@redhat.com)
+
 * Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 1.20.6-1
 - Merge pull request #4769 from ncdc/new-ha-app-fix-update-cluster
   (dmcphers+openshiftbot@redhat.com)
