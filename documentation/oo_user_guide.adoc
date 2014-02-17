@@ -2398,7 +2398,7 @@ OpenShift Origin, as you know, creates a default _index_ file for your applicati
 $ rm -rf ~/code/piwik/php/*
 ----
 
-At this point, we need to copy over the source code that we extracted from the zip archive to our _piwik_ OpenShift Origin applciation:
+At this point, we need to copy over the source code that we extracted from the zip archive to our _piwik_ OpenShift Origin application:
 
 ----
 $ cp -av ~/code/piwikstage/piwik/* ~/code/piwik/php

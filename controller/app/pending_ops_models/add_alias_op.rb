@@ -7,7 +7,7 @@ class AddAliasOp < PendingAppOp
     result_io = ResultIO.new 
     gear = get_gear()
     result_io = gear.add_aliases([fqdn]) unless gear.removed
-    
+
     begin
       application.aliases.find_by(fqdn: fqdn)
     rescue Mongoid::Errors::DocumentNotFound
@@ -15,7 +15,7 @@ class AddAliasOp < PendingAppOp
       application.aliases.push(Alias.new(fqdn: fqdn))
       application.save!
     end
-    
+
     result_io
   end
 

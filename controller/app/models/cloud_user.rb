@@ -71,7 +71,7 @@ class CloudUser
   end
 
   # Auth method can either be :login or :broker_auth. :login represents a normal 
-  # authentication with user/pass. :broker_auth is used when the applciation needs 
+  # authentication with user/pass. :broker_auth is used when the application needs 
   # to make a request to the broker on behalf of the user (eg: scale-up)
   #
   # This is a transient attribute and is not persisted

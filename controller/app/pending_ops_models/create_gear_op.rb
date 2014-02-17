@@ -11,7 +11,7 @@ class CreateGearOp < PendingAppOp
     pending_app_op_group.inc(:num_gears_created, 1)
     result_io
   end
-  
+
   def rollback
     result_io = ResultIO.new
     gear = get_gear()

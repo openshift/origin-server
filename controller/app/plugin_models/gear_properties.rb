@@ -6,7 +6,7 @@ class GearProperties
     self.name = gear.name
     self.server = gear.server_identity
     self.cartridges = gear.component_instances.map {|ci| ci.cartridge_name}
-    
+
     if Rails.configuration.msg_broker[:districts][:enabled]
       begin
         d = District.find_by({"servers.name" => gear.server_identity})
