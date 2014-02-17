@@ -1902,9 +1902,9 @@ class Application
       return max == -1 || total <= max
     end
 
-    multiplier = (spec.multiplier rescue comp.scaling.multiplier)
-    min = (spec.min_gears rescue comp.scaling.min)
-    max = (spec.max_gears rescue comp.scaling.max)
+    multiplier = (spec.multiplier rescue comp.scaling.multiplier) || 0
+    min = (spec.min_gears rescue comp.scaling.min) || 1
+    max = (spec.max_gears rescue comp.scaling.max) || -1
 
     # check on min first
     return true if gears < min

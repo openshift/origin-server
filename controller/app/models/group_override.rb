@@ -262,7 +262,7 @@ class GroupOverride
             if existing === c
               matched = true
               @components[i] = existing.merge(c)
-              altered = (ComponentOverrideSpec === c) # not 100% accurate
+              altered ||= (ComponentOverrideSpec === c) # not 100% accurate
             end
           end
           unless matched

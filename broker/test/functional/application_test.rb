@@ -353,15 +353,15 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
     app.update_component_limits(component_instance, nil, nil, 2)
     assert_equal 3, (app = Application.find(app._id)).gears.length
-    assert_equal [GroupOverride.new(specs, nil, nil, nil, 2)], app.group_overrides
+    assert_equal [GroupOverride.new(specs, 2, 2, nil, 2)], app.group_overrides
 
     app.update_component_limits(component_instance, 1, 2, nil)
     assert_equal 3, (app = Application.find(app._id)).gears.length
-    assert_equal [GroupOverride.new(specs, nil, 2)], app.group_overrides
+    assert_equal [GroupOverride.new(specs, nil, 2, nil, 2)], app.group_overrides
 
     app.update_component_limits(component_instance, 1, -1, nil)
     assert_equal 3, (app = Application.find(app._id)).gears.length
-    assert_equal [], app.group_overrides
+    assert_equal [GroupOverride.new(specs, nil, nil, nil, 2)], app.group_overrides
 
     app.scale_by(web_instance.group_instance_id, 1)
     app.reload
