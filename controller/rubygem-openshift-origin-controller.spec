@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.20.6
+Version: 1.20.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Feb 17 2014 Adam Miller <admiller@redhat.com> 1.20.7-1
+- Bug 1065318 - Multiplier being reset (ccoleman@redhat.com)
+- Fix typos (dmcphers@redhat.com)
+
 * Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 1.20.6-1
 - Fixing typos (dmcphers@redhat.com)
 - Merge pull request #4773 from danmcp/master
