@@ -54,12 +54,19 @@ function start() {
       node_cmd="node $node_opts $node_app $node_app_args"
   fi
 
+  # Users are allowed to use OPENSHIFT_NODEJS_WATCH env to specify
+  # comma-delimited list of folders or js files to watch for changes.
+  #
+  if [ -n "$OPENSHIFT_NODEJS_WATCH" ]; then
+    supervisor_watch_opts="--watch ${OPENSHIFT_NODEJS_WATCH}"
+  fi
+
   if use_npm; then
     echo "*** NodeJS supervisor is disabled due to .openshift/markers/use_npm"
     echo "*** Starting application using: $node_cmd"
     nodejs_context "nohup $node_cmd >> $logf 2>&1 &"
   else
-    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} -- $supervisor_opts >& $logf &"
+    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-1000} ${supervisor_watch_opts} -- $supervisor_opts >& $logf &"
   fi
 
   retries=3
