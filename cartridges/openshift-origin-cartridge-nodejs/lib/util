@@ -1,6 +1,8 @@
 #!/bin/bash
 # Utility functions for use in the cartridge scripts.
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 function wait_for_stop {
   pid=$1
   for i in {1..300}
@@ -20,6 +22,7 @@ function set-configuration {
   version="$1"
   type="${2:-native}"
   scl_string="${3}"
+  env_dir="${OPENSHIFT_NODEJS_DIR}/env"
 
   case "$type" in
     scl)
@@ -29,7 +32,7 @@ function set-configuration {
       echo "${node_bin}:${scl_bin}" >$OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_PATH_ELEMENT
 
       local ld_path=$(LD_LIBRARY_PATH="" scl enable $scl_string "printenv LD_LIBRARY_PATH")
-      path_append $LD_LIBRARY_PATH $ld_path >$OPENSHIFT_NODEJS_DIR/env/LD_LIBRARY_PATH
+      set_env_var 'OPENSHIFT_NODEJS_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
 
       local man_path=$(MANPATH="" scl enable $scl_string "printenv MANPATH")
       path_append $MANPATH $man_path >$OPENSHIFT_NODEJS_DIR/env/MANPATH
