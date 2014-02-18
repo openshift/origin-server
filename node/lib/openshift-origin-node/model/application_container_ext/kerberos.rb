@@ -12,7 +12,7 @@ require 'etc'
 # k5login URL
 #
 # The k5login file contains a principal string on each line.  When an auth/
-# access request is recieved and contains a principal which cannot be derived
+# access request is received and contains a principal which cannot be derived
 # from the local username, this file is checked to determine if the principal
 # will be granted access.
 # 
