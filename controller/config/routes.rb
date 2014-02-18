@@ -34,6 +34,8 @@ Rails.application.routes.draw do
         resources :members, :only => :index, :controller => :application_members, :id => id_with_format
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
+        match 'environment-variables' => 'environment_variables#create', :via => :patch
+        match 'environment_variables' => 'environment_variables#create', :via => :patch
         resources :deployments, :only => [:index, :show, :create], :controller => :deployments, :id => id_with_format
       end
 
@@ -59,6 +61,8 @@ Rails.application.routes.draw do
           resources :members, :only => :index, :controller => :application_members, :id => id_with_format
           resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
           resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
+          match 'environment-variables' => 'environment_variables#create', :via => :patch
+          match 'environment_variables' => 'environment_variables#create', :via => :patch
           resources :deployments, :only => [:index, :show, :create], :controller => :deployments, :id => id_with_format
         end
       end
@@ -89,6 +93,8 @@ Rails.application.routes.draw do
       resources :members, :only => :index, :controller => :application_members, :id => id_with_format
       resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
       resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
+      match 'environment-variables' => 'environment_variables#create', :via => :patch
+      match 'environment_variables' => 'environment_variables#create', :via => :patch 
     end
     match "domains/:existing_id" => "domains#update", :via => :put, :existing_id => id_with_format
     resources :domains, :only => [:show, :update, :destroy], :id => id_with_format do
@@ -111,6 +117,8 @@ Rails.application.routes.draw do
         resources :members, :only => :index, :controller => :application_members, :id => id_with_format
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
+        match 'environment-variables' => 'environment_variables#create', :via => :patch
+        match 'environment_variables' => 'environment_variables#create', :via => :patch
       end
     end
 
