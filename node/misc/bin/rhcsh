@@ -4,6 +4,8 @@
 
 source /etc/init.d/functions 2> /dev/null
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 # source OpenShift environment variable into context
 function load_env {
     [ -z "$1" ] && return 1
@@ -26,12 +28,7 @@ then
     done
 fi
 
-path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
-
-for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT 
-do
-    test -f ${f} && path=$(< $f):$path
-done
+path=$(get_gear_path)
 
 if [ -f /etc/openshift/env/PATH ]
 then
@@ -39,6 +36,16 @@ then
     path=$path:$PATH
 fi
 export PATH=$path
+
+# Set the correct LD_LIBRARY_PATH based on LD_LIB_PATH_ELEMENTS
+# if the LD_LIBRARY_PATH is not set.
+#
+if [ -z "${LD_LIBRARY_PATH}" ]; then
+  ld_lib_path=$(get_gear_ld_library_path)
+  if [ -n "${ld_lib_path}" ]; then
+    export LD_LIBRARY_PATH="${ld_lib_path}"
+  fi
+fi
 
 for f in ~/.env/user_vars/*
 do

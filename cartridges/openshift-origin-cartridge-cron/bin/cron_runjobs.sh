@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 # source OpenShift environment variable into context
 function load_env {
     [ -z "$1" ] && return 1
@@ -30,14 +32,7 @@ do
     load_env $f
 done
 
-## with v2, PATH is no longer modified by the cartridge
-## use OPENSHIFT_*_PATH_ELEMENT from the primary cartridge instead
-## here, we assume that OPENSHIFT_*_PATH_ELEMENT has only one line
-path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
-
-for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT; do
-  path=$(cat $f | tr -d '\n'):$path
-done
+path=$(get_gear_path)
 
 if [ -f /etc/openshift/env/PATH ]
 then
@@ -46,6 +41,8 @@ then
 fi
 
 export PATH=$path
+
+export LD_LIBRARY_PATH=$(get_gear_ld_library_path)
 
 CART_CONF_DIR=$OPENSHIFT_CRON_DIR/configuration
 
