@@ -1,14 +1,17 @@
 #!/bin/bash
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 # Utility function to update cartridge configuration
 
 function update-configuration {
     # SCL installs of python 3.3
     sclpath=$(dirname $(scl enable python33 "which python"))
+    env_dir="${OPENSHIFT_PYTHON_DIR}/env"
     echo "$OPENSHIFT_PYTHON_DIR/virtenv/venv/bin:$OPENSHIFT_PYTHON_DIR/bin:${sclpath}" > $OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_PATH_ELEMENT
 
     local ld_path=$(LD_LIBRARY_PATH="" scl enable python33 "printenv LD_LIBRARY_PATH")
-    path_append ${LD_LIBRARY_PATH:-:} ${ld_path:-:} > $OPENSHIFT_PYTHON_DIR/env/LD_LIBRARY_PATH
+    set_env_var 'OPENSHIFT_PYTHON_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
 
     local man_path=$(MANPATH="" scl enable python33 "printenv MANPATH")
     path_append ${MANPATH:-:} ${man_path:-:} > $OPENSHIFT_PYTHON_DIR/env/MANPATH

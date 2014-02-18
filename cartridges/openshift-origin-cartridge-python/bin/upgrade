@@ -1,6 +1,7 @@
 #!/bin/bash -eu
 
 python_version="$1"
+next=$3
 
 upgrade_script="$OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/bin/upgrade"
 
@@ -8,6 +9,17 @@ upgrade_script="$OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/bin/upgrade"
 if [ -e "$upgrade_script" ]
 then
     exec "$upgrade_script" "$@"
+fi
+
+# The LD_LIBRARY_PATH is now handled by the Node itself
+# and constructed using LD_LIBRARY_PATH_ELEMENT. This will
+# remove the existing LD_LIBRARY_PATH so the Node one can
+# take the precedence.
+#
+if [[ $next == "0.0.13" ]]; then
+  if [ -f ${OPENSHIFT_PYTHON_DIR}env/LD_LIBRARY_PATH ]; then
+    rm -f ${OPENSHIFT_PYTHON_DIR}env/LD_LIBRARY_PATH
+  fi
 fi
 
 exit 0
