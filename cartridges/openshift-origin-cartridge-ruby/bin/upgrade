@@ -9,3 +9,14 @@ next=$3
 if [ -e $OPENSHIFT_HOMEDIR/ruby/metadata/jenkins_shell_command ]; then
   rm -f $OPENSHIFT_HOMEDIR/ruby/metadata/jenkins_shell_command
 fi
+
+# The LD_LIBRARY_PATH is now handled by the Node itself
+# and constructed using LD_LIBRARY_PATH_ELEMENT. This will
+# remove the existing LD_LIBRARY_PATH so the Node one can
+# take the precedence.
+#
+if [[ $next == "0.0.14" ]]; then
+  if [ -f ${OPENSHIFT_RUBY_DIR}env/LD_LIBRARY_PATH ]; then
+    rm -f ${OPENSHIFT_RUBY_DIR}env/LD_LIBRARY_PATH
+  fi
+fi
