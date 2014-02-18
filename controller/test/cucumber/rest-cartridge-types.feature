@@ -1,5 +1,5 @@
 @broker_api
-@broker_api1
+@broker_api2
 Feature: cartridge types
   As an API client
   In order to do things with application templates
