@@ -497,7 +497,7 @@ During server startup, the configuration files in the source repository are proc
 [[tomcat-cartridge-integrations]]
 === Cartridge Integrations
 The `jbossews` cart has out-of-the-box integration support with the RedHat `postgresql` and `mysql` cartridges. The default
-`context.xml` contains two basic JDBC `Resource` definitions, `jdbc/MysqlDS` and `jdbc/PostgreSQLDS`, which will be automatically
+`context.xml` contains two basic JDBC `Resource` definitions, `jdbc/MySQLDS` and `jdbc/PostgreSQLDS`, which will be automatically
 configured to work with their respective cartridges if installed into your application.
 
 === Markers
