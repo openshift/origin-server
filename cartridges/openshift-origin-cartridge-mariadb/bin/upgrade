@@ -1,6 +1,20 @@
 #!/bin/bash -e
 $OPENSHIFT_MARIADB_DIR/bin/control start
 
+next=$3
+
 echo "
 grant all on *.* to '$OPENSHIFT_MARIADB_DB_USERNAME'@'%' identified by '$OPENSHIFT_MARIADB_DB_PASSWORD' with grant option;
 flush privileges; " | /usr/bin/mysql -h $OPENSHIFT_MARIADB_DB_HOST -P $OPENSHIFT_MARIADB_DB_PORT -u $OPENSHIFT_MARIADB_DB_USERNAME --password="$OPENSHIFT_MARIADB_DB_PASSWORD" --skip-column-names
+
+# The LD_LIBRARY_PATH is now handled by the Node itself
+# and constructed using LD_LIBRARY_PATH_ELEMENT. This will
+# remove the existing LD_LIBRARY_PATH so the Node one can
+# take the precedence.
+#
+
+if [[ $next == "0.2.6" ]]; then
+  if [ -f ${OPENSHIFT_MARIADB_DIR}env/LD_LIBRARY_PATH ]; then
+    rm -f ${OPENSHIFT_MARIADB_DIR}env/LD_LIBRARY_PATH
+  fi
+fi
