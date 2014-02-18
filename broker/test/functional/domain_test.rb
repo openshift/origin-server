@@ -7,7 +7,7 @@ class DomainTest < ActiveSupport::TestCase
     @login = "user#{@random}"
     @user = CloudUser.new(login: @login)
     @user.save
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     stubber
   end
 

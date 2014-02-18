@@ -15,7 +15,7 @@ class AdminStatsDbTest < ActionController::TestCase
     @password = "password"
     @user = CloudUser.new(login: @login)
     @user.save
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     register_user(@login, @password)
 
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")

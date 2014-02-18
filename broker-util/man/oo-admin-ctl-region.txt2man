@@ -28,7 +28,7 @@ OPTIONS
 
 EXAMPLE
 
-  $ oo-admin-ctl-region -c create -g USA
+  $ oo-admin-ctl-region -c create -r us-east
   
 SEE ALSO
   oo-admin-ctl-district(8), oo-admin-move(8),

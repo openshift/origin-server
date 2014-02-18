@@ -134,47 +134,36 @@ begin
       puts "Force deleting application #{app.name}..."
       premium_carts = get_premium_carts
       gear_count = 0
-      # delete all gears, then delete app
-      app.group_instances.each do |gi|
-        gi.gears.each do |g|
-          gear_count += 1
-          g.deregister_dns rescue nil
-          g.destroy_gear rescue nil 
-          begin
-            UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:gear_usage], gi.gear_size)
-            addtl_fs_gb = gi.addtl_fs_gb
-            UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:addtl_fs_gb], nil, addtl_fs_gb) if addtl_fs_gb > 0
-            component_instances = gi.component_instances + g.sparse_carts.map {|s| gi.application.component_instances.find_by(_id: s) }
-            carts = component_instances.map { |ci| ci.cartridge_name }.uniq
-            carts.each do |cart|
-              UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:premium_cart], nil, nil, cart) if premium_carts.include?(cart)
+      Lock.run_in_app_lock(app) do
+        # delete all gears, then delete app
+        app.group_instances.each do |gi|
+          gi.gears.each do |g|
+            gear_count += 1
+            g.deregister_dns rescue nil
+            g.destroy_gear rescue nil 
+            begin
+              UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:gear_usage], gi.gear_size)
+              addtl_fs_gb = gi.addtl_fs_gb
+              UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:addtl_fs_gb], nil, addtl_fs_gb) if addtl_fs_gb > 0
+              component_instances = gi.component_instances + g.sparse_carts.map {|s| gi.application.component_instances.find_by(_id: s) }
+              carts = component_instances.map { |ci| ci.cartridge_name }.uniq
+              carts.each do |cart|
+                UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:premium_cart], nil, nil, cart) if premium_carts.include?(cart)
+              end
+            rescue Exception => e
+              puts e.message
+              puts e.backtrace.inspect
             end
-          rescue Exception => e
-            puts e.message
-            puts e.backtrace.inspect
-          end
-        end if gi.gears.present?
-      end if app.group_instances.present?
+          end if gi.gears.present?
+        end if app.group_instances.present?
 
-      owner = app.domain.owner
-      begin
-        retries = 5
-        until lock_user_without_app(owner.id)
-          sleep 1
-          retries -= 1
-          if retries < 0
-            puts "Unable to acquire user lock. User's consumed gear count will be skewed."
-            raise
-          end
-        end
-        owner.consumed_gears -= gear_count
-        owner.save!
-      rescue Exception
-        #ignore
-      ensure
-        unlock_user_without_app(owner.id)
-      end      
-      app.delete
+        owner = app.domain.owner
+        Lock.run_in_app_user_lock(owner, app) do
+          owner.consumed_gears -= gear_count
+          owner.save!
+        end      
+        app.delete
+      end
     end
     reply.resultIO << "Successfully deleted application: #{app.name}" if reply.resultIO.string.empty?
   when "remove-cartridge"

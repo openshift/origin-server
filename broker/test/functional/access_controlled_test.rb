@@ -3,9 +3,9 @@ require_relative '../test_helper'
 
 class AccessControlledTest < ActiveSupport::TestCase
 
-  setup do 
-    Lock.stubs(:lock_application).returns(true)
-    Lock.stubs(:unlock_application).returns(true)
+  setup do
+    Lock.stubs(:lock_app).returns(true)
+    Lock.stubs(:unlock_app).returns(true)
     @to_delete = {}
   end
 

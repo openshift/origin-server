@@ -12,7 +12,7 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     @cu.max_gears = 1000
     @cu.ha = true
     @cu.save!
-    Lock.create_lock(@cu)
+    Lock.create_lock(@cu.id)
 
     @domain = Domain.new(namespace: @namespace, owner: @cu)
     @domain.save!

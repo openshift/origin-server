@@ -16,7 +16,7 @@ class DeploymentTest < ActionDispatch::IntegrationTest
     @password = "password"
     @user = CloudUser.new(login: @login)
     @user.save
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     @headers = {}
     @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @headers["HTTP_ACCEPT"] = "application/json"

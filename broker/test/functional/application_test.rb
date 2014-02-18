@@ -15,7 +15,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     @domain = Domain.new(namespace: @namespace, owner: @user)
     @domain.save!
     @appname = "test" + gen_uuid[0..9]
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     register_user(@login, @password)
     stubber
   end

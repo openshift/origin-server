@@ -365,7 +365,7 @@ class Application
       add_keys.push(key) unless key.class == UserSshKey and key.cloud_user and !Ability.has_permission?(key.cloud_user._id, :ssh_to_gears, Application, role_for(key.cloud_user._id), self)
     end
     keys_attrs = get_updated_ssh_keys(add_keys)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
@@ -383,7 +383,7 @@ class Application
   def remove_ssh_keys(keys, parent_op=nil)
     return if keys.empty?
     keys_attrs = get_updated_ssh_keys(keys)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups << op_group
       result_io = ResultIO.new
@@ -415,7 +415,8 @@ class Application
       end
       raise OpenShift::UserException.new("Invalid application configuration: #{messages}", 1)
     end
-    Application.run_in_application_lock(self) do
+
+    Lock.run_in_app_lock(self) do
       # set the config parameters not specified in new_config based on the updates values in the application
       ['auto_deploy', 'deployment_branch', 'keep_deployments', 'deployment_type'].each {|k| new_config[k] = self.config[k] if new_config[k].nil?}
       op_group = UpdateAppConfigOpGroup.new(config: new_config)
@@ -439,10 +440,7 @@ class Application
   # @param keys [Array<SshKey>] Array of keys to add to the application.
   # @return [ResultIO] Output from cartridges
   def fix_gear_ssh_keys
-    Application.run_in_application_lock(self) do
-      # reload the application to get the latest data
-      self.reload
-
+    Lock.run_in_app_lock(self) do
       op_group = ReplaceAllSshKeysOpGroup.new(keys_attrs: self.get_all_updated_ssh_keys, user_agent: self.user_agent)
       self.pending_op_groups << op_group
       result_io = ResultIO.new
@@ -457,7 +455,7 @@ class Application
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
   def add_env_variables(vars, parent_op=nil)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = UpdateAppConfigOpGroup.new(add_env_vars: vars, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups << op_group
       result_io = ResultIO.new
@@ -472,7 +470,7 @@ class Application
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
   def remove_env_variables(vars, parent_op=nil)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = UpdateAppConfigOpGroup.new(remove_env_vars: vars, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups << op_group
       result_io = ResultIO.new
@@ -486,7 +484,7 @@ class Application
   # @param vars [Array<Hash>] User environment variables. Each entry contains name and/or value
   # @return [ResultIO] Output from node platform
   def patch_user_env_variables(vars)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = PatchUserEnvVarsOpGroup.new(user_env_vars: vars, user_agent: self.user_agent)
       self.pending_op_groups << op_group
       result_io = ResultIO.new
@@ -776,7 +774,7 @@ class Application
       raise OpenShift::UserException.new("You can only have one proxy cartridge in your application '#{name}'.", 109, 'cartridge')
     end
 
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = AddFeaturesOpGroup.new(
         features: cartridges.map(&:name), # For old data support
         cartridges: cartridges.map(&:specification_hash), # Replaces features
@@ -852,7 +850,7 @@ class Application
 
     valid_domain_jobs = ((self.domain.system_ssh_keys.any?{ |k| component_ids.include? k.component_id.to_s }) || (self.domain.env_vars.any?{ |e| component_ids.include? e['component_id'].to_s })) rescue true
 
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = RemoveFeaturesOpGroup.new(features: cartridges.map(&:name), remove_all_features: remove_all_cartridges, user_agent: self.user_agent)
       self.pending_op_groups << op_group
       self.run_jobs(io)
@@ -881,7 +879,7 @@ class Application
         next if self == app
         app.cartridges(true) do |ucart|
           if ucart.is_ci_builder?
-            Application.run_in_application_lock(app) do
+            Lock.run_in_app_lock(app) do
               op_group = RemoveFeaturesOpGroup.new(features: [ucart.name], user_agent: app.user_agent)
               app.pending_op_groups << op_group
               app.run_jobs(cart_io = ResultIO.new)
@@ -928,7 +926,7 @@ class Application
       raise OpenShift::UserException.new("Cannot make the application HA because there is no web cartridge.")
     raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.group_override.max_gears==1
 
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       pending_op_groups << MakeAppHaOpGroup.new(user_agent: self.user_agent)
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -951,7 +949,7 @@ class Application
       raise OpenShift::UserException.new("You have requested more additional gear storage than you are allowed (max: #{max_storage} GB)", 166) if additional_filesystem_gb > max_storage
     end
     raise OpenShift::UserException.new("Cannot set the max gear limit to '1' if the application is HA (highly available)") if self.ha and scale_to==1
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_component_spec, min: scale_from, max: scale_to, multiplier: multiplier, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
       pending_op_groups << op_group
       result_io = ResultIO.new
@@ -965,7 +963,7 @@ class Application
   # @param old_untracked [Integer] previous maximum additional untracked storage amount
   # @param new_untracked [Integer] new maximum additional untracked storage amount
   def change_max_untracked_storage(old_untracked, new_untracked)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       if group_instances_with_overrides.find {|group| group.additional_filesystem_gb > 0 }
         pending_op_groups << ChangeMaxUntrackedStorageOpGroup.new(user_agent: self.user_agent, old_untracked: old_untracked, new_untracked: new_untracked)
         result_io = ResultIO.new
@@ -992,6 +990,7 @@ class Application
             usage_type:                       UsageRecord::USAGE_TYPES[:addtl_fs_gb],
             additional_filesystem_gb:         fs,
             max_untracked_additional_storage: old_untracked,
+            skip_user_lock:                   true,
             prereq:                           ops.last ? [ops.last._id.to_s] : [])
 
           ops << TrackUsageOp.new(
@@ -1003,6 +1002,7 @@ class Application
             usage_type:                       UsageRecord::USAGE_TYPES[:addtl_fs_gb],
             additional_filesystem_gb:         fs,
             max_untracked_additional_storage: new_untracked,
+            skip_user_lock:                   true,
             prereq:                           ops.last ? [ops.last._id.to_s] : [])
         end
       end
@@ -1025,7 +1025,7 @@ class Application
     raise OpenShift::UserException.new("Cannot scale down below gear limit of #{override.min_gears}.", 168) if (current+scale_by) < override.min_gears
     raise OpenShift::UserException.new("Cannot scale up above maximum gear limit of #{override.max_gears}.", 168) if (scale_by > 0) && (current+scale_by) > override.max_gears && override.max_gears != -1
 
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = ScaleOpGroup.new(group_instance_id: group_instance_id, scale_by: scale_by, user_agent: self.user_agent)
       self.pending_op_groups << op_group
       result_io = ResultIO.new
@@ -1095,7 +1095,7 @@ class Application
     else
       op_group = StartFeatureOpGroup.new(feature: feature, user_agent: self.user_agent)
     end
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       self.pending_op_groups << op_group
       self.run_jobs(result_io)
       result_io
@@ -1103,7 +1103,7 @@ class Application
   end
 
   def start_component(component_name, cartridge_name)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       result_io = ResultIO.new
       op_group = StartCompOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, user_agent: self.user_agent)
       self.pending_op_groups << op_group
@@ -1113,7 +1113,7 @@ class Application
   end
 
   def stop(feature=nil, force=false)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       result_io = ResultIO.new
       op_group = nil
       if feature.nil?
@@ -1128,7 +1128,7 @@ class Application
   end
 
   def stop_component(component_name, cartridge_name, force=false)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       result_io = ResultIO.new
       op_group = StopCompOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, force: force, user_agent: self.user_agent)
       self.pending_op_groups << op_group
@@ -1138,7 +1138,7 @@ class Application
   end
 
   def restart(feature=nil)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       result_io = ResultIO.new
       op_group = nil
       if feature.nil?
@@ -1153,7 +1153,7 @@ class Application
   end
 
   def restart_component(component_name, cartridge_name)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       result_io = ResultIO.new
       op_group = RestartCompOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, user_agent: self.user_agent)
       self.pending_op_groups << op_group
@@ -1163,7 +1163,7 @@ class Application
   end
 
   def reload_config(feature=nil)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       result_io = ResultIO.new
       op_group = nil
       if feature.nil?
@@ -1193,7 +1193,7 @@ class Application
   end
 
   def reload_component_config(component_name, cartridge_name)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = ReloadCompConfigOpGroup.new(comp_spec: ComponentSpec.new(component_name, cartridge_name).to_component_spec, user_agent: self.user_agent)
       self.pending_op_groups << op_group
       result_io = ResultIO.new
@@ -1203,7 +1203,7 @@ class Application
   end
 
   def tidy
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       result_io = ResultIO.new
       op_group = TidyAppOpGroup.new(user_agent: self.user_agent)
       self.pending_op_groups << op_group
@@ -1220,7 +1220,7 @@ class Application
   def remove_gear(gear_id)
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
     raise OpenShift::UserException.new("Gear for removal not specified") if gear_id.nil?
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = RemoveGearOpGroup.new(gear_id: gear_id, user_agent: self.user_agent)
       self.pending_op_groups << op_group
       result_io = ResultIO.new
@@ -1277,7 +1277,7 @@ class Application
       raise OpenShift::UserException.new("The specified alias is not allowed: '#{fqdn}'", 105, "id")
     validate_certificate(ssl_certificate, private_key, pass_phrase)
 
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140, "id") if Application.where("aliases.fqdn" => server_alias).count > 0
       op_group = AddAliasOpGroup.new(fqdn: server_alias, user_agent: self.user_agent)
       self.pending_op_groups << op_group
@@ -1316,7 +1316,7 @@ class Application
   def remove_alias(fqdn)
     fqdn = fqdn.downcase if fqdn
     al1as = aliases.find_by(fqdn: fqdn)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       if al1as.has_private_ssl_certificate
          op_group = RemoveSslCertOpGroup.new(fqdn: al1as.fqdn, user_agent: self.user_agent)
          self.pending_op_groups << op_group
@@ -1335,7 +1335,7 @@ class Application
 
     fqdn = fqdn.downcase if fqdn
     old_alias = aliases.find_by(fqdn: fqdn)
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       #remove old certificate
       if old_alias.has_private_ssl_certificate
          op_group = RemoveSslCertOpGroup.new(fqdn: fqdn, user_agent: self.user_agent)
@@ -1445,7 +1445,7 @@ class Application
   end
 
   def run_connection_hooks
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = ExecuteConnectionsOpGroup.new()
       self.pending_op_groups << op_group
 
@@ -1739,32 +1739,7 @@ class Application
   end
 
   def with_lock(&block)
-    self.class.run_in_application_lock(self, &block)
-  end
-
-  def self.run_in_application_lock(application, &block)
-    got_lock = false
-    num_retries = 10
-    wait = 5
-    while(num_retries > 0 and !got_lock)
-      if(Lock.lock_application(application))
-        got_lock = true
-      else
-        num_retries -= 1
-        sleep(wait)
-      end
-    end
-    if got_lock
-      begin
-        # reload the application to reflect any changes made by any previous operation holding the lock 
-        application.reload if application.persisted?
-        block.arity == 1 ? block.call(application) : yield
-      ensure
-        Lock.unlock_application(application)
-      end
-    else
-      raise OpenShift::LockUnavailableException.new("Unable to perform action. Another operation is already running.", 171)
-    end
+    Lock.run_in_app_lock(self, &block)
   end
 
   # Determines if the application's cartridges are colocatable
@@ -2925,7 +2900,7 @@ class Application
 
   def deploy(hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
     result_io = ResultIO.new
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = DeployOpGroup.new(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
       self.pending_op_groups << op_group
       self.run_jobs(result_io)
@@ -2936,7 +2911,7 @@ class Application
   def activate(deployment_id)
     deployment = self.deployments.find_by(deployment_id: deployment_id)
     result_io = ResultIO.new
-    Application.run_in_application_lock(self) do
+    Lock.run_in_app_lock(self) do
       op_group = ActivateOpGroup.new(deployment_id: deployment_id)
       self.pending_op_groups << op_group
       self.run_jobs(result_io)

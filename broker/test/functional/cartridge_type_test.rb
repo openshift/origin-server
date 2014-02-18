@@ -3,11 +3,6 @@ require_relative '../test_helper'
 
 class CartridgeTypeTest < ActiveSupport::TestCase
 
-  setup do
-    Lock.stubs(:lock_application).returns(true)
-    Lock.stubs(:unlock_application).returns(true)
-  end
-
   def test_create_type
     CartridgeType.where(:name => 'mock').delete
 

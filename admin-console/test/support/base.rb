@@ -11,7 +11,7 @@ class ActiveSupport::TestCase
     user = CloudUser.new(login: login)
     user.private_ssl_certificates = true
     user.save
-    Lock.create_lock(user)
+    Lock.create_lock(user.id)
     register_user(login, password)
 
     stubber

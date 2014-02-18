@@ -94,16 +94,19 @@ class Domain
 
   def self.create!(opts)
     owner = opts[:owner]
-    allowed_domains = opts[:_allowed_domains] || owner.max_domains
-    opts.delete(:allowed_gear_sizes) if opts[:allowed_gear_sizes].nil?
-    domain = Domain.new(opts)
-    unless pre_and_post_condition(
-             lambda{ Domain.where(owner: owner).count < allowed_domains },
-             lambda{ Domain.where(owner: owner).count <= allowed_domains },
-             lambda{ domain.save! },
-             lambda{ domain.destroy rescue nil }
-           )
-      raise OpenShift::UserException.new("You may not have more than #{pluralize(allowed_domains, "domain")}.", 103, nil, nil, :conflict)
+    domain = nil
+    Lock.run_in_user_lock(owner) do
+      allowed_domains = opts[:_allowed_domains] || owner.max_domains
+      opts.delete(:allowed_gear_sizes) if opts[:allowed_gear_sizes].nil?
+      domain = Domain.new(opts)
+      unless pre_and_post_condition(
+               lambda{ Domain.where(owner: owner).count < allowed_domains },
+               lambda{ Domain.where(owner: owner).count <= allowed_domains },
+               lambda{ domain.save! },
+               lambda{ domain.destroy rescue nil }
+             )
+        raise OpenShift::UserException.new("You may not have more than #{pluralize(allowed_domains, "domain")}.", 103, nil, nil, :conflict)
+      end
     end
     domain
   end
@@ -208,6 +211,7 @@ class Domain
 
     keys_attrs = ssh_keys.map { |k| k.serializable_hash }
     pending_op = AddSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
+    pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pushAll" => { system_ssh_keys: keys_attrs }})
   end
 
@@ -221,7 +225,14 @@ class Domain
     return if ssh_keys.empty?
     keys_attrs = ssh_keys.map { |k| k.serializable_hash }
     pending_op = RemoveSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
+    pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { system_ssh_keys: keys_attrs }})
+  end
+
+  def update_capabilities(old_caps, new_caps, parent_op=nil)
+    pending_op = UpdateCapabilitiesDomainOp.new(old_capabilities: old_caps, new_capabilities: new_caps, parent_op: parent_op)
+    self.pending_ops.push pending_op
+    self.run_jobs
   end
 
   def add_env_variables(variables)
@@ -238,6 +249,7 @@ class Domain
     Domain.where(_id: self.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) unless env_vars_to_rm.empty?
 
     pending_op = AddEnvVarsDomainOp.new(variables: variables, on_apps: applications)
+    pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pushAll" => { env_vars: variables }})
   end
 
@@ -249,6 +261,7 @@ class Domain
     end
     return if variables.empty?
     pending_op = RemoveEnvVarsDomainOp.new(variables: variables, on_apps: applications)
+    pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { env_vars: variables }})
   end
 

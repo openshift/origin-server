@@ -7,7 +7,7 @@ class DeploymentTest < ActiveSupport::TestCase
     @login = "user#{@random}"
     @user = CloudUser.new(login: @login)
     @user.save
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     stubber
     @namespace = "ns#{@random}"
     @domain = Domain.new(namespace: @namespace, owner:@user)

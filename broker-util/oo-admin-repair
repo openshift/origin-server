@@ -122,16 +122,21 @@ end
 
 def reset_consumed_gears(user_id)
   success = false
-  if lock_user_without_app(user_id)
-    begin
-      user_consumed_gears, app_actual_gears = check_consumed_gears(user_id)
+  user = nil
+  begin
+    user = CloudUser.find_by(_id: user_id)
+    Lock.run_in_user_lock(user) do
+      user_consumed_gears, app_actual_gears = check_consumed_gears(user)
       if user_consumed_gears != app_actual_gears
-        CloudUser.where(:_id => user_id).set(:consumed_gears, app_actual_gears)
+        user.consumed_gears = app_actual_gears
+        user.save!
       end
-      success = true
-    ensure
-      unlock_user_without_app(user_id)
     end
+    success = true
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "User #{user_id} not found."
+  rescue Exception => e
+    puts "Unable to set consumed gears for user #{user_id}, error: #{e.message}." 
   end
   return success
 end
@@ -422,7 +427,7 @@ def repair_district_uids(unreserved_dist_map, unused_dist_map)
       query = {"gears" => {"$elemMatch" => { "uid" => gear_uid, "server_identity" => {"$in" => si_list}}}}
       begin
         app = Application.find_by(query)
-        Application.run_in_application_lock(app) do
+        Lock.run_in_app_lock(app) do
           # check if this app still has the gear UID
           verify_query = {"_id" => app._id}
           verify_query.merge! query
