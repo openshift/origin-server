@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 function update_configuration {
     set +u
     case "$1" in
@@ -9,7 +11,7 @@ function update_configuration {
         set_env_var 'OPENSHIFT_MYSQL_PATH_ELEMENT' $pe $env_dir
 
         local ld_path=$(LD_LIBRARY_PATH="" printenv LD_LIBRARY_PATH)
-        path_append $LD_LIBRARY_PATH $ld_path >$OPENSHIFT_MYSQL_DIR/env/LD_LIBRARY_PATH
+        set_env_var 'OPENSHIFT_MYSQL_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
 
         local man_path=$(MANPATH="" printenv MANPATH)
         path_append $MANPATH $man_path >$OPENSHIFT_MYSQL_DIR/env/MANPATH
