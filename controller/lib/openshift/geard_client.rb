@@ -34,6 +34,7 @@ module OpenShift
       #
       def initialize(id, district=nil)
         @id = id
+        @id = "localhost"
         @district = district
         #TODO Config the port
         @port = "2223"
@@ -259,6 +260,16 @@ module OpenShift
       def create(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false, initial_deployment_dir_required=true)
         app = gear.application
         result = nil
+        clnt = HTTPClient.new
+        #res = client.put("#{build_base_geard_url}container#{build_base_gear_args gear}&t=#{app.name}", '{"ports":[{"external":4343,"internal":8080}]}')
+        #todo for now assume anything less than 400 is OK
+        res = clnt.put("#{build_base_geard_url}container?u=0&d=1&t=#{app.name}&r=0001", '{"ports":[{"external":4343,"internal":8080}]}')
+        result = ResultIO.new
+        result.resultIO << res.body
+        if res.status_code >= 400
+          #TODO stuff here
+        end
+
         #TODO
         result
       end
@@ -1570,20 +1581,20 @@ module OpenShift
         handle[@id].each do |parallel_job|
           job = parallel_job[:job]
           async do
-            clnt = HttpClient.new
-            res = client.put("#{build_base_geard_url}#{job[:action]}#{job[:args]}")
+            clnt = HTTPClient.new
+            res = clnt.put("#{build_base_geard_url}#{job[:action]}#{job[:args]}")
             #todo for now assume anything less than 400 is OK
-            if res.statuscode < 400
+            if res.status_code < 400
               handle[@id] = output
             else
               handle[@id].each { |gear_info|
                 gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{res.body}"
-                gear_info[:result_exit_code] = res.statuscode
+                gear_info[:result_exit_code] = res.status_code
               }
             end
           end
         end
-        join(240)
+        join!(240)
       end
 
       private
