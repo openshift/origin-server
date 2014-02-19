@@ -1875,7 +1875,11 @@ class Application
 
       reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, gear_size: gear_size, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
 
-      create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
+      if Rails.configuration.geard[:enabled]
+        create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
+      else
+        create_gear_op = Geard::CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
+      end
       # this flag is passed to the node to indicate that an sshkey is required to be generated for this gear
       # currently the sshkey is being generated on the app dns gear if the application is scalable
       # we are assuming that haproxy will also be added to this gear
