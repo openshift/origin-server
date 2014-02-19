@@ -104,20 +104,21 @@ class Gear
   end
 
   def unreserve_uid
-    get_proxy.unreserve_uid(self.uid) if get_proxy
+    node_client.unreserve_uid(self.uid) if node_client
     Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => nil, "gears.$.uid" => nil}})
     self.server_identity = nil
     self.uid = nil
   end
 
   def create_gear(sshkey_required=false)
-    result_io = get_proxy.create(self, nil, nil, sshkey_required)
+    result_io = node_client.create(self, nil, nil, sshkey_required)
     application.process_commands(result_io, nil, self)
     result_io
   end
 
   def destroy_gear(keep_uid=false)
-    result_io = get_proxy.destroy(self, keep_uid)
+    #TODO Use a different test
+    result_io = node_client.destroy(self, keep_uid)
     application.process_commands(result_io, nil, self)
     result_io
   end
@@ -149,7 +150,7 @@ class Gear
   end
 
   def status(component_instance)
-    get_proxy.status(self, component_instance)
+    node_client.status(self, component_instance)
   end
 
   def has_component?(component_instance)
@@ -170,7 +171,7 @@ class Gear
   def add_component(component, init_git_url=nil)
     result_io = ResultIO.new
     unless self.removed
-      result_io = get_proxy.add_component(self, component, init_git_url)
+      result_io = node_client.add_component(self, component, init_git_url)
       component.process_properties(result_io)
       application.process_commands(result_io, component._id, self)
     end
@@ -193,7 +194,7 @@ class Gear
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
   def post_configure_component(component, init_git_url=nil)
-    result_io = get_proxy.post_configure_component(self, component, init_git_url)
+    result_io = node_client.post_configure_component(self, component, init_git_url)
     component.process_properties(result_io)
     application.update_deployments_from_result(result_io)
     application.process_commands(result_io, component._id, self)
@@ -218,7 +219,7 @@ class Gear
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
   def deploy(hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
-    result_io = get_proxy.deploy(self, hot_deploy, force_clean_build, ref, artifact_url)
+    result_io = node_client.deploy(self, hot_deploy, force_clean_build, ref, artifact_url)
     application.update_deployments_from_result(result_io)
     #application.process_commands(result_io, nil, self)
     raise OpenShift::NodeException.new("Unable to deploy #{application.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
@@ -233,7 +234,7 @@ class Gear
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
   def activate(deployment_id)
-    result_io = get_proxy.activate(self, deployment_id)
+    result_io = node_client.activate(self, deployment_id)
     application.update_deployments_from_result(result_io)
     #application.process_commands(result_io, nil, self)
     raise OpenShift::NodeException.new("Unable to activate #{deployment_id} for #{application.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
@@ -253,7 +254,7 @@ class Gear
   def remove_component(component)
     result_io = ResultIO.new
     unless self.removed
-      result_io = get_proxy.remove_component(self, component)
+      result_io = node_client.remove_component(self, component)
       application.process_commands(result_io, component._id, self)
     end
     if component.is_sparse?
@@ -267,7 +268,7 @@ class Gear
   # @see Object::respond_to?
   # @see http://ruby-doc.org/core-1.9.3/Object.html#method-i-respond_to-3F
   def respond_to?(sym, include_private=false)
-    get_proxy.respond_to?(sym, include_private) || super
+    node_client.respond_to?(sym, include_private) || super
   end
 
   # Used for handle methods like start/stop etc. which can be handled transparently by an {OpenShift::ApplicationContainerProxy}
@@ -277,11 +278,11 @@ class Gear
     sym = :reload if sym == :reload_config
     new_args = args.dup.unshift(self)
 
-    if get_proxy.nil? and self.server_identity.nil?
+    if node_client.nil? and self.server_identity.nil?
       raise OpenShift::OOException.new("The node to create the gear on has not yet been identified")
     end
 
-    return get_proxy.send(sym, *new_args) if get_proxy.respond_to?(sym, false)
+    return node_client.send(sym, *new_args) if node_client.respond_to?(sym, false)
     super(sym, *args, &block)
   end
 
@@ -289,14 +290,14 @@ class Gear
   # == Returns:
   # @return [String] Public hostname of the node the gear is hosted on.
   def public_hostname
-    get_proxy.get_public_hostname
+    node_client.get_public_hostname
   end
 
   # Gets the public IP address for the Node this gear is hosted on
   # == Returns:
   # @return [String] Public IP address of the node the gear is hosted on.
   def get_public_ip_address
-    get_proxy.get_public_ip_address
+    node_client.get_public_ip_address
   end
 
   # Gets the list of server identities where gears from this gear's group instance are hosted
@@ -334,8 +335,8 @@ class Gear
     tag = ""
     handle = RemoteJob.create_parallel_job(timeout || 10)
     RemoteJob.run_parallel_on_gears(gears, handle) { |exec_handle, gear|
-      if gear.get_proxy
-        RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_show_state_job(gear))
+      if gear.node_client
+        RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.node_client.get_show_state_job(gear))
       else
         gear_states[gear.uuid.to_s] = "unknown"
       end
@@ -368,6 +369,15 @@ class Gear
     @geard_client ||= OpenShift::GeardClient.new(server_identity)
   end
 
+  def node_client
+    #TODO Will need to get boolean to gear
+    if Rails.configuration.geard[:enabled]
+      geard_client
+    else
+      node_client
+    end
+  end
+
   def update_configuration(op, remote_job_handle, tag="")
     add_keys = op.add_keys_attrs
     remove_keys = op.remove_keys_attrs
@@ -375,13 +385,13 @@ class Gear
     remove_envs = op.remove_env_vars
     config = op.config
 
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_keys_job(self, add_keys)) if add_keys.present?
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_keys_job(self, remove_keys))  if remove_keys.present?
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_add_authorized_ssh_keys_job(self, add_keys)) if add_keys.present?
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_remove_authorized_ssh_keys_job(self, remove_keys))  if remove_keys.present?
 
-    add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(self, env["key"],env["value"]))} if add_envs.present?
-    remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(self, env["key"]))} if remove_envs.present?
+    add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_env_var_add_job(self, env["key"],env["value"]))} if add_envs.present?
+    remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_env_var_remove_job(self, env["key"]))} if remove_envs.present?
 
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_configuration_job(self, config)) unless config.nil? || config.empty?
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_update_configuration_job(self, config)) unless config.nil? || config.empty?
   end
 
   def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")
@@ -389,6 +399,6 @@ class Gear
     base_file_limit = Gear.base_file_limit(self.group_instance.gear_size)
     total_fs_gb = additional_filesystem_gb + base_filesystem_gb
     total_file_limit = (total_fs_gb * base_file_limit) / base_filesystem_gb
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, total_file_limit.to_i))
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_update_gear_quota_job(self, total_fs_gb, total_file_limit.to_i))
   end
 end
