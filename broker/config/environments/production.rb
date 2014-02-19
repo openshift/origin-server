@@ -118,5 +118,9 @@ Broker::Application.configure do
     :http_proxy => conf.get('HTTP_PROXY', '')
   }
 
+  config.geard = {
+    :enabled => true
+  }
+
   config.logger = OpenShift::Syslog.logger_for('openshift-broker', 'app') if config.openshift[:syslog_enabled]
 end
