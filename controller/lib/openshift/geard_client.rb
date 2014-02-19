@@ -1011,9 +1011,6 @@ module OpenShift
       #
       # NOTES:
       # * uses RemoteJob
-      #rgs['--with-value'] = value
-      job = RemoteJob.new('openshift-origin-node', 'env-var-add', args)
-      job
       def get_remove_authorized_ssh_keys_job(gear, ssh_keys)
         #TODO
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-batch-remove', args)

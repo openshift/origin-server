@@ -363,6 +363,11 @@ class Gear
     @container ||= OpenShift::ApplicationContainerProxy.instance(server_identity)
   end
 
+  def geard_client
+    return nil unless server_identity
+    @geard_client ||= OpenShift::GeardClient.new(server_identity)
+  end
+
   def update_configuration(op, remote_job_handle, tag="")
     add_keys = op.add_keys_attrs
     remove_keys = op.remove_keys_attrs
