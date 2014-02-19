@@ -385,13 +385,15 @@ class Gear
     remove_envs = op.remove_env_vars
     config = op.config
 
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_add_authorized_ssh_keys_job(self, add_keys)) if add_keys.present?
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_remove_authorized_ssh_keys_job(self, remove_keys))  if remove_keys.present?
+    unless Rails.configuration.geard[:enabled]
+      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_add_authorized_ssh_keys_job(self, add_keys)) if add_keys.present?
+      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_remove_authorized_ssh_keys_job(self, remove_keys))  if remove_keys.present?
 
-    add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_env_var_add_job(self, env["key"],env["value"]))} if add_envs.present?
-    remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_env_var_remove_job(self, env["key"]))} if remove_envs.present?
+      add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_env_var_add_job(self, env["key"],env["value"]))} if add_envs.present?
+      remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_env_var_remove_job(self, env["key"]))} if remove_envs.present?
 
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_update_configuration_job(self, config)) unless config.nil? || config.empty?
+      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_update_configuration_job(self, config)) unless config.nil? || config.empty?
+    end
   end
 
   def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")

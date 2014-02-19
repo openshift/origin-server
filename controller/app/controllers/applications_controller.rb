@@ -167,13 +167,7 @@ class ApplicationsController < BaseController
       raise OpenShift::UserException.new("The following cartridges are no longer available: #{obsolete.map(&:name).to_sentence}", 109, "cartridges")
     end
 
-    #TODO
-    result = nil
-    if Rails.configuration.geard[:enabled]
-      result = ResultIO.new
-    else
-      result = app.add_initial_cartridges(cartridges, init_git_url, user_env_vars)
-    end
+    result = app.add_initial_cartridges(cartridges, init_git_url, user_env_vars)
 
     @analytics_tracker.identify(@cloud_user.reload)
     @analytics_tracker.track_event('app_create', @domain, @application)
