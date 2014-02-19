@@ -1,6 +1,7 @@
 require 'mcollective'
 require 'open-uri'
 require 'timeout'
+require 'httpclient'
 
 include MCollective::RPC
 
@@ -34,6 +35,8 @@ module OpenShift
       def initialize(id, district=nil)
         @id = id
         @district = district
+        #TODO Config the port
+        @port = "2223"
       end
 
       # <<factory method>>
@@ -587,7 +590,8 @@ module OpenShift
 
       def get_start_job(gear, component)
         #TODO
-        RemoteJob.new('openshift-origin-node', 'start', args)
+        args = build_base_gear_args gear
+        RemoteJob.new('openshift-origin-node', 'container/started', args)
       end
 
       #
@@ -1581,7 +1585,24 @@ module OpenShift
       # * ???
       #
       def self.execute_parallel_jobs_impl(handle)
-        #TODO
+        #TODO for now only handling a single geard host
+        handle[@id].each do |parallel_job|
+          job = parallel_job[:job]
+          async do
+            clnt = HttpClient.new
+            res = client.put("#{build_base_geard_url}#{job[:action]}#{job[:args]}")
+            #todo for now assume anything less than 400 is OK
+            if res.statuscode < 400
+              handle[@id] = output
+            else
+              handle[@id].each { |gear_info|
+                gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{res.body}"
+                gear_info[:result_exit_code] = res.statuscode
+              }
+            end
+          end
+        end
+        join(240)
       end
 
       private
@@ -1596,6 +1617,14 @@ module OpenShift
 
       def build_ssh_key_args(ssh_keys)
         ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name']} }
+      end
+
+      def build_base_geard_url
+        "http://#{@id}:#{@port}/token/__test__/"
+      end
+
+      def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
+        "?u=0&d=1&r=#{gear.uuid}"
       end
 
     end
