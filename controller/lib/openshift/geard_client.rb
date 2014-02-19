@@ -15,6 +15,7 @@ module OpenShift
     # to broker/node communications.
     #
     class GeardClient < OpenShift::ApplicationContainerProxy
+      include AsyncAware
 
       # A Node ID string
       attr_accessor :id
