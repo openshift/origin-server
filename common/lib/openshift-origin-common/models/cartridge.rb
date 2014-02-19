@@ -102,6 +102,9 @@ module OpenShift
     # Profile information
     attr_accessor :components, :group_overrides, :connections, :configure_order
 
+    # Image information
+    attr_accessor :image, :image_label
+
     # Available for downloadable cartridges
     attr_accessor :manifest_text, :manifest_url
 
@@ -166,6 +169,8 @@ module OpenShift
     def from_descriptor(spec_hash={})
       self.id = spec_hash["Id"]
       self.name = spec_hash["Name"]
+      self.image = spec_hash["Image"]
+      self.image_label = spec_hash["Image-Label"]
       self.version = spec_hash["Version"] || "0.0"
       self.versions = spec_hash["Versions"] || []
       self.architecture = spec_hash["Architecture"] || "noarch"
@@ -261,6 +266,8 @@ module OpenShift
       }
 
       h["Id"] = self.id if self.id
+      h["Image"] = self.image if self.image
+      h["Image-Label"] = self.image_label if self.image_label
       h["Architecture"] = self.architecture if self.architecture != "noarch"
       h["Version"] = self.version if self.version != "0.0"
       h["Versions"] = self.versions if self.versions and !versions.empty?

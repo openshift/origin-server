@@ -123,6 +123,7 @@ class RestCartridge < OpenShift::Model
       @activation_time = cart.activated_at.in_time_zone
     end
 
+    @image = cart.image if cart.image.present?
     @obsolete = true if cart.is_obsolete?
     @url = cart.manifest_url if cart.manifest_url.present?
   end
