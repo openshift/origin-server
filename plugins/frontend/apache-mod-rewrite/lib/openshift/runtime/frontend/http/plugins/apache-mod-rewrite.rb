@@ -126,7 +126,7 @@ module OpenShift
                 entry[2][$~[1].downcase] = 1
               elsif connection =~ /^(REDIRECT|FILE|TOHTTPS|SSL_TO_GEAR):(.*)$/
                 entry[2][$~[1].downcase] = 1
-                entry[1] = $~[2]
+                entry[1] = $~[2].split("|").first
               else
                 entry[1] = connection.split("|").first
               end
