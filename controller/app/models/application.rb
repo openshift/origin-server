@@ -692,6 +692,10 @@ class Application
       cartridges += dependencies
     end
 
+    unless all.all?{ |c| c.image.present? } || all.none?{ |c| c.image.present? }
+      raise OpenShift::UserException.new("You cannot mix cartridges based on an image with those that do not.")
+    end
+
     cartridges.each do |cart|
       # ensure that the user isn't trying to add multiple versions of the same cartridge
       if cart_name_map.has_key?(cart.original_name)

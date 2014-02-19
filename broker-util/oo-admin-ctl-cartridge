@@ -210,7 +210,35 @@ class Command
     warn $!
     1
   rescue => e
-    exception e, "Failed to activate cartridge"
+    exception e, "Failed to categorize cartridge"
+    1
+  end
+
+  def image(options)
+    ids = from_options_or_stdin(options, [:names, :ids], '--ids IDS')
+    image = options.image or raise ArgumentError, "Must specify an image with --image <id_or_label>"
+    env!(options)
+    code = 0
+    CartridgeType.or({:name.in => ids}, {:_id.in => ids}).each do |cart|
+      cart.image = image
+      if options.dry_run
+        puts "#{cart._id} # #{image}"
+      elsif cart.save
+        puts "#{cart._id} # #{image}"
+      else
+        warn "Unable to save #{cart._id}"
+        type.errors.full_messages.each do |m|
+          warn "  #{m}"
+        end
+        code = 1
+      end
+    end
+    code
+  rescue ArgumentError
+    warn $!
+    1
+  rescue => e
+    exception e, "Failed to add an image to a cartridge"
     1
   end
 
@@ -527,6 +555,10 @@ or names.
 
   opts.on('-n', '--name NAMES', "Comma-delimited cartridge names.") do |names|
     options.names = names.split(/[\, ]/)
+  end
+
+  opts.on('--image ID_OR_LABEL', "Image to add to a cartridge") do |label|
+    options.image = label
   end
 
   opts.on('-q', "Display only ids") do
