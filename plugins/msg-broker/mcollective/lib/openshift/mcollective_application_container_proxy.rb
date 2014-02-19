@@ -510,7 +510,6 @@ module OpenShift
       # NOTES:
       # * uses execute_direct
       # * calls oo-env-var-add on the node
-      # * Should be a method on Gear?
       #
       def add_env_var(gear, key, value)
         args = build_base_gear_args(gear)
@@ -817,7 +816,7 @@ module OpenShift
       # * template_git_url: a url of a git repo containing a cart overlay
       #
       # RETURNS
-      # ResultIO: the result of running post-configure on the cartridge
+      # * ResultIO: the result of running post-configure on the cartridge
       #
       def post_configure_component(gear, component, template_git_url=nil)
         result_io = ResultIO.new
@@ -848,7 +847,7 @@ module OpenShift
       # * artifact_url: the url of the artifacts to deploy
       #
       # RETURNS
-      # ResultIO: the result of running post-configure on the cartridge
+      # * ResultIO: the result of running deploy on the gear
       #
       def deploy(gear, hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
         result_io = ResultIO.new
@@ -872,7 +871,7 @@ module OpenShift
       # * deployment_id: a deployment id
       #
       # RETURNS
-      # ResultIO: the result of running post-configure on the cartridge
+      # * ResultIO: the result of running activate on the gear
       #
       def activate(gear, deployment_id)
         result_io = ResultIO.new
@@ -893,10 +892,7 @@ module OpenShift
       # * component: String: a component name
       #
       # RETURNS:
-      # * ResultIO? String?
-      #
-      # NOTES
-      # * method on gear?
+      # * ResultIO
       #
       def remove_component(gear, component)
         app = gear.application
@@ -932,7 +928,6 @@ module OpenShift
       # NOTES:
       # * uses run_cartridge_command
       # * uses start_component
-      # * should be a method on Gear?
       #
       def start(gear, component)
         args = build_base_gear_args(gear)
@@ -962,7 +957,6 @@ module OpenShift
       # * uses run_cartridge_command
       # * uses stop_component
       # * uses start_component
-      # * should be a method on Gear?
       #
       def stop(gear, component)
         args = build_base_gear_args(gear)
@@ -1018,7 +1012,6 @@ module OpenShift
       # NOTES:
       # * uses run_cartridge_command
       # * uses restart_component
-      # * method on Gear?
       #
       def restart(gear, component)
         args = build_base_gear_args(gear)
@@ -1050,7 +1043,6 @@ module OpenShift
       # NOTES:
       # * uses run_cartridge_command
       # * uses restart_component
-      # * method on Gear?
       #
       def reload(gear, component)
         args = build_base_gear_args(gear)
@@ -2386,7 +2378,7 @@ module OpenShift
       # * max_uid: Integer
       #
       # RETURNS:
-      # * ResultIO?
+      # * ResultIO
       #
       # NOTES:
       # * uses MCollective::RPC::Client
@@ -2420,7 +2412,7 @@ module OpenShift
       # * max_uid: Integer
       #
       # RETURNS:
-      # * ResultIO?
+      # * ResultIO
       #
       # NOTES:
       # * uses MCollective::RPC::Client
@@ -2508,10 +2500,7 @@ module OpenShift
       # * component: String: a component name
       #
       # RETURNS:
-      # * ResultIO?
-      #
-      # NOTES
-      # * method on gear?
+      # * ResultIO
       #
       def start_component(gear, component)
         args = build_base_gear_args(gear)
@@ -2529,10 +2518,7 @@ module OpenShift
       # * component: String: a component name
       #
       # RETURNS:
-      # * ResultIO?
-      #
-      # NOTES
-      # * method on gear?
+      # * ResultIO
       #
       def stop_component(gear, component)
         args = build_base_gear_args(gear)
@@ -2550,10 +2536,7 @@ module OpenShift
       # * component: String: a component name
       #
       # RETURNS:
-      # * ResultIO?
-      #
-      # NOTES
-      # * method on gear?
+      # * ResultIO
       #
       def restart_component(gear, component)
         args = build_base_gear_args(gear)
@@ -2571,10 +2554,7 @@ module OpenShift
       # * component: String: a component name
       #
       # RETURNS:
-      # * ResultIO?
-      #
-      # NOTES
-      # * method on gear?
+      # * ResultIO
       #
       def reload_component(gear, component)
         args = build_base_gear_args(gear)
@@ -2592,10 +2572,7 @@ module OpenShift
       # * component: String: a component name
       #
       # RETURNS:
-      # * ResultIO?
-      #
-      # NOTES
-      # * method on gear?
+      # * ResultIO
       #
       def component_status(gear, component)
         args = build_base_gear_args(gear)
