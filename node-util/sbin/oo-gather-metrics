@@ -15,7 +15,7 @@
 # limitations under the License.
 #++
 
-# Questions: Granularity of meta-metrics
+# Questions: Granularity of meta-metrics, for every gear, app, cartridge? or each subgroup
 # TODO: write metrics for gear level, format meta-metrics output to decided upon standard, discover how to =90l
 #
 #
@@ -23,49 +23,142 @@
 #
 
 
-class InvalidTimeError < StandardError; end
+class InvalidTimeError < StandardError;
+end
 
-def time_method method
-   start = Time.now
-   method.call
-   Time.now - start
+def time_method
+  start = Time.now
+  yield
+  Time.now - start
 end
 
 # Execute bin/control metrics for each cartridge whose manifest specifies that they support metrics
 def call_cartridge_metrics
-    puts "These are the cartridge metrics"
+  puts "These are the cartridge metrics"
 end
 
 # Look into Julian's old code for some metrics such as cgroups
+# This code is pulled from Julian Prokay's work on github.com/jprokay/logstash-cgroups-plugin
 def call_gear_metrics
-    puts "These are the gear metrics"
+  #We need to make sure we have the most up-to-date list of gears on each run
+  output = []
+  gear_geco = `grep "GEAR_GECOS" /etc/openshift/node.conf | cut -d = -f 2 | cut -d '#' -f 1`.strip.gsub(/\"/, '')
+  @gear_uuids = `grep ":#{gear_geco}:" /etc/passwd | cut -d: -f1`.split("\n")
+  @gear_uuids.each do |uuid|
+    cgroup_name = "/openshift/#{uuid}"
+    output.concat get_cgroup_metrics(cgroup_name)
+  end
+  output
 end
 
 # Execute the applications' metric's hooks
 def call_application_metrics
-     puts "These are the gear metrics"
+  puts "These are the gear metrics"
 end
 
 # Main daemon process
 def main
-    raise InvalidTimeError unless ARGV[0] && ARGV[0].to_i > 0
-    sleep_time = ARGV[0].to_i
-    while
-        start_time = Time.now
 
-        cartridge_metric_time = time_method ->{call_cartridge_metrics}
-        puts cartridge_metric_time
 
-        gear_metric_time = time_method ->{call_gear_metrics}
-        puts gear_metric_time
+  raise InvalidTimeError unless ARGV[0] && ARGV[0].to_i > 0
+  sleep_time = ARGV[0].to_i
 
-        application_metric_time = time_method ->{call_application_metrics}
-        puts application_metric_time
+  initialize_cgroups_vars
 
-        total_elapsed_time = Time.now - start_time
-        puts "All metrics took #{total_elapsed_time} to run"
-        sleep (sleep_time - total_elapsed_time)
-    end
+  while start_time = Time.now
+
+    cartridge_metric_time = time_method { call_cartridge_metrics }
+    puts cartridge_metric_time
+
+    gear_metric_time = time_method { call_gear_metrics }
+    puts gear_metric_time
+
+    application_metric_time = time_method { call_application_metrics }
+    puts application_metric_time
+
+    total_elapsed_time = Time.now - start_time
+    puts "All metrics took #{total_elapsed_time} to run"
+    sleep (sleep_time - total_elapsed_time)
+  end
+end
+
+# Intialize the list of keys required to be pulled from cgroups
+def initialize_cgroups_vars
+
+  @cgroups_single_metrics = %w(cpu.cfs_period_us
+                                    cpu.cfs_quota_us
+                                    cpu.rt_period_us
+                                    cpu.rt_runtime_us
+                                    cpu.shares
+                                    cpuacct.usage
+                                    freezer.state
+                                    memory.failcnt
+                                    memory.limit_in_bytes
+                                    memory.max_usage_in_bytes
+                                    memory.memsw.failcnt
+                                    memory.memsw.limit_in_bytes
+                                    memory.memsw.max_usage_in_bytes
+                                    memory.memsw.usage_in_bytes
+                                    memory.move_charge_at_immigrate
+                                    memory.soft_limit_in_bytes
+                                    memory.swappiness
+                                    memory.usage_in_bytes
+                                    memory.use_hierarchy
+                                    net_cls.classid
+                                    notify_on_release)
+
+  @cgroups_kv_metrics = %w(cpu.stat
+                            cpuacct.stat
+                            memory.oom_control
+                            memory.stat)
+
+  @cgroups_multivalue_metrics = %w(cpuacct.usage_percpu)
+
+
+end
+
+
+def get_cgroup_metrics(path)
+  output = []
+  output.concat(get_cgroups_single_metric(@cgroups_single_metrics, path))
+
+  @cgroups_kv_metrics.each do |metric|
+    output.concat(get_cgroups_kv_metric(metric, path))
+  end
+
+  @cgroups_multivalue_metrics.each do |metric|
+    output.concat(get_cgroups_multivalue_metric(metric, path))
+  end
+  output
+end
+
+def get_cgroups_single_metric(metrics, path)
+  output = []
+  metrics_path = metrics.join(" -r ")
+  retrieved_values = `cgget -n -v -r #{metrics_path} #{path}`.split("\n")
+  retrieved_values.each_with_index do |value, index|
+    output.push("#{metrics[index]}=#{value}")
+  end
+  output
+end
+
+def get_cgroups_multivalue_metric(metric_name, path)
+  output = []
+  values = `cgget -n -v -r #{metric_name} #{path}`.split(' ')
+  values.each_with_index do |value, index|
+    output.push("#{metric_name}=#{value}")
+  end
+  output
+end
+
+def get_cgroups_kv_metric(metric_name, path)
+  output = []
+  lines = `cgget -n -v -r #{metric_name} #{path}`.split("\n")
+  lines.each do |line|
+    key, value = line.split(' ')
+    output.push("#{metric_name}.#{key}=#{value}")
+  end
+  output
 end
 
 main
