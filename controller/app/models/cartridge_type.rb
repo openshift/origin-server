@@ -15,6 +15,9 @@ class CartridgeType
   field :manifest_url, type: String
   field :text, type: String
 
+  field :image, type: String
+  field :image_label, type: String
+
   field :base_name, type: String
   field :version, type: String
   field :cartridge_vendor, type: String
@@ -147,6 +150,8 @@ class CartridgeType
       cart.manifest_url = manifest_url
       cart.created_at = created_at
       cart.activated_at = priority
+      cart.image = image
+      cart.image_label = image_label
       cart
     end
   end
