@@ -611,7 +611,8 @@ module OpenShift
 
       def get_stop_job(gear, component)
         #TODO
-        RemoteJob.new('openshift-origin-node', 'stop', args)
+        args = build_base_gear_args gear
+        RemoteJob.new('openshift-origin-node', 'container/stopped', args)
       end
 
       #
@@ -631,7 +632,8 @@ module OpenShift
 
       def get_force_stop_job(gear, component)
         #TODO
-        RemoteJob.new('openshift-origin-node', 'force-stop', args)
+        args = build_base_gear_args gear
+        RemoteJob.new('openshift-origin-node', 'container/stopped', args)
       end
 
       #
