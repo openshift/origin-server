@@ -26,6 +26,7 @@ module OpenShift
   autoload :BillingService,            'openshift/billing_service'
   autoload :DataStore,                 'openshift/data_store'
   autoload :GeardClient,               'openshift/geard_client'
+  autoload :AsyncAware,                'openshift/async_aware'
   autoload :DistributedLock,           'openshift/distributed_lock'
   autoload :RoutingService,            'openshift/routing_service'
   autoload :Syslog,                    'openshift/syslog'
