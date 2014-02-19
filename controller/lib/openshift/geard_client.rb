@@ -657,27 +657,6 @@ module OpenShift
       end
 
       #
-      # "reload" cart services on a gear.
-      # Accept config update without restarting?
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      # * cart: a Cartridge object
-      #
-      # RETURNS:
-      # * a ResultIO of undefined content
-      #
-      def reload(gear, component)
-        #TODO
-        return result_io
-      end
-
-      def get_reload_job(gear, component)
-        #TODO
-        RemoteJob.new('openshift-origin-node', 'reload', args)
-      end
-
-      #
       # Get the status from cart services in an existing Gear
       #
       # INPUTS:
