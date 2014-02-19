@@ -1644,63 +1644,65 @@ class Application
   # result_io::
   #   {ResultIO} object with directives from cartridge hooks
   def process_commands(result_io, component_id=nil, gear=nil)
-    commands = result_io.cart_commands
-    add_ssh_keys = []
+    unless Rails.configuration.geard[:enabled]
+      commands = result_io.cart_commands
+      add_ssh_keys = []
 
-    remove_env_vars = []
+      remove_env_vars = []
 
-    domain_keys_to_add = []
+      domain_keys_to_add = []
 
-    domain_env_vars_to_add = []
+      domain_env_vars_to_add = []
 
-    commands.each do |command_item|
-      case command_item[:command]
-      when "SYSTEM_SSH_KEY_ADD"
-        domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0], component_id: component_id))
-      when "APP_SSH_KEY_ADD"
-        id = (gear.nil?) ? component_id : gear._id
-        add_ssh_keys << ApplicationSshKey.new(name: command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now, component_id: id)
-      when "APP_ENV_VAR_REMOVE"
-        remove_env_vars.push({"key" => command_item[:args][0]})
-      when "ENV_VAR_ADD"
-        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
-      when "BROKER_KEY_ADD"
-        op_group = AddBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
-        op_group.set_created_at
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document } })
-      when "NOTIFY_ENDPOINT_CREATE"
-        if gear
-          pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args])
-          gear.port_interfaces.push(pi)
-          pi.publish_endpoint(self)
-        end
-      when "NOTIFY_ENDPOINT_DELETE"
-        if gear
-          public_ip, public_port = command_item[:args]
-          if pi = PortInterface.find_port_interface(gear, public_ip, public_port)
-            pi.unpublish_endpoint(self, public_ip)
-            gear.port_interfaces.delete(pi)
+      commands.each do |command_item|
+        case command_item[:command]
+        when "SYSTEM_SSH_KEY_ADD"
+          domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0], component_id: component_id))
+        when "APP_SSH_KEY_ADD"
+          id = (gear.nil?) ? component_id : gear._id
+          add_ssh_keys << ApplicationSshKey.new(name: command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now, component_id: id)
+        when "APP_ENV_VAR_REMOVE"
+          remove_env_vars.push({"key" => command_item[:args][0]})
+        when "ENV_VAR_ADD"
+          domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
+        when "BROKER_KEY_ADD"
+          op_group = AddBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
+          op_group.set_created_at
+          Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document } })
+        when "NOTIFY_ENDPOINT_CREATE"
+          if gear
+            pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args])
+            gear.port_interfaces.push(pi)
+            pi.publish_endpoint(self)
+          end
+        when "NOTIFY_ENDPOINT_DELETE"
+          if gear
+            public_ip, public_port = command_item[:args]
+            if pi = PortInterface.find_port_interface(gear, public_ip, public_port)
+              pi.unpublish_endpoint(self, public_ip)
+              gear.port_interfaces.delete(pi)
+            end
           end
         end
       end
-    end
 
-    if add_ssh_keys.length > 0
-      keys_attrs = get_updated_ssh_keys(add_ssh_keys)
-      op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, user_agent: self.user_agent)
-      op_group.set_created_at
-      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pushAll" => { app_ssh_keys: keys_attrs }})
-    end
-    if remove_env_vars.length > 0
-      op_group = UpdateAppConfigOpGroup.new(remove_env_vars: remove_env_vars)
-      op_group.set_created_at
-      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }})
-    end
+      if add_ssh_keys.length > 0
+        keys_attrs = get_updated_ssh_keys(add_ssh_keys)
+        op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, user_agent: self.user_agent)
+        op_group.set_created_at
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pushAll" => { app_ssh_keys: keys_attrs }})
+      end
+      if remove_env_vars.length > 0
+        op_group = UpdateAppConfigOpGroup.new(remove_env_vars: remove_env_vars)
+        op_group.set_created_at
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }})
+      end
 
-    # Have to remember to run_jobs for the other apps involved at some point
-    # run_jobs is called on the domain after all processing is done from add_cartridges and remove_cartridges
-    domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
-    domain.add_env_variables(domain_env_vars_to_add) if !domain_env_vars_to_add.empty?
+      # Have to remember to run_jobs for the other apps involved at some point
+      # run_jobs is called on the domain after all processing is done from add_cartridges and remove_cartridges
+      domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
+      domain.add_env_variables(domain_env_vars_to_add) if !domain_env_vars_to_add.empty?
+      end
     nil
   end
 
