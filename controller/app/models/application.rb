@@ -1648,65 +1648,63 @@ class Application
   # result_io::
   #   {ResultIO} object with directives from cartridge hooks
   def process_commands(result_io, component_id=nil, gear=nil)
-    unless Rails.configuration.geard[:enabled]
-      commands = result_io.cart_commands
-      add_ssh_keys = []
+    commands = result_io.cart_commands
+    add_ssh_keys = []
 
-      remove_env_vars = []
+    remove_env_vars = []
 
-      domain_keys_to_add = []
+    domain_keys_to_add = []
 
-      domain_env_vars_to_add = []
+    domain_env_vars_to_add = []
 
-      commands.each do |command_item|
-        case command_item[:command]
-        when "SYSTEM_SSH_KEY_ADD"
-          domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0], component_id: component_id))
-        when "APP_SSH_KEY_ADD"
-          id = (gear.nil?) ? component_id : gear._id
-          add_ssh_keys << ApplicationSshKey.new(name: command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now, component_id: id)
-        when "APP_ENV_VAR_REMOVE"
-          remove_env_vars.push({"key" => command_item[:args][0]})
-        when "ENV_VAR_ADD"
-          domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
-        when "BROKER_KEY_ADD"
-          op_group = AddBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
-          op_group.set_created_at
-          Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document } })
-        when "NOTIFY_ENDPOINT_CREATE"
-          if gear
-            pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args])
-            gear.port_interfaces.push(pi)
-            pi.publish_endpoint(self)
-          end
-        when "NOTIFY_ENDPOINT_DELETE"
-          if gear
-            public_ip, public_port = command_item[:args]
-            if pi = PortInterface.find_port_interface(gear, public_ip, public_port)
-              pi.unpublish_endpoint(self, public_ip)
-              gear.port_interfaces.delete(pi)
-            end
+    commands.each do |command_item|
+      case command_item[:command]
+      when "SYSTEM_SSH_KEY_ADD"
+        domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0], component_id: component_id))
+      when "APP_SSH_KEY_ADD"
+        id = (gear.nil?) ? component_id : gear._id
+        add_ssh_keys << ApplicationSshKey.new(name: command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now, component_id: id)
+      when "APP_ENV_VAR_REMOVE"
+        remove_env_vars.push({"key" => command_item[:args][0]})
+      when "ENV_VAR_ADD"
+        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
+      when "BROKER_KEY_ADD"
+        op_group = AddBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
+        op_group.set_created_at
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document } })
+      when "NOTIFY_ENDPOINT_CREATE"
+        if gear
+          pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args])
+          gear.port_interfaces.push(pi)
+          pi.publish_endpoint(self)
+        end
+      when "NOTIFY_ENDPOINT_DELETE"
+        if gear
+          public_ip, public_port = command_item[:args]
+          if pi = PortInterface.find_port_interface(gear, public_ip, public_port)
+            pi.unpublish_endpoint(self, public_ip)
+            gear.port_interfaces.delete(pi)
           end
         end
       end
+    end
 
-      if add_ssh_keys.length > 0
-        keys_attrs = get_updated_ssh_keys(add_ssh_keys)
-        op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, user_agent: self.user_agent)
-        op_group.set_created_at
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pushAll" => { app_ssh_keys: keys_attrs }})
-      end
-      if remove_env_vars.length > 0
-        op_group = UpdateAppConfigOpGroup.new(remove_env_vars: remove_env_vars)
-        op_group.set_created_at
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }})
-      end
+    if add_ssh_keys.length > 0
+      keys_attrs = get_updated_ssh_keys(add_ssh_keys)
+      op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, user_agent: self.user_agent)
+      op_group.set_created_at
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pushAll" => { app_ssh_keys: keys_attrs }})
+    end
+    if remove_env_vars.length > 0
+      op_group = UpdateAppConfigOpGroup.new(remove_env_vars: remove_env_vars)
+      op_group.set_created_at
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }})
+    end
 
-      # Have to remember to run_jobs for the other apps involved at some point
-      # run_jobs is called on the domain after all processing is done from add_cartridges and remove_cartridges
-      domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
-      domain.add_env_variables(domain_env_vars_to_add) if !domain_env_vars_to_add.empty?
-      end
+    # Have to remember to run_jobs for the other apps involved at some point
+    # run_jobs is called on the domain after all processing is done from add_cartridges and remove_cartridges
+    domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
+    domain.add_env_variables(domain_env_vars_to_add) if !domain_env_vars_to_add.empty?
     nil
   end
 
@@ -1893,9 +1891,15 @@ class Application
                            event: UsageRecord::EVENTS[:begin], usage_type: UsageRecord::USAGE_TYPES[:gear_usage],
                            gear_size: gear_size, prereq: [create_gear_op._id.to_s])
 
-      register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
-
-      ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op)
+      #TODO
+      register_dns_op = nil
+      if Rails.configuration.geard[:enabled]
+        register_dns_op = create_gear_op
+        ops.push(init_gear_op, reserve_uid_op, create_gear_op)
+      else
+        register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
+        ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op)
+      end
 
       if additional_filesystem_gb != 0
         # FIXME move into CreateGearOp
@@ -1919,9 +1923,11 @@ class Application
     end
 
     # Add broker auth for non scalable apps
-    if app_dns_gear_id && !scalable
-      prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [] : [gear_id_prereqs[app_dns_gear_id]]
-      ops << AddBrokerAuthKeyOp.new(gear_id: app_dns_gear_id, prereq: prereq)
+    unless Rails.configuration.geard[:enabled]
+      if app_dns_gear_id && !scalable
+        prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [] : [gear_id_prereqs[app_dns_gear_id]]
+        ops << AddBrokerAuthKeyOp.new(gear_id: app_dns_gear_id, prereq: prereq)
+      end
     end
 
     # Add and/or push user env vars when this is not an app create or user_env_vars are specified
@@ -1934,13 +1940,15 @@ class Application
     end
 
     prereq_op_id = prereq_op._id.to_s rescue nil
-    # since this component add operation is part of a new gear creation, we can skip rollback for everything other that gear creation
-    is_gear_creation = true
-    add, usage = calculate_add_component_ops(gear_comp_specs, comp_spec_gears, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
-                                             is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
-                                             app_dns_gear_id, is_gear_creation)
-    ops.concat(add)
-    track_usage_ops.concat(usage)
+    unless Rails.configuration.geard[:enabled]
+      # since this component add operation is part of a new gear creation, we can skip rollback for everything other that gear creation
+      is_gear_creation = true
+      add, usage = calculate_add_component_ops(gear_comp_specs, comp_spec_gears, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
+                                               is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
+                                               app_dns_gear_id, is_gear_creation)
+      ops.concat(add)
+      track_usage_ops.concat(usage)
+    end
 
     [ops, track_usage_ops]
   end
@@ -2101,7 +2109,7 @@ class Application
           prereq_id = add_broker_auth_op._id.to_s
           component_ops[comp_spec][:add_broker_auth_keys] << add_broker_auth_op
           ops << add_broker_auth_op
-        end
+        end  
 
         git_url = nil
 
