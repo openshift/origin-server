@@ -923,6 +923,57 @@ class Application
   end
 
   ##
+  # Run a job to recompute usage tracking when the max additional untracked storage for this application changes
+  # @param old_untracked [Integer] previous maximum additional untracked storage amount
+  # @param new_untracked [Integer] new maximum additional untracked storage amount
+  def change_max_untracked_storage(old_untracked, new_untracked)
+    Application.run_in_application_lock(self) do
+      if group_instances_with_overrides.find {|group| group.additional_filesystem_gb > 0 }
+        pending_op_groups << ChangeMaxUntrackedStorageOpGroup.new(user_agent: self.user_agent, old_untracked: old_untracked, new_untracked: new_untracked)
+        self.save!
+        result_io = ResultIO.new
+        self.run_jobs(result_io)
+        result_io
+      end
+    end
+  end
+
+  ##
+  # Return an array of operations to run as a result of changing the maximum additional untracked storage amount for this application
+  def calculate_change_max_untracked_storage_ops(old_untracked, new_untracked)
+    ops = []
+    owner = self.domain.owner
+    group_instances_with_overrides.each do |override|
+      if (fs = override.additional_filesystem_gb) > 0
+        override.instance.gears.each do |gear|
+          ops << TrackUsageOp.new(
+            user_id:                          owner._id,
+            parent_user_id:                   owner.parent_user_id,
+            app_name:                         self.name, 
+            gear_id:                          gear._id.to_s, 
+            event:                            UsageRecord::EVENTS[:end],
+            usage_type:                       UsageRecord::USAGE_TYPES[:addtl_fs_gb],
+            additional_filesystem_gb:         fs,
+            max_untracked_additional_storage: old_untracked,
+            prereq:                           ops.last ? [ops.last._id.to_s] : [])
+
+          ops << TrackUsageOp.new(
+            user_id:                          owner._id,
+            parent_user_id:                   owner.parent_user_id,
+            app_name:                         self.name, 
+            gear_id:                          gear._id.to_s, 
+            event:                            UsageRecord::EVENTS[:begin],
+            usage_type:                       UsageRecord::USAGE_TYPES[:addtl_fs_gb],
+            additional_filesystem_gb:         fs,
+            max_untracked_additional_storage: new_untracked,
+            prereq:                           ops.last ? [ops.last._id.to_s] : [])
+        end
+      end
+    end
+    ops
+  end
+
+  ##
   # Trigger a scale up or scale down of a {GroupInstance}
   # @param group_instance_id [String] ID of the {GroupInstance}
   # @param scale_by [Integer] Number of gears to scale add/remove from the {GroupInstance}.
