@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.19.17
+Version: 1.19.18
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 20 2014 Adam Miller <admiller@redhat.com> 1.19.18-1
+- Bug 1059902 - oo-admin-chk fix: Try to re-populate user/domain info for
+  user_id/domain_id if not found (rpenta@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.17-1
 - Bug 1063142 - Ignore .stop_lock on gear operations (jhonce@redhat.com)
 
