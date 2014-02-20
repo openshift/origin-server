@@ -149,14 +149,23 @@ def set_max_untracked_storage(user, maxuntrackedstorage)
 
     # Update addl_fs_gb usage records if untracked storage limits changed
     begin
+      error = nil
       user.domains.each do |domain|
         domain.applications.each do |app|
-          app.change_max_untracked_storage(old_untracked, maxuntrackedstorage)
+          begin
+            app.change_max_untracked_storage(old_untracked, maxuntrackedstorage)
+          rescue Exception => e
+            error = e
+            $stderr.puts "An error occurred updating storage tracking for the user #{user.login} for the app #{app.name}."
+            $stderr.puts e.message
+          end
         end
       end
+      exit 6 if error
     rescue Exception => e
-      $stderr.puts "An error occurred updating usage tracking for the user #{user.login}."
+      $stderr.puts "An error occurred updating storage tracking for the user #{user.login}."
       $stderr.puts e.message
+      exit 6
     end
 
     puts "Done."
