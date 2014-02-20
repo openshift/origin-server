@@ -65,7 +65,7 @@ class RemoteJob < OpenShift::Model
     begin
       #TODO
       if Rails.configuration.geard[:enabled]
-        OpenShift::GeardClient.execute_parallel_jobs(handle)
+        OpenShift::GeardClient.execute_parallel_jobs_impl(handle)
       else
         OpenShift::ApplicationContainerProxy.execute_parallel_jobs(handle)
       end

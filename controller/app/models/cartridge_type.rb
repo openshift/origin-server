@@ -34,7 +34,8 @@ class CartridgeType
   attr_accessible :name, :manifest_url, :text,
                   :base_name, :version, :cartridge_vendor,
                   :categories, :provides,
-                  :cartridge_version, :obsolete, :display_name, :description
+                  :cartridge_version, :obsolete, :display_name, :description,
+                  :image, :image_label
 
   # Attributes that are loaded from the descriptor
   delegate :license, :license_url, :website, :help_topics,
@@ -107,6 +108,8 @@ class CartridgeType
       provides: (c.features + c.names).uniq,
       categories: c.categories,
       cartridge_version: c.cartridge_version,
+      image: c.image,
+      image_label: c.image_label,
       text: text,
     }
   end

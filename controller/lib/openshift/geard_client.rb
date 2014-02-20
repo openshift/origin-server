@@ -34,12 +34,10 @@ module OpenShift
       #
       def initialize(id, district=nil)
         @id = id
-        @id = "localhost"
+        #TODO hardcode to localhost for now, should be passed in ID
+        @hostname = "localhost"
         @district = district
         #TODO Config the port
-        # Use 2223 if running geard from systemctl
-        #@port = "2223"
-        # Use 2224 if running geard.local
         @port = "2224"
       end
 
@@ -264,15 +262,24 @@ module OpenShift
         app = gear.application
         result = nil
         clnt = HTTPClient.new
-        # todo for now hardcode to the image named test-app which is the already built image, but this
-        # would normally be our pre-built cartridge image name, or if its from code, the resulting built image name
-        res = clnt.put("#{build_base_geard_url}container#{build_base_gear_args gear}&t=test-app", '{"ports":[{"internal":8080}]}')
+        # TODO this assumes there is only one component_instance and is currently requiring looking up the CartridgeType
+        image_name = gear.component_instances[0].cartridge.image
+        # Hardcoded to request port 8080 be exposed inside the container
+        post_body = {
+          "Image" => image_name,
+          "Started" => true,
+          "Ports" => [
+            {"internal" => 8080}
+          ]
+        }
+        res = clnt.put("#{build_base_geard_url}container/#{gear.uuid}", post_body.to_json, build_geard_post_headers)
         portmapping = res.header["X-Portmapping"]
         result = ResultIO.new
         result.resultIO << res.body
         #todo for now assume anything less than 400 is OK
         if res.status_code < 400
           result.resultIO << "The port mapping for this app is #{portmapping.join(', ').gsub('=',' -> ')}"
+          #TODO store the port mapping onto the gear in mongo
         else
           #TODO error handling here
         end
@@ -607,7 +614,7 @@ module OpenShift
       def get_start_job(gear, component)
         #TODO
         args = build_base_gear_args gear
-        RemoteJob.new('openshift-origin-node', 'container/started', args)
+        RemoteJob.new('openshift-origin-node', "container/#{gear.uuid}/started", args)
       end
 
       #
@@ -628,7 +635,7 @@ module OpenShift
       def get_stop_job(gear, component)
         #TODO
         args = build_base_gear_args gear
-        RemoteJob.new('openshift-origin-node', 'container/stopped', args)
+        RemoteJob.new('openshift-origin-node', "container/#{gear.uuid}/stopped", args)
       end
 
       #
@@ -649,7 +656,7 @@ module OpenShift
       def get_force_stop_job(gear, component)
         #TODO
         args = build_base_gear_args gear
-        RemoteJob.new('openshift-origin-node', 'container/stopped', args)
+        RemoteJob.new('openshift-origin-node', "container/#{gear.uuid}/stopped", args)
       end
 
       #
@@ -668,8 +675,8 @@ module OpenShift
       end
 
       def get_restart_job(gear, component, all=false)
-        #TODO
-        RemoteJob.new('openshift-origin-node', 'restart', args)
+        args = build_base_gear_args gear
+        RemoteJob.new('openshift-origin-node', "container/#{gear.uuid}/restart", args)
       end
 
       #
@@ -1583,24 +1590,24 @@ module OpenShift
       #
       def self.execute_parallel_jobs_impl(handle)
         #TODO for now only handling a single geard host
-        binding.pry
-        handle[@id].each do |parallel_job|
-          job = parallel_job[:job]
-          async do
-            clnt = HTTPClient.new
-            res = clnt.put("#{build_base_geard_url}#{job[:action]}#{job[:args]}")
-            #todo for now assume anything less than 400 is OK
-            if res.status_code < 400
-              handle[@id] = output
-            else
-              handle[@id].each { |gear_info|
+        #TODO make this async, requires geardclient be an object instead of calling
+        #   class methods
+        handle.delete :args
+        handle.keys.each do |identity|
+          handle[identity].each do |parallel_job|
+            job = parallel_job[:job]
+            #async do
+              clnt = HTTPClient.new
+              #todo since we don't have the right identity right now, pass localhost instead of identity
+              res = clnt.put("#{build_base_geard_url 'localhost'}#{job[:action]}#{job[:args]}")
+              handle[identity].each { |gear_info|
                 gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{res.body}"
-                gear_info[:result_exit_code] = res.status_code
+                gear_info[:result_exit_code] = res.status_code < 400 ? 0 : res.status_code
               }
-            end
+            #end
           end
         end
-        join!(240)
+        #join!(240)
       end
 
       private
@@ -1618,11 +1625,27 @@ module OpenShift
       end
 
       def build_base_geard_url
-        "http://#{@id}:#{@port}/token/__test__/"
+        "http://#{@hostname}:#{@port}/"
       end
 
       def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
-        "?r=#{gear.uuid}"
+        ""
+      end
+
+      def build_geard_post_headers
+        {"Content-Type" => "application/json"}
+      end
+
+      def self.build_base_geard_url(hostname)
+        "http://#{hostname}:2224/"
+      end
+
+      def self.build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
+        ""
+      end
+
+      def self.build_geard_post_headers
+        {"Content-Type" => "application/json"}
       end
 
     end
