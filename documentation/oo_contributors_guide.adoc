@@ -37,7 +37,7 @@ To start working with the code, you must first create a _fork_ of the GitHub rep
 1. Navigate to the GitHub page of the repository you wish to fork.
 2. Click on the fork button on the top right corner of the page.
 
-image:bootcamp_3_fork.jpg[image]
+image:images/bootcamp_3_fork.jpg[image]
 
 This creates a copy of the repository in your own GitHub space.
 
