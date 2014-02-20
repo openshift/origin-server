@@ -48,7 +48,7 @@ def call_gear_metrics
     cgroup_name = "/openshift/#{uuid}"
     output.concat get_cgroup_metrics(cgroup_name)
   end
-  puts output
+  output.each{|metric| $stdout.write("type=metric #{metric}\n")}
 end
 
 # Execute the applications' metric's hooks
@@ -68,16 +68,16 @@ def main
   while start_time = Time.now
 
     cartridge_metric_time = time_method { call_cartridge_metrics }
-    puts "Cartridge metrics finished in #{cartridge_metric_time}"
+    $stdout.write "type=metric cartridge.metric_time=#{cartridge_metric_time}\n"
 
     gear_metric_time = time_method { call_gear_metrics }
-    puts "Gear metrics finished in #{gear_metric_time}"
+    $stdout.write "type=metric gear.metric_time=#{gear_metric_time}\n"
 
     application_metric_time = time_method { call_application_metrics }
-    puts "Application metrics finished in #{application_metric_time}"
+    $stdout.write "type=metric application.metric_time=#{application_metric_time}\n"
 
     total_elapsed_time = Time.now - start_time
-    puts "All metrics took #{total_elapsed_time} to run"
+    $stdout.write "type=metric total.metric_time=#{total_elapsed_time}\n"
     sleep (sleep_time - total_elapsed_time)
   end
 end
