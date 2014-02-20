@@ -48,7 +48,7 @@ def call_gear_metrics
     cgroup_name = "/openshift/#{uuid}"
     output.concat get_cgroup_metrics(cgroup_name)
   end
-  output
+  puts output
 end
 
 # Execute the applications' metric's hooks
