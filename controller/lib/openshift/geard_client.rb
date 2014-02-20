@@ -37,7 +37,10 @@ module OpenShift
         @id = "localhost"
         @district = district
         #TODO Config the port
-        @port = "2223"
+        # Use 2223 if running geard from systemctl
+        #@port = "2223"
+        # Use 2224 if running geard.local
+        @port = "2224"
       end
 
       # <<factory method>>
@@ -261,16 +264,18 @@ module OpenShift
         app = gear.application
         result = nil
         clnt = HTTPClient.new
-        #res = client.put("#{build_base_geard_url}container#{build_base_gear_args gear}&t=#{app.name}", '{"ports":[{"external":4343,"internal":8080}]}')
-        #todo for now assume anything less than 400 is OK
-        res = clnt.put("#{build_base_geard_url}container?u=0&d=1&t=#{app.name}&r=0001", '{"ports":[{"external":4343,"internal":8080}]}')
+        # todo for now hardcode to the image named test-app which is the already built image, but this
+        # would normally be our pre-built cartridge image name, or if its from code, the resulting built image name
+        res = clnt.put("#{build_base_geard_url}container#{build_base_gear_args gear}&t=test-app", '{"ports":[{"internal":"8080"}]}')
+        portmapping = res.header["X-Portmapping"]
         result = ResultIO.new
         result.resultIO << res.body
-        if res.status_code >= 400
-          #TODO stuff here
+        #todo for now assume anything less than 400 is OK
+        if res.status_code < 400
+          result.resultIO << "The port mapping for this app is #{portmapping.join(', ').gsub('=',' -> ')}"
+        else
+          #TODO error handling here
         end
-
-        #TODO
         result
       end
 
@@ -1578,6 +1583,7 @@ module OpenShift
       #
       def self.execute_parallel_jobs_impl(handle)
         #TODO for now only handling a single geard host
+        binding.pry
         handle[@id].each do |parallel_job|
           job = parallel_job[:job]
           async do
@@ -1616,7 +1622,7 @@ module OpenShift
       end
 
       def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
-        "?u=0&d=1&r=#{gear.uuid}"
+        "?r=#{gear.uuid}"
       end
 
     end
