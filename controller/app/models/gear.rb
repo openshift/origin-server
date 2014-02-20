@@ -99,7 +99,7 @@ class Gear
     @container = OpenShift::ApplicationContainerProxy.find_available(opts)
     reserved_uid = @container.reserve_uid
     Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => @container.id, "gears.$.uid" => reserved_uid}})
-    self.server_identity = @container.id
+    self.server_identity = "localhost"
     self.uid = reserved_uid
   end
 
@@ -359,14 +359,19 @@ class Gear
   # == Returns:
   # {OpenShift::ApplicationContainerProxy}
   def get_proxy
-    return nil unless server_identity
-    @container = nil if @container && @container.id != server_identity
-    @container ||= OpenShift::ApplicationContainerProxy.instance(server_identity)
+    if Rails.configuration.geard[:enabled]
+      geard_client
+    else
+      return nil unless server_identity
+      @container = nil if @container && @container.id != server_identity
+      @container ||= OpenShift::ApplicationContainerProxy.instance(server_identity)
+    end
   end
 
   def geard_client
-    return nil unless server_identity
-    @geard_client ||= OpenShift::GeardClient.new(server_identity)
+    #return nil unless server_identity
+    # TODO right now the geard client is always localhost
+    @geard_client ||= OpenShift::GeardClient.new("localhost")
   end
 
   def node_client
