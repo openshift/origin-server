@@ -33,7 +33,16 @@ function waitondeployments() {
       client_message "Timed out waiting for management listening port"
       client_message "Could not connect to JBoss management interface, skipping deployment verification"
     else
-      getscanconfig
+      SCANCONFIG=""
+      c=0
+      while [ "$SCANCONFIG" == "" ] && [ $c -lt 5 ]; do
+        getscanconfig
+        if [ "$SCANCONFIG" != "" ]; then
+          break
+        fi
+        sleep 2
+        let c=c+1
+      done
 
       if [ "$SCANCONFIG" == "" ]; then
         client_message "Could not connect to JBoss management interface, skipping deployment verification"
