@@ -68,7 +68,7 @@ def main
   while start_time = Time.now
 
     cartridge_metric_time = time_method { call_cartridge_metrics }
-    puts "Cartridge metrics finished in #{}cartridge_metric_time}"
+    puts "Cartridge metrics finished in #{cartridge_metric_time}"
 
     gear_metric_time = time_method { call_gear_metrics }
     puts "Gear metrics finished in #{gear_metric_time}"
