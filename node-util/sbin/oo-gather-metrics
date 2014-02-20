@@ -53,7 +53,7 @@ end
 
 # Execute the applications' metric's hooks
 def call_application_metrics
-  puts "These are the gear metrics"
+  puts "These are the application metrics"
 end
 
 # Main daemon process
@@ -68,13 +68,13 @@ def main
   while start_time = Time.now
 
     cartridge_metric_time = time_method { call_cartridge_metrics }
-    puts cartridge_metric_time
+    puts "Cartridge metrics finished in #{}cartridge_metric_time}"
 
     gear_metric_time = time_method { call_gear_metrics }
-    puts gear_metric_time
+    puts "Gear metrics finished in #{gear_metric_time}"
 
     application_metric_time = time_method { call_application_metrics }
-    puts application_metric_time
+    puts "Application metrics finished in #{application_metric_time}"
 
     total_elapsed_time = Time.now - start_time
     puts "All metrics took #{total_elapsed_time} to run"
