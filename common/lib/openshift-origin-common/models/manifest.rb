@@ -210,7 +210,9 @@ module OpenShift
                   :install_build_required,
                   :source_url,
                   :source_md5,
-                  :metrics
+                  :metrics,
+                  :image,
+                  :image_label
 
       # When a cartridge is installed from a URL, we validate the
       # vendor name by matching against VALID_VENDOR_NAME_PATTERN,
@@ -334,7 +336,8 @@ module OpenShift
         @is_deployable          = @categories.include?('web_framework')
         @is_web_proxy           = @categories.include?('web_proxy')
         @install_build_required = @manifest.has_key?('Install-Build-Required') ? @manifest['Install-Build-Required'] : false
-
+        @image                   = @manifest['Image']
+        @image_label             = @manifest['Image-Label']
 
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor

@@ -1877,9 +1877,13 @@ class Application
                                     app_dns: app_dns, pre_save: (not self.persisted?))
       init_gear_op.prereq << prereq_op._id.to_s unless prereq_op.nil?
 
-      reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, gear_size: gear_size, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
-
-      create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
+      if Rails.configuration.geard[:enabled]
+        # TODO rollback op?
+        create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s], retry_rollback_op: nil)
+      else
+        reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, gear_size: gear_size, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
+        create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
+      end
 
       # this flag is passed to the node to indicate that an sshkey is required to be generated for this gear
       # currently the sshkey is being generated on the app dns gear if the application is scalable
@@ -1895,7 +1899,7 @@ class Application
       register_dns_op = nil
       if Rails.configuration.geard[:enabled]
         register_dns_op = create_gear_op
-        ops.push(init_gear_op, reserve_uid_op, create_gear_op)
+        ops.push(init_gear_op, create_gear_op)
       else
         register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
         ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op)
