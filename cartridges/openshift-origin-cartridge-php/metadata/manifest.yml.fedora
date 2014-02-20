@@ -22,7 +22,7 @@ Categories:
 - web_framework
 Website: http://www.php.net
 Help-Topics:
-  Developer Center: https://openshift.redhat.com/community/developers
+  Developer Center: https://www.openshift.com/developers
 Publishes:
   get-php-ini:
     Type: FILESYSTEM:php-ini

@@ -40,7 +40,7 @@
 #     </properties>
 #     <scales-with nil="true"/>
 #     <help-topics>
-#       <Developer-Center>https://openshift.redhat.com/community/developers</Developer-Center>
+#       <Developer-Center>https://www.openshift.com/developers</Developer-Center>
 #     </help-topics>
 #     <links>
 #       ...
