@@ -266,7 +266,7 @@ module OpenShift
         clnt = HTTPClient.new
         # todo for now hardcode to the image named test-app which is the already built image, but this
         # would normally be our pre-built cartridge image name, or if its from code, the resulting built image name
-        res = clnt.put("#{build_base_geard_url}container#{build_base_gear_args gear}&t=test-app", '{"ports":[{"internal":"8080"}]}')
+        res = clnt.put("#{build_base_geard_url}container#{build_base_gear_args gear}&t=test-app", '{"ports":[{"internal":8080}]}')
         portmapping = res.header["X-Portmapping"]
         result = ResultIO.new
         result.resultIO << res.body
