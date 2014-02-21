@@ -15,7 +15,7 @@
 
 Summary:       OpenShift Apache mod_rewrite frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.3.4
+Version: 0.3.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -131,6 +131,9 @@ mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu Feb 20 2014 Adam Miller <admiller@redhat.com> 0.3.5-1
+- Fix output from decode_connections (andy.goldstein@gmail.com)
+
 * Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 0.3.4-1
 - Bug 1065133: Add websocket option to haproxy manifest and sanitize uri
   returned from mod_rewrite. (mrunalp@gmail.com)
