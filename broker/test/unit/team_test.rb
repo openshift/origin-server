@@ -39,14 +39,71 @@ class TeamTest < ActiveSupport::TestCase
     assert t.destroy
   end
 
-  def test_remove_twice
-    # TODO: A remove op shouldn't fail because the member has already been removed
+  def test_add_and_remove_in_single_operation
+    # A remove op shouldn't fail because the team member has already been removed
+    Domain.where(:namespace => 'test').delete
+    assert d = Domain.create(:namespace => 'test')
+
+    CloudUser.where(:login => 'team-member-1').delete
+    assert u1 = CloudUser.create(:login => 'team-member-1')
+
+    Team.where(:name => 'member-team').delete
+    assert t = Team.create(:name => 'member-team')
+
+    t.add_members u1, :view
+    t.remove_members u1
+    t.save
+    t.run_jobs
+
+    d.add_members t, :view
+    d.remove_members t
+    d.save
+    d.run_jobs
+
+    # Make sure the user's not a member of the domain or team
+    assert_equal nil, t.role_for(u1)
+    assert_equal nil, d.role_for(u1)
+
+    # Make sure the team's not a member of the domain
+    assert_equal nil, d.role_for(t)
   end
 
-  def test_readd_doesnt_duplicate_grants
-    # TODO: Add a team with members with :view permission
-    # Readd a team with :edit permission
-    # Ensure there are not duplicate grants from the team
+  def test_remove_twice
+    # A remove op shouldn't fail because the team member has already been removed
+    Domain.where(:namespace => 'test').delete
+    assert d = Domain.create(:namespace => 'test')
+
+    CloudUser.where(:login => 'team-member-1').delete
+    assert u1 = CloudUser.create(:login => 'team-member-1')
+
+    Team.where(:name => 'member-team').delete
+    assert t = Team.create(:name => 'member-team')
+
+    t.add_members u1, :view
+    t.save
+    t.run_jobs
+
+    d.add_members t, :view
+    d.save
+    d.run_jobs
+
+    # Make sure the user's a member of the domain
+    assert_equal :view, d.role_for(u1)
+
+    # Mess with the domain membership to simulate the user already being removed
+    d.members = d.members.select(&:team?)
+    d.save
+
+    # Tolerate a double-remove before saving
+    t.remove_members u1
+    t.remove_members u1
+    t.save
+    t.run_jobs
+
+    # Tolerate a remove of a non-existent member
+    t.remove_members u1
+    t.save
+    t.run_jobs    
   end
 
   def test_adding_to_elevated_team_elevates

@@ -113,7 +113,8 @@ class AccessControlledTest < ActiveSupport::TestCase
     d = Domain.new
     assert d.members.empty?
 
-    assert_raise(Mongoid::Errors::DocumentNotFound){ d.remove_members('test') }
+    # Removing a nonexistent member is a no-op
+    assert_same d, d.remove_members('test')
     assert d.atomic_updates.empty?
     assert !d.has_member_changes?
 

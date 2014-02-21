@@ -56,13 +56,17 @@ module Membership
     self
   end
 
+  # Removes given members, if they exist in the resource's membership
   def remove_members(*args)
     from = args.pop if args.last.is_a?(Symbol) || (args.length > 1 && args.last.is_a?(Array))
     return self if args.empty?
     changing_members do
       args.flatten(1).each do |arg|
         m = self.class.to_member(arg)
-        members.find_by(m.to_find_by_params).tap {|m| m.delete if m.remove_grant(from) }
+        
+        if exists = members.find_by(m.to_find_by_params) rescue nil
+          exists.delete if exists.remove_grant(from)
+        end
 
         if source = m.as_source
           members.select{|m| m.remove_grant(source) }.map(&:delete)
