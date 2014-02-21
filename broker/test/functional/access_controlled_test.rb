@@ -33,7 +33,34 @@ class AccessControlledTest < ActiveSupport::TestCase
   end
 
   def test_member_explicit_remove
-    # TODO: add a member with an explicit role, add the same with a from role, remove the explicit role, ensure member still exists but without an explicit role
+    d = Domain.new
+
+    # add a member with an explicit role
+    d.add_members 'a', :view
+    assert_equal 1, d.members.length
+    assert_equal 'a', d.members.first.id
+    assert_equal :view, d.members.first.role
+    assert_equal :view, d.members.first.explicit_role
+    assert d.members.first.explicit_role?
+
+    # add the same with a from role
+    d.add_members 'a', :edit, [:domain]
+    assert_equal 1, d.members.length
+    assert_equal 'a', d.members.first.id
+    assert_equal :edit, d.members.first.role
+    assert_equal :view, d.members.first.explicit_role
+    assert d.members.first.explicit_role?
+
+    # remove the explicit role, ensure member still exists but without an explicit role
+    d.remove_members 'a'
+    assert_equal 1, d.members.length
+    assert_equal 'a', d.members.first.id
+    assert_equal :edit, d.members.first.role
+    assert_equal nil, d.members.first.explicit_role
+    assert !d.members.first.explicit_role?
+
+    d.remove_members 'a', [:domain]
+    assert_equal 0, d.members.length
   end
 
   def test_member_explicit
