@@ -32,7 +32,7 @@ class Member
   attr_accessible :_id, :role
 
   validates_presence_of :_id, :message => 'You must provide a valid id for your member.'
-  validates_presence_of :role, :message => "must be one of : #{Role.all.join(', ')}"
+  validates_inclusion_of :role, :in => Role.all, :message => "must be one of: #{Role.all.join(', ')}"
 
   def ==(other)
     _id == other._id && (member_type === other || self.class == other.class)
