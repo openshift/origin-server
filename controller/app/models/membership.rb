@@ -36,7 +36,7 @@ module Membership
       args.flatten(1).map do |arg|
         m = self.class.to_member(arg)
         m.add_grant(role || m.role || default_role, from) if from || !m.role?
-        if exists = members.find_by(m.to_find_by_params) rescue nil
+        if exists = m.find_in(members) rescue nil
           exists.merge(m)
         else
           members.push(m)
@@ -44,7 +44,7 @@ module Membership
 
         m.submembers.map(&:clone).map(&:clear).each do |submember|
           submember.add_grant(role || m.role || default_role, m.as_source)
-          if exists = members.find_by(submember.to_find_by_params) rescue nil
+          if exists = submember.find_in(members) rescue nil
             exists.merge(submember)
           else
             members.push(submember)
@@ -64,7 +64,7 @@ module Membership
       args.flatten(1).each do |arg|
         m = self.class.to_member(arg)
         
-        if exists = members.find_by(m.to_find_by_params) rescue nil
+        if exists = m.find_in(members) rescue nil
           exists.delete if exists.remove_grant(from)
         end
 
@@ -124,7 +124,7 @@ module Membership
         m.update_grant(new_role, source)
 
         m.submembers.map(&:clone).map(&:clear).each do |submember|
-          if exists = members.find_by(submember.to_find_by_params) rescue nil
+          if exists = submember.find_in(members) rescue nil
             exists.update_grant(new_role, m.as_source)
           else
             submember.add_grant(new_role, m.as_source)

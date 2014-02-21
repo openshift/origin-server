@@ -276,18 +276,18 @@ class AccessControlledTest < ActiveSupport::TestCase
 
       # Check propagation of team members when adding team
       a1.reload
-      assert d_t_member = d.members.find_by(t.as_member.to_find_by_params)
+      assert d_t_member = t.as_member.find_in(d.members)
       assert_equal :view,  d_t_member.role
       assert_equal nil, d_t_member.from
 
-      assert d_u1_member = d.members.find_by(u1.as_member.to_find_by_params)
+      assert d_u1_member = u1.as_member.find_in(d.members)
       assert_equal Set.new([["team", t._id, :view]]), Set.new(d_u1_member.from)
 
       # Teams do not propagate from domains to apps
-      assert_raise(Mongoid::Errors::DocumentNotFound){ a1.members.find_by(t.as_member.to_find_by_params) }
+      assert_raise(Mongoid::Errors::DocumentNotFound){ t.as_member.find_in(a1.members) }
 
       # Expect the user from attribute to just have domain info
-      assert a1_u1_member = a1.members.find_by(u1.as_member.to_find_by_params)
+      assert a1_u1_member = u1.as_member.find_in(a1.members)
       assert_equal Set.new([["domain", :view]]), Set.new(a1_u1_member.from)
 
       # Check propagation of additional team members to existing domain/app
@@ -297,22 +297,22 @@ class AccessControlledTest < ActiveSupport::TestCase
       
       d.reload
       a1.reload
-      assert d_u2_member = d.members.find_by(u2.as_member.to_find_by_params)
+      assert d_u2_member = u2.as_member.find_in(d.members)
       assert_equal Set.new([["team", t._id, :view]]), Set.new(d_u2_member.from)
 
-      assert a1_u2_member = a1.members.find_by(u2.as_member.to_find_by_params)      
+      assert a1_u2_member = u2.as_member.find_in(a1.members)
       assert_equal Set.new([["domain", :view]]), Set.new(a1_u2_member.from)
 
       # Application created after the team is a member
       Application.where(:name => 'teampropagate2').delete
       assert a2 = Application.create(:name => 'teampropagate2', :domain => d)
 
-      assert_raise(Mongoid::Errors::DocumentNotFound){ a2.members.find_by(t.as_member.to_find_by_params) }
+      assert_raise(Mongoid::Errors::DocumentNotFound){ t.as_member.find_in(a2.members) }
 
-      assert a2_u1_member = a2.members.find_by(u1.as_member.to_find_by_params)      
+      assert a2_u1_member = u1.as_member.find_in(a2.members)
       assert_equal Set.new([["domain", :view]]), Set.new(a2_u1_member.from)
 
-      assert a2_u2_member = a1.members.find_by(u2.as_member.to_find_by_params)      
+      assert a2_u2_member = u2.as_member.find_in(a1.members)
       assert_equal Set.new([["domain", :view]]), Set.new(a2_u2_member.from)
   end
 

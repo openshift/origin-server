@@ -48,11 +48,11 @@ class Member
     [_id, type]
   end
 
-  def to_find_by_params
-    {
+  def find_in(members)
+    members.find_by({
       :id => _id,
       :type => type == 'user' ? nil : type
-    }
+    })
   end
 
   #
