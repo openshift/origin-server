@@ -7,7 +7,7 @@ class ChangeMembersDomainOp < PendingDomainOps
   def execute
     user_roles_changed   = (roles_changed   || []).select {|(id, type, *_)| type == 'user' }
     user_members_removed = (members_removed || []).select {|(id, type, *_)| type == 'user' }
-    user_members_added   = (members_added || []).select {|(id, type, *_)| type == 'user' }
+    user_members_added   = (members_added   || []).select {|(id, type, *_)| type == 'user' }
 
     self.domain.applications.select do |a|
       a.change_member_roles(user_roles_changed || [], [:domain])

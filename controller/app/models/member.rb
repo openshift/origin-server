@@ -4,7 +4,7 @@ class Member
 
   # The ID this member refers to.
   field :_id, :as => :_id, type: Moped::BSON::ObjectId, default: -> { nil }
-  # The type of this member.  All members are currently users
+  # The type of this member. Current values are nil (for members that are users) and 'team' (for members that are teams)
   field :t, :as => :type, type: String
   # The name of this member, denormalized
   field :n, :as => :name, type: String
@@ -163,28 +163,28 @@ class Member
 
   def member_type
     case type
-      when 'team'
-        Team
-      else
-        CloudUser
+    when 'team'
+      Team
+    else
+      CloudUser
     end
   end
 
   def as_source
     case type
-      when 'team'
-        [type, _id]
-      else
-        nil
+    when 'team'
+      [type, _id]
+    else
+      nil
     end
   end
 
   def submembers
     case type
-      when 'team'
-        Team.find(_id).members
-      else
-        []
+    when 'team'
+      Team.find(_id).members
+    else
+      []
     end
   end
 
@@ -194,6 +194,14 @@ class Member
 
   def type=(obj)
     super obj == 'user' ? nil : obj
+  end
+
+  def user?
+    type == 'user'
+  end
+
+  def team?
+    type == 'team'
   end
 
   protected

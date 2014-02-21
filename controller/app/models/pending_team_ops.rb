@@ -101,19 +101,4 @@ class PendingTeamOps
     
     return current_op
   end
-
-
-  def serializable_hash_with_timestamp
-    s_hash = self.serializable_hash
-    t = Time.zone.now
-    if self.created_at.nil?
-      s_hash["created_at"] = t
-    end
-    if self.updated_at.nil?
-      s_hash["updated_at"] = t
-    end
-    # need to set the _type attribute for MongoId to instantiate the appropriate class 
-    s_hash["_type"] = self.class.to_s unless s_hash["_type"]
-    s_hash
-  end
 end

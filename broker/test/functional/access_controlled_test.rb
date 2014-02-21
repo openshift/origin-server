@@ -77,7 +77,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert m.remove_grant # verify that removing a user twice is still true
   end
 
-  def test_member_merge_duplicate_sources
+  def test_member_merge_overrides_grant_from_identical_source
     m1 = Member.new(_id: 'a', role: :admin){|m| m.from = [['domain', :admin]] }
     m2 = Member.new(_id: 'a', role: :view){|m| m.from = [['domain', :view]] }
     assert_equal :admin, m1.role
