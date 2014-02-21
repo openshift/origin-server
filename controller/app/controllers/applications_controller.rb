@@ -199,11 +199,12 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "Invalid deployment_branch: #{deployment_branch}. Deployment branches are limited to 256 characters",
                         1, "deployment_branch") if deployment_branch and deployment_branch.length > 256
 
-    @application.config['auto_deploy'] = auto_deploy if !auto_deploy.nil?
-    @application.config['deployment_branch'] = deployment_branch if deployment_branch
-    @application.config['keep_deployments'] = keep_deployments if keep_deployments
-    @application.config['deployment_type'] = deployment_type if deployment_type
-    result = @application.update_configuration
+    new_config = {}
+    new_config['auto_deploy'] = auto_deploy unless auto_deploy.nil?
+    new_config['deployment_branch'] = deployment_branch unless deployment_branch.nil?
+    new_config['keep_deployments'] = keep_deployments unless keep_deployments.nil?
+    new_config['deployment_type'] = deployment_type unless deployment_type.nil?
+    result = @application.update_configuration(new_config)
 
     include_cartridges = (params[:include] == "cartridges")
     app = get_rest_application(@application, include_cartridges)
