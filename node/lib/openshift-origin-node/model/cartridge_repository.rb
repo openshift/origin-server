@@ -371,6 +371,19 @@ module OpenShift
       end
 
       #
+      # Determine the latest cartridge version present for a cart
+      #
+      def latest_cartridge_version(cart_name)
+        versions = []
+        @index[cart_name].each_value do |cart_version_to_cart|
+          versions += cart_version_to_cart.keys.delete_if { |v| v == '_' }
+          versions.uniq!
+        end
+
+        Manifest.sort_versions(versions).last
+      end
+
+      #
       # Determine whether the given cartridge version is the latest for (cartridge_name, version)
       #
       def latest_cartridge_version?(cartridge_name, version, cartridge_version)
@@ -412,10 +425,13 @@ module OpenShift
       def latest_versions
         cartridges = []
 
-        @index.each_key do |cart_name|
-          @index[cart_name].keys.sort.reverse.each do |software_version|
-            latest = @index[cart_name][software_version]['_']
-            cartridges << latest unless latest.instance_of?(Hash)
+        @index.each do |cart_name, software_versions|
+          lcv = latest_cartridge_version(cart_name)
+          software_versions.keys.sort.reverse.each do |software_version|
+            unless software_versions[software_version][lcv].instance_of?(Hash)
+              latest = software_versions[software_version]['_']
+              cartridges << latest unless latest.instance_of?(Hash)
+            end
           end
         end
 
