@@ -120,8 +120,11 @@ end
 
 def get_cgroup_metrics(path)
   output = []
-  output.concat(get_cgroups_single_metric(@cgroups_single_metrics, path))
 
+  one_call_metrics = @cgroups_single_metrics.concat(@cgroups_kv_metrics).concat(@cgroups_multivalue_metrics)
+  output.concat(get_cgroups_single_metric(one_call_metrics, path))
+
+=begin
   @cgroups_kv_metrics.each do |metric|
     output.concat(get_cgroups_kv_metric(metric, path))
   end
@@ -129,6 +132,7 @@ def get_cgroup_metrics(path)
   @cgroups_multivalue_metrics.each do |metric|
     output.concat(get_cgroups_multivalue_metric(metric, path))
   end
+=end
   output
 end
 
