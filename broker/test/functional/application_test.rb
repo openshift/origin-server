@@ -1,7 +1,7 @@
 ENV["TEST_NAME"] = "functional_application_test"
-require 'test_helper'
+require_relative '../test_helper'
 require 'openshift-origin-controller'
-require 'helpers/rest/api'
+require_relative '../helpers/rest/api'
 
 class ApplicationsTest < ActionDispatch::IntegrationTest
   def setup
@@ -41,11 +41,8 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal 1, app.group_instances.length
     assert_equal 1, app.gears.length
 
-    app.config['auto_deploy'] = true
-    app.config['deployment_branch'] = "stage"
-    app.config['keep_deployments'] = 3
-    app.config['deployment_type'] = "binary"
-    app.update_configuration
+    new_config = {'auto_deploy' => true, 'deployment_branch' => "stage", 'keep_deployments' => 3, 'deployment_type' => "binary"}
+    app.update_configuration(new_config)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     assert app.config['auto_deploy'] == true
@@ -98,11 +95,8 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     assert_equal "https://github.com/foobar/test.git", app.init_git_url
-    app.config['auto_deploy'] = true
-    app.config['deployment_branch'] = "stage"
-    app.config['keep_deployments'] = 3
-    app.config['deployment_type'] = "binary"
-    app.update_configuration
+    new_config = {'auto_deploy' => true, 'deployment_branch' => "stage", 'keep_deployments' => 3, 'deployment_type' => "binary"}
+    app.update_configuration(new_config)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     assert app.config['auto_deploy'] == true
@@ -267,7 +261,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal app.errors.messages[:config].length, 4, "Wrong number of error messages"
 
     #check validation on update_config
-    assert_raise(OpenShift::UserException){app.update_configuration}
+    assert_raise(OpenShift::UserException){app.update_configuration(app.config)}
   end
 
   test "app metadata validation" do
