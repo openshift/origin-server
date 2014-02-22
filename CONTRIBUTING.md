@@ -9,6 +9,7 @@ OpenShift Contributor Guidelines
 * [IRC](#irc)
 * [Mailing list](#mailing-list)
 * [Twitter](#twitter)
+* [Trello](#trello)
 
 [Using git and github](#using-git-and-github)
 
@@ -63,6 +64,9 @@ The OpenShift developer mailing list is <dev@lists.openshift.redhat.com> - you m
 
 Follow [@openshift](https://twitter.com/openshift) on Twitter.
 
+### Trello ###
+
+OpenShift Origin development is coordinated in [Trello](https://trello.com/openshift).
 
 Using git and github
 ====================
