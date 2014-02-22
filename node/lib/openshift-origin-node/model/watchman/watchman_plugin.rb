@@ -18,6 +18,7 @@ require 'date'
 
 module OpenShift
   module Runtime
+    # @!visibility private
     module WatchmanPluginTemplate
       module ClassMethods
         # Watchman plugin repository
@@ -32,32 +33,71 @@ module OpenShift
       end
 
       # Extend class with repository when class is included
+      # @!visibility private
       def self.included(klass)
         klass.extend ClassMethods
       end
     end
 
-    # @abstract class and class methods for Watchman plugins. Override {#apply} to implement
+    # @abstract Subclass for Watchman plugins. Override {#apply} to implement your plugin
+    # @api watchman plugin
+    #
+    # There are two helper methods provided, for your use:
+    #   {#restart} to start/restart a gear, and
+    #   {#stop} to shutdown the gear's cartridge's daemons
+    #
+    # @!attribute [r] logger
+    #   @return [NodeLogger] logger instance being used
+    # @!attribute [r] config
+    #   @return [Config] elements from node.conf
+    # @!attribute [r] gears
+    #   @return [CachedGears] collection of running gears on node
     class WatchmanPlugin
       include WatchmanPluginTemplate
 
-      attr_accessor :config, :gears, :restart
+      attr_reader :config, :gears, :logger
 
-      # @param config  [CachedConfig]             Cached elements from node.conf
-      # @param gears   [CachedGears]              Cached list of running gears
-      # @param restart [lambda<String, DateTime>] lambda passed a gear's uuid and event timestamp
-      #   will conditionally restart the gear
-      def initialize(config, gears, restart)
-        @config, @gears, @restart = config, gears, restart
+      # @param [CachedConfig] config Cached elements from node.conf
+      # @param [NodeLogger] logger Logger for items that are not required to be in Syslog
+      # @param [CachedGears] gears Cached list of running gears
+      # @param [lambda<Symbol, String>] operation lambda passed an operation and gear's uuid to be acted upon.
+      #   Supported operations: `:restart`, `:stop` or `:idle`
+      def initialize(config, logger, gears, operation)
+        @config, @logger, @gears, @operation = config, logger, gears, operation
       end
 
       # Execute plugin code
-      # @param iteration  [Iteration] timestamps of events
+      # @param [Iteration] iteration provides timestamps of events
+      # @return void
       def apply(iteration)
+      end
+
+      # Execute restart on gear
+      # @param [String] uuid of gear to restart
+      # @return void
+      def restart(uuid)
+        @operation.call(:restart, uuid)
+      end
+
+      # Execute stop on gear
+      #
+      # @note {#stop} attempts to only kill cartridge daemons, not login shells, ssh sessions etc.
+      # @param [String] uuid of gear to stop
+      # @return void
+      def stop(uuid)
+        @operation.call(:stop, uuid)
+      end
+
+      # Execute idle on gear
+      #
+      # @param [String] uuid of gear to idle
+      # @return void
+      def idle(uuid)
+        @operation.call(:idle, uuid)
       end
     end
 
-    # Provide Plugins with a timestamp of given events
+    # Provide Plugins with timestamps of given events
     #
     # @!attribute [r] epoch
     #   @return [DateTime] when was Watchman started?
@@ -66,7 +106,7 @@ module OpenShift
     # @!attribute [r] current_run
     #   @return [DateTime] when did this iteration of Watchman start?
     class Iteration
-      attr_accessor :epoch, :last_run, :current_run
+      attr_reader :epoch, :last_run, :current_run
 
       def initialize(epoch, last_run, current_run = DateTime.now)
         @epoch       = epoch

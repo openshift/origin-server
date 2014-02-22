@@ -49,6 +49,9 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
 
     @config = mock
     @config.stubs(:get).with('GEAR_BASE_DIR', '/var/lib/openshift').returns(@testdir)
+
+    @nologger = mock
+    @restart = mock
   end
 
   def teardown
@@ -58,23 +61,17 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
   def test_no_env
     teardown
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart).
+    @restart.expects(:call).never
+    JbossPlugin.new(@config, @nologger, @gears, @restart).
         apply(OpenStruct.new({epoch: DateTime.now, last_run: DateTime.now}))
-
-    assert_equal 0, counter, 'Failed to handle missing cartridge'
   end
 
   def test_no_log
     FileUtils.rm_f(@server_log)
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart).
+    @restart.expects(:call).never
+    JbossPlugin.new(@config, @nologger, @gears, @restart).
         apply(OpenStruct.new({epoch: DateTime.now, last_run: DateTime.now}))
-
-    assert_equal 0, counter, 'Failed to handle missing file'
   end
 
   def test_empty_log
@@ -82,13 +79,9 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
       file.write('')
     end
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart).
+    @restart.expects(:call).never
+    JbossPlugin.new(@config, @nologger, @gears, @restart).
         apply(OpenStruct.new({epoch: DateTime.now, last_run: DateTime.now}))
-
-
-    assert_equal 0, counter, 'Failed to process empty file'
   end
 
   def test_single_entry
@@ -97,12 +90,9 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
       file.write(TEMPLATE % '2012/02/08 17:57:11,034')
     end
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart).
+    @restart.expects(:call).with(:restart, @uuid).once
+    JbossPlugin.new(@config, nil, @gears, @restart).
         apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
-
-    assert_equal 1, counter, 'Failed to find single entry'
   end
 
   def test_floor
@@ -112,12 +102,9 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
       file.write(TEMPLATE % '2012/02/08 17:57:11,034')
     end
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart).
+    @restart.expects(:call).with(:restart, @uuid).once
+    JbossPlugin.new(@config, nil, @gears, @restart).
         apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
-
-    assert_equal 1, counter, 'Failed floor test'
   end
 
   def test_ceiling
@@ -128,12 +115,9 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
       file.write(TEMPLATE % '2012/02/09 17:57:11,034')
     end
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart).
+    @restart.expects(:call).with(:restart, @uuid).twice
+    JbossPlugin.new(@config, nil, @gears, @restart).
         apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
-
-    assert_equal 2, counter, 'Failed to find 2 entries'
   end
 
   def test_utf8
@@ -143,9 +127,8 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
       file.write("\n")
     end
 
-    restart = lambda { |u, t| raise 'This should never happen!' }
-    JbossPlugin.new(@config, @gears, restart).
+    @restart.expects(:call).never
+    JbossPlugin.new(@config, nil, @gears, @restart).
         apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
-
   end
 end

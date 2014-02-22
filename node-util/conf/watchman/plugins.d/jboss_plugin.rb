@@ -18,17 +18,10 @@ require 'openshift-origin-node/model/watchman/watchman_plugin'
 
 # Provide Watchman with JBoss server.log monitoring
 class JbossPlugin < OpenShift::Runtime::WatchmanPlugin
-  attr_accessor :epoch
-
-  # @param config  [Config]                   node configuration
-  # @param gears   [CachedGears]              collection of running gears on node
-  # @param restart [lambda<String, DateTime>] block to call to cause gear restart
-  def initialize(config, gears, restart)
-    super
-  end
-
-  # execute plugin code
-  def apply(iteration)
+  # Restart JBoss cartridges that have suffered a java.lang.OutOfMemoryError condition
+  # @param [OpenShift::Runtime::WatchmanPluginTemplate::Iteration] iteration timestamps of given events
+  # @return void
+def apply(iteration)
     @gears.each do |uuid|
       path    = PathUtils.join(@config.get('GEAR_BASE_DIR', '/var/lib/openshift'),
                                uuid,
@@ -53,7 +46,7 @@ class JbossPlugin < OpenShift::Runtime::WatchmanPlugin
           timestamp = DateTime.civil(ts.year, ts.month, ts.day, ts.hour, ts.min, ts.sec, iteration.epoch.zone)
           next if iteration.last_run > timestamp
 
-          @restart.call(uuid, timestamp)
+          restart(uuid)
         end
       end
     end

@@ -35,9 +35,11 @@ class WatchmanFuncTest < OpenShift::NodeTestCase
 
   def setup
     @config.stubs(:get).with('WATCHMAN_PLUGIN_DIR', any_parameters).returns(@path)
+    @config.stubs(:get).with('GEAR_BASE_DIR', '/var/lib/openshift').returns('/var/lib/openshift')
 
     @gears = mock()
     @gears.stubs(:each).yields(@uuid)
+    @gears.stubs(:empty?).returns(false)
   end
 
   def after_teardown
@@ -52,10 +54,6 @@ class WatchmanFuncTest < OpenShift::NodeTestCase
         require 'openshift-origin-node/model/watchman/watchman_plugin'
 
         class RestartPlugin < OpenShift::Runtime::WatchmanPlugin
-          def initialize(config, gears, restart)
-            super(config, gears, restart)
-          end
-
           def apply(iteration)
             @restart.call("#{uuid}", DateTime.now)
           end
@@ -67,9 +65,6 @@ class WatchmanFuncTest < OpenShift::NodeTestCase
       file.puts %Q(
         require 'openshift-origin-node/model/watchman/watchman_plugin'
         class NoApplyPlugin < OpenShift::Runtime::WatchmanPlugin
-          def initialize(config, gears, restart)
-            super(config, gears, restart)
-          end
         end
       )
     end
@@ -79,10 +74,6 @@ class WatchmanFuncTest < OpenShift::NodeTestCase
       file.puts %Q(
         require 'openshift-origin-node/model/watchman/watchman_plugin'
         class BrokenApplyPlugin < OpenShift::Runtime::WatchmanPlugin
-          def initialize(config, gears, restart)
-            super(config, gears, restart)
-          end
-
           def apply(iteration)
             raise %Q(Expected Exception: BrokenApplyPlugin)
           end

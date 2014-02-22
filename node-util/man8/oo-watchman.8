@@ -15,9 +15,13 @@ Provides a plugin framework for monitoring the status and state of gears/cartrid
 .P
 Plugins inherit from the base class \fBWatchmanPlugin\fR implementing the optional methods
 \fIinitialize()\fR and \fIapply()\fR.
+The methods \fIidle()\fR, \fIstop()\fR, and \fIrestart()\fR are provided for
+plugins to idle a gear, stop a gear or restart a gear. Stop attempts to just stop the running cartridge
+daemons so operations like \fIgit push\fR should not be effected.
 .P
-A plugin may request a gear to be restarted no more than \fBGEAR_RETRIES\fR times within the \fBRETRY_PERIOD\fR
-but no sooner than \fBRETRY_DELAY\fR. Additional requests made within the \fBRETRY_DELAY\fR are ignored.
+A plugin may request a gear to change state no more than \fBGEAR_RETRIES\fR times within the \fBRETRY_PERIOD\fR
+but no sooner than \fBRETRY_DELAY\fR. Additional requests made within the \fBRETRY_DELAY\fR or then the
+\fBRETRY_PERIOD\fR are ignored.
 .P
 The scripts /etc/init.d/openshift-watchman and openshift-watchman.service are provided to start oo-watchman.
 .SH EXIT STATUS
@@ -34,7 +38,7 @@ Number of seconds to wait before accepting another gear restart. Default: 5 minu
 Number of seconds to wait before resetting retries. Default: 8 hours
 .SH FILES
 .TP
-.FN /etc/sysconfig/watchman.conf
+.FN /etc/sysconfig/watchman
 configuration file for overriding default settings of \fBENVIRONMENT\fR variables.
 .TP
 .FN /etc/openshift/node.conf
@@ -62,7 +66,9 @@ The gear is restarted, if needed.
 The \fBJbossPlugin\fR searches JBoss cartridges' server.log files for OutOfMemoryExceptions.
 The gear is restarted, if needed.
 .P
-The \fBStoplockPlugin\fR removes any .stop_lock files from running applications.
+The \fBGearStatePlugin\fR attempts to ensure the current application state matches
+the last state change for the application commanded by the user. It will restart applications
+that have failed, or stop applications that are still running.
 .P
 The \fBThrottlerPlugin\fR monitors CPU usage via cgroups and restricts usage, if needed.
 

@@ -30,6 +30,9 @@ class EnvPluginTest < OpenShift::NodeBareTestCase
     @config      = mock
     @next_update = lambda { DateTime.now - Rational(1, 86400) }
 
+    @nologger = mock
+    @restart  = mock
+    @restart.expects(:call).never
 
     @path = PathUtils.join(GEAR_BASE_DIR, @uuid, '.env', 'OPENSHIFT_GEAR_DNS')
   end
@@ -40,7 +43,7 @@ class EnvPluginTest < OpenShift::NodeBareTestCase
     File.expects(:file?).with(@path).returns(false)
     Syslog.expects(:warning).with(regexp_matches(/watchman unable to determine application setup for gear/))
 
-    EnvPlugin.new(@config, @gears, nil, @next_update, @next_update.call).apply({})
+    EnvPlugin.new(@config, @nologger, @gears, @restart, @next_update, @next_update.call).apply({})
   end
 
   def test_assert_gear_dns
@@ -49,7 +52,7 @@ class EnvPluginTest < OpenShift::NodeBareTestCase
     File.expects(:file?).with(@path).returns(true)
     Syslog.expects(:warning).never
 
-    EnvPlugin.new(@config, @gears, nil, @next_update, @next_update.call).apply({})
+    EnvPlugin.new(@config, @nologger, @gears, @restart, @next_update, @next_update.call).apply({})
   end
 
   def test_next_check
@@ -58,6 +61,6 @@ class EnvPluginTest < OpenShift::NodeBareTestCase
     Syslog.expects(:warning).never
 
     next_update = lambda { DateTime.now + Rational(1, 86400) }
-    EnvPlugin.new(@config, @gears, nil, next_update, next_update.call).apply({})
+    EnvPlugin.new(@config, @nologger, @gears, @restart, next_update, next_update.call).apply({})
   end
 end
