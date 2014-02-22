@@ -20,7 +20,7 @@ require 'openshift-origin-node/model/watchman/watchman_plugin'
 class StopLockPlugin < OpenShift::Runtime::WatchmanPlugin
 
   # execute plugin code
-  def apply
+  def apply(iteration)
     @gears.each do |uuid|
       return unless @gears.stop_lock?(uuid)
       return unless @gears.running?(uuid)

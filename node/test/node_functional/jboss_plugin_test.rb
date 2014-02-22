@@ -17,7 +17,9 @@
 
 require_relative '../test_helper'
 
+require 'ostruct'
 require 'date'
+require 'active_support/core_ext/numeric/time'
 require_relative '../../../node-util/conf/watchman/plugins.d/jboss_plugin'
 
 class JbossPluginTest < OpenShift::NodeBareTestCase
@@ -58,7 +60,8 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
 
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart, DateTime.now).apply
+    JbossPlugin.new(@config, @gears, restart).
+        apply(OpenStruct.new({epoch: DateTime.now, last_run: DateTime.now}))
 
     assert_equal 0, counter, 'Failed to handle missing cartridge'
   end
@@ -68,7 +71,8 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
 
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart, DateTime.now).apply
+    JbossPlugin.new(@config, @gears, restart).
+        apply(OpenStruct.new({epoch: DateTime.now, last_run: DateTime.now}))
 
     assert_equal 0, counter, 'Failed to handle missing file'
   end
@@ -80,7 +84,9 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
 
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart, DateTime.now).apply
+    JbossPlugin.new(@config, @gears, restart).
+        apply(OpenStruct.new({epoch: DateTime.now, last_run: DateTime.now}))
+
 
     assert_equal 0, counter, 'Failed to process empty file'
   end
@@ -93,7 +99,8 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
 
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart, start_time).apply
+    JbossPlugin.new(@config, @gears, restart).
+        apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
 
     assert_equal 1, counter, 'Failed to find single entry'
   end
@@ -106,8 +113,9 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
     end
 
     counter = 0
-    restart = lambda { |u, t| counter += 1}
-    JbossPlugin.new(@config, @gears, restart, start_time).apply
+    restart = lambda { |u, t| counter += 1 }
+    JbossPlugin.new(@config, @gears, restart).
+        apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
 
     assert_equal 1, counter, 'Failed floor test'
   end
@@ -122,7 +130,8 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
 
     counter = 0
     restart = lambda { |u, t| counter += 1 }
-    JbossPlugin.new(@config, @gears, restart, start_time).apply
+    JbossPlugin.new(@config, @gears, restart).
+        apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
 
     assert_equal 2, counter, 'Failed to find 2 entries'
   end
@@ -135,6 +144,8 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
     end
 
     restart = lambda { |u, t| raise 'This should never happen!' }
-    JbossPlugin.new(@config, @gears, restart, start_time).apply
+    JbossPlugin.new(@config, @gears, restart).
+        apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
+
   end
 end

@@ -33,7 +33,7 @@ class EnvPlugin < OpenShift::Runtime::WatchmanPlugin
   end
 
   # execute plugin code
-  def apply
+  def apply(iteration)
     return if DateTime.now < @next_check
     @next_check = @next_update.call
 

@@ -23,7 +23,7 @@ class ThrottlerPlugin < OpenShift::Runtime::WatchmanPlugin
   # @param gears    [CachedGears]              collection of running gears on node
   # @param restart  [lambda<String, DateTime>] block to call to cause gear restart
   def initialize(config, gears, restart)
-    super(config, gears, restart)
+    super
 
     # create thread here...
     @throttler = begin
@@ -35,7 +35,7 @@ class ThrottlerPlugin < OpenShift::Runtime::WatchmanPlugin
   end
 
   # Update Throttler tables and find any abusers...
-  def apply
+  def apply(iteration)
     begin
       @throttler.throttle(@gears)
     rescue Exception => e

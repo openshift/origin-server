@@ -31,6 +31,6 @@ class ThrottlerPluginTest < OpenShift::NodeTestCase
         any_instance.
         stubs(:throttle).
         with(gears)
-    ThrottlerPlugin.new(nil, gears, nil).apply
+    ThrottlerPlugin.new(nil, gears, nil).apply({})
   end
 end

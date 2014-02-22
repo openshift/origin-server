@@ -9,8 +9,16 @@
 
 require 'rubygems'
 require 'daemons'
+require 'parseconfig'
 
 raise 'Watchman must run as root' unless Process.euid == 0
+
+# load any custom configuration elements for Watchman
+path = "/etc/sysconfig/watchman"
+if File.exists? path
+  config = ParseConfig.new path
+  config.get_params.each {|k| ENV[k] = config[k]}
+end
 
 options = {
     app_name:   'watchman',

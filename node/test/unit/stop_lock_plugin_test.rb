@@ -32,7 +32,7 @@ class StopLockPluginTest < OpenShift::NodeBareTestCase
     @gears.expects(:stop_lock?).with(@uuid).returns(true)
     @gears.expects(:running?).with(@uuid).returns(false)
 
-    StopLockPlugin.new(nil, @gears, nil).apply
+    StopLockPlugin.new(nil, @gears, nil).apply({})
   end
 
   def test_assert_stoplock_running
@@ -41,12 +41,12 @@ class StopLockPluginTest < OpenShift::NodeBareTestCase
     @gears.expects(:stop_lock).with(@uuid).returns('/never/create/this/file/please')
     @gears.expects(:state).with(@uuid).returns('started')
 
-    StopLockPlugin.new(nil, @gears, nil).apply
+    StopLockPlugin.new(nil, @gears, nil).apply({})
   end
 
   def test_refute_stoplock
     @gears.expects(:stop_lock?).with(@uuid).returns(false)
 
-    StopLockPlugin.new(nil, @gears, nil).apply
+    StopLockPlugin.new(nil, @gears, nil).apply({})
   end
 end
