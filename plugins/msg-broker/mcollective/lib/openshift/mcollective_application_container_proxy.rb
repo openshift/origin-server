@@ -87,7 +87,7 @@ module OpenShift
       # * node_profile: characteristics for node filtering
       #
       # RETURNS:
-      # * a list of server_info arrays
+      # * One server info
       #
       # NOTES:
       # * Uses rpc_find_one() method
@@ -202,14 +202,8 @@ module OpenShift
       # * storage_in_gb: integer
       # * inodes: integer
       #
-      # RETURNS
-      # * Not sure, mcoll_result? a string?
-      #
       # RAISES:
       # * OpenShift::NodeException
-      #
-      # NOTES:
-      # * a pair of attribute setters on a Gear object
       #
       def set_quota(gear, storage_in_gb, inodes)
         args = Hash.new
@@ -347,7 +341,7 @@ module OpenShift
       # * quota_files: Integer - max files count
       #
       # RETURNS:
-      # * MCollective "result", stdout and exit code
+      # * ResultIO
       #
       # NOTES:
       # * uses execute_direct
@@ -410,7 +404,7 @@ module OpenShift
       # * skip_hooks: boolean
       #
       # RETURNS:
-      # * STDOUT from the remote command
+      # * ResultIO
       #
       # NOTES:
       # * uses execute_direct
@@ -444,7 +438,8 @@ module OpenShift
       # * server_alias: String - the name of the server which will offer this key
       # * passphrase: String - the private key passphrase or '' if its unencrypted.
       #
-      # RETURNS: a parsed MCollective result
+      # RETURNS:
+      # * ResultIO
       #
       # NOTES:
       # * calls node script oo-ssl-cert-add
@@ -466,7 +461,8 @@ module OpenShift
       # * gear: a Gear object
       # * server_alias: String - the name of the server which will offer this key
       #
-      # RETURNS: a parsed MCollective result
+      # RETURNS:
+      # * ResultIO
       #
       # NOTES:
       # * calls node script oo-ssl-cert-remove
@@ -505,7 +501,7 @@ module OpenShift
       # * value: String - environment variable value
       #
       # RETURNS:
-      # * MCollective result string: STDOUT from a command.
+      # * ResultIO
       #
       # NOTES:
       # * uses execute_direct
@@ -527,7 +523,7 @@ module OpenShift
       # * key: String - environment variable name
       #
       # RETURNS:
-      # * MCollective result string: STDOUT from a command.
+      # * ResultIO
       #
       # NOTES:
       # * uses execute_direct
@@ -550,7 +546,7 @@ module OpenShift
       # * token: String - a broker auth key
       #
       # RETURNS:
-      # * mcollective parsed result string (stdout)
+      # * ResultIO
       #
       # NOTES:
       # * uses execute_direct
@@ -572,7 +568,7 @@ module OpenShift
       # * gear: a Gear object
       #
       # RETURNS:
-      # * mcollective parsed result string (stdout)
+      # * ResultIO
       #
       # NOTES:
       # * uses execute_direct
@@ -592,7 +588,7 @@ module OpenShift
       # * gear: Gear Object
       #
       # RETURNS:
-      # * mcollective result string (stdout)
+      # * ResultIO
       #
       # NOTES:
       # * uses execute_direct
@@ -772,7 +768,7 @@ module OpenShift
       # * cart: string representing cartridge name
       #
       # RETURNS:
-      # * Array [ResultIO, String]
+      # * ResultIO
       #
       # RAISES:
       # * Exception
@@ -816,7 +812,7 @@ module OpenShift
       # * template_git_url: a url of a git repo containing a cart overlay
       #
       # RETURNS
-      # * ResultIO: the result of running post-configure on the cartridge
+      # * ResultIO
       #
       def post_configure_component(gear, component, template_git_url=nil)
         result_io = ResultIO.new
@@ -847,7 +843,7 @@ module OpenShift
       # * artifact_url: the url of the artifacts to deploy
       #
       # RETURNS
-      # * ResultIO: the result of running deploy on the gear
+      # * ResultIO
       #
       def deploy(gear, hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
         result_io = ResultIO.new
@@ -871,7 +867,7 @@ module OpenShift
       # * deployment_id: a deployment id
       #
       # RETURNS
-      # * ResultIO: the result of running activate on the gear
+      # * ResultIO
       #
       def activate(gear, deployment_id)
         result_io = ResultIO.new
@@ -923,7 +919,7 @@ module OpenShift
       # * cart: a Cartridge object
       #
       # RETURNS:
-      # * a ResultIO of undetermined state
+      # * ResultIO
       #
       # NOTES:
       # * uses run_cartridge_command
@@ -951,7 +947,7 @@ module OpenShift
       # * cart: a Cartridge object
       #
       # RETURNS:
-      # * a ResultIO of undetermined state
+      # * ResultIO
       #
       # NOTES:
       # * uses run_cartridge_command
@@ -980,7 +976,7 @@ module OpenShift
       # * cart: Cartridge object
       #
       # RETURNS:
-      # * result string from STDOUT
+      # * ResultIO
       #
       # NOTES:
       # * uses execute_direct
@@ -1007,7 +1003,7 @@ module OpenShift
       # * cart: a Cartridge object
       #
       # RETURNS:
-      # * a ResultIO of undefined content
+      # * ResultIO
       #
       # NOTES:
       # * uses run_cartridge_command
@@ -1038,7 +1034,7 @@ module OpenShift
       # * cart: a Cartridge object
       #
       # RETURNS:
-      # * a ResultIO of undefined content
+      # * ResultIO
       #
       # NOTES:
       # * uses run_cartridge_command
@@ -1066,7 +1062,7 @@ module OpenShift
       # * cart: a Cartridge object
       #
       # RETURNS:
-      # * A ResultIO object of undetermined content
+      # * ResultIO
       #
       # NOTES:
       # * method on gear or cartridge?
@@ -1088,7 +1084,7 @@ module OpenShift
       # * gear: a Gear object
       #
       # RETURNS:
-      # * String: stdout from a command
+      # * ResultIO
       #
       # NOTES
       # * calls the 'tidy' hook on a Gear
@@ -1113,7 +1109,7 @@ module OpenShift
       # * cart: a Cartridge object
       #
       # RETURNS:
-      # * a ResultIO of undetermined content
+      # * ResultIO
       #
       # NOTES:
       # * calls run_cartridge_command
@@ -1141,7 +1137,7 @@ module OpenShift
       # * cart: a Cartridge object
       #
       # RETURNS:
-      # * a ResultIO of undetermined content
+      # * ResultIO
       #
       # NOTES:
       # * calls run_cartridge_command
@@ -1181,7 +1177,7 @@ module OpenShift
       # * cart: a Cartridge object
       #
       # RETURNS:
-      # * a ResultIO of undetermined content
+      # * ResultIO
       #
       # NOTES:
       # * calls run_cartridge_command
@@ -1204,7 +1200,7 @@ module OpenShift
       # * cart: a Cartridge object
       #
       # RETURNS:
-      # * a ResultIO of undetermined content
+      # * ResultIO
       #
       # NOTES:
       # * calls run_cartridge_command
@@ -1224,7 +1220,7 @@ module OpenShift
       # * server_alias: String - a new FQDN for the gear
       #
       # RETURNS:
-      # * String: stdout from a command
+      # * ResultIO
       #
       # NOTES:
       # * calls execute_direct
@@ -1246,7 +1242,7 @@ module OpenShift
       # * server_alias: String - a new FQDN for the gear
       #
       # RETURNS:
-      # * String: stdout from a command
+      # * ResultIO
       #
       # NOTES:
       # * calls execute_direct
@@ -1268,7 +1264,7 @@ module OpenShift
       # * server_aliases: Array - a list of FQDN for the gear
       #
       # RETURNS:
-      # * String: stdout from a command
+      # * ResultIO
       #
       # NOTES:
       # * calls execute_direct
@@ -1289,7 +1285,7 @@ module OpenShift
       # * server_aliases: Array - a list of FQDN for the gear
       #
       # RETURNS:
-      # * String: stdout from a command
+      # * ResultIO
       #
       # NOTES:
       # * calls execute_direct
@@ -1310,7 +1306,7 @@ module OpenShift
       # * gears_ssh_endpoint: list of ssh gear endpoints
       #
       # RETURNS:
-      # * String: stdout from a command
+      # * ResultIO
       #
       # NOTES:
       # * calls execute_direct
@@ -1333,7 +1329,7 @@ module OpenShift
       # * gears_ssh_endpoint: list of ssh gear endpoints
       #
       # RETURNS:
-      # * String: stdout from a command
+      # * ResultIO
       #
       # NOTES:
       # * calls execute_direct
@@ -1355,7 +1351,7 @@ module OpenShift
       # * env_var_names: List of environment variable names, e.g.:['FOO', 'BAR']
       #
       # RETURNS:
-      # * String: stdout from a command
+      # * ResultIO
       #
       # NOTES:
       # * calls execute_direct
@@ -1422,7 +1418,7 @@ module OpenShift
       # * backup: string which was previously returned by frontend_backup
       #
       # RETURNS:
-      # * String - "parsed result" of an MCollective reply
+      # * ResultIO
       #
       # NOTES:
       # * uses execute_direct
@@ -2064,7 +2060,7 @@ module OpenShift
       # * district_changed: boolean
       #
       # RETURNS:
-      # * a ResultIO object
+      # * ResultIO
       #
       # CATCHES:
       # * Exception
@@ -2463,9 +2459,6 @@ module OpenShift
       # INPUTS:
       # * action: Block: a code block or method with no arguments
       # * num_tries: Integer
-      #
-      # RETURNS:
-      # * unknown: the result of the action
       #
       # RAISES:
       # * Exception
@@ -3135,7 +3128,7 @@ module OpenShift
       # * node_profile: Object?
       #
       # RETURNS:
-      # * String: server name?
+      # * String: server_identity
       #
       # RAISES:
       # * OpenShift::NodeUnavailableException
