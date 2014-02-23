@@ -1576,7 +1576,7 @@ module OpenShift
       end
 
       #
-      # Create a job to execute a connector hook ??
+      # Create a job to execute a connector hook
       #
       # INPUTS:
       # * gear: a Gear object
@@ -1774,7 +1774,7 @@ module OpenShift
       # INPUTS:
       # * gear: a Gear object
       # * destination_container: an ApplicationContainerProxy object?
-      # * state_map: ??
+      # * state_map: Hash
       #
       # RETURNS:
       # * ResultIO
@@ -1822,7 +1822,7 @@ module OpenShift
       #
       # INPUTS:
       # * gear: A Gear object
-      # * state_map: ??
+      # * state_map: Hash
       #
       # RETURNS:
       # * a ResultIO object
@@ -2055,8 +2055,8 @@ module OpenShift
       #
       # INPUTS:
       # * gear: a Gear object
-      # * source_container: ??
-      # * destination_container ??
+      # * source_container: ApplicationContainerProxy
+      # * destination_container ApplicationContainerProxy
       # * district_changed: boolean
       #
       # RETURNS:
@@ -2085,7 +2085,7 @@ module OpenShift
       #
       # INPUTS:
       # * gear: a Gear object
-      # * destination_container: ??
+      # * destination_container: ApplicationContainerProxy
       # * destination_district_uuid: String
       # * change_district: Boolean
       # * node_profile: String
@@ -2309,7 +2309,7 @@ module OpenShift
       # If a server is supplied, only execute for that server.
       #
       # INPUTS:
-      # * agent: ??
+      # * agent: String
       # * servers: String|Array
       # * force_rediscovery: Boolean
       # * options: Hash
@@ -2822,7 +2822,7 @@ module OpenShift
       # * framework:
       # * gear: a Gear object
       # * command: the hook command to run on the node?
-      # * arg: ??
+      # * arguments: Hash
       # * allow_move: Boolean
       #
       # RETURNS:
@@ -2895,7 +2895,7 @@ module OpenShift
       end
 
       #
-      # ???
+      # Returns available servers
       #
       # INPUTS:
       # * node_profile: String identifier for a set of node characteristics
@@ -3407,7 +3407,7 @@ module OpenShift
       # to NodeException.
       #
       # INPUTS:
-      # * agent: String (??)
+      # * agent: String
       # * options: Hash
       #
       # RETURNS:
@@ -3490,7 +3490,7 @@ module OpenShift
       # NOTES:
       # * should be class method on Node? or Broker?
       # * uses MCollective::RPC::Client rpc_exec
-      # * uses MCollective::RPC::Client.missing_method ??
+      # * uses MCollective::RPC::Client.missing_method
       #
       def self.get_all_active_gears_impl
         active_gears_map = {}
@@ -3541,10 +3541,7 @@ module OpenShift
       # Execute a set of operations on a node in parallel
       #
       # INPUTS:
-      # * handle: Hash ???
-      #
-      # RETURNS:
-      # * ???
+      # * handle: Hash
       #
       # NOTES:
       # * uses MCollectiveApplicationContainerProxy.sanitize_result
