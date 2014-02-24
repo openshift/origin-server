@@ -122,7 +122,9 @@ def get_cgroup_metrics(path)
   output = []
 
   one_call_metrics = @cgroups_single_metrics.concat(@cgroups_kv_metrics).concat(@cgroups_multivalue_metrics)
-  output.concat(get_cgroups_single_metric(one_call_metrics, path))
+  #output.concat(get_cgroups_single_metric(@cgroups_single_metrics, path))
+  #output.concat(get_cgroups_multivalue_metric(@cgroups_multivalue_metrics, path))
+  output.concat(get_cgroups_kv_metric(@cgroups_kv_metrics,path))
 
 =begin
   @cgroups_kv_metrics.each do |metric|
@@ -138,31 +140,45 @@ end
 
 def get_cgroups_single_metric(metrics, path)
   output = []
-  metrics_path = metrics.join(" -r ")
-  retrieved_values = `cgget -n -v -r #{metrics_path} #{path}`.split("\n")
+  joined_metrics = metrics.join(" -r ")
+  retrieved_values = execute_cgget(joined_metrics,path)
   retrieved_values.each_with_index do |value, index|
     output.push("#{metrics[index]}=#{value}")
   end
   output
 end
 
-def get_cgroups_multivalue_metric(metric_name, path)
+def get_cgroups_multivalue_metric(metrics, path)
   output = []
-  values = `cgget -n -v -r #{metric_name} #{path}`.split(' ')
-  values.each_with_index do |value, index|
+  joined_metrics = metrics.join(" -r ")
+  values = execute_cgget(joined_metrics,path)
+  values.each do |value|
     output.push("#{metric_name}=#{value}")
   end
   output
 end
 
-def get_cgroups_kv_metric(metric_name, path)
+def get_cgroups_kv_metric(metrics, path)
   output = []
-  lines = `cgget -n -v -r #{metric_name} #{path}`.split("\n")
-  lines.each do |line|
-    key, value = line.split(' ')
-    output.push("#{metric_name}.#{key}=#{value}")
+  joined_metrics = metrics.join(" -r ")
+  lines = execute_cgget(joined_metrics,path)
+  lines = lines.split(/\\n(?!\\t)/)
+  metric_prefix = ""
+  lines.each_with_index do |line,index|
+    key, value = line.split
+    if index == 0
+      metric_prefix = key.strip
+      output.push("#{metric_name}.#{metric_prefix}=#{value.strip}")
+    end
+    output.push("#{metric_name}.#{metric_prefix}.#{key.strip}=#{value.strip}")
   end
   output
 end
+
+# This method returns a string to be processed, is it worth wrapping the execute?
+def execute_cgget(metrics,path)
+  `cgget -n -v -r #{metrics} #{path}`
+end
+
 
 main
