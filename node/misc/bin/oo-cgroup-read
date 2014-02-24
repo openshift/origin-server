@@ -211,7 +211,7 @@ end
 scrub_input attrname
 puts case attrname
        when 'all'
-         puts get_cgroup_attribute_names(username).join("\n")
+         get_cgroup_attribute_names(username).join("\n")
        when 'report'
          report_cgroup_attributes(username).to_json
        else
