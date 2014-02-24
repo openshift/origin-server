@@ -23,7 +23,7 @@
 #     <git-url>ssh://5124897d6892dfe819000005@testapp-localns.example.com/~/git/testapp.git/</git-url>
 #     <app-url>http://testapp-localns.example.com/</app-url>
 #     <ssh-url>ssh://5124897d6892dfe819000005@testapp-localns.example.com</ssh-url>
-#     <health-check-path>health_check.php</health-check-path>
+#     <health-check-path>health</health-check-path>
 #     <building-with nil="true"/>
 #     <building-app nil="true"/>
 #     <build-job-url nil="true"/>
@@ -197,7 +197,7 @@ class RestApplication10 < OpenShift::Model
         ]),
         "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "tidy")
-        ]), 
+        ]),
         "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "reload")
         ]),

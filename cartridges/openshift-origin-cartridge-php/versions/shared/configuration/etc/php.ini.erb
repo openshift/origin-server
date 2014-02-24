@@ -782,7 +782,7 @@ default_mimetype = "text/html"
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; UNIX: "/path1:/path2"
-include_path = "<%= ".:#{ENV['OPENSHIFT_REPO_DIR']}libs/:#{ENV['OPENSHIFT_PHP_DIR']}phplib/pear/pear/php/:/usr/share/pear/"%>"
+include_path = "<%= ".:#{ENV['OPENSHIFT_REPO_DIR']}lib:#{ENV['OPENSHIFT_REPO_DIR']}libs:#{ENV['OPENSHIFT_REPO_DIR']}libraries:#{ENV['OPENSHIFT_REPO_DIR']}src:#{ENV['OPENSHIFT_REPO_DIR']}vendor:#{ENV['OPENSHIFT_REPO_DIR']}vendors:#{ENV['OPENSHIFT_PHP_DIR']}phplib/pear/pear/php:/usr/share/pear"%>"
 ;
 ; PHP's default setting for include_path is ".;/path/to/php/pear"
 ; http://www.php.net/manual/en/ini.core.php#ini.include-path

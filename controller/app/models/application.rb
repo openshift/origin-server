@@ -949,8 +949,8 @@ class Application
           ops << TrackUsageOp.new(
             user_id:                          owner._id,
             parent_user_id:                   owner.parent_user_id,
-            app_name:                         self.name, 
-            gear_id:                          gear._id.to_s, 
+            app_name:                         self.name,
+            gear_id:                          gear._id.to_s,
             event:                            UsageRecord::EVENTS[:end],
             usage_type:                       UsageRecord::USAGE_TYPES[:addtl_fs_gb],
             additional_filesystem_gb:         fs,
@@ -960,8 +960,8 @@ class Application
           ops << TrackUsageOp.new(
             user_id:                          owner._id,
             parent_user_id:                   owner.parent_user_id,
-            app_name:                         self.name, 
-            gear_id:                          gear._id.to_s, 
+            app_name:                         self.name,
+            gear_id:                          gear._id.to_s,
             event:                            UsageRecord::EVENTS[:begin],
             usage_type:                       UsageRecord::USAGE_TYPES[:addtl_fs_gb],
             additional_filesystem_gb:         fs,
@@ -2726,7 +2726,7 @@ class Application
   end
 
   def get_ssl_certs(fqdns=[])
-    # get all the SSL certs from the HAProxy DNS gear 
+    # get all the SSL certs from the HAProxy DNS gear
     haproxy_gears = self.gears.select { |g| g.component_instances.select { |ci| ci.get_cartridge.is_web_proxy? }.present? }
     dns_haproxy_gear = haproxy_gears.select { |g| g.app_dns }.first
     certs = dns_haproxy_gear.get_all_ssl_certs()
@@ -2743,7 +2743,7 @@ class Application
     # if SSL certs are still not received, log this as an error, but continue
     Rails.logger.error "SSL certificate information not received from haproxy gears for application #{application.canonical_name}" if certs.blank?
 
-    # send the SSL certs for the specified aliases to the gear 
+    # send the SSL certs for the specified aliases to the gear
     certs.select { |cert_info| fqdns.blank? or fqdns.include? cert_info[2] }
   end
 
@@ -2782,18 +2782,7 @@ class Application
   # This method is only to maintain backwards compatibility for rest api version 1.0
   # @return [String]
   def health_check_path
-    web_cart = web_cartridge
-    if web_cart.nil?
-      page = 'health'
-    elsif web_cart.categories.include? 'php'
-      page = 'health_check.php'
-    elsif web_cart.categories.include? 'zend'
-      page = 'health_check.php'
-    elsif web_cart.categories.include? 'perl'
-      page = 'health_check.pl'
-    else
-      page = 'health'
-    end
+    page = 'health'
   end
 
   # Get scaling limits for the application's group instance that has the web framework cartridge

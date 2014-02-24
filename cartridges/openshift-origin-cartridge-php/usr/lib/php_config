@@ -1,0 +1,13 @@
+#!/bin/bash
+
+function select_php_document_root {
+    for dir in php public public_html web www; do
+        if [ -d "$1/$dir" -o -h "$1/$dir" ]; then
+            export OPENSHIFT_PHP_DOCUMENT_ROOT="$1/$dir"
+            echo "Application directory \"$dir/\" selected as DocumentRoot"
+            return
+        fi
+    done
+    export OPENSHIFT_PHP_DOCUMENT_ROOT="$1"
+    echo "Application directory \"/\" selected as DocumentRoot"
+}

@@ -10,7 +10,6 @@ locked_files:
 - configuration/etc/conf/
 - configuration/etc/conf/*
 - configuration/etc/conf.d/
-- configuration/etc/conf.d/openshift.conf
 - configuration/etc/conf.d/php.conf
 - configuration/etc/php.ini
 - metadata/
@@ -20,6 +19,6 @@ locked_files:
 - hooks/
 - hooks/*
 processed_templates:
-- '**/*.erb'
+- 'versions/**/*.erb'
 dependency_dirs:
 - phplib
