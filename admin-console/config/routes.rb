@@ -12,6 +12,17 @@ AdminConsole::Engine.routes.draw do
     resources :profiles, :only => [:show, :index], :id => id_regex
     get "profiles/:id/nodes", to: "profiles#show_nodes", :id => id_regex, :as => "profile_nodes"
   end
+  namespace :api do
+    scope "/v1" do
+      namespace :search do
+        resources :applications, :only => [:index]
+        resources :domains, :only => [:index]
+        resources :districts, :only => [:index]
+        resources :users, :only => [:index]
+        resources :usages, :only => [:index]
+      end
+    end
+  end
   resources :suggestions, :only => [:index]
 end
 
