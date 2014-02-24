@@ -66,9 +66,14 @@ task :build_peps do
 
   pep_files = []
 
-  Dir.glob("../../openshift-pep/openshift-pep-*.md").each do |file|
+  File.symlink("../../openshift-pep","openshift-pep")
+
+  Dir.glob("openshift-pep/openshift-pep-*.md").each do |file|
     # Markdown => AsciiDoc
     asciidoc_txt = PandocRuby.markdown(file, 'no-wrap').to_asciidoc
+
+    # Fix image links to exclude paths; this enables AsciiDoctor to correctl locate the source image
+    asciidoc_txt.gsub!(/image:images\//,'image:')
 
     # Target filename
     file_base = File.basename(Pathname.new(file).basename, '.*')
@@ -91,11 +96,13 @@ task :build_peps do
     ].join("\n")
 
     # AsciiDoc => HTML
-    output_html = Asciidoctor.render input_text, :header_footer => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=./images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
+    output_html = Asciidoctor.render input_text, :header_footer => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=openshift-pep/images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
 
     # Write it to disk
     File.open(output_file, 'w') {|f| f.write(output_html)}
   end
+
+  File.unlink('openshift-pep')
 
   # Write the index to be included in the Documentation Home page
   peps_list = pep_files.join(" +\n")
