@@ -370,7 +370,7 @@ module AdminHelper
           gear_id = gear['_id'].to_s
           unless $app_gear_hash[gear_id]
             gid = gear['group_instance_id'].to_s
-            $app_gear_hash[gear_id] = { 'app_id' => app['_id'].to_s, 'app_name' => app['name'], 'addtl_fs_gb' => gi_hash[gid]['addtl_fs_gb'], 'premium_carts' => gi_hash[gid]['premium_carts'] }
+            $app_gear_hash[gear_id] = { 'app_id' => app['_id'].to_s, 'app_name' => app['name'], 'addtl_fs_gb' => gi_hash[gid] ? gi_hash[gid]['addtl_fs_gb'] : 0, 'premium_carts' => gi_hash[gid] ? gi_hash[gid]['premium_carts'] : [] }
           else
             app_name = $app_gear_hash[gear_id]['app_name']
             print_message "Gear Id '#{gear['_id']}' for Application '#{app['name']}' is already taken by another Application '#{app_name}'"
