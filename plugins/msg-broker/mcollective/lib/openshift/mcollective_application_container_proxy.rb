@@ -1791,7 +1791,7 @@ module OpenShift
         start_order, stop_order = app.calculate_component_orders
         source_container = gear.get_proxy
         start_order.each do |cinst|
-          next unless gear_components.include? cinst 
+          next unless gear_components.include? cinst
           cart = cinst.cartridge_name
           idle, leave_stopped = state_map[cart]
           unless leave_stopped
@@ -1842,7 +1842,7 @@ module OpenShift
         app.update_proxy_status(action: :disable, gear_uuid: gear.uuid) if app.scalable
 
         stop_order.each do |cinst|
-          next unless gear_comps.include? cinst 
+          next unless gear_comps.include? cinst
           cart = cinst.cartridge_name
           idle, leave_stopped = state_map[cart]
           # stop the cartridge if it needs to
@@ -1972,7 +1972,7 @@ module OpenShift
             reply.append move_gear_post(gear, destination_container, state_map)
             # app.elaborate_descriptor
 
-            # if app has multiple proxy gears and if this gear resides on a node 
+            # if app has multiple proxy gears and if this gear resides on a node
             # where another proxy gear is living, then we need to reconnect the frontend of the other gear
             # because this gear may have overridden the aliases/app-dns
             if app.scalable and app.ha and gear.component_instances.any? { |ci| ci.cartridge.is_web_proxy? }
@@ -2148,7 +2148,7 @@ module OpenShift
         dest_server = District.find_server(destination_container.id)
         if source_server && dest_server && (source_server.region_id != dest_server.region_id)
           raise OpenShift::UserException.new("Error moving gear. Old and new servers must belong to the same region, source region: #{source_server.region_name} destination region: #{dest_server.region_name}")
-        end 
+        end
 
         return [destination_container, destination_district_uuid, district_changed]
       end
@@ -3073,7 +3073,7 @@ module OpenShift
 
               if least_preferred_zone_ids.present?
                 available_zone_ids = zones_consumed_capacity.keys
-                # Consider least preferred zones only when we have no available zone that's not in least preferred zones. 
+                # Consider least preferred zones only when we have no available zone that's not in least preferred zones.
                 unless (available_zone_ids - least_preferred_zone_ids).empty?
                   # Remove least preferred zones from the list, ensuring there is at least one server remaining
                   server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_zone_ids.include?(server_info.zone_id) }
@@ -3084,7 +3084,7 @@ module OpenShift
               # Distribute zones evenly, pick zones that are least consumed/have max available capacity
               min_consumed_capacity = zones_consumed_capacity.values.min
               preferred_zones = zones_consumed_capacity.select { |zone_id, capacity| capacity <= min_consumed_capacity }.keys
- 
+
               # Remove the servers from the list that does not belong to preferred zones
               server_infos.delete_if { |server_info| (server_infos.length > 1) && !preferred_zones.include?(server_info.zone_id) }
             end
@@ -3174,7 +3174,7 @@ module OpenShift
         # Sort by district available capacity and take the best half
         server_infos = server_infos.sort_by { |server_info| (server_info.district_available_capacity ? server_info.district_available_capacity : 1) }
         # consider the top half and no less than min(4, the actual number of available)
-        server_infos = server_infos.last([4, (server_infos.length / 2).to_i].max) 
+        server_infos = server_infos.last([4, (server_infos.length / 2).to_i].max)
 
         server_info = nil
         unless server_infos.empty?
@@ -3274,7 +3274,7 @@ module OpenShift
         rpc_exec('rpcutil', servers, force_rediscovery, options) do |client|
           begin
             # in some cases, the get_fact mcollective call gets stuck and never returns
-            # to handle these situations, we are using the ruby Timeout moddule as a safety net
+            # to handle these situations, we are using the ruby Timeout module as a safety net
             # and setting the timer duration as a reasonable multiple of the mcollective timeout value
             failsafe_timeout = Rails.configuration.msg_broker[:fact_timeout] * 3
             Timeout::timeout(failsafe_timeout) do
