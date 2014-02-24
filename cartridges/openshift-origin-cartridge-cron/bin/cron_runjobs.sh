@@ -3,6 +3,16 @@
 # source OpenShift environment variable into context
 function load_env {
     [ -z "$1" ] && return 1
+
+    if [ -d "$1" ]
+    then
+      for f in ${1}/*
+      do
+        load_env $f
+      done
+      return
+    fi
+
     [ -f "$1" ] || return 0
 
     local contents=$(< $1)
