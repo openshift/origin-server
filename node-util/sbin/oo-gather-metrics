@@ -121,9 +121,9 @@ end
 def get_cgroup_metrics(path)
   output = []
 
-  one_call_metrics = @cgroups_single_metrics.concat(@cgroups_kv_metrics).concat(@cgroups_multivalue_metrics)
-  #output.concat(get_cgroups_single_metric(@cgroups_single_metrics, path))
-  #output.concat(get_cgroups_multivalue_metric(@cgroups_multivalue_metrics, path))
+  #one_call_metrics = @cgroups_single_metrics.concat(@cgroups_kv_metrics).concat(@cgroups_multivalue_metrics)
+  output.concat(get_cgroups_single_metric(@cgroups_single_metrics, path))
+  output.concat(get_cgroups_multivalue_metric(@cgroups_multivalue_metrics, path))
   output.concat(get_cgroups_kv_metric(@cgroups_kv_metrics,path))
 
 =begin
@@ -141,7 +141,7 @@ end
 def get_cgroups_single_metric(metrics, path)
   output = []
   joined_metrics = metrics.join(" -r ")
-  retrieved_values = execute_cgget(joined_metrics,path)
+  retrieved_values = execute_cgget(joined_metrics,path).split("\n")
   retrieved_values.each_with_index do |value, index|
     output.push("#{metrics[index]}=#{value}")
   end
@@ -151,9 +151,9 @@ end
 def get_cgroups_multivalue_metric(metrics, path)
   output = []
   joined_metrics = metrics.join(" -r ")
-  values = execute_cgget(joined_metrics,path)
-  values.each do |value|
-    output.push("#{metric_name}=#{value}")
+  lines = execute_cgget(joined_metrics,path).split("\n")
+  lines.each_with_index do |line,index|
+    line.split.each{|value| output.push("#{metrics[index]}=#{value}") }
   end
   output
 end
@@ -161,16 +161,20 @@ end
 def get_cgroups_kv_metric(metrics, path)
   output = []
   joined_metrics = metrics.join(" -r ")
-  lines = execute_cgget(joined_metrics,path)
-  lines = lines.split(/\\n(?!\\t)/)
+  cg_output = execute_cgget(joined_metrics,path)
+  kv_groups = cg_output.split(/\\n(?!\\t)/)
   metric_prefix = ""
-  lines.each_with_index do |line,index|
-    key, value = line.split
-    if index == 0
-      metric_prefix = key.strip
-      output.push("#{metric_name}.#{metric_prefix}=#{value.strip}")
+  metric_index = 0
+  kv_groups.each_with_index do |group,index|
+    lines = group.split("\n")
+    lines.each_with_index do |line,sub_index|
+      key, value = line.split.map{|item|item.strip}
+      if sub_index == 0
+        metric_prefix = key
+        output.push("#{metrics[index]}.#{key}=#{value}")
+      end
+      output.push("#{metrics[index]}.#{metric_prefix}.#{key}=#{value}")
     end
-    output.push("#{metric_name}.#{metric_prefix}.#{key.strip}=#{value.strip}")
   end
   output
 end
