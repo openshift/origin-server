@@ -213,12 +213,11 @@ ProxyPassReverse ${V_MATCH_PATH} http://${V_ROUTE} interpolate
   LogFormat "%h %{V_MATCH_HOST}e %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X %{V_ROUTE}e%{V_PATH}e" openshift
 </IfDefine>
 
+CustomLog logs/openshift_log openshift env=V_PATH
 #
-# If the `OpenShiftFrontendSyslogEnabled` option is defined, pipe output to syslog rather than a file.
+# If the `OpenShiftFrontendSyslogEnabled` option is defined, pipe output to syslog in addition to file.
+# File is used by the autoidler to assess gear (in)activity.
 #
 <IfDefine OpenShiftFrontendSyslogEnabled>
   CustomLog "|logger -t openshift-node-frontend" openshift env=V_PATH
-</IfDefine>
-<IfDefine !OpenShiftFrontendSyslogEnabled>
-  CustomLog logs/openshift_log openshift env=V_PATH
 </IfDefine>
