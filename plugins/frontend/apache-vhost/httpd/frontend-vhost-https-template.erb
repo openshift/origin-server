@@ -39,14 +39,13 @@
     LogFormat "%h %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X" openshift
   </IfDefine>
 
+  CustomLog logs/openshift_log openshift
   #
-  # If the `OpenShiftFrontendSyslogEnabled` option is defined, pipe output to syslog rather than a file.
+  # If the `OpenShiftFrontendSyslogEnabled` option is defined, pipe output to syslog in addition to file.
+  # File is used by the autoidler to assess gear (in)activity.
   #
   <IfDefine OpenShiftFrontendSyslogEnabled>
     CustomLog "|logger -t openshift-node-frontend" openshift
-  </IfDefine>
-  <IfDefine !OpenShiftFrontendSyslogEnabled>
-    CustomLog logs/openshift_log openshift
   </IfDefine>
 
   ProxyTimeout 300
