@@ -1,13 +1,17 @@
 #!/bin/bash -eu
 
-python_version="$1"
+python_version=$1
+curr=$2
 next=$3
 
-upgrade_script="$OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/bin/upgrade"
+if [[ $curr =~ 0.0.1[23] ]]; then
+    chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_PYTHON_DIR}etc/conf.d/openshift.conf
+    chcon -u unconfined_u ${OPENSHIFT_PYTHON_DIR}etc/conf.d/openshift.conf
+fi
 
+upgrade_script="${OPENSHIFT_PYTHON_DIR}usr/versions/${python_version}/bin/upgrade"
 
-if [ -e "$upgrade_script" ]
-then
+if [ -e "$upgrade_script" ]; then
     exec "$upgrade_script" "$@"
 fi
 

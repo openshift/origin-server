@@ -1,0 +1,30 @@
+#!/bin/bash
+
+function select_python_document_root {
+    if [ -d "${1}wsgi" -o -h "${1}wsgi" ]; then
+        export OPENSHIFT_PYTHON_DOCUMENT_ROOT="${1}wsgi"
+        echo "Application directory \"wsgi/\" selected as DocumentRoot"
+    else
+        export OPENSHIFT_PYTHON_DOCUMENT_ROOT="${1}"
+        echo "Application directory \"/\" selected as DocumentRoot"
+    fi
+}
+
+
+function select_python_wsgi_application {
+    if [ -n "${OPENSHIFT_PYTHON_WSGI_APPLICATION}" ]; then
+        echo "\$OPENSHIFT_PYTHON_WSGI_APPLICATION ENV VAR detected"
+        local wsgi_app_relative=${OPENSHIFT_PYTHON_WSGI_APPLICATION/${1}/}
+        if [ ! -f "${1}${wsgi_app_relative}" ]; then
+            echo "\$OPENSHIFT_PYTHON_WSGI_APPLICATION=\"$OPENSHIFT_PYTHON_WSGI_APPLICATION\" file not found"
+        fi
+    fi
+    for app in ${wsgi_app_relative} wsgi/application wsgi.py; do
+        if [ -f "${1}${app}" ]; then
+            echo "Application \"${app}\" selected as default WSGI entry point"
+            export OPENSHIFT_PYTHON_WSGI_APPLICATION="${1}${app}"
+            return
+        fi
+    done
+    client_error "WSGI application was not found"
+}

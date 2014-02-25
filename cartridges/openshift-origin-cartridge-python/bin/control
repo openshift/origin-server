@@ -4,11 +4,11 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 case $1 in
     update-configuration)
-        source $OPENSHIFT_PYTHON_DIR/usr/versions/$OPENSHIFT_PYTHON_VERSION/lib/update-configuration
+        source ${OPENSHIFT_PYTHON_DIR}usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/update-configuration
         update-configuration $OPENSHIFT_PYTHON_VERSION
         ;;
     *)
         # Call the version specific control script
-        exec $OPENSHIFT_PYTHON_DIR/usr/versions/$OPENSHIFT_PYTHON_VERSION/bin/control "$@"
+        exec ${OPENSHIFT_PYTHON_DIR}usr/versions/${OPENSHIFT_PYTHON_VERSION}/bin/control "$@"
         ;;
 esac

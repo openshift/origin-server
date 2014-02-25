@@ -7,7 +7,8 @@ shopt -s dotglob
 cp -rf $OPENSHIFT_PYTHON_DIR/usr/versions/$version/etc/* $OPENSHIFT_PYTHON_DIR/etc
 [ -d $OPENSHIFT_PYTHON_DIR/usr/versions/$version/metadata ] && cp -rf $OPENSHIFT_PYTHON_DIR/usr/versions/$version/metadata/* $OPENSHIFT_PYTHON_DIR/metadata
 
-# Create/truncate Apache PassEnv configuration file
+# Create/truncate gear-editable Apache configuration files
+echo > $OPENSHIFT_PYTHON_DIR/etc/conf.d/openshift.conf
 echo > $OPENSHIFT_PYTHON_DIR/etc/conf.d/passenv.conf
 
 cp -f $OPENSHIFT_PYTHON_DIR/usr/versions/$version/etc/conf.d/performance.conf.erb $OPENSHIFT_PYTHON_DIR/conf/performance.conf.erb

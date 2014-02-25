@@ -950,19 +950,16 @@ The `python` cartridge provides http://www.python.org/[Python] on OpenShift.
 
 === Template Repository Layout
 ----
-wsgi/                  Externally exposed wsgi code goes
-wsgi/static/           Public static content gets served here
-libs/                  Additional libraries
-data/                  For not-externally exposed wsgi code
-setup.py               Standard setup.py, specify deps here <1>
+wsgi.py                WSGI entry-point <1>
+setup.py               Standard setup.py, specify deps here <2>
 .openshift/            Location for OpenShift specific files
-    action_hooks/      See the Action Hooks documentation <2>
+    action_hooks/      See the Action Hooks documentation <3>
     markers/           See the Markers section below
 ----
-<1> Adding deps to the `install_requires` will cause the cartirdge to install those deps at git push time.
-<2> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
-
-Please leave the `wsgi`, `libs` and `data` directories but feel free to create additional directories if needed.
+<1> For backward compatibility, `wsgi/application` entry-point is also supported with higher priority.
+    You can customize the path to the WSGI entry point, see the Environment variables section below.
+<2> Adding deps to the `install_requires` will cause the cartirdge to install those deps at git push time.
+<3> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
 
 === Cartridge Layout
 ----
@@ -992,6 +989,10 @@ Adding marker files to `.openshift/markers` will have the following effects:
 |===
 
 === Environment variables
+The `python` cartridge supports the following environment variables:
+
+OPENSHIFT_PYTHON_WSGI_APPLICATION:: Set an alternative path to the WSGI entry-point
+
 For some frameworks (such as Django) it is possible to set the `DEBUG` user
 environment variable using the `rhc env set DEBUG=True` command.
 In that case, Django will run in 'debug' mode, with more verbose logging and

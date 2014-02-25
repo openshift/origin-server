@@ -1,7 +1,19 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 import os
 
+virtenv = os.environ['OPENSHIFT_PYTHON_DIR'] + '/virtenv/'
+virtualenv = os.path.join(virtenv, 'bin/activate_this.py')
+try:
+    execfile(virtualenv, dict(__file__=virtualenv))
+except IOError:
+    pass
+#
+# IMPORTANT: Put any additional includes below this line.  If placed above this
+# line, it's possible required libraries won't be in your searchable path
+#
+
 def application(environ, start_response):
+
     ctype = 'text/plain'
     if environ['PATH_INFO'] == '/health':
         response_body = "1"
@@ -17,8 +29,6 @@ def application(environ, start_response):
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>Welcome to OpenShift</title>
-
-
 <style>
 
 /*!
@@ -155,6 +165,7 @@ hgroup {
 }
 footer {
     margin: 50px 0 25px;
+    font-size: 11px
 }
 h1, h2, h3 {
   color: #000;
@@ -204,7 +215,7 @@ pre {
   padding: 13.333px 20px;
   margin: 0 0 20px;
   font-size: 13px;
-line-height: 1.4;
+  line-height: 1.4;
   background-color: #fff;
   border-left: 2px solid rgba(120,120,120,0.35);
   white-space: pre;
@@ -216,15 +227,12 @@ line-height: 1.4;
 }
 
 </style>
-
 </head>
 <body>
-
 <section class='container'>
           <hgroup>
             <h1>Welcome to your Python application on OpenShift</h1>
           </hgroup>
-          This is a sample WSGI application running on Python 3.3.
 
         <div class="row">
           <section class='col-xs-12 col-sm-6 col-md-6'>
@@ -244,12 +252,11 @@ line-height: 1.4;
 
 $ git commit -a -m 'Some commit message'
 $ git push</pre>
-
-
                   <ul>
                     <li><a href="https://www.openshift.com/developers/deploying-and-building-applications">Learn more about deploying and building your application</a></li>
                     <li>See the README file in your local application Git repository for more information on the options for deploying applications.</li>
                   </ul>
+
             </section>
 
           </section>
@@ -274,7 +281,6 @@ $ git push</pre>
                     <li><a href="http://git-scm.com/documentation">Git documentation</a></li>
                   </ul>
 
-
           </section>
         </div>
 
@@ -289,7 +295,7 @@ $ git push</pre>
     response_headers = [('Content-Type', ctype), ('Content-Length', str(len(response_body)))]
     #
     start_response(status, response_headers)
-    return [response_body.encode('utf-8') ]
+    return [response_body]
 
 #
 # Below for testing only

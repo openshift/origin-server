@@ -149,7 +149,7 @@ jenkins_build    = #{@jenkins_build}
       case @type.gsub(/-.*/,'')
         when "php"      then "index.php"
         when "ruby"     then "config.ru"
-        when "python"   then "wsgi/application"
+        when "python"   then "wsgi.py"
         when "perl"     then "index.pl"
         when "jbossas"  then "src/main/webapp/index.html"
         when "jbosseap" then "src/main/webapp/index.html"
