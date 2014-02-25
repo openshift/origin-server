@@ -167,7 +167,7 @@ class Domain
   end
 
   def inherit_membership
-    members.map{ |m| m.clone }
+    members.select(&:user?).map(&:clone)
   end
 
   def add_system_ssh_keys(ssh_keys)
