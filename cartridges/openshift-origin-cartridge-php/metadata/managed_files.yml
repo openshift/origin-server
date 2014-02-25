@@ -19,6 +19,8 @@ locked_files:
 - hooks/
 - hooks/*
 processed_templates:
-- 'versions/**/*.erb'
+- 'conf/*.erb'
+- 'configuration/**/*.erb'
+- 'env/*.erb'
 dependency_dirs:
 - phplib
