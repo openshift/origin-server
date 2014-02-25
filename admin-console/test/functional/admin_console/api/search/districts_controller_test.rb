@@ -12,7 +12,7 @@ module AdminConsole
             @name = "std1#{@random}"
             @district = District.new(name: @name, gear_size: "small")
             @district.save
-          end unless @app
+          end unless @district
         end
 
         test "should search districts by id" do

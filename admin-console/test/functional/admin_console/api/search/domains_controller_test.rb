@@ -19,7 +19,7 @@ module AdminConsole
             @namespace = "ns#{@random}"
             @domain = Domain.new(namespace: @namespace, owner:@user)
             @domain.save
-          end unless @app
+          end unless @domain
         end
 
         test "should search domains by id" do

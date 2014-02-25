@@ -18,7 +18,7 @@ module AdminConsole
           query["aliases.fqdn"] = params[:fqdn] unless params[:fqdn].blank?
           query["aliases.fqdn"] = Regexp.new(params[:fqdn_regex]) unless params[:fqdn_regex].blank?
           raise UnprocessableEntity.new("The parameters specified produced a query which would return all objects, please provide a more specific query.") if query.empty?
-          result_limit = params[:size] ? params[:size].to_i : MAX_RESULTS
+          result_limit = params[:limit] ? params[:limit].to_i : MAX_RESULTS
           records = Application.with(:read => :secondary_preferred).where(query).limit(result_limit + 1)
           respond_with build_response(records.entries.take(result_limit), records.size > result_limit)
         end
