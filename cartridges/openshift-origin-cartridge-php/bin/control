@@ -119,7 +119,7 @@ function build() {
 }
 
 function metrics() {
-    ./cart_metrics.rb
+    ${OPENSHIFT_PHP_DIR}/bin/cart_metrics.rb
 }
 
 case "$1" in
