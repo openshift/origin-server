@@ -22,7 +22,7 @@ end
 
 
 def apache_metrics
-  puts `curl http://$OPENSHIFT_PHP_IP:8080/server-status?auto`
+  puts `curl -s http://$OPENSHIFT_PHP_IP:8080/server-status?auto`
 end
 
 
