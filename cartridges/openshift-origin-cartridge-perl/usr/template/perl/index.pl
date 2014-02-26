@@ -226,13 +226,13 @@ line-height: 1.4;
 
                 <p>If you created the application from the web console, you'll need to manually clone the repository to your local system. Copy the application's source code Git URL and then run:</p>
 
-<pre>$ git clone &lt;git_url&gt; &lt;directory_to_create&gt;
+<pre>\$ git clone &lt;git_url&gt; &lt;directory_to_create&gt;
 
 # Within your project directory
 # Commit your changes and push to OpenShift
 
-$ git commit -a -m 'Some commit message'
-$ git push</pre>
+\$ git commit -a -m 'Some commit message'
+\$ git push</pre>
 
 
                   <ul>
