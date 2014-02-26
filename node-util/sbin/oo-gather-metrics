@@ -24,7 +24,7 @@
 
 module OpenShift
   module Runtime
-    require 'openshfit-origin-node/model/application_container'
+    require 'openshift-origin-node/model/application_container'
 
 
     class InvalidTimeError < StandardError;
