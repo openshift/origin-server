@@ -18,7 +18,7 @@ if [ -e $OPENSHIFT_HOMEDIR/php/metadata/jenkins_shell_command ]; then
     rm -f $OPENSHIFT_HOMEDIR/php/metadata/jenkins_shell_command
 fi
 
-if [[ $next =~ 0.0.11 ]]; then
+if [[ $next =~ 0.0.12 ]]; then
     chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
     chcon -u unconfined_u $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
 fi
