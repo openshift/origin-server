@@ -42,7 +42,7 @@ def call_cartridge_metrics
       metrics = process_cart_metrics ac.cartridge_model.do_control('metrics', cart.name)
       metrics.each do |metric|
         key, value = metric.split(": ")
-        $stdout.write("type=metric app=#{ac.application_name} gear=#{ac.uuid} #{key}=#{value}")
+        $stdout.write("type=metric app=#{ac.application_name} gear=#{ac.uuid} #{key}=#{value}\n")
       end
     end
   end
