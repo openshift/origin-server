@@ -39,7 +39,7 @@ end
 def call_cartridge_metrics
   OpenShift::Runtime::ApplicationContainer.all.each do |ac|
     ac.cartridge_model.each_cartridge do |cart|
-      metrics = process_cart_metrics ac.do_control('metrics', cart.name)
+      metrics = process_cart_metrics ac.cartridge_model.do_control('metrics', cart.name)
       metrics.each do |metric|
         key, value = metric.split(": ")
         $stdout.write("type=metric app=#{ac.application_name} gear=#{ac.uuid} #{key}=#{value}")
