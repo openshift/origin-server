@@ -17,7 +17,7 @@ function usage() {
 function log_message() {
     msg=${1-""}
     [ -z "$msg" ] && return 0
-    logger -i -s "user-cron-jobs" -p user.info "`date`: $msg"
+    logger -i -s "user-cron-jobs" -p user.info "$msg"
 }
 
 function openshift_origin_users() {
