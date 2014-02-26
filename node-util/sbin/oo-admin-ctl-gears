@@ -49,6 +49,7 @@ global_option('-w', '--timeout SECONDS', Integer, 'Number of seconds to wait for
 HONOR_LOCK  = true
 IGNORE_LOCK = false
 FORCE_STOP  = true
+INIT_OWNED  = true
 
 module OpenShift
   module Runtime
@@ -92,8 +93,8 @@ module OpenShift
       #
       # @param msg [String] message denoting operation. E.g., 'Starting gear uuid'
       def okay(msg)
-        NodeLogger.logger.info("(#{Process.pid}) #{msg}[ OK ]")
-        $stdout.write("#{msg}[ #{GREEN}OK#{NORMAL} ]\n")
+        NodeLogger.logger.info %Q((#{Process.pid}) #{msg}[ OK ])
+        $stdout.puts %Q(#{msg}[ #{$stdout.tty? ? GREEN : ''} OK #{$stdout.tty? ? NORMAL : ''}])
       end
 
       # Log success messages
@@ -101,8 +102,8 @@ module OpenShift
       # @param msg    [String] message denoting operation. E.g., 'Starting gear uuid'
       # @param reason [String] reason for failure
       def failed(msg, reason)
-        NodeLogger.logger.error("(#{Process.pid}) #{msg}[ Failed ]\n  #{reason}")
-        $stdout.write("#{msg}[ #{RED}FAILED#{NORMAL} ]\n  #{reason}\n")
+        NodeLogger.logger.error %Q((#{Process.pid}) #{msg}[ FAILED ]\n  #{reason})
+        $stdout.puts %Q(#{msg}[ #{$stdout.tty? ? RED : ''} FAILED #{$stdout.tty? ? NORMAL : ''}]\n #{reason}])
       end
 
       # For a given gear monitor some operation
@@ -158,10 +159,11 @@ module OpenShift
         report_failures(results.select { |h| 0 != h[:exitstatus] })
       end
 
-      def stop(honor_lock = true, force = false)
+      def stop(honor_lock = true, force = false, init_owned = false)
         results = Parallel.map(gears(honor_lock), @options) do |gear|
           opt = {user_initiated: false}
-          opt.merge(@forced_options) if force
+          opt.merge!(@forced_options) if force
+          opt.merge!({init_owned: true}) if init_owned
           gear_action(gear, "Stopping gear #{gear.uuid} ... ") { |g| g.stop_gear(opt) }
         end
         report_failures(results.select { |h| 0 != h[:exitstatus] })
@@ -170,7 +172,7 @@ module OpenShift
       def restart(honor_lock = true)
         results = Parallel.map(gears(honor_lock), @options) do |gear|
           opt = {user_initiated: false}
-          opt.merge(@forced_options)
+          opt.merge!(@forced_options)
           [
               gear_action(gear, "Stopping gear #{gear.uuid} ... ") { |g| g.stop_gear(opt) },
               gear_action(gear, "Starting gear #{gear.uuid} ... ") { |g| g.start_gear }
@@ -382,6 +384,16 @@ command :forcestopgear do |c|
   end
 end
 
+command :condstopgear do |c|
+  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.description = %q(attempt to stop cartridge daemons for given gear)
+
+  c.action do |args, options|
+    raise 'Requires a gear uuid' if args.empty?
+    exit OpenShift::Runtime::AdminGearsControl.new(options, args).stop(IGNORE_LOCK, FORCE_STOP, INIT_OWNED)
+  end
+end
+
 command :restartgear do |c|
   c.syntax      = "#{$name} #{c.name} <login name>"
   c.description = %q(restart given gear ignoring stop_lock)
@@ -391,6 +403,7 @@ command :restartgear do |c|
     exit OpenShift::Runtime::AdminGearsControl.new(options, args).restart(IGNORE_LOCK)
   end
 end
+
 
 command :statusgear do |c|
   c.syntax      = "#{$name} #{c.name} <login name>"

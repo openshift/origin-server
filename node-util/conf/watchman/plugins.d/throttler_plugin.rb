@@ -19,10 +19,11 @@ require 'openshift-origin-node/model/watchman/watchman_plugin'
 # Provide Watchman with monitoring of gear resource usage and limit abusers
 class ThrottlerPlugin < OpenShift::Runtime::WatchmanPlugin
 
-  # @param config   [Config]                   node configuration
-  # @param gears    [CachedGears]              collection of running gears on node
-  # @param restart  [lambda<String, DateTime>] block to call to cause gear restart
-  def initialize(config, gears, restart)
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] config
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] logger
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] gears
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] operation
+  def initialize(config, logger, gears, operation)
     super
 
     # create thread here...
@@ -35,6 +36,7 @@ class ThrottlerPlugin < OpenShift::Runtime::WatchmanPlugin
   end
 
   # Update Throttler tables and find any abusers...
+  # @param [OpenShift::Runtime::WatchmanPluginTemplate::Iteration] iteration not used
   def apply(iteration)
     begin
       @throttler.throttle(@gears)
@@ -199,7 +201,7 @@ module OpenShift
               # Set the uuids of running gears
               @uuids = new_uuids
               # Delete any missing gears to free up memory
-              @running_apps.select! { |k, v| uuids.include?(k) }
+              @running_apps.select! { |k, v| new_uuids.include?(k) }
             end
           end
 

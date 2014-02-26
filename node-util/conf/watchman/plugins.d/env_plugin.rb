@@ -17,22 +17,27 @@
 require 'openshift-origin-node/model/watchman/watchman_plugin'
 
 # Provide Watchman with gear env monitoring
+# @!attribute [r] next_check
+#   @return [DateTime] timestamp for next check
 class EnvPlugin < OpenShift::Runtime::WatchmanPlugin
 
-  attr_accessor :next_check
+  attr_reader :next_check
 
-  # @param config      [Config]                   node configuration
-  # @param gears       [CachedGears]              collection of running gears on node
-  # @param restart     [lambda<String, DateTime>] block to call to cause gear restart
-  # @param next_update [lambda<>]                 calculate time for next check
-  # @param epoch       [DateTime]                 when was object instantiated
-  def initialize(config, gears, restart, next_update = lambda { DateTime.now + Rational(1, 24) }, epoch = DateTime.now)
-    super(config, gears, restart)
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] config
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] logger
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] gears
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] operation
+  # @param [lambda<>] next_update calculates the time for next check
+  # @param [DateTime] epoch is when plugin was object instantiated
+  def initialize(config, logger, gears, operation, next_update = lambda { DateTime.now + Rational(1, 24) }, epoch = DateTime.now)
+    super(config, logger, gears, operation)
     @next_update = next_update
     @next_check  = epoch
   end
 
-  # execute plugin code
+  # Test gears' environment for OPENSHIFT_GEAR_DNS existing
+  # @param [OpenShift::Runtime::WatchmanPluginTemplate::Iteration] iteration not used
+  # @return void
   def apply(iteration)
     return if DateTime.now < @next_check
     @next_check = @next_update.call

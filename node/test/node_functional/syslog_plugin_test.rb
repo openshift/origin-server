@@ -23,7 +23,9 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
   def setup
     Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
 
-    @logs = '/tmp/syslog_plugin_test.log'
+    @logs    = '/tmp/syslog_plugin_test.log'
+    @gears   = %w(52cc244091aa71fac4000007 52cc244091aa71fac4000008 52cc244091aa71fac4000009)
+    @restart = mock
   end
 
   def teardown
@@ -33,23 +35,17 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
   def test_no_gears
     teardown
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, [], restart, @logs).
+    @restart.expects(:call).never
+    SyslogPlugin.new(nil, nil, [], @restart, @logs).
         apply(OpenStruct.new({epoch: DateTime.now - 1.minute, last_run: DateTime.now}))
-
-    assert_equal 0, counter, 'Failed to handle missing file'
   end
 
   def test_no_log
     teardown
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, @logs).
+    @restart.expects(:call).never
+    SyslogPlugin.new(nil, nil, @gears, @restart, @logs).
         apply(OpenStruct.new({epoch: DateTime.now - 1.minute, last_run: DateTime.now}))
-
-    assert_equal 0, counter, 'Failed to handle missing file'
   end
 
   def test_empty_log
@@ -57,12 +53,9 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
       file.write('')
     end
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, @logs).
+    @restart.expects(:call).never
+    SyslogPlugin.new(nil, nil, @gears, @restart, @logs).
         apply(OpenStruct.new({epoch: DateTime.now - 1.minute, last_run: DateTime.now}))
-
-    assert_equal 0, counter, 'Failed to process empty file'
   end
 
   def test_single_entry
@@ -72,12 +65,21 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
           "Jan  8 18:18:25 ip-10-238-160-216 watchman[6020]:  52cc244091aa71fac4000007 killed as a result of limit of .\n")
     end
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, @logs).
+    @restart.expects(:call).with(:restart, '52cc244091aa71fac4000007').once
+    SyslogPlugin.new(nil, nil, @gears, @restart, @logs).
         apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
+  end
 
-    assert_equal 1, counter, 'Failed to find single entry'
+  def test_miss
+    start_time = DateTime.civil(2014, 1, 9, 12, 0, 0, -6)
+    File.open(@logs, 'w') do |file|
+      file.write(
+          "Jan  8 18:18:25 ip-10-238-160-216 watchman[6020]:  52cc244091aa71fac4000007 killed as a result of limit of .\n")
+    end
+
+    @restart.expects(:call).never
+    SyslogPlugin.new(nil, nil, @gears, @restart, @logs).
+        apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
   end
 
   def test_floor
@@ -87,12 +89,9 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
       file.write("Jan  9 18:18:25 ip-10-238-160-216 watchman[6020]:  52cc244091aa71fac4000008 killed as a result of limit of .\n")
     end
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, @logs).
+    @restart.expects(:call).with(:restart, '52cc244091aa71fac4000008').once
+    SyslogPlugin.new(nil, nil, @gears, @restart, @logs).
         apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
-
-    assert_equal 1, counter, 'Failed floor test'
   end
 
   def test_ceiling
@@ -103,12 +102,10 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
       file.write("Jan 10 18:18:25 ip-10-238-160-216 watchman[6020]:  52cc244091aa71fac4000009 killed as a result of limit of .\n")
     end
 
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, @logs).
+    @restart.expects(:call).with(:restart, '52cc244091aa71fac4000008').once
+    @restart.expects(:call).with(:restart, '52cc244091aa71fac4000009').once
+    SyslogPlugin.new(nil, nil, @gears, @restart, @logs).
         apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
-
-    assert_equal 2, counter, 'Failed to find 2 entries'
   end
 
   def test_repeat
@@ -118,11 +115,9 @@ class SyslogPluginTest < OpenShift::NodeBareTestCase
       file.write("Jan  9 18:18:25 ip-10-238-160-216 watchman[6020]:  52cc244091aa71fac4000008 killed as a result of limit of .\n")
       file.write("Jan  9 18:18:25 ip-10-238-160-216 watchman[6020]:  52cc244091aa71fac4000008 killed as a result of limit of .\n")
     end
-    counter = 0
-    restart = lambda { |u, t| counter += 1 }
-    SyslogPlugin.new(nil, %w(52cc244091aa71fac4000008), restart, @logs).
-        apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
 
-    assert_equal 1, counter, 'Failed to compress repeats'
+    @restart.expects(:call).with(:restart, '52cc244091aa71fac4000008').once
+    SyslogPlugin.new(nil, nil, @gears, @restart, @logs).
+        apply(OpenStruct.new({epoch: start_time - 1.minute, last_run: start_time}))
   end
 end

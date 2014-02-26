@@ -32,6 +32,8 @@ GEAR_BASE_DIR       = '/var/lib/openshift'
 GEAR_GECOS          = 'OpenShift guest'
 OPENSHIFT_CONF_DIR  = '/etc/openshift'
 WATCHMAN_PLUGIN_DIR = '/etc/openshift/watchman/plugins.d'
+OO_ADMIN_CTL_GEARS  = '/usr/sbin/oo-admin-ctl-gears'
+OP_TIMEOUT          = 300
 
 module OpenShift
   module Runtime
@@ -84,8 +86,9 @@ module OpenShift
         @plugins = WatchmanPlugin.repository.collect do |plugin|
           begin
             plugin.new(@config,
+                       @logger,
                        @gears,
-                       lambda { |uuid, timestamp| cache_incident(uuid, timestamp) })
+                       lambda { |op, uuid| cache_incident(op, uuid) })
           rescue Exception => e
             Syslog.warning("Failed to instantiate Watchman Plugin #{plugin}: #{e.message}")
             nil
@@ -115,6 +118,15 @@ module OpenShift
       def gear_retries=(retries)
         Syslog.info("Watchman gear_retries changed from: #{@gear_retries} to: #{retries}")
         @gear_retries = retries
+      end
+
+      # Get name for gear from gear's environment
+      # @param uuid [String] gear login
+      # @return gear's name or '(Unknown)'
+      def gear_name(uuid)
+        file = PathUtils.join(@config.get('GEAR_BASE_DIR', GEAR_BASE_DIR), uuid, '.env', 'OPENSHIFT_GEAR_NAME')
+        name = IO.read(file).chomp rescue '(Unknown)'
+        name
       end
 
       # loop through plugins until stopped
@@ -150,7 +162,7 @@ module OpenShift
 
       # Instantiate a NodeLogger
       #
-      # @param [Config] elements from node.conf
+      # @param [Config] config elements from node.conf
       # @return [NodeLogger] Properly configured NodeLogger for Watchman to use
       def logger(config)
         logger_profiles = {
@@ -176,26 +188,28 @@ module OpenShift
 
       # Record incident and restart gear if appropriate
       #
+      # @param op [Symbol] name of method to call, :restart or :stop
       # @param uuid [String] gear identifier
-      # @param timestamp [DateTime] of the incident
-      def cache_incident(uuid, timestamp)
+      def cache_incident(op, uuid)
         if @incidents.has_key?(uuid)
-          # Is this event newer than cache?
-          delta                      = DateTime.now - @incidents[uuid][:last_updated]
+          delta = DateTime.now - @incidents[uuid][:last_updated]
+
+          # Have we tried to restart in the last @retry_delay seconds?
+          return if delta < @retry_delay
 
           # If we haven't attempted to restart in last 8 hours, do so...
           @incidents[uuid][:retries] = (delta > @retry_period) ? 0 : @incidents[uuid][:retries].succ
 
-          # Have we tried to restart in the last @retry_delay seconds but not more that @gear_retries times in total?
-          if @incidents[uuid][:retries] < @gear_retries && delta > @retry_delay
-            restart(uuid, @incidents[uuid][:retries])
-            @incidents[uuid][:last_updated] = DateTime.now
-            @incidents[uuid][:last_event]   = timestamp
-          end
+          # Have we tried to restart more that @gear_retries times?
+          return if @incidents[uuid][:retries] > @gear_retries
+
+          # Either repeat death or failed start...
+          send(op, uuid, @incidents[uuid][:retries])
+          @incidents[uuid][:last_updated] = DateTime.now
         else
           # First death. Restart and move on...
-          @incidents[uuid] = {last_event: timestamp, last_updated: DateTime.now, retries: 0}
-          restart(uuid, @incidents[uuid][:retries])
+          @incidents[uuid] = {last_updated: DateTime.now, retries: 0}
+          send(op, uuid, @incidents[uuid][:retries])
         end
       end
 
@@ -205,12 +219,10 @@ module OpenShift
       # @param uuid [String] gear identifier
       # @param retries [Fixnum] number of retries for restart
       def restart(uuid, retries)
-        file = PathUtils.join(@config.get('GEAR_BASE_DIR', GEAR_BASE_DIR), uuid, '.env', 'OPENSHIFT_GEAR_NAME')
-        name = IO.read(file).chomp rescue '(Unknown)'
-
         restart_gear = lambda do
-          out, err, rc = Utils.oo_spawn(%Q{/usr/sbin/oo-admin-ctl-gears restartgear #{uuid}})
-          Syslog.info("watchman restarted user #{uuid}: application #{name} (retries: #{retries}")
+          out, err, rc = Utils.oo_spawn(%Q{#{OO_ADMIN_CTL_GEARS} restartgear #{uuid}}, timeout: OP_TIMEOUT)
+
+          Syslog.info("watchman restarted user #{uuid}: application #{gear_name(uuid)} (retries: #{retries})")
           unless 0 == rc
             Syslog.warning("watchman results for #{uuid} restart: exitcode: #{rc}\nstdout: #{out}\nstderr: #{err}")
           end
@@ -221,6 +233,33 @@ module OpenShift
         rescue Errno::ENOENT
           # .state file missing is there a stop_lock?
           restart_gear.call unless @gears.stop_lock?(uuid)
+        end
+      end
+
+      # Conditionally stop gear
+      # Don't kill off ssh and bash sessions
+      #
+      # @param uuid [String] gear identifier
+      # @param retries [Fixnum] number of retries for stop
+      def stop(uuid, retries)
+        out, err, rc = Utils.oo_spawn(%Q{#{OO_ADMIN_CTL_GEARS} condstopgear #{uuid}}, timeout: OP_TIMEOUT)
+
+        Syslog.info("watchman stopped user #{uuid}: application #{gear_name(uuid)} (retries: #{retries})")
+        unless 0 == rc
+          Syslog.warning("watchman results for #{uuid} stop: exitcode: #{rc}\nstdout: #{out}\nstderr: #{err}")
+        end
+      end
+
+      # Idle gear
+      #
+      # @param uuid [String] gear identifier
+      # @param retries [Fixnum] number of retries for stop
+      def idle(uuid, retries)
+        out, err, rc = Utils.oo_spawn(%Q{#{OO_ADMIN_CTL_GEARS} idlegear #{uuid}}, timeout: OP_TIMEOUT)
+
+        Syslog.info("watchman idled user #{uuid}: application #{gear_name(uuid)} (retries: #{retries})")
+        unless 0 == rc
+          Syslog.warning("watchman results for #{uuid} idle: exitcode: #{rc}\nstdout: #{out}\nstderr: #{err}")
         end
       end
     end
@@ -283,7 +322,7 @@ module OpenShift
       extend Forwardable
 
       # @!attribute [r] last_updated
-      #   @return [Fixnum] the DateTime when cache last updated
+      #   @return [DateTime] the DateTime when cache last updated
       attr_reader :last_updated
 
       # @!attribute [r] all gears on system
@@ -350,12 +389,12 @@ module OpenShift
       def import_gears(force = false)
         updated = File.stat(@passwd).mtime
         @mutex.synchronize do
-          return if @last_updated == updated && !force
+          next if @last_updated == updated && !force
           @last_updated = updated
 
           gecos         = @config.get('GEAR_GECOS', GEAR_GECOS)
           results, _, _ = Utils.oo_spawn(%Q{/bin/grep '#{gecos}' #{@passwd} | cut -d: -f1},
-                                         quiet: true,
+                                         quiet:               true,
                                          expected_exitstatus: 0)
 
           if results.nil? or results.empty?

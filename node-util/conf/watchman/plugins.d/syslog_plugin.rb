@@ -15,22 +15,26 @@
 #++
 
 require 'date'
+require 'set'
 require 'openshift-origin-node/model/watchman/watchman_plugin'
 
 # Provide Watchman with monitoring of CGroups resource killing of gears
 class SyslogPlugin < OpenShift::Runtime::WatchmanPlugin
   attr_accessor :log_file, :epoch
 
-  # @param config   [Config]                   node configuration
-  # @param gears    [CachedGears]              collection of running gears on node
-  # @param restart  [lambda<String, DateTime>] block to call to cause gear restart
-  # @param log_file [String]                   location of cgroups output
-  def initialize(config, gears, restart, log_file = '/var/log/messages')
-    super(config, gears, restart)
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] config
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] logger
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] gears
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] operation
+  # @param log_file [String] location of cgroups output
+  def initialize(config, logger, gears, operation, log_file = '/var/log/messages')
+    super(config, logger, gears, operation)
     @log_file = log_file
   end
 
-  # execute plugin code
+  # Search cgroups output for `oom_killer` messages
+  # @param [OpenShift::Runtime::WatchmanPluginTemplate::Iteration] iteration timestamps of given events
+  # @return void
   def apply(iteration)
     return if @gears.empty?
 
@@ -40,7 +44,7 @@ class SyslogPlugin < OpenShift::Runtime::WatchmanPlugin
       when 1
         ; # grep found no matches
       when 0
-        incidents = {}
+        targets = Set.new
         results.split("\n").each do |event|
           ts        = DateTime.strptime(event, '%b %d %T')
 
@@ -54,10 +58,10 @@ class SyslogPlugin < OpenShift::Runtime::WatchmanPlugin
           next if iteration.last_run > timestamp
 
           # Report only last instance of gear death
-          incidents[uuid] = timestamp
+          targets << uuid
         end
 
-        incidents.each_pair { |u, t| @restart.call(u, t) }
+        targets.each { |u| restart(u) }
       else
         Syslog.notice("Watchman SyslogPlugin failed to read #{@log_file}: (#{rc}) #{error}")
     end
