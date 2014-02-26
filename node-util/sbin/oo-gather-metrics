@@ -37,7 +37,16 @@ end
 # Execute bin/control metrics for each cartridge whose manifest specifies that they support metrics
 # Firstly, we need a way to gather all of the cartridges to run metrics on
 def call_cartridge_metrics
-  puts "These are the cartridge metrics"
+  ApplicationContainer.all.each do |ac|
+    ac.each_cartridge do |cart|
+      metrics = process_cart_metrics ac.do_control('metrics', cart.name)
+      metrics.each do |metric|
+        key, value = metric.split(": ")
+        $stdout.write("type=metric app=#{ac.application_name} gear=#{ac.uuid} #{key}=#{value}")
+      end
+    end
+  end
+
 end
 
 # Look into Julian's old code for some metrics such as cgroups
@@ -176,6 +185,10 @@ end
 # This method returns a string to be processed, is it worth wrapping the execute?
 def execute_cgget(metrics, path)
   `cgget -n -v -r #{metrics} #{path}`
+end
+
+def process_cart_metrics metrics_string
+  metrics = metrics_string.split("\n")
 end
 
 
