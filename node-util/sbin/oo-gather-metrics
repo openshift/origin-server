@@ -24,6 +24,8 @@
 
 module OpenShift
   module Runtime
+    require 'OpenShift::Runtime::ApplicationContainer'
+
 
     class InvalidTimeError < StandardError;
     end
