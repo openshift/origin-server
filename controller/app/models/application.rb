@@ -395,7 +395,13 @@ class Application
   ##
   # Updates the configuration of the application.
   # @return [ResultIO] Output from cartridges
-  def update_configuration
+  def update_configuration(new_config={})
+    # set the new config in the application object without persisting for validation 
+    self.config['auto_deploy'] = new_config['auto_deploy'] unless new_config['auto_deploy'].nil?
+    self.config['deployment_branch'] = new_config['deployment_branch'] unless new_config['deployment_branch'].nil?
+    self.config['keep_deployments'] = new_config['keep_deployments'] unless new_config['keep_deployments'].nil?
+    self.config['deployment_type'] = new_config['deployment_type'] unless new_config['deployment_type'].nil?
+
     if self.invalid?
       messages = []
       if self.errors.messages[:config]
@@ -410,9 +416,14 @@ class Application
       raise OpenShift::UserException.new("Invalid application configuration: #{messages}", 1)
     end
     Application.run_in_application_lock(self) do
-      op_group = UpdateAppConfigOpGroup.new(config: self.config)
-      self.pending_op_groups << op_group
-      self.save!
+      # set the config parameters not specified in new_config based on the updates values in the application
+      ['auto_deploy', 'deployment_branch', 'keep_deployments', 'deployment_type'].each {|k| new_config[k] = self.config[k] if new_config[k].nil?}
+      op_group = UpdateAppConfigOpGroup.new(config: new_config)
+      op_group.set_created_at
+      app_updates = {"$push" => { pending_op_groups: op_group.as_document }, "$set" => {}}
+      new_config.keys.each { |k| app_updates["$set"]["config.#{k}"] = new_config[k] unless new_config[k].nil? }
+
+      Application.where(_id: self._id).update(app_updates)
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -894,7 +905,6 @@ class Application
 
     Application.run_in_application_lock(self) do
       pending_op_groups << MakeAppHaOpGroup.new(user_agent: self.user_agent)
-      self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -919,7 +929,6 @@ class Application
     Application.run_in_application_lock(self) do
       op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_component_spec, min: scale_from, max: scale_to, multiplier: multiplier, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
       pending_op_groups << op_group
-      self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -934,7 +943,6 @@ class Application
     Application.run_in_application_lock(self) do
       if group_instances_with_overrides.find {|group| group.additional_filesystem_gb > 0 }
         pending_op_groups << ChangeMaxUntrackedStorageOpGroup.new(user_agent: self.user_agent, old_untracked: old_untracked, new_untracked: new_untracked)
-        self.save!
         result_io = ResultIO.new
         self.run_jobs(result_io)
         result_io
@@ -1585,6 +1593,7 @@ class Application
         domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
       when "BROKER_KEY_ADD"
         op_group = AddBrokerAuthKeyOpGroup.new(user_agent: self.user_agent)
+        op_group.set_created_at
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document } })
       when "NOTIFY_ENDPOINT_CREATE"
         if gear
@@ -1606,10 +1615,12 @@ class Application
     if add_ssh_keys.length > 0
       keys_attrs = get_updated_ssh_keys(add_ssh_keys)
       op_group = UpdateAppConfigOpGroup.new(add_keys_attrs: keys_attrs, user_agent: self.user_agent)
+      op_group.set_created_at
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
     if remove_env_vars.length > 0
       op_group = UpdateAppConfigOpGroup.new(remove_env_vars: remove_env_vars)
+      op_group.set_created_at
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }})
     end
 
@@ -1629,9 +1640,8 @@ class Application
   #
   # == Returns:
   # True on success or False if no pending jobs.
-  def run_jobs(result_io=nil)
+  def run_jobs(result_io=nil, continue_on_successful_rollback=false)
     result_io = ResultIO.new if result_io.nil?
-    self.reload
     op_group = nil
     while self.pending_op_groups.count > 0
       rollback_pending = false
@@ -1643,6 +1653,9 @@ class Application
 
         if op_group.pending_ops.where(:state => :rolledback).count > 0
           rollback_pending = true
+          # making sure that the rollback_blocked flag is not accidentally set to true
+          # triggering a rollback while blocking the rollback at the same time could result in an infinite loop
+          op_group.set :rollback_blocked, false if op_group.rollback_blocked
           raise Exception.new("Op group is already being rolled back.")
         end
 
@@ -1672,10 +1685,12 @@ class Application
           # if the original exception was raised just to trigger a rollback
           # then the rollback exception is the only thing of value and hence return/raise it
           raise e_rollback if rollback_pending
-        end
+        end unless op_group.rollback_blocked
 
         # raise the original exception if it was the actual exception that led to the rollback
-        unless rollback_pending
+        # if not, then we should just continue execution of any remaining op_groups.
+        # The continue_on_successful_rollback flag is used by the oo-admin-clear-pending-ops script
+        unless rollback_pending or continue_on_successful_rollback
           if e_orig.respond_to? 'resultIO' and e_orig.resultIO
             e_orig.resultIO.append result_io unless e_orig.resultIO == result_io
           end
@@ -1716,6 +1731,8 @@ class Application
     end
     if got_lock
       begin
+        # reload the application to reflect any changes made by any previous operation holding the lock 
+        application.reload if application.persisted?
         block.arity == 1 ? block.call(application) : yield
       ensure
         Lock.unlock_application(application)
