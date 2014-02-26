@@ -100,6 +100,9 @@ HAPROXY_CONF_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "conf")
 HAPROXY_RUN_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "run")
 HAPROXY_CONFIG=File.join(HAPROXY_CONF_DIR, "haproxy.cfg")
 HAPROXY_STATUS_URLS_CONFIG=File.join(HAPROXY_CONF_DIR, "app_haproxy_status_urls.conf")
+PID_FILE=File.join(HAPROXY_RUN_DIR, "haproxy_ctld.pid")
+
+$shutdown = false
 
 class HAProxyAttr
     attr_accessor :pxname,:svname,:qcur,:qmax,:scur,:smax,:slim,:stot,:bin,:bout,:dreq,:dresp,:ereq,:econ,:eresp,:wretr,:wredis,:status,:weight,:act,:bck,:chkfail,:chkremove,:lastchg,:removetime,:qlimit,:pid,:iid,:sid,:throttle,:lbtot,:tracked,:type,:rate,:rate_lim,:rate_max,:check_status,:check_code,:check_duration,:hrsp_1xx,:hrsp_2xx,:hrsp_3xx,:hrsp_4xx,:hrsp_5xx,:hrsp_other,:hanafail,:req_rate,:req_rate_max,:req_tot,:cli_abrt,:srv_abrt
@@ -166,7 +169,7 @@ class Haproxy
         @stats_sock=stats_sock
         @gear_namespace = ENV['OPENSHIFT_GEAR_DNS'].split('.')[0].split('-')[1]
 
-        @log = Logger.new("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/scale_events.log")
+        @log = Logger.new(STDOUT)
         if log_debug
           @log.level = Logger::DEBUG
         else
@@ -591,8 +594,16 @@ if opt['up'] || opt['down']
     exit 1
   end
 else
+  trap("TERM") do
+    $shutdown = true
+  end
+
+  File.open(PID_FILE, "w") do |f|
+    f.write(Process.pid)
+  end
+
   ha = nil
-  while true
+  while not $shutdown
     begin
       if ha
         ha.refresh
@@ -604,5 +615,11 @@ else
       # Already logged when the exception was generated
     end
     sleep @check_interval
+  end
+
+  begin
+    File.delete(PID_FILE)
+  rescue
+    # ignore
   end
 end

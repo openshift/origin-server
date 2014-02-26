@@ -61,6 +61,13 @@ module OpenShift
           geardir = PathUtils.join(homedir, @container_name) + "/"
           gearappdir = PathUtils.join(homedir, "app-root") + "/"
 
+          # global log dir for gear, used by logshifter
+          gearlogdir = PathUtils.join(homedir, "app-root") + "/logs/"
+          add_env_var("LOG_DIR", gearlogdir, true) {|v|
+            FileUtils.mkdir_p(v, :verbose => @debug)
+          }
+          set_rw_permission_R(gearlogdir)
+
           add_env_var("APP_DNS",
                       "#{@application_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
                       true)

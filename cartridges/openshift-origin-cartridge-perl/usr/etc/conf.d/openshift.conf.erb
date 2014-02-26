@@ -10,8 +10,8 @@ Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 DefaultRuntimeDir "<%= "#{ENV['OPENSHIFT_PERL_DIR']}/run"%>"
 </IfVersion>
 
-ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PERL_DIR'] %>/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
-CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PERL_DIR'] %>/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
+ErrorLog "|tee"
+CustomLog "|tee" combined
 
 <Directory <%=  ENV['OPENSHIFT_PERL_DOCUMENT_ROOT'] || "#{ENV['OPENSHIFT_REPO_DIR']}/perl/" %> >
     AddHandler perl-script .pl

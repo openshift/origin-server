@@ -5,7 +5,7 @@ case "$1" in
     version="$2"
 esac
 
-mkdir -p ${OPENSHIFT_JBOSSAS_DIR}/{template,standalone/tmp,standalone/configuration,standalone/log,standalone/data}
+mkdir -p ${OPENSHIFT_JBOSSAS_DIR}/{template,standalone/tmp,standalone/configuration,standalone/data}
 
 # Copy the version specific files up to jbossas directory
 cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration

@@ -8,7 +8,6 @@ locked_files:
 - hooks/*
 - env/
 - env/OPENSHIFT_JBOSSEWS_DIR
-- env/OPENSHIFT_JBOSSEWS_LOG_DIR
 - env/OPENSHIFT_JBOSSEWS_JDK*
 - env/M2_HOME
 processed_templates:

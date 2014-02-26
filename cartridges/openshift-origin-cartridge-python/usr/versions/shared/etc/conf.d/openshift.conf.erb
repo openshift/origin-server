@@ -7,8 +7,8 @@ Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 DefaultRuntimeDir "<%= "#{ENV['OPENSHIFT_PYTHON_DIR']}/run"%>"
 </IfVersion>
 
-ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PYTHON_LOG_DIR'] %>/error_log-%Y%m%d-%H%M%S-%Z 86400"
-CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PYTHON_LOG_DIR'] %>/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
+ErrorLog "|tee"
+CustomLog "|tee" combined
 
 <Directory "<%= ENV['OPENSHIFT_PYTHON_DOCUMENT_ROOT'] || "#{ENV['OPENSHIFT_REPO_DIR']}wsgi" %>">
   AllowOverride all

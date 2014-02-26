@@ -50,7 +50,8 @@ function ishttpup() {
         fi
         # if the process failed to start, error out immediately
         # rather than waiting for the timeout on the port being available.
-        if ! ps | grep -v grep | grep $PROCESS_ID > /dev/null; then
+        jbpid=$(cat $JBOSS_PID_FILE);
+        if ! ps | grep -v grep | grep $jbpid > /dev/null; then
           return 2
         fi
 
@@ -86,10 +87,9 @@ function start_app() {
         export CATALINA_BASE=$OPENSHIFT_JBOSSEWS_DIR
         export CATALINA_TMPDIR=${OPENSHIFT_JBOSSEWS_DIR}/tmp
 
-        ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat start > ${OPENSHIFT_JBOSSEWS_DIR}/logs/jbossews.log 2>&1 &
-        PROCESS_ID=$!
+        ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat start &> >(/usr/bin/logshifter -tag jbossews) &
+        echo $! > $JBOSS_PID_FILE
 
-        echo $PROCESS_ID > $JBOSS_PID_FILE
         rc=0
         ishttpup || rc=$?
         if [ $rc -eq 1 ]; then
@@ -124,8 +124,8 @@ function threaddump() {
         java_pid=`ps h --ppid $pid -o '%p'`
         kill -3 $java_pid
         client_result "Success"
-        client_result ""
-        client_result "The thread dump file will be available via: rhc tail $OPENSHIFT_APP_NAME -g $OPENSHIFT_GEAR_UUID -f */logs/catalina.out -o '-n 250'"
+        client_result ""        
+        client_result "The thread dump file will be available via: rhc tail $OPENSHIFT_APP_NAME -g $OPENSHIFT_GEAR_UUID -f ${OPENSHIFT_LOG_DIR}${cartridge_type}.log -o '-n 250'"
     else 
         echo "Failed to locate JBOSS PID File"
     fi
@@ -133,9 +133,9 @@ function threaddump() {
 
 # Clean up any log files
 function tidy() {
-  client_message "Emptying log dir: $OPENSHIFT_JBOSSEWS_LOG_DIR"
+  client_message "Emptying jbossews logs from dir: $OPENSHIFT_LOG_DIR"
   shopt -s dotglob
-  rm -rf $OPENSHIFT_JBOSSEWS_LOG_DIR/*
+  rm -rf $OPENSHIFT_LOG_DIR/jbossews.log*
   rm -rf $OPENSHIFT_JBOSSEWS_DIR/tmp/*
 }
 

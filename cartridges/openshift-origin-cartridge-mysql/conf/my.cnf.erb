@@ -47,7 +47,6 @@ innodb_flush_log_at_trx_commit = 1
 innodb_lock_wait_timeout = 50
 
 [mysqld_safe]
-log-error=<%= ENV['OPENSHIFT_MYSQL_DB_LOG_DIR'] %>mysql_error.log
 pid-file=<%= ENV['OPENSHIFT_MYSQL_DIR'] %>pid/mysql.pid
 
 [mysqldump]

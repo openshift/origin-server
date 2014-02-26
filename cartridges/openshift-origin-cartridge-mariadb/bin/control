@@ -33,7 +33,7 @@ function start {
   if ! is_running; then
     echo "Starting MariaDB cartridge"
     oo-erb conf/my.cnf.erb.hidden > conf/my.cnf
-    mysql_context "/usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MARIADB_DIR/conf/my.cnf" > /dev/null 2>&1 &
+    mysql_context "/usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MARIADB_DIR/conf/my.cnf --log-error=$OPENSHIFT_MARIADB_DIR/stdout.err" |& /usr/bin/logshifter -tag mariadb &
     wait_for_mysqld_availability
   else
     echo "MariaDB already running" 1>&2

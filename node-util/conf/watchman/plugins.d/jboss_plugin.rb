@@ -25,15 +25,13 @@ def apply(iteration)
     @gears.each do |uuid|
       path    = PathUtils.join(@config.get('GEAR_BASE_DIR', '/var/lib/openshift'),
                                uuid,
-                               '*',
-                               'env',
-                               'OPENSHIFT_JBOSS*_LOG_DIR')
+                               'app-root',
+                               'logs',
+                               'jboss*.log')
       results = Dir.glob(path)
       next if results.nil? || results.empty?
 
-      results.each do |var|
-        log = PathUtils.join(IO.read(var).chomp, 'server.log')
-
+      results.each do |log|
         # skip missing log files as jboss may be coming up.
         next unless File.exist?(log)
 

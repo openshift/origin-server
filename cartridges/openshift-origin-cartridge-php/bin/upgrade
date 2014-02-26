@@ -22,3 +22,9 @@ if [[ $next == 0.0.12 ]]; then
     chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
     chcon -u unconfined_u $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
 fi
+
+if [ -f ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR ] && [ ! -L ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR ]
+then
+    rm ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR
+    ln -s ~/.env/OPENSHIFT_LOG_DIR ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR
+fi

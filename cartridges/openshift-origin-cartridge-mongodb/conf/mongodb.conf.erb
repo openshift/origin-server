@@ -1,11 +1,5 @@
 # mongodb.conf
 
-#where to log
-logpath=<%= ENV['OPENSHIFT_MONGODB_DIR'] %>log/mongodb.log
-
-# fork and run in background
-fork = true
-
 bind_ip = <%= ENV['OPENSHIFT_MONGODB_DB_HOST'] %>
 #port = 27017
 

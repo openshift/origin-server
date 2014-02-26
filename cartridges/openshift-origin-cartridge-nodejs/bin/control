@@ -28,7 +28,6 @@ function start() {
   fi
 
   envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
-  logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
   #  Source environment if it exists.
   [ -f "$envf" ]  &&  source "$envf"
@@ -37,14 +36,12 @@ function start() {
   node_app=${node_app:-"server.js"}
 
   pushd "$OPENSHIFT_REPO_DIR" > /dev/null
-  {
-      echo "`date +"$FMT"`: Starting application '$OPENSHIFT_APP_NAME' ..."
-      if [ ! -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
-          echo "    Script       = $node_app"
-          echo "    Script Args  = $node_app_args"
-          echo "    Node Options = $node_opts"
-      fi
-  } >> $logf
+  echo "`date +"$FMT"`: Starting application '$OPENSHIFT_APP_NAME' ..."
+  if [ ! -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
+      echo "    Script       = $node_app"
+      echo "    Script Args  = $node_app_args"
+      echo "    Node Options = $node_opts"
+  fi
 
 
   if [ -f "${OPENSHIFT_REPO_DIR}package.json" ]; then
@@ -60,7 +57,7 @@ function start() {
   if use_npm; then
     echo "*** NodeJS supervisor is disabled due to .openshift/markers/use_npm"
     echo "*** Starting application using: $node_cmd"
-    nodejs_context "nohup $node_cmd >> $logf 2>&1 &"
+    nodejs_context "nohup $node_cmd |& /usr/bin/logshifter -tag nodejs &"
   else
     # Users are allowed to use OPENSHIFT_NODEJS_WATCH env to specify
     # comma-delimited list of folders or js files to watch for changes.
@@ -71,7 +68,7 @@ function start() {
       echo "//$(date +%s)" > ${OPENSHIFT_NODEJS_WATCHDIR}/watcher.js
       supervisor_watch_opts="--watch ${OPENSHIFT_NODEJS_WATCHDIR}"
     fi
-    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-10000} ${supervisor_watch_opts} -- $supervisor_opts >& $logf &"
+    nodejs_context "nohup supervisor -e 'node|js|coffee' -p ${OPENSHIFT_NODEJS_POLL_INTERVAL:-10000} ${supervisor_watch_opts} -- $supervisor_opts |& /usr/bin/logshifter -tag nodejs &"
   fi
 
   retries=3
@@ -84,7 +81,6 @@ function start() {
 
   # ensure file is created before printing it to show startup status
   sleep 2
-  cat $logf
 
   popd > /dev/null
   if [ -n "${cart_pid}" ]; then
@@ -105,8 +101,7 @@ function stop() {
         echo "Warning: Application '${OPENSHIFT_APP_NAME}' is currently not running."
       fi
 
-      logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
-      echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_APP_NAME' ..." >> $logf
+      echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_APP_NAME' ..."
 
       /bin/kill $cart_pid
       ret=$?
@@ -143,7 +138,7 @@ function stop() {
       if is_cartridge_running ; then
         echo "Warning: Application '$OPENSHIFT_APP_NAME' unable to stop. Use force-stop to kill."
       else
-        echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_APP_NAME'" >> $logf
+        echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_APP_NAME'"
         rm -f $OPENSHIFT_NODEJS_PID_DIR/cartridge.pid
       fi
 
@@ -260,9 +255,9 @@ function pre-repo-archive() {
 
 # Clean up any log files
 function tidy() {
-  client_message "Emptying log dir: $OPENSHIFT_NODEJS_LOG_DIR"
+  client_message "Emptying nodejs logs in dir: $OPENSHIFT_LOG_DIR"
   shopt -s dotglob
-  rm -rf $OPENSHIFT_NODEJS_LOG_DIR/*
+  rm -rf $OPENSHIFT_LOG_DIR/nodejs.log*
   rm -rf ${OPENSHIFT_NODEJS_DIR}tmp/*
 }
 

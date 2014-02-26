@@ -41,9 +41,9 @@ function reload() {
 }
 
 function tidy() {
-  client_message "Emptying log dir: $OPENSHIFT_DIY_LOG_DIR"
+  client_message "Emptying diy logs in dir: $OPENSHIFT_LOG_DIR"
   shopt -s dotglob
-  rm -rf $OPENSHIFT_DIY_LOG_DIR/*
+  rm -rf $OPENSHIFT_LOG_DIR/diy.log*
 }
 
 case "$1" in

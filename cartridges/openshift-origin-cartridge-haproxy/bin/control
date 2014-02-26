@@ -5,6 +5,7 @@ export STOPTIMEOUT=20
 
 HAPROXY_CART="haproxy-1.4"
 export HAPROXY_PID="${OPENSHIFT_HAPROXY_DIR}/run/haproxy.pid"
+export HAPROXY_CTLD_PID="${OPENSHIFT_HAPROXY_DIR}/run/haproxy_ctld.pid"
 
 if ! [ $# -gt 0 ]
 then
@@ -45,25 +46,34 @@ function wait_to_start() {
    fi
 }
 
-function _stop_haproxy_ctld_daemon() {
-    haproxy_ctld_daemon stop 2>&1
+function _stop_haproxy_ctld() {
+  if [ -f ${HAPROXY_CTLD_PID} ]; then
+    pid=$( /bin/cat "${HAPROXY_CTLD_PID}" )
+    kill -TERM $pid
+  fi
 }
 
-function _start_haproxy_ctld_daemon() {
+function _start_haproxy_ctld() {
     # Start auto-scaling only on the head-gear
     [ "${OPENSHIFT_GEAR_DNS}" != "${OPENSHIFT_APP_DNS}" ] && return 0
     disable_as="${OPENSHIFT_REPO_DIR}/.openshift/markers/disable_auto_scaling"
     [ -f "$disable_as" ]  &&  return 0
-    _stop_haproxy_ctld_daemon  ||  :
-    haproxy_ctld_daemon start 2>&1
+    _stop_haproxy_ctld  ||  :
+    nohup haproxy_ctld |& /usr/bin/logshifter -tag haproxy_ctld &
+}
+
+function _launch_haproxy_bg() {
+    [ -n "$1" ]  &&  zopts="-sf $1"
+    ping_server_gears
+    nohup /usr/sbin/haproxy -f $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg ${zopts} &> >(/usr/bin/logshifter -tag haproxy) &
+    echo $! > $HAPROXY_PID
 }
 
 function _start_haproxy_service() {
     if ! isrunning
     then
-        ping_server_gears
-        /usr/sbin/haproxy -f $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg > $OPENSHIFT_HAPROXY_LOG_DIR/haproxy.log 2>&1
-        _start_haproxy_ctld_daemon
+        _launch_haproxy_bg
+        _start_haproxy_ctld
         wait_to_start
     else
         echo "HAProxy already running" 1>&2
@@ -72,15 +82,15 @@ function _start_haproxy_service() {
         # support auto reloading of this action hook on git push
         if [ -x "$OPENSHIFT_REPO_DIR/.openshift/action_hooks/haproxy_ctld.rb" ]; then
             echo "Action hook haproxy_ctld.rb detected"
-            _stop_haproxy_ctld_daemon || :
-            _start_haproxy_ctld_daemon
+            _stop_haproxy_ctld || :
+            _start_haproxy_ctld
             echo "Action hook haproxy_ctld.rb restarted"
         fi
     fi
 }
 
 function _stop_haproxy_service() {
-    _stop_haproxy_ctld_daemon
+    _stop_haproxy_ctld
     [ -f $HAPROXY_PID ]  &&  pid=$( /bin/cat "${HAPROXY_PID}" )
     if `ps -p $pid > /dev/null 2>&1`; then
         /bin/kill $pid
@@ -108,16 +118,10 @@ function _restart_haproxy_service() {
     _start_haproxy_service
 }
 
-function _reload_haproxy_service() {
-    [ -n "$1" ]  &&  zopts="-sf $1"
-    ping_server_gears
-    /usr/sbin/haproxy -f $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg ${zopts} > /dev/null 2>&1
-}
-
 function _reload_service() {
     [ -f $HAPROXY_PID ]  &&  zpid=$( /bin/cat "${HAPROXY_PID}" )
     i=0
-    while (! _reload_haproxy_service "$zpid" )  && [ $i -lt 60 ]; do
+    while (! _launch_haproxy_bg "$zpid" )  && [ $i -lt 60 ]; do
         sleep 2
         i=$(($i + 1))
         echo "`date`: Retrying HAProxy service reload - attempt #$((i+1)) ... "

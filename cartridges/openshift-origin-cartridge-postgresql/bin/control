@@ -4,7 +4,14 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_POSTGRESQL_DIR}/lib/util"
 
 function _pg_stop {
-  postgresql_context "pg_ctl stop -w -t 30 -m $1"
+  local pid=$(cat ${OPENSHIFT_POSTGRESQL_DB_PID})
+  kill -$1 $pid 2>/dev/null
+
+  for i in {1..30}; do
+    ! _is_running && return 0
+    sleep 1
+  done
+  return 1
 }
 
 function _is_running {
@@ -26,7 +33,7 @@ function start {
     echo "Starting Postgres cartridge"
     oo-erb conf/postgresql.conf.erb.hidden > conf/postgresql.conf
 
-    postgresql_context "pg_ctl start"
+    postgresql_context "nohup postgres |& /usr/bin/logshifter -tag postgresql &"
     wait_for_postgres_availability || error "Could not start Postgres" 70
 
     echo "Postgres started"
@@ -38,10 +45,7 @@ function start {
 
 function stop {
   if _is_running; then
-    _pg_stop smart ||
-      _pg_stop fast ||
-      _pg_stop immediate ||
-      pkill postgres
+    _pg_stop TERM || _pg_stop INT || _pg_stop QUIT || pkill postgres
     if _is_running; then
       error "Could not stop Postgres" 70
     else
@@ -202,7 +206,8 @@ function cleanup_dump {
 
 function reload {
   if _is_running; then
-    postgresql_context "pg_ctl reload"
+    local pid=$(cat ${OPENSHIFT_POSTGRESQL_DB_PID})
+    postgresql_context "kill -HUP ${pid}"
   else
     # TODO: client_result is semantically incorrect, but for now,
     # we'll use it so that CLI can display it.
@@ -212,7 +217,7 @@ function reload {
 }
 
 function tidy {
-  truncate -s0 $OPENSHIFT_POSTGRESQL_DB_LOG_DIR/*
+  truncate -s0 $OPENSHIFT_LOG_DIR/postgresql.log*
   # PosgreSQL needs to be running in order to perform vacuuming
   #
   if ! _is_running; then

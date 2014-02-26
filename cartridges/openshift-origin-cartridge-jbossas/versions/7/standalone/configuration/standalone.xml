@@ -50,23 +50,12 @@
 
     <profile>
         <subsystem xmlns="urn:jboss:domain:logging:1.1">
-            <!--console-handler name="CONSOLE">
-                <level name="INFO"/>
+            <console-handler name="CONSOLE">
                 <formatter>
                     <pattern-formatter pattern="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
                 </formatter>
-            </console-handler-->
-            <size-rotating-file-handler name="FILE">
-                <formatter>
-                    <pattern-formatter
-                        pattern="%d{yyyy/MM/dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n" />
-                </formatter>
-                <file relative-to="jboss.server.log.dir" path="server.log" />
-                <append value="true" />
-                <rotate-size value="10m" />
-                <max-backup-index value="10" />             
-            </size-rotating-file-handler>
-                <logger category="com.arjuna">
+            </console-handler>
+            <logger category="com.arjuna">
                 <level name="WARN"/>
             </logger>
             <logger category="org.apache.tomcat.util.modeler">
@@ -84,8 +73,7 @@
             <root-logger>
                 <level name="INFO"/>
                 <handlers>
-                    <!--handler name="CONSOLE"/-->
-                    <handler name="FILE"/>
+                    <handler name="CONSOLE"/>
                 </handlers>
             </root-logger>
         </subsystem>

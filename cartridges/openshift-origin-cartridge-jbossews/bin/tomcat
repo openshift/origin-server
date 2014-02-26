@@ -82,8 +82,7 @@ if [ "$1" = "start" ]; then
     -Dcatalina.home="$CATALINA_HOME" \
     -Djava.endorsed.dirs="$JAVA_ENDORSED_DIRS" \
     -Djava.io.tmpdir="$CATALINA_TMPDIR" \
-    org.apache.catalina.startup.Bootstrap start \
-    >> ${CATALINA_BASE}/logs/catalina.out 2>&1 
+    org.apache.catalina.startup.Bootstrap start 2>&1
     if [ ! -z "$CATALINA_PID" ]; then
       echo $! > $CATALINA_PID
     fi
@@ -96,8 +95,7 @@ elif [ "$1" = "start-security" ]; then
     -Djava.io.tmpdir="$CATALINA_TMPDIR" \
     -Djava.security.manager \
     -Djava.security.policy=="${CATALINA_BASE}/conf/catalina.policy" \
-    org.apache.catalina.startup.Bootstrap start \
-    >> ${CATALINA_BASE}/logs/catalina.out 2>&1 
+    org.apache.catalina.startup.Bootstrap start 2>&1 
     if [ ! -z "$CATALINA_PID" ]; then
       echo $! > $CATALINA_PID
     fi
@@ -108,8 +106,7 @@ elif [ "$1" = "stop" ]; then
     -Dcatalina.home="$CATALINA_HOME" \
     -Djava.endorsed.dirs="$JAVA_ENDORSED_DIRS" \
     -Djava.io.tmpdir="$CATALINA_TMPDIR" \
-    org.apache.catalina.startup.Bootstrap stop \
-    >> ${CATALINA_BASE}/logs/catalina.out 2>&1
+    org.apache.catalina.startup.Bootstrap stop 2>&1
 elif [ "$1" = "version" ]; then
   ${JAVACMD} -classpath ${CATALINA_HOME}/lib/catalina.jar \
     org.apache.catalina.util.ServerInfo

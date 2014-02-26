@@ -51,6 +51,7 @@ Requires:      iproute
 Requires:      lsof
 Requires:      mod_ssl
 Requires:      openshift-origin-node-proxy
+Requires:      openshift-origin-logshifter
 Requires:      pam_openshift
 Requires:      python
 Requires:      quota
@@ -239,6 +240,7 @@ fi
 %dir /etc/openshift
 %attr(0644,-,-) %config /etc/openshift/system-config-firewall-compat
 %config(noreplace) /etc/openshift/node.conf
+%config(noreplace) /etc/openshift/logshifter.conf
 %attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.filter.rules
 %attr(0600,-,-) %config(noreplace) /etc/openshift/iptables.nat.rules
 %config(noreplace) /etc/openshift/env/*

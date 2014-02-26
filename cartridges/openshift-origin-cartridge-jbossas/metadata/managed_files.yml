@@ -10,7 +10,6 @@ locked_files:
 - hooks/*
 - env/
 - env/OPENSHIFT_JBOSSAS_DIR
-- env/OPENSHIFT_JBOSSAS_LOG_DIR
 - env/OPENSHIFT_JBOSSAS_JDK*
 - env/OPENSHIFT_JBOSSAS_VERSION
 - env/M2_HOME

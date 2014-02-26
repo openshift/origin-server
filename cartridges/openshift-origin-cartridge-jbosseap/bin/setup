@@ -6,7 +6,7 @@ case "$1" in
 esac
 
 
-mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/configuration,standalone/log,standalone/data}
+mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/configuration,standalone/data}
 
 # Copy the version specific files up to jbosseap directory
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration

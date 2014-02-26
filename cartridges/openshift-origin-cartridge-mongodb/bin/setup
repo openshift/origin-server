@@ -1,3 +1,3 @@
 #!/bin/bash -e
 
-mkdir -p $OPENSHIFT_MONGODB_DIR/{log,pid,socket,data,run}
+mkdir -p $OPENSHIFT_MONGODB_DIR/{pid,socket,data,run}

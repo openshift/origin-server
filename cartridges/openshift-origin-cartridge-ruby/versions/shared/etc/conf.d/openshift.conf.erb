@@ -15,8 +15,8 @@ Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 DefaultRuntimeDir "<%= "#{ENV['OPENSHIFT_RUBY_DIR']}/run"%>"
 </IfVersion>
 
-ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_RUBY_DIR'] %>/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
-CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_RUBY_DIR'] %>/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
+ErrorLog "|tee"
+CustomLog "|tee" combined
 
 PassengerUser <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 

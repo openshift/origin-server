@@ -1,5 +1,7 @@
 #!/bin/bash -ue
 
+cart_version=$1
+curr=$2
 next=$3
 
 if ! grep "0.0.0.0/0" $OPENSHIFT_POSTGRESQL_DIR/data/pg_hba.conf; then
@@ -17,3 +19,11 @@ if [[ $next == "0.3.9" ]]; then
     rm -f ${OPENSHIFT_POSTGRESQL_DIR}env/LD_LIBRARY_PATH
   fi
 fi
+
+if [ -f ${OPENSHIFT_POSTGRESQL_DIR}/env/OPENSHIFT_POSTGRESQL_DB_LOG_DIR ] && [ ! -L ${OPENSHIFT_POSTGRESQL_DIR}/env/OPENSHIFT_POSTGRESQL_DB_LOG_DIR ]
+then
+    rm ${OPENSHIFT_POSTGRESQL_DIR}/env/OPENSHIFT_POSTGRESQL_DB_LOG_DIR
+    ln -s ~/.env/OPENSHIFT_LOG_DIR ${OPENSHIFT_POSTGRESQL_DIR}/env/OPENSHIFT_POSTGRESQL_DB_LOG_DIR
+fi
+
+cp -f ${OPENSHIFT_POSTGRESQL_DIR}/conf/*.conf $OPENSHIFT_POSTGRESQL_DIR/data/

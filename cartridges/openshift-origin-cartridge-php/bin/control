@@ -27,7 +27,7 @@ function pre_start_httpd_config {
 function start() {
     echo "Starting PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     pre_start_httpd_config
-    php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -k start" \
+    php_context "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag php &" \
       && wait_for_pid_file $HTTPD_PID_FILE
     return $?
 }
@@ -35,16 +35,22 @@ function start() {
 function reload() {
     echo "Reloading PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     pre_start_httpd_config
-    php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -k graceful" \
-      && wait_for_pid_file $HTTPD_PID_FILE
+    httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
+    kill -USR1 $httpd_pid && wait_for_pid_file $HTTPD_PID_FILE
     return $?
 }
 
 function restart() {
     echo "Restarting PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     pre_start_httpd_config
-    ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-    php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -k restart"
+    if [ -f "$HTTPD_PID_FILE" ]; then
+        ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+        httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
+        kill -HUP $httpd_pid
+    else
+        start
+    fi
+
     return $?
 }
 
@@ -52,11 +58,10 @@ function stop() {
     echo "Stopping PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
-        # If we still have a PID file, then ensure_valid_httpd_process's call to
-        # killall_httpds didn't happen.
-        httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-        php_context "/usr/sbin/httpd $HTTPD_CMD_CONF -k stop" \
-          && wait_for_stop $httpd_pid
+      # If we still have a PID file, then ensure_valid_httpd_process's call to
+      # killall_httpds didn't happen.
+      httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
+      kill -WINCH $httpd_pid && wait_for_stop $httpd_pid
     fi
 }
 
@@ -76,9 +81,9 @@ function status() {
 }
 
 function tidy() {
-    echo "Emptying log dir: $OPENSHIFT_PHP_LOG_DIR"
+    echo "Emptying php logs in dir: $OPENSHIFT_LOG_DIR"
     shopt -s dotglob
-    rm -rf $OPENSHIFT_PHP_LOG_DIR/* || :
+    rm -rf $OPENSHIFT_LOG_DIR/php.log* || :
 }
 
 function build() {

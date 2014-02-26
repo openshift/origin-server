@@ -11,13 +11,14 @@ Listen <%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>
 User <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 
-ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_RUBY_DIR'] %>/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
-CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_RUBY_DIR'] %>/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
+ErrorLog "|tee"
+CustomLog "|tee" combined
 
 PassengerUser <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>/
 PassengerSpawnIPAddress <%= ENV['OPENSHIFT_RUBY_IP'] %>
 PassengerUseGlobalQueue off
+PassengerTempDir /tmp/passenger
 <Directory <%= ENV['OPENSHIFT_REPO_DIR'] %>/public/>
     AllowOverride All
     Options -Multiviews

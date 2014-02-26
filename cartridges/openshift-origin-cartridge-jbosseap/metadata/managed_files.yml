@@ -10,7 +10,6 @@ locked_files:
 - hooks/*
 - env/
 - env/OPENSHIFT_JBOSSEAP_DIR
-- env/OPENSHIFT_JBOSSEAP_LOG_DIR
 - env/OPENSHIFT_JBOSSEAP_JDK*
 - env/M2_HOME
 - jboss_cfg_backup/

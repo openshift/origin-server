@@ -1,3 +1,0 @@
-#!/bin/bash -eu
-
-exec oo-exec-ruby haproxy_ctld_daemon.rb "$@"

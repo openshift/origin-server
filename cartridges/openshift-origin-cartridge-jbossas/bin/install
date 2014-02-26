@@ -9,8 +9,6 @@ esac
 
 echo "$version" > "$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_VERSION"
 
-ln -s ${OPENSHIFT_JBOSSAS_DIR}/standalone/log ${OPENSHIFT_JBOSSAS_DIR}/logs
-
 shopt -s dotglob
 cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/template/* ${OPENSHIFT_JBOSSAS_DIR}/template
 cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JBOSSAS_DIR}/template

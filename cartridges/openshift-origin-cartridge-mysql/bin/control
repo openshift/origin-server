@@ -33,9 +33,9 @@ function is_running {
 function start {
   if ! is_running; then
     echo "Starting MySQL ${OPENSHIFT_MYSQL_VERSION} cartridge"
-    rm -f $OPENSHIFT_MYSQL_DB_LOG_DIR/mysql*.log
+    rm -f $OPENSHIFT_LOG_DIR/mysql*.log
     oo-erb ${OPENSHIFT_MYSQL_DIR}conf/my.cnf.erb.hidden > ${OPENSHIFT_MYSQL_DIR}conf/my.cnf
-    mysql_context "/usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MYSQL_DIR/conf/my.cnf > $OPENSHIFT_MYSQL_DB_LOG_DIR/mysql_start.log 2>&1" &
+    mysql_context "/usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MYSQL_DIR/conf/my.cnf --log-error=$OPENSHIFT_MYSQL_DIR/stdout.err |& /usr/bin/logshifter -tag mysql" &
     wait_for_mysqld_availability
   else
     echo "MySQL already running" 1>&2
@@ -61,8 +61,7 @@ function wait_for_mysqld_availability {
   # when MySQL server fail to start.
   #
   echo "MySQL server failed to start:"
-  [ -f ${OPENSHIFT_MYSQL_DB_LOG_DIR}/mysql_start.log ] && cat $OPENSHIFT_MYSQL_DB_LOG_DIR/mysql_start.log
-  [ -f ${OPENSHIFT_MYSQL_DB_LOG_DIR}/mysql_error.log ] && cat $OPENSHIFT_MYSQL_DB_LOG_DIR/mysql_error.log
+  cat $OPENSHIFT_LOG_DIR/mysql.log  
   exit 1
 }
 

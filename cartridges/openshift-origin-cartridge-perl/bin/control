@@ -9,6 +9,9 @@ HTTPD_CFG_FILE=$OPENSHIFT_PERL_DIR/etc/conf/httpd_nolog.conf
 HTTPD_PASSENV_FILE=$OPENSHIFT_PERL_DIR/etc/conf.d/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_PERL_DIR/run/httpd.pid
 
+HTTPD_CFG_DIR=$OPENSHIFT_PERL_DIR/etc/conf.d/
+ERB_HTTPD_CFG_DIR=$OPENSHIFT_PERL_DIR/usr/etc/conf.d/
+
 # construct the configuration directives for httpd
 HTTPD_CMD_CONF="-C 'Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE"
 for dir in /etc/openshift/cart.conf.d/httpd{,/perl} ; do
@@ -17,7 +20,12 @@ done
 
 # Functions called from case statement below
 function start() {
-  prepare_cartridge "start"
+  echo "Starting Perl cartridge"
+  write_httpd_passenv $HTTPD_PASSENV_FILE
+  select_perl_document_root ${OPENSHIFT_REPO_DIR}
+  oo-erb ${ERB_HTTPD_CFG_DIR}openshift.conf.erb > ${HTTPD_CFG_DIR}/openshift.conf
+  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+  eval "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag perl &"
   [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
@@ -26,13 +34,19 @@ function stop() {
   ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   if [ -f "$HTTPD_PID_FILE" ]; then
     httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-    eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k stop"
+    kill -WINCH $httpd_pid
     wait_for_stop $httpd_pid
   fi
 }
 
 function restart() {
-  prepare_cartridge "restart"
+  echo "Restarting Perl cartridge"
+  if [ -f "$HTTPD_PID_FILE" ]; then
+    httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
+    kill -HUP $httpd_pid
+  else
+    start
+  fi
 }
 
 # Is the packaged software really running?
@@ -47,9 +61,9 @@ function status() {
 
 # Clean up any log files
 function tidy() {
-  client_message "Emptying log dir: $OPENSHIFT_PERL_LOG_DIR"
+  client_message "Emptying perl logs in dir: $OPENSHIFT_LOG_DIR"
   shopt -s dotglob
-  rm -rf $OPENSHIFT_PERL_LOG_DIR/*
+  rm -rf $OPENSHIFT_LOG_DIR/perl.log*
 }
 
 case "$1" in

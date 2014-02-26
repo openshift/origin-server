@@ -15,7 +15,6 @@ locked_files:
 - conf/performance.conf.erb.hidden
 - env/
 - env/OPENSHIFT_PYTHON_DIR
-- env/OPENSHIFT_PYTHON_LOG_DIR
 processed_templates:
 - 'conf/*.erb'
 - 'env/*.erb'

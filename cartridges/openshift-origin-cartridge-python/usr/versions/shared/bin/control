@@ -21,9 +21,9 @@ export APPDIR=$OPENSHIFT_PYTHON_DIR
 
 function start_app() {
     echo "Starting Python ${OPENSHIFT_PYTHON_VERSION} cartridge (app.py server)"
-    cd $OPENSHIFT_REPO_DIR \
-      && nohup python -u app.py > "${OPENSHIFT_PYTHON_DIR}logs/appserver.log" 2>&1 &
-    echo $! > ${OPENSHIFT_PYTHON_DIR}run/appserver.pid
+    cd "$OPENSHIFT_REPO_DIR"
+    nohup python -u app.py |& /usr/bin/logshifter -tag python &
+    echo $! > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
 }
 
 function pre_start_apache_config {
@@ -38,8 +38,8 @@ function start_apache() {
     echo "Starting Python ${OPENSHIFT_PYTHON_VERSION} cartridge (Apache+mod_wsgi)"
     pre_start_apache_config
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-    eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k start" \
-      && wait_for_pid_file $HTTPD_PID_FILE
+    eval "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -DFOREGROUND |& /usr/bin/logshifter -tag python &"
+    [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
 function start() {
@@ -68,8 +68,7 @@ function stop_apache() {
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-        eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k stop" \
-          && wait_for_stop $httpd_pid
+        kill -WINCH $httpd_pid && wait_for_stop $httpd_pid
     fi
 }
 
@@ -93,7 +92,8 @@ function restart() {
         stop_app
         pre_start_apache_config
         ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-        eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k restart"
+        httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
+        kill -HUP $httpd_pid
     fi
 }
 
@@ -113,9 +113,9 @@ function status() {
 
 # Clean up any log files
 function tidy() {
-    client_message "Emptying log dir: $OPENSHIFT_PYTHON_LOG_DIR"
+    client_message "Emptying python logs in dir: $OPENSHIFT_LOG_DIR"
     shopt -s dotglob
-    rm -rf $OPENSHIFT_PYTHON_LOG_DIR/*
+    rm -rf $OPENSHIFT_LOG_DIR/python.log*
 }
 
 function build() {
