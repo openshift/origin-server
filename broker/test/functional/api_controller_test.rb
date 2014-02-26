@@ -11,5 +11,10 @@ class ApiControllerTest < ActionController::TestCase
     get :show
     assert_response :success
   end
+  test "show with quickstart url" do
+    Rails.application.config.openshift[:community_quickstarts_url] = "testing"
+    get :show
+    assert_response :success
+  end
 
 end
