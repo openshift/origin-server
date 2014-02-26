@@ -22,165 +22,161 @@
 #
 #
 
-module OpenShift
-  module Runtime
-    require 'openshift-origin-node/model/application_container'
+require 'openshift-origin-node/model/application_container'
 
 
-    class InvalidTimeError < StandardError;
-    end
+class InvalidTimeError < StandardError;
+end
 
-    def time_method
-      start = Time.now
-      yield
-      Time.now - start
-    end
+def time_method
+  start = Time.now
+  yield
+  Time.now - start
+end
 
-    # Execute bin/control metrics for each cartridge whose manifest specifies that they support metrics
-    # Firstly, we need a way to gather all of the cartridges to run metrics on
-    def call_cartridge_metrics
-      puts "These are the cartridge metrics"
-    end
+# Execute bin/control metrics for each cartridge whose manifest specifies that they support metrics
+# Firstly, we need a way to gather all of the cartridges to run metrics on
+def call_cartridge_metrics
+  puts "These are the cartridge metrics"
+end
 
-    # Look into Julian's old code for some metrics such as cgroups
-    # This code is pulled from Julian Prokay's work on github.com/jprokay/logstash-cgroups-plugin
-    def call_gear_metrics
-      #We need to make sure we have the most up-to-date list of gears on each run
-      output = []
-      gear_geco = `grep "GEAR_GECOS" /etc/openshift/node.conf | cut -d = -f 2 | cut -d '#' -f 1`.strip.gsub(/\"/, '')
-      @gear_uuids = `grep ":#{gear_geco}:" /etc/passwd | cut -d: -f1`.split("\n")
-      @gear_uuids.each do |uuid|
-        cgroup_name = "/openshift/#{uuid}"
-        output.concat get_cgroup_metrics(cgroup_name)
-      end
-      output.each { |metric| $stdout.write("type=metric #{metric}\n") }
-    end
+# Look into Julian's old code for some metrics such as cgroups
+# This code is pulled from Julian Prokay's work on github.com/jprokay/logstash-cgroups-plugin
+def call_gear_metrics
+  #We need to make sure we have the most up-to-date list of gears on each run
+  output = []
+  gear_geco = `grep "GEAR_GECOS" /etc/openshift/node.conf | cut -d = -f 2 | cut -d '#' -f 1`.strip.gsub(/\"/, '')
+  @gear_uuids = `grep ":#{gear_geco}:" /etc/passwd | cut -d: -f1`.split("\n")
+  @gear_uuids.each do |uuid|
+    cgroup_name = "/openshift/#{uuid}"
+    output.concat get_cgroup_metrics(cgroup_name)
+  end
+  output.each { |metric| $stdout.write("type=metric #{metric}\n") }
+end
 
-    # Execute the applications' metric's hooks
-    def call_application_metrics
-      puts "These are the application metrics"
-    end
+# Execute the applications' metric's hooks
+def call_application_metrics
+  puts "These are the application metrics"
+end
 
-    # Main daemon process
-    def main
-
-
-      raise InvalidTimeError unless ARGV[0] && ARGV[0].to_i > 0
-      sleep_time = ARGV[0].to_i
-
-      initialize_cgroups_vars
-
-      while start_time = Time.now
-
-        cartridge_metric_time = time_method { call_cartridge_metrics }
-        $stdout.write "type=metric cartridge.metric_time=#{cartridge_metric_time}\n"
-
-        gear_metric_time = time_method { call_gear_metrics }
-        $stdout.write "type=metric gear.metric_time=#{gear_metric_time}\n"
-
-        application_metric_time = time_method { call_application_metrics }
-        $stdout.write "type=metric application.metric_time=#{application_metric_time}\n"
-
-        total_elapsed_time = Time.now - start_time
-        $stdout.write "type=metric total.metric_time=#{total_elapsed_time}\n"
-        sleep (sleep_time - total_elapsed_time)
-      end
-    end
-
-    # Intialize the list of keys required to be pulled from cgroups
-    def initialize_cgroups_vars
-
-      @cgroups_single_metrics = %w(cpu.cfs_period_us
-                                    cpu.cfs_quota_us
-                                    cpu.rt_period_us
-                                    cpu.rt_runtime_us
-                                    cpu.shares
-                                    cpuacct.usage
-                                    freezer.state
-                                    memory.failcnt
-                                    memory.limit_in_bytes
-                                    memory.max_usage_in_bytes
-                                    memory.memsw.failcnt
-                                    memory.memsw.limit_in_bytes
-                                    memory.memsw.max_usage_in_bytes
-                                    memory.memsw.usage_in_bytes
-                                    memory.move_charge_at_immigrate
-                                    memory.soft_limit_in_bytes
-                                    memory.swappiness
-                                    memory.usage_in_bytes
-                                    memory.use_hierarchy
-                                    net_cls.classid
-                                    notify_on_release)
-
-      @cgroups_kv_metrics = %w(cpu.stat
-                            cpuacct.stat
-                            memory.oom_control
-                            memory.stat)
-
-      @cgroups_multivalue_metrics = %w(cpuacct.usage_percpu)
+# Main daemon process
+def main
 
 
-    end
+  raise InvalidTimeError unless ARGV[0] && ARGV[0].to_i > 0
+  sleep_time = ARGV[0].to_i
 
+  initialize_cgroups_vars
 
-    def get_cgroup_metrics(path)
-      output = []
+  while start_time = Time.now
 
-      #one_call_metrics = @cgroups_single_metrics.concat(@cgroups_kv_metrics).concat(@cgroups_multivalue_metrics)
-      output.concat(get_cgroups_single_metric(@cgroups_single_metrics, path))
-      output.concat(get_cgroups_multivalue_metric(@cgroups_multivalue_metrics, path))
-      output.concat(get_cgroups_kv_metric(@cgroups_kv_metrics, path))
+    cartridge_metric_time = time_method { call_cartridge_metrics }
+    $stdout.write "type=metric cartridge.metric_time=#{cartridge_metric_time}\n"
 
-      output
-    end
+    gear_metric_time = time_method { call_gear_metrics }
+    $stdout.write "type=metric gear.metric_time=#{gear_metric_time}\n"
 
-    def get_cgroups_single_metric(metrics, path)
-      output = []
-      joined_metrics = metrics.join(" -r ")
-      retrieved_values = execute_cgget(joined_metrics, path).split("\n")
-      retrieved_values.each_with_index do |value, index|
-        output.push("#{metrics[index]}=#{value}")
-      end
-      output
-    end
+    application_metric_time = time_method { call_application_metrics }
+    $stdout.write "type=metric application.metric_time=#{application_metric_time}\n"
 
-    def get_cgroups_multivalue_metric(metrics, path)
-      output = []
-      joined_metrics = metrics.join(" -r ")
-      lines = execute_cgget(joined_metrics, path).split("\n")
-      lines.each_with_index do |line, index|
-        line.split.each { |value| output.push("#{metrics[index]}=#{value}") }
-      end
-      output
-    end
-
-    def get_cgroups_kv_metric(metrics, path)
-      output = []
-      joined_metrics = metrics.join(" -r ")
-      cg_output = execute_cgget(joined_metrics, path)
-      kv_groups = cg_output.split(/\\n(?!\\t)/)
-      metric_prefix = ""
-      metric_index = 0
-      kv_groups.each_with_index do |group, index|
-        lines = group.split("\n")
-        lines.each_with_index do |line, sub_index|
-          key, value = line.split.map { |item| item.strip }
-          if sub_index == 0
-            metric_prefix = key
-            output.push("#{metrics[index]}.#{key}=#{value}")
-          end
-          output.push("#{metrics[index]}.#{metric_prefix}.#{key}=#{value}")
-        end
-      end
-      output
-    end
-
-    # This method returns a string to be processed, is it worth wrapping the execute?
-    def execute_cgget(metrics, path)
-      `cgget -n -v -r #{metrics} #{path}`
-    end
-
-
-    main
+    total_elapsed_time = Time.now - start_time
+    $stdout.write "type=metric total.metric_time=#{total_elapsed_time}\n"
+    sleep (sleep_time - total_elapsed_time)
   end
 end
+
+# Intialize the list of keys required to be pulled from cgroups
+def initialize_cgroups_vars
+
+  @cgroups_single_metrics = %w(cpu.cfs_period_us
+                                cpu.cfs_quota_us
+                                cpu.rt_period_us
+                                cpu.rt_runtime_us
+                                cpu.shares
+                                cpuacct.usage
+                                freezer.state
+                                memory.failcnt
+                                memory.limit_in_bytes
+                                memory.max_usage_in_bytes
+                                memory.memsw.failcnt
+                                memory.memsw.limit_in_bytes
+                                memory.memsw.max_usage_in_bytes
+                                memory.memsw.usage_in_bytes
+                                memory.move_charge_at_immigrate
+                                memory.soft_limit_in_bytes
+                                memory.swappiness
+                                memory.usage_in_bytes
+                                memory.use_hierarchy
+                                net_cls.classid
+                                notify_on_release)
+
+  @cgroups_kv_metrics = %w(cpu.stat
+                        cpuacct.stat
+                        memory.oom_control
+                        memory.stat)
+
+  @cgroups_multivalue_metrics = %w(cpuacct.usage_percpu)
+
+
+end
+
+
+def get_cgroup_metrics(path)
+  output = []
+
+  #one_call_metrics = @cgroups_single_metrics.concat(@cgroups_kv_metrics).concat(@cgroups_multivalue_metrics)
+  output.concat(get_cgroups_single_metric(@cgroups_single_metrics, path))
+  output.concat(get_cgroups_multivalue_metric(@cgroups_multivalue_metrics, path))
+  output.concat(get_cgroups_kv_metric(@cgroups_kv_metrics, path))
+
+  output
+end
+
+def get_cgroups_single_metric(metrics, path)
+  output = []
+  joined_metrics = metrics.join(" -r ")
+  retrieved_values = execute_cgget(joined_metrics, path).split("\n")
+  retrieved_values.each_with_index do |value, index|
+    output.push("#{metrics[index]}=#{value}")
+  end
+  output
+end
+
+def get_cgroups_multivalue_metric(metrics, path)
+  output = []
+  joined_metrics = metrics.join(" -r ")
+  lines = execute_cgget(joined_metrics, path).split("\n")
+  lines.each_with_index do |line, index|
+    line.split.each { |value| output.push("#{metrics[index]}=#{value}") }
+  end
+  output
+end
+
+def get_cgroups_kv_metric(metrics, path)
+  output = []
+  joined_metrics = metrics.join(" -r ")
+  cg_output = execute_cgget(joined_metrics, path)
+  kv_groups = cg_output.split(/\\n(?!\\t)/)
+  metric_prefix = ""
+  metric_index = 0
+  kv_groups.each_with_index do |group, index|
+    lines = group.split("\n")
+    lines.each_with_index do |line, sub_index|
+      key, value = line.split.map { |item| item.strip }
+      if sub_index == 0
+        metric_prefix = key
+        output.push("#{metrics[index]}.#{key}=#{value}")
+      end
+      output.push("#{metrics[index]}.#{metric_prefix}.#{key}=#{value}")
+    end
+  end
+  output
+end
+
+# This method returns a string to be processed, is it worth wrapping the execute?
+def execute_cgget(metrics, path)
+  `cgget -n -v -r #{metrics} #{path}`
+end
+
+
+main
