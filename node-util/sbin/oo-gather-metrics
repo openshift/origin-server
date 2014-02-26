@@ -38,7 +38,7 @@ end
 # Firstly, we need a way to gather all of the cartridges to run metrics on
 def call_cartridge_metrics
   OpenShift::Runtime::ApplicationContainer.all.each do |ac|
-    ac.each_cartridge do |cart|
+    ac.cartridge_model.each_cartridge do |cart|
       metrics = process_cart_metrics ac.do_control('metrics', cart.name)
       metrics.each do |metric|
         key, value = metric.split(": ")
