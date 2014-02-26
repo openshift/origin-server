@@ -20,7 +20,7 @@ class FunctionalApi
     'nodejs-0.6'   => 'index.html',
     'nodejs-0.10'   => 'index.html',
     'perl-5.10'    => 'perl/index.pl',
-    'php-5.3'      => 'php/index.php',
+    'php-5.3'      => 'index.php',
     'python-2.6'   => 'wsgi/application',
     'python-2.7'   => 'wsgi/application',
     'python-3.3'   => 'wsgi/application',
@@ -347,7 +347,7 @@ EOFZ
         gear_name = target_gear.dns.split('-')[0]
         names = [ "gear-#{gear_name}-#{target_gear.namespace}" ]
         gear_name = proxy.dns.split('-')[0]
-        names << "gear-#{gear_name}-#{target_gear.namespace}" 
+        names << "gear-#{gear_name}-#{target_gear.namespace}"
       end
 
       proxy_status_csv.split("\n").each do |line|
