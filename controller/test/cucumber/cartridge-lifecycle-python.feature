@@ -48,3 +48,5 @@ Feature: Cartridge Lifecycle Python Verification Tests
   Scenarios: RHEL scenarios
     | cart_name  |
     | python-2.6 |
+    | python-2.7 |
+    | python-3.3 |
