@@ -37,7 +37,7 @@ end
 # Execute bin/control metrics for each cartridge whose manifest specifies that they support metrics
 # Firstly, we need a way to gather all of the cartridges to run metrics on
 def call_cartridge_metrics
-  ApplicationContainer.all.each do |ac|
+  OpenShift::Runtime::ApplicationContainer.all.each do |ac|
     ac.each_cartridge do |cart|
       metrics = process_cart_metrics ac.do_control('metrics', cart.name)
       metrics.each do |metric|
