@@ -25,12 +25,12 @@ class GearStatePluginTest < OpenShift::NodeBareTestCase
     Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
 
     @uuid = '461815c0d97e4c94b77b1713dba0901d'
-    @ids = mock
+    @ids  = mock
     @ids.expects(:each).yields(@uuid)
     @gears = mock
     @gears.expects(:ids).returns(@ids)
 
-    @restart = mock
+    @op = mock
 
     @iteration = mock
     @iteration.stubs(:epoch).returns(DateTime.now)
@@ -40,72 +40,80 @@ class GearStatePluginTest < OpenShift::NodeBareTestCase
     @no_logger = mock
   end
 
-  def setup_mocks(state, pids)
+  def setup_mocks(plugin, state, pids)
     @gears.expects(:state).with(@uuid).returns(state)
-    GearStatePlugin.any_instance.expects(:pgrep).with(@uuid).returns(pids)
+    plugin.expects(:load_ps_table).once
+    plugin.ps_table = {@uuid => pids}
+    plugin.expects(:ps).with(@uuid).returns(pids)
   end
 
   def test_new
-    setup_mocks(OpenShift::Runtime::State::NEW, [])
-    @restart.expects(:call).never
-    GearStatePlugin.new(nil, @no_logger, @gears, @restart).apply(@iteration)
+    @op.expects(:call).never
+    plugin = GearStatePlugin.new(nil, @no_logger, @gears, @op)
+    setup_mocks(plugin, OpenShift::Runtime::State::NEW, [])
+    plugin.apply(@iteration)
   end
 
   def test_unknown
-    setup_mocks(OpenShift::Runtime::State::UNKNOWN, [])
-    @restart.expects(:call).with(:restart, @uuid).once
+    @op.expects(:call).with(:restart, @uuid).once
 
     logger = mock
     logger.expects(:info).with(any_parameters).once
-    GearStatePlugin.new(nil, logger, @gears, @restart).apply(@iteration)
+    plugin = GearStatePlugin.new(nil, logger, @gears, @op)
+    setup_mocks(plugin, OpenShift::Runtime::State::UNKNOWN, [])
+    plugin.apply(@iteration)
   end
 
   def test_stopped
-    setup_mocks(OpenShift::Runtime::State::STOPPED, [])
-    @restart.expects(:call).never
-    GearStatePlugin.new(nil, @no_logger, @gears, @restart).apply(@iteration)
+    @op.expects(:call).never
+    plugin = GearStatePlugin.new(nil, @no_logger, @gears, @op)
+    setup_mocks(plugin, OpenShift::Runtime::State::STOPPED, [])
+    plugin.apply(@iteration)
   end
 
   def test_stopped_pids
-    setup_mocks(OpenShift::Runtime::State::STOPPED, [1, 2, 3])
-    @restart.expects(:call).with(:stop, @uuid).once
+    @op.expects(:call).with(:stop, @uuid).once
 
-    gear = GearStatePlugin.new(nil, @no_logger, @gears, @restart)
-    gear.apply(@iteration)
+    plugin = GearStatePlugin.new(nil, @no_logger, @gears, @op)
+    setup_mocks(plugin, OpenShift::Runtime::State::STOPPED, [1, 2, 3])
+    plugin.apply(@iteration)
   end
 
   def test_idle
-    setup_mocks(OpenShift::Runtime::State::IDLE, [])
-    @restart.expects(:call).never
-    GearStatePlugin.new(nil, @no_logger, @gears, @restart).apply(@iteration)
+    @op.expects(:call).never
+    plugin = GearStatePlugin.new(nil, @no_logger, @gears, @op)
+    setup_mocks(plugin, OpenShift::Runtime::State::IDLE, [])
+    plugin.apply(@iteration)
   end
 
   def test_idle_pids
-    setup_mocks(OpenShift::Runtime::State::IDLE, [1, 2, 3])
-    @restart.expects(:call).with(:idle, @uuid)
+    @op.expects(:call).with(:idle, @uuid)
 
-    gear = GearStatePlugin.new(nil, @no_logger, @gears, @restart)
-    gear.apply(@iteration)
+    plugin = GearStatePlugin.new(nil, @no_logger, @gears, @op)
+    setup_mocks(plugin, OpenShift::Runtime::State::IDLE, [1, 2, 3])
+    plugin.apply(@iteration)
   end
 
   def test_started_unlocked_pids
-    setup_mocks(OpenShift::Runtime::State::STARTED, [1, 2, 3])
     @gears.expects(:stop_lock?).with(@uuid).returns(false)
-    @restart.expects(:call).never
+    @op.expects(:call).never
 
-    GearStatePlugin.new(nil, @no_logger, @gears, @restart).apply(@iteration)
+    plugin = GearStatePlugin.new(nil, @no_logger, @gears, @op)
+    setup_mocks(plugin, OpenShift::Runtime::State::STARTED, [1, 2, 3])
+    plugin.apply(@iteration)
   end
 
   def test_started_locked_pids
     path = '/never/create/this/file/please'
 
-    setup_mocks(OpenShift::Runtime::State::STARTED, [1, 2, 3])
     @gears.expects(:stop_lock?).with(@uuid).returns(true)
     @gears.expects(:stop_lock).with(@uuid).returns(path)
 
     FileUtils.stubs(:rm_f).with(path)
-    @restart.expects(:call).never
+    @op.expects(:call).never
 
-    GearStatePlugin.new(nil, @no_logger, @gears, @restart).apply(@iteration)
+    plugin = GearStatePlugin.new(nil, @no_logger, @gears, @op)
+    setup_mocks(plugin, OpenShift::Runtime::State::STARTED, [1, 2, 3])
+    plugin.apply(@iteration)
   end
 end

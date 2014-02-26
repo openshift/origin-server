@@ -20,8 +20,14 @@ require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/shell_exec'
 
 # Provide Watchman monitoring of gear status vs. state
+#
+# @!attribute [r] ps_table
+#   @return [Hash<String, Array<String>>] Hash of login name and running processes.
+#     Exposed for testing.
 class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
   include OpenShift::Runtime
+
+  attr_accessor :ps_table
 
   # Determine if state and status are out of sync
   #
