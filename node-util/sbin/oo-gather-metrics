@@ -24,7 +24,7 @@
 
 module OpenShift
   module Runtime
-    require 'OpenShift::Runtime::ApplicationContainer'
+    require 'openshfit-origin-node/models/application_container'
 
 
     class InvalidTimeError < StandardError;
@@ -131,15 +131,6 @@ module OpenShift
       output.concat(get_cgroups_multivalue_metric(@cgroups_multivalue_metrics, path))
       output.concat(get_cgroups_kv_metric(@cgroups_kv_metrics, path))
 
-      =begin
-        @cgroups_kv_metrics.each do |metric|
-          output.concat(get_cgroups_kv_metric(metric, path))
-        end
-
-        @cgroups_multivalue_metrics.each do |metric|
-          output.concat(get_cgroups_multivalue_metric(metric, path))
-        end
-      =end
       output
     end
 
