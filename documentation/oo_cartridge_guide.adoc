@@ -785,20 +785,22 @@ The `perl` cartridge provides http://www.perl.org/[Perl] on OpenShift.
 
 === Template Repository Layout
 ----
-perl/                 For not-externally exposed perl code
-libs/                 Additional libraries
-misc/                 For not-externally exposed perl code
+index.pl
 .openshift/           Location for OpenShift specific files
     action_hooks/     See the Action Hooks documentation <1>
     markers/          See the Markers section below
+    cpan.txt          List of modules to install
 ----
 <1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
 
-Please leave the `perl`, `libs` and `data` directories but feel free to create additional directories if needed.
+Due to latest changes in Perl cartridge template layout, the application is now stored in `$OPENSHIFT_REPO_DIR`, but is also backward compatible with deprecated `perl` directory.
+
+Modules are installed with `cpan.txt`, located in `.openshift` directory. Older deplist.txt is depricated, but still working.
 
 === Cartridge Layout
 ----
 run/                  Various run configs (like httpd pid)
+usr/                  Perl example application template
 env/                  Environment variables
 logs/                 Log data (like httpd access/error logs)
 lib/                  Various libraries

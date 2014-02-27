@@ -17,26 +17,42 @@ then
   MIRROR="--mirror http://mirror.ops.rhcloud.com/mirror/perl/CPAN/ $MIRROR"
 fi
 
-if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]
+function depfile_path_for() {
+  local filename=$1
+  if [ -f "${OPENSHIFT_REPO_DIR}${filename}" ]; then
+   echo -n "${OPENSHIFT_REPO_DIR}${filename}"
+  elif [ -f "${OPENSHIFT_REPO_DIR}perl/${filename}" ]; then
+   echo -n "${OPENSHIFT_REPO_DIR}perl/${filename}"
+  else
+   echo -n "${OPENSHIFT_REPO_DIR}/.openshift/cpan.txt"
+  fi
+}
+
+# Check for obsolite deplist.txt, else return new ".openshift/cpan.txt"
+
+DEPLIST=$(depfile_path_for deplist.txt)
+
+if [[ -n "${DEPLIST}" ]]
 then
   DEPS=$(find $OPENSHIFT_REPO_DIR -type f \( -name \*\.pm -o -name \*\.pl \); )
+  DEPLIST_NAME=$(basename ${DEPLIST})
 
-  for f in $( ( echo "$DEPS" | xargs /usr/lib/rpm/perl.req | awk '{ print $1 }' | sed 's/^perl(\(.*\))$/\1/'; cat ${OPENSHIFT_REPO_DIR}deplist.txt ) | sort -u)
+  for f in $( ( echo "$DEPS" | xargs /usr/lib/rpm/perl.req | awk '{ print $1 }' | sed 's/^perl(\(.*\))$/\1/'; cat ${DEPLIST} ) | sort -u)
   do
     # Skip checking if module is available locally or installed in system
     # if module is listed in deplist.txt
     #
-    if ! grep "$f" ${OPENSHIFT_REPO_DIR}deplist.txt >/dev/null 2>&1; then
+    if ! grep "$f" ${DEPLIST} >/dev/null 2>&1; then
 
       if egrep -re "^\s*package\s*$f" $DEPS >/dev/null 2>&1; then
         echo "***  Skipping module $f install from CPAN (found locally)."
-        echo "***  Please add $f to deplist.txt to install it from CPAN."
+        echo "***  Please add $f to $DEPLIST_NAME to install it from CPAN."
         continue;
       fi
 
       if perl -e "use $f;" 2> /dev/null; then
         echo "***   Skipping module $f install from CPAN (found in system)."
-        echo "***   Please add $f to deplist.txt to install it from CPAN."
+        echo "***   Please add $f to $DEPLIST_NAME to install it from CPAN."
         continue;
       fi
     fi

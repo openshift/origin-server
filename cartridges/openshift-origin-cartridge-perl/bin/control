@@ -1,9 +1,9 @@
 #!/bin/bash -e
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source ${OPENSHIFT_PERL_DIR}usr/lib/perl_config
 
 # Perl cartridge. Perl packaged with OS.
 # Perl control script.
-
 
 HTTPD_CFG_FILE=$OPENSHIFT_PERL_DIR/etc/conf/httpd_nolog.conf
 HTTPD_PASSENV_FILE=$OPENSHIFT_PERL_DIR/etc/conf.d/passenv.conf
@@ -17,10 +17,7 @@ done
 
 # Functions called from case statement below
 function start() {
-  echo "Starting Perl cartridge"
-  write_httpd_passenv $HTTPD_PASSENV_FILE
-  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-  eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k start"
+  prepare_cartridge "start"
   [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
@@ -35,10 +32,7 @@ function stop() {
 }
 
 function restart() {
-  echo "Restarting Perl cartridge"
-  write_httpd_passenv $HTTPD_PASSENV_FILE
-  ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-  eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k restart"
+  prepare_cartridge "restart"
 }
 
 # Is the packaged software really running?

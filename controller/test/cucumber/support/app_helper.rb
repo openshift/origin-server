@@ -150,7 +150,7 @@ jenkins_build    = #{@jenkins_build}
         when "php"      then "index.php"
         when "ruby"     then "config.ru"
         when "python"   then "wsgi/application"
-        when "perl"     then "perl/index.pl"
+        when "perl"     then "index.pl"
         when "jbossas"  then "src/main/webapp/index.html"
         when "jbosseap" then "src/main/webapp/index.html"
         when "jbossews" then "src/main/webapp/index.html"
