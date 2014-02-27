@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,46 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- Merge pull request #4812 from jhadvig/wip_perl
+  (dmcphers+openshiftbot@redhat.com)
+- Revert "Multiple fixes for stability" (dmcphers@redhat.com)
+- Perl repository layout changes (jhadvig@redhat.com)
+- Fixing tests (dmcphers@redhat.com)
+- Merge pull request #4806 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Multiple fixes for stability  - Adding option to prevent rollback in case of
+  successful execution of a destructive operation that is not reversible
+  (deleting gear or deconfiguring cartridge on the node)  - Checking for the
+  existence of the application after obtaining the lock  - Reloading the
+  application after acquiring the lock to reflect any changes made by the
+  previous operation holding the lock  - Using regular run_jobs code in clear-
+  pending-ops script  - Handling DocumentNotFound exception in clear-pending-
+  ops script if the application is deleted (abhgupta@redhat.com)
+- Bug 1070168 - Handle equal cart names different from equal cart name and
+  version (dmcphers@redhat.com)
+- <Extended Tests> Cartridge Extended Test fixes (jdetiber@redhat.com)
+- Merge pull request #4822 from
+  smarterclayton/bug_1069457_update_comp_limits_drops_gear_size
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1069457 - UpdateCompLimits drops gear size (ccoleman@redhat.com)
+- Improve finding a member in a members collection (jliggitt@redhat.com)
+- Validate roles (jliggitt@redhat.com)
+- Handle duplicate removes, removal of non-members (jliggitt@redhat.com)
+- Code review comments (jliggitt@redhat.com)
+- Team object, team membership (jliggitt@redhat.com)
+- Merge pull request #4814 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1069186: handling missing group instance (abhgupta@redhat.com)
+- PHP - DocumentRoot logic (optional php/ dir, simplify template repo)
+  (vvitek@redhat.com)
+- Merge pull request #4723 from liggitt/recalc_tracked_usage
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1066850 - Fixing urls (dmcphers@redhat.com)
+- Recalc tracked storage (jliggitt@redhat.com)
+- Rebalancing tests (dmcphers@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+
 * Mon Feb 17 2014 Adam Miller <admiller@redhat.com> 1.20.7-1
 - Bug 1065318 - Multiplier being reset (ccoleman@redhat.com)
 - Fix typos (dmcphers@redhat.com)
