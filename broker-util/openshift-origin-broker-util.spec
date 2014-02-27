@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -102,6 +102,21 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- Revert "Multiple fixes for stability" (dmcphers@redhat.com)
+- Multiple fixes for stability  - Adding option to prevent rollback in case of
+  successful execution of a destructive operation that is not reversible
+  (deleting gear or deconfiguring cartridge on the node)  - Checking for the
+  existence of the application after obtaining the lock  - Reloading the
+  application after acquiring the lock to reflect any changes made by the
+  previous operation holding the lock  - Using regular run_jobs code in clear-
+  pending-ops script  - Handling DocumentNotFound exception in clear-pending-
+  ops script if the application is deleted (abhgupta@redhat.com)
+- Team object, team membership (jliggitt@redhat.com)
+- Exit if error occurs changing untracked storage (jliggitt@redhat.com)
+- Recalc tracked storage (jliggitt@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+
 * Mon Feb 17 2014 Adam Miller <admiller@redhat.com> 1.20.6-1
 - Bug 1065243 - Reload district object after mongo update in oo-admin-repair
   (rpenta@redhat.com)
