@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- Bug 1066850 - Fixing urls (dmcphers@redhat.com)
+- Bug 1066945 - Fixing urls (dmcphers@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+
 * Thu Feb 13 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
 - Merge pull request #4760 from fabianofranz/master
   (dmcphers+openshiftbot@redhat.com)
