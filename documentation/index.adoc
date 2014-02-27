@@ -28,6 +28,7 @@ This documentation set is for version 3.0. If you are looking for the "bleeding 
 a|link:oo_install_users_guide.html[*oo-install* User's Guide] +
 link:oo_deployment_guide_comprehensive.html[Comprehensive Deployment Guide] +
 link:oo_deployment_guide_puppet.html[Puppet Deployment Guide] +
+link:oo_deployment_guide_vagrant.html[Vagrant Deployment Guide] +
 link:oo_deployment_guide_vm.html[Virtual Machine Deployment Guide] +
 link:oo_client_tools_installation_guide.html[Client Tools Installation Guide]
 

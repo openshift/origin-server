@@ -9,18 +9,50 @@ LATEST DOC UPDATES
 This document describes the recommended workflow to maintain a fork of a GitHub repository and how to submit pull requests for new features or bug fixes. Additionally you will find information on specific code areas within OpenShift and how to contribute to them.
 
 == Creating a Development Environment
+This section describes general requirements for doing development on the OpenShift Origin code base. This is all basic info on asetting up an environment. **Once you've done all of this, have a look at the link:oo_deployment_guide_vagrant.html[Vagrant Deployment Guide].** Unlike the other OpenShift deployment guides, Vagrant is strongly optimized in favor of developers.
 
 === Shell/Terminal Installation
 
 Linux- and OS X-based systems come packaged with a shell or terminal environment that is suitable for Origin development. Windows users will need to install a shell environment, and currently the most active project for delivering this kind of environment is http://www.cygwin.com/[Cygwin]. The rest of this document assumes that if you are working on a Windows system that you are working within the Cygwin environment.
 
-=== `git` Installation
+=== Software Installation
 
-Once you have a working shell, you will need to install http://git-scm.com/[git]. There are a number of projects that provide a graphical interface to git, and these are fine to use. However, it is also necessary to run `git` directly from the command line.
+Once you have a working shell, you will need to install http://git-scm.com/[git], https://www.ruby-lang.org/[Ruby], and a Ruby gem called http://bundler.io/[Bundler].
 
-* Fedora / RHEL / CentOS: `yum install git`
+==== git
+
+Install the most recent version of git available for your operating system:
+
+* Fedora / RHEL / CentOS:
++
+----
+$ yum install git
+----
 * OS X: git may be installed by default, but can also be installed by installing https://developer.apple.com/xcode/[XCode] or via a package manager like http://brew.sh/[Homebrew] or http://www.macports.org/[MacPorts].
 * Windows: Cygwin's package manager should include the latest version of git for Windows systems.
+
+==== Ruby
+
+For compatibility with RHEL and CentOS, OpenShift runs on Ruby 1.9.3. You can develop using newer versions of Ruby as long as you _do not use functionality that is not compatible with Ruby 1.9.3_. If you'd prefer to play it safe, you have a few options for using Ruby 1.9.3 on systems where more recent versions of Ruby are shipped:
+
+1. https://rvm.io/[**Ruby Version Manager.**] RVM enables you to locally compile side-by-side environments for different versions of Ruby. Refer to the RVM website for information on how to set up RVM and build ruby 1.9.3 locally.
+2. http://developerblog.redhat.com/2013/01/31/ruby-on-rails-3-2-on-red-hat-enterprise-linux-6-with-software-collections/[**The ruby193 SCL.**] If you are doing your development on a RHEL or CentOS system, you can also work with the `ruby193` Software Collection.
+
+WARNING: If you intend to set up an Origin development environment according to the link:oo_deployment_guide.html[Vagrant Deployment Guide], **do not** use RVM. Vagrant and RVM have blocking interoperability issues.
+
+==== Bundler
+
+Once you have a Ruby 1.9.3 environment, you can install Bundler into it using the `gem` command:
+
+.System or RVM
+----
+$ gem install bundler
+----
+
+.ruby193 SCL
+----
+$ scl enable ruby193 "gem install bundler"
+----
 
 === Creating a Local Repository
 
@@ -82,40 +114,59 @@ git checkout dev/kraman/bug/12345
 Once a fork has been created, it does not automatically track the upstream repository.
 Follow the steps outlined below to keep the master branch up-to-date.
 
+1. Pull the latest changes from upstream
++
 ----
-#pull the latest changes from upstream
-git fetch upstream
-git fetch upstream --tags
-
-#make sure there are no un-committed changes
-git stash
-
-#make sure we are working on the master branch
-git checkout master
-
-#merge the latest changes
-git merge upstream/master
-
-#push the updates changes to our GitHub fork
-git push origin master
-git push origin --tags
-
-#return to your bug/feature branch
-git checkout dev/kraman/bug/12345
-
-#rebase this branch onto latest code from master (expect conflicts)
-git rebase master
-
-#... resolve conflicts
-
-#push the rebased branch back to your fork
-git push origin dev/kraman/bug/12345 -f
-
-#Restore any un-committed changes
-git stash pop
+$ git fetch upstream
+$ git fetch upstream --tags
+----
+2. Make sure there are no un-committed changes
++
+----
+$ git stash
+----
+3. Make sure we are working on the master branch
++
+----
+$ git checkout master
+----
+4. Merge the latest changes
++
+----
+$ git merge upstream/master
+----
+5. Push the updates changes to our GitHub fork
++
+----
+$ git push origin master
+$ git push origin --tags
+----
+6. Return to your bug/feature branch
++
+----
+$ git checkout dev/kraman/bug/12345
+----
+7. Rebase this branch onto latest code from master (expect conflicts)
++
+----
+$ git rebase master
+----
+8. Resolve conflicts
+9. Push the rebased branch back to your fork
++
+----
+$ git push origin dev/kraman/bug/12345 -f
+----
+10. Restore any un-committed changes
++
+----
+$ git stash pop
 ----
 
 NOTE: The `git stash` steps are optional. It is easier if you commit all changes before attempting a rebase.
+
+=== The Vagrant Development Environment
+As mentioned at the top of this section, OpenShift Origin has a very powerful development environment based on http://www.vagrantup.com/[Vagrant]. Check out the link:oo_deployment_guide_vagrant.html[Vagrant Deployment Guide] for all of the details on this system.
 
 == Hacking on OpenShift
 OpenShift development is divided roughly into the following areas:
@@ -129,7 +180,9 @@ Each section below explains how and where to look for the feature backlog, bug r
 
 === General Notes
 
-**Feature Backlogs**: Our backlogs of user stories are currently maintained on https://trello.com/[Trello]. If you are not familiar with Trello, take a few minutes to look at https://trello.com/b/I7TjiplA/trello-tutorial[the tutorial].
+**The OpenShift Roadmap**: If you are looking for a high-level idea of which features are in the pipeline for OpenShift Origin, check out our https://trello.com/b/nlLwlKoz[Roadmap Board] on https://trello.com/[Trello]. Each card in the "Epic Backlog" describes an overarching set of changes that is then broken down into cards across the backlogs of the different development areas.
+
+**Feature Backlogs**: Each development area has their own backlog of tasks that is also maintained on Trello. Most of these tasks are associated with Epics from our Roadmap board.
 
 **Bug Tracking**: We use https://bugzilla.redhat.com/[Bugzilla] to track the reports and resolutions of OpenShift bugs. If you hit weird behavior with an OpenShift component:
 
@@ -263,7 +316,7 @@ Now she can do a push to her forked repo on GitHub. If she previously pushed the
 $ git push origin my_working_branch --force
 ----
 
-For more information about squashing commits, read http://git-scm.com/book/en/Git-Tools-Rewriting-History#Squashing-Commits
+For more information about squashing commits, read http://git-scm.com/book/en/Git-Tools-Rewriting-History#Squashing-Commits[the git Guide's article] on the topic.
 
 === Creating a pull request
 
