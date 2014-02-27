@@ -469,7 +469,7 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   }
 
   /*  Create a proxy websocket request we need to send.  */
-  var proxy_ws = new WebSocket('ws://' + ws_endpoint, zheaders);
+  var proxy_ws = new WebSocket('ws://' + ws_endpoint + upg_requri, zheaders);
 
   /*  Set surrogate's backend information.  */
   surrogate.setBackendInfo(proxy_ws);
