@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -158,6 +158,20 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- Card origin_node_39 - Fix spec file for disabled plugin (jhonce@redhat.com)
+- Card origin_node_39 - Disable GearStatePlugin (jhonce@redhat.com)
+- Card origin_node_39 - Fix unit test (jhonce@redhat.com)
+- Card origin_node_39 - Introduce GearStatePlugin (jhonce@redhat.com)
+- Merge pull request #4807 from jwhonce/bug/1067345
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4776 from jwhonce/origin_node_39
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1067345 - Make *all commands honor stop_lock (jhonce@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+- Card origin_node_39 - Have Watchman attempt honor state of gear
+  (jhonce@redhat.com)
+
 * Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Bug 1063278 - kill user processes before user (lsm5@redhat.com)
 - Merge pull request #4704 from lsm5/oo-admin-gear
