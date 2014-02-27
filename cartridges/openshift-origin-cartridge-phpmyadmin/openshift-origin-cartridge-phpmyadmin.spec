@@ -3,7 +3,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.19.0
+Version: 1.19.1
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -54,6 +54,9 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+
 * Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 1.18.6-1
 - Bug 1065264 - Better error handling on status (dmcphers@redhat.com)
 - httpd cartridges: OVERRIDE with custom httpd conf (lmeyer@redhat.com)
