@@ -25,5 +25,13 @@ def apache_metrics
   puts `curl -s http://$OPENSHIFT_PHP_IP:8080/server-status?auto`
 end
 
+def process_cart_metrics metrics_string
+  metrics = metrics_string.split("\n")
+  metrics.map! do |metric|
+    key, value = metric.split(": ")
+    key = key.split(/(?=[A-Z])/).map!{|word| word.downcase}
+  end
+end
+
 
 main

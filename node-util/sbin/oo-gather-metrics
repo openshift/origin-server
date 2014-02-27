@@ -187,9 +187,7 @@ def execute_cgget(metrics, path)
   `cgget -n -v -r #{metrics} #{path}`
 end
 
-def process_cart_metrics metrics_string
-  metrics = metrics_string.split("\n")
-end
+
 
 
 main
