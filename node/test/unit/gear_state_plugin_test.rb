@@ -17,8 +17,11 @@
 require_relative '../test_helper'
 
 require 'date'
-require_relative '../../../node-util/conf/watchman/plugins.d/gear_state_plugin'
 require_relative '../../../node/lib/openshift-origin-node/utils/application_state'
+
+path = '../../../node-util/conf/watchman/plugins.d/gear_state_plugin'
+exit 0 unless File.exists? path
+require_relative path
 
 class GearStatePluginTest < OpenShift::NodeBareTestCase
   def setup
