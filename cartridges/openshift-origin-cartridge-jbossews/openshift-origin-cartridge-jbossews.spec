@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -76,6 +76,15 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- change mirror1.ops to mirror.ops, which is load balanced between servers
+  (tdawson@redhat.com)
+- Merge pull request #4787 from developercorey/fix_mysql_ds
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+- updatin MysqlDS to be MySQLDS to fall in line with ExampleDS and PostgreSQLDS
+  data source names (cdaley@redhat.com)
+
 * Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
 - Merge pull request #4744 from mfojtik/latest_versions
   (dmcphers+openshiftbot@redhat.com)
