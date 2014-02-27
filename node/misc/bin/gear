@@ -286,8 +286,9 @@ command :prepare do |c|
 
   c.description = "Prepare a binary deployment artifact for distribution and activation"
   c.action do |args, options|
-    # TODO make sure there is a file arg
     do_command(c, options) do
+      raise UsageException.new("You must specify a deployment artifact file to prepare") if args.count == 0
+      raise UsageException.new("File '#{args[0]}' does not exist") unless File.exist?(args[0])
       deployment_datetime = @container.create_deployment_dir
       @container.prepare(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, file: args[0])
     end
@@ -299,8 +300,13 @@ command :distribute do |c|
 
   c.description = "Distribute a build"
   c.action do |args, options|
-    # TODO make sure there is a deployment id arg
     do_command(c, options) do
+      raise UsageException.new("You must specify a deployment id") if args.count == 0
+
+      unless @container.deployment_exists?(args[0])
+        raise "Deployment id #{args[0]} is invalid"
+      end
+
       @container.distribute(out: $stdout, err: $stderr, deployment_id: args[0])
     end
   end
@@ -316,8 +322,8 @@ command :activate do |c|
   c.option "--[no-]rotation", "Rotate gears out/in (defaults to true)"
 
   c.action do |args, options|
-    # TODO make sure there is a deployment id arg
     do_command(c, options) do
+      raise UsageException.new("You must specify a deployment id") if args.count == 0
 
       unless @container.deployment_exists?(args[0])
         raise "Deployment id #{args[0]} is invalid"
