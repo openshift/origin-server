@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -64,6 +64,14 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- fix php upgrade version (vvitek@redhat.com)
+- fix php erb processing bug (vvitek@redhat.com)
+- PHP - DocumentRoot logic (optional php/ dir, simplify template repo)
+  (vvitek@redhat.com)
+- Bug 1066850 - Fixing urls (dmcphers@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+
 * Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
 - httpd cartridges: OVERRIDE with custom httpd conf (lmeyer@redhat.com)
 
