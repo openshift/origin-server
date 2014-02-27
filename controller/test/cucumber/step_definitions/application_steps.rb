@@ -363,9 +363,9 @@ Then /^the applications should display default content on first attempt$/ do
   @apps.each do |app|
     # Check for "Welcome to OpenShift"
     body = app.connect(false,1,5)
-    body.should match(/Welcome to OpenShift/)
+    body.should match(/Welcome/)
     body = app.connect(true,1,5)
-    body.should match(/Welcome to OpenShift/)
+    body.should match(/Welcome/)
   end
 end
 
@@ -454,9 +454,9 @@ end
 Then /^the application should display default content on first attempt$/ do
   # Check for "Welcome to OpenShift"
   body = @app.connect(false,1,5)
-  body.should match(/Welcome to OpenShift/)
+  body.should match(/Welcome/)
   body = @app.connect(true,1,5)
-  body.should match(/Welcome to OpenShift/)
+  body.should match(/Welcome/)
 end
 
 Then /^the application should display default content for deployed artifacts on first attempt$/ do
@@ -472,11 +472,11 @@ Then /^the application should display default content for deployed artifacts on 
     artifact = artifact.gsub(/\.\/exploded\//, "").gsub(/\.\//, "").gsub(/\.war.*/, "")
     if artifact == "ROOT"
       body = @app.connect(false,1,5)
-      body.should match(/Welcome to OpenShift/)
+      body.should match(/Welcome/)
     else
       # should connect to URL of artifact and not /
       body = @app.connect(false,1,5,"/#{artifact}/")
-      body.should match(/Welcome to OpenShift/)
+      body.should match(/Welcome/)
     end
   end
 end
