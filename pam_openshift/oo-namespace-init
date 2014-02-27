@@ -9,45 +9,45 @@
 # The following will create polyinstantiated directories for OpenShift
 #
 
-if [ "$3" = 1 ]; then
-    IFS=":"  # Used for token splitting below
+# Unless this is a new instance, get out now
+[ "$3" = 0 ] && exit 0
 
-    uid=$(id -u "$4")                 # NOTE: Getent treats OpenShift's all numeric usernames
-    passwd=($(getent passwd "$uid"))  #       as userids and does not resolve them.
-    homedir="${passwd[5]}"
+IFS=":"  # Used for token splitting below
+passwd=($(getent passwd $(id -u $4)))
+uid="${passwd[2]}"
+homedir="${passwd[5]}"
 
-    #  Don't change ownership on /dev/shm
-    [ "$2" == "tmpfs" ] || /bin/chown $4 "$2"
-
-    /sbin/restorecon "$1"
-    [ "$2" == "tmpfs" ] || /sbin/restorecon "$2"
-
-    # Only set MCS on OpenShift users
-    for d in "${homedir}/app-root" "$homedir"
-    do
-        context=($(getfattr --only-values -n security.selinux "$d" 2>/dev/null)) && break
-    done
-    setype="${context[2]}"
-    semls="${context[3]}"
-    semcs="${context[4]}"
-
-    case "$setype" in
-      openshift_var_lib_t)
-          # Reading mcs from the fs is far less expensive than running the generator.
-          if [ -n "$semcs" ]
-          then
-              mcs_level="${semls}:${semcs}"
-          else
-              mcs_level=$(/usr/bin/oo-get-mcs-level "$uid") 2>/dev/null || :
-          fi
-
-          /usr/bin/chcon -l "$mcs_level" "$1"
-          [ "$2" == "tmpfs" ] || /usr/bin/chcon -l "$mcs_level" "$2"
-          ;;
-      user_home_dir_t)
-          [ "$1" == "/tmp" -o "$1" == "/var/tmp" ] && /usr/bin/chcon -t tmp_t "$2"
-          ;;
-    esac
+# Skip ownership/context changes for /dev/shm
+if [ "$2" != "tmpfs" ]; then
+  /bin/chown $uid "$2"
+  /sbin/restorecon "$1" "$2"
 fi
+
+for d in "${homedir}/app-root" "$homedir"
+do
+    context=($(getfattr --only-values -n security.selinux "$d" 2>/dev/null)) && break
+done
+setype="${context[2]}"
+semls="${context[3]}"
+semcs="${context[4]}"
+
+# Only set MCS on OpenShift users
+case "$setype" in
+  openshift_var_lib_t)
+      # Reading mcs from the fs is far less expensive than running the generator.
+      if [ -n "$semcs" ]
+      then
+          mcs_level="${semls}:${semcs}"
+      else
+          mcs_level=$(/usr/bin/oo-get-mcs-level "$uid") 2>/dev/null || :
+      fi
+
+      /usr/bin/chcon -l "$mcs_level" "$1"
+      [ "$2" == "tmpfs" ] || /usr/bin/chcon -l "$mcs_level" "$2"
+      ;;
+  user_home_dir_t)
+      [ "$1" == "/tmp" -o "$1" == "/var/tmp" ] && /usr/bin/chcon -t tmp_t "$2"
+      ;;
+esac
 
 exit 0
