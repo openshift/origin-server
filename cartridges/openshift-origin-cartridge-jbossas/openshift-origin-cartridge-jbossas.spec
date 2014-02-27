@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -103,6 +103,16 @@ fi
 
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- change mirror1.ops to mirror.ops, which is load balanced between servers
+  (tdawson@redhat.com)
+- add retry logic for deployment scan check (bparees@redhat.com)
+- Merge pull request #4787 from developercorey/fix_mysql_ds
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+- updatin MysqlDS to be MySQLDS to fall in line with ExampleDS and PostgreSQLDS
+  data source names (cdaley@redhat.com)
+
 * Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
 - Merge pull request #4744 from mfojtik/latest_versions
   (dmcphers+openshiftbot@redhat.com)
