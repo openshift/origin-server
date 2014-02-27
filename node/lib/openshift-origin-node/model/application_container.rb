@@ -587,8 +587,8 @@ module OpenShift
                                               :payload => params)
 
             response = request.execute { |response, request, result| response }
-          rescue Errno::ECONNREFUSED
-            options[:out].puts "Failed to report deployment to broker.  This will be corrected on the next git push." if options[:out]
+          rescue => e
+            options[:out].puts "Failed to report deployment to broker.  This will be corrected on the next git push. Message: #{e.message}" if options[:out]
           else
             if 300 <= response.code
               options[:out].puts "Failed to report deployment to broker.  This will be corrected on the next git push." if options[:out]
