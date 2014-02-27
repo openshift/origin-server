@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util-scl
-Version: 1.17.0
+Version: 1.17.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -28,6 +28,12 @@ cp oo-* %{buildroot}%{_bindir}/
 
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.17.1-1
+- Merge pull request #4742 from Miciah/bug-1017248-oo-ruby-does-not-set-up-the-
+  correct-environment-in-a-nested-invocation (dmcphers+openshiftbot@redhat.com)
+- oo-exec-ruby: Set PATH &c. directly, not using scl (miciah.masters@gmail.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.16.2-1
 - Cleaning specs (dmcphers@redhat.com)
 
