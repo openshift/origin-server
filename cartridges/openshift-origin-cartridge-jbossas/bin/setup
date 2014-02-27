@@ -13,3 +13,6 @@ cp ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/bin/* ${OPENSHIFT_JBOSSAS_DIR}/b
 
 # Initialize the JBoss CLI history file
 [ -f ${OPENSHIFT_HOMEDIR}/.jboss-cli-history ] || touch ${OPENSHIFT_HOMEDIR}/.jboss-cli-history
+
+mkdir -p $OPENSHIFT_JBOSSAS_DIR/jboss_cfg_backup
+cp -n ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/standalone/configuration/standalone.xml $OPENSHIFT_JBOSSAS_DIR/jboss_cfg_backup
