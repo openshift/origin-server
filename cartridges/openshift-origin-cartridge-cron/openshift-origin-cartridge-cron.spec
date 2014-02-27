@@ -2,7 +2,7 @@
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron
-Version: 1.19.0
+Version: 1.19.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -36,6 +36,10 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
+- <cron cart> Load env. vars. recursively (miciah.masters@gmail.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+
 * Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
 - Bug 1065045 - Enforce cronjob timeout (jhonce@redhat.com)
 
