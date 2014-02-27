@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -281,6 +281,27 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- Card origin_node_39 - Make test optional (jhonce@redhat.com)
+- Merge pull request #4829 from jwhonce/origin_node_39
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_node_39 - Fix unit test (jhonce@redhat.com)
+- Bug 1068891 - Remove redundant call to date (jhonce@redhat.com)
+- Card origin_node_39 - Introduce GearStatePlugin (jhonce@redhat.com)
+- fix PHP functional api test (vvitek@redhat.com)
+- Bug 1056713 - Remove nil from output (jhonce@redhat.com)
+- Merge pull request #4776 from jwhonce/origin_node_39
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1067031 - Do not include old versions of carts in latest carts just
+  because they have a unique software version (dmcphers@redhat.com)
+- Fix typo (dmcphers@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+- Merge pull request #4788 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1025195 - Reset quota to the min extra (dmcphers@redhat.com)
+- Card origin_node_39 - Have Watchman attempt honor state of gear
+  (jhonce@redhat.com)
+
 * Mon Feb 17 2014 Adam Miller <admiller@redhat.com> 1.20.7-1
 - Merge pull request #4782 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
