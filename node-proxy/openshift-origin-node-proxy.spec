@@ -11,7 +11,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.20.0
+Version: 1.20.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -137,6 +137,10 @@ fi
 %doc README
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- Bug 1070317: Pass original request uri to the backend. (mrunalp@gmail.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+
 * Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Don't override supervisor log on restart. (mrunalp@gmail.com)
 - Cleaning specs (dmcphers@redhat.com)
