@@ -35,6 +35,7 @@ class WatchmanFuncTest < OpenShift::NodeTestCase
 
   def setup
     @config.stubs(:get).with('WATCHMAN_PLUGIN_DIR', any_parameters).returns(@path)
+    @config.stubs(:get).with('RETRY_DELAY', any_parameters).returns(0)
     @config.stubs(:get).with('GEAR_BASE_DIR', '/var/lib/openshift').returns('/var/lib/openshift')
 
     @gears = mock()
@@ -55,7 +56,7 @@ class WatchmanFuncTest < OpenShift::NodeTestCase
 
         class RestartPlugin < OpenShift::Runtime::WatchmanPlugin
           def apply(iteration)
-            @restart.call("#{uuid}", DateTime.now)
+            restart("#{uuid}")
           end
         end
       )
