@@ -74,22 +74,61 @@ end
 $count = 0
 def clean_app(a)
   $count += 1
-  begin
-    Application.run_in_application_lock(a) do
-      a.run_jobs(nil, true)
-    end
-
+  delete_app = false
+  dlist = []
+  Application.run_in_application_lock(a) do
     a.reload
-    a.pending_op_groups.each do |op|
+    a.pending_op_groups.each { |op| 
+      if op._type.nil? 
+        puts "ERROR in cleaning up application's op because the _type is nil. App uuid - #{a.uuid}. Op - #{op.inspect}"
+        next
+      end
+      puts "WARNING : Application #{a.uuid} has created_at field nil for op - #{op.inspect}" if op.created_at.nil?
+
+      if op.created_at.nil? or op.created_at < $t 
+        puts
+        puts "Executing op for app (#{a.uuid}) - #{op.inspect} "
+        success = false
+        begin
+          if op.pending_ops.where(:state => :rolledback).count > 0
+            raise Exception.new("Op already being rolled back.. continuing.")
+          end
+          op.execute 
+          op.unreserve_gears(op.num_gears_removed, a)
+          success = true
+          delete_app = true if (op.class == DeleteAppOpGroup) or (op.class == RemoveFeaturesOpGroup and op.remove_all_features)
+        rescue Exception => e
+          print "Execution failed. Rolling back.."
+          begin
+            op.execute_rollback
+            num_gears_recovered = op.num_gears_added - op.num_gears_created + op.num_gears_rolled_back + op.num_gears_destroyed
+            op.unreserve_gears(num_gears_recovered, a)
+            success = true
+            puts " complete."
+          rescue Exception=> ex
+            success = false
+            puts " failed again!"
+            puts ex.backtrace.inspect
+          end
+        end
+        dlist << op if success
+      end
+      break if !success
+    } 
+    dlist.each { |op| op.delete }
+  end # end of lock
+  if not delete_app
+    a.save!
+    a.pending_op_groups.each { |op|
       if op.created_at.nil? or op.created_at < $t 
         next if op._type.nil?
         puts
         puts "Failed to clear op for app (#{a.uuid}) - #{op.inspect} "
       end
+    } 
+    unless a.group_instances.present? or a.component_instances.present?
+      a.delete
     end
-  rescue Mongoid::Errors::DocumentNotFound => ex
-    # ignore the exception if the application has been deleted
-    raise ex unless Application.where(_id: a._id).count == 0
   end
 end
 
