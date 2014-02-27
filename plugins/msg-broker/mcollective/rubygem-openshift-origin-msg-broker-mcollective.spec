@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- fix typo (vvitek@redhat.com)
+- Better comments (dmcphers@redhat.com)
+- Cleaning up comments (dmcphers@redhat.com)
+- Fixing up comments (dmcphers@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+
 * Sun Feb 16 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
 - Merge pull request #4767 from pravisankar/dev/ravi/bug1055475
   (dmcphers+openshiftbot@redhat.com)
