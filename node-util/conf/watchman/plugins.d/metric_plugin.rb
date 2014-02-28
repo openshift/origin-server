@@ -17,8 +17,8 @@
 require 'openshift-origin-node/model/watchman/watchman_plugin'
 
 class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
-  def initialize(config,gears,restart)
-    super(config,gears,restart)
+  def initialize(config,gears,restart,operation)
+    super(config,gears,restart,operation)
     # Initiallize metrics to run every 60 seconds
     @metrics = ::OpenShift::Runtime::Utils::Cgroups::Metrics.new 60
   end
