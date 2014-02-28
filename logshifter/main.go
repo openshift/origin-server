@@ -29,10 +29,15 @@ func main() {
 	flag.Parse()
 
 	// load the config
-	config, configErr := ParseConfig(configFile)
-	if configErr != nil {
-		fmt.Printf("Error loading config from %s: %s", configFile, configErr)
-		os.Exit(1)
+	config := DefaultConfig()
+
+	if _, err := os.Stat(configFile); err == nil {
+		var err error
+		config, err = ParseConfig(configFile)
+		if err != nil {
+			fmt.Printf("Error loading config from %s: %s", configFile, err)
+			os.Exit(1)
+		}
 	}
 
 	// override output type from environment if allowed by config
