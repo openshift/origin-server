@@ -282,9 +282,9 @@ Then /^the applications should display default content on first attempt$/ do
   @apps.each do |app|
     # Check for "Welcome to OpenShift"
     body = app.connect(false,1,5)
-    body.should match(/Welcome/)
+    body.should match(/Welcome to OpenShift/)
     body = app.connect(true,1,5)
-    body.should match(/Welcome/)
+    body.should match(/Welcome to OpenShift/)
   end
 end
 
@@ -372,9 +372,9 @@ end
 Then /^the application should display default content on first attempt$/ do
   # Check for "Welcome to OpenShift"
   body = @app.connect(false,1,5)
-  body.should match(/Welcome/)
+  body.should match(/Welcome to OpenShift/)
   body = @app.connect(true,1,5)
-  body.should match(/Welcome/)
+  body.should match(/Welcome to OpenShift/)
 end
 
 Then /^the application should not be accessible$/ do

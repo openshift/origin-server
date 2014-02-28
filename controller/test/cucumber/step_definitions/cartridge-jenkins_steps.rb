@@ -47,7 +47,7 @@ When /^I push an update to the diy application$/ do
     assert_equal 0, exit_code, "Failed to clone myapp repo"
 
     Dir.chdir(git_dir) do
-      exit_code = run "sed -i 's/Welcome/Bienvenido/' diy/index.html"
+      exit_code = run "sed -i 's/Welcome to OpenShift/Jenkins Builder Testing/' diy/index.html"
       assert_equal 0, exit_code, "Failed to update diy/index.html"
 
       exit_code = run "git commit -a -m 'force build'"
@@ -84,7 +84,7 @@ When /^I push an update to the Go application$/ do
     assert_equal 0, exit_code, "Failed to clone myapp repo"
 
     Dir.chdir(git_dir) do
-      exit_code = run "sed -i 's/hello, world/Bienvenido/' web.go"
+      exit_code = run "sed -i 's/hello, world/Jenkins Builder Testing/' web.go"
       assert_equal 0, exit_code, "Failed to update web.go"
 
       exit_code = run "git commit -a -m 'force build'"
@@ -125,7 +125,7 @@ Then /^the diy application will be updated$/ do
     app_uuid = @myapp_git_url.match(TestApp::SSH_OUTPUT_PATTERN)[1]
     path = "/var/lib/openshift/#{app_uuid}/app-root/repo/diy/index.html"
     $logger.debug "jenkins built application path = #{path}"
-    `grep 'Bienvenido' "#{path}"`
+    `grep 'Jenkins Builder Testing' "#{path}"`
     $?.to_i.should be == 0
 end
 
@@ -148,7 +148,7 @@ Then /^the Go application will be updated$/ do
     app_uuid = @myapp_git_url.match(TestApp::SSH_OUTPUT_PATTERN)[1]
     path = "/var/lib/openshift/#{app_uuid}/app-root/repo/web.go"
     $logger.debug "jenkins built application path = #{path}"
-    `grep 'Bienvenido' "#{path}"`
+    `grep 'Jenkins Builder Testing' "#{path}"`
     $?.to_i.should be == 0
 end
 
