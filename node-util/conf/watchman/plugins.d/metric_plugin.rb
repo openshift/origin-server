@@ -23,7 +23,7 @@ class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
     @metrics = ::OpenShift::Runtime::Utils::Cgroups::Metrics.new 60
   end
 
-  def apply
+  def apply(iteration)
     return
   end
 end
