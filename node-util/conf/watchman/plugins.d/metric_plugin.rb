@@ -30,7 +30,7 @@ class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
     @gears.ids.each do |uuid|
       gear_app_uuids[uuid] = PathUtils.join(@config.get('GEAR_BASE_DIR', '/var/lib/openshift'), uuid, '.env', 'OPENSHIFT_APP_UUID')
     end
-    update_gears gear_app_uuids
+    @metrics.update_gears gear_app_uuids
   end
 end
 
