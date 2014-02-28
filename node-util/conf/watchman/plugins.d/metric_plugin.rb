@@ -35,6 +35,7 @@ class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
             attr_accessor :delay
 
             def initialize delay
+              Syslog.info "Initializing watchmen metrics plugin"
               # Set the sleep time for the metrics thread
               @delay = delay
               initialize_cgroups_vars
@@ -45,7 +46,7 @@ class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
             # Step that is run on each interval
             def tick
                gear_metric_time = time_method {call_gear_metrics}
-               $stdout.write "type=metric gear.metric_time=#{gear_metric_time}\n"
+               Syslog.info "type=metric gear.metric_time=#{gear_metric_time}\n"
             end
 
             def start
