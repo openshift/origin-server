@@ -82,7 +82,7 @@ module OpenShift
           def call_gear_metrics
             #We need to make sure we have the most up-to-date list of gears on each run
             output = []
-            @mutex.synchronize
+            @mutex.synchronize do
               @running_apps.keys.each do |uuid|
                 cgroup_name = "/openshift/#{uuid}"
                 output.concat get_cgroup_metrics(cgroup_name).map{|metric| "app=#{@running_apps[uuid]} gear=#{uuid} #{metric}"}
