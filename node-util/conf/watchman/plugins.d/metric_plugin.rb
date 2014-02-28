@@ -73,7 +73,7 @@ module OpenShift
               cgroup_name = "/openshift/#{uuid}"
               output.concat get_cgroup_metrics(cgroup_name)
             end
-            output.each { |metric| $stdout.write("type=metric #{metric}\n") }
+            output.each { |metric| Syslog.info("type=metric #{metric}\n") }
           end
 
           def initialize_cgroups_vars
