@@ -221,12 +221,24 @@ module OpenShift
         end
 
         def start_impl(f)
-          f.puts %Q[qdisc add dev #{@tc_if} root handle 1: htb]
-          f.puts %Q[class add dev #{@tc_if} parent 1: classid 1:1 htb rate #{@tc_max_bandwidth}mbit]
-          f.puts %Q[filter add dev #{@tc_if} parent 1: protocol ip prio 10 handle 1: cgroup]
+          all_stopped = true
+          with_all_users do |uuid, pwent, netclass|
+            all_stopped = false if tc_exists?(netclass)
+          end
+          if all_stopped
+            f.puts %Q[qdisc add dev #{@tc_if} root handle 1: htb]
+            f.puts %Q[class add dev #{@tc_if} parent 1: classid 1:1 htb rate #{@tc_max_bandwidth}mbit]
+            f.puts %Q[filter add dev #{@tc_if} parent 1: protocol ip prio 10 handle 1: cgroup]
+          end
+
+          
           with_all_users do |uuid, pwent, netclass|
             @output << "Starting tc for #{uuid}: "
-            startuser_impl(uuid, pwent, netclass, f)
+            if !tc_exists?(netclass)
+              startuser_impl(uuid, pwent, netclass, f)
+            else
+              @output.last << "already throttled."
+            end
           end
         end
 
