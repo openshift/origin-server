@@ -18,6 +18,18 @@ type Config struct {
 	outputTypeFromEnviron bool   // allows outputtype to be overridden via LOGSHIFTER_OUTPUT_TYPE
 }
 
+// DefaultConfig returns a Config with some sane defaults.
+func DefaultConfig() *Config {
+	return &Config{
+		queueSize:             1000,
+		inputBufferSize:       2048,
+		outputType:            "syslog",
+		syslogBufferSize:      2048,
+		fileBufferSize:        2048,
+		outputTypeFromEnviron: true,
+	}
+}
+
 const (
 	// output types
 	Syslog = "syslog"
@@ -32,25 +44,11 @@ const (
 // Config keys within the file correspond to the fields of Config, and the keys
 // are case-insensitive.
 //
-// The following default values are used for any missing config keys:
-//
-//    queueSize:             100
-//    inputBufferSize:       2048
-//    outputType:            syslog
-//    syslogBufferSize:      2048
-//    fileBufferSize:        2048
-//    outputTypeFromEnviron: true
+// The values assigned by DefaultConfig are used for any missing config keys.
 //
 // An error is returned if file is not a valid config file.
 func ParseConfig(file string) (*Config, error) {
-	config := &Config{
-		queueSize:             100,
-		inputBufferSize:       2048,
-		outputType:            "syslog",
-		syslogBufferSize:      2048,
-		fileBufferSize:        2048,
-		outputTypeFromEnviron: true,
-	}
+	config := DefaultConfig()
 
 	f, err := os.Open(file)
 	defer f.Close()
