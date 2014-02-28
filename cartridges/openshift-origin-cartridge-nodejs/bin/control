@@ -187,6 +187,9 @@ function build() {
     #  Newer versions of Node set tmp to $HOME/tmp, which is not available
     nodejs_context "npm config set tmp $OPENSHIFT_TMP_DIR"
 
+    # FIXME: Remove this line once we update NPM to latest version
+    nodejs_context 'npm config set ca ""'
+
     if [ -f "${OPENSHIFT_REPO_DIR}"/deplist.txt ]; then
         mods=$(perl -ne 'print if /^\s*[^#\s]/' "${OPENSHIFT_REPO_DIR}"/deplist.txt)
         [ -n "$mods" ]  &&  print_deprecation_warning
