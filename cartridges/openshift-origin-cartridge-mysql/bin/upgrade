@@ -9,3 +9,14 @@ if [[ $new_cart_version =~ 0.2.5 ]]; then
     mv data/ib_logfile* /tmp
   fi
 fi
+
+# The LD_LIBRARY_PATH is now handled by the Node itself
+# and constructed using LD_LIBRARY_PATH_ELEMENT. This will
+# remove the existing LD_LIBRARY_PATH so the Node one can
+# take the precedence.
+#
+if [[ $new_cart_version == "0.2.9" ]]; then
+  if [ -f ${OPENSHIFT_MYSQL_DIR}env/LD_LIBRARY_PATH ]; then
+    rm -f ${OPENSHIFT_MYSQL_DIR}env/LD_LIBRARY_PATH
+  fi
+fi

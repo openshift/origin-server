@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# For SCL based carts we need publish LD_LIBRARY_PATH
+# to web framework, so application can find the correct versions
+# of client libraries.
+#
+#
+
+ld_path=$(LD_LIBRARY_PATH="" scl enable mariadb55 "printenv LD_LIBRARY_PATH")
+echo "OPENSHIFT_MARIADB_LD_LIBRARY_PATH_ELEMENT=${ld_path}"

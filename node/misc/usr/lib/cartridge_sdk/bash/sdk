@@ -463,6 +463,14 @@ function app_web_to_proxy_ratio_and_colocated_gears() {
   ruby_sdk 'app_web_to_proxy_ratio_and_colocated_gears'
 }
 
+function get_gear_ld_library_path() {
+  ruby_sdk 'get_path_from_elements "LD_LIBRARY_PATH"'
+}
+
+function get_gear_path() {
+  ruby_sdk 'get_path_from_elements "PATH"'
+}
+
 function hot_deploy_enabled_for_latest_deployment() {
   enabled=$(ruby_sdk 'latest_deployment_metadata.hot_deploy')
 

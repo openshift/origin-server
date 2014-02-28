@@ -89,6 +89,32 @@ class EnvironTest < OpenShift::NodeTestCase
     end
   end
 
+  def test_collect_elements
+    mock_env = {
+      'OPENSHIFT_MOCK_LD_LIBRARY_PATH_ELEMENT' => '/usr/lib/mock',
+      'OPENSHIFT_CART_LD_LIBRARY_PATH_ELEMENT' => '/usr/lib/cart',
+      'OPENSHIFT_SECONDCART_LD_LIBRARY_PATH_ELEMENT' => '/usr/lib/second_cart',
+      'OPENSHIFT_MOCK_PATH_ELEMENT' => '/usr/mock/bin',
+      'OPENSHIFT_CART_PATH_ELEMENT' => '/usr/cart/bin'
+    }
+
+    elements = OpenShift::Runtime::Utils::Environ.collect_elements_from(
+      mock_env,
+      'LD_LIBRARY_PATH',
+      'MOCK'
+    )
+
+    assert_equal "/usr/lib/cart:/usr/lib/second_cart:/usr/lib/mock", elements.join(':')
+
+    elements = OpenShift::Runtime::Utils::Environ.collect_elements_from(
+      mock_env,
+      'PATH',
+      'MOCK'
+    )
+
+    assert_equal "/usr/mock/bin:/usr/cart/bin", elements.join(':')
+  end
+
   def test_path
     write_uuid
 

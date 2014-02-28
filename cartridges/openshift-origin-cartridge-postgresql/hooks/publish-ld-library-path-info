@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# For SCL based PostgreSQL we need publish LD_LIBRARY_PATH
+# to web framework, so application can find the correct versions
+# of client libraries.
+#
+#
+
+if [[ "${OPENSHIFT_POSTGRESQL_VERSION}" != "8.4" ]]; then
+  ld_path=$(LD_LIBRARY_PATH="" scl enable postgresql92 "printenv LD_LIBRARY_PATH")
+  echo "OPENSHIFT_POSTGRESQL_LD_LIBRARY_PATH_ELEMENT=${ld_path}"
+fi
