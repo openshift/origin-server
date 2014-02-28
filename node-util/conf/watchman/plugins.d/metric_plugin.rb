@@ -24,20 +24,29 @@ class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
   end
 
   def apply(iteration)
-    return
+
+    # I would like to have this cached, but I'm not sure how to at this point.
+    gear_app_uuids = {}
+    @gears.ids each do |uuid|
+      gear_app_uuids[uuid] = PathUtils.join(@config.get('GEAR_BASE_DIR', '/var/lib/openshift'), gear.uuid, '.env', 'OPENSHIFT_APP_UUID')
+    end
+    update_gears gear_app_uuids
   end
 end
+
 module OpenShift
   module Runtime
     module Utils
       class Cgroups
         class Metrics
-          attr_accessor :delay
+          attr_accessor :delay, :running_apps
 
           def initialize delay
             Syslog.info "Initializing watchmen metrics plugin"
             # Set the sleep time for the metrics thread
             @delay = delay
+            @mutex = Mutex.new
+
             initialize_cgroups_vars
             # Begin collection thread
             start
@@ -58,6 +67,12 @@ module OpenShift
             end
           end
 
+          def update_gears gears
+            @mutex.synchronize do
+              @running_apps = gears
+            end
+          end
+
           def time_method
             start = Time.now
             yield
@@ -67,11 +82,11 @@ module OpenShift
           def call_gear_metrics
             #We need to make sure we have the most up-to-date list of gears on each run
             output = []
-            gear_geco = `grep "GEAR_GECOS" /etc/openshift/node.conf | cut -d = -f 2 | cut -d '#' -f 1`.strip.gsub(/\"/, '')
-            @gear_uuids = `grep ":#{gear_geco}:" /etc/passwd | cut -d: -f1`.split("\n")
-            @gear_uuids.each do |uuid|
-              cgroup_name = "/openshift/#{uuid}"
-              output.concat get_cgroup_metrics(cgroup_name)
+            @mutex.synchronize
+              @running_apps.keys.each do |uuid|
+                cgroup_name = "/openshift/#{uuid}"
+                output.concat get_cgroup_metrics(cgroup_name).map{|metric| "app=#{@running_apps[uuid]} gear=#{uuid} #{metric}"}
+              end
             end
             output.each { |metric| Syslog.info("type=metric #{metric}\n") }
           end
