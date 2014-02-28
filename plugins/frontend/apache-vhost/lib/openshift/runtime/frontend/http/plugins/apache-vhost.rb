@@ -199,6 +199,7 @@ module OpenShift
                       end
 
                       f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{turi}")
+                      f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{fqdn}/")
                     end
 
                     f.fsync
@@ -302,6 +303,7 @@ module OpenShift
             def add_alias_impl(server_alias)
               File.open(alias_path(server_alias), File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
                 f.puts("ServerAlias #{server_alias}")
+                f.puts("ProxyPassReverse / http://#{server_alias}/")
                 f.fsync
               end
             end
