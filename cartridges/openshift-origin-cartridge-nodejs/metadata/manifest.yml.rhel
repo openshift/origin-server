@@ -13,8 +13,9 @@ License: MIT License
 License-Url: https://raw.github.com/joyent/node/v0.10/LICENSE
 Vendor: www.nodejs.org
 Website: http://www.nodejs.org/
-Cartridge-Version: 0.0.12
+Cartridge-Version: 0.0.13
 Compatible-Versions:
+- 0.0.12
 - 0.0.11
 Cartridge-Vendor: redhat
 Categories:
