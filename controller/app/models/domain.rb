@@ -53,6 +53,7 @@ class Domain
   attr_accessor :gear_counts
   attr_accessor :available_gears
   attr_accessor :max_storage_per_gear
+  attr_accessor :usage_rates
 
   validates :namespace,
     #presence: {message: "Namespace is required and cannot be blank."},
@@ -113,7 +114,6 @@ class Domain
 
   def self.with_gear_counts(domains=queryable)
     domains = domains.to_a
-    owners_by_id = CloudUser.in(_id: domains.map(&:owner_id)).group_by(&:_id)
     info_by_domain = Application.with_gear_counts(domains).group_by{ |a| a['domain_id'] }
     domains.each do |d|
       if info = info_by_domain[d._id]
@@ -129,17 +129,28 @@ class Domain
         d.application_count = 0
         d.gear_counts = {}
       end
-
-      if owners_by_id[d.owner_id].present?
-        owner = owners_by_id[d.owner_id].first
-        d.available_gears = owner.max_gears - owner.consumed_gears
-        d.max_storage_per_gear = owner.max_storage
-      end
     end
   end
 
   def with_gear_counts
     self.class.with_gear_counts([self]).first
+  end
+
+  def self.with_owner_info(domains=queryable)
+    domains = domains.to_a
+    owners_by_id = CloudUser.in(_id: domains.map(&:owner_id)).group_by(&:_id)
+    domains.each do |d|
+      if owners_by_id[d.owner_id].present?
+        owner = owners_by_id[d.owner_id].first
+        d.available_gears = owner.max_gears - owner.consumed_gears
+        d.max_storage_per_gear = owner.max_storage
+        d.usage_rates = owner.usage_rates
+      end
+    end
+  end
+
+  def with_owner_info
+    self.class.with_owner_info([self]).first
   end
 
   before_save prepend: true do
@@ -164,6 +175,18 @@ class Domain
   def namespace=(domain_name)
     self.canonical_namespace = domain_name.downcase
     super
+  end
+
+  # Capability-type objects inherited from the domain owner
+  # Look up in owner object when faults
+  def max_storage_per_gear
+    @max_storage_per_gear ||= owner.max_storage
+  end
+  def available_gears
+    @available_gears ||= owner.max_gears - owner.consumed_gears
+  end
+  def usage_rates
+    @usage_rates ||= owner.usage_rates
   end
 
   def inherit_membership

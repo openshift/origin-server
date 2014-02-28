@@ -217,7 +217,11 @@ module Console::ModelHelper
     end
   end
 
-  def storage_options(min,max)
+  # @param [Integer] min
+  # @param [Integer] max
+  # @param [Hash] usage_rates (as returned by the User and Domain API objects)
+  # @param [Boolean] scaling
+  def storage_options(min, max, usage_rates={}, scaling=false)
     {:as => :select, :collection => (min..max), :include_blank => false}
   end
 

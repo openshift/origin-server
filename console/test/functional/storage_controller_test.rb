@@ -8,6 +8,8 @@ class StorageControllerTest < ActionController::TestCase
     assert max_storage = assigns(:max_storage)
     assert_not_nil user.capabilities[:max_storage_per_gear]
     assert_equal user.capabilities[:max_storage_per_gear], max_storage
+    assert usage_rates = assigns(:usage_rates)
+    assert_equal user.usage_rates, usage_rates
     assert_response :success
   end
 

@@ -406,6 +406,10 @@ class CloudUser
     self._capabilities["max_tracked_addtl_storage_per_gear"] = m if capabilities["max_tracked_addtl_storage_per_gear"] != m
   end
 
+  def usage_rates
+    {}
+  end
+
   def private_ssl_certificates
     capabilities["private_ssl_certificates"] || false
   end

@@ -21,6 +21,9 @@ class DomainsController < BaseController
       end
 
     if_included(:application_info, {}){ domains = domains.with_gear_counts }
+    
+    # Always include domain capability info, which we get from the owner
+    domains = Domain.with_owner_info(domains)
 
     render_success(:ok, "domains", domains.sort_by(&Domain.sort_by_original(current_user)).map{ |d| get_rest_domain(d) })
   end
@@ -37,6 +40,9 @@ class DomainsController < BaseController
     get_domain(params[:name] || params[:id])
 
     if_included(:application_info){ @domain.with_gear_counts }
+
+    # Always include domain capability info, which we get from the owner
+    @domain = @domain.with_owner_info
 
     return render_success(:ok, "domain", get_rest_domain(@domain), "Found domain #{@domain.namespace}") if @domain
   end
