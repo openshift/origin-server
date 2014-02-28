@@ -7,9 +7,9 @@ case "$1" in
       version="$2"
 esac
 
-echo "$version" > "$OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_VERSION"
+echo "$version" > ${OPENSHIFT_PYTHON_DIR}env/OPENSHIFT_PYTHON_VERSION
 
-mkdir -p $OPENSHIFT_PYTHON_DIR/template
+mkdir -p ${OPENSHIFT_PYTHON_DIR}template
 
 # Call the version specific install script
-exec $OPENSHIFT_PYTHON_DIR/usr/versions/$version/bin/install $version
+exec ${OPENSHIFT_PYTHON_DIR}usr/versions/${version}/bin/install $version

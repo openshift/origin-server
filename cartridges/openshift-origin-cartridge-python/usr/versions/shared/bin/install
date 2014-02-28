@@ -10,18 +10,18 @@ version="$1"
 
 # Copy the version specific files to python directory
 shopt -s dotglob
-[ -d $OPENSHIFT_PYTHON_DIR/usr/versions/$version/template ] && cp -r $OPENSHIFT_PYTHON_DIR/usr/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template
+[ -d ${OPENSHIFT_PYTHON_DIR}usr/versions/${version}/template ] \
+  && cp -r ${OPENSHIFT_PYTHON_DIR}usr/versions/${version}/template/* ${OPENSHIFT_PYTHON_DIR}template
 
 # Create additional directories required by PYTHON and httpd
 ln -sf ${_libdir}/httpd/modules $OPENSHIFT_PYTHON_DIR
-ln -sf /etc/httpd/conf/magic $OPENSHIFT_PYTHON_DIR/etc/magic
+ln -sf /etc/httpd/conf/magic ${OPENSHIFT_PYTHON_DIR}etc/magic
 
 # The virtual environment is assumed to exist going forward
-if [ ! -f $OPENSHIFT_PYTHON_DIR/virtenv/bin/python ]
-then
-    source $OPENSHIFT_PYTHON_DIR/usr/versions/$version/lib/python-context
+if [ ! -f ${OPENSHIFT_PYTHON_DIR}virtenv/bin/python ]; then
+    source ${OPENSHIFT_PYTHON_DIR}usr/versions/${version}/lib/python-context
     python-context-stdin <<EOF
-source $OPENSHIFT_PYTHON_DIR/usr/versions/$version/lib/create-virtenv
+source ${OPENSHIFT_PYTHON_DIR}usr/versions/${version}/lib/create-virtenv
 create-virtenv
 EOF
 fi

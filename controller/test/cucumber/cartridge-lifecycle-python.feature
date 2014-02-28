@@ -40,6 +40,16 @@ Feature: Cartridge Lifecycle Python Verification Tests
     When the application is restarted
     Then the application should be accessible
 
+  #Given an existing <cart_name> application, verify WSGI entry-point
+    # wsgi/application (backward compatibility with old Python template repo)
+    When I rename wsgi.py repo file as wsgi/application file
+    Then the application should be accessible
+
+    # custom WSGI file (user sets ENV VAR)
+    When a new environment variable key=OPENSHIFT_PYTHON_WSGI_APPLICATION value=some/other/dir/wsgi.py is added
+    And I rename wsgi/application repo file as some/other/dir/wsgi.py file
+    Then the application should be accessible
+
   #Given an existing <cart_name> application, verify it can be destroyed
     When the application is destroyed
     Then the application should not be accessible

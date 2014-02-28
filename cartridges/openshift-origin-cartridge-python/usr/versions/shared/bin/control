@@ -1,15 +1,17 @@
 #!/bin/bash
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
-source "${OPENSHIFT_PYTHON_DIR}/usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/create-virtenv"
+source "${OPENSHIFT_PYTHON_DIR}usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/create-virtenv"
+source "${OPENSHIFT_PYTHON_DIR}usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/python_config"
 
-HTTPD_CFG_FILE=$OPENSHIFT_PYTHON_DIR/etc/conf/httpd_nolog.conf
-HTTPD_CFG_DIR=$OPENSHIFT_PYTHON_DIR/etc/conf.d
-HTTPD_PASSENV_FILE=$HTTPD_CFG_DIR/passenv.conf
-HTTPD_PID_FILE=$OPENSHIFT_PYTHON_DIR/run/httpd.pid
+HTTPD_CFG_FILE=${OPENSHIFT_PYTHON_DIR}etc/conf/httpd_nolog.conf
+HTTPD_CFG_DIR=${OPENSHIFT_PYTHON_DIR}etc/conf.d/
+ERB_HTTPD_CFG_DIR=${OPENSHIFT_PYTHON_DIR}usr/versions/${OPENSHIFT_PYTHON_VERSION}/etc/conf.d/
+HTTPD_PASSENV_FILE=${HTTPD_CFG_DIR}passenv.conf
+HTTPD_PID_FILE=${OPENSHIFT_PYTHON_DIR}run/httpd.pid
 
 # construct the configuration directives for httpd
-HTTPD_CMD_CONF="-C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE"
+HTTPD_CMD_CONF="-C 'Include ${HTTPD_CFG_DIR}*.conf' -f $HTTPD_CFG_FILE"
 for dir in /etc/openshift/cart.conf.d/httpd{,/python} ; do
     [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -c 'Include $dir/*.conf'"
 done
@@ -18,23 +20,30 @@ done
 export APPDIR=$OPENSHIFT_PYTHON_DIR
 
 function start_app() {
-    cd "$OPENSHIFT_REPO_DIR"
-    nohup python -u app.py > "$OPENSHIFT_PYTHON_DIR/logs/appserver.log" 2>&1 &
-    echo $! > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
+    echo "Starting Python ${OPENSHIFT_PYTHON_VERSION} cartridge (app.py server)"
+    cd $OPENSHIFT_REPO_DIR \
+      && nohup python -u app.py > "${OPENSHIFT_PYTHON_DIR}logs/appserver.log" 2>&1 &
+    echo $! > ${OPENSHIFT_PYTHON_DIR}run/appserver.pid
+}
+
+function pre_start_apache_config {
+    write_httpd_passenv $HTTPD_PASSENV_FILE
+    select_python_document_root ${OPENSHIFT_REPO_DIR}
+    select_python_wsgi_application ${OPENSHIFT_REPO_DIR}
+    oo-erb ${ERB_HTTPD_CFG_DIR}openshift.conf.erb > ${HTTPD_CFG_DIR}openshift.conf
+    oo-erb ${OPENSHIFT_PYTHON_DIR}conf/performance.conf.erb.hidden > ${HTTPD_CFG_DIR}performance.conf
 }
 
 function start_apache() {
-    write_httpd_passenv $HTTPD_PASSENV_FILE
+    echo "Starting Python ${OPENSHIFT_PYTHON_VERSION} cartridge (Apache+mod_wsgi)"
+    pre_start_apache_config
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-    eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k start"
-    [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
+    eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k start" \
+      && wait_for_pid_file $HTTPD_PID_FILE
 }
 
 function start() {
-    echo "Starting PYTHON cart"
-    oo-erb ${OPENSHIFT_PYTHON_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
-    if [ -f "$OPENSHIFT_REPO_DIR/app.py" ]
-    then
+    if [ -f "${OPENSHIFT_REPO_DIR}app.py" ]; then
         start_app
     else
         start_apache
@@ -42,18 +51,16 @@ function start() {
 }
 
 function stop_app() {
-    if [ -s $OPENSHIFT_PYTHON_DIR/run/appserver.pid ]
-    then
-        kpid=$(cat $OPENSHIFT_PYTHON_DIR/run/appserver.pid)
+    if [ -s ${OPENSHIFT_PYTHON_DIR}run/appserver.pid ]; then
+        kpid=$(cat ${OPENSHIFT_PYTHON_DIR}run/appserver.pid)
         iters=0
-        while kill $kpid >/dev/null 2>&1
-        do
+        while kill $kpid >/dev/null 2>&1; do
             iters=$(($iters + 1))
             [ $iters -gt 10 ] && break
             sleep 1
         done
         kill -KILL $kpid >/dev/null 2>&1 || :
-        rm -f $OPENSHIFT_PYTHON_DIR/run/appserver.pid
+        rm -f ${OPENSHIFT_PYTHON_DIR}run/appserver.pid
     fi
 }
 
@@ -61,13 +68,13 @@ function stop_apache() {
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-        eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k stop"
-        wait_for_stop $httpd_pid
+        eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k stop" \
+          && wait_for_stop $httpd_pid
     fi
 }
 
 function stop() {
-    echo "Stopping PYTHON cart"
+    echo "Stopping Python ${OPENSHIFT_PYTHON_VERSION} cartridge"
 
     # Do both in case the last commit transitioned from one to the
     # other or there was a problem.
@@ -77,15 +84,14 @@ function stop() {
 
 
 function restart() {
-   echo "Restarting PYTHON cart"
-    if [ -f "$OPENSHIFT_REPO_DIR/app.py" ]
-    then
-        stop
-        start
+    echo "Restarting Python ${OPENSHIFT_PYTHON_VERSION} cartridge"
+    if [ -f "${OPENSHIFT_REPO_DIR}app.py" ]; then
+        stop_apache
+        stop_app
+        start_app
     else
         stop_app
-        oo-erb ${OPENSHIFT_PYTHON_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
-        write_httpd_passenv $HTTPD_PASSENV_FILE
+        pre_start_apache_config
         ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
         eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k restart"
     fi
@@ -93,30 +99,23 @@ function restart() {
 
 function status() {
     res=0
-    if [ -f "$OPENSHIFT_REPO_DIR/app.py" ]
-    then
+    if [ -f "${OPENSHIFT_REPO_DIR}app.py" ]; then
         output=$(curl -s -m 30 http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/ &> /dev/null) || res=1
     else
         output=$(curl -s -m 30 http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/server-status?auto 2>&1 ) || res=1
     fi
-    if [ $res -eq 0 ]
-    then
+    if [ $res -eq 0 ]; then
         client_result "Application is running"
     else
         client_result "Application is either stopped or inaccessible"
     fi
 }
 
-function reload() {
-    echo "Reloading PYTHON cart"
-    restart
-}
-
 # Clean up any log files
 function tidy() {
-  client_message "Emptying log dir: $OPENSHIFT_PYTHON_LOG_DIR"
-  shopt -s dotglob
-  rm -rf $OPENSHIFT_PYTHON_LOG_DIR/*
+    client_message "Emptying log dir: $OPENSHIFT_PYTHON_LOG_DIR"
+    shopt -s dotglob
+    rm -rf $OPENSHIFT_PYTHON_LOG_DIR/*
 }
 
 function build() {
@@ -164,8 +163,8 @@ case "$1" in
   start)     start ;;
   stop)      stop ;;
   restart)   restart ;;
+  reload)    restart ;;
   status)    status ;;
-  reload)    reload ;;
   tidy)      tidy ;;
   build)     build ;;
   deploy)    deploy ;;

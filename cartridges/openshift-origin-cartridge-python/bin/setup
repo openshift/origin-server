@@ -7,11 +7,11 @@ case "$1" in
       version="$2"
 esac
 
-mkdir -p $OPENSHIFT_PYTHON_DIR/etc
+mkdir -p ${OPENSHIFT_PYTHON_DIR}etc
 
 # Update environment
-source $OPENSHIFT_PYTHON_DIR/usr/versions/$version/lib/update-configuration
+source ${OPENSHIFT_PYTHON_DIR}usr/versions/${version}/lib/update-configuration
 update-configuration
 
 # Call the version specific setup script
-exec $OPENSHIFT_PYTHON_DIR/usr/versions/$version/bin/setup $version
+exec ${OPENSHIFT_PYTHON_DIR}usr/versions/${version}/bin/setup $version

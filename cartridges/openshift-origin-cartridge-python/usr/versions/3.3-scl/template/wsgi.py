@@ -1,16 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import os
-
-virtenv = os.environ['OPENSHIFT_PYTHON_DIR'] + '/virtenv/'
-virtualenv = os.path.join(virtenv, 'bin/activate_this.py')
-try:
-    execfile(virtualenv, dict(__file__=virtualenv))
-except IOError:
-    pass
-#
-# IMPORTANT: Put any additional includes below this line.  If placed above this
-# line, it's possible required libraries won't be in your searchable path
-# 
 
 def application(environ, start_response):
 
@@ -41,7 +30,7 @@ def application(environ, start_response):
  * Designed and built with all the love in the world @twitter by @mdo and @fat.
  */
 
-.logo {
+  .logo {
     background-size: cover;
     height: 58px;
     width: 180px;
@@ -165,7 +154,7 @@ hgroup {
 }
 footer {
     margin: 50px 0 25px;
-    font-size: 11px
+    font-size: 11px;
 }
 h1, h2, h3 {
   color: #000;
@@ -252,7 +241,7 @@ pre {
 
 $ git commit -a -m 'Some commit message'
 $ git push</pre>
-                <ul>
+                  <ul>
                     <li><a href="https://www.openshift.com/developers/deploying-and-building-applications">Learn more about deploying and building your application</a></li>
                     <li>See the README file in your local application Git repository for more information on the options for deploying applications.</li>
                   </ul>
@@ -272,7 +261,7 @@ $ git push</pre>
                 </p>
 
                 <h2>Development Resources</h2>
-                    <ul>
+                  <ul>
                     <li><a href="https://www.openshift.com/developers">Developer Center</a></li>
                     <li><a href="https://www.openshift.com/user-guide">User Guide</a></li>
                     <li><a href="https://www.openshift.com/support">OpenShift Support</a></li>
@@ -281,14 +270,14 @@ $ git push</pre>
                     <li><a href="http://git-scm.com/documentation">Git documentation</a></li>
                   </ul>
 
+
           </section>
         </div>
 
         <footer>
           <div class="logo"><a href="https://www.openshift.com/"></a></div>
         </footer>
-      </section>
-
+</section>
 </body>
 </html>'''
 
@@ -296,7 +285,7 @@ $ git push</pre>
     response_headers = [('Content-Type', ctype), ('Content-Length', str(len(response_body)))]
     #
     start_response(status, response_headers)
-    return [response_body]
+    return [response_body.encode('utf-8') ]
 
 #
 # Below for testing only
