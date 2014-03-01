@@ -70,6 +70,7 @@ module OpenShift
             @mutex.synchronize do
               @running_apps = gears
             end
+            Syslog.info "running apps now: #{@running_apps}"
           end
 
           def time_method
