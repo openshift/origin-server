@@ -24,10 +24,9 @@ class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
   end
 
   def apply(iteration)
-
     # I would like to have this cached, but I'm not sure how to at this point.
     gear_app_uuids = {}
-    @gears.ids.each do |uuid|
+    @gears.each do |uuid|
       gear_app_uuids[uuid] = PathUtils.join(@config.get('GEAR_BASE_DIR', '/var/lib/openshift'), uuid, '.env', 'OPENSHIFT_APP_UUID')
     end
     @metrics.update_gears gear_app_uuids
