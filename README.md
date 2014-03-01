@@ -16,12 +16,16 @@ Architecturally OpenShift is split into the following core subsystems:
 *   __Node__
     Hosted applications are run in isolated containers on each node -
 the system can operate many nodes at any one time.
+*   __Cartridge__
+    Frameworks/components used to build an application (Ex: JBoss)
 *   __Broker__
     Central service exposing a REST API for consumers and coordinating
 with each node.
 *   __Console__
-    Web management console using the REST API to allow users to easily 
+    Web management console using the REST API to allow users to easily
 create and manage applications.
+*   __Admin Console__
+    Web console with admin focused reporting and utilities
 *   __Messaging System__
     Communication pipeline between the broker and each node.
 *   __User Authentication__
