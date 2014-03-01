@@ -84,6 +84,7 @@ module OpenShift
             output = []
             @mutex.synchronize do
               @running_apps.keys.each do |uuid|
+                Syslog.info "Running metrics for gear #{uuid}"
                 cgroup_name = "/openshift/#{uuid}"
                 output.concat get_cgroup_metrics(cgroup_name).map{|metric| "app=#{@running_apps[uuid]} gear=#{uuid} #{metric}"}
               end
