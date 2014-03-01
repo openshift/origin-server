@@ -8,6 +8,7 @@ SYNOPSIS
   [--setmaxdomains max_domains]
   [--setmaxuntrackedstorage max_untracked_storage]
   [--setmaxtrackedstorage max_tracked_storage]
+  [--setmaxteams max_teams]
   [--listsubaccounts] [--addsubaccount subaccount_login]
   [--removesubaccount subaccount_login] [--allowsubaccounts true|false]
   [--addgearsize gear_size] [--removegearsize gear_size]
@@ -49,6 +50,9 @@ OPTIONS
 
   --setmaxtrackedstorage max_tracked_storage 
     Set the maximum amount of tracked additional file-system storage.
+    
+  --setmaxteams max_teams  
+    Set the maximum number of teams a user is allowed to create.
  
   --listsubaccounts  
     List the subaccounts that have been created under this parent account.
