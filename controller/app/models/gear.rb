@@ -307,14 +307,14 @@ class Gear
     group_instance.server_identities.uniq
   end
 
-  # Gets the list of server identities where this gear cannot be hosted  
+  # Gets the list of server identities where this gear cannot be hosted
   # == Returns:
   # @return [Array] List of server identities where this gear cannnot be hosted
   def restricted_server_identities
     restricted_nodes = []
     if !Rails.configuration.openshift[:allow_multiple_haproxy_on_node] and self.application.scalable and self.component_instances.select { |ci| ci.is_web_proxy? }.present?
       self.group_instance.gears.each do |gear|
-        # skip if this is the current gear itself or if it's node hasn't been determined yet  
+        # skip if this is the current gear itself or if its node hasn't been determined yet
         next if gear.uuid == self.uuid or gear.server_identity.nil?
         restricted_nodes << gear.server_identity if gear.component_instances.select { |ci| ci.is_web_proxy? }.present?
       end

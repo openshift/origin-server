@@ -25,7 +25,7 @@ $password = 'nopass'
 $credentials = Base64.encode64("#{$user}:#{$password}")
 $default_timeout = 120 # 120 secs
 
-# openshift.com has it's own authentication plugin for integrating with
+# openshift.com has its own authentication plugin for integrating with
 # redhat.com
 def registration_required?
   not hosted?

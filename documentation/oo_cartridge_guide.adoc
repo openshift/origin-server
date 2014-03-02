@@ -1069,7 +1069,7 @@ After `sprockets` gem is installed you need to precompile all your assets locall
 
 ==== Load database schema
 
-If your Rails application contains a large amount of migrations it's a good to use `db:schema:load` on initial deploy and `db:migrate` on re-deploymnets. You can do this by looking into the database and checking whether one of the DB tables exists.
+If your Rails application contains a large amount of migrations it's good to use `db:schema:load` on initial deploy and `db:migrate` on re-deploymnets. You can do this by looking into the database and checking whether one of the DB tables exists.
 
 This example checks, in the deploy hook, if the `spree_activators` table is present in the database.
 ....

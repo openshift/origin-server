@@ -73,7 +73,7 @@ wget https://application-domain@example.com
 Manual Restoring
 ----------------------
 
-A gear may be restored without accessing it's URL  using the following
+A gear may be restored without accessing its URL  using the following
 command:
 ```
 /usr/sbin/oo-restorer -u <gear uuid>
@@ -97,7 +97,7 @@ How does it work?
 
   * oo-restorer
 
-    oo-restorer restores the application's URL to it's original value and
+    oo-restorer restores the application's URL to its original value and
     starts the application. Marks the application's status as 'started'.
 
     * -u _uuid_ restores the gear

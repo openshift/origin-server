@@ -233,7 +233,7 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
 
     assert_equal expected_path, repo.path
     assert_bare_repository(repo)
-    
+
     runtime_repo = "#{@container.container_dir}/app-deployments/#{@container.latest_deployment_datetime}/repo"
     repo.archive(runtime_repo, 'master')
     assert_path_exist File.join(runtime_repo, 'perl', 'index.pl')
@@ -268,12 +268,12 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
         stderr ==> #{e.stderr}
            #{e.backtrace.join("\n")}}
       raise
-    end    
+    end
 
     assert_equal expected_path, repo.path
     assert_bare_repository(repo)
     assert_repo_reset(repo)
-  end  
+  end
 
   def test_source_usr
     refute_path_exist File.join(@cartridge_home, 'template.git')
