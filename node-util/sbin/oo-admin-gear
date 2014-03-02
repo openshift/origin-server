@@ -43,7 +43,7 @@ begin
     if not missing.empty?
         puts optparse
         exit
-    end                      
+    end
 rescue OptionParser::InvalidOption, OptionParser::MissingArgument
     puts $!.to_s
     puts optparse

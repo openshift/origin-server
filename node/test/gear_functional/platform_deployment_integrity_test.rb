@@ -58,6 +58,6 @@ class PlatformDeploymentIntegrityTest < OpenShift::NodeBareTestCase
 
     @api.clone_repo(app_id)
     @api.change_title(CHANGED_TITLE, app_name, app_id, framework)
-    @api.assert_http_title_for_app(app_name, @namespace, CHANGED_TITLE)    
+    @api.assert_http_title_for_app(app_name, @namespace, CHANGED_TITLE)
   end
 end

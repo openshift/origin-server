@@ -28,7 +28,7 @@
 # haproxy_ctld.rb runs inside the same gear as haproxy does.  Haproxy is our
 # primary load balancing software.  Haproxy and haproxy_ctld.rb are both run
 # as your user inside the gear and both are daemonized.  The default behavior
-# is to have haproxy_ctld.rb watch haproxy via it's unix socket "status" port
+# is to have haproxy_ctld.rb watch haproxy via its unix socket "status" port
 # to obtain basic statistics about haproxy.  When a scale up or down event
 # is required, haproxy_ctld.rb contacts the broker via the standard REST API
 # and issues a scale-up or scale-down event.  Authentication is handled by an

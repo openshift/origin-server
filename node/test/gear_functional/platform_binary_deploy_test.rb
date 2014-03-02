@@ -184,7 +184,7 @@ class PlatformBinaryDeployTest < OpenShift::NodeBareTestCase
       esac
       #{cart_dir}/bin/wrapped_control $1
     EOS
-      
+
     `mv #{cart_dir}/bin/control #{cart_dir}/bin/wrapped_control`
     File.write("#{cart_dir}/bin/control",control_wrapper)
     `chmod a+x #{cart_dir}/bin/control`

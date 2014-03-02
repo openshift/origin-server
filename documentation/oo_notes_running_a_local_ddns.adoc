@@ -312,8 +312,8 @@ TIP: If your network interface is set statically, you can stop here. Otherwise, 
 
 For a self-contained service which would be typical for testing, or
 for a virtual host environment like EC2 it is possible that the DNS
-host will get it's IP address and DNS information from DHCP.  In that
-case each time the host renews it's DHCP lease it will overwrite the
+host will get its IP address and DNS information from DHCP.  In that
+case each time the host renews its DHCP lease it will overwrite the
 `/etc/resolv.conf` file.  It may also change its upstream nameserver
 list.  If that happens, the forwarders list for the named must also
 change. 
