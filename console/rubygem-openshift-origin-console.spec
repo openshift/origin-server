@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,18 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- Merge pull request #4852 from sg00dwin/disabed-buttons-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1070068 - fixes some search forms to the new site search engine
+  (contact@fabianofranz.com)
+- Merge pull request #4684 from liggitt/domain_capabilities
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for disabled button states Fix for bug 1050796 incorrect drupal
+  quickstart link in console/help page (sgoodwin@redhat.com)
+- Fix up rates incorrectly rounded to bash.00 (jliggitt@redhat.com)
+- Surface owner storage capabilities and storage rates (jliggitt@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - Bug 1066850 - Fixing urls (dmcphers@redhat.com)
 - Bug 1066945 - Fixing urls (dmcphers@redhat.com)
