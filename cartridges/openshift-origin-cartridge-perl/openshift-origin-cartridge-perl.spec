@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -56,6 +56,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Template cleanup (dmcphers@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - Perl repository layout changes (jhadvig@redhat.com)
 - Fix Bug 1070059 - Incorrect git command info listed in perl default home page
