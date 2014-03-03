@@ -362,7 +362,8 @@ textarea[disabled] {
   cursor: not-allowed;
   background-color: $inputDisabledBackground;
   border: 1px solid $inputDisabledBorder;
-  color: #666 !important;
+  opacity: 0.75;
+  filter: alpha(opacity=75);
 }
 // Read-only inputs
 input[readonly],
