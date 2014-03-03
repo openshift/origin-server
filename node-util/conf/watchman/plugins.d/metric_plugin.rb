@@ -56,8 +56,10 @@ module OpenShift
 
           # Step that is run on each interval
           def tick
-            gear_metric_time = time_method {call_gear_metrics}
-            Syslog.info "type=metric gear.metric_time=#{gear_metric_time}\n"
+            @mutex.synchronize do
+              gear_metric_time = time_method {call_gear_metrics}
+              Syslog.info "type=metric gear.metric_time=#{gear_metric_time}\n"
+            end
           rescue Exception => e
             Syslog.info("Metric: unhandled exception #{e.message}\n" + e.backtrace.join("\n"))
 
@@ -73,7 +75,9 @@ module OpenShift
           end
 
           def update_gears gears
-            @running_apps = gears
+            @mutex.synchronize do
+              @running_apps = gears
+            end
           end
 
           def time_method
