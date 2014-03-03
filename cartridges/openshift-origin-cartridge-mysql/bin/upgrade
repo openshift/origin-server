@@ -3,7 +3,7 @@ mysql_version="$1"
 old_cart_version="$2"
 new_cart_version="$3"
 
-if [[ $new_cart_version =~ 0.2.5 ]]; then
+if [[ $new_cart_version == 0.2.5 ]]; then
   files=$(shopt -s nullglob; shopt -s dotglob; echo data/ib_logfile*)
   if [ ${#files} -gt 0 ]; then
     mv data/ib_logfile* /tmp
