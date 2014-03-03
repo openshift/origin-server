@@ -237,7 +237,7 @@ module OpenShift
             if !tc_exists?(netclass)
               startuser_impl(uuid, pwent, netclass, f)
             else
-              @output.last << "already throttled."
+              @output.last << "tc is already active."
             end
           end
         end
