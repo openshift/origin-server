@@ -17,17 +17,20 @@
 require 'openshift-origin-node/model/watchman/watchman_plugin'
 
 class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
+  attr_accesor :gear_app_uuids
   def initialize(config,gears,restart,operation)
     super(config,gears,restart,operation)
+    @gear_app_uuids = Hash.new do |h,uuid|
+      h[uuid] = File.read(PathUtils.join(@config.get('GEAR_BASE_DIR', '/var/lib/openshift'), uuid, '.env', 'OPENSHIFT_APP_UUID'))
+    end
     # Initiallize metrics to run every 60 seconds
     @metrics = ::OpenShift::Runtime::Utils::Cgroups::Metrics.new 60
   end
 
   def apply(iteration)
-    # I would like to have this cached, but I'm not sure how to at this point.
-    gear_app_uuids = {}
+    # Cached using lazy evaluation :)
     @gears.each do |uuid|
-      gear_app_uuids[uuid] = File.read(PathUtils.join(@config.get('GEAR_BASE_DIR', '/var/lib/openshift'), uuid, '.env', 'OPENSHIFT_APP_UUID'))
+      gear_app_uuids[uuid]
     end
     @metrics.update_gears gear_app_uuids
   end
@@ -68,9 +71,7 @@ module OpenShift
           end
 
           def update_gears gears
-            @mutex.synchronize do
-              @running_apps = gears
-            end
+            @running_apps = gears
             Syslog.info "running apps now: #{@running_apps}"
           end
 
