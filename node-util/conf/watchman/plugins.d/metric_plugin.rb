@@ -56,7 +56,6 @@ module OpenShift
 
           # Step that is run on each interval
           def tick
-            Syslog.info "Tick"
             gear_metric_time = time_method {call_gear_metrics}
             Syslog.info "type=metric gear.metric_time=#{gear_metric_time}\n"
           rescue Exception => e
@@ -67,7 +66,6 @@ module OpenShift
           def start
             Thread.new do
               loop do
-                Syslog.info "tick in start method"
                 tick
                 sleep @delay
               end
@@ -76,7 +74,6 @@ module OpenShift
 
           def update_gears gears
             @running_apps = gears
-            Syslog.info "running apps now: #{@running_apps}"
           end
 
           def time_method
