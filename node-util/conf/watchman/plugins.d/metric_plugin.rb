@@ -180,7 +180,7 @@ module OpenShift
 
           # This method returns a string to be processed, is it worth wrapping the execute?
           def execute_cgget(metrics, path)
-            oo-spawn cgget -n -v -r #{metrics} #{path}
+            `cgget -n -v -r #{metrics} #{path}`
           end
         end
       end
