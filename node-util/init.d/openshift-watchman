@@ -20,7 +20,7 @@ if File.exists? path
   config.get_params.each {|k| ENV[k] = config[k]}
 end
 
-options = {
+Options = {
     app_name:   'watchman',
     backtrace:  true,
     ontop:      false,
@@ -31,28 +31,37 @@ options = {
     script:     '/usr/sbin/oo-watchman',
 }
 
+def daemon_running?
+  group = Daemons::ApplicationGroup.new(::Options[:app_name], ::Options).tap { |g| g.setup }
+  (!group.applications.empty? || (group.applications.first && group.applications.running?))
+end
+
 case ARGV[0]
   when 'stop'
     puts 'Stopping Watchman'
-    Daemons.run(options[:script], options)
+    Daemons.run(Options[:script], Options)
   when 'start'
     puts 'Starting Watchman'
-    Daemons.run(options[:script], options)
+    Daemons.run(Options[:script], Options)
   when 'restart'
-    puts 'Restarting Watchman'
     # 'restart' code can be removed when we upgrade beyond Daemons 1.1.0
-    Daemons.run(options[:script], options.merge(ARGV: ['stop']))
-    sleep 1
-    Daemons.run(options[:script], options.merge(ARGV: ['start']))
+    loop do
+      puts 'Stopping Watchman'
+      Daemons.run(Options[:script], Options.merge(ARGV: ['stop']))
+      break unless daemon_running?
+      sleep 1
+    end
+
+    puts 'Starting Watchman'
+    Daemons.run(Options[:script], Options.merge(ARGV: ['start']))
   when 'status'
-    group = Daemons::ApplicationGroup.new(options[:app_name], options).tap { |g| g.setup }
-    if group.applications.empty? || !group.applications.first.running?
-      puts 'Watchman is not running'
-      exit 1
-    else
+    if daemon_running?
       puts 'Watchman is running'
       exit 0
+    else
+      puts 'Watchman is not running'
+      exit 1
     end
   else
-    Daemons.run(options[:script], options)
+    Daemons.run(Options[:script], Options)
 end
