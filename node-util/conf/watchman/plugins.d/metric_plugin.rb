@@ -64,7 +64,7 @@ module OpenShift
           def start
             Thread.new do
               loop do
-                "tick in start method"
+                Syslog.info "tick in start method"
                 tick
                 sleep @delay
               end
