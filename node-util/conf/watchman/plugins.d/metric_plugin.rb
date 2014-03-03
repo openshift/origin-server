@@ -17,7 +17,7 @@
 require 'openshift-origin-node/model/watchman/watchman_plugin'
 
 class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
-  attr_accesor :gear_app_uuids
+  attr_accessor :gear_app_uuids
   def initialize(config,gears,restart,operation)
     super(config,gears,restart,operation)
     @gear_app_uuids = Hash.new do |h,uuid|
