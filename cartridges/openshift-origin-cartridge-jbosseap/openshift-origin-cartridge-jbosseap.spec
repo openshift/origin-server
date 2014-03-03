@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.14.1
+Version: 2.14.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -79,6 +79,14 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 2.14.2-1
+- Bug 1071123 - Fix template symlink (dmcphers@redhat.com)
+- Template cleanup (dmcphers@redhat.com)
+- Merge pull request #4825 from bparees/jboss_config
+  (dmcphers+openshiftbot@redhat.com)
+- allow users to prevent overwrite of local jboss config from repository
+  (bparees@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 2.14.1-1
 - change mirror1.ops to mirror.ops, which is load balanced between servers
   (tdawson@redhat.com)
