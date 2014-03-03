@@ -237,7 +237,7 @@ def load_users
   # for a user are displayed on a single line. Other times, they are split.
   # This handles both cases using Set merging.
   $CGROUP_DATA = Hash.new{|hash, key| hash[key] = Set.new()}
-  %x["/bin/lscgroup"].split.each { |entry|
+  %x[/bin/lscgroup].split.each { |entry|
     subsystems,uuid = entry.split(':')
     uuid.match('/openshift/(.+)') { |m| $CGROUP_DATA[m[1]].merge(subsystems.split(',')) }
   }
@@ -317,7 +317,7 @@ def check_node_public_resolution
     # but we can check PUBLIC_HOSTNAME resolves to either a NIC on this host or PUBLIC_IP.
     # in EC2, hostname resolves differently internal vs. external, so will match NIC.
     # in most places, PUBLIC_HOSTNAME will resolve to PUBLIC_IP
-    my_ips = `ip addr show scope global`.scan(/^\s+inet\s+([\d\.]+)/).flatten.push(pubip).uniq
+    my_ips = %x[/sbin/ip addr show scope global].scan(/^\s+inet\s+([\d\.]+)/).flatten.push(pubip).uniq
     do_fail("#{$NODE_CONF_FILE}: PUBLIC_HOSTNAME #{pubhost} resolves to #{resolved_host}; expected #{my_ips.join '|'}") unless my_ips.member? resolved_host
 end
 
@@ -326,20 +326,20 @@ def check_selinux()
 
     policy_name = selinux_policy_name
 
-    unless %x[/usr/sbin/getenforce] =~ /Enforcing/
-        do_fail("selinux is not enabled")
+    if %x[/usr/sbin/getenforce] =~ /Enforcing/
+      verbose("checking selinux #{policy_name} policy")
+      do_fail("selinux #{policy_name} policy is not loaded") unless %x[/usr/bin/timeout -s9 #{$OPTIONS[:timeout]} /usr/sbin/semodule -l] =~ /#{policy_name}[\d\.\W]+$/
     else
-        verbose("checking selinux #{policy_name} policy")
-        do_fail("selinux #{policy_name} policy is not loaded") unless %x[/usr/bin/timeout -s9 #{$OPTIONS[:timeout]} /usr/sbin/semodule -l] =~ /#{policy_name}[\d\.\W]+$/
+      do_fail('selinux is not enabled')
     end
-    verbose("checking selinux booleans")
+    verbose('checking selinux booleans')
     $SEBOOL_LIST.split.each { |bool|
         name,value = bool.split(':')
         result = %x[/usr/sbin/getsebool #{name}]
         do_fail("selinux boolean #{name} should be #{value}") unless result =~ /#{name} --> #{value}/
     }
 
-    do_fail("invalid selinux labels in OPENSHIFT_DIR $GEAR_BASE_DIR") unless %x[/sbin/restorecon -n -v #{$GEAR_BASE_DIR}] =~ //
+    do_fail('invalid selinux labels in OPENSHIFT_DIR $GEAR_BASE_DIR') unless %x[/sbin/restorecon -n -v #{$GEAR_BASE_DIR}] =~ //
 
     # This will likely only detect the effects of a full relabel but it's
     # better than nothing.  My unscientific tests shows that checking 100 gears
