@@ -250,19 +250,46 @@ module OpenShift
           FileUtils.ln_s('../data', PathUtils.join(@container_dir, 'app-root', 'runtime', 'data'))
         end
 
+        def data_dir_snapshot_for_type(type)
+          dash_index = type.rindex('-')
+
+          if dash_index
+            cartridge = type[0,dash_index]
+          else
+            return nil
+          end
+
+          matches = Dir.glob(PathUtils.join(container_dir, %W(app-root data #{cartridge}-*.tar.gz)))
+
+          case matches.length
+          when 0
+            $stderr.puts "Unable to restore #{type} because it appears there is no snapshot for that type"
+            nil
+          when 1
+            $stderr.puts "Using #{matches[0]} to restore #{type}"
+            matches[0]
+          else
+            $stderr.puts "Unable to restore #{type} because there are ambiguous snapshots to restore: #{matches}"
+            nil
+          end
+        end
+
         def handle_scalable_restore(gear_groups, gear_env)
           secondary_groups = get_secondary_gear_groups(gear_groups)
 
           secondary_groups.each do |type, group|
-            if !File.exists?(PathUtils.join(container_dir, %W(app-root data #{type}.tar.gz)))
-              $stderr.puts "Unable to restore #{type} because it appears there is no snapshot for that type"
-              next
+            group_snapshot = "#{type}.tar.gz"
+
+            if !File.exists?(PathUtils.join(container_dir, %W(app-root data #{group_snapshot})))
+              group_snapshot = data_dir_snapshot_for_type(type)
             end
+
+            next if group_snapshot.nil?
 
             $stderr.puts "Restoring snapshot for #{type} gear"
 
             ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
-            run_in_container_context("cat #{type}.tar.gz | #{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'restore --no-report-deployments'",
+            run_in_container_context("cat #{group_snapshot} | #{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'restore --no-report-deployments'",
                                       env: gear_env,
                                       chdir: gear_env['OPENSHIFT_DATA_DIR'],
                                       err: $stderr,
