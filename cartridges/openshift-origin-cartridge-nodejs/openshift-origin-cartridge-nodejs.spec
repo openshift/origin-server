@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.21.6
+Version: 1.21.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -81,6 +81,9 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.21.7-1
+- fix bash regexp in upgrade scripts (vvitek@redhat.com)
+
 * Fri Feb 28 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
 - Bug 1071165 - npm no longer supports its self-signed certificates
   (mfojtik@redhat.com)
