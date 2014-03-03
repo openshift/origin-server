@@ -48,7 +48,7 @@ module OpenShift
             # Set the sleep time for the metrics thread
             @delay = delay
             @mutex = Mutex.new
-
+            @running_apps = {}
             initialize_cgroups_vars
             # Begin collection thread
             start
@@ -59,7 +59,7 @@ module OpenShift
             gear_metric_time = time_method {call_gear_metrics}
             Syslog.info "type=metric gear.metric_time=#{gear_metric_time}\n"
           rescue Exception => e
-            Syslog.info("Throttler: unhandled exception #{e.message}\n" + e.backtrace.join("\n"))
+            Syslog.info("Metric: unhandled exception #{e.message}\n" + e.backtrace.join("\n"))
 
           end
 
