@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.4.1
+Version: 0.4.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -107,6 +107,11 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshif
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 0.4.2-1
+- Merge pull request #4797 from bparees/jenkins_rproxy
+  (dmcphers+openshiftbot@redhat.com)
+- add proper reverse proxy config for jenkins (bparees@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 0.4.1-1
 - frontend logging: keep openshift_log (bug 1069837) (lmeyer@redhat.com)
 - bump_minor_versions for sprint 41 (admiller@redhat.com)
