@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,20 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- Fixing typos (dmcphers@redhat.com)
+- remove old code (dmcphers@redhat.com)
+- Merge pull request #4684 from liggitt/domain_capabilities
+  (dmcphers+openshiftbot@redhat.com)
+- Python - DocumentRoot logic, Repository Layout simplification
+  (vvitek@redhat.com)
+- Template cleanup (dmcphers@redhat.com)
+- Merge pull request #4825 from bparees/jboss_config
+  (dmcphers+openshiftbot@redhat.com)
+- Surface owner storage capabilities and storage rates (jliggitt@redhat.com)
+- allow users to prevent overwrite of local jboss config from repository
+  (bparees@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - Merge pull request #4812 from jhadvig/wip_perl
   (dmcphers+openshiftbot@redhat.com)
