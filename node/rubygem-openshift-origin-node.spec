@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -281,6 +281,32 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- Bug 1071721 - Show errors when env vars aren't found (dmcphers@redhat.com)
+- Fixing typos (dmcphers@redhat.com)
+- Merge pull request #4856 from jwhonce/origin_node_39
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_node_39 - Fix unit test (jhonce@redhat.com)
+- check if gears are already throttled.
+  https://bugzilla.redhat.com/show_bug.cgi?id=1071167 (rchopra@redhat.com)
+- Python - DocumentRoot logic, Repository Layout simplification
+  (vvitek@redhat.com)
+- Reworked rhcsh to be more efficient (mfojtik@redhat.com)
+- Update oo-trap-user to handle LD_LIBRARY_PATH_ELEMENT (mfojtik@redhat.com)
+- Use SDK functions in rhcsh and cronjob task to build PATH/LD_LIBRARY_PATH
+  (mfojtik@redhat.com)
+- Card origin_cartridge_31 - Add support for LD_LIBRARY_PATH_ELEMENT to node
+  (mfojtik@redhat.com)
+- Merge pull request #4846 from jwhonce/origin_node_39
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4838 from ncdc/bug/1070656-require-args
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4844 from pmorie/activate
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_node_39 - Fix functional tests (jhonce@redhat.com)
+- Relax catch clause for errors during activation (pmorie@gmail.com)
+- Validate required args exist for gear actions (andy.goldstein@gmail.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - Card origin_node_39 - Make test optional (jhonce@redhat.com)
 - Merge pull request #4829 from jwhonce/origin_node_39
