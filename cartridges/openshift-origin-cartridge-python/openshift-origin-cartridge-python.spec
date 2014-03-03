@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -93,6 +93,17 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- Merge pull request #4862 from VojtechVitek/fix_bash_regexp
+  (dmcphers+openshiftbot@redhat.com)
+- fix bash regexp in upgrade scripts (vvitek@redhat.com)
+- requirements.txt documentation (vvitek@redhat.com)
+- Python - DocumentRoot logic, Repository Layout simplification
+  (vvitek@redhat.com)
+- Update python cartridge to support LD_LIBRARY_PATH_ELEMENT
+  (mfojtik@redhat.com)
+- Template cleanup (dmcphers@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - python $OPENSHIFT_PYTHON_REQUIREMENTS_PATH ENV VAR (vvitek@redhat.com)
 - bump_minor_versions for sprint 41 (admiller@redhat.com)
