@@ -8,9 +8,12 @@
 
 RULES_FILE="/etc/openshift/iptables.filter.rules"
 NAT_FILE="/etc/openshift/iptables.nat.rules"
+OO_SBIN="/usr/bin/"
 
 start() {
     check_firewall true
+
+    ${OO_SBIN}oo-iptables-port-proxy fixaddr
 
     ROUTE_LOCALNET=`sysctl -n net.ipv4.conf.all.route_localnet`
     if [ $ROUTE_LOCALNET -eq "0" ]; then
