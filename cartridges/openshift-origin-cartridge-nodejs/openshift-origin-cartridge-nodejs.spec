@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -81,6 +81,17 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
+- fix bash regexp in upgrade scripts (vvitek@redhat.com)
+- Fixing typos (dmcphers@redhat.com)
+- Merge pull request #4847 from mfojtik/bugzilla/1071165
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1071165 - npm no longer supports its self-signed certificates
+  (mfojtik@redhat.com)
+- Update nodejs cartridge to support LD_LIBRARY_PATH_ELEMENT
+  (mfojtik@redhat.com)
+- Template cleanup (dmcphers@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - bump_minor_versions for sprint 41 (admiller@redhat.com)
 
