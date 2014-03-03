@@ -386,7 +386,7 @@ module AdminHelper
 
     options.reverse_merge!({:timeout => false})
     OpenShift::DataStore.find(:districts, {}, options) do |district|
-      si_list =  district["servers"].map {|si| si["name"]}
+      si_list = (district["servers"] || []).map {|si| si["name"]}
       si_list.delete_if {|si| si.nil?}
       $district_hash[district["uuid"].to_s] = { 'name' => district["name"], 'max_capacity' => district["max_capacity"], 'server_names' => si_list, 'available_uids' => district["available_uids"] }
 
