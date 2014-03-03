@@ -56,9 +56,12 @@ module OpenShift
 
           # Step that is run on each interval
           def tick
-             Syslog.info "Tick"
-             gear_metric_time = time_method {call_gear_metrics}
-             Syslog.info "type=metric gear.metric_time=#{gear_metric_time}\n"
+            Syslog.info "Tick"
+            gear_metric_time = time_method {call_gear_metrics}
+            Syslog.info "type=metric gear.metric_time=#{gear_metric_time}\n"
+          rescue Exception => e
+            Syslog.info("Throttler: unhandled exception #{e.message}\n" + e.backtrace.join("\n"))
+
           end
 
           def start
