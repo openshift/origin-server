@@ -297,7 +297,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     gears = ['unit_test.example.com']
 
     @container.expects(:user_var_push).with(gears, true)
-    @container.expects(:user_var_push).with(gears)
+    @container.expects(:user_var_push).with(gears, false, '')
 
     @container.user_var_add({'UNIT_TEST' => 'true'}, gears)
     assert_path_exist path
@@ -332,12 +332,12 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
     env.each do |key, value|
       rc, msg = @container.user_var_add({key => value})
-      assert_equal 127, rc, "#{key} should have failed."
+      assert_equal 255, rc, "#{key} should have failed."
       assert_equal "CLIENT_ERROR: #{key} cannot be overridden", msg
     end
 
     rc, msg = @container.user_var_add({'TOO_BIG' => '*' * 513})
-    assert_equal 127, rc
+    assert_equal 255, rc
     assert_equal "CLIENT_ERROR: 'TOO_BIG' value exceeds maximum size of 512b", msg
   end
 
