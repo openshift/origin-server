@@ -25,6 +25,9 @@ RewriteMap      openshift-sts      dbm=db:/var/lib/openshift/.httpd.d/sts.db
 # Set X-Request-Start header to allow checking request life cycle.
 RequestHeader set X-Request-Start "%t"
 
+# Preserve the host for the reverse proxy directives later
+RewriteCond ${lowercase:%{HTTP_HOST}} ^([^:]+)
+RewriteRule ^.*$ - [E=REV_PROXY_HOST:%1,NS]
 
 # Set X-Client-IP to the node which contacted the front-end
 # This being Apache, you can't just use %{REMOTE_ADDR}e.
@@ -203,8 +206,6 @@ RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1/,E=V_MATCH_PATH:/]
 #
 ProxyPassReverse ${V_MATCH_PATH} http://${V_ROUTE} interpolate
 # Needed for jenkins (and probably other apps)
-RewriteCond ${lowercase:%{HTTP_HOST}} ^([^:]+)
-RewriteRule ^.*$ - [E=REV_PROXY_HOST:%1,NS]
 ProxyPassReverse / http://${REV_PROXY_HOST}/ interpolate
 
 #
