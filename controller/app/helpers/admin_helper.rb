@@ -145,7 +145,7 @@ module AdminHelper
     options ||= {}
     options.reverse_merge!({:timeout => false})
     query = {}
-    query['_id'] = BSON::ObjectId(user_id.to_s) if user_id
+    query['_id'] = BSON::ObjectId(user_id.to_s) if user_id.present?
     OpenShift::DataStore.find(:cloud_users, query, options) do |user|
       unless user["login"].present?
         print_message "User with Id #{user['_id']} has a null, empty, or missing login."
@@ -166,7 +166,7 @@ module AdminHelper
     options ||= {}
     options.reverse_merge!({:timeout => false})
     query = {}
-    query['_id'] = BSON::ObjectId(domain_id.to_s) if domain_id
+    query['_id'] = BSON::ObjectId(domain_id.to_s) if domain_id.present?
     OpenShift::DataStore.find(:domains, query, options) do |domain|
       owner_id = domain["owner_id"].to_s
       $domain_hash[domain["_id"].to_s] = {"owner_id" => owner_id, "canonical_namespace" => domain["canonical_namespace"]}
