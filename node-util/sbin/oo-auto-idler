@@ -30,16 +30,16 @@ def app_accessed?(uuid, interval)
       idle_hours = ((d2 - d1) * 24).to_i
       if idle_hours >= interval
         $log.debug "NO ACCESS"
-        false
+        false, idle_hours
       else
         $log.debug "ACCESS"
-        true
+        true, idle_hours
       end
     end
   else
     # If application has yet to be accessed, it's considered idle
     $log.debug "NO ACCESS"
-    false
+    false, -1
   end
 end
 
@@ -97,7 +97,10 @@ end
 # Determine if a gear is stale i.e. ready to be idled
 def gear_stale?(gear_dir, gear_uuid, interval)
   $log.debug "Evaluating #{gear_uuid}"
-  has_frontend?(gear_dir) and not code_committed?(gear_dir, interval) and not app_accessed?(gear_uuid, interval) and is_head_gear?(gear_dir)
+  status = has_frontend?(gear_dir) and not code_committed?(gear_dir, interval)
+  access_status, last_access_hours = app_accessed?(gear_uuid, interval) 
+  status = ( status and not access_status and is_head_gear?(gear_dir) )
+  return [status, last_access_hours]
 end
 
 # Idle a gear
@@ -128,7 +131,8 @@ end
 
 # Idle all gears on the node unless the list only option has been passed
 def idle_gears(interval, list_only)
-  puts "Only listing idle gears" if list_only
+  stale_gears_list = []
+  most_recent_last_access = 0
   gear_gecos = $config.get("GEAR_GECOS")
   ignorelist = populate_ignorelist()
   gear_dirs_str = %x[grep ":#{gear_gecos}:" /etc/passwd | cut -d: -f6]
@@ -139,7 +143,9 @@ def idle_gears(interval, list_only)
       $log.debug("Skipping #{gear_uuid}: IGNORELIST")
       next
     end
-    if gear_stale?(gear_dir, gear_uuid, interval)
+    is_stale, last_access_hours = gear_stale?(gear_dir, gear_uuid, interval)
+    most_recent_last_access = ( ( last_access_hours <  most_recent_last_access and last_access_hours > 0 ) ? last_access_hours : most_recent_last_access )
+    if is_stale
       puts "#{gear_dir} is STALE"
       if not list_only
         begin
@@ -149,23 +155,37 @@ def idle_gears(interval, list_only)
           $log.error "Failed to idle #{gear_dir}"
         end
       end
+      stale_gears_list << gear_uuid
     end
   end
+  return [stale_gears_list, most_recent_last_access]
 end
 
+exitstatus = 0
 command :idle do |c|
   c.syntax = "#{name} idle [options]"
   c.description = "List the gears ready to be idled"
   c.option "--interval HOURS", Integer, "Hours for which gears have been idle"
+  c.option "--max_interval HOURS", Integer, "The most recent access should be atmost max_interval hours old, otherwise nothing will be idled. Defaults to '--interval'. A non-zero error code will indicate the violation, to suggest something is wrong with last_access time stamps."
   c.option "--list", "Only list the stale gears"
   c.option "--verbose", "Print debug information"
 
   c.action do |args, options|
     options.default :interval => 240
+    options.default :max_interval => options.interval
     $log.level = Logger::DEBUG if options.verbose
     puts "Gears idle for #{options.interval} hours"
     %x[(echo -n "Before: ";  /usr/sbin/oo-idler-stats) | /usr/bin/logger -p local0.notice -t oo-auto-idler]
-    idle_gears(options.interval, options.list || false)
+    list_only = (options.list || false)
+    puts "Only listing idle gears" if list_only
+    stale_gears_list, most_recent_access =  idle_gears(options.interval, true)
+    if most_recent_access >= option.max_interval 
+      puts "ERROR : #{__FILE__} refuses to idle anything because the most recent last access (#{most_recent_access}) was over (#{max_interval}) hours ago."
+      exitstatus = 1
+    elsif not list_only
+      stale_gears.each { |g_uuid| idle_gear(g_uuid) }
+    end
     %x[(echo -n "After: ";  /usr/sbin/oo-idler-stats) | /usr/bin/logger -p local0.notice -t oo-auto-idler]
   end
 end
+exit exitstatus
