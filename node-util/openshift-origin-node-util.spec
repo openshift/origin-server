@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -158,6 +158,14 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Merge pull request #4869 from jwhonce/bug/1071500
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4868 from jwhonce/bug/1070719
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1071500 - Prepend /sbin to ip command (jhonce@redhat.com)
+- Bug 1070719 - On restart, wait for stop before starting (jhonce@redhat.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Fixing typos (dmcphers@redhat.com)
 
