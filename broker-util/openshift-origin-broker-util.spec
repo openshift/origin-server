@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -102,6 +102,11 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- o-a-ctl-district: minor improvements (lmeyer@redhat.com)
+- o-a-ctl-region: minor improvements (lmeyer@redhat.com)
+- List plan ids with failures on upgrade (dmcphers@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - Revert "Multiple fixes for stability" (dmcphers@redhat.com)
 - Multiple fixes for stability  - Adding option to prevent rollback in case of
