@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -281,6 +281,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- Merge pull request #4865 from pmorie/bugs/1066980
+  (dmcphers+openshiftbot@redhat.com)
+- msg change for tc when its already active (rchopra@redhat.com)
+- Fix bug 1066980: relax matching conditions for secondary groups in scalable
+  app (pmorie@gmail.com)
+- fix bz1071473 - add fixaddr to the chkconfiged service 'openshift-iptables-
+  port-proxy' (rchopra@redhat.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
 - Bug 1071721 - Show errors when env vars aren't found (dmcphers@redhat.com)
 - Fixing typos (dmcphers@redhat.com)
