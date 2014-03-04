@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- Merge pull request #4867 from pravisankar/dev/ravi/bug-1069531
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1069531 - Fix populate_district_hash helper method for oo-admin-chk/oo-
+  admin-repair (rpenta@redhat.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
 - Fixing typos (dmcphers@redhat.com)
 - remove old code (dmcphers@redhat.com)
