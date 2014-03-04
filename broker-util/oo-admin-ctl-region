@@ -2,10 +2,10 @@
 require 'rubygems'
 require 'getoptlong'
 
-CTL_REGION_COMMANDS = "(create|destroy|add-zone|remove-zone|list)"
+CTL_REGION_COMMANDS = %w[create destroy add-zone remove-zone list]
 
 def usage
-  puts <<USAGE
+  puts <<"USAGE"
 == Synopsis
 
 oo-admin-ctl-region: Control regions and zones
@@ -16,7 +16,7 @@ oo-admin-ctl-region OPTIONS
 
 Options:
 -c|--command <command>
-    #{CTL_REGION_COMMANDS}
+    (#{CTL_REGION_COMMANDS * '|'})
 -r|--region <region_name>
     Region name (alphanumeric, underscore, hyphen, dot)
 -z|--zone <zone_name>
@@ -54,10 +54,6 @@ end
 
 usage if args["--help"]
 
-require "/var/www/openshift/broker/config/environment"
-# Disable analytics for admin scripts
-Rails.configuration.analytics[:enabled] = false
-
 command     = args['--command']
 region_name = args['--region']
 zone_name   = args['--zone']
@@ -68,8 +64,8 @@ if !command && (args.length > 0)
   exit 255
 end
 
-if command && !(command =~ /\A(create|destroy|add-zone|remove-zone|list)\z/)
-  puts "Error: Command must be one of: #{CTL_REGION_COMMANDS}"
+if command && !CTL_REGION_COMMANDS.include?(command)
+  puts "Error: Command must be one of: #{CTL_REGION_COMMANDS * '|'}"
   exit 255
 end
 
@@ -84,6 +80,10 @@ end
 if zone_name and ((command != 'add-zone') or (command == 'remove-zone'))
   puts "Warning: Ignoring --zone, not valid for command: #{command}"
 end
+
+require "/var/www/openshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
 
 region = nil
 reply = ResultIO.new
