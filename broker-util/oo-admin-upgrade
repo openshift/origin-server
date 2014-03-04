@@ -827,8 +827,10 @@ class Upgrader
       if File.exists? error_file_path
         failed_gurs = OpenShift::Upgrader::GearUpgradeResult.entries_from_json_array_file(error_file_path)
         failed_gurs.each do |failed_gur|
-          failed_gears_per_plan[failed_gur.plan_id] = 0 unless failed_gears_per_plan[failed_gur.plan_id]
-          failed_gears_per_plan[failed_gur.plan_id] += 1
+          if failed_gur.plan_id
+            failed_gears_per_plan[failed_gur.plan_id] = 0 unless failed_gears_per_plan[failed_gur.plan_id]
+            failed_gears_per_plan[failed_gur.plan_id] += 1
+          end
         end
       end
     end
