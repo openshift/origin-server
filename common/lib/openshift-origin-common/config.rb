@@ -21,6 +21,7 @@ require 'openshift-origin-common/utils/path_utils'
 module OpenShift
   class Config
     CONF_DIR = ENV['OPENSHIFT_CONF_DIR'] || '/etc/openshift/'
+    ENABLE_ENV_CONFIG = ENV['OPENSHIFT_ENABLE_ENV_CONFIG']
     PLUGINS_DIR = PathUtils.join(CONF_DIR, 'plugins.d/')
     NODE_CONF_FILE = PathUtils.join(CONF_DIR, 'node.conf')
 
@@ -47,7 +48,7 @@ module OpenShift
     end
 
     def get(name, default=nil)
-      val = @conf[name]
+      val = ENABLE_ENV_CONFIG && !ENV[name].nil? ? ENV[name].dup : @conf[name]
       val = default.to_s if (val.nil? and !default.nil?)
       val.gsub!(/\\:/,":") if not val.nil?
       val.gsub!(/[ \t]*#[^\n]*/,"") if not val.nil?
