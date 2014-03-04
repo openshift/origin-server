@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -103,6 +103,11 @@ fi
 
 
 %changelog
+* Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- Merge pull request #4864 from bparees/jb_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- minor cleanup of jboss config scripts (bparees@redhat.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
 - Template cleanup (dmcphers@redhat.com)
 - Merge pull request #4825 from bparees/jboss_config
