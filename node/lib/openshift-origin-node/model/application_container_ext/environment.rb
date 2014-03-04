@@ -281,7 +281,7 @@ module OpenShift
           FileUtils.mkpath(directory) unless File.directory?(directory)
 
           if (Dir.entries(directory).size - 2 + variables.size) > USER_VARIABLE_MAX_COUNT
-            return 255, "CLIENT_ERROR: User Variables maximum of #{USER_VARIABLE_MAX_COUNT} exceeded"
+            return 255, "CLIENT_ERROR: User Variables maximum of #{USER_VARIABLE_MAX_COUNT} exceeded\n"
           end
 
           variables.each_pair do |name, value|
@@ -294,10 +294,10 @@ module OpenShift
             end
 
             if name.to_s.length > USER_VARIABLE_NAME_MAX_SIZE
-              return 255, "CLIENT_ERROR: Name '#{name}' exceeds maximum size of #{USER_VARIABLE_NAME_MAX_SIZE}b"
+              return 255, "CLIENT_ERROR: Name '#{name}' exceeds maximum size of #{USER_VARIABLE_NAME_MAX_SIZE}b\n"
             end
             if value.to_s.length > USER_VARIABLE_VALUE_MAX_SIZE
-              return 255, "CLIENT_ERROR: '#{name}' value exceeds maximum size of #{USER_VARIABLE_VALUE_MAX_SIZE}b"
+              return 255, "CLIENT_ERROR: '#{name}' value exceeds maximum size of #{USER_VARIABLE_VALUE_MAX_SIZE}b\n"
             end
           end
 
@@ -322,17 +322,21 @@ module OpenShift
             if File.exists?(path)
               FileUtils.rm_f(path)
             else
-              output << "CLIENT_ERROR: User environment variable not found: #{name}\n"
+              output << "CLIENT_MESSAGE: User environment variable not found: #{name}\n"
             end
           end
 
-          return user_var_push(gears, false, output) unless gears.empty?
-          return output.empty? ? 0 : 1, output
+          exit_code = 0
+          unless gears.empty?
+            exit_code, push_output = user_var_push(gears)
+            output = push_output + output if push_output
+          end
+          return exit_code, output
         end
 
         # update user environment variable(s) on other gears
-        def user_var_push(gears, env_add=false, output='')
-          gear_dns, threads = '', {}
+        def user_var_push(gears, env_add=false)
+          output, gear_dns, threads = '', '', {}
           target  = PathUtils.join('.env', 'user_vars').freeze
           source  = PathUtils.join(@container_dir, target).freeze
           return 0, '' unless File.directory?(source)
