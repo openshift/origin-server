@@ -99,7 +99,7 @@ function build() {
         echo "Checking ${pear_file} for PEAR dependency.."
         for f in $(cat ${OPENSHIFT_REPO_DIR}${pear_file}); do
             echo -e "Checking PEAR: $f\n"
-            if ! php_context "pear info '$f' >/dev/null"; then
+            if ! php_context "pear info '$f' &>/dev/null"; then
                 php_context "pear install --alldeps '$f'"
             else
                 php_context "pear upgrade --alldeps '$f'" || :
