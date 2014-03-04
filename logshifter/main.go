@@ -6,7 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -16,6 +18,16 @@ import (
 // statistics on statsinterval and writes the totals since the last interval in JSON
 // format to statsfilename.
 func main() {
+	// set up signal handling
+	sigChan := make(chan os.Signal, 1)
+	go func() {
+		signal.Notify(sigChan, syscall.SIGHUP)
+		for {
+			<-sigChan
+			// ignore SIGHUP for now
+		}
+	}()
+
 	// arg parsing
 	var configFile, statsFileName, tag string
 	var verbose bool
@@ -92,6 +104,9 @@ func main() {
 		fmt.Printf("Failed to start logshifter: %s", err)
 		os.Exit(1)
 	}
+
+	// shut down the signal handler
+	close(sigChan)
 }
 
 // Create writer instances based on config.

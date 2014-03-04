@@ -41,7 +41,7 @@ func (writer *FileWriter) Init() error {
 
 	filename := path.Join(basedir, writer.tag)
 
-	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return err
 	}
