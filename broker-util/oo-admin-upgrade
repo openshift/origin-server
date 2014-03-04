@@ -137,6 +137,7 @@ module OpenShift
     #
     class GearUpgradeResult < UpgradePersistable
       attr_accessor :login,
+                    :plan_id,
                     :app_name,
                     :gear_uuid,
                     :namespace,
@@ -407,12 +408,12 @@ class Upgrader
                 "name",
                 "gears.uuid",
                 "gears.server_identity",
-                "gears.name"], 
+                "gears.name"],
                :timeout => false}
 
     ret = []
     user_map = {}
-    OpenShift::DataStore.find(:cloud_users, {}, {:fields => ["_id", "uuid", "login"], :timeout => false}) do |hash|
+    OpenShift::DataStore.find(:cloud_users, {}, {:fields => ['_id', 'uuid', 'login'], :timeout => false}) do |hash|
       metadata.logins_count += 1
       user_uuid = hash['uuid']
       user_login = hash['login']
@@ -723,6 +724,7 @@ class Upgrader
 
       raise "User not found: #{login}" unless user
 
+      gear_result.plan_id = user.plan_id
       app, gear = Application.find_by_gear_uuid(gear_uuid)
 
       gear_result.warnings << "App '#{app_name}' not found" unless app
@@ -806,6 +808,7 @@ class Upgrader
 
     leftover_gears_per_node = {}
     failed_gears_per_node = {}
+    failed_gears_per_plan = {}
 
     upgrade_result.starting_node_queue.each do |node|
       server_identity = node.server_identity
@@ -818,6 +821,15 @@ class Upgrader
 
       if File.exists?(gear_rerun_queue_file)
         failed_gears_per_node[server_identity] = `wc -l #{gear_rerun_queue_file}`.to_i
+      end
+
+      error_file_path = error_file_path(server_identity)
+      if File.exists? error_file_path
+        failed_gurs = OpenShift::Upgrader::GearUpgradeResult.entries_from_json_array_file(error_file_path)
+        failed_gurs.each do |failed_gur|
+          failed_gears_per_plan[failed_gur.plan_id] = 0 unless failed_gears_per_plan[failed_gur.plan_id]
+          failed_gears_per_plan[failed_gur.plan_id] += 1
+        end
       end
     end
 
@@ -855,6 +867,12 @@ class Upgrader
     buf << "# of users: #{upgrade_result.cluster_metadata.logins_count}"
     buf << "# of gears: #{upgrade_result.gear_count}"
     buf << "# of failures: #{failed_gears_total}"
+    if failed_gears_per_plan.any?
+      buf << "# of failures per plan:"
+      failed_gears_per_plan.each do |plan_id, count|
+        buf << "    #{plan_id}: #{count}"
+      end
+    end
     buf << "# of leftovers: #{leftover_gears_total}"
     buf << "Gear counts per thread: #{upgrade_result.gear_counts.pretty_inspect}"
     buf << "Nodes upgraded: #{upgrader_position_nodes.pretty_inspect}" if !upgrader_position_nodes.empty?
