@@ -912,7 +912,7 @@ class Application
   def update_component_limits(component_instance, scale_from, scale_to, additional_filesystem_gb, multiplier=nil)
     if additional_filesystem_gb && additional_filesystem_gb != 0
       max_storage = self.domain.owner.max_storage
-      raise OpenShift::UserException.new("You are not allowed to request additional gear storage", 164) if max_storage == 0
+      raise OpenShift::UserException.new("This application is not allowed to have additional gear storage", 164) if max_storage == 0
       raise OpenShift::UserException.new("You have requested more additional gear storage than you are allowed (max: #{max_storage} GB)", 166) if additional_filesystem_gb > max_storage
     end
     raise OpenShift::UserException.new("Cannot set the max gear limit to '1' if the application is HA (highly available)") if self.ha and scale_to==1
