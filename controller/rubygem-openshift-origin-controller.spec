@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.21.3
+Version: 1.21.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
+- Merge pull request #4874 from liggitt/bug_1070450_improve_no_storage_message
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1070450: Improve message when an application cannot have additional
+  storage (jliggitt@redhat.com)
+
 * Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
 - Merge pull request #4867 from pravisankar/dev/ravi/bug-1069531
   (dmcphers+openshiftbot@redhat.com)
