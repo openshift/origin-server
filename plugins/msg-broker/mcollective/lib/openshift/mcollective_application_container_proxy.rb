@@ -2011,7 +2011,7 @@ module OpenShift
                 dns.modify_application(gear.name, app.domain_namespace, public_hostname)
                 dns.publish
               ensure
-                dns.close
+                dns.close if dns
               end
             end
 
