@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- Bug 1072185 - should not collapse message details when bound to a form input
+  (contact@fabianofranz.com)
+- Bug 1071819: Fix storage dropdown overflow (jliggitt@redhat.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
 - Merge pull request #4852 from sg00dwin/disabed-buttons-fix
   (dmcphers+openshiftbot@redhat.com)
