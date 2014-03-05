@@ -15,7 +15,7 @@
 
 Summary:       OpenShift Apache mod_rewrite frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.4.3
+Version: 0.4.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -133,6 +133,10 @@ mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 0.4.4-1
+- bz1072616 - split out log config from mod_rewrite definitions
+  (admiller@redhat.com)
+
 * Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 0.4.3-1
 - Move rev_proxy_host environment setting higher in the rules
   (bparees@redhat.com)
