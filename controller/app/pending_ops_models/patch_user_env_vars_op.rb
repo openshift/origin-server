@@ -42,8 +42,8 @@ class PatchUserEnvVarsOp < PendingAppOp
     unless gear.nil? or gear.removed
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
       gears_endpoint = get_gears_ssh_endpoint(application) 
-      result_io = gear.unset_user_env_vars(set_vars, gears_endpoint) if set_vars.present?
-      result_io.append gear.set_user_env_vars(saved_user_env_vars, gears_endpoint) if saved_user_env_vars.present?
+      gear.unset_user_env_vars(set_vars, gears_endpoint) if set_vars.present?
+      gear.set_user_env_vars(saved_user_env_vars, gears_endpoint) if saved_user_env_vars.present?
     end
     result_io
   end

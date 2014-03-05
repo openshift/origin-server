@@ -297,7 +297,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     gears = ['unit_test.example.com']
 
     @container.expects(:user_var_push).with(gears, true)
-    @container.expects(:user_var_push).with(gears, false, '')
+    @container.expects(:user_var_push).with(gears)
 
     @container.user_var_add({'UNIT_TEST' => 'true'}, gears)
     assert_path_exist path
@@ -338,7 +338,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
     rc, msg = @container.user_var_add({'TOO_BIG' => '*' * 513})
     assert_equal 255, rc
-    assert_equal "CLIENT_ERROR: 'TOO_BIG' value exceeds maximum size of 512b", msg
+    assert_equal "CLIENT_ERROR: 'TOO_BIG' value exceeds maximum size of 512b\n", msg
   end
 
   # Tests that no_overcommit logic works as intended
