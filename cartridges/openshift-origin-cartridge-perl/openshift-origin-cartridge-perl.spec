@@ -14,6 +14,8 @@ Requires:      openshift-origin-node-util
 Requires:      mod_perl
 Requires:      perl-App-cpanminus
 Requires:      perl-IO-Socket-SSL
+# required for bin/build's usage of /usr/lib/rpm/perl.req
+Requires:      rpm-build
 Provides:      openshift-origin-cartridge-perl-5.10 = 2.0.0
 Obsoletes:     openshift-origin-cartridge-perl-5.10 <= 1.99.9
 BuildArch:     noarch
