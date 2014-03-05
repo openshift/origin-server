@@ -14,9 +14,6 @@ fi
 
 mkdir -p ${OPENSHIFT_JBOSSEWS_DIR}/{run,tmp,conf,logs}
 
-# Set up the config directory in the user repository template
-cp ${OPENSHIFT_JBOSSEWS_DIR}/usr/versions/{shared,${version}}/configuration/* ${OPENSHIFT_JBOSSEWS_DIR}/template/.openshift/config
-
 # Link the system Tomcat binaries to the cart Tomcat instance directory
 ln -sf ${SYSTEM_JBOSSEWS_DIR}/bin/bootstrap.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/bootstrap.jar
 ln -sf ${SYSTEM_JBOSSEWS_DIR}/bin/commons-daemon.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/commons-daemon.jar
