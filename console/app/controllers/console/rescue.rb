@@ -86,7 +86,8 @@ module Console
       end
 
       def log_error(e, msg="Unhandled exception")
-        logger.error "#{msg} reference ##{request.uuid}: #{e.message}\n#{e.backtrace.join("\n  ")}"
+        @details = "#{msg} reference ##{request.uuid}: #{e.message}"
+        logger.error "#{@details}\n#{e.backtrace.join("\n  ")}"
       end
   end
 end
