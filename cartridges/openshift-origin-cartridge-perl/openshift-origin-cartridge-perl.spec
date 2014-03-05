@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -58,6 +58,10 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- rpm-build is required for the perl cartridge's build script
+  (bleanhar@redhat.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Template cleanup (dmcphers@redhat.com)
 
