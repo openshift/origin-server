@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.14.3
+Version: 2.14.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,10 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 2.14.4-1
+- These jboss packages are _not_ optional for the JBoss cartridge.
+  (bleanhar@redhat.com)
+
 * Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 2.14.3-1
 - Merge pull request #4864 from bparees/jb_cleanup
   (dmcphers+openshiftbot@redhat.com)
