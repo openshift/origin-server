@@ -305,10 +305,8 @@ Requires:  python-psycopg2
 Requires:  redhat-lsb-core
 Requires:  symlinks
 %if 0%{?fedora}%{?rhel} <= 6
-Requires:  python27-mod_wsgi
 Requires:  python27-MySQL-python
 Requires:  python27-python-psycopg2
-Requires:  python33-mod_wsgi
 Requires:  python33-python-psycopg2
 %endif
 
@@ -334,13 +332,10 @@ Requires:  numpy
 Requires:  numpy-f2py
 Requires:  pymongo
 Requires:  pymongo-gridfs
-Requires:  python-virtualenv
 Requires:  ta-lib-devel
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:  python27-numpy
-Requires:  python27-python-pip-virtualenv
 Requires:  python33-numpy
-Requires:  python33-python-virtualenv
 Requires:  python33-python-pymongo
 %endif
 

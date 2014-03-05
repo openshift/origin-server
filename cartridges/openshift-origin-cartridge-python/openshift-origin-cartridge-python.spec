@@ -27,6 +27,13 @@ Requires:      python < 2.8
 Requires:      mod_wsgi >= 3.4
 Requires:      mod_wsgi < 3.5
 %endif
+Requires:      python-virtualenv
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:      python27-python-pip-virtualenv
+Requires:      python27-mod_wsgi
+Requires:      python33-python-virtualenv
+Requires:      python33-mod_wsgi
+%endif
 Provides:      openshift-origin-cartridge-community-python-2.7 = 2.0.0
 Provides:      openshift-origin-cartridge-community-python-3.3 = 2.0.0
 Provides:      openshift-origin-cartridge-python-2.6 = 2.0.0
