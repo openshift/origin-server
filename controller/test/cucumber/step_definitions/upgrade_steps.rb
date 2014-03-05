@@ -240,8 +240,8 @@ def assert_successful_install(next_version, current_manifest)
   sleep 5
 end
 
-Then /^the ([^ ]+) cartridge version should be updated$/ do |cart_name|
-  assert_cart_version_updated(cart_name, @app)
+Then /^the ([^ ]+) cartridge version should (not )?be updated$/ do |cart_name, negate|
+  assert_cart_version_updated(cart_name, @app, negate)
 end
 
 Then /^the ([^ ]+) cartridge version should (not )?be updated in (.+)$/ do |cart_name, negate, app_name|

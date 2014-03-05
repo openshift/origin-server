@@ -88,3 +88,23 @@ Feature: Cartridge upgrades
     And the invocation markers from an compatible upgrade should exist
     And the invocation markers from the gear upgrade should exist
     And the application should be accessible
+
+  Scenario: Re-upgrade an application when one of the cartridges is removed
+    Given the 0.0.1 version of the mock-0.1 cartridge is installed
+    And a new client created mock-0.1 application
+    And the embedded mock-plugin-0.1 cartridge is added
+    And a rigged version of the mock-0.1 cartridge set to fail 1 times
+    And a rigged version of the mock-plugin-0.1 cartridge set to fail 2 times
+    And the mock invocation markers are cleared
+    And a gear level upgrade extension exists
+
+    When the application is upgraded to the new cartridge versions
+    And the embedded mock-plugin-0.1 cartridge is removed
+    And the application is upgraded to the new cartridge versions
+
+    Then the upgrade metadata will be cleaned up
+    And the mock cartridge version should be updated
+    And no unprocessed ERB templates should exist
+    And the invocation markers from an incompatible upgrade should exist
+    And the invocation markers from the gear upgrade should exist
+    And the application should be accessible
