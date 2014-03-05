@@ -158,10 +158,19 @@ command :idle do |c|
   c.description = "List the gears ready to be idled"
   c.option "--interval HOURS", Integer, "Hours for which gears have been idle"
   c.option "--list", "Only list the stale gears"
+  c.option "--skip-last-access", "Skips the running of 'oo-last-access' script', which is run by default prior to the idling checks."
   c.option "--verbose", "Print debug information"
 
   c.action do |args, options|
     options.default :interval => 240
+    options.default :skip-last-access => false
+    if not option.skip-last-access
+      %x[/usr/sbin/oo-last-access > /var/lib/openshift/last_access.log 2>&1]
+      if not $?.success?
+        puts "ERROR: Failed to correctly execute oo-last-access. Exiting auto-idler.."
+        exit $?.exitstatus
+      end
+    end
     $log.level = Logger::DEBUG if options.verbose
     puts "Gears idle for #{options.interval} hours"
     %x[(echo -n "Before: ";  /usr/sbin/oo-idler-stats) | /usr/bin/logger -p local0.notice -t oo-auto-idler]

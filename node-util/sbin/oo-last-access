@@ -87,6 +87,7 @@ class LastAccessUpdater
   end
 
   def parse_log
+    count = 0
     # Doing the file read with awk is 10x faster than doing it inside
     # Ruby and we desperately need speed here.
     ignore_cond = [@hosts_ignore.map { |a| "$2 != \"#{a}\"" },
@@ -104,6 +105,7 @@ class LastAccessUpdater
           # Virtual host is same as app dns
           gear_uuid = @all_apps_info[hostname]
           if gear_uuid
+            count += 1
             # This structure of operations is optimized for getting an
             # extremely large number of gear_uuids only once and just a few
             # twice.
@@ -115,6 +117,7 @@ class LastAccessUpdater
         end
       end
     end
+    count
   end
 
   def persist_last_access_data
@@ -163,6 +166,10 @@ single_instance do
   l = LastAccessUpdater.new(ENV["GEAR_BASE_DIR"], logfiles)
   l.load_addrs_ignore
   l.load_apps_data
-  l.parse_log
+  gears_found_count = l.parse_log
+  if gears_found_count==0
+    puts "ERROR : No gears were found in the log files. Check log file locations"
+    exit 1
+  end
   l.persist_last_access_data
 end
