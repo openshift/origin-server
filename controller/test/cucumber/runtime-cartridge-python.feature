@@ -1,4 +1,4 @@
-@cartridge_extended2
+@cartridge_extended4
 Feature: Python Cartridge
 
   Scenario Outline: Add python cartridge

@@ -1,4 +1,4 @@
-@cartridge_extended2
+@cartridge_extended4
 Feature: MySQL Application Sub-Cartridge
 
   Scenario Outline: Create Delete one application with a MySQL database
