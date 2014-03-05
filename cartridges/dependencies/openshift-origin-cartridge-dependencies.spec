@@ -216,7 +216,6 @@ Requires:  gd-devel
 Requires:  gdbm-devel
 Requires:  ImageMagick-perl
 Requires:  perl-MongoDB
-Requires:  rpm-build
 
 %description optional-perl
 This package pulls in other packages that a user
