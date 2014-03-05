@@ -22,11 +22,12 @@ require 'json'
 module OpenShift
   module Runtime
     class V2UpgradeCartridgeModel < V2CartridgeModel
-      def gear_status
+      def upgrade_gear_status(itinerary)
         output = ''
         problem = false
 
-        each_cartridge do |cartridge|
+        itinerary.each_cartridge do |cartridge_name, upgrade_info|
+          cartridge = get_cartridge(cartridge_name)
           cart_status = do_control('status', cartridge)
 
           cart_status_msg = "[OK]"
@@ -162,7 +163,7 @@ module OpenShift
           gear_post_upgrade
 
           if itinerary.has_incompatible_upgrade?
-            validate_gear
+            validate_gear(itinerary)
 
             if progress.complete? 'validate_gear'
               cleanup
@@ -352,60 +353,84 @@ module OpenShift
       # Compute the upgrade itinerary for the gear
       #
       def compute_itinerary
-        progress.step "compute_itinerary" do |context, errors|
-          itinerary            = OpenShift::Runtime::UpgradeItinerary.new(gear_home)
-          state                = OpenShift::Runtime::Utils::ApplicationState.new(container)
-          cartridge_model      = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, hourglass)
-          cartridge_repository = OpenShift::Runtime::CartridgeRepository.instance
+        state                = OpenShift::Runtime::Utils::ApplicationState.new(container)
+        cartridge_model      = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, hourglass)
 
-          cartridge_model.each_cartridge do |manifest|
-            cartridge_path = File.join(gear_home, manifest.directory)
+        if progress.incomplete?("compute_itinerary")
+          progress.step "compute_itinerary" do |context, errors|
+            itinerary            = OpenShift::Runtime::UpgradeItinerary.new(gear_home)
+            cartridge_repository = OpenShift::Runtime::CartridgeRepository.instance
 
-            if !File.directory?(cartridge_path)
-              progress.log "Skipping upgrade for #{manifest.name}: cartridge manifest does not match gear layout: #{cartridge_path} is not a directory"
-              next
-            end
+            cartridge_model.each_cartridge do |manifest|
+              cartridge_path = File.join(gear_home, manifest.directory)
 
-            ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
-            ident                                    = IO.read(ident_path)
-            vendor, name, version, cartridge_version = gear_map_ident(ident)
-
-            unless vendor == 'redhat'
-              progress.log "No upgrade available for cartridge #{ident}, #{vendor} not supported."
-              next
-            end
-
-            next_manifest = cartridge_repository.select(name, version)
-            unless next_manifest
-              progress.log "No upgrade available for cartridge #{ident}, cartridge not found in repository."
-              next
-            end
-
-            unless next_manifest.versions.include?(version)
-              progress.log "No upgrade available for cartridge #{ident}, version #{version} not in #{next_manifest.versions}"
-              next
-            end
-
-            if next_manifest.cartridge_version == cartridge_version
-              if ignore_cartridge_version
-                progress.log "Refreshing cartridge #{ident}, ignoring cartridge version."
-              else
-                progress.log "No upgrade required for cartridge #{ident}, already at latest version #{cartridge_version}."
+              if !File.directory?(cartridge_path)
+                progress.log "Skipping upgrade for #{manifest.name}: cartridge manifest does not match gear layout: #{cartridge_path} is not a directory"
                 next
               end
+
+              ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
+              ident                                    = IO.read(ident_path)
+              vendor, name, version, cartridge_version = gear_map_ident(ident)
+
+              unless vendor == 'redhat'
+                progress.log "No upgrade available for cartridge #{ident}, #{vendor} not supported."
+                next
+              end
+
+              next_manifest = cartridge_repository.select(name, version)
+              unless next_manifest
+                progress.log "No upgrade available for cartridge #{ident}, cartridge not found in repository."
+                next
+              end
+
+              unless next_manifest.versions.include?(version)
+                progress.log "No upgrade available for cartridge #{ident}, version #{version} not in #{next_manifest.versions}"
+                next
+              end
+
+              if next_manifest.cartridge_version == cartridge_version
+                if ignore_cartridge_version
+                  progress.log "Refreshing cartridge #{ident}, ignoring cartridge version."
+                else
+                  progress.log "No upgrade required for cartridge #{ident}, already at latest version #{cartridge_version}."
+                  next
+                end
+              end
+
+              upgrade_type = UpgradeType::INCOMPATIBLE
+
+              if next_manifest.compatible_versions.include?(cartridge_version)
+                upgrade_type = UpgradeType::COMPATIBLE
+              end
+
+              progress.log "Creating itinerary entry for #{upgrade_type.downcase} upgrade of #{ident}"
+              itinerary.create_entry("#{name}-#{version}", upgrade_type, compute_endpoints_upgrade_data(manifest, next_manifest))
             end
 
-            upgrade_type = UpgradeType::INCOMPATIBLE
+            itinerary.persist
+          end
+        else
+          # Recompute the itinerary
+          itinerary = UpgradeItinerary.for_gear(gear_home)
+          removed = []
 
-            if next_manifest.compatible_versions.include?(cartridge_version)
-              upgrade_type = UpgradeType::COMPATIBLE
+          itinerary.each_cartridge do |cartridge_name, upgrade_info|
+            begin
+              cartridge_model.cartridge_directory(cartridge_name)
+            rescue Exception => e
+              removed << cartridge_name
             end
-
-            progress.log "Creating itinerary entry for #{upgrade_type.downcase} upgrade of #{ident}"
-            itinerary.create_entry("#{name}-#{version}", upgrade_type, compute_endpoints_upgrade_data(manifest, next_manifest))
           end
 
-          itinerary.persist
+          removed.each do |cartridge_name|
+            progress.log "Removing itinerary entry for #{cartridge_name}: it has been removed from the gear"
+            itinerary.remove_entry(cartridge_name)
+          end
+
+          if removed.length > 0
+            itinerary.persist
+          end
         end
 
         UpgradeItinerary.for_gear(gear_home)
@@ -799,7 +824,7 @@ module OpenShift
       # come up in the background and take longer than the time we give them to come
       # up even under success conditions.
       #
-      def validate_gear
+      def validate_gear(itinerary)
         progress.log "Validating gear post-upgrade"
 
         progress.step 'validate_gear' do |context, errors|
@@ -848,7 +873,7 @@ module OpenShift
               context[:postupgrade_response_code] = response.code
             end
 
-            problem, status = cart_model.gear_status
+            problem, status = cart_model.upgrade_gear_status(itinerary)
 
             if problem
               progress.log "Problem detected with gear status.  Post-upgrade status: #{status}"

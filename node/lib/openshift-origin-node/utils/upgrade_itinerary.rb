@@ -22,6 +22,10 @@ module OpenShift
         end
       end
 
+      def remove_entry(cartridge_name)
+        @entries.delete(cartridge_name)
+      end
+
       def has_incompatible_upgrade?
         @has_incompatible
       end
