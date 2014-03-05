@@ -16,16 +16,22 @@ module OpenShift
       end
 
       def authenticate(controller, &login_procedure)
-        bearer_token = token(controller.request)
+        bearer_token = token(controller)
         unless bearer_token.blank?
           login_procedure.call(bearer_token)
         end
       end
 
-      def token(request)
-        if request.authorization.to_s[/^Bearer (.*)/]
-          $1.strip
+      def token(controller)
+        if controller.request.authorization.to_s[/^Bearer (.*)/]
+          bearer_token = $1.strip
         end
+
+        if controller.respond_to? :bearer_token_override
+          bearer_token = controller.send :bearer_token_override, bearer_token
+        end
+
+        bearer_token
       end
 
       def authentication_request(controller, error, error_description=nil)
