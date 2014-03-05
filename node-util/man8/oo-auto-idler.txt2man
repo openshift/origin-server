@@ -2,7 +2,7 @@ NAME
   oo-auto-idler 
   
 SYNOPSIS
-  oo-auto-idler [-hvt] idle [--interval] [--list] [--verbose]
+  oo-auto-idler [-hvt] idle [--interval] [--list] [--skip-last-access] [--verbose]
 
 DESCRIPTION
   The OpenShift auto-idler automates the process of listing and idling gears that
@@ -28,6 +28,9 @@ COMMANDS
 
   --list  
     Only list the stale gears that would be idled; do not idle them.
+
+  --skip-last-access
+    Skips the running of 'oo-last-access' script, which is run by default prior to the idling checks.
 
   --verbose  
     Print debug information.
