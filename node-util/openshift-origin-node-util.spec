@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.20.4
+Version: 1.20.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -158,6 +158,10 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
+- re-fix oo-auto-idler. bz1072472. all gears will never be idled by the script.
+  man page changes (rchopra@redhat.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
 - fix bz1072472 - oo-last-access will be run within oo-auto-idler first and any
   errors related to gears not found will block the operation
