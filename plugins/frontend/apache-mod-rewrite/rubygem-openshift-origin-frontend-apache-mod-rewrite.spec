@@ -109,6 +109,7 @@ done
 mkdir -p %{buildroot}/etc/httpd/conf.d
 mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
+mv httpd/openshift_route_logconf.include %{buildroot}/etc/httpd/conf.d/
 
 mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/frontend-mod-rewrite-https-template.erb
 
@@ -117,8 +118,9 @@ mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/
 %{gem_instdir}
 %{gem_spec}
 %{gem_cache}
+%config /etc/httpd/conf.d/openshift_route.include
+%config(noreplace) /etc/httpd/conf.d/openshift_route_logconf.include
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
-%config(noreplace) /etc/httpd/conf.d/openshift_route.include
 %attr(0644,root,root)   %config(noreplace) %{appdir}/.httpd.d/frontend-mod-rewrite-https-template.erb
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
