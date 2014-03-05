@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -471,6 +471,10 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- virtualenv and mod_wsgi are required for python 2.6, 2.7 and 3.3.
+  (bleanhar@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - bump_minor_versions for sprint 41 (admiller@redhat.com)
 
