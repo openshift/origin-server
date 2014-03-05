@@ -3,7 +3,7 @@
 %global import_path github.com/openshift
 
 Name:          openshift-origin-logshifter
-Version:       1.3
+Version:       1.4
 Release:       1%{?dist}
 Summary:       Log transport for OpenShift gear processes.
 License:       ASL 2.0
@@ -37,6 +37,9 @@ install -p -m 755 _build/bin/logshifter %{buildroot}%{_bindir}/logshifter
 %{_bindir}/logshifter
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.4-1
+- Ignore SIGHUP in logshifter (ironcladlou@gmail.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.3-1
 - Add better defaults and documentation (ironcladlou@gmail.com)
 
