@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.21.5
+Version: 1.21.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,14 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
+- Merge pull request #4895 from pmorie/bugs/1072663
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1072663, 1072663: (pmorie@gmail.com)
+- Merge pull request #4889 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Rebalancing tests (dmcphers@redhat.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.5-1
 - Bug 1072249 (dmcphers@redhat.com)
 
