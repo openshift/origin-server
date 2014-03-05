@@ -87,16 +87,18 @@ module Console
           array
         end
 
-        full_errors << @object.errors[:base] unless html_options.delete(:not) == :base or args.present?
+        unless Array(html_options.delete(:not)).include?(:base) or args.present?
+          base_errors = @object.errors[:base]
+          full_errors << base_errors
+          with_details = base_errors.length > 1
+          html_options[:class] << ' with-alert-details' if with_details
+        end
         full_errors.flatten!
         full_errors.compact!
         full_errors.uniq!
 
         return nil if full_errors.blank?
         #html_options[:class] ||= "errors"
-
-        with_details = full_errors.length > 1
-        html_options[:class] += ' with-alert-details' if with_details
 
         error_content = template.content_tag(:ul, html_options) do
           if with_details
