@@ -158,7 +158,8 @@ ul {
   }
 }
 
-#web_user_password_input {
+#web_user_password_input,
+#web_user_rhlogin_input {
   position: relative;
   button.eye {
     background: transparent image-url('eye.png') no-repeat right center;
