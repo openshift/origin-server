@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -119,6 +119,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Enable docker builds of openshift-origin-broker (jforrest@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - bump_minor_versions for sprint 41 (admiller@redhat.com)
 
