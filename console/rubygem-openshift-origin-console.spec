@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.21.3
+Version: 1.21.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
+- Merge pull request #4891 from ShalomPisteuo/appLoginCSS
+  (dmcphers+openshiftbot@redhat.com)
+- Altering .css styling for the new help-block (shalompisteuo@gmail.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
 - Bug 1072185 - should not collapse message details when bound to a form input
   (contact@fabianofranz.com)
