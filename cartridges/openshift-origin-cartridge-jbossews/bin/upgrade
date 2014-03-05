@@ -16,3 +16,9 @@ fi
 if [ -d $OPENSHIFT_HOMEDIR/jbossews/versions ]; then
   rm -rf $OPENSHIFT_HOMEDIR/jbossews/versions
 fi
+
+if [[ $next =~ ^0.0.12$ ]]; then
+  # Set up the config directory in the user repository template
+  cp ${OPENSHIFT_JBOSSEWS_DIR}/usr/versions/{shared,${version}}/configuration/* ${OPENSHIFT_JBOSSEWS_DIR}/template/.openshift/config
+fi
+

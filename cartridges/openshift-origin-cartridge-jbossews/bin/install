@@ -20,3 +20,6 @@ popd 1>/dev/null
 # Set up the default path and JAVA_HOME
 export JAVA_HOME=$OPENSHIFT_JBOSSEWS_JDK7
 reinstall_path
+
+# Set up the config directory in the user repository template
+cp ${OPENSHIFT_JBOSSEWS_DIR}/usr/versions/{shared,${version}}/configuration/* ${OPENSHIFT_JBOSSEWS_DIR}/template/.openshift/config
