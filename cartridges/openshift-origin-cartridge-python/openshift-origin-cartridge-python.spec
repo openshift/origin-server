@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -100,6 +100,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- virtualenv and mod_wsgi are required for python 2.6, 2.7 and 3.3.
+  (bleanhar@redhat.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
 - Merge pull request #4862 from VojtechVitek/fix_bash_regexp
   (dmcphers+openshiftbot@redhat.com)
