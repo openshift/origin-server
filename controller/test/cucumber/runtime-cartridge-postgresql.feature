@@ -1,6 +1,6 @@
-@postgres
+@cartridge_extended3
 Feature: Postgres Application Sub-Cartridge
-  @cartridge_extended3
+
   Scenario Outline: Create/Delete to application with a Postgres database
     Given a new mock-0.1 type application
 
@@ -22,8 +22,6 @@ Feature: Postgres Application Sub-Cartridge
       |       8.4        |
       |       9.2        |
 
-  @cartridge_extended3
-  @postgres
   Scenario Outline: Connections and Snapshot/Restore a scalable application with a Postgres database
     Given a new client created scalable mock-0.1 application
     Given the embedded postgresql-<postgres_version> cartridge is added
