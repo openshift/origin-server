@@ -112,18 +112,6 @@ an OpenShift cartrige.
 %package optional-jbosseap
 Summary:   Optional user dependencies for JBossEAP OpenShift Cartridges
 BuildArch: noarch
-Requires:  jbossas-appclient
-Requires:  jbossas-bundles
-Requires:  jbossas-core
-Requires:  jbossas-domain
-Requires:  jbossas-hornetq-native
-Requires:  jbossas-jbossweb-native
-Requires:  jbossas-modules-eap
-Requires:  jbossas-product-eap
-Requires:  jbossas-standalone
-Requires:  jbossas-welcome-content-eap
-Requires:  jboss-eap6-modules
-Requires:  jboss-eap6-index
 
 %description optional-jbosseap
 This package pulls in other packages that a user
