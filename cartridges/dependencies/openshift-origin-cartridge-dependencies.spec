@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -458,6 +458,14 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- These jboss packages are _not_ optional for the JBoss cartridge.
+  (bleanhar@redhat.com)
+- Merge pull request #4890 from brenton/deps2
+  (dmcphers+openshiftbot@redhat.com)
+- rpm-build is required for the perl cartridge's build script
+  (bleanhar@redhat.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
 - virtualenv and mod_wsgi are required for python 2.6, 2.7 and 3.3.
   (bleanhar@redhat.com)
