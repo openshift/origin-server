@@ -66,7 +66,7 @@ func (shifter *Shifter) Start() error {
 	writeGroup, err := shifter.output.Write()
 
 	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to initialize output writer: %s", err))
+		return errors.New(fmt.Sprintf("Failed to initialize output writer: %v", err))
 	}
 
 	readGroup := shifter.input.Read()

@@ -33,21 +33,37 @@ func main() {
 	var verbose bool
 	var statsInterval time.Duration
 
-	flag.StringVar(&configFile, "config", DefaultConfigFile, "config file location")
+	flag.StringVar(&configFile, "config", "", "config file location")
 	flag.BoolVar(&verbose, "verbose", false, "enables verbose output (e.g. stats reporting)")
 	flag.StringVar(&statsFileName, "statsfilename", "", "enabled period stat reporting to the specified file")
 	flag.DurationVar(&statsInterval, "statsinterval", (time.Duration(5) * time.Second), "stats reporting interval")
-	flag.StringVar(&tag, "tag", "logshifter", "tag used by outputs for extra message context (e.g. program name)")
+	flag.StringVar(&tag, "tag", "", "tag used by outputs for extra message context (e.g. program name)")
 	flag.Parse()
 
-	// load the config
+	if len(tag) == 0 {
+		fmt.Println("Error: the `tag` argument is required")
+		os.Exit(1)
+	}
+
+	// If no config option is given and if a config file exists at the known global
+	// location, use the global config. If a config file is explicitly specified,
+	// use it. Otherwise, fall back to internal defaults.
 	config := DefaultConfig()
 
-	if _, err := os.Stat(configFile); err == nil {
+	if _, err := os.Stat(DefaultConfigFile); err == nil && len(configFile) == 0 {
+		configFile = DefaultConfigFile
+	}
+
+	if len(configFile) != 0 {
+		if _, err := os.Stat(configFile); err != nil {
+			fmt.Printf("Error: config file %s not found", configFile)
+			os.Exit(1)
+		}
+
 		var err error
 		config, err = ParseConfig(configFile)
 		if err != nil {
-			fmt.Printf("Error loading config from %s: %s", configFile, err)
+			fmt.Printf("Error: couldn't load config file %s: %v", configFile, err)
 			os.Exit(1)
 		}
 	}
@@ -78,7 +94,7 @@ func main() {
 	// set up the writer
 	writer, err := createWriter(config, tag)
 	if err != nil {
-		fmt.Printf("error creating writer: %s", err)
+		fmt.Printf("Error: couldn't create writer: %v", err)
 		os.Exit(1)
 	}
 
@@ -91,18 +107,16 @@ func main() {
 	}
 
 	// start the log pipe
-	startErr := shifter.Start()
+	if err := shifter.Start(); err != nil {
+		fmt.Printf("Error: logshifter startup failed: %v", err)
+		os.Exit(1)
+	}
 
 	// shut down the stats reporter
 	if statsChannel != nil {
 		close(statsChannel)
 		statsShutdownChan <- 0
 		statsGroup.Wait()
-	}
-
-	if startErr != nil {
-		fmt.Printf("Failed to start logshifter: %s", err)
-		os.Exit(1)
 	}
 
 	// shut down the signal handler
