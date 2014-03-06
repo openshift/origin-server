@@ -138,6 +138,7 @@ module OpenShift
     class GearUpgradeResult < UpgradePersistable
       attr_accessor :login,
                     :plan_id,
+                    :active,
                     :app_name,
                     :gear_uuid,
                     :namespace,
@@ -631,7 +632,7 @@ class Upgrader
       # start the upgrades in a retry loop
       (1..num_tries).each do |i|
         # perform the upgrade
-        result = upgrade_gear(gear.login, gear.app_name, gear.gear_uuid, gear.version, ignore_cartridge_version)
+        result = upgrade_gear(gear.login, gear.app_name, gear.gear_uuid, gear.version, ignore_cartridge_version, gear.active)
 
         # write the results if all is well
         if result.errors.empty?
@@ -705,7 +706,7 @@ class Upgrader
   # NOTE: All exceptions are trapped and added to the +GearUpgradeResult.errors+.
   # This method should always return the hash and should never bubble exceptions.
   #
-  def upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=false)
+  def upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=false, active=false)
     gear_result = OpenShift::Upgrader::GearUpgradeResult.new({
       login: login,
       app_name: app_name,
@@ -725,6 +726,7 @@ class Upgrader
       raise "User not found: #{login}" unless user
 
       gear_result.plan_id = user.plan_id
+      gear_result.active = active
       app, gear = Application.find_by_gear_uuid(gear_uuid)
 
       gear_result.warnings << "App '#{app_name}' not found" unless app
@@ -809,6 +811,7 @@ class Upgrader
     leftover_gears_per_node = {}
     failed_gears_per_node = {}
     failed_gears_per_plan = {}
+    failed_gears_per_state = {}
 
     upgrade_result.starting_node_queue.each do |node|
       server_identity = node.server_identity
@@ -831,6 +834,9 @@ class Upgrader
             failed_gears_per_plan[failed_gur.plan_id] = 0 unless failed_gears_per_plan[failed_gur.plan_id]
             failed_gears_per_plan[failed_gur.plan_id] += 1
           end
+          state = failed_gur.active ? 'Active' : 'Inactive'
+          failed_gears_per_state[state] = 0 unless failed_gears_per_plan[state]
+          failed_gears_per_state[state] += 1
         end
       end
     end
@@ -873,6 +879,12 @@ class Upgrader
       buf << "# of failures per plan:"
       failed_gears_per_plan.each do |plan_id, count|
         buf << "    #{plan_id}: #{count}"
+      end
+    end
+    if failed_gears_per_state.any?
+      buf << "# of failures per state:"
+      failed_gears_per_state.each do |state, count|
+        buf << "    #{state}: #{count}"
       end
     end
     buf << "# of leftovers: #{leftover_gears_total}"
