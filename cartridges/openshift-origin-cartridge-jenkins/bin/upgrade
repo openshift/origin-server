@@ -30,7 +30,10 @@ do
     echo "Added applicationUUID ${uuid} to build configuration ${f}" 
 
   fi
-
 done
+
+# switch to https for jenkins updates to avoid making mixed http/https calls
+# which are now blocked by most browsers by default
+sed -i 's/http\(:\/\/updates.jenkins-ci.org\/update-center.json\)/https\1/' ${OPENSHIFT_DATA_DIR}/hudson.model.UpdateCenter.xml
 
 popd > /dev/null
