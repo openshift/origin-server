@@ -2,6 +2,6 @@
 <sites>
   <site>
     <id>default</id>
-    <url>http://updates.jenkins-ci.org/update-center.json</url>
+    <url>https://updates.jenkins-ci.org/update-center.json</url>
   </site>
 </sites>
