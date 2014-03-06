@@ -13,11 +13,19 @@ require 'openshift-origin-common/utils/file_needs_sync'
 require 'shellwords'
 require 'facter'
 require 'stringio'
+require 'timeout'
 
 module MCollective
   module Agent
     class Openshift<RPC::Agent
       # Metadata moved to openshift.ddl
+
+      # Maps NodeLogger context keys to request data "args" keys
+      LOGGER_CONTEXT_ENTRIES = {
+        request_id: '--with-request-id',
+        container_uuid: '--with-container-uuid',
+        app_uuid: '--with-app-uuid'
+      }
 
       activate_when do
         @@config = ::OpenShift::Config.new
@@ -28,15 +36,15 @@ module MCollective
           Dir.glob(PathUtils.join(@@config.get('CARTRIDGE_BASE_PATH'), '*')).each do |path|
             begin
               manifest = @@cartridge_repository.install(path)
-              Log.instance.info("Installed cartridge (#{manifest.cartridge_vendor}, #{manifest.name}, #{manifest.version}, #{manifest.cartridge_version}) from #{path}")
+              OpenShift::Runtime::NodeLogger.logger.info("openshift-agent: Installed cartridge (#{manifest.cartridge_vendor}, #{manifest.name}, #{manifest.version}, #{manifest.cartridge_version}) from #{path}")
             rescue Exception => e
-              Log.instance.warn("Failed to install cartridge from #{path}. #{e.message}")
+              OpenShift::Runtime::NodeLogger.logger.warn("openshift-agent: Failed to install cartridge from #{path}. #{e.message}")
             end
           end
         end
 
-        Log.instance.info(
-            "#{@@cartridge_repository.count} cartridge(s) installed in #{@@cartridge_repository.path}")
+        OpenShift::Runtime::NodeLogger.logger.info(
+            "openshift-agent: #{@@cartridge_repository.count} cartridge(s) installed in #{@@cartridge_repository.path}")
 
         begin
           if path = @@config.get('AGENT_EXTENSION')
@@ -45,8 +53,7 @@ module MCollective
             agent_startup
           end
         rescue Exception => e
-          Log.instance.error e.message
-          Log.instance.error e.backtrace.inspect
+          Log.instance.error("#{e.message}\n#{e.backtrace.join("\n")}")
         end
 
         true
@@ -54,16 +61,31 @@ module MCollective
 
       def startup_hook
         # If meta[:timeout] is not set Node operations will fail as default is too low
-        @hourglass_timeout = (meta[:timeout] * 0.65).ceil
-        Log.instance.info(
-            "Node transaction timeout is #{@hourglass_timeout}, mcollective timeout is #{meta[:timeout]}")
+        unless defined?(@@hourglass_timeout)
+          @@hourglass_timeout = (meta[:timeout] * 0.65).ceil
+          Log.instance.info("Node transaction timeout is #{@@hourglass_timeout}, mcollective timeout is #{meta[:timeout]}")
+        end
       end
 
       def before_processing_hook(msg, connection)
         # Set working directory to a 'safe' directory to prevent Dir.chdir
         # calls with block from changing back to a directory which doesn't exist.
-        Log.instance.debug('Changing working directory to /tmp')
         Dir.chdir('/tmp')
+
+        # Set up the NodeLogger context for the duration of this request
+        args = request.data[:args] ||= {}
+        LOGGER_CONTEXT_ENTRIES.each {|k, v| OpenShift::Runtime::NodeLogger.context[k] = args[v].to_s if args[v]}
+
+        OpenShift::Runtime::NodeLogger.logger.info("openshift-agent: request start: action=#{request.action} requestid=#{request.uniqid}, "\
+                                                   "senderid=#{request.sender}, data=#{request.data}")
+      end
+
+      def after_processing_hook
+        OpenShift::Runtime::NodeLogger.logger.info("openshift-agent: request end: action=#{request.action}, requestid=#{request.uniqid}, "\
+                                                   "senderid=#{request.sender}, statuscode=#{reply.statuscode}, data=#{reply.data}")
+
+        # Clear the NodeLogger context for the request
+        LOGGER_CONTEXT_ENTRIES.each {|k, v| OpenShift::Runtime::NodeLogger.context.delete(k)}
       end
 
 
@@ -77,25 +99,36 @@ module MCollective
       end
 
       def get_facts_action
+        hg = OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout)
+        max = hg.remaining
+
         reply[:output] = {}
         request[:facts].each do |fact|
-          reply[:output][fact.to_sym] = MCollective::Util.get_fact(fact)
+          begin
+            Timeout::timeout(hg.remaining) do
+              reply[:output][fact.to_sym] = MCollective::Util.get_fact(fact)
+            end
+          rescue Timeout::Error
+            # forget it
+          end
+
+          if hg.expired?
+            reply.fail! "Failed to obtain requested facts in #{max}s"
+            break
+          end
         end
       end
 
       # Handles all incoming messages. Validates the input, executes the action, and constructs
       # a reply.
       def cartridge_do_action
-        Log.instance.info("cartridge_do_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
-        Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
-
         validate :cartridge, :shellsafe
         validate :action, :shellsafe
 
         action = request[:action]
         args   = request[:args] ||= {}
 
-        args['--with-hourglass'] = OpenShift::Runtime::Utils::Hourglass.new(@hourglass_timeout)
+        args['--with-hourglass'] = OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout)
 
         # Do the action execution
         exitcode, output, addtl_params = execute_action(action, args)
@@ -112,10 +145,7 @@ module MCollective
         reply[:addtl_params] = addtl_params
         args.delete('--with-hourglass')
 
-        if exitcode == 0
-          Log.instance.info("cartridge_do_action reply (#{exitcode}):\n------\n#{cleanpwd(output)}\n------)")
-        else
-          Log.instance.info("cartridge_do_action failed (#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
+        if exitcode != 0
           reply.fail! "cartridge_do_action failed #{exitcode}. Output #{output}"
         end
       end
@@ -127,36 +157,21 @@ module MCollective
         start = Time.now
         action_method = "oo_#{action.gsub('-', '_')}"
 
-        logger_context_entries = {
-          action_method: action_method,
-          request_id: args['--with-request-id'],
-          container_uuid: args['--with-container-uuid'],
-          app_uuid: args['--with-app-uuid']
-        }
-
         exitcode = 0
         output   = ""
         addtl_params = nil
 
-        if not self.respond_to?(action_method)
-          exitcode = 127
-          output   = "Unsupported action: #{action}/#{action_method}"
-        else
-          Log.instance.info("Executing action [#{action}] using method #{action_method} with args [#{args}]")
-          begin
-            logger_context_entries.each {|k, v| OpenShift::Runtime::NodeLogger.context[k] = v.to_s if v}
-
+        begin
+          if self.respond_to?(action_method)
             exitcode, output, addtl_params = self.send(action_method.to_sym, args)
-          rescue Exception => e
-            report_exception e
-            Log.instance.error("Unhandled action execution exception for action [#{action}]: #{e.message}")
-            Log.instance.error(e.backtrace)
+          else
             exitcode = 127
-            output   = "An internal exception occurred processing action #{action}: #{e.message}"
-          ensure
-            logger_context_entries.each {|k, v| OpenShift::Runtime::NodeLogger.context.delete(k)}
+            output   = "Unsupported action: #{action}/#{action_method}"
           end
-          Log.instance.info("Finished executing action [#{action}] (#{exitcode}) Time to execute #{Time.now - start}")
+        rescue Exception => e
+          report_exception e
+          exitcode = 127
+          output   = "An internal exception occurred processing action #{action}: #{e.message}\n#{e.backtrace.join("\n")}"         
         end
 
         return exitcode, output, addtl_params
@@ -189,9 +204,8 @@ module MCollective
       # BZ 876942: Disable threading until we can explore proper concurrency management
       def execute_parallel_action
         start = Time.now
-        Log.instance.info("execute_parallel_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
 
-        hourglass = OpenShift::Runtime::Utils::Hourglass.new(@hourglass_timeout)
+        hourglass = OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout)
 
         quota_reported = false
         joblist        = request[config.identity]
@@ -221,7 +235,6 @@ module MCollective
           args.delete('--with-hourglass')
         end
 
-        Log.instance.info("execute_parallel_action call - duration: #{Time.now - start} - #{joblist}")
         reply[:output]   = joblist
         reply[:exitcode] = 0
       end
@@ -230,7 +243,6 @@ module MCollective
       # Upgrade between versions
       #
       def upgrade_action
-        Log.instance.info("upgrade_action call / action=#{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
         validate :app_uuid, /^[a-zA-Z0-9]+$/
         validate :version, /^.+$/
@@ -249,7 +261,7 @@ module MCollective
         begin
           require 'openshift-origin-node/model/upgrade'
           upgrader = OpenShift::Runtime::Upgrader.new(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, scalable,
-                                                      OpenShift::Runtime::Utils::Hourglass.new(@hourglass_timeout))
+                                                      OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout))
         rescue Exception => e
           report_exception e
           exitcode = 1
@@ -273,8 +285,6 @@ module MCollective
             error_message = "Gear failed to upgrade due to an unhandled internal exception: #{e.message}\n#{e.backtrace.join("\n")}"
           end
         end
-
-        Log.instance.info("upgrade_action (#{exitcode})\n------\n#{error_message}\n------)")
 
         reply[:output] = error_message
         reply[:exitcode] = exitcode
@@ -303,7 +313,7 @@ module MCollective
         quota_blocks = args['--with-quota-blocks']
         quota_files  = args['--with-quota-files']
         uid          = args['--with-uid']
-        hourglass    = args['--with-hourglass'] || OpenShift::Runtime::Utils::Hourglass.new(@hourglass_timeout)
+        hourglass    = args['--with-hourglass'] || OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout)
 
         quota_blocks = nil if quota_blocks && quota_blocks.to_s.empty?
         quota_files  = nil if quota_files && quota_files.to_s.empty?
@@ -330,8 +340,6 @@ module MCollective
           return e.rc, output
         rescue Exception => e
           report_exception e
-          Log.instance.error e.message
-          Log.instance.error e.backtrace.join("\n")
           return 1, e.message
         end
       end
@@ -344,24 +352,16 @@ module MCollective
           create_initial_deployment_dir = args.key?('--with-initial-deployment-dir') ? args['--with-initial-deployment-dir'] : true
 
           container = get_app_container_from_args(args)
-          output = container.create(token, generate_app_key, create_initial_deployment_dir)
+          return 0, container.create(token, generate_app_key, create_initial_deployment_dir)
         rescue OpenShift::Runtime::UserCreationException => e
           report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
           return 129, e.message
         rescue OpenShift::Runtime::GearCreationException => e
           report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
           return 146, e.message
         rescue Exception => e
           report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 1, e.message
-        else
-          return 0, output
+          return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
 
@@ -371,15 +371,13 @@ module MCollective
         begin
           container    = get_app_container_from_args(args)
           out, err, rc = container.destroy(skip_hooks)
-        rescue Exception => e
-          report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 1, e.message
-        else
+
           output << out
           output << err
           return rc, output
+        rescue Exception => e
+          report_exception e
+          return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
 
@@ -473,9 +471,7 @@ module MCollective
           container.replace_ssh_keys(ssh_keys)
         rescue Exception => e
           report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 1, e.message
+          return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         else
           return 0, ""
         end
@@ -561,17 +557,13 @@ module MCollective
       def oo_user_var_list(args)
         keys = args['--with-keys'] ? args['--with-keys'].split(' ') : []
 
-        output = ''
         begin
           container = get_app_container_from_args(args)
           list      = container.user_var_list(keys)
-          output    = 'CLIENT_RESULT: ' + list.to_json
+          return 0, 'CLIENT_RESULT: ' + list.to_json
         rescue Exception => e
           report_exception e
-          Log.instance.info "#{e.message}\n#{e.backtrace}"
-          return 1, e.message
-        else
-          return 0, output
+          return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
 
@@ -579,16 +571,11 @@ module MCollective
         list_descriptors = true if args['--with-descriptors']
         porcelain = true if args['--porcelain']
 
-        output = ""
         begin
-          output = OpenShift::Runtime::Node.get_cartridge_list(list_descriptors, porcelain, false)
+          return 0, OpenShift::Runtime::Node.get_cartridge_list(list_descriptors, porcelain, false)
         rescue Exception => e
           report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 1, e.message
-        else
-          return 0, output
+          return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
 
@@ -601,21 +588,16 @@ module MCollective
       def oo_get_quota(args)
         uuid = args['--uuid'].to_s if args['--uuid']
 
-        output = ''
         begin
-          q      = OpenShift::Runtime::Node.get_quota(uuid)
-          output = [
+          q = OpenShift::Runtime::Node.get_quota(uuid)
+          return 0, [
             q[:device],
             q[:blocks_used].to_s, q[:blocks_quota].to_s, q[:blocks_limit].to_s,
             q[:inodes_used].to_s, q[:inodes_quota].to_s, q[:inodes_limit].to_s
           ]
         rescue Exception => e
           report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 1, e.message
-        else
-          return 0, output
+          return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
 
@@ -624,16 +606,11 @@ module MCollective
         blocks = args['--blocks']
         inodes = args['--inodes']
 
-        output = ""
         begin
-          output = OpenShift::Runtime::Node.set_quota(uuid, blocks, inodes)
+          return 0, OpenShift::Runtime::Node.set_quota(uuid, blocks, inodes)
         rescue Exception => e
           report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 1, e.message
-        else
-          return 0, output
+          return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
 
@@ -654,18 +631,15 @@ module MCollective
           yield(output)
         rescue OpenShift::Runtime::FrontendHttpServerExecException => e
           report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
+          OpenShift::Runtime::NodeLogger.logger.error("#{e.message}\n#{e.backtrace.join("\n")}")
           return e.rc, e.message + e.stdout + e.stderr
         rescue OpenShift::Runtime::FrontendHttpServerException => e
           report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
+          OpenShift::Runtime::NodeLogger.logger.error("#{e.message}\n#{e.backtrace.join("\n")}")
           return 129, e.message
         rescue Exception => e
           report_exception e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
+          OpenShift::Runtime::NodeLogger.logger.error("#{e.message}\n#{e.backtrace.join("\n")}")
           return 1, e.message
         else
           return 0, output
@@ -1031,20 +1005,16 @@ module MCollective
       def oo_threaddump(args)
         cart_name = args['--cart-name']
 
-        output = ""
         begin
           container = get_app_container_from_args(args)
-          output    = container.threaddump(cart_name)
+          return 0, container.threaddump(cart_name)
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
           report_exception e
-          Log.instance.info "#{e.message}\n#{e.backtrace}\n#{e.stderr}"
+          OpenShift::Runtime::NodeLogger.logger.error "#{e.message}\n#{e.backtrace}\n#{e.stderr}"
           return e.rc, "CLIENT_ERROR: action 'threaddump' failed #{e.message} #{e.stderr}"
         rescue Exception => e
           report_exception e
-          Log.instance.info "#{e.message}\n#{e.backtrace}"
-          return 1, e.message
-        else
-          return 0, output
+          return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
 
@@ -1067,7 +1037,6 @@ module MCollective
       # Set the district for a node
       #
       def set_district_action
-        Log.instance.info("set_district call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
         uuid = request[:uuid].to_s if request[:uuid]
         active = request[:active]
@@ -1105,15 +1074,12 @@ module MCollective
           reply[:exitcode] = 255
           reply.fail! "set_district failed #{reply[:exitcode]}.  Output #{reply[:output]}"
         end
-
-        Log.instance.info("set_district (#{reply[:exitcode]})\n------\n#{reply[:output]}\n------)")
       end
 
       #
       # Set the district uid_limits for a node
       #
       def set_district_uid_limits_action
-        Log.instance.info("set_district_uid_limits call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         first_uid = request[:first_uid]
         max_uid = request[:max_uid]
 
@@ -1148,8 +1114,6 @@ module MCollective
           reply[:exitcode] = 255
           reply.fail! "set_district_uid_limits failed #{reply[:exitcode]}.  Output #{reply[:output]}"
         end
-
-        Log.instance.info("set_district_uid_limits (#{reply[:exitcode]})\n------\n#{reply[:output]}\n------)")
       end
 
       #
@@ -1263,13 +1227,12 @@ module MCollective
           reply[:output]   = (not cartridge.nil?)
           reply[:exitcode] = 0
         rescue RuntimeError => e
-          Log.instance.error e.message
+          OpenShift::Runtime::NodeLogger.logger.error("#{e.message}\n#{e.backtrace.join("\n")}")
           reply[:output]   = false
           reply[:exitcode] = 0
         rescue Exception => e
           report_exception e
-          Log.instance.error e.message
-          Log.instance.error e.backtrace.join("\n")
+          OpenShift::Runtime::NodeLogger.logger.error("#{e.message}\n#{e.backtrace.join("\n")}")
           reply[:output]   = false
           reply[:exitcode] = 1
         end
@@ -1350,7 +1313,6 @@ module MCollective
 
       ## Perform operation on CartridgeRepository
       def cartridge_repository_action
-        Log.instance.info("action: #{request.action}_action, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         action            = request[:action]
         path              = request[:path]
         name              = request[:name]
@@ -1374,7 +1336,6 @@ module MCollective
           end
         rescue Exception => e
           report_exception e
-          Log.instance.info("cartridge_repository_action(#{action}): failed #{e.message}\n#{e.backtrace}")
           reply.fail!("#{action} failed for #{path} #{e.message}", 4)
         end
       end
