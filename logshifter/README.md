@@ -22,19 +22,23 @@ Here are some small examples to verify logshifter is writing events, using the d
 (which writes to syslog):
 
     # single shot
-    echo hello world > >(/tmp/logshifter)
+    echo hello world | logshifter -tag myapp
 
     # 10 messages @ 1 message/second
-    for i in {1..10}; do echo logshifter message ${i}; sleep 1; done > >(/tmp/logshifter -verbose)
+    for i in {1..10}; do echo logshifter message ${i}; sleep 1; done | /tmp/logshifter -tag myapp
 
     # 30 messages @ 1 message/second with stats reporting every 2 seconds
-    for i in {1..30}; do echo logshifter message ${i}; sleep 1; done > >(/tmp/logshifter -verbose -statsfilename /tmp/logshifter.stats -statsinterval 2s)
+    for i in {1..30}; do echo logshifter message ${i}; sleep 1; done | /tmp/logshifter -tag myapp -statsfilename /tmp/logshifter.stats -statsinterval 2s
 
 Configuration
 ---
 An optional configuration file can be supplied to logshifter with the `-config` flag. The file
 is a list of key value pairs in the format `k = v`, one per line. The possible options and their
 defaults are described in the [Config type](config.go). Keys are case insensitive.
+
+If no `-config` flag is specified, logshifter will attempt to load a global config file from
+`/etc/openshift/logshifter.conf`. If no `-config` is specified, and the global config file doesn't
+exist, a default syslog-based configuration will be used.
 
 Statistics
 ---

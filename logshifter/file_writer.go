@@ -24,7 +24,7 @@ type FileWriter struct {
 // Init implements the Writer interface.
 //
 // The destination filename is constructed by joining config.fileWriterDir
-// with tag.
+// with tag and appending a '.log' suffix.
 //
 // A leading `~/` in config.fileWriterDir will be replaced by the
 // current user's home directory path.
@@ -39,7 +39,7 @@ func (writer *FileWriter) Init() error {
 		basedir = strings.Replace(basedir, "~/", (dir + "/"), 1)
 	}
 
-	filename := path.Join(basedir, writer.tag)
+	filename := path.Join(basedir, writer.tag+".log")
 
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
