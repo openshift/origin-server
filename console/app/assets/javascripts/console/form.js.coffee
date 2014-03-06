@@ -77,11 +77,15 @@ $ ->
         else
           false
 
-  $('.alert.with-alert-details a').click (event) ->
+  $('.with-alert-details a, .error-reference a').click (event) ->
     event.preventDefault() if event?
     link = $(this)
-    message = link.closest('.alert.with-alert-details')
-    details = message.next('.alert-details')
+    if link.parent().hasClass('error-reference')
+      message = $('p.error-reference')
+      details = $('.error-reference-details')
+    else
+      message = link.closest('.with-alert-details')
+      details = message.next('.alert-details')
     message.toggleClass('detailed')
     details.toggleClass('hide')
     if link.text() == 'Show more' 
