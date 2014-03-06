@@ -509,3 +509,130 @@ function random_string {
   echo $(echo "${rnd}" | head -n1)
 
 }
+
+# Compare two numeric version numbers with arbitrary numbers of segments.  For
+# more information see comments for version_in_range on special handling
+# required for usage inside of the upgrade script (or any script that runs with
+# "set -e".
+#
+# Returns:
+# 0 if equal
+# 1 if arg1 is greater than arg2
+# 2 if arg1 is less than arg2
+function version_comp () {
+    if [[ $1 == $2 ]]
+    then
+        return 0
+    fi
+    # setting the field seperator to . allows us to chop the segments up
+    # easily.
+    local IFS=.
+    local i ver1=($1) ver2=($2)
+    # Handle the case where ver2 has more segments than ver1 by padding with
+    # zeros
+    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+    do
+        ver1[i]=0
+    done
+    for ((i=0; i<${#ver1[@]}; i++))
+    do
+        # We have to test for a variable that may be unset.  Many scripts that
+        # use this function will have 'set -u' so we need to temporarily undo
+        # that (without using a subshell).
+        [[ $- = *u* ]]; oldu=$?
+        set +u
+
+        # Handle the case where ver1 is has more segments than ver2
+        if [[ -z ${ver2[i]} ]]
+        then
+            ver2[i]=0
+        fi
+
+        # in case 'set -u' wasn't actually set
+        (( $oldu )) || set -u
+
+        # comparing using base 10 turns values like 05 or 005 into just 5
+        if ((10#${ver1[i]} > 10#${ver2[i]}))
+        then
+            return 1
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]}))
+        then
+            return 2
+        fi
+    done
+    return 0
+}
+
+# Compare two versions of arbitrary segment lenth.
+#
+# Returns 0 if arg1 is greater than arg2
+function version_gt() {
+  local greater_than=1
+
+  version_comp $1 $2
+  RESULT=$?
+
+  if [[ $RESULT -eq 1 ]]; then
+    greater_than=0
+  fi
+
+  return $greater_than
+}
+
+# Compare two versions of arbitrary segment lenth.
+#
+# Returns 0 if arg1 is less than arg2
+function version_lt() {
+  local less_than=1
+
+  version_comp $1 $2
+  RESULT=$?
+
+  if [[ $RESULT -eq 2 ]]; then
+    less_than=0
+  fi
+
+  return $less_than
+}
+
+# Test if a given version is within the range of two other versions
+# (inclusively)
+#
+# Argument 1: The version to test
+# Argument 2: The lower bound
+# Argument 3: The upper bound
+#
+# Returns 0 if inside the range
+# Returns 1 if outside the range
+#
+# Note: For use inside of cartridge upgrade scripts special care must be taken
+# since most 'set -e' by default which causes the script to exit if non-zero is
+# returned.  See the bash man page's documentation on the "set" command.  One
+# was to do this with "set -e" is:
+#
+# if version_in_range "0.0.11.5" "0.0.11" "0.1.0"; then
+#   echo "this works"
+# fi
+#
+# In that case bash knows not to abort execution because the non-zero return
+# code is part of a test.
+function version_in_range() {
+  local i=$1
+  local lower_bound=$2
+  local upper_bound=$3
+  local in_range=1
+
+  version_comp $i $lower_bound
+  RESULT=$?
+
+  if [[ $RESULT -eq 0 ]] || [[ $RESULT -eq 1 ]]; then
+    version_comp $i $upper_bound
+    RESULT=$?
+    if [[ $RESULT -eq 0 ]] || [[ $RESULT -eq 2 ]]; then
+      in_range=0
+    fi
+  fi
+
+  return $in_range
+}
