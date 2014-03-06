@@ -2,8 +2,8 @@
 Name: python
 Cartridge-Short-Name: PYTHON
 Display-Name: Python 2.7
-Description: 'Python is a general-purpose, high-level programming language whose design
-  philosophy emphasizes code readability. Popular development frameworks include:
+Description: ! 'Python is a general-purpose, high-level programming language whose
+  design philosophy emphasizes code readability. Popular development frameworks include:
   Django, Bottle, Pylons, Zope and TurboGears.'
 Version: '2.7'
 Versions:
@@ -12,9 +12,8 @@ Versions:
 License: The Python License, version 2.7
 License-Url: http://docs.python.org/3/license.html
 Vendor: python.org
-Cartridge-Version: 0.0.13
-Compatible-Versions:
-- 0.0.12
+Cartridge-Version: 0.0.14
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -53,7 +52,7 @@ Endpoints:
     Backend: ''
     Options:
       websocket: true
-  - Frontend: "/health"
+  - Frontend: /health
     Backend: ''
     Options:
       health: true
