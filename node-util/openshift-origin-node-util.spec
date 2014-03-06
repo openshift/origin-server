@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.20.5
+Version: 1.20.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -158,6 +158,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Mar 06 2014 Adam Miller <admiller@redhat.com> 1.20.6-1
+- fix missing variable error (rchopra@redhat.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
 - re-fix oo-auto-idler. bz1072472. all gears will never be idled by the script.
   man page changes (rchopra@redhat.com)
