@@ -177,7 +177,8 @@ command :idle do |c|
     $log.level = Logger::DEBUG if options.verbose
     puts "Gears idle for #{options.interval} hours"
     %x[(echo -n "Before: ";  /usr/sbin/oo-idler-stats) | /usr/bin/logger -p local0.notice -t oo-auto-idler]
-    stale_gear_list, recent_last_access =  idle_gears(options.interval, options.list || false)
+    list_only = (options.list || false)
+    stale_gear_list, recent_last_access =  idle_gears(options.interval, list_only)
     if recent_last_access >= options.interval
       puts "ERROR: None of the head gears on the node were accessed within #{options.interval} hours. Last access was #{recent_last_access} hours ago. No gears will be idled."
       exit 1
