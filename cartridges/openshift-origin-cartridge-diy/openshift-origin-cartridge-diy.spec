@@ -2,7 +2,7 @@
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -38,6 +38,9 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Mar 06 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Updating cartridge versions (jhadvig@redhat.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Template cleanup (dmcphers@redhat.com)
 
