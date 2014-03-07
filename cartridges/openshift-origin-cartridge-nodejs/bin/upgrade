@@ -33,8 +33,9 @@ fi
 # remove the existing LD_LIBRARY_PATH so the Node one can
 # take the precedence.
 #
-if [[ $new_cart_version == "0.0.13" ]]; then
+if [[ $new_cart_version == "0.0.14" ]]; then
   if [ -f ${OPENSHIFT_NODEJS_DIR}env/LD_LIBRARY_PATH ]; then
     rm -f ${OPENSHIFT_NODEJS_DIR}env/LD_LIBRARY_PATH
   fi
+  update-configuration $nodejs_version
 fi
