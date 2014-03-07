@@ -110,4 +110,8 @@ module RestModelHelper
   def get_rest_deployment(deployment)
     RestDeployment.new(deployment)
   end
+  
+  def get_rest_team(team)
+    RestTeam.new(team, get_url, nolinks)
+  end
 end

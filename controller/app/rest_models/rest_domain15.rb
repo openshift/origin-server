@@ -27,7 +27,7 @@ class RestDomain15 < OpenShift::Model
     self.id = domain.namespace
     self.suffix = Rails.application.config.openshift[:domain_suffix]
     self.creation_time = domain.created_at
-    self.members = domain.members.map{ |m| RestMember.new(m, domain.owner_id == m._id, url, nolinks) }
+    self.members = domain.members.map{ |m| RestMember.new(m, domain.owner_id == m._id, url, domain, nolinks) }
     self.allowed_gear_sizes = (domain.allowed_gear_sizes & domain.owner.allowed_gear_sizes)
 
     if not domain.application_count.nil?
@@ -64,8 +64,10 @@ class RestDomain15 < OpenShift::Model
         "LEAVE" => Link.new("Leave this domain", "DELETE", URI::join(url, "domain/#{id}/members/self")),
         "UPDATE_MEMBERS" => Link.new("Add or remove one or more members to this domain.", "POST", URI::join(url, "domain/#{id}/members"),
           [Param.new("role", "string", "The role the user should have on the domain", Role.all)],
-          [OptionalParam.new("id", "string", "Unique identifier of the user"),
-          OptionalParam.new("login", "string", "The user's login attribute")]
+          [OptionalParam.new("type", "string", "The member's type. i.e. user or team", ["user", "team"], "user"),
+          OptionalParam.new("id", "string", "Unique identifier of the user"),
+          OptionalParam.new("login", "string", "The user's login attribute"),
+          OptionalParam.new("name", "string", "The team's name attribute")]
         ),
       }
     end

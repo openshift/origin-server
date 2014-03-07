@@ -3,6 +3,13 @@ class MembersController < BaseController
   def index
     render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, "Found #{pluralize(members.length, 'member')}.")
   end
+  
+  def show
+    id = params[:id].presence
+    member = membership.members.find(id)
+    return render_error(:not_found, "Could not find member #{id}") if member.nil?
+    render_success(:ok, "member", get_rest_member(member), "Showing member #{id}")
+  end
 
   def create
     authorize! :change_members, membership
@@ -10,32 +17,44 @@ class MembersController < BaseController
     errors = []
     warnings = []
     singular = params[:members].nil?
-    ids, logins = {}, {}
+    user_ids, user_logins, team_ids, team_names = {}, {}, {}, {}
 
     # Find input members
-    members_params = (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :role)]).compact
+    members_params = (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :name, :type, :role)]).compact
     members_params.each_with_index do |m, i|
       errors << Message.new(:error, "You must provide a member with an id and role.", 1, nil, i) and next unless m.is_a? Hash
       role = Role.for(m[:role]) || (m[:role] == 'none' and :none)
       errors << Message.new(:error, "You must provide a role for each member - you can add or update (with #{Role.all.map{ |s| "'#{s}'" }.join(', ')}) or remove (with 'none').", 1, :role, i) and next unless role
-      if m[:id].present?
-        ids[m[:id].to_s] = [role, i]
-      elsif m[:login].present?
-        logins[m[:login].to_s] = [role, i]
-      else
-        errors << Message.new(:error, "Each member being changed must have an id or a login.", 1, nil, i)
+      type = m[:type] || "user"
+      case type
+      when "user"
+        if m[:id].present?
+          user_ids[m[:id].to_s] = [role, i]
+        elsif m[:login].present?
+          user_logins[m[:login].to_s] = [role, i]
+        else
+          errors << Message.new(:error, "Each user being changed must have an id or a login.", 1, nil, i)
+        end
+      when "team"
+        if m[:id].present?
+          team_ids[m[:id].to_s] = [role, i]
+        elsif m[:name].present?
+          team_names[m[:name].to_s] = [role, i]
+        else
+          errors << Message.new(:error, "Each team being changed must have an id or a name.", 1, nil, i)
+        end
       end
     end
     if errors.present?
       Rails.logger.error errors
-      return render_error(:bad_request, errors.first.text, nil, nil, nil, errors) if singular
-      return render_error(:bad_request, "The provided members are not valid.", nil, nil, nil, errors)
+      return render_error(:unprocessable_entity, errors.first.text, nil, nil, nil, errors) if singular
+      return render_error(:unprocessable_entity, "The provided members are not valid.", nil, nil, nil, errors)
     end
-    return render_error(:unprocessable_entity, "You must provide at least a single member that exists.") unless ids.present? || logins.present?
+    return render_error(:unprocessable_entity, "You must provide at least a single member that exists.") unless user_ids.present? || user_logins.present? || team_ids.present? || team_names.present?
 
     # Perform lookups of users by login and create members for new roles
-    new_members = changed_members_for(ids, logins, errors)
-    remove = removed_ids(ids, logins, errors)
+    new_members = changed_members_for(user_ids, user_logins, team_ids, team_names, errors)
+    remove = removed_ids(user_ids, user_logins, team_ids, team_names, errors)
     if errors.present?
       return render_error(:not_found, errors.first.text, nil, nil, nil, errors) if singular
       return render_error(:not_found, "Not all provided members exist.", nil, nil, nil, errors)
@@ -50,7 +69,7 @@ class MembersController < BaseController
     end
     if invalid_members.present?
       msg = "#{invalid_members.to_sentence} #{invalid_members.length > 1 ? "are not members" : "is not a member"} and cannot be removed."
-      return render_error(:bad_request, msg) if singular
+      return render_error(:unprocessable_entity, msg) if singular
       warnings << Message.new(:warning, msg, 1, nil)
     end
 
@@ -78,10 +97,36 @@ class MembersController < BaseController
       render_error(:unprocessable_entity, "The members could not be added due to validation errors.", nil, nil, nil, get_error_messages(membership))
     end
   end
+  
+  def update
+    authorize! :change_members, membership
+    id = params[:id].presence
+    role = params[:role].presence 
+    member = membership.members.find(id)
+    if role.to_sym == :none
+      membership.remove_members(member)
+    else
+      case member.member_type
+      when Team
+        t = Team.find_by(name: member.name)
+        membership.add_members(t, role.to_sym)
+      when CloudUser
+        u = CloudUser.find_by(login: member.name)
+        membership.add_members(u, role.to_sym)
+      end
+    end
+    membership.save!
+    member = membership.members.find(id) unless role.to_sym == :none
+    render_success(:ok, "member", role.to_sym == :none ? nil : get_rest_member(member), "Updated member")
+  end
 
   def destroy
-    authorize! :change_members, membership
-    remove_member(params[:id])
+    if params[:id] == "self"
+      leave
+    else
+      authorize! :change_members, membership
+      remove_member(params[:id])
+    end
   end
 
   def destroy_all
@@ -118,7 +163,7 @@ class MembersController < BaseController
 
   def leave
     authorize! :leave, membership
-    return render_error(:bad_request, "You are the owner of this #{membership.class.model_name.humanize.downcase} and cannot leave.") if membership.owned_by?(current_user)
+    return render_error(:unprocessable_entity, "You are the owner of this #{membership.class.model_name.humanize.downcase} and cannot leave.") if membership.owned_by?(current_user)
     remove_member(current_user._id)
   end
 
@@ -152,7 +197,7 @@ class MembersController < BaseController
     end
 
     def get_rest_member(m)
-      RestMember.new(m, is_owner?(m), get_url, nolinks)
+      RestMember.new(m, is_owner?(m), get_url, membership, nolinks)
     end
 
     def is_owner?(member)
@@ -164,16 +209,27 @@ class MembersController < BaseController
     end
 
   private
-    def changed_members_for(ids, logins, errors)
-      if ids.present? or logins.present?
-        ids = ids.select{ |id, (role, _)| role != :none }
-        logins = logins.select{ |id, (role, _)| role != :none }
-        users = CloudUser.accessible(current_user).with_ids_or_logins(ids.keys, logins.keys).each.to_a
-        missing_user_logins(errors, users, logins)
-        missing_user_ids(errors, users, ids)
+    def changed_members_for(user_ids, user_logins, team_ids, team_names, errors)
+      if user_ids.present? or user_logins.present?
+        user_ids = user_ids.select{ |id, (role, _)| role != :none }
+        user_logins = user_logins.select{ |id, (role, _)| role != :none }
+        users = CloudUser.accessible(current_user).with_ids_or_logins(user_ids.keys, user_logins.keys).each.to_a
+        missing_user_logins(errors, users, user_logins)
+        missing_user_ids(errors, users, user_ids)
         users.map do |u|
           m = u.as_member
-          m.role = (ids[u._id.to_s] || logins[u.login.to_s])[0]
+          m.role = (user_ids[u._id.to_s] || user_logins[u.login.to_s])[0]
+          m
+        end
+      elsif team_ids.present? or team_names.present?
+        team_ids = team_ids.select{ |id, (role, _)| role != :none }
+        team_names = team_names.select{ |id, (role, _)| role != :none }
+        teams = Team.accessible(current_user).with_ids_or_names(team_ids.keys, team_names.keys).each.to_a
+        missing_team_names(errors, teams, team_names)
+        missing_team_ids(errors, teams, team_ids)
+        teams.map do |t|
+          m = t.as_member
+          m.role = (team_ids[t._id.to_s] || team_names[t.name.to_s])[0]
           m
         end
       else
@@ -181,15 +237,22 @@ class MembersController < BaseController
       end
     end
 
-    def removed_ids(ids, logins, errors)
-      ids = ids.inject({}){ |h, (id, (role, _))| h[id] = id if role == :none; h }
-      logins = logins.select{ |id, (role, _)| role == :none }
-      if logins.present?
-        users = CloudUser.accessible(current_user).with_ids_or_logins(nil, logins.keys).each.to_a
-        missing_user_logins(errors, users, logins)
-        ids.merge!(users.inject({}){ |h, u| h[u._id.to_s] = u.login; h })
+    def removed_ids(user_ids, user_logins, team_ids, team_names, errors)
+      user_ids = user_ids.inject({}){ |h, (id, (role, _))| h[id] = id if role == :none; h }
+      user_logins = user_logins.select{ |id, (role, _)| role == :none }
+      if user_logins.present?
+        users = CloudUser.accessible(current_user).with_ids_or_logins(nil, user_logins.keys).each.to_a
+        missing_user_logins(errors, users, user_logins)
+        user_ids.merge!(users.inject({}){ |h, u| h[u._id.to_s] = u.login; h })
       end
-      ids
+      team_ids = team_ids.inject({}){ |h, (id, (role, _))| h[id] = id if role == :none; h }
+      team_names = team_names.select{ |id, (role, _)| role == :none }
+      if team_names.present?
+        teams = Team.accessible(current_user).with_ids_or_names(nil, team_names.keys).each.to_a
+        missing_team_names(errors, teams, team_names)
+        team_ids.merge!(teams.inject({}){ |h, t| h[t._id.to_s] = t.name; h })
+      end
+      ids = user_ids.merge!(team_ids)
     end
 
     def missing_user_logins(errors, users, map)
@@ -201,6 +264,18 @@ class MembersController < BaseController
     def missing_user_ids(errors, users, map)
       (map.keys - users.map{ |u| u._id.to_s }).each do |id|
         errors << Message.new(:error, "There is no account with identifier #{id}.", 132, :id, map[id].last)
+      end
+    end
+    
+    def missing_team_names(errors, teams, map)
+      (map.keys - teams.map(&:name)).each do |name|
+        errors << Message.new(:error, "There is no team with name #{name}.", 132, :name, map[name].last)
+      end
+    end
+
+    def missing_team_ids(errors, teams, map)
+      (map.keys - teams.map{ |t| t._id.to_s }).each do |id|
+        errors << Message.new(:error, "There is no team with identifier #{id}.", 132, :id, map[id].last)
       end
     end
 

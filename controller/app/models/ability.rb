@@ -19,7 +19,7 @@ module Ability
   #
   def self.authorize!(actor_or_id, scopes, permission, resource, *resources)
     type = class_for_resource(resource) or raise OpenShift::OperationForbidden, "No actions are allowed"
-
+    
     unless actor_or_id
       raise OpenShift::OperationForbidden, "You are not permitted to perform this action while not authenticated (#{permission} on #{type.to_s.underscore.humanize.downcase})"
     end
@@ -104,7 +104,18 @@ module Ability
         resource.owned_by?(actor_or_id)
 
       end
+    elsif Team <= type
+      case permission
+      when :change_members
+        Role.in?(:admin, role) || resource.owned_by?(actor_or_id)
 
+      when :leave
+        Role.in?(:view, role)
+
+      when :update, :destroy
+        Role.in?(:admin, role) || resource.owned_by?(actor_or_id)
+
+      end
     elsif CloudUser <= type
       case permission
       when :create_key, :update_key, :destroy_key, :create_domain then resource === actor_or_id

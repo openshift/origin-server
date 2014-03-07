@@ -8,7 +8,9 @@ module Membership
 
   included do
     validate :explicit_members_are_limited
+    validate :team_members_are_limited
   end
+ 
 
   def has_member?(o)
     members.include?(o)
@@ -112,6 +114,13 @@ module Membership
     max = Rails.configuration.openshift[:max_members_per_resource]
     if members.target.count(&:explicit_role?) > max
       errors.add(:members, "You are limited to #{max} members per #{self.class.model_name.humanize.downcase}")
+    end
+  end
+  
+  def team_members_are_limited
+    max = Rails.configuration.openshift[:max_teams_per_resource]
+    if members.target.count(&:team?) > max
+      errors.add(:members, "You are limited to #{max} teams per #{self.class.model_name.humanize.downcase}")
     end
   end
 

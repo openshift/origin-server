@@ -14,6 +14,8 @@ class Team
 
   class Member < ::Member
   end
+  
+  TEAM_MEMBER_ROLES = [:view, :admin].freeze
 
   field :name, type: String
   belongs_to :owner, class_name: CloudUser.name
@@ -21,6 +23,10 @@ class Team
 
   has_members default_role: :view
   member_as :team
+  
+  validates :name, 
+    presence: {message: "Name is required and cannot be blank"},
+    length:   {maximum: 250, minimum: 1, message: "Team name must be a minimum of 1 and maximum of 250 characters."}
 
   index({'owner_id' => 1, 'name' => 1}, {:unique => true})
   create_indexes
@@ -32,7 +38,7 @@ class Team
   def save_with_duplicate_check!
     self.save!
   rescue Moped::Errors::OperationFailure => e
-    raise OpenShift::Exception.new("Team name '#{name}' is already in use. Please choose another.", 100, "id") if [11000, 11001].include?(e.details['code'])
+    raise OpenShift::UserException.new("Team name '#{name}' is already in use. Please choose another.", -1, "name") if [11000, 11001].include?(e.details['code'])
     raise
   end
 
@@ -121,4 +127,19 @@ class Team
     end
   end
 
+  def self.validation_map
+    {name: -1}
+  end
+  
+  def self.with_ids_or_names(ids, names)
+    if ids.present?
+      if names.present?
+        self.or({:_id.in => ids}, {:name.in => names})
+      else
+        self.in(_id: ids)
+      end
+    else
+      self.in(name: names)
+    end
+  end
 end

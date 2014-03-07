@@ -47,6 +47,12 @@ class ApiController < BaseController
       "SHOW_CARTRIDGE_BY_ID"  => Link.new("Retrieve a cartridge by id", "GET", URI::join(get_url, "cartridge/:id"), [
         Param.new(":id", "string", "Unique identifier of the cartridge", nil, [])
       ]),
+      "ADD_TEAM" => Link.new("Create new team", "POST", URI::join(get_url, "teams"), [
+        Param.new("name", "string", "Name of the team")]),
+      "LIST_TEAMS" => Link.new("List all teams you have access to", "GET", URI::join(get_url, "teams")),
+      "SHOW_TEAM" => Link.new("Retrieve a team by it's id", "GET", URI::join(get_url, "team/:id"), [
+        Param.new(":id", "string", "Id of the team")
+      ]),
     }
 
     links.merge!({
