@@ -5,6 +5,15 @@ class TeamTest < ActiveSupport::TestCase
   setup do 
     Lock.stubs(:lock_application).returns(true)
     Lock.stubs(:unlock_application).returns(true)
+    @to_delete = {}
+  end
+
+  teardown do
+    [:teams,:domains,:users].each do |type|
+      Array(@to_delete[type]).each do |obj|
+        obj.reload.delete rescue nil
+      end
+    end
   end
 
   def explicit_role_for(resource, member_or_id)
@@ -35,20 +44,20 @@ class TeamTest < ActiveSupport::TestCase
 
   def test_non_member_team_destroy
     Team.where(:name => 'non-member-team-destroy').delete
-    assert t = Team.create(:name => 'non-member-team-destroy')
+    assert t = Team_create(:name => 'non-member-team-destroy')
     assert t.destroy
   end
 
   def test_add_and_remove_in_single_operation
     # A remove op shouldn't fail because the team member has already been removed
     Domain.where(:namespace => 'test').delete
-    assert d = Domain.create(:namespace => 'test')
+    assert d = Domain_create(:namespace => 'test')
 
     CloudUser.where(:login => 'team-member-1').delete
-    assert u1 = CloudUser.create(:login => 'team-member-1')
+    assert u1 = CloudUser_create(:login => 'team-member-1')
 
     Team.where(:name => 'member-team').delete
-    assert t = Team.create(:name => 'member-team')
+    assert t = Team_create(:name => 'member-team')
 
     t.add_members u1, :view
     t.remove_members u1
@@ -71,13 +80,13 @@ class TeamTest < ActiveSupport::TestCase
   def test_remove_twice
     # A remove op shouldn't fail because the team member has already been removed
     Domain.where(:namespace => 'test').delete
-    assert d = Domain.create(:namespace => 'test')
+    assert d = Domain_create(:namespace => 'test')
 
     CloudUser.where(:login => 'team-member-1').delete
-    assert u1 = CloudUser.create(:login => 'team-member-1')
+    assert u1 = CloudUser_create(:login => 'team-member-1')
 
     Team.where(:name => 'member-team').delete
-    assert t = Team.create(:name => 'member-team')
+    assert t = Team_create(:name => 'member-team')
 
     t.add_members u1, :view
     t.save
@@ -108,14 +117,14 @@ class TeamTest < ActiveSupport::TestCase
 
   def test_adding_to_elevated_team_elevates
       Domain.where(:namespace => 'test').delete
-      assert d = Domain.create(:namespace => 'test')
+      assert d = Domain_create(:namespace => 'test')
 
       CloudUser.where(:login => 'team-member-1').delete
-      assert u1 = CloudUser.create(:login => 'team-member-1')
+      assert u1 = CloudUser_create(:login => 'team-member-1')
 
       # Set up a team with no members
       Team.where(:name => 'member-team-propagate').delete
-      assert t = Team.create(:name => 'member-team-propagate')
+      assert t = Team_create(:name => 'member-team-propagate')
 
       assert d.add_members u1, :view
       assert d.add_members t, :edit
@@ -150,14 +159,14 @@ class TeamTest < ActiveSupport::TestCase
 
   def test_adding_to_unprivileged_team_leaves_elevated
       Domain.where(:namespace => 'test').delete
-      assert d = Domain.create(:namespace => 'test')
+      assert d = Domain_create(:namespace => 'test')
 
       CloudUser.where(:login => 'team-member-1').delete
-      assert u1 = CloudUser.create(:login => 'team-member-1')
+      assert u1 = CloudUser_create(:login => 'team-member-1')
 
       # Set up a team with no members
       Team.where(:name => 'member-team-propagate').delete
-      assert t = Team.create(:name => 'member-team-propagate')
+      assert t = Team_create(:name => 'member-team-propagate')
 
       assert d.add_members u1, :edit
       assert d.add_members t, :view
@@ -192,14 +201,14 @@ class TeamTest < ActiveSupport::TestCase
 
   def test_lowered_team_permission_propagates
       Domain.where(:namespace => 'test').delete
-      assert d = Domain.create(:namespace => 'test')
+      assert d = Domain_create(:namespace => 'test')
 
       CloudUser.where(:login => 'team-member-1').delete
-      assert u1 = CloudUser.create(:login => 'team-member-1')
+      assert u1 = CloudUser_create(:login => 'team-member-1')
 
       # Set up a team with one member
       Team.where(:name => 'member-team-propagate').delete
-      assert t = Team.create(:name => 'member-team-propagate')
+      assert t = Team_create(:name => 'member-team-propagate')
       assert t.add_members u1, :admin
       assert t.save
       assert t.run_jobs
@@ -256,14 +265,14 @@ class TeamTest < ActiveSupport::TestCase
 
   def test_raised_team_permission_propagates
       Domain.where(:namespace => 'test').delete
-      assert d = Domain.create(:namespace => 'test')
+      assert d = Domain_create(:namespace => 'test')
 
       CloudUser.where(:login => 'team-member-1').delete
-      assert u1 = CloudUser.create(:login => 'team-member-1')
+      assert u1 = CloudUser_create(:login => 'team-member-1')
 
       # Set up a team with one member
       Team.where(:name => 'member-team-propagate').delete
-      assert t = Team.create(:name => 'member-team-propagate')
+      assert t = Team_create(:name => 'member-team-propagate')
       assert t.add_members u1, :admin
       assert t.save
       assert t.run_jobs
@@ -324,17 +333,17 @@ class TeamTest < ActiveSupport::TestCase
 
   def test_member_team_destroy
     Domain.where(:namespace => 'test').delete
-    assert d = Domain.create(:namespace => 'test')
+    assert d = Domain_create(:namespace => 'test')
 
     CloudUser.where(:login => 'team-member-1').delete
-    assert u1 = CloudUser.create(:login => 'team-member-1')
+    assert u1 = CloudUser_create(:login => 'team-member-1')
 
     CloudUser.where(:login => 'team-member-2').delete
-    assert u2 = CloudUser.create(:login => 'team-member-2')
+    assert u2 = CloudUser_create(:login => 'team-member-2')
 
     # Set up a team with one member
     Team.where(:name => 'member-team-destroy').delete
-    assert t = Team.create(:name => 'member-team-destroy')
+    assert t = Team_create(:name => 'member-team-destroy')
     assert t.add_members u1, :admin
     assert t.save
     assert t.run_jobs
@@ -416,14 +425,14 @@ class TeamTest < ActiveSupport::TestCase
 
   def test_team_accessible_to_owner
     CloudUser.where(:login => 'owner').delete
-    assert u1 = CloudUser.create(:login => 'owner')
+    assert u1 = CloudUser_create(:login => 'owner')
 
     CloudUser.where(:login => 'non-owner').delete
-    assert u2 = CloudUser.create(:login => 'non-owner')
+    assert u2 = CloudUser_create(:login => 'non-owner')
 
     # Set up a team with one member
     Team.where(:name => 'owned_team').delete
-    assert t = Team.create(:name => 'owned_team', :owner => u1)
+    assert t = Team_create(:name => 'owned_team', :owner => u1)
 
     assert_equal [t], Team.accessible(u1).to_a
     assert_equal [], Team.accessible(u2).to_a
@@ -431,14 +440,14 @@ class TeamTest < ActiveSupport::TestCase
 
   def test_team_accessible_to_member
     CloudUser.where(:login => 'member').delete
-    assert u1 = CloudUser.create(:login => 'member')
+    assert u1 = CloudUser_create(:login => 'member')
 
     CloudUser.where(:login => 'non-member').delete
-    assert u2 = CloudUser.create(:login => 'non-member')
+    assert u2 = CloudUser_create(:login => 'non-member')
 
     # Set up a team with one member
     Team.where(:name => 'test_team').delete
-    assert t = Team.create(:name => 'test_team')
+    assert t = Team_create(:name => 'test_team')
     assert t.add_members u1, :view
     assert t.save
     assert t.run_jobs
@@ -449,17 +458,17 @@ class TeamTest < ActiveSupport::TestCase
 
   def test_team_accessible_to_fellow_domain_member
     Domain.where(:namespace => 'test').delete
-    assert d = Domain.create(:namespace => 'test')
+    assert d = Domain_create(:namespace => 'test')
 
     CloudUser.where(:login => 'domain-member').delete
-    assert u1 = CloudUser.create(:login => 'domain-member')
+    assert u1 = CloudUser_create(:login => 'domain-member')
 
     CloudUser.where(:login => 'non-domain-member').delete
-    assert u2 = CloudUser.create(:login => 'non-domain-member')
+    assert u2 = CloudUser_create(:login => 'non-domain-member')
 
     # Set up a team with one member
     Team.where(:name => 'test_team').delete
-    assert t = Team.create(:name => 'test_team')
+    assert t = Team_create(:name => 'test_team')
 
     d.add_members [u1, t], :view
     d.save
@@ -469,4 +478,21 @@ class TeamTest < ActiveSupport::TestCase
     assert_equal [], Team.accessible(u2).to_a
   end
 
+  private
+    def Domain_create(opts={})
+      add_to_delete(:domains, Domain.create(opts))
+    end
+
+    def Team_create(opts={})
+      add_to_delete(:teams, Team.create(opts))
+    end
+
+    def CloudUser_create(opts={})
+      add_to_delete(:users, CloudUser.create(opts))
+    end
+
+    def add_to_delete(type, obj)
+      (@to_delete[type] ||= []) << obj
+      obj
+    end
 end
