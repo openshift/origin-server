@@ -835,7 +835,7 @@ class Upgrader
             failed_gears_per_plan[failed_gur.plan_id] += 1
           end
           state = failed_gur.active ? 'Active' : 'Inactive'
-          failed_gears_per_state[state] = 0 unless failed_gears_per_plan[state]
+          failed_gears_per_state[state] = 0 unless failed_gears_per_state[state]
           failed_gears_per_state[state] += 1
         end
       end
