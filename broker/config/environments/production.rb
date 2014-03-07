@@ -92,6 +92,7 @@ Broker::Application.configure do
     :allow_multiple_haproxy_on_node => conf.get_bool('ALLOW_MULTIPLE_HAPROXY_ON_NODE', "false"),
     :syslog_enabled => conf.get_bool('SYSLOG_ENABLED', 'false'),
     :app_template_for => OpenShift::Controller::Configuration.parse_url_hash(conf.get('DEFAULT_APP_TEMPLATES', nil)),
+    :default_max_teams => (conf.get("DEFAULT_MAX_TEAMS", "0")).to_i
   }
 
   config.auth = {

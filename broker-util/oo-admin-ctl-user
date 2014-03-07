@@ -38,6 +38,8 @@ Options:
     Set the maximum additional storage per gear that will be untracked for a user
   --setconsumedgears <number>
     Set the number of gears a user has consumed (use carefully)
+  --setmaxteams <number>
+    Set the maximum number of teams a user is allowed to create
   --listsubaccounts
     List the subaccounts that have been created under this parent account (login)
     Cannot use this option with --quiet
@@ -190,6 +192,23 @@ def set_consumed_gears(user, consumedgears)
     return
   end
   puts "Done."
+end
+
+def set_max_teams(user, maxteams)
+  if user.max_teams == maxteams
+    puts "User #{user.login} already has max_teams set to #{maxteams}"
+    return
+  end
+
+  print "Setting max_teams to #{maxteams}... "
+  user.max_teams = maxteams
+  if user.save
+    puts "Done."
+  else
+    $stderr.puts "An error occurred saving the user #{user.login}."
+    $stderr.puts "Errors: #{user.errors.messages}"
+    exit 6
+  end
 end
 
 def allow_sub_accounts(user, allow)
@@ -384,6 +403,7 @@ opts = GetoptLong.new(
     ["--setmaxgears",      GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxtrackedstorage", GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxuntrackedstorage", GetoptLong::REQUIRED_ARGUMENT],
+    ["--setmaxteams",      GetoptLong::REQUIRED_ARGUMENT],
     ["--setconsumedgears", GetoptLong::REQUIRED_ARGUMENT],
     ["--listsubaccounts",  GetoptLong::NO_ARGUMENT],
     ["--addsubaccount",    GetoptLong::REQUIRED_ARGUMENT],
@@ -464,6 +484,14 @@ if args["--setmaxuntrackedstorage"]
   maxuntrackedstorage = args["--setmaxuntrackedstorage"].to_i
 end
 
+if args["--setmaxteams"]
+  unless args["--setmaxteams"] =~ /^[0-9]+$/
+    $stderr.puts "ERROR: Max teams must be a positive integer"
+    exit 1
+  end
+  maxteams = args["--setmaxteams"].to_i
+end
+
 if args["--setconsumedgears"]
   unless args["--setconsumedgears"] =~ /^[0-9]+$/
     $stderr.puts "ERROR: Consumed gears must be a positive integer"
@@ -533,6 +561,11 @@ logins.each do |login|
 
     unless maxtrackedstorage.nil?
       set_max_tracked_storage(user,maxtrackedstorage)
+      changed_user = true
+    end
+    
+    unless maxteams.nil?
+      set_max_teams(user, maxteams)
       changed_user = true
     end
 
@@ -607,6 +640,7 @@ logins.each do |login|
     puts "                       max gears: #{user.max_gears}"
     puts "    max tracked storage per gear: #{user.max_tracked_additional_storage}"
     puts "  max untracked storage per gear: #{user.max_untracked_additional_storage}"
+    puts "                       max teams: #{user.max_teams}"
     puts "            plan upgrade enabled: #{user.plan_upgrade_enabled}" if user.capabilities.has_key?('plan_upgrade_enabled')
     puts "                      gear sizes: #{user.allowed_gear_sizes.join(', ')}"
     puts "            sub accounts allowed: #{user.subaccounts}"
