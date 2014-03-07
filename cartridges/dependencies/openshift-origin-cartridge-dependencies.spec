@@ -85,6 +85,7 @@ an OpenShift cartrige.
 %package optional-jbossas
 Summary:   Optional user dependencies for JBossAS OpenShift Cartridges
 BuildArch: noarch
+Requires: %{name}-recommended-jbossas
 
 %description optional-jbossas
 This package pulls in other packages that a user
@@ -112,6 +113,7 @@ an OpenShift cartrige.
 %package optional-jbosseap
 Summary:   Optional user dependencies for JBossEAP OpenShift Cartridges
 BuildArch: noarch
+Requires: %{name}-recommended-jbosseap
 
 %description optional-jbosseap
 This package pulls in other packages that a user
@@ -139,6 +141,7 @@ an OpenShift cartrige.
 %package optional-jbossews
 Summary:   Optional user dependencies for JBossEWS OpenShift Cartridges
 BuildArch: noarch
+Requires: %{name}-recommended-jbossews
 
 %description optional-jbossews
 This package pulls in other packages that a user
@@ -166,6 +169,7 @@ an OpenShift cartrige.
 %package optional-nodejs
 Summary:   Optional user dependencies for Nodejs OpenShift Cartridges
 BuildArch: noarch
+Requires: %{name}-recommended-nodejs
 
 %description optional-nodejs
 This package pulls in other packages that a user
@@ -199,6 +203,7 @@ an OpenShift cartrige.
 %package optional-perl
 Summary:   Optional user dependencies for Perl OpenShift Cartridges
 BuildArch: noarch
+Requires:  %{name}-recommended-perl
 Requires:  expat-devel
 Requires:  gd-devel
 Requires:  gdbm-devel
@@ -239,6 +244,7 @@ an OpenShift cartrige.
 %package optional-php
 Summary:   Optional user dependencies for Ruby OpenShift Cartridges
 BuildArch: noarch
+Requires:  %{name}-recommended-php
 Requires:  php-bcmath
 Requires:  php-devel
 Requires:  php-fpm
@@ -308,6 +314,7 @@ an OpenShift cartrige.
 %package optional-python
 Summary:   Optional user dependencies for Python OpenShift Cartridges
 BuildArch: noarch
+Requires:  %{name}-recommended-python
 Requires:  atlas-devel
 Requires:  freetype-devel
 Requires:  gcc-gfortran
@@ -364,6 +371,7 @@ an OpenShift cartrige.
 %package optional-ruby
 Summary:   Optional user dependencies for Ruby OpenShift Cartridges
 BuildArch: noarch
+Requires:  %{name}-recommended-ruby
 Requires:  libicu-devel
 Requires:  gcc-c++
 Requires:  gmp-devel
