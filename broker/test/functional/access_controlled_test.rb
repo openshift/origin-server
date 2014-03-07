@@ -6,6 +6,15 @@ class AccessControlledTest < ActiveSupport::TestCase
   setup do 
     Lock.stubs(:lock_application).returns(true)
     Lock.stubs(:unlock_application).returns(true)
+    @to_delete = {}
+  end
+
+  teardown do
+    [:apps,:teams,:domains,:users].each do |type|
+      Array(@to_delete[type]).each do |obj|
+        obj.reload.delete rescue nil
+      end
+    end
   end
 
   def with_membership(&block)
@@ -198,10 +207,10 @@ class AccessControlledTest < ActiveSupport::TestCase
   
   def test_has_member_changes
     CloudUser.where(:login => 'hasmember1').delete
-    assert u1 = CloudUser.create(:login => 'hasmember1')
+    assert u1 = CloudUser_create(:login => 'hasmember1')
 
     Domain.where(:namespace => 'hasmember').delete
-    assert d = Domain.create(:namespace => 'hasmember')
+    assert d = Domain_create(:namespace => 'hasmember')
     
     # Test no-ops
     d.add_members
@@ -251,18 +260,18 @@ class AccessControlledTest < ActiveSupport::TestCase
   def test_team_propagation
       CloudUser.where(:login => 'teampropagate1').delete
       CloudUser.where(:login => 'teampropagate2').delete
-      assert u1 = CloudUser.create(:login => 'teampropagate1')
-      assert u2 = CloudUser.create(:login => 'teampropagate2')
+      assert u1 = CloudUser_create(:login => 'teampropagate1')
+      assert u2 = CloudUser_create(:login => 'teampropagate2')
 
       Team.where(:name => 'teampropagate').delete
-      assert t = Team.create(:name => 'teampropagate')
+      assert t = Team_create(:name => 'teampropagate')
 
       Domain.where(:namespace => 'teampropagate').delete
-      assert d = Domain.create(:namespace => 'teampropagate')
+      assert d = Domain_create(:namespace => 'teampropagate')
 
       # Application created before the team is a member
       Application.where(:name => 'teampropagate1').delete
-      assert a1 = Application.create(:name => 'teampropagate1', :domain => d)
+      assert a1 = Application_create(:name => 'teampropagate1', :domain => d)
 
       # Initial members of the team
       t.add_members u1, :admin
@@ -305,7 +314,7 @@ class AccessControlledTest < ActiveSupport::TestCase
 
       # Application created after the team is a member
       Application.where(:name => 'teampropagate2').delete
-      assert a2 = Application.create(:name => 'teampropagate2', :domain => d)
+      assert a2 = Application_create(:name => 'teampropagate2', :domain => d)
 
       assert_raise(Mongoid::Errors::DocumentNotFound){ t.as_member.find_in(a2.members) }
 
@@ -318,10 +327,10 @@ class AccessControlledTest < ActiveSupport::TestCase
 
   def test_user_access_controllable
     CloudUser.where(:login => 'propagate_test').delete
-    u = CloudUser.create(:login => 'propagate_test')
+    u = CloudUser_create(:login => 'propagate_test')
 
     Team.where(:name => 'propagate_test').delete
-    t = Team.create(:name => 'propagate_test')
+    t = Team_create(:name => 'propagate_test')
 
     assert_equal 'user', CloudUser.member_type
     assert_equal [u], CloudUser.members_of(u._id)
@@ -347,19 +356,20 @@ class AccessControlledTest < ActiveSupport::TestCase
   end
 
   def test_scopes_restricts_access
-    u = CloudUser.find_or_create_by(:login => 'scope_test')
+    CloudUser.where(:login => 'scope_test').delete
+    u = CloudUser_create(:login => 'scope_test')
     Authorization.create(:expires_in => 100){ |token| token.user = u }
 
     #u2 = CloudUser.find_or_create_by(:login => 'scope_test_other')
     Domain.where(:namespace => 'test').delete
-    d = Domain.find_or_create_by(:namespace => 'test', :owner => u)
+    d = Domain_create(:namespace => 'test', :owner => u)
     Domain.where(:namespace => 'test2').delete
-    d2 = Domain.find_or_create_by(:namespace => 'test2', :owner => u)
+    d2 = Domain_create(:namespace => 'test2', :owner => u)
 
     Application.where(:name => 'scopetest').delete
-    assert a = Application.create(:name => 'scopetest', :domain => d)
+    assert a = Application_create(:name => 'scopetest', :domain => d)
     Application.where(:name => 'scopetest2').delete
-    assert a2 = Application.create(:name => 'scopetest2', :domain => d2)
+    assert a2 = Application_create(:name => 'scopetest2', :domain => d2)
 
     assert Application.accessible(u).count > 0
     assert Domain.accessible(u).count > 0
@@ -405,23 +415,24 @@ class AccessControlledTest < ActiveSupport::TestCase
   end
 
   def test_broker_key_auth_scopes
-    u = CloudUser.find_or_create_by(:login => 'scope_test')
+    CloudUser.where(:login => 'scope_test').delete
+    u = CloudUser_create(:login => 'scope_test')
 
     #u2 = CloudUser.find_or_create_by(:login => 'scope_test_other')
     Domain.where(:namespace => 'test').delete
-    d = Domain.find_or_create_by(:namespace => 'test', :owner => u)
+    d = Domain_create(:namespace => 'test', :owner => u)
     Domain.where(:namespace => 'test2').delete
-    d2 = Domain.find_or_create_by(:namespace => 'test2', :owner => u)
+    d2 = Domain_create(:namespace => 'test2', :owner => u)
 
     Application.where(:name => 'scopetest2').delete
-    assert a2 = Application.create(:name => 'scopetest2', :domain => d2)
+    assert a2 = Application_create(:name => 'scopetest2', :domain => d2)
 
     Application.where(:name => 'scopetestjenkins').delete
-    assert j = Application.create(:name => 'scopetestjenkins', :domain => d)
+    assert j = Application_create(:name => 'scopetestjenkins', :domain => d)
     Application.where(:name => 'scopetestbuilder').delete
-    assert b = Application.create(:name => 'scopetestbuilder', :builder_id => j._id, :domain => d)
+    assert b = Application_create(:name => 'scopetestbuilder', :builder_id => j._id, :domain => d)
     Application.where(:name => 'scopetestapp').delete
-    assert a = Application.create(:name => 'scopetestapp', :domain => d)
+    assert a = Application_create(:name => 'scopetestapp', :domain => d)
 
     apps = [a,j,b]
 
@@ -466,8 +477,8 @@ class AccessControlledTest < ActiveSupport::TestCase
     CloudUser.where(:login => 'propagate_test').delete
     Domain.where(:namespace => 'test').delete
 
-    assert d = Domain.create(:namespace => 'test')
-    u = CloudUser.create(:login => 'propagate_test')
+    assert d = Domain_create(:namespace => 'test')
+    u = CloudUser_create(:login => 'propagate_test')
     assert_equal Member.new(_id: u._id), u.as_member
 
     d.changing_members{ self.members << u.as_member }
@@ -520,14 +531,14 @@ class AccessControlledTest < ActiveSupport::TestCase
   def test_members_differentiate_types
     CloudUser.where(:id => "1").delete
     CloudUser.where(:login => "propagate_test").delete
-    assert u = CloudUser.create(:id => "1", :login => 'propagate_test')
+    assert u = CloudUser_create(:id => "1", :login => 'propagate_test')
 
     Team.where(:id => "1").delete
     Team.where(:name => "propagate_test").delete
-    assert t = Team.create(:id => "1", :name => 'propagate_test')
+    assert t = Team_create(:id => "1", :name => 'propagate_test')
 
     Domain.where(:namespace => 'test').delete
-    assert d = Domain.create(:namespace => 'test', :owner => u)
+    assert d = Domain_create(:namespace => 'test', :owner => u)
     d.add_members(u, :view)
     d.add_members(u, :edit)
     d.add_members(t, :view)
@@ -535,7 +546,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     d.save
 
     Application.where(:name => 'propagatetest').delete
-    assert a = Application.create(:name => 'propagatetest', :domain => d)
+    assert a = Application_create(:name => 'propagatetest', :domain => d)
 
     assert_equal :admin, d.role_for(u), "Role incorrect for #{d.class.model_name}"
     assert_equal :edit, d.role_for(t), "Role incorrect for #{d.class.model_name}"
@@ -546,20 +557,20 @@ class AccessControlledTest < ActiveSupport::TestCase
 
   def test_domain_propagates_changes_to_new_applications
     CloudUser.in(:login => ['propagate_test', 'propagate_test_2', 'propagate_test_3', 'propagate_test_4']).delete
-    assert u = CloudUser.create(:login => 'propagate_test')
-    assert u2 = CloudUser.create(:login => 'propagate_test_2')
-    assert u3 = CloudUser.create(:login => 'propagate_test_3')
-    assert u4 = CloudUser.create(:login => 'propagate_test_4')
+    assert u = CloudUser_create(:login => 'propagate_test')
+    assert u2 = CloudUser_create(:login => 'propagate_test_2')
+    assert u3 = CloudUser_create(:login => 'propagate_test_3')
+    assert u4 = CloudUser_create(:login => 'propagate_test_4')
 
     Domain.where(:namespace => 'test').delete
-    assert d = Domain.create(:namespace => 'test', :owner => u)
+    assert d = Domain_create(:namespace => 'test', :owner => u)
     d.add_members(u2, :edit)
     d.add_members(u3, :view)
     d.add_members(u4, :admin)
     d.save
 
     Application.where(:name => 'propagatetest').delete
-    assert a = Application.create(:name => 'propagatetest', :domain => d)
+    assert a = Application_create(:name => 'propagatetest', :domain => d)
 
     [d, a].each do |m|
       assert_equal :admin, m.role_for(u), "Role incorrect for #{m.class.model_name}"
@@ -575,18 +586,18 @@ class AccessControlledTest < ActiveSupport::TestCase
     Application.where(:name => 'propagatetest').delete
     Application.any_instance.expects(:run_jobs).twice
 
-    assert u = CloudUser.create(:login => 'propagate_test')
+    assert u = CloudUser_create(:login => 'propagate_test')
     assert_equal Member.new(_id: u._id), u.as_member
-    assert u2 = CloudUser.create(:login => 'propagate_test_2')
-    assert u3 = CloudUser.create(:login => 'propagate_test_3')
+    assert u2 = CloudUser_create(:login => 'propagate_test_2')
+    assert u3 = CloudUser_create(:login => 'propagate_test_3')
 
-    assert d = Domain.create(:namespace => 'test', :owner => u)
+    assert d = Domain_create(:namespace => 'test', :owner => u)
     assert_equal [Member.new(_id: u._id)], d.members
     assert_equal [['owner', :admin]], d.members.first.from
     assert d.members.first.valid?
     assert_equal Domain.default_role, d.members.first.role
 
-    assert a = Application.create(:name => 'propagatetest', :domain => d)
+    assert a = Application_create(:name => 'propagatetest', :domain => d)
     assert_equal [Member.new(_id: u._id)], d.members
     assert_equal [['domain', :admin]], a.members.first.from
     assert_equal Application.default_role, a.members.first.role
@@ -679,4 +690,26 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert d.pending_ops.empty?
     assert Domain.find_by(:namespace => 'test').pending_ops.empty?
   end
+
+  private
+    def Domain_create(opts={})
+      add_to_delete(:domains, Domain.create(opts))
+    end
+
+    def Team_create(opts={})
+      add_to_delete(:teams, Team.create(opts))
+    end
+
+    def Application_create(opts={})
+      add_to_delete(:apps, Application.create(opts))
+    end
+
+    def CloudUser_create(opts={})
+      add_to_delete(:users, CloudUser.create(opts))
+    end
+
+    def add_to_delete(type, obj)
+      (@to_delete[type] ||= []) << obj
+      obj
+    end
 end
