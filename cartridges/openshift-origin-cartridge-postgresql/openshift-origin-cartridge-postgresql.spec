@@ -79,18 +79,7 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-%if 0%{?fedora}%{?rhel} <= 6
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%__mv %{buildroot}%{cartridgedir}/lib/util.rhel %{buildroot}%{cartridgedir}/lib/util
-%__rm %{buildroot}%{cartridgedir}/lib/util.f19
-%endif
-%if 0%{?fedora} == 19
-%__rm -rf %{buildroot}%{cartridgedir}/versions/8.4
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%__mv %{buildroot}%{cartridgedir}/lib/util.f19 %{buildroot}%{cartridgedir}/lib/util
-%__rm %{buildroot}%{cartridgedir}/lib/util.rhel
-%endif
-%__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
+
 
 %files
 %dir %{cartridgedir}

@@ -43,18 +43,6 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
 %__mkdir -p %{buildroot}%{httpdconfdir}
 
-%if 0%{?fedora}%{?rhel} <= 6
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel6 %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%__mv %{buildroot}%{cartridgedir}/usr/lib/php_context.rhel6 %{buildroot}%{cartridgedir}/usr/lib/php_context
-%__mv %{buildroot}%{cartridgedir}/versions/5.4-scl %{buildroot}%{cartridgedir}/versions/5.4
-%endif
-%if 0%{?fedora} >= 18
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%__mv %{buildroot}%{cartridgedir}/usr/lib/php_context.fedora %{buildroot}%{cartridgedir}/usr/lib/php_context
-%endif
-%__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.* || :
-%__rm %{buildroot}%{cartridgedir}/usr/lib/php_context.* || :
-
 %files
 %attr(0755,-,-) %{cartridgedir}/bin/
 %{cartridgedir}

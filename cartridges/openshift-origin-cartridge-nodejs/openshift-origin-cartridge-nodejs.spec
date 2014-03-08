@@ -60,18 +60,6 @@ find versions/ -name .gitkeep -delete
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-%if 0%{?rhel}
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%__mv %{buildroot}%{cartridgedir}/lib/nodejs_context.rhel %{buildroot}%{cartridgedir}/lib/nodejs_context
-%endif
-%if 0%{?fedora}
-%__rm -f %{buildroot}%{cartridgedir}/versions/0.6
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%__mv %{buildroot}%{cartridgedir}/lib/nodejs_context.fedora %{buildroot}%{cartridgedir}/lib/nodejs_context
-%endif
-%__rm -f %{buildroot}%{cartridgedir}/lib/nodejs_context.*
-%__rm -f %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
-
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/

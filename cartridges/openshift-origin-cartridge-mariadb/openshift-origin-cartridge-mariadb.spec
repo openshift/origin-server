@@ -33,16 +33,6 @@ Provides mariadb cartridge support to OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-%if 0%{?fedora}%{?rhel} <= 6
-%__mv %{buildroot}%{cartridgedir}/lib/mysql_context.rhel %{buildroot}%{cartridgedir}/lib/mysql_context
-%__rm %{buildroot}%{cartridgedir}/lib/mysql_context.f19
-%endif
-%if 0%{?fedora} == 19
-%__mv %{buildroot}%{cartridgedir}/lib/mysql_context.fc19 %{buildroot}%{cartridgedir}/lib/mysql_context
-%__rm %{buildroot}%{cartridgedir}/lib/mysql_context.rhel
-%endif
-%__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
- 
 
 %files
 %dir %{cartridgedir}

@@ -29,15 +29,6 @@ Provides phpMyAdmin cartridge support. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 %__mkdir -p %{buildroot}%{httpdconfdir}
-%if 0%{?fedora}%{?rhel} <= 6
-rm -rf %{buildroot}%{cartridgedir}/versions/3.5
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
-%if 0%{?fedora} == 19
-rm -rf %{buildroot}%{cartridgedir}/versions/3.4
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
-rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 %post
 test -f %{_sysconfdir}/phpMyAdmin/config.inc.php && mv %{_sysconfdir}/phpMyAdmin/config.inc.php{,.orig.$(date +%F)} || rm -f %{_sysconfdir}/phpMyAdmin/config.inc.php

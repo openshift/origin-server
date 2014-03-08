@@ -36,15 +36,6 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 %__cp -r * %{buildroot}%{cartridgedir}
 %__mkdir -p %{buildroot}%{httpdconfdir}
 
-%if 0%{?fedora}%{?rhel} <= 6
-rm -rf %{buildroot}%{cartridgedir}/versions/5.16
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
-%if 0%{?fedora} == 19
-rm -rf %{buildroot}%{cartridgedir}/versions/5.10
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
-rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 %files
 %dir %{cartridgedir}
