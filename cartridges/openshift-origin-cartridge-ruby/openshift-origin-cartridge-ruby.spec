@@ -62,20 +62,6 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %__cp -r * %{buildroot}%{cartridgedir}
 %__mkdir -p %{buildroot}%{httpdconfdir}
 
-%if 0%{?fedora}%{?rhel} <= 6
-%__mv %{buildroot}%{cartridgedir}/versions/1.9-scl %{buildroot}%{cartridgedir}/versions/1.9
-%__mv %{buildroot}%{cartridgedir}/lib/ruby_context.rhel %{buildroot}%{cartridgedir}/lib/ruby_context
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
-%if 0%{?fedora} == 19
-%__rm -rf %{buildroot}%{cartridgedir}/versions/1.9-scl
-%__rm -rf %{buildroot}%{cartridgedir}/versions/1.8
-%__mv %{buildroot}%{cartridgedir}/lib/ruby_context.f19 %{buildroot}%{cartridgedir}/lib/ruby_context
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
-%__rm -f %{buildroot}%{cartridgedir}/lib/ruby_context.*
-%__rm -f %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
-
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/

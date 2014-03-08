@@ -61,15 +61,6 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 
 %__mkdir -p %{buildroot}%{cartridgedir}/env
 
-%if 0%{?fedora}%{?rhel} <= 6
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
-%if 0%{?fedora} == 19
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
-%__rm -f %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
-
-
 %__mkdir -p %{buildroot}%{cartridgedir}/usr/versions/{2.6,2.7,3.3}
 %if 0%{?fedora}%{?rhel} <= 6
 %__cp -anv %{buildroot}%{cartridgedir}/usr/versions/2.7-scl/* %{buildroot}%{cartridgedir}/usr/versions/2.7/
