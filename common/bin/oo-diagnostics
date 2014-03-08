@@ -772,6 +772,12 @@ class OODiag
     # create a tmp file with all of the unique log statements after most recent mcollective start
     logfile = "#{@scl_prefix}mcollective.log"
     logfile = [ "/var/log/openshift/node/#{logfile}", "/var/log/#{logfile}" ].find {|f| File.exist? f}
+    if logfile.nil? || logfile.empty?
+      do_fail <<-"FAIL"
+        No node mcollective log file found.
+      FAIL
+      skip_test
+    end
     tmpfile = Tempfile.new("oodiag-mco-#{$$}").path
     system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' #{logfile} | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
     # if no restart seen, just use the whole thing
