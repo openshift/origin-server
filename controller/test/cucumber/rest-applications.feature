@@ -6,21 +6,28 @@ Feature: applications
   I want to List, Create, Retrieve, Start, Stop, Restart, Force-stop and Delete applications
 
   Scenario Outline: Create, Get, Resolve DNS, List, Delete application
-    #Given a new user, create a php-<php_version> application using <format> format and verify application creation API
+    #Given a new user, create a mock-<mock_version> application using <format> format and verify application creation API
     Given a new user
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=mock-<mock_version>"
     Then the response should be "201"
-    And the response should be a "application" with attributes "name=app&framework=php-<php_version>"
+    And the response should be a "application" with attributes "name=app&framework=mock-<mock_version>"
     When I send a GET request to "/domains/api<random>/applications/app"
     Then the response should be "200"
-    And the response should be a "application" with attributes "name=app&framework=php-<php_version>"
+    And the response should be a "application" with attributes "name=app&framework=mock-<mock_version>"
     When I send a GET request to "/domains/api<random>/applications/app/dns_resolvable"
     Then the response should be one of "200,404"
     When I send a GET request to "/domains/api<random>/applications"
     Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=mock-<mock_version>"
+    Then the response should be "422"
+    And the error message should have "field=name&severity=error&exit_code=100"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=scale-up"
+    Then the response should be "422"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=scale-down"
+    Then the response should be "422"
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
     When I send a GET request to "/domains/api<random>/applications/app"
@@ -29,13 +36,13 @@ Feature: applications
     Then the response should be "404"
     And the error message should have "severity=error&exit_code=101"
 
-    Scenarios: RHEL scenarios
-      | format | php_version |
-      | JSON   |     5.3     |
-      | XML    |     5.3     |
+    Scenarios: Cartridge Versions
+      | format | mock_version |
+      | JSON   |      0.1     |
+      | XML    |      0.1     |
 
 
-  Scenario Outline: Create application with multiple cartridges
+  Scenario Outline: Create application with multiple cartridges and test the embedded cartridge
     #Given a new user, create a php-<php_version> application with phpmyadmin-<phpmyadmin_version> using <format> format and verify application creation API
     Given a new user
     And I accept "<format>"
@@ -44,15 +51,25 @@ Feature: applications
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridges=php-<php_version>&cartridges=<database>&cartridges=phpmyadmin-<phpmyadmin_version>&initial_git_url=https://github.com/openshift/wordpress-example"
     Then the response should be "201"
     And the response should be a "application" with attributes "name=app&framework=php-<php_version>"
+    When I send a POST request to "/domains/api<random>/applications/app/cartridges/<database>/events" with the following:"event=stop"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/cartridges/<database>/events" with the following:"event=start"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/cartridges/<database>/events" with the following:"event=restart"
+    Then the response should be "200"
+    When I send a DELETE request to "/domains/api<random>/applications/app/cartridges/<database>"
+    Then the response should be "200"
+    When I send a GET request to "/domains/api<random>/applications/app/descriptor"
+    Then the response descriptor should have "php-<php_version>,phpmyadmin-<phpmyadmin_version>" as dependencies
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
 
-    Scenarios: RHEL scenarios
+    Scenarios: Cartridge Versions
       | format | php_version | phpmyadmin_version | database  |
       | JSON   |     5.3     |        4           | mysql-5.1 |
       | XML    |     5.3     |        4           | mysql-5.1 |
 
-  Scenario Outline: Create application with invalid cartridge combinations
+  Scenario Outline: Create application with invalid cartridge combinations and invalid names
     #Given a new user, create an invalid application with php-<php_version>, ruby-1.9, mysql-5.1, phpmyadmin-<phpmyadmin_version> using <format> format and verify application creation API
     Given a new user
     And I accept "<format>"
@@ -62,19 +79,15 @@ Feature: applications
     Then the response should be "422"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridges=php-<php_version>&cartridges=ruby-<ruby_version>"
     Then the response should be "422"
-
-    Scenarios: RHEL scenarios
-      | format | php_version | phpmyadmin_version | database  | ruby_version |
-      | JSON   |     5.3     |        4           | mysql-5.1 |      1.9     |
-      | XML    |     5.3     |        4           | mysql-5.1 |      1.9     |
-
-
-  Scenario Outline: Create application with blank, missing, too long and invalid name
-    #Given a new user, create a php-<php_version> application using <format> format with blank, missing, too long and invalid name and verify application creation API
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=bogus"
+    Then the response should be "422"
+    And the error message should have "field=cartridge&severity=error&exit_code=109"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge="
+    Then the response should be "422"
+    And the error message should have "field=cartridge&severity=error&exit_code=109"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app"
+    Then the response should be "422"
+    And the error message should have "field=cartridge&severity=error&exit_code=109"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=&cartridge=php-<php_version>"
     Then the response should be "422"
     And the error message should have "field=name&severity=error&exit_code=105"
@@ -88,18 +101,16 @@ Feature: applications
     Then the response should be "422"
     And the error message should have "field=name&severity=error&exit_code=105"
 
-    Scenarios: RHEL scenarios
-      | format | php_version |
-      | JSON   |     5.3     |
-      | XML    |     5.3     |
+    Scenarios: Cartridge Versions
+      | format | php_version | phpmyadmin_version | database  | ruby_version |
+      | JSON   |     5.3     |        4           | mysql-5.1 |      1.9     |
+      | XML    |     5.3     |        4           | mysql-5.1 |      1.9     |
 
-  Scenario Outline: Start/Stop/Restart application
-    #Given a new user, create a php-<php_version> application using <format> format verify application <event> API
+  Scenario Outline: Start/Stop/Restart application and create app with non-existent domain
+    #Given a new user, create a ruby-<ruby_version> application using <format> format verify application <event> API
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=ruby-<ruby_version>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=<event>"
     Then the response should be "200"
@@ -107,129 +118,14 @@ Feature: applications
     Then the response should be "200"
 
     Scenarios: RHEL scenarios
-      | format | php_version |    event    |
-      | JSON   |     5.3     |    start    |
-      | XML    |     5.3     |    start    |
-      | JSON   |     5.3     |    stop     |
-      | XML    |     5.3     |    stop     |
-      | JSON   |     5.3     |   restart   |
-      | XML    |     5.3     |   restart   |
-      | JSON   |     5.3     | force-stop  |
-      | XML    |     5.3     | force-stop  |
-
-  Scenario Outline: Create duplicate application (RHEL/CentOS)
-    #Given a new user, create a php-<php_version> application using <format> format verify that duplicate application creation fails
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
-    Then the response should be "422"
-    And the error message should have "field=name&severity=error&exit_code=100"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-
-    Scenarios: RHEL scenarios
-      | format | php_version |
-      | JSON   |     5.3     |
-      | XML    |     5.3     |
-
-  Scenario Outline: Create application with invalid, blank or missing cartridge
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=bogus"
-    Then the response should be "422"
-    And the error message should have "field=cartridge&severity=error&exit_code=109"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge="
-    Then the response should be "422"
-    And the error message should have "field=cartridge&severity=error&exit_code=109"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app"
-    Then the response should be "422"
-    And the error message should have "field=cartridge&severity=error&exit_code=109"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "404"
-
-    Scenarios:
-     | format |
-     | JSON   |
-     | XML    |
-
-  Scenario Outline: Stop Start Restart Remove embedded cartridge
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=mock-0.1"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications/app/cartridges" with the following:"cartridge=<database>"
-    Then the response should be "201"
-    When I send a GET request to "/domains/api<random>/applications/app/descriptor"
-    Then the response descriptor should have "mock-0.1,<database>" as dependencies
-    When I send a POST request to "/domains/api<random>/applications/app/cartridges/<database>/events" with the following:"event=stop"
-    Then the response should be "200"
-    When I send a POST request to "/domains/api<random>/applications/app/cartridges/<database>/events" with the following:"event=start"
-    Then the response should be "200"
-    When I send a POST request to "/domains/api<random>/applications/app/cartridges/<database>/events" with the following:"event=restart"
-    Then the response should be "200"
-    When I send a DELETE request to "/domains/api<random>/applications/app/cartridges/<database>"
-    Then the response should be "200"
-    When I send a GET request to "/domains/api<random>/applications/app/descriptor"
-    Then the response descriptor should have "mock-0.1" as dependencies
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-
-    Scenarios: RHEL scenarios
-      | format | database  |
-      | JSON   | mysql-5.1 |
-      | XML    | mysql-5.1 |
-
-  Scenario Outline: Scale-up and scale-down as application that is not scalable
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=mock-0.1"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=scale-up"
-    Then the response should be "422"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=scale-down"
-    Then the response should be "422"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-
-    Scenarios:
-     | format |
-     | JSON   |
-     | XML    |
-
-  Scenario Outline: add application or application event to a non-existent domain creates domain
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains/bog<random>/applications" with the following:"name=app&cartridge=mock-0.1"
-    Then the response should be "201"
-
-    Scenarios: scenarios
-      | format |
-      | JSON   |
-      | XML    |
-
-  Scenario Outline: threaddump an application with threaddump action available
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"name=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=ruby-<ruby_version>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=thread-dump"
-    Then the response should be "200"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-
-    Scenarios: RHEL scenarios
-      | format | ruby_version |
-      | JSON   |      1.9     |
-      | XML    |      1.9     |
+      | format | ruby_version |    event    |
+      | JSON   |     1.9      |    start    |
+      | XML    |     1.9      |    start    |
+      | JSON   |     1.9      |    stop     |
+      | XML    |     1.9      |    stop     |
+      | JSON   |     1.9      |   restart   |
+      | XML    |     1.9      |   restart   |
+      | JSON   |     1.9      | force-stop  |
+      | XML    |     1.9      | force-stop  |
+      | JSON   |     1.9      | thread-dump |
+      | XML    |     1.9      | thread-dump |
