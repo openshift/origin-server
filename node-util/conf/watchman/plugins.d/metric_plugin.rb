@@ -15,6 +15,7 @@
 #++
 
 require 'openshift-origin-node/model/watchman/watchman_plugin'
+require 'openshift-origin-node/utils/shell_exec'
 
 class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
   attr_accessor :gear_app_uuids
