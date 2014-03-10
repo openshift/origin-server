@@ -15,7 +15,6 @@
 #++
 
 require 'openshift-origin-node/model/watchman/watchman_plugin'
-require 'openshift-origin-node/utils/shell_exec'
 
 class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
   attr_accessor :gear_app_uuids
@@ -186,7 +185,7 @@ module OpenShift
 
           # This method returns a string to be processed, is it worth wrapping the execute?
           def execute_cgget(metrics, path)
-            oo_spawn "cgget -n -v -r #{metrics} #{path}"
+            Utils.oo_spawn "cgget -n -v -r #{metrics} #{path}"
           end
         end
       end
