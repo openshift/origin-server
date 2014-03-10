@@ -155,16 +155,11 @@ function deploy() {
     return 0
   fi
   pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-  if [ -f Gemfile ]
-  then
-    if [ ! -f ${OPENSHIFT_REPO_DIR}.openshift/markers/disable_asset_compilation ]; then
-      if [ -f Rakefile ] && grep " rails " Gemfile.lock >/dev/null && bundle exec "rake -T" | grep "assets:precompile" >/dev/null
-      then
-        echo "Precompiling rails assets with 'bundle exec rake assets:precompile'"
-        ruby_context "bundle exec rake assets:precompile"
-        echo "NOTE: You can disable assets precompilation using: rhc env set RAILS_ENV=development"
-      fi
-    fi
+  if has_assets; then
+    ruby_context "bundle exec rake assets:precompile"
+    echo "NOTE: To disable assets compilation use 'disable_asset_compilation' marker."
+  else
+    echo "Compilation of assets is disabled or assets not detected."
   fi
   popd > /dev/null
 }
