@@ -16,7 +16,7 @@ CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PYTHON_LOG_DIR'] %>/access_l
 </Directory>
 
 <% #Backward compatibilty with wsgi/static/ directory
-  if File.directory?("#{ENV['OPENSHIFT_REPO_DIR']}wsgi/static") || File.symlink?("#{ENV['OPENSHIFT_REPO_DIR']}wsgi/static")
+  if $SAFE!=2 && (File.directory?("#{ENV['OPENSHIFT_REPO_DIR']}wsgi/static") || File.symlink?("#{ENV['OPENSHIFT_REPO_DIR']}wsgi/static"))
     %><%= "Alias /static #{ENV['OPENSHIFT_REPO_DIR']}wsgi/static" %><%
   end
 %>
