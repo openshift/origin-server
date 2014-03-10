@@ -80,7 +80,7 @@ module OpenShift
         Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
 
         plugin_dir   = @config.get('WATCHMAN_PLUGIN_DIR', WATCHMAN_PLUGIN_DIR)
-        plugin_files = Dir.glob(PathUtils.join(plugin_dir, '*')).find_all { |e| File.file?(e) }
+        plugin_files = Dir.glob(PathUtils.join(plugin_dir, '*.rb')).find_all { |e| File.file?(e) }
 
         plugin_files.each { |p| require p }
         @plugins = WatchmanPlugin.repository.collect do |plugin|
@@ -139,6 +139,10 @@ module OpenShift
           @plugins.each do |plugin|
             begin
               plugin.apply(iteration)
+            rescue SystemExit => e
+              msg = "SystemExit raised from Watchman plugin #{plugin}:\n#{e.backtrace.join("\n")}"
+              Syslog.notice(msg)
+              raise
             rescue Exception => e
               msg = "Unhandled exception (#{e}) from Watchman plugin #{plugin}: #{e.message}"
               Syslog.notice(msg)
@@ -413,19 +417,22 @@ end
 
 # Guard starting daemons to allow automated testing
 if ENV['DAEMONS_ARGV']
-  # Override Daemons gem explicate 0000 mask
-  ::OpenShift::Runtime::Utils.oo_spawn %q{chmod -f 0600 /var/log/watchman.*}
-  ::OpenShift::Runtime::Utils.oo_spawn %q{chmod -f 0644 /var/run/watchman.pid}
+  PathUtils.flock('/var/lock/oo-watchman.lock') do
 
-  conf_dir       = ENV['OPENSHIFT_CONF_DIR'] || OPENSHIFT_CONF_DIR
-  node_conf_file = PathUtils.join(conf_dir, 'node.conf')
+    # Override Daemons gem explicate 0000 mask
+    ::OpenShift::Runtime::Utils.oo_spawn %q{chmod -f 0600 /var/log/watchman.*}
+    ::OpenShift::Runtime::Utils.oo_spawn %q{chmod -f 0644 /var/run/watchman.pid}
 
-  config = OpenShift::Runtime::CachedConfig.new(node_conf_file)
-  gears  = OpenShift::Runtime::CachedGears.new(config, '/etc/passwd')
+    conf_dir       = ENV['OPENSHIFT_CONF_DIR'] || OPENSHIFT_CONF_DIR
+    node_conf_file = PathUtils.join(conf_dir, 'node.conf')
 
-  watcher              = OpenShift::Runtime::Watchman.new(config, gears)
-  watcher.gear_retries = ENV['GEAR_RETRIES'].to_i unless ENV['GEAR_RETRIES'].nil?
-  watcher.retry_delay  = ENV['RETRY_DELAY'].to_i unless ENV['RETRY_DELAY'].nil?
-  watcher.retry_period = ENV['RETRY_PERIOD'].to_i unless ENV['RETRY_PERIOD'].nil?
-  watcher.apply
+    config = OpenShift::Runtime::CachedConfig.new(node_conf_file)
+    gears  = OpenShift::Runtime::CachedGears.new(config, '/etc/passwd')
+
+    watcher              = OpenShift::Runtime::Watchman.new(config, gears)
+    watcher.gear_retries = ENV['GEAR_RETRIES'].to_i unless ENV['GEAR_RETRIES'].nil?
+    watcher.retry_delay  = ENV['RETRY_DELAY'].to_i unless ENV['RETRY_DELAY'].nil?
+    watcher.retry_period = ENV['RETRY_PERIOD'].to_i unless ENV['RETRY_PERIOD'].nil?
+    watcher.apply
+  end
 end
