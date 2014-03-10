@@ -107,25 +107,24 @@ Feature: applications
       | XML    |     5.3     |        4           | mysql-5.1 |      1.9     |
 
   Scenario Outline: Start/Stop/Restart application and create app with non-existent domain
-    #Given a new user, create a ruby-<ruby_version> application using <format> format verify application <event> API
     Given a new user
     And I accept "<format>"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=ruby-<ruby_version>"
     Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=<event>"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=start"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=stop"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=restart"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=thread-dump"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=force-stop"
     Then the response should be "200"
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
 
     Scenarios: RHEL scenarios
-      | format | ruby_version |    event    |
-      | JSON   |     1.9      |    start    |
-      | XML    |     1.9      |    start    |
-      | JSON   |     1.9      |    stop     |
-      | XML    |     1.9      |    stop     |
-      | JSON   |     1.9      |   restart   |
-      | XML    |     1.9      |   restart   |
-      | JSON   |     1.9      | force-stop  |
-      | XML    |     1.9      | force-stop  |
-      | JSON   |     1.9      | thread-dump |
-      | XML    |     1.9      | thread-dump |
+      | format | ruby_version |
+      | JSON   |     1.9      |
+      | XML    |     1.9      |
