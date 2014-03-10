@@ -20,39 +20,55 @@ fi
 function depfile_path_for() {
   local filename=$1
   if [ -f "${OPENSHIFT_REPO_DIR}${filename}" ]; then
-   echo -n "${OPENSHIFT_REPO_DIR}${filename}"
+   echo -n "${OPENSHIFT_REPO_DIR}"
   elif [ -f "${OPENSHIFT_REPO_DIR}perl/${filename}" ]; then
-   echo -n "${OPENSHIFT_REPO_DIR}perl/${filename}"
+   echo -n "${OPENSHIFT_REPO_DIR}/perl/"
+  elif [ -f "${OPENSHIFT_REPO_DIR}.openshift/${filename}" ]; then
+   echo -n "${OPENSHIFT_REPO_DIR}/.openshift/"
   else
-   echo -n "${OPENSHIFT_REPO_DIR}/.openshift/cpan.txt"
+   echo -n ""
   fi
 }
 
-# Check for obsolite deplist.txt, else return new ".openshift/cpan.txt"
+DEPLIST_PATH=$(depfile_path_for deplist.txt)
+CPANFILE_PATH=$(depfile_path_for cpanfile)
+MAKEFILE_PATH=$(depfile_path_for Makefile.PL)
 
-DEPLIST=$(depfile_path_for deplist.txt)
+CPAN="${OPENSHIFT_REPO_DIR}/.openshift/cpan.txt"
+DEPLIST=${DEPLIST_PATH}/deplist.txt
 
-if [[ -n "${DEPLIST}" ]]
+if [ -f ${DEPLIST} ] || [ -f ${CPAN} ]
 then
-  DEPS=$(find $OPENSHIFT_REPO_DIR -type f \( -name \*\.pm -o -name \*\.pl \); )
-  DEPLIST_NAME=$(basename ${DEPLIST})
+  if [ -f ${DEPLIST} ] && [ -f ${CPAN} ]
+  then
+    echo "***  Installing modules from cpan.txt and deplist.txt"
+  elif [ -f ${CPAN} ]; then
+    echo "***  Installing modules from cpan.txt"
+  elif [ -f ${DEPLIST} ]; then
+    echo "***  Installing modules from deplist.txt"
+  fi
 
-  for f in $( ( echo "$DEPS" | xargs /usr/lib/rpm/perl.req | awk '{ print $1 }' | sed 's/^perl(\(.*\))$/\1/'; cat ${DEPLIST} ) | sort -u)
+  DEPS=$(find $OPENSHIFT_REPO_DIR -type f \( -name \*\.pm -o -name \*\.pl \); )
+
+  for f in $(( echo "$DEPS" | xargs /usr/lib/rpm/perl.req | awk '{ print $1 }' | sed 's/^perl(\(.*\))$/\1/'; cat ${DEPLIST} 2>/dev/null; cat ${CPAN_TXT} 2>/dev/null ) | sort -u | grep . )
   do
     # Skip checking if module is available locally or installed in system
     # if module is listed in deplist.txt
     #
-    if ! grep "$f" ${DEPLIST} >/dev/null 2>&1; then
+    if ! grep "$f" ${DEPLIST} >/dev/null 2>&1;
+    then
 
-      if egrep -re "^\s*package\s*$f" $DEPS >/dev/null 2>&1; then
+      if egrep -re "^\s*package\s*$f" $DEPS >/dev/null 2>&1;
+      then
         echo "***  Skipping module $f install from CPAN (found locally)."
-        echo "***  Please add $f to $DEPLIST_NAME to install it from CPAN."
+        echo "***  Please add $f to deplist.txt to install it from CPAN."
         continue;
       fi
 
-      if perl -e "use $f;" 2> /dev/null; then
+      if perl -e "use $f;" 2> /dev/null;
+      then
         echo "***   Skipping module $f install from CPAN (found in system)."
-        echo "***   Please add $f to $DEPLIST_NAME to install it from CPAN."
+        echo "***   Please add $f to deplist.txt to install it from CPAN."
         continue;
       fi
     fi
@@ -66,4 +82,28 @@ then
 
     cpanm $DISABLE_TEST $MIRROR -L ${OPENSHIFT_PERL_DIR}perl5lib "$f"
   done
+fi
+
+# Installing dependencies with Makefile.PL
+if [[ -n ${MAKEFILE_PATH} ]]
+then
+  echo "***  Preparing project via Makefile.pl"
+  pushd ${MAKEFILE_PATH} > /dev/null
+  perl Makefile.PL PREFIX=${PERL5LIB} LIB=${PERL5LIB}
+  make
+  if [ -f "${OPENSHIFT_REPO_DIR}.openshift/markers/enable_cpan_tests" ];
+  then
+    make test
+  fi
+  make install
+  popd > /dev/null
+fi
+
+# Installing dependencies with cpanfile
+if [[ -n ${CPANFILE_PATH} ]]
+then
+  echo "***  Installing modules from cpanfile"
+  pushd ${CPANFILE_PATH} > /dev/null
+  cpanm $MIRROR -L ${OPENSHIFT_PERL_DIR}perl5lib --installdeps .
+  popd > /dev/null
 fi
