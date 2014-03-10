@@ -10,6 +10,7 @@
 require 'rubygems'
 require 'daemons'
 require 'parseconfig'
+require 'openshift-origin-common/utils/path_utils'
 
 raise 'Watchman must run as root' unless Process.euid == 0
 
@@ -17,7 +18,7 @@ raise 'Watchman must run as root' unless Process.euid == 0
 path = "/etc/sysconfig/watchman"
 if File.exists? path
   config = ParseConfig.new path
-  config.get_params.each {|k| ENV[k] = config[k]}
+  config.get_params.each { |k| ENV[k] = config[k] }
 end
 
 Options = {
@@ -32,36 +33,37 @@ Options = {
 }
 
 def daemon_running?
-  group = Daemons::ApplicationGroup.new(::Options[:app_name], ::Options).tap { |g| g.setup }
-  (!group.applications.empty? || (group.applications.first && group.applications.running?))
+  %x[/usr/bin/pgrep -f '^watchman$']
+  $?.exitstatus == 0 ? true : false
 end
 
-case ARGV[0]
-  when 'stop'
-    puts 'Stopping Watchman'
-    Daemons.run(Options[:script], Options)
-  when 'start'
-    puts 'Starting Watchman'
-    Daemons.run(Options[:script], Options)
-  when 'restart'
-    # 'restart' code can be removed when we upgrade beyond Daemons 1.1.0
-    loop do
+PathUtils.flock('/var/lock/openshift-watchman.lock') do
+  case ARGV[0]
+    when 'stop'
       puts 'Stopping Watchman'
-      Daemons.run(Options[:script], Options.merge(ARGV: ['stop']))
-      break unless daemon_running?
-      sleep 1
-    end
+      Daemons.run(Options[:script], Options)
+    when 'start'
+      puts 'Starting Watchman'
+      Daemons.run(Options[:script], Options)
+    when 'restart'
+      loop do
+        puts 'Stopping Watchman'
+        Daemons.run(Options[:script], Options.merge(ARGV: ['stop']))
+        break unless daemon_running?
+        sleep 1
+      end
 
-    puts 'Starting Watchman'
-    Daemons.run(Options[:script], Options.merge(ARGV: ['start']))
-  when 'status'
-    if daemon_running?
-      puts 'Watchman is running'
-      exit 0
+      puts 'Starting Watchman'
+      Daemons.run(Options[:script], Options.merge(ARGV: ['start']))
+    when 'status'
+      if daemon_running?
+        puts 'Watchman is running'
+        exit 0
+      else
+        puts 'Watchman is not running'
+        exit 1
+      end
     else
-      puts 'Watchman is not running'
-      exit 1
-    end
-  else
-    Daemons.run(Options[:script], Options)
+      Daemons.run(Options[:script], Options)
+  end
 end
