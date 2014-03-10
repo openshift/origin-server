@@ -85,6 +85,7 @@ an OpenShift cartrige.
 %package optional-jbossas
 Summary:   Optional user dependencies for JBossAS OpenShift Cartridges
 BuildArch: noarch
+Requires: jython
 
 %description optional-jbossas
 This package pulls in other packages that a user
@@ -112,6 +113,7 @@ an OpenShift cartrige.
 %package optional-jbosseap
 Summary:   Optional user dependencies for JBossEAP OpenShift Cartridges
 BuildArch: noarch
+Requires: jython
 
 %description optional-jbosseap
 This package pulls in other packages that a user
@@ -139,6 +141,7 @@ an OpenShift cartrige.
 %package optional-jbossews
 Summary:   Optional user dependencies for JBossEWS OpenShift Cartridges
 BuildArch: noarch
+Requires: jython
 
 %description optional-jbossews
 This package pulls in other packages that a user
