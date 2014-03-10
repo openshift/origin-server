@@ -263,7 +263,7 @@ class Command
           completed += 1
         end
       else
-        if (count = Application.where('component_instances.cartridge_id' => t._id).count > 0)
+        if (count = Application.where('component_instances.cartridge_id' => t._id).count) > 0
           warn "No active upgrade for #{t.name} (#{t._id}) - #{count} applications found"
         end
       end
