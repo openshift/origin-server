@@ -2043,7 +2043,7 @@ libdir = /usr/libexec/mcollective
 logfile = /var/log/openshift/node/mcollective.log
 loglevel = debug
 daemonize = 0
-direct_addressing = 1
+direct_addressing = 0
 registerinterval = 30
 
 # Plugins
@@ -2073,7 +2073,7 @@ libdir = /opt/rh/ruby193/root/usr/libexec/mcollective
 logfile = /var/log/openshift/node/ruby193-mcollective.log
 loglevel = debug
 daemonize = 1
-direct_addressing = 1
+direct_addressing = 0
 registerinterval = 30
 
 # Plugins
