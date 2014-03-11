@@ -242,6 +242,7 @@ function post_restore {
     else
         restore_from_mongodb_snapshot
     fi
+    stop
 }
 
 case "$1" in
