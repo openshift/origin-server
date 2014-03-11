@@ -366,7 +366,7 @@ end
 
 Then /^the cartridge (.+) status should be (.+)$/ do |cartridge, status|
   result = rhc_get_app_status(@app, cartridge)
-  result.should =~ /status/
+  result.should =~ /#{status}/
 end
 
 Then /^the application should display default content on first attempt$/ do
