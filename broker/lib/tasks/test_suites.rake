@@ -77,9 +77,7 @@ namespace :test do
     t.verbose = true
     t.libs << 'test'
     tests = FileList[
-      'test/functional_ext/alias_test.rb',
-      'test/functional_ext/app_cartridge_events_test.rb',
-      'test/functional_ext/app_cartridges_test.rb'
+      'test/functional_ext/alias_test.rb'
     ]
     ext_functionals += tests
     t.test_files = tests
@@ -90,6 +88,8 @@ namespace :test do
     t.verbose = true
     t.libs << 'test'
     tests = FileList[
+      'test/functional_ext/app_cartridge_events_test.rb',
+      'test/functional_ext/app_cartridges_test.rb',
       'test/functional_ext/app_events_test.rb',
       'test/functional_ext/application_test.rb'
     ]
