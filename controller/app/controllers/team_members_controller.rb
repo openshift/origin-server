@@ -19,7 +19,8 @@ class TeamMembersController < MembersController
     authorize! :change_members, membership
     id = params[:id].presence
     role = params[:role].presence 
-    return render_error(:unprocessable_entity, "Role #{role} not supported for team members") unless Team::TEAM_MEMBER_ROLES.include? role.to_sym or role.to_sym == :none 
+    return render_error(:unprocessable_entity, "Role required for update.") if role.nil? 
+    return render_error(:unprocessable_entity, "Role #{role} not supported for team members") unless Team::TEAM_MEMBER_ROLES.include? role.to_sym or role.to_sym == :none
     member = membership.members.find(id)
     if role.to_sym == :none
       membership.remove_members(member)

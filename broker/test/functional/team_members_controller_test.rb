@@ -45,7 +45,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     assert_response :success
     get :index , {"team_id" => @team.id}
     assert_response :success
-    put :update, {"team_id" => @team.id, "id" => id, "role" => :view}
+    put :update, {"team_id" => @team.id, "id" => id, "role" => "view"}
     assert_response :success
     delete :destroy , {"team_id" => @team.id, "id" => id}
     assert_response :success
@@ -58,7 +58,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     assert id = json['data']['id']
     assert json['data']['role'] == "view"
     
-    post :create, {"team_id" => @team.id, "login" => @member_name, "role" => :none}
+    post :create, {"team_id" => @team.id, "login" => @member_name, "role" => "none"}
     assert_response :success
     get :index , {"team_id" => @team.id}
     assert_response :success
@@ -72,7 +72,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     assert json = JSON.parse(response.body)
     assert id = json['data']['id']
     
-    post :update, {"team_id" => @team.id, "id" => id, "role" => :none}
+    post :update, {"team_id" => @team.id, "id" => id, "role" => "none"}
     assert_response :success
     get :index , {"team_id" => @team.id}
     assert_response :success
@@ -85,7 +85,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     assert_response :not_found
     get :show, {"team_id" => @team.id, "id" => "bogus"}
     assert_response :not_found
-    put :update , {"team_id" => @team.id, "role" => :view}
+    put :update , {"team_id" => @team.id, "role" => "view"}
     assert_response :not_found
   end
   
@@ -107,13 +107,15 @@ class TeamMembersControllerTest < ActionController::TestCase
     post :create, {"team_id" => @team.id, "login" => ""}
     assert_response :unprocessable_entity
     
-    post :create, {"team_id" => @team.id, "login" => @member_name, "role" => :bogus}
+    post :create, {"team_id" => @team.id, "login" => @member_name, "role" => "bogus"}
     assert_response :unprocessable_entity
     
     post :create, {"team_id" => @team.id, "login" => @member_name}
     assert_response :success
     id = JSON.parse(response.body)["data"]["id"]
-    put :update, {"team_id" => @team.id, "id" => id, "role" => :bogus}
+    put :update, {"team_id" => @team.id, "id" => id}
+    assert_response :unprocessable_entity
+    put :update, {"team_id" => @team.id, "id" => id, "role" => "bogus"}
     assert_response :unprocessable_entity
   end
 
