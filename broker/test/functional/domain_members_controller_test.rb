@@ -43,7 +43,10 @@ class DomainMembersControllerTest < ActionController::TestCase
   def teardown
     begin
       @owner.force_delete
+      @member.force_delete
+      @team_member.force_delete
     rescue
+      
     end
   end
 
