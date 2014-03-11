@@ -40,6 +40,31 @@ If no `-config` flag is specified, logshifter will attempt to load a global conf
 `/etc/openshift/logshifter.conf`. If no `-config` is specified, and the global config file doesn't
 exist, a default syslog-based configuration will be used.
 
+Rolling Files
+---
+When using the `file` writer, a simple file rolling behavior is enabled by default. The rolling
+mechanism will roll files if the file size exceeds a threshold, and will retain a configurable
+number of rolled files before removing the oldest prior to the next roll.
+
+Rolling is configured by the `LOGSHIFTER_$TAG_MAX_FILESIZE` and `LOGSHIFTER_$TAG_MAX_FILES`
+environment variables, where `$TAG` is replaced by an uppercase string equal to the value of
+the `-tag` argument.
+
+The `LOGSHIFTER_$TAG_MAX_FILESIZE` variable expects a case-insensitive string representing the
+maximum size of the file which triggers a roll event. Example values:
+
+    LOGSHIFTER_$TAG_MAX_FILESIZE=500K   # kilobytes
+    LOGSHIFTER_$TAG_MAX_FILESIZE=10M    # megabytes
+    LOGSHIFTER_$TAG_MAX_FILESIZE=2G     # gigabytes
+    LOGSHIFTER_$TAG_MAX_FILESIZE=1T     # terabytes
+
+The default value is `10M`. If a zero size is specified (regardless of the unit), rolling will be
+effectively disabled.
+
+The `LOGSHIFTER_$TAG_MAX_FILES` variable is an integer representing the maximum number of log
+files to retain. The default is 10.
+
+
 Statistics
 ---
 Periodic stats can be emitted to a file using the `-statsfilename` argument.  The stats are written

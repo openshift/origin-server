@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -92,7 +94,7 @@ func main() {
 	}
 
 	// set up the writer
-	writer, err := createWriter(config, tag)
+	writer, err := createWriter(config, tag, verbose)
 	if err != nil {
 		fmt.Printf("Error: couldn't create writer: %v", err)
 		os.Exit(1)
@@ -124,12 +126,41 @@ func main() {
 }
 
 // Create writer instances based on config.
-func createWriter(config *Config, tag string) (Writer, error) {
+func createWriter(config *Config, tag string, verbose bool) (Writer, error) {
 	switch config.outputType {
 	case Syslog:
-		return &SyslogWriter{config: config, tag: tag}, nil
+		return &SyslogWriter{bufferSize: config.syslogBufferSize, tag: tag}, nil
 	case File:
-		return &FileWriter{config: config, tag: tag}, nil
+		var maxFileSize ByteSize
+		maxFileSizeConfig := os.Getenv("LOGSHIFTER_" + strings.ToUpper(tag) + "_MAX_FILESIZE")
+		maxFileSize, err := ParseByteSize([]byte(strings.ToUpper(maxFileSizeConfig)))
+		if err != nil {
+			maxFileSize = ByteSize(10 * MB)
+		}
+
+		var maxFiles int64
+		maxFilesConfig := os.Getenv("LOGSHIFTER_" + strings.ToUpper(tag) + "_MAX_FILES")
+		maxFiles, err = strconv.ParseInt(maxFilesConfig, 10, 0)
+		if err != nil {
+			maxFiles = 10
+		}
+
+		if verbose {
+			fmt.Printf("using max file size %.0f and max files %d\n", maxFileSize, maxFiles)
+		}
+
+		rollDetector := &SizeRollDetector{maxSize: maxFileSize}
+		roller := &RmRoller{maxFiles: int(maxFiles)}
+
+		writer := &FileWriter{
+			baseDir:      config.fileWriterDir,
+			bufferSize:   config.fileBufferSize,
+			tag:          tag,
+			rollDetector: rollDetector,
+			roller:       roller,
+		}
+
+		return writer, nil
 	default:
 		return nil, errors.New("unsupported output type")
 	}
