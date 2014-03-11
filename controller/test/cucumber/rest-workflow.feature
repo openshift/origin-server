@@ -1,9 +1,8 @@
 @broker
 Feature: Rest Quick tests
   As an developer I want to make sure I didn't break anything that is going to prevent others from working
-  
+
   Scenario Outline: Typical Workflow
-    #Given a new user, verify typical REST interactios with a <php_version> application over <format> format
     Given a new user
     And I accept "<format>"
     When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123567"
@@ -62,5 +61,4 @@ Feature: Rest Quick tests
 
     Scenarios: RHEL
       | format | cart_name | db_cart_name |
-      | JSON   |  mock-0.1  |  mysql-5.1   |
-      | XML    |  mock-0.1  |  mysql-5.1   |
+      | JSON   |  mock-0.1 |  mysql-5.1   |

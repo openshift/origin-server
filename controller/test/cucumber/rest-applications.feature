@@ -6,22 +6,38 @@ Feature: applications
   I want to List, Create, Retrieve, Start, Stop, Restart, Force-stop and Delete applications
 
   Scenario Outline: Create, Get, Resolve DNS, List, Delete application
-    #Given a new user, create a mock-<mock_version> application using <format> format and verify application creation API
+    #Given a new user, create a ruby-<ruby_version> application using <format> format and verify application creation API
     Given a new user
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=mock-<mock_version>"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=ruby-<ruby_version>"
     Then the response should be "201"
-    And the response should be a "application" with attributes "name=app&framework=mock-<mock_version>"
+    And the response should be a "application" with attributes "name=app&framework=ruby-<ruby_version>"
     When I send a GET request to "/domains/api<random>/applications/app"
     Then the response should be "200"
-    And the response should be a "application" with attributes "name=app&framework=mock-<mock_version>"
+    And the response should be a "application" with attributes "name=app&framework=ruby-<ruby_version>"
     When I send a GET request to "/domains/api<random>/applications/app/dns_resolvable"
     Then the response should be one of "200,404"
     When I send a GET request to "/domains/api<random>/applications"
     Then the response should be "200"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=mock-<mock_version>"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=start"
+    Then the response should be "200"
+    When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
+    Then the response should be a "gear-group/gears/gear" with attributes "state=started"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=stop"
+    Then the response should be "200"
+    When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
+    Then the response should be a "gear-group/gears/gear" with attributes "state=stopped"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=restart"
+    Then the response should be "200"
+    When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
+    Then the response should be a "gear-group/gears/gear" with attributes "state=started"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=thread-dump"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=force-stop"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=ruby-<ruby_version>"
     Then the response should be "422"
     And the error message should have "field=name&severity=error&exit_code=100"
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=scale-up"
@@ -37,9 +53,9 @@ Feature: applications
     And the error message should have "severity=error&exit_code=101"
 
     Scenarios: Cartridge Versions
-      | format | mock_version |
-      | JSON   |      0.1     |
-      | XML    |      0.1     |
+      | format | ruby_version |
+      | JSON   |      1.9     |
+      | XML    |      1.9     |
 
 
   Scenario Outline: Create application with multiple cartridges and test the embedded cartridge
@@ -105,26 +121,3 @@ Feature: applications
       | format | php_version | phpmyadmin_version | database  | ruby_version |
       | JSON   |     5.3     |        4           | mysql-5.1 |      1.9     |
       | XML    |     5.3     |        4           | mysql-5.1 |      1.9     |
-
-  Scenario Outline: Start/Stop/Restart application and create app with non-existent domain
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=ruby-<ruby_version>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=start"
-    Then the response should be "200"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=stop"
-    Then the response should be "200"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=restart"
-    Then the response should be "200"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=thread-dump"
-    Then the response should be "200"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=force-stop"
-    Then the response should be "200"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "200"
-
-    Scenarios: RHEL scenarios
-      | format | ruby_version |
-      | JSON   |     1.9      |
-      | XML    |     1.9      |
