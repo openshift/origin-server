@@ -113,7 +113,7 @@ class DeploymentsControllerTest < ActionController::TestCase
       assert_equal msg_exit_code, message["exit_code"]
     }
   end
-  
+
   test "validate ref" do
     # See git-check-ref-format man page for rules
     invalid_values = ["a"*257, "abc.lock", "abc/.xyz", "abc..xyz", "/abc", "abc/", "abc//xyz", "abc.", "abc@{xyz}"]

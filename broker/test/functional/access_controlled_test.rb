@@ -204,14 +204,14 @@ class AccessControlledTest < ActiveSupport::TestCase
   def test_resource_for_ssh_to_gear_role
     assert Ability.has_permission?('test', :ssh_to_gears, Application, :edit, nil)
   end
-  
+
   def test_has_member_changes
     CloudUser.where(:login => 'hasmember1').delete
     assert u1 = CloudUser_create(:login => 'hasmember1')
 
     Domain.where(:namespace => 'hasmember').delete
     assert d = Domain_create(:namespace => 'hasmember')
-    
+
     # Test no-ops
     d.add_members
     assert !d.has_member_changes?
@@ -303,7 +303,7 @@ class AccessControlledTest < ActiveSupport::TestCase
       t.add_members u2, :admin
       t.save
       t.run_jobs
-      
+
       d.reload
       a1.reload
       assert d_u2_member = u2.as_member.find_in(d.members)
