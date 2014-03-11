@@ -17,7 +17,7 @@ class AliasTest < ActiveSupport::TestCase
     @app.save
     set_certificate_data
   end
-  
+
   def teardown
     begin
       @domain.applications.each do |app|
@@ -28,60 +28,60 @@ class AliasTest < ActiveSupport::TestCase
     rescue
     end
   end
-  
+
   test "create and find and and update and delete alias" do
     server_alias = "as.#{@random}"
     @app.add_alias(server_alias)
     assert(@app.aliases.length == 1)
-    
+
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
     assert_equal(false, as.has_private_ssl_certificate)
     h = as.to_hash
     assert_equal(server_alias, h["fqdn"])
     assert_equal(false, h["has_private_ssl_certificate"])
-  
+
     @app.update_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
     assert_equal(true, as.has_private_ssl_certificate)
-    
+
     @app.remove_alias(server_alias)
     assert(@app.aliases.length == 0)
   end
-  
+
   test "create and find and update and delete alias with certificate" do
     server_alias = "as.#{@random}"
     @app.add_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)
     assert(@app.aliases.length == 1)
-    
+
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
     assert_equal(true, as.has_private_ssl_certificate)
-    
+
     @app.update_alias(server_alias)
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
     assert_equal(false, as.has_private_ssl_certificate)
-    
+
     @app.remove_alias(server_alias)
     assert(@app.aliases.length == 0)
   end
-  
+
   test "create dulicate alias" do
     server_alias = "as.#{@random}"
     @app.add_alias(server_alias)
     assert(@app.aliases.length == 1)
-    
+
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
-    
+
     app2 = Application.create_app("app2", cartridge_instances_for(:php), @domain)
     app2.save
     assert_raise(OpenShift::UserException){app2.add_alias(server_alias)}
-    
+
   end
-  
+
   test "create alias with bad inputs" do
     #invalid chars
     server_alias = "dfh%44$"
@@ -98,20 +98,20 @@ class AliasTest < ActiveSupport::TestCase
     #no private key
     server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.add_alias(server_alias, @ssl_certificate)}
-    
+
     #bad private key
     server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.add_alias(server_alias, @ssl_certificate, "abcd")}
-    
+
     #wrong private key
     server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.add_alias(server_alias, @ssl_certificate, @private_key2)}
-    
+
     #bad certificate
     server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.add_alias(server_alias, "ABCDEFG", @private_key, @pass_phrase)}
   end
-  
+
   test "update alias with bad inputs" do
     server_alias = "as.#{@random}"
     #non-existent alias
@@ -119,20 +119,20 @@ class AliasTest < ActiveSupport::TestCase
     #no private key
     @app.add_alias(server_alias)
     assert_raise(OpenShift::UserException){@app.update_alias(server_alias, @ssl_certificate)}
-    
+
     #bad private key
     server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.update_alias(server_alias, @ssl_certificate, "abcd")}
-    
+
     #wrong private key
     server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.update_alias(server_alias, @ssl_certificate, @private_key2)}
-    
+
     #bad certificate
     server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.update_alias(server_alias, "ABCDEFG", @private_key, @pass_phrase)}
   end
-  
+
   test "remove alias with bad inputs" do
     server_alias = "as.#{@random}"
     #non-existent alias
@@ -146,7 +146,7 @@ class AliasTest < ActiveSupport::TestCase
     assert_raise(Exception){ @app.add_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)}
     assert_raise(Mongoid::Errors::DocumentNotFound){@app.aliases.find_by(fqdn: server_alias)}
   end
-  
+
   test "update alias with new cert rollback" do
     server_alias = "as#{@random}"
     #verify that alias is rolled back if add_ssl_cert fails
@@ -161,12 +161,12 @@ class AliasTest < ActiveSupport::TestCase
     #verify that it was rolled back
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(false, as.has_private_ssl_certificate)
-    
+
   test "update alias with no cert rollback" do
     server_alias = "as#{@random}"
     #verify that alias cannot be rolled back if remove_ssl_cert fails
     @container.stubs(:remove_ssl_cert).returns(ResultIO.new(1))
-    
+
     @app.add_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)
     #verify that is has certificate
     as = @app.aliases.find_by(fqdn: server_alias)
@@ -177,7 +177,7 @@ class AliasTest < ActiveSupport::TestCase
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(false, as.has_private_ssl_certificate)
   end
-  
+
   test "remove alias rollback" do
     server_alias = "as#{@random}"
     @app.add_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)
@@ -192,9 +192,9 @@ class AliasTest < ActiveSupport::TestCase
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(true, as.has_private_ssl_certificate)
   end
-  
+
 =end
-  
+
   def set_certificate_data
   @ssl_certificate = "-----BEGIN CERTIFICATE-----
 MIIDoDCCAogCCQDzF8AJCHnrbjANBgkqhkiG9w0BAQUFADCBkTELMAkGA1UEBhMC

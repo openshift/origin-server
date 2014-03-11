@@ -31,7 +31,7 @@ class UsageModelTest < ActiveSupport::TestCase
       assert false
     end
   end
- 
+
   test "find all usage events" do
     ues = Usage.find_all
     ues.each do |ue|
@@ -44,14 +44,14 @@ class UsageModelTest < ActiveSupport::TestCase
     ues = Usage.find_all
     assert(ues.length == 2)
   end
- 
+
   test "find all usage events by user" do
     ue = usage
     ue.save!
     ue = Usage.find_by_user(ue.user_id)
     assert(ue.length == 1)
   end
- 
+
   test "find all user usage events since given time" do
     ue1 = usage
     ue1.save!
@@ -62,7 +62,7 @@ class UsageModelTest < ActiveSupport::TestCase
     ue = Usage.find_by_user_after_time(ue1.user_id, ue1.begin_time + 10)
     assert(ue.length == 1)
   end
-  
+
   test "find latest by user gear" do
     ue1 = usage
     ue1.save!

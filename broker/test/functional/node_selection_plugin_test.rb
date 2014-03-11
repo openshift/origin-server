@@ -24,7 +24,7 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
   def self.select_best_fit_node_impl(node_list, app_props, current_gears, comp_list, user_props, request_time)
     raise Exception.new("Node list is empty") if node_list.empty?
     raise Exception.new("Node expected: #{@@server_id}; Node found: #{node_list[0].name}") if node_list[0].name != @@server_id
-    
+
     raise Exception.new("Application properties not specified") if app_props.nil?
     raise Exception.new("Application name mismatch") if app_props.name != @@appname
 
@@ -32,10 +32,10 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     raise Exception.new("Current gear count mismatch") if current_gears.length != 1
     raise Exception.new("Current gear name mismatch") if current_gears[0].name != @@gear_id.to_s
     raise Exception.new("Current gear server mismatch") if current_gears[0].server != @@server_id
-    
+
     raise Exception.new("User properties not specified") if user_props.nil?
     raise Exception.new("User login mismatch") if user_props.login != @@login
-    
+
     raise Exception.new("Component instances not specified") if comp_list.empty?
     raise Exception.new("Component count mismatch") if comp_list.length != 1
     raise Exception.new("Cartridge name mismatch") if comp_list[0].cartridge_name != @@web_cart_name
@@ -45,10 +45,10 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
 
     return NodeProperties.new("serverid")
   end
-  
+
   test "external node selection plugin" do
     OpenShift::ApplicationContainerProxy.node_selector_plugin = self.class
-    
+
     user = CloudUser.new(login: @@login)
     user.save
     domain = Domain.new(namespace: @@namespace, owner: user)
@@ -64,7 +64,7 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     ci = ComponentInstance.new(cartridge_name: @@web_cart_name, component_name: @@web_comp_name, group_instance_id: gi._id)
     app.component_instances.push ci
     app.save
-    
+
     p = OpenShift::ApplicationContainerProxy.find_available(:node_profile => "small", :gear => new_gear)
     assert p.id == "serverid", "The expected node was not returned"
   end
@@ -130,7 +130,7 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
   def teardown
     super
     OpenShift::ApplicationContainerProxy.node_selector_plugin = nil
-    
+
     CloudUser.where(login: @@login).delete
     Domain.where(canonical_namespace: @@namespace).delete
     Application.where(domain_namespace: @@namespace, canonical_name: @@appname).delete

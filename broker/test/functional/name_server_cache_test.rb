@@ -5,7 +5,7 @@ class NameServerCacheTest < ActiveSupport::TestCase
   def setup
     super
   end
-  
+
   test "get name servers" do
     NameServerCache.get_name_servers
   end

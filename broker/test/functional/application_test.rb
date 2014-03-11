@@ -579,7 +579,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal si2.region_id, si3.region_id
     assert_not_equal si1.zone_id, si2.zone_id
     app.destroy_app
-   
+
     # test min zones per gear group 
     Rails.configuration.msg_broker[:regions][:require_zones_for_app_create] = true
     Rails.configuration.msg_broker[:regions][:min_zones_per_gear_group] = 3
