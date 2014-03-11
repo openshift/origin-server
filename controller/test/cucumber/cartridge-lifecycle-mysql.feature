@@ -10,10 +10,19 @@ Feature: MySQL Tests
     When I snapshot the application
     And I insert additional test data into mysql
     Then the additional test data will be present in mysql
+    And the cartridge <cart_name> status should be running
 
     When I restore the application
     Then the test data will be present in mysql
     And the additional test data will not be present in mysql
+    And the cartridge <cart_name> status should be running
+
+    When the application is stopped
+    And I snapshot the application
+    Then the cartridge <cart_name> status should be stopped
+
+    When I restore the application
+    Then the cartridge <cart_name> status should be stopped
 
     Scenarios: MySQL versions
       | cart_name |
