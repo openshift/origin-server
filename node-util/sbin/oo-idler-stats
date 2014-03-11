@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #--
-# Copyright 2010 Red Hat, Inc.
+# Copyright 2010-2014 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ STATE_CRITICAL = 2
 STATE_UNKNOWN = 3
 STATE_DEPENDENT = 4
 
+
 def get_options():
     """ command-line options """
 
@@ -39,16 +40,17 @@ def get_options():
     OptionParser = optparse.OptionParser
     parser = OptionParser(usage)
 
-    parser.add_option("-v", "--verbose", action="store_true", default=False, \
-            dest="verbose", help="Print additional details.")
-    parser.add_option("--validate", action="store_true", default=False, \
-            dest="validate", help="Perform additional sanity checks.")
+    parser.add_option("-v", "--verbose", action="store_true", default=False,
+                      dest="verbose", help="Print additional details.")
+    parser.add_option("--validate", action="store_true", default=False,
+                      dest="validate", help="Perform additional sanity checks.")
 
     opts, args = parser.parse_args()
     return opts, args
 
+
 def proclist():
-    ''' fetches a process list and their uids '''
+    """ fetches a process list and their uids """
     # returns lines of "uid cmd"
     ret, out = run('/bin/ps axwo uid=,args=')
     arr = []
@@ -60,34 +62,41 @@ def proclist():
         cmd = " ".join(l)
         if uid.strip() == '':
             print line
-        d = { 'uid' : uid, 'cmd' : cmd }
+        d = {'uid': uid, 'cmd': cmd}
         arr.append(d)
     return arr
 
-all_idled_apps=None
+
+all_idled_apps = None
+
+
 def is_idled(appid):
-    ''' returns a boolean saying if the app is currently idled '''
+    """ returns a boolean saying if the app is currently idled """
     global all_idled_apps
-    if all_idled_apps == None:
-        ret, all_idled_apps = run("/usr/sbin/oo-admin-ctl-gears listidle | /bin/awk '{print $1}'")
+    if all_idled_apps is None:
+        ret, all_idled_apps = run("/usr/sbin/oo-admin-ctl-gears listidle | /bin/cut -d' ' -f1")
         if ret != 0:
-            return False # an error occurred, bail
+            return False  # an error occurred, bail
         all_idled_apps.remove('')
 
-    return (appid in all_idled_apps)
+    return appid in all_idled_apps
 
-dict_uid_count=None
+
+dict_uid_count = None
+
+
 def num_procs_with_uid(uid, proclist, opts):
-    ''' return count of the number of apache or java processes associated with a given uid. '''
+    """ return count of the number of apache or java processes associated with a given uid. """
     global dict_uid_count
-    if dict_uid_count == None:
+    if dict_uid_count is None:
         dict_uid_count = defaultdict(int)
         for d in proclist:
-          dict_uid_count[d['uid']] += 1
+            dict_uid_count[d['uid']] += 1
     return dict_uid_count[uid]
 
+
 def user_list():
-    ''' fetches a list of usernames and their uids '''
+    """ fetches a list of usernames and their uids """
     # returns lines of "username:uid"
     ret, out = run('grep ":OpenShift guest:" /etc/passwd | cut -d: -f"1 3"')
     dct = {}
@@ -97,10 +106,11 @@ def user_list():
             dct[l[1]] = l[0]
     return dct
 
+
 def run(cmd, workdir=None):
-    ''' run commands in a subprocess and wait for the return code.
+    """ run commands in a subprocess and wait for the return code.
         optional: provide a working dir for the command.
-    '''
+    """
     cwd = None
     if workdir:
         cwd = os.getcwd()
@@ -115,49 +125,36 @@ def run(cmd, workdir=None):
 
     return proc.returncode, output
 
+
 def percent(a, b):
-    return float(a)/float(b)*100.0
+    return float(a) / float(b) * 100.0
+
 
 def cartridge_types(homedir):
-    return_code, types = run("ls |egrep -v 'app-root|git'", homedir)
+    return_code, types = run("ls |egrep -v '-|git'", homedir)
     return types
 
-def get_app_type(app_path, app_name="unknown"):
-    ''' try to figure out what sort of openshift app is inside a given path.
-    Warning: this is a bit naive.
-    '''
 
-    installed = cartridge_types(app_path)
-    if 0 == len(installed):
+def get_app_type(app_path):
+    """Return Primary Cartridge for application type"""
+
+    try:
+        with open(app_path + "/.env/OPENSHIFT_PRIMARY_CARTRIDGE_DIR") as f:
+            return (f.read()).split('/')[-2]
+    except:
         return "unknown"
 
-    candidates = set(["diy", "jbossas", "jbosseap", "jbossews", "nodejs", "perl", \
-        "php", "python", "ruby", "zend"]).intersection(installed)
-    if 0 < len(candidates):
-        return candidates.pop()
-
-    candidates = set(["mongodb", "mysql", "postgresql", "switchyard", \
-        "jenkins"]).intersection(installed)
-    if 0 < len(candidates):
-        return candidates.pop()
-
-    candidates = set(["metrics", "rockmongo", "10gen-mms-agent", \
-        "cron", "haproxy", "jenkins-client", "phpmyadmin"]).intersection(installed)
-    if 0 < len(candidates):
-        return candidates.pop()
-
-    return "unknown"
 
 def validate(uuid):
-    ''' given a user's uuid, verify an app exists. '''
+    """ given a user's uuid, verify an app exists. """
     app_path = "/var/lib/openshift/%s" % uuid
 
     # Is there a /git directory?
-    if not os.path.isdir(app_path+"/git"):
+    if not os.path.isdir(app_path + "/git"):
         return "Path %s/git not found." % app_path
 
     # Is there something inside the /git directory?
-    dirs = os.listdir(app_path+"/git")
+    dirs = os.listdir(app_path + "/git")
     if len(dirs) == 0:
         return "Path %s/git is empty." % app_path
 
@@ -168,41 +165,35 @@ def validate(uuid):
             app_name = d.replace(".git", "")
 
     # Is there stuff inside git/appname.git?
-    gitfiles = os.listdir(app_path+"/git/"+app_name+".git")
+    gitfiles = os.listdir(app_path + "/git/" + app_name + ".git")
     if len(gitfiles) == 0:
         return "Path %s/git/%s.git is empty." % (app_path, app_name)
 
     # Chances are good that this is a git repo. What's the last commit?
     last_commit = run('git show HEAD | grep Date | sed "s/Date:   //"',
-            app_path+"/git/"+app_name+".git")[1][0]
-    # %z is broken in python-2.6.6-20.el6
-    # see also: http://bugs.python.org/issue6641
-    last_commit = datetime.strptime(last_commit[:-6], "%a %b %d %H:%M:%S %Y")
-    time_diff = datetime.now() - last_commit
+                      app_path + "/git/" + app_name + ".git")[1][0]
 
     # do any cartridges exists?
     types = cartridge_types(app_path)
     if 0 >= len(types):
-        return "Path %s does not contain any cartridges." % (app_path)
+        return "Path %s does not contain any cartridges." % app_path
 
     # is there stuff in cartridges?
     for cartridge in types:
         cartridge_path = app_path + "/" + cartridge
         app_files = os.listdir(cartridge_path)
         if len(app_files) == 0:
-            return "Path %s is empty." % (cartridge_path)
+            return "Path %s is empty." % cartridge_path
 
     # great! what is it?
-    app_type = get_app_type(app_path, app_name)
+    app_type = get_app_type(app_path)
 
     # tell the world what we've found!
     return """
-    Last updated: %s (%s days ago)
+    Last updated: %s
     %s (%s) seems okay.
-""" % ( last_commit.strftime("%b %d %Y"), \
-        time_diff.days, \
-        app_name, \
-        app_type )
+""" % (last_commit, app_name, app_type)
+
 
 def status_output(up, idle, half_idled, tot, pct, state):
     st = "UNK"
@@ -213,10 +204,12 @@ def status_output(up, idle, half_idled, tot, pct, state):
     elif state == STATE_CRITICAL:
         st = "CRIT"
     else:
-        pass # else is for completeness.
+        pass  # else is for completeness.
 
-    print "%s running, %s idled, %s half-idled for a total %s of %s (%.2f %%)" % (up, idle, half_idled, (up + idle), tot, pct)
+    print "%s running, %s idled, %s half-idled for a total %s of %s (%.2f %%)" % (
+        up, idle, half_idled, (up + idle), tot, pct)
     sys.exit(0)
+
 
 if "__main__" in __name__:
     opts, args = get_options()
@@ -225,7 +218,7 @@ if "__main__" in __name__:
     users = user_list()
     num_apps = len(users)
 
-    if num_apps  == 0:
+    if num_apps == 0:
         print "OK: No apps found. Nothing to monitor."
         sys.exit(STATE_OK)
 
@@ -238,7 +231,7 @@ if "__main__" in __name__:
             print "Found %s processes for uid %s, username %s." % (num_procs, uid, users[uid])
         if opts.validate:
             print "Validation for uid %s (%s): %s" % (uid, users[uid],
-                    str(validate(users[uid])))
+                                                      str(validate(users[uid])))
         is_running = False
         if num_procs > 0:
             running_apps += 1
@@ -259,7 +252,7 @@ if "__main__" in __name__:
     else:
         if pct >= 80.0:
             status_output(running_apps, idled_apps, half_idled_apps, num_apps, pct, STATE_OK)
-        elif pct < 80.0 and pct >= 50.0:
+        elif 80.0 > pct >= 50.0:
             status_output(running_apps, idled_apps, half_idled_apps, num_apps, pct, STATE_WARNING)
         else:
             status_output(running_apps, idled_apps, half_idled_apps, num_apps, pct, STATE_CRITICAL)
