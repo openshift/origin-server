@@ -16,27 +16,8 @@
 # limitations under the License.
 #++
 
-require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 require 'getoptlong'
 require 'time'
-include AdminHelper
-
-# Disable analytics for admin scripts
-Rails.configuration.analytics[:enabled] = false
-Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
-Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
-
-$log_file = "/var/log/openshift/broker/usage-refund.log"
-$billing_api = nil
-if $billing_enabled
-  $billing_api = OpenShift::BillingService.instance
-  $billing_api.set_logger($log_file, false)
-end
-
-trap("INT") do
-  print_message "#{$0} Interrupted", true
-  exit 1
-end
 
 def usage
   puts <<USAGE
@@ -95,7 +76,7 @@ rescue GetoptLong::Error => e
 end
 
 usage if args["--help"]
- 
+
 $verbose = args["--verbose"]
 report_only = args["--report-only"]
 fix_ssh_keys = args["--ssh-keys"]
@@ -115,6 +96,27 @@ if fix_ssh_keys.nil? and fix_district_uids.nil? and fix_consumed_gears.nil? and
    fix_removed_nodes.nil? and fix_usage.nil?
   puts "You must specify at least one item to fix."
   usage
+end
+
+require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
+include AdminHelper
+
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
+Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
+
+
+$log_file = "/var/log/openshift/broker/usage-refund.log"
+$billing_api = nil
+if $billing_enabled
+  $billing_api = OpenShift::BillingService.instance
+  $billing_api.set_logger($log_file, false)
+end
+
+trap("INT") do
+  print_message "#{$0} Interrupted", true
+  exit 1
 end
 
 def reset_consumed_gears(user_id)
@@ -347,27 +349,15 @@ def populate_available_servers
 end
 
 def find_unresponsive_servers(available_servers, auto_confirm)
-  unresponsive_servers = []
-  responsive_servers = []
-  message = "ping"
   options = OpenShift::MCollectiveApplicationContainerProxy.rpc_options
   unless auto_confirm.nil? # for test automation
     options[:disctimeout] = 1
     options[:timeout] = 1
   else
-    options[:disctimeout] = 5
-    options[:timeout] = 45
+    options[:disctimeout] = 20
   end
-  OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', available_servers.keys, false, options) do |client|
-    client.echo(:msg => message).each do |resp|
-      if resp[:data][:msg] != message
-        unresponsive_servers << resp[:sender]
-      else
-        responsive_servers << resp[:sender]
-      end
-    end
-  end
-  unresponsive_servers += (available_servers.keys - responsive_servers)
+  responsive_servers = OpenShift::MCollectiveApplicationContainerProxy.known_server_identities
+  unresponsive_servers = (available_servers.keys - responsive_servers)
 
   # Report unresponsive servers to the admin 
   unless unresponsive_servers.empty?

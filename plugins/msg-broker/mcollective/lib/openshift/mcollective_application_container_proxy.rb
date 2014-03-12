@@ -2310,7 +2310,7 @@ module OpenShift
       #
       # INPUTS:
       # * agent: String
-      # * servers: String|Array
+      # * servers: String
       # * force_rediscovery: Boolean
       # * options: Hash
       #
@@ -2325,27 +2325,21 @@ module OpenShift
       # * uses MCollective::RPC::Client
       # * THIS IS THE MEAT!
       #
-      def self.rpc_exec(agent, servers=nil, force_rediscovery=false, options=rpc_options)
-
-        if servers
-          servers = Array(servers)
-        else
-          servers = []
-        end
+      def self.rpc_exec(agent, server, force_rediscovery=false, options=rpc_options)
 
         # Setup the rpc client
         rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client(agent, options)
 
-        if !servers.empty?
-          Rails.logger.debug("DEBUG: rpc_exec: Filtering rpc_exec to servers #{servers.pretty_inspect}")
-          rpc_client.discover :nodes => servers
-        end
+        #if !servers.empty?
+        #  Rails.logger.debug("DEBUG: rpc_exec: Filtering rpc_exec to servers #{servers.pretty_inspect}")
+        #  rpc_client.discover :nodes => servers
+        #end
 
         # Filter to the specified server
-        #if server
-        #  Rails.logger.debug("DEBUG: rpc_exec: Filtering rpc_exec to server #{server}")
-        #  rpc_client.identity_filter(server)
-        #end
+        if server
+          Rails.logger.debug("DEBUG: rpc_exec: Filtering rpc_exec to server #{server}")
+          rpc_client.identity_filter(server)
+        end
 
         if force_rediscovery
           rpc_client.reset
@@ -2882,14 +2876,14 @@ module OpenShift
       #
       def self.known_server_identities(force_rediscovery=false, rpc_opts=nil)
         server_identities = nil
-        server_identities = Rails.cache.read('known_server_identities') unless force_rediscovery
+        #server_identities = Rails.cache.read('known_server_identities') unless force_rediscovery
         unless server_identities
           server_identities = []
-          rpc_get_fact('active_capacity', nil, true, force_rediscovery, nil, rpc_opts) do |server, capacity|
+          rpc_get_fact('active_capacity', nil, force_rediscovery, nil, rpc_opts) do |server, capacity|
             #Rails.logger.debug "Next server: #{server} active capacity: #{capacity}"
             server_identities << server
           end
-          Rails.cache.write('known_server_identities', server_identities, {:expires_in => 1.hour}) unless server_identities.empty?
+          #Rails.cache.write('known_server_identities', server_identities, {:expires_in => 1.hour}) unless server_identities.empty?
         end
         server_identities
       end
@@ -3263,7 +3257,6 @@ module OpenShift
       # NOTES:
       # * uses rpc_exec
       #
-
       def self.rpc_get_fact(fact, servers=nil, force_rediscovery=false, additional_filters=nil, custom_rpc_opts=nil)
         result = nil
         options = custom_rpc_opts ? custom_rpc_opts : MCollectiveApplicationContainerProxy.rpc_options
