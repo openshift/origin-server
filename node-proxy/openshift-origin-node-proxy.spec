@@ -11,7 +11,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -138,6 +138,10 @@ fi
 %doc README
 
 %changelog
+* Tue Mar 11 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Bug 1075221 - Prevent node-web-proxy being restarted by logrotate
+  (mfojtik@redhat.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - openshift-origin-node-proxy's service script requires facter
   (bleanhar@redhat.com)
