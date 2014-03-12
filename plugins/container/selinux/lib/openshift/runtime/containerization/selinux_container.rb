@@ -50,9 +50,17 @@ module OpenShift
               @container.uid = @container.gid = @container.next_uid
             end
 
+            cmd = %{groupadd -g #{@container.gid} \
+                    #{@container.uuid}}
+            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+            raise ::OpenShift::Runtime::UserCreationException.new(
+                      "ERROR: unable to create user group(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
+                  ) unless rc == 0
+
             cmd = %{useradd -u #{@container.uid} \
                     -d #{@container.container_dir} \
                     -s #{@gear_shell} \
+                    -g #{@container.gid} \
                     -c '#{@container.gecos}' \
                     -m \
                     -k #{@container.skel_dir} \
