@@ -33,7 +33,7 @@ $name = File.basename __FILE__
 program :name, $name
 program :version, '1.0.0'
 program :description, %q(Change the state of gears)
-program :help, 'Copyright', %q(2014 Red Hat, Inc')
+program :help, 'Copyright', %q(2014 Red Hat, Inc)
 program :help, 'License', %q(ASL 2.0)
 program :help, 'Note #1', %q(This command should be run as root)
 program :int_message, %q(Warning: not all gears have been processed)
