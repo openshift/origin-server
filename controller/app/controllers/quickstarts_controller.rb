@@ -20,11 +20,18 @@ class QuickstartsController < BaseController
   protected
     def quickstarts
       if File.exists?(file)
-        ActiveSupport::JSON.decode(IO.read(file)) rescue []
+        begin
+          ActiveSupport::JSON.decode(IO.read(file))
+        rescue Exception => e
+          Rails.logger.error "Failed to load #{file}: #{e.message}"
+          []
+        end
       else
+        Rails.logger.warn "#{file} not found!"
         []
       end
     end
+
     def file
       File.join(OpenShift::Config::CONF_DIR, 'quickstarts.json')
     end
