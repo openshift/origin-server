@@ -5,7 +5,7 @@ class RestTeam < OpenShift::Model
     [:id, :name].each{ |sym| self.send("#{sym}=", team.send(sym)) }
     unless nolinks
       self.links = {
-          "GET" => Link.new("Get team", "GET", URI::join(url, "team/#{name}")),
+          "GET" => Link.new("Get team", "GET", URI::join(url, "team/#{id}")),
           "UPDATE" => Link.new("Update team", "PUT", URI::join(url, "team/#{id}"), 
             [Param.new("name", "string", "New name of the team")]),
           "ADD_MEMBER" => Link.new("add member", "POST", URI::join(url, "team/#{id}/members"), nil,
