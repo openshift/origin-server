@@ -5,9 +5,6 @@
  missingok
  notifempty
  compress
- postrotate
-    systemctl restart openshift-watchman > /dev/null 2>/dev/null || true
- endscript
 }
 
 /var/log/openshift/node/platform*.log {
@@ -17,7 +14,4 @@
  missingok
  notifempty
  compress
- postrotate
-    systemctl restart ruby193-mcollective > /dev/null 2>/dev/null || true
- endscript
 }
