@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.21.5
+Version: 1.21.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -281,6 +281,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Mar 11 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
+- Bug 1075221 - Prevent mcollective and watchman restart after logrotate
+  (mfojtik@redhat.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.5-1
 - Merge pull request #4895 from pmorie/bugs/1072663
   (dmcphers+openshiftbot@redhat.com)
