@@ -54,7 +54,7 @@ namespace :test do
       'test/functional/keys_controller_test.rb',
       'test/functional/lock_test.rb',
       'test/functional/name_server_cache_test.rb',
-      'test/functional/node_selection_plugin_test.rb',
+      'test/functional/node_selection_test.rb',
       'test/functional/quickstarts_controller_test.rb',
       'test/functional/region_test.rb'
     ]

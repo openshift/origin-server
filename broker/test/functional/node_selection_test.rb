@@ -75,6 +75,12 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     assert p.id == @@server_id, "The expected node was not returned"
   end
 
+  test "known server identities" do
+    servers = OpenShift::MCollectiveApplicationContainerProxy.known_server_identities(true)
+    assert_equal 1, servers.length, "Expected exactly 1 node"
+    assert_equal @@server_id, servers.first, "The expected node was not returned"
+  end
+
   test "least preferred node selection" do
     OpenShift::ApplicationContainerProxy.node_selector_plugin = nil
     begin
