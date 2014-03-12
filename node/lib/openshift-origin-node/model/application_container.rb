@@ -243,28 +243,33 @@ module OpenShift
         end
 
         notify_endpoint_delete = ''
-        output = ''
-        errout = ''
-        retcode = -1
+        output                 = ''
+        errout                 = ''
+        retcode                = -1
 
         # Don't try to delete a gear that is being scaled-up|created|deleted
         PathUtils.flock("/var/lock/oo-create.#{@uuid}") do
-          @cartridge_model.each_cartridge do |cart|
-            env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
-            cart.public_endpoints.each do |endpoint|
-              notify_endpoint_delete << "NOTIFY_ENDPOINT_DELETE: #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
+          begin
+            @cartridge_model.each_cartridge do |cart|
+              env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
+              cart.public_endpoints.each do |endpoint|
+                output << "NOTIFY_ENDPOINT_DELETE: #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
+              end
             end
-          end
-          # possible mismatch across cart model versions
-          output, errout, retcode = @cartridge_model.destroy(skip_hooks)
+            # possible mismatch across cart model versions
+            out, errout, retcode = @cartridge_model.destroy(skip_hooks)
+            output << out unless out.nil?
 
-          raise UserDeletionException.new("ERROR: unable to delete user account #{@uuid}") if @uuid.nil?
+            raise UserDeletionException.new %q[ERROR: unable to delete user account (nil)] if @uuid.nil?
+          rescue => e
+            logger.warn %Q(Failure while deleting gear #{@uuid}: #{e.message})
+            logger.debug %Q(Failure while deleting gear #{@uuid}: #{e.message}\n#{e.backtrace.join("\n")})
+            output << %q(CLIENT_ERROR: Errors during gear delete. There may be extraneous data left on system.)
+          end
 
           @container_plugin.destroy
           remove_app_symlinks(@container_dir)
         end
-
-        output += notify_endpoint_delete
 
         notify_observers(:after_container_destroy)
 
