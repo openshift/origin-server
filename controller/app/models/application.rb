@@ -1826,7 +1826,7 @@ class Application
         app_dns_gear_id = gear_id.to_s
       end
 
-      cartridge = CartridgeCache.find_cartridge(comp_specs.first.cartridge_name)
+      cartridge = CartridgeCache.find_cartridge(comp_specs.first.cartridge_name, self)
       platform = cartridge ? cartridge.platform : nil
 
       init_gear_op = InitGearOp.new(group_instance_id: ginst_id, platform: platform, gear_id: gear_id,

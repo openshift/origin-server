@@ -763,8 +763,9 @@ class ApplicationControllerTest < ActionController::TestCase
 
     mock_cart = mock
     mock_cart.expects(:platform).at_least_once.with.returns('linux')
-    CartridgeCache.expects(:find_cartridge).at_least_once.with('mock-mock-0.1').returns(mock_cart)
-    CartridgeCache.expects(:find_cartridge).at_least_once.with(php_version).returns(php_cart)
+
+    CartridgeCache.expects(:find_cartridge).at_least_once.with('mock-mock-0.1', anything).returns(mock_cart)
+    CartridgeCache.expects(:find_cartridge).at_least_once.with(php_version, anything).returns(php_cart)
 
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => [php_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
