@@ -182,13 +182,9 @@ module OpenShift
                     end
 
                     if gen_default_rule
-                      f.puts("RewriteRule ^#{path}(/.*)?$ #{proxy_proto}://#{uri}$1 [P,NS]")
+                      tpath = path.empty? ? "/" : path
 
-                      if path.empty?
-                        tpath = "/"
-                      else
-                        tpath = path
-                      end
+                      f.puts("ProxyPass #{tpath} #{proxy_proto}://#{uri}/")
 
                       if uri.empty?
                         turi = "127.0.0.1:80"
