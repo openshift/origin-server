@@ -1,0 +1,29 @@
+.\" Process this file with
+.\" groff -man -Tascii oo-admin-gear.8
+.\" 
+.de FN
+\fI\|\\$1\|\fP
+..
+.TH "OO-ADMIN-GEAR" "8" "2014-03-11" "OpenShift" "OpenShift Management Commands"
+.SH NAME
+oo-admin-gear \- Administrative operations for OpenShift gears hosted on this node
+.SH SYNOPSIS
+.B "oo-admin-gear {COMMAND} [--help|-h] [--version|-v] [--trace|-t] {--with-container-uuid|-u } gear uuid"
+.SH DESCRIPTION
+.B "oo-admin-gear"
+may be used to operate on a gear
+.SH OPTIONS
+The following commands are understood:
+.TP
+.B "destroygear"
+removes all remains of a gear not removed by normal means.
+Will render any application in the Broker database corrupt.
+.SH NOTES
+.nr step 1 1
+.IP \n[step] 2
+.B oo-admin-gear
+is of no value on a Broker node that does not host gears.
+.\" .IP \n+[step] 2
+.SH BUGS
+.SH SEE ALSO
+

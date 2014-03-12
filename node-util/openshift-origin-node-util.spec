@@ -129,6 +129,7 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0744,-,-) %{_sysconfdir}/openshift/watchman/disabled/*
 
 %{_mandir}/man8/oo-accept-node.8.gz
+%{_mandir}/man8/oo-admin-gear.8.gz
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz
 %{_mandir}/man8/oo-auto-idler.8.gz
 %{_mandir}/man8/oo-idler-stats.8.gz

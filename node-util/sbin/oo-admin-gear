@@ -15,74 +15,112 @@
 # limitations under the License.
 #++
 
-require 'optparse'
+require 'etc'
+require 'fileutils'
+require 'openshift-origin-node'
 require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/cgroups/libcgroup'
-require 'openshift-origin-node'
 
-GEAR_ADMIN_OPTIONS = {}
+require 'commander/import'
+$name = File.basename __FILE__
 
-optparse = OptionParser.new { |opts|
-    opts.banner = "Usage: oo-admin-gear --action ACTION --uuid UUID\n
-Mandatory arguments: ACTION and gear UUID\n\n"
+program :name, $name
+program :version, %q(1.0.0)
+program :description, %q(Perform operation on gear)
+program :help, 'Copyright', %q(2014 Red Hat, Inc)
+program :help, 'License', %q(ASL 2.0)
+program :help, 'Note #1', %q(This command should be run as root)
+program :int_message, %q(Warning: Processing was interrupted before it could complete.)
 
-    opts.on('-a', '--action ACTION', String, "Specify action
-Available actions: destroygear (cleanup stale files for a gear)\n\n") do |action|
-        GEAR_ADMIN_OPTIONS[:action] = action
+unless 'root' == Etc.getpwuid(Process::uid).name
+  $stderr.puts("Must be run as root\n Use #{$name} --help to obtain help")
+  exit! 1
+end
+
+global_option('-c', '--with-container-uuid UUID', 'Unique identifier for the gear, if provided must be first argument')
+
+def usage(message, details = nil)
+  $stderr.puts details + "\n\n" if details
+  $stderr.puts "Usage: #{message}"
+  exit! 255
+end
+
+def run(command, options = Commander::Command::Options.new)
+  puts command if options.trace
+  output = %x[#{command} 2>&1].squeeze
+  puts %Q(#{command}:\n  #{output}) unless $?.exitstatus == 0 || output.empty?
+end
+
+def rm(path, options = Commander::Command::Options.new)
+  msg = "Deleting file: #{path}"
+  puts msg if options.trace
+  if File.exist? path
+    puts msg unless options.trace
+    FileUtils.rm_r(path, verbose: options.trace)
+  end
+end
+
+command :destroygear do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = %q(Remove any remnants of a failed gear destroy)
+
+  c.action do |_, options|
+    puts %Q($trace is #{options.trace})
+
+    if options.with_container_uuid.nil? || options.with_container_uuid.empty?
+      usage(c.syntax)
     end
 
-    opts.on('-u', '--uuid UUID', String, 'Specify gear uuid') do |uuid|
-        GEAR_ADMIN_OPTIONS[:uuid] = uuid
+    begin
+      path  = %Q(/cgroup/all/openshift/#{options.with_container_uuid}/freezer.state)
+      state = IO.read(path).chomp
+      puts %Q(Gear cgroup state: #{state}) if options.trace
+      unless state == 'THAWED'
+        puts 'Thawing gear...'
+        IO.write(path, 'THAWED')
+      end
+    rescue
     end
-}
 
-begin
-    optparse.parse!
-    mandatory = [:action, :uuid]
-    missing = mandatory.select{ |param| GEAR_ADMIN_OPTIONS[param].nil? }
-    if not missing.empty?
-        puts optparse
-        exit
+    uid = Etc.getpwnam(options.with_container_uuid).uid rescue nil
+    if uid.nil?
+      puts 'Killing gear processes by uuid...'
+      # Killing off processes without a passwd entry is hard...
+      run %Q(/usr/bin/skill -9 #{options.with_container_uuid})
+
+      tasks = IO.read %Q(/cgroup/all/openshift/#{options.with_container_uuid}/tasks) rescue nil
+      unless tasks.nil? || tasks.empty?
+        run %Q(/bin/kill -9 -- #{tasks.gsub("\n", ' ')})
+      end
+    else
+      puts 'Killing gear processes by uid...'
+      run %Q(/usr/bin/pkill -9 -u #{uid})
     end
-rescue OptionParser::InvalidOption, OptionParser::MissingArgument
-    puts $!.to_s
-    puts optparse
-    exit
-end  
 
-action = GEAR_ADMIN_OPTIONS[:action]
-uuid = GEAR_ADMIN_OPTIONS[:uuid]
+    if uid
+      puts 'Deleting unix account...'
+      run %Q(/usr/sbin/userdel --remove --force #{options.with_container_uuid})
+    end
 
-if action == 'destroygear'
-    puts 'Killing user processes...'
-    process_delete = %x[skill #{uuid}]
-    puts process_delete if $?.exitstatus != 0
+    rm %Q(/var/lib/openshift/.tc_user_dir/#{options.with_container_uuid}_throttle)
+    rm %Q(/var/lib/openshift/#{options.with_container_uuid})
+    rm %Q(/var/lib/openshift/.last_access/#{options.with_container_uuid})
+    rm %Q(/etc/security/limits.d/*-#{options.with_container_uuid}.conf)
 
-    puts 'Deleting user...'
-    user_delete = %x[userdel --remove -f #{uuid}]
-    puts user_delete if $?.exitstatus != 0
+    begin
+      puts 'Deleting cgroup info...'
+      OpenShift::Runtime::Utils::Cgroups::Libcgroup.new(options.with_container_uuid).delete
+    rescue => e
+      puts "Failed to delete cgroup info: #{e.message}"
+      puts e.backtrace.join("\n") if options.trace
+    end
 
-    puts 'Deleting tc user info...'
-    tc_user_delete = %x[rm /var/lib/openshift/.tc_user_dir/#{uuid}_throttle]
-    puts tc_user_delete if $?.exitstatus != 0
-
-    puts 'Deleting stale user home dir...'
-    user_home_delete = %x[rm -r /var/lib/openshift/#{uuid}]
-    puts user_home_delete if $?.exitstatus != 0
-
-    puts 'Deleting gear access info...'
-    app_last_access_delete = %x[rm -r /var/lib/openshift/.last_access/#{uuid}]
-    puts app_last_access_delete if $?.exitstatus != 0
-
-    puts 'Deleting gear pam limits files...'
-    user_pam_limits_delete = %x[rm /etc/security/limits.d/*-#{uuid}.conf]
-    puts user_pam_limits_delete if $?.exitstatus != 0
-
-    puts 'Deleting cgroup info...'
-    OpenShift::Runtime::Utils::Cgroups::Libcgroup.new(uuid).delete
-
-    puts 'Deleting stale info from /var/lib/openshift/.httpd.d/ files...'
-    OpenShift::Runtime::FrontendHttpServer.purge(uuid)
-else
-    puts 'No matching action found'
+    begin
+      puts 'Deleting stale info from /var/lib/openshift/.httpd.d/ files...'
+      OpenShift::Runtime::FrontendHttpServer.purge(options.with_container_uuid)
+    rescue => e
+      puts "Failed to delete .httpd.d info: #{e.message}"
+      puts e.backtrace.join("\n") if options.trace
+    end
+  end
 end
