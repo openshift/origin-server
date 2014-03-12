@@ -758,6 +758,14 @@ class ApplicationControllerTest < ActionController::TestCase
       Categories:
       - web_proxy
       MANIFEST
+
+    php_cart = CartridgeCache.find_cartridge(php_version)
+
+    mock_cart = mock
+    mock_cart.expects(:platform).at_least_once.with.returns('linux')
+    CartridgeCache.expects(:find_cartridge).at_least_once.with('mock-mock-0.1').returns(mock_cart)
+    CartridgeCache.expects(:find_cartridge).at_least_once.with(php_version).returns(php_cart)
+
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => [php_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
     assert_response :success
@@ -784,6 +792,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Categories:
       - web_proxy
       MANIFEST
+
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => [php_version, haproxy_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
     assert_response :unprocessable_entity

@@ -41,8 +41,8 @@ module OpenShift
       @proxy_provider.new(server_id, district)
     end
 
-    def self.find_one(node_profile=nil)
-      server_id = @proxy_provider.find_one_impl(node_profile)
+    def self.find_one(node_profile=nil, platform='linux')
+      server_id = @proxy_provider.find_one_impl(node_profile, platform)
       raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_id.blank?
       @proxy_provider.new(server_id)
     end

@@ -181,6 +181,10 @@ class CartridgeType
     provides.include?(feature)
   end
 
+  def scaling_required?
+    self.components.any? { |comp| comp.scaling.required }
+  end
+
   def ===(other)
     return true if other == self
     if other.is_a?(String)

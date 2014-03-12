@@ -105,6 +105,14 @@ module OpenShift
       end
 
       ##
+      # Returns true if the primary +Cartridge+ is also the +web_proxy+.
+      # This occurs in the case of applications that have a web cartridge
+      # that is deployed on a platform different than the web proxy's.
+      def standalone_web_proxy?
+        (web_proxy != nil) and (web_proxy.name == primary_cartridge.name)
+      end
+
+      ##
       # Detects and returns a builder +Cartridge+ in the gear if present, otherwise +nil+.
       def builder_cartridge
         builder_cart = nil
@@ -284,7 +292,7 @@ module OpenShift
                         "Cartridge created the following directories in the gear home directory: #{illegal_entries.join(', ')}")
             end
 
-            output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
+            output << populate_gear_repo(c.directory, template_git_url) if populate_repository?(cartridge, template_git_url)
           end
 
           validate_cartridge(cartridge)
@@ -1561,6 +1569,12 @@ module OpenShift
 
       def empty_repository?
         ApplicationRepository.new(@container).empty?
+      end
+
+      def populate_repository?(cartridge, template_git_url)
+        # we should populate the gear repo if we have a deployable cartridge
+        # or if we have a standalone web proxy and a git url for a template was provided
+        (cartridge.deployable? or (standalone_web_proxy? and template_git_url))
       end
     end
   end

@@ -58,7 +58,7 @@ command :read do |c|
 
     if requested_gears
       requested_gears.each_value do |gear|
-        puts "#{gear.uuid},#{gear.namespace},#{gear.dns},#{gear.proxy_hostname},#{gear.proxy_port}"
+        puts "#{gear.uuid},#{gear.namespace},#{gear.dns},#{gear.proxy_hostname},#{gear.proxy_port},#{gear.platform}"
       end
     end
   end

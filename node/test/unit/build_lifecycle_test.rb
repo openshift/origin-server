@@ -1146,6 +1146,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_metadata = mock()
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(deployment_metadata)
     deployment_metadata.expects(:hot_deploy).returns(false)
+    @container.cartridge_model.expects(:standalone_web_proxy?).returns(false)
 
     gear_result1 = { gear_uuid: @container.uuid, status: 'success', errors: [], messages: [] }
     @container.expects(:with_gear_rotation)
@@ -1179,6 +1180,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_metadata = mock()
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(deployment_metadata)
     deployment_metadata.expects(:hot_deploy).returns(false)
+
+    @container.cartridge_model.expects(:standalone_web_proxy?).returns(false)
 
     gear_result1 = { gear_uuid: gear_uuids[0], status: 'success', errors: [], messages: [] }
     gear_result2 = { gear_uuid: gear_uuids[1], status: 'success', errors: [], messages: [] }
@@ -1220,6 +1223,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     deployment_metadata = mock()
     @container.expects(:deployment_metadata_for).with(deployment_datetime).returns(deployment_metadata)
     deployment_metadata.expects(:hot_deploy).returns(false)
+
+    @container.cartridge_model.expects(:standalone_web_proxy?).returns(false)
 
     gear_result1 = { gear_uuid: gear_uuids[0], status: 'success', errors: [], messages: [] }
     gear_result2 = { gear_uuid: gear_uuids[1], status: 'success', errors: [], messages: [] }

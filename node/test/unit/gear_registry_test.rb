@@ -34,13 +34,15 @@ class GearRegistryTest < OpenShift::NodeTestCase
       "namespace": "namespace1",
       "dns": "dns1",
       "proxy_hostname": "proxy_host1",
-      "proxy_port": 35561
+      "proxy_port": 35561,
+      "platform": "linux"
     },
     "uuid2": {
       "namespace": "namespace2",
       "dns": "dns2",
       "proxy_hostname": "proxy_host2",
-      "proxy_port": 35562
+      "proxy_port": 35562,
+      "platform": "linux"
     }
   },
   "proxy": {
@@ -48,13 +50,15 @@ class GearRegistryTest < OpenShift::NodeTestCase
       "namespace": "namespace3",
       "dns": "dns3",
       "proxy_hostname": "proxy_host3",
-      "proxy_port": 35563
+      "proxy_port": 35563,
+      "platform": "linux"
     },
     "uuid4": {
       "namespace": "namespace4",
       "dns": "dns4",
       "proxy_hostname": "proxy_host4",
-      "proxy_port": 35564
+      "proxy_port": 35564,
+      "platform": "linux"
     }
   }
 }
@@ -79,7 +83,8 @@ EOF
       namespace: "namespace#{suffix}",
       dns: "dns#{suffix}",
       proxy_hostname: "proxy_host#{suffix}",
-      proxy_port: "3556#{suffix}".to_i
+      proxy_port: "3556#{suffix}".to_i,
+      platform: "linux"
     }
   end
 
@@ -108,12 +113,13 @@ EOF
     assert_equal 'dns1', entry.dns
     assert_equal 'proxy_host1', entry.proxy_hostname
     assert_equal 35561, entry.proxy_port
+    assert_equal 'linux', entry.platform
   end
 
   def test_entry_to_json
     entry = create_entry("1")
 
-    assert_equal '{"namespace":"namespace1","dns":"dns1","proxy_hostname":"proxy_host1","proxy_port":35561}', entry.to_json
+    assert_equal '{"namespace":"namespace1","dns":"dns1","proxy_hostname":"proxy_host1","proxy_port":35561,"platform":"linux"}', entry.to_json
   end
 
   def test_gear_registry_initialize_creates_files

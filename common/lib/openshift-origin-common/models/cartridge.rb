@@ -93,7 +93,7 @@ module OpenShift
                   :provides, :requires, :conflicts, :suggests, :native_requires,
                   :path, :license_url, :categories, :website, :suggests_feature,
                   :help_topics, :cart_data_def, :additional_control_actions, :versions, :cartridge_vendor,
-                  :endpoints, :cartridge_version, :obsolete
+                  :endpoints, :cartridge_version, :obsolete, :platform
 
     # Profile information
     attr_accessor :components, :group_overrides,
@@ -148,6 +148,10 @@ module OpenShift
       @components.each {|comp| @_component_name_map[comp.name] = comp }
     end
 
+    def scaling_required?
+      @components.any? { |comp| comp.scaling.required }
+    end
+
     def get_component(comp_name)
       @_component_name_map[comp_name]
     end
@@ -179,6 +183,7 @@ module OpenShift
       self.cart_data_def = spec_hash["Cart-Data"] || {}
       self.additional_control_actions = spec_hash["Additional-Control-Actions"] || []
       self.cartridge_version = spec_hash["Cartridge-Version"] || "0.0.0"
+      self.platform = (spec_hash["Platform"] || "linux").downcase
 
       self.provides = [self.provides] if self.provides.class == String
       self.requires = [self.requires] if self.requires.class == String
