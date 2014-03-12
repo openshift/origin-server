@@ -55,11 +55,11 @@ module OpenShift
           load
         else
           File.new(@file, 'w', 0644)
-          container.set_rw_permission(@file)
-
           @metadata = defaults
 
           save
+          container.set_rw_permission(@file)
+
         end
       rescue => e
         container.logger.warn("Unable to create or update #{@file}. Gear may be exceeding quota. #{e.message}")
