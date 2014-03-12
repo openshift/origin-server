@@ -184,7 +184,7 @@ module OpenShift
                     if gen_default_rule
                       tpath = path.empty? ? "/" : path
 
-                      f.puts("ProxyPass #{tpath} #{proxy_proto}://#{uri}/ keepalive=On")
+                      f.puts("ProxyPass #{tpath} #{proxy_proto}://#{uri}/")
 
                       if uri.empty?
                         turi = "127.0.0.1:80"
