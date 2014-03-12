@@ -83,13 +83,6 @@ fix_ssh_keys = args["--ssh-keys"]
 fix_district_uids = args["--district-uids"]
 fix_consumed_gears = args["--consumed-gears"]
 fix_removed_nodes = args["--removed-nodes"]
-if args["--confirm"]
-  auto_confirm = args["--confirm"].to_b
-elsif report_only
-  auto_confirm = false
-else
-  auto_confirm = nil
-end
 fix_usage = args["--usage"]
 
 if fix_ssh_keys.nil? and fix_district_uids.nil? and fix_consumed_gears.nil? and
@@ -100,6 +93,14 @@ end
 
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 include AdminHelper
+
+if args["--confirm"]
+  auto_confirm = args["--confirm"].to_b
+elsif report_only
+  auto_confirm = false
+else
+  auto_confirm = nil
+end
 
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
@@ -351,15 +352,14 @@ end
 def find_unresponsive_servers(available_servers, auto_confirm)
   options = OpenShift::MCollectiveApplicationContainerProxy.rpc_options
   unless auto_confirm.nil? # for test automation
-    options[:disctimeout] = 1
-    options[:timeout] = 1
+    options[:disctimeout] = 5
   else
     options[:disctimeout] = 20
   end
-  responsive_servers = OpenShift::MCollectiveApplicationContainerProxy.known_server_identities
+  responsive_servers = OpenShift::MCollectiveApplicationContainerProxy.known_server_identities(true, options)
   unresponsive_servers = (available_servers.keys - responsive_servers)
 
-  # Report unresponsive servers to the admin 
+  # Report unresponsive servers to the admin
   unless unresponsive_servers.empty?
     puts "Checking for unresponsive servers...FAIL" if $verbose
     puts "Servers that are unresponsive:"
