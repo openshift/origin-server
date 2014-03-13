@@ -1368,6 +1368,24 @@ class OODiag
     end
   end
 
+  def test_node_env_vars_match
+    skip_test unless @is_node
+    config = OpenShift::Config.new
+    %w[ BROKER_HOST CLOUD_DOMAIN ].each do |var|
+      contents = File.read("/etc/openshift/env/OPENSHIFT_#{var}").chomp
+      if contents != config.get(var)
+        do_warn <<-"MISMATCH"
+          /etc/openshift/env/OPENSHIFT_#{var} contains '#{contents}'
+          /etc/openshift/node.conf:#{var} specifies '#{config.get var}'
+          These should match; an incorrect value in either case could
+          cause problems. node.conf values are used in defining application
+          DNS records and proxy routing, while env var files are used for
+          contacting the broker for application management actions.
+        MISMATCH
+      end
+    end
+  end
+
 end #class OODiag
 
 
