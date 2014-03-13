@@ -67,7 +67,7 @@ Rails.application.routes.draw do
         end
       end
       
-      resources :teams, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format do
+      resources :teams, :only => [:index, :show, :create, :destroy], :id => id_with_format do
         resources :members, :only => [:index, :show, :create, :update, :destroy], :controller => :team_members, :id => id_with_format
         match 'members' => 'team_members#create', :via => :patch
         match 'members' => 'team_members#destroy_all', :via => :delete

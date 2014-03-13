@@ -40,8 +40,8 @@ class TeamsControllerTest < ActionController::TestCase
     get :index , {}
     assert_response :success
     new_name = "xteam#{@random}"
-    put :update, {"id" => id, "name" => new_name}
-    assert_response :success
+    #put :update, {"id" => id, "name" => new_name}
+    #assert_response :success
     delete :destroy , {"id" => id}
     assert_response :ok
   end
@@ -51,8 +51,8 @@ class TeamsControllerTest < ActionController::TestCase
     assert_response :not_found
     get :show, {"id" => "bogus"}
     assert_response :not_found
-    put :update , {"name" => "ABCD1234XYX"}
-    assert_response :not_found
+    #put :update , {"name" => "ABCD1234XYX"}
+    #assert_response :not_found
     delete :destroy , {}
     assert_response :not_found
   end
@@ -79,12 +79,12 @@ class TeamsControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
     
     #now try update
-    team_name = "team#{@random}"
-    post :create, {"name" => team_name}
-    assert_response :success
-    id = JSON.parse(response.body)["data"]["id"]
-    put :update , {"id" => id, "name" => "a"*256}
-    assert_response :unprocessable_entity
+    #team_name = "team#{@random}"
+    #post :create, {"name" => team_name}
+    #assert_response :success
+    #id = JSON.parse(response.body)["data"]["id"]
+    #put :update , {"id" => id, "name" => "a"*256}
+    #assert_response :unprocessable_entity
   end
 
   test "get teams in all versions" do

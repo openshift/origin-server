@@ -29,7 +29,8 @@ class TeamsController < BaseController
     end
     render_success(:created, "team", get_rest_team(team), "Added #{team.name}")
   end
-
+  # not supported
+=begin
   def update
     id = params[:id].presence
     name = params[:name].presence
@@ -45,7 +46,7 @@ class TeamsController < BaseController
     end
     render_success(:ok, "team", get_rest_team(team), "Updated team")
   end
-  
+=end 
   def destroy
     id = params[:id].presence
     team = get_team(id)
