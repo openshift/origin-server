@@ -529,7 +529,7 @@ class OODiag
           do_warn <<-AVCS
             The following recent entries in /var/log/audit/audit.log likely indicate problems:
             \n#{avcs}
-            Note that SELinux violations are not always logged in the audit log."
+            Note that SELinux violations are not always logged in the audit log.
           AVCS
         end
       else
@@ -909,6 +909,13 @@ class OODiag
     PLUGIN
   end
 
+  def vmware_tools_installed?
+    return true if %w[VMwareTools vmware-tools].any? {|p| @rpms[p]}
+    return true if %w[vmware-toolbox vmware-toolbox-cmd vmware-config-tools.pl].
+      any? {|c| system "command -v #{c} >& /dev/null" }
+    false
+  end
+
   def test_node_mco_log
     skip_test unless @is_node
     #
@@ -923,13 +930,22 @@ class OODiag
     #
     # Look for the mco timeout warning
     out = `grep 'WARN.*created at [0-9]* is [0-9]* seconds old, TTL is' #{tmpfile}`
-    do_fail <<-"TIMEOUT" unless out.empty?
-      Node mcollective log indicates time is too far out of sync with broker:
-      #{out.split("\n").first}
-      This typically causes the node to ignore broker queries and commands.
-      Please ensure that all node and broker hosts are synced to the same time source.
-      Restart mcollective if this script is reporting an old log message.
-    TIMEOUT
+    unless out.empty?
+      errors = vmware_tools_installed? ? <<-"VMWARE" : ""
+
+        vmware-tools is installed and may conflict with ntpd's time management.
+        Please ensure both are not managing the clock, disabling one if needed.
+        See http://kb.vmware.com/kb/1189 for disabling vmware-tools time sync.
+      VMWARE
+      errors = <<-"TIMEOUT"
+        Node mcollective log indicates time is too far out of sync with broker:
+        #{out.split("\n").first}
+        This typically causes the node to ignore broker queries and commands.\n#{errors}
+        Please ensure that all node and broker hosts are synced to the same time source.
+        Restart mcollective if this script is reporting an old log message.
+      TIMEOUT
+      do_fail errors
+    end
     #
     # clean up temp file
     system "rm #{tmpfile}"
