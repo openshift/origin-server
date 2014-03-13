@@ -56,9 +56,9 @@ module OpenShift
         else
           File.new(@file, 'w', 0644)
           @metadata = defaults
+          container.set_rw_permission(@file)
 
           save
-          container.set_rw_permission(@file)
 
         end
       rescue => e
