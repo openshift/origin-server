@@ -523,10 +523,21 @@ class Application
       # Cartridges can contribute overrides
       spec.cartridge.group_overrides.each do |override|
         if o = GroupOverride.resolve_from(specs, override)
-          platforms = o.components.map {|component| CartridgeCache.find_cartridge(component.cartridge_name, self).platform }.uniq
+          platforms = o.components.map do |component|
+            cart = CartridgeCache.find_cartridge(component.cartridge_name, self)
+
+            unless cart
+              # check inside specs for the cartridge object,
+              # since d/l carts are not stored in the application yet
+              cart = specs.map {|s| s.cartridge if s.cartridge.name == component.cartridge_name }.compact.first
+            end
+
+            cart ? cart.platform : nil
+          end
 
           # only allow grouping if we're working with a single platform
-          if platforms.size == 1
+          # compact will remove nils from the array, to exclude carts that have not been found
+          if platforms.compact.uniq.size == 1
             overrides << o.implicit
           end
         end
