@@ -50,6 +50,9 @@ class ApiController < BaseController
       "ADD_TEAM" => Link.new("Create new team", "POST", URI::join(get_url, "teams"), [
         Param.new("name", "string", "Name of the team")]),
       "LIST_TEAMS" => Link.new("List all teams you have access to", "GET", URI::join(get_url, "teams")),
+      "LIST_TEAMS_BY_OWNER" => Link.new("List teams by owner", "GET", URI::join(get_url, "teams"), [
+        Param.new("owner", "string", "Return only the teams owned by the specified user id or identity.  Use @self to refer to the current user.", ['@self', '*'], [])
+        ]),
       "SHOW_TEAM" => Link.new("Retrieve a team by it's id", "GET", URI::join(get_url, "team/:id"), [
         Param.new(":id", "string", "Id of the team")
       ]),

@@ -3,7 +3,13 @@ class TeamsController < BaseController
   action_log_tag_resource :team
 
   def index
-    rest_teams = Team.accessible(current_user).map {|t| get_rest_team(t)}
+    teams = 
+      case params[:owner]
+      when "@self" then Team.where(owner: current_user)
+      when nil     then Team.accessible(current_user)
+      else return render_error(:bad_request, "Only @self is supported for the 'owner' argument.") 
+      end
+    rest_teams = teams.map {|t| get_rest_team(t)}
     render_success(:ok, "teams", rest_teams, "Listing teams for user #{@cloud_user.login}")
   end
 
@@ -12,7 +18,6 @@ class TeamsController < BaseController
     team = get_team(id)
     render_success(:ok, "team", get_rest_team(team), "Showing team #{id} for user #{@cloud_user.login}")
   end
-
 
   def create
     authorize! :create_team, current_user
