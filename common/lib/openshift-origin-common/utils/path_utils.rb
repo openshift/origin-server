@@ -93,7 +93,7 @@ module PathUtils
         yield(lock)
       ensure
         FileUtils.rm_f(lock_file) if unlink_file
-        lock.flock(File::LOCK_UN)
+        lock.flock(File::LOCK_UN) unless lock.closed?
       end
     end
   end
