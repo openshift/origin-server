@@ -373,6 +373,19 @@ class OODiag
   # prereq_ methods run before test_ methods in order to enable aborting testing
   # if there are serious problems.
 
+  def have_host_command
+    if system "command -v host >& /dev/null"
+      true
+    else
+      do_warn <<-WARN unless @tested_host_command
+         The host command is not available. This command is not required; however, you
+         may install it, by installing the bind-utils package, to enable further
+         diagnostics checking.
+      WARN
+      @tested_host_command = true
+      false
+    end
+  end
 
   def prereq_dns_server_available
     verbose "checking that the first server in /etc/resolv.conf responds"
@@ -393,6 +406,7 @@ class OODiag
     # don't much care if resolution is correct; what we want
     # is to avoid running a bunch more tests when the nameserver
     # is obviously broken.
+    skip_test unless have_host_command
     command = "host -W 1 example.com. #{server}"
     # IPSocket.getaddress goes through /etc/hosts;
     # "host" uses DNS which is what we want.
@@ -418,16 +432,6 @@ class OODiag
 
   def prereq_domain_resolves
     skip_test unless @is_broker or @is_node
-
-    `which host`
-    have_host_command = 0 == $?.to_i
-    unless have_host_command
-      do_warn <<-WARN
-         The host command is not available. This command is not required; however, you
-         may install it, by installing the bind-utils package, to enable further
-         diagnostics checking.
-      WARN
-    end
     skip_test unless have_host_command
 
     verbose "checking that we can resolve our application domain"
