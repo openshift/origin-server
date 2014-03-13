@@ -518,24 +518,30 @@ class Application
 
     # Overrides from the basic cartridge definitions.
     overrides = []
+
     specs.each do |spec|
       # Cartridges can contribute overrides
       spec.cartridge.group_overrides.each do |override|
         if o = GroupOverride.resolve_from(specs, override)
-          overrides << o.implicit
+          platforms = o.components.map {|component| CartridgeCache.find_cartridge(component.cartridge_name, self).platform }.uniq
+
+          # only allow grouping if we're working with a single platform
+          if platforms.size == 1
+            overrides << o.implicit
+          end
         end
       end
 
       # Each component has an implicit override based on its scaling
       comp = spec.component
       overrides <<
-        if comp.is_sparse?
-          GroupOverride.new([spec]).implicit
-        elsif spec.cartridge.is_external?
-          GroupOverride.new([spec], 0, 0).implicit
-        else
-          GroupOverride.new([spec], comp.scaling.min, comp.scaling.max).implicit
-        end
+          if comp.is_sparse?
+            GroupOverride.new([spec]).implicit
+          elsif spec.cartridge.is_external?
+            GroupOverride.new([spec], 0, 0).implicit
+          else
+            GroupOverride.new([spec], comp.scaling.min, comp.scaling.max).implicit
+          end
     end
 
     # Overrides that are implicit to applications of this type
@@ -712,6 +718,11 @@ class Application
             ((ssl_endpoint == "force") and not cart_req_ssl_endpoint))
           raise OpenShift::UserException.new("Invalid cartridge '#{cart.name}' conflicts with platform SSL_ENDPOINT setting.", 109, "cartridge")
         end
+      end
+
+      # Validate that we are not trying to create a non-scalable app with carts that need to be scalable
+      if cart.scaling_required? && !self.scalable
+        raise OpenShift::UserException.new("#{cart.name} must be embedded in a scalable app.", 109)
       end
 
       # Validate that the cartridges support scalable if necessary
@@ -1745,6 +1756,13 @@ class Application
     end
   end
 
+  # Determines if the application's cartridges are colocatable
+  # == Returns:
+  # True if the app is hosted on a single platform, false otherwise
+  def is_collocatable?()
+    self.component_instances.map {|comp| comp.get_cartridge.platform }.uniq.size == 1
+  end
+
   def update_requirements(cartridges, replacements, overrides, init_git_url=nil, user_env_vars=nil)
     current = group_instances_with_overrides
     connections, updated = elaborate(cartridges, overrides)
@@ -1808,7 +1826,10 @@ class Application
         app_dns_gear_id = gear_id.to_s
       end
 
-      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id,
+      cartridge = CartridgeCache.find_cartridge(comp_specs.first.cartridge_name, self)
+      platform = cartridge ? cartridge.platform : nil
+
+      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, platform: platform, gear_id: gear_id,
                                     gear_size: gear_size, addtl_fs_gb: additional_filesystem_gb,
                                     comp_specs: gear_comp_specs[gear_id], host_singletons: host_singletons,
                                     app_dns: app_dns, pre_save: (not self.persisted?))
@@ -2033,7 +2054,11 @@ class Application
         end
 
         git_url = nil
-        git_url = init_git_url if gear_id == deploy_gear_id && cartridge.is_deployable?
+
+        if gear_id == deploy_gear_id and needs_git_url?(cartridge)
+          git_url = init_git_url
+        end
+
         add_component_op = AddCompOp.new(gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, prereq: new_component_op_id + [prereq_id])
         ops << add_component_op
         component_ops[comp_spec][:adds] << add_component_op
@@ -2957,5 +2982,12 @@ class Application
         h[ComponentSpec.for_model(f.components.first, f)] = ComponentSpec.for_model(t.components.first, t)
         h
       end
+    end
+
+    def needs_git_url?(cartridge)
+      # we need the template git url for the component if the cartridge is deployable
+      # or if we have a standalone web cartridge
+      is_standalone_web_proxy = (cartridge.is_web_proxy? and !self.is_collocatable?)
+      (cartridge.is_deployable? or is_standalone_web_proxy)
     end
 end

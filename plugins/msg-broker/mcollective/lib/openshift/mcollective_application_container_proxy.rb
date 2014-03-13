@@ -91,14 +91,14 @@ module OpenShift
       #
       # NOTES:
       # * Uses rpc_find_one() method
-      def self.find_one_impl(node_profile=nil)
-        current_server = rpc_find_one(node_profile)
+      def self.find_one_impl(node_profile=nil, platform='linux')
+        current_server = rpc_find_one(node_profile, platform)
 
         if current_server
           Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
           return current_server
         else
-          server_infos = find_all_available_impl(:node_profile => node_profile)
+          server_infos = find_all_available_impl({:node_profile => node_profile, :platform => platform})
           Rails.logger.debug "DEBUG: find_one_impl: Returning #{server_infos[0][0]} from a list of #{server_infos.length} servers"
           # we are returning the server for the first server_info
           return server_infos[0][0]
@@ -1724,7 +1724,7 @@ module OpenShift
 
           proxy_args = []
           options[:proxy_gears].each do |gear|
-            proxy_args << "#{gear.uuid},#{gear.name},#{gear.application.domain_namespace},#{gear.public_hostname}"
+            proxy_args << "#{gear.uuid},#{gear.name},#{gear.application.domain_namespace},#{gear.public_hostname},#{gear.group_instance.platform}"
           end
 
           args['--proxy-gears'] = proxy_args.join(' ')
@@ -1735,7 +1735,7 @@ module OpenShift
             first_port_interface = gear.port_interfaces.select { |pi| pi.type.include? "web_framework" }.first
 
             # uuid, name, namespace, proxy_hostname, proxy port
-            web_args << "#{gear.uuid},#{gear.name},#{gear.application.domain_namespace},#{gear.public_hostname},#{first_port_interface.external_port}"
+            web_args << "#{gear.uuid},#{gear.name},#{gear.application.domain_namespace},#{gear.public_hostname},#{first_port_interface.external_port},#{gear.group_instance.platform}"
           end
 
           args['--web-gears'] = web_args.join(' ')
@@ -2915,6 +2915,7 @@ module OpenShift
         gear_exists_in_district = false
 
         node_profile = opts[:node_profile]
+        platform = opts[:platform]
         district_uuid = opts[:disrict_uuid]
         least_preferred_servers = opts[:least_preferred_servers]
         restricted_servers = opts[:restricted_servers]
@@ -2953,7 +2954,10 @@ module OpenShift
         # the nodes within a district with a lot of space.
         additional_filters = [{:fact => "active_capacity",
                                :value => '100',
-                               :operator => "<"}]
+                               :operator => "<"},
+                              {:fact => "kernel",
+                               :value => "(?i:#{platform})",
+                               :operator => "=~"}]
 
         if require_specific_district || require_district
           additional_filters.push({:fact => "district_active",
@@ -3131,9 +3135,13 @@ module OpenShift
       # * Query facters from every node and filter on server side
       # * uses MCollective::RPC::Client
       #
-      def self.rpc_find_one(node_profile=nil)
+      def self.rpc_find_one(node_profile=nil, platform='linux')
         current_server = nil
         additional_filters = []
+
+        additional_filters.push({:fact => "kernel",
+                                 :value => "(?i:#{platform})",
+                                 :operator => "=~"})
 
         if Rails.configuration.msg_broker[:node_profile_enabled]
           if node_profile

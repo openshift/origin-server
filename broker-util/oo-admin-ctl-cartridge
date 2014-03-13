@@ -8,7 +8,22 @@ PATH = "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/env
 class Command
   def import_node(options)
     env!(options)
-    carts = OpenShift::ApplicationContainerProxy.send(options.node ? :instance : :find_one, *[options.node].compact).get_available_cartridges
+
+    carts = []
+
+    if options.node
+      carts = OpenShift::ApplicationContainerProxy.instance(options.node)
+    else
+      node_platforms = Rails.configuration.openshift[:node_platforms]
+
+      node_platforms.each do |platform|
+        node_carts = OpenShift::ApplicationContainerProxy.find_one(nil, platform).get_available_cartridges
+        node_carts.each do |cart|
+          carts << cart unless carts.any? {|existing_cart| existing_cart.name == cart.name }
+        end
+      end
+    end
+
     types = CartridgeType.update_from(carts, nil, options.force)
     update_types(options, types)
   rescue OpenShift::NodeException

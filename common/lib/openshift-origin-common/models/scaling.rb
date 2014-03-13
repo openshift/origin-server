@@ -1,12 +1,13 @@
 module OpenShift
   class Scaling < OpenShift::Model
-    attr_accessor :min, :max, :min_managed, :multiplier
+    attr_accessor :min, :max, :required, :min_managed, :multiplier
 
     def initialize
       self.min = 1
       self.max = -1
       self.min_managed = 1
       self.multiplier = 1
+      self.required = false
     end
 
 # def multiplier
@@ -25,6 +26,7 @@ module OpenShift
       self.max = spec_hash["Max"].to_i || -1
       self.min_managed = spec_hash["Min-Managed"].to_i || 1
       self.multiplier = spec_hash["Multiplier"].nil? ? 1 : spec_hash["Multiplier"].to_i
+      self.required = spec_hash["Required"]
       self
     end
 
@@ -33,7 +35,8 @@ module OpenShift
         "Min" => self.min,
         "Max" => self.max,
         "Min-Managed" => self.min_managed,
-        "Multiplier" => self.multiplier
+        "Multiplier" => self.multiplier,
+        "Required" => self.required,
       }
     end
   end

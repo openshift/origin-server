@@ -33,6 +33,11 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     @container.stubs(:application_uuid).returns(@application_uuid)
     @container.stubs(:name).returns(@container_name)
     @container.stubs(:namespace).returns(@namespace)
+
+    @cartridge_model = mock('OpenShift::Runtime::V2CartridgeModel')
+    @cartridge_model.stubs(:standalone_web_proxy?).returns(false)
+    @container.stubs(:cartridge_model).returns(@cartridge_model)
+
     OpenShift::Runtime::ApplicationContainer.stubs(:from_uuid).with(@container_uuid).returns(@container)
 
     @cloud_domain = "example.com"

@@ -17,6 +17,8 @@ class GroupInstance
   include Mongoid::Document
   embedded_in :application, class_name: Application.name
 
+  field :platform, type: String, default: "linux"
+
   field :gear_size, type: String
   field :addtl_fs_gb, type: Integer
 
@@ -30,9 +32,14 @@ class GroupInstance
   #   @Note used when this gear is hosting the web_proxy component
   def initialize(attrs = nil, options = nil)
     custom_id = attrs[:custom_id]
+    custom_platform = attrs[:custom_platform]
+
     attrs.delete(:custom_id)
+    attrs.delete(:custom_platform)
+
     super(attrs, options)
     self._id = custom_id unless custom_id.nil?
+    self.platform = custom_platform unless custom_platform.nil?
   end
 
   def gears
