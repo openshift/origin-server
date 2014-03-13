@@ -13,7 +13,7 @@ class RestTeam < OpenShift::Model
             OptionalParam.new("login", "string", "The user's login attribute")]),
           "LIST_MEMBERS" => Link.new("list members", "GET", URI::join(url, "team/#{id}/members")),
           "UPDATE_MEMBERS" => Link.new("Add or remove one or more members to/from this team.", "PATCH", URI::join(url, "team/#{id}/members"),
-            [Param.new("role", "string", "The role the user should have on the team")],
+            [Param.new("role", "string", "The role the user should have on the team", ["view", "none"])],
             [OptionalParam.new("id", "string", "Unique identifier of the user"),
             OptionalParam.new("login", "string", "The user's login attribute")]
           ),
