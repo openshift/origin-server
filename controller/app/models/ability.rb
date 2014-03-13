@@ -118,7 +118,7 @@ module Ability
       end
     elsif CloudUser <= type
       case permission
-      when :create_key, :update_key, :destroy_key, :create_domain then resource === actor_or_id
+      when :create_key, :update_key, :destroy_key, :create_domain, :create_team then resource === actor_or_id
       when :create_authorization, :update_authorization, :destroy_authorization then resource === actor_or_id
       when :change_plan then resource === actor_or_id
       when :destroy then resource.parent_user_id.present? && resource === actor_or_id
