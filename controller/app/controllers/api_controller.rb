@@ -51,6 +51,9 @@ class ApiController < BaseController
 
     links.merge!({
       "LIST_APPLICATIONS" => Link.new("List application", "GET", URI::join(get_url, "applications")),
+      "LIST_APPLICATIONS_BY_OWNER" => Link.new("List applications by owner", "GET", URI::join(get_url, "applications"), [
+        Param.new("owner", "string", "Return only the applications owned by the specified user id or identity.  Use @self to refer to the current user.", ['@self', '*'], [])
+      ]),
       "SHOW_APPLICATION" => Link.new("Retrieve application by id", "GET", URI::join(get_url, "application/:id"), [
         Param.new(":id", "string", "Unique identifier of the application", nil, [])
       ])
