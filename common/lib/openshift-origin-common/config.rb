@@ -38,8 +38,7 @@ module OpenShift
           end
           @conf = @@conf_parsed[conf_path]
         rescue Errno::EACCES => e
-          puts "Could not open config file #{conf_path}: #{e.message}"
-          exit 253
+          raise "Could not open config file #{conf_path}: #{e.message}"
         end
       else
         @conf = ParseConfig.new
