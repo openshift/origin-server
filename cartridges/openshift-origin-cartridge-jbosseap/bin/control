@@ -275,7 +275,7 @@ function build() {
       if marker_present "skip_maven_build"; then
         echo "skip_maven_build marker found; build will be skipped"
       fi
-      
+
   fi
 
 }
