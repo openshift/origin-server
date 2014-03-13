@@ -767,6 +767,9 @@ class OODiag
         Please fix this issue with the following commands:
           # chown apache:root #{logfile}
           # service openshift-broker restart
+        Alternatively, consider the following logging settings in MCollective client.cfg:
+          loglevel = warn        # only log notable problems
+          logger_type = console  # stdout or broker httpd error_log
       FIXLOG
     end
     #
