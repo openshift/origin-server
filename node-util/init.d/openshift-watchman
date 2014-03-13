@@ -33,7 +33,7 @@ Options = {
 }
 
 def daemon_running?
-  %x[/usr/bin/pgrep -f '^watchman$']
+  %x[/usr/bin/pgrep -f '^watchman']
   $?.exitstatus == 0 ? true : false
 end
 
