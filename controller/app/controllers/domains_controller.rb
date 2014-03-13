@@ -15,7 +15,7 @@ class DomainsController < BaseController
   def index
     domains = 
       case params[:owner]
-      when "@self" then Domain.where(owner: current_user)
+      when "@self" then Domain.accessible(current_user).where(owner: current_user)
       when nil     then Domain.accessible(current_user)
       else return render_error(:bad_request, "Only @self is supported for the 'owner' argument.") 
       end

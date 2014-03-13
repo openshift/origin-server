@@ -20,7 +20,7 @@ class ApplicationsController < BaseController
     by = domain_id.present? ? {domain_namespace: Domain.check_name!(domain_id).downcase} : {}
     apps = 
       case params[:owner]
-      when "@self" then Application.includes(:domain).where(owner: current_user)
+      when "@self" then Application.includes(:domain).accessible(current_user).where(owner: current_user)
       when nil     then Application.includes(:domain).accessible(current_user)
       else return render_error(:bad_request, "Only @self is supported for the 'owner' argument.") 
       end.where(by).sort_by{ |a| a.name }.map { |app| get_rest_application(app, include_cartridges) }
