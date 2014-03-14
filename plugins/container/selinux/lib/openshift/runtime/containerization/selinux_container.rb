@@ -111,14 +111,18 @@ module OpenShift
           freeze_fs_limits
           freeze_cgroups
           disable_traffic_control
-          last_access_dir = @config.get("LAST_ACCESS_DIR")
+          last_access_dir = @config.get('LAST_ACCESS_DIR')
           ::OpenShift::Runtime::Utils::oo_spawn("rm #{last_access_dir}/#{@container.uuid}")
           @container.kill_procs
 
           purge_sysvipc
           delete_all_public_endpoints
 
-          ::OpenShift::Runtime::FrontendHttpServer.new(@container).destroy
+          begin
+            ::OpenShift::Runtime::FrontendHttpServer.new(@container).destroy
+          rescue ::OpenShift::Runtime::MissingCartridgeIdentError
+            # reported upstream...
+          end
 
           dirs = list_home_dir(@container.container_dir)
           begin
@@ -140,7 +144,7 @@ module OpenShift
               raise ::OpenShift::Runtime::UserDeletionException.new(msg)
             end
           rescue ArgumentError => e
-            logger.debug("user does not exist. ignore.")
+            logger.debug('user does not exist. ignore.')
           end
 
           # 1. Don't believe everything you read on the userdel man page...
