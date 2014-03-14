@@ -365,7 +365,7 @@ def assert_application_accessible(app, negate=false)
 end
 
 Then /^the cartridge (.+) status should be (.+)$/ do |cartridge, status|
-  result = rhc_get_app_status(@app, cartridge)
+  result = rhc_get_app_status(@app, cartridge, false)
   result.should =~ /#{status}/
 end
 
