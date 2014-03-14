@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.22.0
+Version: 1.22.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- Merge pull request #4897 from fabianofranz/dev/155b
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 42 (admiller@redhat.com)
+- Web console: improves error details on non-recoverable errors (e.g. http 422,
+  etc) (contact@fabianofranz.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
 - Merge pull request #4891 from ShalomPisteuo/appLoginCSS
   (dmcphers+openshiftbot@redhat.com)
