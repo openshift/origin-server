@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -69,6 +69,14 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Make nodejs watch just a single file by default instead of REPO_DIR
+  (mfojtik@redhat.com)
+- Removing f19 logic (dmcphers@redhat.com)
+- Bug 1073413 - Fix versions in nodejs upgrade script (mfojtik@redhat.com)
+- Updating cartridge versions (jhadvig@redhat.com)
+- bump_minor_versions for sprint 42 (admiller@redhat.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
 - fix bash regexp in upgrade scripts (vvitek@redhat.com)
 - Fixing typos (dmcphers@redhat.com)
