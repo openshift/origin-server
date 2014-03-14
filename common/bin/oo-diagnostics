@@ -1232,6 +1232,42 @@ class OODiag
     end
   end
 
+  def test_apache_can_read_conf_files
+    # This is not intended to have perfect accuracy. It is intended to catch the common
+    # problem where root umask creates conf files unreadable by apache during deployment.
+    query = '-type f ! \( -user apache -o \( -group apache -perm -g=r \) -o -perm -o=r \)'
+    # Find files not owned by apache, not readable by apache group, and not world-readable
+    # Note: we will leave selinux labels for a different test
+    unreadable = []
+    broker_unreadable = node_unreadable = []
+    if @is_broker
+      dirs = "/etc/openshift /etc/httpd/conf.d /var/www/openshift/{broker,console}/httpd/"
+      names = %w[*.conf *.pem htpasswd quickstarts.json].map {|n| "-name '#{n}'" }
+      names = '\( ' +  names * ' -o ' + ' \)'
+      broker_ok = %w[express node resource_limits].map {|f| "/etc/openshift/#{f}.conf" }
+      broker_unreadable = %x[find #{dirs} #{names} #{query} 2> /dev/null].split(/\n/) - broker_ok
+      dirs = "/etc/httpd/conf.d"
+      broker_unreadable += %x[find #{dirs} #{query}].split(/\n/)
+    end
+    if @is_node
+      dirs = "/etc/httpd/conf.d /var/lib/openshift/.httpd.d "
+      node_unreadable = %x[find #{dirs} #{query}].split(/\n/)
+    end
+    unreadable = (broker_unreadable + node_unreadable).uniq
+    unless unreadable.empty?
+      do_warn <<-"UNREADABLE"
+        The following configuration files have names and locations indicating
+        that the apache user should be able to read them, but are not readable
+        by the apache user:
+          
+          #{unreadable * "\n          "}
+          
+        #{ broker_unreadable.empty? ? "" : "The broker and console services may malfunction without read access to these files." }
+        #{ node_unreadable.empty? ? "" : "The host httpd server may malfunction without read access to these files."}
+      UNREADABLE
+    end
+  end
+
 end #class OODiag
 
 
