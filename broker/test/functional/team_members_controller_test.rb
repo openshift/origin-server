@@ -203,6 +203,8 @@ class TeamMembersControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
     put :update, {"team_id" => @team.id, "id" => id, "role" => "bogus"}
     assert_response :unprocessable_entity
+    put :update, {"team_id" => @team.id, "id" => id, "role" => "admin"}
+    assert_response :unprocessable_entity
   end
 
   test "get member in all versions" do

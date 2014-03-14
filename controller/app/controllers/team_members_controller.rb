@@ -25,7 +25,7 @@ class TeamMembersController < MembersController
     if role.to_sym == :none
       membership.remove_members(member)
     else
-      membership.add_members(member, role)
+      membership.add_members(member.clone.clear, role)
     end
     membership.save
     render_success(:ok, "member", get_rest_member(member), "Updated member")
