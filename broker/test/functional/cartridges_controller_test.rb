@@ -111,7 +111,7 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'find cartridge by id' do
-    assert cart = CartridgeType.active.first
+    assert cart = CartridgeType.active.provides('php').first
     request_via_redirect(:get, "/broker/rest/cartridge/#{cart._id}", {}, @headers)
     assert_response :ok
     assert (data = JSON.parse(@response.body)["data"]).is_a?(Hash)
@@ -119,7 +119,7 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     assert data['activation_time'].present?
     assert_nil data['requires']
 
-    inactive = CartridgeType.create(CartridgeType.active.first.attributes)
+    inactive = CartridgeType.create(cart.attributes)
     assert !inactive.activated?
     request_via_redirect(:get, "/broker/rest/cartridge/#{inactive._id}", {}, @headers)
     assert_response :ok
