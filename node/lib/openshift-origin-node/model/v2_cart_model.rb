@@ -34,6 +34,10 @@ require 'openshift-origin-node/utils/sanitize'
 
 module OpenShift
   module Runtime
+
+    class MissingCartridgeIdentError < RuntimeError
+    end
+
     class FileLockError < Exception
       attr_reader :filename
 
@@ -171,7 +175,7 @@ module OpenShift
           ident_path     = Dir.glob(PathUtils.join(cartridge_path, 'env', "OPENSHIFT_*_IDENT")).first
 
           raise "Cartridge manifest not found: #{manifest_path} missing" unless File.exists?(manifest_path)
-          raise "Cartridge Ident not found in #{cartridge_path}" unless ident_path
+          raise MissingCartridgeIdentError, "Cartridge Ident not found in #{cartridge_path}" unless ident_path
 
           _, _, version, _ = Runtime::Manifest.parse_ident(IO.read(ident_path))
 
