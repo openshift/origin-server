@@ -796,6 +796,7 @@ Success
 After the command successfully finishes you will see a file named firstphp.tar.gz in the directory where you executed the command. The default filename for the snapshot is $Application_Name.tar.gz. You can override this path and filename with the -f or --filepath option.
 
 NOTE: This command will stop your application for the duration of the backup process.
+NOTE: The application original state will be preserved, so if your application was stopped before doing snapshot, it will remain stopped after the snapshot is completed.
 
 === Delete an Application
 You can delete an OpenShift Origin application by executing the _rhc app delete_ command. This command deletes your application and all of its data on the OpenShift Origin server but leaves your local directory intact. This operation can not be undone so use it with caution.
@@ -831,6 +832,7 @@ $ rhc snapshot restore -a firstphp -f firstphp.tar.gz
 ----
 
 NOTE: This command will stop your application for the duration of the restore process.
+NOTE: This command will preserve the state of your application as it was before restore. If your application was stopped, before this command it will remain stopped after restore
 
 *Verify that the application has been restored* +
 Open up a web browser and point to the following URL:
@@ -839,7 +841,7 @@ Open up a web browser and point to the following URL:
 http://firstphp-<yourdomain>.example.com
 ----
 
-If the restore process worked correctly, you should see the restored application running just as it was before the link:#delete-an-application[delete] operation.
+If the restore process worked correctly, you should see the restored application just as it was before the link:#delete-an-application[delete] operation.
 
 === View a Thread Dump
 This can be performed on Ruby and JBoss EAP / JBoss EWS application types.
