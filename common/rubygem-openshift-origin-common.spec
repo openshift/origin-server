@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -119,6 +119,13 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- Bug 916758 - Give better message on config failure (dmcphers@redhat.com)
+- Bug 1076032 - Attempting to unlock closed file descriptor (jhonce@redhat.com)
+- Add support for multiple platforms in OpenShift. Changes span both the broker
+  and the node. (vlad.iovanov@uhurusoftware.com)
+- bump_minor_versions for sprint 42 (admiller@redhat.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Enable docker builds of openshift-origin-broker (jforrest@redhat.com)
 
