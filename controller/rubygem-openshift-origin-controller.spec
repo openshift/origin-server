@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.22.0
+Version: 1.22.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,41 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- Merge pull request #4944 from UhuruSoftware/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1007830 - Better error handling around quickstarts.json loading
+  (dmcphers@redhat.com)
+- Fix "create scalable app with custom web_proxy" test expectation. Fix getting
+  cart from CartridgeCache in the context of an application.
+  (vlad.iovanov@uhurusoftware.com)
+- Add support for multiple platforms in OpenShift. Changes span both the broker
+  and the node. (vlad.iovanov@uhurusoftware.com)
+- Speeding up tests (dmcphers@redhat.com)
+- Speeding up tests (dmcphers@redhat.com)
+- Blocking rollback once the gear/cart removal is underway
+  (abhgupta@redhat.com)
+- Create less apps in tests (dmcphers@redhat.com)
+- Merge pull request #4840 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Added max_teams capability (lnader@redhat.com)
+- Deleting applications on app creation rollbacks (abhgupta@redhat.com)
+- Checking for empty string in ObjectId (abhgupta@redhat.com)
+- Multiple fixes for stability  - Adding option to prevent rollback in case of
+  successful execution of a destructive operation that is not reversible
+  (deleting gear or deconfiguring cartridge on the node)  - Checking for the
+  existence of the application after obtaining the lock  - Reloading the
+  application after acquiring the lock to reflect any changes made by the
+  previous operation holding the lock  - Using regular run_jobs code in clear-
+  pending-ops script  - Handling DocumentNotFound exception in clear-pending-
+  ops script if the application is deleted (abhgupta@redhat.com)
+- Rebalancing tests (dmcphers@redhat.com)
+- Adding additional gear extended queue (dmcphers@redhat.com)
+- bump_minor_versions for sprint 42 (admiller@redhat.com)
+- Merge pull request #4896 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Cleaning up cuc tags (dmcphers@redhat.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
 - Merge pull request #4895 from pmorie/bugs/1072663
   (dmcphers+openshiftbot@redhat.com)
