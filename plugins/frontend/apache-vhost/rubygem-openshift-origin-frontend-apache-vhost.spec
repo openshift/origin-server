@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.5.0
+Version: 0.5.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -107,6 +107,13 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshif
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 0.5.1-1
+- Merge pull request #4850 from vbatts/408-3-rewrite_to_proxypass
+  (dmcphers+openshiftbot@redhat.com)
+- vhost-plugin: remove keepalive=On for now (vbatts@redhat.com)
+- bump_minor_versions for sprint 42 (admiller@redhat.com)
+- vhost-plugin: switch from rewrite back to proxypass (vbatts@redhat.com)
+
 * Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 0.4.2-1
 - Merge pull request #4797 from bparees/jenkins_rproxy
   (dmcphers+openshiftbot@redhat.com)
