@@ -35,7 +35,7 @@ module OpenShift
           @dns = options[:dns]
           @proxy_hostname = options[:proxy_hostname]
           @proxy_port = options[:proxy_port]
-          @platform = options[:platform]
+          @platform = options[:platform] || 'linux'
         end
 
         def as_json(options={})
@@ -87,7 +87,7 @@ module OpenShift
 
       def add(options)
         # make sure all required fields are passed in
-        %w(type uuid namespace dns proxy_hostname proxy_port platform).map(&:to_sym).each { |s| raise "#{s} is required" if options[s].nil?}
+        %w(type uuid namespace dns proxy_hostname proxy_port).map(&:to_sym).each { |s| raise "#{s} is required" if options[s].nil?}
 
         # add entry to registry by type
         type = options[:type].to_sym
