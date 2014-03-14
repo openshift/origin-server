@@ -158,6 +158,10 @@ class OODiag
     end
   end
 
+  def executable?(cmd) #true if command exists and can exec
+    system "command -v #{cmd} >& /dev/null"
+  end
+
 ######## SETUP #############
 
   def load_rpm_list
@@ -192,8 +196,7 @@ class OODiag
     system "scl enable ruby193 echo >& /dev/null"
     @scl_prefix = $?.success? ? "ruby193-" : "" 
     # detect whether we use service or systemctl
-    system "command -v systemctl >& /dev/null"
-    @use_systemctl = $?.success?
+    @use_systemctl = executable? "systemctl"
 
     # looking for RHEL or Fedora version via /etc/redhat-release
     # If something else... I dunno
@@ -238,141 +241,22 @@ class OODiag
     end
   end
 
-  ENTERPRISE_RPMS = %w[ activemq activemq-client facter firebird
-    firebird-classic firebird-debuginfo firebird-devel firebird-doc
-    firebird-filesystem firebird-libfbclient firebird-libfbembed
-    firebird-superserver freetds freetds-debuginfo freetds-devel freetds-doc geos
-    geos-debuginfo geos-devel geos-python geos-ruby haproxy haproxy-debuginfo
-    jboss-eap6-index jboss-eap6-modules jenkins jenkins-plugin-openshift js
-    js-debuginfo js-devel libev libev-debuginfo libev-devel libev-source
-    libmcrypt libmcrypt-debuginfo libmcrypt-devel libmongodb ruby193-mcollective
-    ruby193-mcollective-client ruby193-mcollective-common mod_bw mod_bw-debuginfo mod_passenger
-    mongodb mongodb-debuginfo mongodb-devel mongodb-server openshift-console
-    openshift-origin-console openshift-origin-broker openshift-origin-broker-util
-    openshift-origin-cartridge-cron
-    openshift-origin-cartridge-diy openshift-origin-cartridge-haproxy
-    openshift-origin-cartridge-jbosseap
-    openshift-origin-cartridge-jbossews
-    openshift-origin-cartridge-jenkins
-    openshift-origin-cartridge-jenkins-client
-    openshift-origin-cartridge-mysql openshift-origin-cartridge-perl
-    openshift-origin-cartridge-php openshift-origin-cartridge-postgresql
-    openshift-origin-cartridge-python openshift-origin-cartridge-ruby
-    openshift-origin-msg-node-mcollective
-    openshift-origin-node-util openshift-origin-port-proxy pam_openshift
-    pam_openshift-debuginfo perl-Algorithm-C3 perl-App-cpanminus perl-Class-C3
-    perl-Class-C3-XS perl-Class-C3-XS-debuginfo perl-Class-DBI perl-Class-DBI-Pg
-    perl-Class-Factory-Util perl-Class-MOP perl-Class-MOP-debuginfo
-    perl-Class-Method-Modifiers perl-DBIx-ContextualFetch perl-DBM-Deep
-    perl-Data-Types perl-Date-Simple perl-Date-Simple-debuginfo
-    perl-DateTime-Calendar-Mayan perl-DateTime-Format-Builder
-    perl-DateTime-Format-HTTP perl-DateTime-Format-IBeat
-    perl-DateTime-Format-MySQL perl-DateTime-Format-Pg
-    perl-DateTime-Format-Strptime perl-DateTime-debuginfo
-    perl-Declare-Constraints-Simple perl-Devel-GlobalDestruction
-    perl-Devel-GlobalDestruction-debuginfo perl-ExtUtils-AutoInstall perl-Ima-DBI
-    perl-Lingua-EN-Inflect perl-MRO-Compat perl-Module-Refresh perl-Moose
-    perl-Mouse perl-Mouse-debuginfo perl-Params-Coerce perl-Path-Class
-    perl-Pod-Eventual perl-SUPER perl-Scope-Guard perl-Sort-Versions
-    perl-Sub-Identify perl-Sub-Identify-debuginfo perl-Sub-Name
-    perl-Sub-Name-debuginfo perl-Test-EOL perl-Test-Fatal perl-Test-Moose
-    perl-Test-NoTabs perl-Test-Requires perl-Time-Piece-MySQL perl-Try-Tiny
-    perl-UNIVERSAL-moniker perl-UNIVERSAL-require perl-aliased php-extras
-    php-extras-debuginfo php-interbase php-mcrypt php-mssql php-pear-MDB2
-    php-pear-MDB2-Driver-pgsql php-php-gettext postgis postgis-debuginfo
-    postgis-docs postgis-jdbc postgis-utils postgresql-ip4r
-    postgresql-ip4r-debuginfo proj proj-debuginfo proj-devel proj-epsg proj-nad
-    proj-static python-virtualenv ragel ragel-debuginfo rhc ruby-RMagick
-    ruby-RMagick-debuginfo ruby-RMagick-doc ruby-hpricot ruby-json ruby-mysql
-    ruby-mysql-debuginfo ruby-nokogiri ruby-openshift-origin-auth-mongo
-    ruby-openshift-origin-common ruby-openshift-origin-controller
-    ruby-openshift-origin-dns-bind ruby-openshift-origin-msg-broker-mcollective
-    ruby-openshift-origin-node ruby-postgres ruby-postgres-debuginfo ruby-sqlite3
-    ruby-systemu ruby193-js ruby193-js-debuginfo ruby193-js-devel
-    ruby193-mod_passenger ruby193-ruby-mysql ruby193-ruby-mysql-debuginfo
-    ruby193-rubygem-addressable ruby193-rubygem-addressable-doc
-    ruby193-rubygem-bson ruby193-rubygem-bson_ext
-    ruby193-rubygem-bson_ext-debuginfo ruby193-rubygem-bson_ext-doc
-    ruby193-rubygem-chunky_png ruby193-rubygem-ci_reporter
-    ruby193-rubygem-compass ruby193-rubygem-compass-rails
-    ruby193-rubygem-compass-rails-doc ruby193-rubygem-crack
-    ruby193-rubygem-crack-doc ruby193-rubygem-daemon_controller
-    ruby193-rubygem-daemon_controller-doc ruby193-rubygem-fastthread
-    ruby193-rubygem-fastthread-debuginfo ruby193-rubygem-file-tail
-    ruby193-rubygem-file-tail-doc ruby193-rubygem-formtastic
-    ruby193-rubygem-formtastic-doc ruby193-rubygem-fssm ruby193-rubygem-fssm-doc
-    ruby193-rubygem-haml ruby193-rubygem-mongo ruby193-rubygem-mongo-doc
-    ruby193-rubygem-open4 ruby193-rubygem-open4-doc ruby193-rubygem-passenger
-    ruby193-rubygem-passenger-debuginfo ruby193-rubygem-passenger-devel
-    ruby193-rubygem-passenger-doc ruby193-rubygem-passenger-native
-    ruby193-rubygem-passenger-native-libs ruby193-rubygem-pg
-    ruby193-rubygem-pg-debuginfo ruby193-rubygem-pg-doc ruby193-rubygem-rdiscount
-    ruby193-rubygem-rdiscount-debuginfo ruby193-rubygem-rdiscount-doc
-    ruby193-rubygem-ruby2ruby ruby193-rubygem-ruby2ruby-doc
-    ruby193-rubygem-ruby_parser ruby193-rubygem-ruby_parser-doc
-    ruby193-rubygem-sexp_processor ruby193-rubygem-sexp_processor-doc
-    ruby193-rubygem-shoulda ruby193-rubygem-shoulda-doc ruby193-rubygem-simplecov
-    ruby193-rubygem-simplecov-doc ruby193-rubygem-simplecov-html
-    ruby193-rubygem-simplecov-html-doc ruby193-rubygem-spruz
-    ruby193-rubygem-spruz-doc ruby193-rubygem-test-unit
-    ruby193-rubygem-test-unit-doc ruby193-rubygem-webmock
-    ruby193-rubygem-webmock-doc ruby193-rubygem-xml-simple rubygem-ParseTree
-    rubygem-ParseTree-doc rubygem-RedCloth rubygem-RedCloth-debuginfo
-    rubygem-RubyInline rubygem-RubyInline-doc rubygem-ZenTest rubygem-ZenTest-doc
-    rubygem-abstract rubygem-abstract-doc rubygem-actionmailer rubygem-actionpack
-    rubygem-activemodel rubygem-activemodel-doc rubygem-activerecord
-    rubygem-activeresource rubygem-activesupport rubygem-addressable
-    rubygem-addressable-doc rubygem-archive-tar-minitar
-    rubygem-archive-tar-minitar-doc rubygem-arel rubygem-arel-doc rubygem-bacon
-    rubygem-bson rubygem-bson_ext rubygem-bson_ext-debuginfo rubygem-bson_ext-doc
-    rubygem-builder rubygem-bundler rubygem-bundler-doc rubygem-columnize
-    rubygem-commander rubygem-commander-doc rubygem-crack rubygem-crack-doc
-    rubygem-cucumber rubygem-daemon_controller rubygem-daemon_controller-doc
-    rubygem-daemons rubygem-diff-lcs rubygem-dnsruby rubygem-dnsruby-doc
-    rubygem-erubis rubygem-erubis-doc rubygem-fastthread rubygem-file-tail
-    rubygem-file-tail-doc rubygem-gherkin rubygem-gherkin-debuginfo
-    rubygem-gherkin-doc rubygem-highline rubygem-hoe rubygem-hoe-doc
-    rubygem-hpricot rubygem-hpricot-debuginfo rubygem-hpricot-doc rubygem-i18n
-    rubygem-i18n-doc rubygem-json rubygem-json-debuginfo rubygem-json-doc
-    rubygem-json_pure rubygem-json_pure-doc rubygem-mail rubygem-mail-doc
-    rubygem-mime-types rubygem-mime-types-doc rubygem-minitest
-    rubygem-minitest-doc rubygem-mocha rubygem-mocha-doc rubygem-mongo
-    rubygem-mongo-doc rubygem-net-ssh rubygem-net-ssh-doc rubygem-nokogiri
-    rubygem-nokogiri-debuginfo rubygem-nokogiri-doc rubygem-open4
-    rubygem-open4-doc rubygem-openshift-origin-auth-mongo
-    rubygem-openshift-origin-auth-remote-user rubygem-openshift-origin-common
-    rubygem-openshift-origin-console rubygem-openshift-origin-console-doc
-    rubygem-openshift-origin-controller rubygem-openshift-origin-dns-bind
-    rubygem-openshift-origin-msg-broker-mcollective rubygem-openshift-origin-node
-    rubygem-parseconfig rubygem-passenger rubygem-passenger-debuginfo
-    rubygem-passenger-devel rubygem-passenger-doc rubygem-passenger-native
-    rubygem-passenger-native-libs rubygem-polyglot rubygem-polyglot-doc
-    rubygem-rack rubygem-rack-mount rubygem-rack-mount-doc rubygem-rack-test
-    rubygem-rails rubygem-railties rubygem-railties-doc rubygem-rake-compiler
-    rubygem-rake-compiler-doc rubygem-rcov rubygem-rcov-debuginfo
-    rubygem-rcov-doc rubygem-rdoc rubygem-rdoc-doc rubygem-regin
-    rubygem-regin-doc rubygem-rest-client rubygem-rspec rubygem-rspec-core
-    rubygem-rspec-core-doc rubygem-ruby2ruby rubygem-ruby2ruby-doc
-    rubygem-ruby_parser rubygem-ruby_parser-doc rubygem-rubyforge
-    rubygem-sexp_processor rubygem-sexp_processor-doc rubygem-shoulda
-    rubygem-shoulda-doc rubygem-sinatra rubygem-spruz rubygem-spruz-doc
-    rubygem-sqlite3 rubygem-sqlite3-debuginfo rubygem-sqlite3-doc
-    rubygem-state_machine rubygem-state_machine-doc rubygem-stomp
-    rubygem-stomp-doc rubygem-systemu rubygem-systemu-doc rubygem-term-ansicolor
-    rubygem-test-spec rubygem-test-unit rubygem-test-unit-doc rubygem-text-format
-    rubygem-thor rubygem-thor-doc rubygem-thread-dump
-    rubygem-thread-dump-debuginfo rubygem-treetop rubygem-trollop rubygem-tzinfo
-    rubygem-tzinfo-doc rubygem-webmock rubygem-webmock-doc rubygem-xml-simple
-    rubygems source-highlight source-highlight-debuginfo source-highlight-devel
-    unittest
-  ]
-
 ######## TESTS #############
   #
   # Methods beginning with prereq_ or test_ will be run automatically.
   # prereq_ methods run before test_ methods in order to enable aborting testing
   # if there are serious problems.
 
+  def have_host_command
+    return true if executable? "host"
+    do_warn <<-WARN unless @tested_host_command
+       The "host" command is not available. This command is not required; however,
+       you may install it, by installing the "bind-utils" RPM, to enable further
+       diagnostics checking.
+    WARN
+    @tested_host_command = true
+    false
+  end
 
   def prereq_dns_server_available
     verbose "checking that the first server in /etc/resolv.conf responds"
@@ -393,6 +277,7 @@ class OODiag
     # don't much care if resolution is correct; what we want
     # is to avoid running a bunch more tests when the nameserver
     # is obviously broken.
+    skip_test unless have_host_command
     command = "host -W 1 example.com. #{server}"
     # IPSocket.getaddress goes through /etc/hosts;
     # "host" uses DNS which is what we want.
@@ -418,16 +303,6 @@ class OODiag
 
   def prereq_domain_resolves
     skip_test unless @is_broker or @is_node
-
-    `which host`
-    have_host_command = 0 == $?.to_i
-    unless have_host_command
-      do_warn <<-WARN
-         The host command is not available. This command is not required; however, you
-         may install it, by installing the bind-utils package, to enable further
-         diagnostics checking.
-      WARN
-    end
     skip_test unless have_host_command
 
     verbose "checking that we can resolve our application domain"
@@ -458,30 +333,6 @@ class OODiag
     end
   end
 
-  def test_enterprise_rpms
-    skip_test unless @project_is[:enterprise]
-    verbose "Checking that all OpenShift RPMs are actually from OpenShift Enterprise"
-    rogue_rpms = []
-    ENTERPRISE_RPMS.each do |rpm|
-      if @rpms.has_key?(rpm)
-        rel = @rpms[rpm][:release]
-        ver = @rpms[rpm][:version]
-        unless rel.include?('el6op') ||
-               # waive two errata RPMs that didn't get the right distro tag
-               rpm == 'openshift-console' && "#{ver}-#{rel}" == '0.0.5-3.el6' ||
-               rpm == 'openshift-origin-broker' && "#{ver}-#{rel}" == '1.0.2-1.el6'
-          rogue_rpms << "#{rpm} should be an OpenShift Enterprise RPM but installed version #{ver}-#{rel} does not have 'el6op' in it"
-        end
-      end
-    end
-    rogue_rpms.empty? or do_fail <<-ROGUES
-      The following problems were found with your RPMs: \n\t#{ rogue_rpms.join("\n\t") }
-      Please ensure that you have not enabled EPEL or other third-party repositories, and
-      do not have any of these RPMs pre-installed in your install image. These RPMs must come
-      from your OpenShift Enterprise subscription in order to be supported.
-    ROGUES
-  end
-
   def test_selinux_policy_rpm
     require_rpm_minimum_version 'selinux-policy', "3.7.19", "195.el6_4.4" if @os_is[:rhel6]
   end
@@ -495,7 +346,8 @@ class OODiag
       You need to at least enable SELinux, even if it is just in permissive mode.
       To enable SELinux, edit /etc/selinux/config and set SELINUX=permissive
       If this system was installed with SELinux disabled, you will probably have
-      broken contexts and be unable to run in enforcing mode.
+      broken contexts and be unable to run in enforcing mode. A reboot after enabling
+      SELinux should automatically relabel all contexts to fix this problem.
       DISABLED
     when 'permissive'
       do_warn <<-PERMISSIVE
@@ -507,14 +359,33 @@ class OODiag
     when 'enforcing'
       # would like to test that major contexts are correct
       broken = ""
-      #broken += `restorecon -Rnv /etc` # some of these are kind of spurious
       broken += `restorecon -Rnv /var/www/openshift/` if @is_broker
       broken += `restorecon -Rnv /usr/libexec/openshift/` if @is_node
+      broken += `restorecon -Rnv /etc/openshift`
+      #broken += `restorecon -Rnv /etc` # some of these are irrelevant / spurious
+      # so only complain about the ones with common bad contexts
+      broken += `restorecon -Rnv /etc | grep -e :user_home_t: -e :user_tmp_t: -e :admin_home_t:`
+
       do_warn <<-CONTEXT unless broken.empty?
       The following changes should be made to SELinux file contexts. Incorrect contexts
       are likely to cause problems with OpenShift operations. Please review and apply
-      the "restorecon" command to fix these as needed. \n#{broken}
+      the "restorecon <file>" command to fix each as indicated. \n#{broken}
       CONTEXT
+
+      if @rpms['audit']
+        avcs = `grep AVC /var/log/audit/audit.log | tail -5`
+        if avcs.empty?
+          verbose "No recent SELinux AVCs logged. However, SELinux violations are not always logged."
+        else
+          do_warn <<-AVCS
+            The following recent entries in /var/log/audit/audit.log likely indicate problems:
+            \n#{avcs}
+            Note that SELinux violations are not always logged in the audit log.
+          AVCS
+        end
+      else
+        verbose "Please install the 'audit' package to enable searching for recent AVCs."
+      end
     else
       do_fail "Received unexpected status from getenforce: #{enforce}"
     end
@@ -767,6 +638,9 @@ class OODiag
         Please fix this issue with the following commands:
           # chown apache:root #{logfile}
           # service openshift-broker restart
+        Alternatively, consider the following logging settings in MCollective client.cfg:
+          loglevel = warn        # only log notable problems
+          logger_type = console  # stdout or broker httpd error_log
       FIXLOG
     end
     #
@@ -886,6 +760,12 @@ class OODiag
     PLUGIN
   end
 
+  def vmware_tools_installed?
+    return true if %w[VMwareTools vmware-tools].any? {|p| @rpms[p]}
+    return true if %w[vmware-toolbox vmware-toolbox-cmd vmware-config-tools.pl].any? {|c| executable? c}
+    false
+  end
+
   def test_node_mco_log
     skip_test unless @is_node
     #
@@ -900,13 +780,22 @@ class OODiag
     #
     # Look for the mco timeout warning
     out = `grep 'WARN.*created at [0-9]* is [0-9]* seconds old, TTL is' #{tmpfile}`
-    do_fail <<-"TIMEOUT" unless out.empty?
-      Node mcollective log indicates time is too far out of sync with broker:
-      #{out.split("\n").first}
-      This typically causes the node to ignore broker queries and commands.
-      Please ensure that all node and broker hosts are synced to the same time source.
-      Restart mcollective if this script is reporting an old log message.
-    TIMEOUT
+    unless out.empty?
+      errors = vmware_tools_installed? ? <<-"VMWARE" : ""
+
+        vmware-tools is installed and may conflict with ntpd's time management.
+        Please ensure both are not managing the clock, disabling one if needed.
+        See http://kb.vmware.com/kb/1189 for disabling vmware-tools time sync.
+      VMWARE
+      errors = <<-"TIMEOUT"
+        Node mcollective log indicates time is too far out of sync with broker:
+        #{out.split("\n").first}
+        This typically causes the node to ignore broker queries and commands.\n#{errors}
+        Please ensure that all node and broker hosts are synced to the same time source.
+        Restart mcollective if this script is reporting an old log message.
+      TIMEOUT
+      do_fail errors
+    end
     #
     # clean up temp file
     system "rm #{tmpfile}"
@@ -1303,7 +1192,7 @@ class OODiag
   end
 
   def test_yum_configuration
-    if system "command -v oo-admin-yum-validator >& /dev/null"
+    if executable? "oo-admin-yum-validator"
       output = `oo-admin-yum-validator --report-all 2>&1`
       $?.success? or do_warn <<-YUM 
         oo-admin-yum-validator reported some possible problems
@@ -1322,6 +1211,60 @@ class OODiag
         configuration. Incorrect configuration could lead to
         failure to install the correct RPMs.
       YUM
+    end
+  end
+
+  def test_node_env_vars_match
+    skip_test unless @is_node
+    config = OpenShift::Config.new
+    %w[ BROKER_HOST CLOUD_DOMAIN ].each do |var|
+      contents = File.read("/etc/openshift/env/OPENSHIFT_#{var}").chomp
+      if contents != config.get(var)
+        do_warn <<-"MISMATCH"
+          /etc/openshift/env/OPENSHIFT_#{var} contains '#{contents}'
+          /etc/openshift/node.conf:#{var} specifies '#{config.get var}'
+          These should match; an incorrect value in either case could
+          cause problems. node.conf values are used in defining application
+          DNS records and proxy routing, while env var files are used for
+          contacting the broker for application management actions.
+        MISMATCH
+      end
+    end
+  end
+
+  def test_apache_can_read_conf_files
+    # This is not intended to have perfect accuracy. It is intended to catch the common
+    # problem where root umask creates conf files unreadable by apache during deployment.
+    query = '-type f ! \( -user apache -o \( -group apache -perm -g=r \) -o -perm -o=r \)'
+    # Find files not owned by apache, not readable by apache group, and not world-readable
+    # Note: we will leave selinux labels for a different test
+    unreadable = []
+    broker_unreadable = node_unreadable = []
+    if @is_broker
+      dirs = "/etc/openshift /etc/httpd/conf.d /var/www/openshift/{broker,console}/httpd/"
+      names = %w[*.conf *.pem htpasswd quickstarts.json].map {|n| "-name '#{n}'" }
+      names = '\( ' +  names * ' -o ' + ' \)'
+      broker_ok = %w[express node resource_limits].map {|f| "/etc/openshift/#{f}.conf" }
+      broker_unreadable = %x[find #{dirs} #{names} #{query} 2> /dev/null].split(/\n/) - broker_ok
+      dirs = "/etc/httpd/conf.d"
+      broker_unreadable += %x[find #{dirs} #{query}].split(/\n/)
+    end
+    if @is_node
+      dirs = "/etc/httpd/conf.d /var/lib/openshift/.httpd.d "
+      node_unreadable = %x[find #{dirs} #{query}].split(/\n/)
+    end
+    unreadable = (broker_unreadable + node_unreadable).uniq
+    unless unreadable.empty?
+      do_warn <<-"UNREADABLE"
+        The following configuration files have names and locations indicating
+        that the apache user should be able to read them, but are not readable
+        by the apache user:
+          
+          #{unreadable * "\n          "}
+          
+        #{ broker_unreadable.empty? ? "" : "The broker and console services may malfunction without read access to these files." }
+        #{ node_unreadable.empty? ? "" : "The host httpd server may malfunction without read access to these files."}
+      UNREADABLE
     end
   end
 
