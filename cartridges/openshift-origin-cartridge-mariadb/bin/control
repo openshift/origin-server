@@ -208,6 +208,7 @@ function post_restore {
     fi
 
     cleanup_dump
+    stop
   else
     echo "MariaDB restore attempted but no dump found!" 1>&2
     echo "$OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz does not exist" 1>&2

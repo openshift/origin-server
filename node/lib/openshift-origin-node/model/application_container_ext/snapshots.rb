@@ -49,6 +49,7 @@ module OpenShift
             $stderr.puts "depending on the amount of data present and the snapshot procedure used by your application's cartridges."
           end
 
+          pre_snapshot_state = @state.value
           stop_gear
 
           scalable_snapshot = !!@cartridge_model.web_proxy
@@ -81,7 +82,7 @@ module OpenShift
 
           write_snapshot_archive(exclusions)
 
-          @cartridge_model.each_cartridge do |cartridge|
+          result = @cartridge_model.each_cartridge do |cartridge|
             @cartridge_model.do_control('post-snapshot',
                                         cartridge,
                                         err: $stderr,
@@ -89,7 +90,13 @@ module OpenShift
                                         post_action_hooks_enabled: false)
           end
 
-          start_gear
+          # Revert to the pre-snapshot state of the currently snapshotted gear
+          #
+          if @state.value != pre_snapshot_state
+            (@state.value != State::STARTED) && start_gear
+          end
+
+          result
         end
 
         def handle_scalable_snapshot
@@ -133,6 +140,7 @@ module OpenShift
             gear_groups = get_gear_groups(gear_env)
           end
 
+          pre_restore_state = @state.value
           stop_gear
 
           @cartridge_model.each_cartridge do |cartridge|
@@ -193,6 +201,12 @@ module OpenShift
             if report_deployment
               report_deployments(gear_env)
             end
+          end
+
+          # Revert to the pre-restore state of the currently restored gear
+          #
+          if @state.value != pre_restore_state
+            (@state.value != State::STARTED) ? start_gear : stop_gear
           end
 
           result[:status] = RESULT_SUCCESS
