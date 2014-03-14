@@ -10,11 +10,21 @@ kvargs=$(echo "${@:4}" | tr -d "\n" )
 for arg in $kvargs; do
     ip=$(echo "$arg" | cut -f 2 -d '=' | tr -d "'")
     ip=$(echo "$ip" | sed "s/:/[/g")
-    if [ -z "$list" ]; then
-        list="$ip]"
-    else
-        list="$list,$ip]"
+    if [[ ! $ip  =~ $OPENSHIFT_GEAR_DNS ]]
+    then
+        if [ -z "$list" ]; then
+            list="$ip]"
+        else
+            list="$list,$ip]"
+        fi
     fi
 done
+
+# put this gear first in the list of hosts
+if [ -z "$list" ]; then
+    list="${OPENSHIFT_GEAR_DNS}[${OPENSHIFT_JBOSSEAP_CLUSTER_PROXY_PORT}]"
+else
+    list="${OPENSHIFT_GEAR_DNS}[${OPENSHIFT_JBOSSEAP_CLUSTER_PROXY_PORT}],$list"
+fi
 
 echo $list > $OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_CLUSTER
