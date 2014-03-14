@@ -11,7 +11,7 @@ class TeamMembersControllerTest < ActionController::TestCase
     @user = CloudUser.new(login: @login)
     @user.private_ssl_certificates = true
     @user.save
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     register_user(@login, @password)
 
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
@@ -22,12 +22,12 @@ class TeamMembersControllerTest < ActionController::TestCase
     member_name = "member1-#{@random}"
     @member1 = CloudUser.new(login: member_name)
     @member1.save
-    Lock.create_lock(@member1)
+    Lock.create_lock(@member1.id)
     
     member_name = "member2-#{@random}"
     @member2 = CloudUser.new(login: member_name)
     @member2.save
-    Lock.create_lock(@member2)
+    Lock.create_lock(@member2.id)
 
     stubber
 

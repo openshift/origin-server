@@ -175,7 +175,7 @@ class MembersController < BaseController
       raise "Must be implemented to return the resource under access control"
     end
 
-    def remove_member(id, type)
+    def remove_member(id, type="user")
       member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
       membership.remove_members(member)
       if save_membership(membership)

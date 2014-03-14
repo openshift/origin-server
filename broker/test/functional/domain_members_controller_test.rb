@@ -274,6 +274,21 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert_equal json['data'].length , 1
   end
   
+  test "leave" do
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 1
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "edit"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert id = json['data']['id']
+    assert_equal json['data']['role'] , "edit"
+    
+    delete :destroy, {"domain_id" => @domain.namespace, "id" => "self"}
+    assert_response :unprocessable_entity  
+  end
+  
   test "delete user by id and login" do
     
     post :create, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "view"}
