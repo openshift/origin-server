@@ -76,3 +76,31 @@ Feature: Cartridge Lifecycle Perl Verification Tests
     Scenarios: RHEL scenarios
       | cart_name |
       | perl-5.10 |
+
+
+  Scenario Outline: Application with cpanfile
+    Given the libra client tools
+    When 1 <cart_name> applications are created
+    Then the applications should be accessible
+    Given an existing <cart_name> application
+
+    When a cpanfile is added into repo directory
+    Then the applications should be accessible
+
+    Scenarios: RHEL scenarios
+      | cart_name |
+      | perl-5.10 |
+
+
+  Scenario Outline: Application with Makefile.PL
+    Given the libra client tools
+    When 1 <cart_name> applications are created
+    Then the applications should be accessible
+    Given an existing <cart_name> application
+
+    When a Makefile is added into repo directory
+    Then the applications should be accessible
+
+    Scenarios: RHEL scenarios
+      | cart_name |
+      | perl-5.10 |
