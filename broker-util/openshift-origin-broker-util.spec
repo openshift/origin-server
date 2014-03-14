@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.22.0
+Version: 1.22.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -102,6 +102,29 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- Merge pull request #4944 from UhuruSoftware/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix broker extended (dmcphers@redhat.com)
+- Add support for multiple platforms in OpenShift. Changes span both the broker
+  and the node. (vlad.iovanov@uhurusoftware.com)
+- Stop using direct addressing (dmcphers@redhat.com)
+- Bug 1073395: Fixing precedence issue in condition (abhgupta@redhat.com)
+- Merge pull request #4840 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Added max_teams capability (lnader@redhat.com)
+- Use correct map (dmcphers@redhat.com)
+- Multiple fixes for stability  - Adding option to prevent rollback in case of
+  successful execution of a destructive operation that is not reversible
+  (deleting gear or deconfiguring cartridge on the node)  - Checking for the
+  existence of the application after obtaining the lock  - Reloading the
+  application after acquiring the lock to reflect any changes made by the
+  previous operation holding the lock  - Using regular run_jobs code in clear-
+  pending-ops script  - Handling DocumentNotFound exception in clear-pending-
+  ops script if the application is deleted (abhgupta@redhat.com)
+- Adding inactive vs active failure tracking (dmcphers@redhat.com)
+- bump_minor_versions for sprint 42 (admiller@redhat.com)
+
 * Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
 - Merge pull request #4876 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
