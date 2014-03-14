@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.0
+Version: 1.22.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -281,6 +281,29 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- Merge pull request #4956 from bparees/binary_deploy
+  (dmcphers+openshiftbot@redhat.com)
+- undo unnecessary reording of permissions (bparees@redhat.com)
+- Merge pull request #4944 from UhuruSoftware/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1067008 - Guard gear delete from missing Cartridge IDENT
+  (jhonce@redhat.com)
+- Merge pull request #4943 from bparees/binary_deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Add support for multiple platforms in OpenShift. Changes span both the broker
+  and the node. (vlad.iovanov@uhurusoftware.com)
+- Bug 1075673 - Unable to perform git deploy after binary deployment
+  (bparees@redhat.com)
+- Bug 1075221 - Prevent mcollective and watchman restart after logrotate
+  (mfojtik@redhat.com)
+- Adding tests for cartridge sdk version comparisons (bleanhar@redhat.com)
+- Adding methods for version comparisons to the cartridge sdk
+  (bleanhar@redhat.com)
+- Use NodeLogger in MCollective agent code (ironcladlou@gmail.com)
+- Adding additional gear extended queue (dmcphers@redhat.com)
+- bump_minor_versions for sprint 42 (admiller@redhat.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.21.5-1
 - Merge pull request #4895 from pmorie/bugs/1072663
   (dmcphers+openshiftbot@redhat.com)
