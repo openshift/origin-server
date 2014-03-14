@@ -91,12 +91,17 @@ function build() {
     # PEAR
     local pear_file=.openshift/pear.txt
     if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]; then
-        pear_file=deplist.txt
-        client_message "The deplist.txt file was deprecated in favor of .openshift/pear.txt file."
-        client_message "Please, consider running \`git mv deplist.txt .openshift/pear.txt' command."
+        if [ ! -f ${OPENSHIFT_REPO_DIR}${pear_file} ]; then
+            pear_file=deplist.txt
+            client_message "The deplist.txt file was deprecated in favor of .openshift/pear.txt."
+            client_message "Please consider running \`git mv deplist.txt .openshift/pear.txt' command."
+        else
+            client_message "It appears you have a deplist.txt and .openshift/pear.txt file."
+            client_message "Please consider running \`git rm deplist.txt'."
+        fi
     fi
     if [ -f ${OPENSHIFT_REPO_DIR}${pear_file} ]; then
-        echo "Checking ${pear_file} for PEAR dependency.."
+        echo "Checking ${pear_file} for PEAR dependency..."
         for f in $(cat ${OPENSHIFT_REPO_DIR}${pear_file}); do
             echo -e "Checking PEAR: $f\n"
             if ! php_context "pear info '$f' &>/dev/null"; then
