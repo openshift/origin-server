@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -159,6 +159,23 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- Bug 1076008 - Fix pgrep regex usage (jhonce@redhat.com)
+- Merge pull request #4944 from UhuruSoftware/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1074627 - Improve error handling and make more robust (jhonce@redhat.com)
+- Add support for multiple platforms in OpenShift. Changes span both the broker
+  and the node. (vlad.iovanov@uhurusoftware.com)
+- Merge pull request #4930 from jwhonce/bug/1071105
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1071105 - On validation just print commit timestamp (jhonce@redhat.com)
+- Bug 1070719 - Prevent openshift-watchman from running twice
+  (jhonce@redhat.com)
+- Merge pull request #4900 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix missing variable error (rchopra@redhat.com)
+- bump_minor_versions for sprint 42 (admiller@redhat.com)
+
 * Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
 - re-fix oo-auto-idler. bz1072472. all gears will never be idled by the script.
   man page changes (rchopra@redhat.com)
