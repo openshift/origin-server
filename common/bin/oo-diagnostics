@@ -158,6 +158,10 @@ class OODiag
     end
   end
 
+  def executable?(cmd) #true if command exists and can exec
+    system "command -v #{cmd} >& /dev/null"
+  end
+
 ######## SETUP #############
 
   def load_rpm_list
@@ -192,8 +196,7 @@ class OODiag
     system "scl enable ruby193 echo >& /dev/null"
     @scl_prefix = $?.success? ? "ruby193-" : "" 
     # detect whether we use service or systemctl
-    system "command -v systemctl >& /dev/null"
-    @use_systemctl = $?.success?
+    @use_systemctl = executable? "systemctl"
 
     # looking for RHEL or Fedora version via /etc/redhat-release
     # If something else... I dunno
@@ -245,17 +248,14 @@ class OODiag
   # if there are serious problems.
 
   def have_host_command
-    if system "command -v host >& /dev/null"
-      true
-    else
-      do_warn <<-WARN unless @tested_host_command
-         The host command is not available. This command is not required; however, you
-         may install it, by installing the bind-utils package, to enable further
-         diagnostics checking.
-      WARN
-      @tested_host_command = true
-      false
-    end
+    return true if executable? "host"
+    do_warn <<-WARN unless @tested_host_command
+       The "host" command is not available. This command is not required; however,
+       you may install it, by installing the "bind-utils" RPM, to enable further
+       diagnostics checking.
+    WARN
+    @tested_host_command = true
+    false
   end
 
   def prereq_dns_server_available
@@ -762,8 +762,7 @@ class OODiag
 
   def vmware_tools_installed?
     return true if %w[VMwareTools vmware-tools].any? {|p| @rpms[p]}
-    return true if %w[vmware-toolbox vmware-toolbox-cmd vmware-config-tools.pl].
-      any? {|c| system "command -v #{c} >& /dev/null" }
+    return true if %w[vmware-toolbox vmware-toolbox-cmd vmware-config-tools.pl].any? {|c| executable? c}
     false
   end
 
@@ -1193,7 +1192,7 @@ class OODiag
   end
 
   def test_yum_configuration
-    if system "command -v oo-admin-yum-validator >& /dev/null"
+    if executable? "oo-admin-yum-validator"
       output = `oo-admin-yum-validator --report-all 2>&1`
       $?.success? or do_warn <<-YUM 
         oo-admin-yum-validator reported some possible problems
