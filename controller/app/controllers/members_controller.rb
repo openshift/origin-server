@@ -6,7 +6,8 @@ class MembersController < BaseController
   
   def show
     id = params[:id].presence
-    member = membership.members.find(id)
+    type = params[:type].presence
+    member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
     return render_error(:not_found, "Could not find member #{id}") if member.nil?
     render_success(:ok, "member", get_rest_member(member), "Showing member #{id}")
   end
@@ -43,6 +44,8 @@ class MembersController < BaseController
         else
           errors << Message.new(:error, "Each team being changed must have an id or a name.", 1, nil, i)
         end
+      else
+        errors << Message.new(:error, "Unrecognized type '#{type}'.  Expecting user or team.", 1, nil, i)
       end
     end
     if errors.present?
@@ -62,22 +65,26 @@ class MembersController < BaseController
 
     # Warn about partial inputs
     invalid_members = []
-    remove.delete_if do |id, pretty|
-      unless membership.member_ids.detect{ |m| m === id }
+    remove[:users].delete_if do |id, pretty|
+      unless membership.members.detect{ |m| m._id.to_s == id and (m.type == "user" or m.type == nil) and m.from.blank?}
+        invalid_members << pretty
+      end
+    end
+    remove[:teams].delete_if do |id, pretty|
+      unless membership.members.detect{ |m| m._id.to_s == id and m.type == "team"}
         invalid_members << pretty
       end
     end
     if invalid_members.present?
-      msg = "#{invalid_members.to_sentence} #{invalid_members.length > 1 ? "are not members" : "is not a member"} and cannot be removed."
+      msg = "#{invalid_members.to_sentence} #{invalid_members.length > 1 ? "are not direct members" : "is not a direct member"} and cannot be removed."
       return render_error(:unprocessable_entity, msg) if singular
       warnings << Message.new(:warning, msg, 1, nil)
     end
 
-    count_remove = remove.count
+    count_remove = remove[:users].count + remove[:teams].count
     count_update = (membership.member_ids & new_members.map(&:id)).count
     count_add    = new_members.count - count_update
-
-    membership.remove_members(remove.keys)
+    membership.remove_members(remove[:users].map {|k,v| [k, "user"]} + remove[:teams].map {|k,v| [k, "team"]})
     membership.add_members(new_members)
 
     if save_membership(membership)
@@ -102,21 +109,15 @@ class MembersController < BaseController
     authorize! :change_members, membership
     id = params[:id].presence
     role = params[:role].presence 
-    member = membership.members.find(id)
+    type = params[:type].presence
+    member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
     if role.to_sym == :none
       membership.remove_members(member)
     else
-      case member.member_type
-      when Team
-        t = Team.find_by(name: member.name)
-        membership.add_members(t, role.to_sym)
-      when CloudUser
-        u = CloudUser.find_by(login: member.name)
-        membership.add_members(u, role.to_sym)
-      end
+      membership.add_members(member.clone.clear, role.to_sym)
     end
     membership.save!
-    member = membership.members.find(id) unless role.to_sym == :none
+    member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type}) unless role.to_sym == :none
     render_success(:ok, "member", role.to_sym == :none ? nil : get_rest_member(member), "Updated member")
   end
 
@@ -125,7 +126,9 @@ class MembersController < BaseController
       leave
     else
       authorize! :change_members, membership
-      remove_member(params[:id])
+      id = params[:id].presence
+      type = params[:type].presence || "user"
+      remove_member(id, type)
     end
   end
 
@@ -172,8 +175,9 @@ class MembersController < BaseController
       raise "Must be implemented to return the resource under access control"
     end
 
-    def remove_member(id)
-      membership.remove_members(id)
+    def remove_member(id, type)
+      member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
+      membership.remove_members(member)
       if save_membership(membership)
         if m = members.detect{ |m| m._id === id }
           render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:info, "The member #{m.name} is no longer directly granted a role.", 132))
@@ -210,6 +214,7 @@ class MembersController < BaseController
 
   private
     def changed_members_for(user_ids, user_logins, team_ids, team_names, errors)
+      changed_members = []
       if user_ids.present? or user_logins.present?
         user_ids = user_ids.select{ |id, (role, _)| role != :none }
         user_logins = user_logins.select{ |id, (role, _)| role != :none }
@@ -219,22 +224,22 @@ class MembersController < BaseController
         users.map do |u|
           m = u.as_member
           m.role = (user_ids[u._id.to_s] || user_logins[u.login.to_s])[0]
-          m
+          changed_members.push(m)
         end
-      elsif team_ids.present? or team_names.present?
+      end
+      if team_ids.present? or team_names.present?
         team_ids = team_ids.select{ |id, (role, _)| role != :none }
         team_names = team_names.select{ |id, (role, _)| role != :none }
-        teams = Team.accessible(current_user).with_ids_or_names(team_ids.keys, team_names.keys).each.to_a
+        teams = Team.where(owner_id: current_user._id).with_ids_or_names(team_ids.keys, team_names.keys).each.to_a
         missing_team_names(errors, teams, team_names)
         missing_team_ids(errors, teams, team_ids)
         teams.map do |t|
           m = t.as_member
           m.role = (team_ids[t._id.to_s] || team_names[t.name.to_s])[0]
-          m
+          changed_members.push(m)
         end
-      else
-        []
       end
+      changed_members
     end
 
     def removed_ids(user_ids, user_logins, team_ids, team_names, errors)
@@ -248,11 +253,11 @@ class MembersController < BaseController
       team_ids = team_ids.inject({}){ |h, (id, (role, _))| h[id] = id if role == :none; h }
       team_names = team_names.select{ |id, (role, _)| role == :none }
       if team_names.present?
-        teams = Team.accessible(current_user).with_ids_or_names(nil, team_names.keys).each.to_a
+        teams = Team.where(owner_id: current_user._id).with_ids_or_names(nil, team_names.keys).each.to_a
         missing_team_names(errors, teams, team_names)
         team_ids.merge!(teams.inject({}){ |h, t| h[t._id.to_s] = t.name; h })
       end
-      ids = user_ids.merge!(team_ids)
+      {:users => user_ids, :teams => team_ids}
     end
 
     def missing_user_logins(errors, users, map)

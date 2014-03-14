@@ -22,15 +22,15 @@ class DomainMembersControllerTest < ActionController::TestCase
     team_name = "team#{@random}"
     @team = Team.create(name: team_name, owner_id:@owner._id)
     #create another user to add to team as member
-    @team_member_name = "team_member#{@random}"
-    @team_member = CloudUser.new(login: @team_member_name)
+    team_member_name = "team_member#{@random}"
+    @team_member = CloudUser.new(login: team_member_name)
     @team_member.save
     Lock.create_lock(@team_member)
     @team.add_members(@team_member)
     @team.save
     #create another user to add to domain as member directly
-    @member_name = "member#{@random}"
-    @member = CloudUser.new(login: @member_name)
+    member_login = "member#{@random}"
+    @member = CloudUser.new(login: member_login)
     @member.save
     #create domain for user
     @namespace = "ns#{@random}"
@@ -55,7 +55,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert_response :success
     assert json = JSON.parse(response.body)
     assert_equal json['data'].length , 1
-    post :create, {"domain_id" => @domain.namespace, "login" => @member_name, "role" => "edit"}
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "edit"}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert id = json['data']['id']
@@ -113,16 +113,16 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert id = json['data']['id']
     assert_equal json['data']['role'] , "edit"
     
-    get :show, {"domain_id" => @domain.namespace, "id" => id}
+    get :show, {"domain_id" => @domain.namespace, "id" => id, "type" => "team"}
     assert_response :success
     
     get :index , {"domain_id" => @domain.namespace}
     assert_response :success
     
-    put :update, {"domain_id" => @domain.namespace, "id" => id, "role" => "view"}
+    put :update, {"domain_id" => @domain.namespace, "id" => id, "role" => "view", "type" => "team"}
     assert_response :success
     
-    delete :destroy , {"domain_id" => @domain.namespace, "id" => id}
+    delete :destroy , {"domain_id" => @domain.namespace, "id" => id, "type" => "team"}
     assert_response :success
   end
   
@@ -133,64 +133,221 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert id = json['data']['id']
     assert_equal json['data']['role'] , "edit"
     
-    get :show, {"domain_id" => @domain.namespace, "id" => id}
+    get :show, {"domain_id" => @domain.namespace, "id" => id, "type" => "team"}
     assert_response :success
     
     get :index , {"domain_id" => @domain.namespace}
     assert_response :success
     
-    put :update, {"domain_id" => @domain.namespace, "id" => id, "role" => "view"}
+    put :update, {"domain_id" => @domain.namespace, "id" => id, "role" => "view", "type" => "team"}
     assert_response :success
     
-    delete :destroy , {"domain_id" => @domain.namespace, "id" => id}
+    delete :destroy , {"domain_id" => @domain.namespace, "id" => id, "type" => "team"}
     assert_response :success
   end
   
-  test "mixed team and user member create show list update and destroy" do
-    post :create, {"domain_id" => @domain.namespace, "members" => [{"name" => @team.name, "type" => "team", "role" => "view"} , {"login" => @member_name, "role" => "edit"}]}
+  test "mixed team and user member" do
+    post :create, {"domain_id" => @domain.namespace, "members" => [{"name" => @team.name, "type" => "team", "role" => "view"} , {"login" => @member.login, "role" => "edit"}]}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert id = json['data']['id']
-    assert_equal json['data']['role'] , "edit"
-    
-    get :show, {"domain_id" => @domain.namespace, "id" => id}
-    assert_response :success
+    assert data = json["data"]
+    assert data.select{|d| d["login"] == @member.login and d["role"] == "edit"}.count == 1
+    assert data.select{|d| d["type"] == "team" and d["role"] == "view"}.count == 1
     
     get :index , {"domain_id" => @domain.namespace}
     assert json = JSON.parse(response.body)
-    assert_equal json['data'].length , 2
+    assert_equal json['data'].length, 4
     
-    put :update, {"domain_id" => @domain.namespace, "id" => id, "role" => "view"}
-    assert_response :success
+    #should not be able to remove team member from domain
+    post :create, {"domain_id" => @domain.namespace, "login" => @team_member.login, "role" => "none"}
+    assert_response :unprocessable_entity
     
-    delete :destroy , {"domain_id" => @domain.namespace, "id" => id}
+    post :create, {"domain_id" => @domain.namespace, "members" => [{"name" => @team.name, "type" => "team", "role" => "edit"} , {"login" => @member.login, "role" => "none"}]}
     assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert data.select{|d| d["login"] == @member.login and d["role"] == "edit"}.count == 0
+    assert data.select{|d| d["type"] == "team" and d["role"] == "edit"}.count == 1
+    
   end
   
-  test "remove member via patch to role none" do
-    post :create, {"domain_id" => @domain.namespace, "login" => @member_name, "role" => "view"}
+  test "remove user via patch to role none" do
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "view"}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert id = json['data']['id']
     assert_equal json['data']['role'] , "view"
     
-    post :create, {"domain_id" => @domain.namespace, "login" => @member_name, "role" => "none"}
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "none"}
     assert_response :success
+    
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "none"}
+    assert_response :unprocessable_entity
     
     get :index , {"domain_id" => @domain.namespace}
     assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 1
+
+    post :create, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "view"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert id = json['data']['id']
+    assert_equal json['data']['role'] , "view"
     
+    post :create, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "none"}
+    assert_response :success
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "none"}
+    assert_response :unprocessable_entity
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 1
+
+  end
+  
+  test "remove team via patch to role none" do
+    post :create, {"domain_id" => @domain.namespace, "id" => @team.id, "role" => "view", "type" => "team"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert id = json['data']['id']
+    assert_equal json['data']['role'] , "view"
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => @team.id, "role" => "none", "type" => "team"}
+    assert_response :success
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => @team.id, "role" => "none", "type" => "team"}
+    assert_response :unprocessable_entity
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 1 
+    
+    post :create, {"domain_id" => @domain.namespace, "name" => @team.name, "role" => "view", "type" => "team"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert id = json['data']['id']
+    assert_equal json['data']['role'] , "view"
+    
+    post :create, {"domain_id" => @domain.namespace, "name" => @team.name, "role" => "none", "type" => "team"}
+    assert_response :success
+    
+    post :create, {"domain_id" => @domain.namespace, "name" => @team.name, "role" => "none", "type" => "team"}
+    assert_response :unprocessable_entity
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
     assert json = JSON.parse(response.body)
     assert_equal json['data'].length , 1
   end
   
-  test "remove member via put to role none" do
-    post :create, {"domain_id" => @domain.namespace, "login" => @member_name, "role" => "view"}
+  test "remove user via put to role none" do
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "view"}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert id = json['data']['id']
     
-    post :update, {"domain_id" => @domain.namespace, "id" => id, "role" => "none"}
+    put :update, {"domain_id" => @domain.namespace, "id" => id, "role" => "none"}
+    assert_response :success
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 1
+  end
+  
+  test "remove team via put to role none" do
+    post :create, {"domain_id" => @domain.namespace, "name" => @team.name, "role" => "view", "type" => "team"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert id = json['data']['id']
+    
+    put :update, {"domain_id" => @domain.namespace, "id" => id, "role" => "none", "type" => "team"}
+    assert_response :success
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 1
+  end
+  
+  test "delete user by id and login" do
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "view"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert id = json['data']['id']
+    assert_equal json['data']['role'] , "view"
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 2
+    
+    delete :destroy, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "view"}
+    assert_response :success
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 1
+    
+    #by login
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "view"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert id = json['data']['id']
+    assert_equal json['data']['role'] , "view"
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 2
+    
+    delete :destroy, {"domain_id" => @domain.namespace, "id" => id}
+    assert_response :success
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 1
+  end
+  
+  test "remove team by id and name" do
+    post :create, {"domain_id" => @domain.namespace, "id" => @team.id, "role" => "view", "type" => "team"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert id = json['data']['id']
+    assert_equal json['data']['role'] , "view"
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 3
+    
+    delete :destroy, {"domain_id" => @domain.namespace, "id" => @team.id, "type" => "team"}
+    assert_response :success
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 1
+    
+    post :create, {"domain_id" => @domain.namespace, "name" => @team.name, "role" => "view", "type" => "team"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert id = json['data']['id']
+    assert_equal json['data']['role'] , "view"
+    
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length , 3
+    
+    delete :destroy, {"domain_id" => @domain.namespace, "id" => @team.id, "type" => "team"}
     assert_response :success
     
     get :index , {"domain_id" => @domain.namespace}
@@ -203,6 +360,10 @@ class DomainMembersControllerTest < ActionController::TestCase
     get :show, {"domain_id" => @domain.namespace}
     assert_response :not_found
     get :show, {"domain_id" => @domain.namespace, "id" => "bogus"}
+    assert_response :not_found
+    get :show, {"domain_id" => @domain.namespace, "id" => "bogus", "type" => "user"}
+    assert_response :not_found
+    get :show, {"domain_id" => @domain.namespace, "id" => "bogus", "type" => "team"}
     assert_response :not_found
     put :update , {"domain_id" => @domain.namespace, "role" => "view"}
     assert_response :not_found
@@ -220,24 +381,43 @@ class DomainMembersControllerTest < ActionController::TestCase
   end
 
   test "invalid inputs" do
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => @team.id, "role" => "view"}
+    assert_response :not_found
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => @team.id, "role" => "view", "type" => "user"}
+    assert_response :not_found
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "view", "type" => "team"}
+    assert_response :not_found
+    
     post :create, {"domain_id" => @domain.namespace, "login" => "bogus", "role" => "view"}
     assert_response :not_found
+    
+    post :create, {"domain_id" => @domain.namespace, "login" => "bogus", "role" => "view", "type" => "user"}
+    assert_response :not_found
+    
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "view", "type" => "team"}
+    assert_response :unprocessable_entity
     
     post :create, {"domain_id" => @domain.namespace, "login" => "", "role" => "view"}
     assert_response :unprocessable_entity
     
-    post :create, {"domain_id" => @domain.namespace, "login" => @member_name, "role" => "bogus"}
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "bogus"}
     assert_response :unprocessable_entity
     
-    post :create, {"domain_id" => @domain.namespace, "login" => @member_name, "role" => "view"}
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "view"}
     assert_response :success
     id = JSON.parse(response.body)["data"]["id"]
     put :update, {"domain_id" => @domain.namespace, "id" => id, "role" => "bogus"}
     assert_response :unprocessable_entity
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => @member.login, "type" => "bad", "role" => "view"}
+    assert_response :unprocessable_entity
   end
 
   test "get member in all versions" do
-    post :create, {"domain_id" => @domain.namespace, "login" => @member_name, "role" => "view"}
+    post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "view"}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert id = json['data']['id']

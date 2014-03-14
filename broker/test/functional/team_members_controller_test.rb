@@ -19,10 +19,15 @@ class TeamMembersControllerTest < ActionController::TestCase
     @request.env['HTTP_ACCEPT'] = "application/json"
     team_name = "team#{@random}"
     @team = Team.create(name: team_name, owner_id:@user._id)
-    @member_name = "member#{@random}"
-    member = CloudUser.new(login: @member_name)
-    member.save
-    Lock.create_lock(member)
+    member_name = "member1-#{@random}"
+    @member1 = CloudUser.new(login: member_name)
+    @member1.save
+    Lock.create_lock(@member1)
+    
+    member_name = "member2-#{@random}"
+    @member2 = CloudUser.new(login: member_name)
+    @member2.save
+    Lock.create_lock(@member2)
 
     stubber
 
@@ -31,16 +36,21 @@ class TeamMembersControllerTest < ActionController::TestCase
   def teardown
     begin
       @user.force_delete
-    rescue
+      @member1.force_delete
+      @member2.force_delete
+    rescue Exception => ex
+      puts ex
     end
   end
 
-  test "member create show list update and destroy" do
-    post :create, {"team_id" => @team.id, "login" => @member_name}
+  test "member create show list update and destroy by login" do
+    post :create, {"team_id" => @team.id, "login" => @member1.login}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert id = json['data']['id']
-    assert json['data']['role'] == "view"
+    assert data = json['data'] 
+    assert id = data['id']
+    assert data['role'] == "view"
+    assert data['login'] == @member1.login
     get :show, {"team_id" => @team.id, "id" => id}
     assert_response :success
     get :index , {"team_id" => @team.id}
@@ -51,14 +61,87 @@ class TeamMembersControllerTest < ActionController::TestCase
     assert_response :success
   end
   
-  test "remove member via patch to role none" do
-    post :create, {"team_id" => @team.id, "login" => @member_name}
+  test "member create show list update and destroy by id" do
+    post :create, {"team_id" => @team.id, "id" => @member1._id}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert id = json['data']['id']
-    assert json['data']['role'] == "view"
+    assert data = json['data'] 
+    assert id = data['id']
+    assert data['role'] == "view"
+    assert data['login'] == @member1.login
+    get :show, {"team_id" => @team.id, "id" => id}
+    assert_response :success
+    get :index , {"team_id" => @team.id}
+    assert_response :success
+    put :update, {"team_id" => @team.id, "id" => id, "role" => "view"}
+    assert_response :success
+    delete :destroy , {"team_id" => @team.id, "id" => id}
+    assert_response :success
+  end
+  
+  test "member create via member or members" do
+    post :create, {"team_id" => @team.id, "member" => {"id" => @member1._id, "role" => "view"}}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json['data'] 
+    assert id = data['id']
+    assert data['role'] == "view"
+    assert data['login'] == @member1.login
     
-    post :create, {"team_id" => @team.id, "login" => @member_name, "role" => "none"}
+    get :index , {"team_id" => @team.id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length, 2
+    
+    post :create, {"team_id" => @team.id, "member" => { "id" => @member1._id, "role" => "none"}}
+    assert_response :success
+    
+    get :index , {"team_id" => @team.id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length, 1
+    
+    post :create, {"team_id" => @team.id, "members" => [{ "id" => @member1._id, "role" => "view"},{"id" => @member2._id, "role" => "view"}]}
+    assert_response :success
+
+    get :index , {"team_id" => @team.id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length, 3
+    
+    post :create, {"team_id" => @team.id, "members" => [{ "id" => @member1._id, "role" => "none"},{"id" => @member2._id, "role" => "view"}]}
+    assert_response :success
+    
+    get :index , {"team_id" => @team.id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length, 2
+    
+    post :create, {"team_id" => @team.id, "member" => { "id" => @member2._id, "role" => "none"}}
+    assert_response :success
+    
+    get :index , {"team_id" => @team.id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal json['data'].length, 1
+    
+  end
+  
+  test "remove member via patch to role none" do
+    post :create, {"team_id" => @team.id, "login" => @member1.login}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json['data'] 
+    assert id = data['id']
+    assert data['role'] == "view"
+    assert data['login'] == @member1.login
+    
+    get :index , {"team_id" => @team.id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert json['data'].length == 2
+    
+    post :create, {"team_id" => @team.id, "login" => @member1.login, "role" => "none"}
     assert_response :success
     get :index , {"team_id" => @team.id}
     assert_response :success
@@ -67,10 +150,11 @@ class TeamMembersControllerTest < ActionController::TestCase
   end
   
   test "remove member via put to role none" do
-    post :create, {"team_id" => @team.id, "login" => @member_name}
+    post :create, {"team_id" => @team.id, "login" => @member1.login}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert id = json['data']['id']
+    assert data = json['data'] 
+    assert id = data['id']
     
     post :update, {"team_id" => @team.id, "id" => id, "role" => "none"}
     assert_response :success
@@ -107,12 +191,14 @@ class TeamMembersControllerTest < ActionController::TestCase
     post :create, {"team_id" => @team.id, "login" => ""}
     assert_response :unprocessable_entity
     
-    post :create, {"team_id" => @team.id, "login" => @member_name, "role" => "bogus"}
+    post :create, {"team_id" => @team.id, "login" => @member1.login, "role" => "bogus"}
     assert_response :unprocessable_entity
     
-    post :create, {"team_id" => @team.id, "login" => @member_name}
+    post :create, {"team_id" => @team.id, "login" => @member1.login}
     assert_response :success
-    id = JSON.parse(response.body)["data"]["id"]
+    assert json = JSON.parse(response.body)
+    assert data = json['data'] 
+    assert id = data['id']
     put :update, {"team_id" => @team.id, "id" => id}
     assert_response :unprocessable_entity
     put :update, {"team_id" => @team.id, "id" => id, "role" => "bogus"}
@@ -120,10 +206,11 @@ class TeamMembersControllerTest < ActionController::TestCase
   end
 
   test "get member in all versions" do
-    post :create, {"team_id" => @team.id, "login" => @member_name}
+    post :create, {"team_id" => @team.id, "login" => @member1.login}
     assert_response :success
     assert json = JSON.parse(response.body)
-    assert id = json['data']['id']
+    assert data = json['data']
+    assert id = data['id']
     assert supported_api_versions = json['supported_api_versions']
     supported_api_versions.each do |version|
       @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
