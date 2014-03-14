@@ -585,6 +585,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   def test_configure_defaults
     cart_name = 'mock-0.1'
     @cartridge_model.expects(:configure).with(cart_name, nil, nil)
+    @container.expects(:create_public_endpoints).with(cart_name)
     @container.configure(cart_name)
   end
 
@@ -593,6 +594,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     template_git_url = 'url'
     manifest = 'manifest'
     @cartridge_model.expects(:configure).with(cart_name, template_git_url, manifest)
+    @container.expects(:create_public_endpoints).with(cart_name)
     @container.configure(cart_name, template_git_url, manifest)
   end
 

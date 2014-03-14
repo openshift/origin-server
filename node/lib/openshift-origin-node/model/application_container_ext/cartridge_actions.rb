@@ -25,7 +25,9 @@ module OpenShift
         # @param template_git_url  URL for template application source/bare repository
         # @param manifest          Broker provided manifest
         def configure(cart_name, template_git_url=nil,  manifest=nil)
-          @cartridge_model.configure(cart_name, template_git_url, manifest)
+          o = (@cartridge_model.configure(cart_name, template_git_url, manifest) || "")
+          o += (create_public_endpoints(cart_name) || "")
+          o
         end
 
         def post_configure(cart_name, template_git_url=nil)
