@@ -237,4 +237,20 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     assert [:started, :idle].include? gear.state
     assert gear.id
   end
+
+  def test_applications_get
+    app = with_app
+    apps = Application.find :all, :as => @user
+    assert_equal 1, apps.length
+    assert_equal app.name, apps[0].name
+  end
+
+  def test_applications_get_by_owner
+    with_app
+    assert RestApi.info.link('LIST_APPLICATIONS_BY_OWNER')
+    apps = Application.find :all, :as => @user
+    owned_apps = Application.find :all, :params => {:owner => '@self'}, :as => @user
+    assert_equal apps, owned_apps
+  end
+
 end
