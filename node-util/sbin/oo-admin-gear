@@ -65,8 +65,6 @@ command :destroygear do |c|
   c.description = %q(Remove any remnants of a failed gear destroy)
 
   c.action do |_, options|
-    puts %Q($trace is #{options.trace})
-
     if options.with_container_uuid.nil? || options.with_container_uuid.empty?
       usage(c.syntax)
     end
