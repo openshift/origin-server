@@ -1074,6 +1074,8 @@ The file `metadata/managed_files.yml` `restore_transforms` entry contains script
 
 Both entries are optional and may be omitted. Empty files will be ignored. Patterns are from the `OPENSHIFT_HOMEDIR` directory rather than your cartridge's directory. See the man page for `tar` (the `--transform` and `--exclude-from` options) for more details.
 
+Cartridge developers should preserve the state of the cartridge in all (pre|post)-(restore|snapshot) scripts. Cartridge state should be set back to the original state before this script was invoked.
+
 === Understanding OpenShift Behavior: Snapshot
 OpenShift creates an archive during `snapshot` as follows:
 
@@ -1085,7 +1087,9 @@ OpenShift creates an archive during `snapshot` as follows:
 *  Application state file (`app-root/runtime/.state`)
 *  Bash history file (`$OPENSHIFT_DATA_DIR/.bash_history`)
 5.  OpenShift invokes `control post-snapshot` for each installed cartridge in the gear.
-6.  OpenShift starts the application by invoking `gear start`.
+6. Based on the state of application before snapshot, OpenShift will either stop
+   or start the gear.
+
 
 === Understanding OpenShift Behavior: Restore
 OpenShift restores an application from an archive as follows:
@@ -1099,7 +1103,8 @@ OpenShift restores an application from an archive as follows:
 7.  OpenShift invokes `control post-restore` for each installed cartridge in the gear (example: delete new database dump that the db was restored from).
 8.  OpenShift resumes the application.
 9.  If the archive contains a git repo, OpenShift invokes `gear postreceive`.
-10. Otherwise, OpenShift invokes `gear start` .
+10. Based on the state of application before restore, OpenShift will either stop
+    or start the gear.
 
 == Sample conf.d/openshift.conf.erb
 ----
