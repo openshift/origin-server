@@ -6,39 +6,47 @@ class OauthController < BaseController
   def authorize
     authorize! :create_authorization, current_user
 
+    # Validate client and redirect uri
     client_id = params[:client_id].to_s
     redirect_uri = params[:redirect_uri].to_s
-    response_type = params[:response_type].to_s
 
-    # Validate params
     return render_missing_param(:client_id)     if client_id.blank?
     return render_missing_param(:redirect_uri)  if redirect_uri.blank?
-    return render_missing_param(:response_type) if response_type.blank?
-    return render_oauth_error("unsupported_response_type", "response_type must be 'code'", :bad_request) if response_type != "code"
 
-    # Validate client and redirect uri
     client = Rails.configuration.oauth_clients[client_id]
     return render_oauth_error("invalid_client") if client.blank?
     return render_oauth_error("invalid_request", "redirect_uri is not allowed for this client", :bad_request) unless valid_redirect_uri?(redirect_uri, client[:redirect_uris])
-    
-    # Create token with oauthaccesstoken scope
-    scopes = Scope.list!("oauthaccesstoken")
-    access_token = Authorization.create!({
-      :expires_in => scopes.default_expiration,
-      :note       => "OAuth code for #{client[:name]}"
-    }) do |a|
-      a.user = current_user
-      a.scopes = scopes.to_s
-      a.oauth_client_id = client[:id]
+
+    # Hold return params
+    return_params = {}
+
+    # Validate response_type
+    response_type = params[:response_type].to_s
+    if response_type.blank?
+      return_params[:error] = "invalid_request"
+      return_params[:error_description] = "response_type is required"
+    elsif response_type != "code"
+      return_params[:error] = "unsupported_response_type"
+      return_params[:error_description] = "response_type must be 'code'"
+    else
+      # Create token with oauthaccesstoken scope
+      scopes = Scope.list!("oauthaccesstoken")
+      access_token = Authorization.create!({
+        :expires_in => scopes.default_expiration,
+        :note       => "OAuth code for #{client[:name]}"
+      }) do |a|
+        a.user = current_user
+        a.scopes = scopes.to_s
+        a.oauth_client_id = client[:id]
+      end
+
+      return_params[:code]  = access_token.token
+      return_params[:state] = params[:state] if params[:state]
     end
 
     # Build redirect URI
     uri = URI(redirect_uri)
-    return_params = {:code => access_token.token}
-    return_params[:state] = params[:state] if params[:state]
     uri.query = return_params.to_query
-
-    # Send redirect
     redirect_to uri.to_s
   end
 
@@ -109,6 +117,16 @@ class OauthController < BaseController
   end
 
   protected
+    def render_error(status, msg, *args)
+      case status
+      when :unauthorized, :forbidden
+        render_oauth_error("unauthorized_client", msg, status)
+      else
+        binding.pry
+        render_oauth_error("invalid_request", msg, status)
+      end
+    end
+
     def bearer_token_override(original_token=nil)
       if action_name == "access_token"
         params[:code]

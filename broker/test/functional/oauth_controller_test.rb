@@ -47,7 +47,7 @@ class OauthControllerTest < ActionController::TestCase
     with_token('oauthaccesstoken', 'my_sso_client_id', false)
     get :access_token, access_token_params('my_sso_client_id', @auth.token)
     assert_response :bad_request
-    puts response.body
+    assert_oauth_error 'invalid_request', 'POST'
   end
 
   #
@@ -85,14 +85,14 @@ class OauthControllerTest < ActionController::TestCase
   test "access_token requires authorization" do
     post :access_token
     assert_response :unauthorized
-    puts response.body
+    assert response.body["HTTP Basic: Access denied"]
   end
 
   test "access_token forbids code without create_oauth_access_token" do
     with_token('userinfo', 'my_sso_client_id', false)
     post :access_token, access_token_params('my_sso_client_id', @auth.token)
     assert_response :forbidden
-    puts response.body
+    assert_oauth_error 'unauthorized_client', 'not allowed'
   end
 
   test "access_token allows token with create_oauth_access_token" do
@@ -117,11 +117,11 @@ class OauthControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "access_token disallows basic auth" do
+  test "access_token ignores basic auth if invalid bearer code is provided as param" do
     with_basic_auth
     post :access_token, access_token_params('my_sso_client_id', "bogus code")
     assert_response :unauthorized
-    puts response.body
+    assert response.body["HTTP Bearer: Access denied"]
   end
 
   #
