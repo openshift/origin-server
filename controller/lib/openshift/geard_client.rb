@@ -35,7 +35,7 @@ module OpenShift
       def initialize(id, district=nil)
         @id = id
         #TODO hardcode to localhost for now, should be passed in ID
-        @hostname = "localhost"
+        @hostname = ENV["GEARD_HOST_PORT"] || "localhost"
         @district = district
         #TODO Config the port
         @port = "2224"
@@ -264,14 +264,30 @@ module OpenShift
         clnt = HTTPClient.new
         # TODO this assumes there is only one component_instance and is currently requiring looking up the CartridgeType
         image_name = gear.component_instances[0].cartridge.image
+
+        if app.init_git_url
+          # Go do the build
+          # TODO temporarily just use the gear uuid as the image
+          build_post_body = {
+            "BaseImage" => image_name,
+            "Source" => app.init_git_url,
+            "Tag" => gear.uuid
+          }
+          res = clnt.post("#{build_base_geard_url}build-image", build_post_body.to_json, build_geard_post_headers)
+          # Update the image_name we use for create to be whatever we pass to the build call as the Tag
+          image_name = gear.uuid
+        end
+
         # Hardcoded to request port 8080 be exposed inside the container
         post_body = {
           "Image" => image_name,
           "Started" => true,
           "Ports" => [
-            {"internal" => 8080}
           ]
         }
+        gear.component_instances[0].cartridge.endpoints.each do |endpoint|
+          post_body["Ports"] << {"internal" => endpoint.private_port} if endpoint.private_port
+        end
         res = clnt.put("#{build_base_geard_url}container/#{gear.uuid}", post_body.to_json, build_geard_post_headers)
         portmapping = res.header["X-Portmapping"]
         result = ResultIO.new
@@ -1599,7 +1615,7 @@ module OpenShift
             #async do
               clnt = HTTPClient.new
               #todo since we don't have the right identity right now, pass localhost instead of identity
-              res = clnt.put("#{build_base_geard_url 'localhost'}#{job[:action]}#{job[:args]}")
+              res = clnt.put("#{build_base_geard_url (ENV['GEARD_HOST_PORT'] || 'localhost')}#{job[:action]}#{job[:args]}")
               handle[identity].each { |gear_info|
                 gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{res.body}"
                 gear_info[:result_exit_code] = res.status_code < 400 ? 0 : res.status_code
