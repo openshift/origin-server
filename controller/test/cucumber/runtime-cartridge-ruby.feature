@@ -1,4 +1,4 @@
-@cartridge_extended1
+@cartridge_extended4
 
 Feature: Ruby Cartridge
   Scenario Outline: Add cartridge, create and destroy an app
