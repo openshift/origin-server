@@ -342,8 +342,9 @@ module OpenShift
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor
         #raise MissingElementError.new(nil, 'Cartridge-Version') unless @cartridge_version
-        raise MissingElementError.new('Cartridge-Short-Name') unless @short_name
-        raise InvalidElementError.new('Cartridge-Short-Name') if @short_name.include?('-')
+        #NOTE: removed for geard support
+        #raise MissingElementError.new('Cartridge-Short-Name') unless @short_name
+        #raise InvalidElementError.new('Cartridge-Short-Name') if @short_name.include?('-')
         raise MissingElementError.new('Name') unless @name
 
         if check_names
