@@ -64,7 +64,7 @@ class DomainsController < BaseController
       return render_error(:forbidden, "Namespace is not allowed.  Please choose another.", 106)
     end
 
-    allowed_domains = current_user.max_domains
+    allowed_domains = nil
     allowed_domains = 1 if requested_api_version < 1.2
     allowed_gear_sizes = Array(params[:allowed_gear_sizes]) if params.has_key? :allowed_gear_sizes
 

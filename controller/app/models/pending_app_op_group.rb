@@ -106,9 +106,9 @@ class PendingAppOpGroup
             if result_io.exitcode != 0
               op.set_state(:failed)
               if result_io.hasUserActionableError
-                raise OpenShift::UserException.new("Unable to execute #{self.to_log_s}", result_io.exitcode, nil, result_io) 
+                raise OpenShift::UserException.new("Unable to execute #{op.to_log_s}", result_io.exitcode, nil, result_io) 
               else
-                raise OpenShift::NodeException.new("Unable to execute #{self.to_log_s}", result_io.exitcode, result_io)
+                raise OpenShift::NodeException.new("Unable to execute #{op.to_log_s}", result_io.exitcode, result_io)
               end
             else
               op.set_state(:completed)
@@ -213,11 +213,7 @@ class PendingAppOpGroup
   #   @see {PendingAppOps}
   def try_reserve_gears(num_gears_added, num_gears_removed, app, ops)
     owner = app.domain.owner
-    begin
-      until Lock.lock_user(owner, app)
-        sleep 1
-      end
-      owner.reload
+    Lock.run_in_app_user_lock(owner, app) do
       if owner.consumed_gears + num_gears_added > owner.max_gears and num_gears_added > 0
         raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.max_gears} limit and this application requires #{num_gears_added} additional gears.")
       end
@@ -227,23 +223,15 @@ class PendingAppOpGroup
       self.pending_ops.concat(ops)
       self.save! if app.persisted?
       owner.save!
-    ensure
-      Lock.unlock_user(owner, app)
     end
   end
 
   def unreserve_gears(num_gears_removed, app)
     return if num_gears_removed == 0
     owner = app.domain.owner
-    begin
-      until Lock.lock_user(owner, app)
-        sleep 1
-      end
-      owner.reload
+    Lock.run_in_app_user_lock(owner, app) do
       owner.consumed_gears -= num_gears_removed
       owner.save!
-    ensure
-      Lock.unlock_user(owner, app)
     end
   end
 

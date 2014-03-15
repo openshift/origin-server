@@ -62,30 +62,6 @@ module AdminHelper
     end
   end
 
-  def lock_user_without_app(user_id, timeout=30)
-    begin
-      now = Time.now.to_i
-      lock = Lock.find_or_create_by( :user_id => user_id )
-      query = {:user_id => user_id, "$or" => [{:locked => false}, {:timeout.lt => now}], "app_ids" => {}}
-      updates = {"$set" => { locked: true, timeout: (now + timeout) }}
-      lock = Lock.where(query).find_and_modify(updates, new: true)
-      return (not lock.nil?)
-    rescue Moped::Errors::OperationFailure
-      return false
-    end
-  end
-
-  def unlock_user_without_app(user_id)
-    begin
-      query = {:user_id => user_id, :locked => true}
-      updates = {"$set" => { "locked" => false }}
-      lock = Lock.where(query).find_and_modify(updates, new: true)
-      return (not lock.nil?)
-    rescue Moped::Errors::OperationFailure
-      return false
-    end
-  end
-
   def get_premium_carts
     return $premium_carts unless $premium_carts.empty?
 
@@ -105,10 +81,9 @@ module AdminHelper
     return District.where(query).exists?
   end
 
-  def check_consumed_gears(user_id)
+  def check_consumed_gears(user)
     begin
       actual_gears = 0
-      user = CloudUser.find_by(:_id => user_id)
       user.domains.each do |d|
         d.applications.each {|a| actual_gears += a.gears.length}
       end
@@ -460,7 +435,8 @@ module AdminHelper
       owner_hash["domains"].each { |dom_id, domain_gear_count| total_gears += domain_gear_count }
 
       if owner_hash['consumed_gears'] != total_gears
-        user_consumed_gears, app_actual_gears = check_consumed_gears(owner_id)
+        user = CloudUser.find_by(:_id => owner_id)
+        user_consumed_gears, app_actual_gears = check_consumed_gears(user)
         if user_consumed_gears != app_actual_gears
           print_message "User #{owner_hash['login']} has a mismatch in consumed gears (#{user_consumed_gears}) and actual gears (#{app_actual_gears})"
           error_consumed_gears_user_ids << owner_id

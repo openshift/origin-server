@@ -6,8 +6,9 @@ class AliasTest < ActiveSupport::TestCase
     @random = rand(1000000000)
     @login = "user#{@random}"
     @user = CloudUser.new(login: @login)
+    @user.private_ssl_certificates = true
     @user.save
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     stubber
     @namespace = "ns#{@random}"
     @domain = Domain.new(namespace: @namespace, owner:@user)

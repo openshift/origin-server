@@ -3,8 +3,6 @@ require_relative '../test_helper'
 class TeamTest < ActiveSupport::TestCase
 
   setup do 
-    Lock.stubs(:lock_application).returns(true)
-    Lock.stubs(:unlock_application).returns(true)
     @to_delete = {}
   end
 

@@ -28,21 +28,36 @@ class PendingDomainOps
   has_and_belongs_to_many :completed_apps, class_name: Application.name, inverse_of: nil
   field :on_completion_method, type: Symbol
 
+  def initialize(attrs = nil, options = nil)
+    parent_opid = nil
+    if !attrs.nil? and attrs[:parent_op]
+      parent_opid = attrs[:parent_op]._id 
+      attrs.delete(:parent_op)
+    end
+    super
+    self.parent_op_id = parent_opid 
+  end
+
   def pending_apps
     pending_apps = on_apps - completed_apps
     pending_apps
   end
 
   def completed?
-    (self.state == :completed) || ((on_apps.length - completed_apps.length) == 0)
+    (self.state == :completed) || (pending_apps.length == 0)
   end
 
   def close_op
     if completed?
       if not parent_op_id.nil?
         user = CloudUser.find_by(_id: self.domain.owner_id)
-        parent_op = user.pending_ops.find_by(_id: self.parent_op_id)
-        parent_op.child_completed(self.domain)
+        user.pending_op_groups.each do |op_group|
+          if op_group.pending_ops.where(_id: self.parent_op_id).exists?
+            parent_op = op_group.pending_ops.find_by(_id: self.parent_op_id)
+            parent_op.child_completed(self.domain)
+            break
+          end
+        end
       end
       domain.send(on_completion_method, self) unless on_completion_method.nil?
     end

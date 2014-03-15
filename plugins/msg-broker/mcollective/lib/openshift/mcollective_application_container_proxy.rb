@@ -1895,7 +1895,7 @@ module OpenShift
       #
       def move_gear_secure(gear, destination_container, destination_district_uuid, change_district, node_profile)
         app = gear.application
-        Application.run_in_application_lock(app) do
+        Lock.run_in_app_lock(app) do
           move_gear(gear, destination_container, destination_district_uuid, change_district, node_profile)
         end
       end

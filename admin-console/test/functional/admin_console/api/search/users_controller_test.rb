@@ -12,7 +12,7 @@ module AdminConsole
             @user = CloudUser.new(login: @login, plan_id: "free", usage_account_id: @random)
             @user.private_ssl_certificates = true
             @user.save
-            Lock.create_lock(@user)
+            Lock.create_lock(@user.id)
             register_user(@login, @password)
 
             stubber
