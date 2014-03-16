@@ -1,5 +1,5 @@
 @node
-@cartridge_extended4
+@cartridge_extended1
 Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenario Outline: Application Creation
   #Given a new <cart_name> application, verify its availability
