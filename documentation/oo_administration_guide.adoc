@@ -141,7 +141,7 @@ In order to remove the ability for a user to create a specific gear size, you ca
 
 Districts facilitate moving gears between node hosts in order to manage resource usage. They also make it possible to deactivate nodes so they receive no further gears. As it is difficult to introduce districts to an installation after it is in use, they should be created from the start when it is quite simple.
 
-=== Heirarchy of OpenShift Entities
+=== Hierarchy of OpenShift Entities
 
 In order to explain how districts figure into OpenShift, we first need to examine their place in OpenShift's containership hierarchy.
 
