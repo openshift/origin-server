@@ -1,3 +1,0 @@
-#!/bin/bash -ue
-
-rm -rf $OPENSHIFT_HOMEDIR/.cpanm

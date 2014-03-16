@@ -1,3 +1,0 @@
-#!/bin/bash -ue
-
-rm -f $OPENSHIFT_HOMEDIR/.pearrc
