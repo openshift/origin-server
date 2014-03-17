@@ -87,7 +87,7 @@ Broker::Application.configure do
     :default_allow_ha => conf.get('DEFAULT_ALLOW_HA', "false"),
     :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Domain', 'Scope::Application', 'Scope::Userinfo', 'Scope::Sso', 'Scope::OauthAccessToken'],
     :default_scope => 'userinfo',
-    :scope_expirations => OpenShift::Controller::Configuration.parse_expiration("session=1.days|2.days", 1.month),
+    :scope_expirations => OpenShift::Controller::Configuration.parse_expiration("session=1.days|2.days, oauthaccesstoken=10.minutes|10.minutes", 1.month),
     :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "true"),
     :ssl_endpoint => conf.get("SSL_ENDPOINT", "allow"),
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,

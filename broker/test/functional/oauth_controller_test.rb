@@ -229,6 +229,7 @@ class OauthControllerTest < ActionController::TestCase
       assert temp_auth = Authorization.authenticate(authorization_code)
       assert_equal client_id, temp_auth.oauth_client_id
       assert temp_auth.note[client[:name]], "Temporary authorization code note does not include client name"
+      assert temp_auth.expires_in <= 10.minutes, "Temporary authorization code should not be longer than 10 minutes"
 
       # Exchange for an access_token
       post :access_token, access_token_params(client_id, authorization_code)
