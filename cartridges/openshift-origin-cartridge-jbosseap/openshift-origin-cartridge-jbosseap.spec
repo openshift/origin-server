@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.15.1
+Version: 2.15.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,9 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 2.15.2-1
+- Remove unused teardowns (dmcphers@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 2.15.1-1
 - Bug 916758 - Give better message on config failure (dmcphers@redhat.com)
 - add xpaas tag to eap cartridge (bparees@redhat.com)
