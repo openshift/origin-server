@@ -9,8 +9,6 @@
 #   @return [Hash] Arguments hash.
 # @!attribute [rw] parent_op_id
 #   @return [Moped::BSON::ObjectId] ID of the {PendingUserOps} operation that this operation is part of.
-# @!attribute [r] on_domains
-#   @return [Array[Moped::BSON::ObjectId]] IDs of the {Domain} that are part of this operation.
 # @!attribute [r] completed_domains
 #   @return [Array[Moped::BSON::ObjectId]] IDs of the {Domain} that have completed their sub-tasks.
 #     @see {PendingTeamOps#child_completed}
@@ -24,23 +22,24 @@ class PendingTeamOps
 
   field :parent_op_id, type: Moped::BSON::ObjectId
   field :state, type: Symbol, :default => :init
-  has_and_belongs_to_many :on_domains, class_name: Domain.name, inverse_of: nil
   has_and_belongs_to_many :completed_domains, class_name: Domain.name, inverse_of: nil
   field :on_completion_method, type: Symbol
 
   def pending_domains
-    pending_domains = on_domains - completed_domains
-    pending_domains
+    (user.domains - completed_domains)
   end
 
   def completed?
-    (self.state == :completed) || ((on_domains.length - completed_domains.length) == 0)
+    (self.state == :completed) || (pending_domains.length == 0)
+  end
+
+  def user
+    CloudUser.find_by(_id: self.team.owner_id)
   end
 
   def close_op
     if completed?
       if not parent_op_id.nil?
-        user = CloudUser.find_by(_id: self.team.owner_id)
         parent_op = user.pending_ops.find_by(_id: self.parent_op_id)
         parent_op.child_completed(self.team)
       end
