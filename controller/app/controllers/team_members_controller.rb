@@ -5,13 +5,13 @@ class TeamMembersController < MembersController
   def show
     id = params[:id].presence
     member = membership.members.find(id)
-    return render_error(:not_found, "Could not find member #{id} for team #{membership.name}") if member.nil?
+    return render_error(:not_found, "Could not find member #{id} for team #{membership.name}", 1) if member.nil?
     render_success(:ok, "member", get_rest_member(member), "Showing member #{id} for team #{membership.name}")
   end
 
   def create
     params[:role] = :view unless params[:role].presence
-    return render_error(:unprocessable_entity, "Role #{params[:role]} not supported for team members") unless Team::TEAM_MEMBER_ROLES.include? params[:role].to_sym or params[:role].to_sym == :none 
+    return render_error(:unprocessable_entity, "Role #{params[:role]} not supported for team members", 1) unless Team::TEAM_MEMBER_ROLES.include? params[:role].to_sym or params[:role].to_sym == :none 
     super
   end
 
@@ -19,8 +19,8 @@ class TeamMembersController < MembersController
     authorize! :change_members, membership
     id = params[:id].presence
     role = params[:role].presence 
-    return render_error(:unprocessable_entity, "Role required for update.") if role.nil? 
-    return render_error(:unprocessable_entity, "Role #{role} not supported for team members") unless Team::TEAM_MEMBER_ROLES.include? role.to_sym or role.to_sym == :none
+    return render_error(:unprocessable_entity, "Role required for update.", 1) if role.nil? 
+    return render_error(:unprocessable_entity, "Role #{role} not supported for team members", 1) unless Team::TEAM_MEMBER_ROLES.include? role.to_sym or role.to_sym == :none
     member = membership.members.find(id)
     if role.to_sym == :none
       membership.remove_members(member)

@@ -7,7 +7,7 @@ class TeamsController < BaseController
       case params[:owner]
       when "@self" then Team.where(owner: current_user)
       when nil     then Team.accessible(current_user)
-      else return render_error(:bad_request, "Only @self is supported for the 'owner' argument.") 
+      else return render_error(:unprocessable_entity, "Only @self is supported for the 'owner' argument.", 1) 
       end
     rest_teams = teams.map {|t| get_rest_team(t)}
     render_success(:ok, "teams", rest_teams, "Listing teams for user #{@cloud_user.login}")

@@ -8,7 +8,7 @@ class MembersController < BaseController
     id = params[:id].presence
     type = params[:type].presence
     member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
-    return render_error(:not_found, "Could not find member #{id}") if member.nil?
+    return render_error(:not_found, "Could not find member #{id}", 1) if member.nil?
     render_success(:ok, "member", get_rest_member(member), "Showing member #{id}")
   end
 
@@ -50,17 +50,17 @@ class MembersController < BaseController
     end
     if errors.present?
       Rails.logger.error errors
-      return render_error(:unprocessable_entity, errors.first.text, nil, nil, nil, errors) if singular
-      return render_error(:unprocessable_entity, "The provided members are not valid.", nil, nil, nil, errors)
+      return render_error(:unprocessable_entity, errors.first.text, 1, nil, nil, errors) if singular
+      return render_error(:unprocessable_entity, "The provided members are not valid.", 1, nil, nil, errors)
     end
-    return render_error(:unprocessable_entity, "You must provide at least a single member that exists.") unless user_ids.present? || user_logins.present? || team_ids.present? || team_names.present?
+    return render_error(:unprocessable_entity, "You must provide at least a single member that exists.", 1) unless user_ids.present? || user_logins.present? || team_ids.present? || team_names.present?
 
     # Perform lookups of users by login and create members for new roles
     new_members = changed_members_for(user_ids, user_logins, team_ids, team_names, errors)
     remove = removed_ids(user_ids, user_logins, team_ids, team_names, errors)
     if errors.present?
-      return render_error(:not_found, errors.first.text, nil, nil, nil, errors) if singular
-      return render_error(:not_found, "Not all provided members exist.", nil, nil, nil, errors)
+      return render_error(:not_found, errors.first.text, 1, nil, nil, errors) if singular
+      return render_error(:not_found, "Not all provided members exist.", 1, nil, nil, errors)
     end
 
     # Warn about partial inputs
@@ -77,7 +77,7 @@ class MembersController < BaseController
     end
     if invalid_members.present?
       msg = "#{invalid_members.to_sentence} #{invalid_members.length > 1 ? "are not direct members" : "is not a direct member"} and cannot be removed."
-      return render_error(:unprocessable_entity, msg) if singular
+      return render_error(:unprocessable_entity, msg, 1) if singular
       warnings << Message.new(:warning, msg, 1, nil)
     end
 
@@ -101,7 +101,7 @@ class MembersController < BaseController
         render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, msg, nil, warnings)
       end
     else
-      render_error(:unprocessable_entity, "The members could not be added due to validation errors.", nil, nil, nil, get_error_messages(membership))
+      render_error(:unprocessable_entity, "The members could not be added due to validation errors.", 1, nil, nil, get_error_messages(membership))
     end
   end
   
@@ -143,7 +143,7 @@ class MembersController < BaseController
         elsif m[:login].present?
           logins << m[:login].to_s
         else
-          return render_error(:unprocessable_entity, "Each member must have an id or a login.")
+          return render_error(:unprocessable_entity, "Each member must have an id or a login.", 1)
         end
       else
         ids << m.to_s
@@ -160,13 +160,13 @@ class MembersController < BaseController
     if save_membership(membership)
       render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, ids.blank? ? "Reverted members to the defaults." : "Removed or reset #{pluralize(ids.length, 'member')}.")
     else
-      render_error(:unprocessable_entity, "The members could not be removed due to an error.", nil, nil, nil, get_error_messages(membership))
+      render_error(:unprocessable_entity, "The members could not be removed due to an error.", 1, nil, nil, get_error_messages(membership))
     end
   end
 
   def leave
     authorize! :leave, membership
-    return render_error(:unprocessable_entity, "You are the owner of this #{membership.class.model_name.humanize.downcase} and cannot leave.") if membership.owned_by?(current_user)
+    return render_error(:unprocessable_entity, "You are the owner of this #{membership.class.model_name.humanize.downcase} and cannot leave.", 1) if membership.owned_by?(current_user)
     remove_member(current_user._id)
   end
 
@@ -185,7 +185,7 @@ class MembersController < BaseController
           render_success(requested_api_version <= 1.4 ? :no_content : :ok, nil, nil, "Removed member.")
         end
       else
-        render_error(:unprocessable_entity, "The member could not be removed due to an error.", nil, nil, nil, get_error_messages(membership))
+        render_error(:unprocessable_entity, "The member could not be removed due to an error.", 1, nil, nil, get_error_messages(membership))
       end
     end
 
