@@ -27,10 +27,10 @@ class RestMember < OpenShift::Model
       end
         
       self.links = {
-        "GET" => Link.new("Get member", "GET", URI::join(url, "member/#{id}" + self.type == "team" ? "?type=team" : "")),
-        "UPDATE" => Link.new("Update member", "PUT", URI::join(url, "member/#{id}" + self.type == "team" ? "?type=team" : ""), [
+        "GET" => Link.new("Get member", "GET", URI::join(url, "member/#{id}").to_s + (self.type == "team" ? "?type=team" : "")),
+        "UPDATE" => Link.new("Update member", "PUT", URI::join(url, "member/#{id}").to_s + (self.type == "team" ? "?type=team" : ""), [
           Param.new("role", "string", "New role for member")]),
-        "DELETE" => Link.new("Delete member", "DELETE", URI::join(url, "member/#{id}" + self.type == "team" ? "?type=team" : ""))
+        "DELETE" => Link.new("Delete member", "DELETE", URI::join(url, "member/#{id}").to_s + (self.type == "team" ? "?type=team" : ""))
       }
     end
   end
