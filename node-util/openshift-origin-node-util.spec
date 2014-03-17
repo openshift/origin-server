@@ -65,7 +65,6 @@ mkdir -p %{buildroot}%{_initddir}
 mv init.d/openshift-watchman %{buildroot}%{_initddir}/
 
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/watchman/plugins.d/
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/watchman/disabled/
 cp -pr conf/watchman/* %{buildroot}/%{_sysconfdir}/openshift/watchman
 
 %if %{with_systemd}
@@ -124,9 +123,8 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0755,-,-) %{_bindir}/unidle_gear.sh
 %attr(0755,-,-) %{_bindir}/oo-config-eval
 %attr(0755,-,-) %{_bindir}/oo-gear-registry
-%attr(0755,-,-) %{_sysconfdir}/openshift/watchman/plugins.d
+%attr(0755,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/
 %attr(0744,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/*
-%attr(0744,-,-) %{_sysconfdir}/openshift/watchman/disabled/*
 
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-gear.8.gz
