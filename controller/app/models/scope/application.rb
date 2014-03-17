@@ -29,6 +29,7 @@ class Scope::Application < Scope::Parameterized
     when Domain
       (criteria.options[:for_ids] ||= []) << Application.only(:domain_id).find(@id).domain_id rescue criteria.options[:visible] ||= false
     when CloudUser then (criteria.options[:visible] ||= app_scope == :admin)
+    when Team then (criteria.options[:visible] ||= app_scope == :admin)
     else criteria.options[:visible] ||= false
     end
     criteria
