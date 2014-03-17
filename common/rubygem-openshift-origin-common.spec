@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -119,6 +119,17 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.21.2-1
+- oo-diagnostics: detect unreadable apache conf files (lmeyer@redhat.com)
+- oo-diagnostics: refactor test for executable commands (lmeyer@redhat.com)
+- oo-diagnostics: remove enterprise RPM test from origin (lmeyer@redhat.com)
+- oo-diagnostics: warn on node.conf/envvars mismatch (lmeyer@redhat.com)
+- oo-diagnostics: handle missing host command (lmeyer@redhat.com)
+- oo-diagnostics: warn re vmware-tools on mco unsynced warning
+  (lmeyer@redhat.com)
+- oo-diagnostics: detect more common selinux problems (lmeyer@redhat.com)
+- oo-diagnostics: improve suggestion for mco-client.log (lmeyer@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - Bug 916758 - Give better message on config failure (dmcphers@redhat.com)
 - Bug 1076032 - Attempting to unlock closed file descriptor (jhonce@redhat.com)
