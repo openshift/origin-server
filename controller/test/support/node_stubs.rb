@@ -16,9 +16,29 @@ class ActiveSupport::TestCase
     end
   end
 
-  [:php, :ruby, :mysql, :'jenkins-client', :jenkins, :haproxy, :jbosseap].each do |sym|
+  def try_cartridge_instances_for(sym)
+    begin
+      instances_list = cartridge_instances_for(sym)
+      return instances_list if instances_list.length > 0
+    rescue RuntimeError
+      # When the requested cartridge is not available, try PHP.
+      return cartridge_instances_for(:php)
+    end
+  end
+
+  # This list includes cartridges that are installed with all versions of OpenShift
+  [:php, :ruby, :mysql, :'jenkins-client', :jenkins, :haproxy].each do |sym|
     define_method "#{sym}_version" do
       (@version ||= {})[sym] ||= cartridge_instances_for(sym).first.name
+    end
+  end
+
+  # This list includes cartridges that are _not_ installed with all versions of OpenShift.
+  # Be aware that try_cartridge_instances_for will return info about the PHP cartridge
+  # when the requested type is not available.
+  [:jbosseap].each do |sym|
+    define_method "#{sym}_version" do
+      (@version ||= {})[sym] ||= try_cartridge_instances_for(sym).first.name
     end
   end
 
