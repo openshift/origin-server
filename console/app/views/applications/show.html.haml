@@ -1,7 +1,14 @@
 - content_for :page_style, 'highlight'
 - content_for :page_title, @application.name
-
 - max_gears = @capabilities.max_gears
+
+- content_for :javascripts do
+  :javascript
+    $("a.custom-cartridge-toggle-details").live('click', function(e) {
+      e.preventDefault();
+      $($(this).toggleClass('collapsed').attr('href')).toggle();
+      $(this).find('span').toggle();
+    });
 
 :css
   .restart .popover.bottom {margin-left: -75px;}
@@ -11,7 +18,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
+  .custom-cartridge-details .description { margin-bottom: 5px; }
 
 - content_for :top do
   .grid-wrapper.section-header.span12
@@ -73,10 +80,11 @@
       .gear-group
         - group.cartridges.each_with_index do |cartridge, i|
           - primary = i == 0
+          - external = cartridge.cartridge_type.external?
           .cartridge-block{:class => ('cartridge-embedded' if !primary)}
             .cartridge-border
               .cartridge-inset
-                - if primary
+                - if primary && cartridge.uses_gears?
                   %h3.flow
                     .flow-block{:title => cartridge.name}
                       = logo_for cartridge.cartridge_type
@@ -115,20 +123,64 @@
                           %div.data
                             = link_to cartridge_storage(cartridge), application_storage_path(@application, :anchor => cartridge.name), :title => "Each gear is allocated disk space.  Click to change."
 
+                  - if cartridge.custom?
+                    .flow
+                      .flow-block.right{:style => 'padding-top:10px'}
+                        = render :partial => 'cartridge_type_details_link', :locals => {:cartridge_type => cartridge.cartridge_type}
+
                 - else
                   .flow
-                    %h3.flow-block.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
+                    %h3.flow-block.cartridge-name{title: cartridge.uses_gears? ? 'This cartridge is a plugin, and shares resources with the web framework' : 'This cartridge is provided by an external service, and does not make use of OpenShift gears' }
                       = logo_for cartridge.cartridge_type
                       = cartridge.display_name
-                    - if info = cartridge_info(cartridge, @application)
-                      .flow-block.right= info
+                    - info = cartridge_info(cartridge, @application)
+                    - if info || cartridge.custom?
+                      .flow-block.right
+                        = info
+                        - if cartridge.custom?
+                          = render :partial => 'cartridge_type_details_link', :locals => {:cartridge_type => cartridge.cartridge_type}
 
                 - if cartridge.custom?
-                  %p.created.truncate Created from #{link_to cartridge.url, cartridge.url}
+                  = render :partial => 'cartridge_type_details', :locals => {:cartridge => cartridge, :cartridge_type => cartridge.cartridge_type}
 
                 - if primary && (info = cartridge_info(cartridge, @application))
                   %p= info
 
+    -#
+      %h2 Deployment Settings
+      .gear-group
+        .cartridge-block
+          .cartridge-border
+            .cartridge-inset
+              .custom-cartridge-details
+                .row-fluid
+                  %span.span3 
+                    %strong Mode
+                  %span.span9= @application.auto_deploy ? 'auto (on git push)' : 'manual (use rhc deploy)'
+                .row-fluid
+                  %span.span3 
+                    %strong History to keep
+                  %span.span9= pluralize(@application.keep_deployments, 'deployment', 'deployments')
+                - if @application.deployment_type == 'git'
+                  .row-fluid
+                    %span.span3 
+                      %strong Based on
+                    %span.span9= "'#{@application.deployment_branch}' branch"
+                - if !@application.auto_deploy
+                  .row-fluid
+                    %span.span3 
+                      %strong Deployment type
+                    %span.span9= @application.deployment_type
+
+    - if @environment_variables.present?
+      %h2 Environment Variables
+      .gear-group
+        - @environment_variables.each_with_index do |environment_variable, i|
+          - primary = i == 0
+          .cartridge-block{:class => ('cartridge-embedded' if !primary)}
+            .cartridge-border
+              .cartridge-inset.truncate{:style => 'font-size:12px'}
+                = "<strong>#{environment_variable.name}</strong>=#{environment_variable.value}".html_safe
 
     %section
       - carts = CartridgeType.cached.embedded.select{ |c| !@application.cartridges.include?(c) }.sort

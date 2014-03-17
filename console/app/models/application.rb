@@ -9,7 +9,6 @@ class Application < RestApi::Base
     self.schema = ::Member.schema
   end
 
-
   schema do
     string :name, :creation_time
     string :id, :domain_id
@@ -18,6 +17,8 @@ class Application < RestApi::Base
     string :gear_profile, :scale
     string :building_with, :build_job_url, :building_app
     string :framework
+    boolean :auto_deploy
+    string :deployment_branch, :deployment_type, :keep_deployments
   end
 
   # Override to append the name to UI urls
@@ -94,6 +95,7 @@ class Application < RestApi::Base
   has_many :cartridges
   has_many :gears
   has_many :gear_groups
+  has_many :environment_variables
   has_one  :embedded, :class_name => as_indifferent_hash
 
   has_members :as => Application::Member
@@ -132,6 +134,16 @@ class Application < RestApi::Base
   attr_writer :gear_groups
   def cartridge_gear_groups
     @cartridge_gear_groups ||= GearGroup.infer(cartridges, self)
+  end
+
+  def environment_variables(skip_cache=false)
+    attributes[:environment_variables] = begin
+      if skip_cache or !attributes[:environment_variables]
+        persisted? ? EnvironmentVariable.find(:all, child_options) : []
+      else
+        attributes[:environment_variables]
+      end
+    end
   end
 
   def restart!

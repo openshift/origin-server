@@ -87,6 +87,7 @@ module Fixtures
           Cartridge.new(:name => 'scalable-1.0', :gear_profile => 'medium', :current_scale => 2, :scales_from => 1, :scales_to => 3, :supported_scales_to => 5),
           Cartridge.new(:name => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :collocated_with => ['python-2.7', 'jenkins-client-1', 'haproxy-1.4']),
           Cartridge.new(:name => 'jenkins-client-1', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :collocated_with => ['python-2.7', 'jenkins-client-1', 'haproxy-1.4']),
+          Cartridge.new(:url => 'http://foo.cart.com/manifest.yml', :name => 'external-0-gears', :display_name => 'External', :description => 'some external cartridge', :current_scale => 0, :scales_from => 0, :scales_to => 0),
         ],
         :gear_groups => [
           GearGroup.new({:id => '1', :gear_profile => 'small', :gears => [
