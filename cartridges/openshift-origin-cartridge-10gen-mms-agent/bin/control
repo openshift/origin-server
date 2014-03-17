@@ -24,15 +24,16 @@ function start() {
     # This is required so that any user changes to credentials in this file can be picked up and recompiled
     #
     rm -f ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.pyc ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.pyo
-    
-    
+
     if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py" ]
     then
       new_mms_key_line=`cat ${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py | grep -E "^mms_key\s*=.*"`
-      new_secret_key_line=`cat ${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py | grep -E "^secret_key\s*=.*"`
       sed -i "s/^mms_key\s*=.*/${new_mms_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.py
-      sed -i "s/^secret_key\s*=.*/${new_secret_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.py
-
+      if grep "secret_key" ${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py >/dev/null
+      then
+        sed -i "s/^secret_key\s*=.*/${new_secret_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.py
+        new_secret_key_line=`cat ${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py | grep -E "^secret_key\s*=.*"`
+      fi
       nohup python ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py > ${OPENSHIFT_10GENMMSAGENT_DIR}/logs/agent.log 2>&1 &
       echo $! > ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid
     else

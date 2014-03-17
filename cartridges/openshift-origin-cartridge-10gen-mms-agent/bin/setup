@@ -3,8 +3,29 @@
 rm -rf $OPENSHIFT_10GENMMSAGENT_DIR/mms-agent
 mkdir -p $OPENSHIFT_10GENMMSAGENT_DIR/{logs,run,mms-agent}
 
-shopt -s dotglob
-pushd "$OPENSHIFT_10GENMMSAGENT_DIR" > /dev/null
-  cp -r /usr/local/share/mms-agent/* $OPENSHIFT_10GENMMSAGENT_DIR/mms-agent/
-  ln -s agent.py $OPENSHIFT_10GENMMSAGENT_DIR/mms-agent/"$OPENSHIFT_GEAR_UUID"_agent.py
-popd > /dev/null
+if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/mms/mms-monitoring-agent*.zip ] || [ -f ${OPENSHIFT_REPO_DIR}/.openshift/mms/mms-monitoring-agent*.tar.gz ]
+then
+	echo "*** Using new 10gen setting.py layout"
+	pushd "${OPENSHIFT_REPO_DIR}/.openshift/mms/" > /dev/null
+	if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/mms/mms-monitoring-agent*.zip ]
+	then
+		unzip ${OPENSHIFT_REPO_DIR}/.openshift/mms/mms-monitoring-agent*.zip -d ${OPENSHIFT_10GENMMSAGENT_DIR} > /dev/null
+	else
+		tar -xf ${OPENSHIFT_REPO_DIR}/.openshift/mms/mms-monitoring-agent*.tar.gz -C ${OPENSHIFT_10GENMMSAGENT_DIR}
+	fi
+	cp $OPENSHIFT_10GENMMSAGENT_DIR/mms-agent/settings.py ${OPENSHIFT_REPO_DIR}/.openshift/mms/
+	popd > /dev/null
+
+	shopt -s dotglob
+	pushd "$OPENSHIFT_10GENMMSAGENT_DIR" > /dev/null
+	ln -s agent.py ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py
+	popd > /dev/null
+
+else
+	echo "*** Using old 10gen setting.py layout"
+	shopt -s dotglob
+	pushd "$OPENSHIFT_10GENMMSAGENT_DIR" > /dev/null
+	  cp -r /usr/local/share/mms-agent/* $OPENSHIFT_10GENMMSAGENT_DIR/mms-agent/
+	  ln -s agent.py ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py
+	popd > /dev/null
+fi
