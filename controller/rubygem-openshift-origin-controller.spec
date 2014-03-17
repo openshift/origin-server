@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,33 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
+- Merge pull request #4959 from bparees/remove_rhc_debug
+  (dmcphers+openshiftbot@redhat.com)
+- Revert "Rebalancing tests" (dmcphers@redhat.com)
+- Rebalancing tests (dmcphers@redhat.com)
+- remove debug flag for rhc get status operations in cucumber tests
+  (bparees@redhat.com)
+- Added User pending-op-group/pending-op functionality Added pending op groups
+  for user add_ssh_keys/remove_ssh_keys (rpenta@redhat.com)
+- Merge pull request #4954 from UhuruSoftware/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4924 from jhadvig/perl_deps
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1030305 - 'rhc app show --state/--gear' shows db gear stop after restore
+  snapshot for scalable app (bparees@redhat.com)
+- Merge pull request #4955 from fabianofranz/dev/163
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1075470 - Met "undefined method `platform' for nil" error when creating
+  application of download cartridge. (vlad.iovanov@uhurusoftware.com)
+- [origin-server-ui-163] When filtering by owner must respect token visibility
+  (contact@fabianofranz.com)
+- LIST_APPLICATIONS_BY_OWNER and LIST_DOMAINS_BY_OWNER only support @self as
+  the owner argument (contact@fabianofranz.com)
+- [origin-server-ui-163] Adding support to query apps owned by the user
+  (contact@fabianofranz.com)
+- cpanfila and Makefile.PL support (jhadvig@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - Merge pull request #4944 from UhuruSoftware/master
   (dmcphers+openshiftbot@redhat.com)
