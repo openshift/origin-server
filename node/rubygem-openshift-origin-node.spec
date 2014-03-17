@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -281,6 +281,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
+- Merge pull request #4965 from UhuruSoftware/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1076366 - Need to migrate 'platform' into gear-registry.json for scaling
+  applications (vlad.iovanov@uhurusoftware.com)
+- Bug 1067008 - Delete gear when missing a Cartridge Ident (jhonce@redhat.com)
+- Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore (mfojtik@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - Merge pull request #4956 from bparees/binary_deploy
   (dmcphers+openshiftbot@redhat.com)

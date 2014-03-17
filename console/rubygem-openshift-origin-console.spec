@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
+- Merge pull request #4955 from fabianofranz/dev/163
+  (dmcphers+openshiftbot@redhat.com)
+- [origin-server-ui-163] Adding support to query apps owned by the user
+  (contact@fabianofranz.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - Merge pull request #4897 from fabianofranz/dev/155b
   (dmcphers+openshiftbot@redhat.com)
