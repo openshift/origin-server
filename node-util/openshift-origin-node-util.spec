@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -159,6 +159,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.21.2-1
+- Bug 1074627 - Removed unnecessary output (jhonce@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - Bug 1076008 - Fix pgrep regex usage (jhonce@redhat.com)
 - Merge pull request #4944 from UhuruSoftware/master
