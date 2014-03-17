@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -73,6 +73,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
+- Remove unused teardowns (dmcphers@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - Refactor the way how we check if compilation of assets is necessary (ruby)
   (mfojtik@redhat.com)
