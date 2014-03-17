@@ -6,7 +6,7 @@ class OauthController < BaseController
   def authorize
     authorize! :create_authorization, current_user
 
-    # Validate client and redirect uri
+    # Validate client and redirect uri, and do not redirect to client if there are problems
     client_id = params[:client_id].to_s
     redirect_uri = params[:redirect_uri].to_s
 
@@ -15,7 +15,7 @@ class OauthController < BaseController
 
     client = Rails.configuration.oauth_clients[client_id]
     return render_oauth_error("invalid_client") if client.blank?
-    return render_oauth_error("invalid_request", "redirect_uri is not allowed for this client", :bad_request) unless valid_redirect_uri?(redirect_uri, client[:redirect_uris])
+    return render_oauth_error("invalid_request", "redirect_uri is not allowed for this client") unless valid_redirect_uri?(redirect_uri, client[:redirect_uris])
 
     # Hold return params
     return_params = {}
@@ -56,7 +56,7 @@ class OauthController < BaseController
     authorize! :create_oauth_access_token, current_user
 
     # Require calls to use POST method per rfc6749, section 2.3.1
-    return render_oauth_error("invalid_request", "POST method required", :bad_request) unless request.post?
+    return render_oauth_error("invalid_request", "POST method required") unless request.post?
 
     code = params[:code].to_s
     grant_type = params[:grant_type].to_s
@@ -74,7 +74,7 @@ class OauthController < BaseController
     return render_missing_param(:client_secret) if client_secret.blank?
     return render_missing_param(:code)          if code.blank?
     return render_missing_param(:grant_type)    if grant_type.blank?
-    return render_oauth_error("unsupported_grant_type", "grant_type must be 'authorization_code'", :bad_request) if grant_type != "authorization_code"
+    return render_oauth_error("unsupported_grant_type", "grant_type must be 'authorization_code'") if grant_type != "authorization_code"
 
     # Validate client and secret
     client = Rails.configuration.oauth_clients[client_id]
@@ -86,6 +86,7 @@ class OauthController < BaseController
     temp_auth = Authorization.authenticate(code)
     return render_oauth_error("unauthorized_client", "code is not valid", :unauthorized) if temp_auth.blank?
     return render_oauth_error("unauthorized_client", "code is not valid", :unauthorized) if temp_auth.oauth_client_id != client_id
+
 
     # Create a new authorization with the desired scopes
     # Hard-code configured scopes in client config for now
@@ -100,8 +101,10 @@ class OauthController < BaseController
       a.oauth_client_id = client[:id]
     end
 
+
     # Delete the temporary authorization
     temp_auth.delete
+
 
     # Send the new access token to the client
     response_data = {
@@ -109,7 +112,6 @@ class OauthController < BaseController
       :expires_in => new_auth.expires_in,
       :token_type => "Bearer"
     }
-
     respond_to do |format|
       format.json { render :json => response_data and return }
       format.any { render :text => response_data.to_query and return }
@@ -122,7 +124,6 @@ class OauthController < BaseController
       when :unauthorized, :forbidden
         render_oauth_error("unauthorized_client", msg, status)
       else
-        binding.pry
         render_oauth_error("invalid_request", msg, status)
       end
     end
@@ -137,7 +138,7 @@ class OauthController < BaseController
 
   private
     def render_missing_param(param_name)
-      render_oauth_error("invalid_request", "#{param_name} is required", :bad_request)
+      render_oauth_error("invalid_request", "#{param_name} is required")
     end
 
     def render_oauth_error(code, description=nil, status=:bad_request)

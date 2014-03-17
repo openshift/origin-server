@@ -127,12 +127,20 @@ class OauthControllerTest < ActionController::TestCase
   #
   # Required params
   #
-  [:client_id, :redirect_uri, :response_type].each do |p|
-    test "authorize requires #{p} parameter" do
+  [:client_id, :redirect_uri].each do |p|
+    test "authorize requires #{p} parameter or fails" do
       with_basic_auth
       get :authorize, authorize_params.tap {|h| h.delete(p) }
       assert_response :bad_request
       assert_oauth_error 'invalid_request', p
+    end
+  end
+
+  [:response_type].each do |p|
+    test "authorize requires #{p} parameter or redirects with error" do
+      with_basic_auth
+      get :authorize, authorize_params.tap {|h| h.delete(p) }
+      assert_redirect_error 'invalid_request', p
     end
   end
 
@@ -158,8 +166,7 @@ class OauthControllerTest < ActionController::TestCase
   test "authorize validates response_type" do
     with_basic_auth
     get :authorize, authorize_params.merge(:response_type => "X")
-    assert_response :bad_request
-    assert_oauth_error 'unsupported_response_type', 'code'
+    assert_redirect_error 'unsupported_response_type', 'code'
   end
 
   test "authorize validates redirect_uri is allowed for client" do
@@ -245,6 +252,16 @@ class OauthControllerTest < ActionController::TestCase
 
 
   private
+
+    def assert_redirect_error(error, description_substring=nil)
+      assert_response :found
+      assert params = Rack::Utils.parse_query(URI(response.location).query), "No params in #{response.location}"
+      assert_equal error, params['error']
+      if description_substring.present?
+        assert params['error_description']
+        assert params['error_description'][description_substring.to_s], "Description didn't contain #{description_substring}: #{response.location}"
+      end
+    end
 
     def assert_oauth_error(error, description_substring=nil)
       assert json = JSON.parse(response.body)
