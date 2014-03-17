@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.7.2
+Version: 0.7.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,9 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 0.7.3-1
+- Bug 1067008 - Delete gear when missing a Cartridge Ident (jhonce@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 0.7.2-1
 - Bug 1053485 - Changing GID_MIN in login.defs prevents app creation
   (bleanhar@redhat.com)
