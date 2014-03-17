@@ -26,7 +26,9 @@ class MembersController < BaseController
       errors << Message.new(:error, "You must provide a member with an id and role.", 1, nil, i) and next unless m.is_a? Hash
       role = Role.for(m[:role]) || (m[:role] == 'none' and :none)
       errors << Message.new(:error, "You must provide a role for each member - you can add or update (with #{Role.all.map{ |s| "'#{s}'" }.join(', ')}) or remove (with 'none').", 1, :role, i) and next unless role
+      errors << Message.new(:error, "Role #{role} not supported for #{membership.class.model_name.humanize.downcase}.", 1, "role", i) and next unless validate_role(role)
       type = m[:type] || "user"
+      errors << Message.new(:error, "Members of type #{type} not supported for #{membership.class.model_name.humanize.downcase}.", 1, "type", i) and next unless validate_type(type)
       case type
       when "user"
         if m[:id].present?
@@ -109,7 +111,9 @@ class MembersController < BaseController
     authorize! :change_members, membership
     id = params[:id].presence
     role = params[:role].presence 
+    return render_error(:unprocessable_entity, "Role #{role} not supported", 1) unless validate_role(role)
     type = params[:type].presence
+    return render_error(:unprocessable_entity, "Member type #{type} not supported.", 1) unless validate_type(type)
     member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
     if role.to_sym == :none
       membership.remove_members(member)
@@ -210,6 +214,16 @@ class MembersController < BaseController
 
     def members
       membership.members
+    end
+    
+    def validate_role(role)
+      return false unless Role.all.include? role.to_sym or role.to_sym == :none
+      true
+    end
+    
+    def validate_type(type)
+      return false unless type == "user" or type == "team"
+      true
     end
 
   private

@@ -14,8 +14,6 @@ class Team
 
   class Member < ::Member
   end
-  
-  TEAM_MEMBER_ROLES = [:view].freeze
 
   field :name, type: String
   belongs_to :owner, class_name: CloudUser.name

@@ -194,6 +194,9 @@ class TeamMembersControllerTest < ActionController::TestCase
     post :create, {"team_id" => @team.id, "login" => @member1.login, "role" => "bogus"}
     assert_response :unprocessable_entity
     
+    post :create, {"team_id" => @team.id, "name" => "bad", "role" => "view", "type" => "team"}
+    assert_response :unprocessable_entity
+    
     post :create, {"team_id" => @team.id, "login" => @member1.login}
     assert_response :success
     assert json = JSON.parse(response.body)

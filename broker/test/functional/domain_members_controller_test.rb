@@ -11,7 +11,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     @owner = CloudUser.new(login: @login)
     @owner.private_ssl_certificates = true
     @owner.save
-    Lock.create_lock(@owner)
+    Lock.create_lock(@owner.id)
     register_user(@login, @password)
 
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
@@ -25,7 +25,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     team_member_name = "team_member#{@random}"
     @team_member = CloudUser.new(login: team_member_name)
     @team_member.save
-    Lock.create_lock(@team_member)
+    Lock.create_lock(@team_member.id)
     @team.add_members(@team_member)
     @team.save
     #create another user to add to domain as member directly
@@ -428,6 +428,9 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
     
     post :create, {"domain_id" => @domain.namespace, "id" => @member.login, "type" => "bad", "role" => "view"}
+    assert_response :unprocessable_entity
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => @member.login, "type" => "user", "role" => "bad"}
     assert_response :unprocessable_entity
   end
 

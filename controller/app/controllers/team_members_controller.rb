@@ -11,7 +11,6 @@ class TeamMembersController < MembersController
 
   def create
     params[:role] = :view unless params[:role].presence
-    return render_error(:unprocessable_entity, "Role #{params[:role]} not supported for team members", 1) unless Team::TEAM_MEMBER_ROLES.include? params[:role].to_sym or params[:role].to_sym == :none 
     super
   end
 
@@ -20,7 +19,7 @@ class TeamMembersController < MembersController
     id = params[:id].presence
     role = params[:role].presence 
     return render_error(:unprocessable_entity, "Role required for update.", 1) if role.nil? 
-    return render_error(:unprocessable_entity, "Role #{role} not supported for team members", 1) unless Team::TEAM_MEMBER_ROLES.include? role.to_sym or role.to_sym == :none
+    return render_error(:unprocessable_entity, "Role #{role} not supported for team members", 1) unless validate_role(role)
     member = membership.members.find(id)
     if role.to_sym == :none
       membership.remove_members(member)
@@ -30,9 +29,21 @@ class TeamMembersController < MembersController
     membership.save
     render_success(:ok, "member", get_rest_member(member), "Updated member")
   end
-   
+ 
   protected
+    
     def membership
       @membership ||= get_team
     end
+    
+    def validate_role(role)
+      return false unless [:view].include? role.to_sym or role.to_sym == :none
+      true
+    end
+    
+    def validate_type(type)
+      return false unless type == "user"
+      true
+    end
+    
 end

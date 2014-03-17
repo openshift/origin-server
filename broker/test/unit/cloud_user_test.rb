@@ -13,7 +13,7 @@ class CloudUserTest < ActiveSupport::TestCase
     password = "password"
     user = CloudUser.new(login: login)
     user.save!
-    Lock.create_lock(user)
+    Lock.create_lock(user.id)
     
     team_name = "team#{random}"
     team = Team.create(name: team_name, owner_id:user._id)
