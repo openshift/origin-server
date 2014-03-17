@@ -795,7 +795,7 @@ index.pl
 
 Due to changes in Perl cartridge template layout, the application root is now stored in `$OPENSHIFT_REPO_DIR`, but is also backward compatible with deprecated `perl/` directory.
 
-Modules are installed with `cpan.txt`, located in `.openshift` directory. `deplist.txt` is deprecated, but still working. Besides that application dependencies can be installed using `cpanfile` or `Makefile.PL`, which needs to be placed at the root of the application.
+Modules are installed with `cpan.txt`, located in the `.openshift/` directory. In addition, application dependencies can be installed using cpanfile or Makefile.PL placed in the .openshift/ folder. deplist.txt is deprecated in favor of .openshift/cpan.txt.
 
 === Cartridge Layout
 ----
