@@ -35,10 +35,8 @@ module OpenShift
       def initialize(id, district=nil)
         @id = id
         #TODO hardcode to localhost for now, should be passed in ID
-        @hostname = ENV["GEARD_HOST_PORT"] || "localhost"
+        @hostname = ENV["GEARD_HOST_PORT"] || "localhost:8080"
         @district = district
-        #TODO Config the port
-        @port = "2224"
       end
 
       # <<factory method>>
@@ -1615,7 +1613,7 @@ module OpenShift
             #async do
               clnt = HTTPClient.new
               #todo since we don't have the right identity right now, pass localhost instead of identity
-              res = clnt.put("#{build_base_geard_url (ENV['GEARD_HOST_PORT'] || 'localhost')}#{job[:action]}#{job[:args]}")
+              res = clnt.put("#{build_base_geard_url (ENV['GEARD_HOST_PORT'] || 'localhost:8080')}#{job[:action]}#{job[:args]}")
               handle[identity].each { |gear_info|
                 gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{res.body}"
                 gear_info[:result_exit_code] = res.status_code < 400 ? 0 : res.status_code
@@ -1641,7 +1639,7 @@ module OpenShift
       end
 
       def build_base_geard_url
-        "http://#{@hostname}:#{@port}/"
+        "http://#{@hostname}/"
       end
 
       def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
@@ -1653,7 +1651,7 @@ module OpenShift
       end
 
       def self.build_base_geard_url(hostname)
-        "http://#{hostname}:2224/"
+        "http://#{hostname}/"
       end
 
       def self.build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
