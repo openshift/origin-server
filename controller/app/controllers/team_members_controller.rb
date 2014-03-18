@@ -18,8 +18,8 @@ class TeamMembersController < MembersController
     authorize! :change_members, membership
     id = params[:id].presence
     role = params[:role].presence 
-    return render_error(:unprocessable_entity, "Role required for update.", 1) if role.nil? 
-    return render_error(:unprocessable_entity, "Role #{role} not supported for team members", 1) unless validate_role(role)
+    return render_error(:unprocessable_entity, "Role required for update.", 1, "role") if role.nil? 
+    return render_error(:unprocessable_entity, "Role #{role} not supported. Supported roles are #{allowed_roles.map{ |s| "'#{s}'" }.join(', ')}", 1, "role") unless (allowed_roles.include?(role.to_sym) or role.to_sym == :none)
     member = membership.members.find(id)
     if role.to_sym == :none
       membership.remove_members(member)
@@ -36,14 +36,12 @@ class TeamMembersController < MembersController
       @membership ||= get_team
     end
     
-    def validate_role(role)
-      return false unless [:view].include? role.to_sym or role.to_sym == :none
-      true
+    def allowed_roles
+      [:view]
     end
     
-    def validate_type(type)
-      return false unless type == "user"
-      true
+    def allowed_member_types
+      ["user"]
     end
     
 end

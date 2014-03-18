@@ -18,17 +18,17 @@ class MembersController < BaseController
     errors = []
     warnings = []
     singular = params[:members].nil?
-    user_ids, user_logins, team_ids, team_names = {}, {}, {}, {}
+    user_ids, user_logins, team_ids = {}, {}, {}, {}
 
     # Find input members
-    members_params = (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :name, :type, :role)]).compact
+    members_params = (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :type, :role)]).compact
     members_params.each_with_index do |m, i|
       errors << Message.new(:error, "You must provide a member with an id and role.", 1, nil, i) and next unless m.is_a? Hash
       role = Role.for(m[:role]) || (m[:role] == 'none' and :none)
-      errors << Message.new(:error, "You must provide a role for each member - you can add or update (with #{Role.all.map{ |s| "'#{s}'" }.join(', ')}) or remove (with 'none').", 1, :role, i) and next unless role
-      errors << Message.new(:error, "Role #{role} not supported for #{membership.class.model_name.humanize.downcase}.", 1, "role", i) and next unless validate_role(role)
+      errors << Message.new(:error, "You must provide a role for each member - you can add or update (with #{allowed_roles.map{ |s| "'#{s}'" }.join(', ')}) or remove (with 'none').", 1, "role", i) and next unless role
+      errors << Message.new(:error, "Role #{role} not supported for #{membership.class.model_name.humanize.downcase}. Supported roles are #{allowed_roles.map{ |s| "'#{s}'" }.join(', ')}.", 1, "role", i) and next unless allowed_roles.include?(role) or role == :none
       type = m[:type] || "user"
-      errors << Message.new(:error, "Members of type #{type} not supported for #{membership.class.model_name.humanize.downcase}.", 1, "type", i) and next unless validate_type(type)
+      errors << Message.new(:error, "Members of type #{type} not supported for #{membership.class.model_name.humanize.downcase}. Supported types are #{allowed_member_types.map{ |s| "'#{s}'" }.join(', ')}.", 1, "type", i) and next unless allowed_member_types.include?(type)
       case type
       when "user"
         if m[:id].present?
@@ -41,13 +41,11 @@ class MembersController < BaseController
       when "team"
         if m[:id].present?
           team_ids[m[:id].to_s] = [role, i]
-        elsif m[:name].present?
-          team_names[m[:name].to_s] = [role, i]
         else
-          errors << Message.new(:error, "Each team being changed must have an id or a name.", 1, nil, i)
+          errors << Message.new(:error, "Each team being changed must have an id.", 1, nil, i)
         end
       else
-        errors << Message.new(:error, "Unrecognized type '#{type}'.  Expecting user or team.", 1, nil, i)
+        errors << Message.new(:error, "Type '#{type}' not implemented.", 1, "type")
       end
     end
     if errors.present?
@@ -55,38 +53,33 @@ class MembersController < BaseController
       return render_error(:unprocessable_entity, errors.first.text, 1, nil, nil, errors) if singular
       return render_error(:unprocessable_entity, "The provided members are not valid.", 1, nil, nil, errors)
     end
-    return render_error(:unprocessable_entity, "You must provide at least a single member that exists.", 1) unless user_ids.present? || user_logins.present? || team_ids.present? || team_names.present?
+    return render_error(:unprocessable_entity, "You must provide at least a single member that exists.", 1) unless user_ids.present? || user_logins.present? || team_ids.present? 
 
     # Perform lookups of users by login and create members for new roles
-    new_members = changed_members_for(user_ids, user_logins, team_ids, team_names, errors)
-    remove = removed_ids(user_ids, user_logins, team_ids, team_names, errors)
+    new_members = changed_members_for(user_ids, user_logins, team_ids, errors)
+    remove = removed_ids(user_ids, user_logins, team_ids, errors)
+
     if errors.present?
+      Rails.logger.error errors
       return render_error(:not_found, errors.first.text, 1, nil, nil, errors) if singular
       return render_error(:not_found, "Not all provided members exist.", 1, nil, nil, errors)
     end
 
     # Warn about partial inputs
     invalid_members = []
-    remove[:users].delete_if do |id, pretty|
-      unless membership.members.detect{ |m| m._id.to_s == id and (m.type == "user" or m.type == nil) and m.from.blank?}
-        invalid_members << pretty
-      end
-    end
-    remove[:teams].delete_if do |id, pretty|
-      unless membership.members.detect{ |m| m._id.to_s == id and m.type == "team"}
-        invalid_members << pretty
-      end
-    end
+    #filter of what can be removed and generate error for the rest
+    remove = remove.select {|r| can_be_removed(r[0], r[1], r[3], invalid_members) }
+    
     if invalid_members.present?
       msg = "#{invalid_members.to_sentence} #{invalid_members.length > 1 ? "are not direct members" : "is not a direct member"} and cannot be removed."
       return render_error(:unprocessable_entity, msg, 1) if singular
       warnings << Message.new(:warning, msg, 1, nil)
     end
 
-    count_remove = remove[:users].count + remove[:teams].count
+    count_remove = remove.count
     count_update = (membership.member_ids & new_members.map(&:id)).count
     count_add    = new_members.count - count_update
-    membership.remove_members(remove[:users].map {|k,v| [k, "user"]} + remove[:teams].map {|k,v| [k, "team"]})
+    membership.remove_members(remove)
     membership.add_members(new_members)
 
     if save_membership(membership)
@@ -111,9 +104,9 @@ class MembersController < BaseController
     authorize! :change_members, membership
     id = params[:id].presence
     role = params[:role].presence 
-    return render_error(:unprocessable_entity, "Role #{role} not supported", 1) unless validate_role(role)
-    type = params[:type].presence
-    return render_error(:unprocessable_entity, "Member type #{type} not supported.", 1) unless validate_type(type)
+    return render_error(:unprocessable_entity, "Role #{role} not supported. Supported roles are #{allowed_roles.map{ |s| "'#{s}'" }.join(', ')}.", 1, "role") unless allowed_roles.include? (role.to_sym) or role.to_sym == :none
+    type = params[:type].presence || "user"
+    return render_error(:unprocessable_entity, "Member type #{type} not supported. Supported types are #{allowed_member_types.map{ |s| "'#{s}'" }.join(', ')}.", 1, "type") unless allowed_member_types.include? (type)
     member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
     if role.to_sym == :none
       membership.remove_members(member)
@@ -126,14 +119,11 @@ class MembersController < BaseController
   end
 
   def destroy
-    if params[:id] == "self"
-      leave
-    else
-      authorize! :change_members, membership
-      id = params[:id].presence
-      type = params[:type].presence || "user"
-      remove_member(id, type)
-    end
+    authorize! :change_members, membership
+    id = params[:id].presence
+    type = params[:type].presence || "user"
+    return render_error(:unprocessable_entity, "Member type #{type} not supported. Supported types are #{allowed_member_types.map{ |s| "'#{s}'" }.join(', ')}.", 1, "type") unless allowed_member_types.include? (type)
+    remove_member(id, type)
   end
 
   def destroy_all
@@ -216,18 +206,16 @@ class MembersController < BaseController
       membership.members
     end
     
-    def validate_role(role)
-      return false unless Role.all.include? role.to_sym or role.to_sym == :none
-      true
+    def allowed_roles
+      Role.all
     end
     
-    def validate_type(type)
-      return false unless type == "user" or type == "team"
-      true
+    def allowed_member_types
+      ["user", "team"]
     end
 
   private
-    def changed_members_for(user_ids, user_logins, team_ids, team_names, errors)
+    def changed_members_for(user_ids, user_logins, team_ids, errors)
       changed_members = []
       if user_ids.present? or user_logins.present?
         user_ids = user_ids.select{ |id, (role, _)| role != :none }
@@ -241,37 +229,32 @@ class MembersController < BaseController
           changed_members.push(m)
         end
       end
-      if team_ids.present? or team_names.present?
+      if team_ids.present?
         team_ids = team_ids.select{ |id, (role, _)| role != :none }
-        team_names = team_names.select{ |id, (role, _)| role != :none }
-        teams = Team.where(owner_id: current_user._id).with_ids_or_names(team_ids.keys, team_names.keys).each.to_a
-        missing_team_names(errors, teams, team_names)
+        teams = Team.accessible(current_user).with_ids(team_ids.keys).each.to_a
         missing_team_ids(errors, teams, team_ids)
         teams.map do |t|
           m = t.as_member
-          m.role = (team_ids[t._id.to_s] || team_names[t.name.to_s])[0]
+          m.role = (team_ids[t._id.to_s])[0]
           changed_members.push(m)
         end
       end
       changed_members
     end
 
-    def removed_ids(user_ids, user_logins, team_ids, team_names, errors)
-      user_ids = user_ids.inject({}){ |h, (id, (role, _))| h[id] = id if role == :none; h }
+    def removed_ids(user_ids, user_logins, team_ids, errors)
+      remove_ids = []
+      user_ids = user_ids.select{ |id, (role, _)| role == :none }
+      user_ids.each { |k,v| remove_ids << [k, "user", nil, k] }
       user_logins = user_logins.select{ |id, (role, _)| role == :none }
       if user_logins.present?
         users = CloudUser.accessible(current_user).with_ids_or_logins(nil, user_logins.keys).each.to_a
         missing_user_logins(errors, users, user_logins)
-        user_ids.merge!(users.inject({}){ |h, u| h[u._id.to_s] = u.login; h })
+        users.each { |u| remove_ids << [u.id.to_s, "user", nil, u.login]}
       end
-      team_ids = team_ids.inject({}){ |h, (id, (role, _))| h[id] = id if role == :none; h }
-      team_names = team_names.select{ |id, (role, _)| role == :none }
-      if team_names.present?
-        teams = Team.where(owner_id: current_user._id).with_ids_or_names(nil, team_names.keys).each.to_a
-        missing_team_names(errors, teams, team_names)
-        team_ids.merge!(teams.inject({}){ |h, t| h[t._id.to_s] = t.name; h })
-      end
-      {:users => user_ids, :teams => team_ids}
+      team_ids = team_ids.select{ |id, (role, _)| role == :none }
+      team_ids.each { |k,v| remove_ids << [k, "team", nil, k]}
+      remove_ids
     end
 
     def missing_user_logins(errors, users, map)
@@ -285,17 +268,21 @@ class MembersController < BaseController
         errors << Message.new(:error, "There is no account with identifier #{id}.", 132, :id, map[id].last)
       end
     end
-    
-    def missing_team_names(errors, teams, map)
-      (map.keys - teams.map(&:name)).each do |name|
-        errors << Message.new(:error, "There is no team with name #{name}.", 132, :name, map[name].last)
-      end
-    end
 
     def missing_team_ids(errors, teams, map)
       (map.keys - teams.map{ |t| t._id.to_s }).each do |id|
         errors << Message.new(:error, "There is no team with identifier #{id}.", 132, :id, map[id].last)
       end
+    end
+    
+    def can_be_removed(id, type, pretty, invalid_members)
+      if type == "user"
+        return true if membership.members.detect{ |m| m._id.to_s == id and (m.type == "user" or m.type == nil) and m.from.blank?}
+      else
+        return true if membership.members.detect{ |m| m._id.to_s == id and m.type == type}
+      end
+      invalid_members << pretty
+      false
     end
 
     include ActionView::Helpers::TextHelper

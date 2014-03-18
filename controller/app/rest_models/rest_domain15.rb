@@ -65,9 +65,9 @@ class RestDomain15 < OpenShift::Model
         "UPDATE_MEMBERS" => Link.new("Add or remove one or more members to this domain.", "POST", URI::join(url, "domain/#{id}/members"),
           [Param.new("role", "string", "The role the member should have on the domain", Role.all)],
           [OptionalParam.new("type", "string", "The member's type. i.e. user or team", ["user", "team"], "user"),
-          OptionalParam.new("id", "string", "Unique identifier of the member for the given member type"),
+          OptionalParam.new("id", "string", "Unique identifier of the member for the given member type (user or team ID)"),
           OptionalParam.new("login", "string", "The user's login attribute"),
-          OptionalParam.new("name", "string", "The team's name attribute")]
+          OptionalParam.new("members", "Array", "An array of members to add with corresponding type and role. e.g. [{\"login\" => \"foo\", \"type\" => \"user\", \"role\" => \"view\"}, {\"id\" =>\"5326534e2046fde9d3000001\", \"type\"=> \"team\", \"role\" => \"edit\" }]")]
         ),
       }
     end

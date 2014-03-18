@@ -129,15 +129,11 @@ class Team
     {name: -1}
   end
   
-  def self.with_ids_or_names(ids, names)
+  def self.with_ids(ids)
     if ids.present?
-      if names.present?
-        self.or({:_id.in => ids}, {:name.in => names})
-      else
-        self.in(_id: ids)
-      end
+      self.in(_id: ids)
     else
-      self.in(name: names)
+      []
     end
   end
 end

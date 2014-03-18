@@ -5,7 +5,7 @@ class TeamsController < BaseController
   def index
     teams = 
       case params[:owner]
-      when "@self" then Team.where(owner: current_user)
+      when "@self" then Team.accessible(current_user).where(owner: current_user)
       when nil     then Team.accessible(current_user)
       else return render_error(:unprocessable_entity, "Only @self is supported for the 'owner' argument.", 1) 
       end
