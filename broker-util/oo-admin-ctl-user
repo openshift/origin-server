@@ -276,6 +276,7 @@ end
 
 def add_sub_account(user, subaccount_login)
   begin
+    child_user = nil
     Lock.run_in_user_lock(user) do
       unless user.subaccounts
         $stderr.puts "User #{user.login} does not have the capability to manage sub accounts"
