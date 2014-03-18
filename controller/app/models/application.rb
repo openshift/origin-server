@@ -1715,7 +1715,8 @@ class Application
         # raise the original exception if it was the actual exception that led to the rollback
         # if not, then we should just continue execution of any remaining op_groups.
         # The continue_on_successful_rollback flag is used by the oo-admin-clear-pending-ops script
-        unless rollback_pending or continue_on_successful_rollback
+        # Note: If the rollback was blocked, do not continue as this can lead to an infinite loop
+        if !(rollback_pending or continue_on_successful_rollback) or op_group.rollback_blocked
           if e_orig.respond_to? 'resultIO' and e_orig.resultIO
             e_orig.resultIO.append result_io unless e_orig.resultIO == result_io
           end
