@@ -15,8 +15,9 @@ export OPENSHIFT_PHP_VERSION="$version"
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source ${OPENSHIFT_PHP_DIR}usr/lib/php_context
 
-echo "$version" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_VERSION"
-echo "$OPENSHIFT_PHP_DIR/configuration/etc/php.ini" > "$OPENSHIFT_PHP_DIR/env/PHPRC"
+echo "$version" > ${OPENSHIFT_PHP_DIR}env/OPENSHIFT_PHP_VERSION
+echo "${OPENSHIFT_PHP_DIR}configuration/etc/php.ini" > ${OPENSHIFT_PHP_DIR}env/PHPRC
+echo "${OPENSHIFT_PHP_DIR}configuration/etc/php.d" > ${OPENSHIFT_PHP_DIR}env/PHP_INI_SCAN_DIR
 
 # Create additional directories required by PHP
 mkdir -p $OPENSHIFT_PHP_DIR/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
