@@ -19,6 +19,21 @@ The OpenShift data directory can be found via the environment variable `$OPENSHI
 == 10gen MMS Agent
 This cartridge provides the https://www.10gen.com/products/mongodb-monitoring-service[10gen MMS agent] on OpenShift.
 
+A few necessary steps have to be done, in order to embed the 10gen-mms-agent into your application:
+
+. Register at https://mms.mongodb.com
+. Go to the Settings -> Monitoring Agent -> Other Linux
+. Curl tarball link that is there
+. Copy the tarball into the .openshift/mms/ folder and git push it
+. Set environment variable called OPENSHIFT_MMS_API_KEY with the API Key which is in the Settings -> API Settings
++
+....
+rhc set-env OPENSHIFT_MMS_API_KEY=your_mms_api_key -a app
+....
++
+. Embed the 10gen cartridge.
+. Go to https://mms.mongodb.com and add your host, by adding MongoDB host, port and credentials into the formular.
+
 [[cron]]
 == Cron
 This cartridge adds periodic job execution functionality to your OpenShift application.
