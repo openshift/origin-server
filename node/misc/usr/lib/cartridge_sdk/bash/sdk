@@ -636,3 +636,67 @@ function version_in_range() {
 
   return $in_range
 }
+
+function build_path() {
+  local path=""
+  local prim_cart=$(echo $OPENSHIFT_PRIMARY_CARTRIDGE_DIR | awk -F/ '{print toupper($(NF-1))}')
+
+  for f in $(env | grep OPENSHIFT_.*_PATH_ELEMENT | grep -v OPENSHIFT_${prim_cart}_)
+  do
+    element=$(echo $f | sed 's/^.*=\(.*\)$/\1/')
+
+    [[ -z $element ]] && continue
+
+    if [[ $f != OPENSHIFT_*_LD_LIBRARY_PATH_ELEMENT* ]]; then
+      path="${element}:${path}"
+    fi
+
+  done
+
+  for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT
+  do
+    if [[ $f != *OPENSHIFT_*_LD_LIBRARY_PATH_ELEMENT ]]; then
+      test -f ${f} && path=$(< $f):$path
+    fi
+  done
+
+  if [ -f /etc/openshift/env/PATH ]
+  then
+    load_env /etc/openshift/env/PATH
+    path="${path}${PATH}"
+  fi
+
+  echo -n $path
+}
+
+function build_ld_library_path() {
+  local ld_path=""
+  local prim_cart=$(echo $OPENSHIFT_PRIMARY_CARTRIDGE_DIR | awk -F/ '{print toupper($(NF-1))}')
+
+  for f in $(env | grep OPENSHIFT_.*_PATH_ELEMENT | grep -v OPENSHIFT_${prim_cart}_)
+  do
+    element=$(echo $f | sed 's/^.*=\(.*\)$/\1/')
+    [[ -z $element ]] && continue
+
+    if [[ $f == OPENSHIFT_*_LD_LIBRARY_PATH_ELEMENT* ]]; then
+      ld_path="${element}:${ld_path}"
+    fi
+
+  done
+
+  for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT
+  do
+    if [[ $f == *OPENSHIFT_*_LD_LIBRARY_PATH_ELEMENT ]]; then
+      test -f ${f} && ld_path="${ld_path}$(< $f)"
+    fi
+  done
+
+  if [ -f /etc/openshift/env/LD_LIBRARY_PATH ]
+  then
+    load_env /etc/openshift/env/LD_LIBRARY_PATH
+    ld_path=$ld_path:$LD_LIBRARY_PATH
+  fi
+
+  echo -n $ld_path
+}
+

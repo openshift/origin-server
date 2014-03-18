@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "/usr/lib/openshift/cartridge_sdk/bash/sdk"
 
 # source OpenShift environment variable into context
 function load_env {
@@ -32,17 +32,8 @@ do
     load_env $f
 done
 
-path=$(get_gear_path)
-
-if [ -f /etc/openshift/env/PATH ]
-then
-  load_env /etc/openshift/PATH
-  path=$path:$PATH
-fi
-
-export PATH=$path
-
-export LD_LIBRARY_PATH=$(get_gear_ld_library_path)
+export PATH=$(build_path)
+export LD_LIBRARY_PATH=$(build_ld_library_path)
 
 CART_CONF_DIR=$OPENSHIFT_CRON_DIR/configuration
 
