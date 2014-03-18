@@ -286,26 +286,31 @@ class MembersController < BaseController
     end
     
     def is_owner_or_already_exists?(errors, team)
-      if team.owner_id == current_user._id or membership.members.where(type: "team", id: team.id).count > 0
+      if team.owner_id == current_user._id or existing_team_member_ids.include?(team.id)
         return true
+      else
+        errors << Message.new(:error, "You cannot add the team '#{team.name}' because you are not the owner.", 132, "id")
+        return false
       end
-      errors << Message.new(:error, "You cannot add a team which you are not the owner.", 132, "id")
-      false
     end
     
     def can_be_removed?(id, type, pretty, invalid_members, indirect_members)
-      member =  membership.members.find_by({:id => id, :type => type == 'user' ? nil : type}) rescue nil
+      member = membership.members.find_by({:id => id, :type => type == 'user' ? nil : type}) rescue nil
       if member
         if member.explicit_role?
-          true
+          return true
         else
           indirect_members << pretty
-          false
+          return false
         end
       else
         invalid_members << pretty
-        false
+        return false
       end
+    end
+
+    def existing_team_member_ids
+      @existing_team_member_ids ||= membership.members.select(&:team?).map(&:id)
     end
 
     include ActionView::Helpers::TextHelper
