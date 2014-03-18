@@ -1,5 +1,7 @@
 #!/bin/bash -eu
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 echo "Building Perl cartridge"
 
 if [ -f ${OPENSHIFT_REPO_DIR}.openshift/markers/force_clean_build ]
