@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.2
+Version: 1.22.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -281,6 +281,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Mar 18 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
+- Merge pull request #4976 from mfojtik/bugzilla/1076626
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1076626 - Fix LD_LIBRARY_PATH for cron_runjobs (mfojtik@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
 - Merge pull request #4965 from UhuruSoftware/master
   (dmcphers+openshiftbot@redhat.com)
