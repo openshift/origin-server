@@ -46,14 +46,15 @@ PathUtils.flock('/var/lock/openshift-watchman.lock') do
       puts 'Starting Watchman'
       Daemons.run(Options[:script], Options)
     when 'restart'
+      $stdout.write %q(Stopping Watchman)
       loop do
-        puts 'Stopping Watchman'
         Daemons.run(Options[:script], Options.merge(ARGV: ['stop']))
         break unless daemon_running?
         sleep 1
+        $stdout.write '.'
       end
 
-      puts 'Starting Watchman'
+      puts %Q(\nStarting Watchman)
       Daemons.run(Options[:script], Options.merge(ARGV: ['start']))
     when 'status'
       if daemon_running?

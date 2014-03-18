@@ -24,10 +24,27 @@ require 'openshift-origin-node/utils/shell_exec'
 # @!attribute [r] ps_table
 #   @return [Hash<String, Array<String>>] Hash of login name and running processes.
 #     Exposed for testing.
+# @!attribute [r] candidates
+#   @return [Hash<String, Struct>] Hash of candidate gears for enforced state change
+#   @option candidates [String] :uuid gear's uuid
 class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
   include OpenShift::Runtime
 
-  attr_accessor :ps_table
+  attr_accessor :ps_table, :candidates
+
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] config
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] logger
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] gears
+  # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] operation
+  def initialize(config, logger, gears, operation)
+    super
+    @target_gear = Struct.new 'TargetGear', :target_time
+    @candidates = Hash.new
+
+    @state_change_delay = 900
+    @state_change_delay = ENV['STATE_CHANGE_DELAY'].to_i unless ENV['STATE_CHANGE_DELAY'].nil?
+    Syslog.info %Q(Starting Gear State Monitoring, #{@state_change_delay}s state change delay)
+  end
 
   # Determine if state and status are out of sync
   #
@@ -53,7 +70,6 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
     @gears.ids.each do |uuid|
       begin
         state = @gears.state(uuid)
-        #pids      = pgrep(uuid)
         pids  = ps(uuid)
 
         case state
@@ -62,13 +78,21 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
 
           when State::UNKNOWN
             @logger.info %Q(watchman gear #{uuid} in unknown state, will be restarted.)
-            restart(uuid)
+            restart(uuid) if change_state?(uuid)
 
           when State::STOPPED
-            stop(uuid) unless pids.empty?
+            if pids.empty?
+              reset_state(uuid)
+            else
+              stop(uuid) if change_state?(uuid)
+            end
 
           when State::IDLE
-            idle(uuid) unless pids.empty?
+            if pids.empty?
+              reset_state(uuid)
+            else
+              idle(uuid) if change_state?(uuid)
+            end
 
           else
             # Gear has a stop_lock file and a state of running... remove stop_lock
@@ -77,7 +101,11 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
               Syslog.info %Q(watchman deleted stop lock for gear #{uuid} because the state of the gear was #{state})
             end
 
-            restart(uuid) if pids.empty?
+            if pids.empty?
+              restart(uuid) if change_state?(uuid)
+            else
+              reset_state(uuid)
+            end
         end
       rescue Exception => e
         Syslog.info %Q(watchman GearStatePlugin failed for gear #{uuid}: #{e.message}. Processing remaining gears.)
@@ -85,26 +113,36 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
       end
     end
 
-    @ps_table = nil # free resources
+    @ps_table = nil # release resources
   end
 
-  # Find any processes running for this gear
-  # @param [String] uuid of gear we're operating on
-  # @return [Array<String>] pids of running processes
-  def pgrep(uuid)
-    command     = %Q(/usr/bin/pgrep -u $(id -u #{uuid}))
-    pids, _, rc = Utils.oo_spawn(command, quiet: true, timeout: 300)
+  # Stop tracking state changes for this gear
+  #
+  # @param uuid [String] gear uuid
+  def reset_state(uuid)
+    @candidates.delete(uuid)
+  end
 
-    case rc
-      when 0
-        pids.split("\n")
-      when 1
-        Array.new
-      else
-        raise RuntimeError, %Q(watchman search for running processes failed: #{command} (#{rc}))
+  # Has gear been observed in the "wrong" state for 15 minutes?
+  #
+  # @param uuid [String] gear uuid
+  # @return [True, False] true if gear state should be changed
+  def change_state?(uuid)
+    if @candidates.has_key?(uuid)
+      if DateTime.now > @candidates[uuid].target_time
+        reset_state(uuid)
+        return true
+      end
+      return false
     end
+
+    @candidates[uuid] = @target_gear.new(DateTime.now + Rational(@state_change_delay, 86400))
+    false
   end
 
+  # Load process table into Hash
+  #
+  # @return [Hash<String, Array<Fixnum>>] login name: [running pids]
   def load_ps_table
     @ps_table = Hash.new { |h, k| h[k] = Array.new }
 
@@ -125,6 +163,8 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
     @ps_table
   end
 
+  # @param uuid [String] gear uuid
+  # @return [Array<Fixnum>] Running processes for gear
   def ps(uuid)
     @ps_table[uuid]
   end

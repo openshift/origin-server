@@ -32,10 +32,14 @@ The program only returns when an exception is thrown
 Number of restarts to attempt before waiting \fBRETRY_PERIOD\fR. Default: 3
 .TP
 .B  RETRY_DELAY
-Number of seconds to wait before accepting another gear restart. Default: 5 minutes
+Number of seconds to wait before accepting another gear restart. Default: 300 seconds (5 minutes)
 .TP
 .B  RETRY_PERIOD
-Number of seconds to wait before resetting retries. Default: 8 hours
+Number of seconds to wait before resetting retries. Default: 28800 seconds (8 hours)
+.TP
+.B  STATE_CHANGE_DELAY
+Number of seconds a gear must remain inconsistent with it's state before
+Watchman attempts to reset state. Default: 900 seconds (15 minutes)
 .SH FILES
 .TP
 .FN /etc/sysconfig/watchman
