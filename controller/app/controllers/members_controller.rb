@@ -3,7 +3,7 @@ class MembersController < BaseController
   def index
     render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, "Found #{pluralize(members.length, 'member')}.")
   end
-  
+
   def show
     id = params[:id].presence
     type = params[:type].presence || "user"
@@ -70,7 +70,7 @@ class MembersController < BaseController
     indirect_members = []
     #filter of what can be removed and generate error for the rest
     remove = remove.select {|r| can_be_removed?(r[0], r[1], r[3], invalid_members, indirect_members) }
-    
+
     if invalid_members.present?
       msg = "#{invalid_members.to_sentence} #{invalid_members.length > 1 ? "are not members" : "is not a member"} and cannot be removed."
       return render_error(:unprocessable_entity, msg, 1) if singular
@@ -107,7 +107,7 @@ class MembersController < BaseController
       render_error(:unprocessable_entity, "The members could not be added due to validation errors.", 1, nil, nil, get_error_messages(membership))
     end
   end
-  
+
   def update
     authorize! :change_members, membership
     id = params[:id].presence
@@ -214,11 +214,11 @@ class MembersController < BaseController
     def members
       membership.members
     end
-    
+
     def allowed_roles
       Role.all
     end
-    
+
     def allowed_member_types
       ["user", "team"]
     end
@@ -288,7 +288,7 @@ class MembersController < BaseController
         errors << Message.new(:error, "There is no team with identifier #{id}.", 132, :id, map[id].last)
       end
     end
-    
+
     def is_owner_or_already_exists?(errors, team)
       if team.owner_id == current_user._id or existing_team_member_ids.include?(team.id)
         return true
@@ -297,7 +297,7 @@ class MembersController < BaseController
         return false
       end
     end
-    
+
     def can_be_removed?(id, type, pretty, invalid_members, indirect_members)
       member = find_existing_member(id, type) rescue nil
       if member
