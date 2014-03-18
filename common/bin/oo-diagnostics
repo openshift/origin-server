@@ -846,10 +846,9 @@ class OODiag
     if @is_node
       fail_without += %w{httpd sshd openshift-iptables-port-proxy openshift-gears
                         cgconfig cgred crond openshift-node-web-proxy}
-      scl_prefix = @project_is[:enterprise] ? "ruby193-" : ""
       fail_without << @scl_prefix + "mcollective"
 
-      warn_without += %w{ntpd oddjobd messagebus}
+      warn_without += %w{ntpd oddjobd messagebus openshift-watchman}
     end
     skip_test if fail_without.empty? && warn_without.empty?
        #
