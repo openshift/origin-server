@@ -3,7 +3,7 @@ class RestMember < OpenShift::Model
   
   def initialize(member, owner, url, membership, nolinks=false)
     self.type = to_type(member.type)
-    self.login = member.name if member.type == 'user'
+    self.login = member.name if member.type == 'user' # only display login for users
     @name = member.name if member.name != login # only display name if it differs from login
     self.id = member._id
     self.role = member.role
@@ -27,10 +27,10 @@ class RestMember < OpenShift::Model
       end
         
       self.links = {
-        "GET" => Link.new("Get member", "GET", URI::join(url, "member/#{id}").to_s + (self.type == "team" ? "?type=team" : "")),
-        "UPDATE" => Link.new("Update member", "PUT", URI::join(url, "member/#{id}").to_s + (self.type == "team" ? "?type=team" : ""), [
+        "GET" => Link.new("Get member", "GET", URI::join(url, "member/#{id}").to_s + (self.type != "user" ? "?type=#{self.type}" : "")),
+        "UPDATE" => Link.new("Update member", "PUT", URI::join(url, "member/#{id}").to_s + (self.type != "user" ? "?type=#{self.type}" : ""), [
           Param.new("role", "string", "New role for member")]),
-        "DELETE" => Link.new("Delete member", "DELETE", URI::join(url, "member/#{id}").to_s + (self.type == "team" ? "?type=team" : ""))
+        "DELETE" => Link.new("Delete member", "DELETE", URI::join(url, "member/#{id}").to_s + (self.type != "user" ? "?type=#{self.type}" : ""))
       }
     end
   end
