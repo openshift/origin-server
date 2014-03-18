@@ -210,7 +210,7 @@ class Domain
     Domain.where(_id: self.id).update_all({ "$pullAll" => { system_ssh_keys: ssh_keys_to_rm }}) unless ssh_keys_to_rm.empty?
 
     keys_attrs = ssh_keys.map { |k| k.serializable_hash }
-    pending_op = AddSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
+    pending_op = AddSystemSshKeysDomainOp.new(keys_attrs: keys_attrs)
     pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pushAll" => { system_ssh_keys: keys_attrs }})
   end
@@ -224,7 +224,7 @@ class Domain
     end
     return if ssh_keys.empty?
     keys_attrs = ssh_keys.map { |k| k.serializable_hash }
-    pending_op = RemoveSystemSshKeysDomainOp.new(keys_attrs: keys_attrs, on_apps: applications)
+    pending_op = RemoveSystemSshKeysDomainOp.new(keys_attrs: keys_attrs)
     pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { system_ssh_keys: keys_attrs }})
   end
@@ -248,7 +248,7 @@ class Domain
     # if this is an update to an existing environment variable, remove the previous ones first
     Domain.where(_id: self.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) unless env_vars_to_rm.empty?
 
-    pending_op = AddEnvVarsDomainOp.new(variables: variables, on_apps: applications)
+    pending_op = AddEnvVarsDomainOp.new(variables: variables)
     pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pushAll" => { env_vars: variables }})
   end
@@ -260,7 +260,7 @@ class Domain
       variables = self.env_vars.select { |env| env["component_id"]==remove_key }
     end
     return if variables.empty?
-    pending_op = RemoveEnvVarsDomainOp.new(variables: variables, on_apps: applications)
+    pending_op = RemoveEnvVarsDomainOp.new(variables: variables)
     pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { env_vars: variables }})
   end

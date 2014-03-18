@@ -1,8 +1,6 @@
 # Class to represent pending operations that need to occur for the {CloudUser}
 # @!attribute [r] state
 #   @return [Symbol] Operation state. One of init, queued or completed
-# @!attribute [r] on_domain_ids
-#   @return [Array] Ids for domains on which this operation needs to be run
 # @!attribute [r] completed_domain_ids
 #   @return [Array] Ids for domains on which this operation has been completed
 # @!attribute [r] on_completion_method
@@ -15,17 +13,11 @@ class PendingUserOp
 
   field :state, type: Symbol, :default => :init
   field :prereq, type: Array
-  has_and_belongs_to_many :on_domains, class_name: Domain.name, inverse_of: nil
   has_and_belongs_to_many :completed_domains, class_name: Domain.name, inverse_of: nil
   field :on_completion_method, type: Symbol
 
-  # List of domains that are still pending
-  #
-  # == Returns:
-  # Array of {Domain}s
   def pending_domains
-    pending_domains = on_domains - completed_domains
-    pending_domains
+    (user.domains - completed_domains)
   end
 
   def prereq

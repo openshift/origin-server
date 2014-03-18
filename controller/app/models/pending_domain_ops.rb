@@ -9,8 +9,6 @@
 #   @return [Hash] Arguments hash.
 # @!attribute [rw] parent_op_id
 #   @return [Moped::BSON::ObjectId] ID of the {PendingUserOps} operation that this operation is part of.
-# @!attribute [r] on_apps
-#   @return [Array[Moped::BSON::ObjectId]] IDs of the {Application} that are part of this operation.
 # @!attribute [r] completed_apps
 #   @return [Array[Moped::BSON::ObjectId]] IDs of the {Application} that have completed their sub-tasks.
 #     @see {PendingDomainOps#child_completed}
@@ -24,7 +22,6 @@ class PendingDomainOps
 
   field :parent_op_id, type: Moped::BSON::ObjectId
   field :state, type: Symbol, :default => :init
-  has_and_belongs_to_many :on_apps, class_name: Application.name, inverse_of: nil
   has_and_belongs_to_many :completed_apps, class_name: Application.name, inverse_of: nil
   field :on_completion_method, type: Symbol
 
@@ -39,8 +36,7 @@ class PendingDomainOps
   end
 
   def pending_apps
-    pending_apps = on_apps - completed_apps
-    pending_apps
+    (domain.applications - completed_apps)
   end
 
   def completed?
