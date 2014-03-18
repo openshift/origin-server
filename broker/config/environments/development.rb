@@ -93,6 +93,7 @@ Broker::Application.configure do
     :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "true"),
     :ssl_endpoint => conf.get("SSL_ENDPOINT", "allow"),
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
+    :max_teams_per_resource => conf.get('MAX_TEAMS_PER_RESOURCE', '5').to_i,
     :allow_ha_applications => conf.get_bool('ALLOW_HA_APPLICATIONS', "false"),
     :default_ha_multiplier => (conf.get("DEFAULT_HA_MULTIPLIER", "0")).to_i,
     :router_hostname => conf.get('ROUTER_HOSTNAME', "www.example.com"),

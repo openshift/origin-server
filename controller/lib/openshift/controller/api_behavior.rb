@@ -159,6 +159,11 @@ module OpenShift
               end
             end
         end
+        
+        def get_team(id=nil)
+          id ||= params[:team_id].presence
+          @team = Team.accessible(current_user).find(id)
+        end
 
         def authorize!(permission, resource, *resources)
           Ability.authorize!(current_user, current_user.scopes, permission, resource, *resources)

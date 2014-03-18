@@ -109,7 +109,7 @@ class RestApplication < OpenShift::Model
     self.build_job_url = nil
     self.initial_git_url = app.init_git_url
 
-    self.members = app.members.map{ |m| RestMember.new(m, app.owner_id == m._id, url, nolinks) }
+    self.members = app.members.map{ |m| RestMember.new(m, app.owner_id == m._id, url, app, nolinks) }
 
     self.auto_deploy = app.config['auto_deploy']
     self.deployment_branch = app.config['deployment_branch']
