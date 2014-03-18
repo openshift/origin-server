@@ -7,7 +7,7 @@ class MembersController < BaseController
   def show
     id = params[:id].presence
     type = params[:type].presence || "user"
-    member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
+    member = find_existing_member(id, type)
     return render_error(:not_found, "Could not find member #{id}", 1) if member.nil?
     render_success(:ok, "member", get_rest_member(member), "Showing member #{id}")
   end
@@ -116,14 +116,14 @@ class MembersController < BaseController
     return render_error(:unprocessable_entity, "Role #{role} not supported. Supported roles are #{allowed_roles.map{ |s| "'#{s}'" }.join(', ')}.", 1, "role") unless allowed_roles.include? (role.to_sym) or role.to_sym == :none
     type = params[:type].presence || "user"
     return render_error(:unprocessable_entity, "Member type #{type} not supported. Supported types are #{allowed_member_types.map{ |s| "'#{s}'" }.join(', ')}.", 1, "type") unless allowed_member_types.include? (type)
-    member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
+    member = find_existing_member(id, type)
     if role.to_sym == :none
       membership.remove_members(member)
     else
       membership.add_members(member.clone.clear, role.to_sym)
     end
     membership.save!
-    member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type}) unless role.to_sym == :none
+    member = find_existing_member(id, type) unless role.to_sym == :none
     render_success(:ok, "member", role.to_sym == :none ? nil : get_rest_member(member), "Updated member")
   end
 
@@ -179,7 +179,7 @@ class MembersController < BaseController
     end
 
     def remove_member(id, type="user")
-      member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
+      member = find_existing_member(id, type)
       membership.remove_members(member)
       if save_membership(membership)
         if m = members.detect{ |m| m._id === id }
@@ -224,6 +224,10 @@ class MembersController < BaseController
     end
 
   private
+    def find_existing_member(id, type)
+      membership.members.find_by({:id => id, :type => type == 'user' ? nil : type})
+    end
+
     def changed_members_for(user_ids, user_logins, team_ids, errors)
       changed_members = []
       if user_ids.present? or user_logins.present?
@@ -295,7 +299,7 @@ class MembersController < BaseController
     end
     
     def can_be_removed?(id, type, pretty, invalid_members, indirect_members)
-      member = membership.members.find_by({:id => id, :type => type == 'user' ? nil : type}) rescue nil
+      member = find_existing_member(id, type) rescue nil
       if member
         if member.explicit_role?
           return true
