@@ -10,12 +10,10 @@ import (
 //
 // All messages are written at the LOG_INFO priority, with a program
 // name equal to tag.
-//
-// SyslogWriter is configured using a Config instance.
 type SyslogWriter struct {
-	config *Config
-	tag    string
-	logger *syslog.Writer
+	bufferSize int
+	tag        string
+	logger     *syslog.Writer
 }
 
 // Init implements the Writer interface.
@@ -38,18 +36,18 @@ func (writer *SyslogWriter) Close() error {
 
 // Write implements the Writer interface.
 //
-// If the length of b > config.syslogBufferSize, the message is broken
+// If the length of b > bufferSize, the message is broken
 // up and its chunks are written sequentially inline within the single
 // call to Write.
 func (writer *SyslogWriter) Write(b []byte) (n int, err error) {
-	if len(b) > writer.config.syslogBufferSize {
+	if len(b) > writer.bufferSize {
 		// Break up messages that exceed the downstream buffer length,
 		// using a bytes.Buffer since it's easy. This may result in an
 		// undesirable amount of allocations, but the assumption is that
 		// bursts of too-long messages are rare.
 		buf := bytes.NewBuffer(b)
 		for buf.Len() > 0 {
-			writer.logger.Write(buf.Next(writer.config.syslogBufferSize))
+			writer.logger.Write(buf.Next(writer.bufferSize))
 		}
 
 		return len(b), nil
