@@ -32,6 +32,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     member_login = "member#{@random}"
     @member = CloudUser.new(login: member_login)
     @member.save
+
     #create domain for user
     @namespace = "ns#{@random}"
     @domain = Domain.create!(namespace: @namespace, owner: @owner)
@@ -405,6 +406,37 @@ class DomainMembersControllerTest < ActionController::TestCase
     
     post :create, {"domain_id" => @domain.namespace, "id" => @member.login, "type" => "user", "role" => "bad"}
     assert_response :unprocessable_entity
+  end
+  
+  test "adding updating and removing a team not owned by user" do
+    
+    #create a team for other member
+    @otherteam = Team.create(name: "myteam", owner_id:@member._id)
+    #add domain owner to team so the team would be visible
+    @otherteam.add_members(@owner)
+    @otherteam.save
+    post :create, {"domain_id" => @domain.namespace, "id" => @otherteam.id, "type" => "team", "role" => "view"}
+    assert_response :not_found
+    
+    #now add team
+    #@domain.add_members(@otherteam)
+    #@domain.save
+    #@domain.run_jobs
+    
+    #get :show, {"domain_id" => @domain.namespace, "id" => @otherteam.id, "type" => "team"}
+    #assert_response :success
+    
+    # make sure the user can update it and remove it
+    #post :create, {"domain_id" => @domain.namespace, "id" => @otherteam.id, "type" => "team", "role" => "edit"}
+    #assert_response :success
+    
+    #post :create, {"domain_id" => @domain.namespace, "id" => @otherteam.id, "type" => "team", "role" => "none"}
+    #assert_response :success
+    
+    #get :index , {"domain_id" => @domain.namespace}
+    #assert_response :success
+    #assert json = JSON.parse(response.body)
+    #assert_equal json['data'].length , 1
   end
 
   test "get member in all versions" do

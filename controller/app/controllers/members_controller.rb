@@ -6,7 +6,7 @@ class MembersController < BaseController
   
   def show
     id = params[:id].presence
-    type = params[:type].presence
+    type = params[:type].presence || "user"
     member = membership.members.find_by({:id => id,:type => type == 'user' ? nil : type})
     return render_error(:not_found, "Could not find member #{id}", 1) if member.nil?
     render_success(:ok, "member", get_rest_member(member), "Showing member #{id}")
@@ -233,6 +233,7 @@ class MembersController < BaseController
         team_ids = team_ids.select{ |id, (role, _)| role != :none }
         teams = Team.accessible(current_user).with_ids(team_ids.keys).each.to_a
         missing_team_ids(errors, teams, team_ids)
+        teams = teams.select {|t| is_owner_or_already_exists?(errors, t)}
         teams.map do |t|
           m = t.as_member
           m.role = (team_ids[t._id.to_s])[0]
@@ -273,6 +274,14 @@ class MembersController < BaseController
       (map.keys - teams.map{ |t| t._id.to_s }).each do |id|
         errors << Message.new(:error, "There is no team with identifier #{id}.", 132, :id, map[id].last)
       end
+    end
+    
+    def is_owner_or_already_exists?(errors, team)
+      if team.owner_id == current_user._id or membership.members.where(type: "team", id: team.id).count > 0
+        return true
+      end
+      errors << Message.new(:error, "You cannot add a team which you are not the owner.", 132, "id")
+      false
     end
     
     def can_be_removed(id, type, pretty, invalid_members)
