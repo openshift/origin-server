@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for DNS update service using nsupdate
 Name:          rubygem-%{gem_name}
-Version:       1.16.1
+Version:       1.16.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,17 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Tue Mar 18 2014 Adam Miller <admiller@redhat.com> 1.16.2-1
+- version bump for openshift-origin-console and dns-nsupdate for OSE rebase
+  (admiller@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Bump up version (tdawson@redhat.com)
 - Merge pull request #3585 from Miciah/plugins-dns-nsupdate-delete-duplicate-
