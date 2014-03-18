@@ -21,7 +21,7 @@ class DomainsController < BaseController
       end
 
     if_included(:application_info, {}){ domains = domains.with_gear_counts }
-    
+
     # Always include domain capability info, which we get from the owner
     domains = Domain.with_owner_info(domains)
 
