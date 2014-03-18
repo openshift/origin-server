@@ -67,17 +67,24 @@ class MembersController < BaseController
 
     # Warn about partial inputs
     invalid_members = []
+    indirect_members = []
     #filter of what can be removed and generate error for the rest
-    remove = remove.select {|r| can_be_removed(r[0], r[1], r[3], invalid_members) }
+    remove = remove.select {|r| can_be_removed?(r[0], r[1], r[3], invalid_members, indirect_members) }
     
     if invalid_members.present?
-      msg = "#{invalid_members.to_sentence} #{invalid_members.length > 1 ? "are not direct members" : "is not a direct member"} and cannot be removed."
+      msg = "#{invalid_members.to_sentence} #{invalid_members.length > 1 ? "are not members" : "is not a member"} and cannot be removed."
       return render_error(:unprocessable_entity, msg, 1) if singular
       warnings << Message.new(:warning, msg, 1, nil)
     end
 
+    if indirect_members.present?
+      msg = "#{indirect_members.to_sentence} #{indirect_members.length > 1 ? "are not direct members" : "is not a direct member"} and cannot be removed."
+      return render_error(:unprocessable_entity, msg, 1) if singular
+      warnings << Message.new(:warning, msg, 1, nil)
+    end    
+
     count_remove = remove.count
-    count_update = (membership.member_ids & new_members.map(&:id)).count
+    count_update = (membership.members.map(&:to_key) & new_members.map(&:to_key)).count
     count_add    = new_members.count - count_update
     membership.remove_members(remove)
     membership.add_members(new_members)
@@ -88,6 +95,7 @@ class MembersController < BaseController
         ("updated #{pluralize(count_update, 'member')}" if count_update > 0),
         ("removed #{pluralize(count_remove, 'member')}" if count_remove > 0),
         ("ignored #{pluralize(invalid_members.length, 'missing member')} (#{invalid_members.join(', ')})" if invalid_members.present?),
+        ("ignored #{pluralize(indirect_members.length, 'indirect member')} (#{indirect_members.join(', ')})" if indirect_members.present?),
       ].compact.join(", ").humanize + '.'
 
       if (count_add + count_update == 1) and (count_remove == 0) and (member = members.detect{|m| m._id == new_members.first._id })
@@ -284,14 +292,19 @@ class MembersController < BaseController
       false
     end
     
-    def can_be_removed(id, type, pretty, invalid_members)
-      if type == "user"
-        return true if membership.members.detect{ |m| m._id.to_s == id and (m.type == "user" or m.type == nil) and m.from.blank?}
+    def can_be_removed?(id, type, pretty, invalid_members, indirect_members)
+      member =  membership.members.find_by({:id => id, :type => type == 'user' ? nil : type}) rescue nil
+      if member
+        if member.explicit_role?
+          true
+        else
+          indirect_members << pretty
+          false
+        end
       else
-        return true if membership.members.detect{ |m| m._id.to_s == id and m.type == type}
+        invalid_members << pretty
+        false
       end
-      invalid_members << pretty
-      false
     end
 
     include ActionView::Helpers::TextHelper

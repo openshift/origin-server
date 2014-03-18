@@ -6,7 +6,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     @controller = DomainMembersController.new
 
     @random = rand(1000000000)
-    @login = "user#{@random}"
+    @login = "owner#{@random}"
     @password = "password"
     @owner = CloudUser.new(login: @login)
     @owner.private_ssl_certificates = true
@@ -142,7 +142,8 @@ class DomainMembersControllerTest < ActionController::TestCase
     #should not be able to remove team member from domain
     post :create, {"domain_id" => @domain.namespace, "login" => @team_member.login, "role" => "none"}
     assert_response :unprocessable_entity
-    
+    # TODO: check message indicates they are not a direct member
+
     get :index , {"domain_id" => @domain.namespace}
     assert json = JSON.parse(response.body)
     assert_equal json['data'].length, 4
@@ -171,7 +172,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert_response :success
     
     post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "none"}
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_entity, response.body
     
     get :index , {"domain_id" => @domain.namespace}
     assert_response :success
