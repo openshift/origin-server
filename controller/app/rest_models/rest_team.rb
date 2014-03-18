@@ -15,7 +15,7 @@ class RestTeam < OpenShift::Model
             [Param.new("role", "string", "The role the user should have on the team", ["view", "none"])],
             [OptionalParam.new("id", "string", "Unique identifier of the user"),
             OptionalParam.new("login", "string", "The user's login attribute"),
-            OptionalParam.new("members", "Array", "An array of user to add with corresponding role. e.g. [{\"login\" => \"foo\", \"role\" => \"view\"}, {\"id\" =>\"5326534e2046fde9d3000001\", \"role\" => \"edit\" }]")
+            OptionalParam.new("members", "Array", "An array of users to add with corresponding role. e.g. [{\"login\" => \"foo\", \"role\" => \"view\"}, {\"id\" =>\"5326534e2046fde9d3000001\", \"role\" => \"none\" }]")
             ]
           ),
           "LEAVE" => Link.new("Leave team", "DELETE", URI::join(url, "team/#{id}/members/self")),
