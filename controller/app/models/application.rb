@@ -2006,7 +2006,7 @@ class Application
     usage_ops = []
 
     comp_spec_gears.keys.each do |comp_spec|
-      component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: [], expose_ports: [], add_broker_auth_keys: []} if component_ops[comp_spec].nil?
+      component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: [], add_broker_auth_keys: []} if component_ops[comp_spec].nil?
       cartridge = comp_spec.cartridge
 
       new_component_op_id = []
@@ -2077,18 +2077,6 @@ class Application
           usage_ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
             app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin], cart_name: cartridge.name,
             usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: usage_op_prereq)
-        end
-
-        if self.scalable
-          expose_port_prereq = []
-          if post_configure_op
-            expose_port_prereq << post_configure_op._id.to_s
-          else
-            expose_port_prereq << add_component_op._id.to_s
-          end
-          op = ExposePortOp.new(gear_id: gear_id, comp_spec: comp_spec, prereq: expose_port_prereq + [prereq_id])
-          component_ops[comp_spec][:expose_ports] << op
-          ops << op
         end
       end
     end
@@ -2329,13 +2317,11 @@ class Application
       prereq_ids += (component_ops[config_order[idx-1]][:add_broker_auth_keys] || []).map{|op| op._id.to_s}
       prereq_ids += (component_ops[config_order[idx-1]][:adds] || []).map{|op| op._id.to_s}
       prereq_ids += (component_ops[config_order[idx-1]][:post_configures] || []).map{|op| op._id.to_s}
-      prereq_ids += (component_ops[config_order[idx-1]][:expose_ports] || []).map {|op| op._id.to_s }
 
       component_ops[config_order[idx]][:new_component].prereq += prereq_ids unless component_ops[config_order[idx]][:new_component].nil?
       (component_ops[config_order[idx]][:add_broker_auth_keys] || []).each { |op| op.prereq += prereq_ids }
       (component_ops[config_order[idx]][:adds] || []).each { |op| op.prereq += prereq_ids }
       (component_ops[config_order[idx]][:post_configures] || []).each { |op| op.prereq += prereq_ids }
-      (component_ops[config_order[idx]][:expose_ports] || []).each { |op| op.prereq += prereq_ids }
     end
 
     if pending_ops.present? and !(pending_ops.length == 1 and SetGroupOverridesOp === pending_ops.first)

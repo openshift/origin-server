@@ -120,26 +120,8 @@ class PendingAppOpGroup
           RemoteJob.execute_parallel_jobs(handle)
           failed_ops = []
           RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
-            if tag.has_key?("expose-ports") and status == 0
-              result = ResultIO.new(status, output, gear_id)
-              component_instance_id = tag["expose-ports"]
-              component_instance = application.component_instances.find(component_instance_id)
-              component_instance.process_properties(result)
-              process_gear = nil
-              application.group_instances.each do |gi|
-                gi.gears.each do |g|
-                  if g.uuid.to_s == gear_id
-                    process_gear = g
-                    break
-                  end
-                end
-                break if process_gear
-              end
-              application.process_commands(result, component_instance, process_gear)
-            else
-              result_io.append ResultIO.new(status, output, gear_id)
-              failed_ops << tag["op_id"] if status != 0
-            end
+            result_io.append ResultIO.new(status, output, gear_id)
+            failed_ops << tag["op_id"] if status != 0
           end
           parallel_job_ops.each do |op|
             if failed_ops.include? op._id.to_s
