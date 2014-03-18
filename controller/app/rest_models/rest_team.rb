@@ -6,7 +6,8 @@ class RestTeam < OpenShift::Model
     unless nolinks
       self.links = {
           "GET" => Link.new("Get team", "GET", URI::join(url, "team/#{id}")),
-          "ADD_MEMBER" => Link.new("add member", "POST", URI::join(url, "team/#{id}/members"), nil,
+          "ADD_MEMBER" => Link.new("add member", "POST", URI::join(url, "team/#{id}/members"),
+            [Param.new("role", "string", "The role the user should have on the team", ["view"])],
             [OptionalParam.new("id", "string", "Unique identifier of the user"),
             OptionalParam.new("login", "string", "The user's login attribute")]),
           "LIST_MEMBERS" => Link.new("list members", "GET", URI::join(url, "team/#{id}/members")),

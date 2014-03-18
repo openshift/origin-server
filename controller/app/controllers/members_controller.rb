@@ -112,6 +112,7 @@ class MembersController < BaseController
     authorize! :change_members, membership
     id = params[:id].presence
     role = params[:role].presence 
+    return render_error(:unprocessable_entity, "You must provide a role. Supported_roles are #{allowed_roles.map{ |s| "'#{s}'" }.join(', ')}) or remove (with 'none').", 1, "role") unless role.present?
     return render_error(:unprocessable_entity, "Role #{role} not supported. Supported roles are #{allowed_roles.map{ |s| "'#{s}'" }.join(', ')}.", 1, "role") unless allowed_roles.include? (role.to_sym) or role.to_sym == :none
     type = params[:type].presence || "user"
     return render_error(:unprocessable_entity, "Member type #{type} not supported. Supported types are #{allowed_member_types.map{ |s| "'#{s}'" }.join(', ')}.", 1, "type") unless allowed_member_types.include? (type)
