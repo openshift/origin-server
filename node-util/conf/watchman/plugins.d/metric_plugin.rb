@@ -185,7 +185,7 @@ module OpenShift
 
           # This method returns a string to be processed, is it worth wrapping the execute?
           def execute_cgget(metrics, path)
-            Utils.oo_spawn("cgget -n -v -r #{metrics} #{path}")[0].join("\n")
+            Utils.oo_spawn("cgget -n -v -r #{metrics} #{path}")[0]
           end
         end
       end
