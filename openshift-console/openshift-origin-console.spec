@@ -15,7 +15,7 @@
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
-Version:       1.16.1
+Version:       1.16.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -250,6 +250,29 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Tue Mar 18 2014 Adam Miller <admiller@redhat.com> 1.16.2-1
+- version bump for openshift-origin-console and dns-nsupdate for OSE rebase
+  (admiller@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4649 from ncdc/dev/rails-syslog
+  (dmcphers+openshiftbot@redhat.com)
+- Add/correct syslog-logger in Gemfiles (andy.goldstein@gmail.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- don't hard code %%{_libdir}, this is breaking ARM (admiller@redhat.com)
+- BuildRequire systemd for mock/koji builds, that package provides the
+  %%{_unitdir} macro (admiller@redhat.com)
+- node: we do not want %%ghost-ed log files (mmahut@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+- Bug 1019492 - Community related links should point to the page on PROD
+  (bleanhar@redhat.com)
+- Update systemd service definitions to rebuild Gemfile.lock
+  (jdetiber@redhat.com)
+- Added minitest to assets group depenedencies (hripps@redhat.com)
+- Removing test dependencies from Broker/Console build and runtime.
+  (bleanhar@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Bump up version (tdawson@redhat.com)
 - Fixing gem version requirement on sass-twitter-bootstrap (kraman@gmail.com)
