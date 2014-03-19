@@ -114,7 +114,7 @@ class Command
       warn "No cartridges match #{ids.map{|s| "'#{s}'"}.join(', ')}."
       return 2
     end
-    names = carts.map{ |s| "'#{s}'" }.join(', ')
+    names = carts.map{ |c| "'#{c.name}'" }.join(', ')
     unless options.dry_run
       carts.delete
     end
