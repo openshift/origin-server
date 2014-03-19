@@ -21,7 +21,7 @@ class CartridgeCache
   end
 
   #
-  # Returns an Array of web framework cartridge names.
+  # Returns an Array of names of non web framework cartridges.
   #
   def self.other_names
     Rails.cache.fetch("other_cartridge_names", :expires_in => DURATION) do
