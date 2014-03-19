@@ -49,15 +49,12 @@ Requires:      libcgroup-pam
 Requires:      libselinux-python
 Requires:      iproute
 Requires:      lsof
-Requires:      mercurial
 Requires:      mod_ssl
 Requires:      openshift-origin-node-proxy
 Requires:      pam_openshift
 Requires:      python
 Requires:      quota
 Requires:      rubygem(openshift-origin-common)
-Requires:      unixODBC
-Requires:      unixODBC-devel
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      libcgroup
 %else

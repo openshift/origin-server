@@ -24,6 +24,7 @@ an OpenShift cartrige.
 %package recommended-all
 Summary:   All recommended user dependency packages for OpenShift Cartridges
 BuildArch: noarch
+Requires:  %{name}-recommended-diy
 Requires:  %{name}-recommended-jbossas
 Requires:  %{name}-recommended-jbosseap
 Requires:  %{name}-recommended-jbossews
@@ -47,6 +48,7 @@ an OpenShift cartrige.
 %package optional-all
 Summary:   All optional user dependency packages for OpenShift Cartridges
 BuildArch: noarch
+Requires:  %{name}-optional-diy
 Requires:  %{name}-optional-jbossas
 Requires:  %{name}-optional-jbosseap
 Requires:  %{name}-optional-jbossews
@@ -65,6 +67,37 @@ might need when building common applications using
 an OpenShift cartrige.
 
 %files optional-all
+
+#===================
+# DIY
+#===================
+# DIY Recommended
+%package recommended-diy
+Summary:   Recommended user dependencies for DIY OpenShift Cartridges
+BuildArch: noarch
+Requires:  mercurial
+Requires:  unixODBC
+Requires:  unixODBC-devel
+
+%description recommended-diy
+This package pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files recommended-diy
+
+# DIY Optional
+%package optional-diy
+Summary:   Optional user dependencies for DIY OpenShift Cartridges
+BuildArch: noarch
+Requires: %{name}-recommended-diy
+
+%description optional-diy
+This package pulls in other packages that a user
+might need when building common applications using
+an OpenShift cartrige.
+
+%files optional-diy
 
 #===================
 # JBossAS
