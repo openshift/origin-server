@@ -311,6 +311,7 @@ module OpenShift
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
         args['--with-app-name'] = app.name
+        args['--with-expose-ports'] = app.scalable
         args['--with-container-uuid'] = gear.uuid
         args['--with-container-name'] = gear.name
         args['--with-quota-blocks'] = quota_blocks if quota_blocks
