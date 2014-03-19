@@ -708,7 +708,7 @@ def check_system_httpd_configs
       httpconfs['aliases.txt'].delete_if { |k,v|  v == fqdn }
       httpconfs['idler.txt'].delete(fqdn)
       httpconfs['sts.txt'].delete(fqdn)
-      httpconfs['routes.json'].delete(fqdn)
+      httpconfs['routes.json'].delete_if   { |k,v|  k.split('/')[0] == fqdn }
       httpconfs['routes.json'].delete_if { |k, v| v["alias"] == fqdn }
       httpconfs['geardb.json'].delete_if { |k, v| v["fqdn"] == fqdn }
     rescue
