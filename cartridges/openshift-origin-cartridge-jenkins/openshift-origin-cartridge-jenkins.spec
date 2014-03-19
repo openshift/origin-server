@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.18.2
+Version: 1.18.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,11 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.18.6-1
+- Automatic commit of package [openshift-origin-cartridge-jenkins] release
+  [1.18.2-1]. (admiller@redhat.com)
+- Updating cartridge versions (jhadvig@redhat.com)
+
 * Thu Mar 06 2014 Adam Miller <admiller@redhat.com> 1.18.2-1
 - Updating cartridge versions (jhadvig@redhat.com)
 
