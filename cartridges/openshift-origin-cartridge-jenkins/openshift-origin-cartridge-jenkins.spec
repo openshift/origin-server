@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.19.0
+Version: 1.19.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,12 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
+- bump spec to fix versioning between branches (admiller@redhat.com)
+
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
+- bump spec to fix versioning between branches (admiller@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.18.3-1
 - Remove unused teardowns (dmcphers@redhat.com)
 
