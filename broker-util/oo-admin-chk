@@ -166,6 +166,7 @@ end
 if level >= 1
   run :find_consumed_gears_inconsistencies
   run :find_ssh_key_inconsistencies
+  run :find_stale_sshkeys_and_envvars
   run :find_district_inconsistencies
 
   run :find_app_gear_usage_record_inconsistencies

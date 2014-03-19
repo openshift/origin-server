@@ -1,7 +1,5 @@
 module AdminHelper
 
-  SSH_KEY_COMMENT_DELIMITER = "::"
-
   $premium_carts = []
 
   $datastore_hash = {}
@@ -96,7 +94,7 @@ module AdminHelper
 
   def get_user_info(user)
     user_ssh_keys = []
-    user["ssh_keys"].each { |k| user_ssh_keys << "#{user['_id'].to_s}-#{k['name']}#{SSH_KEY_COMMENT_DELIMITER}#{Digest::MD5.hexdigest(k['content'])}" if k["content"] } if user["ssh_keys"]
+    user["ssh_keys"].each { |k| user_ssh_keys << ["#{user['_id'].to_s}-#{k['name']}", Digest::MD5.hexdigest(k["content"]), nil] if k["content"] } if user["ssh_keys"].present?
     user_caps = user["capabilities"]
     if user["plan_id"]
       plan_caps = OpenShift::BillingService.instance.get_plans[user["plan_id"].to_sym][:capabilities]
@@ -144,9 +142,11 @@ module AdminHelper
     query['_id'] = BSON::ObjectId(domain_id.to_s) if domain_id.present?
     OpenShift::DataStore.find(:domains, query, options) do |domain|
       owner_id = domain["owner_id"].to_s
-      $domain_hash[domain["_id"].to_s] = {"owner_id" => owner_id, "canonical_namespace" => domain["canonical_namespace"]}
+      env_vars = {}
+      domain["env_vars"].each {|ev| env_vars[ev["key"]] = ev["component_id"].to_s} if domain["env_vars"].present?
+      $domain_hash[domain["_id"].to_s] = {"owner_id" => owner_id, "canonical_namespace" => domain["canonical_namespace"], "env_vars" => env_vars, "ref_ids" => []}
       system_ssh_keys = []
-      domain["system_ssh_keys"].each { |k| system_ssh_keys << "domain-#{k['name']}#{SSH_KEY_COMMENT_DELIMITER}#{Digest::MD5.hexdigest(k["content"])}" if k["content"] } if domain["system_ssh_keys"].present?
+      domain["system_ssh_keys"].each { |k| system_ssh_keys << ["domain-#{k['name']}", Digest::MD5.hexdigest(k["content"]), k["component_id"].to_s] if k["content"] } if domain["system_ssh_keys"].present?
       get_user_hash(owner_id)
 
       print_message "Domain '#{domain['_id']}' has no members in mongo." unless domain['members'].present?
@@ -165,7 +165,7 @@ module AdminHelper
                              "gears.uuid", "gears.uid", "gears.server_identity",
                              "group_overrides.additional_filesystem_gb", "group_overrides.components.cart",
                              "group_instances._id", "component_instances._id", "component_instances.cartridge_name",
-                             "component_instances", "app_ssh_keys.name", "app_ssh_keys.content",
+                             "component_instances", "app_ssh_keys.name", "app_ssh_keys.content", "app_ssh_keys.component_id",
                              "members", "domain_namespace", "owner_id"],
                      :timeout => false}
     app_query = {"gears.0" => {"$exists" => true}}
@@ -182,8 +182,12 @@ module AdminHelper
       app_life_time = Time.now.utc - creation_time
 
       if $chk_app or $chk_gear_mongo_node
+        # set the compoent and gear ids in the $domain_hash to check for stale sshkeys and env variables
+        $domain_hash[domain_id]["ref_ids"] |= app["component_instances"].map {|ci_hash| ci_hash["_id"].to_s} if app["component_instances"].present?
+        $domain_hash[domain_id]["ref_ids"] |= app["gears"].map {|g_hash| g_hash["_id"].to_s} if app["gears"].present?
+
         app_ssh_keys = []
-        app['app_ssh_keys'].each { |k| app_ssh_keys << "#{k['name']}#{SSH_KEY_COMMENT_DELIMITER}#{Digest::MD5.hexdigest(k["content"])}" if k["content"] } if app['app_ssh_keys']
+        app["app_ssh_keys"].each { |k| app_ssh_keys << [k["name"], Digest::MD5.hexdigest(k["content"]), k["component_id"].to_s] if k["content"] } if app["app_ssh_keys"].present?
 
         if owner_id.nil?
           print_message "Application '#{app['name']}' does not have a domain '#{domain_id}' in mongo." if app_life_time > 600
@@ -220,7 +224,7 @@ module AdminHelper
         gear_count += 1
         has_dns_gear = true if gear["app_dns"]
 
-        $datastore_hash[gear['uuid'].to_s] = { 'login' => login, 'creation_time' => creation_time, 'gear_uid' => gear['uid'], 'server_identity' => gear['server_identity'], 'app_id' => app["_id"].to_s, 'app_ssh_keys' => app_ssh_keys } if $chk_app or $chk_gear_mongo_node
+        $datastore_hash[gear['uuid'].to_s] = { 'login' => login, 'creation_time' => creation_time, 'gear_uid' => gear['uid'], 'server_identity' => gear['server_identity'], 'app_id' => app['_id'].to_s, 'app_ssh_keys' => app_ssh_keys.deep_dup, 'domain_id' => domain_id } if $chk_app or $chk_gear_mongo_node
 
         if $districts_enabled and $chk_district
           # record all used uid values for each node to match later with the district
@@ -463,20 +467,20 @@ module AdminHelper
       if (current_time - creation_time) > 600
         if gear_sshkey_hash.has_key? gear_uuid
           gear_sshkeys_list = gear_sshkey_hash[gear_uuid].uniq.sort
-          db_sshkeys_list = db_sshkeys.uniq.map! {|key| "OPENSHIFT-#{gear_uuid}-#{key}"}.uniq.sort
+          db_sshkeys_list = db_sshkeys.map {|arr_k| "OPENSHIFT-#{gear_uuid}-#{arr_k[0]}::#{arr_k[1]}"}.uniq.sort
           if db_sshkeys_list != gear_sshkeys_list
             puts "#{gear_uuid}...FAIL" if $verbose
 
             common_sshkeys = gear_sshkeys_list & db_sshkeys_list
             extra_gear_sshkeys = gear_sshkeys_list - common_sshkeys
             extra_gear_sshkeys.each do |key|
-              print_message "Gear '#{gear_uuid}' has key with hash '#{key.split(SSH_KEY_COMMENT_DELIMITER)[1]}' and comment '#{key.split(SSH_KEY_COMMENT_DELIMITER)[0]}' on the node but not in mongo."
+              print_message "Gear '#{gear_uuid}' has key with hash '#{key.split('::')[1]}' and comment '#{key.split('::')[0]}' on the node but not in mongo."
             end
 
             extra_db_sshkeys = db_sshkeys_list - common_sshkeys
             extra_db_sshkeys.each do |key|
               remove_str = "OPENSHIFT-#{gear_uuid}-"
-              print_message "Gear '#{gear_uuid}' has key with hash '#{key.split(SSH_KEY_COMMENT_DELIMITER)[1]}' and updated name '#{key.split(SSH_KEY_COMMENT_DELIMITER)[0].sub(remove_str, '')}' in mongo but not on the node."
+              print_message "Gear '#{gear_uuid}' has key with hash '#{key.split('::')[1]}' and updated name '#{key.split('::')[0].sub(remove_str, '')}' in mongo but not on the node."
             end
 
             error_ssh_keys_app_ids << app_id
@@ -484,8 +488,38 @@ module AdminHelper
         end
       end
     end
-    error_ssh_keys_app_ids.uniq!
-    error_ssh_keys_app_ids
+    error_ssh_keys_app_ids.uniq
+  end
+
+  def find_stale_sshkeys_and_envvars
+    puts "Checking stale ssh keys and environment variables in mongo" if $verbose
+    stale_keys_domain_ids = []
+    stale_vars_domain_ids = []
+    $datastore_hash.each do |gear_uuid, gear_info|
+      domain_id = gear_info['domain_id']
+      ref_ids = $domain_hash[domain_id]["ref_ids"]
+
+      # check for any stale ssh keys that do not have their reference id present
+      unless stale_keys_domain_ids.include? domain_id
+        db_sshkeys = gear_info['app_ssh_keys']
+        stale_keys = db_sshkeys.select {|k| k[2].present? and !ref_ids.include? k[2]}
+        stale_keys.each do |key|
+          stale_keys_domain_ids << domain_id
+          print_message "Gear '#{gear_uuid}' has a stale key '#{key[0]}' in mongo with missing component/gear '#{key[2]}'."
+        end
+      end
+
+      # check for any stale env vars that do not have their reference id present
+      unless stale_vars_domain_ids.include? domain_id
+        db_envvars = $domain_hash[domain_id]["env_vars"]
+        stale_envvars = db_envvars.select {|k, v| !ref_ids.include? v}
+        stale_envvars.each do |k, v|
+          stale_vars_domain_ids << domain_id
+          print_message "Gear '#{gear_uuid}' has a stale environment variable '#{k}' in mongo with missing component/gear '#{v}'."
+        end
+      end
+    end
+    (stale_keys_domain_ids + stale_vars_domain_ids).uniq
   end
 
   def find_district_inconsistencies
