@@ -5,4 +5,4 @@
 # medium        1024MB            10
 # large         2048MB            20
 #
-WSGIDaemonProcess <%= ENV['OPENSHIFT_GEAR_UUID'] %> user=<%= ENV['OPENSHIFT_GEAR_UUID'] %> group=<%= ENV['OPENSHIFT_GEAR_UUID'] %> processes=2 threads=<%=((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.8)/80).to_i%> python-path="<%= ENV['OPENSHIFT_REPO_DIR'] %>/libs:<%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi:<%= ENV['OPENSHIFT_PYTHON_DIR'] %>/virtenv/lib/python/"
+WSGIDaemonProcess <%= ENV['OPENSHIFT_GEAR_UUID'] %> user=<%= ENV['OPENSHIFT_GEAR_UUID'] %> group=<%= ENV['OPENSHIFT_GEAR_UUID'] %> processes=2 threads=<%=((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.8)/80).to_i%> python-path="<%= ENV['OPENSHIFT_REPO_DIR'] %>/libs:<%= ENV['OPENSHIFT_REPO_DIR']%>:<%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi:<%= ENV['OPENSHIFT_PYTHON_DIR'] %>/virtenv/lib/python/"
