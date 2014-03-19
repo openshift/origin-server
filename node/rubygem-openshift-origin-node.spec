@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.3
+Version: 1.22.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -281,6 +281,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
+- Bug 1061926 - Ensure frontend unidled if backend unidled (jhonce@redhat.com)
+- cart configure should expose ports as well (rchopra@redhat.com)
+
 * Tue Mar 18 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
 - Merge pull request #4976 from mfojtik/bugzilla/1076626
   (dmcphers+openshiftbot@redhat.com)
