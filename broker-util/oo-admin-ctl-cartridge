@@ -12,7 +12,7 @@ class Command
     carts = []
 
     if options.node
-      carts = OpenShift::ApplicationContainerProxy.instance(options.node)
+      carts = OpenShift::ApplicationContainerProxy.instance(options.node).get_available_cartridges
     else
       node_platforms = Rails.configuration.openshift[:node_platforms]
 
