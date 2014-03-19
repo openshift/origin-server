@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -157,6 +157,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- Bug 1077510 1077513 1077587 - Cleanup man page and logging
+  (jhonce@redhat.com)
+- Card origin_node_39 - Introduce GearStatePlugin (jhonce@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.21.2-1
 - Bug 1074627 - Removed unnecessary output (jhonce@redhat.com)
 
