@@ -475,6 +475,15 @@ class TeamTest < ActiveSupport::TestCase
     assert_equal [t], Team.accessible(u1).to_a
     assert_equal [], Team.accessible(u2).to_a
   end
+  
+  def test_duplicate_global_team
+    Team.where(:name => 'test_team').delete
+    assert t = Team_create(:global => true, :name => "test-team", :maps_to => "test-group")
+    t = Team.new(:global => true, :name => "test-team")
+    assert t.invalid?
+    t = Team.new(:global => true, :name => "myteam", :maps_to => "test-group")
+    assert t.invalid?
+  end
 
   private
     def Domain_create(opts={})

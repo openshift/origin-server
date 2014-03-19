@@ -103,7 +103,55 @@ class TeamsControllerTest < ActionController::TestCase
     #put :update , {"id" => id, "name" => "a"*256}
     #assert_response :unprocessable_entity
   end
+  
+  test "search" do
+    Team.create(name: "myteam", owner_id: @user.id)
+    Team.create(name: "mygroup", owner_id: @user.id)
+    Team.create(name: "engineering-team", global: true, owner_id: @user.id)
+    Team.create(name: "engineering-and-QE", global: true, owner_id: @user.id)
+    
+    # reset controller, since we're modifying data out-of-band, and want a new instance of the controller to look up the model again
+    @controller = TeamsController.new
+    
+    get :index, {"search" => "team", "global" => true}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 1
+    assert_equal data.first["name"] , "engineering-team"
 
+    get :index, {"search" => "engineering", "global" => true}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 2
+    assert data.select{|d| d["name"] == "engineering-team"}.count == 1
+    assert data.select{|d| d["name"] == "engineering-and-QE"}.count == 1
+    
+    get :index, {"search" => "qe", "global" => true}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 1
+    assert_equal data.first["name"] , "engineering-and-QE"
+    
+    get :index, {"search" => "my"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 2
+    assert data.select{|d| d["name"] == "myteam"}.count == 1
+    assert data.select{|d| d["name"] == "mygroup"}.count == 1
+    
+    get :index, {"search" => "team"}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 1
+    assert_equal data.first["name"] , "myteam"
+    
+  end
+  
   test "get teams in all versions" do
     team_name = "team#{@random}"
     post :create, {"name" => team_name}

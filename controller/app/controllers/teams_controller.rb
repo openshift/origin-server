@@ -3,7 +3,14 @@ class TeamsController < BaseController
   action_log_tag_resource :team
 
   def index
-    teams =
+    search = params[:search].presence
+    return render_error(:unprocessable_entity, "Search string must be at least 2 characters", 1) if search and search.length < 2
+    global = get_bool(params[:global])
+    
+    if search
+      teams = Team.accessible(current_user).where(global: global, name: /.*#{search}.*/i) 
+    else
+      teams = 
       case params[:owner]
       when "@self" then Team.accessible(current_user).where(owner: current_user)
       when nil     then Team.accessible(current_user)

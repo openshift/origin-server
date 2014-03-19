@@ -262,7 +262,7 @@ class MembersController < BaseController
         team_ids = team_ids.select{ |id, (role, _)| role != :none }
         teams = Team.accessible(current_user).with_ids(team_ids.keys).each.to_a
         missing_team_ids(errors, teams, team_ids)
-        teams = teams.select {|t| is_owner_or_already_exists?(errors, t)}
+        teams = teams.select {|t| is_owner_or_global_or_already_exists?(errors, t)}
         teams.map do |t|
           m = t.as_member
           m.role = (team_ids[t._id.to_s])[0]
@@ -305,8 +305,8 @@ class MembersController < BaseController
       end
     end
 
-    def is_owner_or_already_exists?(errors, team)
-      if team.owner_id == current_user._id or existing_team_member_ids.include?(team.id)
+    def is_owner_or_global_or_already_exists?(errors, team)
+      if team.owner_id == current_user._id or existing_team_member_ids.include?(team.id) or team.global
         return true
       else
         errors << Message.new(:error, "You cannot add the team '#{team.name}' because you are not the owner.", 132, "id")

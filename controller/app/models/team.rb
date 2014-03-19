@@ -16,6 +16,8 @@ class Team
   end
 
   field :name, type: String
+  field :global, type: Boolean, default: false
+  field :maps_to, type: String, default: nil
   belongs_to :owner, class_name: CloudUser.name
   embeds_many :pending_ops, class_name: PendingTeamOps.name
 
@@ -25,6 +27,8 @@ class Team
   validates :name,
     presence: {message: "Name is required and cannot be blank"},
     length:   {maximum: 250, minimum: 1, message: "Team name must be a minimum of 1 and maximum of 250 characters."}
+  
+  validate :globally_unique
 
   index({'owner_id' => 1, 'name' => 1}, {:unique => true})
   create_indexes
@@ -71,8 +75,8 @@ class Team
     # Remove duplicates
     peer_team_ids = Domain.accessible(to).and({'members.t' => Team.member_type}).map(&:members).flatten(1).select {|m| m.type == 'team'}.map(&:_id).uniq
 
-    # Return teams which would normally be accessible or peer teams
-    self.or(super.selector, {:id.in => peer_team_ids})
+    # Return teams which would normally be accessible, global or peer teams
+    self.or(super.selector, {:id.in => peer_team_ids}, {:global => true})
   end
 
   def members_changed(added, removed, changed_roles)
@@ -134,6 +138,14 @@ class Team
       self.in(_id: ids)
     else
       []
+    end
+  end
+  
+    
+  def globally_unique
+    if self.global 
+      errors.add(:name, "The specified name is already in use.") if Team.where(global: true, name: self.name).count > 0
+      errors.add(:maps_to, "There is already a team that maps to this group") if self.maps_to and Team.where(maps_to: self.maps_to).count > 0    
     end
   end
 end

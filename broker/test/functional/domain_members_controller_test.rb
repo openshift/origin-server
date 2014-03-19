@@ -417,30 +417,30 @@ class DomainMembersControllerTest < ActionController::TestCase
   test "adding updating and removing a team not owned by user" do
     
     #create a team for other member
-    @otherteam = Team.create(name: "otherteam", owner_id:@member._id)
+    otherteam = Team.create(name: "otherteam", owner_id:@member._id)
     #add domain owner to team so the team would be visible
-    @otherteam.add_members(@owner)
-    @otherteam.save
-    @otherteam.run_jobs
-    post :create, {"domain_id" => @domain.namespace, "id" => @otherteam.id, "type" => "team", "role" => "view"}
+    otherteam.add_members(@owner)
+    otherteam.save
+    otherteam.run_jobs
+    post :create, {"domain_id" => @domain.namespace, "id" => otherteam.id, "type" => "team", "role" => "view"}
     assert_response :not_found
     
     #now add team
-    @domain.add_members(@otherteam)
+    @domain.add_members(otherteam)
     @domain.save
     @domain.run_jobs
 
     # reset controller, since we're modifying data out-of-band, and want a new instance of the controller to look up the model again
     @controller = DomainMembersController.new
 
-    get :show, {"domain_id" => @domain.namespace, "id" => @otherteam.id, "type" => "team"}
+    get :show, {"domain_id" => @domain.namespace, "id" => otherteam.id, "type" => "team"}
     assert_response :success
 
     # make sure the user can update it and remove it
-    post :create, {"domain_id" => @domain.namespace, "id" => @otherteam.id, "type" => "team", "role" => "edit"}
+    post :create, {"domain_id" => @domain.namespace, "id" => otherteam.id, "type" => "team", "role" => "edit"}
     assert_response :success
 
-    post :create, {"domain_id" => @domain.namespace, "id" => @otherteam.id, "type" => "team", "role" => "none"}
+    post :create, {"domain_id" => @domain.namespace, "id" => otherteam.id, "type" => "team", "role" => "none"}
     assert_response :success
 
     get :index , {"domain_id" => @domain.namespace}
@@ -449,6 +449,27 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert_equal json['data'].length , 1
   end
 
+  test "adding updating and removing global teams" do
+    
+    #create a global team by other member
+    globalteam = Team.create(name: "globalteam", owner_id:@member._id, global: true)
+    globalteam.add_members(@team_member)
+    globalteam.save
+    globalteam.run_jobs
+    
+    # reset controller, since we're modifying data out-of-band, and want a new instance of the controller to look up the model again
+    @controller = DomainMembersController.new
+
+    post :create, {"domain_id" => @domain.namespace, "id" => globalteam.id, "type" => "team", "role" => "edit"}
+    assert_response :success
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => globalteam.id, "type" => "team", "role" => "view"}
+    assert_response :success
+    
+    post :create, {"domain_id" => @domain.namespace, "id" => globalteam.id, "type" => "team", "role" => "none"}
+    assert_response :success
+  end
+  
   test "get member in all versions" do
     post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "view"}
     assert_response :success
