@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.22.2
+Version: 1.22.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,66 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
+- Merge pull request #4987 from jhadvig/10gen_new
+  (dmcphers+openshiftbot@redhat.com)
+- 10gen cartridge update (jhadvig@redhat.com)
+- Merge pull request #4993 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4995 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing condition in run_jobs to prevent infinite loop (abhgupta@redhat.com)
+- fix https://bugzilla.redhat.com/show_bug.cgi?id=1076720 : embedded cart
+  should follow web_framework (rchopra@redhat.com)
+- Cleanup (dmcphers@redhat.com)
+- Merge pull request #4968 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4929 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4977 from nhr/test_fix (dmcphers+openshiftbot@redhat.com)
+- cart configure should expose ports as well (rchopra@redhat.com)
+- Merge pull request #4978 from pravisankar/dev/ravi/fix-pending-apps-domains
+  (dmcphers+openshiftbot@redhat.com)
+- Refactor find_by existing member lookup (jliggitt@redhat.com)
+- Make membership check more efficient, explicitly return (jliggitt@redhat.com)
+- Make rest_member more resilient to additional types (jliggitt@redhat.com)
+- Change "edit" example to "none" for team member role (jliggitt@redhat.com)
+- Remove show/create/update implementations from team_members_controller.
+  Require role param when adding team members. Test for missing/empty role
+  param (jliggitt@redhat.com)
+- Distinguish between non-members and indirect members in warning messages. Do
+  not include login field for members of type 'team' (jliggitt@redhat.com)
+- User can only add teams to domain that he owns (lnader@redhat.com)
+- Added allowed_roles/member_types, removed team add by name, refactored
+  removed_ids (lnader@redhat.com)
+- Updated scopes for application and domain (lnader@redhat.com)
+- Added validate_role and validate_type to base class and overide
+  (lnader@redhat.com)
+- Bug 1075437 (lnader@redhat.com)
+- Bug 1077047 (lnader@redhat.com)
+- fixed test failure (lnader@redhat.com)
+- Bug 1075445 (lnader@redhat.com)
+- team member update should only allow roles view and none (lnader@redhat.com)
+- Revised members controller to type qualify (lnader@redhat.com)
+- Type qualify member links (lnader@redhat.com)
+- Added LIST_TEAMS_BY_OWNER GET /teams?owner=@self (lnader@redhat.com)
+- Removed update ability from teams.  Teams cannot be renamed
+  (lnader@redhat.com)
+- Provide valid options for role (lnader@redhat.com)
+- Added :create_team ability (lnader@redhat.com)
+- corrected domain links and descriptions (lnader@redhat.com)
+- Bug 1075421 - corrected team GET link to use id instread of name
+  (lnader@redhat.com)
+- Delete user teams on force_delete (lnader@redhat.com)
+- Bug 1074861 - Added error code for team limit reached (lnader@redhat.com)
+- Bug 1075048 - null checking on role to update (lnader@redhat.com)
+- Teams API (lnader@redhat.com)
+- Update stub generator to provide fallback handling for JBoss cart
+  (hripps@redhat.com)
+- Remove on_domains/on_apps from user/domain/team pending op. Now
+  on_domains/on_apps are not passed from op-group instead current domains/apps
+  are used during pending op execution. (rpenta@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
 - Merge pull request #4959 from bparees/remove_rhc_debug
   (dmcphers+openshiftbot@redhat.com)
