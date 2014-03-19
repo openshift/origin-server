@@ -11,7 +11,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -142,6 +142,11 @@ fi
 %doc README
 
 %changelog
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- Merge pull request #4741 from Miciah/bug-1060274-node-proxy-stop-on-remove-
+  restart-in-upgrade (dmcphers+openshiftbot@redhat.com)
+- node-proxy: Stop on remove, restart in upgrade (miciah.masters@gmail.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - Bug 1075221 - Prevent node-web-proxy being restarted by logrotate
   (mfojtik@redhat.com)
