@@ -2612,7 +2612,7 @@ class Application
   def enforce_system_order(order, categories)
     web_carts = Array(categories['web_framework'])
     service_carts = Array(categories['service']) - web_carts
-    plugin_carts = Array(categories['plugin']) + Array(categories['ci_builder']) + Array(categories['web_proxy']) - service_carts
+    plugin_carts = categories.map { |k,v| Array(v) }.flatten - web_carts - service_carts 
 
     web_carts.each do |w|
       (service_carts+plugin_carts).each do |sp|
@@ -2666,7 +2666,7 @@ class Application
     categories = {}
     specs.each do |spec|
       cats = spec.cartridge.categories
-      ['web_framework', 'plugin', 'service', 'ci_builder', 'web_proxy'].each do |cat|
+      ['web_framework', 'plugin', 'service', 'embedded', 'ci_builder', 'web_proxy'].each do |cat|
         (categories[cat] ||= []) << spec if cats.include?(cat)
       end
     end
