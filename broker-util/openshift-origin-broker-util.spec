@@ -76,6 +76,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-quarantine
 %attr(0750,-,-) %{_sbindir}/oo-register-dns
 %attr(0750,-,-) %{_sbindir}/oo-stats
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-team
 
 %{?scl:%scl_root}%{ruby_libdir}/app_info.rb
 
@@ -103,6 +104,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-analytics-export.8.gz
 %{_mandir}/man8/oo-analytics-import.8.gz
 %{_mandir}/man8/oo-quarantine.8.gz
+%{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
