@@ -5,7 +5,7 @@ class Scope::OauthAccessToken < Scope::Simple
     controller.is_a?(OauthController) && controller.action_name == 'access_token'
   end
 
-  # Override description to nil to avoid creating via API
+  # Override description to nil to avoid displaying in API help
   def describe
     nil
   end

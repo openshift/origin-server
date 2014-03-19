@@ -6,7 +6,7 @@ class OauthControllerTest < ActionController::TestCase
   def setup
     @request.env['HTTP_ACCEPT'] = "application/json"
 
-    @controller = OauthController.new
+    @controller = allow_multiple_execution(OauthController.new)
 
     @clients = {
       :my_sso_client_id => {
@@ -115,6 +115,19 @@ class OauthControllerTest < ActionController::TestCase
 
     post :access_token, params
     assert_response :success
+  end
+
+  test "access_token responds correctly to malformed basic auth header" do
+    with_token('oauthaccesstoken', 'my_sso_client_id', false)
+    
+    params = access_token_params('my_sso_client_id', @auth.token)
+    params.delete(:client_id)
+    params.delete(:client_secret)
+    @request.env['HTTP_AUTHORIZATION'] = "Basic malformed"
+
+    post :access_token, params
+    assert_response :bad_request
+    assert_oauth_error 'invalid_request', p
   end
 
   test "access_token ignores basic auth if invalid bearer code is provided as param" do

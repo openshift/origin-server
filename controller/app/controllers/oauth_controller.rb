@@ -1,5 +1,3 @@
-require 'base64'
-
 class OauthController < BaseController
   include OauthHelper
 
@@ -58,11 +56,16 @@ class OauthController < BaseController
     # Require calls to use POST method per rfc6749, section 2.3.1
     return render_oauth_error("invalid_request", "POST method required") unless request.post?
 
-    code = params[:code].to_s
-    grant_type = params[:grant_type].to_s
-    if request.authorization.to_s[/^Basic (.*)/i]
+    code          = params[:code].to_s
+    grant_type    = params[:grant_type].to_s
+    client_id     = nil
+    client_secret = nil
+    if request.authorization.to_s[/^Basic /i]
       # Support providing the client_id and client_secret via Basic auth, per rfc6749, section 2.3.1
-      client_id,client_secret = Base64.decode64($1.strip).split(':', 2) rescue nil
+      authenticate_with_http_basic do |u, p|
+        client_id = u
+        client_secret = p
+      end
     else
       # Allow providing the client_id and client_secret via body params
       client_id = params[:client_id].to_s
