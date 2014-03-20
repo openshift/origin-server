@@ -263,14 +263,14 @@
             %td.nowrap.member{:title => me.name}
               = me.name
             %td 
-              = me.owner? ? "Owner" : Role.description_for(me.role)    
+              = me.owner? ? "Owner" : me.role_description
 
         - members.reject(&:me).sort.each do |member|
           %tr
             %td.nowrap.member{:title => member.name}
               = member.name
             %td
-              = member.owner? ? "Owner" : Role.description_for(member.role)
+              = member.owner? ? "Owner" : member.role_description
 
     .btn-toolbar
       = link_to "Delete this application\u2026", delete_application_path(@application), :class => 'btn btn-small'

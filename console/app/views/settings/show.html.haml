@@ -24,6 +24,10 @@
       %section.row-content
         = render :partial => 'domains', :locals => {:domains => @domains, :capabilities => @capabilities}
 
+    - if @teams.present? || @capabilities.max_teams > 0
+      %section.row-content
+        = render :partial => 'teams', :locals => {:teams => @teams, :capabilities => @capabilities}
+
     %section.row-content
       = render :partial => 'authorizations', :locals => {:authorizations => @authorizations}
 

@@ -1,0 +1,12 @@
+- content_for :page_title, 'Create a Team'
+
+%h1 Create a Team
+= semantic_form_for @team, :simple => true do |f|
+  %input{:type => "hidden", :name => "then", :value => @referrer }
+  %input{:type => "hidden", :name => "team_param", :value => params[:team_param] }
+  = f.semantic_errors
+  = f.text_field :name, :autofocus => true, :placeholder => 'Team name'
+  = f.buttons do
+    = link_to "Cancel", @referrer || teams_path, :class => 'btn'
+    = f.commit_button :label => 'Create'
+    = f.loading

@@ -69,7 +69,9 @@ h1.applications .flow-block.right .gear-icon {
 
 .section-body {
   #app-list,
-  #app-cartridges {
+  #app-cartridges,
+  #team-list,
+  #team-member-list, {
     > h2 {
       font-size: $h4FontSize;
       line-height: $h4LineHeight;
@@ -219,7 +221,7 @@ h1.applications .flow-block.right .gear-icon {
   //display: inline-block; // makes empty array unbalanced
 }
 
-.domain {
+.team, .domain {
   .flow .flow-block.right {
     font-weight: 300;
   }
@@ -235,7 +237,7 @@ h1.applications .flow-block.right .gear-icon {
 }
 
 @media (max-width: 320px) {
-  .domain {
+  .team, .domain {
     &.tile-click {
       .flow .flow-block.right {
         span {

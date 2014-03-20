@@ -1,0 +1,8 @@
+:css
+  .leave .popover { width: 300px; }
+  .leave .popover-inner, .leave .popover-content { width: auto; }
+
+%span.leave.confirm-container
+  = link_to "Leave Team", team_leave_path(team), { :class => 'btn btn-small confirm-link', :title => 'Leave Team', 'data-placement' => 'bottom'}
+  .confirm-popover.hide
+    = render :partial => 'members/leave_team_form', :locals => {:team => team}

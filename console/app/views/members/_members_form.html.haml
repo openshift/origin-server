@@ -11,6 +11,7 @@
       .members tr.no-role select, .members tr.no-role a.remove-member { opacity: 1; }
       .members tr.template.template-user {display: table-row !important; }
 
+- members = membership.members
 - owner = members.find(&:owner)
 - explicit_members = members.reject(&:owner).select(&:explicit_role?).sort
 - if not editable
@@ -37,14 +38,22 @@
               %span.icon-user{:'aria-hidden' => "true"}
               = member.name
           %td
-            = Role.description_for(member.role)
+            = member.role_description
 
 - else
-  - if members.count <= 1 && !editing
-    %p{:'data-hide-parent' => '1'}
-      No one else can see this domain. #{link_to "Add members...", "javascript:;", :'data-unhide' => '.members'}
+  - if members.count <= 1 && new_members.blank?
+    %p.script-only{:'data-hide-parent' => '1'}
+      There are no other members in this #{membership.class.name.downcase}. #{link_to "Add members...", "javascript:;", :'data-unhide' => '.members'}
 
-  = form_tag domain_members_path(domain), :method => :put, :class => "members warn-dirty #{'editing' if editing || members.count <= 1} #{'hidden-scripted' if !editing && members.count <= 1} #{'dirty' if new_members.present?}" do
+  :ruby
+    form_classes = [
+      'members',
+      'warn-dirty',
+      ('dirty' if new_members.present?),                              # Start in dirty mode if we are redisplaying newly added members with validation errors
+      ('editing' if new_members.present? || members.count <= 1),      # Start in edit mode if we have new members, or aren't showing any existing members
+      ('hidden-scripted' if new_members.blank? && members.count <= 1) # Hide if we have no existing or new members, and can show with javascript
+    ].compact
+  = form_tag url_for([membership, :members]), :method => :put, :class => form_classes.join(" ") do
 
     %table.table.table-condensed.table-no-borders.table-fixed
       %colgroup
@@ -62,7 +71,6 @@
             %td.script-only
 
         - explicit_members.each do |member|
-          - member_teams = member.teams(members)
           %tr{:class => "type-#{member.type}"}
             %td.nowrap.member{:title => member.name}
               - if member.team?
@@ -73,15 +81,22 @@
                 = member.name
             %td.nowrap
               .read-only
-                = Role.description_for(member.role)
-                - if member.explicit_role != member.role && member_teams.present?
+                = member.role_description
+                - if member.explicit_role != member.role && (member_teams = member.teams(members)).present?
                   via 
                   %span.icon-users{:'aria-hidden' => "true", :title => "Has access via these teams:\n#{member_teams.map(&:name).join(", \n")}"}
               .edit-only
                 -# Always start with a common field to make param hashes group correctly
                 = hidden_field_tag('members[][type]', member.type)
                 = hidden_field_tag('members[][id]', member.id)
-                = select_tag('members[][role]', options_for_select(Role.role_descriptions(true, member_teams.present?), {:selected => member.explicit_role || :none}))
+
+                - current_role = (member.explicit_role || :none).to_s
+                - roles = member.allowed_role_descriptions(true)
+                - if roles.length == 1 && roles[0][1] == current_role
+                  = hidden_field_tag('members[][role]', current_role)
+                  = roles[0][0]
+                - else
+                  = select_tag('members[][role]', options_for_select(roles, {:selected => current_role}))
             %td.script-only
               .edit-only
                 = link_to('javascript:;', :class => 'script-only remove-member btn btn-mini') do
@@ -90,18 +105,19 @@
             %tr.team-details.collapsed{:id => "team-#{member.id}"}
               %td{:colspan => 3}
                 - if (team_members = members.select {|m| m.grant_from?('team', member.id)}).present?
-                  Team members: 
-                  = team_members.map(&:name).to_sentence
+                  Contains the team members
+                  = succeed '.' do
+                    = team_members.map(&:name).to_sentence
                 - else
-                  No team members
+                  Contains no team members.
+                = link_to "View this team", team_path(member.id)
 
         :ruby
+          member_class = membership.class.member_resource
           new_members = (new_members || []).dup
-          if new_members.blank? and members.count == 1
-            new_members << (user_initial = Domain::Member.new(:role => :edit, :type => 'user'))
-          end
-          new_members << (user_template = Domain::Member.new(:role => :edit, :type => 'user'))
-          new_members << (team_template = Domain::Member.new(:role => :edit, :type => 'team')) if owned_teams || global_teams
+          new_members << (user_initial  = member_class.new(:role => member_class.default_role, :type => 'user')) if new_members.blank? and members.count == 1
+          new_members << (user_template = member_class.new(:role => member_class.default_role, :type => 'user'))
+          new_members << (team_template = member_class.new(:role => member_class.default_role, :type => 'team')) if owned_teams || global_teams
         - new_members.each do |new_member|
           - error = Array(new_member.errors[:login]).first || Array(new_member.errors[:id]).first
           - is_template = (new_member.equal?(user_template) || new_member.equal?(team_template))
@@ -121,7 +137,12 @@
                 - else
                   = text_field_tag('members[][name]', new_member.name, {:placeholder => 'Team Name', :title => 'Team Name', :autocomplete => 'off', :class => "team-typeahead #{'error' if error}"})
             %td
-              = select_tag('members[][role]', options_for_select(Role.role_descriptions(false), new_member.role))
+              - roles = new_member.allowed_role_descriptions(false)
+              - if roles.length == 1 && roles[0][1] == new_member.role.to_s
+                = hidden_field_tag('members[][role]', new_member.role)
+                = roles[0][0]
+              - else
+                = select_tag('members[][role]', options_for_select(roles, new_member.role))
             %td.script-only
               = link_to('javascript:;', :class => 'script-only remove-new-member btn btn-mini') do
                 %span.icon-remove{'aria-hidden'=>"true"}
@@ -142,23 +163,24 @@
               = link_to "Edit members...", "javascript:;", :class => 'edit-members'
 
     .form-actions.edit-only
-      = link_to "Cancel", domain_path(@domain), :class => 'btn btn-small cancel script-only'
+      = link_to "Cancel", url_for(membership), :class => 'btn btn-small cancel script-only'
       = button_tag "Save", :type => :submit, :class => 'btn btn-primary-when-dirty btn-small'
 
-    .edit-only
-      %h6 What can members do?
-      %ul.unstyled
-        %li
-          %strong View
-          &ndash; Read-only access to the domain and its applications.
+    - if show_help
+      .edit-only
+        %h6 What can members do?
+        %ul.unstyled
+          %li
+            %strong View
+            &ndash; Read-only access to the domain and its applications.
 
-        %li
-          %strong Edit
-          &ndash; Add, edit, control and delete applications in the domain, including SSH and Git access
+          %li
+            %strong Edit
+            &ndash; Add, edit, control and delete applications in the domain, including SSH and Git access
 
-        %li
-          %strong Administer
-          &ndash; Everything except change allowed gear sizes and the domain name.
+          %li
+            %strong Administer
+            &ndash; Everything except change allowed gear sizes and the domain name.
 
   - content_for :javascripts do
     :javascript
@@ -268,11 +290,11 @@
                 empty: function(d) {
                   return [
                     "<div class='empty-message'>",
-                    d.query ? "No matching teams found" : "You do not have any teams",
+                    d.query ? "No matching teams found" : "You do not have any teams. <a href='#{new_team_path(:then => url_for(membership))}'>Create a new team</a>",
                     "</div>"
                   ].join("");
                 },
-                header: '<div class="team-type">Your Teams</div>'
+                header: '<div class="team-type">Teams You Own</div>'
               }
             });
           }
