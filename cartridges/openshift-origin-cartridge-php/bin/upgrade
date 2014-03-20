@@ -35,4 +35,6 @@ fi
 
 if [[ $curr == 0.0.13 ]]; then
     echo "${OPENSHIFT_PHP_DIR}configuration/etc/php.d" > ${OPENSHIFT_PHP_DIR}env/PHP_INI_SCAN_DIR
+    # versions/ directory moved from user space (gear) to the shared usr/ directory (root)
+    rm -rf ${OPENSHIFT_PHP_DIR}versions
 fi

@@ -25,6 +25,7 @@ mkdir -p $OPENSHIFT_PHP_DIR/{run,tmp,sessions}
 
 rm -f $OPENSHIFT_PHP_DIR/modules $OPENSHIFT_PHP_DIR/conf/magic
 ln -s ${_libdir}/httpd/modules $OPENSHIFT_PHP_DIR/modules
+mkdir -p ${OPENSHIFT_PHP_DIR}conf
 ln -s /etc/httpd/conf/magic $OPENSHIFT_PHP_DIR/conf/magic
 
 # Create a writable directory for Drush settings

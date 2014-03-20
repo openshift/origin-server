@@ -6,7 +6,7 @@ source ${OPENSHIFT_PHP_DIR}usr/lib/php_config
 
 HTTPD_CFG_FILE=$OPENSHIFT_PHP_DIR/configuration/etc/conf/httpd_nolog.conf
 HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/configuration/etc/conf.d
-ERB_HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/usr/etc/conf.d/
+ERB_HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/usr/shared/etc/conf.d/
 HTTPD_PASSENV_FILE=$HTTPD_CFG_DIR/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_PHP_DIR/run/httpd.pid
 
