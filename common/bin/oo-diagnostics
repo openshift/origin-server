@@ -361,7 +361,8 @@ class OODiag
       broken = ""
       broken += `restorecon -Rnv /var/www/openshift/` if @is_broker
       broken += `restorecon -Rnv /usr/libexec/openshift/` if @is_node
-      broken += `restorecon -Rnv /etc/openshift`
+      broken += `restorecon -Rnv /etc/openshift` if @is_broker || @is_node
+      broken += `restorecon -Rnv /opt/rh/ruby193/root/etc` unless @scl_prefix.empty?
       #broken += `restorecon -Rnv /etc` # some of these are irrelevant / spurious
       # so only complain about the ones with common bad contexts
       broken += `restorecon -Rnv /etc | grep -e :user_home_t: -e :user_tmp_t: -e :admin_home_t:`
