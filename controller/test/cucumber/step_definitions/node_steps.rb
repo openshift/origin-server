@@ -317,7 +317,7 @@ Then /^disk quotas on the account home directory should be correct$/ do
   #     /dev/xvde      24       0  131072               7       0   10000        
   #    
 
-  result = `quota -u #{@account['accountname']}`
+  result = `quota -u #{@account['accountname']} 2>/dev/null`
     
   result.should_not match /does not exist./
   result.should_not match /: none\s*\n?/
