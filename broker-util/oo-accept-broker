@@ -965,9 +965,12 @@ STATUS=0
 probe_version
 check_packages $PACKAGES
 check_ruby_requirements $OSO_RUBY_LIBS
-check_selinux_enforcing
-check_selinux_booleans
-check_firewall
+if [ -z "$container" ]; then 
+  #Can't check selinux/iptables if we are running inside a container
+  check_selinux_enforcing
+  check_selinux_booleans
+  check_firewall
+fi
 check_services
 
 # we will fill APP_VALUES with output from ruby commands corresponding to the map

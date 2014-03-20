@@ -170,7 +170,7 @@ class AppCartridgesTest < ActionDispatch::IntegrationTest
 
     # set the max gear limit for the user to 3, if it isn't already so
     unless CloudUser.find_by(login: @login ).max_gears == 3
-      system("oo-admin-ctl-user -l #{@login} --setmaxgears 3")
+      system("oo-broker --non-interactive oo-admin-ctl-user -l #{@login} --setmaxgears 3")
     end
 
     # embed mysql cartridge into the scalable app

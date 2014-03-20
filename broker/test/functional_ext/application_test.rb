@@ -135,7 +135,7 @@ class ApplicationTest < ActionDispatch::IntegrationTest
     assert_equal 0, Domain.find_by(namespace: ns).owner.consumed_gears
 
     #set gear limit
-    system "oo-admin-ctl-user -l #{@login} --setmaxgears 3"
+    system "oo-broker --non-interactive oo-admin-ctl-user -l #{@login} --setmaxgears 3"
 
     # create application #1
     request_via_redirect(:post, APP_COLLECTION_URL_FORMAT % [ns], {:name => "app1", :cartridge => php_version}, @headers)

@@ -178,7 +178,7 @@ module OpenShift
           # TODO this is a quick fix because the PUBLIC_IP from the node config
           # isn't the one we want - the port proxy binds to the 10.x IPs, not
           # to the public EC2 IP addresses
-          ip_address = `facter ipaddress`.chomp
+          ip_address = `facter ipaddress_eth0`.chomp
 
           env  = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
           # TODO: better error handling
