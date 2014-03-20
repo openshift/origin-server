@@ -3,6 +3,7 @@ en:
 
   types:
     php: PHP
+    xpaas: xPaaS
 
   rest_api:
     errors:
