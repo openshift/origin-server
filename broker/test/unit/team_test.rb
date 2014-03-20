@@ -479,6 +479,10 @@ class TeamTest < ActiveSupport::TestCase
   def test_duplicate_global_team
     Team.where(:name => 'test_team').delete
     assert t = Team_create(:global => true, :name => "test-team", :maps_to => "test-group")
+    #make sure the validation does not prevent team save
+    t.reload
+    assert t.valid?
+    assert t.save
     t = Team.new(:global => true, :name => "test-team")
     assert t.invalid?
     t = Team.new(:global => true, :name => "myteam", :maps_to => "test-group")
