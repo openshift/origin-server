@@ -553,6 +553,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Display-Name: Mock Cartridge 0.1
       Description: A mock cartridge for development use only.
       Version: '0.1'
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - web_framework
@@ -565,6 +566,10 @@ class ApplicationControllerTest < ActionController::TestCase
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Cartridge-Short-Name: MOCK
+      Source-Url: manifest://test.zip
+      Categories:
+      - mock
+      - web_framework
       MANIFEST
     messages = assert_invalid_manifest
     assert messages.one?{ |m| m['text'] =~ %r(The provided downloadable cartridge 'manifest://test' cannot be loaded.+Version is a required element) }, messages.inspect
@@ -575,6 +580,9 @@ class ApplicationControllerTest < ActionController::TestCase
       ---
       Version: '0.1'
       Cartridge-Short-Name: MOCK
+      Categories:
+      - mock
+      - web_framework
       MANIFEST
     messages = assert_invalid_manifest
     assert messages.one?{ |m| m['text'] =~ %r(The provided downloadable cartridge 'manifest://test' cannot be loaded.+Name is a required element) }, messages.inspect
@@ -587,6 +595,10 @@ class ApplicationControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: redhat
+      Source-Url: manifest://test.zip
+      Categories:
+      - mock
+      - web_framework
       MANIFEST
     messages = assert_invalid_manifest
     assert messages.one?{ |m| m['text'] =~ %r(The provided downloadable cartridge 'manifest://test' cannot be loaded.+Name 'git' is reserved\.) }, messages.inspect
@@ -599,9 +611,27 @@ class ApplicationControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       MANIFEST
     messages = assert_invalid_manifest
     assert messages.one?{ |m| m['text'] =~ %r(None of the specified cartridges is a web cartridge) }, messages.inspect
+  end
+
+  test "add downloadable cart without categories" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
+      MANIFEST
+
+    post :create, {"name" => "app#{@random}", "cartridge" => [php_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace}
+    assert_response :unprocessable_entity
+    assert json = JSON.parse(response.body)
+    assert messages = json['messages']
+    assert messages.one?{ |m| m['text'] =~ %r(The provided downloadable cartridge 'manifest://test' cannot be loaded: Categories is a required element) }, messages.inspect
   end
 
   test "create downloadable cart stored as cartridge type" do
@@ -611,6 +641,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: testcasemock
+      Source-Url: manifest://test.zip
       Categories:
       - web_framework
       MANIFEST
@@ -643,6 +674,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
       Obsolete: true
+      Source-Url: manifest://test.zip
       Categories:
       - web_framework
       MANIFEST
@@ -661,6 +693,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
       Obsolete: true
+      Source-Url: manifest://test.zip
       Categories:
       - web_framework
       MANIFEST
@@ -681,6 +714,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - web_framework
       Components:
@@ -703,6 +737,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - web_framework
       Scaling:
@@ -723,6 +758,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - external
       MANIFEST
@@ -749,6 +785,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Group-Overrides:
       - components:
         - web_framework
@@ -788,6 +825,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Provides:
       - web_proxy
       Categories:
@@ -808,6 +846,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
       Obsolete: true
+      Source-Url: manifest://test.zip
       Categories:
       - web_framework
       MANIFEST
@@ -826,6 +865,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - web_framework
@@ -883,6 +923,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - web_framework
@@ -944,6 +985,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: redhat
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - web_framework
@@ -967,6 +1009,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - web_framework
@@ -998,6 +1041,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - web_framework
@@ -1021,6 +1065,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - web_framework
@@ -1049,6 +1094,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - web_framework
@@ -1076,6 +1122,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - web_framework

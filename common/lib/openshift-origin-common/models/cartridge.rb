@@ -201,7 +201,7 @@ module OpenShift
       self.stop_order = spec_hash["Stop-Order"] || []
       self.configure_order = spec_hash["Configure-Order"] || []
 
-      #fixup user data. provides, start_order, start_order, configure_order bust be arrays
+      #fixup user data. provides, start_order, start_order, configure_order must be arrays
       self.provides = [self.provides] if self.provides.class == String
       self.start_order = [self.start_order] if self.start_order.class == String
       self.stop_order = [self.stop_order] if self.stop_order.class == String

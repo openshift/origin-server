@@ -130,6 +130,7 @@ class EmbCartControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - service
@@ -157,6 +158,7 @@ class EmbCartControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: externalmock
+      Source-Url: manifest://test.zip
       Categories:
       - external
       MANIFEST
@@ -372,6 +374,7 @@ class EmbCartControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - embedded
@@ -418,6 +421,7 @@ class EmbCartControllerTest < ActionController::TestCase
       Display-Name: Mock Cart
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
       Categories:
       - mock
       - embedded

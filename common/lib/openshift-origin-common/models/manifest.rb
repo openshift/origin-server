@@ -240,6 +240,9 @@ module OpenShift
       MAX_VENDOR_NAME    = 32
       MAX_CARTRIDGE_NAME = 32
 
+      # these are the system categories and each cartridge much specify at least one of these
+      SYSTEM_CATEGORIES = ['web_framework', 'plugin', 'service', 'embedded', 'web_proxy', 'ci_builder', 'external']
+
       # :call-seq:
       #   Cartridge.new(manifest) -> Cartridge
       #   Cartridge.new(manifest, software_version) -> Cartridge
@@ -310,6 +313,17 @@ module OpenShift
         if @manifest['Version'] != @version
           copy_manifest_if_equal(manifest)
           @manifest['Version'] = @version
+        end
+
+        # validate the scaling limits specified
+        if @manifest['Scaling'].kind_of?(Hash)
+          min = (@manifest['Scaling']['Min'] || 1).to_i
+          max = (@manifest['Scaling']['Max'] || -1).to_i
+          if (@manifest['Categories'] || []).include?('external') and (min != 0 || max != 0)
+            raise InvalidElementError.new("Scaling", "should either not be specified or have 0 for 'Min' and 'Max' in case of an 'external' cartridge.")
+          elsif !(@manifest['Categories'] || []).include?('external') and (min == 0 || max == 0)
+            raise InvalidElementError.new("Scaling", "'Min' and 'Max' cannot be 0 unless its an 'external' cartridge.")
+          end
         end
 
         @cartridge_vendor       = @manifest['Cartridge-Vendor']
@@ -448,6 +462,18 @@ module OpenShift
 
       def project_version_overrides(version, repository_base_path)
         self.class.new(manifest_path, version, :file, repository_base_path)
+      end
+
+      def validate_categories
+        # Validate the categories specified
+        raise MissingElementError.new('Categories') unless @manifest.has_key?('Categories')
+        raise InvalidElementError.new('Categories') unless @manifest['Categories'].kind_of?(Array)
+        unless @manifest['Categories'].any?{|c| SYSTEM_CATEGORIES.include? c}
+          raise InvalidElementError.new("Categories", "should contain at least one of '#{SYSTEM_CATEGORIES.inspect}'.")
+        end
+        if @manifest['Categories'].include? 'web_framework' and @manifest['Categories'].include? 'external'
+          raise InvalidElementError.new("Categories", "'web_framework' and 'external' cannot be specified for the same cartridge.")
+        end
       end
 
       #
