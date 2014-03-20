@@ -390,9 +390,10 @@ class Gear
     add_envs = op.add_env_vars
     remove_envs = op.remove_env_vars
     config = op.config
-
-    unless Rails.configuration.geard[:enabled]
-      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_add_authorized_ssh_keys_job(self, add_keys)) if add_keys.present?
+ 
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_add_authorized_ssh_keys_job(self, add_keys)) if add_keys.present?
+    
+    unless Rails.configuration.geard[:enabled]      
       RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_remove_authorized_ssh_keys_job(self, remove_keys))  if remove_keys.present?
 
       add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, node_client.get_env_var_add_job(self, env["key"],env["value"]))} if add_envs.present?
