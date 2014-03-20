@@ -8,16 +8,19 @@ class TeamsController < BaseController
     global = get_bool(params[:global])
     
     if search
-      teams = Team.accessible(current_user).where(global: global, name: /.*#{search}.*/i) 
+      teams = Team.accessible(current_user).where(global: global, name: /.*#{search}.*/i).sort({name: 1})
     else
       teams = 
       case params[:owner]
-      when "@self" then Team.accessible(current_user).where(owner: current_user)
-      when nil     then Team.accessible(current_user)
+      when "@self" then Team.accessible(current_user).where(owner: current_user).sort({name: 1})
+      when nil     then Team.accessible(current_user).sort({name: 1})
       else return render_error(:unprocessable_entity, "Only @self is supported for the 'owner' argument.", 1) 
       end
+    end
     rest_teams = teams.map {|t| get_rest_team(t, if_included(:members))}
+    return render_success(:ok, "teams", rest_teams, "Found #{teams.count} teams") if search
     render_success(:ok, "teams", rest_teams, "Listing teams for user #{@cloud_user.login}")
+   
   end
 
   def show
