@@ -315,7 +315,7 @@ module OpenShift
       #
       def destroy(gear, keep_uid=false, uid=nil, skip_hooks=false)
         #TODO WIP, needed to complete ssh key commands
-        return ResultIO.new
+        ResultIO.new
       end
 
       # Add an SSL certificate to a gear on the remote node and associate it with
@@ -628,6 +628,7 @@ module OpenShift
       def get_start_job(gear, component)
         #TODO
         args = build_base_gear_args gear
+        args[:method] = :put
         RemoteJob.new('openshift-origin-node', "container/#{gear.uuid}/started", args)
       end
 
@@ -649,6 +650,7 @@ module OpenShift
       def get_stop_job(gear, component)
         #TODO
         args = build_base_gear_args gear
+        args[:method] = :put
         RemoteJob.new('openshift-origin-node', "container/#{gear.uuid}/stopped", args)
       end
 
@@ -690,6 +692,7 @@ module OpenShift
 
       def get_restart_job(gear, component, all=false)
         args = build_base_gear_args gear
+        args[:method] = :post
         RemoteJob.new('openshift-origin-node', "container/#{gear.uuid}/restart", args)
       end
 
@@ -1002,9 +1005,7 @@ module OpenShift
         containers = [ {'Id' => gear.uuid} ]
         args[:method] = :put        
         args[:body] = {'Keys' => build_ssh_key_args_with_content(ssh_keys), 'Containers' => containers }
-        log_debug "ARGS:#{args}"
-        job = RemoteJob.new('openshift-origin-node', 'keys', args)
-        job
+        RemoteJob.new('openshift-origin-node', 'keys', args)
       end
 
       #
@@ -1452,7 +1453,7 @@ module OpenShift
       # * message: String
       #
       def log_debug(message)
-        Rails.logger.info message
+        Rails.logger.debug message
         puts message
       end
 
@@ -1617,30 +1618,29 @@ module OpenShift
             job = parallel_job[:job]
             #async do
               clnt = HTTPClient.new
-              res = nil 
               # WIP job
               geard_op = job[:args]            
               http_method = geard_op[:method]
               http_body = geard_op[:body]
               geard_url = "#{build_base_geard_url (ENV['GEARD_HOST_PORT'] || 'localhost:8080')}#{job[:action]}"
-              case http_method
-              when :put 
-                if http_body.empty?
-                  res = clnt.put(geard_url)
-                else
-                  res = clnt.put(geard_url, http_body.to_json, build_geard_post_headers)
+              res = case http_method
+                when :put 
+                  if http_body.empty?
+                    clnt.put(geard_url)
+                  else
+                    clnt.put(geard_url, http_body.to_json, build_geard_post_headers)
+                  end
+                when :delete 
+                  clnt.delete(geard_url)
+                when :get 
+                  clnt.get(geard_url)
+                when :post 
+                  if http_body.empty?
+                    clnt.post(geard_url)
+                  else
+                    clnt.post(geard_url, http_body.to_json, build_geard_post_headers)
+                  end
                 end
-              when :delete 
-                res = clnt.delete(geard_url)
-              when :get 
-                res = clnt.get(geard_url)
-              when :post 
-                if http_body.empty?
-                  res = clnt.post(geard_url)
-                else
-                  res = clnt.post(geard_url, http_body.to_json, build_geard_post_headers)
-                end
-              end
               handle[identity].each { |gear_info|
                 gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{res.body}"
                 gear_info[:result_exit_code] = res.status_code < 400 ? 0 : res.status_code
@@ -1659,9 +1659,7 @@ module OpenShift
 
       def build_ssh_key_args_with_content(ssh_keys)
         #ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name'], 'content' => k['content']} }
-        #TODO ask Clayton if comment is needed, check what this even is
-        #TODO let clayton know that requiring Type when in value causes hacks like this
-        ssh_keys.map { |k| {'Type' => k['type'], 'Value' => "#{k['type']} #{k['content']}" } }
+        ssh_keys.map { |k| {'Type' => 'authorized_keys', 'Value' => "#{k['type']} #{k['content']}" } }
       end
 
       def build_ssh_key_args(ssh_keys)
@@ -1686,10 +1684,7 @@ module OpenShift
       #
       def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil, sshkey_required=false)
         app = gear.application
-        args = Hash.new       
-        args[:method] = :get
-        args[:body] = {}
-        args
+        { :method => :get, :body => {} }
       end
 
       def self.build_geard_post_headers
