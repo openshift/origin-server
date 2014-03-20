@@ -45,6 +45,9 @@ class KeysController < BaseController
     end
 
     result = @cloud_user.add_ssh_key(key)
+
+    @analytics_tracker.track_user_event('ssh_key_add', @cloud_user, {'key_name' => name})
+
     ssh_key = RestKey.new(key, get_url, nolinks)
     render_success(:created, "key", ssh_key, "Created SSH key #{name}", result, nil, 'IP' => request.remote_ip)
   end
@@ -68,6 +71,9 @@ class KeysController < BaseController
     end
 
     result = @cloud_user.update_ssh_key(key)
+
+    @analytics_tracker.track_user_event('ssh_key_update', current_user, {'key_name' => id})
+
     ssh_key = RestKey.new(key, get_url, nolinks)
     render_success(:ok, "key", ssh_key, "Updated SSH key #{id} for user #{@cloud_user.login}", result, nil, 'IP' => request.remote_ip)
   end
@@ -81,6 +87,9 @@ class KeysController < BaseController
     @cloud_user.ssh_keys.accessible(current_user).find_by(name: SshKey.check_name!(id))
 
     result = @cloud_user.remove_ssh_key(id)
+
+    @analytics_tracker.track_user_event('ssh_key_remove', current_user, {'key_name' => id})
+
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "Removed SSH key #{id}", result)
   end

@@ -59,6 +59,11 @@ class EmbCartController < BaseController
 
     result = @application.add_cartridges(cartridges.map(&:cartridge), group_overrides, nil, user_env_vars)
 
+    if @application.scalable
+      @analytics_tracker.identify(@cloud_user.reload)
+    end
+    @analytics_tracker.track_event('cartridges_add', nil, @application, {'cartridges' => cartridges.map(&:name).join(', ')})
+
     overrides = @application.group_instances_with_overrides
     rest = cartridges.map do |cart|
       component = @application.component_instances.where(cartridge_name: cart.name).first
@@ -94,6 +99,11 @@ class EmbCartController < BaseController
     instance = @application.component_instances.find_by(cartridge_name: id)
     result = @application.remove_cartridges([instance.cartridge_name])
 
+    if @application.scalable
+      @analytics_tracker.identify(@cloud_user.reload)
+    end
+    @analytics_tracker.track_event('cartridge_remove', nil, @application, {'cartridges' => id})
+
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "Removed #{id} from application #{@application.name}", result)
   end
@@ -112,10 +122,14 @@ class EmbCartController < BaseController
     authorize!(:scale_cartridge, @application) unless scales_from.nil? and scales_to.nil?
     authorize!(:change_gear_quota, @application) unless additional_storage.nil?
 
-    begin
-      additional_storage = Integer(additional_storage) if additional_storage
-    rescue
-      return render_error(:unprocessable_entity, "Invalid storage value provided.", 165, "additional_storage")
+    props = {}
+
+    if additional_storage
+      begin
+        additional_storage = Integer(additional_storage)
+      rescue
+        return render_error(:unprocessable_entity, "Invalid storage value provided.", 165, "additional_storage")
+      end
     end
 
     if !@application.scalable and ((scales_from and scales_from != 1) or (scales_to and scales_to != 1 and scales_to != -1))
@@ -157,7 +171,26 @@ class EmbCartController < BaseController
       return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from")
     end
 
+    if scales_from || scales_to
+      props['scales_from'] = scales_from if scales_from
+      props['previous_scales_from'] = override.min_gears if scales_from
+      props['scales_to'] = scales_to if scales_to
+      props['previous_scales_to'] = override.max_gears if scales_to
+      props['previous_scale'] = instance.gears.count if scales_from
+      props['current_scale'] = [scales_from, instance.gears.count].max if scales_from
+    end
+
+    if additional_storage
+      props['addtl_storage_gb'] = additional_storage
+      props['previous_addtl_storage_gb'] = override.additional_filesystem_gb
+    end
+
     result = @application.update_component_limits(instance, scales_from, scales_to, additional_storage)
+
+    if @application.scalable && (scales_from || scales_to)
+      @analytics_tracker.identify(@cloud_user.reload)
+    end
+    @analytics_tracker.track_event("cartridge_update", nil, @application, props)
 
     instance = @application.component_instances.find_by(cartridge_name: id)
     cartridge = get_embedded_rest_cartridge(

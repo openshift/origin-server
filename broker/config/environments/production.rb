@@ -53,7 +53,7 @@ Broker::Application.configure do
   }
 
   config.analytics = {
-    :enabled => conf.get_bool("ENABLE_ANALYTICS", "false"), # global flag for whether any analytics should be enabled
+    :enabled => conf.get_bool("ENABLE_ANALYTICS", "false") # global flag for whether any analytics should be enabled
   }
 
   config.user_action_logging = {

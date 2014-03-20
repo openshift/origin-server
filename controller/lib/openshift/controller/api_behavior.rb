@@ -159,7 +159,7 @@ module OpenShift
               end
             end
         end
-        
+
         def get_team(id=nil)
           id ||= params[:team_id].presence
           @team = Team.accessible(current_user).find(id)
