@@ -8,7 +8,7 @@ cartridge_type="10gen-mms-agent"
 
 function status() {
     running_process=$(get_process)
-    if output=$(if ps -ef | grep ${running_process} | grep -qv grep > /dev/null; then echo Running; else echo Stopped; exit 1; fi 2>&1)
+    if output=$(if ps -ef | grep ${running_process} | grep -qv grep > /dev/null; then echo "10gen-mms-agent is Running"; else echo "10gen-mms-agent is Stopped"; exit 1; fi 2>&1)
     then
         client_result "$output"
     else
