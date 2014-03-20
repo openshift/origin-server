@@ -367,10 +367,18 @@
  	            
 				<connectors>
 					<netty-connector name="netty" socket-binding="messaging" />
+                    <netty-connector name="netty-throughput" socket-binding="messaging-throughput">
+                        <param key="batch-delay" value="50"/>
+                    </netty-connector>
+
 					<in-vm-connector name="in-vm" server-id="0" />
 				</connectors>
 				<acceptors>
 					<netty-acceptor name="netty" socket-binding="messaging" />
+                    <netty-acceptor name="netty-throughput" socket-binding="messaging-throughput">
+                        <param key="batch-delay" value="50"/>
+                        <param key="direct-deliver" value="false"/>
+                   </netty-acceptor>
 					<in-vm-acceptor name="in-vm" server-id="0" />
 				</acceptors>
 				
@@ -534,6 +542,8 @@
 			port="3529" />
 		<socket-binding name="jgroups-tcp" port="${env.OPENSHIFT_JBOSSEAP_CLUSTER_PORT}" />
 		<socket-binding name="messaging" port="${env.OPENSHIFT_JBOSSEAP_MESSAGING_PORT}" />
+        <socket-binding name="messaging-throughput" 
+        	port="${env.OPENSHIFT_JBOSSEAP_MESSAGING_THROUGHPUT_PORT}"/>
 		<socket-binding name="osgi-http" interface="management"
 			port="8090" />
 		<socket-binding name="remoting" port="${env.OPENSHIFT_JBOSSEAP_REMOTING_PORT}" />
