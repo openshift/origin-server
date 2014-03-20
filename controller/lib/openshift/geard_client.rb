@@ -1452,7 +1452,7 @@ module OpenShift
       # * message: String
       #
       def log_debug(message)
-        Rails.logger.info message
+        Rails.logger.debug message
         puts message
       end
 
@@ -1659,8 +1659,6 @@ module OpenShift
 
       def build_ssh_key_args_with_content(ssh_keys)
         #ssh_keys.map { |k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name'], 'content' => k['content']} }
-        #TODO ask Clayton if comment is needed, check what this even is
-        #TODO let clayton know that requiring Type when in value causes hacks like this
         ssh_keys.map { |k| {'Type' => k['type'], 'Value' => "#{k['type']} #{k['content']}" } }
       end
 
