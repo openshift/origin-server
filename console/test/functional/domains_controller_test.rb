@@ -261,26 +261,29 @@ class DomainsControllerTest < ActionController::TestCase
     get :show, {:id => @domain.id}
     assert_template :show
     assert_response :success
-    assert_select "a:content(?)", "Add users...", :count => 0
-    assert_select "a:content(?)", "Add another user...", :count => 0
+    assert_select "a:content(?)", "Add members...", :count => 0
+    assert_select "a:content(?)", "Add a user...", :count => 0
+    assert_select "a:content(?)", "Add a team...", :count => 0
     assert_select "a.edit-members:content(?)", "Edit members...", :count => 0
   end
 
   test "should render editable members with only owner successfully" do
     with_particular_user
+    OnlineCapabilities.any_instance.expects(:max_teams).at_least(0).returns(1)
     Domain.any_instance.expects(:admin?).at_least(0).returns(true)
     get :show, {:id => @domain.id}
     assert_template :show
     assert_response :success
     assert_select "tr.type-team", :count => 0
     assert_select "tr.type-user", :count => 0
-    assert_select "a:content(?)", "Add users..."
+    assert_select "a:content(?)", "Add members..."
     assert_select "a.edit-members:content(?)", "Edit members..."
   end
 
   test "should render editable members with teams and implicit users successfully" do
     with_particular_user
     original_members = @domain.members
+    OnlineCapabilities.any_instance.expects(:max_teams).at_least(0).returns(1)
     Domain.any_instance.expects(:admin?).at_least(0).returns(true)
     Domain.any_instance.expects(:members).at_least(0).returns(
       [
@@ -295,14 +298,16 @@ class DomainsControllerTest < ActionController::TestCase
     assert_select "tr.type-team"
     assert_select "tr.type-user", :count => 0
     assert_select "tr.team-details td:content(?)", /alice/
-    assert_select "a:content(?)", "Add users...", :count => 0
-    assert_select "a:content(?)", "Add another user..."
+    assert_select "a:content(?)", "Add members...", :count => 0
+    assert_select "a:content(?)", "Add a user..."
+    assert_select "a:content(?)", "Add a team..."
     assert_select "a.edit-members:content(?)", "Edit members..."
   end
 
   test "should render editable members with teams and explicit users successfully" do
     with_particular_user
     original_members = @domain.members
+    OnlineCapabilities.any_instance.expects(:max_teams).at_least(0).returns(1)
     Domain.any_instance.expects(:admin?).at_least(0).returns(true)
     Domain.any_instance.expects(:members).at_least(0).returns(
       [
@@ -325,9 +330,23 @@ class DomainsControllerTest < ActionController::TestCase
     assert_select "tr.type-user select[name='members[][role]'] option[selected='selected'][value='view']"
     assert_select "tr.type-user select[name='members[][role]'] option[selected='selected'][value='admin']"
 
-    assert_select "a:content(?)", "Add users...", :count => 0
-    assert_select "a:content(?)", "Add another user..."
+    assert_select "a:content(?)", "Add members...", :count => 0
+    assert_select "a:content(?)", "Add a user..."
+    assert_select "a:content(?)", "Add a team..."
     assert_select "a.edit-members:content(?)", "Edit members..."
+  end
+
+  test "should hide team add function in members section" do
+    with_particular_user
+    Domain.any_instance.expects(:admin?).at_least(0).returns(true)
+    OnlineCapabilities.any_instance.expects(:max_teams).at_least(0).returns(0)
+    OnlineCapabilities.any_instance.expects(:view_global_teams).at_least(0).returns(false)
+
+    get :show, {:id => @domain.id}
+    assert_template :show
+    assert_response :success
+    assert_select "a:content(?)", "Add a user..."
+    assert_select "a:content(?)", "Add a team...", :count => 0
   end
 
   def get_post_form

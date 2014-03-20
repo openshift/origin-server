@@ -20,5 +20,13 @@ class User < RestApi::Base
     attributes[:max_domains] || 1
   end
 
+  def max_teams
+    attributes[:max_teams] || 0
+  end
+
+  def view_global_teams
+    !!capabilities[:view_global_teams]
+  end
+
   include Capabilities
 end

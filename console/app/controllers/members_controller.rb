@@ -11,16 +11,16 @@ class MembersController < ConsoleController
     p = params[:members] || []
     p = [p] unless p.is_a? Array
     members = p.map {|m| new_member(m) }
-    # Ignore new member rows without a login specified
+    # Ignore member rows without a login or id specified
     members = members.select {|m| m.login.present? || m.id.present? }
 
     if members.present?
       if @domain.update_members(members)
         flash[:success] = @domain.messages.first.presence || "Updated members"
       else
-        flash.now[:error] = "Could not update members."
+        flash.now[:error] = @domain.errors[:members].first || "Could not update members."
         @capabilities = user_capabilities
-        @new_members = members.select {|m| m.login.present? and m.id.blank? }
+        @new_members = members.select {|m| m.attributes[:adding] }
         render :template => 'domains/show' and return
       end
     end
