@@ -26,6 +26,8 @@ Requires:      mongodb
 Requires:      bind-utils
 # For oo-admin-broker-auth
 Requires:      %{?scl:%scl_prefix}mcollective-client
+Requires:      which
+Requires:      tar
 BuildArch:     noarch
 
 %description
