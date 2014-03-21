@@ -36,7 +36,7 @@ function openshift_origin_cron_users() {
     for u in `openshift_origin_users`; do
         if [ -f $GEAR_BASE_DIR/$u/$CART_DIRNAME/env/$CART_IDENT_NAME ] ; then
             read line < $GEAR_BASE_DIR/$u/$CART_DIRNAME/env/$CART_IDENT_NAME
-            if [[ $line == *$IDENT* ]]; then
+            if [[ $line == $IDENT* ]]; then
                 cron_users="$cron_users $u"
             fi
         fi
