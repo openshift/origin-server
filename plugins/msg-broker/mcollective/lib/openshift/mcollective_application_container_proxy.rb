@@ -684,7 +684,7 @@ module OpenShift
       # * calls rpc_get_fact_direct
       #
       def get_ip_address
-        rpc_get_fact_direct('ipaddress')
+        rpc_get_fact_direct('ipaddress_eth0')
       end
 
       # <<accessor>>

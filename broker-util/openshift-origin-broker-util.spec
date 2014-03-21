@@ -28,6 +28,7 @@ Requires:      bind-utils
 Requires:      %{?scl:%scl_prefix}mcollective-client
 Requires:      which
 Requires:      tar
+Requires:      openssh-clients
 BuildArch:     noarch
 
 %description
