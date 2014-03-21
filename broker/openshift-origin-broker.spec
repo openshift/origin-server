@@ -163,6 +163,7 @@ cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
 cp conf/quickstarts.json %{buildroot}%{_sysconfdir}/openshift/quickstarts.json
 cp conf/plugins.d/README %{buildroot}%{_sysconfdir}/openshift/plugins.d/README
 
+mkdir -p %{buildroot}%{_sbindir}
 cp bin/oo-broker %{buildroot}%{_sbindir}/oo-broker
 
 # BZ986300
