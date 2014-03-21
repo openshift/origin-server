@@ -83,7 +83,7 @@ module OpenShift
 
           if perform_initial_build
             pattern   = Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
-            out, _, _ = Utils.oo_spawn("grep -E '#{pattern}' #{build_log}",
+            out, _, _ = Utils.oo_spawn("grep -E '#{pattern}' #{build_log} | head -c 10K",
                                       env:                 env,
                                       chdir:               @container_dir,
                                       uid:                 @uid,

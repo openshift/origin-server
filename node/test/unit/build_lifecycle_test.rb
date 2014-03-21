@@ -700,7 +700,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @cartridge_model.expects(:post_configure).with(cart_name).returns('')
     pattern = OpenShift::Runtime::Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("grep -E '#{pattern}' /tmp/initial-build.log",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("grep -E '#{pattern}' /tmp/initial-build.log | head -c 10K",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
                                                       uid:                 @container.uid,
@@ -743,7 +743,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @cartridge_model.expects(:post_configure).with(cart_name).returns('')
 
     pattern = OpenShift::Runtime::Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("grep -E '#{pattern}' /tmp/initial-build.log",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("grep -E '#{pattern}' /tmp/initial-build.log | head -c 10K",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
                                                       uid:                 @container.uid,
