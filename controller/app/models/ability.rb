@@ -24,7 +24,7 @@ module Ability
       raise OpenShift::OperationForbidden, "You are not permitted to perform this action while not authenticated (#{permission} on #{type.to_s.underscore.humanize.downcase})"
     end
 
-    if scopes.present? && !scopes.authorize_action?(permission, resource, actor_or_id, resources)
+    if scopes.present? && !scopes.authorize_action?(permission, resource, resources, actor_or_id)
       raise OpenShift::OperationForbidden, "You are not permitted to perform this action with the scopes #{scopes} (#{permission} on #{type.to_s.underscore.humanize.downcase})"
     end
 
