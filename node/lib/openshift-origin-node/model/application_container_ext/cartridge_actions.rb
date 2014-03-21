@@ -25,7 +25,7 @@ module OpenShift
         # @param template_git_url  URL for template application source/bare repository
         # @param manifest          Broker provided manifest
         # @param do_expose_ports   Flag to suggest whether cartridge's public endpoints should be exposed out or not
-        def configure(cart_name, template_git_url=nil,  manifest=nil, do_expose_ports=true)
+        def configure(cart_name, template_git_url=nil,  manifest=nil, do_expose_ports=false)
           o = (@cartridge_model.configure(cart_name, template_git_url, manifest) || "")
           if do_expose_ports
             o += (create_public_endpoints(cart_name) || "") 
