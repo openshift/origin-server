@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.22.3
+Version: 1.22.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,20 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
+- Fixing extended tests (dmcphers@redhat.com)
+- Update tests to not use any installed gems and use source gems only Add
+  environment wrapper for running broker util scripts (jforrest@redhat.com)
+- Bug 1079072 - Hide quota error messsages (jhonce@redhat.com)
+- Merge pull request #4990 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Checking and fixing stale sshkeys and env_vars  - using oo-admin-chk and oo-
+  admin-repair (abhgupta@redhat.com)
+- Multiple fixes  - Checking the provides list for cartridge matches for
+  Configure-Order  - Skipping rollback for configure and similar operations in
+  case of a new gear creation. Instead, we will just delete the gear  - Fixing
+  exception raising logic on rollback success/failure (abhgupta@redhat.com)
+
 * Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
 - Merge pull request #4987 from jhadvig/10gen_new
   (dmcphers+openshiftbot@redhat.com)

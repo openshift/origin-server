@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,10 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- auto expose ports upon configure, but only for scalable apps
+  (rchopra@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
 - Use NodeLogger in MCollective agent code (ironcladlou@gmail.com)
 

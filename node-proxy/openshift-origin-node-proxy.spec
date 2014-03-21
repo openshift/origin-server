@@ -11,7 +11,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -142,6 +142,10 @@ fi
 %doc README
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- Update tests to not use any installed gems and use source gems only Add
+  environment wrapper for running broker util scripts (jforrest@redhat.com)
+
 * Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
 - Merge pull request #4741 from Miciah/bug-1060274-node-proxy-stop-on-remove-
   restart-in-upgrade (dmcphers+openshiftbot@redhat.com)

@@ -10,5 +10,5 @@ Feature: Acceptance scripts for sanity checking infrastructure
     And no stack traces should have occurred
 
   Scenarios: Acceptance script scenarios
-    |     script           |   output   | exitcode |
-    | oo-accept-systems    |   PASS     |     0    |
+    |     script                                       |   output   | exitcode |
+    | oo-broker --non-interactive oo-accept-systems    |   PASS     |     0    |
