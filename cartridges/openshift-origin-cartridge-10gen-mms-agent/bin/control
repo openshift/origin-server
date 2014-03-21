@@ -59,7 +59,7 @@ function start() {
       else
         client_error ""
         client_error "Missing enviroment variable OPENSHIFT_MMS_API_KEY, which needs to be set before embeding the cartridge"
-        client_error "Please run: rhc set-env OPENSHIFT_MMS_API_KEY1=YOUR_MMS_API_KEY -a myapp"
+        client_error "Please run: rhc set-env OPENSHIFT_MMS_API_KEY=YOUR_MMS_API_KEY -a myapp"
         client_error "Your MMS api key is available after registration at https://mms.mongodb.com, in the Settings -> Monitoring Agent section"
         exit 137
       fi
