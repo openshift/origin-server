@@ -1149,7 +1149,7 @@ During the `build` phase:
 6.  Starting with the oldest deployment, previous deployments are removed until the number of deployments in app-deployments <= the value of `$OPENSHIFT_KEEP_DEPLOYMENTS` (if necessary)
 7.  The contents of the git repo for the current deployment branch are unpacked into `$OPENSHIFT_HOMEDIR/app-deployments/$date_$time/repo`. _This step is the only time the application source code is copied by OpenShift during this lifecycle._
 8.  The primary cartridge `pre-build` control action is executed.
-9.  The `pre-build` user action hook is executed, if present.
+9.  The `pre_build` user action hook is executed, if present.
 10. The primary cartridge `build` control action is executed.
 11. The `build` user action hook is executed.
 
@@ -1173,7 +1173,7 @@ Next, during the `activate` phase:
 6.  The `deploy` user action hook is executed, if present.
 7.  The primary cartridge is started (the application is now fully started).
 8.  The primary cartridge `post-deploy` control action is executed.
-9.  The `post-deploy` user action hook is executed, if present.
+9.  The `post_deploy` user action hook is executed, if present.
 10.  If the app is scalable, SSH to each child gear and execute `gear activate $deployment_id` which performs all the activation steps (except this one)
 11.  Write activation time to `$OPENSHIFT_HOMEDIR/app-deployments/$date_$time/metadata.json`
 
