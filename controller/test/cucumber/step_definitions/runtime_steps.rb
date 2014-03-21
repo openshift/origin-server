@@ -788,7 +788,7 @@ Then /^the domain environment variable ([^\"]*) with value '([^\"]*)' is added i
     app = get_app_from_hash_with_given_namespace(namespace_key)
     domain = app.namespace
     app_login = app.login
-    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_add -e #{env_var_name} -v #{env_var_value}"
+    command = "oo-broker --non-interactive oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_add -e #{env_var_name} -v #{env_var_value}"
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
@@ -799,7 +799,7 @@ Then /^the domain environment variable ([^\"]*) is deleted in the namespace "([^
     app = get_app_from_hash_with_given_namespace(namespace_key) 
     domain = app.namespace
     app_login = app.login
-    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_del -e #{env_var_name}"
+    command = "oo-broker --non-interactive oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_del -e #{env_var_name}"
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
