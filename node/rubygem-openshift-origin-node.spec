@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.4
+Version: 1.22.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -278,6 +278,30 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
+- Merge pull request #5029 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #5021 from ironcladlou/initial-build-limiting
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing extended tests (dmcphers@redhat.com)
+- Limit initial build client output to 10Kb (ironcladlou@gmail.com)
+- fix default expose_port option to false (rchopra@redhat.com)
+- Update tests to not use any installed gems and use source gems only Add
+  environment wrapper for running broker util scripts (jforrest@redhat.com)
+- Bug 1079072 - Hide quota error messsages (jhonce@redhat.com)
+- Merge pull request #5003 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5002 from tdawson/2014-03/tdawson/move-node-requires
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5001 from bparees/missing_ident
+  (dmcphers+openshiftbot@redhat.com)
+- auto expose ports upon configure, but only for scalable apps
+  (rchopra@redhat.com)
+- move some node requires to diy cartridge dependencies (tdawson@redhat.com)
+- Check for cartridge IDENT before starting gear upgrade process
+  (bparees@redhat.com)
+- error out of upgrade as soon as a bad gear configuration is detected
+  (bparees@redhat.com)
+
 * Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
 - Bug 1061926 - Ensure frontend unidled if backend unidled (jhonce@redhat.com)
 - cart configure should expose ports as well (rchopra@redhat.com)
