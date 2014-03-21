@@ -188,12 +188,12 @@ EOFZ
 
   def up_gears
     logger.info "Upping gears for #{@login}"
-    logger.info `oo-admin-ctl-user -l #{@login} --setmaxgears 5`
+    logger.info `oo-broker --non-interactive oo-admin-ctl-user -l #{@login} --setmaxgears 5`
   end
 
   def enable_ha
     logger.info "Enabling HA for test user #{@login}"
-    logger.info `oo-admin-ctl-user -l #{@login} --allowha true`
+    logger.info `oo-broker --non-interactive oo-admin-ctl-user -l #{@login} --allowha true`
   end
 
   def make_ha(app_name)
