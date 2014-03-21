@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.22.2
+Version: 1.22.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
+- auto expose ports upon configure, but only for scalable apps
+  (rchopra@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
 - Added User pending-op-group/pending-op functionality Added pending op groups
   for user add_ssh_keys/remove_ssh_keys (rpenta@redhat.com)
