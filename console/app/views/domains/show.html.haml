@@ -30,12 +30,12 @@
   %section
 
   .row
-    .span8#app-list
+    .span6#app-list
       %h2 Applications
       - @domain.applications.each do |application|
         = render :partial => 'applications/application2', :locals => {:application => application}
 
-    .span4.sidebar
+    .span6.sidebar
       %h2 Settings
       - if @domain.owner?
         - field = 'domain[allowed_gear_sizes][]'

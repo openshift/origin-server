@@ -58,7 +58,8 @@ module Membership
         {
           :id => (m.id if m.respond_to? :id),
           :login => (m.login if m.respond_to? :login),
-          :role => m.role
+          :role => m.role,
+          :type => m.type
         }
       end
     }
