@@ -7,6 +7,16 @@ esac
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
+if [[ "${OPENSHIFT_APP_NAME}" =~ ^[0-9] ]]; then
+  client_error ""
+  client_error "Unable to add MongoDB cartridge to your application because"
+  client_error "your application name (${OPENSHIFT_APP_NAME}) starts with number."
+  client_error ""
+  client_error "ERROR: MongoDB databases cannot start with number character."
+  client_error ""
+  exit 137
+fi
+
 # install premade journal
 mkdir -p $OPENSHIFT_MONGODB_DIR/data
 if [ -e $OPENSHIFT_MONGODB_DIR/usr/journal-cache/journal.tar.gz ]; then
