@@ -2,7 +2,7 @@
 
 Summary:       Embedded 10gen MMS agent for performance monitoring of MondoDB
 Name:          openshift-origin-cartridge-10gen-mms-agent
-Version: 1.31.3
+Version: 1.31.4
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -38,6 +38,14 @@ Provides 10gen MMS agent cartridge support. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.31.4-1
+- correct typo of depricated to deprecated (bparees@redhat.com)
+- Merge pull request #5025 from jhadvig/10gen_typo
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing typo (jhadvig@redhat.com)
+- Fixing inconsistency with displaying 10gen cartridge status
+  (jhadvig@redhat.com)
+
 * Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.31.3-1
 - 10gen cartridge update (jhadvig@redhat.com)
 
