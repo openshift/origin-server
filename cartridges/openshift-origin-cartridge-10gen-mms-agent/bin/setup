@@ -34,7 +34,7 @@ then
     popd >/dev/null
 	fi
 else
-	client_message "The settings.py was depricated, please check your 10gen-mms-agent cartridge documentation at http://openshift.github.io/documentation/oo_cartridge_guide.html#10gen-mms-agent"
+	client_message "The settings.py was deprecated, please check your 10gen-mms-agent cartridge documentation at http://openshift.github.io/documentation/oo_cartridge_guide.html#10gen-mms-agent"
   shopt -s dotglob
   pushd "$OPENSHIFT_10GENMMSAGENT_DIR" > /dev/null
   cp -r /usr/local/share/mms-agent/* $OPENSHIFT_10GENMMSAGENT_DIR/mms-agent/
