@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -91,6 +91,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
+- Bug 1077591 - Add OPENSHIFT_REPO_DIR to python-path in wsgi
+  (mfojtik@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - Bug 1073934 - Check the ERB safe-level for python openshift.conf.erb
   (mfojtik@redhat.com)
