@@ -70,7 +70,7 @@ command :destroygear do |c|
     end
 
     begin
-      path  = %Q(/cgroup/all/openshift/#{options.with_container_uuid}/freezer.state)
+      path  = Dir["/cgroup/*/openshift/#{options.with_container_uuid}/freezer.state"].first
       state = IO.read(path).chomp
       puts %Q(Gear cgroup state: #{state}) if options.trace
       unless state == 'THAWED'
@@ -86,7 +86,7 @@ command :destroygear do |c|
       # Killing off processes without a passwd entry is hard...
       run %Q(/usr/bin/skill -9 #{options.with_container_uuid})
 
-      tasks = IO.read %Q(/cgroup/all/openshift/#{options.with_container_uuid}/tasks) rescue nil
+      tasks = IO.read Dir["/cgroup/*/openshift/#{options.with_container_uuid}/tasks"].first rescue nil
       unless tasks.nil? || tasks.empty?
         run %Q(/bin/kill -9 -- #{tasks.gsub("\n", ' ')})
       end

@@ -464,8 +464,7 @@ def check_cgroup_procs
     # Support mounting cgroup controllers under /cgroup/all or
     # /cgroup/<controller>
     Dir.glob("/cgroup/*/openshift/*/cgroup.procs").each do |file|
-        controller = file.split("/")[2]
-        uuid = file.split("/")[4]
+        _, _, controller, _, uuid, _ = file.split("/")
         lines = []
         IO.foreach(file).each { |line| lines << line.strip }
         cgroup_procs[controller][uuid] = lines
