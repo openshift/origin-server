@@ -8,6 +8,7 @@ DOP=5  # Degree of Parallelism.
 
 
 CART_DIRNAME="cron"
+CART_IDENT_NAME="OPENSHIFT_CRON_IDENT"
 IDENT="redhat:cron"
 
 function usage() {
@@ -33,8 +34,11 @@ function daemon_as_user {
 function openshift_origin_cron_users() {
     cron_users=""
     for u in `openshift_origin_users`; do
-        if grep $IDENT $GEAR_BASE_DIR/$u/$CART_DIRNAME/env/OPENSHIFT_*_IDENT; then
-          cron_users="$cron_users $u"
+        if [ -f $GEAR_BASE_DIR/$u/$CART_DIRNAME/env/$CART_IDENT_NAME ] ; then
+            read line < $GEAR_BASE_DIR/$u/$CART_DIRNAME/env/$CART_IDENT_NAME
+            if [[ $line == *$IDENT* ]]; then
+                cron_users="$cron_users $u"
+            fi
         fi
     done
     echo -n "$cron_users"
