@@ -446,7 +446,7 @@ class CloudUser
       domain.delete
     end
     while team = Team.where(owner: self).first
-      team.delete
+      team.destroy_team
     end
 
     # will need to reload from primary to ensure that mongoid doesn't validate based on its cache
