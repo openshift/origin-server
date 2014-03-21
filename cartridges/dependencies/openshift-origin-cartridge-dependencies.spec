@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -502,6 +502,9 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
+- move some node requires to diy cartridge dependencies (tdawson@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - add jython to jboss cartridges (admiller@redhat.com)
 - Require -recommended metapackages from -optional cart deps
