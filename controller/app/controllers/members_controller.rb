@@ -95,7 +95,6 @@ class MembersController < BaseController
         ("updated #{pluralize(count_update, 'member')}" if count_update > 0),
         ("removed #{pluralize(count_remove, 'member')}" if count_remove > 0),
         ("ignored #{pluralize(invalid_members.length, 'missing member')} (#{invalid_members.join(', ')})" if invalid_members.present?),
-        ("ignored #{pluralize(indirect_members.length, 'indirect member')} (#{indirect_members.join(', ')})" if indirect_members.present?),
       ].compact.join(", ").humanize + '.'
 
       if (count_add + count_update == 1) and (count_remove == 0) and (member = members.detect{|m| m._id == new_members.first._id })
@@ -304,7 +303,7 @@ class MembersController < BaseController
         if member.explicit_role?
           return true
         else
-          indirect_members << pretty
+          indirect_members << (member.name || member.login || pretty)
           return false
         end
       else

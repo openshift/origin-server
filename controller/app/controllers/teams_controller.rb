@@ -9,14 +9,14 @@ class TeamsController < BaseController
       when nil     then Team.accessible(current_user)
       else return render_error(:unprocessable_entity, "Only @self is supported for the 'owner' argument.", 1) 
       end
-    rest_teams = teams.map {|t| get_rest_team(t)}
+    rest_teams = teams.map {|t| get_rest_team(t, if_included(:members))}
     render_success(:ok, "teams", rest_teams, "Listing teams for user #{@cloud_user.login}")
   end
 
   def show
     id = params[:id].presence
     team = get_team(id)
-    render_success(:ok, "team", get_rest_team(team), "Showing team #{id} for user #{@cloud_user.login}")
+    render_success(:ok, "team", get_rest_team(team, true), "Showing team #{id} for user #{@cloud_user.login}")
   end
 
   def create
@@ -32,7 +32,7 @@ class TeamsController < BaseController
       messages = get_error_messages(team)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     end
-    render_success(:created, "team", get_rest_team(team), "Added #{team.name}")
+    render_success(:created, "team", get_rest_team(team, true), "Added #{team.name}")
   end
   # not supported
 =begin
@@ -49,7 +49,7 @@ class TeamsController < BaseController
       messages = get_error_messages(team)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     end
-    render_success(:ok, "team", get_rest_team(team), "Updated team")
+    render_success(:ok, "team", get_rest_team(team, true)), "Updated team")
   end
 =end
   def destroy
