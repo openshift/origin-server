@@ -423,21 +423,22 @@ module OpenShift
         end
       end
 
-      ##
-      # Unidles the gear.
+      # Unidles the gear
       #
+      # @param options [Hash<>] ignored
+      # @return [String] output from starting gear
       def unidle_gear(options={})
-        output = ""
+        output = ''
         OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
-        if stop_lock? and (state.value == State::IDLE)
-          state.value = State::STARTED
-          output      = start_gear
-        end
-
-        frontend = FrontendHttpServer.new(self)
-        if frontend.idle?
-          frontend.unidle
-        end
+          if state.value == State::IDLE
+            begin
+              state.value = State::STARTED
+              output      = start_gear
+            ensure
+              frontend = FrontendHttpServer.new(self)
+              frontend.unidle if frontend.idle?
+            end
+          end
         end
         output
       end

@@ -24,8 +24,13 @@ module OpenShift
         # @param cart_name         cartridge name
         # @param template_git_url  URL for template application source/bare repository
         # @param manifest          Broker provided manifest
-        def configure(cart_name, template_git_url=nil,  manifest=nil)
-          @cartridge_model.configure(cart_name, template_git_url, manifest)
+        # @param do_expose_ports   Flag to suggest whether cartridge's public endpoints should be exposed out or not
+        def configure(cart_name, template_git_url=nil,  manifest=nil, do_expose_ports=false)
+          o = (@cartridge_model.configure(cart_name, template_git_url, manifest) || "")
+          if do_expose_ports
+            o += (create_public_endpoints(cart_name) || "") 
+          end
+          o
         end
 
         def post_configure(cart_name, template_git_url=nil)
@@ -78,7 +83,7 @@ module OpenShift
 
           if perform_initial_build
             pattern   = Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
-            out, _, _ = Utils.oo_spawn("grep -E '#{pattern}' #{build_log}",
+            out, _, _ = Utils.oo_spawn("grep -E '#{pattern}' #{build_log} | head -c 10K",
                                       env:                 env,
                                       chdir:               @container_dir,
                                       uid:                 @uid,
@@ -173,7 +178,7 @@ module OpenShift
           # TODO this is a quick fix because the PUBLIC_IP from the node config
           # isn't the one we want - the port proxy binds to the 10.x IPs, not
           # to the public EC2 IP addresses
-          ip_address = `facter ipaddress`.chomp
+          ip_address = `facter ipaddress_eth0`.chomp
 
           env  = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
           # TODO: better error handling

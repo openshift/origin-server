@@ -104,19 +104,19 @@ module OpenShift
       # Override setter to auto-convert to Rational in seconds
       # @param seconds [Fixnum] seconds of delay between restarts
       def retry_delay=(seconds)
-        Syslog.info("Watchman retry delay changed from: #{@retry_delay} to: #{seconds}")
+        Syslog.info("Watchman retry delay #{seconds}s")
         @retry_delay = seconds.instance_of?(Rational) ? seconds : Rational(seconds, 86400)
       end
 
       # Override setter to auto-convert to Rational in seconds
       # @param seconds [Fixnum] seconds of delay before resetting retries
       def retry_period=(seconds)
-        Syslog.info("Watchman retry period changed from: #{@retry_period} to: #{seconds}")
+        Syslog.info("Watchman retry period #{seconds}s")
         @retry_period = seconds.instance_of?(Rational) ? seconds : Rational(seconds, 86400)
       end
 
       def gear_retries=(retries)
-        Syslog.info("Watchman gear_retries changed from: #{@gear_retries} to: #{retries}")
+        Syslog.info("Watchman gear_retries #{retries}s")
         @gear_retries = retries
       end
 

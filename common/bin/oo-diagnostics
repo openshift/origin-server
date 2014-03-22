@@ -361,7 +361,8 @@ class OODiag
       broken = ""
       broken += `restorecon -Rnv /var/www/openshift/` if @is_broker
       broken += `restorecon -Rnv /usr/libexec/openshift/` if @is_node
-      broken += `restorecon -Rnv /etc/openshift`
+      broken += `restorecon -Rnv /etc/openshift` if @is_broker || @is_node
+      broken += `restorecon -Rnv /opt/rh/ruby193/root/etc` unless @scl_prefix.empty?
       #broken += `restorecon -Rnv /etc` # some of these are irrelevant / spurious
       # so only complain about the ones with common bad contexts
       broken += `restorecon -Rnv /etc | grep -e :user_home_t: -e :user_tmp_t: -e :admin_home_t:`
@@ -411,6 +412,7 @@ class OODiag
     conf_profiles = Rails.configuration.openshift[:gear_sizes]
     default_profile = Rails.configuration.openshift[:default_gear_size]
     default_allowed = Rails.configuration.openshift[:default_gear_capabilities]
+    districts_required = Rails.configuration.msg_broker[:districts][:require_for_app_create]
     #
     # get the gear profile from every node
     #
@@ -423,13 +425,21 @@ class OODiag
         do_fail <<-FAIL
           Host #{node} does not have a profile defined.
           This is a serious problem and will prevent it from hosting gears.
-          * Is the facter running on the host and updating /etc/mcollective/facts.yaml?
+          * Is the facter running on the host and updating the mcollective facts.yaml?
           * What profile is specified in the host's /etc/openshift/resource_limits.conf?
         FAIL
       else
         verbose "profile for #{node}: #{profile}"
         a_profile_for[node] = profile
-        a_nodes_with_profile[profile] << node
+        if profile.include? ","  # trying to specify multiple profiles
+          do_fail <<-FAIL
+            Host #{node} has specified a profile of "#{profile}" which is invalid.
+            A node host can only have a single profile. To provide another profile,
+            create another node host with that profile.
+          FAIL
+        else
+          a_nodes_with_profile[profile] << node
+        end
       end
     end
 
@@ -463,14 +473,14 @@ class OODiag
         skip_test
       end
       missing_profiles = conf_profiles - a_nodes_with_profile.keys
-      do_warn <<-MISSING unless missing_profiles.empty?
-        The following gear profile(s) are configured but not provided by node hosts:
+      do_warn <<-MISSING if missing_profiles.any?
+        The following gear profile(s) are configured but not provided by any node hosts:
           #{missing_profiles.join ", "}
         Attempts to create apps using these gear profiles will fail.
         Please fix the settings in #{conf} or add node hosts accordingly.
       MISSING
       missing_profiles = a_nodes_with_profile.keys - conf_profiles
-      do_warn <<-MISSING unless missing_profiles.empty?
+      do_warn <<-MISSING if missing_profiles.any?
         The following gear profile(s):
           #{missing_profiles.join ", "}
         are available on at least one node host, but not configured for the broker.
@@ -484,10 +494,17 @@ class OODiag
     #
     districts = District.find_all
     if districts.length == 0
-      do_warn <<-NONE
-        No districts are defined. Districts should be used in any production installation.
-        Please consult the Administration Guide.
-      NONE
+      if districts_required # and missing, that's a fail
+        do_fail <<-NONE
+          No districts are defined. Districts are required before creating applications.
+          Please consult the Administration Guide.
+        NONE
+      else
+        do_warn <<-NONE # but if districts are not required, only a warning
+          No districts are defined. Districts should be used in any production installation.
+          Please consult the Administration Guide.
+        NONE
+      end
       skip_test
     end
 
@@ -503,7 +520,7 @@ class OODiag
                             # model refactor renamed :node_profile => :gear_size
       verbose "district '#{district.name}' has profile '#{profile}'"
       if district.servers.empty?
-        do_warn "There are no node hosts in district '#{district.name}'"
+        do_warn "\tThere are no node hosts in district '#{district.name}'"
       end
       district.servers.each do |node|
         d_profile_for[node["name"]] = profile
@@ -518,19 +535,18 @@ class OODiag
     unless conf_profiles.empty?
       do_fail <<-MISSING unless d_profile_active[default_profile]
         Default gear profile '#{default_profile}' has no active node hosts supplying it in any district.
-        Attempts to create apps without specifying gear size may fail.
-        Please fix the settings in #{conf}
-        or add active node hosts to a district with profile '#{default_profile}'
-        using oo-admin-ctl-district.
+        Attempts to create apps without specifying gear size #{districts_required ? "will" : "may"} fail.
+        Please add active node hosts to a district with profile '#{default_profile}'
+        using oo-admin-ctl-district or fix the settings in #{conf}
       MISSING
       missing_profiles = conf_profiles - d_profile_active.keys
       do_fail <<-MISSING unless missing_profiles.empty?
         The following gear profile(s) are configured:
           #{missing_profiles.join ", "}
         but not provided by any active district hosts.
-        Attempts to create apps using these gears may fail.
-        Please fix the settings in #{conf}
-        or add districts / node hosts with oo-admin-ctl-district.
+        Attempts to create apps using these gears #{districts_required ? "will" : "may"} fail.
+        Please add districts / node hosts with oo-admin-ctl-district
+        or fix the settings in #{conf}
       MISSING
       missing_profiles = d_profile_active.keys - conf_profiles
       do_warn <<-MISSING unless missing_profiles.empty?

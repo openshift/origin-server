@@ -170,9 +170,9 @@ EOF`
 }
 
 function check_logfile_perms() {
-    if [ "${APP_VALUE_MAP[ENABLE_USER_ACTION_LOG]}" = "true" ]
+    if [ "${APP_VALUES[ENABLE_USER_ACTION_LOG]}" = "true" ]
     then 
-      USER_ACTION_LOG_FILE=${APP_VALUE_MAP[USER_ACTION_LOG_FILE]}
+      USER_ACTION_LOG_FILE=${APP_VALUES[USER_ACTION_LOG_FILE]}
       if [ ! -f "${USER_ACTION_LOG_FILE}" ]
       then
         fail "Rest API Logging enabled but the log file does not exist -- run touch ${USER_ACTION_LOG_FILE} && chown apache:apache ${USER_ACTION_LOG_FILE} && chmod 640 ${USER_ACTION_LOG_FILE}"
@@ -186,19 +186,19 @@ function check_logfile_perms() {
 }
 
 function check_missing_and_insecure_secrets() {
-    if [ "${APP_VALUE_MAP[AUTH_SALT]}" = "ClWqe5zKtEW4CJEMyjzQ" ]
+    if [ "${APP_VALUES[AUTH_SALT]}" = "ClWqe5zKtEW4CJEMyjzQ" ]
     then
       fail "Default AUTH_SALT detected in ${BROKER_CONF}! Change the the value and use oo-admin-broker-auth to regenerate authentication tokens. (Hint: use 'openssl rand -base64 64' to generate a unique salt)"
     fi
 
-    if [ "${APP_VALUE_MAP[SESSION_SECRET]}" = "nil" -o "${APP_VALUE_MAP[SESSION_SECRET]}" = "" ]
+    if [ "${APP_VALUES[SESSION_SECRET]}" = "nil" -o "${APP_VALUES[SESSION_SECRET]}" = "" ]
     then
       fail "SESSION_SECRET must be set in $BROKER_CONF (Hint: use 'openssl rand -hex 64' to generate a unique secret."
     fi
 
     if [ -f ${CONSOLE_CONF} ]
     then
-      CONSOLE_SECRET="${APP_VALUE_MAP[CONSOLE_SESSION_SECRET]}"
+      CONSOLE_SECRET="${APP_VALUES[CONSOLE_SESSION_SECRET]}"
       if [ "$CONSOLE_SECRET" = "nil" -o "$CONSOLE_SECRET" = "" ]
       then
         fail "SESSION_SECRET must be set in ${CONSOLE_CONF} (Hint: use 'openssl rand -hex 64' to generate a unique secret."
@@ -231,8 +231,10 @@ function load_application_values() {
 	# run those statements after initializing the Rails env
 	local OLD_IFS=$IFS; IFS=$'\n' # read into array one line per element
         local tempfile=`mktemp`  # for recording errors
-	new_app_values=(`run_ruby_rails_command "$ruby_program" 2> $tempfile`) # NOT local - loses $?
-	RETVAL=$?
+	local new_app_values # separate so we keep rc from command
+	readarray -t new_app_values < <(run_ruby_rails_command "$ruby_program" 2> $tempfile; echo $?)
+	RETVAL=${new_app_values[${#new_app_values[@]}-1]}
+	unset new_app_values[${#new_app_values[@]}-1]
         [ -s $tempfile ] && notice "stderr output loading broker settings:" `cat $tempfile | head -n 5`
         rm -f $tempfile
 	IFS=$OLD_IFS # back to normal
@@ -247,7 +249,8 @@ ${new_app_values[@]}
                 return 1
 	elif (( ${#new_app_values[@]} != ${#keys[@]} ))
 	then
-		fail "wrong number of values loaded from broker settings:
+		fail "wrong number of values loaded from broker settings.
+This is a bug in oo-accept-broker. Debug output follows:
 keys: ${#keys[@]}; values: ${#new_app_values[@]}
 #####
 $ruby_program
@@ -965,9 +968,12 @@ STATUS=0
 probe_version
 check_packages $PACKAGES
 check_ruby_requirements $OSO_RUBY_LIBS
-check_selinux_enforcing
-check_selinux_booleans
-check_firewall
+if [ -z "$container" ]; then 
+  #Can't check selinux/iptables if we are running inside a container
+  check_selinux_enforcing
+  check_selinux_booleans
+  check_firewall
+fi
 check_services
 
 # we will fill APP_VALUES with output from ruby commands corresponding to the map

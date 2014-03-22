@@ -1693,6 +1693,7 @@ class Application
         Rails.logger.debug e_orig.backtrace.inspect unless rollback_pending
 
         #rollback
+        rollback_successful = false
         begin
           # reload the application before a rollback
           self.reload
@@ -1700,6 +1701,8 @@ class Application
           op_group.delete
           num_gears_recovered = op_group.num_gears_added - op_group.num_gears_created + op_group.num_gears_rolled_back + op_group.num_gears_destroyed
           op_group.unreserve_gears(num_gears_recovered, self)
+
+          rollback_successful = true
         rescue Mongoid::Errors::DocumentNotFound
           # ignore if the application is already deleted
         rescue Exception => e_rollback
@@ -1715,7 +1718,8 @@ class Application
         # raise the original exception if it was the actual exception that led to the rollback
         # if not, then we should just continue execution of any remaining op_groups.
         # The continue_on_successful_rollback flag is used by the oo-admin-clear-pending-ops script
-        unless rollback_pending or continue_on_successful_rollback
+        # Note: If the rollback was blocked, do not continue as this can lead to an infinite loop
+        unless ( rollback_successful and (continue_on_successful_rollback or rollback_pending) )
           if e_orig.respond_to? 'resultIO' and e_orig.resultIO
             e_orig.resultIO.append result_io unless e_orig.resultIO == result_io
           end
@@ -1875,9 +1879,11 @@ class Application
     end
 
     prereq_op_id = prereq_op._id.to_s rescue nil
+    # since this component add operation is part of a new gear creation, we can skip rollback for everything other that gear creation
+    is_gear_creation = true
     add, usage = calculate_add_component_ops(gear_comp_specs, comp_spec_gears, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
                                              is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
-                                             app_dns_gear_id)
+                                             app_dns_gear_id, is_gear_creation)
     ops.concat(add)
     track_usage_ops.concat(usage)
 
@@ -2001,12 +2007,14 @@ class Application
     false
   end
 
-  def calculate_add_component_ops(gear_comp_specs, comp_spec_gears, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil, app_dns_gear_id=nil)
+  def calculate_add_component_ops(gear_comp_specs, comp_spec_gears, group_instance_id, deploy_gear_id, 
+                                  gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil, 
+                                  app_dns_gear_id=nil, is_gear_creation=false)
     ops = []
     usage_ops = []
 
     comp_spec_gears.keys.each do |comp_spec|
-      component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: [], expose_ports: [], add_broker_auth_keys: []} if component_ops[comp_spec].nil?
+      component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: [], add_broker_auth_keys: []} if component_ops[comp_spec].nil?
       cartridge = comp_spec.cartridge
 
       new_component_op_id = []
@@ -2045,19 +2053,22 @@ class Application
           git_url = init_git_url
         end
 
-        add_component_op = AddCompOp.new(gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, prereq: new_component_op_id + [prereq_id])
+        add_component_op = AddCompOp.new(gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, 
+                                         skip_rollback: is_gear_creation, prereq: new_component_op_id + [prereq_id])
         ops << add_component_op
         component_ops[comp_spec][:adds] << add_component_op
         usage_op_prereq = [add_component_op._id.to_s]
 
         # if this is a web_proxy, send any existing alias and SSL cert information to it
         if cartridge.is_web_proxy? and self.aliases.present?
-          resend_aliases_op = ResendAliasesOp.new(gear_id: gear_id, fqdns: self.aliases.map {|app_alias| app_alias.fqdn}, prereq: [add_component_op._id.to_s])
+          resend_aliases_op = ResendAliasesOp.new(gear_id: gear_id, fqdns: self.aliases.map {|app_alias| app_alias.fqdn}, 
+                                                  skip_rollback: is_gear_creation, prereq: [add_component_op._id.to_s])
           ops.push resend_aliases_op
 
           aliases_with_certs = self.aliases.select {|app_alias| app_alias.has_private_ssl_certificate}
           if aliases_with_certs.present?
-            resend_ssl_certs_op = ResendSslCertsOp.new(gear_id: gear_id, ssl_certs: get_ssl_certs(), prereq: [resend_aliases_op._id.to_s])
+            resend_ssl_certs_op = ResendSslCertsOp.new(gear_id: gear_id, ssl_certs: get_ssl_certs(), 
+                                                       skip_rollback: is_gear_creation, prereq: [resend_aliases_op._id.to_s])
             ops.push resend_ssl_certs_op
           end
         end
@@ -2077,18 +2088,6 @@ class Application
           usage_ops << TrackUsageOp.new(user_id: self.domain.owner._id, parent_user_id: self.domain.owner.parent_user_id,
             app_name: self.name, gear_id: gear_id, event: UsageRecord::EVENTS[:begin], cart_name: cartridge.name,
             usage_type: UsageRecord::USAGE_TYPES[:premium_cart], prereq: usage_op_prereq)
-        end
-
-        if self.scalable
-          expose_port_prereq = []
-          if post_configure_op
-            expose_port_prereq << post_configure_op._id.to_s
-          else
-            expose_port_prereq << add_component_op._id.to_s
-          end
-          op = ExposePortOp.new(gear_id: gear_id, comp_spec: comp_spec, prereq: expose_port_prereq + [prereq_id])
-          component_ops[comp_spec][:expose_ports] << op
-          ops << op
         end
       end
     end
@@ -2329,13 +2328,11 @@ class Application
       prereq_ids += (component_ops[config_order[idx-1]][:add_broker_auth_keys] || []).map{|op| op._id.to_s}
       prereq_ids += (component_ops[config_order[idx-1]][:adds] || []).map{|op| op._id.to_s}
       prereq_ids += (component_ops[config_order[idx-1]][:post_configures] || []).map{|op| op._id.to_s}
-      prereq_ids += (component_ops[config_order[idx-1]][:expose_ports] || []).map {|op| op._id.to_s }
 
       component_ops[config_order[idx]][:new_component].prereq += prereq_ids unless component_ops[config_order[idx]][:new_component].nil?
       (component_ops[config_order[idx]][:add_broker_auth_keys] || []).each { |op| op.prereq += prereq_ids }
       (component_ops[config_order[idx]][:adds] || []).each { |op| op.prereq += prereq_ids }
       (component_ops[config_order[idx]][:post_configures] || []).each { |op| op.prereq += prereq_ids }
-      (component_ops[config_order[idx]][:expose_ports] || []).each { |op| op.prereq += prereq_ids }
     end
 
     if pending_ops.present? and !(pending_ops.length == 1 and SetGroupOverridesOp === pending_ops.first)
@@ -2626,7 +2623,7 @@ class Application
   def enforce_system_order(order, categories)
     web_carts = Array(categories['web_framework'])
     service_carts = Array(categories['service']) - web_carts
-    plugin_carts = Array(categories['plugin']) + Array(categories['ci_builder']) + Array(categories['web_proxy']) - service_carts
+    plugin_carts = categories.map { |k,v| Array(v) }.flatten - web_carts - service_carts 
 
     web_carts.each do |w|
       (service_carts+plugin_carts).each do |sp|
@@ -2670,7 +2667,17 @@ class Application
             break
           end
         end
-        raise OpenShift::UserException.new("Cartridge '#{spec.cartridge_name}' can not be added without #{Array(deps).join(' or ')}.", 185) if !match
+
+        # check if any platform cartridge can satisfy the dependency
+        # if so, include them in the message being sent back to the user
+        error_message = "Cartridge '#{spec.cartridge_name}' can not be added without #{Array(deps).join(' or ')}."
+        platform_carts = CartridgeCache.get_all_cartridges
+        Array(deps).each do |name|
+          matching_carts = platform_carts.select { |cart| cart.names.include?(name) || cart.categories.include?(name) }
+          error_message += " The dependency '#{name}' can be satisfied with #{matching_carts.map(&:name).join(' or ')}." if matching_carts.present?
+        end
+
+        raise OpenShift::UserException.new(error_message, 185) if !match
         order << match
       end
       next if order.empty?
@@ -2680,7 +2687,7 @@ class Application
     categories = {}
     specs.each do |spec|
       cats = spec.cartridge.categories
-      ['web_framework', 'plugin', 'service', 'ci_builder', 'web_proxy'].each do |cat|
+      ['web_framework', 'plugin', 'service', 'embedded', 'ci_builder', 'web_proxy'].each do |cat|
         (categories[cat] ||= []) << spec if cats.include?(cat)
       end
     end

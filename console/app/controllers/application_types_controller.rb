@@ -20,6 +20,7 @@ class ApplicationTypesController < ConsoleController
       ['All web cartridges', :cartridge],
       ['All instant applications', :instant_app],
       nil,
+      ['xPaaS', :xpaas],
       ['Blogs', :blog],
       ['Content management systems', :cms],
       #['MongoDB', :mongo],
@@ -38,7 +39,7 @@ class ApplicationTypesController < ConsoleController
     else
       types = ApplicationType.all
       @featured_types = types.select{ |t| t.tags.include?(:featured) }.sample(3).sort!
-      groups, other = in_groups_by_tag(types, [:instant_app, :java, :php, :ruby, :python])
+      groups, other = in_groups_by_tag(types, [:instant_app, :xpaas, :java, :php, :ruby, :python])
       groups.each do |g|
         g[2] = application_types_path(:tag => g[0])
         g[1].sort!

@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.22.2
+Version: 1.22.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -26,6 +26,8 @@ Requires:      mongodb
 Requires:      bind-utils
 # For oo-admin-broker-auth
 Requires:      %{?scl:%scl_prefix}mcollective-client
+Requires:      which
+Requires:      tar
 BuildArch:     noarch
 
 %description
@@ -102,6 +104,24 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
+- Bug 1078120: The value lookup is being done in the wrong hash
+  (abhgupta@redhat.com)
+- oo-accept-broker: handle broker conf errors better (lmeyer@redhat.com)
+- Update tests to not use any installed gems and use source gems only Add
+  environment wrapper for running broker util scripts (jforrest@redhat.com)
+- Merge pull request #5009 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1075480: proper message is output after deleting cartridge type
+  (abhgupta@redhat.com)
+- Bug 1078191: Missed calling the get_available_cartridges method
+  (abhgupta@redhat.com)
+- Checking and fixing stale sshkeys and env_vars  - using oo-admin-chk and oo-
+  admin-repair (abhgupta@redhat.com)
+
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
+- Bug 1077496 - Fix add subaccount in oo-admin-ctl-user (rpenta@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
 - oo-accept-broker: improve err handling & more (lmeyer@redhat.com)
 - Added User pending-op-group/pending-op functionality Added pending op groups

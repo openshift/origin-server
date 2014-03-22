@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.21.2
+Version: 1.21.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -119,6 +119,14 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
+- oo-diagnostics: add sclized /etc to selinux check (lmeyer@redhat.com)
+
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- oo-diagnostics: fail more accurately w/ districts required
+  (lmeyer@redhat.com)
+- Bug 1077031 - Warn if Watchman is not running (jhonce@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.21.2-1
 - oo-diagnostics: detect unreadable apache conf files (lmeyer@redhat.com)
 - oo-diagnostics: refactor test for executable commands (lmeyer@redhat.com)

@@ -198,7 +198,7 @@ class ActiveSupport::TestCase
 
   def with_downloaded_app
     skip "Downloadable cartridges are disabled" unless RestApi.download_cartridges_enabled?
-    use_app(:downloadable_app) { Application.new({:name => "downloaded", :cartridges => {:url => DOWNLOADED_CART_URL}, :as => new_named_user('user_with_normal_app')}) }
+    use_app(:downloadable_app) { Application.new({:name => "downloaded", :cartridges => {:url => DOWNLOADED_CART_URL}, :as => new_named_user('user_with_downloaded_app')}) }
   end
 
   def with_scalable_app

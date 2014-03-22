@@ -2,6 +2,7 @@ class ResendSslCertsOp < PendingAppOp
 
   field :gear_id, type: String
   field :ssl_certs, type: Array
+  field :skip_rollback, type: Boolean
 
   def execute
     result_io = ResultIO.new
@@ -16,11 +17,13 @@ class ResendSslCertsOp < PendingAppOp
   end
 
   def rollback
-    result_io = ResultIO.new
-    gear = get_gear()
-    unless gear.removed
-      ssl_certs.each do |cert_info|
-        result_io.append gear.remove_ssl_cert(cert_info[2])
+    result_io = nil
+    unless skip_rollback
+      gear = get_gear()
+      unless gear.removed
+        ssl_certs.each do |cert_info|
+          result_io.append gear.remove_ssl_cert(cert_info[2])
+        end
       end
     end
     result_io

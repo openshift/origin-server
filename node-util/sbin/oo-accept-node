@@ -708,7 +708,7 @@ def check_system_httpd_configs
       httpconfs['aliases.txt'].delete_if { |k,v|  v == fqdn }
       httpconfs['idler.txt'].delete(fqdn)
       httpconfs['sts.txt'].delete(fqdn)
-      httpconfs['routes.json'].delete(fqdn)
+      httpconfs['routes.json'].delete_if   { |k,v|  k.split('/')[0] == fqdn }
       httpconfs['routes.json'].delete_if { |k, v| v["alias"] == fqdn }
       httpconfs['geardb.json'].delete_if { |k, v| v["fqdn"] == fqdn }
     rescue
@@ -750,7 +750,7 @@ def check_system_httpd_configs
 end
 
 def check_app_dirs
-  verbose("checking application dirs")
+  verbose('checking application dirs')
   copy_all_users = $USERS.dup
 
   Dir.foreach($GEAR_BASE_DIR) do |entry|
@@ -763,18 +763,37 @@ def check_app_dirs
     next if File.symlink? gear_home
     next unless File.directory? gear_home
 
-    [ ".ssh", ".env", ".sandbox", ".tmp" ].each do |dotdir|
-         user_fail(entry, "directory #{entry} doesn't have a #{dotdir} directory") unless File.directory? File.join(gear_home,dotdir)
+    %w(.ssh .env .sandbox .tmp).each do |dotdir|
+      unless File.directory? File.join(gear_home, dotdir)
+        user_fail(entry, "directory #{entry} doesn't have a #{dotdir} directory")
+      end
     end
 
-    if Dir.glob(File.join(gear_home, %w(* metadata manifest.yml))).size == 0
+    cartridges = Dir.glob(File.join(gear_home, %w(* metadata manifest.yml)))
+    idents = Dir.glob(File.join(gear_home, %w(* env OPENSHIFT_*_IDENT)))
+
+    if cartridges.empty?
       user_fail(entry, "directory #{entry} doesn't have a cartridge directory")
+    end
+
+    if cartridges.size != idents.size
+      user_fail(entry, "directory #{entry} ratio of cartridge:ident not 1:1 rather #{cartridges.size}:#{idents.size}")
     end
 
     if copy_all_users.select { |u| u.name == entry }.empty?
       user_fail(entry, "directory #{entry} doesn't have an associated user")
     else
       copy_all_users.delete_if { |u| u.name == entry }
+    end
+
+    primary = File.join(gear_home, '.env', 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR')
+    if File.exist? primary
+      primary = IO.read(primary).chomp
+      unless File.directory? primary
+        user_fail(entry, %Q(directory #{entry} doesn't have primary cartridge '#{File.basename(primary)}'))
+      end
+    else
+      user_fail(entry, "directory #{entry}/.env doesn't have OPENSHIFT_PRIMARY_CARTRIDGE_DIR")
     end
   end
 end

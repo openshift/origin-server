@@ -2,6 +2,7 @@ class ResendAliasesOp < PendingAppOp
 
   field :gear_id, type: String
   field :fqdns, type: Array
+  field :skip_rollback, type: Boolean
 
   def execute
     result_io = ResultIO.new 
@@ -11,9 +12,11 @@ class ResendAliasesOp < PendingAppOp
   end
 
   def rollback
-    result_io = ResultIO.new
-    gear = get_gear()
-    result_io = gear.remove_aliases(fqdns) unless gear.removed
+    result_io = nil
+    unless skip_rollback
+      gear = get_gear()
+      result_io = gear.remove_aliases(fqdns) unless gear.removed
+    end
     result_io
   end
 

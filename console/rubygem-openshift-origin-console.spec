@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.22.2
+Version: 1.22.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,21 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
+- Adds the xPaaS section to the app creation page in the web console
+  (contact@fabianofranz.com)
+
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
+- Merge pull request #4979 from sg00dwin/external-cart
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4929 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Teams API (lnader@redhat.com)
+- Use unique name for user with downloaded app (jliggitt@redhat.com)
+- Merge branch 'master' into external-cart (sgoodwin@redhat.com)
+- Addition of updated cartridge and external cartridge icons
+  (sgoodwin@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
 - Merge pull request #4955 from fabianofranz/dev/163
   (dmcphers+openshiftbot@redhat.com)

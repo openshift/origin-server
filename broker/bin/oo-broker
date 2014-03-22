@@ -1,0 +1,4 @@
+#!/bin/bash
+#
+# This script allows OpenShift Origin to keep command consistency 
+exec "$@"

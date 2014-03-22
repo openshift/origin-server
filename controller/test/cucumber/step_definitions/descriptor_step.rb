@@ -1,4 +1,5 @@
 require 'rubygems'
+$LOAD_PATH.unshift "#{ENV['OPENSHIFT_TEST_DIR']}controller/lib" unless ENV['OPENSHIFT_TEST_DIR'].nil?
 require 'openshift-origin-controller'
 
   

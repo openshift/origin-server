@@ -593,7 +593,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     template_git_url = 'url'
     manifest = 'manifest'
     @cartridge_model.expects(:configure).with(cart_name, template_git_url, manifest)
-    @container.configure(cart_name, template_git_url, manifest)
+    @container.expects(:create_public_endpoints).with(cart_name)
+    @container.configure(cart_name, template_git_url, manifest, true)
   end
 
   # new gear
@@ -699,7 +700,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @cartridge_model.expects(:post_configure).with(cart_name).returns('')
     pattern = OpenShift::Runtime::Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("grep -E '#{pattern}' /tmp/initial-build.log",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("grep -E '#{pattern}' /tmp/initial-build.log | head -c 10K",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
                                                       uid:                 @container.uid,
@@ -742,7 +743,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @cartridge_model.expects(:post_configure).with(cart_name).returns('')
 
     pattern = OpenShift::Runtime::Utils::Sdk::CLIENT_OUTPUT_PREFIXES.join('|')
-    OpenShift::Runtime::Utils.expects(:oo_spawn).with("grep -E '#{pattern}' /tmp/initial-build.log",
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("grep -E '#{pattern}' /tmp/initial-build.log | head -c 10K",
                                                       env:                 gear_env,
                                                       chdir:               @container.container_dir,
                                                       uid:                 @container.uid,

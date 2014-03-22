@@ -31,7 +31,7 @@ module UserHelper
   end
 
   def set_max_domains(login, max_domains)
-    command = "/usr/sbin/oo-admin-ctl-user -l #{login} --setmaxdomains #{max_domains}"
+    command = "oo-broker --non-interactive /usr/sbin/oo-admin-ctl-user -l #{login} --setmaxdomains #{max_domains}"
     run command
   end
 

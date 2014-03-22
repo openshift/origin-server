@@ -34,11 +34,21 @@ class AccessControlledTest < ActiveSupport::TestCase
   end
 
   def test_member_max
-    Rails.configuration.stubs(:openshift).returns(:gear_sizes => [:small], :max_members_per_resource => 1)
+    Rails.configuration.stubs(:openshift).returns(:gear_sizes => [:small], :max_members_per_resource => 1, :max_teams_per_resource => 10)
     d = Domain.new
     d.add_members('a','b')
     assert !d.save
     assert_equal "You are limited to 1 members per domain", d.errors[:members].first, d.errors.to_hash
+  end
+  
+  def test_team_max
+    Rails.configuration.stubs(:openshift).returns(:gear_sizes => [:small], :max_members_per_resource => 10, :max_teams_per_resource => 0)
+    d = Domain.new
+    Team.where(:name => 'test').delete
+    t = Team_create(:name => 'test')
+    d.add_members(t, 'b')
+    assert !d.save
+    assert_equal "You are limited to 0 teams per domain", d.errors[:members].first, d.errors.to_hash
   end
 
   def test_member_explicit_remove

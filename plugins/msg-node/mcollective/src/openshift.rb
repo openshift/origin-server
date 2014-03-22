@@ -893,9 +893,10 @@ module MCollective
         cart_name        = args['--cart-name']
         template_git_url = args['--with-template-git-url']
         manifest         = args['--with-cartridge-manifest']
+        do_expose_ports  = !!args['--with-expose-ports']
 
         with_container_from_args(args) do |container, output|
-          output << container.configure(cart_name, template_git_url, manifest)
+          output << container.configure(cart_name, template_git_url, manifest, do_expose_ports)
         end
       end
 

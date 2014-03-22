@@ -28,6 +28,7 @@ def usage
 The following issues can be fixed with this script:
   - mismatch between user's consumed gears and actual gears across all domains/applications for the user
   - mismatch between the ssh keys in mongo and the ssh keys on the gear on the node
+  - ssh keys and environment variables that are left behind after their reference component/gear is removed
   - mismatch in available UIDs for a district and actual UIDs used by the gears on the nodes within the district
   - mismatch in user resource consumption in mongo
   - apps due to server node down/decommissioned
@@ -77,7 +78,6 @@ end
 
 usage if args["--help"]
 
-$verbose = args["--verbose"]
 report_only = args["--report-only"]
 fix_ssh_keys = args["--ssh-keys"]
 fix_district_uids = args["--district-uids"]
@@ -94,6 +94,9 @@ end
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 include AdminHelper
 
+# AdminHelper sets $verbose to false by default, so setting the $verbose flag after loading it
+$verbose = args["--verbose"]
+
 if args["--confirm"]
   auto_confirm = args["--confirm"].to_b
 elsif report_only
@@ -106,7 +109,6 @@ end
 Rails.configuration.analytics[:enabled] = false
 Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
-
 
 $log_file = "/var/log/openshift/broker/usage-refund.log"
 $billing_api = nil
@@ -204,7 +206,7 @@ def analyze_app(app, unresponsive_servers)
     carts = []
     skip_gears = []
     db[:unresponsive_gears].each do |gear|
-      if (gear.group_instance.gears - db[:unresponsive_gears]).empty?
+      if (gear.group_instance.gears - db[:unresponsive_gears]).blank?
         carts += gear.group_instance.all_component_instances.map { |ci| ci.cartridge_name }
         skip_gears << gear
       end
@@ -230,7 +232,7 @@ end
 
 def recover_app(app, framework, db)
   begin
-    unless db[:remove_features].empty?
+    unless db[:remove_features].blank?
       app.remove_cartridges(db[:remove_features])
       puts "Removed cartridges: #{db[:remove_features].join(',')} from application with id: #{app._id}." if $verbose
     end
@@ -365,7 +367,7 @@ def find_unresponsive_servers(available_servers, auto_confirm)
   unresponsive_servers = (available_servers.keys - responsive_servers)
 
   # Report unresponsive servers to the admin
-  unless unresponsive_servers.empty?
+  unless unresponsive_servers.blank?
     puts "Checking for unresponsive servers...FAIL" if $verbose
     puts "Servers that are unresponsive:"
     uservers = unresponsive_servers.dup
@@ -380,7 +382,7 @@ def find_unresponsive_servers(available_servers, auto_confirm)
 end
 
 def repair_consumed_gears(user_ids)
-  return if user_ids.empty?
+  return if user_ids.blank?
   failed_count = 0
   puts "Fixing consumed gears count for all affected users" if $verbose
   user_ids.each do |user_id|
@@ -399,7 +401,7 @@ def repair_consumed_gears(user_ids)
 end
 
 def repair_ssh_keys(app_ids)
-  return if app_ids.empty?
+  return if app_ids.blank?
   failed_count = 0
   puts "Fixing ssh key inconsistencies for all affected applications" if $verbose
   app_ids.each do |app_id|
@@ -409,14 +411,77 @@ def repair_ssh_keys(app_ids)
     rescue Mongoid::Errors::DocumentNotFound
     rescue Exception => ex
       print_message "Failed to fix ssh key mismatches for application '#{app_id}': #{ex.message}"
-      failed_app_count += 1
+      failed_count += 1
     end
-  end if app_ids.present?
+  end
   puts "Failed to fix ssh key mismatches for #{failed_count} applications." if failed_count > 0
 end
 
+def repair_stale_keys_vars(domain_ids)
+  return if domain_ids.blank?
+  stale_ssh_key_app_ids = []
+  failed_count = 0
+  puts "Fixing stale ssh keys and environment variables for all affected domains" if $verbose
+  domain_ids.each do |domain_id|
+    begin
+      domain_ref_ids = []
+      env_vars_to_rm = []
+      system_ssh_keys_to_rm = []
+      domain = Domain.find(domain_id)
+      domain.applications.each do |app|
+        app_ref_ids = []
+        app_ref_ids |= app.component_instances.map {|ci| ci._id.to_s}
+        app_ref_ids |= app.gears.map {|g| g._id.to_s}
+
+        # fix stale application ssh keys
+        app_ssh_keys_to_rm = []
+        app.app_ssh_keys.each do |key|
+          app_ssh_keys_to_rm << key.serializable_hash unless app_ref_ids.include? key.component_id.to_s
+        end
+
+        if app_ssh_keys_to_rm.present?
+          Application.where(_id: app.id).update_all({ "$pullAll" => { app_ssh_keys: app_ssh_keys_to_rm }})
+
+          # if an ssh key was removed, then include the application in the cleanup to remove mongo/node inconsistencies
+          stale_ssh_key_app_ids << app.id.to_s
+        end
+        
+        domain_ref_ids |= app_ref_ids
+      end
+
+      # fix stale environment variables
+      domain.env_vars.each do |ev|
+        env_vars_to_rm << ev.dup unless domain_ref_ids.include? ev["component_id"].to_s
+      end
+      Domain.where(_id: domain.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) if env_vars_to_rm.present?
+
+      # fix stale domain ssh keys
+      domain.system_ssh_keys.each do |key|
+        system_ssh_keys_to_rm << key.serializable_hash unless domain_ref_ids.include? key.component_id.to_s
+      end
+
+      if system_ssh_keys_to_rm.present?
+        Domain.where(_id: domain.id).update_all({ "$pullAll" => { system_ssh_keys: system_ssh_keys_to_rm }})
+
+        # if a domain ssh key was removed, then all applications within the domain should be included in the cleanup
+        stale_ssh_key_app_ids = domain.applications.map(&:_id).map(&:to_s)
+      end
+
+      # Now fix ssh key mismatches that have been created as a result of cleaning out the stale ssh keys from mongo
+      repair_ssh_keys(stale_ssh_key_app_ids)
+
+    rescue Mongoid::Errors::DocumentNotFound
+    rescue Exception => ex
+      print_message "Failed to fix stale variables/sshkeys for domain '#{domain_id}': #{ex.message}"
+      print_message ex.backtrace
+      failed_count += 1
+    end
+  end
+  puts "Failed to fix stale variables/sshkeys for #{failed_count} applications." if failed_count > 0
+end
+
 def repair_district_uids(unreserved_dist_map, unused_dist_map)
-  return if unreserved_dist_map.empty? and unused_dist_map.empty?
+  return if unreserved_dist_map.blank? and unused_dist_map.blank?
   fixed_unreserved_count = 0
   failed_unreserved_count = 0
   puts "Fixing unreserved district UIDs for all affected districts" if $verbose
@@ -464,7 +529,7 @@ def repair_usage(gear_app_gear_ids, gear_urec_gear_ids, storage_app_gear_ids,
                  storage_urec_gear_ids, storage_mismatch_gear_ids, cart_app_gear_ids,
                  cart_urec_gear_ids, gear_ids, urec_gear_ids)
   return if (gear_app_gear_ids + gear_urec_gear_ids + storage_app_gear_ids + storage_urec_gear_ids +
-             storage_mismatch_gear_ids + cart_app_gear_ids + cart_urec_gear_ids + gear_ids + urec_gear_ids).empty?
+             storage_mismatch_gear_ids + cart_app_gear_ids + cart_urec_gear_ids + gear_ids + urec_gear_ids).blank?
   puts "Fixing usage inconsistencies" if $verbose
   current_time = Time.now.utc
   puts "************"
@@ -550,9 +615,9 @@ def repair_usage(gear_app_gear_ids, gear_urec_gear_ids, storage_app_gear_ids,
 end
 
 def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
-  return if unresponsive_servers.empty?
+  return if unresponsive_servers.blank?
 
-  unless (available_servers.values.uniq - ['NONE']).empty?
+  unless (available_servers.values.uniq - ['NONE']).blank?
     print "Do you want to delete unresponsive servers from their respective districts [yes/no]: "
     if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
       # Remove unresponsive servers from their respective districts
@@ -608,7 +673,7 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
     end
   end
 
-  unless unresponsive_unscalable_apps.empty?
+  unless unresponsive_unscalable_apps.blank?
     # Report unresponsive unscalable apps
     puts "Found #{unresponsive_unscalable_apps.size} unresponsive unscalable apps:"
     unresponsive_unscalable_apps.each { |ai| puts "#{ai['name']} (id: #{ai['_id']})" }
@@ -630,7 +695,7 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
     puts ""
   end 
 
-  unless unresponsive_scalable_apps.empty?
+  unless unresponsive_scalable_apps.blank?
     # Analyze scalable apps
     app_reports = {}
     unresponsive_scalable_apps.each do |app_info|
@@ -651,7 +716,7 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
         apps_not_recoverable << app_id
       end 
     end
-    unless apps_not_recoverable.empty?
+    unless apps_not_recoverable.blank?
       puts "Found #{apps_not_recoverable.size} unresponsive scalable apps that can not be recovered."
       apps_not_recoverable.each { |app_id| puts "#{app_reports[app_id][0].name} (id: #{app_id})" }
       puts ""
@@ -670,7 +735,7 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
         apps_to_backup << app_id
       end
     end
-    unless apps_to_backup.empty?
+    unless apps_to_backup.blank?
       puts "Found #{apps_to_backup.size} unresponsive scalable apps that can not be recovered but framework/db backup available."
       apps_to_backup.each do |app_id|
         app_info = app_reports[app_id]
@@ -690,11 +755,11 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
     apps_to_remove_features = []
     app_reports.each do |app_id, app_info|
       app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
-      if recoverable and !db[:remove_features].empty?
+      if recoverable and !db[:remove_features].blank?
         apps_to_remove_features << app_id
       end 
     end
-    unless apps_to_remove_features.empty?
+    unless apps_to_remove_features.blank?
       puts "Found #{apps_to_remove_features.size} unresponsive scalable apps that are recoverable but some features/carts need to be removed."
       apps_to_remove_features.each do |app_id|
         puts "#{app_reports[app_id][0].name} (id: #{app_id} features-to-remove: #{app_reports[app_id][3][:remove_features].join(', ')})"
@@ -712,7 +777,7 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
       puts ""
     end
 
-    unless app_reports.empty?
+    unless app_reports.blank?
       puts "Found #{app_reports.size} unresponsive scalable apps that are recoverable."
       app_reports.each { |app_id, app_info| puts "#{app_info[0].name} (id: #{app_id})" }
       puts ""
@@ -747,7 +812,9 @@ consumed_gears_user_ids = []
 consumed_gears_user_ids = run :find_consumed_gears_inconsistencies if fix_consumed_gears
 
 ssh_keys_app_ids = []
+stale_keys_vars_domain_ids = []
 ssh_keys_app_ids = run :find_ssh_key_inconsistencies if fix_ssh_keys
+stale_keys_vars_domain_ids = run :find_stale_sshkeys_and_envvars if fix_ssh_keys
 
 unreserved_district_uid_map = {}
 unused_district_uid_map = {}
@@ -783,6 +850,7 @@ $total_errors = 0
 unless report_only
   run :repair_consumed_gears, consumed_gears_user_ids
   run :repair_ssh_keys, ssh_keys_app_ids
+  run :repair_stale_keys_vars, stale_keys_vars_domain_ids
   run :repair_district_uids, unreserved_district_uid_map, unused_district_uid_map
   run :repair_usage, usage_gear_app_gear_ids, usage_gear_urec_gear_ids,
                     usage_storage_app_gear_ids, usage_storage_urec_gear_ids,

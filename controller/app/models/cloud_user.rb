@@ -445,6 +445,9 @@ class CloudUser
       end
       domain.delete
     end
+    while team = Team.where(owner: self).first
+      team.delete
+    end
 
     # will need to reload from primary to ensure that mongoid doesn't validate based on its cache
     # and prevent us from deleting this user because of the :dependent :restrict clause

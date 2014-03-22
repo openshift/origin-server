@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.21.2
+Version: 1.21.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -65,7 +65,6 @@ mkdir -p %{buildroot}%{_initddir}
 mv init.d/openshift-watchman %{buildroot}%{_initddir}/
 
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/watchman/plugins.d/
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/watchman/disabled/
 cp -pr conf/watchman/* %{buildroot}/%{_sysconfdir}/openshift/watchman
 
 %if %{with_systemd}
@@ -125,9 +124,8 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0755,-,-) %{_bindir}/unidle_gear.sh
 %attr(0755,-,-) %{_bindir}/oo-config-eval
 %attr(0755,-,-) %{_bindir}/oo-gear-registry
-%attr(0755,-,-) %{_sysconfdir}/openshift/watchman/plugins.d
+%attr(0755,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/
 %attr(0744,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/*
-%attr(0744,-,-) %{_sysconfdir}/openshift/watchman/disabled/*
 
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-gear.8.gz
@@ -160,6 +158,16 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
+- Node Platform - Add more checks for gear structure (jhonce@redhat.com)
+- fix bz1076722 - routes.json may have frontend extensions to fqdn
+  (rchopra@redhat.com)
+
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- Bug 1077510 1077513 1077587 - Cleanup man page and logging
+  (jhonce@redhat.com)
+- Card origin_node_39 - Introduce GearStatePlugin (jhonce@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.21.2-1
 - Bug 1074627 - Removed unnecessary output (jhonce@redhat.com)
 
