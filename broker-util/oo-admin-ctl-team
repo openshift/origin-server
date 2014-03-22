@@ -14,7 +14,7 @@ class Command
     env!(options)
     
     puts "Creating team: #{options.name} ..."
-    team = Team.new(name: options.name, owner_id: @user.id, global: true)
+    team = Team.new(name: options.name, global: true)
     if team.valid?
       team.save
       puts "Team: #{options.name} created"
@@ -34,7 +34,7 @@ class Command
   def list(options)
     env!(options)
     
-    teams = Team.accessible(@user).where(owner_id: @user._id)
+    teams = Team.where(global: true)
     teams.each do |team|
       puts "#{team.name}  maps to:#{team.maps_to} global:#{team.global}"
     end
@@ -50,7 +50,7 @@ class Command
     raise ArgumentError, "Use -n or --name to specify a name" if options.name.nil?
     env!(options)
     puts "Getting team: #{options.name} ..."
-    team = Team.accessible(@user).find_by(name: options.name, owner_id: @user._id) rescue nil
+    team = Team.find_by(name: options.name, global: true) rescue nil
     if team
       puts "Name: #{team.name}"
       puts "Global: #{team.global}"
@@ -75,7 +75,7 @@ class Command
     raise ArgumentError, "Use -n or --name to specify a name" if options.name.nil?
     env!(options)
     puts "Deleting team: #{options.name} ..."
-    team = Team.accessible(@user).find_by(name: options.name, owner_id: @user._id) rescue nil
+    team = Team.find_by(name: options.name, global: true) rescue nil
     if team
       team.destroy_team
       puts "Team: #{options.name} deleted"
@@ -105,7 +105,7 @@ class Command
       when "TEAM"
         if command == "ADD"
           #check to see if team with the same name exists and maps to the same group dn
-          team = Team.new(name: params[0], global: true, maps_to: params[1], owner_id: @user.id)
+          team = Team.new(name: params[0], global: true, maps_to: params[1])
           if team.valid?
             team.save
           else
@@ -122,7 +122,7 @@ class Command
           puts "ERROR: Command #{command} not available for #{object_type}"
         end
       when "MEMBER"
-        team = Team.where(owner_id: @user._id, name: params[0]).first
+        team = Team.where(name: params[0], global: true).first
         if team.nil?
           puts "ERROR: Could not find team: #{params[0]} skipping...}" if team.nil?
           next
@@ -221,7 +221,7 @@ class Command
       dn = get_group(group)
       if teams.select{|t| t.maps_to == dn}.count == 0
         if options.create_new_teams
-          t = Team.new(name: group, global: true, maps_to: dn, owner_id: @user.id)
+          t = Team.new(name: group, global: true, maps_to: dn)
           if t.valid? 
             t.save
           else
@@ -271,14 +271,7 @@ class Command
 
   protected
     def env!(options)
-      raise ArgumentError, "Use -l or --login to specify a login with OpenShift access" if options.login.nil?
       require options.broker || PATH
-      begin
-        @user = CloudUser.find_by(login: options.login) 
-      rescue Mongoid::Errors::DocumentNotFound
-        puts "Could not find user with login: #{options.login}"
-        exit 1
-      end
       if options.config_file
         @ldap_config = YAML.load_file(options.config_file)
         @ldap = Net::LDAP.new

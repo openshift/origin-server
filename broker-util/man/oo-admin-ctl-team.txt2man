@@ -27,8 +27,6 @@ OPTIONS
                sync-from-file  - Syncs from file.  See sync-to-file
 
 
-       -l|--login LOGIN
-              Login with OpenShift access (Required).
 
        --name NAME
               Team name to create, show or delete.
