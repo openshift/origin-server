@@ -12,7 +12,6 @@
   font-size: $tinyFontSize;
   > .container {
   	> a {
-  		float: left;
       .ie6 &, .ie7 &, .ie8 & {
         background: image-url('redhat.png') no-repeat;
         height: 47px;
@@ -35,10 +34,6 @@
 		text-align:center;
 	
 		> .container { 
-			> a {
-				display: block;
-				float: none;
-			}
 			> div {
 				float: none;
 	  			font-size: $tinyFontSize;
