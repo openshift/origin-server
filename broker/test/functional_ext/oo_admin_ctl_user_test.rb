@@ -17,7 +17,9 @@ class OoAdminCtlUserTest < ActionDispatch::IntegrationTest
     @non_existing_login = generate_username
     CloudUser.where(:login => @non_existing_login).delete
 
-    @file = Tempfile.new('logins', "#{Dir.tmpdir}/openshift")
+    tmpdir = File.join(Dir.tmpdir, "openshift")
+    FileUtils.mkdir_p(tmpdir) unless File.exists?(tmpdir)
+    @file = Tempfile.new('logins', tmpdir)
     @file.write(@non_existing_login)
     @file.write("\n")
     @file.write(@existing_login)
