@@ -825,7 +825,8 @@ module OpenShift
           if cart.metrics != nil
             begin
               result, error, _ = self.run_in_container_context(PathUtils.join(cart.path, "bin","metrics"))
-              $stdout.write(result)
+              parsed_result = result.split("/n").map{|line| "type=metric app_uuid=#{self.application_uuid} cart_name=#{cart.name} #{line}"}
+              $stdout.write(parsed_result.join("\n"))
             rescue => e
               $stderr.write("Error retrieving cartridge metrics: #{e.message}")
             end
@@ -833,7 +834,8 @@ module OpenShift
         end
         begin
           result, error, _ = self.run_in_container_context(PathUtils.join(@container_dir,"app-root","repo",".openshift","action_hooks","metrics"))
-          $stdout.write(result)
+          parsed_result = result.split("/n").map{|line| "type=metric app_uuid=#{self.application_uuid} #{line}"}
+          $stdout.write(parsed_result.join("\n"))
         rescue => e
           $stderr.write("Error recieving application metrics: #{e.message}")
         end
