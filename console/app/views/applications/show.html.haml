@@ -167,10 +167,7 @@
                   %span{:'data-icon' => "\ue021"}
                   = link_to "Add #{c.display_name}", application_cartridge_type_path(@application, c, :direct => true)
 
-      - if databases or jenkins.present? or builders.present? or useful
-        %p= link_to "Or, see the entire list of cartridges you can add", application_cartridge_types_path(@application)
-      - else
-        %p= link_to "Show other cartridges you can add to this application", application_cartridge_types_path(@application)
+      %p= other_cartridges_link((databases or jenkins.present? or builders.present? or useful), @application)
 
   %div.sidebar.span4
     #source-code
