@@ -1105,7 +1105,7 @@ mysql.default_port =
 ; Default socket name for local MySQL connects.  If empty, uses the built-in
 ; MySQL defaults.
 ; http://www.php.net/manual/en/mysql.configuration.php#ini.mysql.default-socket
-mysql.default_socket =
+mysql.default_socket =<%= ENV['OPENSHIFT_MYSQL_DB_SOCKET'] %>
 
 ; Default host for mysql_connect() (doesn't apply in safe mode).
 ; http://www.php.net/manual/en/mysql.configuration.php#ini.mysql.default-host
@@ -1148,7 +1148,7 @@ mysqli.default_port = 3306
 ; Default socket name for local MySQL connects.  If empty, uses the built-in
 ; MySQL defaults.
 ; http://www.php.net/manual/en/mysqli.configuration.php#ini.mysqli.default-socket
-mysqli.default_socket =
+mysqli.default_socket =<%= ENV['OPENSHIFT_MYSQL_DB_SOCKET'] %>
 
 ; Default host for mysql_connect() (doesn't apply in safe mode).
 ; http://www.php.net/manual/en/mysqli.configuration.php#ini.mysqli.default-host
