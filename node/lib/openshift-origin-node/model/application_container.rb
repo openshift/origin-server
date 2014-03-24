@@ -820,6 +820,7 @@ module OpenShift
       # Invokes all the cartridges bin/metrics + metrics action hook
       #
       def metrics
+        start_time = Time.now
         @cartridge_model.each_cartridge do |cart|
           # Check if cartridge has a metrics entry in its manifest
           if cart.metrics != nil
@@ -832,10 +833,13 @@ module OpenShift
             end
           end
         end
+        $stdout.write("type=metric app=#{self.application_uuid} gear=#{self.uuid} cartridge.metric_time=#{Time.now - start_time}")
         begin
+          start_time = Time.now
           result, error, _ = self.run_in_container_context(PathUtils.join(@container_dir,"app-root","repo",".openshift","action_hooks","metrics"))
           parsed_result = result.split("/n").map{|line| "type=metric app=#{self.application_uuid} gear=#{self.uuid} #{line}"}
           $stdout.write(parsed_result.join("\n"))
+          $stdout.write("type=metric app=#{self.application_uuid} gear=#{self.uuid} application.metric_time=#{Time.now - start_time}")
         rescue => e
           $stderr.write("Error recieving application metrics: #{e.message}")
         end
