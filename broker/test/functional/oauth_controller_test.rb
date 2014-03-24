@@ -111,7 +111,7 @@ class OauthControllerTest < ActionController::TestCase
     with_token('oauthaccesstoken', 'my_sso_client_id', false)
     
     params = access_token_params('my_sso_client_id', @auth.token)
-    with_basic_auth(params.delete(:client_id), params.delete(:client_secret))
+    with_basic_auth(params.delete(:client_id), params.delete(:client_secret), false)
 
     post :access_token, params
     assert_response :success
@@ -304,8 +304,9 @@ class OauthControllerTest < ActionController::TestCase
       }
     end
 
-    def with_basic_auth(login=@login, password=@password)
+    def with_basic_auth(login=@login, password=@password, set_remote_user=true)
       @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{login}:#{password}")
+      @request.env['REMOTE_USER'] = @login if set_remote_user
     end
 
     def with_token(scopes, client_id=nil, set_header=true)
