@@ -18,10 +18,8 @@ class Authorization
   field :expires_at, :type => DateTime
   before_save lambda{ set_created_at; self.expires_at = created_at + expires_in.seconds }
 
-  #
-  # Future elements for OAuth2 compliance:
-  #   client => an OAuth client object
-  #
+  # OAuth client that owns this token
+  field :oauth_client_id, :type => String
 
   index({ token: 1 }, { unique: true })
   index({ user_id: 1 })

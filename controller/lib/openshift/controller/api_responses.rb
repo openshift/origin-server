@@ -38,7 +38,7 @@ module OpenShift
             reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
             log_action(action_log_tag, status, !internal_error, msg, get_log_args)
           end
-          respond_with reply
+          respond_with reply, :status => reply.status
         end
 
         # Renders a REST response for an application being upgraded.
