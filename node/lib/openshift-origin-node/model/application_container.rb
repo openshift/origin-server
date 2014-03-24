@@ -837,6 +837,7 @@ module OpenShift
       #
       def metrics
         @cartridge_model.each do |cart|
+          # Do something with these
           result, error, exit_status  = oo_spawn(cart.path + "bin/metrics")
         end
       end
