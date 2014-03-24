@@ -834,7 +834,7 @@ module OpenShift
             end
           end
         end
-        result, error, _ = Utils.oo_spawn(PathUtils.join(@container_dir,".openshift","action_hooks","metrics"))
+        result, error, _ = Utils.oo_spawn(PathUtils.join(@container_dir,"app-root","repo",".openshift","action_hooks","metrics"))
         if error != nil
           $stderr.write("Error gathering application metrics: #{error}")
         else
