@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.22.4
+Version: 1.22.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,15 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
+- Chmod +x site scripts (jliggitt@redhat.com)
+- Add console oauth controller test (jliggitt@redhat.com)
+- Console oauth controller (jliggitt@redhat.com)
+- SSO OAuth support (jliggitt@redhat.com)
+- Merge branch 'master' into origin-footer-bug (sgoodwin@redhat.com)
+- Remove old style that's no longer needed and caused links in origin footer to
+  display incorrectly (sgoodwin@redhat.com)
+
 * Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
 - Adds the xPaaS section to the app creation page in the web console
   (contact@fabianofranz.com)
