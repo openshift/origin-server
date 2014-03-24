@@ -834,7 +834,7 @@ module OpenShift
                 $stdout.write(result)
               end
             rescue => e
-              $stderr.write("#{e.backtrace}")
+              $stderr.write("#{e.message}")
             end
           end
         end
@@ -846,7 +846,7 @@ module OpenShift
             $stdout.write(result)
           end
         rescue => e
-          $stderr.write("#{e.backtrace}")
+          $stderr.write("#{e.message}")
         end
       end
 
