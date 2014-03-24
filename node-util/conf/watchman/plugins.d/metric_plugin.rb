@@ -24,7 +24,8 @@ class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
       h[uuid] = File.read(PathUtils.join(@config.get('GEAR_BASE_DIR', '/var/lib/openshift'), uuid, '.env', 'OPENSHIFT_APP_UUID'))
     end
     # Initiallize metrics to run every 60 seconds
-    @metrics = ::OpenShift::Runtime::Utils::Cgroups::Metrics.new 60
+    delay = Integer(@config.get('WATCHMAN_METRICS_INTERVAL')) rescue 60
+    @metrics = ::OpenShift::Runtime::Utils::Cgroups::Metrics.new(delay)
   end
 
   def apply(iteration)
