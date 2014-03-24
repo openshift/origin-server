@@ -60,6 +60,7 @@ module OpenShift
             @mutex.synchronize do
               gear_metric_time = time_method {call_gear_metrics}
               Syslog.info "type=metric gear.metric_time=#{gear_metric_time}\n"
+              call_application_container_metrics
             end
           rescue Exception => e
             Syslog.info("Metric: unhandled exception #{e.message}\n" + e.backtrace.join("\n"))
@@ -87,8 +88,13 @@ module OpenShift
             Time.now - start
           end
 
+          # Timing this method is a waste of.... time
+          def call_application_container_metrics
+            res,err, _ = oo_spawn("oo-admin-ctl-gear metricsall")
+            Syslog.info(res)
+          end
+
           def call_gear_metrics
-            #We need to make sure we have the most up-to-date list of gears on each run
             output = []
             @running_apps.keys.each do |uuid|
               Syslog.info "Running metrics for gear #{uuid}"
