@@ -90,7 +90,7 @@ module OpenShift
 
           # Timing this method is a waste of.... time
           def call_application_container_metrics
-            res,err, _ = Utils.oo_spawn("oo-admin-ctl-gear metricsall")
+            res,err, _ = Utils.oo_spawn("oo-admin-ctl-gears metricsall")
             Syslog.info(res)
           end
 
