@@ -2098,7 +2098,7 @@ module OpenShift
       # * OpenShift::UserException
       #
       # NOTES:
-      # * uses MCollectiveApplicationContainerProxy.find_all_available_impl
+      # * uses ApplicationContainerProxy.find_available
       #
       def resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
         gear_exists_in_district = false
@@ -2127,7 +2127,9 @@ module OpenShift
           least_preferred_servers = [source_container.id]
           opts = { :node_profile => destination_gear_size, :district_uuid => destination_district_uuid,
                    :gear => gear, :gear_exists_in_district => gear_exists_in_district, :required_uid => required_uid }
-          destination_container = MCollectiveApplicationContainerProxy.find_all_available_impl(opts)
+
+          # the ApplicationContainerProxy method is used so that the node selector plugin can be invoked
+          destination_container = ApplicationContainerProxy.find_available(opts)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
