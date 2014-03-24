@@ -24,7 +24,7 @@ module Ability
       raise OpenShift::OperationForbidden, "You are not permitted to perform this action while not authenticated (#{permission} on #{type.to_s.underscore.humanize.downcase})"
     end
 
-    if scopes.present? && !scopes.authorize_action?(permission, resource, actor_or_id, resources)
+    if scopes.present? && !scopes.authorize_action?(permission, resource, resources, actor_or_id)
       raise OpenShift::OperationForbidden, "You are not permitted to perform this action with the scopes #{scopes} (#{permission} on #{type.to_s.underscore.humanize.downcase})"
     end
 
@@ -120,6 +120,7 @@ module Ability
       case permission
       when :create_key, :update_key, :destroy_key, :create_domain, :create_team then resource === actor_or_id
       when :create_authorization, :update_authorization, :destroy_authorization then resource === actor_or_id
+      when :create_oauth_access_token then resource === actor_or_id
       when :change_plan then resource === actor_or_id
       when :destroy then resource.parent_user_id.present? && resource === actor_or_id
       end

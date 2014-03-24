@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.18.3
+Version: 1.18.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -54,6 +54,10 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
+- Bug 1079132 - Prevent users installing mongodb to apps that starts with
+  number (mfojtik@redhat.com)
+
 * Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.18.3-1
 - Bug 1077052 - Make sure mongodb preserve the state after snapshot
   (mfojtik@redhat.com)

@@ -35,11 +35,28 @@ class TeamsControllerTest < ActionController::TestCase
     assert_response :created
     assert json = JSON.parse(response.body)
     assert id = json['data']['id']
+    assert json['data']['members'], response.body
+
+    @controller = TeamsController.new
     get :show, {"id" => id}
     assert_response :success
+    assert json = JSON.parse(response.body)
+    assert json['data']['members'], response.body
+
+    @controller = TeamsController.new
     get :index , {}
     assert_response :success
-    new_name = "xteam#{@random}"
+    assert json = JSON.parse(response.body)
+    assert !json['data'][0]['members'], response.body
+
+    @controller = TeamsController.new
+    get :index , {:include => :members}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert json['data'][0]['members'], response.body
+
+    @controller = TeamsController.new
+    #new_name = "xteam#{@random}"
     #put :update, {"id" => id, "name" => new_name}
     #assert_response :success
     delete :destroy , {"id" => id}

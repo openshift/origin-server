@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.5
+Version: 1.22.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -278,6 +278,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
+- Merge pull request #5032 from a13m/oo-sched-jobs-nogrep
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5037 from jwhonce/bug/1079261
+  (dmcphers+openshiftbot@redhat.com)
+- fix vendor match on cron cart check (agrimm@redhat.com)
+- Bug 1079261 - Update to support new cgroup mounts (jhonce@redhat.com)
+- Remove excessive grep invocations from oo-scheduled-jobs (agrimm@redhat.com)
+
 * Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Merge pull request #5029 from danmcp/master (dmcphers@redhat.com)
 - Merge pull request #5021 from ironcladlou/initial-build-limiting

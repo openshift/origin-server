@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.21.4
+Version: 1.21.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -158,6 +158,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.21.5-1
+- Merge pull request #5037 from jwhonce/bug/1079261
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1079261 - Update to support new cgroup mounts (jhonce@redhat.com)
+
 * Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
 - Node Platform - Add more checks for gear structure (jhonce@redhat.com)
 - fix bz1076722 - routes.json may have frontend extensions to fqdn

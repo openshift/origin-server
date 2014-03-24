@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.22.4
+Version: 1.22.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,20 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
+- Fix typo in authorize call (jliggitt@redhat.com)
+- Use rails http basic auth parsing, reuse controller, correctify comments
+  (jliggitt@redhat.com)
+- Allow filtering authorizations by scope when deleting all
+  (jliggitt@redhat.com)
+- Update tests (jliggitt@redhat.com)
+- Return errors other than client_id or redirect_uri (jliggitt@redhat.com)
+- SSO OAuth support (jliggitt@redhat.com)
+- Merge pull request #5030 from liggitt/teams_api_includes_members
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing gear extended (dmcphers@redhat.com)
+- Include members in /team/:id, and optionally in /teams (jliggitt@redhat.com)
+
 * Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
 - Fixing extended tests (dmcphers@redhat.com)
 - Update tests to not use any installed gems and use source gems only Add

@@ -1,8 +1,15 @@
 class RestTeam < OpenShift::Model
   attr_accessor :id, :name, :links
 
-  def initialize(team, url, nolinks=false)
-    [:id, :name].each{ |sym| self.send("#{sym}=", team.send(sym)) }
+  def initialize(team, url, nolinks=false, include_members=false)
+    
+    self.id = team.id
+    self.name = team.name
+    
+    if include_members
+      @members = team.members.map{ |m| RestMember.new(m, team.owner_id == m._id, url, team, nolinks) }
+    end
+
     unless nolinks
       self.links = {
           "GET" => Link.new("Get team", "GET", URI::join(url, "team/#{id}")),

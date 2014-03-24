@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.22.4
+Version: 1.22.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -28,6 +28,7 @@ Requires:      bind-utils
 Requires:      %{?scl:%scl_prefix}mcollective-client
 Requires:      which
 Requires:      tar
+Requires:      openssh-clients
 BuildArch:     noarch
 
 %description
@@ -104,6 +105,14 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
+- Bug 1079226 - missing open-sshclients and bad IP from facter make oo-admin-
+  move fail (jforrest@redhat.com)
+- Merge pull request #5031 from
+  jwforres/bug_1079276_analytics_needs_tar_installed
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1079276 - Broker util scripts rely on tar and which (jforrest@redhat.com)
+
 * Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
 - Bug 1078120: The value lookup is being done in the wrong hash
   (abhgupta@redhat.com)

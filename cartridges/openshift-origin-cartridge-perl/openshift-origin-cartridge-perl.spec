@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.21.3
+Version: 1.21.4
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -49,6 +49,10 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
+- Changing the deplist.txt to cpan.txt in the module checking message
+  (jhadvig@redhat.com)
+
 * Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
 - Bug 1077501 - Source Bash SDK (jhadvig@redhat.com)
 

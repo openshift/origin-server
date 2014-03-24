@@ -13,6 +13,9 @@ Rails.application.routes.draw do
       resources :quickstarts, :only => [:index, :show]
       resources :estimates, :id => id_with_format, :only => [:index, :show]
 
+      get "oauth/authorize" => "oauth#authorize"
+      post "oauth/access_token" => "oauth#access_token"
+
       resource :user, :only => [:show, :destroy], :controller => :user do
         match 'domains' => 'domains#index', :owned => true
         resources :keys, :only => [:index, :show, :create, :update, :destroy], :controller => :keys, :id => id_with_format

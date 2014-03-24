@@ -280,10 +280,11 @@ Action hooks are scripts that are executed directly so can be written in Python,
 [options="header"]
 |===
 | Action Hook | Description
+| pre_build   | Executed on your CI system if available. Otherwise, executed before the build step
 | build       | Executed on your CI system if available. Otherwise, executed before the deploy step
+| prepare     | Executed just prior to a deployment ID being calculated and before the deployment is ready to use
 | deploy      | Executed after dependencies are resolved but before application has started
 | post_deploy | Executed after application has been deployed and started
-| pre_build   | Executed on your CI system if available. Otherwise, executed before the build step
 |===
 
 Note: On Windows, the execute permissions of an action hook files will be lost during
@@ -463,7 +464,13 @@ To use these hooks in your application create a file in:
 <repository>/.openshift/action_hooks
 ----
 
-with the same name as the event you want to trigger. All the hooks listed below are available to application developers as well cartridge developers. The order of execution will be first the platform/cartridge script and then the application developers.
+with the same name as the event you want to trigger.
+
+NOTE: Cartridge-scoped action hooks are special in that they are sourced in into the
+same shell environment used to execute the action they surround. This allows cartridge
+hooks to modify the environment the action executes within.
+
+All the hooks listed below are available to application developers as well cartridge developers. The order of execution will be first the platform/cartridge script and then the application developers.
 
 The following is a list of all possible action hooks executed in association with a single cartridge control action. For each control action, a set of `pre` and `post` action hooks surround the control action. In the action hook names, `{Name}` refers to the `Name` cartridge manifest element.
 
