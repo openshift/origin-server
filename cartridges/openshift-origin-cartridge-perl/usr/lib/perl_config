@@ -1,8 +1,5 @@
 #!/bin/bash -e
 
-HTTPD_CFG_DIR=$OPENSHIFT_PERL_DIR/etc/conf.d/
-ERB_HTTPD_CFG_DIR=$OPENSHIFT_PERL_DIR/usr/etc/conf.d/
-
 function select_perl_document_root() {
 	if [ -d "$1/perl" -o -h "$1/perl" ]; then
 		export OPENSHIFT_PERL_DOCUMENT_ROOT="$1/perl/"
@@ -11,14 +8,4 @@ function select_perl_document_root() {
 	fi
 	export OPENSHIFT_PERL_DOCUMENT_ROOT="$1"
 	echo "Application directory \"/\" selected as DocumentRoot"
-}
-
-function prepare_cartridge {
-	local action="$1"
-	echo "${action^}ing Perl cartridge"
-	write_httpd_passenv $HTTPD_PASSENV_FILE
-	select_perl_document_root ${OPENSHIFT_REPO_DIR}
-	oo-erb ${ERB_HTTPD_CFG_DIR}openshift.conf.erb > ${HTTPD_CFG_DIR}/openshift.conf
-	ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-	eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k ${action}"
 }

@@ -103,7 +103,7 @@ if [ -d "$SCRIPTS_DIR" ]; then
               echo $separator
               echo "`date`: END $freq cron run - status=$status"
               echo $separator
-          } >> $OPENSHIFT_CRON_DIR/log/cron.$freq.log 2>&1
+          } &> >(/usr/bin/logshifter -tag cron_${freq})
 
       ) 9>&-
 

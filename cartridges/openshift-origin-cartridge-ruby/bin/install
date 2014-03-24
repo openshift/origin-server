@@ -36,4 +36,3 @@ update-configuration $version
 # Create additional directories required by RUBY and httpd
 ln -s ${_libdir}/httpd/modules $OPENSHIFT_RUBY_DIR
 ln -s /etc/httpd/conf/magic $OPENSHIFT_RUBY_DIR/etc/magic
-

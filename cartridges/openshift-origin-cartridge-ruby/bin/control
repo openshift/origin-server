@@ -16,6 +16,13 @@ for dir in /etc/openshift/cart.conf.d/httpd{,/ruby} ; do
     [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -c 'Include $dir/*.conf'"
 done
 
+# Use a custom directory for Passenger's temp files to work around:
+# https://code.google.com/p/phusion-passenger/issues/detail?id=961
+#
+# The directory it creates automatically in /tmp has setuid which
+# triggers the bug when using graceful operations.
+[ -d /tmp/passenger ] || mkdir /tmp/passenger
+
 function start() {
     if process_running 'httpd', $HTTPD_PID_FILE; then
       if ruby_in_development_mode && httpd_in_development_mode; then
@@ -30,7 +37,7 @@ function start() {
     write_httpd_passenv $HTTPD_PASSENV_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     update_passenger_performance
-    httpd_with_env start
+    ruby_context "RAILS_ENV=${RAILS_ENV:-production} nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag ruby &"
     [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
@@ -45,7 +52,7 @@ function stop() {
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-        httpd_with_env stop
+        kill -WINCH $httpd_pid
         wait_for_stop $httpd_pid
     fi
 }
@@ -57,7 +64,8 @@ function restart() {
     oo-erb ${OPENSHIFT_RUBY_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
     [ -d ${OPENSHIFT_REPO_DIR}/tmp ] && touch ${OPENSHIFT_REPO_DIR}/tmp/restart.txt
     ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-    httpd_with_env restart
+    httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
+    kill -HUP $httpd_pid
 }
 
 function status() {
@@ -71,9 +79,9 @@ function status() {
 
 # Clean up any log files
 function tidy() {
-  client_message "Emptying log dir: $OPENSHIFT_RUBY_LOG_DIR"
+  client_message "Emptying ruby logs in dir: $OPENSHIFT_LOG_DIR"
   shopt -s dotglob
-  rm -rf $OPENSHIFT_RUBY_LOG_DIR/*
+  rm -rf $OPENSHIFT_LOG_DIR/ruby.log*
   rm -rf ${OPENSHIFT_RUBY_DIR}tmp/*
 }
 
@@ -181,7 +189,7 @@ function threaddump() {
       result=$(_threaddump $OPENSHIFT_GEAR_UUID)
       if [ "$result" = "" ]; then
           DATE=`date -u '+%Y%m%d'`
-          echo "The thread dump file will be available via: tail -f ${OPENSHIFT_RUBY_LOG_DIR}/error_log-$DATE-*"
+          echo "The thread dump file will be available via: tail -f ${OPENSHIFT_LOG_DIR}/ruby*"
       else
           echo " $result"
       fi
@@ -196,7 +204,7 @@ function threaddump() {
       client_result "Success"
       client_result ""
       # note bz 923405/921537 for why log file name is not more specific
-      client_result "The thread dump file will be available via: rhc tail ${OPENSHIFT_APP_NAME} -g ${OPENSHIFT_GEAR_UUID} -f ${OPENSHIFT_RUBY_LOG_DIR}/error_log-$DATE-* -o '-n 250'"
+      client_result "The thread dump file will be available via: rhc tail ${OPENSHIFT_APP_NAME} -g ${OPENSHIFT_GEAR_UUID} -f ${OPENSHIFT_LOG_DIR}/ruby* -o '-n 250'"
   else
       client_result " $result"
   fi

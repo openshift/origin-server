@@ -50,7 +50,6 @@ Then /^the php file permissions are correct/ do
     "php/configuration/etc/conf.d/openshift.conf" => [gear_uuid, gear_uuid, '100644', se_context],
     "php/configuration/etc/conf.d/performance.conf" => [gear_uuid, gear_uuid, '100644', se_context],
     "php/configuration/etc/conf.d/passenv.conf" => [gear_uuid, gear_uuid, '100644', se_context],
-    "php/logs/" => [gear_uuid, gear_uuid, '40755', se_context],
     "php/phplib/pear/" => [gear_uuid, gear_uuid, '40755', se_context],
     "php/run/" => [gear_uuid, gear_uuid, '40755', se_context],
     "php/run/httpd.pid" => [gear_uuid, gear_uuid, '100644', se_context],

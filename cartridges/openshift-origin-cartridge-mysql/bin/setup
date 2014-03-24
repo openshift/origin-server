@@ -8,7 +8,7 @@ case "$1" in
     version="$2"
 esac
 
-mkdir -p $OPENSHIFT_MYSQL_DIR/{log,pid,socket,data,run}
+mkdir -p $OPENSHIFT_MYSQL_DIR/{pid,socket,data,run}
 
 cp ${OPENSHIFT_MYSQL_DIR}conf/my.cnf.erb ${OPENSHIFT_MYSQL_DIR}conf/my.cnf.erb.hidden
 

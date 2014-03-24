@@ -123,10 +123,6 @@ function update_passenger_performance {
   oo-erb ${OPENSHIFT_RUBY_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
 }
 
-function httpd_with_env {
-  ruby_context "RAILS_ENV=${RAILS_ENV:-production} /usr/sbin/httpd $HTTPD_CMD_CONF -k $1"
-}
-
 # Check for all pre-requires for assets compilation.
 #
 function has_assets {

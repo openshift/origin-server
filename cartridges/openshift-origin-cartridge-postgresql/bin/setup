@@ -8,7 +8,7 @@ case "$1" in
     version="$2"
 esac
 
-mkdir -p $OPENSHIFT_POSTGRESQL_DIR/{log,pid,socket,data,run}
+mkdir -p $OPENSHIFT_POSTGRESQL_DIR/{pid,socket,data,run}
 
 if [ -f $OPENSHIFT_POSTGRESQL_DIR/env/OPENSHIFT_POSTGRES_VERSION ]
 then

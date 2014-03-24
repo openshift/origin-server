@@ -1,0 +1,4 @@
+#!/bin/bash
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+rm -rf $OPENSHIFT_LOG_DIR/mysql.log*

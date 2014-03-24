@@ -19,8 +19,6 @@ function error_exit {
   exit $2
 }
 
-mkdir -p $OPENSHIFT_MOCK_DIR/logs
-
 if [[ -n "$version" ]]; then
   echo "Creating version marker for $version"
   echo "$version" > $MOCK_STATE/install_version

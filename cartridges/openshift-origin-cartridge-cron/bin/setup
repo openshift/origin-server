@@ -9,4 +9,4 @@ esac
 
 # Copy the version specific files into cron directory
 
-mkdir -p $OPENSHIFT_CRON_DIR/{configuration,log,etc,data,pid,run}
+mkdir -p $OPENSHIFT_CRON_DIR/{configuration,etc,data,pid,run}

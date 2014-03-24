@@ -10,7 +10,7 @@ import (
 
 type ByteSize float64
 
-var ByteSizePattern = regexp.MustCompile(`^(\d)+([BKMGTPEZY])$`)
+var ByteSizePattern = regexp.MustCompile(`^(\d+)([BKMGTPEZY])$`)
 
 const (
 	B ByteSize = 1 << (10 * iota)
@@ -37,7 +37,6 @@ func ParseByteSize(sizeText []byte) (ByteSize, error) {
 
 	size, _ := strconv.ParseFloat(string(subs[1]), 64)
 	unit := strings.ToUpper(string(subs[2]))
-
 	switch unit {
 	case "B":
 		size = size * float64(B)

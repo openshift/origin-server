@@ -49,7 +49,6 @@ function start() {
   JENKINS_CMD="/etc/alternatives/jre/bin/java \
       -Xmx168m \
       -XX:MaxPermSize=100m \
-      -Dcom.sun.akuma.Daemon=daemonized \
       -Djava.awt.headless=true"
 
   if marker_present "disable_jenkins_udp_broadcast"; then
@@ -73,8 +72,7 @@ function start() {
       -jar ${JENKINS_WAR_PATH} \
       --ajp13Port=-1 \
       --controlPort=-1 \
-      --logfile=$OPENSHIFT_JENKINS_DIR/logs/jenkins.log \
-      --daemon \
+      --logfile=/dev/stdout \
       --httpPort=8080 \
       --handlerCountMax=45 \
       --handlerCountMaxIdle=20 \
@@ -84,7 +82,7 @@ function start() {
   # are not handled properly by Jenkins
   export LANG=en_US.UTF.8 
   
-  $JENKINS_CMD &
+  nohup $JENKINS_CMD |& /usr/bin/logshifter -tag jenkins &
   
   if ! is_up; then
       echo "Timed out waiting for Jenkins to fully start"
@@ -124,9 +122,9 @@ function reload() {
 
 # Clean up any log files
 function tidy() {
-  client_message "Emptying log dir: $OPENSHIFT_JENKINS_LOG_DIR"
+  client_message "Deleting jenkins logs from $OPENSHIFT_LOG_DIR"
   shopt -s dotglob
-  rm -rf $OPENSHIFT_JENKINS_LOG_DIR/*
+  rm -rf $OPENSHIFT_LOG_DIR/jenkins.log*
 }
 
 # Update the broker host and current system builder credentials

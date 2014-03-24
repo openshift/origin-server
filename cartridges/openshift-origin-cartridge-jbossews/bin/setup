@@ -12,7 +12,7 @@ if [ ! -d ${SYSTEM_JBOSSEWS_DIR} ]; then
   exit 127
 fi
 
-mkdir -p ${OPENSHIFT_JBOSSEWS_DIR}/{run,tmp,conf,logs}
+mkdir -p ${OPENSHIFT_JBOSSEWS_DIR}/{run,tmp,conf}
 
 # Link the system Tomcat binaries to the cart Tomcat instance directory
 ln -sf ${SYSTEM_JBOSSEWS_DIR}/bin/bootstrap.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/bootstrap.jar

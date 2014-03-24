@@ -18,7 +18,7 @@ function start {
   echo "Starting PHPMyAdmin cartridge"
   write_httpd_passenv $HTTPD_PASSENV_FILE
   ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-  eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k start"
+  eval "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag phpmyadmin &"
 }
 
 function stop {
@@ -26,7 +26,7 @@ function stop {
   ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   if [ -f "$HTTPD_PID_FILE" ]; then
       httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-      eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k stop"
+      kill -WINCH $httpd_pid
       wait_for_stop $httpd_pid
   fi
 }
@@ -34,7 +34,12 @@ function stop {
 function restart {
   echo "Restarting PHPMyAdmin cartridge"
   write_httpd_passenv $HTTPD_PASSENV_FILE
-  eval "/usr/sbin/httpd $HTTPD_CMD_CONF -k restart"
+  if [ -f "$HTTPD_PID_FILE" ]; then
+    httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
+    kill -HUP $httpd_pid
+  else
+    start
+  fi
 }
 
 function status {
@@ -51,9 +56,9 @@ function status {
 
 # Clean up any log files
 function tidy() {
-  client_message "Emptying log dir: $OPENSHIFT_PHPMYADMIN_LOG_DIR"
+  client_message "Emptying phpmyadmin logs in dir: $OPENSHIFT_LOG_DIR"
   shopt -s dotglob
-  rm -rf $OPENSHIFT_PHPMYADMIN_LOG_DIR/*
+  rm -rf $OPENSHIFT_LOG_DIR/phpmyadmin.log*
 }
 
 case "$1" in

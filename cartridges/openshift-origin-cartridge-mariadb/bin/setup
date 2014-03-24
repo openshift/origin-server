@@ -9,7 +9,7 @@ case "$1" in
 esac
 
  
-mkdir -p $OPENSHIFT_MARIADB_DIR/{log,pid,socket,data,run}
+mkdir -p $OPENSHIFT_MARIADB_DIR/{pid,socket,data,run}
 
 cp conf/my.cnf.erb conf/my.cnf.erb.hidden
 

@@ -25,9 +25,7 @@ global
     #
     #log         127.0.0.1 local2
 
-    pidfile     <%= ENV['OPENSHIFT_HAPROXY_DIR'] %>/run/haproxy.pid
     maxconn     256
-    daemon
 
     # turn on stats unix socket
     stats socket <%= ENV['OPENSHIFT_HAPROXY_DIR'] %>/run/stats level admin
