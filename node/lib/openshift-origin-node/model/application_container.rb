@@ -815,6 +815,35 @@ module OpenShift
         @gear_registry
       end
 
+      #
+      # Invokes all the cartridges bin/metrics + metrics action hook
+      #
+      def metrics
+        start_time = Time.now
+        @cartridge_model.each_cartridge do |cart|
+          # Check if cartridge has a metrics entry in its manifest
+          if cart.metrics != nil
+            begin
+              result, error, _ = self.run_in_container_context(PathUtils.join(cart.path, "bin","metrics"))
+              parsed_result = result.split("/n").map{|line| "type=metric app=#{self.application_uuid} gear=#{self.uuid} cart=#{cart.name} #{line}"}
+              $stdout.write(parsed_result.join("\n"))
+            rescue => e
+              $stderr.write("Error retrieving cartridge metrics: #{e.message}")
+            end
+          end
+        end
+        $stdout.write("type=metric app=#{self.application_uuid} gear=#{self.uuid} cartridge.metric_time=#{Time.now - start_time}\n")
+        begin
+          start_time = Time.now
+          result, error, _ = self.run_in_container_context(PathUtils.join(@container_dir,"app-root","repo",".openshift","action_hooks","metrics"))
+          parsed_result = result.split("/n").map{|line| "type=metric app=#{self.application_uuid} gear=#{self.uuid} #{line}"}
+          $stdout.write(parsed_result.join("\n"))
+          $stdout.write("type=metric app=#{self.application_uuid} gear=#{self.uuid} application.metric_time=#{Time.now - start_time}\n")
+        rescue => e
+          $stderr.write("Error recieving application metrics: #{e.message}")
+        end
+      end
+
       protected
 
       def broker_auth_params
@@ -829,16 +858,6 @@ module OpenShift
           params = nil
         end
         params
-      end
-
-      #
-      # Invokes all the cartridges bin/metrics + metrics action hook
-      #
-      def metrics
-        @cartridge_model.each do |cart|
-          # Do something with these
-          result, error, exit_status  = oo_spawn(cart.path + "bin/metrics")
-        end
       end
     end
   end
