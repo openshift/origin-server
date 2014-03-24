@@ -816,22 +816,6 @@ module OpenShift
         @gear_registry
       end
 
-      protected
-
-      def broker_auth_params
-        auth_token = PathUtils.join(@config.get('GEAR_BASE_DIR'), uuid, '.auth', 'token')
-        auth_iv = PathUtils.join(@config.get('GEAR_BASE_DIR'), uuid, '.auth', 'iv')
-        if File.exist?(auth_token) && File.exist?(auth_iv)
-          params = {
-            'broker_auth_key' => File.read(auth_token).chomp,
-            'broker_auth_iv' => File.read(auth_iv).chomp
-          }
-        else
-          params = nil
-        end
-        params
-      end
-
       #
       # Invokes all the cartridges bin/metrics + metrics action hook
       #
@@ -856,6 +840,22 @@ module OpenShift
         else
           $stdout.write(result)
         end
+      end
+
+      protected
+
+      def broker_auth_params
+        auth_token = PathUtils.join(@config.get('GEAR_BASE_DIR'), uuid, '.auth', 'token')
+        auth_iv = PathUtils.join(@config.get('GEAR_BASE_DIR'), uuid, '.auth', 'iv')
+        if File.exist?(auth_token) && File.exist?(auth_iv)
+          params = {
+            'broker_auth_key' => File.read(auth_token).chomp,
+            'broker_auth_iv' => File.read(auth_iv).chomp
+          }
+        else
+          params = nil
+        end
+        params
       end
     end
   end
