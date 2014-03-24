@@ -822,7 +822,7 @@ module OpenShift
       def metrics
         results = {}
         cartridges = {}
-        @cartridge_model.each do |cart|
+        @cartridge_model.each_cartridge do |cart|
           # Check if cartridge has a metrics entry in its manifest
           if cart.metrics != nil
             result, error, _ = oo_spawn(PathUtils.join(cart.path, "bin","metrics"))
