@@ -1,12 +1,7 @@
 class TeamMembersController < MembersController
   include RestModelHelper
-  before_filter :check_global, :only => [:create, :destroy, :update]
+  before_filter :check_global, :only => [:create, :destroy, :update, :leave]
   action_log_tag_resource :member
-  
-  def leave
-    return render_error(:unprocessable_entity, "You cannot leave a global team.", 1) unless membership.maps_to.nil?
-    super
-  end
   
 
   protected
@@ -24,7 +19,7 @@ class TeamMembersController < MembersController
     end
     
     def check_global
-      return render_error(:unprocessable_entity, "You cannot modify a teams that maps to an external group via the API.", 1) unless membership.maps_to.nil?
+      return render_error(:unprocessable_entity, "You cannot modify the membership of this team, because it maps to an external group.", 1) unless membership.maps_to.nil?
     end
 
 end
