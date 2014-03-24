@@ -483,7 +483,7 @@ class TeamTest < ActiveSupport::TestCase
     t.reload
     assert t.valid?
     assert t.save
-    t = Team.new(:global => true, :name => "test-team")
+    t = Team.new(:name => "test-team")
     assert t.invalid?
     t = Team.new(:global => true, :name => "myteam", :maps_to => "test-group")
     assert t.invalid?

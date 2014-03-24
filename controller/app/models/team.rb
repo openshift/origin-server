@@ -30,8 +30,6 @@ class Team
   
   validates_uniqueness_of :maps_to, message: "There is already a team that maps to this group", allow_nil: true
   validates_uniqueness_of :name, conditions: -> { where(global: true) }, message: "The specified name is already in use.", case_sensitive: false
-  
-  #validate :globally_unique
 
   index({'owner_id' => 1, 'name' => 1}, {:unique => true})
   create_indexes
@@ -144,11 +142,4 @@ class Team
     end
   end
   
-    
-  def globally_unique
-    if self.global 
-      errors.add(:name, "The specified name is already in use.") if Team.where(global: true, name: self.name).count > 0
-      errors.add(:maps_to, "There is already a team that maps to this group") if self.maps_to and Team.where(maps_to: self.maps_to).count > 0    
-    end
-  end
 end
