@@ -828,25 +828,17 @@ module OpenShift
             begin
               result, error, _ = Utils.oo_spawn(PathUtils.join(cart.path, "bin","metrics"))
               cartridges["#{cart.name}"] = result
-              if error != nil && !error.empty?
-                $stderr.write("Error gathering cartridge metrics: #{error}")
-              else
-                $stdout.write(result)
-              end
+              $stdout.write(result)
             rescue => e
-              $stderr.write("#{e.message}")
+              $stderr.write("Error retrieving cartridge metrics: #{e.message}")
             end
           end
         end
         begin
           result, error, _ = Utils.oo_spawn(PathUtils.join(@container_dir,"app-root","repo",".openshift","action_hooks","metrics"))
-          if error != nil && !error.empty?
-            $stderr.write("Error gathering application metrics: #{error}")
-          else
-            $stdout.write(result)
-          end
+          $stdout.write(result)
         rescue => e
-          $stderr.write("#{e.message}")
+          $stderr.write("Error recieving application metrics: #{e.message}")
         end
       end
 

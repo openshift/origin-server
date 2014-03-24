@@ -462,3 +462,14 @@ command :metrics do |c|
     OpenShift::Runtime::ApplicationContainer.from_uuid(args[0]).metrics
   end
 end
+
+command :metricsall do |c|
+  c.syntax = "#{$name} #{c.name}"
+  c.description = %q(run metrics for all gears)
+
+  c.action do
+    OpenShift::Runtime::ApplicationContainer.all.each do |ac|
+      ac.metrics
+    end
+  end
+end
