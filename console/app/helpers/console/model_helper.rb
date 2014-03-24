@@ -1,4 +1,13 @@
 module Console::ModelHelper
+
+  def other_cartridges_link(has_suggestions, application)
+    if has_suggestions
+      link_to "Or, see the entire list of cartridges you can add", application_cartridge_types_path(application)
+    else
+      link_to "Show other cartridges you can add to this application", application_cartridge_types_path(application)
+    end
+  end
+
   def cartridge_info(cartridge, application)
     case
     when cartridge.jenkins_client?
