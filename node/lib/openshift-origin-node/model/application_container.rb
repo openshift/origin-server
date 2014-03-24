@@ -820,14 +820,11 @@ module OpenShift
       # Invokes all the cartridges bin/metrics + metrics action hook
       #
       def metrics
-        results = {}
-        cartridges = {}
         @cartridge_model.each_cartridge do |cart|
           # Check if cartridge has a metrics entry in its manifest
           if cart.metrics != nil
             begin
               result, error, _ = Utils.oo_spawn(PathUtils.join(cart.path, "bin","metrics"))
-              cartridges["#{cart.name}"] = result
               $stdout.write(result)
             rescue => e
               $stderr.write("Error retrieving cartridge metrics: #{e.message}")
