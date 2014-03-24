@@ -18,6 +18,8 @@ class TeamsControllerTest < ActionController::TestCase
     @request.env['REMOTE_USER'] = @login
     @request.env['HTTP_ACCEPT'] = "application/json"
     CloudUser.any_instance.stubs(:max_teams).returns(3)
+    #global teams need to be cleaned up since they will not be deleted as part of user delete (no ownership)
+    @teams_to_tear_down = []
     stubber
 
   end
@@ -25,6 +27,9 @@ class TeamsControllerTest < ActionController::TestCase
   def teardown
     begin
       @user.force_delete
+      @teams_to_tear_down.each do |team|
+        team.destroy_team
+      end
     rescue
     end
   end
@@ -105,10 +110,15 @@ class TeamsControllerTest < ActionController::TestCase
   end
   
   test "search" do
-    Team.create(name: "myteam", owner_id: @user.id)
-    Team.create(name: "mygroup", owner_id: @user.id)
-    Team.create(name: "engineering-team", global: true, owner_id: @user.id)
-    Team.create(name: "engineering-and-QE", global: true, owner_id: @user.id)
+    @teams_to_tear_down << Team.create(name: "myteam", owner_id: @user.id)
+    @teams_to_tear_down << Team.create(name: "mygroup", owner_id: @user.id)
+    @teams_to_tear_down << Team.create(name: "engineering-team", global: true)
+    @teams_to_tear_down << Team.create(name: "engineering-and-QE", global: true)
+    @teams_to_tear_down << Team.create(name: "engineering+qe", global: true)
+    @teams_to_tear_down << Team.create(name: "engineering[internal]", global: true)
+    @teams_to_tear_down << Team.create(name: "engineering-internal", global: true)
+    @teams_to_tear_down << Team.create(name: "**engineering**", global: true)
+    @teams_to_tear_down << Team.create(name: "engineering/development", global: true)
     
     # reset controller, since we're modifying data out-of-band, and want a new instance of the controller to look up the model again
     @controller = TeamsController.new
@@ -124,7 +134,7 @@ class TeamsControllerTest < ActionController::TestCase
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json["data"]
-    assert_equal data.length, 2
+    assert_equal data.length, 7
     assert data.select{|d| d["name"] == "engineering-team"}.count == 1
     assert data.select{|d| d["name"] == "engineering-and-QE"}.count == 1
     
@@ -132,8 +142,9 @@ class TeamsControllerTest < ActionController::TestCase
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json["data"]
-    assert_equal data.length, 1
-    assert_equal data.first["name"] , "engineering-and-QE"
+    assert_equal data.length, 2
+    assert data.select{|d| d["name"] == "engineering+qe"}.count == 1
+    assert data.select{|d| d["name"] == "engineering-and-QE"}.count == 1
     
     get :index, {"search" => "my"}
     assert_response :success
@@ -149,6 +160,48 @@ class TeamsControllerTest < ActionController::TestCase
     assert data = json["data"]
     assert_equal data.length, 1
     assert_equal data.first["name"] , "myteam"
+    
+    get :index, {"search" => "[]/*+", "global" => true}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 0
+    
+    get :index, {"search" => "**", "global" => true}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 1
+    assert_equal data.first["name"] , "**engineering**"
+    
+    get :index, {"search" => "/dev", "global" => true}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 1
+    assert_equal data.first["name"] , "engineering/development"
+    
+    get :index, {"search" => "internal", "global" => true}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 2
+    assert data.select{|d| d["name"] == "engineering[internal]"}.count == 1
+    assert data.select{|d| d["name"] == "engineering-internal"}.count == 1
+    
+    get :index, {"search" => "[internal]", "global" => true}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 1
+    assert data.select{|d| d["name"] == "engineering[internal]"}.count == 1
+    
+    get :index, {"search" => "+QE", "global" => true}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert data = json["data"]
+    assert_equal data.length, 1
+    assert data.select{|d| d["name"] == "engineering+qe"}.count == 1
     
   end
   

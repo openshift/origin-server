@@ -8,7 +8,7 @@ class TeamsController < BaseController
     global = get_bool(params[:global])
     
     if search
-      teams = Team.accessible(current_user).where(global: global, name: /.*#{search}.*/i).sort({name: 1})
+      teams = Team.accessible(current_user).where(global: global, name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1})
     else
       teams = 
       case params[:owner]
