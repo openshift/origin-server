@@ -156,7 +156,7 @@ function deploy() {
   fi
   pushd ${OPENSHIFT_REPO_DIR} > /dev/null
   if has_assets; then
-    ruby_context "bundle exec rake assets:precompile"
+    ruby_with_nodejs_context "bundle exec rake assets:precompile"
     echo "NOTE: To disable assets compilation use 'disable_asset_compilation' marker."
   else
     echo "Compilation of assets is disabled or assets not detected."
