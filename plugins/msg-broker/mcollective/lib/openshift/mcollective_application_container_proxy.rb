@@ -1806,7 +1806,14 @@ module OpenShift
         log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.name}' after move"
         log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         gear.server_identity = destination_container.id
+        # Persist server identity for gear in mongo
+        res = Application.where({"_id" => app.id, "gears.uuid" => gear.uuid}).update({"$set" => {"gears.$.server_identity" => gear.server_identity}})
+        raise OpenShift::OOException.new("Could not set gear server_identity to #{gear.server_identity}") if res.nil? or !res["updatedExisting"]
+
         gear.group_instance.gear_size = destination_container.get_node_profile
+        # Persist gear size for current group instance in mongo
+        res = Application.where({"_id" => app.id, "group_instances._id" => gear.group_instance.id}).update({"$set" => {"group_instances.$.gear_size" => gear.group_instance.gear_size}})
+        raise OpenShift::OOException.new("Could not set group instance gear_size to #{gear.group_instance.gear_size}") if res.nil? or !res["updatedExisting"]
         begin
           dns = OpenShift::DnsService.instance
           public_hostname = destination_container.get_public_hostname
@@ -2005,7 +2012,9 @@ module OpenShift
           rescue Exception => e
             # if the gear server_identity was updated, revert it back along with the dns
             if gear.server_identity == destination_container.id
-              gear.set :server_identity, source_container.id
+              gear.server_identity = source_container.id
+              res = Application.where({"_id" => app.id, "gears.uuid" => gear.uuid}).update({"$set" => {"gears.$.server_identity" => gear.server_identity}})
+              raise OpenShift::OOException.new("Could not set gear server_identity to #{gear.server_identity}") if res.nil? or !res["updatedExisting"]
               begin
                 dns = OpenShift::DnsService.instance
                 public_hostname = source_container.get_public_hostname
@@ -2017,6 +2026,8 @@ module OpenShift
             end
 
             gear.group_instance.gear_size = source_container.get_node_profile
+            res = Application.where({"_id" => app.id, "group_instances._id" => gear.group_instance.id}).update({"$set" => {"group_instances.$.gear_size" => gear.group_instance.gear_size}})
+            raise OpenShift::OOException.new("Could not set group instance gear_size to #{gear.group_instance.gear_size}") if res.nil? or !res["updatedExisting"]
             # destroy destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with delete on '#{destination_container.id}'"
             reply.append destination_container.destroy(gear, !district_changed, nil, true)
