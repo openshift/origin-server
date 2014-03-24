@@ -825,7 +825,7 @@ module OpenShift
         @cartridge_model.each_cartridge do |cart|
           # Check if cartridge has a metrics entry in its manifest
           if cart.metrics != nil
-            result, error, _ = Util.oo_spawn(PathUtils.join(cart.path, "bin","metrics"))
+            result, error, _ = ::Util.oo_spawn(PathUtils.join(cart.path, "bin","metrics"))
             cartridges["#{cart.name}"] = result
             if error != nil
               $stderr.write("Error gathering cartridge metrics: #{error}")
@@ -834,7 +834,7 @@ module OpenShift
             end
           end
         end
-        result, error, _ = Util.oo_spawn(PathUtils.join(@container_dir," .openshift","action_hooks","metrics"))
+        result, error, _ = ::Util.oo_spawn(PathUtils.join(@container_dir," .openshift","action_hooks","metrics"))
         if error != nil
           $stderr.write("Error gathering application metrics: #{error}")
         else
