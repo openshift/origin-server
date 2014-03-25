@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.22.2
+Version: 1.22.3
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -52,6 +52,9 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
+- Port cartridges to use logshifter (ironcladlou@gmail.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
 - Remove unused teardowns (dmcphers@redhat.com)
 - Make dep handling consistent (dmcphers@redhat.com)
