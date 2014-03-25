@@ -45,7 +45,7 @@ module OpenShift
           attr_accessor :delay, :running_apps
 
           def initialize delay
-            Syslog.info "Initializing watchmen metrics plugin"
+            Syslog.info "Initializing Watchman metrics plugin"
             # Set the sleep time for the metrics thread
             @delay = delay
             @mutex = Mutex.new
