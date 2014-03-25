@@ -363,6 +363,7 @@ Requires:  numpy-f2py
 Requires:  pymongo
 Requires:  pymongo-gridfs
 Requires:  ta-lib-devel
+Requires:  xv-devel
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:  python27-numpy
 Requires:  python33-numpy
