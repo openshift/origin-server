@@ -211,6 +211,7 @@ class ApplicationsController < ConsoleController
 
     @gear_groups = @application.cartridge_gear_groups
     @gear_groups.each{ |g| g.merge_gears(@gear_groups_with_state) }
+    #@environment_variables = @application.environment_variables
   end
 
   def get_started

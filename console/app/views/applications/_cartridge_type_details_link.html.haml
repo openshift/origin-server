@@ -1,0 +1,8 @@
+:css
+  a.custom-cartridge-toggle-details span {}
+
+%span
+  %a{:href => "##{cartridge_type.name.parameterize}", :class => 'custom-cartridge-toggle-details collapsed'}
+    details   
+    %span{:'data-icon' => "\uee14"}
+    %span.hide{:'data-icon' => "\uee12"}

@@ -169,13 +169,23 @@ h1.applications .flow-block.right .gear-icon {
     p {
       margin-bottom: 0;
       text-align: right;
-      &.created {
+      &.description {
+        padding: 2px 0 5px;
         font-size: $tinyFontSize;
         text-align: left;
       }
       span {
         font-weight: 300;
         font-size: $smallFontSize;
+      }
+    }
+
+    .custom-cartridge-details {
+      margin-top: 7px;
+      margin-left: 4px;
+      span {
+        font-size: $tinyFontSize;
+        text-align: left;
       }
     }
     ul.inline > li {
