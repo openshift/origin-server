@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.22.4
+Version: 1.22.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
+- Bug 1070533 - Fix gear's server_identity during move (rpenta@redhat.com)
+
 * Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
 - Bug 1079226 - missing open-sshclients and bad IP from facter make oo-admin-
   move fail (jforrest@redhat.com)
