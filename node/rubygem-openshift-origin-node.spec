@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.6
+Version: 1.22.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -280,6 +280,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
+- Merge pull request #5041 from ironcladlou/logshifter/carts
+  (dmcphers+openshiftbot@redhat.com)
+- Port cartridges to use logshifter (ironcladlou@gmail.com)
+
 * Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
 - Merge pull request #5032 from a13m/oo-sched-jobs-nogrep
   (dmcphers+openshiftbot@redhat.com)
