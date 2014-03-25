@@ -52,11 +52,9 @@ def run(command, options = Commander::Command::Options.new)
 end
 
 def rm(path, options = Commander::Command::Options.new)
-  msg = "Deleting file: #{path}"
-  puts msg if options.trace
-  if File.exist? path
-    puts msg unless options.trace
-    FileUtils.rm_r(path, verbose: options.trace)
+  Dir[path].each do |file|
+    puts %Q(Deleting file: #{file})
+    FileUtils.rm_r(file, verbose: options.trace)
   end
 end
 
@@ -74,7 +72,6 @@ command :destroygear do |c|
     fqdn = fqdn.split("\n").first.chomp unless fqdn.empty?
     options.default fqdn: fqdn
 
-
     begin
       path  = Dir["/cgroup/*/openshift/#{options.with_container_uuid}/freezer.state"].first
       state = IO.read(path).chomp
@@ -88,7 +85,7 @@ command :destroygear do |c|
 
     uid = Etc.getpwnam(options.with_container_uuid).uid rescue nil
     if uid.nil?
-      puts 'Killing gear processes by uuid...'
+      puts "Killing gear processes for name:#{options.with_container_uuid}..."
       # Killing off processes without a passwd entry is hard...
       run %Q(/usr/bin/skill -9 #{options.with_container_uuid})
 
@@ -97,7 +94,7 @@ command :destroygear do |c|
         run %Q(/bin/kill -9 -- #{tasks.gsub("\n", ' ')})
       end
     else
-      puts 'Killing gear processes by uid...'
+      puts "Killing gear processes for uid:#{uid}..."
       run %Q(/usr/bin/pkill -9 -u #{uid})
     end
 
@@ -106,10 +103,10 @@ command :destroygear do |c|
       run %Q(/usr/sbin/userdel --remove --force #{options.with_container_uuid})
     end
 
-    rm %Q(/var/lib/openshift/.tc_user_dir/#{options.with_container_uuid}_throttle)
-    rm %Q(/var/lib/openshift/#{options.with_container_uuid})
-    rm %Q(/var/lib/openshift/.last_access/#{options.with_container_uuid})
-    rm %Q(/etc/security/limits.d/*-#{options.with_container_uuid}.conf)
+    rm %Q(/var/lib/openshift/.tc_user_dir/#{options.with_container_uuid}_throttle), options
+    rm %Q(/var/lib/openshift/#{options.with_container_uuid}), options
+    rm %Q(/var/lib/openshift/.last_access/#{options.with_container_uuid}), options
+    rm %Q(/etc/security/limits.d/*-#{options.with_container_uuid}.conf), options
 
     begin
       puts 'Deleting cgroup info...'
