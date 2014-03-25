@@ -17,6 +17,7 @@ class Team
 
   field :name, type: String
   field :global, type: Boolean, default: false
+  #only settable via admin script
   field :maps_to, type: String, default: nil
   belongs_to :owner, class_name: CloudUser.name
   embeds_many :pending_ops, class_name: PendingTeamOps.name
@@ -77,7 +78,7 @@ class Team
     peer_team_ids = Domain.accessible(to).and({'members.t' => Team.member_type}).map(&:members).flatten(1).select {|m| m.type == 'team'}.map(&:_id).uniq
 
     # Return teams which would normally be accessible, global or peer teams
-    self.or(super.selector, {:id.in => peer_team_ids}, {:global => true})
+    self.or(super.selector, {:id.in => peer_team_ids}, {:owner_id => nil})
   end
 
   def members_changed(added, removed, changed_roles)
