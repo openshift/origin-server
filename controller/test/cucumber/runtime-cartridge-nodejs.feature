@@ -8,7 +8,6 @@ Feature: Node.js Cartridge
     And the platform-created default environment variables will exist
     And the nodejs-<nodejs_version> cartridge private endpoints will be exposed
     And the nodejs-<nodejs_version> NODEJS_DIR env entry will exist
-    And the nodejs-<nodejs_version> NODEJS_LOG_DIR env entry will exist
     When I destroy the application
     Then the application git repo will not exist
 
