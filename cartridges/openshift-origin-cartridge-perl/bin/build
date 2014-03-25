@@ -23,13 +23,13 @@ CPAN=".openshift/cpan.txt"
 if [ ! -f "${OPENSHIFT_REPO_DIR}${CPAN}" ]; then
   if [ -f "${OPENSHIFT_REPO_DIR}deplist.txt" ]; then
     CPAN="deplist.txt"
-    client_message "The deplist.txt file was deprecated in favor of .openshift/cpan.txt."
-    client_message "Please consider running \`git mv deplist.txt .openshift/cpan.txt' command."
+    echo "The deplist.txt file was deprecated in favor of .openshift/cpan.txt."
+    echo "Please consider running \`git mv deplist.txt .openshift/cpan.txt' command."
   fi
 else
   if [ -f "${OPENSHIFT_REPO_DIR}deplist.txt" ]; then
-    client_message "It appears you have a deplist.txt and .openshift/cpan.txt file."
-    client_message "Please consider running \`git rm deplist.txt'."
+    echo "It appears you have a deplist.txt and .openshift/cpan.txt file."
+    echo "Please consider running \`git rm deplist.txt'."
   fi
 fi
 CPANFILE_PATH=${OPENSHIFT_REPO_DIR}/.openshift/cpanfile
