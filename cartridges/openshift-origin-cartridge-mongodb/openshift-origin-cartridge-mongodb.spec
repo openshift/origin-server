@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.18.4
+Version: 1.18.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -54,6 +54,11 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.18.5-1
+- Merge pull request #5041 from ironcladlou/logshifter/carts
+  (dmcphers+openshiftbot@redhat.com)
+- Port cartridges to use logshifter (ironcladlou@gmail.com)
+
 * Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
 - Bug 1079132 - Prevent users installing mongodb to apps that starts with
   number (mfojtik@redhat.com)
