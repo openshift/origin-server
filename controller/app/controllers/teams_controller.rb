@@ -18,7 +18,7 @@ class TeamsController < BaseController
       end
     end
     rest_teams = teams.map {|t| get_rest_team(t, if_included(:members))}
-    return render_success(:ok, "teams", rest_teams, "Found #{teams.count} teams") if search
+    return render_success(:ok, "teams", rest_teams, "Found #{rest_teams.count} teams") if search
     render_success(:ok, "teams", rest_teams, "Listing teams for user #{@cloud_user.login}")
    
   end
