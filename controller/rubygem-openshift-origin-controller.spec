@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.22.5
+Version: 1.22.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,22 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
+- Merge pull request #5054 from bparees/missing_log_dirs
+  (dmcphers+openshiftbot@redhat.com)
+- remove checks for cart specific log dirs (bparees@redhat.com)
+- remove check for jbosseap log dir (bparees@redhat.com)
+- Merge pull request #5049 from pravisankar/dev/ravi/bug1079301
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5035 from liggitt/team_pending_ops
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5041 from ironcladlou/logshifter/carts
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1079301 - Fix oo-admin-ctl-district remove-node error output
+  (rpenta@redhat.com)
+- Remove parent_op from team_pending_ops (jliggitt@redhat.com)
+- Port cartridges to use logshifter (ironcladlou@gmail.com)
+
 * Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Fix typo in authorize call (jliggitt@redhat.com)
 - Use rails http basic auth parsing, reuse controller, correctify comments
