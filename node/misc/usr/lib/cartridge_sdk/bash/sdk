@@ -440,6 +440,31 @@ function has_web_proxy() {
     return 1
 }
 
+function shutdown_httpd_graceful_pidfile {
+  local pidfile=$1
+  local pid=$(cat ${pidfile} 2> /dev/null)
+  shutdown_httpd_graceful ${pid}
+}
+
+function shutdown_httpd_graceful {
+  local pid=$1
+
+  kill -WINCH ${pid}
+  wait_for_stop ${pid}
+
+  if $(ps --pid ${pid} > /dev/null 2>&1); then
+    local msg=$(cat <<EOF
+Warning: Apache has not yet exited in response to a graceful
+shutdown. This usually means Apache is still waiting for
+outstanding requests to complete, and shutdown will proceed
+once those requests finish. To force an immediate shutdown
+and cancel any outstanding requests, use force-stop.
+EOF
+    )
+    client_message "${msg}"
+  fi
+}
+
 
 # Wrapper for the OpenShift Ruby SDK
 #

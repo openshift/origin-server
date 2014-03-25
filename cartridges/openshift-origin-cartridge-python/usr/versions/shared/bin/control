@@ -22,7 +22,7 @@ export APPDIR=$OPENSHIFT_PYTHON_DIR
 function start_app() {
     echo "Starting Python ${OPENSHIFT_PYTHON_VERSION} cartridge (app.py server)"
     cd "$OPENSHIFT_REPO_DIR"
-    nohup python -u app.py |& /usr/bin/logshifter -tag python &
+    nohup python -u app.py &> >(/usr/bin/logshifter -tag python) &
     echo $! > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
 }
 
@@ -67,8 +67,7 @@ function stop_app() {
 function stop_apache() {
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
-        httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-        kill -WINCH $httpd_pid && wait_for_stop $httpd_pid
+        shutdown_httpd_graceful_pidfile $HTTPD_PID_FILE
     fi
 }
 

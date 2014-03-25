@@ -51,9 +51,7 @@ function stop() {
     echo "Stopping Ruby cartridge"
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
-        httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
-        kill -WINCH $httpd_pid
-        wait_for_stop $httpd_pid
+      shutdown_httpd_graceful_pidfile $HTTPD_PID_FILE
     fi
 }
 
@@ -90,7 +88,7 @@ function pre-repo-archive() {
 
   # Backup .bundle and vendor unless force_clean_build
   if ! force_clean_build_enabled_for_latest_deployment \
-    && [ -d ${OPENSHIFT_REPO_DIR}.bundle ]                                   \
+    && [ -d ${OPENSHIFT_REPO_DIR}.bundle ] \
     && [ -d ${OPENSHIFT_REPO_DIR}vendor/bundle ]
   then
     echo 'Saving away previously bundled RubyGems'
