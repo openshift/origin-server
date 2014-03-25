@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.22.5
+Version: 1.22.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,14 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
+- [origin-dev-ui-162] surface more information in the UI for external
+  cartridges (contact@fabianofranz.com)
+- Merge pull request #5044 from liggitt/external_nav_links
+  (dmcphers+openshiftbot@redhat.com)
+- Allow nav links to be external, pull cartridge link into helper method
+  (jliggitt@redhat.com)
+
 * Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Chmod +x site scripts (jliggitt@redhat.com)
 - Add console oauth controller test (jliggitt@redhat.com)
