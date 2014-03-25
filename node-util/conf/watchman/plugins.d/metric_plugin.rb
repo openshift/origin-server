@@ -39,31 +39,31 @@ end
 
 module OpenShift
   module Runtime
-    module WatchmanPlugin
-      class Metrics
-        attr_accessor :delay, :running_apps
+    module Utils
+      class Cgroups
+        class Metrics
+          attr_accessor :delay, :running_apps
 
-        def initialize delay
-          Syslog.info "Initializing Watchman metrics plugin"
-          # Set the sleep time for the metrics thread
-          @delay = delay
-          @mutex = Mutex.new
-          @running_apps = {}
-          initialize_cgroups_vars
-          # Begin collection thread
-          start
-        end
-
-        # Step that is run on each interval
-        def tick
-          @mutex.synchronize do
-            gear_metric_time = time_method {call_gear_metrics}
-            Syslog.info "type=metric gear.metric_time=#{gear_metric_time}"
-            call_application_container_metrics
+          def initialize delay
+            Syslog.info "Initializing Watchman metrics plugin"
+            # Set the sleep time for the metrics thread
+            @delay = delay
+            @mutex = Mutex.new
+            @running_apps = {}
+            initialize_cgroups_vars
+            # Begin collection thread
+            start
           end
-        rescue Exception => e
-          Syslog.info("Metric: unhandled exception #{e.message}\n" + e.backtrace.join("\n"))
 
+          # Step that is run on each interval
+          def tick
+            @mutex.synchronize do
+              gear_metric_time = time_method {call_gear_metrics}
+              Syslog.info "type=metric gear.metric_time=#{gear_metric_time}\n"
+              call_application_container_metrics
+            end
+          rescue Exception => e
+            Syslog.info("Metric: unhandled exception #{e.message}\n" + e.backtrace.join("\n"))
         end
 
         def start
