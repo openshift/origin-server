@@ -14,7 +14,7 @@ bind-address=<%= ENV['OPENSHIFT_MARIADB_DB_HOST'] %>
 symbolic-links=0
 key_buffer_size = 16K
 max_allowed_packet = 200M
-table_open_cache = 4
+table_open_cache = <%= ENV['OPENSHIFT_MARIADB_TABLE_OPEN_CACHE'] ? ENV['OPENSHIFT_MARIADB_TABLE_OPEN_CACHE'] : '4' %>
 sort_buffer_size = 128K
 read_buffer_size = 256K
 read_rnd_buffer_size = 256K
