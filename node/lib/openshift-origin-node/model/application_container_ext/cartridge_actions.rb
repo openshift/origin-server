@@ -1216,16 +1216,27 @@ module OpenShift
           begin
             # stay local (don't ssh) if the target gear is the local gear
             if target_gear_uuid == uuid
-              result[:messages] << @cartridge_model.start_cartridge('restart',
-                                                                   cart_name,
-                                                                   user_initiated: true,
-                                                                   out: options[:out],
-                                                                   err: options[:err])
+              if cart_name
+                result[:messages] << @cartridge_model.start_cartridge('restart',
+                                                                     cart_name,
+                                                                     user_initiated: true,
+                                                                     out: options[:out],
+                                                                     err: options[:err])
+              else
+                result[:messages] << @cartridge_model.restart_gear(user_initiated: true,
+                                                                  out: options[:out],
+                                                                  err: options[:err])
+              end
             else
-              out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{target_gear.to_ssh_url} gear restart --cart #{cart_name} --as-json",
+              if cart_name
+                out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{target_gear.to_ssh_url} gear restart --cart #{cart_name} --as-json",
+                                                        env: local_gear_env,
+                                                        expected_exitstatus: 0)
+              else
+                out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{target_gear.to_ssh_url} gear restart --all-cartridges --as-json",
                                                       env: local_gear_env,
                                                       expected_exitstatus: 0)
-
+              end
               raise "No result JSON was received from the remote gear restart call" if out.nil? || out.empty?
 
               result = HashWithIndifferentAccess.new(JSON.load(out))

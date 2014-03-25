@@ -514,13 +514,13 @@ command :restart do |c|
   c.option "--cart CART", "The cart to restart"
   c.option "--all", "Restart all instances of the specified cartridge for all gears for this application"
   c.option "--as-json", "Render the results as JSON to stdout"
-
+  c.option "--all-cartridges", "Restart all cartridges in the gear"
   c.description = "Restart a cart"
   c.action do |args, options|
     # TODO: Should we be able to restart the gear via stop_gear / start_gear calls
     # in addition to individual cart restarts?
     do_command(c, options) do
-      options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
+      options.all_cartridges || options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
       out = nil
       err = nil
       if !options.as_json

@@ -1456,6 +1456,52 @@ module OpenShift
       end
 
       ##
+      # Restarts catridges in the gear by running the cartridge +restart+ control action for each
+      # cartridge in the gear.
+      #
+      # By default, all cartridges in the gear are restarted. The selection of cartridges
+      # to be restarted is configurable via +options+.
+      #
+      # +options+: hash
+      #   :primary_only   => [boolean]    : If +true+, only the primary cartridge will be restarted.
+      #                                     Mutually exclusive with +secondary_only+.
+      #   :secondary_only => [boolean]    : If +true+, all cartridges except the primary cartridge
+      #                                     will be restarted. Mutually exclusive with +primary_only+.
+      #   :user_initiated => [boolean]    : Indicates whether the operation was user initated.
+      #                                     Default is +true+.
+      #   :exclude_web_proxy => [boolean] : Indicates whether to exclude restarting the web proxy cartridge.
+      #                                     Default is +false+
+      #   :out                            : An +IO+ object to which control script STDOUT should be directed. If
+      #                                     +nil+ (the default), output is logged.
+      #   :err                            : An +IO+ object to which control script STDERR should be directed. If
+      #                                     +nil+ (the default), output is logged.
+      #
+      # Returns the combined output of all +restart+ action executions as a +String+.
+      def restart_gear(options={})
+        options[:user_initiated] = true if not options.has_key?(:user_initiated)
+
+        if options[:primary_only] && options[:secondary_only]
+          raise ArgumentError.new('The primary_only and secondary_only options are mutually exclusive options')
+        end
+
+        buffer = ''
+
+        if options[:primary_only] || options[:secondary_only]
+          each_cartridge do |cartridge|
+            next if options[:primary_only] and cartridge.name != primary_cartridge.name
+            next if options[:secondary_only] and cartridge.name == primary_cartridge.name
+            next if options[:exclude_web_proxy] and cartridge.web_proxy?
+
+            buffer << start_cartridge('restart', cartridge, options)
+          end
+        else
+          buffer << restart_gear(options.merge({secondary_only: true}))
+          buffer << restart_gear(options.merge({primary_only: true}))
+        end
+        buffer
+      end
+
+      ##
       # Starts a cartridge.
       #
       # Both application state and the stop lock are managed during the operation. If start
