@@ -118,10 +118,6 @@ function build() {
     fi
 }
 
-function metrics() {
-    ${OPENSHIFT_PHP_DIR}/bin/cart_metrics.rb
-}
-
 case "$1" in
   start)           start ;;
   stop)            stop ;;
@@ -131,7 +127,6 @@ case "$1" in
   configtest)      configtest ;;
   tidy)            tidy ;;
   build)           build ;;
-  metrics)         metrics ;;
   *)               exit 0
 esac
 

@@ -822,22 +822,28 @@ module OpenShift
       def metrics
         @cartridge_model.each_cartridge do |cart|
           # Check if cartridge has a metrics entry in its manifest
-          if cart.metrics != nil
+          unless cart.metrics.nil?
             begin
               result, error, _ = self.run_in_container_context(PathUtils.join(cart.path, "bin","metrics"))
-              parsed_result = result.split("/n").map{|line| "type=metric app=#{self.application_uuid} gear=#{self.uuid} cart=#{cart.name} #{line}"}
-              $stdout.write(parsed_result.join("\n"))
+              result.split("\n").each do |line|
+                $stdout.write "type=metric app=#{self.application_uuid} gear=#{self.uuid} cart=#{cart.name} #{line}"
+              end
             rescue => e
               $stderr.write("Error retrieving cartridge metrics: #{e.message}")
             end
           end
         end
+
         begin
-          result, error, _ = self.run_in_container_context(PathUtils.join(@container_dir,"app-root","repo",".openshift","action_hooks","metrics"))
-          parsed_result = result.split("/n").map{|line| "type=metric app=#{self.application_uuid} gear=#{self.uuid} #{line}"}
-          $stdout.write(parsed_result.join("\n"))
+          metrics_hook = PathUtils.join(@container_dir,"app-root","repo",".openshift","action_hooks","metrics")
+          if File.exist?(metrics_hook) and File.executable?(metrics_hook)
+            result, error, _ = self.run_in_container_context(metrics_hook)
+            result.split("\n").each do |line|
+              $stdout.write "type=metric app=#{self.application_uuid} gear=#{self.uuid} #{line}"
+            end
+          end
         rescue => e
-          $stderr.write("Error recieving application metrics: #{e.message}")
+          $stderr.write("Error retrieving application metrics: #{e.message}")
         end
       end
 
