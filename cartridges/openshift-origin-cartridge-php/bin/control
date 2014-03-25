@@ -98,11 +98,11 @@ function build() {
     if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]; then
         if [ ! -f ${OPENSHIFT_REPO_DIR}${pear_file} ]; then
             pear_file=deplist.txt
-            client_message "The deplist.txt file was deprecated in favor of .openshift/pear.txt."
-            client_message "Please consider running \`git mv deplist.txt .openshift/pear.txt' command."
+            echo "The deplist.txt file was deprecated in favor of .openshift/pear.txt."
+            echo "Please consider running \`git mv deplist.txt .openshift/pear.txt' command."
         else
-            client_message "It appears you have a deplist.txt and .openshift/pear.txt file."
-            client_message "Please consider running \`git rm deplist.txt'."
+            echo "It appears you have a deplist.txt and .openshift/pear.txt file."
+            echo "Please consider running \`git rm deplist.txt'."
         fi
     fi
     if [ -f ${OPENSHIFT_REPO_DIR}${pear_file} ]; then
