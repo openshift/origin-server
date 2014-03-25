@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.23.1
+Version: 1.23.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -69,6 +69,9 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- Port cartridges to use logshifter (ironcladlou@gmail.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
 - Make nodejs watch just a single file by default instead of REPO_DIR
   (mfojtik@redhat.com)
