@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 1.22.2
+Version: 1.22.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -91,6 +91,13 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
+- Merge pull request #5041 from ironcladlou/logshifter/carts
+  (dmcphers+openshiftbot@redhat.com)
+- Port cartridges to use logshifter (ironcladlou@gmail.com)
+- Card origin_cartridge_157 - Add support for setting MAX_CONNECTION and
+  SHARED_BUFFERS (mfojtik@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
 - Updated cartridges to stop after post_restore (mfojtik@redhat.com)
 
