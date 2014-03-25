@@ -7,7 +7,6 @@ Feature: Ruby Cartridge
     And the platform-created default environment variables will exist
     And the ruby-<cart_version> cartridge private endpoints will be exposed
     And the ruby-<cart_version> RUBY_DIR env entry will exist
-    And the ruby-<cart_version> RUBY_LOG_DIR env entry will exist
     And the ruby-<cart_version> RUBY_VERSION env entry will equal '<cart_version>'
     ## 'passenger-status' can't be run in the gear context
     And a <proc_name> process for <label> will be running

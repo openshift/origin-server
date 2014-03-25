@@ -10,7 +10,6 @@ Feature: JBossAS Cartridge
     And the platform-created default environment variables will exist
     And the jbossas-7 cartridge private endpoints will be exposed
     And the jbossas-7 JBOSSAS_DIR env entry will exist
-    And the jbossas-7 JBOSSAS_LOG_DIR env entry will exist
     And the jbossas-7 JBOSSAS_VERSION env entry will exist
     When I embed a switchyard-0 cartridge into the application
     Then the as module configuration file will exist
