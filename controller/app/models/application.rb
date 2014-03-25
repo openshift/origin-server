@@ -762,6 +762,11 @@ class Application
           raise OpenShift::UserException.new("An application with #{cart.name} already exists within the domain. You can only have a single application with #{cart.name} within a domain.", 109, 'cartridge')
         end
       end
+
+      # if there are any downloaded cartridges, validate their manifest
+      if cart.manifest_url.present? and cart.manifest_text.present?
+        OpenShift::Runtime::Manifest.new(cart.manifest_text).validate_categories
+      end
     end
 
     # Only one web_framework is allowed
@@ -2687,7 +2692,7 @@ class Application
     categories = {}
     specs.each do |spec|
       cats = spec.cartridge.categories
-      ['web_framework', 'plugin', 'service', 'embedded', 'ci_builder', 'web_proxy'].each do |cat|
+      ['web_framework', 'plugin', 'service', 'embedded', 'ci_builder', 'web_proxy', 'external'].each do |cat|
         (categories[cat] ||= []) << spec if cats.include?(cat)
       end
     end

@@ -565,6 +565,9 @@ class ApplicationControllerTest < ActionController::TestCase
     CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
       ---
       Cartridge-Short-Name: MOCK
+      Categories:
+      - mock
+      - web_framework
       MANIFEST
     messages = assert_invalid_manifest
     assert messages.one?{ |m| m['text'] =~ %r(The provided downloadable cartridge 'manifest://test' cannot be loaded.+Version is a required element) }, messages.inspect
@@ -575,6 +578,9 @@ class ApplicationControllerTest < ActionController::TestCase
       ---
       Version: '0.1'
       Cartridge-Short-Name: MOCK
+      Categories:
+      - mock
+      - web_framework
       MANIFEST
     messages = assert_invalid_manifest
     assert messages.one?{ |m| m['text'] =~ %r(The provided downloadable cartridge 'manifest://test' cannot be loaded.+Name is a required element) }, messages.inspect
@@ -587,6 +593,9 @@ class ApplicationControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: redhat
+      Categories:
+      - mock
+      - web_framework
       MANIFEST
     messages = assert_invalid_manifest
     assert messages.one?{ |m| m['text'] =~ %r(The provided downloadable cartridge 'manifest://test' cannot be loaded.+Name 'git' is reserved\.) }, messages.inspect
@@ -601,7 +610,7 @@ class ApplicationControllerTest < ActionController::TestCase
       Cartridge-Vendor: mock
       MANIFEST
     messages = assert_invalid_manifest
-    assert messages.one?{ |m| m['text'] =~ %r(None of the specified cartridges is a web cartridge) }, messages.inspect
+    assert messages.one?{ |m| m['text'] =~ %r(The provided downloadable cartridge 'manifest://test' cannot be loaded: Categories is a required element) }, messages.inspect
   end
 
   test "create downloadable cart stored as cartridge type" do

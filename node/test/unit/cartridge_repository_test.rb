@@ -99,7 +99,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert_equal 'crtest2', e.manifest['Display-Name']
     assert_equal '0.2', e.version
     assert_equal '0.0.2', e.cartridge_version
-    assert_empty e.categories
+    assert !e.categories.include?('service')
     assert e.manifest['Group-Overrides'][0]['components'].include?('crtest-0.2')
   end
 
@@ -274,6 +274,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
         Versions: ['0.1', '0.2', '0.3']
         Cartridge-Version: '0.0.1'
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
         Group-Overrides:
           - components:
             - crtest-0.3
@@ -327,6 +329,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
         Cartridge-Version: '0.0.1'
         Compatible-Versions: ['1.0']
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
       },
       %q{#
         Name: crtest
@@ -337,6 +341,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
         Cartridge-Version: '0.0.2'
         Compatible-Versions: ['0.0.1']
         Cartridge-Vendor: redhat
+        Categories:
+          - embedded
         Source-Url: http://example.com
         Group-Overrides:
           - components:
@@ -360,6 +366,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
         Versions: ['0.2', '0.3']
         Cartridge-Version: '0.0.3'
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
         Group-Overrides:
           - components:
             - crtest-0.3

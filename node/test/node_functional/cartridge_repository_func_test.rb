@@ -88,6 +88,8 @@ module OpenShift
         Versions: ['0.1', '0.2', '0.3']
         Cartridge-Version: '1.2'
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
       }
         )
       end
@@ -447,6 +449,8 @@ module OpenShift
         Version: '0.3'
         Cartridge-Version: '0.0.#{i}'
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
       }
         )
       end

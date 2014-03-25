@@ -91,6 +91,8 @@ class CartridgeCacheTest < ActiveSupport::TestCase
         Versions: ['0.1', '0.2', '0.3']
         Cartridge-Version: '0.0.1'
         Cartridge-Vendor: redhat
+        Categories: 
+          - web_framework
         Group-Overrides:
           - components:
             - crtest-0.3
