@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.15.3
+Version: 2.15.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,11 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 2.15.4-1
+- Merge pull request #5041 from ironcladlou/logshifter/carts
+  (dmcphers+openshiftbot@redhat.com)
+- Port cartridges to use logshifter (ironcladlou@gmail.com)
+
 * Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 2.15.3-1
 - Add messaging throughput configuration to EAP (bparees@redhat.com)
 
