@@ -10,7 +10,7 @@ then
     exit 1
 fi
 
-source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
+cartridge_type="jbossews"
 
 JBOSS_PID_FILE="${OPENSHIFT_JBOSSEWS_DIR}/run/jboss.pid"
 
