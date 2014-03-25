@@ -2,7 +2,7 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -36,6 +36,9 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Port cartridges to use logshifter (ironcladlou@gmail.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.17.1-1
 - bump_minor_versions for sprint 41 (admiller@redhat.com)
 
