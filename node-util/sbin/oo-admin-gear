@@ -64,10 +64,16 @@ command :destroygear do |c|
   c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
   c.description = %q(Remove any remnants of a failed gear destroy)
 
+  c.option '-f', '--fqdn FQDN', 'Fully Qualified Domain Name'
   c.action do |_, options|
     if options.with_container_uuid.nil? || options.with_container_uuid.empty?
       usage(c.syntax)
     end
+
+    fqdn = %x[grep #{options.with_container_uuid} /var/lib/openshift/.httpd.d/nodes.txt |awk -F '( |/)' '{print $1}']
+    fqdn = fqdn.split("\n").first.chomp unless fqdn.empty?
+    options.default fqdn: fqdn
+
 
     begin
       path  = Dir["/cgroup/*/openshift/#{options.with_container_uuid}/freezer.state"].first
@@ -114,10 +120,18 @@ command :destroygear do |c|
     end
 
     begin
-      puts 'Deleting stale info from /var/lib/openshift/.httpd.d/ files...'
+      $stdout.write "Deleting stale info from /var/lib/openshift/.httpd.d/ files...\n  for #{options.with_container_uuid}"
       OpenShift::Runtime::FrontendHttpServer.purge(options.with_container_uuid)
+
+      if options.fqdn && ! options.fqdn.empty?
+        $stdout.write "\n  for #{options.fqdn}"
+        OpenShift::Runtime::FrontendHttpServer.purge(options.fqdn)
+      else
+        $stdout.write %Q[\n  (You may need to use the --fqdn option to remove any remaining configuration.)]
+      end
+      puts
     rescue => e
-      puts "Failed to delete .httpd.d info: #{e.message}"
+      puts "\nFailed to delete .httpd.d info: #{e.message}"
       puts e.backtrace.join("\n") if options.trace
     end
   end
