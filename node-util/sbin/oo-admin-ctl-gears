@@ -468,7 +468,7 @@ command :metricsall do |c|
   c.description = %q(run metrics for all gears)
 
   c.action do
-    OpenShift::Runtime::ApplicationContainer.all.each do |ac|
+    Parallel.map(OpenShift::Runtime::ApplicationContainer.all) do |ac|
       ac.metrics
     end
   end
