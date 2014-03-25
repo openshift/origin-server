@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.21.5
+Version: 1.21.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -157,6 +157,14 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
+- Merge pull request #5051 from jwhonce/bug/1076640
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5041 from ironcladlou/logshifter/carts
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1076640 - Attempt to clean up using FQDN (jhonce@redhat.com)
+- Port cartridges to use logshifter (ironcladlou@gmail.com)
+
 * Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.21.5-1
 - Merge pull request #5037 from jwhonce/bug/1079261
   (dmcphers+openshiftbot@redhat.com)
