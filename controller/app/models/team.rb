@@ -30,7 +30,6 @@ class Team
     length:   {maximum: 250, minimum: 1, message: "Team name must be a minimum of 1 and maximum of 250 characters."}
   
   validates_uniqueness_of :maps_to, message: "There is already a team that maps to this group", allow_nil: true
-  validates_uniqueness_of :name, conditions: -> { where(global: true) }, message: "The specified name is already in use.", case_sensitive: false
 
   index({'owner_id' => 1, 'name' => 1}, {:unique => true})
   create_indexes
