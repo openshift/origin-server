@@ -128,6 +128,8 @@ class ApplicationControllerTest < ActionController::TestCase
 
   test "app create scalable with different gear types" do
     @app_name = "app#{@random}"
+    @user.max_untracked_additional_storage = 5
+    @user.save!
 
     post :create, {"name" => @app_name, "cartridges" => [
       {"name" => php_version, "gear_size" => "medium", "scales_from" => 2, "scales_to" => 3},
@@ -831,6 +833,8 @@ class ApplicationControllerTest < ActionController::TestCase
       - web_framework
       MANIFEST
     @app_name = "app#{@random}"
+    @user.max_untracked_additional_storage = 5
+    @user.save!
     post :create, {"name" => @app_name, "cartridge" => [{"url" => "manifest://test", "additional_gear_storage" => 2}], "domain_id" => @domain.namespace, "include" => "cartridges"}
     assert_response :created
 
