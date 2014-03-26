@@ -2,7 +2,7 @@ module OpenShift
   class OOException < StandardError
     attr_accessor :code, :resultIO
 
-    def initialize(msg=nil, code=nil, resultIO=nil)
+    def initialize(msg=nil, code=1, resultIO=nil)
       super(msg)
       @code = code
       @resultIO = resultIO
