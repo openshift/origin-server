@@ -50,7 +50,7 @@ function stop {
       error "Could not stop Postgres" 70
     else
       echo "Stopping Postgres cartridge"
-      truncate -s0 $OPENSHIFT_POSTGRESQL_DB_PID
+      rm $OPENSHIFT_POSTGRESQL_DB_PID
     fi
   else
     echo "Postgres already stopped"
