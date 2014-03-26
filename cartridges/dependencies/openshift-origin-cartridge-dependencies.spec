@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.22.2
+Version: 1.22.3
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -503,6 +503,10 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
+- adding xz-devel to optional-python (tdawson@redhat.com)
+- adding xv-devel to optional-python (tdawson@redhat.com)
+
 * Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
 - move some node requires to diy cartridge dependencies (tdawson@redhat.com)
 
