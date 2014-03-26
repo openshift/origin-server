@@ -57,7 +57,7 @@ class ApiController < BaseController
         Param.new(":id", "string", "Id of the team")
       ]),
       "SEARCH_TEAMS" => Link.new("Search teams by name", "GET", URI::join(get_url, "teams"), [
-        Param.new("search", "string", "Search string must be at least 3 characters"),
+        Param.new("search", "string", "Search string must be at least 2 characters"),
         Param.new("global", "boolean", "Search global teams", [true, false])
       ])
     }
