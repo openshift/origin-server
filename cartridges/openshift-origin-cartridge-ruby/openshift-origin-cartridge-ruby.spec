@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.22.3
+Version: 1.22.4
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -73,6 +73,15 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
+- Bug 1080381 - Fixed problem with httpd based carts restart after force-stop
+  (mfojtik@redhat.com)
+- Report lingering httpd procs following graceful shutdown
+  (ironcladlou@gmail.com)
+- Merge pull request #5055 from ironcladlou/ruby-umask
+  (dmcphers+openshiftbot@redhat.com)
+- Set umask when starting Passenger/httpd (ironcladlou@gmail.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
 - Merge pull request #5041 from ironcladlou/logshifter/carts
   (dmcphers+openshiftbot@redhat.com)
