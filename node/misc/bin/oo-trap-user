@@ -49,9 +49,11 @@ def load_env(directory):
             load_env(os.path.join(directory, entry))
             continue
 
+        if entry.endswith(".rpmnew"):
+            continue
+
         with open(entry, 'r') as file:
-            contents = file.read().rstrip()
-            os.environ[env] = contents
+            os.environ[env] = file.read().rstrip()
 
 
 def gear_env():

@@ -97,24 +97,15 @@ module OpenShift
             # Find, read and load environment variables into a hash
             Dir[env_dir].each do |file|
               next if file.end_with? '.erb'
+              next if file.end_with? '.rpmnew'
               next unless File.file? file
 
               begin
                 contents = IO.read(file).chomp
-
-                if contents.start_with? 'export '
-                  index           = contents.index('=')
-                  parsed_contents = contents[(index + 1)..-1]
-                  parsed_contents.gsub!(/\A["']|["']\Z/, '')
-                  env[File.basename(file)] = parsed_contents
-                else
-                  env[File.basename(file)] = contents
-                end
+                env[File.basename(file)] = contents
               rescue => e
                 msg = "Failed to process: #{file}"
-                unless contents.nil?
-                  msg << " [#{contents}]"
-                end
+                msg << " [#{contents}]" unless contents.nil?
                 msg << ': '
                 msg << (
                 case e
