@@ -113,10 +113,8 @@ function ctl_all() {
       gear stop
     ;;
     restart)
-      echo "Stopping services"
-      gear stop;
-      echo "Starting services"
-      gear start
+      echo "Restarting services"
+      gear restart --all-cartridges;
     ;;
     *) gear --help
     ;;
