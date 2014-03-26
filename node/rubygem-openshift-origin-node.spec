@@ -36,6 +36,9 @@ Requires:      %{?scl:%scl_prefix}rubygem(parallel)
 # non-scl open4 required for ruby 1.8 cartridge
 # Also see related bugs 924556 and 912215
 Requires:      rubygem(open4)
+# non-scl json required for oo-cgroup-read
+# Also see related bugs 924556 and 912215
+Requires:      rubygem(json)
 %endif
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem(safe_yaml)
