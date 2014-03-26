@@ -8,16 +8,8 @@ Description: The Do-It-Yourself (DIY) application type is a blank slate for tryi
 Version: '0.1'
 License: ASL 2.0
 License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
-Cartridge-Version: 0.0.9
-Compatible-Versions:
-- 0.0.1
-- 0.0.2
-- 0.0.3
-- 0.0.4
-- 0.0.5
-- 0.0.6
-- 0.0.7
-- 0.0.8
+Cartridge-Version: 0.0.10
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 Vendor: redhat
 Categories:
