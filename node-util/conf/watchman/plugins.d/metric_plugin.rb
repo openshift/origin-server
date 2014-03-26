@@ -25,7 +25,7 @@ class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
     end
     # Initiallize metrics to run every 60 seconds
     delay = Integer(@config.get('WATCHMAN_METRICS_INTERVAL')) rescue 60
-    @metrics = ::OpenShift::Runtime::Utils::Cgroups::Metrics.new(delay)
+    @metrics = ::OpenShift::Runtime::WatchmanPlugin::Metrics.new(delay)
   end
 
   def apply(iteration)
