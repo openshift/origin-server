@@ -67,7 +67,7 @@ class RestDomain15 < OpenShift::Model
           [OptionalParam.new("type", "string", "The member's type. i.e. user or team", ["user", "team"], "user"),
           OptionalParam.new("id", "string", "Unique identifier of the member for the given member type (user or team ID)"),
           OptionalParam.new("login", "string", "The user's login attribute"),
-          OptionalParam.new("members", "Array", "An array of members to add with corresponding type and role. e.g. [{\"login\" => \"foo\", \"type\" => \"user\", \"role\" => \"view\"}, {\"id\" =>\"5326534e2046fde9d3000001\", \"type\"=> \"team\", \"role\" => \"edit\" }]")]
+          OptionalParam.new("members", "Array", "An array of members to add with corresponding type and role. e.g. {'members': [{'login': 'foo', 'type': 'user' 'role': 'view'}, {'id': '5326534e2046fde9d3000001', 'type': 'team', 'role': 'none'}]}")]
         ),
       }
     end
