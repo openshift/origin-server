@@ -191,6 +191,9 @@ ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/
 ln -s %{openshift_lib}/node/jobs/openshift-origin-stale-lockfiles %{buildroot}/etc/cron.daily/
 
 %post
+# BZ 1065276 - re-add deletion of .rpmnew files
+/bin/rm -f /etc/openshift/env/*.rpmnew
+
 if ! grep -q "/usr/bin/oo-trap-user" /etc/shells
 then
   echo "/usr/bin/oo-trap-user" >> /etc/shells
