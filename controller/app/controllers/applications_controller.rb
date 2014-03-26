@@ -146,6 +146,12 @@ class ApplicationsController < BaseController
 
     cartridges = CartridgeCache.find_and_download_cartridges(specs, "cartridge", true)
 
+    if (cartridges.map(&:additional_gear_storage).compact.map(&:to_i).max || 0) > @cloud_user.max_storage
+      return render_error(:unprocessable_entity,
+                          "#{@cloud_user.login} has requested more additional gear storage than allowed (max: #{@cloud_user.max_storage} GB)",
+                          166)
+    end
+
     frameworks = cartridges.select(&:is_web_framework?)
     if frameworks.empty? && !params[:advanced]
       framework_carts = CartridgeCache.web_framework_names.presence or
