@@ -548,10 +548,6 @@ Manual scaling options:
 Auto scaling options:
   -a|--auto         Enable auto-scale
   --debug           Puts logger into debug mode
-
-Notes:
-1. To start/stop auto scaling in daemon mode run:
-    haproxy_ctld_daemon (start|stop|restart|run|)
 USAGE
     exit! rc
 end
