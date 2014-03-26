@@ -25,7 +25,7 @@ class MetricPlugin < OpenShift::Runtime::WatchmanPlugin
     end
     # Initiallize metrics to run every 60 seconds
     delay = Integer(@config.get('WATCHMAN_METRICS_INTERVAL')) rescue 60
-    @metrics = ::OpenShift::Runtime::WatchmanPlugin::Metrics.new(delay)
+    @metrics = ::OpenShift::Runtime::Utils::Cgroups::Metrics.new(delay)
   end
 
   def apply(iteration)
@@ -59,51 +59,52 @@ module OpenShift
           def tick
             @mutex.synchronize do
               gear_metric_time = time_method {call_gear_metrics}
-              Syslog.info "type=metric gear.metric_time=#{gear_metric_time}\n"
+              Syslog.info "type=metric gear.metric_time=#{gear_metric_time}"
               call_application_container_metrics
             end
           rescue Exception => e
             Syslog.info("Metric: unhandled exception #{e.message}\n" + e.backtrace.join("\n"))
-        end
+          end
 
-        def start
-          Thread.new do
-            loop do
-              tick
-              sleep @delay
+
+          def start
+            Thread.new do
+              loop do
+                tick
+                sleep @delay
+              end
             end
           end
-        end
 
-        def update_gears gears
-          @mutex.synchronize do
-            @running_apps = gears
+          def update_gears gears
+            @mutex.synchronize do
+              @running_apps = gears
+            end
           end
-        end
 
-        def time_method
-          start = Time.now
-          yield
-          Time.now - start
-        end
-
-        def call_application_container_metrics
-          res,err, _ = Utils.oo_spawn("oo-admin-ctl-gears metricsall")
-          Syslog.info(res)
-        end
-
-        def call_gear_metrics
-          output = []
-          @running_apps.keys.each do |uuid|
-            cgroup_name = "/openshift/#{uuid}"
-            output.concat get_cgroup_metrics(cgroup_name).map{|metric| "app=#{@running_apps[uuid]} gear=#{uuid} #{metric}"}
+          def time_method
+            start = Time.now
+            yield
+            Time.now - start
           end
-          output.each { |metric| Syslog.info("type=metric #{metric}") }
-        end
 
-        def initialize_cgroups_vars
+          def call_application_container_metrics
+            res,err, _ = Utils.oo_spawn("oo-admin-ctl-gears metricsall")
+            Syslog.info(res)
+          end
 
-          @cgroups_single_metrics = %w(cpu.cfs_period_us
+          def call_gear_metrics
+            output = []
+            @running_apps.keys.each do |uuid|
+              cgroup_name = "/openshift/#{uuid}"
+              output.concat get_cgroup_metrics(cgroup_name).map{|metric| "app=#{@running_apps[uuid]} gear=#{uuid} #{metric}"}
+            end
+            output.each { |metric| Syslog.info("type=metric #{metric}") }
+          end
+
+          def initialize_cgroups_vars
+
+            @cgroups_single_metrics = %w(cpu.cfs_period_us
                             cpu.cfs_quota_us
                             cpu.rt_period_us
                             cpu.rt_runtime_us
@@ -125,71 +126,72 @@ module OpenShift
                             net_cls.classid
                             notify_on_release)
 
-          @cgroups_kv_metrics = %w(cpu.stat
+            @cgroups_kv_metrics = %w(cpu.stat
                     cpuacct.stat
                     memory.oom_control
                     memory.stat)
 
-          @cgroups_multivalue_metrics = %w(cpuacct.usage_percpu)
+            @cgroups_multivalue_metrics = %w(cpuacct.usage_percpu)
 
 
-        end
-
-        def get_cgroup_metrics(path)
-          output = []
-
-          #one_call_metrics = @cgroups_single_metrics.concat(@cgroups_kv_metrics).concat(@cgroups_multivalue_metrics)
-          output.concat(get_cgroups_single_metric(@cgroups_single_metrics, path))
-          output.concat(get_cgroups_multivalue_metric(@cgroups_multivalue_metrics, path))
-          output.concat(get_cgroups_kv_metric(@cgroups_kv_metrics, path))
-
-          output
-        end
-
-        def get_cgroups_single_metric(metrics, path)
-          output = []
-          joined_metrics = metrics.join(" -r ")
-          retrieved_values = execute_cgget(joined_metrics, path).split("\n")
-          retrieved_values.each_with_index do |value, index|
-            output.push("#{metrics[index]}=#{value}")
           end
-          output
-        end
 
-        def get_cgroups_multivalue_metric(metrics, path)
-          output = []
-          joined_metrics = metrics.join(" -r ")
-          lines = execute_cgget(joined_metrics, path).split("\n")
-          lines.each_with_index do |line, index|
-            line.split.each { |value| output.push("#{metrics[index]}=#{value}") }
+          def get_cgroup_metrics(path)
+            output = []
+
+            #one_call_metrics = @cgroups_single_metrics.concat(@cgroups_kv_metrics).concat(@cgroups_multivalue_metrics)
+            output.concat(get_cgroups_single_metric(@cgroups_single_metrics, path))
+            output.concat(get_cgroups_multivalue_metric(@cgroups_multivalue_metrics, path))
+            output.concat(get_cgroups_kv_metric(@cgroups_kv_metrics, path))
+
+            output
           end
-          output
-        end
 
-        def get_cgroups_kv_metric(metrics, path)
-          output = []
-          joined_metrics = metrics.join(" -r ")
-          cg_output = execute_cgget(joined_metrics, path)
-          kv_groups = cg_output.split(/\\n(?!\\t)/)
-          metric_prefix = ""
-          metric_index = 0
-          kv_groups.each_with_index do |group, index|
-            lines = group.split("\n")
-            lines.each_with_index do |line, sub_index|
-              key, value = line.split.map { |item| item.strip }
-              if sub_index == 0
-                metric_prefix = key
-                output.push("#{metrics[index]}.#{key}=#{value}")
-              end
-              output.push("#{metrics[index]}.#{metric_prefix}.#{key}=#{value}")
+          def get_cgroups_single_metric(metrics, path)
+            output = []
+            joined_metrics = metrics.join(" -r ")
+            retrieved_values = execute_cgget(joined_metrics, path).split("\n")
+            retrieved_values.each_with_index do |value, index|
+              output.push("#{metrics[index]}=#{value}")
             end
+            output
           end
-          output
-        end
 
-        # This method returns a string to be processed, is it worth wrapping the execute?
-        def execute_cgget(metrics, path)
-          Utils.oo_spawn("cgget -n -v -r #{metrics} #{path}")[0]
+          def get_cgroups_multivalue_metric(metrics, path)
+            output = []
+            joined_metrics = metrics.join(" -r ")
+            lines = execute_cgget(joined_metrics, path).split("\n")
+            lines.each_with_index do |line, index|
+              line.split.each { |value| output.push("#{metrics[index]}=#{value}") }
+            end
+            output
+          end
+
+          def get_cgroups_kv_metric(metrics, path)
+            output = []
+            joined_metrics = metrics.join(" -r ")
+            cg_output = execute_cgget(joined_metrics, path)
+            kv_groups = cg_output.split(/\\n(?!\\t)/)
+            metric_prefix = ""
+            metric_index = 0
+            kv_groups.each_with_index do |group, index|
+              lines = group.split("\n")
+              lines.each_with_index do |line, sub_index|
+                key, value = line.split.map { |item| item.strip }
+                if sub_index == 0
+                  metric_prefix = key
+                  output.push("#{metrics[index]}.#{key}=#{value}")
+                end
+                output.push("#{metrics[index]}.#{metric_prefix}.#{key}=#{value}")
+              end
+            end
+            output
+          end
+
+          # This method returns a string to be processed, is it worth wrapping the execute?
+          def execute_cgget(metrics, path)
+            Utils.oo_spawn("cgget -n -v -r #{metrics} #{path}")[0]
+          end
         end
       end
     end
