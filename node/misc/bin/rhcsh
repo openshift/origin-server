@@ -10,6 +10,7 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 function load_env {
     [ -z "$1" ] && return 1
     [ -f "$1" ] || return 0
+    [[ "$1" =~ .*\.rpmnew$ ]] && return 0
 
     local key=$(basename $1)
     export $key="$(< $1)"

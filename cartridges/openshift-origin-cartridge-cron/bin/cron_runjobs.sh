@@ -16,15 +16,11 @@ function load_env {
     fi
 
     [ -f "$1" ] || return 0
+    [[ "$1" =~ .*\.rpmnew$ ]] && return 0
 
     local contents=$(< $1)
-    if [[ $contents =~ ^export\ .* ]]
-    then
-      source $1
-    else
-      local key=$(basename $1)
-      export $key=$(< $1)
-    fi
+    local key=$(basename $1)
+    export $key=$(< $1)
 }
 
 for f in ~/.env/* ~/.env/user_vars/* ~/*/env/*
