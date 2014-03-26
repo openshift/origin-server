@@ -39,6 +39,7 @@ function stop() {
 
 function restart() {
   echo "Restarting Perl cartridge"
+  ensure_httpd_restart_succeed $HTTPD_PID_FILE $HTTPD_CFG_FILE
   if [ -f "$HTTPD_PID_FILE" ]; then
     httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
     kill -HUP $httpd_pid
