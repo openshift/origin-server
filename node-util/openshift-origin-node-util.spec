@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.21.6
+Version: 1.21.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -157,6 +157,10 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.21.7-1
+- Bug 1080374 - Failing to remove .../limits.d/*-<uuid>.conf
+  (jhonce@redhat.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
 - Merge pull request #5051 from jwhonce/bug/1076640
   (dmcphers+openshiftbot@redhat.com)
