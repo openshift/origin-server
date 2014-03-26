@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.21.3
+Version: 1.21.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -76,6 +76,10 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
+- Incorrect log file name in the output when threaddump jbossews app.
+  (bparees@redhat.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
 - Port cartridges to use logshifter (ironcladlou@gmail.com)
 
