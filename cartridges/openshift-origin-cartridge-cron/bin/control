@@ -65,6 +65,12 @@ function status() {
    fi
 }
 
+function tidy() {
+  client_message "Emptying cron logs in dir: $OPENSHIFT_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_LOG_DIR/cron_*
+}
+
 case "$1" in
   start)     start ;;
   stop)      stop ;;

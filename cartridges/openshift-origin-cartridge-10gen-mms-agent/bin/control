@@ -93,6 +93,11 @@ function reload() {
     restart
 }
 
+function tidy() {
+  client_message "Emptying 10gen-mms-agent logs in dir: $OPENSHIFT_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_LOG_DIR/10gen-mms-agent.log*
+}
 
 case "$1" in
   start)      start ;;
@@ -100,5 +105,6 @@ case "$1" in
   restart)    restart ;;
   status)     status ;;
   reload)     reload ;;
+  tidy)      tidy ;;
   *)          exit 0
 esac
