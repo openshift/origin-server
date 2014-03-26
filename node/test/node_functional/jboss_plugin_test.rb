@@ -32,17 +32,16 @@ class JbossPluginTest < OpenShift::NodeBareTestCase
 
   def setup
     @uuid = 'bfc83ec2b49444fba1c657b0462eddb9'
-
     @testdir = '/tmp/jboss_plugin_test'
-    cartdir  = "#{@testdir}/#{@uuid}/cartridge/"
+    geardir  = "#{@testdir}/#{@uuid}/"
+    cartdir  = "#{geardir}cartridge/"
     envdir   = "#{cartdir}env/"
-    logsdir  = "#{cartdir}logs/"
+    logsdir  = "#{geardir}app-root/logs/"
 
     FileUtils.mkdir_p(envdir)
     FileUtils.mkdir_p(logsdir)
 
-    @server_log = "#{logsdir}server.log"
-    IO.write("#{envdir}OPENSHIFT_#{jboss_name}_LOG_DIR", logsdir)
+    @server_log = "#{logsdir}jbossews.log"
 
     @gears = mock
     @gears.expects(:each).yields(@uuid)
