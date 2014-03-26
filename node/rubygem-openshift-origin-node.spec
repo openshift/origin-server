@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.7
+Version: 1.22.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,22 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
+- Merge pull request #5075 from ironcladlou/force-stop-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5066 from dobbymoodge/BZ1077077
+  (dmcphers+openshiftbot@redhat.com)
+- Check for pid existence in graceful shutdown func (ironcladlou@gmail.com)
+- Bug 1078814: Adding more validations for cartridge manifests
+  (abhgupta@redhat.com)
+- Merge pull request #5065 from bparees/logdir_refs
+  (dmcphers+openshiftbot@redhat.com)
+- node spec: add rubygem(json) Bug 1077077 (jolamb@redhat.com)
+- write logs to expected jboss filename so watchman finds it
+  (bparees@redhat.com)
+- Report lingering httpd procs following graceful shutdown
+  (ironcladlou@gmail.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
 - Merge pull request #5041 from ironcladlou/logshifter/carts
   (dmcphers+openshiftbot@redhat.com)
