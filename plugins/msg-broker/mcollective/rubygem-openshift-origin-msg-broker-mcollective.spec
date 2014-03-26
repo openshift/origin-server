@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.22.5
+Version: 1.22.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,14 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
+- Bug 1075673: Sending the ref and artifact_url args only when specified
+  (abhgupta@redhat.com)
+- Merge pull request #5047 from abhgupta/bug_1080022
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1080022: calling the interface method to select the destination node
+  (abhgupta@redhat.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Bug 1070533 - Fix gear's server_identity during move (rpenta@redhat.com)
 
