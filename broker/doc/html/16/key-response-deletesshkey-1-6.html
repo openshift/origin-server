@@ -1,13 +1,79 @@
 <html><body><pre>{
   "api_version": 1.6,
-  "data": null,
+  "data": {
+    "content": "AAAAB3NzaC1yc2EAAAADAQABAAABAQCw6NXzjOTOrpQbzG4KjJXXRGLk6g8KCNjjMnqA34WA4SEPeCrCVbDPHlyY/2ygb3XRML/UhcImyzJfelQLSVmygUEzLn03ES3GhYKdyENDlp9mtMih8Dyk4g7CpqYoClIm/S9m2UrAvvt9fTcN6SatOXeOTayhLVvk3VJBYJQRL5c135mmqko90x8O8ixNAN1FP920jOVlHBFIFHePDFKvSfqjC7p8nIYvIowODZPk7vnI//m6lyDbKuxdwO5RnqyBHJtVST7+tyPuC3Kh0Y7tjAB/KsFMs5G+OTqT6b3gNPS6DoyGf6y1umGW1YepVc+pGcwLk93Ra9hU0GB1qA3t",
+    "links": {
+      "GET": {
+        "href": "https://openshift.redhat.com/broker/rest/user/keys/mykey",
+        "method": "GET",
+        "optional_params": [
+
+        ],
+        "rel": "Get SSH key",
+        "required_params": [
+
+        ]
+      },
+      "UPDATE": {
+        "href": "https://openshift.redhat.com/broker/rest/user/keys/mykey",
+        "method": "PUT",
+        "optional_params": [
+
+        ],
+        "rel": "Update SSH key",
+        "required_params": [
+          {
+            "description": "Type of Key",
+            "invalid_options": [
+
+            ],
+            "name": "type",
+            "type": "string",
+            "valid_options": [
+              "ssh-rsa",
+              "ssh-dss",
+              "ssh-rsa-cert-v01@openssh.com",
+              "ssh-dss-cert-v01@openssh.com",
+              "ssh-rsa-cert-v00@openssh.com",
+              "ssh-dss-cert-v00@openssh.com",
+              "krb5-principal"
+            ]
+          },
+          {
+            "description": "The key portion of an rsa key (excluding ssh key type and comment)",
+            "invalid_options": [
+
+            ],
+            "name": "content",
+            "type": "string",
+            "valid_options": [
+
+            ]
+          }
+        ]
+      },
+      "DELETE": {
+        "href": "https://openshift.redhat.com/broker/rest/user/keys/mykey",
+        "method": "DELETE",
+        "optional_params": [
+
+        ],
+        "rel": "Delete SSH key",
+        "required_params": [
+
+        ]
+      }
+    },
+    "name": "mykey",
+    "type": "ssh-rsa"
+  },
   "messages": [
     {
       "exit_code": 0,
       "field": null,
       "index": null,
       "severity": "info",
-      "text": "Removed SSH key mykey"
+      "text": "Updated SSH key mykey for user first.last@mycompany.com"
     }
   ],
   "status": "ok",
@@ -20,6 +86,6 @@
     1.5,
     1.6
   ],
-  "type": null,
+  "type": "key",
   "version": "1.6"
 }</pre></body></html>

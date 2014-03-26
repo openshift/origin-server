@@ -11,6 +11,7 @@ DOMAIN:
   UPDATE_MEMBERS:
    login: team.member@mycompany.com
    role: view
+   type: user
   UPDATE:
     name: xmydomainx
 
@@ -61,3 +62,20 @@ ALIAS:
     pass_phrase: abcd
   UPDATE:
     pass_phrase: abcd
+    
+TEAM:
+  ADD_TEAM:
+    name: myteam
+  UPDATE_MEMBERS:
+    login: team.member@mycompany.com
+    role: view
+    type: user
+
+MEMBER:
+  ADD_MEMBER:
+    login: team.member@mycompany.com
+    role: view
+    type: user
+  UPDATE:
+    role: view
+    

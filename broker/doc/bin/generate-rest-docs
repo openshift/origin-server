@@ -59,14 +59,14 @@ def set_up
   request = RestClient::Request.new(:method => :get, :url => "https://#{options[:server]}/broker/rest/user", :user => "team.member@mycompany.com", :password => @password, :headers => @headers, :timeout => @timeout, :open_timeout => @timeout)
   response = send_request(request)
   #add private cert capability and additional storage capability
-  system("oo-admin-ctl-user -l #{@user} --allowprivatesslcertificates true --setmaxtrackedstorage 20 --allowha true") if options[:server]=="localhost"
+  system("oo-broker oo-admin-ctl-user -l #{@user} --allowprivatesslcertificates true --setmaxtrackedstorage 20 --setmaxteams 10 --allowha true") if options[:server]=="localhost"
   if options[:version]
     @headers = {:accept => "application/json; version=#{@version}"}
   else
     @headers = {:accept => "application/json"}
   end
 
-  @resources = ["API", "USER", "KEY", "AUTHORIZATION", "DOMAIN", "MEMBER", "APPLICATION", "CARTRIDGE", "ALIAS", "ENVIRONMENT_VARIABLE", "GEAR_GROUP", "DESCRIPTOR", "DEPLOYMENT"]
+  @resources = ["API", "USER", "KEY", "AUTHORIZATION", "DOMAIN", "TEAM", "MEMBER", "APPLICATION", "CARTRIDGE", "ALIAS", "ENVIRONMENT_VARIABLE", "GEAR_GROUP", "DESCRIPTOR", "DEPLOYMENT"]
   @resources.each do |resource|
     @link_map[resource] = []
   end
@@ -76,7 +76,7 @@ end
 
 def send_request(request)
   #adding a wait because for some reason application stop and start is failing due to timing issues
-  sleep(5)
+  #sleep(5)
   begin
     response = request.execute
   rescue RestClient::ExceptionWithResponse => e
@@ -227,9 +227,9 @@ def process_resource(request, resource)
 end
 
 def tear_down
-  system("oo-admin-ctl-app    -l #{@user} -c force-destroy -b -a myapp")
-  system("oo-admin-ctl-domain -l #{@user} -c delete -n mydomain")
-  system("oo-admin-ctl-domain -l #{@user} -c delete")
+  system("oo-broker oo-admin-ctl-app    -l #{@user} -c force-destroy -b -a myapp")
+  system("oo-broker oo-admin-ctl-domain -l #{@user} -c delete -n mydomain")
+  system("oo-broker oo-admin-ctl-domain -l #{@user} -c delete")
 end
 
 if __FILE__ == $0

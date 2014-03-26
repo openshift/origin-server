@@ -1,32 +1,34 @@
 <html><body><pre>{
   "api_version": 1.6,
   "data": {
+    "explicit_role": "view",
+    "id": "533369f861b322dfc1000003",
     "links": {
       "GET": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5333d664a9429d1c3e00000c/environment-variable/FOO",
+        "href": "https://openshift.redhat.com/broker/rest/team/5333d8b2a9429d1c3e0000ae/member/533369f861b322dfc1000003",
         "method": "GET",
         "optional_params": [
 
         ],
-        "rel": "Get environment variable",
+        "rel": "Get member",
         "required_params": [
 
         ]
       },
       "UPDATE": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5333d664a9429d1c3e00000c/environment-variable/FOO",
+        "href": "https://openshift.redhat.com/broker/rest/team/5333d8b2a9429d1c3e0000ae/member/533369f861b322dfc1000003",
         "method": "PUT",
         "optional_params": [
 
         ],
-        "rel": "Update environment variable",
+        "rel": "Update member",
         "required_params": [
           {
-            "description": "Value of the environment variable",
+            "description": "New role for member",
             "invalid_options": [
 
             ],
-            "name": "value",
+            "name": "role",
             "type": "string",
             "valid_options": [
 
@@ -35,19 +37,21 @@
         ]
       },
       "DELETE": {
-        "href": "https://openshift.redhat.com/broker/rest/application/5333d664a9429d1c3e00000c/environment-variable/FOO",
+        "href": "https://openshift.redhat.com/broker/rest/team/5333d8b2a9429d1c3e0000ae/member/533369f861b322dfc1000003",
         "method": "DELETE",
         "optional_params": [
 
         ],
-        "rel": "Delete environment variable",
+        "rel": "Delete member",
         "required_params": [
 
         ]
       }
     },
-    "name": "FOO",
-    "value": "bar"
+    "login": "team.member@mycompany.com",
+    "owner": false,
+    "role": "view",
+    "type": "user"
   },
   "messages": [
     {
@@ -55,7 +59,7 @@
       "field": null,
       "index": null,
       "severity": "info",
-      "text": "Showing environment variable 'FOO' for application myapp"
+      "text": "Showing member 533369f861b322dfc1000003"
     }
   ],
   "status": "ok",
@@ -68,6 +72,6 @@
     1.5,
     1.6
   ],
-  "type": "environment-variable",
+  "type": "member",
   "version": "1.6"
 }</pre></body></html>

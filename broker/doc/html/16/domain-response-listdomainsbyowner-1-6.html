@@ -2,10 +2,15 @@
   "api_version": 1.6,
   "data": [
     {
-      "creation_time": "2013-08-14T08:46:39Z",
+      "allowed_gear_sizes": [
+        "small"
+      ],
+      "available_gears": 0,
+      "creation_time": "2014-03-27T07:42:28Z",
+      "id": "5333d664a9429d1c3e00000b",
       "links": {
         "GET": {
-          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx",
+          "href": "https://openshift.redhat.com/broker/rest/domain/mydomain",
           "method": "GET",
           "optional_params": [
 
@@ -16,7 +21,7 @@
           ]
         },
         "ADD_APPLICATION": {
-          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx/applications",
+          "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/applications",
           "method": "POST",
           "optional_params": [
             {
@@ -25,23 +30,7 @@
               "name": "cartridges",
               "type": "array",
               "valid_options": [
-                "nodejs-0.6",
-                "python-2.6",
-                "python-2.7",
-                "python-3.3",
-                "zend-5.6",
-                "ruby-1.9",
-                "ruby-1.8",
-                "jenkins-1.4",
-                "jbossews-2.0",
-                "jbossews-1.0",
-                "mock-0.1",
-                "mock-0.2",
-                "perl-5.10",
-                "php-5.3",
-                "jbosseap-6.0",
-                "diy-0.1",
-                "jbossas-7"
+
               ]
             },
             {
@@ -57,20 +46,38 @@
             {
               "default_value": "small",
               "description": "The size of the gear",
-              "name": "gear_profile",
+              "name": "gear_size",
               "type": "string",
               "valid_options": [
                 "small"
               ]
             },
             {
-              "default_value": "",
+              "default_value": null,
               "description": "A URL to a Git source code repository that will be the basis for this application.",
               "name": "initial_git_url",
               "type": "string",
               "valid_options": [
-                "*",
+                "",
                 "empty"
+              ]
+            },
+            {
+              "default_value": null,
+              "description": "Name of a cartridge.",
+              "name": "cartridges[][name]",
+              "type": "string",
+              "valid_options": [
+
+              ]
+            },
+            {
+              "default_value": "small",
+              "description": "Gear size for the cartridge.",
+              "name": "cartridges[][gear_size]",
+              "type": "string",
+              "valid_options": [
+                "small"
               ]
             },
             {
@@ -78,6 +85,15 @@
               "description": "A URL to a downloadable cartridge. You may specify an multiple urls via {'cartridges' : [{'url':'http://...'}, ...]}",
               "name": "cartridges[][url]",
               "type": "string",
+              "valid_options": [
+
+              ]
+            },
+            {
+              "default_value": null,
+              "description": "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]",
+              "name": "environment_variables",
+              "type": "array",
               "valid_options": [
 
               ]
@@ -200,7 +216,7 @@
           ]
         },
         "LIST_APPLICATIONS": {
-          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx/applications",
+          "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/applications",
           "method": "GET",
           "optional_params": [
 
@@ -210,11 +226,103 @@
 
           ]
         },
-        "UPDATE": {
-          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx",
-          "method": "PUT",
+        "LIST_MEMBERS": {
+          "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/members",
+          "method": "GET",
           "optional_params": [
 
+          ],
+          "rel": "List members of this domain",
+          "required_params": [
+
+          ]
+        },
+        "UPDATE_MEMBERS": {
+          "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/members",
+          "method": "PATCH",
+          "optional_params": [
+            {
+              "default_value": "user",
+              "description": "The member's type. i.e. user or team",
+              "name": "type",
+              "type": "string",
+              "valid_options": [
+                "user",
+                "team"
+              ]
+            },
+            {
+              "default_value": null,
+              "description": "Unique identifier of the member for the given member type (user or team ID)",
+              "name": "id",
+              "type": "string",
+              "valid_options": [
+
+              ]
+            },
+            {
+              "default_value": null,
+              "description": "The user's login attribute",
+              "name": "login",
+              "type": "string",
+              "valid_options": [
+
+              ]
+            },
+            {
+              "default_value": null,
+              "description": "An array of members to add with corresponding type and role. e.g. {'members': [{'login': 'foo', 'type': 'user', 'role': 'view'}, {'id': '5326534e2046fde9d3000001', 'type': 'team', 'role': 'none'}]}",
+              "name": "members",
+              "type": "Array",
+              "valid_options": [
+
+              ]
+            }
+          ],
+          "rel": "Add or remove one or more members to this domain.",
+          "required_params": [
+            {
+              "description": "The role the member should have on the domain",
+              "invalid_options": [
+
+              ],
+              "name": "role",
+              "type": "string",
+              "valid_options": [
+                "view",
+                "edit",
+                "admin"
+              ]
+            }
+          ]
+        },
+        "LEAVE": {
+          "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/members/self",
+          "method": "DELETE",
+          "optional_params": [
+
+          ],
+          "rel": "Remove yourself as a member of the domain",
+          "required_params": [
+
+          ]
+        },
+        "UPDATE": {
+          "href": "https://openshift.redhat.com/broker/rest/domain/mydomain",
+          "method": "PUT",
+          "optional_params": [
+            {
+              "default_value": null,
+              "description": "Array of zero or more gear sizes allowed on this domain",
+              "name": "allowed_gear_sizes",
+              "type": "array",
+              "valid_options": [
+                "small",
+                "medium",
+                "large",
+                "c9"
+              ]
+            }
           ],
           "rel": "Update domain",
           "required_params": [
@@ -232,7 +340,7 @@
           ]
         },
         "DELETE": {
-          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx",
+          "href": "https://openshift.redhat.com/broker/rest/domain/mydomain",
           "method": "DELETE",
           "optional_params": [
             {
@@ -252,8 +360,125 @@
           ]
         }
       },
-      "name": "mydomainx",
-      "suffix": "dev.rhcloud.com"
+      "max_storage_per_gear": 20,
+      "members": [
+        {
+          "explicit_role": null,
+          "from": [
+            {
+              "type": "owner",
+              "role": "admin"
+            }
+          ],
+          "id": "5333d64fa9429defe8000001",
+          "links": {
+            "GET": {
+              "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/member/5333d64fa9429defe8000001",
+              "method": "GET",
+              "optional_params": [
+
+              ],
+              "rel": "Get member",
+              "required_params": [
+
+              ]
+            },
+            "UPDATE": {
+              "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/member/5333d64fa9429defe8000001",
+              "method": "PUT",
+              "optional_params": [
+
+              ],
+              "rel": "Update member",
+              "required_params": [
+                {
+                  "description": "New role for member",
+                  "invalid_options": [
+
+                  ],
+                  "name": "role",
+                  "type": "string",
+                  "valid_options": [
+
+                  ]
+                }
+              ]
+            },
+            "DELETE": {
+              "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/member/5333d64fa9429defe8000001",
+              "method": "DELETE",
+              "optional_params": [
+
+              ],
+              "rel": "Delete member",
+              "required_params": [
+
+              ]
+            }
+          },
+          "login": "first.last@mycompany.com",
+          "owner": true,
+          "role": "admin",
+          "type": "user"
+        },
+        {
+          "explicit_role": "view",
+          "id": "533369f861b322dfc1000003",
+          "links": {
+            "GET": {
+              "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/member/533369f861b322dfc1000003",
+              "method": "GET",
+              "optional_params": [
+
+              ],
+              "rel": "Get member",
+              "required_params": [
+
+              ]
+            },
+            "UPDATE": {
+              "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/member/533369f861b322dfc1000003",
+              "method": "PUT",
+              "optional_params": [
+
+              ],
+              "rel": "Update member",
+              "required_params": [
+                {
+                  "description": "New role for member",
+                  "invalid_options": [
+
+                  ],
+                  "name": "role",
+                  "type": "string",
+                  "valid_options": [
+
+                  ]
+                }
+              ]
+            },
+            "DELETE": {
+              "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/member/533369f861b322dfc1000003",
+              "method": "DELETE",
+              "optional_params": [
+
+              ],
+              "rel": "Delete member",
+              "required_params": [
+
+              ]
+            }
+          },
+          "login": "team.member@mycompany.com",
+          "owner": false,
+          "role": "view",
+          "type": "user"
+        }
+      ],
+      "name": "mydomain",
+      "suffix": "dev.rhcloud.com",
+      "usage_rates": {
+      }
     }
   ],
   "messages": [
