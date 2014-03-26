@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.22.3
+Version: 1.22.4
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -52,6 +52,18 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
+- Merge pull request #5061 from ironcladlou/graceful-shutdown
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5056 from VojtechVitek/bug_1079780
+  (dmcphers+openshiftbot@redhat.com)
+- Report lingering httpd procs following graceful shutdown
+  (ironcladlou@gmail.com)
+- Merge pull request #5046 from VojtechVitek/bug_1039849
+  (dmcphers+openshiftbot@redhat.com)
+- Replace the client_message with echo (vvitek@redhat.com)
+- Fix PHP MySQL default socket (vvitek@redhat.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
 - Port cartridges to use logshifter (ironcladlou@gmail.com)
 
