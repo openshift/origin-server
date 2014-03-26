@@ -52,7 +52,7 @@
         <subsystem xmlns="urn:jboss:domain:logging:1.1">
             <console-handler name="CONSOLE">
                 <formatter>
-                    <pattern-formatter pattern="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
+                    <pattern-formatter pattern="%d{yyyy/MM/dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
                 </formatter>
             </console-handler>
             <logger category="com.arjuna">
