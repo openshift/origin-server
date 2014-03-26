@@ -3169,9 +3169,9 @@ module OpenShift
         options[:filter]['fact'] = options[:filter]['fact'] + additional_filters
         options[:mcollective_limit_targets] = "1"
 
-        rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('rpcutil', options)
+        rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
         begin
-          rpc_client.get_fact(:fact => 'public_hostname') do |response|
+          rpc_client.get_facts(:facts => ['public_hostname']) do |response|
             raise OpenShift::NodeUnavailableException.new("No nodes available", 140) unless Integer(response[:body][:statuscode]) == 0
             current_server = response[:senderid]
           end
@@ -3280,25 +3280,29 @@ module OpenShift
       # * uses rpc_exec
       #
       def self.rpc_get_fact(fact, servers=nil, force_rediscovery=false, additional_filters=nil, custom_rpc_opts=nil)
-        result = nil
+        fact_value = nil
         options = custom_rpc_opts ? custom_rpc_opts : MCollectiveApplicationContainerProxy.rpc_options
         options[:filter]['fact'] = options[:filter]['fact'] + additional_filters if additional_filters
         options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
 
         Rails.logger.debug("DEBUG: rpc_get_fact: fact=#{fact}")
-        rpc_exec('rpcutil', servers, force_rediscovery, options) do |client|
+
+        rpc_exec('openshift', servers, force_rediscovery, options) do |client|
           begin
             # in some cases, the get_fact mcollective call gets stuck and never returns
             # to handle these situations, we are using the ruby Timeout module as a safety net
             # and setting the timer duration as a reasonable multiple of the mcollective timeout value
             failsafe_timeout = Rails.configuration.msg_broker[:fact_timeout] * 3
             Timeout::timeout(failsafe_timeout) do
-              client.get_fact(:fact => fact) do |response|
+              client.get_facts(:facts => Array(fact)) do |response|
                 next unless Integer(response[:body][:statuscode]) == 0
+                
+                fact_map = response[:body][:data][:output]
+                fact_value = fact_map[fact.to_sym]
+                sender = response[:senderid]
 
                 # Yield the sender and the value to the block
-                result = rvalue(response)
-                yield response[:senderid], result if result
+                yield sender, fact_value if fact_value
               end
             end
           rescue Timeout::Error
@@ -3306,13 +3310,16 @@ module OpenShift
           end
         end
 
-        result
+        fact_value
       end
 
       #
       # Given a known fact and node, get a single fact directly.
       # This is significantly faster then the get_facts method
       # If multiple nodes of the same name exist, it will pick just one
+      #
+      # Deprecated
+      # This method is deprecated - use rpc_get_facts_direct instead
       #
       # INPUTS:
       # * fact: String
@@ -3328,22 +3335,8 @@ module OpenShift
       # * uses MCollective::RPC::Client
       #
       def rpc_get_fact_direct(fact)
-          options = MCollectiveApplicationContainerProxy.rpc_options
-          options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
-
-          rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('rpcutil', options)
-          begin
-            result = rpc_client.custom_request('get_fact', {:fact => fact}, @id, {'identity' => @id})[0]
-            if (result && (defined? result.results) && result.results.has_key?(:data))
-              value = result.results[:data][:value]
-            else
-              raise OpenShift::NodeException.new("Node execution failure (error getting fact).", 143)
-            end
-          ensure
-            rpc_client.disconnect
-          end
-
-          return value
+        fact_map = rpc_get_facts_direct(Array(fact))
+        fact_map[fact.to_sym]
       end
 
       #
@@ -3365,22 +3358,22 @@ module OpenShift
       # * uses MCollective::RPC::Client
       #
       def rpc_get_facts_direct(facts)
-          options = MCollectiveApplicationContainerProxy.rpc_options
-          options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
+        options = MCollectiveApplicationContainerProxy.rpc_options
+        options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
 
-          rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
-          begin
-            result = rpc_client.custom_request('get_facts', {:facts => facts}, @id, {'identity' => @id})[0]
-            if (result && (defined? result.results) && result.results.has_key?(:data))
-              value = result.results[:data][:output]
-            else
-              raise OpenShift::NodeException.new("Node execution failure (error getting facts).", 143)
-            end
-          ensure
-            rpc_client.disconnect
+        rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
+        begin
+          result = rpc_client.custom_request('get_facts', {:facts => facts}, @id, {'identity' => @id})[0]
+          if (result && (defined? result.results) && result.results.has_key?(:data))
+            value = result.results[:data][:output]
+          else
+            raise OpenShift::NodeException.new("Node execution failure (error getting facts).", 143)
           end
+        ensure
+          rpc_client.disconnect
+        end
 
-          return value
+        return value
       end
 
       #
