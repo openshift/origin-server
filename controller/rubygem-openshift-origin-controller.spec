@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.22.6
+Version: 1.22.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,17 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
+- Merge pull request #5069 from pravisankar/dev/ravi/bug1078008
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5070 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1078008 - Restrict cloning app if storage requirements are not matched
+  (rpenta@redhat.com)
+- Bug 1078119 (lnader@redhat.com)
+- Bug 1078814: Adding more validations for cartridge manifests
+  (abhgupta@redhat.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
 - Merge pull request #5054 from bparees/missing_log_dirs
   (dmcphers+openshiftbot@redhat.com)
