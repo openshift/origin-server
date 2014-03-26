@@ -294,6 +294,12 @@ function update-cluster() {
     ${OPENSHIFT_HAPROXY_DIR}/usr/bin/update-cluster "$@"
 }
 
+function tidy() {
+    client_message "Emptying haproxy logs in dir: $OPENSHIFT_LOG_DIR"
+    shopt -s dotglob
+    rm -rf $OPENSHIFT_LOG_DIR/haproxy.log*
+}
+
 #
 # main():
 #
@@ -315,4 +321,5 @@ case "$1" in
     disable-server) disable-server "$@" ;;
     enable-server)  enable-server  "$@" ;;
     update-cluster) update-cluster "$@" ;;
+    tidy)      tidy ;;
 esac

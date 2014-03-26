@@ -233,6 +233,13 @@ function cleanup_dump {
   rm -f $OPENSHIFT_DATA_DIR/mysql_db_dbname
 }
 
+# Clean up any log files
+function tidy() {
+  client_message "Deleting mysql logs from $OPENSHIFT_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_LOG_DIR/mysql.log*
+}
+
 case "$1" in
   start)
     start
@@ -259,4 +266,5 @@ case "$1" in
   post-restore)
     post_restore
   ;;
+  tidy)          tidy ;;
 esac
