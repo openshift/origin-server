@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.22.3
+Version: 1.22.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,14 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
+- Merge pull request #5086 from VojtechVitek/latest_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Update Cartridge Versions for Stage Cut (vvitek@redhat.com)
+- Merge pull request #5074 from bparees/add_tidy
+  (dmcphers+openshiftbot@redhat.com)
+- cron/mongo logs does not get cleaned via rhc app-tidy (bparees@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
 - remove old usage reference to haproxy_ctld_daemon (bparees@redhat.com)
 
