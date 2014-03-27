@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.22.4
+Version: 1.22.5
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -73,6 +73,15 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
+- Merge pull request #5086 from VojtechVitek/latest_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Update Cartridge Versions for Stage Cut (vvitek@redhat.com)
+- util: add nodejs context for bundle exec call (jolamb@redhat.com)
+- Merge pull request #5077 from mfojtik/bugzilla/1080789
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1080789 - Add PASSENGER_TEMP_DIR to ruby cartridge (mfojtik@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
 - Bug 1080381 - Fixed problem with httpd based carts restart after force-stop
   (mfojtik@redhat.com)
