@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.18.5
+Version: 1.18.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -54,6 +54,12 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.18.6-1
+- Merge pull request #5086 from VojtechVitek/latest_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Update Cartridge Versions for Stage Cut (vvitek@redhat.com)
+- cron/mongo logs does not get cleaned via rhc app-tidy (bparees@redhat.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.18.5-1
 - Merge pull request #5041 from ironcladlou/logshifter/carts
   (dmcphers+openshiftbot@redhat.com)
