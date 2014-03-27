@@ -138,10 +138,9 @@ class SELinuxUtilsChconTest < OpenShift::NodeTestCase
   end
 
   def test_setmatchpathcon_update
-    Selinux.expects(:selinux_file_context_path).returns("foo").once
-    Dir.expects(:glob).with("foo*").returns(["foo", "bar"]).once
-    File.expects(:stat).with("foo").returns(mock('File::Stat') { expects(:mtime).returns(1234567) }).once
-    File.expects(:stat).with("bar").returns(mock('File::Stat') { expects(:mtime).returns(7890123) }).once
+    Dir.expects(:[]).returns(%w(foo bar)).once
+    File.expects(:stat).with('foo').returns(mock('File::Stat') { expects(:mtime).returns(1234567) }).once
+    File.expects(:stat).with('bar').returns(mock('File::Stat') { expects(:mtime).returns(7890123) }).once
     OpenShift::Runtime::NodeLogger.logger.expects(:debug)
     Selinux.stubs(:matchpathcon_fini)
     Selinux.expects(:matchpathcon_init).with(nil).once
