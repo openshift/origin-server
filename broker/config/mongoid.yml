@@ -12,6 +12,9 @@ production:
         <% end %>
       <% unless config[:user].empty? %>
       username: "<%= config[:user] %>"
+      <% end 
+         if config[:password]
+      %>
       password: "<%= config[:password] %>"
       <% end %>
       options:
@@ -37,6 +40,9 @@ development:
         <% end %>
       <% unless config[:user].empty? %>
       username: "<%= config[:user] %>"
+      <% end 
+         if config[:password]
+      %>
       password: "<%= config[:password] %>"
       <% end %>
       options:
