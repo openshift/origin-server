@@ -760,7 +760,6 @@ class ApplicationControllerTest < ActionController::TestCase
       Version: '0.1'
       Cartridge-Short-Name: MOCK
       Cartridge-Vendor: mock
-      Source-Url: manifest://test.zip
       Categories:
       - external
       MANIFEST
@@ -794,6 +793,12 @@ class ApplicationControllerTest < ActionController::TestCase
         - web_proxy
       Provides:
       - web_proxy
+      Components:
+        web_proxy:
+          Scaling:
+            Min: 1
+            Max: 1
+            Multiplier: -1
       Categories:
       - web_proxy
       MANIFEST
@@ -801,7 +806,10 @@ class ApplicationControllerTest < ActionController::TestCase
     php_cart = CartridgeCache.find_cartridge(php_version)
 
     mock_cart = mock
+    mock_component = mock
+    mock_component.expects(:is_sparse?).at_least_once.with.returns(true)
     mock_cart.expects(:platform).at_least_once.with.returns('linux')
+    mock_cart.expects(:components).at_least_once.with.returns([mock_component])
 
     CartridgeCache.expects(:find_cartridge).at_least_once.with('mock-mock-0.1', anything).returns(mock_cart)
     CartridgeCache.expects(:find_cartridge).at_least_once.with(php_version, anything).returns(php_cart)
@@ -1146,5 +1154,36 @@ class ApplicationControllerTest < ActionController::TestCase
     assert cart = carts[0]
     assert_equal ['mock', 'web_framework'], cart.categories.sort
     assert_equal 'Mock Cart', cart.display_name
+  end
+
+  test "colocation validation with independently scaling carts" do
+    CartridgeCache.expects(:download_from_url).with("manifest://test", "cartridge").returns(<<-MANIFEST.strip_heredoc)
+      ---
+      Name: mock
+      Version: '0.1'
+      Cartridge-Short-Name: MOCK
+      Cartridge-Vendor: mock
+      Source-Url: manifest://test.zip
+      Group-Overrides:
+      - components:
+        - web_framework
+        - web_proxy
+      Provides:
+      - web_proxy
+      Categories:
+      - web_proxy
+      Components:
+        web_proxy:
+          Scaling:
+            Min: 1
+            Max: -1
+      MANIFEST
+
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => [php_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
+    assert_response :unprocessable_entity
+    assert json = JSON.parse(response.body)
+    assert messages = json['messages']
+    assert messages.one?{ |m| m['text'] == "Cartridges [\"mock-mock-0.1\", \"#{php_version}\"] cannot be grouped together as they scale individually" }, messages.inspect
   end
 end

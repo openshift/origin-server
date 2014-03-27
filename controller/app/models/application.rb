@@ -774,6 +774,33 @@ class Application
       end
     end
 
+    # validate the group overrides for the cartridges being added 
+    specs = component_specs_from(cartridges)
+    specs.each do |spec|
+      spec.cartridge.group_overrides.each do |override|
+        if o = GroupOverride.resolve_from(specs, override)
+          non_sparse_carts = []
+          o.components.each do |component|
+            cart = CartridgeCache.find_cartridge(component.cartridge_name, self)
+
+            unless cart
+              # check inside specs for the cartridge object,
+              # since d/l carts are not stored in the application yet
+              cart = specs.map {|s| s.cartridge if s.cartridge.name == component.cartridge_name }.compact.first
+            end
+
+            non_sparse_carts << cart if cart.components.any?{ |c| !c.is_sparse? }
+          end
+
+          # multiple independently scaling carts are not allowed to co-locate with each other
+          # ensure that there is only one scaling (non-sparse) cartridge in a group
+          if self.scalable and non_sparse_carts.size > 1
+            raise OpenShift::UserException.new("Cartridges #{non_sparse_carts.map {|c| c.name}} cannot be grouped together as they scale individually")
+          end
+        end
+      end
+    end
+
     # Only one web_framework is allowed
     if (cartridges + component_instances).inject(0){ |c, cart| cart.is_web_framework? ? c + 1 : c } > 1
       raise OpenShift::UserException.new("You can only have one web cartridge in your application '#{name}'.", 109, 'cartridge')
