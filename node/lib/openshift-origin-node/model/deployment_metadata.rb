@@ -48,7 +48,7 @@ module OpenShift
       def initialize(container, deployment_datetime)
         @file = PathUtils.join(container.container_dir, 'app-deployments', deployment_datetime, 'metadata.json')
 
-        empty = File.stat(@file).size == 0
+        empty = File.exists?(@file) && File.stat(@file).size == 0
         container.logger.warn("#{@file} was found empty. Will attempt to write defaults") if empty
 
         if File.exists?(@file) && !empty
