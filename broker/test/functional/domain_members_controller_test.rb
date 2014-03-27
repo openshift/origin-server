@@ -37,7 +37,8 @@ class DomainMembersControllerTest < ActionController::TestCase
     #create domain for user
     @namespace = "ns#{@random}"
     @domain = Domain.create!(namespace: @namespace, owner: @owner)
-
+    #global teams need to be cleaned up since they will not be deleted as part of user delete (no ownership)
+    @teams_to_tear_down = []
     stubber
 
     # Create an app after stubbing to test member change propagation to the app model
@@ -51,6 +52,9 @@ class DomainMembersControllerTest < ActionController::TestCase
       @owner.force_delete
       @member.force_delete
       @team_member.force_delete
+      @teams_to_tear_down.each do |team|
+        team.destroy_team
+      end
     rescue
       
     end
@@ -456,7 +460,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     globalteam.add_members(@team_member)
     globalteam.save
     globalteam.run_jobs
-    
+    @teams_to_tear_down.push(globalteam)
     # reset controller, since we're modifying data out-of-band, and want a new instance of the controller to look up the model again
     @controller = DomainMembersController.new
 

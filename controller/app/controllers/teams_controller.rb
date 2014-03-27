@@ -5,10 +5,13 @@ class TeamsController < BaseController
   def index
     search = params[:search].presence
     return render_error(:unprocessable_entity, "Search string must be at least 2 characters", 1) if search and search.length < 2
-    global = get_bool(params[:global])
+    global = params[:global].presence
+    if search and global.nil?
+      return render_error(:unprocessable_entity, "You must specify the global flag when searching.  Valid values are [true, false].", 1)
+    end
     
     if search
-      teams = Team.accessible(current_user).where(global: global, name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1})
+      teams = Team.accessible(current_user).where(global: get_bool(global), name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1})
     else
       teams = 
       case params[:owner]

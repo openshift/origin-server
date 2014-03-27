@@ -146,7 +146,7 @@ class TeamsControllerTest < ActionController::TestCase
     assert data.select{|d| d["name"] == "engineering+qe"}.count == 1
     assert data.select{|d| d["name"] == "engineering-and-QE"}.count == 1
     
-    get :index, {"search" => "my"}
+    get :index, {"search" => "my", "global" => "false"}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json["data"]
@@ -154,7 +154,7 @@ class TeamsControllerTest < ActionController::TestCase
     assert data.select{|d| d["name"] == "myteam"}.count == 1
     assert data.select{|d| d["name"] == "mygroup"}.count == 1
     
-    get :index, {"search" => "team"}
+    get :index, {"search" => "team", "global" => "false"}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json["data"]
