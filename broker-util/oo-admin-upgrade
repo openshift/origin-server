@@ -164,7 +164,7 @@ module OpenShift
 end
 
 class Upgrader
-  WORK_DIR = '/tmp/oo-upgrade'
+  WORK_DIR = '/var/log/openshift/broker/upgrade'
 
   ##
   # The primary upgrade method. Executes cluster-wide upgrades using the following process:
