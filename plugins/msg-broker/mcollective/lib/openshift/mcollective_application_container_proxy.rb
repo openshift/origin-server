@@ -974,7 +974,6 @@ module OpenShift
       #
       # INPUTS:
       # * gear: Gear object
-      # * cart: Cartridge object
       #
       # RETURNS:
       # * ResultIO
@@ -984,7 +983,7 @@ module OpenShift
       # * calls force-stop
       # * method on Node?
       #
-      def force_stop(gear, cart)
+      def force_stop(gear)
         args = build_base_gear_args(gear)
         result = execute_direct(@@C_CONTROLLER, 'force-stop', args)
         parse_result(result)
@@ -1849,6 +1848,7 @@ module OpenShift
 
         app.update_proxy_status(action: :disable, gear_uuid: gear.uuid) if app.scalable
 
+        do_force_stop = false
         stop_order.each do |cinst|
           next unless gear_comps.include? cinst
           cart = cinst.cartridge_name
@@ -1866,12 +1866,13 @@ module OpenShift
                 raise e
               end
             end
-            if cinst.cartridge.is_web_framework?
-              log_debug "DEBUG: Force stopping existing app cartridge '#{cart}' before moving"
-              do_with_retry('force-stop') do
-                reply.append source_container.force_stop(gear, cinst)
-              end
-            end
+            do_force_stop = true if cinst.cartridge.is_web_framework?
+          end
+        end
+        if do_force_stop
+          log_debug "DEBUG: Force stopping existing app before moving"
+          do_with_retry('force-stop') do
+            reply.append source_container.force_stop(gear)
           end
         end
         reply
