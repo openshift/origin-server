@@ -10,6 +10,7 @@ require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-node/utils/hourglass'
 require 'openshift-origin-common/utils/path_utils'
 require 'openshift-origin-common/utils/file_needs_sync'
+require 'openshift-origin-node/utils/selinux'
 require 'shellwords'
 require 'facter'
 require 'stringio'
@@ -29,6 +30,13 @@ module MCollective
 
       activate_when do
         @@config = ::OpenShift::Config.new
+
+        # We need to call this here so the pthread local destructor function that calls matchpathcon_fini is associated
+        # with this long lived thread. Otherwise, it will be invoked for every OpenShift mco agent method that ends up
+        # calling OpenShift::Runtime::Utils::SELinux.#chcon
+        #
+        # @see https://bugzilla.redhat.com/show_bug.cgi?id=1081249
+        ::OpenShift::Runtime::Utils::SELinux.matchpathcon_update
 
         PathUtils.flock('/var/lock/oo-cartridge-repository') do
           @@cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
