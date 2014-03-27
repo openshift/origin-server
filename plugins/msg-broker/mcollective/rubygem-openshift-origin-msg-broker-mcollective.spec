@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.22.6
+Version: 1.22.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,16 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
+- Merge pull request #5088 from pravisankar/dev/ravi/bug1070884
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1070884 - When web-framework gear is moved, run force-stop in the end
+  after all carts are stopped (rpenta@redhat.com)
+- Merge pull request #5068 from abhgupta/bug_1073576
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1073576: Replacing rpcutil usage with openshift agent  - Also fixing
+  indentation with one method (abhgupta@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
 - Bug 1075673: Sending the ref and artifact_url args only when specified
   (abhgupta@redhat.com)
