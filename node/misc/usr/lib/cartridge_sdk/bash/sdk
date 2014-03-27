@@ -213,17 +213,15 @@ function wait_for_pid_file {
 # Argument(s):
 #  - process id to wait on
 function wait_for_stop {
-    local pid=$1
-    for i in {1..60}
-    do
-        if `ps --pid $pid > /dev/null 2>&1`
-        then
-            echo "Waiting for stop to finish"
-            sleep .5
-        else
-            break
-        fi
-    done
+  local pid=$1
+  for i in {1..60}; do
+    if ps --no-headers --pid $pid > /dev/null 2>&1; then
+      echo "Waiting for stop to finish"
+      sleep .5
+    else
+      break
+    fi
+  done
 }
 
 # report processing running for given user uid.
@@ -265,7 +263,7 @@ function process_running {
 }
 
 function pid_is_httpd() {
-    ps -p "$1" 2> /dev/null | grep httpd > /dev/null
+    ps --no-headers -p "$1" 2> /dev/null | grep httpd > /dev/null
 }
 
 function killall_matching_httpds() {
@@ -458,7 +456,7 @@ function shutdown_httpd_graceful {
   kill -WINCH ${pid}
   wait_for_stop ${pid}
 
-  if $(ps --pid ${pid} > /dev/null 2>&1); then
+  if ps --no-headers --pid ${pid} > /dev/null 2>&1; then
     local msg=$(cat <<EOF
 Warning: Apache has not yet exited in response to a graceful
 shutdown. This usually means Apache is still waiting for
