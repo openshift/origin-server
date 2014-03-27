@@ -35,7 +35,7 @@ module OpenShift
       def initialize(id, district=nil)
         @id = id
         #TODO hardcode to localhost for now, should be passed in ID
-        @hostname = ENV["GEARD_HOST_PORT"] || "localhost:8080"
+        @hostname = ENV["GEARD_HOST_PORT"] || "localhost:43273"
         @district = district
       end
 
