@@ -40,6 +40,10 @@ class DomainMembersControllerTest < ActionController::TestCase
 
     stubber
 
+    # Create an app after stubbing to test member change propagation to the app model
+    @app = Application.create_app("php", cartridge_instances_for(:php), @domain)
+    @app.save
+
   end
 
   def teardown
