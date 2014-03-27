@@ -47,6 +47,7 @@ module OpenShift
       # @param deployment_datetime [#to_s]                Timestamp of deployment in question
       def initialize(container, deployment_datetime)
         @file = PathUtils.join(container.container_dir, 'app-deployments', deployment_datetime, 'metadata.json')
+        @container=container
 
         empty = File.exists?(@file) && File.stat(@file).size == 0
         container.logger.warn("#{@file} was found empty. Will attempt to write defaults") if empty
@@ -57,7 +58,6 @@ module OpenShift
           File.new(@file, 'w', 0644)
           @metadata = defaults
           container.set_rw_permission(@file)
-
           save
 
         end
@@ -74,6 +74,7 @@ module OpenShift
 
       def save
         File.open(@file, "w") { |f| f.write JSON.dump(self) }
+        @container.set_rw_permission(@file)
       end
 
       def as_json(options={})
