@@ -1536,7 +1536,6 @@ module OpenShift
 
         if cartridge.name == primary_cartridge.name
           FileUtils.rm_f(stop_lock) if options[:user_initiated]
-          @state.value = State::STARTED
 
           # Unidle the application, preferring to use the privileged operation if possible
           frontend = FrontendHttpServer.new(@container)
@@ -1545,6 +1544,8 @@ module OpenShift
           else
             frontend.unidle
           end
+
+          @state.value = State::STARTED
         end
 
         if options[:hot_deploy]
