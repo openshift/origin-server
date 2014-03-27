@@ -194,6 +194,7 @@ The complete list of options is as follows:
 -a, --advanced-mode              Enable access to message server and db server customization.
 -c, --config-file FILEPATH       The path to an alternate config file
 -w, --workflow WORKFLOW_ID       The installer workflow for unattended deployment.
+-l, --list-workflows             List workflow IDs available for use with unattended deployment.
 -e, --enterprise-mode            Show OpenShift Enterprise options (ignored in unattended mode)
 -s, --subscription-type TYPE     The software source for installation packages.
 -u, --username USERNAME          Red Hat Login username
@@ -215,6 +216,11 @@ $ sh <(curl -s https://install.openshift.com/) -w origin_deploy
 ----
 
 When you run the command this way, the installer will sanity check your deployment configuration, and if everything looks good it will run the specified workflow automatically.
+
+==== -l / --list-workflows
+In order to use the `-w` option, you will need to see a list of the valid workflow IDs that are available. When you run the installer with this flag, it will print out the valid list of IDs and descriptions of each associated workflow.
+
+NOTE: The list of available workflow IDs will be different depending on if you are performing an OpenShift Origin installation or an OpenShift Enterprise installation. See the `-e` options for more on this.
 
 ==== -e / --enterprise-mode
 In default mode, the installer will provide you with options for installing or extending an OpenShift Origin deployment. However, the same installer can be used to deploy OpenShift Enterprise by setting this switch.
