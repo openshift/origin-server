@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.8
+Version: 1.22.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,18 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.9-1
+- Sanitize usage of 'ps' command in Bash SDK (mfojtik@redhat.com)
+- Bug 1081367 - Use process_running in shutdown_httpd_graceful
+  (mfojtik@redhat.com)
+- Merge pull request #5078 from jwhonce/bug/1065276
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5062 from bparees/ctl_app_restart
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1065276 - Skip *.rpmnew when loading environments (jhonce@redhat.com)
+- Action hooks run are not consistent between `ctl_all restart` and `rhc app-
+  restart` (bparees@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
 - Merge pull request #5075 from ironcladlou/force-stop-fix
   (dmcphers+openshiftbot@redhat.com)
