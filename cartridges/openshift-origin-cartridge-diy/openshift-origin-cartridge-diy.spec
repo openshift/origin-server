@@ -2,7 +2,7 @@
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -38,6 +38,12 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Merge pull request #5086 from VojtechVitek/latest_versions
+  (dmcphers+openshiftbot@redhat.com)
+- Update Cartridge Versions for Stage Cut (vvitek@redhat.com)
+- Fix bash brace expansion (vvitek@redhat.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - Port cartridges to use logshifter (ironcladlou@gmail.com)
 
