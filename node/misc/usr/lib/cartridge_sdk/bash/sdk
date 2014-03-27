@@ -450,7 +450,10 @@ function shutdown_httpd_graceful {
   local pid=$1
 
   # if the pid doesn't exist, there's nothing to do
-  [ ! $(ps --pid ${pid} > /dev/null 2>&1) ] && return
+  if ! process_running 'httpd' $pid; then
+    client_message "Warning: HTTPD ($pid) not running. Skipping stop."
+    return
+  fi
 
   kill -WINCH ${pid}
   wait_for_stop ${pid}
