@@ -1883,7 +1883,7 @@ class Application
     user_vars_op_id = nil
     # FIXME this condition should be stronger (only fired when env vars are specified OR other gears already exist)
     if maybe_notify_app_create_op.empty? || user_env_vars.present?
-      op = PatchUserEnvVarsOp.new(user_env_vars: user_env_vars, push_vars: true, prereq: [ops.last._id.to_s])
+      op = PatchUserEnvVarsOp.new(group_instance_id: ginst_id, user_env_vars: user_env_vars, push_vars: true, prereq: [ops.last._id.to_s])
       ops << op
       user_vars_op_id = op._id.to_s
     end

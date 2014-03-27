@@ -1,5 +1,6 @@
 class PatchUserEnvVarsOp < PendingAppOp
 
+  field :group_instance_id, type: String
   field :user_env_vars, type: Array, default: []
   field :saved_user_env_vars, type: Array, default: []
   field :push_vars, type: Boolean, default: false
@@ -19,7 +20,11 @@ class PatchUserEnvVarsOp < PendingAppOp
         self.set(:saved_user_env_vars, saved_vars) unless saved_vars.empty?
       end
 
-      gears_endpoint = get_gears_ssh_endpoint(application)
+      if group_instance_id.present?
+        gears_endpoint = get_gears_ssh_endpoint(get_group_instance)
+      else
+        gears_endpoint = get_gears_ssh_endpoint(application)
+      end
 
       result_io = gear.unset_user_env_vars(unset_vars, gears_endpoint) if unset_vars.present?
       result_io.append gear.set_user_env_vars(set_vars, gears_endpoint) if set_vars.present? or push_vars
@@ -41,16 +46,20 @@ class PatchUserEnvVarsOp < PendingAppOp
 
     unless gear.nil? or gear.removed
       set_vars, unset_vars = Application.sanitize_user_env_variables(user_env_vars)
-      gears_endpoint = get_gears_ssh_endpoint(application) 
+      if group_instance_id.present?
+        gears_endpoint = get_gears_ssh_endpoint(get_group_instance)
+      else
+        gears_endpoint = get_gears_ssh_endpoint(application)
+      end
       gear.unset_user_env_vars(set_vars, gears_endpoint) if set_vars.present?
       gear.set_user_env_vars(saved_user_env_vars, gears_endpoint) if saved_user_env_vars.present?
     end
     result_io
   end
 
-  def get_gears_ssh_endpoint(app)
+  def get_gears_ssh_endpoint(obj)
     gears_endpoint = []
-    app.gears.each do |gear|
+    obj.gears.each do |gear|
       unless gear.removed
         gears_endpoint << "#{gear.uuid}@#{gear.server_identity}" unless gear.app_dns #skip app dns
       end
