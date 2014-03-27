@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.22.5
+Version: 1.22.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -105,6 +105,9 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
+- Bug 1081419 - Move oo-upgrade to /var/log (dmcphers@redhat.com)
+
 * Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Bug 1079226 - missing open-sshclients and bad IP from facter make oo-admin-
   move fail (jforrest@redhat.com)
