@@ -9,10 +9,8 @@ Version: '5.10'
 License: GPL v2
 License-Url: http://dev.perl.org/licenses/
 Vendor: perl.org
-Cartridge-Version: 0.0.11
-Compatible-Versions:
-- 0.0.9
-- 0.0.10
+Cartridge-Version: 0.0.12
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
 - service
