@@ -1,7 +1,55 @@
 <html><body><pre>{
   "api_version": 1.6,
   "data": [
+    {
+      "links": {
+        "GET": {
+          "href": "https://openshift.redhat.com/broker/rest/application/5333d664a9429d1c3e00000c/environment-variable/FOO",
+          "method": "GET",
+          "optional_params": [
 
+          ],
+          "rel": "Get environment variable",
+          "required_params": [
+
+          ]
+        },
+        "UPDATE": {
+          "href": "https://openshift.redhat.com/broker/rest/application/5333d664a9429d1c3e00000c/environment-variable/FOO",
+          "method": "PUT",
+          "optional_params": [
+
+          ],
+          "rel": "Update environment variable",
+          "required_params": [
+            {
+              "description": "Value of the environment variable",
+              "invalid_options": [
+
+              ],
+              "name": "value",
+              "type": "string",
+              "valid_options": [
+
+              ]
+            }
+          ]
+        },
+        "DELETE": {
+          "href": "https://openshift.redhat.com/broker/rest/application/5333d664a9429d1c3e00000c/environment-variable/FOO",
+          "method": "DELETE",
+          "optional_params": [
+
+          ],
+          "rel": "Delete environment variable",
+          "required_params": [
+
+          ]
+        }
+      },
+      "name": "FOO",
+      "value": "xbar"
+    }
   ],
   "messages": [
     {
@@ -9,7 +57,7 @@
       "field": null,
       "index": null,
       "severity": "info",
-      "text": "Listing environment variables for application myapplication"
+      "text": "Listing environment variables for application myapp"
     }
   ],
   "status": "ok",

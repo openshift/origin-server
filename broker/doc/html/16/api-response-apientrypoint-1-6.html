@@ -184,7 +184,7 @@
       "optional_params": [
 
       ],
-      "rel": "List domains",
+      "rel": "List domains by owner",
       "required_params": [
         {
           "description": "Return only the domains owned by the specified user id or identity.  Use @self to refer to the current user.",
@@ -194,8 +194,7 @@
           "name": "owner",
           "type": "string",
           "valid_options": [
-            "@self",
-            "*"
+            "@self"
           ]
         }
       ]
@@ -257,11 +256,135 @@
       "href": "https://openshift.redhat.com/broker/rest/cartridges",
       "method": "GET",
       "optional_params": [
+        {
+          "default_value": null,
+          "description": "Show all cartridges with the given category",
+          "name": "category",
+          "type": "string",
+          "valid_options": [
 
+          ]
+        }
       ],
-      "rel": "List cartridges",
+      "rel": "List public cartridges",
       "required_params": [
 
+      ]
+    },
+    "SHOW_CARTRIDGE": {
+      "href": "https://openshift.redhat.com/broker/rest/cartridge/:name",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Retrieve a public cartridge by name",
+      "required_params": [
+        {
+          "description": "Name of the cartridge",
+          "invalid_options": [
+
+          ],
+          "name": ":name",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
+      ]
+    },
+    "SHOW_CARTRIDGE_BY_ID": {
+      "href": "https://openshift.redhat.com/broker/rest/cartridge/:id",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Retrieve a cartridge by id",
+      "required_params": [
+        {
+          "description": "Unique identifier of the cartridge",
+          "invalid_options": [
+
+          ],
+          "name": ":id",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
+      ]
+    },
+    "ADD_TEAM": {
+      "href": "https://openshift.redhat.com/broker/rest/teams",
+      "method": "POST",
+      "optional_params": [
+
+      ],
+      "rel": "Create new team",
+      "required_params": [
+        {
+          "description": "Name of the team",
+          "invalid_options": [
+
+          ],
+          "name": "name",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
+      ]
+    },
+    "LIST_TEAMS": {
+      "href": "https://openshift.redhat.com/broker/rest/teams",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "List all teams you are a member of",
+      "required_params": [
+
+      ]
+    },
+    "LIST_TEAMS_BY_OWNER": {
+      "href": "https://openshift.redhat.com/broker/rest/teams",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "List teams by owner",
+      "required_params": [
+        {
+          "description": "Return only the teams owned by the specified user id or identity.  Use @self to refer to the current user.",
+          "invalid_options": [
+
+          ],
+          "name": "owner",
+          "type": "string",
+          "valid_options": [
+            "@self"
+          ]
+        }
+      ]
+    },
+    "SHOW_TEAM": {
+      "href": "https://openshift.redhat.com/broker/rest/team/:id",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Retrieve a team by it's id",
+      "required_params": [
+        {
+          "description": "Id of the team",
+          "invalid_options": [
+
+          ],
+          "name": ":id",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
       ]
     },
     "LIST_APPLICATIONS": {
@@ -275,13 +398,34 @@
 
       ]
     },
+    "LIST_APPLICATIONS_BY_OWNER": {
+      "href": "https://openshift.redhat.com/broker/rest/applications",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "List applications by owner",
+      "required_params": [
+        {
+          "description": "Return only the applications owned by the specified user id or identity.  Use @self to refer to the current user.",
+          "invalid_options": [
+
+          ],
+          "name": "owner",
+          "type": "string",
+          "valid_options": [
+            "@self"
+          ]
+        }
+      ]
+    },
     "SHOW_APPLICATION": {
       "href": "https://openshift.redhat.com/broker/rest/application/:id",
       "method": "GET",
       "optional_params": [
 
       ],
-      "rel": "List application",
+      "rel": "Retrieve application by id",
       "required_params": [
         {
           "description": "Unique identifier of the application",
