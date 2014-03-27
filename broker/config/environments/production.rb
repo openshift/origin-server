@@ -39,8 +39,8 @@ Broker::Application.configure do
 
   config.datastore = {
     :host_port => conf.get("MONGO_HOST_PORT", "localhost:27017"),
-    :user => conf.get("MONGO_USER", "openshift"),
-    :password => conf.get("MONGO_PASSWORD", "mooo"),
+    :user => conf.get("MONGO_USER", nil),
+    :password => conf.get("MONGO_PASSWORD", nil),
     :db => conf.get("MONGO_DB", "openshift_broker_dev"),
     :ssl => conf.get_bool("MONGO_SSL", "false"),
     :write_replicas => conf.get("MONGO_WRITE_REPLICAS", 1).to_i
