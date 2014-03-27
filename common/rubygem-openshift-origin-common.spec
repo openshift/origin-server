@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.21.5
+Version: 1.21.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -119,6 +119,14 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
+- Merge pull request #5087 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 989941: preventing colocation of cartridges that independently scale
+  (abhgupta@redhat.com)
+- Bug 1075437 - Return exit code 1 instead of nil when no exit code is NOT
+  provided (lnader@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.21.5-1
 - Bug 1078814: Adding more validations for cartridge manifests
   (abhgupta@redhat.com)
