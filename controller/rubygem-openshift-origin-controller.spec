@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.22.7
+Version: 1.22.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,24 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
+- Merge pull request #5089 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- REST API docs for team (lnader@redhat.com)
+- Merge pull request #5087 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5082 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 989941: preventing colocation of cartridges that independently scale
+  (abhgupta@redhat.com)
+- Merge pull request #5072 from pravisankar/dev/ravi/bug1072289
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1072289 - Execute patching user env vars only on current group instance
+  gears when gear_instance_id is passed (rpenta@redhat.com)
+- corrected missing comma (lnader@redhat.com)
+- corrected UPDATE_MEMBER link for domain and team (lnader@redhat.com)
+- Bug 1065276 - Skip *.rpmnew when loading environments (jhonce@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
 - Merge pull request #5069 from pravisankar/dev/ravi/bug1078008
   (dmcphers+openshiftbot@redhat.com)
