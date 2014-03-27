@@ -29,6 +29,7 @@ Requires:      %{?scl:%scl_prefix}mcollective-client
 Requires:      which
 Requires:      tar
 Requires:      openssh-clients
+Requires:      %{?scl:%scl_prefix}rubygem-net-ldap
 BuildArch:     noarch
 
 %description
