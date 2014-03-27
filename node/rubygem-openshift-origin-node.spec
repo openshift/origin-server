@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.9
+Version: 1.22.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.10-1
+- Merge pull request #5094 from ironcladlou/binary-deploy-bug
+  (dmcphers+openshiftbot@redhat.com)
+- Fix raise during initial deployment meta creation (ironcladlou@gmail.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.9-1
 - Sanitize usage of 'ps' command in Bash SDK (mfojtik@redhat.com)
 - Bug 1081367 - Use process_running in shutdown_httpd_graceful
