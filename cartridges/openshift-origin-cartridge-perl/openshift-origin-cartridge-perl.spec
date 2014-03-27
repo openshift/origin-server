@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.21.6
+Version: 1.21.7
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -49,6 +49,9 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.21.7-1
+- Update Cartridge Versions for Stage Cut (vvitek@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
 - Bug 1080381 - Fixed problem with httpd based carts restart after force-stop
   (mfojtik@redhat.com)
