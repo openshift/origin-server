@@ -25,6 +25,9 @@ Requires:      rubygem-passenger
 Requires:      rubygem-passenger-native
 Requires:      rubygem-passenger-native-libs
 Requires:      rubygems
+# BZ1066246 - specify ruby-rdoc dep explicitly, even though it
+# currently is pulled in by rubygems
+Requires:      ruby-rdoc
 Requires:      rubygem-thread-dump
 Requires:      %{?scl:%scl_prefix}rubygem-fastthread
 Requires:      %{?scl:%scl_prefix}runtime
