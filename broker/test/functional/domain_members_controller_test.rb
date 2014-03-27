@@ -452,7 +452,7 @@ class DomainMembersControllerTest < ActionController::TestCase
   test "adding updating and removing global teams" do
     
     #create a global team by other member
-    globalteam = Team.create(name: "globalteam", owner_id:@member._id, global: true)
+    globalteam = Team.create(name: "globalteam", global: true)
     globalteam.add_members(@team_member)
     globalteam.save
     globalteam.run_jobs
