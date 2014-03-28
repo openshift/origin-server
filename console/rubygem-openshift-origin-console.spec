@@ -133,6 +133,14 @@ gem install -V \
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
+%if 0%{?scl:1}
+mkdir -p %{buildroot}%{_root_sbindir}
+cp -p bin/oo-* %{buildroot}%{_root_sbindir}/
+%else
+mkdir -p %{buildroot}%{_sbindir}
+cp -p bin/oo-* %{buildroot}%{_sbindir}/
+%endif
+
 %files
 %doc %{gem_instdir}/Gemfile
 %doc %{gem_instdir}/LICENSE 
@@ -141,6 +149,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_instdir}
 %{gem_cache}
 %{gem_spec}
+
+%if 0%{?scl:1}
+%attr(0750,-,-) %{_root_sbindir}/oo-admin-console-cache
+%else
+%attr(0750,-,-) %{_sbindir}/oo-admin-console-cache
+%endif
 
 %files doc
 %{gem_dir}/doc/%{gem_name}-%{version}
