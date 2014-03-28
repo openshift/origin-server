@@ -3,7 +3,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.19.5
+Version: 1.19.6
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -45,6 +45,9 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Fri Mar 28 2014 Adam Miller <admiller@redhat.com> 1.19.6-1
+- Make restarts resilient to missing/corrupt pidfiles (ironcladlou@gmail.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.19.5-1
 - Merge pull request #5086 from VojtechVitek/latest_versions
   (dmcphers+openshiftbot@redhat.com)
