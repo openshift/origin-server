@@ -215,6 +215,9 @@ function build() {
     if [ -f "${OPENSHIFT_REPO_DIR}"/package.json ]; then
         (cd "${OPENSHIFT_REPO_DIR}"; nodejs_context "npm install -d")
     fi
+
+    #Add locally installed npm command-line tools to the system $PATH
+    link_local_modules
 }
 
 

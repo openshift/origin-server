@@ -92,6 +92,32 @@ function link_global_modules {
   popd > /dev/null
 }
 
+# Allow developers to use npm-provided command line tools
+function link_local_modules {
+  # Make symlinks to npm executables stored in the $OPENSHIFT_REPO_DIR/node_modules/.bin
+  # folder available in the system $PATH under "~/.node_modules/.bin"
+
+  # Reproduce symlinks in $OPENSHIFT_HOMEDIR/.node_modules/.bin
+  for file in $(ls "${OPENSHIFT_REPO_DIR}node_modules/.bin") ; do
+    if [ ! -f "${OPENSHIFT_HOMEDIR}.node_modules/.bin/${file}" \
+        -a -h "${OPENSHIFT_REPO_DIR}node_modules/.bin/${file}" ]; then
+      echo "Making ${file} available in the system \$PATH"
+      relpath=$(ls -l "${OPENSHIFT_REPO_DIR}node_modules/.bin/${file}" | sed -e 's/.* \([^ ]*\)$/\1/')
+      ln -s "${OPENSHIFT_REPO_DIR}node_modules/.bin/${relpath}" "${OPENSHIFT_HOMEDIR}.node_modules/.bin/${file}"
+    fi
+  done
+
+  # Automatically expunge dead links when modules are removed:
+  for symlink in $(ls "${OPENSHIFT_HOMEDIR}.node_modules/.bin") ; do
+    link_target=$(ls -l "${OPENSHIFT_HOMEDIR}.node_modules/.bin/${symlink}" | sed -e 's/.* \([^ ]*\)$/\1/')
+    if [ -h "${OPENSHIFT_HOMEDIR}.node_modules/.bin/${symlink}" -a \
+       ! -f "${OPENSHIFT_HOMEDIR}.node_modules/.bin/${link_target}" -a \
+       ! -f "${link_target}" ]; then
+      rm "${OPENSHIFT_HOMEDIR}.node_modules/.bin/${symlink}"
+    fi
+  done
+}
+
 # Check if the 'use_npm' marker is present
 #
 function use_npm() {
