@@ -1,0 +1,23 @@
+#!/bin/bash -e
+
+switchyard_version=$1
+curr=$2
+next=$3
+
+# switchyard used to define variables for jbossas and eap, we can remove
+# the unneeded one.
+if [ -z "$OPENSHIFT_JBOSSAS_IP" ]
+then
+    if [ -f $OPENSHIFT_SWITCHYARD_DIR/env/OPENSHIFT_JBOSSAS_MODULE_PATH ]
+    then
+        rm -f $OPENSHIFT_SWITCHYARD_DIR/env/OPENSHIFT_JBOSSAS_MODULE_PATH
+    fi
+fi
+
+if [ -z "$OPENSHIFT_JBOSSEAP_IP" ]
+then
+    if [ -f $OPENSHIFT_SWITCHYARD_DIR/env/OPENSHIFT_JBOSSEAP_MODULE_PATH ]
+    then
+        rm -f $OPENSHIFT_SWITCHYARD_DIR/env/OPENSHIFT_JBOSSEAP_MODULE_PATH
+    fi
+fi
