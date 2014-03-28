@@ -10,6 +10,18 @@ Then /^the ([^ ]+) ([^ ]+) marker will( not)? exist$/ do |cartridge_name, marker
   end
 end
 
+Then /the following (\S+) markers will exist/ do |cartridge_name, table|
+  state_dir = ".#{cartridge_name.sub('-', '_')}_cartridge_state"
+  table.rows.each do |row|
+    marker_file = File.join($home_root, @gear.uuid, 'app-root', 'data', state_dir, row[0])
+    if row[1] == true
+      assert_file_exist marker_file
+    else
+      refute_file_exist marker_file
+    end
+  end
+end
+
 When /^the ([^ ]+) ([^ ]+) marker is removed$/ do |cartridge_name, marker|
   state_dir = ".#{cartridge_name.sub('-', '_')}_cartridge_state"
 
