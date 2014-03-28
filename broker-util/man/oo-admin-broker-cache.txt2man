@@ -10,9 +10,6 @@ OPTIONS
   -c|--clear
     Clear the broker Rails application cache.
 
-  --console
-    Also clear the developer console Rails application cache. Implies --clear.
-
   -q|--quiet
     Suppress output under normal operation.
 

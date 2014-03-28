@@ -184,7 +184,8 @@ def check_nodes_cartridges
       Broker is missing: #{(all_carts - api_carts).join ", "}
       Broker has extra: #{(api_carts - all_carts).join ", "}
       The broker may have cached an old list. Clear the cache by executing:
-        # oo-admin-broker-cache --console
+        # oo-admin-broker-cache --clear
+        # oo-admin-console-cache --clear
     MISMATCH
   rescue StandardError => e
     do_fail "Couldn't retrieve cartridge list from broker: #{e}"
