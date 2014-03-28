@@ -15,14 +15,27 @@ function _pg_stop {
 }
 
 function _is_running {
-  # Can't use pg_ctl status here because it doesn't mean the db is done starting up
-  postgresql_context "psql -l -U postgres" &> /dev/null
-  return $?
+  pidfile=$OPENSHIFT_POSTGRESQL_DB_PID
+  if [ -f $pidfile ]; then
+    pid=`cat $pidfile 2> /dev/null`
+    if process_running 'postgres' $pid; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
+function _is_available {
+  if `postgresql_context "psql -l -U postgres" &> /dev/null`
+  then
+    return 0
+  fi
+  return 1
 }
 
 function wait_for_postgres_availability {
   for i in {1..30}; do
-    _is_running && return 0
+    _is_available && return 0
     sleep 1
   done
   return 1
@@ -38,7 +51,11 @@ function start {
 
     echo "Postgres started"
   else
-    echo "Postgres already running"
+    if wait_for_postgres_availability; then    
+      echo "Postgres already running"
+    else
+      error "Could not start Postgres" 70
+    fi
   fi
   return 0
 }
