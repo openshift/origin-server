@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.22.5
+Version: 1.22.6
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -73,6 +73,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Fri Mar 28 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
+- Make restarts resilient to missing/corrupt pidfiles (ironcladlou@gmail.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Merge pull request #5086 from VojtechVitek/latest_versions
   (dmcphers+openshiftbot@redhat.com)
