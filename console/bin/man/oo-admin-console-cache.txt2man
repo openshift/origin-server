@@ -1,0 +1,27 @@
+  oo-admin-console-cache
+  
+SYNOPSIS
+  oo-admin-console-cache [-cqh]
+
+DESCRIPTION
+  This utility manages the console Rails application cache.
+
+OPTIONS
+  -c|--clear
+    Clear the console Rails application cache.
+
+  -q|--quiet
+    Suppress output under normal operation.
+
+  -h|--help
+    Display usage.
+
+EXAMPLE
+
+  $ oo-admin-console-cache --clear
+ 
+SEE ALSO
+  oo-admin-console-cache(8)
+
+AUTHOR
+  Jessica Forrester <jforrest@redhat.com> - man page written for OpenShift Origin 
