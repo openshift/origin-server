@@ -155,7 +155,7 @@ module Console::HelpHelper
   end
 
   def community_search_url
-    community_base_url 'search/node'
+    community_base_url 'search/gcse'
   end
 
   def sync_git_with_remote_repo_knowledge_base_url

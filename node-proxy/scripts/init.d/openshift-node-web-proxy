@@ -36,14 +36,14 @@ childpidfile="/var/run/openshift-node-web-proxy.pid"
 logfile="/var/log/node-web-proxy/supervisor.log"
 
 # Set public IP on devenv images
-public_ip=$(facter ipaddress)
+public_ip=$(facter ipaddress_eth0)
 sed -i "s/^\( *\"host\" *:\) *undefined,/\1 \"$public_ip\",/" /etc/openshift/web-proxy-config.json
 
 start() {
     echo -n $"Starting node-web-proxy: "
     chown apache.apache /var/log/node-web-proxy/*.log >/dev/null 2>&1 || :
     export NODE_PATH="$nodesysmodulespath"
-    nohup scl enable nodejs010 "$cmd" &> $logfile &
+    nohup scl enable nodejs010 "$cmd" &>> $logfile &
 
     for i in {1..30}; do
       pgrep -u 0 -f bin/node-supervisor > $pidfile

@@ -23,7 +23,7 @@
 #     <git-url>ssh://5124897d6892dfe819000005@testapp-localns.example.com/~/git/testapp.git/</git-url>
 #     <app-url>http://testapp-localns.example.com/</app-url>
 #     <ssh-url>ssh://5124897d6892dfe819000005@testapp-localns.example.com</ssh-url>
-#     <health-check-path>health_check.php</health-check-path>
+#     <health-check-path>health</health-check-path>
 #     <building-with nil="true"/>
 #     <building-app nil="true"/>
 #     <build-job-url nil="true"/>
@@ -88,22 +88,11 @@ class RestApplication10 < OpenShift::Model
 
   def initialize(app, url, nolinks=false, applications=nil)
     self.embedded = {}
-    app.requires(true).each do |feature|
-      cart = CartridgeCache.find_cartridge_or_raise_exception(feature, app)
-      if cart.categories.include? "web_framework"
-        self.framework = cart.name
-      else
-        self.embedded[cart.name] = {info: ""}
-      end
-    end
 
     self.name = app.name
     self.creation_time = app.created_at
     self.uuid = app._id
-    self.aliases = []
-    app.aliases.each do |a|
-      self.aliases << a.fqdn
-    end
+    self.aliases = app.aliases.map{ |a| a.fqdn }
     self.gear_count = app.gears.count
     self.domain_id = app.domain_namespace
 
@@ -116,9 +105,11 @@ class RestApplication10 < OpenShift::Model
       self.scale_min, self.scale_max = [1, 1]
     end
 
-    self.git_url = "ssh://#{app.ssh_uri}/~/git/#{@name}.git/"
+    if ssh_uri = app.ssh_uri.presence
+      self.git_url = "ssh://#{ssh_uri}/~/git/#{@name}.git/"
+      self.ssh_url = "ssh://#{ssh_uri}"
+    end
     self.app_url = "http://#{app.fqdn}/"
-    self.ssh_url = "ssh://#{app.ssh_uri}"
     self.health_check_path = app.health_check_path
 
     self.building_with = nil
@@ -131,23 +122,25 @@ class RestApplication10 < OpenShift::Model
     self.deployment_type = app.config['deployment_type']
 
     app.component_instances.each do |component_instance|
-      cart = CartridgeCache::find_cartridge_or_raise_exception(component_instance.cartridge_name, app)
+      cart = component_instance.cartridge
+
       # add the builder properties if this is a builder component
-      if cart.categories.include?("ci_builder")
+      if cart.is_ci_builder?
         self.building_with = cart.name
         self.build_job_url = component_instance.component_properties["job_url"]
 
         # adding the job_url and "info" property for backward compatibility
         self.embedded[cart.name] = component_instance.component_properties
         self.embedded[cart.name]["info"] = "Job URL: #{component_instance.component_properties['job_url']}"
+      elsif cart.is_web_framework?
+        self.framework = cart.name
       else
-        unless cart.categories.include? "web_framework"
-          self.embedded[cart.name] = component_instance.component_properties
+        self.embedded[cart.name] = component_instance.component_properties
 
-          # if the component has a connection_url property, add it as "info" for backward compatibility
-          if component_instance.component_properties.has_key?("connection_url")
-            self.embedded[cart.name]["info"] = "Connection URL: #{component_instance.component_properties['connection_url']}"
-          end
+        # if the component has a connection_url property, add it as "info" for backward compatibility
+        # make sure it is a hash, because copy-pasting the app document in mongo (using rockmongo UI) can convert hashes into arrays
+        if component_instance.component_properties.is_a?(Hash) and component_instance.component_properties.has_key?("connection_url")
+          self.embedded[cart.name]["info"] = "Connection URL: #{component_instance.component_properties['connection_url']}"
         end
       end
     end
@@ -158,8 +151,7 @@ class RestApplication10 < OpenShift::Model
         apps = applications || app.domain.applications
         apps.each do |domain_app|
           domain_app.component_instances.each do |component_instance|
-            cart = CartridgeCache::find_cartridge_or_raise_exception(component_instance.cartridge_name, domain_app)
-            if cart.categories.include?("ci")
+            if component_instance.cartridge.is_ci_server?
               self.building_app = domain_app.name
               break
             end
@@ -170,7 +162,7 @@ class RestApplication10 < OpenShift::Model
     end
 
     unless nolinks
-      carts = CartridgeCache.find_cartridge_by_category("embedded", app).map{ |c| c.name }
+      carts = CartridgeCache.other_names
 
       self.links = {
         "GET" => Link.new("Get application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
@@ -205,7 +197,7 @@ class RestApplication10 < OpenShift::Model
         ]),
         "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "tidy")
-        ]), 
+        ]),
         "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "reload")
         ]),
@@ -213,7 +205,7 @@ class RestApplication10 < OpenShift::Model
           Param.new("event", "string", "event", "thread-dump")
         ]),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
-          Param.new("cartridge", "string", "framework-type, e.g.: mongodb-2.2", carts)
+          Param.new("cartridge", "string", "Name of a cartridge.", carts)
         ]),
         "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
         "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable")),

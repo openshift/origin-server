@@ -4,8 +4,9 @@
     "allowed_gear_sizes": [
       "small"
     ],
-    "creation_time": "2013-11-07T00:28:13Z",
-    "id": "527ade9d7f9c48d371000009",
+    "available_gears": 3,
+    "creation_time": "2014-03-27T07:42:28Z",
+    "id": "5333d664a9429d1c3e00000b",
     "links": {
       "GET": {
         "href": "https://openshift.redhat.com/broker/rest/domain/mydomain",
@@ -28,26 +29,7 @@
             "name": "cartridges",
             "type": "array",
             "valid_options": [
-              "diy-0.1",
-              "php-5.3",
-              "jbossas-7",
-              "perl-5.10",
-              "mock-0.4",
-              "mock-0.3",
-              "mock-0.2",
-              "mock-0.1",
-              "zend-5.6",
-              "jenkins-1",
-              "nodejs-0.6",
-              "nodejs-0.10",
-              "jbossews-2.0",
-              "jbossews-1.0",
-              "jbosseap-6",
-              "python-3.3",
-              "python-2.7",
-              "python-2.6",
-              "ruby-1.9",
-              "ruby-1.8"
+
             ]
           },
           {
@@ -81,30 +63,11 @@
           },
           {
             "default_value": null,
-            "description": "Name of the cartridge.",
+            "description": "Name of a cartridge.",
             "name": "cartridges[][name]",
             "type": "string",
             "valid_options": [
-              "diy-0.1",
-              "php-5.3",
-              "jbossas-7",
-              "perl-5.10",
-              "mock-0.4",
-              "mock-0.3",
-              "mock-0.2",
-              "mock-0.1",
-              "zend-5.6",
-              "jenkins-1",
-              "nodejs-0.6",
-              "nodejs-0.10",
-              "jbossews-2.0",
-              "jbossews-1.0",
-              "jbosseap-6",
-              "python-3.3",
-              "python-2.7",
-              "python-2.6",
-              "ruby-1.9",
-              "ruby-1.8"
+
             ]
           },
           {
@@ -278,8 +241,18 @@
         "method": "PATCH",
         "optional_params": [
           {
+            "default_value": "user",
+            "description": "The member's type. i.e. user or team",
+            "name": "type",
+            "type": "string",
+            "valid_options": [
+              "user",
+              "team"
+            ]
+          },
+          {
             "default_value": null,
-            "description": "Unique identifier of the user",
+            "description": "Unique identifier of the member for the given member type (user or team ID)",
             "name": "id",
             "type": "string",
             "valid_options": [
@@ -294,12 +267,21 @@
             "valid_options": [
 
             ]
+          },
+          {
+            "default_value": null,
+            "description": "An array of members to add with corresponding type and role. e.g. {'members': [{'login': 'foo', 'type': 'user', 'role': 'view'}, {'id': '5326534e2046fde9d3000001', 'type': 'team', 'role': 'none'}]}",
+            "name": "members",
+            "type": "Array",
+            "valid_options": [
+
+            ]
           }
         ],
         "rel": "Add or remove one or more members to this domain.",
         "required_params": [
           {
-            "description": "The role the user should have on the domain",
+            "description": "The role the member should have on the domain",
             "invalid_options": [
 
             ],
@@ -377,6 +359,7 @@
         ]
       }
     },
+    "max_storage_per_gear": 20,
     "members": [
       {
         "explicit_role": null,
@@ -386,7 +369,52 @@
             "role": "admin"
           }
         ],
-        "id": "527ade897f9c48d371000001",
+        "id": "5333d64fa9429defe8000001",
+        "links": {
+          "GET": {
+            "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/member/5333d64fa9429defe8000001",
+            "method": "GET",
+            "optional_params": [
+
+            ],
+            "rel": "Get member",
+            "required_params": [
+
+            ]
+          },
+          "UPDATE": {
+            "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/member/5333d64fa9429defe8000001",
+            "method": "PUT",
+            "optional_params": [
+
+            ],
+            "rel": "Update member",
+            "required_params": [
+              {
+                "description": "New role for member",
+                "invalid_options": [
+
+                ],
+                "name": "role",
+                "type": "string",
+                "valid_options": [
+
+                ]
+              }
+            ]
+          },
+          "DELETE": {
+            "href": "https://openshift.redhat.com/broker/rest/domain/mydomain/member/5333d64fa9429defe8000001",
+            "method": "DELETE",
+            "optional_params": [
+
+            ],
+            "rel": "Delete member",
+            "required_params": [
+
+            ]
+          }
+        },
         "login": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -394,7 +422,9 @@
       }
     ],
     "name": "mydomain",
-    "suffix": "dev.rhcloud.com"
+    "suffix": "dev.rhcloud.com",
+    "usage_rates": {
+    }
   },
   "messages": [
     {

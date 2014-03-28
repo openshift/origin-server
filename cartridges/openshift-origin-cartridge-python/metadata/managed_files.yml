@@ -6,7 +6,7 @@ locked_files:
 - etc/conf/
 - etc/conf/*
 - etc/conf.d/
-- etc/conf.d/openshift.conf
+- etc/conf.d/wsgi.conf
 - hooks/
 - hooks/*
 - metadata/
@@ -15,8 +15,12 @@ locked_files:
 - conf/performance.conf.erb.hidden
 - env/
 - env/OPENSHIFT_PYTHON_DIR
-- env/OPENSHIFT_PYTHON_LOG_DIR
 processed_templates:
-- '**/*.erb'
+- 'conf/*.erb'
+- 'env/*.erb'
+- 'etc/**/*.erb'
+- 'metadata/*.erb'
 dependency_dirs:
 - virtenv
+build_dependency_dirs:
+- ~/.distlib

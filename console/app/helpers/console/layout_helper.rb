@@ -27,14 +27,21 @@ module Console::LayoutHelper
     classes = options[:classes] || []
     active = active_tab == name || (name.to_s == controller_name) && (action.nil? || action.to_s == controller.action_name)
     classes << 'active' if active
+
+    if action.blank? && name.is_a?(String)
+      url = name
+    else
+      url = url_for({
+        :action => action || :index,
+        :controller => name
+      })
+    end
+
     content_tag(
       :li,
       link_to(
         options[:name] || (!block.nil? ? capture(&block) : nil) || ActiveSupport::Inflector.humanize(name),
-        url_for({
-          :action => action || :index,
-          :controller => name
-        })
+        url
       ),
       {:class => classes.compact.join(' ')})
   end
@@ -71,7 +78,7 @@ module Console::LayoutHelper
     classes << 'control-group-important' if opts[:important]
     data = if opts[:errors] || args.first == true
         classes << 'error'
-        {:server_error => true}    
+        {:server_error => true}
       end
     content_tag(:div, capture_haml{ yield }.html_safe, :class => classes.join(' '), :data => data)
   end
@@ -332,12 +339,27 @@ module Console::LayoutHelper
     {
       :class => "font-icon",
       :title => item.cartridge?  || item.class.name == "CartridgeType" ? "Cartridge" : "Quickstart",
-      :data_icon => item.cartridge? || item.class.name == "CartridgeType" ? "\ue021" : "\ue029"
+      :data_icon => 
+        if item.cartridge? || item.class.name == "CartridgeType"
+          if (item.external? rescue false)
+            "\uee53"
+          elsif item.custom?
+            "\uee54"
+          else
+            "\uee51"
+          end
+        else 
+          "\ue029"
+        end
     }
   end
 
   def logo_for(item)
     opts = logo_data_icon_for item
     content_tag :span, "", :class => opts[:class], "data-icon" => opts[:data_icon].html_safe, :title => opts[:title], "aria-hidden" => "true"
+  end
+
+  def show_small_app_type_icon?()
+    false
   end
 end

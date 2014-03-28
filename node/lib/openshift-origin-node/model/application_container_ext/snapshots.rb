@@ -49,6 +49,7 @@ module OpenShift
             $stderr.puts "depending on the amount of data present and the snapshot procedure used by your application's cartridges."
           end
 
+          pre_snapshot_state = @state.value
           stop_gear
 
           scalable_snapshot = !!@cartridge_model.web_proxy
@@ -81,7 +82,7 @@ module OpenShift
 
           write_snapshot_archive(exclusions)
 
-          @cartridge_model.each_cartridge do |cartridge|
+          result = @cartridge_model.each_cartridge do |cartridge|
             @cartridge_model.do_control('post-snapshot',
                                         cartridge,
                                         err: $stderr,
@@ -89,7 +90,13 @@ module OpenShift
                                         post_action_hooks_enabled: false)
           end
 
-          start_gear
+          # Revert to the pre-snapshot state of the currently snapshotted gear
+          #
+          if @state.value != pre_snapshot_state
+            (@state.value != State::STARTED) && start_gear
+          end
+
+          result
         end
 
         def write_dbdump_archive(exclusions, cartridge)
@@ -182,6 +189,7 @@ module OpenShift
             gear_groups = get_gear_groups(gear_env)
           end
 
+          pre_restore_state = @state.value
           stop_gear
 
           @cartridge_model.each_cartridge do |cartridge|
@@ -230,6 +238,8 @@ module OpenShift
               return result unless distribute_result[:status] == RESULT_SUCCESS
 
               options[:all] = true
+              options[:restore] = true
+
               activate_result = result[:activate_result] = activate(options)
               return result unless activate_result[:status] == RESULT_SUCCESS
             else
@@ -240,6 +250,12 @@ module OpenShift
             if report_deployment
               report_deployments(gear_env)
             end
+          end
+
+          # Revert to the pre-restore state of the currently restored gear
+          #
+          if @state.value != pre_restore_state
+            (@state.value != State::STARTED) ? start_gear : stop_gear
           end
 
           result[:status] = RESULT_SUCCESS
@@ -297,19 +313,46 @@ module OpenShift
           FileUtils.ln_s('../data', PathUtils.join(@container_dir, 'app-root', 'runtime', 'data'))
         end
 
+        def data_dir_snapshot_for_type(type)
+          dash_index = type.rindex('-')
+
+          if dash_index
+            cartridge = type[0,dash_index]
+          else
+            return nil
+          end
+
+          matches = Dir.glob(PathUtils.join(container_dir, %W(app-root data #{cartridge}-*.tar.gz)))
+
+          case matches.length
+          when 0
+            $stderr.puts "Unable to restore #{type} because it appears there is no snapshot for that type"
+            nil
+          when 1
+            $stderr.puts "Using #{matches[0]} to restore #{type}"
+            matches[0]
+          else
+            $stderr.puts "Unable to restore #{type} because there are ambiguous snapshots to restore: #{matches}"
+            nil
+          end
+        end
+
         def handle_scalable_restore(gear_groups, gear_env)
           secondary_groups = get_secondary_gear_groups(gear_groups)
 
           secondary_groups.each do |type, group|
-            if !File.exists?(PathUtils.join(container_dir, %W(app-root data #{type}.tar.gz)))
-              $stderr.puts "Unable to restore #{type} because it appears there is no snapshot for that type"
-              next
+            group_snapshot = "#{type}.tar.gz"
+
+            if !File.exists?(PathUtils.join(container_dir, %W(app-root data #{group_snapshot})))
+              group_snapshot = data_dir_snapshot_for_type(type)
             end
+
+            next if group_snapshot.nil?
 
             $stderr.puts "Restoring snapshot for #{type} gear"
 
             ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
-            run_in_container_context("cat #{type}.tar.gz | #{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'restore --no-report-deployments'",
+            run_in_container_context("cat #{group_snapshot} | #{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'restore --no-report-deployments'",
                                       env: gear_env,
                                       chdir: gear_env['OPENSHIFT_DATA_DIR'],
                                       err: $stderr,

@@ -1,7 +1,7 @@
 #!/usr/bin/env oo-ruby
 
 require_relative '../test_helper'
-require          'openshift-origin-node/utils/cgroups/monitored_gear'
+require_relative '../../../node-util/conf/watchman/plugins.d/monitored_gear'
 
 # This will sanity test some Array math helpers
 class ArrayTest < OpenShift::NodeTestCase
@@ -9,6 +9,12 @@ class ArrayTest < OpenShift::NodeTestCase
     x = [1,2,3]
 
     assert_equal 2, x.average
+  end
+
+  def test_average_zero
+    x = []
+
+    assert_equal 0, x.average
   end
 
   def test_divide_array
@@ -20,8 +26,17 @@ class ArrayTest < OpenShift::NodeTestCase
     assert_equal correct, x.divide(y)
   end
 
-  def test_divide_const
+  def test_divide_zero
     x = [10,20,30,50]
+    y = 0
+
+    correct = [0, 0, 0, 0]
+
+    assert_equal correct, x.divide(y)
+  end
+
+  def test_divide_const
+    x = [10, 20, 30, 50]
     y = 5
 
     correct = [2, 4, 6, 10]

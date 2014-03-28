@@ -207,7 +207,7 @@ module OpenShift
         $logger.error("#{e.message}\n#{e.backtrace}")
         raise
       end
-      
+
       unless cli
         @container.create('DEADBEEFDEADBEEFDEADBEEFDEADBEEF')
       end

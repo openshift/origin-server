@@ -1,6 +1,6 @@
 module OpenShift
 
-  # Abstract routing plug-in interface.
+  # Routing singleton, manages notifications of changes to routes.
   #
   # An optional routing plug-in may be used to communicate with
   # infrastructure outside of OpenShift, such as an external load
@@ -40,15 +40,15 @@ module OpenShift
 
     # Notify provider objects of an event.
     def self.notify_providers(event, *args)
-      @routing_provider.each { |p| p.send(event, *args) if p.respond_to?(event) }
+      @routing_provider.each{ |p| p.send(event, *args) if p.respond_to?(event) }
     end
 
     def self.notify_ssl_cert_add(app, fqdn, ssl_cert, private_key, passphrase)
-      notify_providers :notify_ssl_cert_add,app, fqdn, ssl_cert, private_key, passphrase
+      notify_providers :notify_ssl_cert_add, app, fqdn, ssl_cert, private_key, passphrase
     end
 
     def self.notify_ssl_cert_remove(app, fqdn)
-      notify_providers :notify_ssl_cert_remove,app, fqdn
+      notify_providers :notify_ssl_cert_remove, app, fqdn
     end
 
     def self.notify_add_alias(app, alias_str)
@@ -67,44 +67,12 @@ module OpenShift
       notify_providers :notify_delete_application, app
     end
 
-    def self.notify_create_public_endpoint(app, endpoint_name, public_ip, public_port, internal_ip, internal_port, protocols, types, mappings)
-      notify_providers :notify_create_public_endpoint, app, endpoint_name, public_ip, public_port, protocols, types, mappings
+    def self.notify_create_public_endpoint(app, gear, endpoint_name, public_ip, public_port, internal_ip, internal_port, protocols, types, mappings)
+      notify_providers :notify_create_public_endpoint, app, gear, endpoint_name, public_ip, public_port, protocols, types, mappings
     end
 
-    def self.notify_delete_public_endpoint(app, public_ip, public_port)
-      notify_providers :notify_delete_public_endpoint, app, public_ip, public_port
-    end
-
-    #def initialize
-    #end
-
-    # Expose a new public endpoint.
-    #
-    # @param [OpenShift::Application] app
-    #   The application to which the endpoint routes.
-    # @param [String] endpoint_name
-    #   The name of the new endpoint.
-    # @param [String] endpoint_port
-    #   The the public port for the new endpoint.
-    # @return [Object]
-    #   The response from the service provider in what ever form
-    #   that takes.
-    def notify_create_public_endpoint(app, endpoint_name, public_ip, public_port)
-    end
-
-    # Delete an existing public endpoint.
-    #
-    # @param [OpenShift::Application] app
-    #   The application to which the endpoint routes.
-    # @param [String] endpoint_name
-    #   The name of the new endpoint.
-    # @param [String] endpoint_port
-    #   The the public port for the new endpoint.
-    # @return [Object]
-    #   The response from the service provider in what ever form
-    #   that takes 
-    def notify_delete_public_endpoint(app, endpoint_name, public_ip, public_port)
+    def self.notify_delete_public_endpoint(app, gear, public_ip, public_port)
+      notify_providers :notify_delete_public_endpoint, app, gear, public_ip, public_port
     end
   end
-
 end

@@ -24,12 +24,15 @@ action "cartridge_do", :description => "run a cartridge action" do
         :type           => :list,
         :list           => %w(
                               add-alias
+                              add-aliases
                               aliases
                               app-create
                               app-destroy
                               app-state-show
                               authorized-ssh-key-add
+                              authorized-ssh-key-batch-add
                               authorized-ssh-key-remove
+                              authorized-ssh-key-batch-remove
                               authorized-ssh-keys-replace
                               broker-auth-key-add
                               broker-auth-key-remove
@@ -50,6 +53,7 @@ action "cartridge_do", :description => "run a cartridge action" do
                               frontend-create
                               frontend-destroy
                               frontend-disconnect
+                              frontend-reconnect
                               frontend-get-sts
                               frontend-idle
                               frontend-no-sts
@@ -59,13 +63,13 @@ action "cartridge_do", :description => "run a cartridge action" do
                               frontend-unidle
                               frontend-update-name
                               get-quota
-                              info
                               post-configure
                               post-install
                               post-remove
                               pre-install
                               reload
                               remove-alias
+                              remove-aliases
                               remove-httpd-proxy
                               restart
                               set-quota
@@ -76,7 +80,6 @@ action "cartridge_do", :description => "run a cartridge action" do
                               start
                               status
                               stop
-                              system-messages
                               threaddump
                               tidy
                               user-var-add

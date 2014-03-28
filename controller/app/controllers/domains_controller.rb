@@ -15,12 +15,15 @@ class DomainsController < BaseController
   def index
     domains = 
       case params[:owner]
-      when "@self" then Domain.where(owner: current_user)
+      when "@self" then Domain.accessible(current_user).where(owner: current_user)
       when nil     then Domain.accessible(current_user)
       else return render_error(:bad_request, "Only @self is supported for the 'owner' argument.") 
       end
 
     if_included(:application_info, {}){ domains = domains.with_gear_counts }
+
+    # Always include domain capability info, which we get from the owner
+    domains = Domain.with_owner_info(domains)
 
     render_success(:ok, "domains", domains.sort_by(&Domain.sort_by_original(current_user)).map{ |d| get_rest_domain(d) })
   end
@@ -38,6 +41,9 @@ class DomainsController < BaseController
 
     if_included(:application_info){ @domain.with_gear_counts }
 
+    # Always include domain capability info, which we get from the owner
+    @domain = @domain.with_owner_info
+
     return render_success(:ok, "domain", get_rest_domain(@domain), "Found domain #{@domain.namespace}") if @domain
   end
 
@@ -54,23 +60,17 @@ class DomainsController < BaseController
     authorize! :create_domain, current_user
 
     namespace = (params[:name] || params[:id] || params[:namespace] || '').downcase
-
-    allowed_domains = current_user.max_domains
-    allowed_domains = 1 if requested_api_version < 1.2
-
-    @domain = domain = Domain.new(namespace: namespace, owner: current_user)
-    domain.allowed_gear_sizes = Array(params[:allowed_gear_sizes]) if params.has_key? :allowed_gear_sizes
-
-    unless pre_and_post_condition(
-             lambda{ Domain.where(owner: current_user).count < allowed_domains },
-             lambda{ Domain.where(owner: current_user).count <= allowed_domains },
-             lambda{ domain.save_with_duplicate_check! },
-             lambda{ domain.destroy rescue nil }
-           )
-      return render_error(:conflict, "You may not have more than #{pluralize(allowed_domains, "domain")}.", 103)
+    if OpenShift::ApplicationContainerProxy.blacklisted? namespace
+      return render_error(:forbidden, "Namespace is not allowed.  Please choose another.", 106)
     end
 
-    render_success(:created, "domain", get_rest_domain(domain), "Created domain with name #{domain.namespace}")
+    allowed_domains = nil
+    allowed_domains = 1 if requested_api_version < 1.2
+    allowed_gear_sizes = Array(params[:allowed_gear_sizes]) if params.has_key? :allowed_gear_sizes
+
+    @domain = Domain.create!(namespace: namespace, owner: current_user, allowed_gear_sizes: allowed_gear_sizes, _allowed_domains: allowed_domains)
+
+    render_success(:created, "domain", get_rest_domain(@domain), "Created domain with name #{@domain.namespace}")
   end
 
   # Create a new domain for the user
@@ -87,6 +87,9 @@ class DomainsController < BaseController
     id = params[:existing_name].presence || params[:existing_id].presence
 
     new_namespace = params[:name] || params[:id]
+    if OpenShift::ApplicationContainerProxy.blacklisted? new_namespace
+      return render_error(:forbidden, "Namespace is not allowed.  Please choose another.", 106)
+    end
 
     domain = Domain.accessible(current_user).find_by(canonical_namespace: Domain.check_name!(id).downcase)
 
@@ -110,7 +113,7 @@ class DomainsController < BaseController
 
     return render_error(:unprocessable_entity, "No changes specified to the domain.", 133) unless domain.changed?
 
-    domain.save_with_duplicate_check!
+    domain.save!
     render_success(:ok, "domain", get_rest_domain(domain), messages.join(" "), domain)
   end
 

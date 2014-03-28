@@ -141,6 +141,11 @@
   font-family: openshift-icon;
 }
 
+@mixin usage_rate_indicator() {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
 @mixin iconfont-adjust($size-offset: 6, $left: 0, $margin-right: 0) {
   font-size: $tileHeadingIconFontSize - $size-offset;
   left: $left;

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+function update_configuration {
+    set +u
+    case "$1" in
+      5.5)
+        pe=$(dirname $(scl enable mariadb55 "which mysql"))
+        env_dir="${OPENSHIFT_MARIADB_DIR}/env"
+        set_env_var 'OPENSHIFT_MARIADB_PATH_ELEMENT' $pe $env_dir
+
+        local ld_path=$(LD_LIBRARY_PATH="" scl enable mariadb55 "printenv LD_LIBRARY_PATH")
+        set_env_var 'OPENSHIFT_MARIADB_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
+
+        local man_path=$(MANPATH="" scl enable mariadb55 "printenv MANPATH")
+        path_append $MANPATH $man_path >$OPENSHIFT_MARIADB_DIR/env/MANPATH
+        ;;
+    esac
+}
+
+function mysql_context {
+  case $OPENSHIFT_MARIADB_VERSION in
+    5.5) /usr/bin/scl enable mariadb55 "/opt/rh/mariadb55/root/$1" ;;
+  esac
+}

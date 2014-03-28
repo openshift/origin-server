@@ -17,14 +17,17 @@ RewriteLogLevel 0
 
 # Maps
 RewriteMap    lowercase int:tolower
-RewriteMap      openshift-nodes   dbm=db:/var/lib/openshift/.httpd.d/nodes.db
-RewriteMap      openshift-aliases dbm=db:/var/lib/openshift/.httpd.d/aliases.db
-RewriteMap      openshift-idler   dbm=db:/var/lib/openshift/.httpd.d/idler.db
-RewriteMap      openshift-sts     dbm=db:/var/lib/openshift/.httpd.d/sts.db
+RewriteMap      openshift-nodes    dbm=db:/var/lib/openshift/.httpd.d/nodes.db
+RewriteMap      openshift-aliases  dbm=db:/var/lib/openshift/.httpd.d/aliases.db
+RewriteMap      openshift-idler    dbm=db:/var/lib/openshift/.httpd.d/idler.db
+RewriteMap      openshift-sts      dbm=db:/var/lib/openshift/.httpd.d/sts.db
 
 # Set X-Request-Start header to allow checking request life cycle.
 RequestHeader set X-Request-Start "%t"
 
+# Preserve the host for the reverse proxy directives later
+RewriteCond ${lowercase:%{HTTP_HOST}} ^([^:]+)
+RewriteRule ^.*$ - [E=REV_PROXY_HOST:%1,NS]
 
 # Set X-Client-IP to the node which contacted the front-end
 # This being Apache, you can't just use %{REMOTE_ADDR}e.
@@ -80,11 +83,11 @@ Header set Strict-Transport-Security "max-age=%{STSHEADER}e" env=STSHEADER
 # unrolled in source and we only do three deep.
 #
 # Example table entries
-# www.example.com             => 127.0.250.1:8181
-# www.example.com/foo         => 127.0.250.1:8181/bar
-# www.example.com/health      => NOPROXY
-# www.example.com/bar         => REDIRECT:/baz
-# www.example.com/a/b/c       => GONE
+# www.example.com             => 127.0.250.1:8181|<app uuid>|<gear uuid>
+# www.example.com/foo         => 127.0.250.1:8181/bar|<app uuid>|<gear uuid>
+# www.example.com/health      => NOPROXY|<app uuid>|<gear uuid>
+# www.example.com/bar         => REDIRECT:/baz|<app uuid>|<gear uuid>
+# www.example.com/a/b/c       => GONE|<app uuid>|<gear uuid>
 
 
 # Just match the host
@@ -138,6 +141,10 @@ RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_LOOKUP}} ^(.+)$ [OR]
 RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_DEFAULT}} ^(.+)$
 RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:%{ENV:V_TMP_MATCH_PATH},E=V_PATH:%{ENV:V_TMP_PATH},NS]
 
+
+# Extract app uuid and gear uuid
+RewriteCond %{ENV:V_ROUTE} ^([^|]+)\|([^|]+)\|(.+)$
+RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=APP_UUID:%2,E=GEAR_UUID:%3,NS]
 
 
 # Route based on the populated variables,
@@ -198,9 +205,8 @@ RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1/,E=V_MATCH_PATH:/]
 # Configure reverse proxy based on set variable
 #
 ProxyPassReverse ${V_MATCH_PATH} http://${V_ROUTE} interpolate
+# Needed for jenkins (and probably other apps)
+ProxyPassReverse / http://${REV_PROXY_HOST}/ interpolate
 
-#
-# Log custom format for OpenShift parsing.
-# Log format is:
-LogFormat "%h %{V_MATCH_HOST}e %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X %{V_ROUTE}e%{V_PATH}e" openshift
-CustomLog logs/openshift_log openshift env=V_PATH
+# Import log directives
+Include conf.d/openshift_route_logconf.include

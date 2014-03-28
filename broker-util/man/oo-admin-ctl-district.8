@@ -9,7 +9,8 @@
 \fBoo-admin-ctl-district\fP [\fB-h\fP|\fB--help\fP] [\fB-u\fP|\fB--uuid\fP \fIdistrict_uuid\fP] 
 [\fB-c\fP|\fB--command\fP \fIcmd\fP] [\fB-n\fP|\fB--name\fP \fIdistrict_name\fP] 
 [\fB-p\fP|\fB--node_profile\fP \fIgear_size\fP] [\fB-i\fP|\fB--server_identity\fP \fIsrv_ident\fP] 
-[\fB-s\fP|\fB--size\fP \fIcap_size\fP] [\fB-b\fP|\fB--bypass\fP]
+[\fB-s\fP|\fB--size\fP \fIcap_size\fP] [\fB-r\fP|\fB--region\fP \fIregion_name\fP]
+[\fB-z\fP|\fB--zone\fP \fIzone_name\fP] [\fB-b\fP|\fB--bypass\fP]
 
 .fam T
 .fi
@@ -30,12 +31,12 @@ District uuid (alphanumeric, canonical way to identify the district).
 .B
 \fB-c\fP|\fB--command\fP \fIcmd\fP
 Available commands: add-node, remove-node, deactivate-node, activate-node,
-add-capacity, remove-capacity, create, destroy
+add-capacity, remove-capacity, create, destroy, set-region, unset-region
 .TP
 .B
 \fB-n\fP|\fB--name\fP \fIdistrict_name\fP
 District name. Arbitrary identifier used on create or in place of uuid for
-other commands.
+other commands. Allowed chars: alphanumeric, underscore, hyphen and dot
 .TP
 .B
 \fB-p\fP|\fB--node_profile\fP \fIgear_size\fP
@@ -49,6 +50,14 @@ Node server_identity (FQDN, required when operating on a node).
 \fB-s\fP|\fB--size\fP
 Capacity to add or remove. Must be positive integer, required for capacity
 operations.
+.TP
+.B
+\fB-r\fP|\fB--region\fP \fIregion_name\fP
+Region name of the server identitiy. Only valid for add-node (optional) and set-region.
+.TP
+.B
+\fB-z\fP|\fB--zone\fP \fIzone_name\fP
+Zone within the region. Only valid when region is specified.
 .TP
 .B
 \fB-b\fP|\fB--bypass\fP

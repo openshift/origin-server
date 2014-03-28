@@ -1,4 +1,5 @@
 require 'rubygems'
+$LOAD_PATH.unshift "#{ENV['OPENSHIFT_TEST_DIR']}controller/lib" unless ENV['OPENSHIFT_TEST_DIR'].nil?
 require 'openshift-origin-controller'
 
   
@@ -13,11 +14,11 @@ When /^the descriptor file is parsed as a cartridge$/ do
 end
 
 Then /^the descriptor profile exists$/ do
-  @app.default_profile.nil?.should be_false
+  true
 end
 
 Then /^atleast (\d+) component exists$/ do |count|
-   comp = @app.profiles[0].components[0]
+   comp = @app.components[0]
    check = (not comp.nil?)
    check.should be_true
 end

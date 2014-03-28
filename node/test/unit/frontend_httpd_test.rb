@@ -1,13 +1,13 @@
 #!/usr/bin/env oo-ruby
 #--
 # Copyright 2013 Red Hat, Inc.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,13 +24,20 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
 
   def setup
     @container_uuid = '0123456789abcdef'
+    @application_uuid = '0123456789abcdef'
     @container_name = 'frontendtest'
     @namespace = 'frontendtest'
 
     @container = mock('OpenShift::Runtime::ApplicationContainer')
     @container.stubs(:uuid).returns(@container_uuid)
+    @container.stubs(:application_uuid).returns(@application_uuid)
     @container.stubs(:name).returns(@container_name)
     @container.stubs(:namespace).returns(@namespace)
+
+    @cartridge_model = mock('OpenShift::Runtime::V2CartridgeModel')
+    @cartridge_model.stubs(:standalone_web_proxy?).returns(false)
+    @container.stubs(:cartridge_model).returns(@cartridge_model)
+
     OpenShift::Runtime::ApplicationContainer.stubs(:from_uuid).with(@container_uuid).returns(@container)
 
     @cloud_domain = "example.com"
@@ -72,7 +79,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
 
   def test_clean_server_name
     frontend = OpenShift::Runtime::FrontendHttpServer.new(@container)
-    
+
     assert_equal "#{@test_alias}", frontend.clean_server_name("#{@test_alias}")
     assert_equal "#{@test_alias}", frontend.clean_server_name("#{@test_alias}".upcase)
     assert_raise OpenShift::Runtime::FrontendHttpServerNameException do

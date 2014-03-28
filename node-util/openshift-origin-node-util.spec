@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.18.0
+Version: 1.22.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -37,19 +37,8 @@ They must be run on a OpenShift node instance.
 mkdir -p %{buildroot}%{_sbindir}
 mkdir -p %{buildroot}%{_bindir}
 
-cp -p bin/oo-* %{buildroot}%{_sbindir}/
-rm %{buildroot}%{_sbindir}/oo-snapshot
-rm %{buildroot}%{_sbindir}/oo-restore
-rm %{buildroot}%{_sbindir}/oo-binary-deploy
-rm %{buildroot}%{_sbindir}/oo-gear-registry
-rm %{buildroot}%{_sbindir}/oo-config-eval
-cp -p bin/rhc-* %{buildroot}%{_bindir}/
-cp -p bin/oo-snapshot %{buildroot}%{_bindir}/
-cp -p bin/oo-restore %{buildroot}%{_bindir}/
-cp -p bin/oo-binary-deploy %{buildroot}%{_bindir}/
-cp -p bin/oo-gear-registry %{buildroot}%{_bindir}/
-cp -p bin/oo-config-eval %{buildroot}%{_bindir}/
-cp -p bin/unidle_gear.sh %{buildroot}%{_bindir}/
+cp -p sbin/* %{buildroot}%{_sbindir}/
+cp -p bin/*  %{buildroot}%{_bindir}/
 
 %if 0%{?fedora} >= 18
   mv %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.4 %{buildroot}%{_sbindir}/oo-httpd-singular
@@ -72,25 +61,37 @@ cp -p www/html/health.txt %{buildroot}/%{_localstatedir}/www/html/
 
 cp -p man8/*.8 %{buildroot}%{_mandir}/man8/
 
+mkdir -p %{buildroot}%{_initddir}
+mv init.d/openshift-watchman %{buildroot}%{_initddir}/
+
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift/watchman/plugins.d/
+cp -pr conf/watchman/* %{buildroot}/%{_sysconfdir}/openshift/watchman
 
 %if %{with_systemd}
 mkdir -p %{buildroot}/etc/systemd/system
 mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-gears.service
+mv services/openshift-watchman.service %{buildroot}/etc/systemd/system/openshift-watchman.service
 %else
-mkdir -p %{buildroot}%{_initddir}
 cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %post
 /sbin/restorecon /usr/sbin/oo-restorer* || :
+
 %if %{with_systemd}
 %systemd_post openshift-gears.service
+%systemd_post openshift-watchman.service
 
 %preun
 %systemd_preun openshift-gears.service
+%systemd_preun openshift-watchman.service
 
 %postun
 %systemd_postun_with_restart openshift-gears.service
+%systemd_postun_with_restart openshift-watchman.service
+%%else
+%postun
+/etc/init.d/openshift-watchman restart
 %endif
 
 %files
@@ -106,12 +107,15 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0750,-,-) %{_sbindir}/oo-list-access
 %attr(0750,-,-) %{_sbindir}/oo-restorecon
 %attr(0750,-,-) %{_sbindir}/oo-restorer
+%attr(0750,-,-) %{_sbindir}/oo-admin-gear
 %attr(0750,-,apache) %{_sbindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_sbindir}/oo-httpd-singular
 %attr(0750,-,-) %{_sbindir}/oo-su
 %attr(0750,-,-) %{_sbindir}/oo-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-repair-node
+%attr(0750,-,-) %{_sbindir}/oo-watchman
+%attr(0750,-,-) %{_initddir}/openshift-watchman
 %attr(0755,-,-) %{_bindir}/rhc-list-ports
 %attr(0755,-,-) %{_bindir}/oo-snapshot
 %attr(0755,-,-) %{_bindir}/oo-restore
@@ -119,8 +123,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %attr(0755,-,-) %{_bindir}/unidle_gear.sh
 %attr(0755,-,-) %{_bindir}/oo-config-eval
 %attr(0755,-,-) %{_bindir}/oo-gear-registry
+%attr(0755,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/
+%attr(0744,-,-) %{_sysconfdir}/openshift/watchman/plugins.d/*
 
 %{_mandir}/man8/oo-accept-node.8.gz
+%{_mandir}/man8/oo-admin-gear.8.gz
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz
 %{_mandir}/man8/oo-auto-idler.8.gz
 %{_mandir}/man8/oo-idler-stats.8.gz
@@ -135,6 +142,7 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %{_mandir}/man8/oo-admin-cartridge.8.gz
 %{_mandir}/man8/oo-su.8.gz
 %{_mandir}/man8/oo-cartridge.8.gz
+%{_mandir}/man8/oo-watchman.8.gz
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf
 %attr(0644,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf
@@ -149,241 +157,162 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
-* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.17.4-1
-- Merge pull request #4124 from a13m/app-container
-  (dmcphers+openshiftbot@redhat.com)
-- Improve performance for tools which iterate over ApplicationContainers
-  (agrimm@redhat.com)
-
-* Mon Nov 11 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
-- Bug 1028205 (dmcphers@redhat.com)
-
-* Fri Nov 08 2013 Adam Miller <admiller@redhat.com> 1.17.2-1
-- Merge pull request #4126 from pmorie/bugs/1007709
-  (dmcphers+openshiftbot@redhat.com)
-- Fix bug 1007709: use oo-mco in oo-admin-cartridge (pmorie@gmail.com)
-
-* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.17.1-1
-- Fix bug 991387: Don't allow erase of carts in the cart_base_path
-  (pmorie@gmail.com)
-- Bug 1021056 - The SNI proxy allows for frontends that never show up in
-  Apache. (rmillner@redhat.com)
-- bump_minor_versions for sprint 36 (admiller@redhat.com)
-
-* Mon Oct 28 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
-- Bug 1023588 - Build cartridge index from cache (jhonce@redhat.com)
-
-* Thu Oct 24 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
-- Bug 1022370 - Add forcestopgear and forcestopall options to completely stop
-  all processes owned by a gear. (rmillner@redhat.com)
-
-* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
-- Standardize gear command names (dmcphers@redhat.com)
-- Merge pull request #3804 from pmorie/dev/binary-deploy
-  (dmcphers+openshiftbot@redhat.com)
-- Add error handing to gear binary_deploy (pmorie@gmail.com)
-- Fix filtering in oo-gear-registry (ironcladlou@gmail.com)
-- Merge pull request #3783 from rmillner/strange_unicode_errors
-  (dmcphers+openshiftbot@redhat.com)
-- Characters were observed in prod causing unicode evaluation errors.
-  (rmillner@redhat.com)
-- Add gear binary-deploy (pmorie@gmail.com)
-- WIP error handling for proxy updates (ironcladlou@gmail.com)
-- Add oo-gear-registry and change haproxy to use platform gear registry
-  (pmorie@gmail.com)
-- bump_minor_versions for sprint 35 (admiller@redhat.com)
-
-* Fri Oct 04 2013 Adam Miller <admiller@redhat.com> 1.15.5-1
-- Merge pull request #3758 from mfojtik/bugzilla/998337
-  (dmcphers+openshiftbot@redhat.com)
-- Bug 1013653 - Fix oo-su command so it is not duplicating the getpwnam call
-  (mfojtik@redhat.com)
-- Bug 998337 - Fixed oo-admin-cartridge man page indentation
-  (mfojtik@redhat.com)
-
-* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 1.15.4-1
-- node-util: RHBZ#1012830 do not overrite the {min,max}_uid value if not
-  defined in facter (mmahut@redhat.com)
-- Initial checkin of iptables port proxy script. (mrunalp@gmail.com)
-
-* Thu Sep 26 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
-- Bug 1010723 - Only run lscgroup once for check_users (agrimm@redhat.com)
-
-* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
-- Merge pull request #3695 from jwhonce/wip/idle_websockets
-  (dmcphers+openshiftbot@redhat.com)
-- Merge pull request #3647 from detiber/runtime_card_255
-  (dmcphers+openshiftbot@redhat.com)
-- Bug 1011459 - oo-last-access does not process node-web-proxy/websockets.log
-  (jhonce@redhat.com)
-- Merge pull request #3687 from mmahut/mmahut/oo_restorecon
-  (dmcphers+openshiftbot@redhat.com)
-- node-util: extend the oo-restorecon man pages (mmahut@redhat.com)
-- RHBZ#1005307 refactor oo-restorecon to accept files as arguments
-  (mmahut@redhat.com)
-- Card origin_runtime_255: Publish district uid limits to nodes
-  (jdetiber@redhat.com)
-
-* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
-- node-util: RHBZ#1004512 oo-admin-ctl-gears gearstatus show locked status
-  (mmahut@redhat.com)
-- Report an error if there are no frontend plugins defined.
-  (rmillner@redhat.com)
-- <oo-accept-node> Fix polyinstantiation sebool detection (jolamb@redhat.com)
-- Merge pull request #3502 from rmillner/origin_runtime_245
-  (dmcphers+openshiftbot@redhat.com)
-- Merge pull request #3622 from brenton/ruby193-mcollective
-  (dmcphers+openshiftbot@redhat.com)
-- Break out FrontendHttpServer class into plugin modules. (rmillner@redhat.com)
-- bump_minor_versions for sprint 34 (admiller@redhat.com)
-- oo-accept-node changes for ruby193-mcollective (bleanhar@redhat.com)
-- Adding oo-mco and updating oo-diagnostics to support the SCL'd mcollective
-  (bleanhar@redhat.com)
-
-* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
-- I'm withdrawing this fix.  The deeper issue is that LANG appears to be messed
-  up when the script is run and that needs to be diagnosed instead.
-  (rmillner@redhat.com)
-
-* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
-- Bug 998337 - Added missing man page number (mfojtik@redhat.com)
-- Bug 1005421 - the ps command was returning unicode characters, strip them
-  out. (rmillner@redhat.com)
-
-* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
-- Updated cartridges and scripts for phpmyadmin-4 (mfojtik@redhat.com)
-- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
-  (ccoleman@redhat.com)
-- nurture -> analytics (dmcphers@redhat.com)
-- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
-  (ccoleman@redhat.com)
-- <oo-accept-node> Bug 1000174 - oo-accept-node fixes (jdetiber@redhat.com)
-- Merge pull request #3428 from mfojtik/bugzilla/998337
-  (dmcphers+openshiftbot@redhat.com)
-- bump_minor_versions for sprint 33 (admiller@redhat.com)
-- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
-  (ccoleman@redhat.com)
-- Bug 998337 - Fixed 'untitled' string in some oo commands man pages
-  (mfojtik@redhat.com)
-
-* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
-- Bug 999460 - Trap range error on large, all numeric UUIDs for the test to see
-  if the UUID is really a UID. (rmillner@redhat.com)
-
-* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
-- Merge pull request #3419 from danmcp/master
-  (dmcphers+openshiftbot@redhat.com)
-- removing v2 specific logic (dmcphers@redhat.com)
-- Bug 998683 - oo-accept-node failed to read manifests from source
+* Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.21.7-1
+- Bug 1080374 - Failing to remove .../limits.d/*-<uuid>.conf
   (jhonce@redhat.com)
 
-* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
-- Merge pull request #3381 from mrunalp/bugs/970939
+* Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
+- Merge pull request #5051 from jwhonce/bug/1076640
   (dmcphers+openshiftbot@redhat.com)
-- Fix command help. (mrunalp@gmail.com)
+- Merge pull request #5041 from ironcladlou/logshifter/carts
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1076640 - Attempt to clean up using FQDN (jhonce@redhat.com)
+- Port cartridges to use logshifter (ironcladlou@gmail.com)
 
-* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
-- Merge pull request #3335 from Miciah/oo-accept-node-use-Config-class
+* Mon Mar 24 2014 Adam Miller <admiller@redhat.com> 1.21.5-1
+- Merge pull request #5037 from jwhonce/bug/1079261
   (dmcphers+openshiftbot@redhat.com)
-- Merge pull request #3364 from jwhonce/bug/977928
-  (dmcphers+openshiftbot@redhat.com)
-- Bug 977928 - node-util scripts missing man pages (jhonce@redhat.com)
-- Merge pull request #3360 from brenton/BZ997129
-  (dmcphers+openshiftbot@redhat.com)
-- Bug 997129 - oo-last-access script chokes on /etc/openshift/node.conf with
-  only space in configuration line (bleanhar@redhat.com)
-- oo-accept-node: Use OpenShift::Config (miciah.masters@gmail.com)
-- oo-accept-node: Simplify find_ext_net_dev (miciah.masters@gmail.com)
+- Bug 1079261 - Update to support new cgroup mounts (jhonce@redhat.com)
 
-* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
-- Merge pull request #3352 from danmcp/master
+* Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
+- Node Platform - Add more checks for gear structure (jhonce@redhat.com)
+- fix bz1076722 - routes.json may have frontend extensions to fqdn
+  (rchopra@redhat.com)
+
+* Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- Bug 1077510 1077513 1077587 - Cleanup man page and logging
+  (jhonce@redhat.com)
+- Card origin_node_39 - Introduce GearStatePlugin (jhonce@redhat.com)
+
+* Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.21.2-1
+- Bug 1074627 - Removed unnecessary output (jhonce@redhat.com)
+
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- Bug 1076008 - Fix pgrep regex usage (jhonce@redhat.com)
+- Merge pull request #4944 from UhuruSoftware/master
   (dmcphers+openshiftbot@redhat.com)
-- Merge pull request #3353 from mfojtik/bugzilla/985218
+- Bug 1074627 - Improve error handling and make more robust (jhonce@redhat.com)
+- Add support for multiple platforms in OpenShift. Changes span both the broker
+  and the node. (vlad.iovanov@uhurusoftware.com)
+- Merge pull request #4930 from jwhonce/bug/1071105
   (dmcphers+openshiftbot@redhat.com)
-- Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
+- Bug 1071105 - On validation just print commit timestamp (jhonce@redhat.com)
+- Bug 1070719 - Prevent openshift-watchman from running twice
+  (jhonce@redhat.com)
+- Merge pull request #4900 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
-- remove oo-cart-version Bug 980296 (dmcphers@redhat.com)
-- BZ#985218: Display more user-friendly error message when erasing non-existing
-  cartridge (mfojtik@redhat.com)
-- Merge remote-tracking branch 'origin/master' into
-  origin_ui_73_membership_model (ccoleman@redhat.com)
-- * Implement a membership model for OpenShift that allows an efficient query
-  of user access based on each resource. * Implement scope limitations that
-  correspond to specific permissions * Expose membership info via the REST API
-  (disableable via config) * Allow multiple domains per user, controlled via a
-  configuration flag * Support additional information per domain
-  (application_count and gear_counts) to improve usability * Let domains
-  support the allowed_gear_sizes option, which limits the gear sizes available
-  to apps in that domain * Simplify domain update interactions - redundant
-  validation removed, and behavior of responses differs slightly. * Implement
-  migration script to enable data (ccoleman@redhat.com)
+- fix missing variable error (rchopra@redhat.com)
+- bump_minor_versions for sprint 42 (admiller@redhat.com)
 
-* Tue Aug 13 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
-- Bug 957442 (dmcphers@redhat.com)
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.20.5-1
+- re-fix oo-auto-idler. bz1072472. all gears will never be idled by the script.
+  man page changes (rchopra@redhat.com)
 
-* Fri Aug 09 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
-- Bug 957442 (dmcphers@redhat.com)
+* Wed Mar 05 2014 Adam Miller <admiller@redhat.com> 1.20.4-1
+- fix bz1072472 - oo-last-access will be run within oo-auto-idler first and any
+  errors related to gears not found will block the operation
+  (rchopra@redhat.com)
 
-* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
-- Bug 966535 (pmorie@gmail.com)
-- Fix bug 971120: add empty gear check for oo-accept-node (pmorie@gmail.com)
-- bump_minor_versions for sprint 32 (admiller@redhat.com)
+* Tue Mar 04 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Merge pull request #4869 from jwhonce/bug/1071500
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4868 from jwhonce/bug/1070719
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1071500 - Prepend /sbin to ip command (jhonce@redhat.com)
+- Bug 1070719 - On restart, wait for stop before starting (jhonce@redhat.com)
 
-* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.6-1
-- Bug 985514 - Update CartridgeRepository when mcollectived restarted
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Fixing typos (dmcphers@redhat.com)
+
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- Card origin_node_39 - Fix spec file for disabled plugin (jhonce@redhat.com)
+- Card origin_node_39 - Disable GearStatePlugin (jhonce@redhat.com)
+- Card origin_node_39 - Fix unit test (jhonce@redhat.com)
+- Card origin_node_39 - Introduce GearStatePlugin (jhonce@redhat.com)
+- Merge pull request #4807 from jwhonce/bug/1067345
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4776 from jwhonce/origin_node_39
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1067345 - Make *all commands honor stop_lock (jhonce@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
+- Card origin_node_39 - Have Watchman attempt honor state of gear
   (jhonce@redhat.com)
 
-* Tue Jul 30 2013 Adam Miller <admiller@redhat.com> 1.12.5-1
-- Merge pull request #3224 from danmcp/master
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Bug 1063278 - kill user processes before user (lsm5@redhat.com)
+- Merge pull request #4704 from lsm5/oo-admin-gear
   (dmcphers+openshiftbot@redhat.com)
-- Bug 990090 (dmcphers@redhat.com)
-- cleanup / fedoraize openshift-origin-node-util.spec (tdawson@redhat.com)
-- Merge pull request #3202 from rmillner/misc_bugs
+- Merge pull request #4717 from jwhonce/bug/1063172
   (dmcphers+openshiftbot@redhat.com)
-- Bug 988948 - Enable TC checks. (rmillner@redhat.com)
-
-* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
-- Origin uses single quotes in config files. (rmillner@redhat.com)
-- Separate out libcgroup based functionality and add configurable templates.
-  (rmillner@redhat.com)
-- Merge pull request #3187 from pmorie/bugs/988949
+- Merge pull request #4715 from jwhonce/bug/1062573
   (dmcphers+openshiftbot@redhat.com)
-- Fix bug 988949: make upgrade checks run exclusively when enabled
-  (pmorie@gmail.com)
-
-* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
-- Merge pull request #3167 from kraman/bugfix
+- Bug 1063172 - Watchman pid and log files world writable (jhonce@redhat.com)
+- Merge pull request #4710 from jwhonce/bug/1063142
   (dmcphers+openshiftbot@redhat.com)
-- Workaround for F19 mcollective issue where it goes into inf. loop and 100%%
-  cpu usage. Using mcollctive restart instead of mcollective reload.
-  (kraman@gmail.com)
-- <oo-idler-stats> Bug 977293 - Fix get_app_type for v2 carts
-  (jdetiber@redhat.com)
+- Bug 1062573 -  abused gear will not be throttled (jhonce@redhat.com)
+- Bug 1063142 - Ignore .stop_lock on gear operations (jhonce@redhat.com)
+- Bug 1062768 (lsm5@redhat.com)
 
-* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
-- <oo-auto-idler> add man page (lmeyer@redhat.com)
-- Bug 960355 - Fix file permissions. (rmillner@redhat.com)
-- Bug 985525: Skip invalid cartridges during recursive installation
-  (ironcladlou@gmail.com)
-- Add support for upgrade script to be called during cartridge upgrades.
-  (pmorie@gmail.com)
-
-* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
-- bump_minor_versions for sprint 31 (admiller@redhat.com)
-
-* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.7-1
-- Bug 983780 - parse log files separately and compare timestamps on merge
-  (rmillner@redhat.com)
-
-* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
-- Merge pull request #3027 from kraman/bugfix
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
+- Bug 1057018 - More accurate message on time mismatch (dmcphers@redhat.com)
+- origin_node_185 - Refactor oo-admin-ctl-gears (jhonce@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- origin_node_324 (lsm5@redhat.com)
+- Merge pull request #4602 from jhadvig/mongo_update
   (dmcphers+openshiftbot@redhat.com)
-- Merge pull request #3023 from rmillner/BZ958355
+- Node Platform - Improve Watchman performance (jhonce@redhat.com)
+- Bug 1054449 - Watchman support for chkconfig (jhonce@redhat.com)
+- MongoDB version update to 2.4 (jhadvig@redhat.com)
+- Merge pull request #4640 from jwhonce/bug/1018342
   (dmcphers+openshiftbot@redhat.com)
-- Fix gear env loading by using ApplicationContainer::from_uuid instead of
-  ApplicationContainer::new (kraman@gmail.com)
-- Bug 982523 - add syslog to oo-admin-ctl-gears (rmillner@redhat.com)
-- Merge pull request #3019 from pmorie/bugs/981273
+- Merge pull request #4635 from jwhonce/bug/1057734
   (dmcphers+openshiftbot@redhat.com)
-- Fix bug 981273 (pmorie@gmail.com)
+- Bug 1018342 - Stop restore/throttle flapping (jhonce@redhat.com)
+- Bug 1057734 - Protect against divide by zero (jhonce@redhat.com)
+- Merge pull request #4624 from ironcladlou/dev/syslog
+  (dmcphers+openshiftbot@redhat.com)
+- Platform logging enhancements (ironcladlou@gmail.com)
 
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
+- Bug 1059804 - Watchman support for UTF-8 (jhonce@redhat.com)
+- Merge pull request #4620 from jwhonce/bug/1058889
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1058889 - Return expected exit code on status operation
+  (jhonce@redhat.com)
+- Merge pull request #4611 from jwhonce/stage
+  (dmcphers+openshiftbot@redhat.com)
+- Revert "Merge pull request #4488 from lsm5/new-node_conf" (jhonce@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
+* Tue Jan 21 2014 Adam Miller <admiller@redhat.com> 1.18.6-1
+- Bug 998337 (dmcphers@redhat.com)
+- Bug 1034110 (dmcphers@redhat.com)
+- Merge pull request #4530 from danmcp/bug1034110
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1034110 (dmcphers@redhat.com)
+- Bug 998337 (dmcphers@redhat.com)
+
+* Fri Jan 17 2014 Adam Miller <admiller@redhat.com> 1.18.5-1
+- Merge pull request #4488 from lsm5/new-node_conf
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4503 from jwhonce/bug/1054512
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1054512 - Verify gear home directory ownership in oo-accept-node
+  (jhonce@redhat.com)
+- Bug 1054449 - Watchman support for chkconfig (jhonce@redhat.com)
+- Merge pull request #4495 from jwhonce/wip/watchman
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_node_374 - Port Watchman to Origin (jhonce@redhat.com)
+- correct if else syntax (lsm5@redhat.com)
+- check for old node conf vars if newer undefined (lsm5@redhat.com)
+- check for PROXY_MIN_PORT_NUM if PORT_BEGIN undefined (lsm5@redhat.com)
+- correct if else syntax (lsm5@redhat.com)
+- check for old and new port num variables (lsm5@redhat.com)
+- add PORT_BEGIN parameter to oo-accept-node (lsm5@redhat.com)
+- Card origin_node_374 - Port Watchman to Origin (jhonce@redhat.com)
+
+* Thu Jan 16 2014 Adam Miller <admiller@redhat.com> 1.18.4-1
+- Card origin_node_374 - Port Watchman to Origin (jhonce@redhat.com)
+- Card origin_node_374 - Port Watchman to Origin Bug 1053423 - Restore
+  OPENSHIFT_GEAR_DNS check to watchman Bug 1053397 - Fix encoding error reading
+  spec file Bug 1053422 - Fix state vs. stop_lock check (jhonce@redhat.com)

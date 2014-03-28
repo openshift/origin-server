@@ -8,13 +8,8 @@ Feature: Explicit idle/restore checks
     When I oo-idle the application
     Then a <ruby_proc> process for mock_server will not be running
     And the active capacity has been reduced
+    And the application stoplock should be present
 
-    @fedora-19-only
-    Scenarios: Fedora 19
-      | ruby_proc |
-      | ruby-mri  |
-
-    @rhel-only
     Scenarios: RHEL
       | ruby_proc |
       | ruby      |
@@ -23,7 +18,6 @@ Feature: Explicit idle/restore checks
     Given a new mock-0.1 type application
     Then a <ruby_proc> process for mock_server will be running
     And I record the active capacity
-
     When I oo-idle the application
     Then a <ruby_proc> process for mock_server will not be running
     And the active capacity has been reduced
@@ -32,14 +26,10 @@ Feature: Explicit idle/restore checks
     When I oo-restore the application
     Then a <ruby_proc> process for mock_server will be running
     And the active capacity has been increased
+    And the application stoplock should not be present
 
-    @fedora-19-only
-    Scenarios: Fedora 19
-      | ruby_proc |
-      | ruby-mri  |
 
-    @rhel-only
-    Scenarios: RHEL
+  Scenarios: RHEL
       | ruby_proc |
       | ruby      |
 
@@ -52,18 +42,15 @@ Feature: Explicit idle/restore checks
     Then a <ruby_proc> process for mock_server will not be running
     And the active capacity has been reduced
     And I record the active capacity after idling
+    And the application stoplock should be present
+
 
     When I run the health-check for the <type> cartridge
     Then a <ruby_proc> process for mock_server will be running
     And the active capacity has been increased
+    And the application stoplock should not be present
 
-    @fedora-19-only
-    Scenarios: Fedora 19
-      | ruby_proc |
-      | ruby-mri  |
-
-    @rhel-only
-    Scenarios: RHEL
+  Scenarios: RHEL
       | ruby_proc |
       | ruby      |
 

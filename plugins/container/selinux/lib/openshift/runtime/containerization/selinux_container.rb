@@ -40,21 +40,27 @@ module OpenShift
         #   # Setup permissions
         #
         # Returns nil on Success or raises on Failure
-        def create
+        def create(create_initial_deployment_dir = true)
           # Lock to prevent race condition on obtaining a UNIX user uid.
           # When running without districts, there is a simple search on the
           #   passwd file for the next available uid.
-          File.open("/var/lock/oo-create", File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | uid_lock |
-            uid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-            uid_lock.flock(File::LOCK_EX)
+          PathUtils.flock('/var/lock/oo-create', false) do
 
             unless @container.uid
               @container.uid = @container.gid = @container.next_uid
             end
 
+            cmd = %{groupadd -g #{@container.gid} \
+                    #{@container.uuid}}
+            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+            raise ::OpenShift::Runtime::UserCreationException.new(
+                      "ERROR: unable to create user group(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
+                  ) unless rc == 0
+
             cmd = %{useradd -u #{@container.uid} \
                     -d #{@container.container_dir} \
                     -s #{@gear_shell} \
+                    -g #{@container.gid} \
                     -c '#{@container.gecos}' \
                     -m \
                     -k #{@container.skel_dir} \
@@ -68,13 +74,13 @@ module OpenShift
                   ) unless rc == 0
 
             set_ro_permission(@container.container_dir)
-            FileUtils.chmod 0o0750, @container.container_dir
+            FileUtils.chmod 0750, @container.container_dir
           end
 
           enable_cgroups
           enable_traffic_control
 
-          @container.initialize_homedir(@container.base_dir, @container.container_dir)
+          @container.initialize_homedir(@container.base_dir, @container.container_dir, create_initial_deployment_dir)
 
           enable_fs_limits
           delete_all_public_endpoints
@@ -105,14 +111,18 @@ module OpenShift
           freeze_fs_limits
           freeze_cgroups
           disable_traffic_control
-          last_access_dir = @config.get("LAST_ACCESS_DIR")
-          ::OpenShift::Runtime::Utils::oo_spawn("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
+          last_access_dir = @config.get('LAST_ACCESS_DIR')
+          ::OpenShift::Runtime::Utils::oo_spawn("rm #{last_access_dir}/#{@container.uuid}")
           @container.kill_procs
 
           purge_sysvipc
           delete_all_public_endpoints
 
-          ::OpenShift::Runtime::FrontendHttpServer.new(@container).destroy
+          begin
+            ::OpenShift::Runtime::FrontendHttpServer.new(@container).destroy
+          rescue ::OpenShift::Runtime::MissingCartridgeIdentError
+            # reported upstream...
+          end
 
           dirs = list_home_dir(@container.container_dir)
           begin
@@ -134,7 +144,7 @@ module OpenShift
               raise ::OpenShift::Runtime::UserDeletionException.new(msg)
             end
           rescue ArgumentError => e
-            logger.debug("user does not exist. ignore.")
+            logger.debug('user does not exist. ignore.')
           end
 
           # 1. Don't believe everything you read on the userdel man page...
@@ -369,6 +379,10 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def set_rw_permission(paths)
           PathUtils.oo_chown(@container.uid, @container.gid, paths)
           ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, paths)
+        end
+
+        def chcon(path, label = nil, type=nil, role=nil, user=nil)
+          ::OpenShift::Runtime::Utils::SELinux.chcon(path, label, type, role, user)
         end
 
         # retrieve the default maximum memory limit

@@ -181,7 +181,11 @@ module OpenShift
           FileUtils.rm_r(entry.repository_path) if File.exist?(entry.repository_path)
           FileUtils.mkpath(entry.repository_path)
 
-          Utils.oo_spawn("shopt -s dotglob; /bin/cp -ad #{directory}/* #{entry.repository_path}",
+          # We specifically don't want --preserve=context because we want
+          # the cartridge relabeled when it is copied into the cartridge
+          # repository, and we don't want --preserve=xattr because that
+          # implies --preserve=context on some filesystems.
+          Utils.oo_spawn("shopt -s dotglob; /bin/cp --recursive --no-dereference --preserve=mode,ownership,timestamps,links #{directory}/* #{entry.repository_path}",
                          expected_exitstatus: 0)
         end
         entry
@@ -367,6 +371,19 @@ module OpenShift
       end
 
       #
+      # Determine the latest cartridge version present for a cart
+      #
+      def latest_cartridge_version(cart_name)
+        versions = []
+        @index[cart_name].each_value do |cart_version_to_cart|
+          versions += cart_version_to_cart.keys.delete_if { |v| v == '_' }
+          versions.uniq!
+        end
+
+        Manifest.sort_versions(versions).last
+      end
+
+      #
       # Determine whether the given cartridge version is the latest for (cartridge_name, version)
       #
       def latest_cartridge_version?(cartridge_name, version, cartridge_version)
@@ -408,10 +425,13 @@ module OpenShift
       def latest_versions
         cartridges = []
 
-        @index.each_key do |cart_name|
-          @index[cart_name].keys.sort.reverse.each do |software_version|
-            latest = @index[cart_name][software_version]['_']
-            cartridges << latest unless latest.instance_of?(Hash)
+        @index.each do |cart_name, software_versions|
+          lcv = latest_cartridge_version(cart_name)
+          software_versions.keys.sort.reverse.each do |software_version|
+            unless software_versions[software_version][lcv].instance_of?(Hash)
+              latest = software_versions[software_version]['_']
+              cartridges << latest unless latest.instance_of?(Hash)
+            end
           end
         end
 
@@ -527,12 +547,14 @@ module OpenShift
           FileUtils.symlink(source_usr, target_usr) if File.exist?(source_usr) && !File.exist?(target_usr)
         end
 
-        valid_cartridge_home(cartridge, target)
-
         if downloadable
-          manifest_on_disk = PathUtils.join(target, %w(metadata manifest.yml))
+          metadata_on_disk = PathUtils.join(target, 'metadata')
+          manifest_on_disk = PathUtils.join(metadata_on_disk, 'manifest.yml')
+          FileUtils.mkpath(metadata_on_disk) unless File.exist? metadata_on_disk
           IO.write(manifest_on_disk, YAML.dump(cartridge.manifest))
         end
+
+        valid_cartridge_home(cartridge, target)
 
       rescue => e
         FileUtils.rm_rf target if failure_remove

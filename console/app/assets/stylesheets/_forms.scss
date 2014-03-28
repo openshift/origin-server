@@ -271,7 +271,6 @@ textarea {
   border-color: transparent; // IE10 will set borders and backgrounds on checkboxes, override the defaults for input
   background-color: transparent;
   margin-left: -18px;
-  margin-top: 0;
 }
 
 // Move the options list down to align with labels
@@ -363,7 +362,8 @@ textarea[disabled] {
   cursor: not-allowed;
   background-color: $inputDisabledBackground;
   border: 1px solid $inputDisabledBorder;
-  color: #666 !important;
+  opacity: 0.75;
+  filter: alpha(opacity=75);
 }
 // Read-only inputs
 input[readonly],
@@ -719,6 +719,9 @@ legend + .control-group {
     *margin-left: 0;
     &:first-child {
       *padding-left: $horizontalComponentOffset;
+    }
+    .inline:first-child {
+      padding-top: 5px;
     }
   }
   // Remove bottom margin on block level help text since that's accounted for on .control-group

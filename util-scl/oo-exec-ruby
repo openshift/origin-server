@@ -1,6 +1,18 @@
 #!/bin/bash
+
+# Ensure that the ruby193 SCL's directories come first in the PATH,
+# LD_LIBRARY_PATH, PKG_CONFIG_PATH, and MANPATH variables.
+dir=/opt/rh/ruby193/root/usr/bin
+[[ ${PATH}: =~ ^$dir: ]] || export PATH="$dir:${PATH/:$dir}"
+dir=/opt/rh/ruby193/root/usr/lib64
+[[ ${LD_LIBRARY_PATH}: =~ ^$dir: ]] || export LD_LIBRARY_PATH="$dir:${LD_LIBRARY_PATH/:$dir}"
+
+exec "$@"
+
+# We use the above implementation instead of the following because we want to
+# avoid using the scl command.
+#
 # scl <action> <collection1>...<collectionN> <command> doesn't handle multiple params for command.
 # If it did we would use:  exec scl enable ruby193 "$@"
-
-COMMAND="$(printf "%q " "$@")"
-exec scl enable ruby193 "$COMMAND"
+#COMMAND="$(printf "%q " "$@")"
+#exec scl enable ruby193 "$COMMAND"

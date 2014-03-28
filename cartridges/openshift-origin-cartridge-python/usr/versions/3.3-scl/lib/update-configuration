@@ -1,0 +1,26 @@
+#!/bin/bash
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+# Utility function to update cartridge configuration
+
+function update-configuration {
+    # SCL installs of python 3.3
+    sclpath=$(dirname $(scl enable python33 "which python"))
+    env_dir="${OPENSHIFT_PYTHON_DIR}/env"
+    echo "$OPENSHIFT_PYTHON_DIR/virtenv/venv/bin:$OPENSHIFT_PYTHON_DIR/bin:${sclpath}" > $OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_PATH_ELEMENT
+
+    local ld_path=$(LD_LIBRARY_PATH="" scl enable python33 "printenv LD_LIBRARY_PATH")
+    set_env_var 'OPENSHIFT_PYTHON_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
+
+    local man_path=$(MANPATH="" scl enable python33 "printenv MANPATH")
+    path_append ${MANPATH:-:} ${man_path:-:} > $OPENSHIFT_PYTHON_DIR/env/MANPATH
+
+    local xdg_data_dirs=$(XDG_DATA_DIRS="" scl enable python33 "printenv XDG_DATA_DIRS")
+    path_append ${XDG_DATA_DIRS:-:} ${xdg_data_dirs:-:} > $OPENSHIFT_PYTHON_DIR/env/XDG_DATA_DIRS
+
+    local pkg_config_path=$(PKG_CONFIG_PATH="" scl enable python33 "printenv PKG_CONFIG_PATH")
+    path_append ${PKG_CONFIG_PATH:-:} ${pkg_config_path:-:} > $OPENSHIFT_PYTHON_DIR/env/PKG_CONFIG_PATH
+
+    echo "$OPENSHIFT_PYTHON_DIR/virtenv/venv" > $OPENSHIFT_PYTHON_DIR/env/VIRTUAL_ENV
+}

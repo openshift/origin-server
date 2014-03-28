@@ -41,11 +41,11 @@ module OpenShift
 
             attr_reader :basedir, :token, :app_path
 
-            def initialize(container_uuid, fqdn, container_name, namespace)
+            def initialize(container_uuid, fqdn, container_name, namespace, application_uuid=nil)
               @config = ::OpenShift::Config.new
               @basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
 
-              super(container_uuid, fqdn, container_name, namespace)
+              super(container_uuid, fqdn, container_name, namespace, application_uuid)
 
               @token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
               @app_path = File.join(@basedir, token)
@@ -127,6 +127,9 @@ module OpenShift
                   File.open(conf_path, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                     server_name = @fqdn
                     include_path = @app_path
+                    app_uuid = @application_uuid
+                    gear_uuid = @container_uuid
+                    app_namespace = @namespace
                     ssl_certificate_file = '/etc/pki/tls/certs/localhost.crt'
                     ssl_key_file = '/etc/pki/tls/private/localhost.key'
                     f.write(ERB.new(File.read(@template_http)).result(binding))
@@ -179,13 +182,9 @@ module OpenShift
                     end
 
                     if gen_default_rule
-                      f.puts("RewriteRule ^#{path}(/.*)?$ #{proxy_proto}://#{uri}$1 [P,NS]")
+                      tpath = path.empty? ? "/" : path
 
-                      if path.empty?
-                        tpath = "/"
-                      else
-                        tpath = path
-                      end
+                      f.puts("ProxyPass #{tpath} #{proxy_proto}://#{uri}/")
 
                       if uri.empty?
                         turi = "127.0.0.1:80"
@@ -196,6 +195,7 @@ module OpenShift
                       end
 
                       f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{turi}")
+                      f.puts("ProxyPassReverse #{tpath} #{proxy_proto}://#{fqdn}/")
                     end
 
                     f.fsync
@@ -299,6 +299,7 @@ module OpenShift
             def add_alias_impl(server_alias)
               File.open(alias_path(server_alias), File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
                 f.puts("ServerAlias #{server_alias}")
+                f.puts("ProxyPassReverse / http://#{server_alias}/")
                 f.fsync
               end
             end
@@ -375,6 +376,9 @@ module OpenShift
                 File.open(ssl_conf_path(server_alias), File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                   server_name = server_alias
                   include_path = @app_path
+                  app_uuid = @application_uuid
+                  gear_uuid = @container_uuid
+                  app_namespace = @namespace
                   f.write(ERB.new(File.read(@template_http)).result(binding))
                   f.write("\n")
                   f.write(ERB.new(File.read(@template_https)).result(binding))
@@ -419,8 +423,8 @@ module OpenShift
               ::OpenShift::Runtime::Frontend::Http::Plugins::reload_httpd
             end
 
-            def with_lock_and_reload
-              self.class.with_lock_and_reload
+            def with_lock_and_reload(&block)
+              self.class.with_lock_and_reload(&block)
             end
 
           end

@@ -14,10 +14,9 @@
 # limitations under the License.
 #++
 
-
 module OpenShift
   VERSION = File.open("#{File.dirname(__FILE__)}/../../rubygem-openshift-origin-node.spec"
-                        ).readlines.delete_if{ |x| !x.match(/Version:/)
+                        ).readlines.delete_if{ |x| !x.to_s.encode('UTF-8', invalid: :replace).match(/Version:/)
                         }.first.split(':')[1].strip
   SDK_PATH = File.dirname(__FILE__)
 end

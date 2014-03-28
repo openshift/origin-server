@@ -1,0 +1,454 @@
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'rubygems'
+require 'openshift-origin-node/utils/node_logger'
+require 'openshift-origin-node/utils/application_state'
+require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/model/application_container'
+require 'openshift-origin-node/model/frontend_httpd'
+require 'openshift-origin-common/utils/file_needs_sync'
+require 'syslog'
+require 'parallel'
+
+# Always keep this last for performance
+require 'commander/import'
+
+$name = File.basename __FILE__
+
+program :name, $name
+program :version, '1.0.0'
+program :description, %q(Change the state of gears)
+program :help, 'Copyright', %q(2014 Red Hat, Inc)
+program :help, 'License', %q(ASL 2.0)
+program :help, 'Note #1', %q(This command should be run as root)
+program :int_message, %q(Warning: not all gears have been processed)
+
+unless 'root' == Etc.getpwuid(Process::uid).name
+  $stderr.puts("Must be run as root\n Use #{$name} --help to obtain help")
+  exit! 1
+end
+
+global_option('-n', '--processes COUNT', Integer, 'Number of processes to use')
+global_option('-w', '--timeout SECONDS', Integer, 'Number of seconds to wait for operation')
+
+HONOR_LOCK  = true
+IGNORE_LOCK = false
+FORCE_STOP  = true
+INIT_OWNED  = true
+
+module OpenShift
+  module Runtime
+    class AdminGearsControl
+      include OpenShift::Runtime::Utils
+
+      RED    = "\033[31m"
+      GREEN  = "\033[32m"
+      NORMAL = "\033[0m"
+
+
+      def initialize(options, uuids=nil)
+        @options                = Hash.new
+        @options[:in_processes] = options.processes if options.processes
+
+        @uuids          = uuids
+
+        # From openshift.ddl#timeout
+        @gear_timeout   = options.timeout || 360
+        @forced_options = {force: FORCE_STOP, term_delay: 10}
+
+        output = Array.new
+        if @uuids.nil?
+          output << 'AdminGearsControl: initialized for all gears in parallel'
+        else
+          output << "AdminGearsControl: initialized for gear(s) #{uuids.join(', ')}"
+        end
+        output << "AdminGearsControl: initialized with timeout #{@gear_timeout}s"
+
+        if options[:processes]
+          output << "AdminGearsControl: initialized with #{options[:processes]} processes"
+        else
+          output << 'AdminGearsControl: initialized with 1 process per CPU'
+        end
+        NodeLogger.logger.debug(output.join("\n  "))
+
+        Syslog.open('oo-admin-ctl-gears', 0, Syslog::LOG_LOCAL0) unless Syslog.opened?
+      end
+
+      # Log success messages
+      #
+      # @param msg [String] message denoting operation. E.g., 'Starting gear uuid'
+      def okay(msg)
+        NodeLogger.logger.info %Q((#{Process.pid}) #{msg}[ OK ])
+        $stdout.puts %Q(#{msg}[ #{$stdout.tty? ? GREEN : ''} OK #{$stdout.tty? ? NORMAL : ''}])
+      end
+
+      # Log success messages
+      #
+      # @param msg    [String] message denoting operation. E.g., 'Starting gear uuid'
+      # @param reason [String] reason for failure
+      def failed(msg, reason)
+        NodeLogger.logger.error %Q((#{Process.pid}) #{msg}[ FAILED ]\n  #{reason})
+        $stdout.puts %Q(#{msg}[ #{$stdout.tty? ? RED : ''} FAILED #{$stdout.tty? ? NORMAL : ''}]\n #{reason}])
+      end
+
+      # For a given gear monitor some operation
+      #
+      # @param gear [ApplciationContainer] gear to be acted upon
+      # @param msg  [String] message denoting operation. E.g., 'Starting gear uuid'
+      def gear_action(gear, msg)
+        Timeout::timeout(@gear_timeout) do
+          buffer = yield(gear)
+          okay(msg)
+          {uuid: gear.uuid, buffer: buffer, exitstatus: 0}
+        end
+      rescue Timeout::Error
+        reason = "Operation timed out. (>#{@gear_timeout}s)"
+        failed(msg, reason)
+        {uuid: gear.uuid, buffer: reason, exitstatus: 254}
+      rescue ShellExecutionException => e
+        failed(msg, e.message)
+        {uuid: gear.uuid, buffer: e.message, exception: e, exitstatus: 254}
+      rescue => e
+        failed(msg, e.message)
+        {uuid: gear.uuid, buffer: e.message, exception: e, exitstatus: 254}
+      end
+
+      # Format and log any failures from the gear action
+      #
+      # @param failures [Array<Hash>] array of hashes representing the gear operation failures
+      # @option failures [String] :uuid gear uuid
+      # @option failures [String] :buffer output from gear operation
+      # @option failures [Exception] :exception from gear operation
+      # @option failures [Fixnum] :exitstatus from script backing gear operation
+      def report_failures(failures)
+        failures.each do |result|
+          if result[:exception].nil?
+            NodeLogger.logger.error("Gear: #{result[:uuid]} failed, #{result[:buffer]}")
+          else
+            NodeLogger.logger.error("Gear: #{result[:uuid]} failed, Error: #{result[:exception]}")
+            NodeLogger.logger.debug("Gear: #{result[:uuid]} failed, Exception: #{result[:exception].inspect}")
+            NodeLogger.logger.debug("Gear: #{result[:uuid]} failed, Backtrace: #{result[:exception].backtrace}")
+          end
+
+          unless result[:buffer].nil? || result[:buffer].empty?
+            NodeLogger.logger.info("Gear: #{result[:uuid]} output, #{result[:buffer]}")
+          end
+        end
+        failures.empty? ? 0 : 254
+      end
+
+      def start(honor_lock = true)
+        results = Parallel.map(gears(honor_lock), @options) do |gear|
+          gear_action(gear, "Starting gear #{gear.uuid} ... ") { |g| g.start_gear }
+        end
+        report_failures(results.select { |h| 0 != h[:exitstatus] })
+      end
+
+      def stop(honor_lock = true, force = false, init_owned = false)
+        results = Parallel.map(gears(honor_lock), @options) do |gear|
+          opt = {user_initiated: false}
+          opt.merge!(@forced_options) if force
+          opt.merge!({init_owned: true}) if init_owned
+          gear_action(gear, "Stopping gear #{gear.uuid} ... ") { |g| g.stop_gear(opt) }
+        end
+        report_failures(results.select { |h| 0 != h[:exitstatus] })
+      end
+
+      def restart(honor_lock = true)
+        results = Parallel.map(gears(honor_lock), @options) do |gear|
+          opt = {user_initiated: false}
+          opt.merge!(@forced_options)
+          [
+              gear_action(gear, "Stopping gear #{gear.uuid} ... ") { |g| g.stop_gear(opt) },
+              gear_action(gear, "Starting gear #{gear.uuid} ... ") { |g| g.start_gear }
+          ]
+        end
+        report_failures(results.flatten.select { |h| 0 != h[:exitstatus] })
+      end
+
+      def status
+        Parallel.map(gears(IGNORE_LOCK), @options) do |gear|
+          output = Array.new
+          output << "Checking application #{gear.container_name} (#{gear.uuid}) status:"
+          output << '-----------------------------------------------'
+          output << "Gear #{gear.uuid} is locked.\n" if gear.stop_lock?
+          begin
+            gear.cartridge_model.each_cartridge do |cart|
+              output << "Cartridge: #{cart.name} ..."
+              status = gear.status(cart)
+              status.gsub!(/^ATTR:.*$/, '')
+              status.gsub!(/^CLIENT_RESULT:\s+/, '')
+              status.strip!
+              output << status
+            end
+          rescue => e
+            $stderr.puts("Gear #{gear.container_name} Exception: #{e}")
+            $stderr.puts("Gear #{gear.container_name} Backtrace: #{e.backtrace}")
+          end
+          output << "\n"
+          $stdout.puts output.join("\n")
+        end
+        0
+      end
+
+      def idlegear
+        results = Parallel.map(gears(IGNORE_LOCK), @options) do |gear|
+          msg = "Idling gear #{gear.uuid} ... "
+          gear_action(gear, msg) { |g| g.idle_gear }
+        end
+        report_failures(results.select { |h| 0 != h[:exitstatus] })
+      end
+
+      def unidlegear
+        results = Parallel.map(gears(IGNORE_LOCK), @options) do |gear|
+          msg = "Unidling gear #{gear.uuid} ... "
+          gear_action(gear, msg) { |g| g.unidle_gear }
+        end
+        report_failures(results.select { |h| 0 != h[:exitstatus] })
+      end
+
+      def gears(honor_lock = true)
+        Enumerator.new do |yielder|
+          if @uuids.nil?
+            ApplicationContainer.all(nil, false).each do |gear|
+              yielder.yield(gear) unless honor_lock && gear.stop_lock?
+            end
+          else
+            @uuids.each do |uuid|
+              gear = ApplicationContainer.from_uuid(uuid)
+              raise "Gear is locked: #{gear.uuid}" if honor_lock && gear.stop_lock?
+              yielder.yield(gear)
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+
+$lockfile = "/var/lock/subsys/openshift-gears"
+
+def lock_if_good
+  if block_given?
+    r = yield
+    if r.to_i == 0
+      File.open($lockfile, 'w') {}
+    end
+  end
+  r
+end
+
+def unlock_if_good
+  if block_given?
+    r = yield
+    if r.to_i == 0
+      begin
+        File.unlink($lockfile)
+      rescue Errno::ENOENT
+      end
+    end
+  end
+  r
+end
+
+command :startall do |c|
+  c.syntax      = "#{$name} #{c.name}"
+  c.description = %q(start all gears that do not have a stop_lock in background)
+
+  c.action do |_, options|
+    cpid = fork do
+      Dir.chdir('/')
+      $stdin.reopen('/dev/null', 'r')
+      $stderr.reopen($stdout)
+      ObjectSpace.each_object(IO) do |i|
+        next if i.closed?
+        next if [$stdin, $stdout, $stderr].map { |f| f.fileno }.include?(i.fileno)
+        i.close
+      end
+      Process.setsid
+      OpenShift::Runtime::NodeLogger.logger.reinitialize
+      exit lock_if_good { OpenShift::Runtime::AdminGearsControl.new(options).start }
+    end
+
+    OpenShift::Runtime::NodeLogger.logger.info("Background start initiated - process id = #{cpid}")
+    $stdout.puts %Q(
+Background start initiated - process id = #{cpid}
+  Check /var/log/openshift/node/platform.log for more details.
+
+  Note: In the future, if you wish to start the OpenShift services in the
+        foreground (waited), use:  service openshift-gears waited-start
+)
+    $stdout.flush
+    exit!(0)
+  end
+end
+
+command :'waited-startall' do |c|
+  c.syntax      = "#{$name} #{c.name}"
+  c.description = %q(start all gears without a stop_lock in foreground)
+
+  c.action do |_, options|
+    exit lock_if_good { OpenShift::Runtime::AdminGearsControl.new(options).start }
+  end
+end
+
+command :stopall do |c|
+  c.syntax      = "#{$name} #{c.name}"
+  c.description = %q(stop all gears)
+
+  c.action do |_, options|
+    exit unlock_if_good { OpenShift::Runtime::AdminGearsControl.new(options).stop }
+  end
+end
+
+command :forcestopall do |c|
+  c.syntax      = "#{$name} #{c.name}"
+  c.description = %q(stop all gears with prejudice)
+
+  c.action do |_, options|
+    exit unlock_if_good { OpenShift::Runtime::AdminGearsControl.new(options).stop(HONOR_LOCK, FORCE_STOP) }
+  end
+end
+
+command :restartall do |c|
+  c.syntax      = "#{$name} #{c.name}"
+  c.description = %q(restart all gears without a stop_lock)
+
+  c.action do |_, options|
+    exit lock_if_good { OpenShift::Runtime::AdminGearsControl.new(options).restart }
+  end
+end
+
+command :condrestartall do |c|
+  c.syntax      = "#{$name} #{c.name}"
+  c.description = %q(restart all gears without a stop_lock ensuring singleton script)
+
+  c.action do |_, options|
+    (exit OpenShift::Runtime::AdminGearsControl.new(options).restart) if File.exists?($lockfile)
+  end
+end
+
+command :status do |c|
+  c.syntax      = "#{$name} #{c.name}"
+  c.description = %q(report status for all cartridges from all gears)
+
+  c.action do |_, options|
+    $stdout.puts("Checking OpenShift Services: \n")
+    exit OpenShift::Runtime::AdminGearsControl.new(options).status
+  end
+end
+
+command :startgear do |c|
+  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.description = %q(start given gear)
+
+  c.action do |args, options|
+    raise 'Requires a gear uuid' if args.empty?
+    exit OpenShift::Runtime::AdminGearsControl.new(options, args).start(IGNORE_LOCK)
+  end
+end
+
+command :stopgear do |c|
+  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.description = %q(stop given gear ignoring stop_lock)
+
+  c.action do |args, options|
+    raise 'Requires a gear uuid' if args.empty?
+    exit OpenShift::Runtime::AdminGearsControl.new(options, args).stop(IGNORE_LOCK)
+  end
+end
+
+command :forcestopgear do |c|
+  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.description = %q(stop given gear ignoring stop_lock with prejudice)
+
+  c.action do |args, options|
+    raise 'Requires a gear uuid' if args.empty?
+    exit OpenShift::Runtime::AdminGearsControl.new(options, args).stop(IGNORE_LOCK, FORCE_STOP)
+  end
+end
+
+command :condstopgear do |c|
+  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.description = %q(attempt to stop cartridge daemons for given gear)
+
+  c.action do |args, options|
+    raise 'Requires a gear uuid' if args.empty?
+    exit OpenShift::Runtime::AdminGearsControl.new(options, args).stop(IGNORE_LOCK, FORCE_STOP, INIT_OWNED)
+  end
+end
+
+command :restartgear do |c|
+  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.description = %q(restart given gear ignoring stop_lock)
+
+  c.action do |args, options|
+    raise 'Requires a gear uuid' if args.empty?
+    exit OpenShift::Runtime::AdminGearsControl.new(options, args).restart(IGNORE_LOCK)
+  end
+end
+
+
+command :statusgear do |c|
+  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.description = %q(report status of cartridges for given gear)
+
+  c.action do |args, options|
+    raise "Requires a gear uuid" if args.empty?
+    exit OpenShift::Runtime::AdminGearsControl.new(options, args).status
+  end
+end
+
+command :idlegear do |c|
+  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.description = %q(change gear state to idle)
+
+  c.action do |args, options|
+    raise "Requires a gear uuid" if args.empty?
+    exit OpenShift::Runtime::AdminGearsControl.new(options, args).idlegear
+  end
+end
+
+command :unidlegear do |c|
+  c.syntax      = "#{$name} #{c.name} <login name>"
+  c.description = %q(change gear state to started)
+
+  c.action do |args, options|
+    raise "Requires a gear uuid" if args.empty?
+    exit OpenShift::Runtime::AdminGearsControl.new(options, args).unidlegear
+  end
+end
+
+command :list do |c|
+  c.syntax      = "#{$name} #{c.name}"
+  c.description = %q(list all gears on node)
+
+  c.action { OpenShift::Runtime::ApplicationContainer.all_uuids.each { |u| $stdout.puts u } }
+end
+
+command :listidle do |c|
+  c.syntax = "#{$name} #{c.name}"
+
+  c.action do
+    OpenShift::Runtime::ApplicationContainer.all.each do |container|
+      next unless container.stop_lock?
+      $stdout.puts "#{container.uuid} is idled" if OpenShift::Runtime::FrontendHttpServer.new(container).idle?
+    end
+  end
+end

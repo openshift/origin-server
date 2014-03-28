@@ -1,8 +1,9 @@
-@cartridge_extended2
-Feature: V2 Platform Plugin Tests
+@gear_extended
+@gear_extended1
+Feature: Platform Plugin Tests
   Scenario: Basic state checks for an application with an embedded cartridge
-    Given a new mock-0.1 type application   
-    
+    Given a new mock-0.1 type application
+
     When I embed a mock-plugin-0.1 cartridge into the application
     Then the mock-plugin-0.1 cartridge private endpoints will be exposed
     And the mock-plugin setup_called marker will exist

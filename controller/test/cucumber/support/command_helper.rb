@@ -244,11 +244,11 @@ module CommandHelper
     end
   end
 
-  def rhc_get_app_status(app, cartridge_type)
+  def rhc_get_app_status(app, cartridge_type, debug=true)
     output_buffer=[]
     rhc_do('rhc_reload') do
       time = Benchmark.realtime do
-        run("#{$rhc_script} cartridge status #{cartridge_type} -a #{app.name}  #{default_args(app)}",output_buffer).should == 0        
+        run("#{$rhc_script} cartridge status #{cartridge_type} -a #{app.name}  #{default_args(app, debug)}",output_buffer).should == 0        
       end
       log_event "#{time} GET_APP_STATUS #{app.name} #{cartridge_type}"
     end
@@ -473,7 +473,7 @@ module CommandHelper
     end
   end
 
-  def default_args(app)
+  def default_args(app, debug=true)
     hostname = "localhost"
     begin
       if File.exists?("/etc/openshift/node.conf")
@@ -485,7 +485,8 @@ module CommandHelper
     rescue
       puts "Unable to determine hostname. Defaulting to localhost]\n"
     end
-    " -l #{app.login} -p #{app.password} --clean --debug --noprompt --server=#{hostname} --insecure"
+    return " -l #{app.login} -p #{app.password} --clean --debug --noprompt --server=#{hostname} --insecure" if debug
+    return " -l #{app.login} -p #{app.password} --clean --noprompt --server=#{hostname} --insecure" unless debug
   end
 
   #
@@ -563,7 +564,7 @@ module CommandHelper
   end
 
   def oo_admin_broker_auth_find_gears
-    command = 'oo-admin-broker-auth --find-gears'
+    command = 'oo-broker --non-interactive oo-admin-broker-auth --find-gears'
     $logger.debug("oo-admin-broker-auth: executing #{command}")
 
     stdin, stdout, stderr = Open3.popen3(command)

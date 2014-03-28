@@ -35,14 +35,14 @@ class RestDomain12 < OpenShift::Model
     unless nolinks
       valid_sizes = domain.allowed_gear_sizes
       blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
-      carts = CartridgeCache.cartridge_names("web_framework")
+      carts = CartridgeCache.web_framework_names
 
       self.links = {
         "GET" => Link.new("Get domain", "GET", URI::join(url, "domain/#{id}")),
         "LIST_APPLICATIONS" => Link.new("List applications", "GET", URI::join(url, "domain/#{id}/applications")),
         "ADD_APPLICATION" => Link.new("Create new application", "POST", URI::join(url, "domain/#{id}/applications"),
           [Param.new("name", "string", "Name of the application",nil,blacklisted_words)],
-          [OptionalParam.new("cartridges", "array", "Array of one or more cartridge names. i.e. [\"php-5.3\", \"mongodb-2.2\"]", carts),
+          [OptionalParam.new("cartridges", "array", "Array of one or more cartridge names.]", carts),
           OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),
           OptionalParam.new("gear_profile", "string", "The size of the gear", valid_sizes, valid_sizes[0]),
           OptionalParam.new("initial_git_url", "string", "A URL to a Git source code repository that will be the basis for this application."),
@@ -59,9 +59,11 @@ class RestDomain12 < OpenShift::Model
         "LIST_MEMBERS" => Link.new("List members of this domain", "GET", URI::join(url, "domain/#{id}/members")),
         "LEAVE" => Link.new("Leave this domain", "DELETE", URI::join(url, "domain/#{id}/members/self")),
         "UPDATE_MEMBERS" => Link.new("Add or remove one or more members to this domain.", "POST", URI::join(url, "domain/#{id}/members"),
-          [Param.new("role", "string", "The role the user should have on the domain", Role.all)],
-          [OptionalParam.new("id", "string", "Unique identifier of the user"),
-          OptionalParam.new("login", "string", "The user's login attribute")]
+          [Param.new("role", "string", "The role the member should have on the domain", Role.all)],
+          [OptionalParam.new("type", "string", "The member's type. i.e. user or team", ["user", "team"], "user"),
+          OptionalParam.new("id", "string", "Unique identifier of the member for the given member type (user or team ID)"),
+          OptionalParam.new("login", "string", "The user's login attribute"),
+          OptionalParam.new("members", "Array", "An array of members to add with corresponding type and role. e.g. {'members': [{'login': 'foo', 'type': 'user', 'role': 'view'}, {'id': '5326534e2046fde9d3000001', 'type': 'team', 'role': 'none'}]}")]
         ),
       }
     end

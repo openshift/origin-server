@@ -1,6 +1,15 @@
 #!/bin/bash -e
 
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
 # Create/truncate Apache PassEnv configuration file
 echo > $OPENSHIFT_PHPMYADMIN_DIR/conf.d/passenv.conf
 
-mkdir -p $OPENSHIFT_PHPMYADMIN_DIR/{logs,run,sessions,tmp,conf,conf.d}
+mkdir -p $OPENSHIFT_PHPMYADMIN_DIR/{run,sessions,tmp,conf,conf.d}
+
+cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/conf/* ${OPENSHIFT_PHPMYADMIN_DIR}/conf/
+cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/conf.d/* ${OPENSHIFT_PHPMYADMIN_DIR}/conf.d/
+cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/phpMyAdmin/* ${OPENSHIFT_PHPMYADMIN_DIR}/phpMyAdmin/

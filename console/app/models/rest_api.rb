@@ -59,6 +59,12 @@ module RestApi
 
   class ServerUnavailable < ActiveResource::ServerError ; end
 
+  class ServerError < ActiveResource::ServerError
+    def to_s
+      @message.presence || super
+    end
+  end
+
   # The server did not return the response we were expecting, possibly a server bug
   class BadServerResponseError < StandardError ; end
 

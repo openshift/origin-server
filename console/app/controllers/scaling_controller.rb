@@ -27,7 +27,7 @@ class ScalingController < ConsoleController
     @cartridge.scales_from, @cartridge.scales_to = range
 
     if @cartridge.save
-      redirect_to application_scaling_path, :flash => {:success => "Updated scale settings for cartridge '#{@cartridge.display_name}'"}
+      redirect_to application_scaling_path, :flash => flash_messages(@cartridge.messages).merge({:success => "Updated scale settings for cartridge '#{@cartridge.display_name}'"})
     else
       render :show
     end

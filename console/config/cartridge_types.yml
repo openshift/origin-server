@@ -1,50 +1,24 @@
 ---
-- :categories: 
+- :categories:
   - :blacklist
   - :administration
   :name: 10gen-mms-agent-0.1
 
-- :categories: 
-  - :administration
-  :display_name: phpMyAdmin 4
-  :requires:
-  - mysql-5.1
-  :name: phpmyadmin-4
-
 - :name: cron-1.4
   :priority: 2
 
-- :categories: 
-  - :administration
-  :requires: 
-  - mongodb-2.2
-  :name: rockmongo-1.1
-
-- :categories: 
+- :categories:
   - :blacklist
   :name: haproxy-1.4
-
-- :categories: 
-  - :featured
-  :name: jbosseap-6
-  :priority: -1
-
-- :name: zend-5.6
-  :priority: -1
-  :categories:
-  - :featured
 
 - :description: Ruby is a dynamic, reflective, general-purpose object-oriented programming language. We recommend using Ruby 1.9.3 for new applications.
   :name: ruby-1.8
   :priority: 2
 
-- :categories: 
+- :categories:
   - :custom
   :name: diy-0.1
   :priority: 1
 
 - :name: jenkins-1
   :priority: 1
-
-- :name: mock-plugin-0.1
-  :priority: 3

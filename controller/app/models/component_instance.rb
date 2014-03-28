@@ -9,16 +9,42 @@
 #   @return [Moped::BSON::ObjectId] The ID of the {GroupInstance} that hosts this component
 class ComponentInstance
   include Mongoid::Document
+  include Mongoid::Timestamps::Created
   embedded_in :application
 
-  field :cartridge_name, type: String
-  field :component_name, type: String
-  field :cartridge_vendor, type: String, default: ""
-  field :version, type: String, default: ""
-  field :component_properties, type: Hash, default: {}
   field :group_instance_id, type: Moped::BSON::ObjectId
+  field :cartridge_id, type: Moped::BSON::ObjectId
+  field :component_properties, type: Hash, default: {}
+  field :component_name, type: String
+  field :cartridge_name, type: String
 
-  NAME_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\z/
+  field :manifest_text, type: String
+  field :manifest_url, type: String
+
+  # DEPRECATED - will be removed
+  field :cartridge_vendor, type: String
+
+  def self.from(cartridge, name=nil)
+    name ||= cartridge.components.first.name
+    inst = new(
+      cartridge_name: cartridge.name,
+      # LEGACY - these will be removed in a future release
+      component_name: name,
+      cartridge_vendor: cartridge.cartridge_vendor,
+    )
+    if cartridge.singleton?
+      inst._id = Moped::BSON::ObjectId.from_string(cartridge.id) if cartridge.id.present?
+      inst.manifest_url = cartridge.manifest_url
+      inst.manifest_text = cartridge.manifest_text
+      inst.cartridge_id = inst._id
+    else
+      inst.cartridge_id = cartridge.id
+    end
+    inst.instance_variable_set(:@cartridge, cartridge)
+    inst
+  end
+
+  NAME_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\Z/
   def self.check_name!(name)
     if name.blank? or name !~ NAME_REGEX
       raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, {}, [])
@@ -26,64 +52,22 @@ class ComponentInstance
     name
   end
 
-  # @return [Boolean] true if the component does not scale.
-  def is_sparse?
-    get_component.is_sparse?
-  end
+  delegate :is_plugin?, :is_embeddable?, :is_web_proxy?, :is_web_framework?, to: :cartridge
+  delegate :is_sparse?, to: :component
 
   def min
-    min = get_group_overriding_value('min_gears')
-    return (min.nil? ? get_component.scaling.min : min)
-  end
-
-  def get_group_overriding_value(key)
-    self.application.group_overrides.each { |go|
-      go['components'].each { |comp_spec|
-        if comp_spec['cart']==self.cartridge_name and comp_spec['comp']==self.component_name
-          if comp_spec.has_key?(key)
-            return comp_spec[key] 
-          elsif not is_sparse?
-            return go[key]
-          end
-        end
-      }
-    }
-    return nil
-  end
-
-  def multiplier
-    mul = get_group_overriding_value('multiplier')
-    return (mul.nil? ? get_component.scaling.multiplier : mul)
+    raise "Remove me"
+    get_value_from_group_override(:min_gears) || component.scaling.min
   end
 
   def max
-    max = get_group_overriding_value('max_gears')
-    return (max.nil? ? get_component.scaling.max : max)
+    raise "Remove me"
+    get_value_from_group_override(:max_gears) || component.scaling.max
   end
 
-  def is_plugin?
-    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
-    cart.is_plugin?
-  end
-
-  def is_embeddable?
-    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
-    cart.is_embeddable?
-  end
-
-  def is_web_proxy?
-    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
-    cart.is_web_proxy?
-  end
-
-  def is_web_framework?
-    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
-    cart.is_web_framework?
-  end
-
-  def get_additional_control_actions
-    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
-    cart.additional_control_actions
+  def multiplier
+    raise "Remove me"
+    get_value_from_group_override(:multiplier) || component.scaling.multiplier
   end
 
   def group_instance
@@ -91,7 +75,7 @@ class ComponentInstance
   end
 
   def gears
-    gi_gears = self.application.gears.select {|g| g.group_instance_id == self.group_instance_id}
+    gi_gears = self.application.gears.select{ |g| g.group_instance_id == self.group_instance_id }
     return [] unless gi_gears.present?
     ci_gears = []
     unless self.is_sparse?
@@ -99,8 +83,8 @@ class ComponentInstance
     else
       gi_gears.each do |gear|
         ci_gears << gear if (gear.host_singletons or gear.sparse_carts.include? self._id)
-      end   
-    end 
+      end
+    end
     ci_gears
   end
 
@@ -114,27 +98,94 @@ class ComponentInstance
     end
   end
 
-  def get_feature
-    cart = get_cartridge
-    prof = get_profile
-    (prof.provides.length > 0 && prof.name != cart.default_profile) ? prof.provides.first : cart.provides.first
+  def supports_action?(action)
+    cartridge.additional_control_actions.include?(action)
   end
 
-  def get_profile
-    cart = get_cartridge
-    prof = cart.get_profile_for_component self.component_name
+  def component
+    @component ||= cartridge.get_component(component_name)
+  end
+  alias_method :get_component, :component
+
+  def cartridge
+    @cartridge ||= begin
+      # WARNING: during migration, this will prefer the new cartridge over the old (which means an update of the
+      # old location by old code will have no effect).
+      if data = (manifest_text and attributes)
+        cart = CartridgeCache.find_serialized_cartridge(data)
+        cart.id = _id.to_s
+        cart.created_at = created_at
+        self.cartridge_id = _id
+        self.cartridge_name = cart.name
+        self.cartridge_vendor = cart.cartridge_vendor
+        cart
+      # DEPRECATED: this block will be removed when downloaded_cart_map is removed
+      elsif data = (cartridge_name and application.downloaded_cart_map and
+                    application.downloaded_cart_map.each_value.detect{ |c| c['versioned_name'] == cartridge_name })
+        cart = CartridgeCache.cartridge_from_data(data)
+        cart.id = _id.to_s
+        cart.created_at = created_at
+        self.cartridge_id = _id
+        self.cartridge_name = cart.name
+        self.cartridge_vendor = cart.cartridge_vendor
+        self.manifest_text = cart.manifest_text
+        self.manifest_url = cart.manifest_url
+        cart
+      elsif cartridge_id && (cart = CartridgeCache.find_cartridge_by_id(cartridge_id))
+        self.cartridge_name = cart.name
+        self.cartridge_vendor = cart.cartridge_vendor
+      elsif cartridge_name && (cart = CartridgeCache.find_cartridge(cartridge_name))
+        self.cartridge_id = Moped::BSON::ObjectId.from_string(cart.id) if cart.id.present?
+        self.cartridge_vendor = cart.cartridge_vendor
+      end
+      cart or raise OpenShift::UserException.new("The cartridge #{cartridge_name} is used by the application #{self.application.name} but cannot be located.")
+    end
+  end
+  alias_method :get_cartridge, :cartridge
+
+  def group_overrides(&block)
+    e = EnumeratorArray.new do |y|
+      application.group_overrides.each do |override|
+        if override && override.components.any?{ |spec| matches_spec?(spec) }
+          y << override
+        end
+      end
+    end
+    return e.each(&block) if block_given?
+    e
   end
 
-  def get_cartridge
-    CartridgeCache.find_cartridge(cartridge_name, self.application)
+  def to_component_spec
+    ComponentSpec.for_instance(self, self.has_application? ? self.application : nil)
+  end
+  alias_method :get_cartridge, :cartridge
+
+  def matches_spec?(spec)
+    component_name == spec.name && cartridge_name == spec.cartridge_name
   end
 
-  def get_component
-    get_cartridge.get_component(component_name)
-  end
-
-  # @return [Hash] a simplified hash representing this {ComponentInstance} object which is used by {Application#compute_diffs}
-  def to_hash
-    {"cart" => cartridge_name, "comp" => component_name}
-  end
+  private
+    ##
+    # Return the first value in the group overrides that applies to this component for <b>key</b>
+    # that is not nil.
+    #
+    def get_value_from_group_override(key)
+      raise "Remove me"
+      group_overrides.each do |override|
+        match = false
+        override.components.each do |spec|
+          if matches_spec?(spec)
+            match = true
+            value = spec.send(key) if spec.respond_to?(key)
+            value = override.send(key) if !is_sparse? && value.nil?
+            return value unless value.nil?
+          end
+        end
+        if match
+          value = override.send(key)
+          return value unless value.nil?
+        end
+      end
+      nil
+    end
 end

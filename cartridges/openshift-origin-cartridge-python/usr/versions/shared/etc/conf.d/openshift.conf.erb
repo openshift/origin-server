@@ -1,7 +1,5 @@
-LoadModule wsgi_module     modules/mod_wsgi.so
-
 ServerRoot "<%= ENV['OPENSHIFT_PYTHON_DIR'] %>"
-DocumentRoot "<%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi"
+DocumentRoot "<%= ENV['OPENSHIFT_PYTHON_DOCUMENT_ROOT'] || "#{ENV['OPENSHIFT_REPO_DIR']}wsgi" %>"
 Listen <%= ENV['OPENSHIFT_PYTHON_IP'] %>:<%= ENV['OPENSHIFT_PYTHON_PORT'] %>
 User <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
@@ -9,17 +7,21 @@ Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 DefaultRuntimeDir "<%= "#{ENV['OPENSHIFT_PYTHON_DIR']}/run"%>"
 </IfVersion>
 
-ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PYTHON_LOG_DIR'] %>/error_log-%Y%m%d-%H%M%S-%Z 86400"
-CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PYTHON_LOG_DIR'] %>/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
+ErrorLog "|tee"
+CustomLog "|tee" combined
 
-<Directory <%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi>
+<Directory "<%= ENV['OPENSHIFT_PYTHON_DOCUMENT_ROOT'] || "#{ENV['OPENSHIFT_REPO_DIR']}wsgi" %>">
   AllowOverride all
   Options -MultiViews
 </Directory>
 
-WSGIScriptAlias / "<%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi/application"
-WSGISocketPrefix "/tmp/wsgi"
-Alias /static "<%= ENV['OPENSHIFT_REPO_DIR'] %>wsgi/static/"
-WSGIPassAuthorization On
+<% #Backward compatibilty with wsgi/static/ directory
+  if $SAFE!=2 && (File.directory?("#{ENV['OPENSHIFT_REPO_DIR']}wsgi/static") || File.symlink?("#{ENV['OPENSHIFT_REPO_DIR']}wsgi/static"))
+    %><%= "Alias /static #{ENV['OPENSHIFT_REPO_DIR']}wsgi/static" %><%
+  end
+%>
 
+WSGIScriptAlias / "<%= ENV['OPENSHIFT_PYTHON_WSGI_APPLICATION'] || "#{ENV['OPENSHIFT_REPO_DIR']}wsgi/application" %>"
+WSGISocketPrefix "/tmp/wsgi"
+WSGIPassAuthorization On
 WSGIProcessGroup <%= ENV['OPENSHIFT_GEAR_UUID'] %>

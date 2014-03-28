@@ -9,8 +9,6 @@
 #   @return [Hash] Arguments hash.
 # @!attribute [rw] parent_op_id
 #   @return [Moped::BSON::ObjectId] ID of the {PendingUserOps} operation that this operation is part of.
-# @!attribute [r] on_apps
-#   @return [Array[Moped::BSON::ObjectId]] IDs of the {Application} that are part of this operation.
 # @!attribute [r] completed_apps
 #   @return [Array[Moped::BSON::ObjectId]] IDs of the {Application} that have completed their sub-tasks.
 #     @see {PendingDomainOps#child_completed}
@@ -18,31 +16,44 @@
 #   @return [Symbol] Method to call on the {Domain} once this operation is complete.
 class PendingDomainOps
   include Mongoid::Document
-  include Mongoid::Timestamps
+  include Mongoid::Timestamps::Created
 
   embedded_in :domain, class_name: Domain.name
 
   field :parent_op_id, type: Moped::BSON::ObjectId
   field :state, type: Symbol, :default => :init
-  has_and_belongs_to_many :on_apps, class_name: Application.name, inverse_of: nil
   has_and_belongs_to_many :completed_apps, class_name: Application.name, inverse_of: nil
   field :on_completion_method, type: Symbol
 
+  def initialize(attrs = nil, options = nil)
+    parent_opid = nil
+    if !attrs.nil? and attrs[:parent_op]
+      parent_opid = attrs[:parent_op]._id 
+      attrs.delete(:parent_op)
+    end
+    super
+    self.parent_op_id = parent_opid 
+  end
+
   def pending_apps
-    pending_apps = on_apps - completed_apps
-    pending_apps
+    (domain.applications - completed_apps)
   end
 
   def completed?
-    (self.state == :completed) || ((on_apps.length - completed_apps.length) == 0)
+    (self.state == :completed) || (pending_apps.length == 0)
   end
 
   def close_op
     if completed?
       if not parent_op_id.nil?
         user = CloudUser.find_by(_id: self.domain.owner_id)
-        parent_op = user.pending_ops.find_by(_id: self.parent_op_id)
-        parent_op.child_completed(self.domain)
+        user.pending_op_groups.each do |op_group|
+          if op_group.pending_ops.where(_id: self.parent_op_id).exists?
+            parent_op = op_group.pending_ops.find_by(_id: self.parent_op_id)
+            parent_op.child_completed(self.domain)
+            break
+          end
+        end
       end
       domain.send(on_completion_method, self) unless on_completion_method.nil?
     end
@@ -65,7 +76,7 @@ class PendingDomainOps
     updated_op = update_with_retries(5, failure_message) do |current_domain, current_op, op_index|
       Domain.where({ "_id" => current_domain._id, "pending_ops.#{op_index}._id" => current_op._id }).update({"$set" => { "pending_ops.#{op_index}.state" => new_state }})
     end
-    
+
     # set the state in the object in mongoid memory for access by the caller
     self.state = updated_op.state
   end
@@ -98,22 +109,6 @@ class PendingDomainOps
     unless success
       Rails.logger.error(failure_message)
     end
-    
     return current_op
-  end
-
-
-  def serializable_hash_with_timestamp
-    s_hash = self.serializable_hash
-    t = Time.zone.now
-    if self.created_at.nil?
-      s_hash["created_at"] = t
-    end
-    if self.updated_at.nil?
-      s_hash["updated_at"] = t
-    end
-    # need to set the _type attribute for MongoId to instantiate the appropriate class 
-    s_hash["_type"] = self.class.to_s unless s_hash["_type"]
-    s_hash
   end
 end

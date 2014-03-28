@@ -28,8 +28,7 @@ module OpenShift
         #                                             loaded last to override other settings.
         # @return [Hash<String,String>] hash[Environment Variable] = Value
         def self.for_gear(gear_dir, *dirs)
-          env         = load('/etc/openshift/env')
-          system_path = env['PATH']
+          env = load('/etc/openshift/env')
 
           env.merge!(load(
                          PathUtils.join(gear_dir, '.env'),
@@ -38,7 +37,6 @@ module OpenShift
           # Load environment variables under subdirectories in ~/.env
           Dir[PathUtils.join(gear_dir, '.env', '*')].each do |entry|
             next if entry.end_with?('user_vars')
-
             env.merge!(load(entry)) if File.directory?(entry)
           end
 
@@ -53,21 +51,39 @@ module OpenShift
 
           dirs.each_with_object(env) { |d, e| e.merge!(load(PathUtils.join(d, 'env'))) }
 
-          primary_path = "OPENSHIFT_#{primary}_PATH_ELEMENT"
-          path_elements = env.keys.find_all { |k| /^OPENSHIFT_.*_PATH_ELEMENT/ =~ k }
-
-          # If we have a primary cartridge path make sure it's the first searched
-          path_elements.delete primary_path if path_elements.include? primary_path
-          elements = path_elements.each_with_object([]) { |s, p| p << env[s] }
-
-          elements.unshift env[primary_path] if env[primary_path]
-          elements << system_path if system_path
-
-          env['PATH'] = elements.join(':')
+          env['PATH'] = collect_elements_from(env, 'PATH', primary).join(':')
+          env['LD_LIBRARY_PATH'] = collect_elements_from(env, 'LD_LIBRARY_PATH', primary).join(':')
 
           user_vars = PathUtils.join(gear_dir, '.env', 'user_vars')
           env.merge!(load(user_vars)) if File.exist?(user_vars)
           env
+        end
+
+        def self.collect_elements_from(env, var_name, primary)
+          system_path = env[var_name]
+          primary_path = "OPENSHIFT_#{primary}_#{var_name}_ELEMENT"
+
+          # Prevent conflict with the PATH variable
+          #
+          if var_name == 'PATH'
+            env = env.clone
+            env.delete_if { |name, _| name =~ /_LD_LIBRARY_PATH_ELEMENT$/}
+          end
+
+          elements = env.keys.find_all { |name|
+            name =~ /^OPENSHIFT_.*_#{var_name}_ELEMENT/ and name != primary_path
+          }.each_with_object([]) { |s, p| p << env[s] }
+
+          # For PATH we want to add the primary gear path to beggining of final
+          # gear PATH, for other (like LD_LIBRARY_PATH), plugin paths takes
+          # precedence.
+          #
+          if env.has_key?(primary_path)
+            var_name == 'PATH' ? elements.unshift(env[primary_path]) : elements.push(env[primary_path])
+          end
+
+          elements << system_path if system_path
+          elements
         end
 
         # Read a Gear's + n number cartridge environment variables into a environ(7) hash
@@ -81,24 +97,15 @@ module OpenShift
             # Find, read and load environment variables into a hash
             Dir[env_dir].each do |file|
               next if file.end_with? '.erb'
+              next if file.end_with? '.rpmnew'
               next unless File.file? file
 
               begin
                 contents = IO.read(file).chomp
-
-                if contents.start_with? 'export '
-                  index           = contents.index('=')
-                  parsed_contents = contents[(index + 1)..-1]
-                  parsed_contents.gsub!(/\A["']|["']\Z/, '')
-                  env[File.basename(file)] = parsed_contents
-                else
-                  env[File.basename(file)] = contents
-                end
+                env[File.basename(file)] = contents
               rescue => e
                 msg = "Failed to process: #{file}"
-                unless contents.nil?
-                  msg << " [#{contents}]"
-                end
+                msg << " [#{contents}]" unless contents.nil?
                 msg << ': '
                 msg << (
                 case e

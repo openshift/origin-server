@@ -1,6 +1,6 @@
 = OpenShift Origin User's Guide
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
-v2.0, July 2013
+LATEST DOC UPDATES
 :data-uri:
 :toc2:
 :icons:
@@ -26,40 +26,38 @@ Servers used::
 * localhost
 
 Tools used::
-* rhc
+* `rhc`
 
-=== Configure RHC
-By default, the RHC command line tool will default to use the publicly hosted OpenShift environment. Since we are using our own OpenShift Origin environment, we need to tell _rhc_ to use our OpenShift Origin link:oo_system_architecture_guide.html#broker[Broker] server instead of openshift.com. In order to accomplish this, the first thing we need to do is set our _LIBRA_SERVER_ variable to point to our Broker host and then run the _rhc setup_ command:
+In order to work with OpenShift applications from the command line, you will need to install the `rhc` utility on your client system. See the link:oo_client_tools_installation_guide.html[Client Tools installation Guide] for instructions on how to do this.
+
+=== Configuring `rhc`
+By default, the RHC command line tool will attempt to connect the publicly hosted OpenShift environment at https://www.openshift.com/[www.openshift.com]. If you are going to work against a different OpenShift deployment, you will need to tell `rhc` where the deployment's link:oo_system_architecture_guide.html#broker[Broker] host can be found. To provide this information, run the setup command with the `--server` flag:
 
 ----
-$ LIBRA_SERVER=<your Broker hostname or IP> rhc setup
+$ rhc setup --server <broker hostname>
 ----
 
-.Getting to a Broker Running Inside a Virtual Machine
-****
-If you are running OpenShift Origin from the all-in-one VM, you will need to experiment to determine the best way to communicate with the Broker inside. In a recent troubleshooting session, we found that external rhc clients could not connect to an Origin virtual machine with a NATed network configuration. Using a "bridged" network configuration seemed to solve the problem. The specific network configuration options will vary by virtual machine service (Virtual Box, VMWare, etc.)
-****
+*Getting to a Broker Running Inside a Virtual Machine* +
+If you are running OpenShift Origin from the all-in-one VM, you will need to experiment to determine the best way to communicate with the Broker inside. In a recent troubleshooting session, we found that external `rhc` clients could not connect to an Origin virtual machine with a NATed network configuration. Using a "bridged" network configuration seemed to solve the problem. The specific network configuration options will vary by virtual machine service (Virtual Box, VMWare, etc.)
 
-Once you enter in that command, you will be prompted for the username that you would like to authenticate with.
-
-NOTE: If you are using the OpenShift Origin virtual machine, there is a pre-defined account (admin/admin) that you can use.
+Once you enter in that command, you will be prompted for the username that you would like to authenticate with. If you are using the link:oo_deployment_guide_vm.html[OpenShift Origin virtual machine], you can authenticate with user "demo", password "changeme".
 
 The next step in the setup process is to create and upload our SSH key to the broker server. This is required for pushing your source code, via git, up to the OpenShift Origin server.
 
-Finally, you will be asked to create a namespace for the provided user account. The namespace is a unique name which becomes part of your application URL. It is also commonly referred to as the users domain. The namespace can be at most 16 characters long and can only contain alphanumeric characters. There is currently a 1:1 relationship between usernames and namespaces. For the examples in the document, the namespace `ose` will be used.
+Finally, you will be asked to create a namespace for the provided user account. The namespace is a unique name which becomes part of your application URL. It is also commonly referred to as the users domain. The namespace can be at most 16 characters long and can only contain alphanumeric characters. There is currently a 1:1 relationship between usernames and namespaces. For the examples in the document, the namespace `<yourdomain>` will be used.
 
-=== What _rhc setup_ Does
-The _rhc setup_ tool is a convenient command line utility to ensure that the user's operating system is configured properly to create and manage applications from the command line. After this command has been executed, a _.openshift_ directory is created in the user's home directory with some basic configuration items specified in the _express.conf_ file. The contents of that file are as follows:
+=== What `rhc setup` Does
+This utility ensures that the user's operating system is configured properly to create and manage applications from the command line. Additionally, it creates a `.openshift` directory in the user's home directory and places a file there called `express.conf`. The contents of that file are as follows:
 
 ----
 # Default user login
-default_rhlogin='admin'
+default_rhlogin='<your username>'
 
 # Server API
 libra_server = '<your Broker hostname or IP>'
 ----
 
-This information will be provided to the _rhc_ command line tool for every future command that is issued. If you want to run commands as a different user than the one listed above, you can either change the default login in this file or provide the _-l_ switch to the _rhc_ command.
+This information will be provided to the `rhc` command line tool for every future command that is issued. If you want to run commands as a different user than the one listed above, you can either change the default login in this file or provide the _-l_ switch to the `rhc` command.
 
 == Application Development
 
@@ -68,9 +66,9 @@ Servers used::
 * node host
 
 Tools used::
-* rhc
+* `rhc`
 
-Having completed the link:#configure-rhc[rhc setup], we are ready to start using OpenShift Origin to create our first application. To create an application, we will be using the _rhc app_ command. In order to view all of the swtich available for the _rhc app_ command, enter the following command:
+Having completed the link:#configure-rhc[`rhc` setup], we are ready to start using OpenShift Origin to create our first application. To create an application, we will be using `rhc app`. In order to view all of the available setting options, enter the following command:
 
 ----
 $ rhc app -h
@@ -79,98 +77,87 @@ $ rhc app -h
 This will provide you with the following output:
 
 ----
-List of Actions
-create             Create an application and adds it to a domain
-git-clone          Clone and configure an application's repository locally
-delete             Delete an application from the server
-start              Start the application
-stop               Stop the application
-force-stop         Stops all application processes
-restart            Restart the application
-reload             Reload the application's configuration
-tidy               Clean out the application's logs and tmp directories and tidy up the git repo on the server
-show               Show information about an application
-status             Show status of an application's gears
+Creates and controls an OpenShift application.  To see the list of all applications use the rhc domain show command.
+Note that delete is not reversible and will stop your application and then remove the application and repo from the
+remote server. No local changes are made.
 
-Global Options
--l, --rhlogin login       OpenShift login
--p, --password password   OpenShift password
--d, --debug               Turn on debugging
---timeout seconds         Set the timeout in seconds for network commands
---noprompt                Suppress the interactive setup wizard from running before a command
---config FILE             Path of a different config file
--h, --help                Display help documentation
--v, --version             Display version information
+List of Actions
+  configure     Configure several properties that apply to an application
+  create        Create an application
+  delete        Delete an application from the server
+  deploy        Deploy a git reference or binary file of an application
+  force-stop    Stops all application processes
+  reload        Reload the application's configuration
+  restart       Restart the application
+  show          Show information about an application
+  start         Start the application
+  stop          Stop the application
+  tidy          Clean out the application's logs and tmp directories and tidy up the git repo on the server
 ----
 
 === Create a New Application
-It is very easy to create an OpenShift Origin application using _rhc_. The command to create an application is _rhc app create_ and it requires two mandatory arguments:
+The command to create an application is `rhc app create` and it requires two mandatory arguments:
 
-* *Application Name (-a or --app)* : The name of the application. The application name can only contain alpha-numeric characters and at max contain only 32 characters.
-* *Type (-t or --type)*: The type is used to specify which language runtime to use.
+* *Application Name*: The name of the application. The application name can only contain alpha-numeric characters and at max contain only 32 characters.
+* *Cartridge*: The cartridge type that specifies which language runtime to use.
 
-Create a directory to hold your OpenShift Origin code projects:
+If you haven't done so, create a directory to hold your OpenShift code projects:
 
 ----
 $ cd ~
-$ mkdir ose
-$ cd ose
+$ mkdir apps
+$ cd apps
 ----
 
-To create an application that uses the _php_ runtime, issue the following command:
+To create an application called "firstphp" that uses the _php_ runtime, issue the following command:
 
 ----
-$ rhc app create -a firstphp -t php
+$ rhc app create firstphp php-5.3
 ----
 
-After entering that command, you should see the following output:
+After entering that command, you should output similar to:
 
 ----
-Password: ****
+ Application Options
+ -------------------
+  Domain:     <yourdomain>
+  Cartridges: php-5.3
+  Gear Size:  default
+  Scaling:    no
 
-Creating application 'firstphp'
-===============================
+Creating application 'firstphp' ... done
 
-  Namespace: ose
-  Scaling:   no
-  Cartridge: php
-  Gear Size: default
 
-Your application's domain name is being propagated worldwide (this might take a minute)...
-The authenticity of host 'firstphp-ose.example.com (10.4.59.221)' can't be established.
-RSA key fingerprint is 6c:a5:e5:fa:75:db:5a:7f:dc:a2:44:ed:e4:97:af:3c.
-Are you sure you want to continue connecting (yes/no)? yes
+Waiting for your DNS name to be available ... done
+
 Cloning into 'firstphp'...
-done
+The authenticity of host 'firstphp-<yourdomain>.<appsdomain>.com (1.1.1.1)' can't be established.
+RSA key fingerprint is aa:11:aa:11:aa:11:aa:11:aa:11:aa:11:aa:11:aa:11.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'firstphp-<yourapp>.<appsdomain>.com,1.1.1.1' (RSA) to the list of known hosts.
+Checking connectivity... done
 
-firstphp @ http://firstphp-ose.example.com/
-===========================================
-  Application Info
-  ================
-    Git URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com/~/git/firstphp.git/
-    UUID      = e9e92282a16b49e7b78d69822ac53e1d
-    Created   = 1:47 PM
-    Gear Size = small
-    SSH URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com
-  Cartridges
-  ==========
-    php-5.3
+Your application 'firstphp' is now available.
 
-RESULT:
-Application firstphp was created.
+  URL:        http://firstphp-<yourdomain>.<appsdomain>.com/
+  SSH to:     01aa10a0110111a01100a011@firstphp-<yourdomain>.<appsdomain>.com
+  Git remote: ssh://01aa10a0110111a01100a011@firstphp-<yourdomain>.<appsdomain>.com/~/git/firstphp.git/
+  Cloned to:  /home/<you>/apps/firstphp
+
+Run 'rhc show-app firstphp' for more details about your app.
 ----
 
 You should also be able to verify that your application was created correctly by opening up a web browser and entering the following URL:
 
 ----
-http://firstphp-ose.example.com
+http://firstphp-<yourdomain>.example.com
 ----
 
 You should see the default template that OpenShift Origin uses for a new application.
 
 image:firstphp.png[image]
 
-=== What _rhc app create_ Does
+=== What `rhc app create` Does
 After you entered the command to create a new PHP application, a lot of things happened under the covers:
 
 * A request was made to the broker application host to create a new php application
@@ -218,10 +205,10 @@ drwxr-xr-x. 10 root root                             4096 Jan 21 13:47 php-5.3
 d---------.  3 root root                             4096 Jan 21 13:47 .sandbox
 drwxr-x---.  2 root e9e92282a16b49e7b78d69822ac53e1d 4096 Jan 21 13:47 .ssh
 d---------.  3 root root                             4096 Jan 21 13:47 .tmp
-[root@node e9e92282a16b49e7b78d69822ac53e1d]# 
+[root@node e9e92282a16b49e7b78d69822ac53e1d]#
 ----
 
-During the link:#configure-rhc[rhc setup], our SSH key was uploaded to the server to enable us to authenticate to the system without having to provide a password. The SSH key we provided was actually appended to the _authorized_keys_ file. To verify this, use the following command to view the contents of the file:
+During the link:#configure-rhc[`rhc setup`], our SSH key was uploaded to the server to enable us to authenticate to the system without having to provide a password. The SSH key we provided was actually appended to the _authorized_keys_ file. To verify this, use the following command to view the contents of the file:
 
 ----
 # cat .ssh/authorized_keys
@@ -234,7 +221,7 @@ You will also notice the following three directories:
 * php-5.3 - The core PHP runtime and associated configuration files. Your application is served from this directory.
 
 === Localhost Directory Structure
-When you created the PHP application using the _rhc app create_ command, the private git repository that was created on your node host was cloned to your local machine.
+When you created the PHP application using the `rhc app create` command, the private git repository that was created on your node host was cloned to your local machine.
 
 ----
 $ cd firstphp
@@ -274,7 +261,7 @@ You should see the following information which specifies the URL for our reposit
     ignorecase = true
 [remote "origin"]
     fetch = +refs/heads/*:refs/remotes/origin/*
-    url = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com/~/git/firstphp.git/
+    url = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-<yourdomain>.example.com/~/git/firstphp.git/
 [branch "master"]
     remote = origin
     merge = refs/heads/master
@@ -293,10 +280,11 @@ Action hooks are scripts that are executed directly so can be written in Python,
 [options="header"]
 |===
 | Action Hook | Description
+| pre_build   | Executed on your CI system if available. Otherwise, executed before the build step
 | build       | Executed on your CI system if available. Otherwise, executed before the deploy step
+| prepare     | Executed just prior to a deployment ID being calculated and before the deployment is ready to use
 | deploy      | Executed after dependencies are resolved but before application has started
 | post_deploy | Executed after application has been deployed and started
-| pre_build   | Executed on your CI system if available. Otherwise, executed before the build step
 |===
 
 Note: On Windows, the execute permissions of an action hook files will be lost during
@@ -318,7 +306,7 @@ OpenShift Origin also supports the ability for a user to schedule jobs to be ran
 The markers directory will allow the user to specify settings such as enabling hot deployments or which version of Java to use.
 
 ==== The libs directory
-The libs directory is a location where the developer can provide any dependencies that are not able to be deployed using the standard dependency resolution system for the selected runtime. In the case of PHP, the standard convention that OpenShift Origin uses is providing _PEAR_ modules in the deptlist.txt file.
+The libs directory is a location where the developer can provide any dependencies that are not able to be deployed using the standard dependency resolution system for the selected runtime. In the case of PHP, the standard convention that OpenShift Origin uses is providing _PEAR_ modules in the deplist.txt file.
 
 ==== The misc directory
 The misc directory is a location provided to the developer to store any application code that they do not want exposed publicly.
@@ -326,7 +314,6 @@ The misc directory is a location provided to the developer to store any applicat
 ==== The php directory
 The php directory is where all of the application code that the developer writes should be created. By default, two files are created in this directory:
 
-* health_check.php - A simple file to determine if the application is responding to requests
 * index.php - The OpenShift template that we saw after application creation in the web browser.
 
 === Environment Variables
@@ -409,7 +396,7 @@ remote: hot_deploy_added=false
 remote: httpd: Could not reliably determine the server's fully qualified domain name, using node.example.com for ServerName
 remote: Done
 remote: Running .openshift/action_hooks/post_deploy
-To ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com/~/git/firstphp.git/
+To ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-<yourdomain>.example.com/~/git/firstphp.git/
    3edf63b..edc0805  master -> master
 ----
 
@@ -419,7 +406,7 @@ Notice that we stop the application runtime (Apache), deploy the code, and then 
 If you have completed all of the steps in this chapter correctly, you should be able to verify that your application was deployed correctly by opening up a web browser and entering the following URL:
 
 ----
-http://firstphp-ose.example.com
+http://firstphp-<yourdomain>.example.com
 ----
 
 You should see the updated code for the application.
@@ -448,7 +435,7 @@ $ git push
 To verify that we have created and deployed the new PHP source file correctly, open up a web browser and enter the following URL:
 
 ----
-http://firstphp-ose.example.com/time.php
+http://firstphp-<yourdomain>.example.com/time.php
 ----
 
 You should see the updated code for the application.
@@ -477,7 +464,13 @@ To use these hooks in your application create a file in:
 <repository>/.openshift/action_hooks
 ----
 
-with the same name as the event you want to trigger. All the hooks listed below are available to application developers as well cartridge developers. The order of execution will be first the platform/cartridge script and then the application developers.
+with the same name as the event you want to trigger.
+
+NOTE: Cartridge-scoped action hooks are special in that they are sourced in into the
+same shell environment used to execute the action they surround. This allows cartridge
+hooks to modify the environment the action executes within.
+
+All the hooks listed below are available to application developers as well cartridge developers. The order of execution will be first the platform/cartridge script and then the application developers.
 
 The following is a list of all possible action hooks executed in association with a single cartridge control action. For each control action, a set of `pre` and `post` action hooks surround the control action. In the action hook names, `{Name}` refers to the `Name` cartridge manifest element.
 
@@ -549,7 +542,7 @@ firstphp stopped
 Verify that your application has been stopped with the following _curl_ command:
 
 ----
-$ curl http://firstphp-ose.example.com/health_check.php
+$ curl http://firstphp-<yourdomain>.example.com/health
 
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html><head>
@@ -560,7 +553,7 @@ $ curl http://firstphp-ose.example.com/health_check.php
 request due to maintenance downtime or capacity
 problems. Please try again later.</p>
 <hr>
-<address>Apache/2.2.15 (Red Hat) Server at myfirstapp-ose.example.com Port 80</address>
+<address>Apache/2.2.15 (Red Hat) Server at myfirstapp-<yourdomain>.example.com Port 80</address>
 </body></html>
 ----
 
@@ -576,7 +569,7 @@ firstphp started
 Verify that your application has been started with the following _curl_ command:
 
 ----
-$ curl http://firstphp-ose.example.com/health
+$ curl http://firstphp-<yourdomain>.example.com/health
 
 1
 ----
@@ -598,15 +591,15 @@ $ rhc app show -a firstphp
 Password: ****
 
 
-firstphp @ http://firstphp-ose.example.com/
+firstphp @ http://firstphp-<yourdomain>.example.com/
 ===========================================
   Application Info
   ================
     UUID      = e9e92282a16b49e7b78d69822ac53e1d
-    Git URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com/~/git/firstphp.git/
+    Git URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-<yourdomain>.example.com/~/git/firstphp.git/
     Gear Size = small
     Created   = 1:47 PM
-    SSH URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com
+    SSH URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-<yourdomain>.example.com
   Cartridges
   ==========
     php-5.3
@@ -662,15 +655,15 @@ $ rhc app show -a firstphp
 Password: ****
 
 
-firstphp @ http://firstphp-ose.example.com/
+firstphp @ http://firstphp-<yourdomain>.example.com/
 ===========================================
   Application Info
   ================
     Created   = 1:47 PM
     UUID      = e9e92282a16b49e7b78d69822ac53e1d
-    SSH URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com
+    SSH URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-<yourdomain>.example.com
     Gear Size = small
-    Git URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com/~/git/firstphp.git/
+    Git URL   = ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-<yourdomain>.example.com/~/git/firstphp.git/
   Cartridges
   ==========
     php-5.3```
@@ -679,14 +672,14 @@ firstphp @ http://firstphp-ose.example.com/
 Now you can ssh into the application gear using the SSH URL shown above:
 
 ----
-$ ssh e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com
+$ ssh e9e92282a16b49e7b78d69822ac53e1d@firstphp-<yourdomain>.example.com
 
     *********************************************************************
 
-    You are accessing a service that is for use only by authorized users.  
-    If you do not have authorization, discontinue use at once. 
-    Any use of the services is subject to the applicable terms of the 
-    agreement which can be found at: 
+    You are accessing a service that is for use only by authorized users.
+    If you do not have authorization, discontinue use at once.
+    Any use of the services is subject to the applicable terms of the
+    agreement which can be found at:
     https://openshift.redhat.com/app/legal
 
     *********************************************************************
@@ -708,7 +701,7 @@ $ ssh e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com
 You can also view all of the commands available on the application gear shell by running the help command as shown below:
 
 ----
-[firstphp-ose.example.com ~]\> help
+[firstphp-<yourdomain>.example.com ~]\> help
 Help menu: The following commands are available to help control your openshift
 application and environment.
 
@@ -749,7 +742,7 @@ The rhc tail command requires that you provide the application name of the logs 
 $ rhc tail -a firstphp
 ----
 
-You should see information for both the access and error logs. While you have the _rhc tail_ command open, issue a HTTP get request by pointing your web browser to _http://firstphp-ose.example.com_. You should see a new entry in the log files that looks similar to this:
+You should see information for both the access and error logs. While you have the _rhc tail_ command open, issue a HTTP get request by pointing your web browser to _http://firstphp-<yourdomain>.example.com_. You should see a new entry in the log files that looks similar to this:
 
 ----
 10.10.56.204 - - [22/Jan/2013:18:39:27 -0500] "GET / HTTP/1.1" 200 5242 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:19.0) Gecko/20100101 Firefox/19.0"
@@ -767,10 +760,10 @@ $ quota -s
 If the quota information that we configured earlier is correct, you should see the following information:
 
 ----
-Disk quotas for user e9e92282a16b49e7b78d69822ac53e1d (uid 1000): 
+Disk quotas for user e9e92282a16b49e7b78d69822ac53e1d (uid 1000):
      Filesystem  blocks   quota   limit   grace   files   quota   limit   grace
 /dev/mapper/VolGroup-lv_root
-                  22540       0   1024M             338       0   40000        
+                  22540       0   1024M             338       0   80000
 ----
 
 To view how much disk space your gear is actually using, you can also enter in the following:
@@ -810,6 +803,7 @@ Success
 After the command successfully finishes you will see a file named firstphp.tar.gz in the directory where you executed the command. The default filename for the snapshot is $Application_Name.tar.gz. You can override this path and filename with the -f or --filepath option.
 
 NOTE: This command will stop your application for the duration of the backup process.
+NOTE: The application original state will be preserved, so if your application was stopped before doing snapshot, it will remain stopped after the snapshot is completed.
 
 === Delete an Application
 You can delete an OpenShift Origin application by executing the _rhc app delete_ command. This command deletes your application and all of its data on the OpenShift Origin server but leaves your local directory intact. This operation can not be undone so use it with caution.
@@ -818,7 +812,7 @@ You can delete an OpenShift Origin application by executing the _rhc app delete_
 $ rhc app delete -a someAppToDelete
 
 Are you sure you wish to delete the 'someAppToDelete' application? (yes/no)
-yes 
+yes
 
 Deleting application 'someAppToDelete'
 
@@ -845,15 +839,16 @@ $ rhc snapshot restore -a firstphp -f firstphp.tar.gz
 ----
 
 NOTE: This command will stop your application for the duration of the restore process.
+NOTE: This command will preserve the state of your application as it was before restore. If your application was stopped, before this command it will remain stopped after restore
 
 *Verify that the application has been restored* +
 Open up a web browser and point to the following URL:
 
 ----
-http://firstphp-ose.example.com
+http://firstphp-<yourdomain>.example.com
 ----
 
-If the restore process worked correctly, you should see the restored application running just as it was before the link:#delete-an-application[delete] operation.
+If the restore process worked correctly, you should see the restored application just as it was before the link:#delete-an-application[delete] operation.
 
 === View a Thread Dump
 This can be performed on Ruby and JBoss EAP / JBoss EWS application types.
@@ -903,14 +898,14 @@ You should see the following output:
 
 ----
 RESULT:
-cron-1.4, mysql-5.1, haproxy-1.4, postgresql-8.4
+cron-1.4, mysql-5.5, haproxy-1.4, postgresql-8.4
 ----
 
 === Example: Add a MySQL Cartridge to an Application
 In order to use a cartridge, we need to embed it into our existing application. As an example, we will add a MySQL cartridge. OpenShift Origin provides support for version 5.1 of this popular open source database. To enable MySQL support for the _firstphp_ application, issue the following command:
 
 ----
-$ rhc cartridge add mysql -a firstphp
+$ rhc cartridge add mysql-5.5 -a firstphp
 ----
 
 You should see the following output:
@@ -918,9 +913,9 @@ You should see the following output:
 ----
 Password: *********
 
-Adding 'mysql-5.1' to application 'firstphp'
+Adding 'mysql-5.5' to application 'firstphp'
 Success
-mysql-5.1
+mysql-5.5
 =========
   Properties
   ==========
@@ -934,7 +929,7 @@ mysql-5.1
 Developers will typically interact with MySQL by using the mysql shell command on OpenShift Origin. In order to use the mysql shell, refer to link:#ssh-to-an-application-gear[using SSH to connect to an application gear]. Once you have been authenticated, issue the following command:
 
 ----
-[firstphp-ose.example.com ~]\> mysql
+[firstphp-<yourdomain>.example.com ~]\> mysql
 ----
 
 You will notice that you did not have to authenticate to the MySQL database. This is because OpenShift Origin sets environment variables that contains the connection information for the database.
@@ -977,7 +972,7 @@ As mentioned above, OpenShift Origin creates link:l#environment-variables[enviro
 *Execute the following on the application gear*:
 
 ----
-[firstphp-ose.example.com ~]\> env |grep MYSQL
+[firstphp-<yourdomain>.example.com ~]\> env |grep MYSQL
 ----
 
 You should see the following information return from the command:
@@ -990,19 +985,20 @@ OPENSHIFT_MYSQL_DB_USERNAME=admin
 OPENSHIFT_MYSQL_DB_SOCKET=/var/lib/openshift/e9e92282a16b49e7b78d69822ac53e1d//mysql-5.1/socket/mysql.sock
 OPENSHIFT_MYSQL_DB_URL=mysql://admin:aFh_GsHP63fV@127.1.244.1:3306/
 OPENSHIFT_MYSQL_DB_LOG_DIR=/var/lib/openshift/e9e92282a16b49e7b78d69822ac53e1d//mysql-5.1/log
+OPENSHIFT_MYSQL_VERSION=5.5
 ----
 
 To view a list of all _OPENSHIFT_ environment variables, you can use the following command:
 
 ----
-[firstphp-ose.example.com ~]\> env | grep OPENSHIFT
+[firstphp-<yourdomain>.example.com ~]\> env | grep OPENSHIFT
 ----
 
 ==== Viewing MySQL Logs
 Given the above information, you can see that the log file directory for MySQL is specified with the _OPENSHIFT_MYSQL_DB_LOG_DIR_ environment variable. To view these log files, simply use the tail command:
 
 ----
-[firstphp-ose.example.com ~]\> tail -f $OPENSHIFT_MYSQL_DB_LOG_DIR/*
+[firstphp-<yourdomain>.example.com ~]\> tail -f $OPENSHIFT_MYSQL_DB_LOG_DIR/*
 ----
 
 ==== Connecting to the MySQL Cartridge from PHP
@@ -1050,33 +1046,33 @@ After the code has been deployed to your application gear, open up a web
 browser and enter the following URL:
 
 ----
-http://firstphp-ose.example.com/dbtest.php
+http://firstphp-<yourdomain>.example.com/dbtest.php
 ----
 
 You should see a screen with the following information:
 
 ----
 Connected to database.
-1 gshipley@redhat.com 
+1 gshipley@redhat.com
 ----
 
 === Manage Cartridges
 OpenShift Origin provides the ability to embed multiple cartridges in an application. For instance, even though we are using MySQL for our _firstphp_ application, we could also embed the cron cartridge as well. It may be useful to stop, restart, or even check the status of a cartridge. To check the status of our MySQL database, use the following command:
 
 ----
-$ rhc cartridge status -a firstphp -c mysql
+$ rhc cartridge status -a firstphp -c mysql-5.5
 ----
 
 To stop the cartridge, enter the following command:
 
 ----
-$ rhc cartridge stop -a firstphp -c mysql
+$ rhc cartridge stop -a firstphp -c mysql-5.5
 ----
 
 Verify that the MySQL database has been stopped by either checking the status again or viewing the following URL in your browser:
 
 ----
-http://firstphp-ose.example.com/dbtest.php
+http://firstphp-<yourdomain>.example.com/dbtest.php
 ----
 
 You should see the following message returned to your browser:
@@ -1088,13 +1084,13 @@ Could not connect to database
 Start the database back up using the _start_ switch.
 
 ----
-$ rhc cartridge start -a firstphp -c mysql
+$ rhc cartridge start -a firstphp -c mysql-5.5
 ----
 
 OpenShift Origin also provides the ability to list important information about a cartridge by using the _show_ switch. For example, if a user has forgotten their MySQL connection information, they can display this information with the following command:
 
 ----
-$ rhc cartridge show mysql -a firstphp
+$ rhc cartridge show mysql-5.5 -a firstphp
 ----
 
 The user will then be presented with the following output:
@@ -1102,7 +1098,7 @@ The user will then be presented with the following output:
 ----
 Password: ****
 
-mysql-5.1
+mysql-5.5
 =========
   Properties
   ==========
@@ -1110,7 +1106,7 @@ mysql-5.1
     Password       = aFh_GsHP63fV
     Database Name  = firstphp
     Connection URL = mysql://127.1.244.1:3306/
-    
+
 ----
 
 === Port Forwarding
@@ -1146,7 +1142,7 @@ NOTE: The above command assumes that you have the MySQL client installed locally
 
 === Enable _hot_deploy_
 If you are familiar with PHP, you will probably be wondering why we stop and start apache on each code deployment. Fortunately, we provide a way for developers to signal to OpenShift Origin that they do not want
-us to restart the application runtime for each deployment. This is accomplished by creating a hot_deploy marker in the correct directory. Change to your application root directory, for example ~/code/ose/firstphp and issue the following commands:
+us to restart the application runtime for each deployment. This is accomplished by creating a hot_deploy marker in the correct directory. Change to your application root directory, for example ~/code/<yourdomain>/firstphp and issue the following commands:
 
 ----
 $ touch .openshift/markers/hot_deploy
@@ -1175,7 +1171,7 @@ remote: Running .openshift/action_hooks/deploy
 remote: hot_deploy_added=false
 remote: App will not be started due to presence of hot_deploy marker
 remote: Running .openshift/action_hooks/post_deploy
-To ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-ose.example.com/~/git/firstphp.git/
+To ssh://e9e92282a16b49e7b78d69822ac53e1d@firstphp-<yourdomain>.example.com/~/git/firstphp.git/
    4fbda99..fdbd056  master -> master
 ----
 
@@ -1208,7 +1204,7 @@ Open your favorite web browser and go to the following URL:
 http://<your Broker hostname or IP>/
 ----
 
-Once you enter the above URL, you will be asked to authenticate. The exact auth method will vary according to the link:oo_deployment_guide_comprehensive.html#configure-an-authentication-plugin[authentication plugin] that your Broker is using. The OpenShift Origin virtual machine has a default user account of admin/admin
+Once you enter the above URL, you will be asked to authenticate. The exact auth method will vary according to the link:oo_deployment_guide_comprehensive.html#configure-an-authentication-plugin[authentication plugin] that your Broker is using. The OpenShift Origin virtual machine has a default user account of demo / changeme
 
 image:consoleAuth.png[image]
 
@@ -1223,7 +1219,11 @@ image:php2.png[image]
 
 image:php2.1.png[image]
 
-Once you have created the application, you will see a confirmation screen with some important information:
+Once you have created the application, you will see a confirmation screen with some information on making code changes in your new app:
+
+image:php2.1.1.png[image]
+
+Click through to the application overview page for more details:
 
 * URL for your application
 * GIT repository URL
@@ -1242,15 +1242,15 @@ Click on the _My Applications_ tab at the top of the screen and then select the 
 
 image:php2.3.png[image]
 
-After clicking on the _Phptwo_ application link, you will be presented with the management dashboard for that application. On this page, you can view the GIT repository URL, add a cartridge, or delete the application. We want to add the MySQL database to our application. To do this, click on the _ADD CARTRIDGE_ button.
+After clicking on the _Phptwo_ application link, you will be presented with the management dashboard for that application. On this page, you can view the GIT repository URL, add a cartridge, or delete the application. We want to add the MongoDB database to our application. To do this, click on the _Add MongoDB_ button.
 
 image:php2.4.png[image]
 
-On the next screen, select the MySQL 5.1 cartridge.
+On the next screen, press the _Add Cartridge_ button.
 
 image:php2.5.png[image]
 
-Once the MySQL database cartridge has been added to your application, the web console will display a confirmation screen which contains the connection information for your database.
+Once the MongoDB database cartridge has been added to your application, the web console will display a confirmation screen which contains the connection information for your database.
 
 image:php2.6.png[image]
 
@@ -1303,26 +1303,26 @@ Creating application 'scaledapp'
 ================================
 
   Scaling:   yes
-  Namespace: ose
+  Namespace: <yourdomain>
   Cartridge: php
   Gear Size: default
 
 Your application's domain name is being propagated worldwide (this might take a minute)...
-The authenticity of host 'scaledapp-ose.example.com (10.4.59.221)' can't be established.
+The authenticity of host 'scaledapp-<yourdomain>.example.com (10.4.59.221)' can't be established.
 RSA key fingerprint is 6c:a5:e5:fa:75:db:5a:7f:dc:a2:44:ed:e4:97:af:3c.
 Are you sure you want to continue connecting (yes/no)? yes
 Cloning into 'scaledapp'...
 done
 
-scaledapp @ http://scaledapp-ose.example.com/
+scaledapp @ http://scaledapp-<yourdomain>.example.com/
 =============================================
   Application Info
   ================
     UUID      = 1a6d471841d84e8aaf25222c4cdac278
     Gear Size = small
     Git URL   =
-ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-ose.example.com/~/git/scaledapp.git/
-    SSH URL   = ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-ose.example.com
+ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-<yourdomain>.example.com/~/git/scaledapp.git/
+    SSH URL   = ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-<yourdomain>.example.com
     Created   = 4:20 PM
   Cartridges
   ==========
@@ -1336,14 +1336,18 @@ RESULT:
 Application scaledapp was created.
 ----
 
-Log in to the web console with your browser and click on the _scaledapp_ application. You will notice while looking at the gear details that it lists the number of gears that your application is currently using.
+Log in to the web console with your browser and click on the _scaledapp_ application. You will notice while looking at the gear details that it lists the number of gears that your application is currently using. Additionally, note the scaling indicator ("_Scales_") and the _Web Load balancer_ cartridge:
 
 image:scaledApp.png[image]
 
 === Set the Scaling Strategy
-OpenShift Origin allows users the ability to set the minimum and maximum numbers of gears that an application can use to handle increased HTTP traffic. This scaling strategy is exposed via the web console. While on the application details screen, click the _Scaled up with HAProxy x2_ button to change the default scaling rules.
+OpenShift Origin allows users the ability to set the minimum and maximum numbers of gears that an application can use to handle increased HTTP traffic. This scaling strategy is exposed via the web console. While on the application details screen, click on the gear range below the _Scales_ header on your PHP cartridge:
 
 image:scaledApp2.png[image]
+
+This will present you with an interface where you can set minimum and maximum gears counts for the application's dynamic scaling:
+
+image:scaledApp3.png[image]
 
 === Manual Scaling
 There are often times when a developer will want to disable automatic scaling in order to manually control when a new gear is added to an application. Some examples of when manual scaling may be preferred over
@@ -1373,13 +1377,13 @@ Once you have have been authenticated to your application gear, you can add a ne
 
 ----
  $ add-gear -a [AppName] -u [AppUUID] -n [DomainName]
- 
-----
-
-In this example, the application name is _scaledapp_, the application UUID is the username that you used to SSH to the node host, and the domain name is _ose_. Given that information, your command should looking similar to the following:
 
 ----
-[scaledapp-ose.example.com ~]\> add-gear -a scaledapp -u 1a6d471841d84e8aaf25222c4cdac278 -n ose
+
+In this example, the application name is _scaledapp_, the application UUID is the username that you used to SSH to the node host, and the domain name is _<yourdomain>_. Given that information, your command should looking similar to the following:
+
+----
+[scaledapp-<yourdomain>.example.com ~]\> add-gear -a scaledapp -u 1a6d471841d84e8aaf25222c4cdac278 -n <yourdomain>
 ----
 
 Verify that your new gear was added to the application by running the _rhc app show_ command or by looking at the application details on the web console:
@@ -1391,13 +1395,13 @@ $ rhc app show scaledapp
 After executing this command, you should see the application is now using three gears.
 
 ----
-scaledapp @ http://scaledapp-ose.example.com/
+scaledapp @ http://scaledapp-<yourdomain>.example.com/
 =============================================
   Application Info
   ================
-    SSH URL   = ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-ose.example.com
+    SSH URL   = ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-<yourdomain>.example.com
     Gear Size = small
-    Git URL   = ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-ose.example.com/~/git/scaledapp.git/
+    Git URL   = ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-<yourdomain>.example.com/~/git/scaledapp.git/
     Created   = 4:20 PM
     UUID      = 1a6d471841d84e8aaf25222c4cdac278
   Cartridges
@@ -1407,16 +1411,14 @@ scaledapp @ http://scaledapp-ose.example.com/
   Scaling Info
   ============
     Scaled x3 (minimum: 2, maximum: available gears) with haproxy-1.4 on small gears
-    
-  
-----
 
-image:scaledApp3.png[image]
+
+----
 
 Just as we scaled up with the _add-gear_ command, we can manually scale down with the _remove-gear_ command. Remove the third gear from your application with the following command making sure to substitute the correct application UUID:
 
 ----
-[scaledapp-ose.example.com ~]\> remove-gear -a scaledapp -u 1a6d471841d84e8aaf25222c4cdac278 -n ose
+[scaledapp-<yourdomain>.example.com ~]\> remove-gear -a scaledapp -u 1a6d471841d84e8aaf25222c4cdac278 -n <yourdomain>
 ----
 
 After removing the gear with the _remove-gear_ command, verify that the application only contains two gears, HAProxy and a single runtime gear:
@@ -1424,14 +1426,14 @@ After removing the gear with the _remove-gear_ command, verify that the applicat
 ----
 $  rhc app show scaledapp
 
-scaledapp @ http://scaledapp-ose.example.com/
+scaledapp @ http://scaledapp-<yourdomain>.example.com/
 =============================================
   Application Info
   ================
     Created   = 4:20 PM
     Gear Size = small
-    SSH URL   = ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-ose.example.com
-    Git URL   = ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-ose.example.com/~/git/scaledapp.git/
+    SSH URL   = ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-<yourdomain>.example.com
+    Git URL   = ssh://1a6d471841d84e8aaf25222c4cdac278@scaledapp-<yourdomain>.example.com/~/git/scaledapp.git/
     UUID      = 1a6d471841d84e8aaf25222c4cdac278
   Cartridges
   ==========
@@ -1446,7 +1448,7 @@ scaledapp @ http://scaledapp-ose.example.com/
 OpenShift Origin provides a dashboard that will give users relevant information about the status of the HAProxy gear that is balancing and managing load between the application gears. This dashboard provides visibility into metrics such as process id, uptime, system limits, current connections, and running tasks. To view the HAProxy dashboard, open your web browser and enter the following URL:
 
 ----
-http://scaledapp-ose.example.com/haproxy-status/
+http://scaledapp-<yourdomain>.example.com/haproxy-status/
 ----
 
 image:scaledApp4.png[image]
@@ -1491,7 +1493,7 @@ $ git push
 Once the java example has been pushed to your OpenShift Origin gear, open up a web browser and point to the following URL:
 
 ----
-http://myjavademo-ose.example.com/index.html
+http://myjavademo-<yourdomain>.example.com/index.html
 ----
 
 NOTE: Make sure to include the index.html file at the end of the URL.
@@ -1504,7 +1506,7 @@ The DIY cartridge provides a number of hooks that are called during the lifecycl
 For this application, all that has been customized are the start and stop scripts. They simply launch the MyHttpServer class using Java, and perform a _wget_ call to have the MyHttpServer stop itself:
 
 ----
-cat .openshift/action_hooks/start 
+cat .openshift/action_hooks/start
 #!/bin/bash
 # The logic to start up your application should be put in this
 # script. The application will work only if it binds to
@@ -1547,7 +1549,7 @@ $ rhc app create -a todo -t jbosseap
 This command deploys a template application at the following URL:
 
 ----
-http://todo-ose.example.com
+http://todo-<yourdomain>.example.com
 ----
 
 Verify that the application has been deployed and the template is displaying correctly in your web browser.
@@ -1612,7 +1614,7 @@ public class Todo {
     @NotNull
     @Size(min = 10, max = 40)
     private String todo;
-    
+
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name = "Tags", joinColumns = @JoinColumn(name = "todo_id"))
     @Column(name = "tag")
@@ -1652,12 +1654,12 @@ public class Todo {
     public void setCreatedOn(Date createdOn) {
         this.createdOn = createdOn;
     }
-    
-    
+
+
     public void setTags(List<String> tags) {
         this.tags = tags;
     }
-    
+
     public List<String> getTags() {
         return tags;
     }
@@ -1833,13 +1835,13 @@ Once you execute the _git push_ command, the application will begin building on 
 In order to test out the RESTful web service that we've created in this sample application, we can add and retrieve todo items using the _curl_ command line utility. To add a new item, enter the following command:
 
 ----
-$ curl -k -i -X POST -H "Content-Type: application/json" -d '{"todo":"Sell a lot of OpenShift Origin","tags":["javascript","ui"]}' https://todo-ose.example.com/rest/todos
+$ curl -k -i -X POST -H "Content-Type: application/json" -d '{"todo":"Sell a lot of OpenShift Origin","tags":["javascript","ui"]}' https://todo-<yourdomain>.example.com/rest/todos
 ----
 
 To list all available todo items, run the following command:
 
 ----
-$ curl -k -i -H "Accept: application/json" https://todo-ose.example.com/rest/todos/1
+$ curl -k -i -H "Accept: application/json" https://todo-<yourdomain>.example.com/rest/todos/1
 ----
 
 You should see the following output:
@@ -1858,7 +1860,7 @@ Transfer-Encoding: chunked
 If you downloaded and deployed the source code from the git repository, the project contains a JSF UI component which will allow you to test the application using your web browser. Simply point your browser to
 
 ----
-http://todo-ose.example.com
+http://todo-<yourdomain>.example.com
 ----
 
 to verify that the application was deployed correctly.
@@ -1922,20 +1924,20 @@ Creating application 'jenkins'
   Gear Size: default
   Scaling:   no
   Cartridge: jenkins
-  Namespace: ose
+  Namespace: <yourdomain>
 
 Your application's domain name is being propagated worldwide (this might take a minute)...
 
 Cloning into 'jenkins'...
 done
 
-jenkins @ http://jenkins-ose.example.com/
+jenkins @ http://jenkins-<yourdomain>.example.com/
 =========================================
   Application Info
   ================
-    SSH URL   = ssh://4437d81168c94baf9268f0592bbe31a9@jenkins-ose.example.com
+    SSH URL   = ssh://4437d81168c94baf9268f0592bbe31a9@jenkins-<yourdomain>.example.com
     Git URL   =
-ssh://4437d81168c94baf9268f0592bbe31a9@jenkins-ose.example.com/~/git/jenkins.git/
+ssh://4437d81168c94baf9268f0592bbe31a9@jenkins-<yourdomain>.example.com/~/git/jenkins.git/
     UUID      = 4437d81168c94baf9268f0592bbe31a9
     Gear Size = small
     Created   = 2:05 PM
@@ -1951,7 +1953,7 @@ Jenkins created successfully.  Please make note of these credentials:
    User: admin
    Password: QKVn_1ZlQ7T_
 
-Note:  You can change your password at: https://jenkins-ose.example.com/me/configure
+Note:  You can change your password at: https://jenkins-<yourdomain>.example.com/me/configure
 ----
 
 Make a note of the user username and password that was created for you by OpenShift Origin.
@@ -1973,7 +1975,7 @@ jenkins-client-1
 ==================
   Properties
   ==========
-    Job URL = https://jenkins-ose.example.com/job/todo-build/
+    Job URL = https://jenkins-<yourdomain>.example.com/job/todo-build/
 ----
 
 Verify that the Jenkins client was added to your application by running the following command:
@@ -1987,17 +1989,17 @@ At the bottom of the output, you should see the following information:
 ----
   Cartridges
   ==========
-    jenkins-client-1 = https://jenkins-ose.example.com/job/todo-build/
+    jenkins-client-1 = https://jenkins-<yourdomain>.example.com/job/todo-build/
     postgresql-8.4     = postgresql://127.1.248.129:5432/
     jbosseap-6
-    
+
 ----
 
 === Configure Jenkins
 Open up a web browser and point to the following URL:
 
 ----
-https://jenkins-ose.example.com/job/todo-build/
+https://jenkins-<yourdomain>.example.com/job/todo-build/
 ----
 
 Authenticate to the Jenkins environment by providing the username and password that was displayed after adding the Jenkins application.
@@ -2027,7 +2029,7 @@ The source code for the default build script is as follows:
 ----
 source /usr/libexec/openshift/cartridges/abstract/info/lib/jenkins_util
 
-jenkins_rsync 4d1b096e414243e9833dad55d774de73@todo-ose.example.com:~/.m2/ ~/.m2/
+jenkins_rsync 4d1b096e414243e9833dad55d774de73@todo-<yourdomain>.example.com:~/.m2/ ~/.m2/
 
 # Build setup and run user pre_build and build
 . ci_build.sh
@@ -2046,18 +2048,18 @@ mvn --global-settings $OPENSHIFT_MAVEN_MIRROR clean package -Popenshift -DskipTe
 # Deploy new build
 
 # Stop app
-jenkins_stop_app 4d1b096e414243e9833dad55d774de73@todo-ose.example.com
+jenkins_stop_app 4d1b096e414243e9833dad55d774de73@todo-<yourdomain>.example.com
 
 # Push content back to application
-jenkins_sync_jboss 4d1b096e414243e9833dad55d774de73@todo-ose.example.com
+jenkins_sync_jboss 4d1b096e414243e9833dad55d774de73@todo-<yourdomain>.example.com
 
 # Configure / start app
-$GIT_SSH 4d1b096e414243e9833dad55d774de73@todo-ose.example.com deploy.sh
+$GIT_SSH 4d1b096e414243e9833dad55d774de73@todo-<yourdomain>.example.com deploy.sh
 
-jenkins_start_app 4d1b096e414243e9833dad55d774de73@todo-ose.example.com
+jenkins_start_app 4d1b096e414243e9833dad55d774de73@todo-<yourdomain>.example.com
 
-$GIT_SSH 4d1b096e414243e9833dad55d774de73@todo-ose.example.com post_deploy.sh
-      
+$GIT_SSH 4d1b096e414243e9833dad55d774de73@todo-<yourdomain>.example.com post_deploy.sh
+
 ----
 
 === Deploy Code to Jenkins
@@ -2091,14 +2093,14 @@ Writing objects: 100% (3/3), 282 bytes, done.
 Total 3 (delta 2), reused 0 (delta 0)
 remote: restart_on_add=false
 remote: Executing Jenkins build.
-remote: 
-remote: You can track your build at https://jenkins-ose.example.com/job/todo-build
-remote: 
+remote:
+remote: You can track your build at https://jenkins-<yourdomain>.example.com/job/todo-build
+remote:
 remote: Waiting for build to schedule....Done
 remote: Waiting for job to complete.....................................................................Done
 remote: SUCCESS
 remote: New build has been deployed.
-To ssh://4d1b096e414243e9833dad55d774de73@todo-ose.example.com/~/git/todo.git/
+To ssh://4d1b096e414243e9833dad55d774de73@todo-<yourdomain>.example.com/~/git/todo.git/
    eb5f9dc..8cee826  master -> master
 ----
 
@@ -2111,20 +2113,20 @@ $ rhc domain show
 You will see a new gear that was created by the Jenkins application. This new gear is a temporary gear that OpenShift Origin creates in order to build your application code.
 
 ----
-  todobldr @ http://todobldr-ose.example.com/
+  todobldr @ http://todobldr-<yourdomain>.example.com/
   ===========================================
     Application Info
     ================
       UUID      = ffee273344bd404e99e59ba070512d0b
       Git URL   =
-ssh://ffee273344bd404e99e59ba070512d0b@todobldr-ose.example.com/~/git/todobldr.git/
-      SSH URL   = ssh://ffee273344bd404e99e59ba070512d0b@todobldr-ose.example.com
+ssh://ffee273344bd404e99e59ba070512d0b@todobldr-<yourdomain>.example.com/~/git/todobldr.git/
+      SSH URL   = ssh://ffee273344bd404e99e59ba070512d0b@todobldr-<yourdomain>.example.com
       Gear Size = small
       Created   = 2:48 PM
     Cartridges
     ==========
       jbosseap-6
-      
+
 ----
 
 If the build fails, or if you just want to see the output of the Maven build process, you can log in to your Jenkins application, click on the build, and then click the link to view the console output. Log in to your Jenkins application and view the contents of the last build.
@@ -2135,7 +2137,7 @@ image:jenkins4.png[image]
 One of the great things about integrating your application with the Jenkins CI environment is the ability to start a new build without having to modify and push your source code. To initiate a new build, log in to the Jenkins dashboard and select the _todo_ builder. Point your browser to:
 
 ----
-https://jenkins-ose.example.com/
+https://jenkins-<yourdomain>.example.com/
 ----
 
 Once you have been authenticated, click the _todo-build_ link:
@@ -2327,7 +2329,7 @@ image:tools2.png[image]
 Verify that your changes were deployed correctly by opening up a web browser and going to the following URL:
 
 ----
-http://todo-ose.example.com/    
+http://todo-<yourdomain>.example.com/
 ----
 
 image:tools3.png[image]
@@ -2395,7 +2397,7 @@ We need to create an OpenShift Origin application to hold the source code as wel
 ----
  $ cd ~/code
 $ rhc app create-a piwik -t php
-$ rhc cartridge add -a piwik -c mysql
+$ rhc cartridge add -a piwik -c mysql-5.5
 ----
 
 OpenShift Origin, as you know, creates a default _index_ file for your application. Because we are going to be using the source code from our Piwik applicaiton, we need to remove the existing template.
@@ -2404,7 +2406,7 @@ OpenShift Origin, as you know, creates a default _index_ file for your applicati
 $ rm -rf ~/code/piwik/php/*
 ----
 
-At this point, we need to copy over the source code that we extracted from the zip archive to our _piwik_ OpenShift Origin applciation:
+At this point, we need to copy over the source code that we extracted from the zip archive to our _piwik_ OpenShift Origin application:
 
 ----
 $ cp -av ~/code/piwikstage/piwik/* ~/code/piwik/php
@@ -2422,7 +2424,7 @@ $ git push
 Assuming everything went as expected, you should be able to verify Piwik is running by opening up your web browser and pointing to the following URL:
 
 ----
-http://piwik-ose.example.com
+http://piwik-<yourdomain>.example.com
 ----
 
 image:piwik.png[image]
@@ -2434,7 +2436,7 @@ Log in to the github website and create a new repository for our quick start. Th
 
 ----
 https://github.com/repositories/new
-    
+
 ----
 
 Enter a project name and a description for your quick start. I suggest a name that identifies the project as a OpenShift Origin quick start. For example, a good name would be _Piwik-openshift-quickstart_.
@@ -2458,37 +2460,37 @@ Piwik on OpenShift
 =========================
 Piwik is a downloadable, open source (GPL licensed) real time web analytics software program. It provides you with detailed reports on your website visitors: the search engines and keywords they used, the language they speak, your popular pages, and so much more.
 
-Piwik aims to be an open source alternative to Google Analytics, and is already used on more than 150,000 websites. 
+Piwik aims to be an open source alternative to Google Analytics, and is already used on more than 150,000 websites.
 
 More information can be found on the official Piwik website at http://piwik.org
 
     Running on OpenShift
     --------------------
-    
+
     Create an account at http://openshift.redhat.com/
-    
+
     Create a PHP application
-    
+
         rhc app create -a piwik -t php-5.3 -l $USERNAME
-    
+
     Add mysql support to your application
-        
-        rhc cartridge add -a piwik -c mysql -l $USERNAME
+
+        rhc cartridge add -a piwik -c mysql-5.5 -l $USERNAME
     Make a note of the username, password, and host name as you will need to use these to complete the Piwik installation on OpenShift
-    
+
     Add this upstream Piwik quickstart repo
-    
+
         cd piwik/php
         rm -rf *
         git remote add upstream -m master git://github.com/gshipley/piwik-openshift-quickstart.git
         git pull -s recursive -X theirs upstream master
-    
+
     Then push the repo upstream to OpenShift
-    
+
         git push
-    
+
     That's it, you can now checkout your application at:
-    
+
         http://piwik-$yourlogin.rhcloud.com
 ----
 

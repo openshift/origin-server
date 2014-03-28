@@ -25,14 +25,12 @@ function is_up() {
     do
         url="curl -s -k -X GET --user \"${JENKINS_USERNAME}:${JENKINS_PASSWORD}\" ${jenkins_url}"
         result=`$url`
-        if [ -z "$result" ]; then
+        if [ -n "$result" ]; then
+            if [[ "$result" == *"Please wait while Jenkins is getting ready to work"* ]]; then
                 echo "Waiting ..."
-        else
-                if [[ "$result" == *"Please wait while Jenkins is getting ready to work"* ]]; then
-                        echo "Still waiting ..."
-                else
-                        return 0
-                fi
+            else
+                return 0
+            fi
         fi
         let count=${count}+1
         sleep 2
@@ -51,13 +49,16 @@ function start() {
   JENKINS_CMD="/etc/alternatives/jre/bin/java \
       -Xmx168m \
       -XX:MaxPermSize=100m \
-      -Dcom.sun.akuma.Daemon=daemonized \
       -Djava.awt.headless=true"
 
-  if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_debugging" ]; then
-      JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
+  if marker_present "disable_jenkins_udp_broadcast"; then
+      JENKINS_CMD="${JENKINS_CMD} -Dhudson.udp=-1"
   fi
 
+  if marker_present "enable_debugging"; then
+      JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
+  fi
+  
   if [ -z "$JENKINS_WAR_PATH" ]; then
     JENKINS_WAR_PATH=/usr/lib/jenkins/jenkins.war
   fi
@@ -71,14 +72,17 @@ function start() {
       -jar ${JENKINS_WAR_PATH} \
       --ajp13Port=-1 \
       --controlPort=-1 \
-      --logfile=$OPENSHIFT_JENKINS_DIR/logs/jenkins.log \
-      --daemon \
+      --logfile=/dev/stdout \
       --httpPort=8080 \
       --handlerCountMax=45 \
       --handlerCountMaxIdle=20 \
       --httpListenAddress=$OPENSHIFT_JENKINS_IP"
-
-  $JENKINS_CMD &
+  
+  # Without this, international characters in job definitions
+  # are not handled properly by Jenkins
+  export LANG=en_US.UTF.8 
+  
+  nohup $JENKINS_CMD |& /usr/bin/logshifter -tag jenkins &
   
   if ! is_up; then
       echo "Timed out waiting for Jenkins to fully start"
@@ -118,9 +122,9 @@ function reload() {
 
 # Clean up any log files
 function tidy() {
-  client_message "Emptying log dir: $OPENSHIFT_JENKINS_LOG_DIR"
+  client_message "Deleting jenkins logs from $OPENSHIFT_LOG_DIR"
   shopt -s dotglob
-  rm -rf $OPENSHIFT_JENKINS_LOG_DIR/*
+  rm -rf $OPENSHIFT_LOG_DIR/jenkins.log*
 }
 
 # Update the broker host and current system builder credentials

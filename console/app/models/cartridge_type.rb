@@ -57,22 +57,47 @@ class CartridgeType < RestApi::Base
     if name.present?
       name_prefix
     elsif url.present?
-      url_basename
+      url_suggested_name
     end
   end
 
   def to_param
-    url || name
+    name || url
+  end
+
+  def url_suggested_name
+    uri = URI.parse(url)
+    name = uri.fragment
+    name = Rack::Utils.parse_nested_query(uri.query)['name'] if name.blank? && uri.query
+    name.presence
+  rescue
+    nil
   end
 
   def url_basename
     uri = URI.parse(url)
-    name = uri.fragment
-    name = Rack::Utils.parse_nested_query(uri.query)['name'] if name.blank? && uri.query
+    name = url_suggested_name
     name = File.basename(uri.path) if name.blank? && uri.path.present? && uri.path != '/'
     name.presence || url
   rescue
     url
+  end
+
+  def support_type
+    @support_type ||=
+      if vendor = @attributes[:maintained_by].presence
+        vendor == 'redhat' ? :openshift : :community
+      else
+        :community
+      end
+  end
+
+  def automatic_updates?
+    v = @attributes[:automatic_updates]
+    if v.nil?
+      v = !(tags.include?('no_updates') || custom?)
+    end
+    v
   end
 
   # Legacy, use #tags
@@ -112,6 +137,9 @@ class CartridgeType < RestApi::Base
   def haproxy_balancer?
     tags.include?(:web_proxy) && name_prefix == 'haproxy'
   end
+  def external?
+    tags.include?(:external)
+  end
 
   def conflicts
     @conflicts || []
@@ -134,8 +162,9 @@ class CartridgeType < RestApi::Base
   end
 
   def scalable
-    self.attributes['supported_scales_to'] != self.attributes['supported_scales_from']
+    @attributes['supported_scales_to'] != @attributes['supported_scales_from']
   end
+
   alias_method :scalable?, :scalable
 
   def name_parts
@@ -209,7 +238,7 @@ class CartridgeType < RestApi::Base
 
   def self.suggest_useful!(app, carts, *filters)
     carts = carts.select{ filters.any?{ |sym| c.send(sym) } } if filters.present?
-    requires = app.cartridges.inject([]){ |arr, cart| arr.concat(carts.select{ |c| c.requires.include?(cart.name) }) }
+    requires = app.cartridges.inject([]){ |arr, cart| arr.concat(carts.select{ |c| c.requires.any?{ |r| r.include?(cart.name) } }) }
     carts.delete_if{ |c| requires.include?(c) }
     requires
   end

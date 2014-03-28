@@ -7,42 +7,46 @@
 
 %section.row
   .span6
-    %p.larger
-      Choose a web programming cartridge or kick the tires with a
-      quickstart. After you create the application 
-      you can <strong>add cartridges to enable additional 
-      capabilities</strong> like databases, metrics, and continuous build 
-      support with Jenkins.
+    .gutter-bottom
+      %p.larger
+        Choose a web programming cartridge or kick the tires with a
+        quickstart. After you create the application 
+        you can <strong>add cartridges to enable additional 
+        capabilities</strong> like databases, metrics, and continuous build 
+        support with Jenkins.
 
-    %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
-      %label.invisible{:for => 'search'} Search by keyword or tag
-      %input.search-query{:type => 'text', :id => 'search', :name => 'search', :placeholder => 'Search by keyword or tag', :value => @search}    
-      %button.search.font-icon{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"} 
+      %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
+        %label.invisible{:for => 'search'} Search by keyword or tag
+        %input.search-query{:type => 'text', :id => 'search', :name => 'search', :placeholder => 'Search by keyword or tag', :value => @search}    
+        %button.search.font-icon{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"} 
 
-    - if @browse_tags.present?
-      %span.dropdown
-        %button.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
-          Browse by tag...
-          %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee12"}
-        %ul.dropdown-menu#tag-filter
-          - @browse_tags.each do |(name, tag)|
-            - if name
-              %li= link_to name, application_types_path(:tag => tag)
-            - else
-              %hr
+      - if @browse_tags.present?
+        or 
+        %span.dropdown
+          %button.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
+            Browse by tag...
+            %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee12"}
+          %ul.dropdown-menu#tag-filter
+            - @browse_tags.each do |(name, tag)|
+              - if name
+                %li= link_to name, application_types_path(:tag => tag)
+              - else
+                %hr
   .span6
-    %dl.font-icon-legend
+    %dl.font-icon-legend.font-icon-legend-large
       %dt
-        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021"}
-        Cartridge
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => 'Cartridge icon'}
       %dd 
-        A managed runtime that receives security updates and upgrades automatically.
+        <b>Cartridge</b> &ndash; A managed runtime that receives security updates and upgrades automatically.
       %dt
-        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029"}
-        QuickStart
-      %dd 
-        A quick way to try out a new technology with code and libraries preconfigured. You are 
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => 'QuickStart icon'}
+      %dd
+        <b>QuickStart</b> &ndash; A quick way to try out a new technology with code and libraries preconfigured. You are 
         responsible for updating core libraries for security updates.
+      %dt
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee50", "title" => 'Security icon'}
+      %dd
+        Receives automatic security updates
 
 %section
   - if @type_groups.length == 1

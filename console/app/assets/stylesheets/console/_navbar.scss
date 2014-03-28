@@ -63,6 +63,9 @@
     > li {
       float: left;
     }
+    > li.pull-right {
+      float: right;
+    }
   }
   .navbar {
     &.primary .nav {

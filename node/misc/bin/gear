@@ -190,8 +190,8 @@ command :postreceive do |c|
                                          report_deployments: true,
                                          all: true,
                                          init: options.init)
-
-        puts "Result: #{result[:status]}"
+        puts "-------------------------"
+        puts "Git Post-Receive Result: #{result[:status]}"
 
         if distribute_result = result[:distribute_result] and not distribute_result[:gear_results].empty?
           distribute_status = distribute_result[:status]
@@ -286,8 +286,9 @@ command :prepare do |c|
 
   c.description = "Prepare a binary deployment artifact for distribution and activation"
   c.action do |args, options|
-    # TODO make sure there is a file arg
     do_command(c, options) do
+      raise UsageException.new("You must specify a deployment artifact file to prepare") if args.count == 0
+      raise UsageException.new("File '#{args[0]}' does not exist") unless File.exist?(args[0])
       deployment_datetime = @container.create_deployment_dir
       @container.prepare(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, file: args[0])
     end
@@ -299,8 +300,13 @@ command :distribute do |c|
 
   c.description = "Distribute a build"
   c.action do |args, options|
-    # TODO make sure there is a deployment id arg
     do_command(c, options) do
+      raise UsageException.new("You must specify a deployment id") if args.count == 0
+
+      unless @container.deployment_exists?(args[0])
+        raise "Deployment id #{args[0]} is invalid"
+      end
+
       @container.distribute(out: $stdout, err: $stderr, deployment_id: args[0])
     end
   end
@@ -316,8 +322,13 @@ command :activate do |c|
   c.option "--[no-]rotation", "Rotate gears out/in (defaults to true)"
 
   c.action do |args, options|
-    # TODO make sure there is a deployment id arg
     do_command(c, options) do
+      raise UsageException.new("You must specify a deployment id") if args.count == 0
+
+      unless @container.deployment_exists?(args[0])
+        raise "Deployment id #{args[0]} is invalid"
+      end
+
       if options.as_json.nil?
         out = $stdout
         err = $stderr
@@ -424,13 +435,14 @@ command :'binary-deploy' do |c|
   c.syntax = "#{name} binary-deploy"
 
   c.description = "Deploy a binary artifact"
+  c.option "--hot-deploy", "Perform hot deployment"
   c.action do |args, options|
     do_command(c, options) do
       if ENV['OPENSHIFT_DEPLOYMENT_TYPE'] != 'binary'
           raise UsageException.new("OPENSHIFT_DEPLOYMENT_TYPE is 'git' - binary deployments are disabled.")
       end
-
-      options = { out: $stdout, err: $stderr }
+      hot_deploy_enabled = options.hot_deploy || false
+      options = { out: $stdout, err: $stderr, hot_deploy: hot_deploy_enabled }
       if args.count > 0
         options[:file] = args[0]
       else
@@ -502,13 +514,13 @@ command :restart do |c|
   c.option "--cart CART", "The cart to restart"
   c.option "--all", "Restart all instances of the specified cartridge for all gears for this application"
   c.option "--as-json", "Render the results as JSON to stdout"
-
+  c.option "--all-cartridges", "Restart all cartridges in the gear"
   c.description = "Restart a cart"
   c.action do |args, options|
     # TODO: Should we be able to restart the gear via stop_gear / start_gear calls
     # in addition to individual cart restarts?
     do_command(c, options) do
-      options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
+      options.all_cartridges || options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
       out = nil
       err = nil
       if !options.as_json

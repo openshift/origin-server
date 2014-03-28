@@ -275,10 +275,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert groups = assigns(:gear_groups)
 
     assert_select 'h1', /#{with_downloaded_app.name}/
-    assert_select 'p', /Created from/ do |p|
-      assert_select 'a', :href => cart.url
-    end
-
+    assert_select 'a.custom-cartridge-toggle-details', 'details'
     assert_select 'h3', /#{cart.display_name}/
   end
 

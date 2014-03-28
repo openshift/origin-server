@@ -8,15 +8,15 @@
 * *A Node* refers to the machine where user's applications are run. 
 * *The OpenShift Origin Node module* is a library which provides the Broker with a set of APIs to manage a Gears and Cartridges running on a node.
 * *A cartridge* refers to a package which provides some functionality for an application. For example, A PHP cartridge provides the runtime needed to run PHP based web applications. A MongoDB cartridge provides an instance of a MongoDB database for an application.
-* *A Gear* refers to a container in which cartridges are run. Node resources are split amonst the active gears using cgroups, and quotas. Gears are isolated from each other using SELinux, PAM namespaces and bind mounts. A gear can run multiple cartridges for an application.
+* *A Gear* refers to a container in which cartridges are run. Node resources are split amongst the active gears using cgroups, and quotas. Gears are isolated from each other using SELinux, PAM namespaces and bind mounts. A gear can run multiple cartridges for an application.
 
-The [Node module design](file.README.node_module_design.html) document provides a indepth look into how the OpenShift Origin node module is designed.
+The [Node module design](file.README.node_module_design.html) document provides a in depth look into how the OpenShift Origin node module is designed.
 
 ## The Sources
 
 In the [OpenShift Origin](https://github.com/openshift/origin-server) sources, the [Node package](https://github.com/openshift/origin-server/tree/master/node) contains all the code to manage gears running on the node. The [Node-Util package](https://github.com/openshift/origin-server/tree/master/node-util) contains administration scripts and other utilities that can be used to maintain the node and gears running on it.
 
-## Supplimental documents
+## Supplemental documents
 
 * [Building a V1 cartridge](file.README.writing_v1_cartridge.html)
 * [Building a V2 cartridge](file.README.writing_cartridges.html)

@@ -70,13 +70,18 @@ module OpenShift
             SERVER_HTTPS_PORT = 443
             SERVER_CONNECT_ADDR = '127.0.0.1'
 
-            attr_reader :container_uuid, :fqdn, :container_name, :namespace
+            attr_reader :container_uuid, :container_name, :namespace, :application_uuid
+            attr_accessor :fqdn
 
-            def initialize(container_uuid, fqdn, container_name, namespace)
+            def initialize(container_uuid, fqdn, container_name, namespace, application_uuid=nil)
               @container_uuid = container_uuid
               @fqdn = fqdn
               @container_name = container_name
               @namespace = namespace
+
+              # app uuid is ONLY used by connect() for storing the value in the nodes db.
+              # it may not be populated during other invocations
+              @application_uuid = application_uuid
             end
 
             def unprivileged_unidle

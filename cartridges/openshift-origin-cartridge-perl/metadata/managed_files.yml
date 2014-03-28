@@ -12,7 +12,6 @@ locked_files:
 - etc/conf/
 - etc/conf/*
 - etc/conf.d/
-- etc/conf.d/openshift.conf
 processed_templates:
 - '**/*.erb'
 dependency_dirs:

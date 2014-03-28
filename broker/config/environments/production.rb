@@ -42,7 +42,8 @@ Broker::Application.configure do
     :user => conf.get("MONGO_USER", "openshift"),
     :password => conf.get("MONGO_PASSWORD", "mooo"),
     :db => conf.get("MONGO_DB", "openshift_broker_dev"),
-    :ssl => conf.get_bool("MONGO_SSL", "false")
+    :ssl => conf.get_bool("MONGO_SSL", "false"),
+    :write_replicas => conf.get("MONGO_WRITE_REPLICAS", 1).to_i
   }
 
   config.usage_tracking = {
@@ -67,22 +68,33 @@ Broker::Application.configure do
 
   config.openshift = {
     :domain_suffix => conf.get("CLOUD_DOMAIN", "example.com"),
+    :allow_alias_in_domain => conf.get_bool("ALLOW_ALIAS_IN_DOMAIN", "false"),
     :default_max_domains => (conf.get("DEFAULT_MAX_DOMAINS", "10")).to_i,
     :default_max_gears => (conf.get("DEFAULT_MAX_GEARS", "100")).to_i,
     :default_gear_size => conf.get("DEFAULT_GEAR_SIZE", "small"),
     :gear_sizes => conf.get("VALID_GEAR_SIZES", "small").split(","),
     :default_gear_capabilities => conf.get("DEFAULT_GEAR_CAPABILITIES", "small").split(","),
+    :default_allow_ha => conf.get('DEFAULT_ALLOW_HA', "false"),
     :community_quickstarts_url => conf.get("COMMUNITY_QUICKSTARTS_URL"),
-    :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Domain', 'Scope::Application', 'Scope::Userinfo'],
+    :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Domain', 'Scope::Application', 'Scope::Userinfo', 'Scope::Sso', 'Scope::OauthAccessToken'],
     :default_scope => 'userinfo',
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration(conf.get('AUTH_SCOPE_TIMEOUTS'), 1.day),
     :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "false"),
     :ssl_endpoint => conf.get("SSL_ENDPOINT", "allow"),
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
+    :max_teams_per_resource => conf.get('MAX_TEAMS_PER_RESOURCE', '5').to_i,
     :allow_ha_applications => conf.get_bool('ALLOW_HA_APPLICATIONS', "false"),
+    :default_ha_multiplier => (conf.get("DEFAULT_HA_MULTIPLIER", "0")).to_i,
     :router_hostname => conf.get('ROUTER_HOSTNAME', "www.example.com"),
+    :ha_dns_prefix => conf.get('HA_DNS_PREFIX', "ha-"),
+    :ha_dns_suffix => conf.get('HA_DNS_SUFFIX', ""),
     :valid_ssh_key_types => OpenShift::Controller::Configuration.parse_list(conf.get('VALID_SSH_KEY_TYPES', nil)),
-    :allow_obsolete_cartridges => conf.get_bool('ALLOW_OBSOLETE_CARTRIDGES', "false")
+    :allow_obsolete_cartridges => conf.get_bool('ALLOW_OBSOLETE_CARTRIDGES', "false"),
+    :allow_multiple_haproxy_on_node => conf.get_bool('ALLOW_MULTIPLE_HAPROXY_ON_NODE', "false"),
+    :syslog_enabled => conf.get_bool('SYSLOG_ENABLED', 'false'),
+    :app_template_for => OpenShift::Controller::Configuration.parse_url_hash(conf.get('DEFAULT_APP_TEMPLATES', nil)),
+    :default_max_teams => (conf.get("DEFAULT_MAX_TEAMS", "0")).to_i,
+    :node_platforms => OpenShift::Controller::Configuration.parse_list(conf.get('NODE_PLATFORMS', 'linux')).map { |platform| platform.downcase }    
   }
 
   config.auth = {
@@ -101,4 +113,6 @@ Broker::Application.configure do
     :connection_timeout => conf.get("CART_DOWNLOAD_CONN_TIMEOUT", "2").to_i,
     :http_proxy => conf.get('HTTP_PROXY', '')
   }
+
+  config.logger = OpenShift::Syslog.logger_for('openshift-broker', 'app') if config.openshift[:syslog_enabled]
 end

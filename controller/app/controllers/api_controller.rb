@@ -28,8 +28,8 @@ class ApiController < BaseController
         (OptionalParam.new("allowed_gear_sizes", "array", "A list of gear sizes that are allowed to be created on this domain", OpenShift::ApplicationContainerProxy.valid_gear_sizes) if requested_api_version >= 1.5),
       ].compact),
       "LIST_DOMAINS" => Link.new("List all domains you have access to", "GET", URI::join(get_url, "domains")),
-      "LIST_DOMAINS_BY_OWNER" => Link.new("List domains", "GET", URI::join(get_url, "domains"), [
-        Param.new("owner", "string", "Return only the domains owned by the specified user id or identity.  Use @self to refer to the current user.", ['@self', '*'], [])
+      "LIST_DOMAINS_BY_OWNER" => Link.new("List domains by owner", "GET", URI::join(get_url, "domains"), [
+        Param.new("owner", "string", "Return only the domains owned by the specified user id or identity.  Use @self to refer to the current user.", ['@self'], [])
         ]),
       "SHOW_DOMAIN" => Link.new("Retrieve a domain by its name", "GET", URI::join(get_url, "domain/:name"), [
         Param.new(":name", "string", "Unique name of the domain", nil, [])
@@ -38,12 +38,32 @@ class ApiController < BaseController
         Param.new(":domain_name", "string", "Unique name of the domain", nil, []),
         Param.new(":name", "string", "Name of the application", nil, []),
       ]),
-      "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
+      "LIST_CARTRIDGES" => Link.new("List public cartridges", "GET", URI::join(get_url, "cartridges"), [], [
+        OptionalParam.new("category", "string", "Show all cartridges with the given category"),
+      ]),
+      "SHOW_CARTRIDGE"  => Link.new("Retrieve a public cartridge by name", "GET", URI::join(get_url, "cartridge/:name"), [
+        Param.new(":name", "string", "Name of the cartridge", nil, [])
+      ]),
+      "SHOW_CARTRIDGE_BY_ID"  => Link.new("Retrieve a cartridge by id", "GET", URI::join(get_url, "cartridge/:id"), [
+        Param.new(":id", "string", "Unique identifier of the cartridge", nil, [])
+      ]),
+      "ADD_TEAM" => Link.new("Create new team", "POST", URI::join(get_url, "teams"), [
+        Param.new("name", "string", "Name of the team")]),
+      "LIST_TEAMS" => Link.new("List all teams you are a member of", "GET", URI::join(get_url, "teams")),
+      "LIST_TEAMS_BY_OWNER" => Link.new("List teams by owner", "GET", URI::join(get_url, "teams"), [
+        Param.new("owner", "string", "Return only the teams owned by the specified user id or identity.  Use @self to refer to the current user.", ['@self'], [])
+        ]),
+      "SHOW_TEAM" => Link.new("Retrieve a team by it's id", "GET", URI::join(get_url, "team/:id"), [
+        Param.new(":id", "string", "Id of the team")
+      ]),
     }
 
     links.merge!({
       "LIST_APPLICATIONS" => Link.new("List application", "GET", URI::join(get_url, "applications")),
-      "SHOW_APPLICATION" => Link.new("List application", "GET", URI::join(get_url, "application/:id"), [
+      "LIST_APPLICATIONS_BY_OWNER" => Link.new("List applications by owner", "GET", URI::join(get_url, "applications"), [
+        Param.new("owner", "string", "Return only the applications owned by the specified user id or identity.  Use @self to refer to the current user.", ['@self'], [])
+      ]),
+      "SHOW_APPLICATION" => Link.new("Retrieve application by id", "GET", URI::join(get_url, "application/:id"), [
         Param.new(":id", "string", "Unique identifier of the application", nil, [])
       ])
     }) if requested_api_version >= 1.5

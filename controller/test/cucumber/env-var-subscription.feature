@@ -1,4 +1,4 @@
-@cart_singleton
+@gear_singleton
 @manipulates_cart_repo
 Feature: Environment variable subscription
 

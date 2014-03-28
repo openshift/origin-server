@@ -61,20 +61,20 @@ class Gear
   end
 
   def self.base_filesystem_gb(gear_size)
-    CacheHelper.get_cached(gear_size + "_quota_blocks", :expires_in => 1.day) {
+    Rails.cache.fetch(gear_size + "_quota_blocks", :expires_in => 1.day) do
       proxy = OpenShift::ApplicationContainerProxy.find_one(gear_size)
       quota_blocks = proxy.get_quota_blocks
       # calculate the minimum storage in GB - blocks are 1KB each
       quota_blocks / 1024 / 1024
-    }
+    end
   end
 
   def self.base_file_limit(gear_size)
-    CacheHelper.get_cached(gear_size + "_quota_files", :expires_in => 1.day) {
+    Rails.cache.fetch(gear_size + "_quota_files", :expires_in => 1.day) do
       proxy = OpenShift::ApplicationContainerProxy.find_one(gear_size)
       quota_files = proxy.get_quota_files
       quota_files
-    }
+    end
   end
 
   def self.gear_sizes_display_string
@@ -94,7 +94,9 @@ class Gear
 
   def reserve_uid(gear_size = nil)
     gear_size = group_instance.gear_size unless gear_size
-    @container = OpenShift::ApplicationContainerProxy.find_available(gear_size, nil, group_instance.server_identities)
+    opts = { :node_profile => gear_size, :least_preferred_servers => non_ha_server_identities,
+             :restricted_servers => restricted_server_identities, :gear => self, :platform => group_instance.platform}
+    @container = OpenShift::ApplicationContainerProxy.find_available(opts)
     reserved_uid = @container.reserve_uid
     Application.where({"_id" => application._id, "gears.uuid" => self.uuid}).update({"$set" => {"gears.$.server_identity" => @container.id, "gears.$.uid" => reserved_uid}})
     self.server_identity = @container.id
@@ -108,8 +110,8 @@ class Gear
     self.uid = nil
   end
 
-  def create_gear
-    result_io = get_proxy.create(self)
+  def create_gear(sshkey_required=false)
+    result_io = get_proxy.create(self, nil, nil, sshkey_required)
     application.process_commands(result_io, nil, self)
     result_io
   end
@@ -121,15 +123,15 @@ class Gear
   end
 
   def publish_routing_info
-    self.port_interfaces.each { |pi|
+    self.port_interfaces.each do |pi|
       pi.publish_endpoint(self.application)
-    }
+    end
   end
 
   def register_dns
     dns = OpenShift::DnsService.instance
     begin
-      dns.register_application(self.name, application.domain.namespace, public_hostname)
+      dns.register_application(self.name, application.domain_namespace, public_hostname)
       dns.publish
     ensure
       dns.close
@@ -139,7 +141,7 @@ class Gear
   def deregister_dns
     dns = OpenShift::DnsService.instance
     begin
-      dns.deregister_application(self.name, self.application.domain.namespace)
+      dns.deregister_application(self.name, self.application.domain_namespace)
       dns.publish
     ensure
       dns.close
@@ -147,7 +149,7 @@ class Gear
   end
 
   def status(component_instance)
-    @container.status(self, component_instance)
+    get_proxy.status(self, component_instance)
   end
 
   def has_component?(component_instance)
@@ -173,7 +175,7 @@ class Gear
       application.process_commands(result_io, component._id, self)
     end
     raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
-    if component.is_sparse?
+    if component.is_sparse? and !self.sparse_carts.include?(component._id)
       self.sparse_carts << component._id
       self.save!
     end
@@ -297,6 +299,28 @@ class Gear
     get_proxy.get_public_ip_address
   end
 
+  # Gets the list of server identities where gears from this gear's group instance are hosted
+  # == Returns:
+  # @return [Array] List of server identities where gears from this gear's group instance are hosted.
+  def non_ha_server_identities
+    group_instance.server_identities.uniq
+  end
+
+  # Gets the list of server identities where this gear cannot be hosted
+  # == Returns:
+  # @return [Array] List of server identities where this gear cannnot be hosted
+  def restricted_server_identities
+    restricted_nodes = []
+    if !Rails.configuration.openshift[:allow_multiple_haproxy_on_node] and self.application.scalable and self.component_instances.select { |ci| ci.is_web_proxy? }.present?
+      self.group_instance.gears.each do |gear|
+        # skip if this is the current gear itself or if its node hasn't been determined yet
+        next if gear.uuid == self.uuid or gear.server_identity.nil?
+        restricted_nodes << gear.server_identity if gear.component_instances.select { |ci| ci.is_web_proxy? }.present?
+      end
+    end
+    restricted_nodes
+  end
+
   # Given a set of gears, retrieve the state of the gear
   #
   # == Parameters:
@@ -334,13 +358,9 @@ class Gear
   # == Returns:
   # {OpenShift::ApplicationContainerProxy}
   def get_proxy
-    if @container.nil? and !self.server_identity.nil?
-      @container = OpenShift::ApplicationContainerProxy.instance(self.server_identity)
-    elsif @container and @container.id!=self.server_identity 
-      @container = OpenShift::ApplicationContainerProxy.instance(self.server_identity)
-    end
-
-    return @container
+    return nil unless server_identity
+    @container = nil if @container && @container.id != server_identity
+    @container ||= OpenShift::ApplicationContainerProxy.instance(server_identity)
   end
 
   def update_configuration(op, remote_job_handle, tag="")
@@ -350,8 +370,8 @@ class Gear
     remove_envs = op.remove_env_vars
     config = op.config
 
-    add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } if add_keys.present?      
-    remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } if remove_keys.present?
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_keys_job(self, add_keys)) if add_keys.present?
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_keys_job(self, remove_keys))  if remove_keys.present?
 
     add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(self, env["key"],env["value"]))} if add_envs.present?
     remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(self, env["key"]))} if remove_envs.present?

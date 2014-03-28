@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.3.0
+Version: 0.5.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -107,97 +107,33 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshif
 /etc/openshift/node-plugins.d/
 
 %changelog
-* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
-- Bug 1024721 - Add purge functionality to the frontend plugins.
-  (rmillner@redhat.com)
-
-* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
-- Make the vhost and mod_rewrite RPMs non-conflict even if their functionality
-  still conflicts. (rmillner@redhat.com)
-- Create HAProxy SNI proxy plugin package and use endpoint protocols
-  (rmillner@redhat.com)
-- bump_minor_versions for sprint 35 (admiller@redhat.com)
-
-* Wed Sep 25 2013 Troy Dawson <tdawson@redhat.com> 0.1.6-1
-- Bug 1010047 - The http configuration was also needed for an alias with an SSL
-  cert since we get rid of the ServerAlias record for it. (rmillner@redhat.com)
-
-* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 0.1.5-1
-- Port ssl_to_gear changes to the frontend plugins. (rmillner@redhat.com)
-- Fix up conflicts in frontend plugins. (rmillner@redhat.com)
-- Bug 1010047 - Change alias handling to that SNI requests do not misroute.
-  (rmillner@redhat.com)
-- Report an error if there are no frontend plugins defined.
-  (rmillner@redhat.com)
-
-* Tue Sep 17 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
-- fixing tito tags
-
-* Sat Sep 14 2013 Rob Millner <rmillner@redhat.com> 0.1.3-1
-- Functional tests for the frontend plugins. (rmillner@redhat.com)
-- Ensure ordering between the alias and base config file. (rmillner@redhat.com)
-
-* Fri Sep 06 2013 Rob Millner <rmillner@redhat.com> 0.1.2-1
-- Break out FrontendHttpServer class into plugin modules.
-- Migration tool and fixes.
-
-* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
-- bump_minor_versions for sprint 32 (admiller@redhat.com)
-
-* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
-- Bug 988410 - Allow the userdel to safely fail if the user is already gone.
-  (rmillner@redhat.com)
-
-* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
-- Cgroup module unit tests and bug fixes. (rmillner@redhat.com)
-- Separate out libcgroup based functionality and add configurable templates.
-  (rmillner@redhat.com)
-
-* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
-- Merge pull request #3160 from pravisankar/dev/ravi/card78
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 0.5.1-1
+- Merge pull request #4850 from vbatts/408-3-rewrite_to_proxypass
   (dmcphers+openshiftbot@redhat.com)
-- For consistency, rest api response must display 'delete' instead 'destroy'
-  for user/domain/app (rpenta@redhat.com)
+- vhost-plugin: remove keepalive=On for now (vbatts@redhat.com)
+- bump_minor_versions for sprint 42 (admiller@redhat.com)
+- vhost-plugin: switch from rewrite back to proxypass (vbatts@redhat.com)
 
-* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
-- Remove recursive requires node -> container plugin -> node
-  https://bugzilla.redhat.com/show_bug.cgi?id=984575 (kraman@gmail.com)
-- WIP: configure containerization plugin in node.conf (pmorie@gmail.com)
-- Merge pull request #3099 from ironcladlou/dev/node-fixes
+* Mon Mar 03 2014 Adam Miller <admiller@redhat.com> 0.4.2-1
+- Merge pull request #4797 from bparees/jenkins_rproxy
   (dmcphers+openshiftbot@redhat.com)
-- Use oo_spawn for all root scoped shell commands (ironcladlou@gmail.com)
-- Bug 984609 - fix a narrow condition where sshd leaves a root owned process in
-  the frozen gear cgroup causing gear delete to fail and stale processes/
-  (rmillner@redhat.com)
+- add proper reverse proxy config for jenkins (bparees@redhat.com)
 
-* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.1.1-1
-- bump_minor_versions for sprint 31 (admiller@redhat.com)
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 0.4.1-1
+- frontend logging: keep openshift_log (bug 1069837) (lmeyer@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
 
-* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.0.7-1
-- Merge pull request #3056 from kraman/libvirt-f19-2
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 0.3.3-1
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4666 from ncdc/dev/node-access-log-gear-info
   (dmcphers+openshiftbot@redhat.com)
-- Bugfix #983308 (kraman@gmail.com)
-
-* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 0.0.6-1
-- Merge pull request #3016 from pmorie/dev/fix_tests
+- Merge pull request #4149 from mfojtik/fixes/bundler
   (dmcphers+openshiftbot@redhat.com)
-- Fix upgrade functionality and associated tests (pmorie@gmail.com)
+- Add app, gear UUIDs to openshift_log (andy.goldstein@gmail.com)
+- Enable syslog configurability for frontend access logging
+  (ironcladlou@gmail.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
 
-* Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 0.0.5-1
-- Fix module path for FrontendProxyServer (kraman@gmail.com)
-- Making module resolution for UserCreationException and UserDeletionException
-  explicit (kraman@gmail.com)
-
-* Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 0.0.4-1
--  Revamp the cgroups and pam scripts to leverage the system setup for better
-  performance and simplify the code. (rmillner@redhat.com)
-
-* Wed Jul 03 2013 Adam Miller <admiller@redhat.com> 0.0.3-1
-- artificial bump to get build reporting back in line (admiller@redhat.com)
-
-* Wed Jul 03 2013 Adam Miller <admiller@redhat.com> 0.0.2-1
-- First tito tag
-
-* Sun Jun 23 2013 Krishna Raman <kraman@gmail.com> 0.0.1-1
-- new package built with tito
-
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Fix the Apache vhost plugin (andy.goldstein@gmail.com)

@@ -1,0 +1,11 @@
+#!/bin/bash -e
+
+function select_perl_document_root() {
+	if [ -d "$1/perl" -o -h "$1/perl" ]; then
+		export OPENSHIFT_PERL_DOCUMENT_ROOT="$1/perl/"
+		echo "Application directory \"perl/\" selected as DocumentRoot"
+		return
+	fi
+	export OPENSHIFT_PERL_DOCUMENT_ROOT="$1"
+	echo "Application directory \"/\" selected as DocumentRoot"
+}

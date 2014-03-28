@@ -88,6 +88,26 @@ module OpenShift
         ]
 
         template = locations.find {|l| File.directory?(l)}
+
+        if @container.cartridge_model.standalone_web_proxy? and @container.gear_registry.entries[:web]
+          remote_web_gear = @container.gear_registry.entries[:web].values.first
+
+          unless remote_web_gear
+            raise RuntimeError.new("Can't find a remote web gear for solo web proxy gear #{@container.uuid}")
+          end
+
+          ssh_url = "#{remote_web_gear.uuid}@#{remote_web_gear.proxy_hostname}"
+
+          gear_env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container.container_dir)
+
+          out, err, rc = @container.run_in_container_context("mkdir -p #{locations.first} ; rsync -rOv --exclude '.git' --delete --rsh=/usr/bin/oo-ssh #{ssh_url}:git/template/ #{locations.first}",
+                                                             env: gear_env,
+                                                             chdir: @container.container_dir,
+                                                             expected_exitstatus: 0)
+
+          template = locations.find {|l| File.directory?(l)}
+        end
+
         logger.debug("Using '#{template}' to populate git repository for #{@container.uuid}")
         return nil unless template
 
@@ -316,6 +336,8 @@ git clone --bare --no-hardlinks '<%= OpenShift::Runtime::Utils.sanitize_url_argu
 GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
 <% if @commit && !@commit.empty? %>
 GIT_DIR=./<%= @application_name %>.git git reset --soft '<%= OpenShift::Runtime::Utils.sanitize_argument(@commit) %>';
+# || true to ensure we don't error out if the branch already exists
+GIT_DIR=./<%= @application_name %>.git git branch master || true;
 <% end %>
 GIT_DIR=./<%= @application_name %>.git git repack;
 }

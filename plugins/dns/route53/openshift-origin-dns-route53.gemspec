@@ -9,16 +9,14 @@ conf_dir  = File.join(File.join("conf", "**"), "*")
 spec_file = "rubygem-openshift-origin-dns-route53.spec"
 
 Gem::Specification.new do |s|
-  s.name        = "openshift-origin-dns-route53"
-  s.version     = `rpm -q --define 'rhel 7' --qf "%{version}\n" --specfile #{spec_file}`.split[0]
-  s.license     = `rpm -q --define 'rhel 7' --qf "%{license}\n" --specfile #{spec_file}`.split[0]
-  s.authors     = ["Mark Lamourine"]
-  s.email       = ["markllama@gmail.com"]
-  s.homepage    = `rpm -q --define 'rhel 7' --qf "%{url}\n" --specfile #{spec_file}`.split[0]
-  s.summary     = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
-  s.description = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  spec_file = IO.read(File.expand_path("../rubygem-#{File.basename(__FILE__, '.gemspec')}.spec", __FILE__))
 
-  s.rubyforge_project = "openshift-origin-dns-route53"
+  s.name        = "openshift-origin-dns-route53"
+  s.version     = spec_file.match(/^Version:\s*(.*?)$/mi)[1].chomp
+  s.authors     = ["Krishna Raman"]
+  s.email       = ["kraman@gmail.com"]
+  s.homepage    = 'https://github.com/openshift/origin-server'
+  s.summary     = 'OpenShift Origin DNS Route53 plugin'
 
   s.files       = Dir[lib_dir] + Dir[doc_dir] + Dir[conf_dir] + Dir[config_dir]
   s.test_files  = Dir[test_dir]

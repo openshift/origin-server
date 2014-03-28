@@ -1,18 +1,26 @@
 #!/bin/bash
 
+source "/usr/lib/openshift/cartridge_sdk/bash/sdk"
+
 # source OpenShift environment variable into context
 function load_env {
     [ -z "$1" ] && return 1
+
+    if [ -d "$1" ]
+    then
+      for f in ${1}/*
+      do
+        load_env $f
+      done
+      return
+    fi
+
     [ -f "$1" ] || return 0
+    [[ "$1" =~ .*\.rpmnew$ ]] && return 0
 
     local contents=$(< $1)
-    if [[ $contents =~ ^export\ .* ]]
-    then
-      source $1
-    else
-      local key=$(basename $1)
-      export $key=$(< $1)
-    fi
+    local key=$(basename $1)
+    export $key=$(< $1)
 }
 
 for f in ~/.env/* ~/.env/user_vars/* ~/*/env/*
@@ -20,24 +28,10 @@ do
     load_env $f
 done
 
-## with v2, PATH is no longer modified by the cartridge
-## use OPENSHIFT_*_PATH_ELEMENT from the primary cartridge instead
-## here, we assume that OPENSHIFT_*_PATH_ELEMENT has only one line
-path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
+export PATH=$(build_path)
+export LD_LIBRARY_PATH=$(build_ld_library_path)
 
-for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT; do
-  path=$(cat $f | tr -d '\n'):$path
-done
-
-if [ -f /etc/openshift/env/PATH ]
-then
-  load_env /etc/openshift/PATH
-  path=$path:$PATH
-fi
-
-export PATH=$path
-
-CART_CONF_DIR=$OPENSHIFT_CRON_DIR/versions/$OPENSHIFT_CRON_VERSION/configuration
+CART_CONF_DIR=$OPENSHIFT_CRON_DIR/configuration
 
 function log_message() {
    msg=${1-""}
@@ -68,7 +62,10 @@ SCRIPTS_DIR="$OPENSHIFT_REPO_DIR/.openshift/cron/$freq"
 if [ -d "$SCRIPTS_DIR" ]; then
    # Run all scripts in the scripts directory serially.
    executor="run-parts"
-   [ -n "$MAX_RUN_TIME" ]  &&  executor="timeout $MAX_RUN_TIME run-parts"
+   if [ -n "$MAX_RUN_TIME" ]; then
+     # TODO: use signal -s 1 --kill-after=$KILL_AFTER_TIME" when available
+     executor="timeout -s 9 $MAX_RUN_TIME run-parts"
+   fi
 
    (
       flock -e -n 9
@@ -93,7 +90,7 @@ if [ -d "$SCRIPTS_DIR" ]; then
               #  Use run-parts - gives us jobs.{deny,allow} and whitelists.
               $executor "$SCRIPTS_DIR"
               status=$?
-              if [ 124 -eq $status ]; then
+              if [ 124 -eq $status -o 137 -eq $status ]; then
                   wmsg="Warning: $freq cron run terminated as it exceeded max run time"
                   log_message "$wmsg [$MAX_RUN_TIME] for openshift user '$OPENSHIFT_GEAR_UUID'" > /dev/null 2>&1
                   echo "$wmsg"
@@ -102,7 +99,7 @@ if [ -d "$SCRIPTS_DIR" ]; then
               echo $separator
               echo "`date`: END $freq cron run - status=$status"
               echo $separator
-          } >> $OPENSHIFT_CRON_DIR/log/cron.$freq.log 2>&1
+          } &> >(/usr/bin/logshifter -tag cron_${freq})
 
       ) 9>&-
 

@@ -19,7 +19,7 @@ class EnvironmentVariablesController < BaseController
     name = params[:id].presence
 
     env_hash = @application.list_user_env_variables([name])
-    return render_error(:not_found, "Environment name '#{name}' not found in application", 189) unless env_hash[name]
+    return render_error(:not_found, "User environment variable named '#{name}' not found in application", 188) unless env_hash[name]
     env_var = {'name' => name, 'value' => env_hash[name]}
     render_success(:ok, "environment-variable", get_rest_environment_variable(env_var),
                    "Showing environment variable '#{name}' for application #{@application.name}")
@@ -32,15 +32,17 @@ class EnvironmentVariablesController < BaseController
     user_env_vars = params[:environment_variables].presence
 
     if (user_env_vars.present? && name) or (!user_env_vars.present? && !name)
-      return render_error(:unprocessable_entity, "Specify parameters 'name'/'value' or 'environment_variables'", 191)
+      return render_error(:unprocessable_entity, "Specify parameters 'name'/'value' or 'environment_variables'", 186)
     end
     if name
       match = /\A([a-zA-Z_][\w]*)\z/.match(name)
-      return render_error(:unprocessable_entity, "Name can only contain letters, digits and underscore and can't begin with a digit.", 194, "name") if match.nil?
+      return render_error(:unprocessable_entity, "Name can only contain letters, digits and underscore and can't begin with a digit.", 188, "name") if match.nil?
+      return render_error(:unprocessable_entity, "Name must be 128 characters or less.", 188, "name") if name.length > 128
       return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless params.has_key?(:value)
       value = params[:value]
+      return render_error(:unprocessable_entity, "Value must be 512 characters or less.", 190, "value") if value.length > 512
       env_hash = @application.list_user_env_variables([name])
-      return render_error(:unprocessable_entity, "Environment name '#{name}' already exists in application", 192) if env_hash[name]
+      return render_error(:unprocessable_entity, "Environment variable named '#{name}' already exists in application", 188) if env_hash[name]
 
       env_var = {'name' => name, 'value' => value}
       result = @application.patch_user_env_variables([env_var])
@@ -63,7 +65,7 @@ class EnvironmentVariablesController < BaseController
     return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless params.has_key?(:value)
     value = params[:value]
     env_hash = @application.list_user_env_variables([name])
-    return render_error(:not_found, "Environment name '#{name}' not found in application", 189) unless env_hash[name]
+    return render_error(:not_found, "User environment variable named '#{name}' not found in application", 188) unless env_hash[name]
 
     env_var = {'name' => name, 'value' => value}
     result = @application.patch_user_env_variables([env_var])

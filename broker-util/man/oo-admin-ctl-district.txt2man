@@ -5,7 +5,8 @@ SYNOPSIS
   oo-admin-ctl-district [-h|--help] [-u|--uuid district_uuid] 
   [-c|--command cmd] [-n|--name district_name] 
   [-p|--node_profile gear_size] [-i|--server_identity srv_ident] 
-  [-s|--size cap_size] [-b|--bypass]
+  [-s|--size cap_size] [-r|--region region_name] [-z|--zone zone_name]
+  [-b|--bypass]
 
 DESCRIPTION
   This is an utility for all district operations on OpenShift Origin.
@@ -19,11 +20,11 @@ OPTIONS
 
   -c|--command cmd  
     Available commands: add-node, remove-node, deactivate-node, activate-node,
-    add-capacity, remove-capacity, create, destroy
+    add-capacity, remove-capacity, create, destroy, set-region, unset-region
 
   -n|--name district_name  
     District name. Arbitrary identifier used on create or in place of uuid for
-    other commands.
+    other commands. (alphanumeric, underscore, hyphen, dot)
 
   -p|--node_profile gear_size  
     Specify gear profile when creating a district. Example: small|medium
@@ -34,6 +35,12 @@ OPTIONS
   -s|--size  
     Capacity to add or remove. Must be positive integer, required for capacity
     operations.
+
+  -r|--region region_name
+    Region name of the server identitiy. Only valid for add-node (optional) and set-region.
+
+  -z|--zone zone_name
+    Zone within the region. Only valid when region is specified.
 
   -b|--bypass  
     Ignore all warnings.

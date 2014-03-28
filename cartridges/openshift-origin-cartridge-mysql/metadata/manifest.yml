@@ -2,14 +2,14 @@
 Name: mysql
 Cartridge-Short-Name: MYSQL
 Architecture: noarch
-Display-Name: MySQL 5.1
+Display-Name: MySQL 5.5
 Description: MySQL is a multi-user, multi-threaded SQL database server.
-Version: '5.1'
+Version: '5.5'
 Versions:
 - '5.1'
-Cartridge-Version: 0.2.6
-Compatible-Versions:
-- 0.2.5
+- '5.5'
+Cartridge-Version: 0.2.10
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 License: GPL
 Vendor: Oracle
@@ -19,7 +19,7 @@ Categories:
 - embedded
 Website: http://www.mysql.com
 Help-Topics:
-  Building with MySQL: http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html
+  Building with MySQL: https://www.openshift.com/developers/mysql
 Cart-Data:
 - Key: username
   Type: cart_data
@@ -36,12 +36,14 @@ Cart-Data:
 Suggests:
 - phpmyadmin-4
 Provides:
-- mysql-5.1
+- mysql-5.5
 - mysql
 - mysql-singleton-master
 Publishes:
   publish-db-connection-info:
     Type: ENV:NET_TCP:db:connection-info
+  publish-ld-library-path-info:
+    Type: ENV:NET_TCP:db:ld-library-path-info
 Scaling:
   Min: 1
   Max: 1
@@ -52,3 +54,10 @@ Endpoints:
   Public-Port-Name: DB_PROXY_PORT
   Protocols:
   - mysql
+Version-Overrides:
+  '5.1':
+    Display-Name: MySQL 5.1
+    Provides:
+    - mysql-5.1
+    - mysql
+    - mysql-singleton-master

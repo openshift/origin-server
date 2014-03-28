@@ -37,7 +37,7 @@ module OpenShift
         end
       end
 
-      # Exception used to signal command overran it's timeout in seconds
+      # Exception used to signal command overran its timeout in seconds
       class TimeoutExceeded < RuntimeError
         attr_reader :seconds
 
@@ -196,7 +196,7 @@ module OpenShift
 
       # kill_process_tree 2199 -> fixnum
       #
-      # Given a pid find it and KILL it and all it's children
+      # Given a pid find it and KILL it and all its children
       def self.kill_process_tree(pid)
         ps_results = `ps -e -opid,ppid --no-headers`.split("\n")
 

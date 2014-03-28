@@ -15,7 +15,7 @@ class AuthorizationsController < BaseController
     scopes = if s = params[:scope] || params[:scopes]
         Scope.list!(s) rescue (
           return render_error(:unprocessable_entity, "One or more of the scopes you provided are not allowed. Valid scopes are #{Scope.describe_all.map(&:first).to_sentence}.",
-                              194, "scopes"))
+                              1, "scopes"))
       end
     scopes = Scope.default if scopes.blank?
 
@@ -67,8 +67,15 @@ class AuthorizationsController < BaseController
 
   def destroy_all
     authorize! :destroy_authorization, current_user
-    Authorization.for_owner(current_user).accessible(current_user).delete_all
+    authorizations = Authorization.for_owner(current_user).accessible(current_user)
+    if (s = params[:scope]).present?
+      authorizations.select {|a| a.scopes_list.include?(s) }.map(&:delete)
+      msg = "All authorizations for #{@cloud_user.id} with scope #{s} are revoked."
+    else
+      authorizations.delete_all
+      msg = "All authorizations for #{@cloud_user.id} are revoked."
+    end
     status = requested_api_version <= 1.4 ? :no_content : :ok
-    render_success(status, nil, nil, "All authorizations for #{@cloud_user.id} are revoked.")
+    render_success(status, nil, nil, msg)
   end
 end

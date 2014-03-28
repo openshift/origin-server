@@ -3,7 +3,7 @@ require 'test_helper'
 class EmbCartEventsControllerTest < ActionController::TestCase
 
   def setup
-    @controller = EmbCartEventsController.new
+    @controller = allow_multiple_execution(EmbCartEventsController.new)
 
     @random = rand(1000000000)
     @login = "user#{@random}"
@@ -11,8 +11,8 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     @password = "password"
     @user.private_ssl_certificates = true
     @user.save
-    Lock.create_lock(@user)
-    register_user(@login, @password)    
+    Lock.create_lock(@user.id)
+    register_user(@login, @password)
 
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['REMOTE_USER'] = @login
@@ -22,8 +22,8 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @cartridge_id = MYSQL_VERSION
-    @app = Application.create_app(@app_name, [PHP_VERSION, @cartridge_id], @domain)
+    @cartridge_id = mysql_version
+    @app = Application.create_app(@app_name, cartridge_instances_for(:php, @cartridge_id), @domain)
     @app.save
   end
 

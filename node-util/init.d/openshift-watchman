@@ -1,0 +1,70 @@
+#!/usr/bin/env oo-ruby
+#
+# openshift-watchman   This shell starts the oo-watchman daemon
+#
+# chkconfig:       345 89 11
+# description:     Monitors OpenShift gears
+# processname:     watchman
+#
+
+require 'rubygems'
+require 'daemons'
+require 'parseconfig'
+require 'openshift-origin-common/utils/path_utils'
+
+raise 'Watchman must run as root' unless Process.euid == 0
+
+# load any custom configuration elements for Watchman
+path = "/etc/sysconfig/watchman"
+if File.exists? path
+  config = ParseConfig.new path
+  config.get_params.each { |k| ENV[k] = config[k] }
+end
+
+Options = {
+    app_name:   'watchman',
+    backtrace:  true,
+    ontop:      false,
+    log_output: true,
+    dir_mode:   :system,
+    log_dir:    '/var/log/openshift/node',
+    multiple:   false,
+    script:     '/usr/sbin/oo-watchman',
+}
+
+def daemon_running?
+  %x[/usr/bin/pgrep -f '^watchman']
+  $?.exitstatus == 0 ? true : false
+end
+
+PathUtils.flock('/var/lock/openshift-watchman.lock') do
+  case ARGV[0]
+    when 'stop'
+      puts 'Stopping Watchman'
+      Daemons.run(Options[:script], Options)
+    when 'start'
+      puts 'Starting Watchman'
+      Daemons.run(Options[:script], Options)
+    when 'restart'
+      $stdout.write %q(Stopping Watchman)
+      loop do
+        Daemons.run(Options[:script], Options.merge(ARGV: ['stop']))
+        break unless daemon_running?
+        sleep 1
+        $stdout.write '.'
+      end
+
+      puts %Q(\nStarting Watchman)
+      Daemons.run(Options[:script], Options.merge(ARGV: ['start']))
+    when 'status'
+      if daemon_running?
+        puts 'Watchman is running'
+        exit 0
+      else
+        puts 'Watchman is not running'
+        exit 1
+      end
+    else
+      Daemons.run(Options[:script], Options)
+  end
+end

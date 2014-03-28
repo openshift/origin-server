@@ -144,7 +144,9 @@ class BaseApi_V1 < BaseObj_V1
          "ADD_DOMAIN" => Link_V1.new("POST", "domains", [
            Param_V1.new("id", "string")
           ]),
-         "LIST_CARTRIDGES" => Link_V1.new("GET", "cartridges")
+         "LIST_CARTRIDGES" => Link_V1.new("GET", "cartridges", [], [
+           OptionalParam_V1.new('category', 'string')
+          ])
     } unless $nolinks
   end
 end

@@ -26,6 +26,7 @@ module OpenShift
   autoload :DataStore,                 'openshift/data_store'
   autoload :DistributedLock,           'openshift/distributed_lock'
   autoload :RoutingService,            'openshift/routing_service'
+  autoload :Syslog,                    'openshift/syslog'
 
   autoload :UserActionLog,             'openshift/user_action_log'
   autoload :UsageAuditLog,             'openshift/usage_audit_log'

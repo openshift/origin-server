@@ -1,5 +1,6 @@
-@cartridge_extended1
-Feature: V2 SDK scalable snapshot and restore
+@gear_extended
+@gear_extended2
+Feature: Scalable snapshot and restore
   Scenario: Create, snapshot, and restore scalable application with plugin with client tools
     And the libra client tools
     And a new client created scalable mock-0.1 application
@@ -10,11 +11,25 @@ Feature: V2 SDK scalable snapshot and restore
     And the mock control_post_snapshot marker will exist in the gear
     And the mock-plugin control_pre_snapshot marker will exist in the plugin gear
     And the mock-plugin control_post_snapshot marker will exist in the plugin gear
-
+    And the plugin gear state will be started
+    And the gear state will be started
+    
     When a new file is added and pushed to the client-created application repo
     Then the new file will be present in the gear app-root repo
 
     When I restore the application
     And the mock control_post_restore marker will exist in the gear
-    And the new file will not be present in the gear app-root repo    
+    And the new file will not be present in the gear app-root repo
     And the mock-plugin control_post_restore marker will exist in the plugin gear
+    Then the plugin gear state will be started
+    And the gear state will be started
+    
+    When the application is stopped
+    And I snapshot the application
+    Then the plugin gear state will be stopped
+    And the gear state will be stopped
+    
+    When I restore the application
+    Then the plugin gear state will be stopped
+    And the gear state will be stopped
+    

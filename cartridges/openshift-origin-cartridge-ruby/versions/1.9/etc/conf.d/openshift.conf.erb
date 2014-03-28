@@ -1,0 +1,27 @@
+LoadModule passenger_module /usr/lib64/httpd/modules/ruby193-mod_passenger.so
+<IfModule mod_passenger.c>
+   PassengerRoot NativelyPackaged
+   PassengerRuby /opt/rh/ruby193/root/usr/bin/ruby
+   PassengerSpawnMethod conservative
+</IfModule>
+
+
+ServerRoot "<%= ENV['OPENSHIFT_RUBY_DIR'] %>"
+DocumentRoot "<%= ENV['OPENSHIFT_REPO_DIR'] %>/public"
+Listen <%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>
+User <%= ENV['OPENSHIFT_GEAR_UUID'] %>
+Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
+
+ErrorLog "|tee"
+CustomLog "|tee" combined
+
+PassengerUser <%= ENV['OPENSHIFT_GEAR_UUID'] %>
+PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>/
+PassengerSpawnIPAddress <%= ENV['OPENSHIFT_RUBY_IP'] %>
+PassengerUseGlobalQueue off
+PassengerTempDir /tmp/passenger
+<Directory <%= ENV['OPENSHIFT_REPO_DIR'] %>/public/>
+    AllowOverride All
+    Options -Multiviews
+</Directory>
+

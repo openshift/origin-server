@@ -5,7 +5,7 @@ require 'mysql'
 require 'fileutils'
 
 Then /^the mysql configuration file will( not)? exist$/ do |negate|
-  mysql_cart = @gear.carts['mysql-5.1']
+  mysql_cart = @gear.carts['mysql-5.5']
 
   mysql_user_root = "#{$home_root}/#{@gear.uuid}/#{mysql_cart.directory}"
   mysql_config_file = "#{mysql_user_root}/etc/my.cnf"
@@ -19,7 +19,7 @@ end
 
 
 Then /^the mysql database will( not)? +exist$/ do |negate|
-  mysql_cart = @gear.carts['mysql-5.1']
+  mysql_cart = @gear.carts['mysql-5.5']
 
   mysql_user_root = "#{$home_root}/#{@gear.uuid}/#{mysql_cart.directory}"
   mysql_data_dir = "#{mysql_user_root}/data"
@@ -41,7 +41,7 @@ Then /^the mysql database will( not)? +exist$/ do |negate|
 end
 
 Then /^the mysql admin user will have access$/ do
-  mysql_cart = @gear.carts['mysql-5.1']
+  mysql_cart = @gear.carts['mysql-5.5']
 
   begin
     dbh = Mysql.real_connect(mysql_cart.db.ip, 

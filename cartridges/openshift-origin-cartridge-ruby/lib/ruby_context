@@ -1,0 +1,30 @@
+# Do not include this into the util file...
+# RHEL, Fedora18 and Fedora19 will overwrite this file to support invoking their Ruby versions
+
+# RHEL OpenShift Online supported versions
+function ruby_context {
+  case $OPENSHIFT_RUBY_VERSION in
+    1.8) eval $1 ;;
+    1.9) /usr/bin/scl enable ruby193 "$1" ;;
+  esac
+}
+
+# In case Ruby require NodeJS runtime (eg. compiling assets) detect
+# the NodeJS runtime installed on Node and use it. The SCL has precedence.
+#
+function ruby_with_nodejs_context {
+
+  if /usr/bin/scl -l | grep nodejs010 >/dev/null; then
+    cmd="/usr/bin/scl enable nodejs010"
+  elif node --version &>/dev/null; then
+    cmd="eval"
+  else
+    echo "WARNING: Command require NodeJS runtime which is not installed in system ($1)"
+    return 0
+  fi
+
+  case $OPENSHIFT_RUBY_VERSION in
+    1.8) $cmd "$1" ;;
+    1.9) $cmd ruby193 "$1" ;;
+  esac
+}

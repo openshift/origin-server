@@ -1,0 +1,71 @@
+#!/usr/bin/env oo-ruby
+
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+require 'gear-scale-ctl'
+
+def usage
+  $stderr.puts <<USAGE
+
+Usage:
+
+Add gear to application:
+  Usage: add-gear -a|--app <application name> -u|--uuid <user> -n|--namespace <namespace uuid>
+
+Remove gear from application:
+  Usage: remove-gear -a|--app <application name> -u|--uuid <user> -n|--namespace <namespace uuid>
+
+  -a|--app         application name  Name for your application (alphanumeric - max <rest call?> chars) (required)
+  -u|--uuid        application uuid  UUID for your application (required)
+  -n|--namespace   namespace    Namespace for your application(s) (alphanumeric - max <rest call?> chars) (required)
+
+USAGE
+  exit 255
+end
+
+config = OpenShift::Config.new
+
+opts = {
+    'server' => config.get('BROKER_HOST')
+}
+
+begin
+  args = GetoptLong.new(
+    ['--app',       '-a', GetoptLong::REQUIRED_ARGUMENT],
+    ['--uuid',      '-u', GetoptLong::REQUIRED_ARGUMENT],
+    ['--namespace', '-n', GetoptLong::REQUIRED_ARGUMENT],
+    ['--server',    '-s', GetoptLong::REQUIRED_ARGUMENT]
+  )
+
+  args.each {|opt, arg| opts[opt[2..-1]] = arg.to_s}
+
+  if 0 != ARGV.length
+    usage
+  end
+
+  if opts['server'].nil? || opts['server'].empty? \
+        || opts['app'].nil? || opts['app'].empty? \
+        || opts['uuid'].nil? || opts['uuid'].empty? \
+        || opts['namespace'].nil? || opts['namespace'].empty?
+    usage
+  end
+rescue Exception => e
+  usage
+end
+
+action = File.basename($0)
+if action == 'gear-scale-ctl'
+  $stderr.puts 'Call gear-scale-ctl via an alias: add-gear, remove-gear'
+  exit 255
+end
+
+if not ['add-gear', 'remove-gear'].include? action
+  usage
+end
+
+gsc = GearScaleCtl.new(opts)
+begin
+  gsc.execute(action)
+rescue => e
+  $stderr.puts e.message
+  exit 1
+end

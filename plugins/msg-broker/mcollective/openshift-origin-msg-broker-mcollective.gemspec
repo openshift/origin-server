@@ -5,19 +5,16 @@ lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
 docs_dir  = File.join(File.join("docs", "**"), "*")
 conf_dir  = File.join(File.join("conf", "**"), "*")
-spec_file = "rubygem-openshift-origin-msg-broker-mcollective.spec"
 
 Gem::Specification.new do |s|
+  spec_file = IO.read(File.expand_path("../rubygem-#{File.basename(__FILE__, '.gemspec')}.spec", __FILE__))
+
   s.name        = "openshift-origin-msg-broker-mcollective"
-  s.version     = `rpm -q --define 'rhel 7' --qf "%{version}\n" --specfile #{spec_file}`.split[0]
-  s.license     = `rpm -q --define 'rhel 7' --qf "%{license}\n" --specfile #{spec_file}`.split[0]
+  s.version     = spec_file.match(/^Version:\s*(.*?)$/mi)[1].chomp
   s.authors     = ["Krishna Raman"]
   s.email       = ["kraman@gmail.com"]
-  s.homepage    = `rpm -q --define 'rhel 7' --qf "%{url}\n" --specfile #{spec_file}`.split[0]
-  s.summary     = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
-  s.description = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
-
-  s.rubyforge_project = "msg-broker-mcollective-plugin"
+  s.homepage    = 'https://github.com/openshift/origin-server'
+  s.summary     = 'OpenShift Origin Broker MCollective Messaging plugin'
 
   s.files       = Dir[lib_dir] + Dir[docs_dir] + Dir[conf_dir] + Dir[config_dir]
   s.test_files  = Dir[test_dir]

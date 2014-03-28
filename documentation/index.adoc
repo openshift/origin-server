@@ -1,6 +1,6 @@
 = OpenShift Origin Documentation Site
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
-v2.0, July 2013
+LATEST DOC UPDATES
 :data-uri:
 :toc2:
 :icons:
@@ -25,16 +25,20 @@ https://openshift.redhat.com/community/open-source[OpenShift Origin] is Red Hat'
 a|link:oo_install_users_guide.html[*oo-install* User's Guide] +
 link:oo_deployment_guide_comprehensive.html[Comprehensive Deployment Guide] +
 link:oo_deployment_guide_puppet.html[Puppet Deployment Guide] +
+link:oo_deployment_guide_vagrant.html[Vagrant Deployment Guide] +
 link:oo_deployment_guide_vm.html[Virtual Machine Deployment Guide] +
 link:oo_client_tools_installation_guide.html[Client Tools Installation Guide]
 
 a|link:oo_administration_guide.html[Administration Guide] +
 link:oo_cartridge_guide.html[Cartridge Guide] +
-link:oo_troubleshooting_guide.html[Troubleshooting Guide]
+link:oo_troubleshooting_guide.html[Troubleshooting Guide] +
+link:oo_notes_running_a_local_ddns.html[Notes on Running a Local DNS]
 
-a|link:oo_cartridge_developers_guide.html[Cartridge Developers Guide] +
+a|link:oo_contributors_guide.html[OpenShift Contributors Guide] +
+link:oo_cartridge_developers_guide.html[Cartridge Developers Guide] +
 link:oo_user_guide.html[User Guide] +
-link:rest_api/rest-api-1-6.html[Broker REST API]
+link:rest_api/rest-api-1-6.html[Broker REST API] +
+link:oo_notes_building_rpms_from_source.html[Notes on Building from Source]
 
 |===
 

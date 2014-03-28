@@ -21,7 +21,7 @@ done
 
 ###
 pushd $OPENSHIFT_NODEJS_DIR > /dev/null
-for dir in conf logs sessions run tmp; do
+for dir in conf sessions run tmp; do
     mkdir -p $dir
 done
 popd > /dev/null

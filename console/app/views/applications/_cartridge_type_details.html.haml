@@ -1,0 +1,26 @@
+.custom-cartridge-details.hide{:id => cartridge.name.parameterize}
+  - if cartridge.description.present?
+    .row-fluid.description
+      %span.span12= cartridge.description
+
+  - if cartridge_type.version.present?
+    .row-fluid
+      %span.span2 
+        %strong Version
+      %span.span10= cartridge_type.version
+
+  - if cartridge_type.license.present?
+    .row-fluid
+      %span.span2 
+        %strong License
+      %span.span10
+        - if cartridge_type.license_url.present?
+          =link_to cartridge_type.license, cartridge.cartridge_type.license_url
+        - else
+          = cartridge_type.license
+
+  - if cartridge_type.website.present?
+    .row-fluid
+      %span.span2 
+        %strong Website
+      %span.span10=link_to cartridge_type.website, cartridge.cartridge_type.website

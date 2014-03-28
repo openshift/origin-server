@@ -1,3 +1,5 @@
+@import "compass/css3/border-radius";
+
 // ALERT STYLES
 // ------------
 
@@ -30,6 +32,25 @@
 .alert.alert-error a, .alert.alert-error a:hover, .alert.alert-error a:active,
 .alert.alert-danger a, .alert.alert-danger a:hover, .alert.alert-danger a:active {
   color:$errorText;
+}
+
+// Alert details
+.alert.with-alert-details.detailed {
+  margin-bottom: 0;
+  @include border-bottom-radius(0);
+}
+.alert-details {
+  background-color: $openshiftLightRed;
+  border-left-color: #ae1b2d;
+  border-right: 2px solid $openshiftRed;
+  border-bottom: 2px solid $openshiftRed;
+  @include border-bottom-radius(2px);
+  ul {
+    font-size: 90%;
+    li {
+      padding-top: 6px;
+    }
+  }
 }
 
 // Adjust close link position

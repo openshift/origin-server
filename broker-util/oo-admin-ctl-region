@@ -1,0 +1,146 @@
+#!/usr/bin/env oo-ruby
+require 'rubygems'
+require 'getoptlong'
+
+CTL_REGION_COMMANDS = %w[create destroy add-zone remove-zone list]
+
+def usage
+  puts <<"USAGE"
+== Synopsis
+
+oo-admin-ctl-region: Control regions and zones
+
+== Usage
+
+oo-admin-ctl-region OPTIONS
+
+Options:
+-c|--command <command>
+    (#{CTL_REGION_COMMANDS * '|'})
+-r|--region <region_name>
+    Region name (alphanumeric, underscore, hyphen, dot)
+-z|--zone <zone_name>
+    Zone name within the given region (alphanumeric, underscore, hyphen, dot)
+    Only valid for add-zone and remove-zone commands
+-b|--bypass
+    Ignore warnings
+-h|--help
+    Show usage info
+USAGE
+  exit 255
+end
+
+def get_region(name)
+  unless Region.where(name: name).exists?
+    puts "Error: Region '#{name}' not found"
+    exit 1
+  end
+  Region.find_by(name: name)
+end
+
+opts = GetoptLong.new(
+    ["--command",   "-c", GetoptLong::REQUIRED_ARGUMENT],
+    ["--region",    "-r", GetoptLong::REQUIRED_ARGUMENT],
+    ["--zone",      "-z", GetoptLong::REQUIRED_ARGUMENT],
+    ["--bypass",    "-b", GetoptLong::NO_ARGUMENT],    
+    ["--help",      "-h", GetoptLong::NO_ARGUMENT]
+)
+args = {}
+begin
+  opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+  usage
+end
+
+usage if args["--help"]
+
+command     = args['--command']
+region_name = args['--region']
+zone_name   = args['--zone']
+bypass      = args['--bypass']
+
+if !command && (args.length > 0)
+  puts "Error: --command is required with any arguments"
+  exit 255
+end
+
+if command && !CTL_REGION_COMMANDS.include?(command)
+  puts "Error: Command must be one of: #{CTL_REGION_COMMANDS * '|'}"
+  exit 255
+end
+
+if !region_name and command and (command != 'list')
+  puts "Error: --region is required with command: #{command}"
+  exit 1
+end
+if !zone_name and ((command == 'add-zone') or (command == 'remove-zone'))
+  puts "Error: --zone is required with command: #{command}"
+  exit 2
+end
+if zone_name and ((command != 'add-zone') or (command == 'remove-zone'))
+  puts "Warning: Ignoring --zone, not valid for command: #{command}"
+end
+
+require "/var/www/openshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+
+region = nil
+reply = ResultIO.new
+begin
+  case command
+  when "create"
+    region = Region.create(region_name) 
+    reply.resultIO << "Successfully created region: #{region_name}" if reply.resultIO.string.empty?
+  when "destroy"
+    region = get_region(region_name)
+    unless bypass
+      puts <<-WARNING
+!!!! WARNING !!!! WARNING !!!! WARNING !!!!
+You are about to delete the #{region_name} region.
+
+This is NOT reversible, all remote data for this region will be removed.
+WARNING
+  
+      print "Do you want to delete this region (y/n): "
+      begin
+        unless gets.to_s.strip =~ /^(yes|y)$/i
+          puts "\n"
+          exit 217
+        end
+      rescue Interrupt
+        puts "\n"
+        exit 217
+      end
+    end
+    region.delete
+    reply.resultIO << "Successfully deleted region: #{region_name}" if reply.resultIO.string.empty?
+  when "add-zone"
+    region = get_region(region_name)
+    region.add_zone(zone_name) 
+    reply.resultIO << "Success!"
+  when "remove-zone"
+    region = get_region(region_name)
+    region.remove_zone(zone_name)
+    reply.resultIO << "Success!"
+  else # list
+    unless Region.where({}).exists?
+      puts "No Regions created yet.  Use 'oo-admin-ctl-region -c create' to create one."
+    else
+      puts Region.list(region_name)
+    end
+  end
+  reply.resultIO << "\n\n#{region.attributes.pretty_inspect}" if region and (command != 'destroy') 
+rescue OpenShift::OOException => e
+  reply.errorIO << e.message
+  if e.respond_to?('code') and e.code
+    reply.exitcode = e.code
+  else
+    reply.exitcode = 1
+  end
+end
+
+puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+puts "ERROR OUTPUT:\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
+puts "#{reply.resultIO.string}" unless reply.resultIO.string.empty?
+exit reply.exitcode

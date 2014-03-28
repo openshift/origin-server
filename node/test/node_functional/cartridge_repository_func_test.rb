@@ -88,6 +88,8 @@ module OpenShift
         Versions: ['0.1', '0.2', '0.3']
         Cartridge-Version: '1.2'
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
       }
         )
       end
@@ -334,7 +336,7 @@ module OpenShift
         cartridge = ::OpenShift::Runtime::Manifest.new(manifest)
       end
 
-      assert_match /is reserved\.: 'Name'/, err.message
+      assert_match /Name 'git' is reserved\./, err.message
     end
 
     #def test_reserved_cartridge_name
@@ -447,6 +449,8 @@ module OpenShift
         Version: '0.3'
         Cartridge-Version: '0.0.#{i}'
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
       }
         )
       end

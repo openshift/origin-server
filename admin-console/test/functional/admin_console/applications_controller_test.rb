@@ -9,7 +9,7 @@ module AdminConsole
       @user = CloudUser.new(login: @login)
       @user.private_ssl_certificates = true
       @user.save
-      Lock.create_lock(@user)
+      Lock.create_lock(@user.id)
       register_user(@login, @password)
 
       stubber
@@ -17,7 +17,7 @@ module AdminConsole
       @domain = Domain.new(namespace: @namespace, owner:@user)
       @domain.save
       @app_name = "app#{@random}"
-      @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
+      @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain)
       @app_alias = Alias.new(fqdn: "app#{@random}.foo.bar")
       @app.aliases.push(@app_alias)
       @app.save

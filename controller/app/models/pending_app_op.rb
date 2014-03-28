@@ -1,16 +1,12 @@
 # Class to represent pending operations that need to occur for the {Application}
-# @!attribute [r] application
-#   @return [Application] {Application} that this operation needs to be performed on.
-# @!attribute [r] op_type
-#   @return [Symbol] Operation type
 # @!attribute [r] state
 #   @return [Symbol] Operation state. One of init, queued or completed
-# @!attribute [r] arguments
-#   @return [Hash] Arguments hash
 # @!attribute [r] retry_count
 #   @return [Integer] Number of times this operation has been attempted
 class PendingAppOp
   include Mongoid::Document
+  include Mongoid::Timestamps::Created
+
   embedded_in :pending_app_op_group, class_name: PendingAppOpGroup.name
   field :state,             type: Symbol,   default: :init
   field :prereq,            type: Array
@@ -51,15 +47,15 @@ class PendingAppOp
     Rails.logger.debug "Rollback not implemented: #{self.class.to_s}"
   end
 
-  def isParallelExecutable()
+  def is_parallel_executable
     return false
   end
 
-  def addParallelExecuteJob(handle)
+  def add_parallel_execute_job(handle)
     Rails.logger.debug "Parallel execute not implemented: #{self.class.to_s}"
   end
 
-  def addParallelRollbackJob(handle)
+  def add_parallel_rollback_job(handle)
     Rails.logger.debug "Parallel rollback not implemented: #{self.class.to_s}"
   end
 
@@ -93,6 +89,10 @@ class PendingAppOp
 
     while retries < num_retries
       retval = block.call(current_app, current_op_group, current_op, op_group_index, op_index)
+      if retval["updatedExisting"]
+        success = true
+        break
+      end
 
       # the op needs to be reloaded to find the updated index
       current_app = Application.find_by(_id: current_app._id)
@@ -101,18 +101,13 @@ class PendingAppOp
       current_op = current_app.pending_op_groups[op_group_index].pending_ops.find_by(_id: current_op._id)
       op_index = current_app.pending_op_groups[op_group_index].pending_ops.index(current_op)
       retries += 1
-
-      if retval["updatedExisting"]
-        success = true
-        break
-      end
     end
 
     # log the details in case we cannot update the pending_op
     unless success
       Rails.logger.error(failure_message)
     end
-    
+
     return current_op
   end
 
@@ -121,21 +116,49 @@ class PendingAppOp
   end
 
   def get_group_instance
-    application.group_instances.find(group_instance_id) 
+    application.group_instances.find(group_instance_id)
   end
 
   def get_gear
-    application.gears.find(gear_id) 
+    application.gears.find(gear_id)
   end
 
   def get_component_instance
-    component_instance = nil
-    if comp_spec
-      comp_name = comp_spec["comp"]
-      cart_name = comp_spec["cart"]
-      component_instance = pending_app_op_group.application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name)
+    if spec = comp_spec
+      spec.application = application
+      application.component_instances.detect{ |i| i.matches_spec?(spec) }
     end
-    component_instance
   end
 
+  def if_not_found(e)
+    raise e unless Mongoid::Errors::DocumentNotFound === e
+  end
+
+  def action_message
+    "#{self.class.to_s} failed"
+  end
+
+  def to_log_s
+    "#{self.class} #{to_important_args.map{ |k,v| "#{k}=#{v}" }.join(' ')}"
+  end
+
+  protected
+    def to_important_args
+      [:comp_spec, :comp_specs, :gear_id, :group_instance_id].inject({}) do |h, sym|
+        if self.respond_to?(sym)
+          v = self.send(sym)
+          h[sym] = to_important_args_type(v)
+        end
+        h
+      end
+    end
+
+    def to_important_args_type(v)
+      case v
+      when Array then "[#{v.map{ |s| to_important_args_type(s) }.join(', ')}]"
+      when ComponentSpec then "component:#{[v.name, v.cartridge_name, v.id].join("/")}"
+      when NilClass then 'nil'
+      else v
+      end
+    end
 end

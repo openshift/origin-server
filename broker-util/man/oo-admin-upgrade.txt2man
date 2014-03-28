@@ -1,0 +1,74 @@
+NAME
+  oo-admin-upgrade
+
+SYNOPSIS
+  oo-admin-upgrade (upgrade-node|upgrade-gear|upgrade-from-file|archive) [<command_specific_options>]
+
+DESCRIPTION
+  Coordinates upgrade of cartridges across all nodes. Designed around the principal that each gear upgrade is reentrant 
+and can be retried multiple times. The primary use case is to call upgrade-node with no server_identity. Each run tracks 
+failure and success for each gear and each subsequent run of upgrade-node picks up where the previous run left off until
+all gears are successfully upgraded.
+
+COMMANDS
+  upgrade-node  
+    Upgrades one or all nodes to the specified version. Subsequent runs retry previous failures until finished or results are archived.
+
+    OPTIONS (upgrade-node)  
+      --version version  
+        Target version
+      --ignore-cartridge-version  
+        Force cartridge upgrade even if cartridge versions match
+      --upgrade-node [server_identity]  
+        Server identity of the node to upgrade
+      --upgrade-position upgrade_position  
+        Position of this upgrader (1 based) amongst the num of upgraders
+      --num-upgraders num_upgraders  
+        The total number of upgraders to be run. Each upgrade-position will be a upgrade-position of num-upgraders. All positions must to taken to upgrade all gears.
+      --gear-whitelist gear_whitelist  
+        List of specified gear UUIDs to upgrade
+      --max-threads max_threads  
+        Indicates the number of processing queues
+      --num-tries num_tries  
+        Number of times to try a particular gear upgrade
+
+  upgrade-gear  
+    Upgrades only the specified gear.
+
+    OPTIONS (upgrade-gear)  
+      --login login  
+        User login
+      --app-name  
+        App name of the gear to upgrade
+      --upgrade-gear  
+        Gear uuid of the single gear to upgrade
+      --version  
+        Target version number
+      --ignore-cartridge-version  
+        Force cartridge upgrade even if cartridge versions match
+
+  upgrade-from-file  
+    Upgrades gears from a gear queue file.
+
+    OPTIONS (upgrade-from-file)  
+      --upgrade_file  
+        The gear queue file to upgrade from
+      --active-only  
+        Skip inactive gears when processing the file
+      --ignore-cartridge-version  
+        Force cartridge upgrade even if cartridge versions match
+      --num_tries  
+        Number of times to try a particular gear upgrade
+
+  archive  
+    Archives existing upgrade data in order to begin a completely new upgrade attempt.
+
+
+EXAMPLE
+
+  $ oo-admin-upgrade upgrade-node --version 1.0
+
+SEE ALSO
+
+AUTHOR
+  Dan McPherson <dmcphers@redhat.com> - man page written for OpenShift Origin 

@@ -1,6 +1,6 @@
 = Administration Guide
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
-v2.0, July 2013
+LATEST DOC UPDATES
 :data-uri:
 :toc2:
 :icons:
@@ -10,8 +10,14 @@ OpenShift Origin provides developers and IT organizations an open source auto-sc
 
 [TIP]
 ====
-*Installation is documented in the link:oo_deployment_guide_comprehensive.html[OpenShift Origin Deployment Guide].* +
-If you don't have OpenShift Origin up and running, go there first.
+*There are several ways to install / deploy OpenShift.* +
+
+* link:oo_deployment_guide_vm.html[The Origin VM] provides a pre-built, all-in-one virtual machine.
+* link:oo_install_users_guide.html[oo-install] offers the simplest, but most limited custom deployment path.
+* The link:oo_deployment_guide_puppet.html[Puppet Deployment Guide] explains how to use Puppet for a balance of flexibility and automation.
+* The link:oo_deployment_guide_comprehensive.html[Comprehensive Deployment Guide] describes the full, manual process to support the most custom deployments.
+
+If you don't have OpenShift Origin up and running, have a look at these deployment options first.
 ====
 
 [float]
@@ -23,97 +29,6 @@ System Administrators understand the complexity of not only deploying the code, 
 [float]
 === Managing an OpenShift Origin System
 This manual covers some of the most basic things that you will need to do to manage an OpenShift Origin instance. This guide does _not_ cover the management of some necessary support systems, including a messaging service like ActiveMQ and a MongoDB instance.
-
-== Adding Cartridges
-
-*Server used:*
-
-* node host
-* broker host
-
-*Tools used:*
-
-* yum
-* bundle
-
-By default, OpenShift Origin caches certain values for faster retrieval. Clearing this cache allows the retrieval of updated settings.
-
-For example, the first time MCollective retrieves the list of cartridges available on your nodes, the list is cached so that subsequent requests for this information are processed more quickly. If you install a new cartridge, it is unavailable to users until the cache is cleared and MCollective retrieves a new list of cartridges.
-
-This chapter will focus on installing cartridges to allow OpenShift Origin to create JBoss gears.
-
-=== List Available Cartridges
-For a complete list of all cartridges that are available to install, you can perform a search using the yum command that will output all OpenShift Origin cartridges.
-
-*Run the following command on the node host*:
-
-----
-# yum search origin-cartridge
-----
-
-You should see the following cartridges available to install:
-
-* openshift-origin-cartridge-cron.noarch : Embedded cron support for express
-* openshift-origin-cartridge-diy.noarch : Provides diy support
-* openshift-origin-cartridge-haproxy.noarch : Provides embedded haproxy-1.4 support
-* openshift-origin-cartridge-jbosseap.noarch : Provides JBossEAP6.0 support
-* openshift-origin-cartridge-jbossews.noarch : Provides JBossEWS1.0 support
-* openshift-origin-cartridge-jenkins.noarch : Provides jenkins-1 support
-* openshift-origin-cartridge-jenkins-client.noarch : Embedded jenkins client support for express
-* openshift-origin-cartridge-mysql.noarch : Provides embedded mysql support
-* openshift-origin-cartridge-perl.noarch : Provides mod_perl support
-* openshift-origin-cartridge-php.noarch : Provides php-5.3 support
-* openshift-origin-cartridge-postgresql.noarch : Provides embedded PostgreSQL support
-* openshift-origin-cartridge-python.noarch : Provides python-2.6 support
-* openshift-origin-cartridge-ruby.noarch : Provides ruby rack support running on Phusion Passenger
-
-=== Install JBoss EAP and JBoss EWS Support
-In order to enable consumers of the PaaS to create JBoss EAP / JBoss EWS gears, we will need to install all of the necessary cartridges for the application server and supporting build systems. Perform the following command to install the required cartridges:
-
-*Execute the following on the node host*:
-
-----
-# yum install openshift-origin-cartridge-jbosseap.noarch openshift-origin-cartridge-jbossews.noarch openshift-origin-cartridge-jenkins.noarch openshift-origin-cartridge-jenkins-client.noarch
-----
-
-The above command will allow users to create JBoss EAP and JBoss EWS gears. This also installs support for the Jenkins continuous integration environment, which is discussed in detail in the link:oo_user_guide.html#jenkins-continuous-integration[OpenShift Origin User's Guide]. At the time of this writing, the above command will download and install an additional 285 packages on your node host.
-
-NOTE: Depending on your connection and speed of your node host, this installation may take several minutes.
-
-=== Clear the Broker Application Cache
-At this point, you will notice if you try to create a JBoss EAP or JBoss EWS based application via the web console that the application type is not available. This is because the broker host creates a cache of available gear types to increase performance. After adding a new cartridge, you need to clear this cache in order for the new gear type to be available to users.
-
-*Execute the following on the broker host*:
-
-----
-# cd /var/www/openshift/broker
-# bundle exec rake tmp:clear
-----
-
-It may take several minutes before you see the new cartridges available on the web console as it takes a few minutes for the cache to completely clear.
-
-=== Test the New Cartridges
-Open up your preferred browser and enter the following URL, using the correct host and domain name for your environment:
-
-----
-http://broker.example.com
-----
-
-You will be prompted to authenticate and then be presented with an application creation screen. After the cache has been cleared, and assuming you have added the new cartridges correctly, you should see a screen similar to the following:
-
-image:console-jboss.png[image]
-
-If you do not see the new cartridges available on the web console, check that the new cartridges are available by viewing the contents of the _/usr/libexec/openshift/cartridges_ directory:
-
-----
-# cd /usr/libexec/openshift/cartridges
-# ls
-----
-
-=== Install the PostgreSQL and DIY Cartridges
-Using the information presented in this chapter, perform the necessary commands to install both the PostgreSQL and DIY cartridges on your node host. Verify the success of the installation by ensuring that the DIY application type is available on the web console:
-
-image:console-diy.png[image]
 
 == User Resource Management
 
@@ -226,7 +141,7 @@ In order to remove the ability for a user to create a specific gear size, you ca
 
 Districts facilitate moving gears between node hosts in order to manage resource usage. They also make it possible to deactivate nodes so they receive no further gears. As it is difficult to introduce districts to an installation after it is in use, they should be created from the start when it is quite simple.
 
-=== Heirarchy of OpenShift Entities
+=== Hierarchy of OpenShift Entities
 
 In order to explain how districts figure into OpenShift, we first need to examine their place in OpenShift's containership hierarchy.
 
@@ -286,13 +201,13 @@ If the command was successful, you should see output similar to the following:
 Successfully created district: 513b50508f9f44aeb90090f19d2fd940
 
 {"name"=>"small_district",
- "active_server_identities_size"=>0,
+ "active_servers_size"=>0,
  "gear_size"=>"small",
  "max_uid"=>6999,
  "created_at"=>"2013-01-15T17:18:28-05:00",
  "updated_at"=>"2013-01-15T17:18:28-05:00",
  "max_capacity"=>6000,
- "server_identities"=>{},
+ "servers"=>{},
  "uuid"=>"513b50508f9f44aeb90090f19d2fd940",
  "available_uids"=>"<6000 uids hidden>",
  "available_capacity"=>6000}
@@ -330,20 +245,20 @@ The output should be similar to:
 {
 	"_id": "513b50508f9f44aeb90090f19d2fd940",
 	"name": "small_district",
-	"active_server_identities_size": 0,
+	"active_servers_size": 0,
 	"gear_size": "small",
 	"max_uid": 6999,
 	"created_at": "2013-01-15T17:18:28-05:00",
 	"updated_at": "2013-01-15T17:18:28-05:00",
 	"max_capacity": 6000,
-	"server_identities": [],
+	"servers": [],
 	"uuid": "513b50508f9f44aeb90090f19d2fd940",
 	"available_uids": [1000, .........],
 	"available_capacity": 6000
 }
 ----
 
-NOTE: The _server_identities_ array does not contain any data yet.
+NOTE: The _servers_ array does not contain any data yet.
 
 Exit the Mongo shell using the exit command:
 
@@ -374,28 +289,63 @@ Success!
  "available_uids"=>"<6000 uids hidden>",
  "gear_size"=>"small",
  "uuid"=>"513b50508f9f44aeb90090f19d2fd940",
- "server_identities"=>{"node.example.com"=>{"active"=>true}},
+ "servers"=>{"node.example.com"=>{"active"=>true}},
  "name"=>"small_district",
  "max_capacity"=>6000,
  "max_uid"=>6999,
- "active_server_identities_size"=>1}
+ "active_servers_size"=>1}
  
 ----
 
 NOTE: If you see an error message indicating that you can't add this node to the district because the node already has applications on it, consult the Troubleshooting Guide.
 
-Repeat the steps above to query the database for information about districts. Notice that the _server_identities_ array now contains the following information:
+Repeat the steps above to query the database for information about districts. Notice that the _servers_ array now contains the following information:
 
 ----
-"server_identities" : [ { "name" : "node.example.com", "active" : true } ]
+"servers" : [ { "name" : "node.example.com", "active" : true } ]
 ----
 
-If you continued to add additional nodes to this district, the _server_identities_ array would show all the node hosts that are assigned to the district.
+If you continued to add additional nodes to this district, the _servers_ array would show all the node hosts that are assigned to the district.
 
 This command line tool can be used just to display district information. Simply run the command with no arguments to view the JSON records in the MongoDB database for all districts:
 
 ----
   # oo-admin-ctl-district
+----
+
+=== Removing a Node From a District
+
+For various reasons, you may want to remove gears from a node host and the host from a district. You may find that a lot of gears on a node host become idle over time, and you may want to "compact" the district by decommissioning or re-purposing a node host. For this purpose, you need a combination of oo-admin-ctl-district and oo-admin-move and the following procedure.
+
+As an example, suppose you had node1.example.com and node2.example.com in a district named "small_district", and wanted to remove node2.
+
+1. Run `oo-admin-chk` on a broker host and `oo-accept-node` on node2.example.com, and fix any problems found with the gears on node2. It's a better idea to take care of these up front than to try to move potentially broken gears.
+2. deactivate the node within the district. This keeps the node from accepting any further gear placements, although the existing gears continue running.
++
+----
+# oo-admin-ctl-district -c deactivate-node -n small_district -i node2.example.com
+----
+3. Move all of the gears off of node2. At this time, there is no automated way to do this. `oo-admin-move` just accepts a single gear. So you can write your own script to look for gears, or just manually list them and run the commands.
+4. Remove node2 from the district:
++
+----
+# oo-admin-ctl-district -c remove-node -n small_district -i node2.example.com
+----
+
+=== Removing a District
+
+In order to remove a district, first set its capacity to 0:
+
+----
+$ oo-admin-ctl-district -c remove-capacity -n district_name -s 6000
+----
+
+Then, remove all gears and nodes as explained in the previous section.
+
+Finally, remove the district itself:
+
+----
+$ oo-admin-ctl-district -c delete -n district_name
 ----
 
 === Managing Gear Capacity
@@ -463,6 +413,122 @@ the broker:
 
 Consult the man page or the -h option for script arguments. By default this tool summarizes gear usage by districts and profiles in a human-readable format. It can also produce several computer-readable formats for use by automation or monitoring.
 
+=== Moving a Gear From One Node to Another
+
+To move a gear between nodes, use the `oo-admin-move` tool on the broker.
+
+Moving gears requires the rsync_id_rsa private key in the broker host's /etc/openshift/ and public key in each node host's /root/.ssh/authorized_keys as explained in the deployment guide.
+
+Moving without districts:
+
+----
+ [root@broker ~]# oo-admin-move --gear_uuid 3baf79139b0b449d90303464dfa8dd6f -i node2.example.com
+ URL: http://app3-demo.example.com 
+ Login: demo
+ App UUID: 3baf79139b0b449d90303464dfa8dd6f 
+ Gear UUID: 3baf79139b0b449d90303464dfa8dd6f
+ DEBUG: Source district uuid: NONE
+ DEBUG: Destination district uuid: NONE
+ [...]
+ DEBUG: Starting cartridge 'ruby-1.8' in 'app3' after move on node2.example.com
+ DEBUG: Fixing DNS and mongo for gear 'app3' after move
+ DEBUG: Changing server identity of 'app3' from 'node1.example.com' to 'node2.example.com'
+ DEBUG: The gear's node profile changed from medium to small
+ DEBUG: Deconfiguring old app 'app3' on node1.example.com after move
+ Successfully moved 'app3' with gear uuid '3baf79139b0b449d90303464dfa8dd6f' from 'node1.example.com' to 'node2.example.com'
+----
+
+== Adding Cartridges
+
+*Server used:*
+
+* node host
+* broker host
+
+*Tools used:*
+
+* yum
+* bundle
+
+By default, OpenShift Origin caches certain values for faster retrieval. Clearing this cache allows the retrieval of updated settings.
+
+For example, the first time MCollective retrieves the list of cartridges available on your nodes, the list is cached so that subsequent requests for this information are processed more quickly. If you install a new cartridge, it is unavailable to users until the cache is cleared and MCollective retrieves a new list of cartridges.
+
+This chapter will focus on installing cartridges to allow OpenShift Origin to create JBoss gears.
+
+=== List Available Cartridges
+For a complete list of all cartridges that are available to install, you can perform a search using the yum command that will output all OpenShift Origin cartridges.
+
+*Run the following command on the node host*:
+
+----
+# yum search origin-cartridge
+----
+
+You should see the following cartridges available to install:
+
+* openshift-origin-cartridge-cron.noarch : Embedded cron support for express
+* openshift-origin-cartridge-diy.noarch : Provides diy support
+* openshift-origin-cartridge-haproxy.noarch : Provides embedded haproxy-1.4 support
+* openshift-origin-cartridge-jbosseap.noarch : Provides JBossEAP6.0 support
+* openshift-origin-cartridge-jbossews.noarch : Provides JBossEWS1.0 support
+* openshift-origin-cartridge-jenkins.noarch : Provides jenkins-1 support
+* openshift-origin-cartridge-jenkins-client.noarch : Embedded jenkins client support for express
+* openshift-origin-cartridge-mysql.noarch : Provides embedded mysql support
+* openshift-origin-cartridge-perl.noarch : Provides mod_perl support
+* openshift-origin-cartridge-php.noarch : Provides php-5.3 support
+* openshift-origin-cartridge-postgresql.noarch : Provides embedded PostgreSQL support
+* openshift-origin-cartridge-python.noarch : Provides python-2.6 support
+* openshift-origin-cartridge-ruby.noarch : Provides ruby rack support running on Phusion Passenger
+
+=== Install JBoss EAP and JBoss EWS Support
+In order to enable consumers of the PaaS to create JBoss EAP / JBoss EWS gears, we will need to install all of the necessary cartridges for the application server and supporting build systems. Perform the following command to install the required cartridges:
+
+*Execute the following on the node host*:
+
+----
+# yum install openshift-origin-cartridge-jbosseap.noarch openshift-origin-cartridge-jbossews.noarch openshift-origin-cartridge-jenkins.noarch openshift-origin-cartridge-jenkins-client.noarch
+----
+
+The above command will allow users to create JBoss EAP and JBoss EWS gears. This also installs support for the Jenkins continuous integration environment, which is discussed in detail in the link:oo_user_guide.html#jenkins-continuous-integration[OpenShift Origin User's Guide]. At the time of this writing, the above command will download and install an additional 285 packages on your node host.
+
+NOTE: Depending on your connection and speed of your node host, this installation may take several minutes.
+
+=== Clear the Broker Application Cache
+At this point, you will notice if you try to create a JBoss EAP or JBoss EWS based application via the web console that the application type is not available. This is because the broker host creates a cache of available gear types to increase performance. After adding a new cartridge, you need to clear this cache in order for the new gear type to be available to users.
+
+*Execute the following on the broker host*:
+
+----
+# cd /var/www/openshift/broker
+# bundle exec rake tmp:clear
+----
+
+It may take several minutes before you see the new cartridges available on the web console as it takes a few minutes for the cache to completely clear.
+
+=== Test the New Cartridges
+Open up your preferred browser and enter the following URL, using the correct host and domain name for your environment:
+
+----
+http://broker.example.com
+----
+
+You will be prompted to authenticate and then be presented with an application creation screen. After the cache has been cleared, and assuming you have added the new cartridges correctly, you should see a screen similar to the following:
+
+image:console-jboss.png[image]
+
+If you do not see the new cartridges available on the web console, check that the new cartridges are available by viewing the contents of the _/usr/libexec/openshift/cartridges_ directory:
+
+----
+# cd /usr/libexec/openshift/cartridges
+# ls
+----
+
+=== Install the PostgreSQL and DIY Cartridges
+Using the information presented in this chapter, perform the necessary commands to install both the PostgreSQL and DIY cartridges on your node host. Verify the success of the installation by ensuring that the DIY application type is available on the web console:
+
+image:console-diy.png[image]
+
 [[admin-console]]
 == Using the Administrative Console
 
@@ -516,4 +582,361 @@ One of the goals for the admin console is to expose OpenShift system data for us
 * _/admin-console/stats/apps_per_domain.json_ - this returns frequency data for apps belonging to a domain
 * _/admin-console/stats/domains_per_user.json_ - this returns frequency data for domains owned by a user
 
+''''Under Construction'''' - by no means to be considered complete or even necessarily correct.
 
+This is a guide to the tools and information you need in order to manage your OpenShift deployment once installed. For installation instructions, refer to the [[Deployment Guide to OpenShift on RHEL 6]].
+
+== Administrative CLI Tools
+
+This section is a quick reference to some important administrative command-line tools provided as part of OpenShift. Familiarity with these tools will assist in most administrative tasks.
+
+=== Broker Host Tools
+
+These tools are installed with the openshift-origin-broker and openshift-origin-broker-util RPMs.
+
+==== `oo-accept-broker`
+
+This script checks that broker setup is valid and functional. It is run without options on a broker.
+
+If there are no errors, it simply prints "PASS" and exits with return code 0 (unless the -v option is added, in which case it also prints the checks that it is performing).
+
+If there are errors, they are printed, and the return code is the number of errors.
+
+----
+ # oo-accept-broker -v
+ INFO: SERVICES: DATA: mongo, Auth: mongo, Name bind
+ INFO: AUTH_MODULE: rubygem-openshift-origin-auth-mongo
+ INFO: NAME_MODULE: rubygem-openshift-origin-dns-bind
+ INFO: Broker package is: openshift-origin-broker
+ INFO: checking packages
+ INFO: checking package ruby
+ INFO: checking package rubygems
+ INFO: checking package rubygem-rails
+ INFO: checking package rubygem-passenger
+ INFO: checking package rubygem-openshift-origin-common
+ INFO: checking package rubygem-openshift-origin-controller
+ INFO: checking package openshift-origin-broker
+ INFO: checking ruby requirements
+ INFO: checking ruby requirements for openshift-origin-controller
+ INFO: checking ruby requirements for config/application
+ INFO: checking firewall settings
+ INFO: checking services
+ INFO: checking datastore
+ INFO: checking cloud user authentication
+ INFO: auth plugin = /var/www/openshift/broker/config/initializers/broker.rb:2: uninitialized constant ApplicationObserver (NameError) from -:6
+ INFO: checking dynamic dns plugin
+ INFO: checking messaging configuration 
+ PASS
+----
+
+This is a good monitoring script to make sure nothing has gone wrong with a broker host.
+
+==== `oo-admin-chk`
+
+This script checks that app records in the Mongo datastore are consistent with gear presence on the node hosts. It is a good sanity check for proper system operation.
+
+Typical output:
+
+----
+oo-admin-chk -v
+Checking application gears in respective nodes :
+Checking node gears in application database:
+Success
+----
+
+(Without -v you just get the "Success" line.)
+
+If this does not run cleanly, consult the link:oo_troubleshooting_guide.html[Troubleshooting Guide] for hints.
+
+==== `oo-register-dns`
+
+A utility for updating DNS A records in BIND (generally for a broker or node host, though could be other infrastructure hosts. Do not use this to change DNS records for apps/gears, as those are CNAME records). It just wraps an nsupdate command.
+
+----
+ # oo-register-dns -?
+ == Synopsis
+ 
+ oo-register-dns: Register node's DNS name with Bind
+   This command must be run as root.
+ 
+ == Usage
+ 
+ oo-register-dns --with-node-hostname node1 \
+                --with-node-ip 192.168.0.1 \
+                --domain example.com                
+ 
+ == List of arguments
+  -h|--with-node-hostname   host        Hostname for the node (required)
+  -n|--with-node-ip         ip          IP of the node (required)
+  -d|--domain               domain      Domain name for this node (optional, default: example.com)  
+  -k|--key-file             file        Bind key (optional, default: /var/named/<domain name>.key)  
+  -?|--help                             Print this message
+----
+
+==== `oo-admin-ctl-district`
+
+This is a utility for all district operations. See the full explanation in a later section. The options are as follows:
+
+----
+ # oo-admin-ctl-district -h
+ == Synopsis
+ 
+ oo-admin-ctl-district: Control districts
+ 
+ == Usage
+ 
+ oo-admin-ctl-district OPTIONS
+ 
+ Options:
+ -u|--uuid     <district uuid>
+    District uuid  (alphanumeric, canonical way to identify the district)
+ -c|--command <command>
+    (add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)
+ -n|--name <district name>
+    District name (Arbitrary identifier, used on create or in place of uuid on other commands)
+ -p|--node_profile <gear_size>
+    (e.g. small|medium) Specify gear profile when creating a district
+ -i|--server_identity
+    Node server_identity (FQDN, required when operating on a node)
+ -s|--size
+    Capacity to add or remove (positive number) (required for capacity operations)
+ -b|--bypass
+    Ignore warnings
+ -h|--help
+    Show usage info
+----
+
+==== `oo-admin-move`
+
+Used to move a gear from one node in a district to another, or even outside its district.
+
+----
+ # oo-admin-move -h
+ == Synopsis
+ 
+ oo-admin-move: Move an app from one node to another
+ 
+ == Usage
+ 
+ oo-admin-move OPTIONS
+ 
+ Options:
+ --gear_uuid <gear_uuid>
+     Gear uuid to move
+ --destination_district_uuid <district_uuid>
+    Destination district uuid
+ -i|--target_server_identity <server_identity>
+    Target server identity
+ -p|--node_profile <node_profile>
+    Node profile
+ -t|--timeout
+    timeout
+ --allow_change_district
+    Allow the move to be between districts
+ -h|--help
+    Show Usage info
+----
+
+==== `oo-admin-ctl-user`
+
+This is used to administer what a user is allowed to use on the system, mainly number and type of gears. Note that this is not the full usage listing as we won't discuss subaccounts until a later installment of the documentation.
+
+----
+ # oo-admin-ctl-user -h
+ 
+ Options:
+  -l|--rhlogin <rhlogin>
+    OpenShift login  (required)
+  --setmaxgears <number>
+    Set the maximum number of gears a user is allowed to use
+  --setconsumedgears <number>
+    Set the number of gears a user has consumed (use carefully to correct occasional off-by-one caused by race condition)
+  --addgearsize <gearsize>
+    Add gearsize to the capability for this rhlogin user
+  --removegearsize <gearsize>
+    Remove gearsize from the capability for this rhlogin user
+  -h|--help
+    Show Usage info
+ 
+ Examples:
+  List the current user settings with:
+    oo-admin-ctl-user -l bob@redhat.com
+
+  Set the maximum number of gears a user is allowed to use with:
+    oo-admin-ctl-user -l bob@redhat.com --setmaxgears 10
+----
+
+==== `oo-admin-ctl-domain`
+
+Used to query and control a user's domain (AKA namespace). This reports basically all of the information there is to know about the user's properties in OpenShift, as well as allowing domain and sshkey updates.
+
+----
+ # oo-admin-ctl-domain -h
+ 
+ == Synopsis
+ 
+ oo-admin-ctl-domain: Manage user domains
+ 
+ == Usage 
+ 
+ oo-admin-ctl-domain OPTIONS
+ 
+ Options:
+ -l|--rhlogin <rhlogin>
+    Red Hat login (RHN or OpenShift login with OpenShift access) (required)
+ -n|--namespace <Namespace>
+    Namespace for application(s) (alphanumeric - max 16 chars) (required)
+ -c|--command (create|update|delete|info)
+ -s|--ssh_key <ssh key>
+    Users SSH key
+ -t|--key_type <ssh key type>
+    User's SSH key type (e.g. ssh-rsa|ssh-dss)
+ -k|--key_name <ssh key name>
+    Users SSH key name
+ -h|--help:
+    Show Usage info
+
+The "info" command is default if no other is provided. The output is very detailed YAML.
+----
+
+==== `oo-admin-ctl-app`
+
+Used to administratively run commands against an app.
+
+----
+ # oo-admin-ctl-app -h
+ == Synopsis
+ 
+ oo-admin-ctl-app: Control user applications
+ 
+ == Usage
+ 
+ oo-admin-ctl-app OPTIONS
+ 
+ Options:
+ -l|--rhlogin <rhlogin>
+    Red Hat login (RHN or OpenShift login with OpenShift access) (required)
+ -a|--app     <application>
+    Application name  (alphanumeric) (required)
+ -c|--command <command>
+    (start|stop|force-stop|restart|status|destroy|force-destroy) (required)
+ -b|--bypass
+    Ignore warnings
+ -h|--help
+    Show Usage info
+----
+
+=== Node Host Tools
+
+These are installed on node hosts with the openshift-origin-node-util RPM.
+
+This package contains management commands that run on a node. Nodes do not have any access to other nodes or to brokers, so all tools here only affect local operations.
+
+==== `oo-accept-node`
+
+This script checks that node setup is valid and functional and its gears are in good condition. It is run without options on a node.
+
+If there are no errors, it simply prints "PASS" and exits with return code 0.
+
+If there are errors, they are printed, and the return code is the number of errors. Here are the items that it checks (can be used with -v to show these details; otherwise you see just errors and end result):
+
+----
+ # oo-accept-node -v
+ INFO: loading node configuration file /etc/openshift/node.conf
+ INFO: loading resource limit file /etc/openshift/resource_limits.conf
+ INFO: checking selinux status
+ INFO: checking selinux origin policy
+ INFO: checking selinux booleans
+ INFO: checking package list
+ INFO: checking services
+ INFO: checking kernel semaphores >= 512
+ INFO: checking cgroups configuration
+ INFO: checking presence of /cgroup
+ INFO: checking presence of /cgroup/all
+ INFO: checking presence of /cgroup/all/openshift
+ INFO: checking filesystem quotas
+ INFO: checking quota db file selinux label
+ INFO: checking 54 user accounts
+ INFO: checking application dirs
+ INFO: checking system httpd configs 
+ PASS
+----
+
+This is a good monitoring script to make sure nothing has gone wrong with a node host.
+
+==== `oo-idler-stats`
+
+Good overview of gear statistics in general (not necessarily related to idling). No options, just returns a single line of stats about the gears on the node.
+
+----
+ # oo-idler-stats -h
+ Usage: oo-idler-stats [options]
+
+ Options:
+  -h, --help     show this help message and exit
+  -v, --verbose  Print additional details.
+  --validate     Perform additional sanity checks.
+----
+
+==== `oo-admin-ctl-gears`
+
+Node system script for stopping/starting gears on a node. This is used by the openshift-gears service at boot time to activate existing gears. It can also be used directly by an administrator.
+
+Usage is like a service script:
+
+----
+ oo-admin-ctl-gears {startall|stopall|status|restartall|condrestartall|startgear|stopgear|restartgear|list}
+   list: simply all gears on the node.
+   status: shows status of all gears on the node.
+   startall: starts all gears, one by one.
+   stopall: stops all gears, one by one.
+   restartall: restarts all gears, one by one (NOT the same as stopall/startall)
+   condrestartall: like restartall, but uses a lockfile to keep from being run concurrently with another instance of itself.
+   startgear X: starts individual gear X
+   stopgear X: stops individual gear X
+----
+
+==== Idler-Related Scripts
+
+The idler is a tool for shutting down gears that haven't been used recently, in order to reclaim their resources and overcommit the node host's resource usage.
+
+See https://github.com/openshift/origin-server/blob/master/node-util/README-Idler.md for more details about the idler.
+
+===== `oo-idler` and `oo-restorer`
+
+These are the basic tools for idling and restoring a gear. 
+
+oo-idler stops the application, forwards the application's URL to a /var/www/html/restorer.php, and records the application's status as 'idled'.
+
+----
+ Usage: /usr/bin/oo-idler
+ -u uuid idles the gear
+ -l lists all idled gears on a node
+ -n idles a gear without restarting the node's httpd process. This is useful when idling a number of gears (if you build your own auto-idler); make all calls except the last with -n, and then remove -n on the last call to restart httpd.
+----
+
+oo-restorer is what restorer.php calls to start the gear when access is made. It can also be run manually.
+
+----
+ Usage: /usr/bin/oo-restorer
+  -u UUID  (app to restore UUID)
+----
+
+restorer.php currently relies on oddjob to restart a gear; normally a web request would be in the wrong context to restart a gear and httpd, so oddjob is used to send a request to oo-restorer so that the restore can be performed from the right context. Restoring will not work if the oddjobd and messagebus services are not running.
+
+===== `oo-last-access`, `oo-list-stale`, and `oo-autoidler`
+
+These tools enable automatic idling of stale gears.
+
+* `oo-last-access` is used to record in the gear operations directory how long it has been since the last access either via the web or git. This should be run regularly in a cron job.
+* `oo-list-stale` retrieves a list of gears that are older than a given age (by default, 15 days).
+* `oo-autoidler` uses `oo-list-stale` to retrieve a list of stale gears and run oo-idler on all of them to make them idle. It should be run regularly from a cron job.
+
+An example auto-idler cron script might look like:
+
+----
+ # run the last-access compiler hourly
+ 0 * * * * /usr/bin/oo-last-access > /var/lib/openshift/last_access.log 2>&1
+ # run the auto-idler twice daily and idle anything stale for 5 days
+ 30 7,19 * * * /usr/bin/oo-autoidler 5
+----

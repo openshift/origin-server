@@ -3,17 +3,15 @@
 #   @return [Array[PendingAppOp]] Array of pending operations that need to occur for this {Application}
 # @!attribute [rw] parent_op_id
 #   @return [Moped::BSON::ObjectId] ID of the {PendingDomainOps} operation that this operation is part of
-# @!attribute [r] op_type
-#   @return [Symbol] Group level operation type
 # @!attribute [r] arguments
 #   @return [Hash] Group level arguments hash
 class PendingAppOpGroup
   include Mongoid::Document
-  include Mongoid::Timestamps
+  include Mongoid::Timestamps::Created
   include TSort
 
   embedded_in :application, class_name: Application.name
-  embeds_many :pending_ops, class_name: PendingAppOp.name
+  embeds_many :pending_ops, class_name: PendingAppOp.name, cascade_callbacks: true
 
   field :parent_op_id, type: Moped::BSON::ObjectId
   field :num_gears_added,   type: Integer, default: 0
@@ -22,6 +20,7 @@ class PendingAppOpGroup
   field :num_gears_destroyed, type: Integer, default: 0
   field :num_gears_rolled_back, type: Integer, default: 0
   field :user_agent, type: String, default: ""
+  field :rollback_blocked, type: Boolean, default: false
 
   def initialize(attrs = nil, options = nil)
     parent_opid = nil
@@ -57,31 +56,29 @@ class PendingAppOpGroup
     # reloading the op_group reloads the application and then incorrectly reloads (potentially)
     # the op_group based on its position within the :pending_op_groups list
     # hence, reloading the application, and then fetching the op_group using the _id
-    
+
     if application.persisted?
       reloaded_app = Application.find_by(_id: application._id)
       op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
       self.pending_ops = op_group.pending_ops
     end
-    
-    pending_ops.where(:state.ne => :completed, :pre_save => true).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
+
+    pending_ops.where(:state.ne => :completed, :pre_save => true).select{ |op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0 }
   end
 
   # The pre_execute method does not handle parallel executions
   # it has been created primarily to execute mongo operations
   def pre_execute(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
-    begin
-      while(pending_ops.where(:state.ne => :completed, :pre_save => true).count > 0) do
-        Rails.logger.debug "Pre-Executing ops..."
-        eligible_pre_execute_ops.each do|op|
-          Rails.logger.debug "Pre-Execute #{op.class.to_s}"
-          # set the pending_op state to queued
-          op.set_state(:queued) 
-          return_val = op.execute
-          result_io.append return_val if return_val.is_a? ResultIO
-          op.set_state(:completed)
-        end
+    while(pending_ops.where(:state.ne => :completed, :pre_save => true).count > 0) do
+      Rails.logger.debug "Pre-Executing ops..."
+      eligible_pre_execute_ops.each do|op|
+        Rails.logger.debug "Pre-Execute #{op.to_log_s}"
+        # set the pending_op state to queued
+        op.set_state(:queued) 
+        return_val = op.execute
+        result_io.append return_val if return_val.is_a? ResultIO
+        op.set_state(:completed)
       end
     end
   end
@@ -95,14 +92,13 @@ class PendingAppOpGroup
         parallel_job_ops = []
 
         eligible_ops.each do|op|
-          Rails.logger.debug "Execute #{op.class.to_s}"
+          Rails.logger.debug "Execute #{op.to_log_s}"
 
           # set the pending_op state to queued
           op.set_state(:queued)
 
-
-          if op.isParallelExecutable()
-            op.addParallelExecuteJob(handle)
+          if op.is_parallel_executable
+            op.add_parallel_execute_job(handle)
             parallel_job_ops.push op
           else
             return_val = op.execute
@@ -110,9 +106,9 @@ class PendingAppOpGroup
             if result_io.exitcode != 0
               op.set_state(:failed)
               if result_io.hasUserActionableError
-                raise OpenShift::UserException.new("Unable to execute #{self.class.to_s}", result_io.exitcode, nil, result_io) 
+                raise OpenShift::UserException.new("Unable to execute #{op.to_log_s}", result_io.exitcode, nil, result_io) 
               else
-                raise OpenShift::NodeException.new("Unable to execute #{self.class.to_s}", result_io.exitcode, result_io)
+                raise OpenShift::NodeException.new("Unable to execute #{op.to_log_s}", result_io.exitcode, result_io)
               end
             else
               op.set_state(:completed)
@@ -124,42 +120,27 @@ class PendingAppOpGroup
           RemoteJob.execute_parallel_jobs(handle)
           failed_ops = []
           RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
-            if tag.has_key?("expose-ports") and status == 0
-              result = ResultIO.new(status, output, gear_id)
-              component_instance_id = tag["expose-ports"]
-              component_instance = application.component_instances.find(component_instance_id)
-              component_instance.process_properties(result)
-              process_gear = nil
-              application.group_instances.each { |gi| 
-                gi.gears.each { |g| 
-                  if g.uuid.to_s == gear_id
-                    process_gear = g
-                    break
-                  end
-                }
-                break if process_gear
-              }
-              application.process_commands(result, component_instance, process_gear)
-            else
-              result_io.append ResultIO.new(status, output, gear_id)
-              failed_ops << tag["op_id"] if status != 0 
-            end
+            result_io.append ResultIO.new(status, output, gear_id)
+            failed_ops << tag["op_id"] if status != 0
           end
-          parallel_job_ops.each{ |op|
+          parallel_job_ops.each do |op|
             if failed_ops.include? op._id.to_s
               op.set_state(:failed)
             else
               op.set_state(:completed)
             end
-          }
-          self.application.save
-          
+          end
+          self.application.save!
+
           unless failed_ops.empty?
             if result_io.hasUserActionableError
               raise OpenShift::UserException.new(result_io.errorIO.string, result_io.exitcode, nil, result_io)
             else
-              failed_op_strings = failed_ops.map { |op_id| parallel_job_ops.find { |p_op| p_op._id.to_s == op_id }.class.to_s rescue nil }.uniq.compact
-              raise OpenShift::OOException.new("Failed to correctly execute all parallel operations - #{failed_op_strings.inspect}", 1, result_io)
+              failures = failed_ops.map{ |op_id| parallel_job_ops.find { |p_op| p_op._id.to_s == op_id }.action_message rescue nil }.
+                group_by{ |m| m }.
+                values.
+                map{ |arr| "#{arr[0]} on #{failed_ops.length > 1 ? "#{failed_ops.length} gears" : "1 gear"}." }
+              raise OpenShift::ApplicationOperationFailed.new("#{failures.join(' ')} Please try again and contact support if the issue persists.", 1, result_io)
             end
           end
         end
@@ -170,7 +151,7 @@ class PendingAppOpGroup
       end
     rescue Exception => e_orig
       Rails.logger.error e_orig.message
-      Rails.logger.error e_orig.backtrace.inspect
+      Rails.logger.error e_orig.backtrace.join("\n")
       raise e_orig
     end
   end
@@ -183,11 +164,10 @@ class PendingAppOpGroup
       parallel_job_ops = []
 
       eligible_rollback_ops.each do|op|
-        use_parallel_job = false
-        Rails.logger.debug "Rollback #{op.class.to_s}"
+        Rails.logger.debug "Rollback #{op.to_log_s}"
 
-        if op.isParallelExecutable()
-          op.addParallelRollbackJob(handle)
+        if op.is_parallel_executable
+          op.add_parallel_rollback_job(handle)
           parallel_job_ops.push op
         else
           return_val = op.rollback
@@ -199,7 +179,7 @@ class PendingAppOpGroup
       if parallel_job_ops.length > 0
         RemoteJob.execute_parallel_jobs(handle)
         parallel_job_ops.each{ |op| op.set_state(:rolledback) }
-        self.application.save
+        self.application.save!
       end
     end
   end
@@ -215,51 +195,32 @@ class PendingAppOpGroup
   #   @see {PendingAppOps}
   def try_reserve_gears(num_gears_added, num_gears_removed, app, ops)
     owner = app.domain.owner
-    begin
-      until Lock.lock_user(owner, app)
-        sleep 1
-      end
-      owner.reload
+    Lock.run_in_app_user_lock(owner, app) do
       if owner.consumed_gears + num_gears_added > owner.max_gears and num_gears_added > 0
         raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.max_gears} limit and this application requires #{num_gears_added} additional gears.")
       end
       owner.consumed_gears += num_gears_added
-      self.pending_ops.push ops
       self.num_gears_added = num_gears_added
       self.num_gears_removed = num_gears_removed
-      self.save if app.persisted?
-      owner.save
-    ensure
-      Lock.unlock_user(owner, app)
+      self.pending_ops.concat(ops)
+      self.save! if app.persisted?
+      owner.save!
     end
   end
 
   def unreserve_gears(num_gears_removed, app)
     return if num_gears_removed == 0
     owner = app.domain.owner
-    begin
-      until Lock.lock_user(owner, app)
-        sleep 1
-      end
-      owner.reload
+    Lock.run_in_app_user_lock(owner, app) do
       owner.consumed_gears -= num_gears_removed
-      owner.save
-    ensure
-      Lock.unlock_user(owner, app)
+      owner.save!
     end
   end
 
-  def serializable_hash_with_timestamp
-    s_hash = self.serializable_hash
-    t = Time.zone.now
-    if self.created_at.nil?
-      s_hash["created_at"] = t
+  def get_component_instance
+    if spec = comp_spec
+      spec.application = application
+      application.component_instances.detect{ |i| i.matches_spec?(spec) }
     end
-    if self.updated_at.nil?
-      s_hash["updated_at"] = t
-    end
-    # need to set the _type attribute for MongoId to instantiate the appropriate class 
-    s_hash["_type"] = self.class.to_s unless s_hash["_type"]
-    s_hash
   end
 end

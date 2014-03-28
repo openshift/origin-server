@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'getoptlong'
 
-CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear|remove-cartridge|run-connection-hooks|set-multiplier)"
+CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear|remove-cartridge|run-connection-hooks|set-multiplier|update-cluster)"
 
 def usage
   puts <<USAGE
@@ -66,7 +66,9 @@ if login.nil? or app_name.nil? or command.nil? or args["--help"]
   usage
 end
 
-require "/var/www/openshift/broker/config/environment"
+require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
+include AdminHelper
+
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
@@ -83,30 +85,6 @@ app = Application.find_by_user(user, app_name)
 unless app
   puts "Application #{app_name} for user #{login} not found."
   exit 1
-end
-
-def lock_user_without_app(user_id, timeout=30)
-  begin
-    now = Time.now.to_i
-    lock = Lock.find_or_create_by( :user_id => user_id )
-    query = {:user_id => user_id, "$or" => [{:locked => false}, {:timeout.lt => now}], "app_ids" => {}}
-    updates = {"$set" => { locked: true, timeout: (now + timeout) }}
-    lock = Lock.where(query).find_and_modify(updates, new: true)
-    return (not lock.nil?)
-  rescue Moped::Errors::OperationFailure
-    return false
-  end
-end
-
-def unlock_user_without_app(user_id)
-  begin
-    query = {:user_id => user_id, :locked => true}
-    updates = {"$set" => { "locked" => false }}
-    lock = Lock.where(query).find_and_modify(updates, new: true)
-    return (not lock.nil?)
-  rescue Moped::Errors::OperationFailure
-    return false
-  end
 end
 
 def check_user_response
@@ -134,9 +112,9 @@ begin
   when "restart"
     reply.append app.restart  
   when "status"
-    app.requires.each { |feature|
-      reply.append app.status(feature)
-    }
+    app.cartridges.each do |cart|
+      reply.append app.status(cart.name)
+    end
   when "force-destroy","destroy"
     unless bypass
       puts <<-WARNING
@@ -154,53 +132,38 @@ begin
       app.destroy_app
     elsif command=="force-destroy"
       puts "Force deleting application #{app.name}..."
-      premium_carts = []
-      all_carts = CartridgeCache.cartridges
-      all_carts.each do |cart|
-        premium_carts.push(cart.name) if cart.is_premium?
-      end
+      premium_carts = get_premium_carts
       gear_count = 0
-      # delete all gears, then delete app
-      app.group_instances.each do |gi|
-        gi.gears.each do |g|
-          gear_count += 1
-          g.deregister_dns rescue nil
-          g.destroy_gear rescue nil 
-          begin
-            UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:gear_usage], gi.gear_size)
-            addtl_fs_gb = gi.addtl_fs_gb
-            UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:addtl_fs_gb], nil, addtl_fs_gb) if addtl_fs_gb > 0
-            component_instances = gi.component_instances + g.sparse_carts.map {|s| gi.application.component_instances.find_by(_id: s) }
-            carts = component_instances.map { |ci| ci.cartridge_name }.uniq
-            carts.each do |cart|
-              UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:premium_cart], nil, nil, cart) if premium_carts.include?(cart)
+      Lock.run_in_app_lock(app) do
+        # delete all gears, then delete app
+        app.group_instances.each do |gi|
+          gi.gears.each do |g|
+            gear_count += 1
+            g.deregister_dns rescue nil
+            g.destroy_gear rescue nil 
+            begin
+              UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:gear_usage], gi.gear_size)
+              addtl_fs_gb = gi.addtl_fs_gb
+              UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:addtl_fs_gb], nil, addtl_fs_gb) if addtl_fs_gb > 0
+              component_instances = gi.component_instances + g.sparse_carts.map {|s| gi.application.component_instances.find_by(_id: s) }
+              carts = component_instances.map { |ci| ci.cartridge_name }.uniq
+              carts.each do |cart|
+                UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:premium_cart], nil, nil, cart) if premium_carts.include?(cart)
+              end
+            rescue Exception => e
+              puts e.message
+              puts e.backtrace.inspect
             end
-          rescue Exception => e
-            puts e.message
-            puts e.backtrace.inspect
-          end
-        end if gi.gears.present?
-      end if app.group_instances.present?
+          end if gi.gears.present?
+        end if app.group_instances.present?
 
-      owner = app.domain.owner
-      begin
-        retries = 5
-        until lock_user_without_app(owner.id)
-          sleep 1
-          retries -= 1
-          if retries < 0
-            puts "Unable to acquire user lock. User's consumed gear count will be skewed."
-            raise
-          end
-        end
-        owner.consumed_gears -= gear_count
-        owner.save
-      rescue Exception
-        #ignore
-      ensure
-        unlock_user_without_app(owner.id)
-      end      
-      app.delete
+        owner = app.domain.owner
+        Lock.run_in_app_user_lock(owner, app) do
+          owner.consumed_gears -= gear_count
+          owner.save!
+        end      
+        app.delete
+      end
     end
     reply.resultIO << "Successfully deleted application: #{app.name}" if reply.resultIO.string.empty?
   when "remove-cartridge"
@@ -208,7 +171,7 @@ begin
       puts "Cartridge is required to remove-dependency"
       exit 1
     end
-    app.remove_features([cartridge])
+    app.remove_cartridges([cartridge])
   when "remove-gear"
     unless gear_uuid
       puts "Gear uuid is required to remove-gear"
@@ -261,6 +224,8 @@ begin
       exit 1
     end
     app.update_component_limits(ci, nil, nil, nil, multiplier)
+  when "update-cluster"
+    app.update_cluster
   else
     puts "Command must be one of: #{CTL_APP_COMMANDS}"
     usage

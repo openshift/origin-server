@@ -89,11 +89,11 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert Array(@domain.errors[:members]).any?{ |s| s == 'The domain members could not be updated.' }, @domain.errors.full_messages.join(' ')
 
     assert !@domain.update_members([m = Member.new(:login => '', :role => 'admin')])
-    assert Array(m.errors[:base]).any?{ |s| s =~ /Each member being changed must have an id or a login/ }, m.errors.full_messages.join(' ')
+    assert Array(m.errors[:base]).any?{ |s| s =~ /Each user being changed must have an id or a login/ }, m.errors.full_messages.join(' ')
     assert Array(@domain.errors[:members]).any?{ |s| s == 'The domain members could not be updated.' }, @domain.errors.full_messages.join(' ')
 
     assert !@domain.update_members([m = Member.new(:role => 'admin')])
-    assert Array(m.errors[:base]).any?{ |s| s =~ /Each member being changed must have an id or a login/ }, m.errors.full_messages.join(' ')
+    assert Array(m.errors[:base]).any?{ |s| s =~ /Each user being changed must have an id or a login/ }, m.errors.full_messages.join(' ')
     assert Array(@domain.errors[:members]).any?{ |s| s == 'The domain members could not be updated.' }, @domain.errors.full_messages.join(' ')
   end
 

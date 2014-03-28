@@ -15,7 +15,7 @@ module OpenShift
 
         def check_version
           version = catch(:version) do
-            (request.accept || "").split(',').each do |mime_type|
+            "#{request.accept},#{request.env['CONTENT_TYPE']}".split(',').each do |mime_type|
               values = mime_type.split(';').map(&:strip)
               @nolinks = true if values.include? 'nolinks'
               values.map(&:strip).map(&:downcase).each do |value|
@@ -96,15 +96,8 @@ module OpenShift
           end
         end
 
-        def pre_and_post_condition(pre, post, run, fails)
-          return false if !pre.call
-          run.call
-          if post.call
-            true
-          else
-            fails.call
-            false
-          end
+        def id?(s)
+          s.present? && s =~ /\A[\da-fA-F]{20,36}\Z/
         end
 
         def get_log_tag_prepend
@@ -131,6 +124,21 @@ module OpenShift
           @domain = Domain.accessible(current_user).find_by(canonical_namespace: Domain.check_name!(id.presence).downcase)
         end
 
+        def find_or_create_domain!(id=nil)
+          get_domain(id)
+        rescue Mongoid::Errors::DocumentNotFound
+          raise if params[:domain_id].blank?
+          begin
+            if OpenShift::ApplicationContainerProxy.blacklisted? params[:domain_id]
+              raise OpenShift::UserException.new("Namespace is not allowed.  Please choose another.", 106) 
+            end
+            @domain = Domain.create!(namespace: params[:domain_id], owner: current_user)
+          rescue OpenShift::UserException => e
+            e.field = 'domain_id'
+            raise
+          end
+        end
+
         def get_application
           domain_id = params[:domain_id].presence || params[:domain_name].presence
           domain_id = domain_id.to_s.downcase if domain_id
@@ -151,6 +159,11 @@ module OpenShift
               end
             end
         end
+        
+        def get_team(id=nil)
+          id ||= params[:team_id].presence
+          @team = Team.accessible(current_user).find(id)
+        end
 
         def authorize!(permission, resource, *resources)
           Ability.authorize!(current_user, current_user.scopes, permission, resource, *resources)
@@ -158,7 +171,7 @@ module OpenShift
         def authorized?(permissions, resource, *resources)
           Ability.authorized?(current_user, current_user.scopes, permissions, resource, *resources)
         end
-        
+
         def check_input
           unless support_valid_encoding?
             # ruby 1.8.7 does have valid_encoding? method so catching the exception and logging

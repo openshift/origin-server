@@ -11,7 +11,10 @@
       %pre.larger{:style => 'word-break: break-all;'}= @authorization.token
 
       %p The token will allow clients to perform these operations on your behalf:
-      %table.table.table-condensed
+      %table.table.table-fixed.table-condensed
+        %colgroup
+          %col{:width => '50%'}
+          %col{:width => '50%'}
         %thead
           %tr
             %th.nowrap{:scope => 'col'} Scope
@@ -20,7 +23,7 @@
           - @authorization.scopes.each do |s|
             - if scope = @scope_definitions.find{ |scope| scope[:match] ? s.match(scope[:match]) : scope[:id].to_s == s.to_s }
               %tr
-                %td.nowrap{:scope => 'row'}= s
+                %td.nowrap{:scope => 'row', :title => s}= s
                 %td= scope[:description]
             - else
               %tr

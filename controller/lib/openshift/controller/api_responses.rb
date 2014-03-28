@@ -38,7 +38,7 @@ module OpenShift
             reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
             log_action(action_log_tag, status, !internal_error, msg, get_log_args)
           end
-          respond_with reply
+          respond_with reply, :status => reply.status
         end
 
         # Renders a REST response for an application being upgraded.
@@ -59,8 +59,10 @@ module OpenShift
           field = ex.respond_to?(:field) ? ex.field : nil
 
           case ex
+          when OpenShift::ValidationException
+            return render_error(:unprocessable_entity, nil, nil, nil, nil, get_error_messages(ex.resource))
+
           when Mongoid::Errors::Validations
-            status = :unprocessable_entity
             field_map =
               case ex.document
               when Domain then requested_api_version <= 1.5 ? {"namespace" => "id"} : {"namespace" => "name"}
@@ -79,6 +81,8 @@ module OpenShift
 
             target =
               if    ComponentInstance >= model then target = 'Cartridge'
+              elsif CartridgeInstance >= model then target = 'Cartridge'
+              elsif CartridgeType     >= model then target = 'Cartridge'
               elsif GroupInstance     >= model then target = 'Gear group'
               else  model.to_s.underscore.humanize
               end
@@ -93,6 +97,8 @@ module OpenShift
                   (Domain >= model and ex.params[:canonical_namespace].presence) or
                   (Application >= model and ex.params[:canonical_name].presence) or
                   (ComponentInstance >= model and ex.params[:cartridge_name].presence) or
+                  (CartridgeInstance >= model and ex.params[:name].presence) or
+                  (CartridgeType     >= model and ex.params[:name].presence) or
                   (Alias >= model and ex.params[:fqdn].presence) or
                   (CloudUser >= model and ex.params[:login].presence) or
                   (CloudUser >= model and ex.params[:_id].presence) or
@@ -116,30 +122,32 @@ module OpenShift
               end
             internal_error = false
 
-          when OpenShift::ApplicationValidationException
-            status = :unprocessable_entity
-            messages = get_error_messages(ex.app)
-            return render_error(status, nil, nil, nil, nil, messages)
-
           when OpenShift::UserException
-            status = :unprocessable_entity
-            internal_error = false
+            status = ex.response_code || :unprocessable_entity
+            error_code, node_message, messages = extract_node_messages(ex, error_code, message, field)
+            message = node_message || "Unable to complete the requested operation. \nReference ID: #{request.uuid}"           
+            messages.push(Message.new(:error, message, error_code, field))
+            return render_error(status, message, error_code, field, nil, messages, false)
 
           when OpenShift::AccessDeniedException
             status = :forbidden
             internal_error = false
 
+          when OpenShift::AuthServiceException
+            status = :internal_server_error
+            message = "Unable to authenticate the user. Please try again and contact support if the issue persists. \nReference ID: #{request.uuid}"
+
           when OpenShift::DNSException
-            status = :service_unavailable
+            status = :internal_server_error
 
           when OpenShift::LockUnavailableException
-            status = :service_unavailable
+            status = :internal_server_error
             message ||= "Another operation is already in progress. Please try again in a minute."
             internal_error = false
 
           when OpenShift::NodeUnavailableException
             Rails.logger.error "Got Node Unavailable Exception"
-            status = :service_unavailable
+            status = :internal_server_error
             message = ""
             if ex.resultIO
               error_code = ex.resultIO.exitcode
@@ -147,30 +155,28 @@ module OpenShift
               Rail.logger.error "message: #{message}"
             end
             message ||= ""
-            message += "Unable to complete the requested operation due to: #{ex.message}. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
+            message += "Unable to complete the requested operation due to: #{ex.message}. Please try again and contact support if the issue persists. \nReference ID: #{request.uuid}"
+
+          when OpenShift::ApplicationOperationFailed
+            status = :internal_server_error
+            error_code, node_message, messages = extract_node_messages(ex, error_code, message, field)
+            messages.push(Message.new(:error, node_message, error_code, field)) unless node_message.blank?
+            message = "#{message}\nReference ID: #{request.uuid}"           
+            return render_error(status, message, error_code, field, nil, messages, internal_error)
 
           when OpenShift::NodeException, OpenShift::OOException
             status = :internal_server_error
-            messages = []
-            error_message = ""
-            if ex.resultIO
-              error_code = ex.resultIO.exitcode
-              error_message = ex.resultIO.errorIO.string.strip + "\n" unless ex.resultIO.errorIO.string.empty?
+            error_code, message, messages = extract_node_messages(ex, error_code, message, field)
+            message ||= "unknown error"
+            message = "Unable to complete the requested operation due to: #{message}\nReference ID: #{request.uuid}"
 
-              messages.push(Message.new(:debug, ex.resultIO.debugIO.string, error_code, field)) unless ex.resultIO.debugIO.string.empty?
-              messages.push(Message.new(:warning, ex.resultIO.messageIO.string, error_code, field)) unless ex.resultIO.messageIO.string.empty?
-              messages.push(Message.new(:result, ex.resultIO.resultIO.string, error_code, field)) unless ex.resultIO.resultIO.string.empty?
-            end
-            error_message ||= ""
-            error_message += "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
-            
             # just trying to make sure that the error message is the last one to be added
-            messages.push(Message.new(:error, error_message, error_code, field))
+            messages.push(Message.new(:error, message, error_code, field))
 
-            return render_error(status, error_message, error_code, field, nil, messages, internal_error)
+            return render_error(status, message, error_code, field, nil, messages, internal_error)
           else
             status = :internal_server_error
-            message = "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
+            message = "Unable to complete the requested operation due to: #{message}\nReference ID: #{request.uuid}"
           end
 
           Rails.logger.error "Reference ID: #{request.uuid} - #{ex.message}\n  #{ex.backtrace.join("\n  ")}" if internal_error
@@ -248,6 +254,20 @@ module OpenShift
           args["DOMAIN"] = (@application.domain_namespace if @application) || (@domain.namespace if @domain)
           args
         end
+
+        protected
+          def extract_node_messages(ex, code=nil, message=nil, field=nil)
+            messages = []
+            if ex.respond_to?(:resultIO) && ex.resultIO
+              code = ex.resultIO.exitcode
+              message = ex.resultIO.errorIO.string.strip + "\n" unless ex.resultIO.errorIO.string.empty?
+
+              messages.push(Message.new(:debug, ex.resultIO.debugIO.string, code, field)) unless ex.resultIO.debugIO.string.empty?
+              messages.push(Message.new(:warning, ex.resultIO.messageIO.string, code, field)) unless ex.resultIO.messageIO.string.empty?
+              messages.push(Message.new(:result, ex.resultIO.resultIO.string, code, field)) unless ex.resultIO.resultIO.string.empty?
+            end
+            [code, message, messages]
+          end
     end
   end
 end

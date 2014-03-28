@@ -1,6 +1,6 @@
 = OpenShift Origin Cartridge Guide
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
-v2.0, July 2013
+LATEST DOC UPDATES
 :data-uri:
 :toc2:
 :icons:
@@ -18,6 +18,21 @@ The OpenShift data directory can be found via the environment variable `$OPENSHI
 [[10gen-mms-agent]]
 == 10gen MMS Agent
 This cartridge provides the https://www.10gen.com/products/mongodb-monitoring-service[10gen MMS agent] on OpenShift.
+
+A few necessary steps have to be done, in order to embed the 10gen-mms-agent into your application:
+
+. Register at https://mms.mongodb.com
+. Go to the Settings -> Monitoring Agent -> Other Linux
+. Curl tarball link that is there
+. Copy the tarball into the .openshift/mms/ folder and git push it
+. Set environment variable called OPENSHIFT_MMS_API_KEY with the API Key which is in the Settings -> API Settings
++
+....
+rhc set-env OPENSHIFT_MMS_API_KEY=your_mms_api_key -a app
+....
++
+. Embed the 10gen cartridge.
+. Go to https://mms.mongodb.com and add your host, by adding MongoDB host, port and credentials into the formular.
 
 [[cron]]
 == Cron
@@ -497,7 +512,7 @@ During server startup, the configuration files in the source repository are proc
 [[tomcat-cartridge-integrations]]
 === Cartridge Integrations
 The `jbossews` cart has out-of-the-box integration support with the RedHat `postgresql` and `mysql` cartridges. The default
-`context.xml` contains two basic JDBC `Resource` definitions, `jdbc/MysqlDS` and `jdbc/PostgreSQLDS`, which will be automatically
+`context.xml` contains two basic JDBC `Resource` definitions, `jdbc/MySQLDS` and `jdbc/PostgreSQLDS`, which will be automatically
 configured to work with their respective cartridges if installed into your application.
 
 === Markers
@@ -653,7 +668,13 @@ The `mysql` cartridge provides several environment variables to reference for ea
 OPENSHIFT_MYSQLDB_DB_HOST:: The MySQL IP address
 OPENSHIFT_MYSQLDB_DB_PORT:: The MySQL port
 OPENSHIFT_MYSQLDB_DB_LOG_DIR:: The path to the MySQL log directory
-
+OPENSHIFT_MYSQL_VERSION: The version of the MySQL server
+OPENSHIFT_MYSQL_TIMEZONE: The MySQL server timezone
+OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES: Sets how the table names are stored and compared
+OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE: The default storage engine (table type)
+OPENSHIFT_MYSQL_MAX_CONNECTIONS: The maximum permitted number of simultaneous client connections
+OPENSHIFT_MYSQL_FT_MIN_WORD_LEN: The minimum length of the word to be included in a FULLTEXT index.
+OPENSHIFT_MYSQL_FT_MAX_WORD_LEN: The maximum length of the word to be included in a FULLTEXT index.
 
 [[nodejs]]
 == NodeJS
@@ -713,6 +734,8 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |hot_deploy
 |Disable app restarting during git pushes (see 'Development Mode')
+|use_npm
+|This will force to run your application using NPM instead of using 'supervisor'
 |===
 
 === Development Mode
@@ -726,6 +749,12 @@ of your javascript files in "development" mode, you can either use the
 ----
 
 This will run Node.JS with https://npmjs.org/package/supervisor[Supervisor].
+
+[NOTE]
+====
+The `hot_deploy` marker is restricted to the supervisor only. Using the
+`use_npm` marker, your application will always do a full restart.
+====
 
 === Local Development + Testing
 You can also develop and test your Node application locally on your machine
@@ -771,20 +800,22 @@ The `perl` cartridge provides http://www.perl.org/[Perl] on OpenShift.
 
 === Template Repository Layout
 ----
-perl/                 For not-externally exposed perl code
-libs/                 Additional libraries
-misc/                 For not-externally exposed perl code
+index.pl
 .openshift/           Location for OpenShift specific files
     action_hooks/     See the Action Hooks documentation <1>
     markers/          See the Markers section below
+    cpan.txt          List of modules to install
 ----
 <1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
 
-Please leave the `perl`, `libs` and `data` directories but feel free to create additional directories if needed.
+Due to changes in Perl cartridge template layout, the application root is now stored in `$OPENSHIFT_REPO_DIR`, but is also backward compatible with deprecated `perl/` directory.
+
+Modules are installed with `cpan.txt`, located in the `.openshift/` directory. In addition, application dependencies can be installed using cpanfile or Makefile.PL placed in the .openshift/ folder. deplist.txt is deprecated in favor of .openshift/cpan.txt.
 
 === Cartridge Layout
 ----
 run/                  Various run configs (like httpd pid)
+usr/                  Perl example application template
 env/                  Environment variables
 logs/                 Log data (like httpd access/error logs)
 lib/                  Various libraries
@@ -822,20 +853,41 @@ The `php` cartridge provides http://www.php.net[PHP] on OpenShift.
 
 === Template Repository Layout
 ----
-php/                   Externally exposed PHP code goes here
-libs/                  Additional libraries
-misc/                  For PHP code that should not be accessible by end users
-deplist.txt            List of pears to install <1>
+index.php              Template PHP index page
 .openshift/            Location for OpenShift specific files
-    action_hooks/      See the Action Hooks documentation <2>
+    action_hooks/      See the Action Hooks documentation <1>
     markers/           See the Markers section below
+    pear.txt           List of pears to install <2>
 ----
-<1> A list of pears to install, line by line on the server. This will happen when the user git pushes.
-<2> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+<1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+<2> A list of pears to install, line by line on the server. This will happen when the user git pushes.
 
-OpenShift will look for the `php` and `libs` directories when serving your 
-application. index.php will handle requests to the root URL of your 
-application. You can create new directories as needed.
+=== Document root
+http://httpd.apache.org/docs/current/mod/core.html#documentroot[Apache DocumentRoot],
+the directory that forms the main document tree visible from the web, is selected based
+on the existence of a common directory in the repository code in the following order:
+----
+1. php/          # for backward compatibility with OpenShift Origin v1/v2
+2. public/       # Zend Framework v1/v2, Laravel, FuelPHP, Surebert etc.
+3. public_html/  # Apache per-user web directories, Slim Framework etc.
+4. web/          # Symfony etc.
+5. www/          # Nette etc.
+6. ./            # Drupal, Wordpress, CakePHP, CodeIgniter, Joomla, Kohana, PIP etc.
+----
+
+=== PHP include_path
+The following application directories, that might exist in the repository code, are added
+to the http://php.net/manual/en/ini.core.php#ini.include-path[PHP include_path] and thus
+automatically searched when calling require(), include() and other file I/O functions:
+----
+- lib/
+- libs/
+- libraries/
+- src/
+- misc/
+- vendor/
+- vendors/
+----
 
 === Markers
 Adding marker files to `.openshift/markers` will have the following effects:
@@ -913,19 +965,24 @@ The `python` cartridge provides http://www.python.org/[Python] on OpenShift.
 
 === Template Repository Layout
 ----
-wsgi/                  Externally exposed wsgi code goes
-wsgi/static/           Public static content gets served here
-libs/                  Additional libraries
-data/                  For not-externally exposed wsgi code
-setup.py               Standard setup.py, specify deps here <1>
+wsgi.py                Default WSGI entry-point <1>
+setup.py               Standard Setup Script <2>
+requirements.txt       Standard pip requirements file <3>
 .openshift/            Location for OpenShift specific files
-    action_hooks/      See the Action Hooks documentation <2>
+    action_hooks/      See the Action Hooks documentation <4>
     markers/           See the Markers section below
 ----
-<1> Adding deps to the `install_requires` will cause the cartirdge to install those deps at git push time.
-<2> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
-
-Please leave the `wsgi`, `libs` and `data` directories but feel free to create additional directories if needed.
+<1> For backward compatibility, the `wsgi/application` path is selected as default
+    WSGI entry-point with higher priority. You can customize the path using the
+    `OPENSHIFT_PYTHON_WSGI_APPLICATION` envirotnment variable. See the Environment
+    variables section below.
+<2> Adding dependencies to the `install_requires` section of `setup.py` file will
+    cause the cartridge to install those dependencies at git push time.
+<3> Adding dependencies to this file will cause the cartridge to run
+    `pip install -r requirements.txt` command at git push time. You can customize
+    the path using the `OPENSHIFT_PYTHON_REQUIREMENTS_PATH` variable. See the
+    Environment variables section below.
+<4> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
 
 === Cartridge Layout
 ----
@@ -955,6 +1012,15 @@ Adding marker files to `.openshift/markers` will have the following effects:
 |===
 
 === Environment variables
+The `python` cartridge supports the following environment variables:
+
+OPENSHIFT_PYTHON_WSGI_APPLICATION:: Set custom path to the WSGI entry-point, eg.
+using the `rhc env set OPENSHIFT_PYTHON_WSGI_APPLICATION=app/altenative-wsgi.py`
+command.
+OPENSHIFT_PYTHON_REQUIREMENTS_PATH:: Set custom path to the pip requirements file,
+eg. using the `rhc env set OPENSHIFT_PYTHON_REQUIREMENTS_PATH=requirements/production.txt`
+command.
+
 For some frameworks (such as Django) it is possible to set the `DEBUG` user
 environment variable using the `rhc env set DEBUG=True` command.
 In that case, Django will run in 'debug' mode, with more verbose logging and
@@ -976,7 +1042,7 @@ config.ru          This file is used by Rack-based servers to start the applicat
 <1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
 
 === Ruby Mirror
-OpenShift is mirroring rubygems.org at http://mirror1.ops.rhcloud.com/mirror/ruby/
+OpenShift is mirroring rubygems.org at http://mirror.ops.rhcloud.com/mirror/ruby/
 This mirror is on the same network as your application, and your gem download should be faster.
 
 To use the OpenShift mirror:
@@ -984,24 +1050,24 @@ To use the OpenShift mirror:
 . Edit your Gemfile and replace
 +
 ....
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 ....
 +
 with
 +
 ....
-source 'http://mirror1.ops.rhcloud.com/mirror/ruby/'
+source 'http://mirror.ops.rhcloud.com/mirror/ruby/'
 ....
 . Edit your Gemfile.lock and replace
 +
 ....
-remote: http://rubygems.org/
+remote: https://rubygems.org/
 ....
 +
 with
 +
 ....
-remote: http://mirror1.ops.rhcloud.com/mirror/ruby/
+remote: http://mirror.ops.rhcloud.com/mirror/ruby/
 ....
 
 === Rails 3.0
@@ -1031,7 +1097,7 @@ After `sprockets` gem is installed you need to precompile all your assets locall
 
 ==== Load database schema
 
-If your Rails application contains a large amount of migrations it's a good to use `db:schema:load` on initial deploy and `db:migrate` on re-deploymnets. You can do this by looking into the database and checking whether one of the DB tables exists.
+If your Rails application contains a large amount of migrations it's good to use `db:schema:load` on initial deploy and `db:migrate` on re-deploymnets. You can do this by looking into the database and checking whether one of the DB tables exists.
 
 This example checks, in the deploy hook, if the `spree_activators` table is present in the database.
 ....
@@ -1048,6 +1114,7 @@ The `ruby` cartridge provides several environment variables to reference for eas
 
 OPENSHIFT_RUBY_LOGDIR:: Log files go here.
 OPENSHIFT_RUBY_VERSION:: The Ruby language version. The valid values are `1.8` and `1.9`.
+BUNDLE_WITHOUT: Prevents Bundler from installing certain groups specified in the Gemfile.
 
 === Using RAILS_ENV=development
 
@@ -1089,4 +1156,7 @@ Adding marker files to `.openshift/markers` will have the following effects:
 
 |hot_deploy
 |Will prevent shutdown and startup of the application during builds. The Passenger `restart.txt` file will be used to reload the application.
+
+|disable_asset_compilation
+|Will prevent assets to be compiled upon application deployment. This marker should be used when deploying application with assets which are already compiled.
 |===

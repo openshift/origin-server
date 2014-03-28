@@ -30,3 +30,13 @@ function print_sed_exp_replace_env_var {
   
   printf "%s\n" "$sed_exp"
 }
+
+function relink_config {
+  rm ${OPENSHIFT_JBOSSEWS_DIR}/conf/$1
+  if [ ! -f ${OPENSHIFT_REPO_DIR}/.openshift/config/$1 ]
+  then
+      ln -sf template/.openshift/config/$1 ${OPENSHIFT_JBOSSEWS_DIR}/conf
+  else
+      ln -sf ${OPENSHIFT_REPO_DIR}/.openshift/config/$1 ${OPENSHIFT_JBOSSEWS_DIR}/conf            
+  fi
+}

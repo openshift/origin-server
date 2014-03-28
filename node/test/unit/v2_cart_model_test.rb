@@ -525,7 +525,7 @@ module OpenShift
 
       @container.expects(:locked_files).with(cartridge).returns(files).at_least_once
       @model.expects(:do_unlock).with(files)
-      @model.expects(:do_lock).never
+      @model.expects(:do_lock).with([])
 
       @model.unlock_gear(cartridge, false) do |cartridge|
 
@@ -566,7 +566,7 @@ module OpenShift
 
       @container.expects(:locked_files).with(cartridge).returns(files).at_least_once
       @model.expects(:do_unlock).with(files)
-      @model.expects(:do_lock).never()
+      @model.expects(:do_lock).with([])
 
       assert_raise RuntimeError do
         @model.unlock_gear(cartridge, false) do |cartridge|

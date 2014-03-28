@@ -66,9 +66,14 @@ task :build_peps do
 
   pep_files = []
 
-  Dir.glob("../../openshift-pep/openshift-pep-*.md").each do |file|
+  File.symlink("../../openshift-pep","openshift-pep")
+
+  Dir.glob("openshift-pep/openshift-pep-*.md").each do |file|
     # Markdown => AsciiDoc
     asciidoc_txt = PandocRuby.markdown(file, 'no-wrap').to_asciidoc
+
+    # Fix image links to exclude paths; this enables AsciiDoctor to correctl locate the source image
+    asciidoc_txt.gsub!(/image:images\//,'image:')
 
     # Target filename
     file_base = File.basename(Pathname.new(file).basename, '.*')
@@ -91,11 +96,13 @@ task :build_peps do
     ].join("\n")
 
     # AsciiDoc => HTML
-    output_html = Asciidoctor.render input_text, :header_footer => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=./images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
+    output_html = Asciidoctor.render input_text, :header_footer => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=openshift-pep/images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
 
     # Write it to disk
     File.open(output_file, 'w') {|f| f.write(output_html)}
   end
+
+  File.unlink('openshift-pep')
 
   # Write the index to be included in the Documentation Home page
   peps_list = pep_files.join(" +\n")
@@ -134,10 +141,116 @@ task :build_all do
   Rake::Task['build'].execute
 end
 
+task :package do
+  builds = [
+    { :branch => 'master',
+      :site_dir => 'documentation-latest',
+      :include_hangouts => false,
+      :docs_version => 'Version Latest'
+    },
+    { :branch => 'openshift-origin-release-3',
+      :site_dir => 'documentation',
+      :include_hangouts => true,
+      :doc_version => 'Version 3.0'
+    },
+  ]
+
+  branches = `git branch`.split(/\n/).map{ |branch| branch.strip }
+
+  # Remeber the working branch so that we can return here later.
+  working_branch = 'master'
+  branches.each do |branch|
+    next if not branch.start_with?('*')
+    working_branch = branch.sub!(/^\* /,'')
+  end
+
+  # Make sure the working branch doesn't have any uncommitted changes
+  changed_files = `git status --porcelain`
+  if not changed_files.empty?
+    puts "Warning: Your current branch has uncommitted changes. Hit <CTRL+C> if you want to exit."
+    print "Starting packager in "
+    [3,2,1].each do |i|
+      print "#{i}..."
+      sleep 1
+    end
+    print "\n"
+  end
+
+  # Now make sure the build branches are available.
+  missing_branches = false
+  builds.each do |build|
+    if not branches.include?(build[:branch])
+      if not missing_branches
+        puts "ERROR: One or more branches for packaging are not available in this local repo:"
+        missing_branches = true
+      end
+      puts "- #{build[:branch]}"
+    end
+  end
+  if missing_branches
+    puts "Add these branches and rerun the packaging command."
+    exit 1
+  end
+
+  # Start packaging. Clear out the old package dir before making the new package
+  if Dir.entries('.').include?('package')
+    system 'rm', '-rf', 'package'
+  end
+  Dir.mkdir('package')
+
+  # Now make each package.
+  builds.each do |build|
+    # Check out this build branch
+    system("git checkout #{build[:branch]}")
+
+    if not $?.exitstatus == 0
+      puts "ERROR: Could not check out branch #{build[:branch]}, please investigate."
+      exit 1
+    end
+
+    # Make the build dir
+    build_dir = "./package/#{build[:site_dir]}"
+    Dir.mkdir(build_dir)
+
+    # Build the docs
+    if build[:include_hangouts]
+      Rake::Task['build_hangouts'].execute
+    end
+    Rake::Task['build_peps'].execute
+    Rake::Task['build_rest'].execute
+    # The regular files are built last.
+    Rake::Task['build'].execute
+
+    # Move to the package area
+    ['archive','files','fonts','images','stylesheets','templates','rest_api'].each do |dir|
+      system("cp -r ./#{dir} #{build_dir}")
+    end
+    system("rm _*.html")
+    system("cp *.html #{build_dir}")
+
+    # Clean everything up
+    Rake::Task['clean'].execute
+  end
+
+  # Return to the original branch
+  system("git checkout #{working_branch}")
+
+  puts "Packaging completed."
+end
+
 task :clean do
   sh "rm -rf _pep_list.adoc rest_api *.html" do |ok,res|
     if ! ok
       puts "Nothing to clean."
+    end
+  end
+end
+
+task :clean_all do
+  Rake::Task['clean'].execute
+  sh "rm -rf package" do |ok,res|
+    if ! ok
+      puts "Good to go."
     end
   end
 end

@@ -15,7 +15,7 @@ class AdminStatsDbTest < ActionController::TestCase
     @password = "password"
     @user = CloudUser.new(login: @login)
     @user.save
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     register_user(@login, @password)
 
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
@@ -37,7 +37,7 @@ class AdminStatsDbTest < ActionController::TestCase
   test "create some apps and check that stats work out" do
     # create a PHP app
     php_app = "app#{@random}php"
-    post :create, {"name" => php_app, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    post :create, {"name" => php_app, "cartridge" => php_version, "domain_id" => @domain.namespace}
     assert_response :created
     # Add other apps with problematic data to test
 

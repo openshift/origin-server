@@ -788,7 +788,7 @@ Then /^the domain environment variable ([^\"]*) with value '([^\"]*)' is added i
     app = get_app_from_hash_with_given_namespace(namespace_key)
     domain = app.namespace
     app_login = app.login
-    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_add -e #{env_var_name} -v #{env_var_value}"
+    command = "oo-broker --non-interactive oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_add -e #{env_var_name} -v #{env_var_value}"
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
@@ -799,7 +799,7 @@ Then /^the domain environment variable ([^\"]*) is deleted in the namespace "([^
     app = get_app_from_hash_with_given_namespace(namespace_key) 
     domain = app.namespace
     app_login = app.login
-    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_del -e #{env_var_name}"
+    command = "oo-broker --non-interactive oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_del -e #{env_var_name}"
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
@@ -893,9 +893,13 @@ end
 
 Then /^the ([^ ]+) cartridge status should be (running|stopped)$/ do |cart_name, expected_status|
   begin
-    @gear.carts[cart_name].status
-    # If we're here, the cart status is 'running'
-    raise "Expected #{cart_name} cartridge to be stopped" if expected_status == "stopped"
+    status = @gear.carts[cart_name].status
+    if status.include? "ERROR: Non-zero exitcode returned while executing 'status' command on cartridge"
+      raise "Expected #{cart_name} cartridge to be running" if expected_status == "running"
+    else
+      # If we're here, the cart status is 'running'
+      raise "Expected #{cart_name} cartridge to be stopped" if expected_status == "stopped"
+    end
   rescue OpenShift::Runtime::Utils::ShellExecutionException
     # If we're here, the cart status is 'stopped'
     raise if expected_status == "running"

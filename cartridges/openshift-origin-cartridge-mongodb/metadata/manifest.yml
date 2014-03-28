@@ -2,16 +2,13 @@
 Name: mongodb
 Cartridge-Short-Name: MONGODB
 Architecture: noarch
-Display-Name: MongoDB 2.2
+Display-Name: MongoDB 2.4
 Description: MongoDB is a scalable, high-performance, open source NoSQL database.
-Version: '2.2'
+Version: '2.4'
 Versions:
-- '2.2'
-Cartridge-Version: 0.2.5
-Compatible-Versions:
-- 0.2.2
-- 0.2.3
-- 0.2.4
+- '2.4'
+Cartridge-Version: 0.2.8
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 License: ASL 2.0
 Vendor: 10gen
@@ -41,6 +38,7 @@ Suggests:
 - rockmongo
 Provides:
 - mongodb-2.2
+- mongodb-2.4
 - mongodb
 - mongodb-basic-mode
 Publishes:

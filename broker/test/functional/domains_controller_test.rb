@@ -11,7 +11,7 @@ class DomainsControllerTest < ActionController::TestCase
     @user = CloudUser.new(login: @login)
     @user.private_ssl_certificates = true
     @user.save
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     register_user(@login, @password)
 
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
@@ -41,6 +41,10 @@ class DomainsControllerTest < ActionController::TestCase
     assert json = JSON.parse(response.body)
     assert_nil json['data']['application_count']
     assert_nil json['data']['gear_counts']
+    assert_equal Array,  json['data']['allowed_gear_sizes'].class
+    assert_equal Fixnum, json['data']['available_gears'].class
+    assert_equal Fixnum, json['data']['max_storage_per_gear'].class
+    assert_equal Hash,   json['data']['usage_rates'].class
     assert link = json['data']['links']['ADD_APPLICATION']
     assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'cartridges[][url]' }
 
@@ -50,6 +54,10 @@ class DomainsControllerTest < ActionController::TestCase
     assert_equal 0, json['data']['application_count']
     assert (gears = json['data']['gear_counts']).is_a?(Hash)
     assert gears.empty?
+    assert_equal Array,  json['data']['allowed_gear_sizes'].class
+    assert_equal Fixnum, json['data']['available_gears'].class
+    assert_equal Fixnum, json['data']['max_storage_per_gear'].class
+    assert_equal Hash,   json['data']['usage_rates'].class
 
     get :index , {}
     assert_response :success
@@ -60,6 +68,13 @@ class DomainsControllerTest < ActionController::TestCase
     assert_response :ok
   end
 
+  test "domain create with blacklisted name" do
+    blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
+    return unless blacklisted_words.present?
+
+    post :create, {"name" => blacklisted_words.first}
+    assert_response :forbidden
+  end
 
   test "invalid empty or non-existent domain name" do
     post :create, {}
@@ -136,7 +151,7 @@ class DomainsControllerTest < ActionController::TestCase
     domain.save
 
     app_name = "app#{@random}"
-    app = Application.create_app(app_name, [PHP_VERSION], domain)
+    app = Application.create_app(app_name, cartridge_instances_for(:php), domain)
     app.save
 
     delete :destroy , {"name" => namespace}
@@ -152,7 +167,7 @@ class DomainsControllerTest < ActionController::TestCase
     domain.save
 
     app_name = "app#{@random}"
-    app = Application.create_app(app_name, [PHP_VERSION], domain)
+    app = Application.create_app(app_name, cartridge_instances_for(:php), domain)
     app.save
 
     get :show, {"name" => namespace, "include" => 'application_info'}

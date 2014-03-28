@@ -10,10 +10,10 @@ locked_files:
 - hooks/*
 - env/
 - env/OPENSHIFT_JBOSSAS_DIR
-- env/OPENSHIFT_JBOSSAS_LOG_DIR
 - env/OPENSHIFT_JBOSSAS_JDK*
 - env/OPENSHIFT_JBOSSAS_VERSION
 - env/M2_HOME
+- jboss_cfg_backup/
 processed_templates:
 - 'metadata/jenkins_artifacts_glob.erb'
 dependency_dirs:

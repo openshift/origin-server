@@ -30,7 +30,7 @@ class PortInterface
   def self.create_port_interface(gear, component_id, endpoint_hash)
     # ep_name, pub_ip, public_port, internal_addr, internal_port)
     cart_name = endpoint_hash["cartridge_name"]
-    public_ip = endpoint_hash["external_address"]
+    #public_ip = endpoint_hash["external_address"]
     public_port = endpoint_hash["external_port"]
     internal_ip = endpoint_hash["internal_address"]
     internal_port = endpoint_hash["internal_port"]
@@ -40,7 +40,7 @@ class PortInterface
 
     pi = gear.port_interfaces.find_by(external_port: public_port) rescue nil
     if pi
-      Rails.logger.error("Duplicate entries for port interface - #{gear._id.to_s}") 
+      Rails.logger.error("Duplicate entries for port interface - #{gear._id.to_s}")
       # ignore the error for now.. just delete the old entry
       gear.port_interfaces.delete(pi)
     end
@@ -53,22 +53,24 @@ class PortInterface
     PortInterface.new(cartridge_name: comp.cartridge_name, external_port: public_port.to_s, internal_port: internal_port.to_s, internal_address: internal_ip, protocols: protocols, type: types, mappings: mappings)
   end
 
-  def self.remove_port_interface(gear, component_id, pub_ip, public_port) 
-    pi = gear.port_interfaces.find_by(external_port: public_port) rescue nil
-    gear.port_interfaces.delete(pi) if pi
+  def self.find_port_interface(gear, public_ip, public_port)
+    gear.port_interfaces.find_by(external_port: public_port) rescue nil
   end
 
   def publish_endpoint(app)
-    OpenShift::RoutingService.notify_create_public_endpoint(app, self.cartridge_name, self.external_address, self.external_port, self.internal_address, self.internal_port, self.protocols, self.type, self.mappings)
+    OpenShift::RoutingService.notify_create_public_endpoint(app, self.gear, self.cartridge_name, self.external_address, self.external_port, self.internal_address, self.internal_port, self.protocols, self.type, self.mappings)
+  end
+
+  def unpublish_endpoint(app, public_ip=external_address)
+    OpenShift::RoutingService.notify_delete_public_endpoint(app, self.gear, public_ip, self.external_port)
   end
 
   def external_address
-    @external_address = self.gear.get_public_ip_address if @external_address.nil?
-    @external_address
+    @external_address ||= self.gear.get_public_ip_address
   end
 
   def to_hash
-    { 
+    {
       "cartridge_name" => self.cartridge_name,
       "external_address" => self.external_address,
       "external_port" => self.external_port,

@@ -4,3 +4,19 @@ perl_version=$1
 curr=$2
 next=$3
 
+# Needed for version 0.0.1 -> 0.1.8.  This can be removed after the upgrade
+# has been deployed.
+if [ -e $OPENSHIFT_HOMEDIR/perl/metadata/jenkins_shell_command ]; then
+  rm -f $OPENSHIFT_HOMEDIR/perl/metadata/jenkins_shell_command
+fi
+
+if [[ $next == "0.0.11" ]]; then
+	chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID $OPENSHIFT_PERL_DIR/etc/conf.d/openshift.conf
+	chcon -u unconfined_u $OPENSHIFT_PERL_DIR/etc/conf.d/openshift.conf
+fi
+
+if [ -f ${OPENSHIFT_PERL_DIR}/env/OPENSHIFT_PERL_LOG_DIR ] && [ ! -L ${OPENSHIFT_PERL_DIR}/env/OPENSHIFT_PERL_LOG_DIR ]
+then
+    rm ${OPENSHIFT_PERL_DIR}/env/OPENSHIFT_PERL_LOG_DIR
+    ln -s ~/.env/OPENSHIFT_LOG_DIR ${OPENSHIFT_PERL_DIR}/env/OPENSHIFT_PERL_LOG_DIR
+fi

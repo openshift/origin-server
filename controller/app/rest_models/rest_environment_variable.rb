@@ -1,6 +1,6 @@
 class RestEnvironmentVariable < OpenShift::Model
   attr_accessor :name, :value, :links
-  
+
   def initialize(app, env_var, url, nolinks=false)
     self.name = env_var['name']
     self.value = env_var['value']
@@ -14,7 +14,7 @@ class RestEnvironmentVariable < OpenShift::Model
       }
     end
   end
-  
+
   def to_xml(options={})
     options[:tag_name] = "environment-variable"
     super(options)

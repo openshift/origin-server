@@ -1,9 +1,9 @@
 class RestMember < OpenShift::Model
-  attr_accessor :id, :type, :login, :role, :explicit_role, :from, :owner
+  attr_accessor :id, :type, :login, :role, :explicit_role, :from, :owner, :links
   
-  def initialize(member, owner, url, nolinks=false)
-    self.type = to_type(member._type)
-    self.login = member.name || "#{type}:#{member.id}"
+  def initialize(member, owner, url, membership, nolinks=false)
+    self.type = to_type(member.type)
+    self.login = member.name if member.type == 'user' # only display login for users
     @name = member.name if member.name != login # only display name if it differs from login
     self.id = member._id
     self.role = member.role
@@ -16,16 +16,23 @@ class RestMember < OpenShift::Model
       end
     end
     self.owner = owner
-=begin
-    self.links = {
-      "GET" => Link.new("Get SSH key", "GET", URI::join(url, "user/keys/#{name}")),
-      "UPDATE" => Link.new("Update SSH key", "PUT", URI::join(url, "user/keys/#{name}"), [
-        Param.new("type", "string", "Type of Key", SshKey.get_valid_ssh_key_types]),
-        Param.new("content", "string", "The key portion of an rsa key (excluding ssh key type and comment)"),
-      ]),
-      "DELETE" => Link.new("Delete SSH key", "DELETE", URI::join(url, "user/keys/#{name}"))
-    } unless nolinks
-=end
+    unless nolinks
+      case membership.class
+      when Domain
+        url = URI::join(url, "domain/#{membership.namespace}/")
+      when Team 
+        url = URI::join(url, "team/#{membership.id}/")
+      when Application
+        url = URI::join(url, "application/#{membership.id}/")
+      end
+        
+      self.links = {
+        "GET" => Link.new("Get member", "GET", URI::join(url, "member/#{id}").to_s + (self.type != "user" ? "?type=#{self.type}" : "")),
+        "UPDATE" => Link.new("Update member", "PUT", URI::join(url, "member/#{id}").to_s + (self.type != "user" ? "?type=#{self.type}" : ""), [
+          Param.new("role", "string", "New role for member")]),
+        "DELETE" => Link.new("Delete member", "DELETE", URI::join(url, "member/#{id}").to_s + (self.type != "user" ? "?type=#{self.type}" : ""))
+      }
+    end
   end
 
   def to_type(type)

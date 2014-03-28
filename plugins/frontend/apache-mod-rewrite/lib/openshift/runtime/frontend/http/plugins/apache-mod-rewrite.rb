@@ -36,11 +36,11 @@ module OpenShift
 
             TEMPLATE_HTTPS = "frontend-mod-rewrite-https-template.erb"
 
-            def initialize(container_uuid, fqdn, container_name, namespace)
+            def initialize(container_uuid, fqdn, container_name, namespace, application_uuid=nil)
               @config = ::OpenShift::Config.new
               @basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
 
-              super(container_uuid, fqdn, container_name, namespace)
+              super(container_uuid, fqdn, container_name, namespace, application_uuid)
 
               @template_https = File.join(@basedir, TEMPLATE_HTTPS)
             end
@@ -106,6 +106,10 @@ module OpenShift
                     map_dest = uri
                   end
 
+                  # include the app uuid and gear uuid so we can add them to the
+                  # apache access log if needed
+                  map_dest += "|#{@application_uuid}|#{@container_uuid}"
+
                   d.store(@fqdn + path.to_s, map_dest)
                 end
               end
@@ -118,13 +122,13 @@ module OpenShift
 
               entry[2]["protocols"]=[ "http" ]
 
-              if connection =~ /^(GONE|FORBIDDEN|NOPROXY|HEALTH)$/
+              if connection =~ /^(GONE|FORBIDDEN|NOPROXY|HEALTH)/
                 entry[2][$~[1].downcase] = 1
               elsif connection =~ /^(REDIRECT|FILE|TOHTTPS|SSL_TO_GEAR):(.*)$/
                 entry[2][$~[1].downcase] = 1
-                entry[1] = $~[2]
+                entry[1] = $~[2].split("|").first
               else
-                entry[1] = connection
+                entry[1] = connection.split("|").first
               end
 
               if entry[2]["ssl_to_gear"]
@@ -263,12 +267,12 @@ module OpenShift
 
                 FileUtils.mkdir_p(alias_conf_dir_path)
 
-                File.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
+                File.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC, 0600) do |f|
                   f.puts(ssl_cert)
                   f.fsync
                 end
 
-                File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
+                File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC, 0600) do |f|
                   f.puts(priv_key)
                   f.fsync
                 end

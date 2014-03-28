@@ -1,6 +1,6 @@
 = oo-install User's Guide
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
-v2.0, July 2013
+LATEST DOC UPDATES
 :data-uri:
 :toc2:
 :icons:
@@ -27,6 +27,13 @@ The locations for the source code of this document and the `oo-install` utility 
 == Before You Begin
 This section covers some topics that will help you to have a successful OpenShift deployment. If you have jumped straight in with https://install.openshift.com/ and are having problems, look over this section to make sure you've got the basics covered.
 
+=== The Base OS Setup
+When you install Fedora, Red Hat Enterprise Linux or CentOS, you will be given the option to select a starting set of packages:
+
+image:os_minimal_install.png[image]
+
+*Be sure to select the "Minimal" installation.* This will ensure that the system does not contain any package incompatibilities with OpenShift.
+
 === Utility Prerequisites
 This section explains the utilities that you will need to install on the various hosts that may be involved in your OpenShift installation. Install these before you run `oo-install` to avoid having to go back and set them up later.
 
@@ -38,7 +45,7 @@ $ yum provides '*/<utility>'
 
 Where "$$<utility>$$" is the name of the utility that you are looking to install.
 
-NOTE: If you are using a Linux distribution that does not ship with `yum` and can't do software updates with `yum`, then chances are good this installer is not going to work for you.
+IMPORTANT: If you are using a Linux distribution that does not ship with `yum` and can't do software updates with `yum`, then chances are good this installer is not going to work for you.
 
 ==== On the `oo-install` Host
 You can run the OpenShift installer from any computer that has the following utilities installed:
@@ -47,7 +54,12 @@ You can run the OpenShift installer from any computer that has the following uti
 * curl
 * unzip
 
-On most systems, you can install these by running:
+[NOTE]
+====
+The installer itself is designed to run pretty much anywhere, but if you are running the installer on the same host where you will be installing OpenShift, make sure you also look at the link:#on-the-target-hosts[Target Host requirements]. If you are doing an OpenShift Origin installation, also be sure to check out the link:#origin-specific-utilities[Origin-specific requirements].
+====
+
+On most systems, you can install the base installer requirements by running:
 
 ----
 $ yum install ruby unzip curl
@@ -68,9 +80,43 @@ If you are installing OpenShift Origin, you will also need to install the follow
 
 * On all target hosts:
 ** http://puppetlabs.com/[puppet]
+** augtool
 * On your Broker host:
 ** dnssec-keygen
 ** htpasswd
+
+NOTE: Additionally you will need to _remove_ `firewalld`. Origin uses a proxy that is incompatible with firewalld.
+
+*OpenShift Origin on RHEL and Derivatives* +
+If you are installing OpenShift Origin on RHEL6 or a derivative distribution (such as CentOS, Scientific Linux, etc.), you will need to set up two additional requirements on those host systems:
+
+* The https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F[EPEL yum repository]
+* The ruby193 http://developerblog.redhat.com/2013/01/28/software-collections-on-red-hat-enterprise-linux/[software collection (SCL)]
+
+To manually add the yum repos for EPEL and the ruby193 SCL, you can run the following commands as root on your target hosts.
+
+.EPEL
+----
+$ wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm <1>
+$ rpm -Uvh epel-release-6*.rpm
+----
+<1> Replace `x86_64` with `i386` for 32-bit systems
+
+.ruby193 SCL
+----
+$ cat > /etc/yum.repos.d/openshift-origin-deps.repo <<"EOF"
+[openshift-origin-deps]
+name=OpenShift Origin Dependencies - EL6
+baseurl=https://mirror.openshift.com/pub/openshift-origin/nightly/rhel-6/dependencies/$basearch/
+gpgcheck=0
+EOF
+----
+
+With the OpenShift Origin Dependencies repo set up, you can now install ruby 1.9.3 as follows and the oo-install script will utilize it where necessary.
+
+----
+$ yum install ruby193-ruby
+----
 
 === Where Should I Run This?
 The `oo-install` utility can run on _any_ system that meets the minimum prerequisites link:#on-the-code-oo-install-code-host[mentioned above]. This is important to understand, because while you _can_ run the installer from your intended Broker host, you could just as easily run it from your own computer (as long as you have SSH access to the target host). As you are answering the installer's questions about where your Broker lives, it is actually useful to think of it the way that other hosts would see it, even if you are running the installer from the system where an OpenShift component will live.
@@ -148,6 +194,7 @@ The complete list of options is as follows:
 -a, --advanced-mode              Enable access to message server and db server customization.
 -c, --config-file FILEPATH       The path to an alternate config file
 -w, --workflow WORKFLOW_ID       The installer workflow for unattended deployment.
+-l, --list-workflows             List workflow IDs available for use with unattended deployment.
 -e, --enterprise-mode            Show OpenShift Enterprise options (ignored in unattended mode)
 -s, --subscription-type TYPE     The software source for installation packages.
 -u, --username USERNAME          Red Hat Login username
@@ -169,6 +216,11 @@ $ sh <(curl -s https://install.openshift.com/) -w origin_deploy
 ----
 
 When you run the command this way, the installer will sanity check your deployment configuration, and if everything looks good it will run the specified workflow automatically.
+
+==== -l / --list-workflows
+In order to use the `-w` option, you will need to see a list of the valid workflow IDs that are available. When you run the installer with this flag, it will print out the valid list of IDs and descriptions of each associated workflow.
+
+NOTE: The list of available workflow IDs will be different depending on if you are performing an OpenShift Origin installation or an OpenShift Enterprise installation. See the `-e` options for more on this.
 
 ==== -e / --enterprise-mode
 In default mode, the installer will provide you with options for installing or extending an OpenShift Origin deployment. However, the same installer can be used to deploy OpenShift Enterprise by setting this switch.
@@ -292,17 +344,20 @@ sudo: sorry, you must have a tty to run sudo
 ===== IP Address
 At this point, the installer will attempt to look up the IP addresses that have been assigned to the host that you are currently describing. In a situation where the host has multiple NICs, there may be multiple IP addresses to choose from.
 
-*Non-Node Hosts* +
+_Non-Node Hosts_ +
 The IP address that is provided here should be the one that would be used by _other OpenShift hosts_ would use to connect with this host.
 
-*Node Hosts* +
+_Node Hosts_ +
 In the case of Node hosts, you will want to use the IP address that _client systems_ would use to reach the host.
 
-*DNS Registration* +
-If you have told the installer to link:#registering-openshift-hosts-with-the-openshift-dns-instance[register your OpenShift host names with the OpenShift DNS instance], this IP address will be used as the resolution of this hostname.
-
-*Manual Entry* +
+_Manual Entry_ +
 You also have the option of supplying a completely different IP address. This may be necessary in situations where one OpenShift host is separated from the others in a NAT environment.
+
+[NOTE]
+====
+_IP Address and DNS Registration_ +
+If you have told the installer to link:#registering-openshift-hosts-with-the-openshift-dns-instance[register your OpenShift host names with the OpenShift DNS instance], this IP address will be used as the resolution of this hostname.
+====
 
 ===== IP Interface
 This value is only collected for Node hosts in OpenShift Origin deployments. This is a requirement of the underlying Puppet infrastructure. If you select one of the IP address / IP interface combos that `oo-install` finds on the host, you will not need to provide this at all. On the other hand, if you manually configure the IP address, you will also need to manually specify the interface. To see the available IP interfaces on a given host, you can run this command:
@@ -377,10 +432,23 @@ After the installer gives you the opportunity to work with subscription settings
 ==== Subscription Notes for OpenShift Origin
 The most common subscription method for Origin is `yum`, and the current known good repos to use are these:
 
-* The base URL for the OpenShift repositories: `https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-19`
+* The base URL for the OpenShift repositories:
+** For Fedora target systems: `https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-19`
+** For RHEL6 target systems: `https://mirror.openshift.com/pub/openshift-origin/nightly/rhel-6`
 * The base URL for a Jenkins repository: `http://pkg.jenkins-ci.org/redhat`
 
-The installer provides these settings as default values in new configuration files.
+[WARNING]
+====
+The installer provides the *Fedora* repo for the base URL in new configuration files. If you are:
+
+* Installing OpenShift Origin onto RHEL hosts +
++
+and +
++
+* Using the "yum" subscription method
+
+...then you will need to explicitily change your base URL value to the *RHEL* repo provided above.
+====
 
 == Pre-flight Checking and Installation
 Once you've configured DNS, Hosts and Roles, and Subscription information, the installer will do a sanity check of the entire deployment. Specifically, for each host that you've described, the installer checks the following:

@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Utility function to create virtual environments
+
+venv_dir=$OPENSHIFT_PYTHON_DIR/virtenv/venv
+
+function relative-virtenv {
+  pushd "$venv_dir" > /dev/null
+
+  vdir=$(cd "${venv_dir}" && pwd)
+  for zf in $(grep -l -r "#\!$vdir/venv/bin/" . ); do
+    sed --follow-symlinks -i "s;#\!$vdir/venv/bin/;#\!/usr/bin/env ;" "$zf"
+  done
+
+  popd > /dev/null
+}
+
+function create-virtenv {
+  if [ ! -d "$venv_dir" ]  ||  ! $(ls "$venv_dir" > /dev/null 2>&1); then
+    pyvenv --system-site-packages --clear $venv_dir
+  fi
+
+  setup_binaries=("$venv_dir/bin/easy_install" "$venv_dir/bin/pip")
+  if ! $(ls ${setup_binaries[@]} > /dev/null 2>&1); then
+    install_setup_tools
+  fi
+
+  relative-virtenv
+}
+
+function install_setup_tools() {
+  pushd "$venv_dir" > /dev/null
+  
+  # Activate virtual env.
+  source bin/activate
+  # Run distribute_setup.
+  python ${OPENSHIFT_PYTHON_DIR}/usr/versions/3.3/lib/distribute_setup.py
+  
+  # Activate virtual env so as to get access to easy_install and install pip.
+  source bin/activate
+  easy_install pip
+  
+  popd > /dev/null
+}
+
+function activate-virtenv {
+  source $venv_dir/bin/activate
+}

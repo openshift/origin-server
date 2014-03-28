@@ -41,7 +41,7 @@ module OpenShift
 
       DEFAULT_NODE_PROFILE         = 'small'
       DEFAULT_QUOTA_BLOCKS         = '1048576'
-      DEFAULT_QUOTA_FILES          = '40000'
+      DEFAULT_QUOTA_FILES          = '80000'
       DEFAULT_NO_OVERCOMMIT_ACTIVE = false
       DEFAULT_MAX_ACTIVE_GEARS     = 0
 
@@ -144,6 +144,24 @@ module OpenShift
         oldpath
       end
 
+      def self.check_quotas(uuid, watermark)
+        output = []
+        quota  = self.get_quota(uuid)
+        usage  = (quota[:blocks_used] / quota[:blocks_limit].to_f) * 100.0
+
+        if watermark < usage
+          output << "Warning: Gear #{uuid} is using %3.1f%% of disk quota" % usage
+        end
+
+        usage = (quota[:inodes_used] / quota[:inodes_limit].to_f) * 100.0
+        if watermark < usage
+          output << "Warning: Gear #{uuid} is using %3.1f%% of inodes allowed" % usage
+        end
+        return output
+      rescue Exception => e
+        return []
+      end
+
       def self.set_quota(uuid, blocksmax, inodemax)
         current_quota, current_inodes, cur_quota = 0, 0, nil
 
@@ -191,11 +209,6 @@ module OpenShift
         rescue NodeCommandException
           # If the user no longer exists than it has no quota
         end
-      end
-
-      def self.find_system_messages(pattern)
-        regex = Regexp.new(pattern)
-        open('/var/log/messages') { |f| f.grep(regex) }.join("\n")
       end
 
       def self.init_pam_limits_all

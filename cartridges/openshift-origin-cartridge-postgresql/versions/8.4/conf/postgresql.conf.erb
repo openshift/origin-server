@@ -21,14 +21,35 @@ external_pid_file = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_PID'] %>'
 #------------------------------------------------------------------------------
 listen_addresses = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_HOST'] %>'
 port = <%= ENV['OPENSHIFT_POSTGRESQL_DB_PORT'] %>
+# You can override the current value by using:
+#
+# $ rhc env set OPENSHIFT_POSTGRESQL_MAX_CONNECTIONS = 200
+#
+# The value **must be** greater than zero.
+#
+<% if ENV['OPENSHIFT_POSTGRESQL_MAX_CONNECTIONS'] && ENV['OPENSHIFT_POSTGRESQL_MAX_CONNECTIONS'].to_i > 0 %>
+max_connections = <%= ENV['OPENSHIFT_POSTGRESQL_MAX_CONNECTIONS'] || 100 %>
+<% else %>
 max_connections = 100
+<% end %>
 unix_socket_directory = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_SOCKET'] %>'
 unix_socket_permissions = 0700
 
 #------------------------------------------------------------------------------
 # RESOURCE USAGE (except WAL)
 #------------------------------------------------------------------------------
+
+# You can override the current value by using:
+#
+# $ rhc env set OPENSHIFT_POSTGRESQL_SHARED_BUFFERS=256 # in MB
+#
+# The value **must be** lower then your gear memory.
+#
+<% if ENV['OPENSHIFT_POSTGRESQL_SHARED_BUFFERS'] && ENV['OPENSHIFT_POSTGRESQL_SHARED_BUFFERS'].to_i < ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i %>
+shared_buffers = <%= ENV['OPENSHIFT_POSTGRESQL_SHARED_BUFFERS']%>MB
+<% else %>
 shared_buffers = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 16 : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.125).to_i %>MB
+<% end %>
 temp_buffers = 1MB
 work_mem = 3MB
 
@@ -36,16 +57,6 @@ work_mem = 3MB
 # QUERY TUNING
 #------------------------------------------------------------------------------
 effective_cache_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 40 : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.35).to_i %>MB
-
-#------------------------------------------------------------------------------
-# ERROR REPORTING AND LOGGING
-#------------------------------------------------------------------------------
-logging_collector = on
-log_directory = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_LOG_DIR'] %>'
-log_filename = 'postgresql-%a.log'
-log_truncate_on_rotation = on
-log_rotation_age = 1d
-log_rotation_size = 0
 
 #------------------------------------------------------------------------------
 # CLIENT CONNECTION DEFAULTS

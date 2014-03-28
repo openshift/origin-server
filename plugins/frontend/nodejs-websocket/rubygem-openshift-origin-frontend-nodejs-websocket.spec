@@ -10,7 +10,7 @@
 
 Summary:       OpenShift NodeJS Websocket frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.3.0
+Version: 0.4.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,90 +85,20 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/routes.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
-* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
-- Bug 1024721 - Add purge functionality to the frontend plugins.
-  (rmillner@redhat.com)
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 0.4.1-1
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
 
-* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
-- Create HAProxy SNI proxy plugin package and use endpoint protocols
-  (rmillner@redhat.com)
-- bump_minor_versions for sprint 35 (admiller@redhat.com)
+* Wed Feb 12 2014 Adam Miller <admiller@redhat.com> 0.3.3-1
+- Bug 1063703: Assume ws if websocket is true. (mrunalp@gmail.com)
 
-* Fri Sep 27 2013 Troy Dawson <tdawson@redhat.com> 0.1.7-1
-- Verify theres a record before trying to use it. (rmillner@redhat.com)
-
-* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 0.1.6-1
-- Enable idler in websocket plugin. (rmillner@redhat.com)
-
-* Tue Sep 17 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
-- fixing tito tags
-
-* Sat Sep 14 2013 Rob Millner <rmillner@redhat.com> 0.1.4-1
-- Functional tests for the frontend plugins. (rmillner@redhat.com)
-
-* Fri Sep 06 2013 Rob Millner <rmillner@redhat.com> 0.1.3-1
-- Break out FrontendHttpServer class into plugin modules.
-- Migration tool and fixes.
-* Tue Aug 27 2013 Rob Millner <rmillner@redhat.com> 0.1.2-1
-- new package built with tito
-
-* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
-- bump_minor_versions for sprint 32 (admiller@redhat.com)
-
-* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
-- Bug 988410 - Allow the userdel to safely fail if the user is already gone.
-  (rmillner@redhat.com)
-
-* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
-- Cgroup module unit tests and bug fixes. (rmillner@redhat.com)
-- Separate out libcgroup based functionality and add configurable templates.
-  (rmillner@redhat.com)
-
-* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
-- Merge pull request #3160 from pravisankar/dev/ravi/card78
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
   (dmcphers+openshiftbot@redhat.com)
-- For consistency, rest api response must display 'delete' instead 'destroy'
-  for user/domain/app (rpenta@redhat.com)
+- Changes for supporting frontend paths in node web proxy. (mrunalp@gmail.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
 
-* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
-- Remove recursive requires node -> container plugin -> node
-  https://bugzilla.redhat.com/show_bug.cgi?id=984575 (kraman@gmail.com)
-- WIP: configure containerization plugin in node.conf (pmorie@gmail.com)
-- Merge pull request #3099 from ironcladlou/dev/node-fixes
-  (dmcphers+openshiftbot@redhat.com)
-- Use oo_spawn for all root scoped shell commands (ironcladlou@gmail.com)
-- Bug 984609 - fix a narrow condition where sshd leaves a root owned process in
-  the frozen gear cgroup causing gear delete to fail and stale processes/
-  (rmillner@redhat.com)
-
-* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.1.1-1
-- bump_minor_versions for sprint 31 (admiller@redhat.com)
-
-* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.0.7-1
-- Merge pull request #3056 from kraman/libvirt-f19-2
-  (dmcphers+openshiftbot@redhat.com)
-- Bugfix #983308 (kraman@gmail.com)
-
-* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 0.0.6-1
-- Merge pull request #3016 from pmorie/dev/fix_tests
-  (dmcphers+openshiftbot@redhat.com)
-- Fix upgrade functionality and associated tests (pmorie@gmail.com)
-
-* Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 0.0.5-1
-- Fix module path for FrontendProxyServer (kraman@gmail.com)
-- Making module resolution for UserCreationException and UserDeletionException
-  explicit (kraman@gmail.com)
-
-* Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 0.0.4-1
--  Revamp the cgroups and pam scripts to leverage the system setup for better
-  performance and simplify the code. (rmillner@redhat.com)
-
-* Wed Jul 03 2013 Adam Miller <admiller@redhat.com> 0.0.3-1
-- artificial bump to get build reporting back in line (admiller@redhat.com)
-
-* Wed Jul 03 2013 Adam Miller <admiller@redhat.com> 0.0.2-1
-- First tito tag
-
-* Sun Jun 23 2013 Krishna Raman <kraman@gmail.com> 0.0.1-1
-- new package built with tito
+* Wed Dec 04 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
+- bump_minor_versions for sprint 37 (admiller@redhat.com)
 

@@ -1,6 +1,6 @@
 def upgrade_gear(name, login, gear_uuid)
   current_version = 'expected'
-  cmd = "oo-admin-upgrade upgrade-gear --app-name='#{@app.name}' --login='#{@app.login}' --upgrade-gear=#{gear_uuid} --version='#{current_version}'"
+  cmd = "oo-broker --non-interactive oo-admin-upgrade upgrade-gear --app-name='#{@app.name}' --login='#{@app.login}' --upgrade-gear=#{gear_uuid} --version='#{current_version}'"
   $logger.info("Upgrading with command: #{cmd}")
   output = `#{cmd}`
   $logger.info("Upgrade output: #{output}")
@@ -226,7 +226,7 @@ def assert_successful_install(next_version, current_manifest)
   $logger.info "Observed latest version: #{observed_latest_version}"
 
   assert_equal next_version, observed_latest_version
-  
+
   if File.exists?("/etc/fedora-release")
     %x(service mcollective restart)
   else
@@ -240,8 +240,8 @@ def assert_successful_install(next_version, current_manifest)
   sleep 5
 end
 
-Then /^the ([^ ]+) cartridge version should be updated$/ do |cart_name|
-  assert_cart_version_updated(cart_name, @app)
+Then /^the ([^ ]+) cartridge version should (not )?be updated$/ do |cart_name, negate|
+  assert_cart_version_updated(cart_name, @app, negate)
 end
 
 Then /^the ([^ ]+) cartridge version should (not )?be updated in (.+)$/ do |cart_name, negate, app_name|
@@ -459,7 +459,7 @@ end
 When /^the gears on the node are upgraded with oo-admin-upgrade?$/ do
   uuid_whitelist = @test_apps_hash.values.collect {|app| app.uid}
 
-  upgrade_cmd = "oo-admin-upgrade upgrade-node --version expected --gear-whitelist #{uuid_whitelist.join(' ')}"
+  upgrade_cmd = "oo-broker --non-interactive oo-admin-upgrade upgrade-node --version expected --gear-whitelist #{uuid_whitelist.join(' ')}"
 
   $logger.info("Executing upgrade cmd: #{upgrade_cmd}")
   output = `#{upgrade_cmd}`
@@ -469,7 +469,7 @@ When /^the gears on the node are upgraded with oo-admin-upgrade?$/ do
 end
 
 Then /^existing oo-admin-upgrade output is archived$/ do
-  output = `oo-admin-upgrade archive`
+  output = `oo-broker --non-interactive oo-admin-upgrade archive`
   assert_equal 0, $?.exitstatus
   $logger.info("Archive output: #{output}")
 end

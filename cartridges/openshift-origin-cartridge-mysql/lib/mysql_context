@@ -1,0 +1,44 @@
+#!/bin/bash
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+function update_configuration {
+    set +u
+    case "$1" in
+      5.5)
+        pe=$(dirname $(scl enable mysql55 "which mysql"))
+        env_dir="${OPENSHIFT_MYSQL_DIR}/env"
+
+        # This is disabled due to BZ#1040065
+        # If you really insist of having mysql-5.5 client in command-line
+        # you can run:
+        #
+        # $ scl enable mysql55 "mysql"
+        #
+        # set_env_var 'OPENSHIFT_MYSQL_PATH_ELEMENT' $pe $env_dir
+
+        local ld_path=$(LD_LIBRARY_PATH="" scl enable mysql55 "printenv LD_LIBRARY_PATH")
+        set_env_var 'OPENSHIFT_MYSQL_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
+
+        local man_path=$(MANPATH="" scl enable mysql55 "printenv MANPATH")
+        path_append $MANPATH $man_path >$OPENSHIFT_MYSQL_DIR/env/MANPATH
+        ;;
+
+      5.1)
+        rm -f $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_PATH_ELEMENT \
+            $OPENSHIFT_MYSQL_DIR/env/LD_LIBRARY_PATH \
+            $OPENSHIFT_MYSQL_DIR/env/MANPATH
+        ;;
+    esac
+}
+
+function mysql_version {
+  echo ${OPENSHIFT_MYSQL_IDENT} | cut -d':' -f3
+}
+
+function mysql_context {
+  case $(mysql_version) in
+    5.1) eval $1 ;;
+    5.5) /usr/bin/scl enable mysql55 "/opt/rh/mysql55/root/$1" ;;
+  esac
+}

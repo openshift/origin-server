@@ -39,7 +39,7 @@ module OpenShift
         #   # Setup permissions
         #
         # Returns nil on Success or raises on Failure
-        def create
+        def create(create_initial_deployment_dir = true)
           cmd = %{groupadd -g #{@container.gid} \
           #{@container.uuid}}
           out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
@@ -437,6 +437,10 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def set_rw_permission(*paths)
           PathUtils.oo_chown(@container.uid, @container.gid, paths)
           OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+        end
+
+        def chcon(path, label = nil, type=nil, role=nil, user=nil)
+          ::OpenShift::Runtime::Utils::SELinux.chcon(path, label, type, role, user)
         end
 
         # retrieve the default maximum memory limit

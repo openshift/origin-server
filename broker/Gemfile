@@ -1,4 +1,4 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 
 gem 'rails', '~> 3.2.8'
 gem 'json'
@@ -13,6 +13,7 @@ gem 'mongoid'
 gem 'bson'
 gem 'bson_ext'
 gem 'pry', :require => 'pry' if ENV['PRY']
+gem 'syslog-logger', '~> 1.6.8', :require => false
 # Fedora 19 splits psych out into its own gem.
 if Gem::Specification.respond_to?(:find_all_by_name) and not Gem::Specification::find_all_by_name('psych').empty?
   gem 'psych'
@@ -35,7 +36,7 @@ if ENV['BROKER_SOURCE'] || ENV['BROKER_PLUGINS_FILE']
   # Load broker plugins according to local file, but keep paths relative to ./
   eval IO.read(File.expand_path(ENV['BROKER_PLUGINS_FILE'] || '~/.openshift/broker_plugins.rb'))
 else
-  gem 'openshift-origin-controller'
+  gem 'openshift-origin-controller', :path => ENV['OPENSHIFT_TEST_DIR']
 
   # Load broker plugin gems specified by .conf files in plugins.d/
   # Load if either .conf or -dev.conf is present;
@@ -50,7 +51,15 @@ else
   group :test, :production do
     plugins.reject! {|name| name.match /-dev$/}
   end
-  plugins.sort.uniq.each {|name| gem name}
+  plugins.sort.uniq.each do |name|
+    plugin_path = nil
+    unless ENV['OPENSHIFT_TEST_DIR'].nil?
+      plugin_path = `cd #{ENV['OPENSHIFT_TEST_DIR']}; find * -iname #{name}.gemspec`.chomp
+      plugin_path.slice!("#{name}.gemspec")
+      plugin_path = "#{ENV['OPENSHIFT_TEST_DIR']}#{plugin_path}"
+    end
+    gem name, :path => plugin_path
+  end
 end
 
 # Bundle edge Rails instead:
@@ -89,7 +98,7 @@ group :development, :test do
   gem 'rake', '>= 0.8.7'
   gem 'simplecov'
   gem 'cucumber'
-  gem 'minitest'
+  gem 'minitest', '>= 3.5', '< 5.0'
   gem 'capybara', '~> 2.1.0', :require => false
   gem 'poltergeist',   '~> 1.2.0', :require => false
 end

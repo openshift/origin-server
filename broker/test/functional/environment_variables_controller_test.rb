@@ -10,18 +10,21 @@ class EnvironmentVariablesControllerTest < ActionController::TestCase
     @password = 'password'
     @user = CloudUser.new(login: @login)
     @user.save
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     register_user(@login, @password)
 
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['REMOTE_USER'] = @login
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
+    result_io = ResultIO.new
+    result_io.resultIO.string = '{}'
+    @container.stubs(:list_user_env_vars).returns(result_io)
     @namespace = "ns#{@random}"
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
+    @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain)
     @app.save
   end
 
@@ -44,13 +47,13 @@ class EnvironmentVariablesControllerTest < ActionController::TestCase
 
     get :index , {"application_id" => @app._id}
     assert_response :success
-    
+
     get :update, {"id" => "foo", "value" => "barX", "application_id" => @app._id}
     assert_response :success
-    
+
     get :destroy, {"id" => "foo", "application_id" => @app._id}
     assert_response :success
-    
+
   end
 
   test "no or non-existent environment_variable" do
@@ -63,22 +66,22 @@ class EnvironmentVariablesControllerTest < ActionController::TestCase
   test "attempt to create invalid environment_variable" do
     post :create, {"name" => "1foo", "value" => "bar", "application_id" => @app._id}
     assert_response :unprocessable_entity
-    
+
     post :create, {"name" => "foo-bad", "value" => "bar", "application_id" => @app._id}
     assert_response :unprocessable_entity
 
     post :create, {"name" => ".foo", "value" => "bar", "application_id" => @app._id}
     assert_response :unprocessable_entity
-    
+
     post :create, {"name" => "foo bad", "value" => "bar", "application_id" => @app._id}
     assert_response :unprocessable_entity
-    
+
     post :create, {"name" => "foo\xB3", "value" => "bar", "application_id" => @app._id}
     assert_response :bad_request
-    
+
     post :create, {"name" => "foo", "value" => "bar\255", "application_id" => @app._id}
     assert_response :bad_request
-    
+
   end
 
 end

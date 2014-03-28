@@ -1,0 +1,89 @@
+NAME
+  oo-admin-ctl-cartridge
+
+SYNOPSIS
+  oo-admin-ctl-cartridge -c (activate|categorize|clean|deactivate|delete|diff|import|import-node|list|migrate) [ --help ]
+
+DESCRIPTION
+
+This is an administrative utility to manage cartridges.
+
+OPTIONS
+
+  -c|--command COMMAND
+
+    activate    - Make a specific cartridge active.
+                  Requires id or name, or input from STDIN.
+
+    deactivate  - Disable a cartridge from being visible to users
+                  Requires id or name, or input from STDIN.
+
+    categorize  - Add/remove categories on a cartridge.
+                  Requires id or name, or input from STDIN. Pass categories
+                  to set with '+<category>' or remove with '=<category>'
+
+    clean       - Delete all cartridges in the broker
+
+    delete      - Remove one or more named cartridges
+
+    diff        - Compare two cartridges
+                  Requires two ids or names
+
+    import      - Import a manifest as one or more cartridges
+                  Requires --url
+
+    import-node - Import the latest cartridges from a randomly selected node.
+
+    list        - List all cartridges
+
+    migrate     - Run a migration of old cartridge versions to the latest
+                  active version.  Does not migrate cartridges without an
+                  active version.
+
+  -h|--help
+    Display a simple usage page.
+
+  --dry-run
+    Display the results of running an operation, but do not make any changes
+    to the database.
+
+  --raw
+    When outputting cartridge information, display each manifest as JSON
+
+  -a|--active
+    Show only active cartridges
+
+  --activate
+    Mark imported or updated cartridges as active.
+
+  -n|--name NAMES
+    A comma-delimited list of cartridge names. Used by the "delete" command.
+
+  --ids IDS
+    ID for a cartridge version to activate or deactivate (comma-delimited).
+
+  --node NODE
+    Identifier for a node (server-identity) to import from.
+
+  -u|--url URL
+    URL of a cartrige manifest to import.
+
+  --broker PATH
+    The path to the broker (default /var/www/openshift/broker/config/environment)
+
+  --force
+    By default, import and import-node will skip unchanged cartridges. Use this
+    switch to force them to create a new version.
+
+  --obsolete
+    By default, obsolete cartridges will not be activated. Use this switch to
+    automatically update obsolete cartridges.
+
+  -q
+    Display only ids
+
+EXAMPLE
+  $ oo-admin-ctl-cartridge -c list
+
+AUTHOR
+  Clayton Coleman <ccoleman@redhat.com> - man page written for OpenShift Origin

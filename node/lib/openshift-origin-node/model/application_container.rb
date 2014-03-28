@@ -42,7 +42,6 @@ require 'json'
 require 'rest-client'
 require 'openshift-origin-node/utils/managed_files'
 require 'timeout'
-require 'parallel'
 
 module OpenShift
   module Runtime
@@ -179,48 +178,47 @@ module OpenShift
       #
       # - model/unix_user.rb
       # context: root
-      # @param secret_token value of OPENSHIFT_SECRET_TOKEN for application
-      def create(secret_token = nil)
+      # @param secret_token     [String]      value of OPENSHIFT_SECRET_TOKEN for application
+      # @param generate_app_key [true, false] Should application ssh key be generated?
+      # @return [String] output from operations creating gear
+      def create(secret_token = nil, generate_app_key = false, create_initial_deployment_dir = true)
         output = ''
         notify_observers(:before_container_create)
         # lock to prevent race condition between create and delete of gear
-        uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
-        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | uuid_lock |
-          uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-          uuid_lock.flock(File::LOCK_EX)
-
-          resource = OpenShift::Runtime::Node.resource_limits
+        PathUtils.flock("/var/lock/oo-create.#{@uuid}") do
+          resource             = OpenShift::Runtime::Node.resource_limits
           no_overcommit_active = resource.get_bool('no_overcommit_active', false)
           overcommit_lock_file = "/var/lock/oo-create.overcommit"
-          File.open(overcommit_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | overcommit_lock |
+          File.open(overcommit_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do |overcommit_lock|
             overcommit_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
 
-            if no_overcommit_active
-              overcommit_lock.flock(File::LOCK_EX)
+            begin
+              if no_overcommit_active
+                overcommit_lock.flock(File::LOCK_EX)
 
-              nu = OpenShift::Runtime::Node.node_utilization
-              if (nu['gears_active_usage_pct'] >= 100)
-                raise GearCreationException.new("ERROR: Node capacity exceeded, unable to create container #{@uuid}")
+                nu = OpenShift::Runtime::Node.node_utilization
+                if (nu['gears_active_usage_pct'] >= 100)
+                  raise GearCreationException.new("ERROR: Node capacity exceeded, unable to create container #{@uuid}")
+                end
               end
+
+              @container_plugin = Containerization::Plugin.new(self)
+              @container_plugin.create(create_initial_deployment_dir)
+            ensure
+              overcommit_lock.flock(File::LOCK_UN) if no_overcommit_active
             end
-
-            @container_plugin = Containerization::Plugin.new(self)
-            @container_plugin.create
-
-            overcommit_lock.flock(File::LOCK_UN) if no_overcommit_active
-
-            add_env_var('SECRET_TOKEN', secret_token, true) if secret_token
-            output = generate_ssh_key
           end
+
+          add_env_var('SECRET_TOKEN', secret_token, true) if secret_token
+
+          output = generate_ssh_key if generate_app_key
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-            unobfuscated = PathUtils.join(File.dirname(@container_dir),"#{@container_name}-#{@namespace}")
+            unobfuscated = PathUtils.join(File.dirname(@container_dir), "#{@container_name}-#{@namespace}")
             if not File.exists? unobfuscated
-              FileUtils.ln_s File.basename(@container_dir), unobfuscated, :force=>true
+              FileUtils.ln_s File.basename(@container_dir), unobfuscated, :force => true
             end
           end
-
-          uuid_lock.flock(File::LOCK_UN)
         end
 
         notify_observers(:after_container_create)
@@ -238,51 +236,57 @@ module OpenShift
         if @uid.nil? or (@container_plugin.nil? or !File.directory?(@container_dir.to_s))
           # gear seems to have been deleted already... suppress any error
           # TODO : remove remaining stuff if it exists, e.g. .httpd/#{uuid}* etc
+
+          remove_app_symlinks(@container_dir)
+          FileUtils.rm_rf(@container_dir) if File.directory?(@container_dir)
           return ['', '', 0]
         end
 
-        notify_endpoint_delete = ''
-        output = ''
-        errout = ''
+        output  = ''
+        errout  = ''
         retcode = -1
 
         # Don't try to delete a gear that is being scaled-up|created|deleted
-        uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
-        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | lock |
-          lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-          lock.flock(File::LOCK_EX)
-
-          @cartridge_model.each_cartridge do |cart|
-            env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
-            cart.public_endpoints.each do |endpoint|
-              notify_endpoint_delete << "NOTIFY_ENDPOINT_DELETE: #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
-            end
-          end
-          # possible mismatch across cart model versions
-          output, errout, retcode = @cartridge_model.destroy(skip_hooks)
-
-          raise UserDeletionException.new("ERROR: unable to delete user account #{@uuid}") if @uuid.nil?
-
-          @container_plugin.destroy
-
-          if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-            Dir.foreach(File.dirname(@container_dir)) do |dent|
-              unobfuscate = PathUtils.join(File.dirname(@container_dir), dent)
-              if (File.symlink?(unobfuscate)) &&
-                  (File.readlink(unobfuscate) == File.basename(@container_dir))
-                File.unlink(unobfuscate)
+        PathUtils.flock("/var/lock/oo-create.#@uuid") do
+          begin
+            @cartridge_model.each_cartridge do |cart|
+              env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
+              cart.public_endpoints.each do |endpoint|
+                output << "NOTIFY_ENDPOINT_DELETE: #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
               end
             end
+            # possible mismatch across cart model versions
+            out, errout, retcode = @cartridge_model.destroy(skip_hooks)
+            output << out unless out.nil?
+          rescue => e
+            logger.warn %Q(Failure while deleting gear #@uuid: #{e.message})
+            logger.debug %Q(Failure while deleting gear #@uuid: #{e.message}\n#{e.backtrace.join("\n")})
+            output << %q(CLIENT_ERROR: Errors during gear delete. There may be extraneous data left on system.)
           end
+          raise UserDeletionException.new %q[ERROR: unable to delete user account (nil)] if @uuid.nil?
 
-          lock.flock(File::LOCK_UN)
+          @container_plugin.destroy
+          remove_app_symlinks(@container_dir)
         end
-
-        output += notify_endpoint_delete
 
         notify_observers(:after_container_destroy)
 
         return output, errout, retcode
+      end
+
+      # Find and remove all symlinks for a gear
+      #
+      # @param container_dir [String] home dir for gear to cleanup
+      def remove_app_symlinks(container_dir)
+        if @config.get("CREATE_APP_SYMLINKS").to_i == 1
+          Dir.foreach(File.dirname(container_dir)) do |dent|
+            unobfuscate = PathUtils.join(File.dirname(container_dir), dent)
+            if (File.symlink?(unobfuscate)) &&
+                (File.readlink(unobfuscate) == File.basename(container_dir))
+              File.unlink(unobfuscate)
+            end
+          end
+        end
       end
 
       # Public: Sets the app state to "stopped" and causes an immediate forced
@@ -404,6 +408,8 @@ module OpenShift
       ##
       # Idles the gear if there is no stop lock and state is not already +STOPPED+.
       #
+      # +Note: + stop_lock is created here so Node start up scripts skip idled gears.
+      #   stop_lock removed during unidle
       def idle_gear(options={})
         if not stop_lock? and (state.value != State::STOPPED)
           frontend = FrontendHttpServer.new(self)
@@ -417,21 +423,21 @@ module OpenShift
         end
       end
 
-      ##
-      # Unidles the gear.
+      # Unidles the gear
       #
+      # @param options [Hash<>] ignored
+      # @return [String] output from starting gear
       def unidle_gear(options={})
-        output = ""
+        output = ''
         OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
-        if stop_lock? and (state.value == State::IDLE)
-          state.value = State::STARTED
-          output      = start_gear
-        end
+          # When invoked as gear, state may be set to Started before unidle is called
+          frontend = FrontendHttpServer.new(self)
+          frontend.unidle if frontend.idle?
 
-        frontend = FrontendHttpServer.new(self)
-        if frontend.idle?
-          frontend.unidle
-        end
+          if state.value == State::IDLE
+              state.value = State::STARTED
+              output      = start_gear
+          end
         end
         output
       end
@@ -563,7 +569,7 @@ module OpenShift
       ##
       # Send the deployments to the broker
       #
-      def report_deployments(gear_env)
+      def report_deployments(gear_env, options = {})
         broker_addr = @config.get('BROKER_HOST')
         domain = gear_env['OPENSHIFT_NAMESPACE']
         app_name = gear_env['OPENSHIFT_APP_NAME']
@@ -576,16 +582,20 @@ module OpenShift
           params['deployments[]'] = deployments
           params[:application_id] = app_uuid
 
-          request = RestClient::Request.new(:method => :post,
-                                            :url => url,
-                                            :timeout => 30,
-                                            :headers => { :accept => 'application/json;version=1.6', :user_agent => 'OpenShift' },
-                                            :payload => params)
+          begin
+            request = RestClient::Request.new(:method => :post,
+                                              :url => url,
+                                              :timeout => 30,
+                                              :headers => { :accept => 'application/json;version=1.6', :user_agent => 'OpenShift' },
+                                              :payload => params)
 
-          response = request.execute
-
-          if 300 <= response.code
-            raise response
+            response = request.execute { |response, request, result| response }
+          rescue => e
+            options[:out].puts "Failed to report deployment to broker.  This will be corrected on the next git push. Message: #{e.message}" if options[:out]
+          else
+            if 300 <= response.code
+              options[:out].puts "Failed to report deployment to broker.  This will be corrected on the next git push." if options[:out]
+            end
           end
         end
       end
@@ -612,6 +622,8 @@ module OpenShift
       # Send a fire-and-forget request to the broker to report build analytics.
       #
       def report_build_analytics
+        return unless @config.get_bool('REPORT_BUILD_ANALYTICS', true)
+
         broker_addr = @config.get('BROKER_HOST')
         url         = "https://#{broker_addr}/broker/analytics"
 
@@ -689,7 +701,7 @@ module OpenShift
             end
           end
 
-          pwents.each do |pwent|
+          pwents.shuffle.each do |pwent|
             # The path is a performance hack to load only the variables we need
             if loadenv
               env = ::OpenShift::Runtime::Utils::Environ.load(File.join(pwent.dir, '.env', 'OPENSHIFT_{APP,GEAR}_{UUID,NAME,DNS}*'))
@@ -720,13 +732,8 @@ module OpenShift
       # Returns +true+ if the user's disk block usage meets or exceeds +max_percent+ of
       # the configured block limit, otherwise +false+.
       def disk_usage_exceeds?(max_percent)
-        raise "Percent must be between 1-100 (inclusive)" unless (1..100).member?(max_percent)
-
-        quota = OpenShift::Runtime::Node.get_quota(@uuid)
-
-        used_percent = ((quota[:blocks_used].to_f / quota[:blocks_limit].to_f) * 100.00).to_i
-
-        return used_percent >= max_percent
+        raise 'Percent must be between 1-100 (inclusive)' unless (1..100).member?(max_percent)
+        OpenShift::Runtime::Node.check_quotas(@uuid, max_percent).length != 0
       end
 
       # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]
@@ -782,6 +789,10 @@ module OpenShift
 
       def set_rw_permission(paths)
         @container_plugin.set_rw_permission(paths)
+      end
+
+      def chcon(path, label = nil, type=nil, role=nil, user=nil)
+        @container_plugin.chcon(path, label, type, role, user)
       end
 
       def memory_in_bytes

@@ -19,6 +19,7 @@ STDERR.sync = true
 @openshift_domain = ARGV[0]
 @job_erb = "#{ENV['OPENSHIFT_JENKINS_CLIENT_DIR']}/configuration/jenkins_job_template.xml.erb"
 @builder_type = ARGV[1]
+@application_uuid = ENV['OPENSHIFT_APP_UUID']
 ## https://bugzilla.redhat.com/show_bug.cgi?id=952161
 # Encode XML entites in jenkins_shell_command.erb template *after*
 # processing ERB directives.
@@ -34,13 +35,9 @@ def create_job
   FileUtils.rm @job_erb
 
 status_code = `/bin/sed -e "s,UPSTREAM_SSH,#{@uuid}@#{@app_name}-\\${OPENSHIFT_NAMESPACE}.#{@openshift_domain},g" #{job_template_xml} \
-  | curl -s  -X POST -H "Content-Type: application/xml" -H "Expect: " --data-binary @- --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}/createItem?name=#{@job_name}`
+  | curl -s -w %{http_code} -X POST -H "Content-Type: application/xml" -H "Expect: " --data-binary @- --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}/createItem?name=#{@job_name}`
 
   puts "create_job status: #{status_code}"
-  if not File.exists? File.join(@data_dir, 'jobs', @app_name, 'config.xml')
-    puts  'build config does not exist'
-    exit 1
-  end
 
   if status_code != '200'
     exit 1

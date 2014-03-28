@@ -5,7 +5,8 @@ class SettingsController < ConsoleController
   def show
     @user = current_user
 
-    async{ @domains = user_domains(:refresh => true) }
+    @domains = user_domains(:refresh => true)
+    
     async{ @capabilities = user_capabilities }
     async{ @keys = Key.all :as => @user }
     async{ @authorizations = Authorization.all :as => @user }

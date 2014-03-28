@@ -25,4 +25,4 @@ community page](https://www.openshift.com/open-source).
 
 Please stop by #openshift on irc.freenode.net if you have any questions or
 comments.  For more information about OpenShift, visit https://www.openshift.com/
-or the OpenShift forum https://www.openshift.com/forums/openshift
+or the OpenShift support page https://www.openshift.com/support

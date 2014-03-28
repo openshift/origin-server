@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for publishing routing information on ActiveMQ
 Name:          rubygem-%{gem_name}
-Version: 0.2.1
+Version: 0.4.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -72,13 +72,21 @@ cp conf/openshift-origin-routing-activemq.conf.example %{buildroot}/etc/openshif
 /etc/openshift/plugins.d/openshift-origin-routing-activemq.conf.example
 
 %changelog
-* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
-- fix version string to be uniform with rest of packages, build scripts assume
-  this (admiller@redhat.com)
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 0.4.1-1
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
 
-* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 0.2-1
-- typo fix (rchopra@redhat.com)
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
 
-* Tue Oct 15 2013 Adam Miller <admiller@redhat.com> 0.1-1
-- fixing tito tags
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 0.3.1-1
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
+
+* Thu Jan 09 2014 Troy Dawson <tdawson@redhat.com> 0.2.3-1
+- Route changes (ccoleman@redhat.com)
 

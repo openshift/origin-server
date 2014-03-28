@@ -7,7 +7,7 @@ Description: MariaDB is a multi-user, multi-threaded SQL database server.
 Version: '5.5'
 Versions:
 - '5.5'
-Cartridge-Version: 0.2.4
+Cartridge-Version: 0.2.7
 Cartridge-Vendor: redhat
 License: GPL
 Vendor: MariaDB Foundation
@@ -17,7 +17,7 @@ Categories:
 - embedded
 Website: https://www.mariadb.org/
 Help-Topics:
-  Building with MariaDB: http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html
+  Building with MariaDB: https://access.redhat.com/site/documentation/en-US/OpenShift/2.0/html/User_Guide/sect-OpenShift-User_Guide-Working_With_Database_Cartridges.html
 Cart-Data:
 - Key: username
   Type: cart_data
@@ -37,9 +37,14 @@ Provides:
 - mariadb-5.5
 - mariadb
 - mariadb-singleton-master
+- mysql-5.5
+- mysql
+- mysql-singleton-master
 Publishes:
   publish-db-connection-info:
     Type: ENV:NET_TCP:db:connection-info
+  publish-ld-library-path-info:
+    Type: ENV:NET_TCP:db:ld-library-path-info
 Scaling:
   Min: 1
   Max: 1
@@ -51,5 +56,4 @@ Endpoints:
   Protocols:
   - mysql
 Install-Build-Required: false
-Compatible-Versions:
-- 0.2.3
+Compatible-Versions: []

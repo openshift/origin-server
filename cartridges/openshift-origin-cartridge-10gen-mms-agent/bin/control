@@ -2,10 +2,13 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
+export OPENSHIFT_MMS_BASE_DIR=${OPENSHIFT_DATA_DIR}mms-agent
+
 cartridge_type="10gen-mms-agent"
 
 function status() {
-    if output=$(if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null; then echo Running; else echo Stopped; exit 1; fi 2>&1)
+    running_process=$(get_process)
+    if output=$(if ps -ef | grep ${running_process} | grep -qv grep > /dev/null; then echo "10gen-mms-agent is Running"; else echo "10gen-mms-agent is Stopped"; exit 1; fi 2>&1)
     then
         client_result "$output"
     else
@@ -13,19 +16,28 @@ function status() {
     fi
 }
 
+function get_process() {
+  if  [ -z "${OPENSHIFT_MMS_API_KEY}" ]
+  then
+    echo ${OPENSHIFT_GEAR_UUID}_agent.py
+  else
+    echo "mongodb-mms-monitoring-agent"
+  fi
+}
+
 function start() {
     echo "Starting $cartridge_type cartridge"
-    if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null 2>&1; then
+    running_process=$(get_process)
+    if ps -ef | grep ${running_process} | grep -qv grep > /dev/null 2>&1
+    then
         exit 0
     fi
 
-    #
     # Remove the compiled versions of the settings.py file and reset the mms credentials from the file in repo
     # This is required so that any user changes to credentials in this file can be picked up and recompiled
     #
     rm -f ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.pyc ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.pyo
-    
-    
+
     if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py" ]
     then
       new_mms_key_line=`cat ${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py | grep -E "^mms_key\s*=.*"`
@@ -33,17 +45,24 @@ function start() {
       sed -i "s/^mms_key\s*=.*/${new_mms_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.py
       sed -i "s/^secret_key\s*=.*/${new_secret_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.py
 
-      nohup python ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py > ${OPENSHIFT_10GENMMSAGENT_DIR}/logs/agent.log 2>&1 &
+      nohup python ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py &> >(/usr/bin/logshifter -tag 10gen-mms-agent) &
       echo $! > ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid
-    else
-      echo ""
-      echo "Missing settings.py file:  ${OPENSHIFT_REPO_DIR}.openshift/mms/settings.py"
-      echo "This file is part of the agent zip file: 10gen-mms-agent-<group-name>.zip"
-      echo "The zip file is available to download from https://mms.10gen.com/ after you register with their service. "
-      echo "It contains your 10gen MMS credentials and is required for running the agent."
-      echo "You will need to add this file and then do a git commit and push before you can start the 10gen-mms-agent cartridge."
-      echo ""
-      exit 137
+    elif [ -d ${OPENSHIFT_MMS_BASE_DIR} ]
+    then
+      if [ -n "${OPENSHIFT_MMS_API_KEY}" ]
+      then
+        pushd ${OPENSHIFT_MMS_BASE_DIR} >/dev/null
+        sed -i "s/^mmsApiKey\s*=.*/mmsApiKey=${OPENSHIFT_MMS_API_KEY}/g" monitoring-agent.config
+        nohup ${OPENSHIFT_MMS_BASE_DIR}/mongodb-mms-monitoring-agent &> >(/usr/bin/logshifter -tag 10gen-mms-agent) &
+        echo $! > ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid
+        popd >/dev/null
+      else
+        client_error ""
+        client_error "Missing enviroment variable OPENSHIFT_MMS_API_KEY, which needs to be set before embeding the cartridge"
+        client_error "Please run: rhc set-env OPENSHIFT_MMS_API_KEY=YOUR_MMS_API_KEY -a myapp"
+        client_error "Your MMS api key is available after registration at https://mms.mongodb.com, in the Settings -> Monitoring Agent section"
+        exit 137
+      fi
     fi
 }
 
@@ -55,7 +74,8 @@ function stop() {
         kill -9 $mms_agent_pid > /dev/null || :
         rm -f ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid > /dev/null
     else
-        if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null 2>&1; then
+        running_process=$(get_process)
+        if ps -ef | grep ${running_process} | grep -qv grep > /dev/null 2>&1; then
             echo "Failed to stop 10gen-mms-agent as the pid file is missing!" 1>&2
             exit 1
         else
@@ -73,6 +93,11 @@ function reload() {
     restart
 }
 
+function tidy() {
+  client_message "Emptying 10gen-mms-agent logs in dir: $OPENSHIFT_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_LOG_DIR/10gen-mms-agent.log*
+}
 
 case "$1" in
   start)      start ;;
@@ -80,5 +105,6 @@ case "$1" in
   restart)    restart ;;
   status)     status ;;
   reload)     reload ;;
+  tidy)      tidy ;;
   *)          exit 0
 esac

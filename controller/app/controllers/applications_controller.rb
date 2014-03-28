@@ -3,7 +3,7 @@
 # Application CRUD REST API
 class ApplicationsController < BaseController
   include RestModelHelper
-  before_filter :get_domain, :only => :create
+  #before_filter :get_domain, :only => :create
   before_filter :get_application, :only => [:show, :destroy, :update]
   ##
   # List all applications
@@ -18,7 +18,12 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id].presence
 
     by = domain_id.present? ? {domain_namespace: Domain.check_name!(domain_id).downcase} : {}
-    apps = Application.includes(:domain).accessible(current_user).where(by).map { |app| get_rest_application(app, include_cartridges) }
+    apps = 
+      case params[:owner]
+      when "@self" then Application.includes(:domain).accessible(current_user).where(owner: current_user)
+      when nil     then Application.includes(:domain).accessible(current_user)
+      else return render_error(:bad_request, "Only @self is supported for the 'owner' argument.") 
+      end.where(by).sort_by{ |a| a.name }.map { |app| get_rest_application(app, include_cartridges) }
     Domain.find_by(canonical_namespace: domain_id.downcase) if apps.empty? && domain_id.present? # check for a missing domain
 
     render_success(:ok, "applications", apps, "Found #{apps.length} applications.")
@@ -47,57 +52,44 @@ class ApplicationsController < BaseController
   #
   # @return [RestReply<RestApplication>] Application object
   def create
-    app_name = params[:name].downcase if params[:name].presence
-    features = []
-    downloaded_cart_urls = []
-    gear_size_map = {}
-    default_gear_size = params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]
-    default_gear_size.downcase! if default_gear_size
-    cart_params = [(params[:cartridges].presence || params[:cartridge].presence)].flatten
-    cart_params.each do |c|
-      if c.is_a?(Hash)
-        if c[:name]
-          features << c[:name]
-          gear_size_map[c[:name]] = (c[:gear_size] || default_gear_size)
-        elsif c[:url]
-          downloaded_cart_urls << c[:url]
-          gear_size_map[c[:url]] = (c[:gear_size] || default_gear_size)
-        end
-      else
-        features << c
-        gear_size_map[c] = default_gear_size
-      end
-    end
-    
-    if not Rails.configuration.openshift[:allow_obsolete_cartridges]
-      obsolete = []
-      features.each do |feature|
-        c = CartridgeCache.find_cartridge(feature)
-        obsolete.push(feature) if c and c.is_obsolete?
-      end
-      
-      return render_error(:unprocessable_entity, "These cartridge(s) have been obsoleted '#{obsolete.join(",")}'.  Please choose an alternative from list #{CartridgeCache.cartridge_names.join(", ")}") unless obsolete.empty?
-    end
-    
-    user_env_vars = params[:environment_variables].presence
-    Application.validate_user_env_variables(user_env_vars, true)
+    app_name = String(params[:name]).downcase
+    scalable = get_bool(params[:scale])
+    available = get_bool(params[:ha])
+    default_gear_size = (params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]).downcase
+    config = (params[:config].is_a?(Hash) and params[:config])
 
-    init_git_url = params[:initial_git_url].presence
-    if init_git_url
-      repo_spec, _ = (OpenShift::Git.safe_clone_spec(init_git_url) rescue nil)
-      return render_error(:unprocessable_entity, "Invalid initial git URL",
-                          216, "initial_git_url") unless repo_spec
+    if OpenShift::ApplicationContainerProxy.blacklisted? app_name
+      return render_error(:forbidden, "Application name is not allowed.  Please choose another.", 105)
     end
 
-    app_gear_sizes = gear_size_map.values.uniq
-    valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & @domain.allowed_gear_sizes & @domain.owner.allowed_gear_sizes
+    if init_git_url = String(params[:initial_git_url]).presence
+      repo_spec, commit = (OpenShift::Git.safe_clone_spec(init_git_url, OpenShift::Git::ALLOWED_SCHEMES, params[:initial_git_branch].presence) rescue nil)
+      if repo_spec.blank?
+        return render_error(:unprocessable_entity, "Invalid initial git URL",
+                            216, "initial_git_url")
+      end
+      init_git_url = [repo_spec, commit].compact.join('#')
+    end
+
+    specs = []
+    [(params[:cartridges].presence || params[:cartridge].presence)].flatten.each do |c|
+      if c.presence.is_a? String
+        specs << {name: c}
+      elsif c.is_a? Hash
+        specs << c
+      end
+    end
+    CartridgeInstance.check_cartridge_specifications!(specs)
+    if not specs.all?{ |f| f[:name].present? ^ f[:url].present? }
+      return render_error(:unprocessable_entity, "Each cartridge must be specified by a name, or a JSON hash with a 'name' or 'url' key.", 109, 'cartridge') unless params[:advanced]
+    end
+
+    find_or_create_domain!
+
     builder_id = nil
-
     if not authorized?(:create_application, @domain)
       if authorized?(:create_builder_application, @domain, {
-            :cartridges => cart_params,
-            :gear_sizes => app_gear_sizes,
-            :valid_gear_sizes => valid_sizes,
+            :cartridges => specs,
             :domain_id => @domain._id
           })
         if scope = current_user.scopes.find{ |s| s.respond_to?(:builder_id) }
@@ -108,63 +100,84 @@ class ApplicationsController < BaseController
       end
     end
 
-    return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
-                        105, "name") if !app_name or app_name.empty?
+    @domain.validate_gear_sizes!([default_gear_size], "gear_size")
+    @domain.validate_gear_sizes!(specs.map{ |f| f[:gear_size] }.compact.uniq, "cartridges")
 
-    return render_error(:forbidden, "The owner of the domain #{@domain.namespace} has disabled all gear sizes from being created.  You will not be able to create an application in this domain.",
-                        134) if valid_sizes.empty?
-
-    invalid_sizes = (app_gear_sizes - valid_sizes).map {|s| "'#{s}'"}
-    return render_error(:unprocessable_entity, "The gear sizes #{invalid_sizes.to_sentence} are not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.", 134, "gear_size") if (invalid_sizes.length > 1)
-    return render_error(:unprocessable_entity, "The gear size #{invalid_sizes.to_sentence} is not valid for this domain. Allowed sizes: #{valid_sizes.to_sentence}.", 134, "gear_size") if (invalid_sizes.length == 1)
-
-    #auto_deploy = get_bool(params[:auto_deploy]) if params[:auto_deploy].presence || false
-    #auto_deploy = get_bool(auto_deploy)
-    #deployment_branch = params[:deployment_branch].presence || "master"
-    #keep_deployments = params[:keep_deployments].presence || 1
-    #deployment_type = params[:deployment_type].downcase if params[:deployment_type].presence || "git"
-    #deployment_type = deployment_type.downcase
-
-    #return render_error(:unprocessable_entity, "Invalid deployment type: #{deployment_type}. Acceptable values are: #{Application::DEPLOYMENT_TYPES.join(", ")}",
-    #                    1, "deployment_type") if deployment_type and !Application::DEPLOYMENT_TYPES.include?(deployment_type)
-
-    #return render_error(:unprocessable_entity, "Invalid number of deployments to keep: #{params[:keep_deployments]}. Keep deployments must be greater than 0.",
-    #                    1, "keep_deployments") if keep_deployments and keep_deployments < 1
-
-    #return render_error(:unprocessable_entity, "Invalid deployment_branch: #{deployment_branch}. Deployment branches are limited to 256 characters",
-    #                    1, "deployment_branch") if deployment_branch and deployment_branch.length > 256
-
-
-    if Application.where(domain: @domain, canonical_name: app_name.downcase).present?
-      return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "name")
+    if available
+      raise OpenShift::UserException.new("This feature ('High Availability') is currently disabled. Enable it in OpenShift's config options.") if not Rails.configuration.openshift[:allow_ha_applications]
+      raise OpenShift::UserException.new("'High Availability' is not an allowed feature for the account ('#{@domain.owner.login}')") if not @domain.owner.ha
     end
 
-    return render_error(:unprocessable_entity,
-                        "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
-                        104) if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-
-    download_cartridges_enabled = Rails.application.config.openshift[:download_cartridges_enabled]
-    limit = (Rails.application.config.downloaded_cartridges[:max_downloaded_carts_per_app] rescue 5) || 5
-    carts = CartridgeCache.cartridge_names("web_framework")
-    return render_error(:unprocessable_entity, "You may not specify more than #{limit} cartridges to be downloaded.",
-                            109, "cartridge") if download_cartridges_enabled and downloaded_cart_urls.length > limit
-    return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
-                            109, "cartridge") if download_cartridges_enabled ? (downloaded_cart_urls.empty? and features.empty?) : features.empty?
-
-    begin
-      result = ResultIO.new
-      scalable = get_bool(params[:scale])
-      @application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls, builder_id, user_env_vars, gear_size_map)
-
-    rescue OpenShift::UnfulfilledRequirementException => e
-      return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")
+    app = Application.new(
+      domain: @domain,
+      name: app_name,
+      default_gear_size: default_gear_size,
+      scalable: scalable || available,
+      ha: available,
+      builder_id: builder_id,
+      user_agent: request.user_agent,
+      init_git_url: init_git_url,
+    )
+    if config.present?
+      app.config.each do |k, default|
+        if !(v = config[k]).nil?
+          app.config[k] =
+            case default
+            when Integer then (Integer(v) rescue default)
+            when FalseClass, TrueClass then (get_bool(v) rescue v)
+            else v.to_s
+            end
+        end
+      end
     end
-    @application.user_agent= request.headers['User-Agent']
+    app.analytics['user_agent'] = request.user_agent
+    @application = app
+
+    raise OpenShift::ApplicationValidationException.new(app) unless app.valid?
+
+    if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
+      return render_error(:unprocessable_entity,
+                          "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
+                          104)
+    end
+
+    user_env_vars = params[:environment_variables].presence
+    Application.validate_user_env_variables(user_env_vars, true)
+
+    cartridges = CartridgeCache.find_and_download_cartridges(specs, "cartridge", true)
+
+    if (cartridges.map(&:additional_gear_storage).compact.map(&:to_i).max || 0) > @cloud_user.max_storage
+      return render_error(:unprocessable_entity,
+                          "#{@cloud_user.login} has requested more additional gear storage than allowed (max: #{@cloud_user.max_storage} GB)",
+                          166)
+    end
+
+    frameworks = cartridges.select(&:is_web_framework?)
+    if frameworks.empty? && !params[:advanced]
+      framework_carts = CartridgeCache.web_framework_names.presence or
+        raise OpenShift::UserException.new("Unable to determine list of available cartridges. Please try again and contact support if the issue persists.", 109, "cartridges")
+      raise OpenShift::UserException.new("An application must contain one web cartridge. None of the specified cartridges is a web cartridge. " \
+                                         "Please include one of the following cartridges: #{framework_carts.to_sentence} or supply a valid url to a custom " \
+                                         "web_framework cartridge.", 109, "cartridge")
+    end
+
+    if !Rails.configuration.openshift[:allow_obsolete_cartridges] && !builder_id && (obsolete = cartridges.select{ |c| !c.singleton? && c.obsolete }.presence)
+      raise OpenShift::UserException.new("The following cartridges are no longer available: #{obsolete.map(&:name).to_sentence}", 109, "cartridges")
+    end
+
+    result = app.add_initial_cartridges(cartridges, init_git_url, user_env_vars)
 
     include_cartridges = (params[:include] == "cartridges")
+    rest_app = get_rest_application(app, include_cartridges)
 
-    app = get_rest_application(@application, include_cartridges)
-    render_success(:created, "application", app, "Application #{@application.name} was created.", result)
+    render_success(:created, "application", rest_app, "Application #{app.name} was created.", result)
+
+  rescue Moped::Errors::OperationFailure => e
+    return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "name") if [11000, 11001].include?(e.details['code'])
+    raise
+
+  rescue OpenShift::UnfulfilledRequirementException => e
+    return render_error(:unprocessable_entity, "Unable to create application: #{e.message}", 109, "cartridges")
   end
 
   ##
@@ -197,11 +210,12 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "Invalid deployment_branch: #{deployment_branch}. Deployment branches are limited to 256 characters",
                         1, "deployment_branch") if deployment_branch and deployment_branch.length > 256
 
-    @application.config['auto_deploy'] = auto_deploy if !auto_deploy.nil?
-    @application.config['deployment_branch'] = deployment_branch if deployment_branch
-    @application.config['keep_deployments'] = keep_deployments if keep_deployments
-    @application.config['deployment_type'] = deployment_type if deployment_type
-    result = @application.update_configuration
+    new_config = {}
+    new_config['auto_deploy'] = auto_deploy unless auto_deploy.nil?
+    new_config['deployment_branch'] = deployment_branch unless deployment_branch.nil?
+    new_config['keep_deployments'] = keep_deployments unless keep_deployments.nil?
+    new_config['deployment_type'] = deployment_type unless deployment_type.nil?
+    result = @application.update_configuration(new_config)
 
     include_cartridges = (params[:include] == "cartridges")
     app = get_rest_application(@application, include_cartridges)

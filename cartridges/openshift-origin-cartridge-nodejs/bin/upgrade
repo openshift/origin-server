@@ -8,7 +8,7 @@ nodejs_version="$1"
 old_cart_version="$2"
 new_cart_version="$3"
 
-if [[ $old_cart_version =~ 0.0.[0-4] ]]; then
+if [[ $old_cart_version =~ ^0.0.[0-4]$ ]]; then
   echo "$nodejs_version" > $OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_VERSION
   update-configuration $nodejs_version
 fi
@@ -20,4 +20,28 @@ if [ "${nodejs_version}" == "0.10" ]; then
         rm -rf $OPENSHIFT_NODEJS_DIR/node_modules/*
         link_global_modules ${nodejs_version}
     fi
+fi
+
+# Needed for version 0.0.1 -> 0.1.10.  This can be removed after the upgrade
+# has been deployed.
+if [ -e $OPENSHIFT_HOMEDIR/nodejs/metadata/jenkins_shell_command ]; then
+  rm -f $OPENSHIFT_HOMEDIR/nodejs/metadata/jenkins_shell_command
+fi
+
+# The LD_LIBRARY_PATH is now handled by the Node itself
+# and constructed using LD_LIBRARY_PATH_ELEMENT. This will
+# remove the existing LD_LIBRARY_PATH so the Node one can
+# take the precedence.
+#
+if [[ $new_cart_version == "0.0.14" ]]; then
+  if [ -f ${OPENSHIFT_NODEJS_DIR}env/LD_LIBRARY_PATH ]; then
+    rm -f ${OPENSHIFT_NODEJS_DIR}env/LD_LIBRARY_PATH
+  fi
+  update-configuration $nodejs_version
+fi
+
+if [ -f ${OPENSHIFT_NODEJS_DIR}/env/OPENSHIFT_NODEJS_LOG_DIR ] && [ ! -L ${OPENSHIFT_NODEJS_DIR}/env/OPENSHIFT_NODEJS_LOG_DIR ]
+then
+    rm ${OPENSHIFT_NODEJS_DIR}/env/OPENSHIFT_NODEJS_LOG_DIR
+    ln -s ~/.env/OPENSHIFT_LOG_DIR ${OPENSHIFT_NODEJS_DIR}/env/OPENSHIFT_NODEJS_LOG_DIR
 fi

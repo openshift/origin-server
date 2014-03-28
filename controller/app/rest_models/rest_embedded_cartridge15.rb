@@ -40,7 +40,7 @@
 #     </properties>
 #     <scales-with nil="true"/>
 #     <help-topics>
-#       <Developer-Center>https://openshift.redhat.com/community/developers</Developer-Center>
+#       <Developer-Center>https://www.openshift.com/developers</Developer-Center>
 #     </help-topics>
 #     <links>
 #       ...
@@ -84,7 +84,7 @@
 # @!attribute [r] scales_with
 #   @return [Array<String>] Names of other cartridges that scale along with this cartridge and run on the same set of gears
 # @!attribute [r] base_gear_storage
-#   @return [Integer] Number of GB of disk space assoicated with gear profile that this cartridge is running on
+#   @return [Integer] Number of GB of disk space associated with gear profile that this cartridge is running on
 # @!attribute [r] additional_gear_storage
 #   @return [Integer] Additional number of GB of disk space (beyond the base provided by the gear profile)
 # @!attribute [r] gear_profile
@@ -96,14 +96,15 @@
 # @!attribute [r] usage_rates
 #   @return [Array<Object>]
 class RestEmbeddedCartridge15 < OpenShift::Model
-  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, :url,
+  attr_accessor :id, :type, :name, :version, :license, :license_url, :tags, :website, :url,
     :help_topics, :links, :properties, :display_name, :description, :scales_from,
     :scales_to, :current_scale, :supported_scales_from, :supported_scales_to,
-    :scales_with, :base_gear_storage, :additional_gear_storage, :gear_profile, :collocated_with, 
-    :status_messages, :usage_rates, :obsolete
+    :scales_with, :base_gear_storage, :additional_gear_storage, :gear_profile, :collocated_with,
+    :status_messages, :usage_rates, :obsolete, :creation_time, :added_time, :automatic_updates
 
-  def initialize(cart, comp, app, cinst, colocated_cinsts, scale, url, status_messages, nolinks=false)
+  def initialize(cart, comp, app, cinst, colocated_cinsts, scale, url, requires, status_messages, nolinks=false)
     self.name = cart.name
+    self.id = cart.id
     self.status_messages = status_messages
     self.version = cart.version
     self.display_name = cart.display_name
@@ -112,19 +113,24 @@ class RestEmbeddedCartridge15 < OpenShift::Model
     self.license_url = cart.license_url
     self.tags = cart.categories
     self.website = cart.website
-    self.url = nil
-    if app.downloaded_cartridges.has_key? cart.name
-      app.downloaded_cart_map.each { |cname,chash|
-        if chash["versioned_name"]==cart.name or cname==cart.name
-          self.url = chash["url"]
-          break
-        end
-      }
+    if cart.singleton?
+      self.url = cart.manifest_url
     end
     self.type = "standalone"
-    self.type = "embedded" if cart.is_embeddable?
+    self.type = "embedded" unless cart.is_web_framework?
     self.usage_rates = cart.usage_rates
-    self.obsolete = cart.is_obsolete?
+    self.help_topics = cart.help_topics
+    @requires = requires if requires.present?
+
+    @maintained_by = "redhat" if cart.cartridge_vendor == "redhat"
+    self.automatic_updates = cart.manifest_url.blank? && !cart.categories.include?('no_updates')
+
+    @obsolete = true if cart.is_obsolete?
+    self.added_time = cinst.created_at || app.created_at
+    self.creation_time = cart.created_at
+    if cart.activated_at
+      @activation_time = cart.activated_at.in_time_zone
+    end
 
     unless scale.nil?
       self.scales_from = scale[:min]
@@ -155,9 +161,7 @@ class RestEmbeddedCartridge15 < OpenShift::Model
 
     self.properties = []
     if app.nil?
-      #self.provides = cart.features
     else
-      #self.provides = app.get_feature(cinst.cartridge_name, cinst.component_name)
       prop_values = cinst.component_properties
       cart.cart_data_def.each do |data_def|
         property = {}
@@ -178,10 +182,9 @@ class RestEmbeddedCartridge15 < OpenShift::Model
         end
       end
     end
-    self.help_topics = cart.help_topics
 
     if app and !nolinks
-      domain_id = app.domain.namespace
+      domain_id = app.domain_namespace
       app_id = app.name
       if not app_id.nil? and not domain_id.nil?
         self.links = {

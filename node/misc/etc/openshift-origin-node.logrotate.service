@@ -1,0 +1,17 @@
+/var/log/openshift/node/cgroups*.log {
+ copytruncate
+ rotate 30
+ daily
+ missingok
+ notifempty
+ compress
+}
+
+/var/log/openshift/node/platform*.log {
+ copytruncate
+ rotate 30
+ daily
+ missingok
+ notifempty
+ compress
+}

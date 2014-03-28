@@ -49,9 +49,11 @@ def load_env(directory):
             load_env(os.path.join(directory, entry))
             continue
 
+        if entry.endswith(".rpmnew"):
+            continue
+
         with open(entry, 'r') as file:
-            contents = file.read().rstrip()
-            os.environ[env] = contents
+            os.environ[env] = file.read().rstrip()
 
 
 def gear_env():
@@ -66,24 +68,47 @@ def gear_env():
         primary = os.path.basename(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'].rstrip('/'))
         load_env(os.path.join(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'], 'env'))
 
-    primary_path = "OPENSHIFT_%s_PATH_ELEMENT" % primary
-    matcher = re.compile('^OPENSHIFT_.*_PATH_ELEMENT$')
-    path_elements = [key for key in os.environ if matcher.match(key)]
+    os.environ['PATH'] = ':'.join(collect_elements_from(os.environ,
+            'PATH', primary))
 
-    if primary_path in path_elements:
-        path_elements.remove(primary_path)
-    elements = [os.environ[key] for key in path_elements]
-
-    if primary_path in os.environ:
-        elements.insert(0, os.environ[primary_path])
-
-    if 'PATH' in os.environ:
-        elements.append(os.environ['PATH'])
-    elements.append(system_path)
-
-    os.environ['PATH'] = ':'.join(elements)
+    os.environ['LD_LIBRARY_PATH'] = ':'.join(collect_elements_from(os.environ,
+            'LD_LIBRARY_PATH', primary))
 
     load_env('~/.env/user_vars')
+
+def collect_elements_from(env, var_name, primary):
+    primary_path = "OPENSHIFT_%s_%s_ELEMENT" % (primary, var_name)
+    gear_env = dict(env)
+    system_path = gear_env[var_name] if var_name in gear_env else False
+
+    # Remove all LD_LIBRARY_PATH_ELEMENT's to avoid conflict with
+    # PATH
+    #
+    if var_name == 'PATH':
+        regex = re.compile(r'_LD_LIBRARY_PATH_ELEMENT$')
+        for k in gear_env.keys():
+            if regex.search(k):
+                gear_env.pop(k)
+
+    elements = []
+
+    for name in gear_env.keys():
+        regex = re.compile(r'OPENSHIFT_.*_%s_ELEMENT' % var_name)
+        if regex.search(name) and primary_path!=name:
+            elements.append(gear_env[name])
+
+    if primary_path in gear_env:
+        if var_name == 'PATH':
+            elements.insert(0, gear_env[primary_path])
+        else:
+            elements.append(gear_env[primary_path])
+
+    if system_path:
+        elements.append(system_path)
+
+    return elements
+
+
 
 # Calling oo-get-mcs-level gets into trouble due to BZ 957257.  Use an
 # internal call which produces the same logic.

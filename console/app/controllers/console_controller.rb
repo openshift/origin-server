@@ -6,6 +6,7 @@ class ConsoleController < Console.config.parent_controller.constantize
   include CostAware
   include Console::CommunityAware
   include Console::LogHelper
+  include Console::ErrorsHelper
 
   layout 'console'
 
@@ -31,6 +32,10 @@ class ConsoleController < Console.config.parent_controller.constantize
       else
         referrer.to_s
       end
+    end
+
+    def remote_request?(referrer)
+      referrer.present? && referrer.host && !(request.host == referrer.host || referrer.host == URI.parse(community_url).host)
     end
 
 end

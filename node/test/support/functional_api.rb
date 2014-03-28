@@ -20,10 +20,10 @@ class FunctionalApi
     'nodejs-0.6'   => 'index.html',
     'nodejs-0.10'   => 'index.html',
     'perl-5.10'    => 'perl/index.pl',
-    'php-5.3'      => 'php/index.php',
-    'python-2.6'   => 'wsgi/application',
-    'python-2.7'   => 'wsgi/application',
-    'python-3.3'   => 'wsgi/application',
+    'php-5.3'      => 'index.php',
+    'python-2.6'   => 'wsgi.py',
+    'python-2.7'   => 'wsgi.py',
+    'python-3.3'   => 'wsgi.py',
     'ruby-1.8'     => 'config.ru',
     'ruby-1.9'     => 'config.ru',
     'zend-5.6'     => 'php/index.php',
@@ -71,7 +71,7 @@ class FunctionalApi
     response['data'].each do |app_data|
       id = app_data['id']
       logger.info("Deleting application id #{id}")
-      RestClient.delete("#{@url_base}/applications/#{id}")
+      RestClient.delete("#{@url_base}/applications/#{id}", {timeout: 480})
     end
 
     logger.info("Deleting domain #{@namespace}")
@@ -89,6 +89,12 @@ class FunctionalApi
     logger.info("Created app #{app_name} with id #{app_id}")
 
     app_id
+  end
+
+  def configure_application(app_name, options)
+    logger.info("Configuring application #{app_name} with config options #{options}")
+    response = RestClient.put("#{@url_base}/domain/#{@namespace}/application/#{app_name}", options, accept: :json)
+    assert_operator 300, :>, response.code, "Invalid response received: #{response}"
   end
 
   def clone_repo(app_id)
@@ -182,17 +188,12 @@ EOFZ
 
   def up_gears
     logger.info "Upping gears for #{@login}"
-    logger.info `oo-admin-ctl-user -l #{@login} --setmaxgears 5`
+    logger.info `oo-broker --non-interactive oo-admin-ctl-user -l #{@login} --setmaxgears 5`
   end
 
   def enable_ha
     logger.info "Enabling HA for test user #{@login}"
-    logger.info `oo-admin-ctl-user -l #{@login} --allowha true`
-  end
-
-  def set_deployment_type(app_name, type)
-    logger.info "Setting deployment type for #{app_name} to #{type}"
-    add_env_vars(app_name, [ { name: 'OPENSHIFT_DEPLOYMENT_TYPE', value: type }])
+    logger.info `oo-broker --non-interactive oo-admin-ctl-user -l #{@login} --allowha true`
   end
 
   def make_ha(app_name)
@@ -209,14 +210,14 @@ EOFZ
     assert_operator 300, :>, response.code, "Invalid response received: #{response}"
   end
 
-  def assert_http_title(url, expected, msg = nil)
+  def assert_http_title(url, expected, msg=nil, max_tries=10)
     logger.info("Checking #{url} for title '#{expected}'")
     uri = URI.parse(url)
 
     tries = 0
     title = ''
 
-    while tries < 3
+    while tries < max_tries
       tries += 1
       content = ''
 
@@ -224,7 +225,7 @@ EOFZ
         content = Net::HTTP.get(uri)
       rescue SocketError => e
         logger.info("DNS lookup failure; retrying #{url}")
-        sleep 1
+        sleep 10
         next
       rescue Errno::ECONNREFUSED => e
         logger.info("connection refused; retrying #{url}")
@@ -235,8 +236,10 @@ EOFZ
       content =~ /<title>(.+)<\/title>/
       title = $~[1]
 
-      if title =~ /^503|404 / && tries < 3
-        logger.info("Retrying #{url}")
+      if ((tries < max_tries) && (title =~ /^503|404 / || title != expected))
+        logger.info("Not the response we wanted; retrying #{url}")
+        sleep 1
+        next
       end
 
       break
@@ -245,14 +248,14 @@ EOFZ
     assert_equal expected, title, msg
   end
 
-  def assert_http_title_for_entry(entry, expected, msg = nil)
+  def assert_http_title_for_entry(entry, expected, msg = nil, tries = 10)
     url = "http://#{entry.dns}:#{entry.proxy_port}/"
-    assert_http_title(url, expected, msg)
+    assert_http_title(url, expected, msg, tries)
   end
 
-  def assert_http_title_for_app(app_name, namespace, expected, msg = nil)
+  def assert_http_title_for_app(app_name, namespace, expected, msg = nil, tries = 10)
     url = "http://#{app_name}-#{namespace}.#{cloud_domain}"
-    assert_http_title(url, expected, msg)
+    assert_http_title(url, expected, msg, tries)
   end
 
   def assert_scales_to(app_name, cartridge, count)
@@ -296,7 +299,7 @@ EOFZ
     logger.info("Done Copying File(#{tgz_file_name}) to /var/www/html/binaryartifacts")
   end
 
-  def deploy_binary_artifact_using_rest_api(app_name, artifact_url)
+  def deploy_binary_artifact_using_rest_api(app_name, artifact_url, hot_deploy=true)
 
     logger.info("Starting Deploy Binary Artifact Using REST API")
 
@@ -306,7 +309,7 @@ EOFZ
     begin
       response = RestClient::Request.execute(method: :post,
                                              url: url_endpoint,
-                                             payload: JSON.dump(artifact_url: artifact_url),
+                                             payload: JSON.dump(artifact_url: artifact_url, hot_deploy: hot_deploy),
                                              headers: {content_type: :json, accept: :json},
                                              timeout: 180)
     rescue RestClient::Exception => e
@@ -322,9 +325,10 @@ EOFZ
   end
 
 
-  def deploy_artifact(app_id, app_name, file)
+  def deploy_artifact(app_id, app_name, file, hot_deploy=false)
     logger.info("Deploying #{file} to app #{app_name}")
-    logger.info `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary-deploy`
+    hot=hot_deploy ? '--hot-deploy' : ''
+    logger.info `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary-deploy #{hot}`
   end
 
   def cloud_domain
@@ -332,25 +336,37 @@ EOFZ
   end
 
   def assert_gear_status_in_proxy(proxy, target_gear, status)
-    proxy_status_csv = `curl "http://#{proxy.dns}/haproxy-status/;csv" 2>/dev/null`
-
-    if proxy.uuid == target_gear.uuid
-      name = 'local-gear'
-    else
-      gear_name = target_gear.dns.split('-')[0]
-      name = "gear-#{gear_name}-#{target_gear.namespace}"
-    end
-
     passed = false
-    proxy_status_csv.split("\n").each do |line|
-      if line =~ /#{name}/
-        assert_match /#{status}/, line
-        passed = true
-        break
+    num_tries = 3
+    (1..num_tries).each do |i|
+      proxy_status_csv = `curl "http://#{proxy.dns}/haproxy-status/;csv" 2>/dev/null`
+
+      if proxy.uuid == target_gear.uuid
+        names = [ 'local-gear' ]
+      else
+        gear_name = target_gear.dns.split('-')[0]
+        names = [ "gear-#{gear_name}-#{target_gear.namespace}" ]
+        gear_name = proxy.dns.split('-')[0]
+        names << "gear-#{gear_name}-#{target_gear.namespace}"
       end
+
+      proxy_status_csv.split("\n").each do |line|
+        names.each do |name|
+          if line =~ /#{name}/
+            if line =~ /#{status}/
+              passed = true
+            elsif i == num_tries
+              assert_match /#{status}/, line
+            end
+            break
+          end
+        end
+      end
+      break if passed
+      sleep 2
     end
 
-    flunk("Target gear #{name} did not have expected status #{status}") unless passed
+    flunk("Target gear #{target_gear.name} did not have expected status #{status}") unless passed
   end
 
   def restart_cartridge(app_name, cartridge)

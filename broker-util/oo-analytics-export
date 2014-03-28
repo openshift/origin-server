@@ -16,7 +16,7 @@ if outfile.nil?
 end
 
 
-require '/var/www/openshift/broker/config/environment'
+require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 
 u = Rails.application.config.datastore[:user]
 p = Rails.application.config.datastore[:password]

@@ -1,7 +1,8 @@
+ENV["TEST_NAME"] = "unit_broker_auth_test"
 require File.expand_path('../../test_helper', __FILE__)
 require 'tmpdir'
 
-class BrokerAuthTest < Test::Unit::TestCase
+class BrokerAuthTest < ActiveSupport::TestCase
   def setup
     test_key_dir = Dir.mktmpdir
     system "/usr/bin/openssl genrsa -out #{test_key_dir}/server_priv.pem 2048"
@@ -16,7 +17,7 @@ class BrokerAuthTest < Test::Unit::TestCase
     @auth_service
   end
 
-  def mock_access(carts=['jenkins-1'])
+  def mock_access(carts=cartridge_instances_for(:jenkins).map(&:cartridge))
     app = mock('app')
     user = mock('user')
     t = Time.new
@@ -26,8 +27,7 @@ class BrokerAuthTest < Test::Unit::TestCase
     app.stubs(:domain_id).returns("51ed4adbb8c2e70a72000000")
     app.expects(:created_at).at_least_once.returns(t)
     app.expects(:owner).returns(user)
-    app.expects(:requires).returns(carts)
-    app.stubs(:downloaded_cartridges).returns({})
+    app.expects(:cartridges).returns(carts)
 
     Application.expects(:find).with(app._id).returns(app)
 
@@ -64,8 +64,7 @@ class BrokerAuthTest < Test::Unit::TestCase
     app.stubs(:domain_id).returns("51ed4adbb8c2e70a72000000")
     app.stubs(:name).returns("foo")
     app.expects(:created_at).at_least_once.returns(t)
-    app.expects(:requires).returns(['jenkins-1'])
-    app.expects(:downloaded_cartridges).returns({})
+    app.expects(:cartridges).returns(cartridge_instances_for(:jenkins).map(&:cartridge))
 
     Application.expects(:find_by_user).with(user, "foo").at_least_once.returns(app)
     CloudUser.expects(:find_by_identity).at_least_once.returns(user)

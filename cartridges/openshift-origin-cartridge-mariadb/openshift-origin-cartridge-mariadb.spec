@@ -10,6 +10,13 @@ URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      mariadb-server
 Requires:      mariadb-devel
+
+# For RHEL6 install mysql55 from SCL
+%if 0%{?rhel}
+Requires:      mariadb55
+Requires:      mariadb55-mariadb-devel
+%endif
+
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
@@ -51,8 +58,3 @@ Provides mariadb cartridge support to OpenShift. (Cartridge Format V2)
   (jhonce@redhat.com)
 - Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
 - remove v2 folder from cart install (dmcphers@redhat.com)
-
-* Wed May 08 2013 Krishna Raman <kraman@gmail.com> 0.0.2-1
-- new package built with tito
-
-

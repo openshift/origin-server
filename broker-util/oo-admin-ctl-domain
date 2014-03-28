@@ -22,7 +22,7 @@ Options:
     Namespace for application(s) (alphanumeric - max 16 chars) (required)
    --new_namespace <Namespace>
     New namespace for application(s) (alphanumeric - max 16 chars) (required
-      for --comand update)
+      for --command update)
 -c|--command (create|update|delete|info|env_add|env_del)
 -s|--ssh_key <ssh key>
     User\'s SSH key
@@ -75,7 +75,7 @@ if login.nil? or args["--help"]
   usage
 end
 
-require "/var/www/openshift/broker/config/environment"
+require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
@@ -170,9 +170,17 @@ when "create"
   end
   
   domain = Domain.new(namespace: namespace, owner: user)
-  unless domain.save
-    puts "An error occurred during domain creation. Errors: #{domain.errors.messages}"
-    exit 3
+  begin
+    unless domain.save
+      puts "An error occurred during domain creation. Errors: #{domain.errors.messages}"
+      exit 3
+    end
+  rescue OpenShift::UserException => e
+    puts "#{e.message}"
+    exit e.code
+  rescue Exception => e
+    puts "#{e.message}"
+    exit 1
   end
   reply.resultIO << "Successfully created domain.\n"
 
@@ -204,7 +212,10 @@ when "update"
       if allowed_gear_sizes
         d.allowed_gear_sizes = allowed_gear_sizes.split(',').map(&:strip)
       end
-      d.save_with_duplicate_check!
+      unless d.save
+        puts "An error occurred during domain update. Errors: #{d.errors.messages}"
+        exit 2
+      end
       reply.resultIO << "Successfully updated domain.\n"
     rescue OpenShift::UserException => e
       puts "#{e.message}"

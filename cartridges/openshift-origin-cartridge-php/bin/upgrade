@@ -4,10 +4,31 @@ php_version=$1
 curr=$2
 next=$3
 
-if [[ $curr =~ 0.0.[1-3] ]]; then
-  pear -c "$OPENSHIFT_HOMEDIR"/.pearrc config-get bin_dir > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_PATH_ELEMENT"
+if [[ $curr =~ ^0.0.[1-3]$ ]]; then
+    pear -c "$OPENSHIFT_HOMEDIR"/.pearrc config-get bin_dir > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_PATH_ELEMENT"
 fi
 
-if [[ $curr =~ 0.0.4 ]]; then
-  mkdir -p $OPENSHIFT_HOMEDIR/.drush
+if [[ $curr == 0.0.4 ]]; then
+    mkdir -p $OPENSHIFT_HOMEDIR/.drush
+fi
+
+# Needed for version 0.0.1 -> 0.1.8.  This can be removed after the upgrade
+# has been deployed.
+if [ -e $OPENSHIFT_HOMEDIR/php/metadata/jenkins_shell_command ]; then
+    rm -f $OPENSHIFT_HOMEDIR/php/metadata/jenkins_shell_command
+fi
+
+if [[ $next == 0.0.12 ]]; then
+    chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
+    chcon -u unconfined_u $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
+fi
+
+if [ -f ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR ] && [ ! -L ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR ]
+then
+    rm ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR
+    ln -s ~/.env/OPENSHIFT_LOG_DIR ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR
+fi
+
+if [[ $curr = 0.0.12 ]]; then
+    erb ${OPENSHIFT_PHP_DIR}versions/shared/configuration/etc/php.ini.erb > ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
 fi

@@ -1,6 +1,7 @@
 module OpenShift
   class ApplicationContainerProxy
     @proxy_provider = OpenShift::ApplicationContainerProxy
+    @node_selector = nil
 
     def self.valid_gear_sizes
       @proxy_provider.valid_gear_sizes_impl
@@ -14,18 +15,66 @@ module OpenShift
       @proxy_provider = provider_class
     end
 
+    def self.node_selector_plugin=(node_selector_plugin_class)
+      @node_selector = node_selector_plugin_class
+    end
+
     def self.instance(id)
       @proxy_provider.new(id)
     end
 
-    def self.find_available(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil)
-      @proxy_provider.find_available_impl(node_profile, district_uuid, non_ha_server_identities)
+    ##
+    # Finds a server that matches the required criteria.
+    #
+    # @param opts [Hash] Flexible array of optional parameters
+    #   node_profile [String] Gear size to filter
+    #   disrict_uuid [String] Unique identifier for district
+    #   least_preferred_servers [Array<String>] List of least preferred server identities
+    #   restricted_servers [Array<String>] List of restricted server identities
+    #   gear [Gear] Gear object
+    def self.find_available(opts=nil)
+      opts ||= {}
+      server_infos = @proxy_provider.find_all_available_impl(opts)
+      server_id, district = select_best_fit_node(server_infos, opts[:gear])
+      
+      raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_id.nil?
+      @proxy_provider.new(server_id, district)
     end
 
-    def self.find_one(node_profile=nil)
-      @proxy_provider.find_one_impl(node_profile)
+    def self.find_one(node_profile=nil, platform='linux')
+      server_id = @proxy_provider.find_one_impl(node_profile, platform)
+      raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_id.blank?
+      @proxy_provider.new(server_id)
     end
 
+    def self.select_best_fit_node(server_infos, gear)
+      server_id = nil
+      district = nil
+      if @node_selector.nil?
+        server_info = @proxy_provider.select_best_fit_node_impl(server_infos)
+        server_id = server_info.name
+        district = District.find_by(:_id => server_info.district_id) if server_info.district_id
+      else
+        if gear
+          app_props = ApplicationProperties.new(gear.application)
+          user_props = UserProperties.new(gear.application.domain.owner)
+          current_gears = gear.application.gears.map {|g| GearProperties.new(g) unless g.server_identity.nil?}
+          current_gears.delete_if {|g| g.nil?}
+          comp_list = gear.component_instances.map {|ci| ComponentProperties.new(ci)}
+        end
+
+        # sending the request time to the plugin
+        # since the request is processed inline currently, sending Time.now for now
+        # later, if asynchronous request processing is performed, we will store the request time and pass it along 
+        request_time = Time.now
+        node = @node_selector.select_best_fit_node_impl(server_infos, app_props, current_gears, comp_list, user_props, request_time)
+        server_id = node.name
+        district = District.find_by(:_id => node.district_id) if node.district_id
+      end
+
+      return server_id, district
+    end
+    
     def self.get_blacklisted
       @proxy_provider.get_blacklisted_in_impl
     end
@@ -35,11 +84,7 @@ module OpenShift
     end
 
     def self.blacklisted?(name)
-      @proxy_provider.blacklisted_in_impl?(name)
-    end
-
-    def self.blacklisted_in_impl?(name)
-      false
+      self.get_blacklisted.include?(name)
     end
 
     def self.get_all_gears_endpoints(opts = {})

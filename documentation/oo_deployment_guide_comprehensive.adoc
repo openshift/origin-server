@@ -1,6 +1,6 @@
 = OpenShift Origin Comprehensive Deployment Guide
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
-v2.0, July 2013
+LATEST DOC UPDATES
 :data-uri:
 :toc2:
 :icons:
@@ -114,9 +114,11 @@ enabled=1
 EOF
 ----
 
-For RHEL systems you will need to include the http://fedoraproject.org/wiki/EPEL[EPEL repository] to install puppet. To do so install the latest http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[epel-release package].
+For RHEL systems you will need to include the http://fedoraproject.org/wiki/EPEL[EPEL] and "Optional" repositories install puppet.
 
-.RHEL
+==== EPEL Repository
+Install the latest http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[epel-release package].
+
 ----
 yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
 ----
@@ -129,12 +131,19 @@ Update the EPEL repository definition to exclude mcollective and nodejs packages
 name=Extra Packages for Enterprise Linux 6 - $basearch
 #baseurl=http://download.fedoraproject.org/pub/epel/6/$basearch
 mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch
-exclude=*passenger* nodejs*
+exclude=*passenger* nodejs* <1>
 failovermethod=priority
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
 ----
+<1> Manually add this line
+
+==== "Optional" Repository
+The way you enable the "Optional" repo will depend on your source.
+
+* RHN Classic: enable the `rhel-x86_64-server-optional-6` channel.
+* Via yum config manager: `yum-config-manager --enable rhel-6-server-optional-rpms`
 
 === Updates and NTP
 The hosts should be running the latest Fedora packages, and should be configured to use NTP for clock synchronization.
@@ -189,6 +198,16 @@ systemctl enable ntpd.service
 systemctl start  ntpd.service
 ----
 
+==== Firewall setup
+
+OpenShift Origin does not work with firewalld on Fedora 19. The following steps will uninstall firealld and install lokkit to manage firewall rules.
+
+.Fedora
+----
+yum erase -y firewalld
+yum install -y lokkit
+----
+
 ==== Setting up the Ruby Environment
 
 If you are running on a RHEL system, you will need to install and setup https://access.redhat.com/site/documentation/en-US/Red_Hat_Developer_Toolset/1/html-single/Software_Collections_Guide/index.html[SCL]
@@ -196,7 +215,7 @@ Ruby193. This will provide you with a Ruby 1.9.3 environment which we will use f
 
 NOTE: Fedora installations should skip this section.
 
-.RHEL
+.RHEL6
 ----
 yum install -y ruby193
 
@@ -441,6 +460,21 @@ chown -v root:named /etc/named.conf
 restorecon /etc/named.conf
 ----
 
+==== Start the _named_ service
+Now you are ready to start up your new DNS server and add some updates.
+
+.RHEL6
+----
+service named start
+----
+
+.Fedora
+----
+systemctl start named.service
+----
+
+You should see a confirmation message that the service was started correctly. If you do not see an OK message, run through the above steps again and ensure that the output of each command matches the contents of this document. If you are still having trouble after trying the steps again, refer to your help options.
+
 ==== Configure host name resolution to use new the _BIND_ server
 Now you need to update the resolv.conf file to use the local _named_ service that you just installed and configured. Open up your _/etc/resolv.conf_ file and add the following entry *as the first nameserver entry in the file*:
 
@@ -458,29 +492,13 @@ chkconfig named on
 
 .Fedora
 ----
-firewall-cmd --add-service=dns
-firewall-cmd --permanent --add-service=dns
+lokkit --service=dns
 systemctl enable named.service
 ----
 
 NOTE: If you get unknown locale error when running _lokkit_, consult the troubleshooting section at the end of this manual.
 
-==== Start the _named_ service
-Now you are ready to start up your new DNS server and add some updates.
-
-.RHEL6
-----
-service named start
-----
-
-.Fedora
-----
-systemctl start named.service
-----
-
-You should see a confirmation message that the service was started correctly. If you do not see an OK message, run through the above steps again and ensure that the output of each command matches the contents of this document. If you are still having trouble after trying the steps again, refer to your help options.
-
-=== Add the Broker Node to DNS
+=== Add the Broker Host to DNS
 If you configured and started a BIND server per this document, or you are working against a BIND server that was already in place, you now need to add a record for your broker node (or host) to BIND's database. To accomplish this task, you will use the `nsupdate` command, which opens an interactive shell. Replace "broker.example.com" with your preferred hostname:
 
 ----
@@ -549,14 +567,14 @@ DNS1=10.4.59.x
 ----
 
 ==== Set the host name for your server
-You need to set the hostname of your broker host.  We need to change this to 
-reflect the new hostname that we are going to apply to this server. For this 
+You need to set the hostname of your broker host.  We need to change this to
+reflect the new hostname that we are going to apply to this server. For this
 chapter, we will be using broker.example.com.
 
 .RHEL6
 ====
-In order to accomplish this task, edit the _/etc/sysconfig/network_ file 
-and locate the section labeled _HOSTNAME_. The line that you want to 
+In order to accomplish this task, edit the _/etc/sysconfig/network_ file
+and locate the section labeled _HOSTNAME_. The line that you want to
 replace should look like this:
 
 ----
@@ -599,7 +617,6 @@ hostname broker.example.com
 * chkconfig
 * service
 * lokkit
-* firewall-cmd
 
 OpenShift Origin makes heavy use of MongoDB for storing internal information about users, gears, and other necessary items. If you are not familiar with MongoDB, you can read up on it at the official
 MongoDB site (http://www.mongodb.org). For the purpose of OpenShift Origin, you need to know that MongoDB is
@@ -627,18 +644,20 @@ boost-program-options  x86_64  2.0.2-2.el6op      rhel-server-ose-infra-6-rpms  
 .Fedora
 ----
 Package Name             Arch           Package Version           Repo          Size
-mongodb-server           x86_64         2.2.4-2.fc19              fedora        3.3 M
-boost-filesystem         x86_64         1.53.0-7.fc19             updates        64 k
-boost-program-options    x86_64         1.53.0-7.fc19             updates       151 k
-boost-system             x86_64         1.53.0-7.fc19             updates        35 k
-boost-thread             x86_64         1.53.0-7.fc19             updates        53 k
-gperftools-libs          x86_64         2.0-11.fc19               fedora        270 k
-libicu                   x86_64         50.1.2-5.fc19             fedora        6.8 M
-libmongodb               x86_64         2.2.4-2.fc19              fedora        441 k
-libunwind                x86_64         1.1-2.fc19                fedora         61 k
-mongodb                  x86_64         2.2.4-2.fc19              fedora         23 M
-snappy                   x86_64         1.1.0-1.fc19              fedora         40 k
-v8                       x86_64         1:3.14.5.10-1.fc19        fedora        3.0 M
+Installing:
+ libmongodb             x86_64          2.4.6-1.fc19              updates       455 k
+ mongodb                x86_64          2.4.6-1.fc19              updates        30 M
+ mongodb-server         x86_64          2.4.6-1.fc19              updates       4.4 M
+ boost-filesystem       x86_64          1.53.0-14.fc19            updates        67 k
+ boost-iostreams        x86_64          1.53.0-14.fc19            updates        59 k
+ boost-program-options  x86_64          1.53.0-14.fc19            updates       154 k
+ boost-system           x86_64          1.53.0-14.fc19            updates        38 k
+ boost-thread           x86_64          1.53.0-14.fc19            updates        55 k
+ gperftools-libs        x86_64          2.1-1.fc19                updates       267 k
+ libicu                 x86_64          50.1.2-9.fc19             updates       6.8 M
+ libunwind              x86_64          1.1-2.fc19                fedora         61 k
+ snappy                 x86_64          1.1.0-1.fc19              fedora         40 k
+ v8                     x86_64          1:3.14.5.10-2.fc19        updates       3.0 M
 ----
 
 === Configure _mongod_
@@ -700,15 +719,8 @@ bind_ip=127.0.0.1,10.4.59.x
 
 Enable MongoDB access on the firewall.
 
-.RHEL6
 ----
 lokkit --port=27017:tcp
-----
-
-.Fedora
-----
-firewall-cmd --add-port=27017/tcp
-firewall-cmd --permanent --add-port=27017/tcp
 ----
 
 === Set _mongod_ to Start on Boot
@@ -756,7 +768,7 @@ In order to start the mongo shell, enter the following command:
 mongo admin
 ----
 
-You should see a confirmation message that you are using MongoDB shell version: x.x.x and that you are connecting to the admin database. 
+You should see a confirmation message that you are using MongoDB shell version: x.x.x and that you are connecting to the admin database.
 Authenticate against the database with the user you created above.
 
 ----
@@ -772,10 +784,9 @@ show dbs
 You will then be presented with a list of valid databases that are currently available to the mongod service.
 
 ----
-admin	0.203125GB
-local	(empty)
-openshift_broker_dev	0.203125GB
-test	(empty)
+admin   0.0625GB
+local   0.03125GB
+openshift_broker_dev    0.0625GB
 ----
 
 To exit the Mongo shell, you can simply type exit:
@@ -798,7 +809,6 @@ install and configure ActiveMQ  on your broker node.
 * yum
 * wget
 * lokkit
-* firewall-cmd
 * chkconfig
 * service
 
@@ -874,15 +884,8 @@ admin: [password], admin
 === Firewall Rules / Start on Boot
 The broker host firewall rules must be adjusted to allow MCollective to communicate on port 61613:
 
-.RHEL6
 ----
 lokkit --port=61613:tcp
-----
-
-.Fedora
-----
-firewall-cmd --add-port=61613/tcp
-firewall-cmd --permanent --add-port=61613/tcp
 ----
 
 Finally, you need to enable the ActiveMQ service to start on boot as well as start the service for the first time.
@@ -922,19 +925,12 @@ Under the provided configuration instructions, the ActiveMQ console is only avai
 * Add a rule to your firewall configuration
 ====
 
-For example, the following command adds a rule to your firewall to allow connections to the ActiveMQ console. 
+For example, the following command adds a rule to your firewall to allow connections to the ActiveMQ console.
 
 *Execute the following on the ActiveMQ host.*
 
-.RHEL6
 ----
 lokkit --port=8161:tcp
-----
-
-.Fedora
-----
-firewall-cmd --add-port=8161/tcp
-firewall-cmd --permanent --add-port=8161/tcp
 ----
 
 Alternatively, the following command creates a SSH tunnel, so that if you connect to port 8161 on your local host, the connection will be forwarded to port 8161 on the remote host, where the the ActiveMQ console is listening.
@@ -979,7 +975,7 @@ topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /usr/libexec/mcollective
-#logfile = /var/log/mcollective-client.log
+logfile = /var/log/openshift/broker/mcollective-client.log
 loglevel = debug
 
 # Plugins
@@ -997,12 +993,12 @@ EOF
 
 .RHEL
 ----
-cat <<EOF > /etc/mcollective/client.cfg
+cat <<EOF > /opt/rh/ruby193/root/etc/mcollective/client.cfg
 topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
-libdir =/opt/rh/ruby193/root/usr/libexec/mcollective
-#logfile = /var/log/mcollective-client.log
+libdir = /opt/rh/ruby193/root/usr/libexec/mcollective
+logfile = /var/log/openshift/broker/ruby193-mcollective-client.log
 loglevel = debug
 
 # Plugins
@@ -1017,7 +1013,6 @@ plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette
 EOF
 ----
-
 
 Update the _plugin.activemq.pool.1.password_ password to match what you set up in the active configuration.
 
@@ -1065,7 +1060,7 @@ yum install -y openshift-origin-broker openshift-origin-broker-util \
               rubygem-openshift-origin-dns-avahi \
               rubygem-openshift-origin-dns-nsupdate \
               rubygem-openshift-origin-dns-route53 \
-              rubygem-passenger mod_passenger 
+              rubygem-passenger mod_passenger
 ----
 
 NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
@@ -1087,21 +1082,10 @@ systemctl enable sshd.service
 
 Additionally, modify the firewall rules to ensure that the traffic for these services is accepted:
 
-.RHEL6
 ----
 lokkit --service=ssh
 lokkit --service=https
 lokkit --service=http
-----
-
-.Fedora
-----
-firewall-cmd --add-service=ssh
-firewall-cmd --add-service=http
-firewall-cmd --add-service=https
-firewall-cmd --permanent --add-service=ssh
-firewall-cmd --permanent --add-service=http
-firewall-cmd --permanent --add-service=https
 ----
 
 === Generate access keys
@@ -1146,6 +1130,7 @@ SELinux has several variables that we want to ensure are set correctly. These va
 | httpd_verify_dns          | Allow Apache to query NS records
 | httpd_enable_homedirs     | Allows Apache to use its access home directories
 | httpd_execmem             | allows httpd to execute programs that require memory addresses that are both executable and writeable
+| httpd_read_user_content   | Allows httpd to read user generated content
 |===
 
 In order to set all of these variables correctly, enter the following:
@@ -1153,23 +1138,32 @@ In order to set all of these variables correctly, enter the following:
 ----
 setsebool -P  httpd_unified=on httpd_can_network_connect=on httpd_can_network_relay=on \
               httpd_run_stickshift=on named_write_master_zones=on allow_ypbind=on \
-              httpd_verify_dns=on httpd_enable_homedirs=on httpd_execmem=on
+              httpd_verify_dns=on httpd_enable_homedirs=on httpd_execmem=on \
+              httpd_read_user_content=on
 ----
 
 You will also need to set several files and directories with the proper SELinux contexts. Issue the following commands:
 
-.RHEL
 ----
+(
+echo fcontext -a -t httpd_var_run_t '/var/www/openshift/broker/httpd/run(/.*)?'
+echo fcontext -a -t httpd_tmp_t '/var/www/openshift/broker/tmp(/.*)?'
+echo fcontext -a -t httpd_log_t '/var/log/openshift/broker(/.*)?'
+) | semanage -i -
+
+chcon -R -t httpd_log_t /var/log/openshift/broker
+chcon -R -t httpd_tmp_t /var/www/openshift/broker/httpd/run
+chcon -R -t httpd_var_run_t /var/www/openshift/broker/httpd/run
+
 fixfiles -R ruby193-rubygem-passenger restore
 fixfiles -R ruby193-mod_passenger restore
-restorecon -rv /var/run
-----
-
-.Fedora
-----
 fixfiles -R rubygem-passenger restore
 fixfiles -R mod_passenger restore
+
 restorecon -rv /var/run
+restorecon -rv /opt
+restorecon -rv /var/www/openshift/broker/tmp
+restorecon -v '/var/log/openshift/broker/user_action.log'
 ----
 
 The _fixfiles_ command updates SELinux's database that associates pathnames with SELinux contexts. The _restorecon_ command uses this database to update the SELinux contexts of the specified files on the file system itself so that those contexts will be in effect when the kernel enforces policy. See the manual pages of the _fixfiles_ and _restorecon_ commands for further details.
@@ -1297,6 +1291,16 @@ cp openshift-origin-auth-remote-user.conf.example openshift-origin-auth-remote-u
 cp openshift-origin-msg-broker-mcollective.conf.example openshift-origin-msg-broker-mcollective.conf
 ----
 
+.Fedora 19
+----
+sed -i 's/MCOLLECTIVE_CONFIG.*/MCOLLECTIVE_CONFIG=\/etc\/mcollective\/client.cfg/g' /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
+----
+
+.RHEL6
+----
+sed -i 's/MCOLLECTIVE_CONFIG.*/MCOLLECTIVE_CONFIG=\/opt\/rh\/ruby193\/root\/etc\/mcollective\/client.cfg/g' /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
+----
+
 The broker application will check the plugins.d directory for files ending in .conf. The presence of .conf file enables the corresponding plug-in. Thus, for example, copying the openshift-origin-auth-remote-user.conf.example file to openshift-origin-auth-remote-user.conf enables the auth-remote-user plug-in.
 
 === Configure the DNS plugin
@@ -1370,7 +1374,7 @@ OpenShift Origin supports various different authentication systems for authorizi
 Using Basic Auth, you need to copy the sample configuration file to the actual configuration file:
 
 ----
-cp /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user-basic.conf.sample /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf 
+cp /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user-basic.conf.sample /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf
 ----
 
 This configuration file specifies that the _AuthUserFile_ is located at _/etc/openshift/htpasswd_. At this point, that file doesn't exist, so you will need to create it and add a user named _demo_.
@@ -1394,20 +1398,14 @@ demo:$apr1$Q7yO3MF7$rmSZ7SI.vITfEiLtkKSMZ/
 ----
 
 === Configure the Administrative Console
-_RubyGem: openshift-origin-admin-console_
 
 The optional OpenShift Origin administrative console (a.k.a. "admin console")
 enables OpenShift administrators an at-a-glance view of an OpenShift
 deployment, in order to search and navigate OpenShift entities and make
 reasonable inferences about adding new capacity.
 
-==== Running the Admin Console
-The administrative console runs as a plugin to the OpenShift broker application.
-Installing the rubygem-openshift-origin-admin-console RPM should install both
-the gem and its configuration file:
-
 ----
-yum install rubygem-openshift-origin-admin-console
+yum install -y rubygem-openshift-origin-admin-console
 ----
 
 The broker will load the plugin if the gem is installed and its configuration
@@ -1424,21 +1422,6 @@ initial install, you may have some extra steps. As above, install the plugin wit
 ----
 yum install rubygem-openshift-origin-admin-console
 ----
-
-.RHEL6
-After installation, restart the openshift-broker service to load the plugin, or to reload a changed admin console config file.
-
-.Fedora
-You will need to regenerate the broker's Gemfile.lock manually as follows:
-
-----
-cd /var/www/openshift/broker
-rm Gemfile.lock
-bundle --local
-----
-
-Then restart the openshift-broker service. You will also need to restart
-the broker in order to load changes in the admin console config file.
 
 ==== Browsing to the Admin Console
 Even when the admin console is included in the broker app, standard broker host
@@ -1462,38 +1445,6 @@ port 8080 (the first number) to the remote server's local port 8080, which is
 where the broker application is listening behind the host proxy.
 
 Now just browse to `http://localhost:8080/admin-console` to view.
-
-===== Modifying proxy configuration
-To enable external access via the broker host, you will need to configure the
-broker host httpd proxy. The relevant configuration file for the broker is
-`/etc/httpd/conf.d/000002_openshift_origin_broker_proxy.conf` inside the
-`<VirtualHost *:443>` section. Add an extra ProxyPass for the admin console
-and its static assets (images, etc.) after the existing one for the broker:
-
-----
-ProxyPass /broker http://127.0.0.1:8080/broker
-ProxyPass /admin-console http://127.0.0.1:8080/admin-console
-ProxyPass /assets http://127.0.0.1:8080/assets
-ProxyPassReverse / http://127.0.0.1:8080/
-----
-
-You can also add any httpd access controls you deem necessary to prevent
-unauthorized viewers from reaching the admin console.
-Then restart the httpd service to load the new configuration.
-
-*If you have an OpenShift node installed on your broker host* (not advised
-for production usage but often done in development), some extra steps will be
-necessary.
-
-First, add an exception for the `/admin-console` and `/assets` paths in `/var/lib/openshift/.httpd.d/nodes.txt`.
-
-Then, compile this into the machine-readable route database with:
-
-----
-httxt2dbm -f DB -i /var/lib/openshift/.httpd.d/nodes.txt -o /var/lib/openshift/.httpd.d/nodes.db
-----
-
-Note: This compiling process only adds, never removes routing entries from the `nodes.db` file. If you need to remove entries, recreate the file with a different name, make sure its permissions and SELinux context match the original, and `mv` it over the original.
 
 === Run the Ruby Bundler
 The broker Rails application depends on many gem files in order to operate correctly. You need to ensure that the Ruby bundler can find the appropriate gem files.
@@ -1738,6 +1689,24 @@ yum install -y openshift-origin-console
 
 NOTE: Depending on your connection and speed of your broker host, this installation may take several minutes.
 
+=== Understand and Change the Console Configuration
+
+==== Session Secret
+
+Generate some random bits which we will use for the broker session secret.
+
+----
+openssl rand -base64 64
+----
+
+Copy this value and set the SESSION_SECRET variable in the _/etc/openshift/console.conf_ file.
+
+----
+SESSION_SECRET="rFeKpEGI0TlTECvLgBPDjHOS9ED6KpztUubaZFvrOm4tJR8Gv0poVWj77i0hqDj2j1ttWTLiCIPRtuAfxV1ILg=="
+----
+
+Note: If you are setting up a multi-console infrastructure, the session secret must be the same on all console servers.
+
 === Configure Authentication for the Console
 If you are building the reference configuration described in this document, then you have configured the broker application for Basic Authentication. What you actually configured was authentication for the Broker REST API. The console application uses a separate authentication scheme for authenticating users to the web console. This will enable you to restrict which users you want to have access to the REST API and keep that authentication separate from the web based user console.
 
@@ -1749,12 +1718,55 @@ cd /var/www/openshift/console/httpd/conf.d
 cp openshift-origin-auth-remote-user-basic.conf.sample openshift-origin-auth-remote-user-basic.conf
 ----
 
+
+==== SSL Configuration
+The broker proxy configuration for apache adds a VirtualHost configuration to listen on port 443. 
+
+This may conflict with the default SSL VirtualHost configuration. 
+Check _/etc/httpd/conf.d/ssl.conf_ and completely remove the configuration if you find one there.
+
+
+The broker proxy configuration itself can be found in _/etc/httpd/conf.d/*openshiftorigin_broker_proxy.conf_ :
+
+----
+<VirtualHost *:443>
+  # ServerName we will inherit from other config;
+  # ServerAlias is to make sure "localhost" traffic goes here regardless.
+  ServerAlias localhost
+  ServerAdmin root@localhost
+  DocumentRoot /var/www/html
+  RewriteEngine              On
+  RewriteRule     ^/$    https://%{HTTP_HOST}/console [R,L]
+  SSLEngine on
+  SSLProxyEngine on
+  SSLCertificateFile /etc/pki/tls/certs/localhost.crt
+  SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
+  RequestHeader set X_FORWARDED_PROTO 'https'
+  RequestHeader set Front-End-Https "On"
+  ProxyTimeout 300
+  ProxyPass /console http://127.0.0.1:8118/console
+  ProxyPassReverse /console http://127.0.0.1:8118/console
+
+  ProxyPass /broker http://127.0.0.1:8080/broker
+  ProxyPassReverse /broker http://127.0.0.1:8080/broker
+
+  ProxyPass /assets http://127.0.0.1:8118/console/assets <1>
+  ProxyPassReverse /assets http://127.0.0.1:8118/console/assets <1>
+</VirtualHost>
+----
+<1> In order for icons to show up correctly on the web console, you should ensure that the VirtualHost definition in that file contains the _ProxyPass_ and _ProxyPassReverse_ lines.
+
+
+
+
 === Verify the Ruby Bundler
 The console Rails application depends on several gem files in order to operate correctly. You need to ensure that the Ruby bundler can find the appropriate gem files.
 
 ----
 cd /var/www/openshift/console
 bundle --local
+rake assets:precompile
+chown -R apache:apache Gemfile.lock tmp
 ----
 
 You should see a lot of information scroll by letting you know what gem files the system is actually using. The last line of output should be:
@@ -1762,6 +1774,57 @@ You should see a lot of information scroll by letting you know what gem files th
 ----
 Your bundle is complete! Use `bundle show [gemname]` to see where a bundled gem is installed.
 ----
+
+=== Configure SELinux
+SELinux has several variables that we want to ensure are set correctly. These variables include the following:
+
+.SELinux Boolean Values
+[options="header"]
+|===
+| Variable Name             | Description
+| httpd_unified             | Allow the broker to write files in the "http" file context
+| httpd_can_network_connect | Allow the broker application to access the network
+| httpd_can_network_relay   | Allow the SSL termination Apache instance to access the backend Broker application
+| httpd_run_stickshift      | Enable passenger-related permissions
+| named_write_master_zones  | Allow the broker application to configure DNS
+| allow_ypbind              | Allow the broker application to use ypbind to communicate directly with the name server
+| httpd_verify_dns          | Allow Apache to query NS records
+| httpd_enable_homedirs     | Allows Apache to use its access home directories
+| httpd_execmem             | allows httpd to execute programs that require memory addresses that are both executable and writeable
+| httpd_read_user_content   | Allows httpd to read user generated content
+|===
+
+In order to set all of these variables correctly, enter the following:
+
+----
+setsebool -P  httpd_unified=on httpd_can_network_connect=on httpd_can_network_relay=on \
+              httpd_run_stickshift=on named_write_master_zones=on allow_ypbind=on \
+              httpd_verify_dns=on httpd_enable_homedirs=on httpd_execmem=on \
+              httpd_read_user_content=on
+----
+
+You will also need to set several files and directories with the proper SELinux contexts. Issue the following commands:
+
+----
+(
+echo fcontext -a -t httpd_log_t '/var/log/openshift/console(/.*)?'
+echo fcontext -a -t httpd_log_t '/var/log/openshift/console/httpd(/.*)?'
+echo fcontext -a -t httpd_var_run_t '/var/www/openshift/console/httpd/run(/.*)?'
+) | semanage -i -
+
+fixfiles -R ruby193-rubygem-passenger restore
+fixfiles -R ruby193-mod_passenger restore
+fixfiles -R rubygem-passenger restore
+fixfiles -R mod_passenger restore
+
+restorecon -rv /var/run
+restorecon -rv /opt
+restorecon -R /var/log/openshift/console
+restorecon -R /var/www/openshift/console
+----
+
+The _fixfiles_ command updates SELinux's database that associates pathnames with SELinux contexts. The _restorecon_ command uses this database to update the SELinux contexts of the specified files on the file system itself so that those contexts will be in effect when the kernel enforces policy. See the manual pages of the _fixfiles_ and _restorecon_ commands for further details.
+
 
 === Set Console to Start on Boot
 Start the service and ensure it starts on boot:
@@ -1878,7 +1941,7 @@ ssh -i /root/.ssh/rsync_id_rsa root@broker.example.com
 ----
 
 === Configure DNS Resolution on the Node
-Now you need to configure the node host to use the BIND server that was installed and configured on the broker application host. This is a fairly straightforward process of adding the IP address of the DNS server to the _/etc/resolv.conf_ on the node host. 
+Now you need to configure the node host to use the BIND server that was installed and configured on the broker application host. This is a fairly straightforward process of adding the IP address of the DNS server to the _/etc/resolv.conf_ on the node host.
 
 NOTE: You can skip this section if you are build a all-in-one environment.
 
@@ -1912,7 +1975,7 @@ PEERDNS="no"
 DNS1=10.4.59.x
 ----
 
-Now set the hostname for node host to correctly reflect node.example.com. 
+Now set the hostname for node host to correctly reflect node.example.com.
 
 .RHEL6
 ====
@@ -1977,10 +2040,10 @@ topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /usr/libexec/mcollective
-logfile = /var/log/mcollective.log
+logfile = /var/log/openshift/node/mcollective.log
 loglevel = debug
 daemonize = 0
-direct_addressing = 1
+direct_addressing = 0
 registerinterval = 30
 
 # Plugins
@@ -2000,17 +2063,17 @@ plugin.yaml = /etc/mcollective/facts.yaml
 EOF
 ----
 
-.RHEL
+.RHEL6
 ----
-cat <<EOF >/etc/mcollective/server.cfg
+cat <<EOF > /opt/rh/ruby193/root/etc/mcollective/client.cfg
 topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /opt/rh/ruby193/root/usr/libexec/mcollective
-logfile = /var/log/mcollective.log
+logfile = /var/log/openshift/node/ruby193-mcollective.log
 loglevel = debug
 daemonize = 1
-direct_addressing = 1
+direct_addressing = 0
 registerinterval = 30
 
 # Plugins
@@ -2026,13 +2089,13 @@ plugin.activemq.pool.1.password = marionette
 
 # Facts
 factsource = yaml
-plugin.yaml = /etc/mcollective/facts.yaml
+plugin.yaml = /opt/rh/ruby193/root/etc/mcollective/facts.yaml
 EOF
 ----
 
 Update the _plugin.activemq.pool.1.password_ password to match what you set up in the active configuration.
 
-On Fedora 19, Update the systemd service file to manage only the mcollective process. This prevents gears spawned from the process from being shut down if you have to restart mcollective. 
+On Fedora 19, Update the systemd service file to manage only the mcollective process. This prevents gears spawned from the process from being shut down if you have to restart mcollective.
 Update the mcollective service file:
 
 .Fedora
@@ -2066,8 +2129,8 @@ Now ensure that MCollective is set to start on boot and also start the service f
 
 .RHEL6
 ----
-chkconfig mcollective on
-service mcollective start
+chkconfig ruby193-mcollective on
+service ruby193-mcollective start
 ----
 
 .Fedora
@@ -2078,6 +2141,12 @@ systemctl start mcollective.service
 
 At this point, MCollective on the node host should be able to communicate with the broker application host. You can verify this by running the _mco ping_ command on the broker.example.com host.
 
+.RHEL6
+----
+oo-mco ping
+----
+
+.Fedora
 ----
 mco ping
 ----
@@ -2121,6 +2190,125 @@ yum install -y rubygem-openshift-origin-node \
 ----
 
 NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
+
+==== Install front-end plugins
+
+Select the front-end plugins you would like your node host to run. These plugins provide various ways to route HTTP(S) and web-socket traffic to the gears running on the node.
+
+|===
+| apache-mod-rewrite | Provides HTTP and HTTPS mappings for gears and is based on mod_rewrite. Conflicts with apache-vhost plugin.
+| apache-vhost       | Provides HTTP and HTTPS mappings for gears and is based on apache vhosts. Conflicts with apache-mod-rewrite plugin.
+| nodejs-websocket   | Provides web-socket mappings for gears.
+|===
+
+===== Setup apache
+
+This step is only required if you are planning to install the apache-mod-required or apache-vhosts plugin.
+
+----
+yum install -y httpd
+----
+
+Set the server hostname
+
+.All-in-one case
+----
+echo "ServerName broker.example.com" > /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
+----
+
+.Multi host case
+----
+echo "ServerName node.example.com" > /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
+----
+
+Allow access to cartridge information on Fedora systems
+
+.Fedora-19 only
+----
+cat << EOF > /etc/httpd/conf.d/cartridge_files.conf
+<Directory /usr/libexec/openshift/cartridges/*/info/configuration >
+    Require all granted
+</Directory>
+EOF
+----
+
+===== apache-mod-rewrite Plugin
+
+----
+yum install -y rubygem-openshift-origin-frontend-apache-mod-rewrite
+----
+
+NOTE: This plugin conflicts with the apache-vhost plugin.
+
+If setting up an all-in-one machine, create broker and console routes in the node re-write map.
+
+.All-in-one case only
+----
+cat <<EOF > /tmp/nodes.broker_routes.txt
+__default__ REDIRECT:/console
+__default__/console TOHTTPS:127.0.0.1:8118/console
+__default__/broker TOHTTPS:127.0.0.1:8080/broker
+EOF
+
+mkdir -p /etc/httpd/conf.d/openshift
+cat /etc/httpd/conf.d/openshift/nodes.txt /tmp/nodes.broker_routes.txt > /etc/httpd/conf.d/openshift/nodes.txt.new
+mv -f /etc/httpd/conf.d/openshift/nodes.txt.new /etc/httpd/conf.d/openshift/nodes.txt
+httxt2dbm -f DB -i /etc/httpd/conf.d/openshift/nodes.txt -o /etc/httpd/conf.d/openshift/nodes.db.new
+chown root:apache /etc/httpd/conf.d/openshift/nodes.txt /etc/httpd/conf.d/openshift/nodes.db.new
+chmod 750 /etc/httpd/conf.d/openshift/nodes.txt /etc/httpd/conf.d/openshift/nodes.db.new
+mv -f /etc/httpd/conf.d/openshift/nodes.db.new /etc/httpd/conf.d/openshift/nodes.db
+----
+
+NOTE: Skip this section if you are setting up broker and node on separate machines.
+
+==== apache-vhost Plugin
+
+----
+yum install -y rubygem-openshift-origin-frontend-apache-vhost
+----
+
+NOTE: This plugin conflicts with the apache-mod-rewrite plugin.
+
+==== nodejs-websocket Plugin
+
+----
+yum install -y openshift-origin-node-proxy rubygem-openshift-origin-frontend-nodejs-websocket facter
+----
+
+Start the node-proxy service
+
+.Fedora
+
+----
+systemctl enable openshift-node-web-proxy.service
+systemctl start openshift-node-web-proxy.service
+----
+
+.RHEL6
+----
+chkconfig openshift-node-web-proxy on
+service openshift-node-web-proxy start
+----
+
+==== Setup firewall rules for gear port proxy
+
+.Fedora
+----
+iptables -N rhc-app-comm
+iptables -I INPUT 4 -m tcp -p tcp --dport 35531:65535 -m state --state NEW -j ACCEPT
+iptables -I INPUT 5 -j rhc-app-comm
+iptables -I OUTPUT 1 -j rhc-app-comm
+/usr/libexec/iptables/iptables.init save
+----
+
+.RHEL6
+----
+iptables -N rhc-app-comm
+iptables -I INPUT 4 -m tcp -p tcp --dport 35531:65535 -m state --state NEW -j ACCEPT
+iptables -I INPUT 5 -j rhc-app-comm
+iptables -I OUTPUT 1 -j rhc-app-comm
+/sbin/service iptables save
+----
 
 ==== Select and Install Built-In Cartridges to be Supported
 Cartridges provide the functionality that a consumer of the PaaS can use to create specific application types, databases, or other functionality. OpenShift Origin provides a number of built-in cartridges as well as an extensive cartridge API that will allow you to create your own custom cartridge types for your specific deployment needs.
@@ -2168,9 +2356,11 @@ If you are planning to install the openshift-origin-cartridge-jenkins* packages.
 curl -o /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
 rpm --import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
 yum install -y jenkins-1.510
+chkconfig jenkins off
 ----
 
 NOTE: The OpenShift Jenkins plugin currently requires jenkins-1.510. You may need to downgrade your jenkins installation for it to work. "yum downgrade -y jenkins-1.510"
+
 
 As an example, this additional command will install the cartridges needed for scalable PHP applications that can connect to MySQL:
 
@@ -2223,16 +2413,11 @@ chkconfig openshift-node-web-proxy on
 
 .Fedora
 ----
-firewall-cmd --add-service=ssh
-firewall-cmd --add-service=http
-firewall-cmd --add-service=https
-firewall-cmd --add-port=8000/tcp
-firewall-cmd --add-service=8443/tcp
-firewall-cmd --permanent --add-service=ssh
-firewall-cmd --permanent --add-service=http
-firewall-cmd --permanent --add-service=https
-firewall-cmd --permanent --add-port=8000/tcp
-firewall-cmd --permanent --add-port=8443/tcp
+lokkit --service=ssh
+lokkit --service=https
+lokkit --service=http
+lokkit --port=8000:tcp
+lokkit --port=8443:tcp
 systemctl enable network.service
 systemctl enable sshd.service
 systemctl enable oddjobd.service
@@ -2365,10 +2550,6 @@ systemctl start cgred.service
 
 In order for cgroups to work correctly, you need to ensure that services are started in the correct order.
 
-* service cgconfig start
-* service cgcred start
-* service openshift-cgroups start
-
 === Configure Disk Quotas
 When a consumer of OpenShift Origin creates an application gear, you will need to be able to control and set the amount of disk space that the gear can consume. This configuration is located in the _/etc/openshift/resource_limits.conf_ file. The two settings of interest are the qouta_files and the quota_blocks. The usrquota setting specifies the total number of files that a gear / user is allowed to own. The quota_blocks is the actual amount of disk storage that the gear is allowed to consume — where 1 block is equal to 1024 bytes.
 
@@ -2433,8 +2614,7 @@ The OpenShift Origin node requires several SELinux boolean values to be set in o
 | httpd_execmem             | Allow httpd to execute programs that require memory addresses that are both executable and writeable
 | httpd_unified             | Allow the broker to write files in the "http" file context
 | httpd_can_network_connect | Allow the broker application to access the network
-| httpd_can_network_relay   | Allow the SSL termination Apache instance to access the backend Broker application 
-| httpd_run_stickshift      | Enable passenger-related permissions
+| httpd_can_network_relay   | Allow the SSL termination Apache instance to access the backend Broker application
 | httpd_read_user_content   | Allow the node to read application data
 | httpd_enable_homedirs     | Allow the node to read application data
 | allow_polyinstantiation   | Allow polyinstantiation for gear containment
@@ -2447,7 +2627,6 @@ setsebool -P httpd_unified=on httpd_can_network_connect=on httpd_can_network_rel
              httpd_read_user_content=on httpd_enable_homedirs=on httpd_run_stickshift=on \
              allow_polyinstantiation=on httpd_run_stickshift=on httpd_execmem=on
 restorecon -rv /var/run
-restorecon -rv /usr/sbin/mcollectived /var/log/mcollective.log /var/run/mcollectived.pid
 restorecon -rv /var/lib/openshift /etc/openshift/node.conf /etc/httpd/conf.d/openshift
 ----
 
@@ -2530,8 +2709,7 @@ service openshift-port-proxy start
 
 .Fedora
 ----
-firewall-cmd --add-port=35531-65535/tcp
-firewall-cmd --permanent --add-port=35531-65535/tcp
+lokkit --port=35531-65535:tcp
 systemctl enable openshift-port-proxy.service
 systemctl restart  openshift-port-proxy.service
 ----
@@ -2556,7 +2734,7 @@ Edit the _/etc/openshift/node.conf_ file and *specify the correct settings for y
 PUBLIC_HOSTNAME="node.example.com"            # The node host's public hostname
 PUBLIC_IP="10.4.59.y"                         # The node host's public IP address
 BROKER_HOST="broker.example.com"              # IP or DNS name of broker host for REST API
-EXTERNAL_ETH_DEV='enp0s5'					  # Update to match name of external network device
+EXTERNAL_ETH_DEV='enp0s5'                     # Update to match name of external network device
 ----
 
 .All-In-One Setup
@@ -2564,7 +2742,7 @@ EXTERNAL_ETH_DEV='enp0s5'					  # Update to match name of external network devic
 PUBLIC_HOSTNAME="broker.example.com"          # The node host's public hostname
 PUBLIC_IP="10.4.59.x"                         # The node host's public IP address
 BROKER_HOST="broker.example.com"              # IP or DNS name of broker host for REST API
-EXTERNAL_ETH_DEV='enp0s5'					  # Update to match name of external network device
+EXTERNAL_ETH_DEV='enp0s5'                     # Update to match name of external network device
 ----
 
 NOTE: Ensure that EXTERNAL_ETH_DEV and PUBLIC_IP have accurate values or node will be unable to create gears
@@ -2587,27 +2765,6 @@ Facter generates metadata files for MCollective and is normally run by cron. Run
 ----
 /etc/cron.minutely/openshift-facts
 ----
-
-=== Setup Routes for All-In-One setup
-
-Create broker and console routes in the node re-write map:
-
-----
-cat <<EOF > /tmp/nodes.broker_routes.txt
-__default__ REDIRECT:/console
-__default__/console TOHTTPS:127.0.0.1:8118/console               
-__default__/broker TOHTTPS:127.0.0.1:8080/broker
-EOF
-
-cat /etc/httpd/conf.d/openshift/nodes.txt /tmp/nodes.broker_routes.txt > /etc/httpd/conf.d/openshift/nodes.txt.new
-mv -f /etc/httpd/conf.d/openshift/nodes.txt.new /etc/httpd/conf.d/openshift/nodes.txt
-httxt2dbm -f DB -i /etc/httpd/conf.d/openshift/nodes.txt -o /etc/httpd/conf.d/openshift/nodes.db.new
-chown root:apache /etc/httpd/conf.d/openshift/nodes.txt /etc/httpd/conf.d/openshift/nodes.db.new
-chmod 750 /etc/httpd/conf.d/openshift/nodes.txt /etc/httpd/conf.d/openshift/nodes.db.new
-mv -f /etc/httpd/conf.d/openshift/nodes.db.new /etc/httpd/conf.d/openshift/nodes.db
-----
-
-NOTE: Skip this section if you are setting up broker and node on separate machines.
 
 === Reboot the Node Host
 In order to verify that all services were installed and configured correctly, restart the node to ensure that all

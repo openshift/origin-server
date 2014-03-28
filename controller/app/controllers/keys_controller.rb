@@ -69,7 +69,7 @@ class KeysController < BaseController
 
     result = @cloud_user.update_ssh_key(key)
     ssh_key = RestKey.new(key, get_url, nolinks)
-    render_success(:ok, "key", ssh_key, "Updates SSH key #{id} for user #{@cloud_user.login}", result, nil, 'IP' => request.remote_ip)
+    render_success(:ok, "key", ssh_key, "Updated SSH key #{id} for user #{@cloud_user.login}", result, nil, 'IP' => request.remote_ip)
   end
 
   #DELETE /user/key/[name]
@@ -82,6 +82,6 @@ class KeysController < BaseController
 
     result = @cloud_user.remove_ssh_key(id)
     status = requested_api_version <= 1.4 ? :no_content : :ok
-    render_success(status, nil, nil, "Deleted SSH key #{id}", result)
+    render_success(status, nil, nil, "Removed SSH key #{id}", result)
   end
 end

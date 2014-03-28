@@ -17,6 +17,7 @@
 require 'fileutils'
 require 'etc'
 require 'pathname'
+require 'fcntl'
 require 'openshift-origin-common/utils/etc_utils'
 
 module PathUtils
@@ -78,6 +79,27 @@ module PathUtils
 
   module_function :join
 
+  # PathUtils.flock(lock_file) { block } -> nil
+  #
+  # Create a file lock for the duration of the provided block
+  # @param lock_file [String] path including file to use for locking
+  # @param unlink_file [true, false] should lock file be removed when lock released?
+  def flock(lock_file, unlink_file = true)
+    File.open(lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
+      lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+      lock.flock(File::LOCK_EX)
+
+      begin
+        yield(lock)
+      ensure
+        FileUtils.rm_f(lock_file) if unlink_file
+        lock.flock(File::LOCK_UN) unless lock.closed?
+      end
+    end
+  end
+
+  module_function :flock
+
   def pu_get_uid(user)
     return nil unless user
 
@@ -94,3 +116,4 @@ module PathUtils
 
   private_module_function :pu_get_gid
 end
+

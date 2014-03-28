@@ -6,7 +6,7 @@
 .SH SYNOPSIS
 .nf
 .fam C
-\fBoo-auto-idler\fP [\fB-hvt\fP] \fIidle\fP [\fB--interval\fP] [\fB--list\fP] [\fB--verbose\fP]
+\fBoo-auto-idler\fP [\fB-hvt\fP] \fIidle\fP [\fB--interval\fP] [\fB--list\fP] [\fB--skip-last-access\fP] [\fB--verbose\fP]
 
 .fam T
 .fi
@@ -42,6 +42,10 @@ Hours since last access, after which gears will be considered stale. Default: 24
 .B
 \fB--list\fP
 Only list the stale gears that would be idled; do not \fIidle\fP them.
+.TP
+.B
+\fB--skip-last-access\fP
+ Skips the running of 'oo-last-access' script, which is run by default prior to the idling checks.
 .TP
 .B
 \fB--verbose\fP

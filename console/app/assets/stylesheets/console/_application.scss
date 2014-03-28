@@ -169,13 +169,23 @@ h1.applications .flow-block.right .gear-icon {
     p {
       margin-bottom: 0;
       text-align: right;
-      &.created {
+      &.description {
+        padding: 2px 0 5px;
         font-size: $tinyFontSize;
         text-align: left;
       }
       span {
         font-weight: 300;
         font-size: $smallFontSize;
+      }
+    }
+
+    .custom-cartridge-details {
+      margin-top: 7px;
+      margin-left: 4px;
+      span {
+        font-size: $tinyFontSize;
+        text-align: left;
       }
     }
     ul.inline > li {
@@ -311,7 +321,7 @@ h1.applications .flow-block.right .gear-icon {
 }
 
 @media (max-width: 640px) {
-  #new_application .controls {
+  #new_application .controls, #storage-gear-groups .controls {
     .add-on, .add-on {
       clear: left;
       display: block;
@@ -321,7 +331,7 @@ h1.applications .flow-block.right .gear-icon {
     .add-on.middle {display: none;}
     .input-prepend, .input-append,
     .input-prepend input, .input-append input,
-    .input-prepend input, .input-append input {
+    .input-prepend select, .input-append select {
       display: block;
       margin: 0 -1px;
       padding-left: 0;

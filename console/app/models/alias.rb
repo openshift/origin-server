@@ -50,8 +50,17 @@ class Alias < RestApi::Base
       self.ssl_certificate = @certificate_file
       if !@certificate_chain_file.nil?
         self.ssl_certificate.strip!
-        self.ssl_certificate << "\n" << @certificate_chain_file
+        self.ssl_certificate << "\n" << @certificate_chain_file.strip
       end
+    end
+    normalize_ssl_certificate
+  end
+
+  def normalize_ssl_certificate
+    if self.ssl_certificate.present?
+      ssl_certificate_universal_encoding = self.ssl_certificate.encode(self.ssl_certificate.encoding, :universal_newline => true)
+      ssl_certificate_crlf_newline = ssl_certificate_universal_encoding.encode(self.ssl_certificate.encoding, :crlf_newline => true)
+      self.ssl_certificate = ssl_certificate_crlf_newline
     end
   end
 

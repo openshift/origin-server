@@ -42,13 +42,13 @@ function _repair_mongod() {
 
 function _start_mongod() {
     authopts=${1:-"--auth"}
-    /usr/bin/mongod $authopts \
-                    -f $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf run >/dev/null 2>&1 &
+    nohup /usr/bin/mongod $authopts \
+                    -f $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf run |& /usr/bin/logshifter -tag mongodb &
     _wait_for_mongod_to_startup
     if ! isrunning; then
        _repair_mongod "$authopts"
-       /usr/bin/mongod $authopts \
-                       -f $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf run >/dev/null 2>&1 &
+       nohup /usr/bin/mongod $authopts \
+                       -f $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf run |& /usr/bin/logshifter -tag mongodb &
        _wait_for_mongod_to_startup
     fi
 }
@@ -131,6 +131,7 @@ function pre_snapshot {
          #  Created dump snapshot - restore previous dir and remove temp dir.
          popd > /dev/null
          /bin/rm -rf $dumpdir
+          stop
          return 0
       else
          err_details="- snapshot failed"
@@ -141,11 +142,11 @@ function pre_snapshot {
 
    #  Failed to dump/gzip - log error and exit.
    popd > /dev/null
+   stop
    /bin/rm -rf $dumpdir
    /bin/rm -f  $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz
    /bin/rm -f  $OPENSHIFT_DATA_DIR/mongodb_dump_old_db_name.txt
    die 0 "WARNING" "Could not dump MongoDB databases ${err_details}!"
-   stop
 }
 
 function post_snapshot {
@@ -237,11 +238,20 @@ function post_restore {
     start
     _wait_for_mongod_to_startup
     if [ ! -f $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz ]; then
+        stop
         client_result "MongoDB restore attempted but no dump was found!"
         die 0 "ERROR" "$OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz does not exist"
     else
         restore_from_mongodb_snapshot
+        stop
     fi
+}
+
+# Clean up any log files
+function tidy() {
+  client_message "Deleting mongodb logs from $OPENSHIFT_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_LOG_DIR/mongodb.log*
 }
 
 case "$1" in
@@ -279,4 +289,5 @@ case "$1" in
     post-restore)
         post_restore
     ;;
+    tidy)      tidy ;;
 esac

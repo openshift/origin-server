@@ -8,9 +8,17 @@ DOP=5  # Degree of Parallelism.
 
 
 CART_DIRNAME="cron"
+CART_IDENT_NAME="OPENSHIFT_CRON_IDENT"
+IDENT="redhat:cron"
 
 function usage() {
    echo "Usage: $0 {run | run-user <uid>} <frequency>"
+}
+
+function log_message() {
+    msg=${1-""}
+    [ -z "$msg" ] && return 0
+    logger -i -s "user-cron-jobs" -p user.info "$msg"
 }
 
 function openshift_origin_users() {
@@ -24,15 +32,16 @@ function daemon_as_user {
 }
 
 function openshift_origin_cron_users() {
-    cron_users=()
+    cron_users=""
     for u in `openshift_origin_users`; do
-       if [ -z "${cron_users[*]}" ]; then
-          cron_users=("$u")
-       elif [ -d $GEAR_BASE_DIR/$u/$CART_DIRNAME ]; then
-          cron_users=("${cron_users[@]}" "$u")
-       fi
+        if [ -f $GEAR_BASE_DIR/$u/$CART_DIRNAME/env/$CART_IDENT_NAME ] ; then
+            read line < $GEAR_BASE_DIR/$u/$CART_DIRNAME/env/$CART_IDENT_NAME
+            if [[ $line == $IDENT* ]]; then
+                cron_users="$cron_users $u"
+            fi
+        fi
     done
-    echo "${cron_users[@]}" | tr '\n' ' '
+    echo -n "$cron_users"
 }
 
 function run_all_scheduled_jobs() {
@@ -44,7 +53,7 @@ function run_all_scheduled_jobs() {
 
    {
       log_message ":START: $freq run of all scheduled jobs"
-      openshift_origin_cron_users | xargs -d' ' -I{} -n 1 -P $DOP $0 run-user {} $freq
+      echo -n `openshift_origin_cron_users` | xargs -d' ' -I{} -n 1 -P $DOP $0 run-user {} $freq
       log_message ":END: $freq run of all scheduled jobs"
    } &> /dev/null
 }

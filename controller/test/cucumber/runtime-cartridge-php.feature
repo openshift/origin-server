@@ -1,5 +1,5 @@
-@cartridge1
-Feature: V2 SDK PHP Cartridge
+@cartridge2
+Feature: PHP Cartridge
 
   Scenario Outline: Add cartridge
     Given a new <cart_name> type application
@@ -12,12 +12,6 @@ Feature: V2 SDK PHP Cartridge
     When I destroy the application
     Then the application git repo will not exist
 
-    @rhel-only
     Scenarios: RHEL scenarios
       | cart_name |
       | php-5.3   |
-
-    @fedora-19-only
-    Scenarios: RHEL scenarios
-      | cart_name |
-      | php-5.5   |

@@ -1,0 +1,22 @@
+  oo-quarantine
+  
+SYNOPSIS
+  oo-quarantine [-quh]
+
+DESCRIPTION
+  An administrator utility to quarantine gears while a system upgrade is in process.
+
+OPTIONS
+  -q|--quarantine-all  Quarantine all gears
+  
+  -u|--unquarantine-all  Remove all gears from quarantine
+  
+  --help  Show usage info
+
+EXAMPLE
+
+  $ oo-quarantine --quarantine-all 
+
+
+AUTHOR
+  Daniel McPherson <dmcphers@redhat.com> - man page written for OpenShift Origin 

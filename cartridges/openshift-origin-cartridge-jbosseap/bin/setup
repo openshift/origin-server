@@ -6,7 +6,7 @@ case "$1" in
 esac
 
 
-mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/configuration,standalone/log,standalone/data}
+mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/configuration,standalone/data}
 
 # Copy the version specific files up to jbosseap directory
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration
@@ -14,3 +14,6 @@ cp ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/bin/* ${OPENSHIFT_JBOSSEAP_DIR}
 
 # Initialize the JBoss CLI history file
 [ -f ${OPENSHIFT_HOMEDIR}/.jboss-cli-history ] || touch ${OPENSHIFT_HOMEDIR}/.jboss-cli-history
+
+mkdir -p $OPENSHIFT_JBOSSEAP_DIR/jboss_cfg_backup
+cp -n ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/standalone/configuration/standalone.xml $OPENSHIFT_JBOSSEAP_DIR/jboss_cfg_backup

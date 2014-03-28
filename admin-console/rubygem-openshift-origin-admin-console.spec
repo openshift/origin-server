@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 1.17.0
+Version: 1.20.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,92 +129,36 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
-* Wed Nov 13 2013 Adam Miller <admiller@redhat.com> 1.16.3-1
-- Fix the admin console testcases in origin (jforrest@redhat.com)
+* Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.19.2-1
+- Added User pending-op-group/pending-op functionality Added pending op groups
+  for user add_ssh_keys/remove_ssh_keys (rpenta@redhat.com)
 
-* Thu Nov 07 2013 Adam Miller <admiller@redhat.com> 1.16.2-1
-- Allow adding large gear size to users irrespective of their plan If the user
-  is enrolled into a plan, do not store capabilites in cloud user mongo record
-  instead get the capabilities based on their plan. Any explicitly set
-  capabilities will be stored in user record. Fix test cases
-  (rpenta@redhat.com)
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
+- Add README for admin api, change size param to limit (jforrest@redhat.com)
+- Admin search API v1 (jforrest@redhat.com)
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
 
-* Mon Oct 21 2013 Adam Miller <admiller@redhat.com> 1.16.1-1
-- Light theme for console, new nav header, remove breadcrumbs
-  (rhamilto@redhat.com)
-- bump_minor_versions for sprint 35 (admiller@redhat.com)
-
-* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.3-1
-- Allow for version 4.0.x of haml gem to be used (jforrest@redhat.com)
-
-* Tue Sep 24 2013 Troy Dawson <tdawson@redhat.com> 1.15.2-1
-- Merge pull request #3622 from brenton/ruby193-mcollective
+* Tue Feb 11 2014 Adam Miller <admiller@redhat.com> 1.18.3-1
+- Merge pull request #4559 from fabianofranz/dev/441
   (dmcphers+openshiftbot@redhat.com)
-- admin-console spec changes for ruby193-mcollective (bleanhar@redhat.com)
+- Removed references to OpenShift forums in several places
+  (contact@fabianofranz.com)
 
-* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
-- bump_minor_versions for sprint 34 (admiller@redhat.com)
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.18.2-1
+- Cleaning specs (dmcphers@redhat.com)
+- Rename 'server_identities' to 'servers' and 'active_server_identities_size'
+  to 'active_servers_size' in district model (rpenta@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_broker_193_carts_in_mongo (ccoleman@redhat.com)
+- Move cartridges into Mongo (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
 
-* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-0
-- Bump up version to 1.15
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.18.1-1
+- bump_minor_versions for sprint 40 (admiller@redhat.com)
 
-* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
-- Admin console design feedback css tweaks (jforrest@redhat.com)
-- Bug 1005733 - admin console stats y-label mis-aligned and mobile res x-labels
-  wrap badly (jforrest@redhat.com)
-- <capacity planning> review comments (jforrest@redhat.com)
-- <admin console> edge case on suggestion display (lmeyer@redhat.com)
-- <admin-console> tweaks to views (lmeyer@redhat.com)
-- <admin console> lower default active%% to 5 (lmeyer@redhat.com)
-- Bug 1004160 - admin console stats graphs fail to load with arg error
-  (jforrest@redhat.com)
-- <admin console> capacity planning (jforrest@redhat.com)
-- <admin stats> refactor and mods for admin console (lmeyer@redhat.com)
-
-* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
-- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+* Mon Jan 20 2014 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Allow downloadable cartridges to appear in rhc cartridge list
   (ccoleman@redhat.com)
-- bump_minor_versions for sprint 33 (admiller@redhat.com)
-- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
-  (ccoleman@redhat.com)
-
-* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
-- fix old mirror url (tdawson@redhat.com)
-
-* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.1.1-1
-- bump_minor_versions for sprint 32 (admiller@redhat.com)
-
-* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.0.6-1
-- Consolidated docs for admin/mgmt consoles, cartridges (hripps@redhat.com)
-- Admin console test framework and initial functional tests
-  (jforrest@redhat.com)
-
-* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 0.0.5-1
-- Merge pull request #3184 from
-  jwforres/bug_988740_admin_console_empty_search_query
-  (dmcphers+openshiftbot@redhat.com)
-- Merge pull request #3185 from
-  jwforres/bug_988733_admin_console_headers_overflow
-  (dmcphers+openshiftbot@redhat.com)
-- Merge pull request #3182 from
-  jwforres/bug_988282_admin_console_stats_no_apps_failure
-  (dmcphers+openshiftbot@redhat.com)
-- Bug 988740 - code review fixes (jforrest@redhat.com)
-- Bug 988733 - admin console page headers overflow (jforrest@redhat.com)
-- Bug 988740 - admin console routing error on empty search query
-  (jforrest@redhat.com)
-- Bug 988282 - admin console stats page histograms fail with no apps
-  (jforrest@redhat.com)
-
-* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.0.4-1
-- fix tito tags round 2, someone put the already tagged version in DistGit
-
-* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.0.3-1
-- fix tito tags
-
-* Fri Jul 26 2013 Adam Miller <admiller@redhat.com>
-- new package built with tito
-
-* Thu Jul 18 2013 Troy Dawson <tdawson@redhat.com> 0.0.1-1
-- new package built with tito
-

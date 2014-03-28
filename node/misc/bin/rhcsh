@@ -4,10 +4,13 @@
 
 source /etc/init.d/functions 2> /dev/null
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 # source OpenShift environment variable into context
 function load_env {
     [ -z "$1" ] && return 1
     [ -f "$1" ] || return 0
+    [[ "$1" =~ .*\.rpmnew$ ]] && return 0
 
     local key=$(basename $1)
     export $key="$(< $1)"
@@ -26,19 +29,8 @@ then
     done
 fi
 
-path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
-
-if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT ]
-then
-    path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT):$path
-fi
-
-if [ -f /etc/openshift/env/PATH ]
-then
-    load_env /etc/openshift/env/PATH
-    path=$path:$PATH
-fi
-export PATH=$path
+export PATH=$(build_path)
+export LD_LIBRARY_PATH=$(build_ld_library_path)
 
 for f in ~/.env/user_vars/*
 do
@@ -49,7 +41,12 @@ if [ -n "$OPENSHIFT_UMASK" ]; then
     umask $OPENSHIFT_UMASK
 fi
 
+OPENSHIFT_RHCSH_IDLE_TIMEOUT=300
 source /etc/openshift/node.conf
+
+function float_test {
+    awk 'END { exit ( !( '"$1"')); }' </dev/null
+}
 
 function welcome {
     if [ -n "$MOTD_FILE" -a -f "$MOTD_FILE" ]; then
@@ -84,15 +81,27 @@ function welcome {
   fi
 
   # Quota returns nonzero if you are over limit
-  quota >/dev/null 2>&1
-  if [ $? -ne 0 ]
+  if quota >/dev/null 2>&1
   then
-      echo "Your application is out of disk space; please run \"rhc app-tidy $OPENSHIFT_APP_NAME\"" 1>&2
+    local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f", ($2 / $4 * 100)}')
+    if float_test "$usage > 90.0"
+    then
+      echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of disk quota"
+    fi
+
+    local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f",  ($5 / $7 * 100)}')
+    if float_test "$usage > 90.0"
+    then
+      echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of inodes allowed"
+    fi
+  else
+    echo "Your application is out of disk space; please run \"rhc app-tidy $OPENSHIFT_APP_NAME\"" 1>&2
   fi
 }
 
 alias ctl_app=gear
 alias lsof='lsof -w'
+alias quota='quota 2>/dev/null'
 
 function ctl_all() {
   case "$1" in
@@ -105,10 +114,8 @@ function ctl_all() {
       gear stop
     ;;
     restart)
-      echo "Stopping services"
-      gear stop;
-      echo "Starting services"
-      gear start
+      echo "Restarting services"
+      gear restart --all-cartridges;
     ;;
     *) gear --help
     ;;
@@ -274,7 +281,7 @@ function tail_all {
 }
 
 export PS1="[$OPENSHIFT_GEAR_DNS \W]\> "
-export TMOUT=300
+export TMOUT=$OPENSHIFT_RHCSH_IDLE_TIMEOUT
 export SHELL=/bin/bash
 welcome
 

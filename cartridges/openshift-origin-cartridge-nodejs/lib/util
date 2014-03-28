@@ -1,6 +1,8 @@
 #!/bin/bash
 # Utility functions for use in the cartridge scripts.
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 function wait_for_stop {
   pid=$1
   for i in {1..300}
@@ -20,6 +22,7 @@ function set-configuration {
   version="$1"
   type="${2:-native}"
   scl_string="${3}"
+  env_dir="${OPENSHIFT_NODEJS_DIR}/env"
 
   case "$type" in
     scl)
@@ -29,7 +32,7 @@ function set-configuration {
       echo "${node_bin}:${scl_bin}" >$OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_PATH_ELEMENT
 
       local ld_path=$(LD_LIBRARY_PATH="" scl enable $scl_string "printenv LD_LIBRARY_PATH")
-      path_append $LD_LIBRARY_PATH $ld_path >$OPENSHIFT_NODEJS_DIR/env/LD_LIBRARY_PATH
+      set_env_var 'OPENSHIFT_NODEJS_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
 
       local man_path=$(MANPATH="" scl enable $scl_string "printenv MANPATH")
       path_append $MANPATH $man_path >$OPENSHIFT_NODEJS_DIR/env/MANPATH
@@ -88,5 +91,149 @@ function link_global_modules {
     nodejs_context "npm link $module_list &> /dev/null"
   popd > /dev/null
 }
+
+# Check if the 'use_npm' marker is present
+#
+function use_npm() {
+  [ -f ${OPENSHIFT_REPO_DIR}.openshift/markers/use_npm ]
+}
+
+# This is the full path for supervisor in its SCL context
+function supervisor_bin() {
+  nodejs_context "which supervisor"
+}
+
+function node_bin() {
+  nodejs_context "which node"
+}
+
+# All PIDs running node (including supervisor)
+# Need to combine double slashes in case our PATH contains them
+#
+function node_pids() {
+  ps -u $(id -u) -o pid= -o cmd= | grep -e '[0-9]\{1,\}\snode\s' | replace '//' '/'
+}
+
+# Only PIDs with node running supervisor
+#
+function supervisor_pid() {
+  pids=$(node_pids)
+  sup_exe=$(supervisor_bin)
+  echo "${pids}" | awk "/${sup_exe//\//\/}/ {print \$1}"
+}
+
+# Only node PIDs without supervisor
+#
+function node_pid() {
+  pids=$(node_pids)
+  sup_exe=$(supervisor_bin)
+  echo "${pids}" | awk "!/${sup_exe//\//\/}/ {print \$1}"
+}
+
+# If supervisor_pid is empty then assume cartridge is running using npm enabled
+#
+function cartridge_pid() {
+  if [ -z "$(supervisor_pid)" ]; then
+    node_pid
+  else
+    supervisor_pid
+  fi
+}
+
+function cartridge_pidfile_exists() {
+  [ -f "$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid" ]
+}
+
+function is_node_running() {
+    cartridge_pidfile_exists || return 1
+
+    nodepid=$(cat "${OPENSHIFT_NODEJS_PID_DIR}/cartridge.pid")
+    [ -n "$nodepid" ]  ||  return 1
+
+    node_command=$(ps --no-heading -ocmd -p $nodepid | replace '//' '/')
+
+    # Ensure this is not a supervisor process
+    if [[ -n "$node_command" && ! "${node_command}" =~ $(supervisor_bin) ]]; then
+       return 0
+    fi
+
+    return 1
+}
+
+function is_supervisor_running() {
+    cartridge_pidfile_exists || return 1
+
+    nodepid=$(cat "${OPENSHIFT_NODEJS_PID_DIR}/cartridge.pid")
+    [ -n "$nodepid" ]  ||  return 1
+
+    #  Is the pid a supervisor process.
+    if [[ $(ps --no-heading -ocmd -p $nodepid | replace '//' '/') =~ $(supervisor_bin) ]]; then
+       #  Yes, the app server is a supervisor process.
+       return 0
+    fi
+
+    return 1
+}
+
+function is_cartridge_running() {
+  is_supervisor_running || is_node_running
+}
+
+function print_missing_package_json_warning() {
+       cat <<DEPRECATED
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  It is highly recommended that you add a package.json
+  file to your application.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+DEPRECATED
+}
+
+function print_deprecation_warning() {
+       cat <<DEPRECATED
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  The use of deplist.txt is being deprecated and will soon
+  go away. For the short term, we will continue to support
+  installing the Node modules specified in the deplist.txt
+  file. But please be aware that this will soon go away.
+
+  It is highly recommended that you use the package.json
+  file to specify dependencies on other Node modules.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+DEPRECATED
+}
+
+function is_node_module_installed() {
+    module_name=${1:-""}
+    if [ -n "$module_name" ]; then
+        pushd "$OPENSHIFT_NODEJS_DIR" > /dev/null
+        if [ -d $m ] ; then
+            popd > /dev/null
+            return 0
+        fi
+        popd > /dev/null
+    fi
+
+    return 1
+}
+
+function get_main_script_from_package_json() {
+    nodejs_context "node" <<NODE_EOF
+try {
+  var zmain = require('$OPENSHIFT_REPO_DIR/package.json').main;
+  if (typeof zmain === 'undefined') {
+    console.log('server.js');
+  }
+  else {
+    console.log(zmain);
+  }
+} catch(ex) {
+  console.log('server.js');
+}
+NODE_EOF
+
+}  #  End of function  get_main_script_from_package_json.
+
 
 # vim: ft=sh

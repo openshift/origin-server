@@ -7,6 +7,7 @@ require 'optparse'
 require 'etc'
 require 'rubygems'
 require 'open4'
+require 'json'
 
 # each value begins with the subsystem name and a dot (.)
 # extract the subsystem name and check it against the list
@@ -17,14 +18,14 @@ require 'open4'
 
 def usage
   puts <<EOF
-usage: oo-cgroup-read [-h|--help] <attrname>
+usage: oo-cgroup-read [-h|--help] <option>
 
-attrname: the name of the cgroup attribute requested
-          or "all" to list all attribute names.
+option: 1) the name of the cgroup attribute requested
+    or  2) "all" to list all attribute names.
+    or  3) "report" to list all attribute names and values in JSON
 EOF
 
 end
-
 
 # Check that the user didn't send any nasty strings at us.
 def scrub_input(instring)
@@ -139,6 +140,36 @@ def get_cgroup_attribute_names(*args)
   get_cgroup_attribute_names_nocgget(*args)
 end
 
+def report_cgroup_attributes(username)
+  results = Hash.new
+
+  _, _, stdout, _ = open4("cgget -a -n /openshift/#{username}")
+
+  top_key = nil
+  stdout.each do |line|
+    if line.include?(':')
+      top_key, values  = line.split(':').map { |e| e.strip }
+      values           = values.split(' ')
+
+      results[top_key] = case
+                           when values.length == 0
+                             nil
+                           when values.length == 1
+                             values.first
+                           when values.length.even? && values.first =~ /\A\D+.*/
+                             Hash[*values]
+                           else
+                             values
+                         end
+    else
+      key, value            = line.strip.split(' ')
+      results[top_key][key] = value
+    end
+  end
+  results
+end
+
+
 #
 # Check for a help request from the user
 #
@@ -148,7 +179,7 @@ def parse_options
   options = {}
 
   optparse = OptionParser.new do |opts|
-    opts.banner = "Usage: #{File.basename($0)} [-h|--help] <attrname>"
+    opts.banner = "Usage: #{File.basename($0)} [-h|--help] <attrname>|all|report"
 
     # Help
     opts.on('-h', '--help', 'Display usage information') do
@@ -178,10 +209,11 @@ if attrname == nil then
 end
 
 scrub_input attrname
-if attrname=="all"
-  names = get_cgroup_attribute_names username
-  puts names.join("\n")
-else
-  value = get_cgroup_attribute attrname, username
-  puts value
-end
+puts case attrname
+       when 'all'
+         get_cgroup_attribute_names(username).join("\n")
+       when 'report'
+         report_cgroup_attributes(username).to_json
+       else
+         get_cgroup_attribute attrname, username
+     end

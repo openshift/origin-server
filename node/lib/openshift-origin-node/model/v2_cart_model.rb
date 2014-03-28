@@ -34,6 +34,10 @@ require 'openshift-origin-node/utils/sanitize'
 
 module OpenShift
   module Runtime
+
+    class MissingCartridgeIdentError < RuntimeError
+    end
+
     class FileLockError < Exception
       attr_reader :filename
 
@@ -105,6 +109,14 @@ module OpenShift
       end
 
       ##
+      # Returns true if the primary +Cartridge+ is also the +web_proxy+.
+      # This occurs in the case of applications that have a web cartridge
+      # that is deployed on a platform different than the web proxy's.
+      def standalone_web_proxy?
+        (web_proxy != nil) and (web_proxy.name == primary_cartridge.name)
+      end
+
+      ##
       # Detects and returns a builder +Cartridge+ in the gear if present, otherwise +nil+.
       def builder_cartridge
         builder_cart = nil
@@ -163,7 +175,7 @@ module OpenShift
           ident_path     = Dir.glob(PathUtils.join(cartridge_path, 'env', "OPENSHIFT_*_IDENT")).first
 
           raise "Cartridge manifest not found: #{manifest_path} missing" unless File.exists?(manifest_path)
-          raise "Cartridge Ident not found in #{cartridge_path}" unless ident_path
+          raise MissingCartridgeIdentError, "Cartridge Ident not found in #{cartridge_path}" unless ident_path
 
           _, _, version, _ = Runtime::Manifest.parse_ident(IO.read(ident_path))
 
@@ -284,7 +296,7 @@ module OpenShift
                         "Cartridge created the following directories in the gear home directory: #{illegal_entries.join(', ')}")
             end
 
-            output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
+            output << populate_gear_repo(c.directory, template_git_url) if populate_repository?(cartridge, template_git_url)
           end
 
           validate_cartridge(cartridge)
@@ -332,7 +344,7 @@ module OpenShift
 
         ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
           if empty_repository?
-            output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code."
+            output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code." if cartridge.name == primary_cartridge.name
           else
             output << start_cartridge('start', cartridge, user_initiated: true)
           end
@@ -376,7 +388,13 @@ module OpenShift
             cartridge = get_cartridge_fallback(cartridge_name)
           rescue
             logger.warn("Corrupted cartridge #{@container.uuid}/#{cartridge_name}. Attempting to auto-correct for deconfigure resorting to CartridgeRepository.")
-            cartridge = CartridgeRepository.instance.select(name, software_version)
+            begin
+              cartridge = CartridgeRepository.instance.select(name, software_version)
+            rescue
+              logger.warn("Cartridge #{cartridge_name} not found in CartridgeRepostory.")
+              teardown_output << "Cartridge #{cartridge_name} not found on the gear or in the CartridgeRepository. It is most likely a downloaded cartridge that failed to configure and was removed."
+              return teardown_output
+            end
           end
 
           ident = Runtime::Manifest.build_ident(cartridge.cartridge_vendor,
@@ -398,6 +416,8 @@ module OpenShift
           rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
             teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stdout, :error)
             teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stderr, :error)
+          rescue RuntimeError => e
+              teardown_output <<  "\n#{e.message}"
           ensure
             disconnect_frontend(cartridge)
             delete_cartridge_directory(cartridge)
@@ -412,12 +432,12 @@ module OpenShift
       # Prepare the given cartridge for the cartridge author
       #
       #   v2_cart_model.unlock_gear('php-5.3')
-      def unlock_gear(cartridge, relock = true)
+      def unlock_gear(cartridge, relock=true)
         begin
           do_unlock(@container.locked_files(cartridge))
           yield cartridge
         ensure
-          do_lock(@container.locked_files(cartridge)) if relock
+          do_lock(relock ? @container.locked_files(cartridge) : [])
         end
         nil
       end
@@ -428,8 +448,6 @@ module OpenShift
       #
       #   v2_cart_model.do_unlock_gear(entries)
       def do_unlock(entries)
-        mcs_label = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
-
         entries.each do |entry|
           if entry.end_with?('/')
             entry.chomp!('/')
@@ -463,8 +481,6 @@ module OpenShift
       # Take the given array of file system entries and prepare them for the application developer
       #    v2_cart_model.do_lock_gear(entries)
       def do_lock(entries)
-        mcs_label = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
-
         # It is expensive doing one file at a time but...
         # ...it allows reporting on the failed command at the file level
         # ...we don't have to worry about the length of argv
@@ -542,7 +558,6 @@ module OpenShift
       #
       # ~/php/phplib -> ~/app-root/runtime/dependencies/php/phplib
       def create_dependency_directories(cartridge)
-        cartridge_directory = PathUtils.join(@container.container_dir, cartridge.name)
 
         %w(build-dependencies dependencies).each do |dependencies_dir_name|
           if dependencies_dir_name == 'build-dependencies'
@@ -630,7 +645,7 @@ module OpenShift
         @container.set_rw_permission_R(cartridge_home)
 
         files = ManagedFiles::IMMUTABLE_FILES.collect do |file|
-          file.gsub!('*', short_name)
+          file = file.gsub('*', short_name)
           file = PathUtils.join(cartridge_home, file)
           file if File.exist?(file)
         end || []
@@ -1003,6 +1018,9 @@ module OpenShift
       #
       # This is only called when a cartridge is removed from a cartridge not a gear delete
       def disconnect_frontend(cartridge)
+        gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+        app_dns        = gear_env["OPENSHIFT_APP_DNS"]
+
         mappings = []
         cartridge.endpoints.each do |endpoint|
           endpoint.mappings.each do |mapping|
@@ -1012,7 +1030,17 @@ module OpenShift
 
         logger.info("Disconnecting frontend mapping for #{@container.uuid}/#{cartridge.name}: #{mappings.inspect}")
         unless mappings.empty?
-          FrontendHttpServer.new(@container).disconnect(*mappings)
+          fe_server =  FrontendHttpServer.new(@container)
+          fe_server.disconnect(*mappings)
+          if cartridge.web_proxy?
+            gear_fqdn = fe_server.fqdn
+            if gear_fqdn != app_dns
+              # secondary web-proxy gear
+              fe_server.set_fqdn(app_dns)
+              fe_server.disconnect(*mappings)
+              fe_server.set_fqdn(gear_fqdn)
+            end
+          end
         end
       end
 
@@ -1020,6 +1048,7 @@ module OpenShift
         frontend       = FrontendHttpServer.new(@container)
         gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         web_proxy_cart = web_proxy
+        app_dns        = gear_env["OPENSHIFT_APP_DNS"]
 
         output = ""
         begin
@@ -1056,6 +1085,18 @@ module OpenShift
               logger.info("Connecting frontend mapping for #{@container.uuid}/#{cartridge.name}: "\
                       "[#{mapping.frontend}] => [#{backend_uri}] with options: #{mapping.options}")
               reported_urls = frontend.connect(mapping.frontend, backend_uri, options)
+              if cartridge.web_proxy?
+                gear_fqdn = frontend.fqdn
+                if gear_fqdn != app_dns
+                  # secondary web-proxy gear
+                  frontend.set_fqdn(app_dns)
+                  new_options = options.dup
+                  # target_update will misfire because fqdn has changed
+                  new_options.delete("target_update")
+                  reported_urls += frontend.connect(mapping.frontend, backend_uri, new_options)
+                  frontend.set_fqdn(gear_fqdn)
+                end
+              end
               if reported_urls
                 reported_urls.each do |url|
                   outstr = "Cartridge #{cartridge.name} exposed URL #{url}"
@@ -1280,7 +1321,7 @@ module OpenShift
             buffer << err if err.is_a?(String)
 
             raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
-                      "Failed to execute: 'control #{action}' for #{path}", rc, out, err
+                      "CLIENT_ERROR: Failed to execute: 'control #{action}' for #{path}", rc, out, err
                   ) if rc != 0
           end
         }
@@ -1315,7 +1356,7 @@ module OpenShift
                                                              out:     options[:out],
                                                              err:     options[:err])
           raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
-                    "Failed to execute action hook '#{action}' for #{@container.uuid} application #{@container.application_name}",
+                    "CLIENT_ERROR: Failed to execute action hook '#{action}' for #{@container.uuid} application #{@container.application_name}",
                     rc, out, err
                 ) if rc != 0
         end
@@ -1415,6 +1456,52 @@ module OpenShift
       end
 
       ##
+      # Restarts catridges in the gear by running the cartridge +restart+ control action for each
+      # cartridge in the gear.
+      #
+      # By default, all cartridges in the gear are restarted. The selection of cartridges
+      # to be restarted is configurable via +options+.
+      #
+      # +options+: hash
+      #   :primary_only   => [boolean]    : If +true+, only the primary cartridge will be restarted.
+      #                                     Mutually exclusive with +secondary_only+.
+      #   :secondary_only => [boolean]    : If +true+, all cartridges except the primary cartridge
+      #                                     will be restarted. Mutually exclusive with +primary_only+.
+      #   :user_initiated => [boolean]    : Indicates whether the operation was user initated.
+      #                                     Default is +true+.
+      #   :exclude_web_proxy => [boolean] : Indicates whether to exclude restarting the web proxy cartridge.
+      #                                     Default is +false+
+      #   :out                            : An +IO+ object to which control script STDOUT should be directed. If
+      #                                     +nil+ (the default), output is logged.
+      #   :err                            : An +IO+ object to which control script STDERR should be directed. If
+      #                                     +nil+ (the default), output is logged.
+      #
+      # Returns the combined output of all +restart+ action executions as a +String+.
+      def restart_gear(options={})
+        options[:user_initiated] = true if not options.has_key?(:user_initiated)
+
+        if options[:primary_only] && options[:secondary_only]
+          raise ArgumentError.new('The primary_only and secondary_only options are mutually exclusive options')
+        end
+
+        buffer = ''
+
+        if options[:primary_only] || options[:secondary_only]
+          each_cartridge do |cartridge|
+            next if options[:primary_only] and cartridge.name != primary_cartridge.name
+            next if options[:secondary_only] and cartridge.name == primary_cartridge.name
+            next if options[:exclude_web_proxy] and cartridge.web_proxy?
+
+            buffer << start_cartridge('restart', cartridge, options)
+          end
+        else
+          buffer << restart_gear(options.merge({secondary_only: true}))
+          buffer << restart_gear(options.merge({primary_only: true}))
+        end
+        buffer
+      end
+
+      ##
       # Starts a cartridge.
       #
       # Both application state and the stop lock are managed during the operation. If start
@@ -1449,7 +1536,6 @@ module OpenShift
 
         if cartridge.name == primary_cartridge.name
           FileUtils.rm_f(stop_lock) if options[:user_initiated]
-          @state.value = State::STARTED
 
           # Unidle the application, preferring to use the privileged operation if possible
           frontend = FrontendHttpServer.new(@container)
@@ -1458,6 +1544,8 @@ module OpenShift
           else
             frontend.unidle
           end
+
+          @state.value = State::STARTED
         end
 
         if options[:hot_deploy]
@@ -1518,7 +1606,6 @@ module OpenShift
       # Writes the +stop_lock+ file and changes its ownership to the gear user.
       def create_stop_lock
         unless stop_lock?
-          mcs_label = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
           File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
           @container.set_rw_permission(stop_lock)
         end
@@ -1533,6 +1620,12 @@ module OpenShift
 
       def empty_repository?
         ApplicationRepository.new(@container).empty?
+      end
+
+      def populate_repository?(cartridge, template_git_url)
+        # we should populate the gear repo if we have a deployable cartridge
+        # or if we have a standalone web proxy and a git url for a template was provided
+        (cartridge.deployable? or (standalone_web_proxy? and template_git_url))
       end
     end
   end

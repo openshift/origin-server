@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for DNS update service using nsupdate
 Name:          rubygem-%{gem_name}
-Version:       1.15.1
+Version:       1.16.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,17 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Tue Mar 18 2014 Adam Miller <admiller@redhat.com> 1.16.2-1
+- version bump for openshift-origin-console and dns-nsupdate for OSE rebase
+  (admiller@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Bump up version (tdawson@redhat.com)
 - Merge pull request #3585 from Miciah/plugins-dns-nsupdate-delete-duplicate-
@@ -96,44 +107,4 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 - plugins/dns/nsupdate: Delete duplicate kinit (miciah.masters@gmail.com)
 - plugins/dns/nsupdate: Support unauthenticated use (miciah.masters@gmail.com)
 - plugins/dns/nsupdate: Specify zone (miciah.masters@gmail.com)
-
-* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
-- Fixing syntax error in the nsupdate plugin (bleanhar@redhat.com)
-- added alternate TSIG key algorithms (mlamouri@redhat.com)
-- Combine changes for BZ955602 and BZ655643 (dns-nsupdate config and
-  exceptions) (mlamouri@redhat.com)
-- Bug 928675 (asari.ruby@gmail.com)
-
-* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.1-1
-- Bump up version to 1.10
-
-* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.5.2-1
-- Fixing broker and nsupdate plugin deps (bleanhar@redhat.com)
-- The nsupdate plugin was calling a method that didn't exist (kraman@gmail.com)
-- The nsupdate plugin was calling a method that didn't exist
-  (bleanhar@redhat.com)
-- Fix typo in dns plugin initializer (kraman@gmail.com)
-- Fixing krb workstation dependency (kraman@gmail.com)
-- added krb5 features (markllama@gmail.com)
-- Updating rest-client and rake gem versions to match F18 (kraman@gmail.com)
-- Make packages build/install on F19+ (tdawson@redhat.com)
-
-* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.1-1
-- Add yard documentation markup to DNS plugins (mlamouri@redhat.com)
-- fix rubygem sources (tdawson@redhat.com)
-- Fixes for ruby193 (john@ibiblio.org)
-- change %%define to %%global (tdawson@redhat.com)
-
-* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.0-1
-- Update to version 1.5.0
-
-* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 0.0.3-1
-- remove BuildRoot: (tdawson@redhat.com)
-- make Source line uniform among all spec files (tdawson@redhat.com)
-
-* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 0.0.2-1
-- 875575 (dmcphers@redhat.com)
-
-* Fri Jan 25 2013 Krishna Raman <kraman@gmail.com> 0.0.1-1
-- new package built with tito
 

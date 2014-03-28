@@ -77,6 +77,22 @@ $ ->
         else
           false
 
+  $('.with-alert-details a, .error-reference a').click (event) ->
+    event.preventDefault() if event?
+    link = $(this)
+    if link.parent().hasClass('error-reference')
+      message = $('p.error-reference')
+      details = $('.error-reference-details')
+    else
+      message = link.closest('.with-alert-details')
+      details = message.next('.alert-details')
+    message.toggleClass('detailed')
+    details.toggleClass('hide')
+    if link.text() == 'Show more' 
+      link.text('Show less')
+    else 
+      link.text('Show more')
+
   # application_type/<type>
   $('form#new_application').validate
     ignore: ""

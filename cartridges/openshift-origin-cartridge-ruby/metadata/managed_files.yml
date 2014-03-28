@@ -15,6 +15,6 @@ locked_files:
 - etc/conf.d/openshift.conf
 - env/
 - env/OPENSHIFT_RUBY_DIR
-- env/OPENSHIFT_RUBY_LOG_DIR
+- env/PASSENGER_TEMP_DIR
 processed_templates:
 - 'etc/conf.d/*.erb'

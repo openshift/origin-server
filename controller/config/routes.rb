@@ -13,6 +13,9 @@ Rails.application.routes.draw do
       resources :quickstarts, :only => [:index, :show]
       resources :estimates, :id => id_with_format, :only => [:index, :show]
 
+      get "oauth/authorize" => "oauth#authorize"
+      post "oauth/access_token" => "oauth#access_token"
+
       resource :user, :only => [:show, :destroy], :controller => :user do
         match 'domains' => 'domains#index', :owned => true
         resources :keys, :only => [:index, :show, :create, :update, :destroy], :controller => :keys, :id => id_with_format
@@ -34,6 +37,8 @@ Rails.application.routes.draw do
         resources :members, :only => :index, :controller => :application_members, :id => id_with_format
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
+        match 'environment-variables' => 'environment_variables#create', :via => :patch
+        match 'environment_variables' => 'environment_variables#create', :via => :patch
         resources :deployments, :only => [:index, :show, :create], :controller => :deployments, :id => id_with_format
       end
 
@@ -41,7 +46,7 @@ Rails.application.routes.draw do
       match "domain/:existing_id" => "domains#update", :via => :put, :existing_id => id_with_format
 
       resources :domains, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format do
-        resources :members, :only => [:index, :create, :update, :destroy], :controller => :domain_members, :id => id_with_format
+        resources :members, :only => [:index, :show, :create, :update, :destroy], :controller => :domain_members, :id => id_with_format
         match 'members' => 'domain_members#create', :via => :patch
         match 'members' => 'domain_members#destroy_all', :via => :delete
         match 'members/self' => 'domain_members#leave', :via => :delete
@@ -59,8 +64,17 @@ Rails.application.routes.draw do
           resources :members, :only => :index, :controller => :application_members, :id => id_with_format
           resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
           resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
+          match 'environment-variables' => 'environment_variables#create', :via => :patch
+          match 'environment_variables' => 'environment_variables#create', :via => :patch
           resources :deployments, :only => [:index, :show, :create], :controller => :deployments, :id => id_with_format
         end
+      end
+      
+      resources :teams, :only => [:index, :show, :create, :destroy], :id => id_with_format do
+        resources :members, :only => [:index, :show, :create, :update, :destroy], :controller => :team_members, :id => id_with_format
+        match 'members' => 'team_members#create', :via => :patch
+        match 'members' => 'team_members#destroy_all', :via => :delete
+        match 'members/self' => 'team_members#leave', :via => :delete
       end
     end
 
@@ -68,7 +82,9 @@ Rails.application.routes.draw do
     # DEPRECATED - Plural member resources, will be removed when API 1.1 is removed.
     #              New APIs should NOT add plural member paths.
     #
-    resources :cartridges,   :only => [:show], :id => id_with_format
+    # Direct match legacy cartridges/:id to show
+    match 'cartridges/:feature' => 'cartridges#index', :via => :get, :feature => id_with_format
+    #resources :cartridges,   :only => [:show], :id => id_with_format
     resources :quickstarts,  :only => [:show]
     resources :estimates,    :only => [:show], :id => id_with_format
     scope '/user' do
@@ -89,10 +105,12 @@ Rails.application.routes.draw do
       resources :members, :only => :index, :controller => :application_members, :id => id_with_format
       resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
       resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
+      match 'environment-variables' => 'environment_variables#create', :via => :patch
+      match 'environment_variables' => 'environment_variables#create', :via => :patch
     end
     match "domains/:existing_id" => "domains#update", :via => :put, :existing_id => id_with_format
     resources :domains, :only => [:show, :update, :destroy], :id => id_with_format do
-      resources :members, :only => [:index, :create, :update, :destroy], :controller => :domain_members, :id => id_with_format
+      resources :members, :only => [:index, :show, :create, :update, :destroy], :controller => :domain_members, :id => id_with_format
         match 'members' => 'domain_members#create', :via => :patch
         match 'members' => 'domain_members#destroy_all', :via => :delete
         match 'members/self' => 'domain_members#leave', :via => :delete
@@ -111,6 +129,8 @@ Rails.application.routes.draw do
         resources :members, :only => :index, :controller => :application_members, :id => id_with_format
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
+        match 'environment-variables' => 'environment_variables#create', :via => :patch
+        match 'environment_variables' => 'environment_variables#create', :via => :patch
       end
     end
 

@@ -132,7 +132,7 @@ keys_put_v1.request.merge!({ 'content' => ncontent, 'type' => nktype })
 keys_put_v1.response = RestKey_V1.new(kname, ncontent, nktype) 
 keys_put_v1.response_type = "key"
 
-php_cart = PHP_VERSION
+php_cart = CartridgeCache.find_cartridge_by_base_name('php').name
 app_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications", "POST")
 app_name, app_type, app_scale, app_timeout = 'app1', php_cart, true, 180
 app_post_v1.request.merge!({ 'name' => app_name, 'cartridge' => app_type, 'scale' => app_scale })
@@ -195,7 +195,7 @@ app_scale_down_post_v1.response = RestApplication_V1.new(app_name, app_type, dom
 app_scale_down_post_v1.response_type = "application"
 
 app_add_cart_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges", "POST")
-embed_cart = MYSQL_VERSION
+embed_cart = CartridgeCache.find_cartridge_by_base_name("mysql").name
 app_add_cart_post_v1.request.merge!({ 'name' => embed_cart, 'colocate_with' => nil })
 app_add_cart_post_v1.response = RestEmbeddedCartridge_V1.new('embedded', embed_cart, app_name)
 app_add_cart_post_v1.response_type = "cartridge"

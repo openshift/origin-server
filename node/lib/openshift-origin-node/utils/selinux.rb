@@ -21,21 +21,46 @@ require 'openshift-origin-common/config'
 require 'openshift-origin-common/utils/etc_utils'
 require 'openshift-origin-node/utils/node_logger'
 
+module Selinux
+  class Context_s_t
+    include Comparable
+
+    # Comparison excluding MCS label
+    #
+    # @param other [Context_s_t] context being compared against
+    def <=>(other)
+      test = Selinux.context_user_get(self) <=> Selinux.context_user_get(other)
+      return test unless 0 == test
+
+      test = Selinux.context_role_get(self) <=> Selinux.context_role_get(other)
+      return test unless 0 == test
+
+      Selinux.context_type_get(self) <=> Selinux.context_type_get(other)
+    end
+
+    # Convert context to string
+    def to_s
+      Selinux.context_str(self)
+    end
+  end
+end
+
 module OpenShift
   module Runtime
     module Utils
       class SELinux
 
-        @@DEF_RUN_USER="unconfined_u"
-        @@DEF_RUN_ROLE="system_r"
-        @@DEF_RUN_TYPE="openshift_t"
-        @@DEF_RUN_LABEL="s0"
+        @@DEF_RUN_USER  = 'unconfined_u'
+        @@DEF_RUN_ROLE  = 'system_r'
+        @@DEF_RUN_TYPE  = 'openshift_t'
+        @@DEF_RUN_LABEL = 's0'
 
-        @@DEF_MCS_SET_SIZE   = 1024  # baked into SELinux
-        @@DEF_MCS_GROUP_SIZE =    2  # 2 is historical OpenShift value
-        @@DEF_MCS_UID_OFFSET =    0
-        @@DEF_MLS_NUM    =        0  # 0 unless MLS in use
+        @@DEF_MCS_SET_SIZE   = 1024       # baked into SELinux
+        @@DEF_MCS_GROUP_SIZE = 2          # 2 is historical OpenShift value
+        @@DEF_MCS_UID_OFFSET = 0
+        @@DEF_MLS_NUM        = 0          # 0 unless MLS in use
 
+        @@mutex              = Mutex.new  # protect matchpathcon context
 
         #
         # Public: Return an enumerator which yields each UID -> MCS label combination.
@@ -122,32 +147,44 @@ module OpenShift
         # the file itself.
         #
         def self.chcon(path, label=nil, type=nil, role=nil, user=nil)
+          expected, actual = path_context(path)
+          Selinux.context_range_set(expected, label) unless label.nil?
+          Selinux.context_type_set(expected, type) unless type.nil?
+          Selinux.context_role_set(expected, role) unless role.nil?
+          Selinux.context_user_set(expected, user) unless user.nil?
+
+          range_eq = Selinux.context_range_get(expected) == Selinux.context_range_get(actual)
+          return if expected == actual && range_eq
+          return if -1 != Selinux.lsetfilecon(path, expected.to_s)
+
+          err = "Could not set the file context #{expected} on #{path}"
+          NodeLogger.logger.error(err)
+          raise Errno::EINVAL.new(err)
+        end
+
+        # Retrieve the default context for an object on the file system
+        #
+        # @param path [String] path of file or directory
+        # @return [Array<Context_s_t, Context_s_t>] The expected context and actual context
+        def self.path_context(path)
           matchpathcon_update
-          mode = File.lstat(path).mode & 07777
-          old_context = Selinux.lgetfilecon(path)
-          context = Selinux.matchpathcon(path, mode)
-          if context == -1
-            if old_context == -1
+
+          mode     = File.lstat(path).mode & 07777
+          actual   = Selinux.lgetfilecon(path)
+          expected = -1
+          @@mutex.synchronize { expected = Selinux.matchpathcon(path, mode) }
+
+          if -1 == expected
+            if -1 == actual
               err = "Could not read or determine the file context for #{path}"
               NodeLogger.logger.error(err)
               raise Errno::EINVAL.new(err)
             else
-              context = old_context
+              expected = actual
             end
           end
-          context = Selinux.context_new(context[1])
-          Selinux.context_range_set(context, label) unless label.nil?
-          Selinux.context_type_set(context, type)   unless type.nil?
-          Selinux.context_role_set(context, role)   unless role.nil?
-          Selinux.context_user_set(context, user)   unless user.nil?
-          context = Selinux.context_str(context)
-          if context != old_context[1]
-            if Selinux.lsetfilecon(path, context) == -1
-              err = "Could not set the file context #{context} on #{path}"
-              NodeLogger.logger.error(err)
-              raise Errno::EINVAL.new(err)
-            end
-          end
+
+          return Selinux.context_new(expected[1]), Selinux.context_new(actual[1])
         end
 
         #
@@ -215,25 +252,23 @@ module OpenShift
           Selinux.getcon[1]
         end
 
-        private
-
-        #
-        # Private: Update the file context database cache
-        #
         @@matchpathcon_files_mtimes = Hash.new
-        def self.matchpathcon_update
-          new_files_mtimes = Hash.new
-          Dir.glob(Selinux.selinux_file_context_path + '*').each do |f|
-            new_files_mtimes[f] = File.stat(f).mtime
-          end
+        FILE_CONTEXT_PATH           = Selinux.selinux_file_context_path + '*'
 
-          if new_files_mtimes != @@matchpathcon_files_mtimes
-            if not @@matchpathcon_files_mtimes.empty?
-              Selinux.matchpathcon_fini
+        #
+        # Public: Update the file context database cache
+        #
+        def self.matchpathcon_update
+          @@mutex.synchronize do
+            mtimes = Dir[FILE_CONTEXT_PATH].collect { |f| File.stat(f).mtime }
+
+            if mtimes != @@matchpathcon_files_mtimes
+              Selinux.matchpathcon_fini unless @@matchpathcon_files_mtimes.empty?
+
+              NodeLogger.logger.debug('The file context database is being reloaded.')
+              Selinux.matchpathcon_init(nil)
+              @@matchpathcon_files_mtimes = mtimes
             end
-            NodeLogger.logger.debug("The file context database is being reloaded.")
-            Selinux.matchpathcon_init(nil)
-            @@matchpathcon_files_mtimes = new_files_mtimes
           end
         end
 

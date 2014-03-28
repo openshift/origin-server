@@ -63,10 +63,9 @@
               %span.add-on Additional Storage Per Gear
               :ruby
                 default_html = {
-                  :style => 'width: auto',
                   :title => 'Additional Storage',
                 }
-              = f.input :additional_gear_storage, storage_options(0,@max_storage).merge({:input_html => default_html})
+              = f.input :additional_gear_storage, storage_options(0, @max_storage, @usage_rates, cartridge.scales?).merge({:input_html => default_html})
 
             = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
             = f.loading

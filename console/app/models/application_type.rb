@@ -83,6 +83,8 @@ class ApplicationType
     return 0 if id == other.id
     c = source_priority - other.source_priority
     return c unless c == 0
+    c = featured_priority - other.featured_priority
+    return c unless c == 0
     c = priority - other.priority
     return c unless c == 0
     display_name <=> other.display_name
@@ -103,12 +105,16 @@ class ApplicationType
     end
   end
 
+  def featured_priority
+    tags.include?(:featured) && quickstart? ? -2 : 0
+  end
+
   def support_type
     provider or tags.include?(:community) ? :community : :openshift
   end
 
   def automatic_updates?
-    cartridge? && !tags.include?(:community)
+    automatic_updates.nil? ? (cartridge && !tags.include?(:community)) : automatic_updates
   end
 
   def cartridge?; source == :cartridge; end
@@ -121,8 +127,10 @@ class ApplicationType
 
   def >>(app)
     app.cartridges = cartridges.map{ |s| to_cart(s) } if cartridges.present?
-    app.initial_git_url = initial_git_url if initial_git_url
-    app.initial_git_branch = initial_git_branch if initial_git_branch
+    if initial_git_url.present?
+      app.initial_git_url = initial_git_url
+      app.initial_git_branch = initial_git_branch if initial_git_branch.present?
+    end
     app
   end
 
@@ -174,8 +182,10 @@ class ApplicationType
 
   def self.matching_cartridges(cartridge_specs)
     valid, invalid = {}, []
-    Array(cartridge_specs).uniq.each do |c|
-      if c.is_a? Hash
+    Array(cartridge_specs).uniq.each_with_index do |c, i|
+      if c.is_a? Array
+        valid[i] = c.map{ |name| CartridgeType.cached.find(name) }.compact
+      elsif c.is_a? Hash
         if c['name'].present?
           if cart = CartridgeType.cached.find(c['name']) rescue nil
             valid[c['name']] = [cart]
@@ -205,6 +215,8 @@ class ApplicationType
   end
 
   protected
+    attr_accessor :automatic_updates
+
     def self.find_single(id, *arguments)
       case (match = /^([^!]+)!(.+)/.match(id) || [])[1]
       when 'quickstart'; from_quickstart(Quickstart.cached.find match[2])
@@ -252,7 +264,10 @@ class ApplicationType
       [:display_name, :tags, :description, :website, :version, :license, :license_url, :help_topics, :priority, :scalable, :usage_rates].each do |m|
         attrs[m] = type.send(m)
       end
+      attrs[:provider] = type.support_type
+      attrs[:automatic_updates] = type.automatic_updates?
       attrs[:cartridges] = [type.name]
+      attrs[:cartridges_spec] = attrs[:cartridges] + (type.requires.presence || [])
 
       new(attrs, type.persisted?)
     end
@@ -261,7 +276,7 @@ class ApplicationType
       [:display_name, :tags, :description, :website, :initial_git_url, :cartridges_spec, :priority, :scalable, :may_not_scale, :learn_more_url, :provider].each do |m|
         attrs[m] = type.send(m)
       end
-
+      attrs[:automatic_updates] = false
       new(attrs, type.persisted?)
     end
 

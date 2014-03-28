@@ -36,7 +36,6 @@ innodb_flush_log_at_trx_commit = 1
 innodb_lock_wait_timeout = 50
 
 [mysqld_safe]
-log-error=<%= ENV['OPENSHIFT_MARIADB_DB_LOG_DIR'] %>/mariadb_error.log
 pid-file=<%= ENV['OPENSHIFT_MARIADB_DIR'] %>/pid/mariadb.pid
 
 [mysqldump]

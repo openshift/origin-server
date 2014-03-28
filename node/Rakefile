@@ -3,12 +3,12 @@ require 'rake'
 require 'rake/clean'
 require 'rake/testtask'
 
-merge_path_functionals = [
-  'test/cart_functional/application_repository_func_test.rb',
-  'test/cart_functional/application_state_func_test.rb',
-  'test/cart_functional/bash_sdk_test.rb',
-  'test/cart_functional/v2_cart_model_func_test.rb',
-  'test/cart_functional/version_func_test.rb',
+essentials_functionals = [
+  'test/gear_functional/application_repository_func_test.rb',
+  'test/gear_functional/application_state_func_test.rb',
+  'test/gear_functional/bash_sdk_test.rb',
+  'test/gear_functional/v2_cart_model_func_test.rb',
+  'test/gear_functional/version_func_test.rb',
   'test/node_functional/application_container_func_test.rb',
   'test/node_functional/cartridge_repository_func_test.rb',
   'test/node_functional/cartridge_repository_web_func_test.rb',
@@ -18,6 +18,8 @@ merge_path_functionals = [
   'test/node_functional/shell_exec_func_test.rb',
   'test/node_functional/unix_user_func_test.rb'
 ]
+
+ext_gear_functionals = []
 
 desc "Print environment to run from checkout - eval $( rake local_env | tail -n +1 )"
 task :local_env do
@@ -51,23 +53,69 @@ Rake::TestTask.new(:test) do |t|
   t.pattern = 'test/**/*_test.rb'
 end
 
-desc "Merge-path tests"
+desc "Essentials tests"
 Rake::TestTask.new(:essentials_test) do |t|
   t.verbose = true
   t.libs << File.expand_path('../../common/lib', __FILE__)
   files = [ 'test/unit/*_test.rb' ]
-  files.concat(merge_path_functionals)
+  files.concat(essentials_functionals)
   t.test_files = files
 end
 
-desc "Extended cart functional tests"
-Rake::TestTask.new(:ext_cart_func_test) do |t|
+desc "Extended gear functional tests 1"
+Rake::TestTask.new(:ext_gear_func_test1) do |t|
   t.verbose = true
   t.libs << File.expand_path('../../common/lib', __FILE__)
 
-  all_functionals = Dir.glob('test/cart_functional/*_test.rb')
+  tests = ['test/gear_functional/platform_binary_deploy_test.rb']
 
-  t.test_files = all_functionals - merge_path_functionals
+  ext_gear_functionals += tests
+
+  t.test_files = tests
+end
+
+desc "Extended gear functional tests 2"
+Rake::TestTask.new(:ext_gear_func_test2) do |t|
+  t.verbose = true
+  t.libs << File.expand_path('../../common/lib', __FILE__)
+
+  tests = ['test/gear_functional/platform_deploy_ext_test.rb']
+
+  ext_gear_functionals += tests
+
+  t.test_files = tests
+end
+
+desc "Extended gear functional tests 3"
+Rake::TestTask.new(:ext_gear_func_test3) do |t|
+  t.verbose = true
+  t.libs << File.expand_path('../../common/lib', __FILE__)
+
+  tests = ['test/gear_functional/platform_deployment_integrity_test.rb']
+
+  ext_gear_functionals += tests
+
+  t.test_files = tests
+end
+
+desc "Extended gear functional tests 4"
+Rake::TestTask.new(:ext_gear_func_test4) do |t|
+  t.verbose = true
+  t.libs << File.expand_path('../../common/lib', __FILE__)
+
+  all_functionals = Dir.glob('test/gear_functional/*_test.rb')
+
+  t.test_files = all_functionals - essentials_functionals - ext_gear_functionals
+end
+
+desc "Extended gear functional tests"
+Rake::TestTask.new(:ext_gear_func_test) do |t|
+  t.verbose = true
+  t.libs << File.expand_path('../../common/lib', __FILE__)
+
+  all_functionals = Dir.glob('test/gear_functional/*_test.rb')
+
+  t.test_files = all_functionals - essentials_functionals
 end
 
 desc "Extended node functional tests"
@@ -77,7 +125,7 @@ Rake::TestTask.new(:ext_node_func_test) do |t|
 
   all_functionals = Dir.glob('test/node_functional/*_test.rb')
 
-  t.test_files = all_functionals - merge_path_functionals
+  t.test_files = all_functionals - essentials_functionals
 end
 
 desc "Generate RDoc"

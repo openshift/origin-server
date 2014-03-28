@@ -15,6 +15,7 @@
 #
 
 require 'openshift-origin-node/model/application_container'
+require 'openshift-origin-node/utils/environ'
 
 module OpenShift
   module CartridgeSdk
@@ -41,6 +42,13 @@ module OpenShift
     def latest_deployment_metadata
       container = OpenShift::Runtime::ApplicationContainer.from_uuid(ENV['OPENSHIFT_GEAR_UUID'])
       container.deployment_metadata_for(container.latest_deployment_datetime)
+    end
+
+    def get_path_from_elements(element_name)
+      env = ENV
+      primary_name = File.basename(env['OPENSHIFT_PRIMARY_CARTRIDGE_DIR']).upcase
+      env.delete(element_name)
+      OpenShift::Runtime::Utils::Environ.collect_elements_from(env, element_name, primary_name).join(':')
     end
 
   end

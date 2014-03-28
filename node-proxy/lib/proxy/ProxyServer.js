@@ -66,22 +66,28 @@ function _load_config(f) {
  *  @param  {Integer}              Connection Keep-Alive timeout
  *  @api    private
  */
-function _setProxyResponseHeaders(proxy_res, vhost, keep_alive_timeout) {
+function _setProxyResponseHeaders(proxy_res, res, vhost, keep_alive_timeout) {
+  /* Copy the headers to original res */
+  for (var key in proxy_res.headers) {
+    if (key != 'connection') {
+      res.setHeader(key, proxy_res.headers[key]);
+    }
+  }
+
   var about_me = constants.NODE_PROXY_WEB_PROXY_NAME + '/' +
                  constants.NODE_PROXY_PRODUCT_VER;
   var zroute   = '1.1 ' + vhost + ' (' + about_me + ')';
 
   /*  Set the Via: header to indicate it went via us.  */
-  httputils.addHeader(proxy_res.headers, 'Via', zroute);
+  res.setHeader('Via', zroute);
 
   /*  Set the Keep-Alive timeout if Connection is being kept alive.  */
   var conn_header = proxy_res.headers['Connection']  ||  '';
   if ('keep-alive' === conn_header.toLowerCase() ) {
     var ka = utils.format('timeout=%d, max=%d', keep_alive_timeout,
                           keep_alive_timeout + DEFAULT_KEEP_ALIVE_TIMEOUT);
-    proxy_res.headers['Keep-Alive'] = ka;
+    res.setHeader('Keep-Alive', ka);
   }
-
 }  /*  End of function  _setProxyResponseHeaders.  */
 
 
@@ -210,11 +216,7 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
 
 
   /*  Get the routes to the destination (try with request URI first).  */
-  var routes = proxy_server.getRoute(reqhost + request_uri);
-  if (routes.length < 1) {
-    /*  No specific route, try the more general route.  */
-    routes = proxy_server.getRoute(reqhost);
-  }
+  var routes = proxy_server.getRoute(reqhost, request_uri);
 
   /*  No route, no milk [, no cookies] ... return a temporary redirect.  */
   if (!routes  ||  (routes.length < 1)  ||  (routes[0].length < 1) ) {
@@ -230,14 +232,22 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
 
   /*  Get the endpoint we need to send this request to.  */
   var ep = routes[0].split(':');
+  var matched_path = ep[2];
   var ep_host = ep[0];
-  var ep_port = ep[1] || 8080;
+  var parts = ep[1].split('/');
+  var ep_port = parts[0] || 8080;
+  var req_path = request_uri;
+  var ep_path = undefined;
+  if (parts.length > 1) {
+    ep_path = '/' + parts.slice(1).join('/');
+    req_path = req_path.replace(matched_path, ep_path);
+  }
 
-  proxy_server.debug()  &&  Logger.debug('Sending a proxy request to %s', ep);
+  proxy_server.debug()  &&  Logger.debug('Sending a proxy request to %s %s', ep_host, req_path);
 
   /*  Create a proxy request we need to send & set appropriate headers.  */
   var proxy_req = { host: ep_host, port: ep_port,
-    method: req.method, path: request_uri,
+    method: req.method, path: req_path,
     headers: req.headers
   };
   _setProxyRequestHeaders(proxy_req, req);
@@ -269,8 +279,8 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
     });
 
     /*  Set the appropriate headers on the reponse & send the headers.  */
-    _setProxyResponseHeaders(pres, reqhost, keep_alive_timeout);
-    res.writeHead(pres.statusCode, pres.headers);
+    _setProxyResponseHeaders(pres, res, reqhost, keep_alive_timeout);
+    res.writeHead(pres.statusCode);
   });
 
   /*  Handle the outgoing request socket event and set a timeout.  */
@@ -415,11 +425,13 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   var upg_requri = upgrade_req.url ? upgrade_req.url : '/';
 
   /*  Get the routes to the destination (try with request URI first).  */
-  var routes = proxy_server.getRoute(upg_reqhost + upg_requri);
+  var routes = proxy_server.getRoute(upg_reqhost, upg_requri);
+  /*
   if (routes.length < 1) {
-    /*  No specific route, try the more general route.  */
+    /*  No specific route, try the more general route.
     routes = proxy_server.getRoute(upg_reqhost);
   }
+  */
 
   /*  No route, no milk [, no cookies] ... return unexpected condition.  */
   if (!routes  ||  (routes.length < 1)  ||  (routes[0].length < 1) ) {
@@ -434,10 +446,12 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   }
 
 
-  var ws_endpoint = routes[0];
+  /* Take out the matched endpoint from the result */
+  var ws_endpoint = routes[0].split(":").slice(0, 2).join(":");
+  var req_path = routes[0].split(":")[1];
 
   proxy_server.debug()  &&  Logger.debug('Sending a websocket request to %s',
-                                         ws_endpoint);
+                                         util.inspect(ws_endpoint));
 
   proxy_server.debug()  &&  Logger.debug(JSON.stringify(upgrade_req.headers));
 
@@ -449,6 +463,9 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
 
   if (upgrade_req.headers["sec-websocket-protocol"]) {
     zheaders.headers["Sec-Websocket-Protocol"] = upgrade_req.headers["sec-websocket-protocol"];
+  }
+  if (upgrade_req.headers["origin"]) {
+    zheaders.headers["Origin"] = upgrade_req.headers["origin"];
   }
 
   /*  Create a proxy websocket request we need to send.  */
@@ -487,11 +504,20 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   });
 
   proxy_ws.on('message', function(data, flags) {
-    /*  Emit websocket outbound data event.  */
-    surrogate.emit('outbound.data', data, flags);
+    // do not crash the whole proxy, when the connection is not open
+    // https://bugzilla.redhat.com/show_bug.cgi?id=1042938
+    try {
+      /*  Emit websocket outbound data event.  */
+      surrogate.emit('outbound.data', data, flags);
 
-    /*  Proxy message back to the websocket request originator.  */
-    ws.send(data, flags);
+      /*  Proxy message back to the websocket request originator.  */
+      ws.send(data, flags);
+    }
+    catch(err) {
+      Logger.error("failed to send message: " + err);
+      surrogate.emit('error', 'websocket.error');
+    };
+
   });
 
   /*  Handle the incoming websocket error/close/message events.  */
@@ -785,9 +811,25 @@ ProxyServer.prototype.debug = function(d) {
  *  @return  {Array}   Associated endpoints/routes.
  *  @api     public
  */
-ProxyServer.prototype.getRoute = function(dest) {
-  return((this.routes)? this.routes.get(dest) : [ ]);
+ProxyServer.prototype.getRoute = function(host, path) {
+  var path_segments = path.split('/');
+  var max_segs = path_segments.length > 3? path_segments.length : 3;
 
+  if (!this.routes)
+    return this.routes;
+
+  for (i = max_segs; i > 0; i--) {
+    candidate_path = path_segments.slice(0, i).join('/');
+    full_path = host + candidate_path;
+    dest = this.routes.get(full_path);
+    if (dest.length > 0) {
+      dret = [];
+      for (idx in dest) { dret.push(dest[idx] + ":" + candidate_path); }
+      return dret;
+    }
+  }
+
+  return [ ];
 };  /*  End of function  getRoute.  */
 
 

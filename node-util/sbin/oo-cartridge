@@ -1,0 +1,144 @@
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+# TODO: Support
+#        -p|--with-software-version    version    packaged software version to install
+#           --with-cartridge-version   version    packaged software version to install
+#
+def usage
+  $stderr.puts <<USAGE
+== Synopsis
+
+#{$0}: Perform action (CRUD) on given gear using named cartridge
+
+== Usage
+
+#{$0} --with-container-uuid 1c3a5f7a92e111e188d800262df50034 \\
+            --action add --with-cartridge-name mock-0.1
+
+== List of arguments
+       -a|--action                             One of <add|delete>
+       -c|--with-container-uuid     gear_uuid  Unique identifier for the gear
+       -n|--with-cartridge-name     name       Unique identifier for the cartridge
+       -u|--with-template-url                  override default application template
+       -v|--verbose                            show output from cartridge setup
+       -d|--debug                              enable additional output
+       -h|--help                               Print this message
+USAGE
+  exit 255
+end
+
+require "rubygems"
+require "getoptlong"
+
+opts = GetoptLong.new(
+    ['--action', '-a', GetoptLong::REQUIRED_ARGUMENT],
+    ['--with-container-uuid', '-c', GetoptLong::REQUIRED_ARGUMENT],
+    ['--with-cartridge-name', '-n', GetoptLong::REQUIRED_ARGUMENT],
+    ['--with-template-url', '-u', GetoptLong::REQUIRED_ARGUMENT],
+    ['--verbose', '-v', GetoptLong::NO_ARGUMENT],
+    ['--debug', '-d', GetoptLong::NO_ARGUMENT],
+    ['--help', '-h', GetoptLong::NO_ARGUMENT],
+)
+
+action            = nil
+uuid              = nil
+cartridge_name    = nil
+template_url      = nil
+verbose           = nil
+
+opts.each do |opt, arg|
+  case opt
+    when '--help'
+      usage
+    when '--with-container-uuid'
+      uuid = arg
+    when '--action'
+      action = arg
+    when '--with-cartridge-name'
+      cartridge_name = arg
+    when '--with-template-url'
+      template_url = arg
+    when '--debug'
+      $OO_CART_DEBUG = true
+    when '--verbose'
+      verbose = true
+  end
+end
+
+unless action && uuid && cartridge_name && 0 == ARGV.length
+  $stderr.puts "Invalid arguments\n"
+  usage
+end
+
+# load all this after args parsed; failure is faster
+require 'openshift-origin-node'
+require 'openshift-origin-node/utils/environ'
+require "etc"
+
+begin
+  # TODO; Will need to be refactored when broker gives separate pieces
+  c = cartridge_name.to_s
+  #c << "-#{software_version}" if software_version
+  output = ''
+
+  container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
+  case action
+    when 'add'
+      output = container.configure(c, template_url)
+      output << container.post_configure(c, template_url)
+    when 'delete'
+      found = false
+      container.cartridge_model.each_cartridge do |cart|
+        if "#{cart.name}-#{cart.version}" == c
+          found = true
+          break
+        end
+      end
+      unless found
+        $stderr.puts "Cartridge '#{c}' is not installed in gear with uuid: #{uuid}"
+        exit 1
+      end
+      container.deconfigure(c)
+    else
+      usage
+      raise NotImplementedError.new(action)
+  end
+rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+  $stderr.puts "Cartridge #{action} failed"
+  $stderr.puts "#{e.message}: rc(#{e.rc}"
+
+  if $OO_CART_DEBUG
+    $stderr.puts "stdout ==>\n#{e.stdout}\nstderr ==>\n#{e.stderr}"
+    $stderr.puts e.backtrace.join("\n")
+  end
+
+  exit -1
+rescue => e
+  $stderr.puts "Cartridge #{action} failed"
+  $stderr.puts e.message
+  $stderr.puts e.backtrace.join("\n") if $OO_CART_DEBUG
+  exit 1
+else
+  puts "Cartridge #{action} succeeded"
+
+  if ($OO_CART_DEBUG || verbose)
+    puts "Output:\n-----------------------------\n#{output}"
+  end
+
+  exit 0
+end

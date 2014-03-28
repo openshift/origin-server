@@ -22,7 +22,10 @@ h5 {font-weight: normal;}
 	margin-top: 20px;
 	}
 
-.error-reference { color: #606060 }
+.error-reference { 
+  color: #606060;
+  margin-bottom: 5px; 
+}
 
 @media (max-width: 767px) {
   .form-horizontal .control-label {
@@ -107,6 +110,13 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
   blockquote {
     border-color: #ddd;
     border-color: rgba(0,0,0,.15);
+  }
+}
+
+@media (max-width: 320px) {
+  .platform input[type="file"] {
+      max-width: 219px;
+      min-width: 0;
   }
 }
 

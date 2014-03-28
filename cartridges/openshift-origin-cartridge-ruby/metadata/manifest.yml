@@ -1,0 +1,65 @@
+---
+Name: ruby
+Cartridge-Short-Name: RUBY
+Display-Name: Ruby 1.9
+Description: Ruby is a dynamic, reflective, general-purpose object-oriented programming
+  language. Popular development frameworks include Ruby on Rails and Sinatra.
+Version: '1.9'
+Versions:
+- '1.9'
+- '1.8'
+License: Ruby BSDL
+License-Url: http://www.ruby-lang.org/en/about/license.txt
+Vendor: ruby.org
+Cartridge-Version: 0.0.15
+Compatible-Versions: []
+Cartridge-Vendor: redhat
+Categories:
+- service
+- ruby
+- web_framework
+Website: http://www.ruby-lang.org
+Help-Topics:
+  Developer Center: https://www.openshift.com/developers
+Publishes: 
+Subscribes:
+  set-env:
+    Type: ENV:*
+    Required: false
+  set-doc-url:
+    Type: STRING:urlpath
+    Required: false
+Scaling:
+  Min: 1
+  Max: -1
+Provides:
+- ruby-1.9
+- ruby
+Endpoints:
+- Private-IP-Name: IP
+  Private-Port-Name: PORT
+  Private-Port: 8080
+  Public-Port-Name: PROXY_PORT
+  Protocols:
+  - http
+  - ws
+  Options:
+    primary: true
+  Mappings:
+  - Frontend: ''
+    Backend: ''
+    Options:
+      websocket: true
+  - Frontend: /health
+    Backend: ''
+    Options:
+      health: true
+Additional-Control-Actions:
+- threaddump
+Version-Overrides:
+  '1.8':
+    Display-Name: Ruby 1.8
+    Provides:
+    - ruby-1.8
+    - ruby
+    - ruby(version) = 1.8

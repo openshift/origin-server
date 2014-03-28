@@ -1,0 +1,35 @@
+#!/bin/bash
+# Utility functions for use in the cartridge scripts.
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+function update_configuration {
+    set +u
+    case "$1" in
+      9.2)
+        pe=$(dirname $(scl enable postgresql92 "which psql"))
+        env_dir="${OPENSHIFT_POSTGRESQL_DIR}/env"
+        set_env_var 'OPENSHIFT_POSTGRESQL_PATH_ELEMENT' $pe $env_dir
+
+        local ld_path=$(LD_LIBRARY_PATH="" scl enable postgresql92 "printenv LD_LIBRARY_PATH")
+        set_env_var 'OPENSHIFT_POSTGRESQL_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
+
+        local man_path=$(MANPATH="" scl enable postgresql92 "printenv MANPATH")
+        path_append $MANPATH $man_path >$OPENSHIFT_POSTGRESQL_DIR/env/MANPATH
+        ;;
+
+      8.4)
+        rm -f $OPENSHIFT_POSTGRESQL_DIR/env/OPENSHIFT_POSTGRESQL_PATH_ELEMENT \
+            $OPENSHIFT_POSTGRESQL_DIR/env/LD_LIBRARY_PATH \
+            $OPENSHIFT_POSTGRESQL_DIR/env/MANPATH
+        ;;
+    esac
+}
+
+# RHEL OpenShift Online supported versions
+function postgresql_context {
+  case $OPENSHIFT_POSTGRESQL_VERSION in
+    8.4) eval $1 ;;
+    9.2) /usr/bin/scl enable postgresql92 "$1" ;;
+  esac
+}

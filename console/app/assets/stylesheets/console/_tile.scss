@@ -33,6 +33,21 @@
     .tile-table-cell {
       display: table-cell;
       vertical-align: middle;
+      &:last-child {
+        width: 50px;
+        text-align: right;
+        span {
+          font-size: 13px;
+          cursor: help;
+          margin-right: 5px;
+          &:last-child {
+            margin-right: 0;
+          }
+        }
+        .label-premium {
+          @include usage_rate_indicator()
+        }
+      }
     }
     .font-icon.logo, .font-icon {
       font-size: $tileHeadingIconFontSize;
@@ -46,28 +61,30 @@
     }
     + p {
       margin-top: 3px;
+      font-size: inherit;
     }
+  }
+  .tile-meta {
+    font-size: $smallFontSize;
+    margin-bottom: $baseLineHeight / 2;
   }
   .tiles-featured & {
     padding: 15px 20px;
-    p {
-      font-size: inherit;
-    }
     .tile-table {
-      margin-bottom: 10px;
+      margin-bottom: $baseLineHeight / 2;
       .tile-table-cell {
         &:last-child {
           vertical-align: middle;
         }
         &:first-child {
           width: 60px;
-        }
-        .font-icon {
-          font-size: $tileLargeHeadingIconFontSize;
-          opacity: 0.30;
-          &[title="Quickstart"],
-          &[title="Cartridge"] {
-            @include iconfont-adjust()
+          .font-icon {
+            font-size: $tileLargeHeadingIconFontSize;
+            opacity: 0.30;
+            &[title="Quickstart"],
+            &[title="Cartridge"] {
+              @include iconfont-adjust()
+            }
           }
         }
       }
@@ -75,18 +92,26 @@
     &:hover .tile-table .tile-table-cell .font-icon {
       opacity: .7;
     }
+    .tile-meta {
+      font-size: $smallFontSize;
+      margin-bottom: $baseLineHeight / 2;
+    }
   }
-  &.application_type, &.embedded {
+  &.application_type, &.cartridge_type {
     .tile-table-cell {
       &:first-child {
         width:55px;
       }
     }
   }
-  &.embedded {
+  &.cartridge_type {
     .tile-table-cell {
       &:first-child {
         width:50px;
+      }
+      &:last-child {
+        width: auto;
+        text-align: left;
       }
       h3 {
         line-height: 1.2;
@@ -96,7 +121,7 @@
       font-size: $smallFontSize;
     }
   }
-  &.embedded {
+  &.cartridge_type {
     padding: 10px 20px 15px 20px;
   }
   > p {
@@ -160,6 +185,7 @@
     display: inline-block;
     vertical-align: middle;
     margin-top: 0;
+    line-height: 1.5;
   }
 } 
 

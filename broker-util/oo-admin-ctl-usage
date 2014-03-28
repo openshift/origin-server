@@ -59,7 +59,7 @@ unless $list || $sync || $remove_sync_lock
   usage
 end
 
-require "/var/www/openshift/broker/config/environment"
+require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 # Indicates how many records to gather for bulk processing of usage records with billing accounts
@@ -147,7 +147,7 @@ def list_usage
       puts "User: #{srec['login']}" + billing_provider_str
       $prev_login = srec['login']
     end
-    puts "\tGear: #{srec['gear_id']}, UsageType: #{srec['usage_type']}, Usage: #{pretty_duration(srec['usage'])}"
+    puts "\tGear: #{srec['gear_id']}, UsageType: #{srec['usage_type']}, Usage: #{pretty_duration(srec['usage'])} #{"(x#{srec['multiplier']})" if srec['multiplier'] != 1}"
   end 
 end
 
@@ -268,6 +268,7 @@ def populate_user_summary_records(urecs)
 
     urec['end_time'] = end_time
     urec['usage'] = $billing_api.get_usage_time(urec)
+    urec['multiplier'] = $billing_api.get_multiplier(urec)
     if urecs.length == 2
       urec['ended'] = true
       urec['end_id'] = urecs.last['_id']

@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# This script allows OpenShift environments to keep consistency when the docker
+# container plugin is not in use.  In that case this command is mostly used to
+# strip off flags intended to be passed to the docker cli.
+if [ "$1" == "--non-interactive" ];
+then
+  exec "${@:2}"
+else
+  echo "This script is not intended to run interactively." 2>&1
+  exit 1
+fi

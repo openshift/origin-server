@@ -1,0 +1,347 @@
+= OpenShift Origin Vagrant Deployment Guide
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+LATEST DOC UPDATES
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+If you are interested in deploying OpenShift into your network environment, you've got a few options - you can start with https://install.openshift.com/[oo-install], grab our http://openshift.github.io/documentation/oo_deployment_guide_puppet.html[Puppet module], or you can http://openshift.github.io/documentation/oo_deployment_guide_comprehensive.html[do it yourself]. This document describes a fourth deployment option that is specifically focused on **OpenShift Origin development**. If you want to spin up a bleeding-edge copy of OpenShift Origin and work on making this awesome Platform-as-a-Service even better, then you've come to the right place.
+
+== Prerequisites
+
+This developer-focused deployment offers users maximum flexibility in their choice of work environments. For starters, you can work on any OS that supports the prerequisites listed below; currently that includes Fedora, RHEL, CentOS, other Linux distros, Mac OS X, and Windows.
+
+Here's what you will need:
+
+* **A basic development environment.** A bash shell, git, and GitHub account. If you need help with those, check out the http://openshift.github.io/documentation/oo_contributors_guide.html#creating-a-development-environment[Origin Contributor's Guide].
+* http://www.vagrantup.com/[**Vagrant.**] The Vagrant framework is available as a ruby gem, but you should install the officially distributed Vagrant package for your OS directly from the Vagrant web site.
+* **A platform for virtual machines.** Vagrant provides out-of-the-box support for https://www.virtualbox.org/[VirtualBox], so this guide will focus on development with VirtualBox. However, other VM platforms are supported via Vagrant _Provider_ plugins; see the Vagrant site for details.
+
+Once you're set up, create a working directory for yourself. Call it something like `amazing_code` or `mad_science`, because this is where you will work with Origin's source code. This working directory will also serve as the launch point for your Vagrant-based development system. Once everything is up and running, Vagrant automatically shares this directory with the VM itself.
+
+== Installing the OpenShift Vagrant Module
+
+In order to make Vagrant "OpenShift-aware", you will need to install the Vagrant OpenShift plugin. Be aware that installing Vagrant plugins from a local source directory presents a http://en.wikipedia.org/wiki/Chicken_or_the_egg[Chicken and Egg] problem with Vagrant, but luckily there is a fairly easy workaround: make sure that your system `bin` directories (`/usr/bin`, `/usr/local/bin`, etc.) come _before_ your gem `bin` directories in your `$PATH` environment variable.
+
+[TIP]
+====
+In other words, if you run:
+
+----
+$ which vagrant
+----
+
+The output should reflect a system-installed path like `/usr/bin/vagrant`, _even after_ you run the `bundle install` command in step #3 below.
+====
+
+1. On GitHub, fork a copy of the https://github.com/openshift/vagrant-openshift[vagrant-openshift] repository into your own account.
+2. On your local system:
+    a. Clone your vagrant-openshift repo down from GitHub:
++
+----
+$ git clone https://github.com/<username>/vagrant-openshift.git
+----
+    b. Add OpenShift's vagrant-openshift repo as an upstream source:
++
+----
+$ cd vagrant-openshift
+$ git remote add upstream https://github.com/openshift/vagrant-openshift.git
+----
+3. Now that you have a local copy of `vagrant-openshift`:
+    a. Pull in any supporting gems with the `bundle` command:
++
+----
+$ cd vagrant-openshift
+$ bundle install
+----
++
+Check to make sure that the `vagrant` command still resolves to a system-based Vagrant installation and not the vagrant gem that was just installed:
++
+----
+$ which vagrant
+----
++
+The executable should be in `/usr/bin`, `/usr/local/bin` or somewhere similar.
+    b. Install the vagrant-openshift repo as a Vagrant plugin:
++
+----
+$ bundle exec rake install
+----
+4. Finally, check your work by running:
++
+----
+$ vagrant --help
+----
++
+You should see some new subcommands with "origin" in the name:
++
+----
+...
+Available subcommands:
+     box                     manages boxes: installation, removal, etc.
+     create-ami              
+     destroy                 stops and deletes all traces of the vagrant machine
+     halt                    stops the vagrant machine
+     help                    shows the help for a subcommand
+     init                    initializes a new Vagrant environment by creating a Vagrantfile
+     modify-instance         
+     origin-build-base       
+     origin-init             
+     origin-local-checkout   
+     ....
+----
+
+== Setting up Your Sandbox
+
+Now that Vagrant is installed and the OpenShift plugin has been added, change directory into the working directory that you created in the link:#prerequisites[Prerequisites] (the one called `mad_science` or `seriously_awesome_paas`).
+
+The first Vagrant command that you are going to use is a convenience function that clones your forked repos into this local workspace.
+
+.Wait, which Forked Repos?
+****
+If you haven't done it already, you should create forks of the following OpenShift repos on GitHub into your own GitHub account:
+
+* https://github.com/openshift/origin-server[origin-server] - The OpenShift Origin code base.
+* https://github.com/openshift/puppet-openshift_origin[puppet-openshift_origin] - The http://puppetlabs.com/[Puppet] module that installs and configure OpenShift Origin on arbitrary hosts.
+* https://github.com/openshift/rhc[rhc] - The utility that enables users to work with their OpenShift-hosted applications from the command line.
+****
+
+Now, from your working directory, run:
+
+----
+$ vagrant origin-local-checkout <github_username>
+----
+
+Once completed, an `ls -l` of your working directory should yield results similar to this:
+
+----
+$ ls -l
+total 0
+drwxr-xr-x  30 user  group  1020 Feb 25 10:08 origin-server
+drwxr-xr-x   9 user  group   306 Feb 25 10:09 puppet-openshift_origin
+drwxr-xr-x  25 user  group   850 Feb 25 10:09 rhc
+----
+
+== Creating a Base Vagrant Box
+Depending on which VM platform use are using, you may be able to use one of our prebuilt "base boxes". Otherwise, you will need to roll your own.
+
+=== VirtualBox Pre-Built Base Boxes
+If you are using VirtualBox, you can use a pre-built ".box" file from the http://mirror.openshift.com/pub/vagrant/boxes/[OpenShift downloads site]. These Vagrant-generated files contain a VM with the indicated OS and a "Minimal" package install.
+
+To load one, run the following command from your working directory:
+
+----
+$ vagrant box add <name> <url>
+----
+
+* **name**: Supply a name for the box, like "os_base". You can import multiple instances of the same box by giving them different names.
+* **url**: Supply the URL of one of the boxes from the http://mirror.openshift.com/pub/vagrant/boxes/[OpenShift downloads site].
+
+Once the download is completed and the box is installed, you can confirm the new .box file by running:
+
+----
+$ vagrant box list
+os_base (virtualbox)
+----
+
+=== Roll Your Own Base Box
+If you aren't using VirtualBox, or you would prefer to work with OpenShift on a different base OS, you will need to create your own Vagrant .box file. The Vagrant site has http://docs.vagrantup.com/v2/boxes/base.html[information on creating new base boxes].
+
+In addition to the Vagrant documentation, be aware of the following OpenShift-specific requirements:
+
+1. **scp** - Not all "Minimal" installs come with the `scp` utility, so make sure it is available.
+2. **sudo** - The Vagrant document instructs you to modify the `/etc/sudoers` file so that the `vagrant` user does not need to enter a password to perform `sudo` actions. While you are making that change, also search for:
++
+----
+Defaults       requiretty
+----
++
+And put a "!" in front of "require":
++
+----
+Defaults       !requiretty
+----
++
+If you don't do this, you will see an error the first time you try to spin up the Vagrant box (with the vagrant-openshift plugin installed):
++
+----
+The following SSH command responded with a non-zero exit status.
+Vagrant assumes that this means the command failed!
+
+sed -i 's/\(HOSTNAME=\).*/\1broker.example.com/' /etc/sysconfig/network
+
+Stdout from the command:
+
+
+
+Stderr from the command:
+
+sudo: sorry, you must have a tty to run sudo
+----
+
+=== Generate a `Vagrantfile`
+
+Once you have registered a Vagrant box, you will create a file that establishes Vagrant's operating environment. To do this, go to your working directory and run:
+
+----
+$ vagrant origin-init --stage os <box_name>
+----
+
+NOTE: This command may throw some warnings about ruby gem issues; these can be safely ignored.
+
+After running this, you should see a new file called `Vagrantfile` in that directory.
+
+
+== Creating a Development VM
+
+With a registered base Vagrant box and a Vagrantfile, you are ready to build a development system.
+
+To start the build, run this from your working directory:
+
+----
+vagrant up --provider virtualbox
+----
+
+If the process fails, fix any errors that are thrown (for instance, missing utilities in a hand-built base box), and then restart the provisioning process by running:
+
+----
+vagrant provision
+----
+
+You can safely go in to the VM, correct errors and then restart the setup process this way until provisioning is completed.
+
+TIP: Even without errors, this process takes a long time!
+
+Once completed, your VM will have all of the supporting packages that you will need to install OpenShift, but OpenShift itself will not be installed yet.
+
+=== Optional: Create a "Required Packages" Box
+At this point, you may want to create a new Vagrant box from the current state of the VM. This will enable you to reuse the current state of your VM as a starting point, without having to go back and reinstall all of the OpenShift prerequisites on the base box again.
+
+To do this, run:
+
+----
+$ vagrant package
+----
+
+This will shut down the VM (if it is running) and create a new box file called `package.box` in your working directory. Look at the `--output` setting if you want the resulting file to have a different name and / or location.
+
+Now you can re-import this new box file into Vagrant:
+
+----
+$ vagrant box add <new_box_name> <file:// url to box location>
+----
+
+== Synchronizing Local Code to a Development VM
+At this point you have a Vagrant box that has all of the OpenShift prerequisites installed, but none of the actual OpenShift code. In order to add that, we will synchronize the code from our working directory into the VM.
+
+When you run either of the sync commands described below, Vagrant copies the repos in your working directory over to the VM. Therefore, you can make changes to the code in your local directory and then build and run them via Vagrant. This is the primary way that Vagrant is used as our Origin development environment.
+
+=== Rebuild the Vagrantfile
+Before you do any synchronization, you need to rebuild your Vagrant configuration.
+
+1. Remove existing Vagrant state info from your working directory:
++
+----
+$ rm -rf .vagrant Vagrantfile
+----
+2. Run `origin-init` for the `deps` (dependencies) stage:
++
+----
+$ vagrant origin-init --stage deps <box_name>
+----
+
+You should see that the Vagrantfile has been recreated.
+
+Finally, restart the VM:
+
+----
+$ vagrant up --provider virtualbox
+----
+
+=== Full Synchronization
+Full synchronization is a time-consuming process, so you will only want to do this under specific circumstances:
+
+* You are starting with a Vagrant box that has all of the prerequisites, but no actual OpenShift code installed
+* You are making changes to the Puppet module or the Vagrant plugin
+* You have been working with code in one branch and want to switch to a different branch and work with that code instead
+
+To perform a full sync on a running Vagrant box, run the following command:
+
+----
+$ vagrant sync --clean
+----
+
+This is going to take a while. Suggestions:
+
+* Read the link:oo_contributors_guide.html[OpenShift Contributors Guide], which is going to help you make sense of the code.
+* Read http://en.wikipedia.org/wiki/War_and_Peace[War and Peace], Leo Tolstoy's masterwork epic about competing code standards in the Napoleonic era.
+
+==== Optional: Create a "Development Environment" Box
+After you perform the first full synchronization on a Vagrant box, you have a full-blown development environment. If you are going to spend most of your development time working on code in the origin-server repo (where a link:#partial-synchronization[partial sync] is all you will need to keep your code current), you may want to pause and make a Vagrant box to capture things as they are. Refer to the section entitled link:#optional-create-a-required-packages-box[Optional: Create a "Required Packages" Box] for information on how to create a Vagrant box file from the current state.
+
+=== Partial Synchronization
+Partial synchronization is less time consuming than the full sync. If your setup satisfies these requirements, you can use the partial sync:
+
+* Your Vagrant box already has OpenShift installed on it
+* You are not making changes to the Puppet module or the Vagrant plugin
+* You did not previously sync with one branch, and then switch to a different branch, while working with the same Vagrant box
+
+To do a partial sync, run `sync` without any arguments:
+
+----
+$ vagrant sync
+----
+
+== Running Tests
+
+When you contribute code to the OpenShift Origin repo on GitHub, it is automatically put through the full OpenShift test suite on our CI system. The code will not merge unless it passes this guantlet of tests. If you want to ensure that your code changes are right the first time, put them through the gauntlet in your Vagrant environment.
+
+To run the full suite of tests on a running Vagrant box, use:
+
+----
+$ vagrant test
+----
+
+The full suite can take a long time to run, so if your changes are limited to one functional area of the Origin code base, you can specify a limited set of tests with on ofe the following arguments:
+
+* **-n**, **--node** - Run link:oo_contributors_guide.html#runtime[Node] tests
+* **-t**, **--cart** - Run link:oo_contributors_guide.html#runtime[Cartridge] tests
+* **-b**, **--broker** - Run link:oo_contributors_guide.html#broker[Broker] tests
+* **-r**, **--rhc** - Run link:oo_contributors_guide.html#user-interface[CLI] tests
+* **-c**, **--console** - Run link:oo_contributors_guide.html#user-interface[Console/Web] tests
+* **-e**, **--extended** - Run Extended tests
+* **-a**, **--all** - Run all tests (this is what happens if you run `vagrant test` with no arguments
+* **-d**, **--artifacts** - This optional flag causes Vagrant to download the test logs and built RPMs to your working directory when the tests are completed.
+
+Note that basic unit tests can often be run directly from your local code repos and do not need to be synced to the Vagrant box first.
+
+== Making and Committing Code Changes
+This topic is covered in a general way in the link:oo_contributors_guide.html#submitting-code[Contributors Guide]. In the context of a Vagrant-based development environment, here is a basic bescription of the workflow that you will follow as you develop code changes and prepare pull requests:
+
+1. After link:#setting-up-your-sandbox[setting up your local working directory], you will have code repos that start on their respective master branches.
+2. Before you perform your first link:#full-synchronization[full] or link:#partial-synchronization[partial] sync, create a new branch in the repo(s) where you will be working:
++
+----
+$ git checkout -b <working_branch_name>
+----
++
+TIP: By convention, we name new feature branches after the feature itself ("add_300_baud_modem_support") and bug fix branches after the bugzilla ID ("bug_123456")
+3. Now, when you perform the `sync` operation, Vagrant will pull in the code from your current (working) branch
+4. When you are ready to make a pull request from your working branch:
+    a. link:oo_contributors_guide.html#combining-multiple-commits[Squash your commits]
+    b. Push the branch to your repo on GitHub:
++
+----
+$ git push origin <working_branch_name>
+----
++
+NOTE: If you pushed interim commits prior to squashing, you will need to add a `--force` flag to the end of the push command.
+    c. https://help.github.com/articles/using-pull-requests[Create a pull request]
+
+== Other Resources for OpenShift Developers
+This guide provides developers with the tools to work with "bleeding edge" OpenShift Origin code. However, if you're hacking on OpenShift, you're not alone!
+
+* Get on our http://lists.openshift.redhat.com/openshiftmm/listinfo/dev[Developers' mailing list].
+* Talk with other OpenShift hackers over IRC on the http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4[#openshift-dev channel on FreeNode].
+* Join the https://plus.google.com/communities/114361859072744017486[OpenShift Origin Developers] community on Google Plus.

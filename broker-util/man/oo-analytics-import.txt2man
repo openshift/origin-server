@@ -7,6 +7,7 @@ SYNOPSIS
 DESCRIPTION
 
 Utiltity to import a json document containing analytics data for applications into mongo database.
+Existing documents in the collection are removed before the import.
   
 OPTIONS
   -h|--help  
@@ -22,4 +23,4 @@ SEE ALSO
   oo-analytics-export(8)
   
 AUTHOR
-  Rajat Chopra <rchopra@redhat.com> - man page written for OpenShift Origin 
+  Rajat Chopra <rchopra@redhat.com>

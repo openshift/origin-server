@@ -41,6 +41,10 @@ module OpenShift
         def expired?
           remaining.zero?
         end
+
+        def to_s
+          "hourglass_remaining=#{remaining}"
+        end
       end
     end
   end

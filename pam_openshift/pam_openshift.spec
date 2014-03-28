@@ -1,6 +1,6 @@
 Summary:       Openshift PAM module
 Name:          pam_openshift
-Version: 1.10.1
+Version: 1.12.0
 Release:       1%{?dist}
 Group:         System Environment/Base
 License:       GPLv2
@@ -41,155 +41,15 @@ install -D -m 644 oo-namespace-init.8 %{buildroot}/%{_mandir}/man8/oo-namespace-
 %attr(0750,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
-* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
-- bump_minor_versions for sprint 33 (admiller@redhat.com)
+* Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 1.11.2-1
+- WIP Node Platform - Improve oo-namespace-init performance (jhonce@redhat.com)
 
-* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
-- Bug 977936 - /usr/sbin/oo-namespace-init needs a man page
-  (bleanhar@redhat.com)
+* Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 41 (admiller@redhat.com)
 
-* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
-- bump_minor_versions for sprint 32 (admiller@redhat.com)
+* Mon Feb 10 2014 Adam Miller <admiller@redhat.com> 1.10.3-1
+- Cleaning specs (dmcphers@redhat.com)
 
-* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
-- Bug 960355 - Fix file permissions. (rmillner@redhat.com)
-
-* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
-- bump_minor_versions for sprint 31 (admiller@redhat.com)
-
-* Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
-- If the home directory entry is empty, then its not a valid OpenShift user.
-  (rmillner@redhat.com)
-
-* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
-- bump_minor_versions for sprint 30 (admiller@redhat.com)
-
-* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
-- require attr from pam_openshift (calfonso@redhat.com)
-- Bug 972977 - Fails on all numeric usernames.  Improve performance by
-  eliminating call to oo-get-mcs-level where possible. (rmillner@redhat.com)
-
-* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
-- bump_minor_versions for sprint 28 (admiller@redhat.com)
-
-* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
-- The sandbox directory is owned by the gear user in v2. (rmillner@redhat.com)
-
-* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
-- bump_minor_versions for sprint 26 (admiller@redhat.com)
-
-* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
-- remove old obsoletes (tdawson@redhat.com)
-
-* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
-- bump_minor_versions for sprint 25 (admiller@redhat.com)
-
-* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
-- pam_openshift build requires gcc (mlamouri@redhat.com)
-
-* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
-- Configure is unused and .la should be generated when its needed.
-  (rmillner@redhat.com)
-- Inspect just the selinux type rather than the whole returned string.
-  (rmillner@redhat.com)
-
-* Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
-- change %%define to %%global (tdawson@redhat.com)
-
-* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.3.1-1
-- bump_minor_versions for sprint 24 (admiller@redhat.com)
-
-* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.2.3-1
-- make Source line uniform among all spec files (tdawson@redhat.com)
-
-* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.2.2-1
-- remove default configuration since this prevent login ( RH#885479 )
-  (misc@zarb.org)
-
-* Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
-- bump_minor_versions for sprint 21 (admiller@redhat.com)
-
-* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
-- Increase the table sizes to cover 15000 nodes in dev and prod.
-  (rmillner@redhat.com)
-- change libra to openshift in pam_openshift man page (tdawson@redhat.com)
-- The introduction of polydir shm caused errors in oo-namespace-init.
-  (rmillner@redhat.com)
-
-* Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
-- bump_minor_versions for sprint 20 (admiller@redhat.com)
-
-* Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 1.0.6-1
-- Fixes for LiveCD build (kraman@gmail.com)
-
-* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.5-1
-- Added man pages for broker-util/node-util, port complete-origin-setup to bash
-  (admiller@redhat.com)
-
-* Wed Oct 24 2012 Dan McPherson <dmcphers@redhat.com> 1.0.4-1
-- new package built with tito
-
-* Wed Oct 24 2012 Troy Dawson <tdawson@redhat.com> 1.0.3-1
-- new package built with tito
-- renamed pam-openshift to pam_openshift
-
-* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
-- Fix spelling error in script (kraman@gmail.com)
-
-* Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
-- Bumping version number based on major changes. (rmillner@redhat.com)
-
-* Wed Oct 17 2012 Adam Miller <admiller@redhat.com> 0.99.14-1
-- new package built with tito
-
-* Wed Oct 17 2012 Krishna Raman <kraman@gmail.com> 0.99.14-1
-- Do not setup sandbox by default. (rmillner@redhat.com)
-- Add pam-namespace. (rmillner@redhat.com)
-- Move SELinux to Origin and use new policy definition. (rmillner@redhat.com)
-
-* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.13-1
-- Move SELinux to Origin and use new policy definition. (rmillner@redhat.com)
-
-* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.12-1
-- Install our changes into pam. (rmillner@redhat.com)
-
-* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.11-1
-- Update tags from rebase
-* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.10-1
-- Provide/obsolete pam-libra for devenv build. (rmillner@redhat.com)
-
-* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.9-1
-- Automatic commit of package [pam-openshift] release [0.99.8-1].
-  (rmillner@redhat.com)
-- Move SELinux to Origin and use new policy definition. Include backport
-  selinux package. (rmillner@redhat.com)
-
-* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.8-1
-- Move SELinux to Origin and use new policy definition. Include backport
-  selinux package. (rmillner@redhat.com)
-
-* Tue Oct 09 2012 Rob Millner <rmillner@redhat.com> 0.99.7-1
-- Automatic commit of package [pam-openshift] release [0.99.6-1].
-  (rmillner@redhat.com)
-- Move pam-openshift to the top level directory (rmillner@redhat.com)
-
-* Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 0.99.6-1
-- Move pam-openshift to the top level directory (rmillner@redhat.com)
-
-* Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 0.99.5-1
-- Minor specfile cleanup (rmillner@redhat.com)
-- Needed to quote the optflags. (rmillner@redhat.com)
-- Add optflags from RPM for the build. (rmillner@redhat.com)
-- Obtain correct version of GPLv2 license file. (rmillner@redhat.com)
-
-* Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 0.99.4-1
-- Read the SELinux context of the users home directory to determine if the
-  policy applies. (rmillner@redhat.com)
-- Rpmlint fixes. (rmillner@redhat.com)
-
-* Wed Oct 03 2012 Rob Millner <rmillner@redhat.com> 0.99.3-1
-- Specfile fixes (rmillner@redhat.com)
-
-* Wed Oct 03 2012 Rob Millner <rmillner@redhat.com> 0.99.2-1
-- Created pam-openshift package
-
+* Thu Jan 30 2014 Adam Miller <admiller@redhat.com> 1.10.2-1
+- Card origin_node_376 - namespace /tmp for non-gear users on Nodes
+  (jhonce@redhat.com)

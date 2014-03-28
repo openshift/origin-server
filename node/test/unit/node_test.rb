@@ -49,6 +49,8 @@ class NodeTest < OpenShift::NodeTestCase
         Versions: ['0.1', '0.2', '0.3']
         Cartridge-Version: '0.0.1'
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
         Group-Overrides:
           - components:
             - crtest-0.3
@@ -74,16 +76,16 @@ class NodeTest < OpenShift::NodeTestCase
     buffer = OpenShift::Runtime::Node.get_cartridge_list(true, true, true)
     refute_nil buffer
 
-    assert buffer == %Q(CLIENT_RESULT: [\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.3'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.3\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.2'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.1'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.1\\n  - web_proxy\\n\"])
+    assert_equal %Q(CLIENT_RESULT: [\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.3'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCategories:\\n- web_framework\\nCartridge-Version: 0.0.1\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.3\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.2'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCategories:\\n- web_framework\\nCartridge-Version: 0.0.1\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.1'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCategories:\\n- web_framework\\nCartridge-Version: 0.0.1\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.1\\n  - web_proxy\\n\"]), buffer
   end
 
   def test_node_utilization
     scenarios = [
-        {:node_profile => 'small', :quota_blocks => '1048576', :quota_files => '40000', :max_active_gears => '80',
+        {:node_profile => 'small', :quota_blocks => '1048576', :quota_files => '80000', :max_active_gears => '80',
          :max_active_apps => nil, :no_overcommit_active => false},
-        {:node_profile => 'medium', :quota_blocks => '2097152', :quota_files => '80000', :max_active_gears => nil,
+        {:node_profile => 'medium', :quota_blocks => '2097152', :quota_files => '160000', :max_active_gears => nil,
          :max_active_apps => '40', :no_overcommit_active => false},
-        {:node_profile => 'large', :quota_blocks => '4194304', :quota_files => '160000', :max_active_gears => '20',
+        {:node_profile => 'large', :quota_blocks => '4194304', :quota_files => '320000', :max_active_gears => '20',
          :max_active_apps => nil, :no_overcommit_active => true},
     ]
 

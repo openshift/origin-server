@@ -22,3 +22,7 @@ function create-virtenv {
 
     relative-virtenv
 }
+
+function activate-virtenv {
+    source $OPENSHIFT_PYTHON_DIR/virtenv/bin/activate
+}

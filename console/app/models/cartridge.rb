@@ -85,6 +85,10 @@ class Cartridge < RestApi::Base
     @scales.present? || supported_scales_from != supported_scales_to
   end
 
+  def uses_gears?
+    !(scales_from == 0 && scales_to == 0)
+  end
+
   # deprecated with args
   def scales_with(*args)
     args.length == 0 ? super : begin
@@ -159,7 +163,7 @@ class Cartridge < RestApi::Base
   end
 
   def cartridge_type
-    @cartridge_type ||= (CartridgeType.cached.find(name) rescue CartridgeType.new(@attributes.slice('name', 'display_name', 'website', 'version', 'type', 'tags', 'license', 'license_url')))
+    @cartridge_type ||= (CartridgeType.cached.find(name) rescue CartridgeType.new(@attributes.slice('name', 'url', 'display_name', 'website', 'version', 'type', 'tags', 'license', 'license_url', 'help_topics')))
   end
 end
 

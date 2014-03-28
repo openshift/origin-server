@@ -11,7 +11,7 @@ class DescriptorsControllerTest < ActionController::TestCase
     @user = CloudUser.new(login: @login)
     @user.private_ssl_certificates = true
     @user.save
-    Lock.create_lock(@user)
+    Lock.create_lock(@user.id)
     register_user(@login, @password)
 
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
@@ -22,7 +22,7 @@ class DescriptorsControllerTest < ActionController::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, nil, true)
+    @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain, :scalable => true)
     @app.save
   end
 

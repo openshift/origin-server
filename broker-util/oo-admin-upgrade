@@ -50,7 +50,7 @@ module OpenShift
 
     ##
     # High level metadata about the portion of the cluster
-    # being upgraded by this upgrader (e.g. the subset of 
+    # being upgraded by this upgrader (e.g. the subset of
     # nodes to be upgraded).
     #
     class ClusterMetadata < UpgradePersistable
@@ -137,6 +137,8 @@ module OpenShift
     #
     class GearUpgradeResult < UpgradePersistable
       attr_accessor :login,
+                    :plan_id,
+                    :active,
                     :app_name,
                     :gear_uuid,
                     :namespace,
@@ -162,7 +164,7 @@ module OpenShift
 end
 
 class Upgrader
-  WORK_DIR = '/tmp/oo-upgrade'
+  WORK_DIR = '/var/log/openshift/broker/upgrade'
 
   ##
   # The primary upgrade method. Executes cluster-wide upgrades using the following process:
@@ -206,7 +208,7 @@ class Upgrader
   #                              slots which each upgrader process must assign itself to. All positions must
   #                              be taken to upgrade.
   #
-  #  :upgrade_position         - Postion of this upgrader (1 based) amongst the num of upgraders (+num_upgraders+)
+  #  :upgrade_position         - Position of this upgrader (1 based) amongst the num of upgraders (+num_upgraders+)
   #
   #  :max_threads              - The maximum numbers of threads to use when processing nodes from the node queue.
   #                              Default is +12+.
@@ -368,7 +370,7 @@ class Upgrader
   #      the ordered list of nodes to be upgraded
   #
   #   3. A gear queue file per node, where each line in the queue file is a JSON dump of a
-  #      +GearQueueEntry+ represnting a gear to be upgraded.
+  #      +GearQueueEntry+ representing a gear to be upgraded.
   #
   # Expects an argument hash with data to store along with each node queue entry used to construct
   # the gear level node queues. Each argument is typically just passed through from +upgrade+; see
@@ -407,12 +409,12 @@ class Upgrader
                 "name",
                 "gears.uuid",
                 "gears.server_identity",
-                "gears.name"], 
+                "gears.name"],
                :timeout => false}
 
     ret = []
     user_map = {}
-    OpenShift::DataStore.find(:cloud_users, {}, {:fields => ["_id", "uuid", "login"], :timeout => false}) do |hash|
+    OpenShift::DataStore.find(:cloud_users, {}, {:fields => ['_id', 'uuid', 'login'], :timeout => false}) do |hash|
       metadata.logins_count += 1
       user_uuid = hash['uuid']
       user_login = hash['login']
@@ -630,7 +632,7 @@ class Upgrader
       # start the upgrades in a retry loop
       (1..num_tries).each do |i|
         # perform the upgrade
-        result = upgrade_gear(gear.login, gear.app_name, gear.gear_uuid, gear.version, ignore_cartridge_version)
+        result = upgrade_gear(gear.login, gear.app_name, gear.gear_uuid, gear.version, ignore_cartridge_version, gear.active)
 
         # write the results if all is well
         if result.errors.empty?
@@ -665,7 +667,7 @@ class Upgrader
 
         # if not, throw a warning and move on
         unless user && Application.find_by_user(user, gear.app_name)
-          gear_result.warnings << "App '#{gear.app_name}' no longer found in datastore with uuid '#{gear.gear_uuid}'.  Ignoring..." 
+          result.warnings << "App '#{gear.app_name}' no longer found in datastore with uuid '#{gear.gear_uuid}'.  Ignoring..." 
           append_to_file(results_file, result.to_json)
           break
         end
@@ -704,7 +706,7 @@ class Upgrader
   # NOTE: All exceptions are trapped and added to the +GearUpgradeResult.errors+.
   # This method should always return the hash and should never bubble exceptions.
   #
-  def upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=false)
+  def upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=false, active=false)
     gear_result = OpenShift::Upgrader::GearUpgradeResult.new({
       login: login,
       app_name: app_name,
@@ -723,6 +725,8 @@ class Upgrader
 
       raise "User not found: #{login}" unless user
 
+      gear_result.plan_id = user.plan_id
+      gear_result.active = active
       app, gear = Application.find_by_gear_uuid(gear_uuid)
 
       gear_result.warnings << "App '#{app_name}' not found" unless app
@@ -806,6 +810,8 @@ class Upgrader
 
     leftover_gears_per_node = {}
     failed_gears_per_node = {}
+    failed_gears_per_plan = {}
+    failed_gears_per_state = {}
 
     upgrade_result.starting_node_queue.each do |node|
       server_identity = node.server_identity
@@ -818,6 +824,20 @@ class Upgrader
 
       if File.exists?(gear_rerun_queue_file)
         failed_gears_per_node[server_identity] = `wc -l #{gear_rerun_queue_file}`.to_i
+      end
+
+      error_file_path = error_file_path(server_identity)
+      if File.exists? error_file_path
+        failed_gurs = OpenShift::Upgrader::GearUpgradeResult.entries_from_json_array_file(error_file_path)
+        failed_gurs.each do |failed_gur|
+          if failed_gur.plan_id
+            failed_gears_per_plan[failed_gur.plan_id] = 0 unless failed_gears_per_plan[failed_gur.plan_id]
+            failed_gears_per_plan[failed_gur.plan_id] += 1
+          end
+          state = failed_gur.active ? 'Active' : 'Inactive'
+          failed_gears_per_state[state] = 0 unless failed_gears_per_state[state]
+          failed_gears_per_state[state] += 1
+        end
       end
     end
 
@@ -855,6 +875,18 @@ class Upgrader
     buf << "# of users: #{upgrade_result.cluster_metadata.logins_count}"
     buf << "# of gears: #{upgrade_result.gear_count}"
     buf << "# of failures: #{failed_gears_total}"
+    if failed_gears_per_plan.any?
+      buf << "# of failures per plan:"
+      failed_gears_per_plan.each do |plan_id, count|
+        buf << "    #{plan_id}: #{count}"
+      end
+    end
+    if failed_gears_per_state.any?
+      buf << "# of failures per state:"
+      failed_gears_per_state.each do |state, count|
+        buf << "    #{state}: #{count}"
+      end
+    end
     buf << "# of leftovers: #{leftover_gears_total}"
     buf << "Gear counts per thread: #{upgrade_result.gear_counts.pretty_inspect}"
     buf << "Nodes upgraded: #{upgrader_position_nodes.pretty_inspect}" if !upgrader_position_nodes.empty?
@@ -966,7 +998,7 @@ class UpgraderCli < Thor
       STDOUT.sync, STDERR.sync = true
 
       # Disable analytics for admin scripts
-      require '/var/www/openshift/broker/config/environment'
+      require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
       Rails.configuration.analytics[:enabled] = false
       Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 
@@ -1023,7 +1055,7 @@ class UpgraderCli < Thor
   method_option :version, :type => :string, :required => true, :desc => "Target version number"
   method_option :ignore_cartridge_version, :type => :boolean, :default => false, :desc => "Force cartridge upgrade even if cartridge versions match"
   method_option :upgrade_node, :type => :string, :required => false, :desc => "Server identity of the node to upgrade"
-  method_option :upgrade_position, :type => :numeric, :required => false, :desc => "Postion of this upgrader (1 based) amongst the num of upgraders"
+  method_option :upgrade_position, :type => :numeric, :required => false, :desc => "Position of this upgrader (1 based) amongst the num of upgraders"
   method_option :num_upgraders, :type => :numeric, :required => false, :desc => "The total number of upgraders to be run.  Each upgrade-position will be a "\
                                                                                 "upgrade-position of num-upgraders.  All positions must to taken to upgrade "\
                                                                                 "all gears."

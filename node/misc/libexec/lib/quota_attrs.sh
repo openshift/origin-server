@@ -3,7 +3,8 @@
 
 uuid=$1
 
-q=$(quota --always-resolve -w -u ${uuid} | tail -n1)
+# Ignore errors about bind mounts user cannot read
+q=$(quota --always-resolve -w -u ${uuid} 2>/dev/null | tail -n1)
 quota_blocks=`echo $q | gawk '{print $4}'`
 echo "ATTR: quota_blocks=$quota_blocks"
 quota_files=`echo $q | gawk '{print $7}'`

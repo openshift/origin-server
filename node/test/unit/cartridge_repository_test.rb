@@ -99,7 +99,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert_equal 'crtest2', e.manifest['Display-Name']
     assert_equal '0.2', e.version
     assert_equal '0.0.2', e.cartridge_version
-    assert_empty e.categories
+    assert !e.categories.include?('service')
     assert e.manifest['Group-Overrides'][0]['components'].include?('crtest-0.2')
   end
 
@@ -129,7 +129,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
 
     e = cr.select('crtest', '0.1')
     assert_equal '0.0.1', e.cartridge_version
-    
+
     cr.expects(:installed_in_base_path?).with('crtest', '0.1', '0.0.1').returns(false)
     cr.erase('crtest', '0.1', '0.0.1')
 
@@ -195,6 +195,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert cr.latest_cartridge_version?('crtest', '0.2', '0.0.2')
     assert !cr.latest_cartridge_version?('crtest', '0.2', '0.0.1')
     assert !cr.latest_cartridge_version?('crtest', '0.1', '0.0.3')
+
+    assert_equal '0.0.2', cr.latest_cartridge_version('crtest')
   end
 
   def test_latest_versions
@@ -205,7 +207,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
 
     cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
-    
+
     e = cr.select('crtest', '0.1')
     refute_nil e
     assert_equal '0.1', e.version
@@ -220,7 +222,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert_equal '0.2', e.version
     assert_equal '0.0.3', e.cartridge_version
     assert e.manifest['Group-Overrides'][0]['components'].include?('crtest-0.2')
-    
+
     e  = cr.select('crtest', '0.3')
     refute_nil e
     assert_equal '0.3', e.version
@@ -240,6 +242,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
       assert_equal 'crtest', cart.name
       assert_equal 'crtest', cart.manifest['Name']
     end
+
+    assert_equal 2, latest.length
 
     latest.delete_if do |cart|
       cart.cartridge_version == lookup[cart.version]
@@ -270,6 +274,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
         Versions: ['0.1', '0.2', '0.3']
         Cartridge-Version: '0.0.1'
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
         Group-Overrides:
           - components:
             - crtest-0.3
@@ -323,6 +329,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
         Cartridge-Version: '0.0.1'
         Compatible-Versions: ['1.0']
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
       },
       %q{#
         Name: crtest
@@ -333,6 +341,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
         Cartridge-Version: '0.0.2'
         Compatible-Versions: ['0.0.1']
         Cartridge-Vendor: redhat
+        Categories:
+          - embedded
         Source-Url: http://example.com
         Group-Overrides:
           - components:
@@ -356,6 +366,8 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
         Versions: ['0.2', '0.3']
         Cartridge-Version: '0.0.3'
         Cartridge-Vendor: redhat
+        Categories:
+          - web_framework
         Group-Overrides:
           - components:
             - crtest-0.3

@@ -4,7 +4,7 @@ module OpenShift
   module Runtime
     module ApplicationContainerExt
       module SecureShell
-        
+
         # Manage a user (gear/container) SSH authorized_keys file and entries
         class AuthorizedKeysFile
 
@@ -36,7 +36,7 @@ module OpenShift
 
             @lockfile = "/var/lock/oo-modify-ssh-keys.#{@username}"
           end
-          
+
           def authorized_keys
             modify
           end
@@ -52,19 +52,45 @@ module OpenShift
           #
           # Examples
           #
-          #   add_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
+          #   add_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
           #               'ssh-rsa',
           #               'example@example.com')
           #   # => nil
           #
           # Returns nil on Success or raises on Failure
           def add_key(key_string, key_type=nil, comment=nil)
+            #@container.logger.info "Adding new key #{key_string} #{key_type} #{comment}"
             comment = "" unless comment
 
             modify do |keys|
               keys[key_id(comment)] = key_entry(key_string, key_type, comment)
             end
 
+          end
+
+          #
+          # Bodies from environment.rb globals
+          #
+          # Public: Append SSH keys to a users authorized_keys file
+          #
+          # keys - An Array of keys
+          #
+          # Examples
+          #
+          #   add_keys([{"content"=>'AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
+          #               "type" => 'ssh-rsa',
+          #               "comment" => 'example@example.com'}])
+          #   # => nil
+          #
+          # Returns nil on Success or raises on Failure
+          def add_keys(new_keys)
+            #@container.logger.info "Adding these new keys #{new_keys}"
+            modify do |keys|
+              new_keys.each do |k|
+                comment = k["comment"] || ""
+                keys[key_id(comment)] = key_entry(k["content"], k["type"], comment)
+              end
+            end
           end
 
           # Public: Remove an SSH key from a users authorized_keys file
@@ -88,6 +114,31 @@ module OpenShift
                 keys.delete_if{ |k, v| v.end_with?(key_id(comment)) }
               else
                 keys.delete_if{ |k,v| v.include?(key_string) }
+              end
+            end
+          end
+
+          # Public: Remove SSH keys from a users authorized_keys file
+          #
+          # keys - An Array of keys
+          #
+          # Examples
+          #
+          #   remove_keys([{"content"=>'AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
+          #               "type" => 'ssh-rsa',
+          #               "comment" => 'example@example.com'}])
+          #   # => nil
+          #
+          # Returns nil on Success or raises on Failure
+          #
+          def remove_keys(old_keys)
+            modify do |keys|
+              old_keys.each do |key|
+                if key["comment"]
+                  keys.delete_if{ |k, v| v.end_with?(key_id(key["comment"])) }
+                else
+                  keys.delete_if{ |k,v| v.include?(key["content"]) }
+                end
               end
             end
           end
@@ -130,12 +181,6 @@ module OpenShift
                 keys[id] = entry
               end
             end
-      
-            # set/reset the SELinux context for the .ssh directory
-            ssh_dir = PathUtils.join(@container.container_dir, "/.ssh")
-            cmd = "restorecon -R #{ssh_dir}"
-            ::OpenShift::Runtime::Utils::oo_spawn(cmd)
-
           end
 
           private
@@ -202,39 +247,34 @@ module OpenShift
           # @return [Hash] authorized keys with the comment field as the key
           def modify
             authorized_keys_file = @filename
-            keys = Hash.new
+            keys                 = Hash.new
 
             @@mutex.synchronize do
-              File.open(@lockfile, File::RDWR|File::CREAT|File::TRUNC, 0600) do | lock |
-                lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-                lock.flock(File::LOCK_EX)
-                begin
-                  File.open(authorized_keys_file, File::RDWR|File::CREAT, @mode) do |file|
-                    file.each_line do |line|
-                      begin
-                        keys[line.split[-1].chomp] = line.chomp
-                      rescue
-                      end
+              PathUtils.flock(@lockfile) do
+                File.open(authorized_keys_file, File::RDWR|File::CREAT, @mode) do |file|
+                  file.each_line do |line|
+                    begin
+                      keys[line.split[-1].chomp] = line.chomp
+                    rescue
                     end
-
-                    if block_given?
-                      old_keys = keys.clone
-
-                      yield keys
-
-                      if old_keys != keys
-                        file.seek(0, IO::SEEK_SET)
-                        file.write(keys.values.join("\n")+"\n")
-                        file.truncate(file.tell)
-                      end
-                    end
-                    file.close
                   end
-                  @container.set_ro_permission(authorized_keys_file)
-                  ::OpenShift::Runtime::Utils::oo_spawn("restorecon #{authorized_keys_file}")
-                ensure
-                  lock.flock(File::LOCK_UN)
+
+                  if block_given?
+                    old_keys = keys.clone
+
+                    yield keys
+
+                    if old_keys != keys
+                      file.seek(0, IO::SEEK_SET)
+                      file.write(keys.values.join("\n")+"\n")
+                      file.truncate(file.tell)
+                    end
+                  end
+                  file.close
                 end
+                PathUtils.oo_chown(0, @container.gid, authorized_keys_file)
+                @container.chcon(authorized_keys_file,
+                                      ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid))
               end
             end
             keys

@@ -44,6 +44,7 @@ class Scope::Domain < Scope::Parameterized
     when Application then criteria = criteria.where(:domain_id => @id)
     when Domain then (criteria.options[:for_ids] ||= []) << @id
     when CloudUser then (criteria.options[:visible] ||= domain_scope == :admin)
+    when Team then (criteria.options[:visible] ||= domain_scope == :admin)
     else criteria.options[:visible] ||= false
     end
     criteria
