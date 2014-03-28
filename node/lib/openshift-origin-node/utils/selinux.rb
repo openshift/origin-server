@@ -50,16 +50,17 @@ module OpenShift
     module Utils
       class SELinux
 
-        @@DEF_RUN_USER="unconfined_u"
-        @@DEF_RUN_ROLE="system_r"
-        @@DEF_RUN_TYPE="openshift_t"
-        @@DEF_RUN_LABEL="s0"
+        @@DEF_RUN_USER  = 'unconfined_u'
+        @@DEF_RUN_ROLE  = 'system_r'
+        @@DEF_RUN_TYPE  = 'openshift_t'
+        @@DEF_RUN_LABEL = 's0'
 
-        @@DEF_MCS_SET_SIZE   = 1024  # baked into SELinux
-        @@DEF_MCS_GROUP_SIZE =    2  # 2 is historical OpenShift value
-        @@DEF_MCS_UID_OFFSET =    0
-        @@DEF_MLS_NUM    =        0  # 0 unless MLS in use
+        @@DEF_MCS_SET_SIZE   = 1024       # baked into SELinux
+        @@DEF_MCS_GROUP_SIZE = 2          # 2 is historical OpenShift value
+        @@DEF_MCS_UID_OFFSET = 0
+        @@DEF_MLS_NUM        = 0          # 0 unless MLS in use
 
+        @@mutex              = Mutex.new  # protect matchpathcon context
 
         #
         # Public: Return an enumerator which yields each UID -> MCS label combination.
@@ -167,9 +168,11 @@ module OpenShift
         # @return [Array<Context_s_t, Context_s_t>] The expected context and actual context
         def self.path_context(path)
           matchpathcon_update
+
           mode     = File.lstat(path).mode & 07777
           actual   = Selinux.lgetfilecon(path)
-          expected = Selinux.matchpathcon(path, mode)
+          expected = -1
+          @@mutex.synchronize { expected = Selinux.matchpathcon(path, mode) }
 
           if -1 == expected
             if -1 == actual
@@ -249,27 +252,22 @@ module OpenShift
           Selinux.getcon[1]
         end
 
-        private
-
         @@matchpathcon_files_mtimes = Hash.new
-        @@mutex = Mutex.new
+        FILE_CONTEXT_PATH           = Selinux.selinux_file_context_path + '*'
 
         #
-        # Private: Update the file context database cache
+        # Public: Update the file context database cache
         #
         def self.matchpathcon_update
           @@mutex.synchronize do
-            new_files_mtimes = Hash.new
-            Dir.glob(Selinux.selinux_file_context_path + '*').each do |f|
-              new_files_mtimes[f] = File.stat(f).mtime
-            end
+            mtimes = Dir[FILE_CONTEXT_PATH].collect { |f| File.stat(f).mtime }
 
-            if new_files_mtimes != @@matchpathcon_files_mtimes
+            if mtimes != @@matchpathcon_files_mtimes
               Selinux.matchpathcon_fini unless @@matchpathcon_files_mtimes.empty?
 
               NodeLogger.logger.debug('The file context database is being reloaded.')
               Selinux.matchpathcon_init(nil)
-              @@matchpathcon_files_mtimes = new_files_mtimes
+              @@matchpathcon_files_mtimes = mtimes
             end
           end
         end
