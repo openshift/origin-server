@@ -25,6 +25,9 @@ Requires:      rubygem-passenger
 Requires:      rubygem-passenger-native
 Requires:      rubygem-passenger-native-libs
 Requires:      rubygems
+# BZ1066246 - Older versions rubygems required ruby-rdoc, but now we
+# need to declare the dependency here
+Requires:      ruby-rdoc
 Requires:      rubygem-thread-dump
 Requires:      %{?scl:%scl_prefix}rubygem-fastthread
 Requires:      %{?scl:%scl_prefix}runtime
