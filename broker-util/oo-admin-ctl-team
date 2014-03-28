@@ -16,11 +16,16 @@ class Command
     puts "Creating team: #{options.name} ..."
     team = Team.new(name: options.name, global: true)
     if team.valid?
-      team.save
+      begin
+        team.save_with_duplicate_check!
+      rescue Exception => ex
+        puts "ERROR: Could not create team. #{ex.message}"
+        exit 1
+      end
       puts "Team: #{options.name} created"
       0
     else
-      puts "ERROR: Could not create team ${team.errors}"
+      puts "ERROR: Could not create team #{team.errors}"
       1
     end  
   rescue ArgumentError
@@ -107,9 +112,14 @@ class Command
           #check to see if team with the same name exists and maps to the same group dn
           team = Team.new(name: params[0], global: true, maps_to: params[1])
           if team.valid?
-            team.save
+            begin
+              team.save_with_duplicate_check!
+            rescue Exception => ex
+              puts "ERROR: Could not create team. #{ex.message}"
+              next
+            end
           else
-            puts "ERROR: ${team.errors} skipping"
+            puts "ERROR: #{team.errors} skipping"
             next
           end
         else
@@ -145,7 +155,7 @@ class Command
         else
           puts "ERROR: Command #{command} not available for #{object_type}"
         end
-        team.save
+        team.save_with_duplicate_check!
         team.run_jobs
       end
     end
@@ -223,13 +233,18 @@ class Command
         if options.create_new_teams
           t = Team.new(name: group, global: true, maps_to: dn)
           if t.valid? 
-            t.save
+            begin
+              team.save_with_duplicate_check!
+            rescue Exception => ex
+              puts "ERROR: Could not create team. #{ex.message} skipping..."
+              next
+            end
           else
             puts "ERROR: Could not create team name: #{group} mapping to: #{dn} #{t.errors}"
             next
           end
         else
-          puts "Could not find team mapping to #{dn} skipping...."
+          puts "Could not find team mapping to #{dn} skipping..."
           next
         end
       end
