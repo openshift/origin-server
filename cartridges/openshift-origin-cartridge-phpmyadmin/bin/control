@@ -32,6 +32,7 @@ function stop {
 function restart {
   echo "Restarting PHPMyAdmin cartridge"
   write_httpd_passenv $HTTPD_PASSENV_FILE
+  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   if [ -f "$HTTPD_PID_FILE" ]; then
     httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
     kill -HUP $httpd_pid
