@@ -112,13 +112,13 @@ class TeamsControllerTest < ActionController::TestCase
   test "search" do
     @teams_to_tear_down << Team.create(name: "myteam", owner_id: @user.id)
     @teams_to_tear_down << Team.create(name: "mygroup", owner_id: @user.id)
-    @teams_to_tear_down << Team.create(name: "engineering-team", global: true)
-    @teams_to_tear_down << Team.create(name: "engineering-and-QE", global: true)
-    @teams_to_tear_down << Team.create(name: "engineering+qe", global: true)
-    @teams_to_tear_down << Team.create(name: "engineering[internal]", global: true)
-    @teams_to_tear_down << Team.create(name: "engineering-internal", global: true)
-    @teams_to_tear_down << Team.create(name: "**engineering**", global: true)
-    @teams_to_tear_down << Team.create(name: "engineering/development", global: true)
+    @teams_to_tear_down << Team.create(name: "engineering-team")
+    @teams_to_tear_down << Team.create(name: "engineering-and-QE")
+    @teams_to_tear_down << Team.create(name: "engineering+qe")
+    @teams_to_tear_down << Team.create(name: "engineering[internal]")
+    @teams_to_tear_down << Team.create(name: "engineering-internal")
+    @teams_to_tear_down << Team.create(name: "**engineering**")
+    @teams_to_tear_down << Team.create(name: "engineering/development")
     
     # reset controller, since we're modifying data out-of-band, and want a new instance of the controller to look up the model again
     @controller = TeamsController.new
@@ -129,30 +129,33 @@ class TeamsControllerTest < ActionController::TestCase
     assert data = json["data"]
     assert_equal data.length, 1
     assert_equal data.first["name"] , "engineering-team"
+    assert_equal data.first["global"] , true
 
     get :index, {"search" => "engineering", "global" => true}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json["data"]
     assert_equal data.length, 7
-    assert data.select{|d| d["name"] == "engineering-team"}.count == 1
-    assert data.select{|d| d["name"] == "engineering-and-QE"}.count == 1
+    assert_equal data.select{|d| d["name"] == "engineering-team"}.count , 1
+    assert_equal data.select{|d| d["name"] == "engineering-and-QE"}.count , 1
+    assert_equal data.select{|d| d["global"] == true}.count , 7
     
     get :index, {"search" => "qe", "global" => true}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json["data"]
     assert_equal data.length, 2
-    assert data.select{|d| d["name"] == "engineering+qe"}.count == 1
-    assert data.select{|d| d["name"] == "engineering-and-QE"}.count == 1
+    assert_equal data.select{|d| d["name"] == "engineering+qe"}.count , 1
+    assert_equal data.select{|d| d["name"] == "engineering-and-QE"}.count , 1
     
     get :index, {"search" => "my", "global" => "false"}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json["data"]
     assert_equal data.length, 2
-    assert data.select{|d| d["name"] == "myteam"}.count == 1
-    assert data.select{|d| d["name"] == "mygroup"}.count == 1
+    assert_equal data.select{|d| d["name"] == "myteam"}.count , 1
+    assert_equal data.select{|d| d["name"] == "mygroup"}.count , 1
+    assert_equal data.select{|d| d["global"] == false}.count , 2
     
     get :index, {"search" => "team", "global" => "false"}
     assert_response :success
@@ -160,6 +163,7 @@ class TeamsControllerTest < ActionController::TestCase
     assert data = json["data"]
     assert_equal data.length, 1
     assert_equal data.first["name"] , "myteam"
+    assert_equal data.first["global"] , false
     
     get :index, {"search" => "[]/*+", "global" => true}
     assert_response :success
@@ -186,22 +190,22 @@ class TeamsControllerTest < ActionController::TestCase
     assert json = JSON.parse(response.body)
     assert data = json["data"]
     assert_equal data.length, 2
-    assert data.select{|d| d["name"] == "engineering[internal]"}.count == 1
-    assert data.select{|d| d["name"] == "engineering-internal"}.count == 1
+    assert_equal data.select{|d| d["name"] == "engineering[internal]"}.count , 1
+    assert_equal data.select{|d| d["name"] == "engineering-internal"}.count , 1
     
     get :index, {"search" => "[internal]", "global" => true}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json["data"]
     assert_equal data.length, 1
-    assert data.select{|d| d["name"] == "engineering[internal]"}.count == 1
+    assert_equal data.select{|d| d["name"] == "engineering[internal]"}.count , 1
     
     get :index, {"search" => "+QE", "global" => true}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json["data"]
     assert_equal data.length, 1
-    assert data.select{|d| d["name"] == "engineering+qe"}.count == 1
+    assert_equal data.select{|d| d["name"] == "engineering+qe"}.count , 1
     
   end
   

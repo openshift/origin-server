@@ -14,14 +14,9 @@ class Command
     env!(options)
     
     puts "Creating team: #{options.name} ..."
-    team = Team.new(name: options.name, global: true)
+    team = Team.new(name: options.name)
     if team.valid?
-      begin
-        team.save_with_duplicate_check!
-      rescue Exception => ex
-        puts "ERROR: Could not create team. #{ex.message}"
-        exit 1
-      end
+      team.save
       puts "Team: #{options.name} created"
       0
     else
@@ -39,9 +34,9 @@ class Command
   def list(options)
     env!(options)
     
-    teams = Team.where(global: true)
+    teams = Team.where(owner_id: nil)
     teams.each do |team|
-      puts "#{team.name}  maps to:#{team.maps_to} global:#{team.global}"
+      puts "#{team.name}  maps to:#{team.maps_to} global:#{team.owner_id.nil?}"
     end
     0
   rescue => e
@@ -55,10 +50,10 @@ class Command
     raise ArgumentError, "Use -n or --name to specify a name" if options.name.nil?
     env!(options)
     puts "Getting team: #{options.name} ..."
-    team = Team.find_by(name: options.name, global: true) rescue nil
+    team = Team.find_by(name: options.name, owner_id: nil) rescue nil
     if team
       puts "Name: #{team.name}"
-      puts "Global: #{team.global}"
+      puts "Global: #{team.owner_id.nil?}"
       puts "Maps to: #{team.maps_to}"
       puts "Members:"
       team.members.each {|m| puts "\tName:#{m.n}"}
@@ -80,7 +75,7 @@ class Command
     raise ArgumentError, "Use -n or --name to specify a name" if options.name.nil?
     env!(options)
     puts "Deleting team: #{options.name} ..."
-    team = Team.find_by(name: options.name, global: true) rescue nil
+    team = Team.find_by(name: options.name, owner_id: nil) rescue nil
     if team
       team.destroy_team
       puts "Team: #{options.name} deleted"
@@ -110,14 +105,9 @@ class Command
       when "TEAM"
         if command == "ADD"
           #check to see if team with the same name exists and maps to the same group dn
-          team = Team.new(name: params[0], global: true, maps_to: params[1])
+          team = Team.new(name: params[0], maps_to: params[1])
           if team.valid?
-            begin
-              team.save_with_duplicate_check!
-            rescue Exception => ex
-              puts "ERROR: Could not create team. #{ex.message}"
-              next
-            end
+            team.save
           else
             puts "ERROR: #{team.errors} skipping"
             next
@@ -132,7 +122,7 @@ class Command
           puts "ERROR: Command #{command} not available for #{object_type}"
         end
       when "MEMBER"
-        team = Team.where(name: params[0], global: true).first
+        team = Team.where(name: params[0], owner_id: nil).first
         if team.nil?
           puts "ERROR: Could not find team: #{params[0]} skipping...}" if team.nil?
           next
@@ -155,7 +145,7 @@ class Command
         else
           puts "ERROR: Command #{command} not available for #{object_type}"
         end
-        team.save_with_duplicate_check!
+        team.save
         team.run_jobs
       end
     end
@@ -175,7 +165,7 @@ class Command
     env!(options)
     puts "Pre-Syncing groups #{options.groups}"
     groups = options.groups
-    teams = Team.where(global: true)
+    teams = Team.where(owner_id: nil)
     groups.each do |group|
       dn = get_group(group)
       if team.select{|t| t.maps_to == dn}.count == 0
@@ -187,7 +177,7 @@ class Command
         end
       end
     end if groups
-    teams_to_sync = Team.where(global: true).select{|t| t.maps_to}
+    teams_to_sync = Team.where(onwer_id: nil).select{|t| t.maps_to}
     teams_to_sync.each do |team|
       users = get_users_in_group(team.maps_to)
       members_to_add = []
@@ -226,30 +216,25 @@ class Command
     env!(options)
     puts "Syncing groups #{options.groups}"
     groups = options.groups
-    teams = Team.where(global: true)
+    teams = Team.where(owner_id: nil)
     groups.each do |group|
       dn = get_group(group)
       if teams.select{|t| t.maps_to == dn}.count == 0
         if options.create_new_teams
-          t = Team.new(name: group, global: true, maps_to: dn)
+          t = Team.new(name: group, maps_to: dn)
           if t.valid? 
-            begin
-              team.save_with_duplicate_check!
-            rescue Exception => ex
-              puts "ERROR: Could not create team. #{ex.message} skipping..."
-              next
-            end
+            t.save
           else
             puts "ERROR: Could not create team name: #{group} mapping to: #{dn} #{t.errors}"
             next
           end
         else
-          puts "Could not find team mapping to #{dn} skipping..."
+          puts "Could not find team mapping to #{dn} skipping...."
           next
         end
       end
     end if groups
-    teams_to_sync = Team.where(global: true).select{|t| t.maps_to}
+    teams_to_sync = Team.where(owner_id: nil).select{|t| t.maps_to}
     teams_to_sync.each do |team|
       users = get_users_in_group(team.maps_to)
       members_to_add = CloudUser.where(:login.in => users)
@@ -306,12 +291,7 @@ class Command
     
     def create_team(name, user, maps_to)
       puts "Creating team name:#{name} for user:#{user.login} with mapping to: #{maps_to}"
-      team = Team.new(name: name, owner_id: user._id, maps_to: maps_to, global: true)
-      if team.valid?
-        team.save
-      else
-        
-      end
+
     end
     
     def get_users_in_group(group_name)

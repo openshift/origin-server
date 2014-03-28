@@ -19,7 +19,7 @@ class TeamMembersController < MembersController
     end
     
     def check_global
-      return render_error(:unprocessable_entity, "You cannot modify the membership of this team, because it maps to an external group.", 1) unless membership.maps_to.nil?
+      return render_error(:unprocessable_entity, "You cannot modify the membership of this team, because it maps to an external group.", 1) if membership.owner_id.nil?
     end
 
 end

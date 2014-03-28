@@ -2,8 +2,10 @@ class RestTeam < OpenShift::Model
   attr_accessor :id, :name, :global, :maps_to, :links
 
   def initialize(team, url, nolinks=false, include_members=false)
-    [:id, :name, :global, :maps_to].each{ |sym| self.send("#{sym}=", team.send(sym)) }
+    [:id, :name, :maps_to].each{ |sym| self.send("#{sym}=", team.send(sym)) }
 
+    self.global = team.owner_id ? false : true
+    
     if include_members
       @members = team.members.map{ |m| RestMember.new(m, team.owner_id == m._id, url, team, nolinks) }
     end

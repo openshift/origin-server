@@ -16,7 +16,6 @@ class Team
   end
 
   field :name, type: String
-  field :global, type: Boolean, default: false
   #only settable via admin script
   field :maps_to, type: String, default: nil
   belongs_to :owner, class_name: CloudUser.name

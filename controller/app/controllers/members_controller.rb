@@ -306,7 +306,7 @@ class MembersController < BaseController
     end
 
     def is_owner_or_global_or_already_exists?(errors, team)
-      if team.owner_id == current_user._id or existing_team_member_ids.include?(team.id) or team.global
+      if team.owner_id == current_user._id or existing_team_member_ids.include?(team.id) or team.owner_id.nil?
         return true
       else
         errors << Message.new(:error, "You cannot add the team '#{team.name}' because you are not the owner.", 132, "id")

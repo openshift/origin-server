@@ -28,7 +28,8 @@ class TeamMembersControllerTest < ActionController::TestCase
     @member2 = CloudUser.new(login: member_name)
     @member2.save
     Lock.create_lock(@member2.id)
-
+    #global teams need to be cleaned up since they will not be deleted as part of user delete (no ownership)
+    @teams_to_tear_down = []
     stubber
 
   end
@@ -38,6 +39,9 @@ class TeamMembersControllerTest < ActionController::TestCase
       @user.force_delete
       @member1.force_delete
       @member2.force_delete
+      @teams_to_tear_down.each do |team|
+        team.destroy_team
+      end
     rescue Exception => ex
       puts ex
     end
@@ -217,7 +221,8 @@ class TeamMembersControllerTest < ActionController::TestCase
   end
   
   test "global team membership" do 
-    global_team = Team.create(name: "global-team#{@random}", owner_id:@user._id, global: true, maps_to: "mygroup")
+    global_team = Team.create(name: "global-team#{@random}", maps_to: "mygroup")
+    @teams_to_tear_down.push(global_team)
     post :create, {"team_id" => global_team.id, "login" => @member1.login, "role" => "view"}
     assert_response :unprocessable_entity
 

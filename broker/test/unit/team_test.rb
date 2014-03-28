@@ -486,14 +486,14 @@ class TeamTest < ActiveSupport::TestCase
   
   def test_duplicate_global_team
     Team.where(:name => 'test-team').delete
-    assert t = Team_create(:global => true, :name => "test-team", :maps_to => "test-group")
+    assert t = Team_create(:name => "test-team", :maps_to => "test-group")
     #make sure the validation does not prevent team save
     t.reload
     assert t.valid?
     assert t.save
     t = Team.new(name: "test-team")
     assert_raise(Moped::Errors::OperationFailure) {t.save}
-    t = Team.new(global: true, name: "myteam", maps_to: "test-group")
+    t = Team.new(name: "myteam", maps_to: "test-group")
     assert t.invalid?
     
     CloudUser.where(:login => 'team-owner-1').delete
