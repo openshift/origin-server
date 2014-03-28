@@ -430,14 +430,13 @@ module OpenShift
       def unidle_gear(options={})
         output = ''
         OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
+          # When invoked as gear, state may be set to Started before unidle is called
+          frontend = FrontendHttpServer.new(self)
+          frontend.unidle if frontend.idle?
+
           if state.value == State::IDLE
-            begin
               state.value = State::STARTED
               output      = start_gear
-            ensure
-              frontend = FrontendHttpServer.new(self)
-              frontend.unidle if frontend.idle?
-            end
           end
         end
         output
