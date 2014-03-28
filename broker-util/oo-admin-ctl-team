@@ -154,7 +154,7 @@ class Command
     warn $!
     1
   rescue => e
-    exception e, "Failed to sync-from-file ${options.in_file}"
+    exception e, "Failed to sync-from-file #{options.in_file}"
     1
   end
 
