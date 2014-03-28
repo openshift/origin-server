@@ -13,7 +13,6 @@ essentials_functionals = [
   'test/node_functional/cartridge_repository_func_test.rb',
   'test/node_functional/cartridge_repository_web_func_test.rb',
   'test/node_functional/node_func_test.rb',
-  'test/node_functional/oo_trap_user_func_test.rb',
   'test/node_functional/path_utils_test.rb',
   'test/node_functional/shell_exec_func_test.rb',
   'test/node_functional/unix_user_func_test.rb'
