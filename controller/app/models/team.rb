@@ -69,7 +69,7 @@ class Team
     # Limit to members of type 'team'
     # Select ids
     # Remove duplicates
-    peer_team_ids = Domain.accessible(to).and({'members.t' => Team.member_type}).only(:members).map(&:members).flatten(1).select {|m| m.type == 'team'}.map(&:_id).uniq
+    peer_team_ids = Domain.accessible(to).and({'members.t' => Team.member_type}).map(&:members).flatten(1).select {|m| m.type == 'team'}.map(&:_id).uniq
 
     # Return teams which would normally be accessible or peer teams
     self.or(super.selector, {:id.in => peer_team_ids})
