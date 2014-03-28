@@ -24,6 +24,33 @@ module OpenShift
 
         # Subclass OpenShift::Config so we can split the values easily
         class Config < ::OpenShift::Config
+          def initialize(conf_path, default={})
+            super
+            @tc_outbound_htb = Hash.new {|h, k| h[k] = []}
+            tc_outbound_groups.each do |group_name|
+              k = [@conf[group_name]["rate"],  @conf[group_name]["ceil"]]
+              v = @conf[group_name]["port"]
+              @tc_outbound_htb[k] << v
+            end
+          end
+
+          def tc_outbound_groups
+            @conf.groups.select {|g| g =~ /tc_outbound_limit/}
+          end
+
+          def tc_outbound_htb
+            # Defaults for backwards compatibility
+            # TODO: Remove this logic as soon as Online has the new code and
+            # has updated resource_limits.conf.
+            if @tc_outbound_htb.keys.empty?
+              @tc_outbound_htb = { ["128kbit", "256kbit"] => [587],
+                                   ["12kbit", "24kbit"] => [25, 465]
+                                 }
+            else
+              @tc_outbound_htb
+            end
+          end
+
           def get(key)
             super(key.gsub('.','_'))
           end
