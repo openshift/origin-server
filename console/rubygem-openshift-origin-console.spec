@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.22.6
+Version: 1.22.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -160,6 +160,11 @@ cp -p bin/oo-* %{buildroot}%{_sbindir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Mar 28 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
+- Bug 1081869 - console needs oo-admin-console-cache to clear its cache.
+  Deprecate use of --console flag on oo-admin-broker-cache
+  (jforrest@redhat.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
 - [origin-dev-ui-162] surface more information in the UI for external
   cartridges (contact@fabianofranz.com)
