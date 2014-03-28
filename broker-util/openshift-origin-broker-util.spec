@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.22.6
+Version: 1.22.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -105,6 +105,11 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Fri Mar 28 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
+- Bug 1081869 - console needs oo-admin-console-cache to clear its cache.
+  Deprecate use of --console flag on oo-admin-broker-cache
+  (jforrest@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
 - Bug 1081419 - Move oo-upgrade to /var/log (dmcphers@redhat.com)
 
