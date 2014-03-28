@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.22.8
+Version: 1.22.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Mar 28 2014 Adam Miller <admiller@redhat.com> 1.22.9-1
+- Use application.owner_id in unlock_app (jliggitt@redhat.com)
+- Fix app locking from team member change (jliggitt@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
 - Merge pull request #5089 from lnader/master
   (dmcphers+openshiftbot@redhat.com)
