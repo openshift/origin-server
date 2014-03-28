@@ -19,7 +19,7 @@ bind-address=<%= ENV['OPENSHIFT_MYSQL_DB_HOST'] %>
 symbolic-links=0
 key_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? '32' : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.1).to_i %>M
 max_allowed_packet = 200M
-table_open_cache = 4
+table_open_cache = <%= ENV['OPENSHIFT_MYSQL_TABLE_OPEN_CACHE'] ? ENV['OPENSHIFT_MYSQL_TABLE_OPEN_CACHE'] : '4' %>
 sort_buffer_size = 128K
 read_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? '8' : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.05).to_i %>M
 read_rnd_buffer_size = 256K
