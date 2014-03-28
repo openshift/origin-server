@@ -153,7 +153,9 @@ class Lock
       # If the domain is being read from the secondary, it may not be present
       # If domain is nil, try to load the domain from the primary
       # Note: If there is a way to load the domain relationship from the primary, we should do that 
-      if application.domain.nil?
+      if application.owner_id.present?
+        user_id = application.owner_id
+      elsif application.domain.nil?
         user_id = Domain.find_by(_id: application.domain_id).owner_id
       else
         user_id = application.domain.owner_id
@@ -185,7 +187,9 @@ class Lock
       # If the domain is being read from the secondary, it may not be present
       # If domain is nil, try to load the domain from the primary
       # Note: If there is a way to load the domain relationship from the primary, we should do that 
-      if application.domain.nil?
+      if application.owner_id.present?
+        user_id = application.owner_id
+      elsif application.domain.nil?
         user_id = Domain.find_by(_id: application.domain_id).owner_id
       else
         user_id = application.domain.owner_id
