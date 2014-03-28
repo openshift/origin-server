@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.22.5
+Version: 1.23.0
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
