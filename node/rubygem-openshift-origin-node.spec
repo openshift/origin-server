@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.10
+Version: 1.22.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,13 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Mar 28 2014 Adam Miller <admiller@redhat.com> 1.22.11-1
+- Bug 1081441 - unprivileged_unidle not updating idler.txt (jhonce@redhat.com)
+- Bug 1081249 - Synchronize access to selinux matchpath context
+  (jhonce@redhat.com)
+- Bug 1081249 - Synchronize access to selinux matchpath context
+  (jhonce@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.10-1
 - Merge pull request #5094 from ironcladlou/binary-deploy-bug
   (dmcphers+openshiftbot@redhat.com)
