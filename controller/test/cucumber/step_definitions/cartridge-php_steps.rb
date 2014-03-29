@@ -43,13 +43,21 @@ Then /^the php file permissions are correct/ do
     "php" => [gear_uuid, gear_uuid, '40755', se_context],
     "php/" => [gear_uuid, gear_uuid, '40755', se_context],
     "php/conf/" => ['root', gear_uuid, '40755', se_context],
-    "php/configuration/etc/php.ini" => ['root', gear_uuid, '100644', se_context],
     "php/conf/magic" => ['root', 'root', '100644', se_context], # symlink to /etc/httpd/conf/magic
     "php/configuration/etc/" => ['root', gear_uuid, '40755', se_context],
+    "php/configuration/etc/conf/" => ['root', gear_uuid, '100644', se_context],
+    "php/configuration/etc/conf/*" => ['root', gear_uuid, '100644', se_context],
+    "php/configuration/etc/conf.d/" => ['root', gear_uuid, '100644', se_context],
     "php/configuration/etc/conf.d/php.conf" => ['root', gear_uuid, '100644', se_context],
     "php/configuration/etc/conf.d/openshift.conf" => [gear_uuid, gear_uuid, '100644', se_context],
     "php/configuration/etc/conf.d/performance.conf" => [gear_uuid, gear_uuid, '100644', se_context],
     "php/configuration/etc/conf.d/passenv.conf" => [gear_uuid, gear_uuid, '100644', se_context],
+    "php/configuration/etc/php.d" => ['root', gear_uuid, '100644', se_context],
+    "php/configuration/etc/php.d/apc.ini" => [gear_uuid, gear_uuid, '100644', se_context],
+    "php/configuration/etc/php.d/xdebug.ini" => [gear_uuid, gear_uuid, '100644', se_context],
+    "php/configuration/etc/php.d/locked-*" => ['root', gear_uuid, '100644', se_context],
+    "php/configuration/etc/php.ini" => [gear_uuid, gear_uuid, '100644', se_context],
+    "php/logs/" => [gear_uuid, gear_uuid, '40755', se_context],
     "php/phplib/pear/" => [gear_uuid, gear_uuid, '40755', se_context],
     "php/run/" => [gear_uuid, gear_uuid, '40755', se_context],
     "php/run/httpd.pid" => [gear_uuid, gear_uuid, '100644', se_context],
@@ -60,14 +68,16 @@ Then /^the php file permissions are correct/ do
     ".gem" => [gear_uuid, gear_uuid, '40750', se_context], # see https://bugzilla.redhat.com/show_bug.cgi?id=974632
     ".pearrc" => ['root', gear_uuid, '100644', se_context],
   }
-  configure_files.each do | file, permissions |
-    user, group, mode, context = permissions
-    raise "Invalid permissions for #{file}" unless mode?("#{app_home}/#{file}", mode)
-    raise "Invalid context for #{file}" unless context?("#{app_home}/#{file}", context)
-    target_uid = Etc.getpwnam(user).uid.to_i
-    target_gid = Etc.getgrnam(group).gid.to_i
+  configure_files.each do | pattern, permissions |
+    Dir.glob(pattern).each do | file |
+      user, group, mode, context = permissions
+      raise "Invalid permissions for #{file}" unless mode?("#{app_home}/#{file}", mode)
+      raise "Invalid context for #{file}" unless context?("#{app_home}/#{file}", context)
+      target_uid = Etc.getpwnam(user).uid.to_i
+      target_gid = Etc.getgrnam(group).gid.to_i
 
-    raise "Invalid ownership for #{file}" unless owner?("#{app_home}/#{file}", target_uid, target_gid)
+      raise "Invalid ownership for #{file}" unless owner?("#{app_home}/#{file}", target_uid, target_gid)
+    end
   end
 end
 
