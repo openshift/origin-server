@@ -54,7 +54,7 @@ end
 
 def calculate_usage_cost(usage_rate, duration)
   cost = nil
-  
+
   unless usage_rate.nil?
     if usage_rate[:duration] == :hour
       duration_in_hr =  duration / (60 * 60)

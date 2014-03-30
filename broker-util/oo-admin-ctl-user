@@ -288,7 +288,7 @@ def add_sub_account(user, subaccount_login)
       rescue Mongoid::Errors::DocumentNotFound
         child_user = nil
       end
-    
+
       if not child_user.nil?
         if child_user.parent_user_id == user._id
           $stderr.puts "Error: Subaccount for '#{subaccount_login}' already exists under #{user.login}"
@@ -300,7 +300,7 @@ def add_sub_account(user, subaccount_login)
         end
         exit 5
       end
-    
+
       print "Adding subaccount for #{subaccount_login} under #{user.login}... "
       child_user = CloudUser.new(login: subaccount_login, parent_user_id: user._id)
       if child_user.save
@@ -586,7 +586,7 @@ logins.each do |login|
       set_max_tracked_storage(user,maxtrackedstorage)
       changed_user = true
     end
-    
+
     unless maxteams.nil?
       set_max_teams(user, maxteams)
       changed_user = true
