@@ -152,14 +152,14 @@ when "create"
     puts "The user #{login} cannot have more than #{user.max_domains} #{"domain".pluralize(user.max_domains)}.  Please use the 'update' command instead."
     exit 1
   end
-  
+
   begin
     Domain.with(consistency: :eventual).find_by(canonical_namespace: namespace.downcase)
     puts "Domain #{namespace.downcase} already exists.  Please choose another."
     exit 1
   rescue Mongoid::Errors::DocumentNotFound
   end
-  
+
   # Add the ssh key if it is provided
   if ssh_key
     user.add_ssh_key(UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
@@ -168,7 +168,7 @@ when "create"
       exit 2
     end
   end
-  
+
   domain = Domain.new(namespace: namespace, owner: user)
   begin
     unless domain.save
@@ -225,7 +225,7 @@ when "update"
       exit 1
     end
   end
-  
+
   unless ssh_key.nil?
     has_key = false
     user.ssh_keys.each do |key|
@@ -245,7 +245,7 @@ when "update"
     end
     reply.resultIO << "Successfully updated user.\n"
   end
-  
+
 when "delete"
   user = nil
   begin

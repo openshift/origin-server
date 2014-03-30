@@ -199,7 +199,7 @@ You are about to delete the #{uuid ? uuid : name} district.
 
 This is NOT reversible, all remote data for this district will be removed.
 WARNING
-  
+
       print "Do you want to delete this district (y/n): "
       begin
         unless gets.to_s.strip =~ /^(yes|y)$/i

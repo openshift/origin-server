@@ -445,7 +445,7 @@ def repair_stale_keys_vars(domain_ids)
           # if an ssh key was removed, then include the application in the cleanup to remove mongo/node inconsistencies
           stale_ssh_key_app_ids << app.id.to_s
         end
-        
+
         domain_ref_ids |= app_ref_ids
       end
 
@@ -751,7 +751,7 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
       app_reports.delete_if { |k,v| apps_to_backup.include?(k) }
       puts ""
     end
-   
+
     apps_to_remove_features = []
     app_reports.each do |app_id, app_info|
       app, recoverable, framework, db = app_info[0], app_info[1], app_info[2], app_info[3]
