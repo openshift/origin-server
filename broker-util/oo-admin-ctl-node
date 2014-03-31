@@ -41,9 +41,9 @@ def append_node(node, io)
   io << "\n\n#{node.attributes.pretty_inspect}"
 end
 
-def get_node(uuid, name)
+def get_node(uuid, name)  
   if uuid
-    Node.where(uuid: uuid).first
+    Node.where(_id: uuid).first
   else
     Node.find_by_name(name)
   end
@@ -131,8 +131,9 @@ begin
     reply.resultIO << "Success!"
   when "create"
     node = Node.new(name: name, location: server_identity)
-    uuid = node.uuid
-    reply.resultIO << "Successfully created node: #{node.uuid}" if reply.resultIO.string.empty?
+    node.save!
+    uuid = node._id
+    reply.resultIO << "Successfully created node: #{uuid}" if reply.resultIO.string.empty?
   when "destroy"
     unless bypass
       puts <<-WARNING
@@ -159,7 +160,7 @@ WARNING
     if node
       append_node(node, reply.resultIO)
     else
-      nodes = Node.find_all
+      nodes = Node.where({})
       unless nodes.empty?
         nodes.each do |node|
           append_node(node, reply.resultIO)
