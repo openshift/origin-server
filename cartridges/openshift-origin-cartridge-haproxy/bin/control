@@ -49,7 +49,11 @@ function wait_to_start() {
 function _stop_haproxy_ctld() {
   if [ -f ${HAPROXY_CTLD_PID} ]; then
     pid=$( /bin/cat "${HAPROXY_CTLD_PID}" )
-    kill -TERM $pid
+    if isrunning; then
+      kill -TERM $pid
+    else
+      rm -f ${HAPROXY_CTLD_PID}
+    fi
   fi
 }
 
