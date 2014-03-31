@@ -170,18 +170,12 @@ module OpenShift
           output = []
           joined_metrics = metrics.join(" -r ")
           cg_output = execute_cgget(joined_metrics, path)
-          kv_groups = cg_output.split(/\\n(?!\\t)/)
-          metric_prefix = ""
-          metric_index = 0
+          kv_groups = cg_output.split(/\n(?!\t)/)
           kv_groups.each_with_index do |group, index|
             lines = group.split("\n")
             lines.each_with_index do |line, sub_index|
               key, value = line.split.map { |item| item.strip }
-              if sub_index == 0
-                metric_prefix = key
-                output.push("#{metrics[index]}.#{key}=#{value}")
-              end
-              output.push("#{metrics[index]}.#{metric_prefix}.#{key}=#{value}")
+              output.push("#{metrics[index]}.#{key}=#{value}")
             end
           end
           output
