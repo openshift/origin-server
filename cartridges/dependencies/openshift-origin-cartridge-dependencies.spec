@@ -91,6 +91,7 @@ an OpenShift cartrige.
 Summary:   Optional user dependencies for DIY OpenShift Cartridges
 BuildArch: noarch
 Requires: %{name}-recommended-diy
+Requires:  lua-devel
 
 %description optional-diy
 This package pulls in other packages that a user
