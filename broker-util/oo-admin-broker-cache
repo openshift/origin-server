@@ -37,8 +37,6 @@ oo-admin-broker-cache OPTIONS
 Options:
 -c|--clear
     Remove all entries from the broker Rails application's cache
---console
-    Also clear the cache for the developer console if installed
 -q|--quiet
     Show as little output as possible
 -h|--help
@@ -65,16 +63,9 @@ if args["--help"] || (STDIN.tty? && args.empty?)
   usage
 end
 
-if args['--clear'] || args['--console']
+if args['--clear']
   puts "Clearing broker cache." unless args["--quiet"]
   `cd /var/www/openshift/broker && bundle exec "rails runner Rails.cache.clear"`
-  if args['--console']
-    puts "Clearing console cache." unless args["--quiet"]
-    %w[ /var/www/openshift/console /var/www/openshift/site ].
-      select {|dir| File.exists?(dir) }.
-      each {|dir| `cd #{dir} && bundle exec "rails runner Rails.cache.clear"`}.
-      size > 0 or puts "Warning: console not installed."
-  end
 else
   usage
 end

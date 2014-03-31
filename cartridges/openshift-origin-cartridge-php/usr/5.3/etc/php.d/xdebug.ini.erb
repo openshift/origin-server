@@ -1,0 +1,3 @@
+; Enable xdebug extension module
+<%= (ENV['OPENSHIFT_PHP_XDEBUG_ENABLED'] == "true" || (ENV['OPENSHIFT_PHP_XDEBUG_ENABLED'] != "false" && ENV['APPLICATION_ENV'] == "development")) ? "" : ";" %>zend_extension=/usr/lib64/php/modules/xdebug.so
+xdebug.max_nesting_level = 200

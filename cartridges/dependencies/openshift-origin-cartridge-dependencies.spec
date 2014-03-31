@@ -278,7 +278,7 @@ an OpenShift cartrige.
 
 # PHP Optional
 %package optional-php
-Summary:   Optional user dependencies for Ruby OpenShift Cartridges
+Summary:   Optional user dependencies for PHP OpenShift Cartridges
 BuildArch: noarch
 Requires:  %{name}-recommended-php
 Requires:  php-bcmath
@@ -304,6 +304,7 @@ Requires:  php54-php-gd
 Requires:  php54-php-intl
 Requires:  php54-php-ldap
 Requires:  php54-php-mbstring
+Requires:  php54-php-mcrypt
 Requires:  php54-php-pdo
 Requires:  php54-php-pecl-apc
 Requires:  php54-php-pecl-imagick

@@ -3,3 +3,14 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 client_result 'module_path=/etc/alternatives/switchyard-0.x/modules'
+
+
+if [ ! -z "$OPENSHIFT_JBOSSAS_IP" ]
+then
+    set_env_var OPENSHIFT_JBOSSAS_MODULE_PATH /etc/alternatives/switchyard-0/modules ${OPENSHIFT_SWITCHYARD_DIR}/env    
+fi
+
+if [ ! -z "$OPENSHIFT_JBOSSEAP_IP" ]
+then
+    set_env_var OPENSHIFT_JBOSSEAP_MODULE_PATH /etc/alternatives/switchyard-0/modules ${OPENSHIFT_SWITCHYARD_DIR}/env    
+fi

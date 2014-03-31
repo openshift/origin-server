@@ -40,7 +40,6 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-%__mkdir -p %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
 %__mkdir -p %{buildroot}%{httpdconfdir}
 
 %files

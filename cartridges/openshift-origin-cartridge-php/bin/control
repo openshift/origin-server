@@ -6,7 +6,9 @@ source ${OPENSHIFT_PHP_DIR}usr/lib/php_config
 
 HTTPD_CFG_FILE=$OPENSHIFT_PHP_DIR/configuration/etc/conf/httpd_nolog.conf
 HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/configuration/etc/conf.d
-ERB_HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/usr/etc/conf.d/
+ERB_HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/usr/shared/etc/conf.d/
+ERB_PHPRC=$OPENSHIFT_PHP_DIR/usr/shared/etc/php.ini.erb
+ERB_PHP_INI_SCAN_DIR=$OPENSHIFT_PHP_DIR/usr/${OPENSHIFT_PHP_VERSION}/etc/php.d
 HTTPD_PASSENV_FILE=$HTTPD_CFG_DIR/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_PHP_DIR/run/httpd.pid
 
@@ -21,6 +23,9 @@ function pre_start_httpd_config {
     select_php_document_root ${OPENSHIFT_REPO_DIR}
     oo-erb ${ERB_HTTPD_CFG_DIR}openshift.conf.erb > ${HTTPD_CFG_DIR}/openshift.conf
     oo-erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
+    oo-erb ${ERB_PHPRC} > ${PHPRC}
+    oo-erb ${ERB_PHP_INI_SCAN_DIR}/apc.ini.erb > ${PHP_INI_SCAN_DIR}/apc.ini
+    oo-erb ${ERB_PHP_INI_SCAN_DIR}/xdebug.ini.erb > ${PHP_INI_SCAN_DIR}/xdebug.ini
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
 }
 
@@ -43,8 +48,8 @@ function reload() {
 function restart() {
     echo "Restarting PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     pre_start_httpd_config
+    ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
-        ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
         kill -HUP $httpd_pid
     else

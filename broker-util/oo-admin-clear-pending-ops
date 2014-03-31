@@ -60,7 +60,7 @@ end
 usage if args["--help"]
 
 require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
- 
+
 # Reset the logging options. We want DEBUG level stuff.
 module Broker
   class Application < Rails::Application
