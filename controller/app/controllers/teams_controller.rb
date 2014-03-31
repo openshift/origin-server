@@ -14,7 +14,7 @@ class TeamsController < BaseController
       if get_bool(global)
         teams = Team.accessible(current_user).where(owner_id: nil, name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1}) 
       else
-        teams = Team.accessible(current_user).where(name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1}).select{|t| t.owner_id}
+        teams = Team.accessible(current_user).where(:owner_id.exists => true, :owner_id.ne => "", name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1})
       end
     else
       teams = 
