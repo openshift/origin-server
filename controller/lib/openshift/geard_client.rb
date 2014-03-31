@@ -34,8 +34,8 @@ module OpenShift
       #
       def initialize(id, district=nil)
         @id = id
-        #TODO hardcode to localhost for now, should be passed in ID
-        @hostname = ENV["GEARD_HOST_PORT"] || "localhost:43273"
+        #TODO hardcode to first node in collection for now, otherwise default to localhost
+        @hostname = Node.count > 0 ? Node.first.location : "localhost:43273"
         @district = district
       end
 
