@@ -232,7 +232,11 @@ if uuid.nil?
       puts e.backtrace
     end
   }
-  CloudUser.no_timeout.lt("pending_ops.created_at" => $t).each { |u| 
+  
+  time = (hours == 0) ? nil : $t
+  user_query = {"pending_ops.0" => {"$exists" => true}}
+  user_query["pending_ops.created_at"] = {"$lt" => time} if time
+  CloudUser.no_timeout.where(user_query).each { |u| 
     begin
       clean_user(u)
     rescue Exception=>e
