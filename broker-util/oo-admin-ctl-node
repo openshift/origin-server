@@ -1,0 +1,188 @@
+#!/usr/bin/env oo-ruby
+
+# THIS IS A WORK IN PROGRESS NOT A FINAL VERSION
+
+require 'getoptlong'
+require 'pp'
+
+CTL_NODE_COMMANDS = %w[add-capacity remove-capacity create destroy]
+
+def usage
+  puts <<USAGE
+== Synopsis
+
+oo-admin-ctl-node: Control nodes
+
+== Usage
+
+oo-admin-ctl-node OPTIONS
+
+Options:
+-u|--uuid <node uuid>
+    Node uuid  (alphanumeric)
+-c|--command <command>
+    (#{CTL_NODE_COMMANDS * '|'})
+-n|--name <node name>
+    Node name (Used on create or in place of uuid on other commands)
+    Allowed chars: alphanumeric, underscore, hyphen, dot
+-i|--server_identity
+    Node server identity (required)
+-s|--size
+    Size to add or remove (positive number) (required)
+-b|--bypass
+    Ignore warnings
+-h|--help
+    Show usage info
+USAGE
+  exit 255
+end
+
+def append_node(node, io)
+  io << "\n\n#{node.attributes.pretty_inspect}"
+end
+
+def get_node(uuid, name)
+  if uuid
+    Node.where(uuid: uuid).first
+  else
+    Node.find_by_name(name)
+  end
+end
+
+opts = GetoptLong.new(
+    ["--uuid",             "-u", GetoptLong::REQUIRED_ARGUMENT],
+    ["--server_identity",  "-i", GetoptLong::REQUIRED_ARGUMENT],
+    ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
+    ["--size",             "-s", GetoptLong::REQUIRED_ARGUMENT],
+    ["--name",             "-n", GetoptLong::REQUIRED_ARGUMENT],
+    ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+  opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+  usage
+end
+
+if args["--help"]
+  usage
+end
+
+uuid     = args["--uuid"]
+command  = args['--command']
+server_identity  = args['--server_identity']
+size     = args['--size'] ? args['--size'].to_i : nil
+bypass   = args['--bypass']
+name     = args['--name']
+
+if !command && (args.length > 0)
+  puts "Error: --command is required with any arguments"
+  exit 255
+end
+
+if command && !CTL_NODE_COMMANDS.include?(command)
+  puts "Command must be one of: #{CTL_NODE_COMMANDS * '|'}"
+  exit 255
+end
+
+require "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+
+node = nil
+if uuid || name
+  node = get_node(uuid, name)
+  if !node
+    if command != 'create'
+      puts "Node '#{uuid ? uuid : name}' not found."
+      exit 1
+    end
+  elsif command == 'create'
+    puts "Node '#{name}' already exists"
+    exit 1
+  end
+  unless server_identity || (command != 'create')
+    puts "--server_identity is required with command: #{command}"
+    exit 1
+  end
+  unless size || (command != 'add-capacity' && command != 'remove-capacity')
+    puts "--size is required with command: #{command}"
+    exit 1
+  end
+elsif command
+  if command != 'create'
+    puts "--uuid or --name is required with command: #{command}"
+  else
+    puts "--name is required with create"
+  end
+  exit 1
+end
+
+reply = ResultIO.new
+begin
+  case command
+  when "add-capacity"
+    node.add_capacity(size)
+    reply.resultIO << "Success!"
+  when "remove-capacity"
+    node.remove_capacity(size)
+    reply.resultIO << "Success!"
+  when "create"
+    node = Node.new(name: name, location: server_identity)
+    uuid = node.uuid
+    reply.resultIO << "Successfully created node: #{node.uuid}" if reply.resultIO.string.empty?
+  when "destroy"
+    unless bypass
+      puts <<-WARNING
+!!!! WARNING !!!! WARNING !!!! WARNING !!!!
+You are about to delete the #{uuid ? uuid : name} node.
+
+This is NOT reversible, all remote data for this node will be removed.
+WARNING
+
+      print "Do you want to delete this node (y/n): "
+      begin
+        unless gets.to_s.strip =~ /^(yes|y)$/i
+          puts "\n"
+          exit 217
+        end
+      rescue Interrupt
+        puts "\n"
+        exit 217
+      end
+    end
+    node.delete
+    reply.resultIO << "Successfully deleted node: #{uuid ? uuid : name}" if reply.resultIO.string.empty?
+  else
+    if node
+      append_node(node, reply.resultIO)
+    else
+      nodes = Node.find_all
+      unless nodes.empty?
+        nodes.each do |node|
+          append_node(node, reply.resultIO)
+        end
+      else
+        puts "No nodes created yet.  Use 'oo-admin-ctl-node -c create' to create one."
+      end
+    end
+  end
+  if (uuid || name) && command && command != 'destroy' && command != 'publish-uids'
+    node = get_node(uuid, name)
+    append_node(node, reply.resultIO)
+  end
+rescue OpenShift::OOException => e
+  reply.errorIO << e.message
+  if e.respond_to?('code') and e.code
+    reply.exitcode = e.code
+  else
+    reply.exitcode = 1
+  end
+end
+
+puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+puts "ERROR OUTPUT:\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
+puts "#{reply.resultIO.string}" unless reply.resultIO.string.empty?
+exit reply.exitcode
