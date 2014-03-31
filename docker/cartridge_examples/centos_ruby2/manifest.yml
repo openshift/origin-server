@@ -1,0 +1,20 @@
+Name: centos_ruby2
+Image: "pmorie/centos-ruby2"
+Image-Label: "pmorie/centos-ruby2"
+Cartridge-Short-Name: centos_ruby2
+Display-Name: "pmorie/centos-ruby2"
+Version: '1.0'
+Cartridge-Vendor: pmorie
+Cartridge-Version: 1.0
+Vendor: pmorie
+Categories:
+- web_framework
+- builder
+Scaling:
+  Min: 1
+  Max: -1
+Endpoints:
+- Private-IP-Name:   HTTP_IP
+  Private-Port-Name: WEB_PORT
+  Private-Port:      9292
+  Public-Port-Name:  WEB_PROXY_PORT

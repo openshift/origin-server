@@ -1,0 +1,19 @@
+Name: sti_html_app
+Image: "pmorie/sti-html-app"
+Image-Label: "pmorie/sti-html-app"
+Cartridge-Short-Name: sti_html_app
+Display-Name: "pmorie/sti-html-app"
+Version: '1.0'
+Cartridge-Vendor: pmorie
+Cartridge-Version: 1.0
+Vendor: pmorie
+Categories:
+- web_framework
+Scaling:
+  Min: 1
+  Max: -1
+Endpoints:
+- Private-IP-Name:   HTTP_IP
+  Private-Port-Name: WEB_PORT
+  Private-Port:      8080
+  Public-Port-Name:  WEB_PROXY_PORT
