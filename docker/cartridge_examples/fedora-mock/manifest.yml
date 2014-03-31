@@ -1,0 +1,20 @@
+Name: fedora_mock
+Image: "pmorie/fedora-mock"
+Image-Label: "pmorie/fedora-mock"
+Cartridge-Short-Name: fedora_mock
+Display-Name: "pmorie/fedora-mock"
+Version: '1.0'
+Cartridge-Vendor: pmorie
+Cartridge-Version: 1.0
+Vendor: pmorie
+Categories:
+- web_framework
+- builder
+Scaling:
+  Min: 1
+  Max: -1
+Endpoints:
+- Private-IP-Name:   HTTP_IP
+  Private-Port-Name: WEB_PORT
+  Private-Port:      8080
+  Public-Port-Name:  WEB_PROXY_PORT

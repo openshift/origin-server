@@ -40,6 +40,7 @@ ADD broker-util /var/www/openshift/broker-util
 ADD plugins /var/www/openshift/plugins
 ADD broker /var/www/openshift/broker
 ADD controller /var/www/openshift/controller
+ADD docker /var/www/openshift/docker
 
 # Copy configuration files to expected locations
 RUN mkdir -p ~/.openshift && cp /var/www/openshift/broker/misc/docker_broker_plugins.rb ~/.openshift/broker_plugins.rb
