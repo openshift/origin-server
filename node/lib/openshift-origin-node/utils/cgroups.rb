@@ -22,16 +22,51 @@ module OpenShift
     module Utils
       class Cgroups
 
+        class InvalidCgroupSettingException < StandardError
+          def initialize(setting=nil, value=nil, msg=nil)
+            @setting = setting
+            @value = value
+            super(msg)
+          end
+
+          def to_s
+            m = super
+            m+= ": Value #{@value} for #{@setting} is invalid in /etc/openshift/resource_limits.conf"
+            m
+          end
+        end
+
         # Subclass OpenShift::Config so we can split the values easily
         class Config < ::OpenShift::Config
           def initialize(conf_path, default={})
             super
             @tc_outbound_htb = Hash.new {|h, k| h[k] = []}
             tc_outbound_groups.each do |group_name|
-              k = [@conf[group_name]["rate"],  @conf[group_name]["ceil"]]
-              v = @conf[group_name]["port"]
-              @tc_outbound_htb[k] << v
+              rate = validate_tc_rate(@conf[group_name]["rate"])
+              ceil = validate_tc_rate(@conf[group_name]["ceil"])
+              port = validate_tc_port(@conf[group_name]["port"])
+
+              k = [rate, ceil]
+              @tc_outbound_htb[k] << port
             end
+          end
+
+          def validate_tc_rate(rate)
+            si_units = "bit|kbit|mbit|gbit|tbit|bps|kbps|mbps|gbps|tbps"
+            iec_units = "kibit|mibit|gibit|tibit|kibps|mibps|gibps|tibps"
+            unless rate =~ /\d+#{si_units}|#{iec_units}/
+              raise InvalidCgroupSettingException.new("rate", rate, "Please see the tc manpage for the supported SI or IEC units")
+            end
+
+            return rate
+          end
+
+          def validate_tc_port(port)
+            if port !~ /\d+/ or port.to_i <= 0 or port.to_i > 65535
+              raise InvalidCgroupSettingException.new("port", port, "Outside valid range")
+            end
+
+            return port
           end
 
           def tc_outbound_groups
