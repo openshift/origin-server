@@ -52,19 +52,10 @@ Feature: Postgres Application Sub-Cartridge
     When I snapshot the application
     And I insert additional test data into postgres
     Then the additional test data will be present in postgres
-    And the cartridge postgresql-<postgres_version> status should be running
 
     When I restore the application
     Then the test data will be present in postgres
     And the additional test data will not be present in postgres
-    And the cartridge postgresql-<postgres_version> status should be running
-
-    When the application is stopped
-    And I snapshot the application
-    Then the cartridge postgresql-<postgres_version> status should be stopped
-
-    When I restore the application
-    Then the cartridge postgresql-<postgres_version> status should be stopped
 
     Scenarios: RHEL
       | postgres_version |
