@@ -35,7 +35,7 @@ create and manage applications.
 SSL termination and deployment
 
 A [comprehensive architecture
-overview](https://openshift.redhat.com/community/wiki/architecture-overview)
+overview](http://openshift.github.io/documentation/oo_system_architecture_guide.html)
 can be found on our wiki.
 
 The primary command line interface to OpenShift is [RHC](https://github.com/openshift/rhc).
