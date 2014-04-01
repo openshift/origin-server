@@ -399,6 +399,7 @@ module OpenShift
 
           # Private: Call the low level cgroups deletion
           def cgdelete
+            force_stop = false
             cgroup_paths.each do |subsys, path|
               while File.exist?(path)
                 begin
@@ -406,9 +407,16 @@ module OpenShift
                 rescue Errno::EBUSY
                   File.open(File.join(path, "..", "tasks"), File::WRONLY | File::SYNC) do |t|
                     File.read(File.join(path, "tasks")).split.each do |pid|
-                      t.syswrite("#{pid}\n")
+                      begin
+                        t.syswrite("#{pid}\n")
+                      rescue Errno::ESRCH => e
+                        $stderr.puts "ERROR: #{e.message} zombie or non-existing pid #{pid}"
+                        force_stop = true
+                        break
+                      end
                     end
                   end
+                  retry unless force_stop
                 end
               end
             end
