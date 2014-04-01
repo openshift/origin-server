@@ -958,6 +958,22 @@ The `postgresql` cartridge provides several environment variables to reference f
 |PostgreSQL version in the form `X.Y`
 |===
 
+You can fine-tune the PostgreSQL server performance by using the rhc tool and
+changing the default values for these variables:
+
+[options="header"]
+|===
+|Variable |Description
+
+|OPENSHIFT_POSTGRESQL_SHARED_BUFFERS
+|The shared_buffers configuration parameter determines how much memory is dedicated to PostgreSQL to use for caching data.
+
+|OPENSHIFT_POSTGRESQL_MAX_CONNECTIONS
+|max_connections sets exactly that: the maximum number of client connections allowed.
+
+For more details, please refer to PostgreSQL
+https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server[wiki page].
+
 
 [[python]]
 == Python
