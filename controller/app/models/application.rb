@@ -864,9 +864,9 @@ class Application
         self.cartridges
       else
         component_ids = []
-        explicit = cartridges.map do |cart|
-          cart = CartridgeCache.find_cartridge(cart, self) if cart.is_a? String
-          raise OpenShift::UserException.new("The cartridge '#{cart}' can not be found.", 109) if cart.nil?
+        explicit = cartridges.map do |cart_provided|
+          cart = cart_provided.is_a?(String) ? CartridgeCache.find_cartridge(cart_provided, self) : cart_provided
+          raise OpenShift::UserException.new("The cartridge '#{cart_provided}' can not be found.", 109) if cart.nil?
 
           instances = self.component_instances.where(cartridge_name: cart.name)
           raise OpenShift::UserException.new("'#{cart.name}' cannot be removed", 137) if (cart.is_web_proxy? and self.scalable) or cart.is_web_framework?
