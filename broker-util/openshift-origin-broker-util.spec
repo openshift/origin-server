@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.21.5
+Version: 1.21.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -102,6 +102,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Mon Mar 31 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
+- Fix oo-admin-clear-pending-ops: With '--time 0' option, ignore created_at
+  field for user pending_ops and clear any pending ops (rpenta@redhat.com)
+
 * Mon Mar 10 2014 Adam Miller <admiller@redhat.com> 1.21.5-1
 - Use correct map (dmcphers@redhat.com)
 
