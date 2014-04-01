@@ -18,7 +18,11 @@ function _is_running {
   pidfile=$OPENSHIFT_POSTGRESQL_DB_PID
   if [ -f $pidfile ]; then
     pid=`cat $pidfile 2> /dev/null`
-    if process_running 'postgres' $pid; then
+    if [ -z "$pid" ]; then
+      rm -f $pidfile
+      return 0
+    fi
+    if process_running 'postgres' $pidfile; then
       return 0
     fi
   fi
