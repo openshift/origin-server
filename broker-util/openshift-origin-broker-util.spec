@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.22.7
+Version: 1.22.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -105,6 +105,11 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-quarantine.8.gz
 
 %changelog
+* Mon Mar 31 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
+- Fix oo-admin-clear-pending-ops : With '--time 0' option, ignore pending_ops
+  or pending_op_groups created_at field and process any pending op or op-groups
+  if it exists (rpenta@redhat.com)
+
 * Fri Mar 28 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
 - Bug 1081869 - console needs oo-admin-console-cache to clear its cache.
   Deprecate use of --console flag on oo-admin-broker-cache
