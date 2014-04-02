@@ -205,7 +205,6 @@ function post_restore {
     fi
 
     cleanup_dump
-    stop
   else
     warning "Postgres restore attempted, but no dump found"
     warning "${dump_file} does not exist"
