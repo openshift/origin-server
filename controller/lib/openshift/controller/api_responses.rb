@@ -38,7 +38,15 @@ module OpenShift
             reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
             log_action(action_log_tag, status, !internal_error, msg, get_log_args)
           end
-          @analytics_tracker.track_event('render_error', @domain, @application, {'request_path' => request.fullpath, 'request_method' => request.method, 'status_code' => status, 'error_code' => err_code, 'error_field' => field}) if @analytics_tracker
+          if @analytics_tracker
+            event_name = nil
+            if internal_error
+              event_name = 'render_error'
+            else
+              event_name = 'render_user_error'
+            end
+            @analytics_tracker.track_event(event_name, @domain, @application, {'request_path' => request.fullpath, 'request_method' => request.method, 'status_code' => status, 'error_code' => err_code, 'error_field' => field})
+          end
           respond_with reply, :status => reply.status
         end
 
