@@ -280,9 +280,13 @@ module AdminHelper
           end
 
           # check for applications without any gears in the group instance and vice versa
+          # check for application gears with server_identity field not set
           if app["gears"]
             gi_hash.each {|k,v| gi_hash[k] = false}
             app["gears"].each do |gear|
+              if gear['server_identity'].blank?
+                print_message "Application '#{app['name']}' with Id '#{app['_id']}' for gear '#{gear['_id']}' does not have server_identity set in mongo."
+              end
               gid = gear['group_instance_id']
               if gid
                 if gi_hash.has_key? gid.to_s
