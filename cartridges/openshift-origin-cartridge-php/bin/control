@@ -61,11 +61,11 @@ function restart() {
 
 function stop() {
     echo "Stopping PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
-    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    ensure_valid_httpd_pid_file "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
       # If we still have a PID file, then ensure_valid_httpd_process's call to
       # killall_httpds didn't happen.
-      shutdown_httpd_graceful_pidfile $HTTPD_PID_FILE
+      shutdown_httpd_graceful $HTTPD_PID_FILE
     fi
 }
 
