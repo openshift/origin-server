@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.11
+Version: 1.22.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,18 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Apr 01 2014 Adam Miller <admiller@redhat.com> 1.22.12-1
+- Merge pull request #5134 from mfojtik/fix_stop_stg
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5136 from bparees/process_running_check_stage
+  (dmcphers+openshiftbot@redhat.com)
+- fix process running check to use proper return code check
+  (bparees@redhat.com)
+- Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore" (bparees@redhat.com)
+- Replace process_running with pid_is_httpd in shutdown_httpd_graceful
+  (mfojtik@redhat.com)
+
 * Fri Mar 28 2014 Adam Miller <admiller@redhat.com> 1.22.11-1
 - Bug 1081441 - unprivileged_unidle not updating idler.txt (jhonce@redhat.com)
 - Bug 1081249 - Synchronize access to selinux matchpath context
