@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 1.22.5
+Version: 1.22.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -91,6 +91,10 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Apr 01 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
+- Bug 1082937 - Check if the PID is non-empty for postgresql cartridge
+  (mfojtik@redhat.com)
+
 * Fri Mar 28 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Postgresql still can be accessed via DB driver after postgresql stop for
   jboss app (bparees@redhat.com)
