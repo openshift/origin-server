@@ -255,6 +255,79 @@ class DomainsControllerTest < ActionController::TestCase
     assert_raises(RestApi::ResourceNotFound) { Domain.find(@domain.id, :as => unique_user) }
   end
 
+  test "should render uneditable members successfully" do
+    with_particular_user
+    Domain.any_instance.expects(:admin?).at_least(0).returns(false)
+    get :show, {:id => @domain.id}
+    assert_template :show
+    assert_response :success
+    assert_select "a:content(?)", "Add users...", :count => 0
+    assert_select "a:content(?)", "Add another user...", :count => 0
+    assert_select "a.edit-members:content(?)", "Edit members...", :count => 0
+  end
+
+  test "should render editable members with only owner successfully" do
+    with_particular_user
+    Domain.any_instance.expects(:admin?).at_least(0).returns(true)
+    get :show, {:id => @domain.id}
+    assert_template :show
+    assert_response :success
+    assert_select "tr.type-team", :count => 0
+    assert_select "tr.type-user", :count => 0
+    assert_select "a:content(?)", "Add users..."
+    assert_select "a.edit-members:content(?)", "Edit members..."
+  end
+
+  test "should render editable members with teams and implicit users successfully" do
+    with_particular_user
+    original_members = @domain.members
+    Domain.any_instance.expects(:admin?).at_least(0).returns(true)
+    Domain.any_instance.expects(:members).at_least(0).returns(
+      [
+        # Explicit team
+        Domain::Member.new(:type => 'team', :explicit_role => 'view', :role => 'view', :id => '123'),
+        # Implicit member of that team
+        Domain::Member.new(:type => 'user', :explicit_role => nil,    :role => 'view', :id => '234', :login => 'alice', :from => [{:type => 'team', :id => '123', :role => 'view'}])
+      ] + original_members)
+    get :show, {:id => @domain.id}
+    assert_template :show
+    assert_response :success
+    assert_select "tr.type-team"
+    assert_select "tr.type-user", :count => 0
+    assert_select "a:content(?)", "Add users...", :count => 0
+    assert_select "a:content(?)", "Add another user..."
+    assert_select "a.edit-members:content(?)", "Edit members..."
+  end
+
+  test "should render editable members with teams and explicit users successfully" do
+    with_particular_user
+    original_members = @domain.members
+    Domain.any_instance.expects(:admin?).at_least(0).returns(true)
+    Domain.any_instance.expects(:members).at_least(0).returns(
+      [
+        # Explicit team
+        Domain::Member.new(:type => 'team', :explicit_role => 'edit',  :role => 'edit',  :id => '123'),
+        # Implicit member of that team who also has an explicit role which is lower
+        Domain::Member.new(:type => 'user', :explicit_role => 'view',  :role => 'edit',  :id => '234', :login => 'alice', :from => [{:type => 'team', :id => '123', :role => 'edit'}]),
+        # Explicit member who is not in any teams
+        Domain::Member.new(:type => 'user', :explicit_role => 'admin', :role => 'admin', :id => '345', :login => 'steve'),
+      ] + original_members)
+    get :show, {:id => @domain.id}
+    assert_template :show
+    assert_response :success
+    assert_select "tr.type-team"
+    assert_select "tr.type-team select[name='members[][role]'] option[selected='selected'][value='edit']"
+
+    assert_select "tr.type-user", :count => 2
+    # Ensure the explicit role is the one pre-selected in the dropdown for the user
+    assert_select "tr.type-user select[name='members[][role]'] option[selected='selected'][value='view']"
+    assert_select "tr.type-user select[name='members[][role]'] option[selected='selected'][value='admin']"
+
+    assert_select "a:content(?)", "Add users...", :count => 0
+    assert_select "a:content(?)", "Add another user..."
+    assert_select "a.edit-members:content(?)", "Edit members..."
+  end
+
   def get_post_form
     {:name => "d#{uuid[0..12]}"}
   end
