@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.21.7
+Version: 1.21.8
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -49,6 +49,10 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Tue Apr 01 2014 Adam Miller <admiller@redhat.com> 1.21.8-1
+- Replace ensure_valid_httpd_process with ensure_valid_httpd_pid_file in stop()
+  (mfojtik@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.21.7-1
 - Update Cartridge Versions for Stage Cut (vvitek@redhat.com)
 
