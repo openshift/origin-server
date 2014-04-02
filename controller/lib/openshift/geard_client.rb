@@ -854,6 +854,37 @@ module OpenShift
         #TODO
         return result_io
       end
+      
+      #
+      # Utility method to either set or unset an environment variable to all gears in the app
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * set_env_vars: Array of environment variables to set, e.g.:[{'name'=>'FOO','value'=>'123'}, {'name'=>'BAR','value'=>'abc'}]
+      # * unset_env_vars: Array of environment variables to unset, e.g.:[{'name'=>'FOO','value'=>'123'}, {'name'=>'BAR','value'=>'abc'}]
+      # * gears_ssh_endpoint: list of ssh gear endpoints
+      #
+      # RETURNS:
+      # * String: stdout from a command      
+      def set_unset_user_env_vars(gear, set_env_vars, unset_env_vars, gears_ssh_endpoint)
+        # WIP
+        # PATCH /environment/{id}
+        # Content-Type: application/json
+        # { "Variables" : [{"Name": "FOO", "Value":"Value"}]}
+        clnt = HTTPClient.new
+        req_vars = []
+        set_env_vars.each do |item|
+          req_vars << { "Name" => item["name"], "Value" => item["value"]}
+        end
+        unset_env_vars.each do |item|
+          req_vars << { "Name" => item["name"], "Value" => ""}
+        end 
+        url = "#{build_base_geard_url}environment/#{gear.uuid}"
+        method = "PATCH"
+        payload = { "Variables" => req_vars}
+        result = clnt.request(method, url, {:body => payload.to_json, :header => {"Content-Type" => "application/json"}})       
+        ResultIO.new
+      end
 
       #
       # Add or Update user environment variables to all gears in the app
@@ -867,8 +898,7 @@ module OpenShift
       # * String: stdout from a command
       #
       def set_user_env_vars(gear, env_vars, gears_ssh_endpoint)
-        #TODO
-        return result_io
+        set_unset_user_env_vars(gear, env_vars, {}, gears_ssh_endpoint)
       end
 
       #
@@ -883,8 +913,7 @@ module OpenShift
       # * String: stdout from a command
       #
       def unset_user_env_vars(gear, env_vars, gears_ssh_endpoint)
-        #TODO
-        return result_io
+        set_unset_user_env_vars(gear, {}, env_vars, gears_ssh_endpoint)
       end
 
       #
@@ -898,8 +927,23 @@ module OpenShift
       # * String: stdout from a command
       #
       def list_user_env_vars(gear, env_var_names)
-        #TODO
-        return result_io
+        # GET /environment/id
+        #  202 - if specified (text/plain) var delimit = , line-delimit
+        #  404 - if none are specified (application/json), not an error condition        
+        clnt = HTTPClient.new
+        res = clnt.get("#{build_base_geard_url}environment/#{gear.uuid}")
+        body = res.body
+        env_var_result = {}
+        body.split("\n").each do |line|
+          keyval = line.split("=")
+          if keyval.size == 2
+            env_var_result[keyval[0]]=keyval[1] if env_var_names.count == 0 || env_var_names.include?(keyval[0])
+          end
+        end
+        output = "CLIENT_RESULT: #{env_var_result.to_json}"
+        result = ResultIO.new
+        result.parse_output(output, gear.uuid)
+        result
       end
 
       #
