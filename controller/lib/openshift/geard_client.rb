@@ -33,9 +33,10 @@ module OpenShift
       # * district: <type> - a classifier for app placement
       #
       def initialize(id, district=nil)
-        @id = id
-        #TODO hardcode to first node in collection for now, otherwise default to localhost
+        @id = id        
         @hostname = Node.count > 0 ? Node.first.location : "localhost:43273"
+        ## WIP: needed for static invocation of self.execute_paralleljobs_impl
+        @@hostname = @hostname
         @district = district
       end
 
@@ -1666,7 +1667,7 @@ module OpenShift
               geard_op = job[:args]            
               http_method = geard_op[:method]
               http_body = geard_op[:body]
-              geard_url = "#{build_base_geard_url (ENV['GEARD_HOST_PORT'] || 'localhost:8080')}#{job[:action]}"
+              geard_url = "#{build_base_geard_url @@hostname}#{job[:action]}"
               res = case http_method
                 when :put 
                   if http_body.empty?
