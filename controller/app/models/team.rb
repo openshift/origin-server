@@ -21,8 +21,8 @@ class Team
 
   has_members default_role: :view
   member_as :team
-  
-  validates :name, 
+
+  validates :name,
     presence: {message: "Name is required and cannot be blank"},
     length:   {maximum: 250, minimum: 1, message: "Team name must be a minimum of 1 and maximum of 250 characters."}
 
@@ -128,7 +128,7 @@ class Team
   def self.validation_map
     {name: -1}
   end
-  
+
   def self.with_ids(ids)
     if ids.present?
       self.in(_id: ids)

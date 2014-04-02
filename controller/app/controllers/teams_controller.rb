@@ -32,6 +32,9 @@ class TeamsController < BaseController
       messages = get_error_messages(team)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     end
+
+    @analytics_tracker.track_event("team_create", team)
+
     render_success(:created, "team", get_rest_team(team, true), "Added #{team.name}")
   end
   # not supported
@@ -57,6 +60,9 @@ class TeamsController < BaseController
     team = get_team(id)
     authorize! :destroy, team
     team.destroy_team
+
+    @analytics_tracker.track_event("team_delete", team)
+
     render_success(:ok, nil, nil, "Deleted team #{id}")
   end
 end

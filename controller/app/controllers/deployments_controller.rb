@@ -29,7 +29,7 @@ class DeploymentsController < BaseController
     force_clean_build = get_bool(params[:force_clean_build].presence) 
     ref = params[:ref].presence
     artifact_url = params[:artifact_url].presence
-                          
+
     return render_error(:unprocessable_entity, "The ref is not well-formed. Git ref must be less than 256 characters. See also git-check-ref-format man page for rules.",
                           -1, "ref") if ref && (ref.length > 256 or ref !~ Deployment::GIT_REF_REGEX)
 
@@ -40,6 +40,9 @@ class DeploymentsController < BaseController
                           -1, "artifact_url") if artifact_url && ref
 
     result = @application.deploy(hot_deploy, force_clean_build, ref, artifact_url)
+
+    #@analytics_tracker.track_event("app_deploy", nil, @application)
+
     deployment = @application.deployments.sort_by {|deployment| deployment.activations.last ? deployment.activations.last : 0 }.last
     rest_deployment = get_rest_deployment(deployment)
     render_success(:created, "deployment", rest_deployment, "Added #{deployment.deployment_id} to application #{@application.name}", result)

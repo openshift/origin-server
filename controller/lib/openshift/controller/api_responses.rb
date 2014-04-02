@@ -38,6 +38,7 @@ module OpenShift
             reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
             log_action(action_log_tag, status, !internal_error, msg, get_log_args)
           end
+          @analytics_tracker.track_event('render_error', @domain, @application, {'request_path' => request.fullpath, 'request_method' => request.method, 'status_code' => status, 'error_code' => err_code, 'error_field' => field}) if @analytics_tracker
           respond_with reply, :status => reply.status
         end
 
@@ -125,7 +126,7 @@ module OpenShift
           when OpenShift::UserException
             status = ex.response_code || :unprocessable_entity
             error_code, node_message, messages = extract_node_messages(ex, error_code, message, field)
-            message = node_message || "Unable to complete the requested operation. \nReference ID: #{request.uuid}"           
+            message = node_message || "Unable to complete the requested operation. \nReference ID: #{request.uuid}"
             messages.push(Message.new(:error, message, error_code, field))
             return render_error(status, message, error_code, field, nil, messages, false)
 
@@ -161,7 +162,7 @@ module OpenShift
             status = :internal_server_error
             error_code, node_message, messages = extract_node_messages(ex, error_code, message, field)
             messages.push(Message.new(:error, node_message, error_code, field)) unless node_message.blank?
-            message = "#{message}\nReference ID: #{request.uuid}"           
+            message = "#{message}\nReference ID: #{request.uuid}"
             return render_error(status, message, error_code, field, nil, messages, internal_error)
 
           when OpenShift::NodeException, OpenShift::OOException

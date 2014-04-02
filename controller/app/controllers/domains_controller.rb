@@ -2,7 +2,7 @@
 class DomainsController < BaseController
   include RestModelHelper
 
-  # Retuns list of domains for the current user
+  # Returns list of domains for the current user
   #
   # URL: /domains
   #
@@ -13,7 +13,7 @@ class DomainsController < BaseController
   #
   # @return [RestReply<Array<RestDomain>>] List of domains
   def index
-    domains = 
+    domains =
       case params[:owner]
       when "@self" then Domain.accessible(current_user).where(owner: current_user)
       when nil     then Domain.accessible(current_user)
@@ -28,7 +28,7 @@ class DomainsController < BaseController
     render_success(:ok, "domains", domains.sort_by(&Domain.sort_by_original(current_user)).map{ |d| get_rest_domain(d) })
   end
 
-  # Retuns domain for the current user that match the given parameters.
+  # Returns domain for the current user that match the given parameters.
   #
   # URL: /domain/:name
   #
