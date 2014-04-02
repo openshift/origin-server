@@ -60,7 +60,7 @@ function stop() {
     if [ -f "$HTTPD_PID_FILE" ]; then
       # If we still have a PID file, then ensure_valid_httpd_process's call to
       # killall_httpds didn't happen.
-      shutdown_httpd_graceful_pidfile $HTTPD_PID_FILE
+      shutdown_httpd_graceful $HTTPD_PID_FILE
     fi
 }
 
