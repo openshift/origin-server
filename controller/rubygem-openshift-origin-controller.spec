@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.22.9
+Version: 1.22.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 01 2014 Adam Miller <admiller@redhat.com> 1.22.10-1
+- Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore" (bparees@redhat.com)
+
 * Fri Mar 28 2014 Adam Miller <admiller@redhat.com> 1.22.9-1
 - Use application.owner_id in unlock_app (jliggitt@redhat.com)
 - Fix app locking from team member change (jliggitt@redhat.com)
