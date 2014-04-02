@@ -65,7 +65,7 @@ class AliasController < BaseController
     server_alias = params[:id].downcase if params[:id].presence
     result = @application.remove_alias(server_alias)
 
-    @analytics_tracker.track_event('remove_alias', @domain, @application, {'alias' => server_alias})
+    @analytics_tracker.track_event('alias_remove', @domain, @application, {'alias' => server_alias})
 
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "Removed #{server_alias} from application #{@application.name}", result)

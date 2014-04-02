@@ -38,7 +38,6 @@ class ApplicationsController < BaseController
   # @return [RestReply<RestApplication>] Application object
   def show
     include_cartridges = (params[:include] == "cartridges")
-    @analytics_tracker.track_event("app_show", nil, @application)
     render_success(:ok, "application", get_rest_application(@application, include_cartridges), "Application '#{@application.name}' found")
   end
 
