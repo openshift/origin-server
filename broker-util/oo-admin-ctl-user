@@ -560,7 +560,7 @@ logins.each do |login|
 
     begin
       if args["--create"]
-        user = CloudUser.find_or_create_by_identity(nil, login)
+        user, _ = CloudUser.find_or_create_by_identity(nil, login)
       else
         user = CloudUser.find_by_identity(login)
       end

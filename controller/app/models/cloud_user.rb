@@ -153,7 +153,7 @@ class CloudUser
     user = find_by_identity(nil, login)
     #identity = user.current_identity!(provider, login)
     yield user, login if block_given?
-    user
+    [user, false]
   rescue Mongoid::Errors::DocumentNotFound
     user = new(create_attributes)
     #user.current_identity = user.identities.build(provider: provider, uid: login)
@@ -163,12 +163,12 @@ class CloudUser
       user.with(safe: true).save
       Lock.create_lock(user.id)
       OpenShift::UserActionLog.action("CREATE_USER", nil, true, "Creating user", 'USER' => user.id, 'LOGIN' => login, 'PROVIDER' => provider)
-      user
+      [user, true]
     rescue Moped::Errors::OperationFailure
       user = find_by_identity(nil, login)
       raise unless user
       yield user, login if block_given?
-      user
+      [user, true]
     end
   end
 

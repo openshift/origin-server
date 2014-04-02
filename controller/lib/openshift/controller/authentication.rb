@@ -34,6 +34,8 @@ module OpenShift
         def authenticate_user!
           user = @cloud_user
 
+          created = false
+
           unless user
 
             #
@@ -60,9 +62,12 @@ module OpenShift
             end
 
             scopes = info[:scopes] || Scope::SESSION
-            user = info[:user] ?
-              info[:user] :
-              impersonate(CloudUser.find_or_create_by_identity(info[:provider], info[:username]))
+            if info[:user]
+              user = info[:user]
+            else
+              user, created = CloudUser.find_or_create_by_identity(info[:provider], info[:username])
+              user = impersonate(user)
+            end
 
             raise "Service did not set the user login attribute" unless user.login.present?
 
@@ -82,6 +87,7 @@ module OpenShift
 
           @analytics_tracker = OpenShift::AnalyticsTracker.new(request)
           @analytics_tracker.identify(user)
+          @analytics_tracker.track_user_event('user_create', user) if created
 
           user
 
@@ -108,7 +114,7 @@ module OpenShift
           if info
             raise "Authentication service must return a username with its response" if info[:username].nil?
 
-            user = CloudUser.find_or_create_by_identity(info[:provider], info[:username])
+            user, _ = CloudUser.find_or_create_by_identity(info[:provider], info[:username])
             log_action("CREDENTIAL_AUTHENTICATE", nil, true, "Authenticated via credentials", {'LOGIN' => username, 'IP' => request.remote_ip})
             user
           end
@@ -256,7 +262,7 @@ module OpenShift
               log_action_for(user.login, user.id, "IMPERSONATE", nil, true, "Failed to impersonate", {'SUBJECT' => other, 'IP' => request.remote_ip, 'FORBID' => 'not_child_account'})
               raise OpenShift::AccessDeniedException, "Account is not associated with impersonate account #{other}"
             end
-          end.tap do |other_user|
+          end.first.tap do |other_user|
             log_action_for(user.login, user.id, "IMPERSONATE", nil, true, "Impersonation successful", {'SUBJECT_ID' => other_user.id})
           end
         end
