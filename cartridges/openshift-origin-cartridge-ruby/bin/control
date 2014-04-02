@@ -49,7 +49,7 @@ function stop() {
       fi
     fi
     echo "Stopping Ruby cartridge"
-    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    ensure_valid_httpd_pid_file "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
       shutdown_httpd_graceful_pidfile $HTTPD_PID_FILE
     fi
