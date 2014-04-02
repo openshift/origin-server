@@ -104,6 +104,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-analytics-import.8.gz
 %{_mandir}/man8/oo-quarantine.8.gz
 
+
 %changelog
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
 - Bug 1081419 - Move oo-upgrade to /var/log (dmcphers@redhat.com)

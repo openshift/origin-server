@@ -16,6 +16,8 @@ class Team
   end
 
   field :name, type: String
+  #only settable via admin script
+  field :maps_to, type: String, default: nil
   belongs_to :owner, class_name: CloudUser.name
   embeds_many :pending_ops, class_name: PendingTeamOps.name
 
@@ -24,7 +26,9 @@ class Team
 
   validates :name,
     presence: {message: "Name is required and cannot be blank"},
-    length:   {maximum: 250, minimum: 1, message: "Team name must be a minimum of 1 and maximum of 250 characters."}
+    length:   {maximum: 250, minimum: 2, message: "Team name must be a minimum of 2 and maximum of 250 characters."}
+  
+  validates_uniqueness_of :maps_to, message: "There is already a team that maps to this group", allow_nil: true
 
   index({'owner_id' => 1, 'name' => 1}, {:unique => true})
   create_indexes
@@ -71,8 +75,8 @@ class Team
     # Remove duplicates
     peer_team_ids = Domain.accessible(to).and({'members.t' => Team.member_type}).map(&:members).flatten(1).select {|m| m.type == 'team'}.map(&:_id).uniq
 
-    # Return teams which would normally be accessible or peer teams
-    self.or(super.selector, {:id.in => peer_team_ids})
+    # Return teams which would normally be accessible, global or peer teams
+    self.or(super.selector, {:id.in => peer_team_ids}, {:owner_id => nil})
   end
 
   def members_changed(added, removed, changed_roles)
@@ -136,4 +140,5 @@ class Team
       []
     end
   end
+  
 end
