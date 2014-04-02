@@ -107,21 +107,21 @@ module AdminHelper
     user_info
   end
 
-  def get_user_hash(user_id)
+  def get_user_hash(user_id, skip_errors=false)
     unless $user_hash[user_id.to_s]
-      populate_user_hash({:read => :primary}, user_id) 
+      populate_user_hash({:read => :primary}, user_id, skip_errors) 
     end
     $user_hash[user_id.to_s]
   end
 
-  def populate_user_hash(options=nil, user_id=nil)
+  def populate_user_hash(options=nil, user_id=nil, skip_errors=false)
     options ||= {}
     options.reverse_merge!({:timeout => false})
     query = {}
     query['_id'] = BSON::ObjectId(user_id.to_s) if user_id.present?
     OpenShift::DataStore.find(:cloud_users, query, options) do |user|
       unless user["login"].present?
-        print_message "User with Id #{user['_id']} has a null, empty, or missing login."
+        print_message "User with Id #{user['_id']} has a null, empty, or missing login." unless skip_errors
       else
         $user_hash[user["_id"].to_s] = get_user_info(user)
       end
@@ -147,7 +147,7 @@ module AdminHelper
       $domain_hash[domain["_id"].to_s] = {"owner_id" => owner_id, "canonical_namespace" => domain["canonical_namespace"], "env_vars" => env_vars, "ref_ids" => []}
       system_ssh_keys = []
       domain["system_ssh_keys"].each { |k| system_ssh_keys << ["domain-#{k['name']}", Digest::MD5.hexdigest(k["content"]), k["component_id"].to_s] if k["content"] } if domain["system_ssh_keys"].present?
-      get_user_hash(owner_id)
+      get_user_hash(owner_id, true)
 
       print_message "Domain '#{domain['_id']}' has no members in mongo." unless domain['members'].present?
 
@@ -178,7 +178,7 @@ module AdminHelper
       domain_id = app['domain_id'].to_s
       get_domain_hash(domain_id)
       owner_id = $domain_hash[domain_id]["owner_id"]
-      get_user_hash(owner_id)
+      get_user_hash(owner_id, true)
       app_life_time = Time.now.utc - creation_time
 
       if $chk_app or $chk_gear_mongo_node
