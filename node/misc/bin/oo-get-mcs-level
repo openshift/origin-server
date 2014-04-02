@@ -15,10 +15,10 @@
 # limitations under the License.
 #++
 
-require 'openshift-origin-node/utils/selinux'
+require 'openshift-origin-node/utils/selinux_context'
 
 begin
-  puts OpenShift::Runtime::Utils::SELinux.get_mcs_label(ARGV[0].to_i)
+  puts OpenShift::Runtime::Utils::SelinuxContext.instance.get_mcs_label(ARGV[0].to_i)
 rescue ArgumentError => e
   $stderr.puts(e.message)
   exit 1

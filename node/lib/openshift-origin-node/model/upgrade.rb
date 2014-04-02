@@ -60,6 +60,8 @@ end
 module OpenShift
   module Runtime
     class Upgrader
+      SelinuxContext = OpenShift::Runtime::Utils::SelinuxContext
+
       PREUPGRADE_STATE = '.preupgrade_state'
 
       @@gear_extension_present = false
@@ -238,8 +240,9 @@ module OpenShift
           FileUtils.mkpath(runtime_dir)
           FileUtils.chmod_R(0o750, runtime_dir)
           PathUtils.oo_chown_R(uuid, uuid, runtime_dir)
-          mcs_label = OpenShift::Runtime::Utils::SELinux::get_mcs_label(uuid)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, runtime_dir)
+
+          mcs_label = SelinuxContext.instance.get_mcs_label(uuid)
+          SelinuxContext.instance.set_mcs_label_R(mcs_label, runtime_dir)
         end
       end
 
@@ -772,9 +775,9 @@ module OpenShift
             FileUtils.cp(app_state, save_state)
           else
             IO.write(save_state, 'stopped')
-            mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(uuid)
+            mcs_label = SelinuxContext.instance.get_mcs_label(uuid)
             PathUtils.oo_chown(container.uid, container.gid, save_state)
-            OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, save_state)
+            SelinuxContext.instance.set_mcs_label(mcs_label, save_state)
           end
 
           preupgrade_state = OpenShift::Runtime::Utils::UpgradeApplicationState.new(container, PREUPGRADE_STATE)
