@@ -29,8 +29,8 @@ class RestTeam < OpenShift::Model
           "DELETE" => Link.new("Delete team", "DELETE", URI::join(url, "team/#{id}"))
         }
         
-      unless maps_to.nil?
-        self.links.delete_if {|k, v| ["ADD_MEMBER", "UPDATE_MEMBERS", "LEAVE"].include? k}
+      if self.global
+        self.links.delete_if {|k, v| ["ADD_MEMBER", "UPDATE_MEMBERS", "LEAVE", "DELETE"].include? k}
       end
     end
   end
