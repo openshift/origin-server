@@ -173,6 +173,11 @@ include AdminHelper
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
+unless BSON::ObjectId.legal?(gear)
+  puts "Error: Invalid gear format"
+  exit 1
+end if gear
+
 billing_api = OpenShift::BillingService.instance
 if plan_id and !billing_api.valid_plan(plan_id)
   puts "Error: Invalid plan"
