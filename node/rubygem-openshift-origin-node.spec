@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.12
+Version: 1.22.13
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Apr 03 2014 Adam Miller <admiller@redhat.com> 1.22.13-1
+- Fix graceful shutdown logic (ironcladlou@gmail.com)
+
 * Tue Apr 01 2014 Adam Miller <admiller@redhat.com> 1.22.12-1
 - Merge pull request #5134 from mfojtik/fix_stop_stg
   (dmcphers+openshiftbot@redhat.com)
