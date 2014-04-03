@@ -23,7 +23,11 @@ function start_app() {
     echo "Starting Python ${OPENSHIFT_PYTHON_VERSION} cartridge (app.py server)"
     cd "$OPENSHIFT_REPO_DIR"
     nohup python -u app.py &> >(/usr/bin/logshifter -tag python) &
-    echo $! > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
+    if [ "$?" == "0" ]; then
+      echo $! > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
+    else
+      echo "ERROR: Application failed to start, use 'rhc tail' for more informations."
+    fi
 }
 
 function pre_start_apache_config {
