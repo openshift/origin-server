@@ -189,7 +189,7 @@ class CloudUser
   def add_ssh_key(key)
     if persisted?
       Lock.run_in_user_lock(self, 1800) do
-        op_group = AddSshKeysUserOpGroup.new(keys_attrs: [key.serializable_hash])
+        op_group = AddSshKeysUserOpGroup.new(keys_attrs: [key.as_document])
         self.pending_op_groups.push op_group
         result_io = ResultIO.new
         self.run_jobs(result_io)
@@ -213,7 +213,7 @@ class CloudUser
     if persisted?
       Lock.run_in_user_lock(self, 1800) do
         key = self.ssh_keys.find_by(name: name)
-        op_group = RemoveSshKeysUserOpGroup.new(keys_attrs: [key.serializable_hash])
+        op_group = RemoveSshKeysUserOpGroup.new(keys_attrs: [key.as_document])
         self.pending_op_groups.push op_group
         result_io = ResultIO.new
         self.run_jobs(result_io)

@@ -201,7 +201,7 @@ class Domain
     ssh_keys.each do |new_key|
       self.system_ssh_keys.each do |cur_key|
         if cur_key.name == new_key.name
-          ssh_keys_to_rm << cur_key.serializable_hash
+          ssh_keys_to_rm << cur_key.as_document
         end
       end
     end
@@ -209,7 +209,7 @@ class Domain
     # if an ssh key being added has the same name as an existing key, then remove the previous keys first
     Domain.where(_id: self.id).update_all({ "$pullAll" => { system_ssh_keys: ssh_keys_to_rm }}) unless ssh_keys_to_rm.empty?
 
-    keys_attrs = ssh_keys.map { |k| k.serializable_hash }
+    keys_attrs = ssh_keys.map { |k| k.as_document }
     pending_op = AddSystemSshKeysDomainOp.new(keys_attrs: keys_attrs)
     pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pushAll" => { system_ssh_keys: keys_attrs }})
@@ -223,7 +223,7 @@ class Domain
       ssh_keys = [ssh_keys].flatten
     end
     return if ssh_keys.empty?
-    keys_attrs = ssh_keys.map { |k| k.serializable_hash }
+    keys_attrs = ssh_keys.map { |k| k.as_document }
     pending_op = RemoveSystemSshKeysDomainOp.new(keys_attrs: keys_attrs)
     pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { system_ssh_keys: keys_attrs }})
