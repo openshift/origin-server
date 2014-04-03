@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.22.6
+Version: 1.22.7
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -91,6 +91,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Apr 03 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
+- Force httpd into its own pgroup (ironcladlou@gmail.com)
+- Fix graceful shutdown logic (ironcladlou@gmail.com)
+
 * Tue Apr 01 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
 - Replace ensure_valid_httpd_process with ensure_valid_httpd_pid_file in stop()
   (mfojtik@redhat.com)
