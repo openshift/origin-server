@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.22.7
+Version: 1.22.8
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -73,6 +73,10 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Thu Apr 03 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
+- Force httpd into its own pgroup (ironcladlou@gmail.com)
+- Fix graceful shutdown logic (ironcladlou@gmail.com)
+
 * Tue Apr 01 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
 - Replace ensure_valid_httpd_process with ensure_valid_httpd_pid_file in stop()
   (mfojtik@redhat.com)
