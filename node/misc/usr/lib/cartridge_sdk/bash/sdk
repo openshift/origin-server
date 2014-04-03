@@ -252,7 +252,7 @@ function process_running {
       local error=$(pgrep -F $pidfile 2>&1)
       # pgrep returns 0 with an invalid pidfile, so we need to check the output
       # run it again to get the return code of the pgrep, not the assignment
-      pgrep -F $pidfile 2>&1
+      pgrep -F $pidfile >& /dev/null
       [ $? -eq 0 ] && ! [[ "${error}" =~ 'pidfile not valid' ]] && return 0
     fi
   }
