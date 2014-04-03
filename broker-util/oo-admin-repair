@@ -436,7 +436,7 @@ def repair_stale_keys_vars(domain_ids)
         # fix stale application ssh keys
         app_ssh_keys_to_rm = []
         app.app_ssh_keys.each do |key|
-          app_ssh_keys_to_rm << key.serializable_hash unless app_ref_ids.include? key.component_id.to_s
+          app_ssh_keys_to_rm << key.as_document unless app_ref_ids.include? key.component_id.to_s
         end
 
         if app_ssh_keys_to_rm.present?
@@ -457,7 +457,7 @@ def repair_stale_keys_vars(domain_ids)
 
       # fix stale domain ssh keys
       domain.system_ssh_keys.each do |key|
-        system_ssh_keys_to_rm << key.serializable_hash unless domain_ref_ids.include? key.component_id.to_s
+        system_ssh_keys_to_rm << key.as_document unless domain_ref_ids.include? key.component_id.to_s
       end
 
       if system_ssh_keys_to_rm.present?
