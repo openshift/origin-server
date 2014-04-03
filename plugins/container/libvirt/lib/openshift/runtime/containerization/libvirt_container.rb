@@ -68,7 +68,7 @@ module OpenShift
                 ) unless rc == 0
 
           set_ro_permission(@container.container_dir)
-          FileUtils.chmod 0 o0750, @container.container_dir
+          FileUtils.chmod 0o0750, @container.container_dir
 
           FileUtils.mkdir_p(@container_metadata)
           File.open(File.join(File.join(@container_metadata, "container-id")), "w") do |f|

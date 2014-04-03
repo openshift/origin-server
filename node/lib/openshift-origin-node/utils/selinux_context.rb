@@ -115,7 +115,7 @@ module OpenShift
         #
         # @note This *must* be the only access to the libselinux#matchpath* functions. Otherwise, the library will
         #   seg fault. See above.
-        # @see ConditionalVariable, Mutex
+        # @see ConditionVariable, Mutex
         #
         # @return [Thread]
         def matchpathcon_worker
