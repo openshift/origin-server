@@ -16,4 +16,4 @@
 
 /usr/sbin/oo-admin-ctl-tc $@
 
-exit 0
+exit $?
