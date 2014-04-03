@@ -238,12 +238,10 @@ function post_restore {
     start
     _wait_for_mongod_to_startup
     if [ ! -f $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz ]; then
-        stop
         client_result "MongoDB restore attempted but no dump was found!"
         die 0 "ERROR" "$OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz does not exist"
     else
         restore_from_mongodb_snapshot
-        stop
     fi
 }
 
