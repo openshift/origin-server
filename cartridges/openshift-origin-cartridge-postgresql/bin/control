@@ -20,7 +20,7 @@ function _is_running {
     pid=`cat $pidfile 2> /dev/null`
     if [ -z "$pid" ]; then
       rm -f $pidfile
-      return 0
+      return 1
     fi
     if process_running 'postgres' $pidfile; then
       return 0
