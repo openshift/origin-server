@@ -27,7 +27,7 @@ class Team
   validates :name,
     presence: {message: "Name is required and cannot be blank"},
     length:   {maximum: 250, minimum: 2, message: "Team name must be a minimum of 2 and maximum of 250 characters."}
-  
+
   validates_uniqueness_of :maps_to, message: "There is already a team that maps to this group", allow_nil: true
 
   index({'owner_id' => 1, 'name' => 1}, {:unique => true})
@@ -140,5 +140,5 @@ class Team
       []
     end
   end
-  
+
 end
