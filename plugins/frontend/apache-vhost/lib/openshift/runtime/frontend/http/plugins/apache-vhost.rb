@@ -228,7 +228,7 @@ module OpenShift
             def idle
               with_lock_and_reload do
                 File.open(idle_path, File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
-                  f.puts("RewriteRule ^/(.*)$ /var/www/html/restorer.php/#{@container_uuid}/$1 [NS,L]")
+                  f.puts("RewriteRule ^/(.*)$ /restorer/#{@container_uuid}/$1 [NS,L,PT]")
                 end
               end
             end

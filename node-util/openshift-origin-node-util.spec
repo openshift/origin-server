@@ -18,6 +18,7 @@ Requires:      rubygem-openshift-origin-node
 Requires:      httpd
 Requires:      php >= 5.3.2
 Requires:      lsof
+Requires:      perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 %if %{with_systemd}
 Requires:      systemd-units
 BuildRequires: systemd-units
@@ -53,11 +54,14 @@ mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 mkdir -p %{buildroot}/%{_localstatedir}/www/html/
 mkdir -p %{buildroot}%{_mandir}/man8/
+mkdir -p %{buildroot}%{perl_vendorlib}/OpenShift/
 
 cp -p conf/oddjob/openshift-restorer.conf %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 cp -p conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 cp -p www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
 cp -p www/html/health.txt %{buildroot}/%{_localstatedir}/www/html/
+cp -p perl5/OpenShift/Restorer.pm %{buildroot}%{perl_vendorlib}/OpenShift/
+cp -p conf/httpd/openshift_restorer.include %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
 cp -p man8/*.8 %{buildroot}%{_mandir}/man8/
 
@@ -149,6 +153,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 
 %{_localstatedir}/www/html/restorer.php
 %{_localstatedir}/www/html/health.txt
+
+%{perl_vendorlib}/OpenShift/Restorer.pm
+%attr(0644,-,-) %config(noreplace) %{_sysconfdir}/httpd/conf.d/openshift_restorer.include
 
 %if %{with_systemd}
 %attr(0755,-,-) /etc/systemd/system/openshift-gears.service

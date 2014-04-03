@@ -49,7 +49,7 @@ RewriteRule ^.*$ - [E=V_MATCH_HOST:%1,NS]
 # Call the unidler and redirect back to the original request.
 # www.example.com => uuid
 RewriteCond ${openshift-idler:%{ENV:V_MATCH_HOST}} ^(.+)$
-RewriteRule ^/(.*)$ /var/www/html/restorer.php/%1/$1 [NS,L]
+RewriteRule ^/(.*)$ /restorer/%1/$1 [NS,L,PT]
 
 # If STS is set then this domain will always force https.
 # Redirect to https or set the STS header if already on https.
