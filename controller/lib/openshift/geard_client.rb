@@ -298,6 +298,11 @@ module OpenShift
         else
           #TODO error handling here
         end
+
+        # WIP: For now, we create a geard repo for every gear
+        # PUT: /repository/:repoId [note, this will move into its own op group in future ]
+        res = clnt.put("#{build_base_geard_url}repository/#{gear.uuid}")
+        # TODO error handling here
         result
       end
 
@@ -1048,8 +1053,9 @@ module OpenShift
         #WIP
         args = build_base_gear_args(gear)
         containers = [ {'Id' => gear.uuid} ]
+        repositories = [ {'Id' => gear.uuid}]
         args[:method] = :put        
-        args[:body] = {'Keys' => build_ssh_key_args_with_content(ssh_keys), 'Containers' => containers }
+        args[:body] = {'Keys' => build_ssh_key_args_with_content(ssh_keys), 'Containers' => containers, 'Repositories' => repositories }
         RemoteJob.new('openshift-origin-node', 'keys', args)
       end
 
@@ -1653,22 +1659,20 @@ module OpenShift
       # RETURNS:
       # * ???
       #
-      def self.execute_parallel_jobs_impl(handle)
-        #TODO for now only handling a single geard host
-        #TODO make this async, requires geardclient be an object instead of calling
-        #   class methods
+      def self.execute_parallel_jobs_impl(handle)    
+        clnt = HTTPClient.new
+        threads = []        
+        responses = {}        
         handle.delete :args
         handle.keys.each do |identity|
           handle[identity].each do |parallel_job|
             job = parallel_job[:job]
-            #async do
-              clnt = HTTPClient.new
-              # WIP job
-              geard_op = job[:args]            
-              http_method = geard_op[:method]
-              http_body = geard_op[:body]
-              geard_url = "#{build_base_geard_url @@hostname}#{job[:action]}"
-              res = case http_method
+            geard_op = job[:args]                        
+            http_method = geard_op[:method]
+            http_body = geard_op[:body]
+            geard_url = "#{build_base_geard_url (@@hostname)}#{job[:action]}"
+            threads << Thread.new {
+              responses[identity] = case http_method
                 when :put 
                   if http_body.empty?
                     clnt.put(geard_url)
@@ -1686,14 +1690,21 @@ module OpenShift
                     clnt.post(geard_url, http_body.to_json, build_geard_post_headers)
                   end
                 end
-              handle[identity].each { |gear_info|
-                gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{res.body}"
-                gear_info[:result_exit_code] = res.status_code < 400 ? 0 : res.status_code
               }
-            #end
           end
         end
-        #join!(240)
+
+        threads.each do |th|
+          th.join
+        end
+
+        responses.each do |identity, res|
+          handle[identity].each { |gear_info|
+            gear_info[:result_stdout] = "(Gear Id: #{gear_info[:gear]}) #{res.body}"
+            gear_info[:result_exit_code] = res.status_code < 400 ? 0 : res.status_code
+          }
+        end
+
       end
 
       private
