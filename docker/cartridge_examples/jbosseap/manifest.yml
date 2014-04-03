@@ -1,0 +1,20 @@
+Name: jbosseap
+Image: "goldmann/eap"
+Image-Label: "goldmann/eap"
+Cartridge-Short-Name: JBOSSEAP
+Display-Name: JBoss Enterprise Application Platform 6
+Version: '6.0'
+Cartridge-Vendor: redhat
+Cartridge-Version: 6.0
+Vendor: Red Hat
+Categories:
+- web_framework
+- builder
+Scaling:
+  Min: 1
+  Max: -1
+Endpoints:
+- Private-IP-Name:   HTTP_IP
+  Private-Port-Name: WEB_PORT
+  Private-Port:      8080
+  Public-Port-Name:  WEB_PROXY_PORT
