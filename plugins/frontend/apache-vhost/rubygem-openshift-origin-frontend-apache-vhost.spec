@@ -94,6 +94,7 @@ mkdir -p %{buildroot}/etc/httpd/conf.d/openshift
 mv httpd/000001_openshift_origin_frontend_vhost.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/frontend-vhost-https-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
 mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
+mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 
 
 %files
@@ -104,6 +105,7 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshif
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_frontend_vhost.conf
 %config(noreplace) /etc/httpd/conf.d/openshift/frontend-vhost-http-template.erb
 %config(noreplace) /etc/httpd/conf.d/openshift/frontend-vhost-https-template.erb
+%config(noreplace) /etc/httpd/conf.d/openshift-vhost-logconf.include
 /etc/openshift/node-plugins.d/
 
 %changelog
