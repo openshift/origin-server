@@ -73,6 +73,18 @@ Then /^the ([^ ]+) ([^ ]+) marker will( not)? exist in the( plugin)? gear$/ do |
   end  
 end
 
+Then /^the( plugin)? gear state will be (.*?)$/ do |plugin, state|
+  state_file = File.join($home_root, @app.uid, 'app-root', 'runtime', '.state')
+  if plugin
+    plugin_gear_uuid = IO.read(File.join($home_root, @app.uid, '.env', 'mock-plugin', 'OPENSHIFT_MOCK_PLUGIN_GEAR_UUID')).chomp
+    plugin_gear_uuid.sub!(/export OPENSHIFT_MOCK_PLUGIN_GEAR_UUID=\'/, '')
+    plugin_gear_uuid.chomp!('\'')
+    marker_file = File.join($home_root, plugin_gear_uuid, 'app-root', 'runtime', '.state')
+  end
+  gear_state = File.read(state_file).chomp
+  assert_equal state, gear_state
+end
+
 When /^the minimum scaling parameter is set to (\d+)$/ do |min|
   rhc_ctl_scale(@app, min) 
 end
