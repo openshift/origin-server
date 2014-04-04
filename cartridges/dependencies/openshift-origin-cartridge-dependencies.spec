@@ -417,6 +417,7 @@ Requires:  gcc-c++
 Requires:  gmp-devel
 Requires:  ImageMagick-devel
 Requires:  libev-devel
+Requires:  libgit2-devel
 Requires:  libicu-devel
 Requires:  libxml2-devel
 Requires:  libxslt-devel
@@ -426,6 +427,7 @@ Requires:  js
 Requires:  ruby-nokogiri
 Requires:  rubygem-bson_ext
 Requires:  rubygem-rack >= 1.1.0
+Requires:  rubygem-rugged
 %else
 Requires:  rubygem-nokogiri
 %endif
@@ -484,6 +486,7 @@ Requires:  %{?scl_prefix}rubygem-rdoc
 Requires:  %{?scl_prefix}rubygem-rspec
 Requires:  %{?scl_prefix}rubygem-ruby2ruby
 Requires:  %{?scl_prefix}rubygem-ruby_parser
+Requires:  %{?scl_prefix}rubygem-rugged
 Requires:  %{?scl_prefix}rubygem-sass
 Requires:  %{?scl_prefix}rubygem-sass-rails
 Requires:  %{?scl_prefix}rubygem-sexp_processor
