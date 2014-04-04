@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.22.7
+Version: 1.22.8
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -91,6 +91,13 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Apr 04 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
+- Merge pull request #5169 from mfojtik/bugzilla/1084379_stg
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
+  (mfojtik@redhat.com)
+- Bug 1084298 - Fixed typo in python control script (mfojtik@redhat.com)
+
 * Thu Apr 03 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
 - Force httpd into its own pgroup (ironcladlou@gmail.com)
 - Fix graceful shutdown logic (ironcladlou@gmail.com)
