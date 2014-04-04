@@ -18,6 +18,7 @@ class TeamsControllerTest < ActionController::TestCase
     @request.env['REMOTE_USER'] = @login
     @request.env['HTTP_ACCEPT'] = "application/json"
     CloudUser.any_instance.stubs(:max_teams).returns(3)
+    CloudUser.any_instance.stubs(:view_global_teams).returns(true)
     #global teams need to be cleaned up since they will not be deleted as part of user delete (no ownership)
     @teams_to_tear_down = []
     stubber
@@ -32,6 +33,47 @@ class TeamsControllerTest < ActionController::TestCase
       end
     rescue
     end
+  end
+
+  test "global search requires capability" do
+    CloudUser.any_instance.stubs(:view_global_teams).returns(false)
+    get :index, {"search" => "team", "global" => true}
+    assert_response :forbidden
+  end
+
+  test "viewing global team requires capability" do
+    CloudUser.any_instance.stubs(:view_global_teams).returns(false)
+    @teams_to_tear_down << (team = Team.create(name: "global-team"))
+
+    get :show, {"id" => team.id}
+    assert_response :not_found
+  end
+
+  test "viewing member global team does not require capability" do
+    CloudUser.any_instance.stubs(:view_global_teams).returns(false)
+    @teams_to_tear_down << (team = Team.create(name: "global-team-member"))
+    team.add_members(@user, :view)
+    team.save
+    team.run_jobs
+
+    get :show, {"id" => team.id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal team.id.to_s, json['data']['id'], response.body
+  end
+
+  test "viewing peer global team does not require capability" do
+    @domain = Domain.create(:namespace => "domain#{@random}", :owner => @user)
+    @teams_to_tear_down << (team = Team.create(name: "global-team-peer"))
+
+    @domain.add_members team, :view
+    @domain.save
+    @domain.run_jobs
+
+    get :show, {"id" => team.id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal team.id.to_s, json['data']['id'], response.body
   end
 
   test "team create show list update and destroy" do
