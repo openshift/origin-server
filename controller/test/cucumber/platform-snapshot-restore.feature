@@ -6,7 +6,6 @@ Feature: Snapshot and restore
 
     When I snapshot the application
     Then the mock control_pre_snapshot marker will exist in the gear
-    And the mock control_post_snapshot marker will exist in the gear
     And the gear state will be started
 
     When a new file is added and pushed to the client-created application repo
