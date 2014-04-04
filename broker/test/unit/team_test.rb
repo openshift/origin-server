@@ -437,10 +437,10 @@ class TeamTest < ActiveSupport::TestCase
   end
 
   def test_team_accessible_to_member
-    
+
     CloudUser.where(:login => 'owner').delete
     assert owner = CloudUser_create(:login => 'owner')
-    
+
     CloudUser.where(:login => 'member').delete
     assert u1 = CloudUser_create(:login => 'member')
 
@@ -459,10 +459,10 @@ class TeamTest < ActiveSupport::TestCase
   end
 
   def test_team_accessible_to_fellow_domain_member
-        
+
     CloudUser.where(:login => 'owner').delete
     assert owner = CloudUser_create(:login => 'owner')
-    
+
     Domain.where(:namespace => 'test').delete
     assert d = Domain_create(:namespace => 'test')
 
@@ -483,7 +483,7 @@ class TeamTest < ActiveSupport::TestCase
     assert_equal [t], Team.accessible(u1).to_a
     assert_equal [], Team.accessible(u2).to_a
   end
-  
+
   def test_duplicate_global_team
     Team.where(:name => 'test-team').delete
     assert t = Team_create(:name => "test-team", :maps_to => "test-group")
@@ -495,7 +495,7 @@ class TeamTest < ActiveSupport::TestCase
     assert_raise(Moped::Errors::OperationFailure) {t.save}
     t = Team.new(name: "myteam", maps_to: "test-group")
     assert t.invalid?
-    
+
     CloudUser.where(:login => 'team-owner-1').delete
     assert u = CloudUser_create(:login => 'team-owner-1')
     t = Team.new(name: "test-team", owner_id: u.id)

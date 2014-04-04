@@ -34,7 +34,7 @@ class PendingTeamOps
     updated_op = update_with_retries(5, failure_message) do |current_team, current_op, op_index|
       Team.where({ "_id" => current_team._id, "pending_ops.#{op_index}._id" => current_op._id }).update({"$set" => { "pending_ops.#{op_index}.state" => new_state }})
     end
-    
+
     # set the state in the object in mongoid memory for access by the caller
     self.state = updated_op.state
   end
@@ -67,7 +67,7 @@ class PendingTeamOps
     unless success
       Rails.logger.error(failure_message)
     end
-    
+
     return current_op
   end
 end

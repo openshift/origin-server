@@ -9,25 +9,25 @@ class TeamsController < BaseController
     if search and global.nil?
       return render_error(:unprocessable_entity, "You must specify the global flag when searching.  Valid values are [true, false].", 1)
     end
-    
+
     if search
       if get_bool(global)
-        teams = Team.accessible(current_user).where(owner_id: nil, name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1}) 
+        teams = Team.accessible(current_user).where(owner_id: nil, name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1})
       else
         teams = Team.accessible(current_user).where(:owner_id.exists => true, :owner_id.ne => "", name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1})
       end
     else
-      teams = 
+      teams =
       case params[:owner]
       when "@self" then Team.accessible(current_user).where(owner: current_user).sort({name: 1})
       when nil     then Team.accessible(current_user).sort({name: 1})
-      else return render_error(:unprocessable_entity, "Only @self is supported for the 'owner' argument.", 1) 
+      else return render_error(:unprocessable_entity, "Only @self is supported for the 'owner' argument.", 1)
       end
     end
     rest_teams = teams.map {|t| get_rest_team(t, if_included(:members))}
     return render_success(:ok, "teams", rest_teams, "Found #{rest_teams.count} teams") if search
     render_success(:ok, "teams", rest_teams, "Listing teams for user #{@cloud_user.login}")
-   
+
   end
 
   def show
