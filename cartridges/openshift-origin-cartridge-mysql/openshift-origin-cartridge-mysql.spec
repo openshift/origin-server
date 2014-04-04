@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 1.22.5
+Version: 1.22.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,14 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Apr 04 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
+- Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
+  (mfojtik@redhat.com)
+- Merge pull request #5162 from bparees/unrevert_restore_state_stage
+  (dmcphers+openshiftbot@redhat.com)
+- Revert "Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore"" (bparees@redhat.com)
+
 * Thu Apr 03 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Revert "Updated cartridges to stop after post_restore" (bparees@redhat.com)
 
