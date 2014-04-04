@@ -153,7 +153,7 @@ class District
     end
     begin
       if Application.where({"gears.server_identity" => server_identity}).exists?
-        raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid} "
+        raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid} " \
                                          "because some apps in mongo are still using it.")
       end
       unless server.unresponsive

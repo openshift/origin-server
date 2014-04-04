@@ -146,7 +146,7 @@ module OpenShift
             status = :internal_server_error
             message = "Unable to authenticate the user. Please try again and contact support if the issue persists. \nReference ID: #{request.uuid}"
 
-          when OpenShift::DNSException
+          when OpenShift::DNSException, OpenShift::DNSLoginException
             status = :internal_server_error
 
           when OpenShift::LockUnavailableException
