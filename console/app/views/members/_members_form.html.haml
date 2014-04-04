@@ -31,13 +31,19 @@
   .members tr.error-row td   { padding-top: 0px; }
   .members tr.error-row td p { margin-top: 0; }
   .members tr.template {display: none !important; }
-
+  .members tr.no-role select, .members tr.no-role a.remove-member { opacity: .4; }
+  .members tr.collapsed { display: none; }
+  .members tr.team-details td { white-space: wrap; overflow: hidden; text-overflow: ellipsis; padding-left: 32px; }
+  
   .members .edit-only { display: none; }
   .members.editing .edit-only { display: block; }
   .members.editing tr.edit-only { display: table-row; }
   .members.editing .read-only { display: none; }
 
   .hidden-scripted { display: none; }
+
+  .type-user .icon-user {opacity: .6;}
+
 
 %noscript
   :css
@@ -47,7 +53,12 @@
     .members .edit-only { display: block; }
     .members tr.edit-only { display: table-row; }
     .members .read-only { display: none; }
+    .members tr.no-role select, .members tr.no-role a.remove-member { opacity: 1; }
+    .members tr.collapsed { display: table-row; }
 
+
+- owner = members.find(&:owner)
+- explicit_members = members.reject(&:owner).select(&:explicit_role?).sort
 - if not editable
   .members
     %table.table.table-condensed.table-fixed
@@ -55,23 +66,29 @@
         %col{:width => "50%"}
         %col{:width => "50%"}
 
-      %tr
-        - owner = members.find(&:owner)
-        %td.nowrap.member{:title => owner.name}
-          = owner.name
-        %td Owner
-
-      - members.reject(&:owner).sort.each do |member|
+      - if owner
         %tr
+          %td.nowrap.member{:title => owner.name}
+            %span{:'aria-hidden' => "true", :class => "icon-user"}
+            = owner.name
+          %td Owner
+
+      - explicit_members.each do |member|
+        %tr{:class => "type-#{member.type}"}
           %td.nowrap.member{:title => member.name}
-            = member.name
+            - if member.team?
+              %span{:'aria-hidden' => "true", :class => "icon-users"}
+              = member.name
+            - else
+              %span{:'aria-hidden' => "true", :class => "icon-user"}
+              = member.name
           %td
             = Role.description_for(member.role)
 
 - else
   - if members.count <= 1 && !editing
     %p{:'data-hide-parent' => '1'}
-      No one else can see this domain. #{link_to "Add members...", "javascript:;", :'data-unhide' => '.members'}
+      No one else can see this domain. #{link_to "Add users...", "javascript:;", :'data-unhide' => '.members'}
 
   = form_tag domain_members_path(domain), :method => :put, :class => "members warn-dirty #{'editing' if editing || members.count <= 1} #{'hidden-scripted' if !editing && members.count <= 1} #{'dirty' if new_members.present?}" do
 
@@ -81,28 +98,51 @@
         %col{:width => "45%"}
         %col.script-only{:width => "30"}
 
-      %tr
-        - owner = members.find(&:owner)
-        %td.nowrap.member{:title => owner.name}
-          = owner.name
-        %td Owner
-        %td.script-only
-
-      - members.reject(&:owner).sort.each do |member|
+      - if owner
         %tr
+          %td.nowrap.member{:title => owner.name}
+            %span{:'aria-hidden' => "true", :class => "icon-user"}
+            = owner.name
+          %td Owner
+          %td.script-only
+
+      - explicit_members.each do |member|
+        - member_teams = member.teams(members)
+        %tr{:class => "type-#{member.type}"}
           %td.nowrap.member{:title => member.name}
-            = member.name
+            - if member.team?
+              %span{:'aria-hidden' => "true", :class => "icon-users"}
+              = link_to member.name, "javascript:;", {'data-target' => "#team-#{member.id}", 'data-toggle' => 'team'}
+            - else
+              %span{:'aria-hidden' => "true", :class => "icon-user"}
+              = member.name
           %td.nowrap
-            .read-only= Role.description_for(member.role)
+            .read-only
+              - if member.explicit_role == member.role
+                = Role.description_for(member.role)
+              - elsif member_teams.present?
+                = Role.description_for(member.role)
+                via 
+                %span{:'aria-hidden' => "true", :class => "icon-users", :title => "Has access via these teams:\n#{member_teams.map(&:name).join(", \n")}"}
+              - else
+                = Role.description_for(member.role)
             .edit-only
               -# Always start with a common field to make param hashes group correctly
-              = hidden_field_tag('members[][x]', 0)
+              = hidden_field_tag('members[][type]', member.type)
               = hidden_field_tag('members[][id]', member.id)
-              = select_tag('members[][role]', options_for_select(Role.role_descriptions(true), {:selected => member.role}))
+              = select_tag('members[][role]', options_for_select(Role.role_descriptions(true, member_teams.present?), {:selected => member.explicit_role || :none}))
           %td.script-only
             .edit-only
               = link_to('javascript:;', :class => 'remove-member btn btn-mini') do
                 %span.icon-remove{'aria-hidden'=>"true"}
+        - if member.team?
+          %tr.team-details.collapsed{:id => "team-#{member.id}"}
+            %td{:colspan => 3}
+              - if (team_members = members.select {|m| m.grant_from?('team', member.id)}).present?
+                Team members: 
+                = team_members.map(&:name).to_sentence
+              - else
+                No team members
 
       - new_members = (new_members || []).dup
       - new_members << Domain::Member.new(:role => :edit) if new_members.blank? and members.count == 1
@@ -112,7 +152,7 @@
         %tr.edit-only.control-group{:class => "#{'error' if error} #{'template' if new_member.equal?(template)}"}
           %td
             -# Always start with a common field to make param hashes group correctly
-            = hidden_field_tag('members[][x]', 0)
+            = hidden_field_tag('members[][type]', 'user')
             = text_field_tag('members[][login]', new_member.login, {:placeholder => 'User Login', :title => 'User Login', :autocomplete => 'off', :class => ('error' if error)})
           %td
             = select_tag('members[][role]', options_for_select(Role.role_descriptions(false), new_member.role))
@@ -127,7 +167,7 @@
       %tr.borderless
         %td{:colspan => 3}
           .form-actions.edit-only
-            = link_to 'Add another member...', 'javascript:;', :class => 'add-member'
+            = link_to 'Add another user...', 'javascript:;', :class => 'add-member'
           .form-actions.read-only.script-only
             = link_to "Edit members...", "javascript:;", :class => 'edit-members'
 
@@ -157,7 +197,7 @@
         $('.members').find('select').change(function() {
           var $this = $(this);
           var $tr = $this.closest('tr');
-          $tr.css({opacity: ($this.val() == 'none') ? ".4":"1"});
+          $tr.toggleClass("no-role", $this.val() == 'none');
         }).on('keypress', function(){
           var $this = $(this);
           var was = $this.val();
@@ -188,5 +228,15 @@
           setTimeout(function() {
             $members.find('input[type=text]:visible').first().focus();
           }, 1);
+        });
+
+        $("[data-toggle=team]").click(function(){
+          var target = $(this).data("target");
+          console.log(target);
+          if (target) {
+            var $target = $(target);
+            console.log($target);
+            $target.toggleClass("collapsed");
+          }
         });
       });
