@@ -52,7 +52,7 @@ class AliasController < BaseController
 
     result = @application.update_alias(server_alias, ssl_certificate, private_key, pass_phrase)
 
-    @analytics_tracker.track_event('alias_add', @domain, @application, {'alias' => server_alias})
+    @analytics_tracker.track_event('alias_update', @domain, @application, {'alias' => server_alias})
 
     al1as = @application.aliases.find_by(fqdn: server_alias)
     rest_alias = get_rest_alias(al1as)
