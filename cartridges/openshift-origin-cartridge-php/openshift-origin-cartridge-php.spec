@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.22.8
+Version: 1.22.9
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -52,6 +52,10 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Fri Apr 04 2014 Adam Miller <admiller@redhat.com> 1.22.9-1
+- Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
+  (mfojtik@redhat.com)
+
 * Thu Apr 03 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
 - Force httpd into its own pgroup (ironcladlou@gmail.com)
 - Fix graceful shutdown logic (ironcladlou@gmail.com)
