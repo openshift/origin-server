@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 1.22.7
+Version: 1.22.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -91,6 +91,14 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Apr 04 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
+- Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
+  (mfojtik@redhat.com)
+- Merge pull request #5162 from bparees/unrevert_restore_state_stage
+  (dmcphers+openshiftbot@redhat.com)
+- Revert "Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore"" (bparees@redhat.com)
+
 * Thu Apr 03 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
 - Merge pull request #5150 from bparees/revert_db_stop_stage
   (dmcphers+openshiftbot@redhat.com)
