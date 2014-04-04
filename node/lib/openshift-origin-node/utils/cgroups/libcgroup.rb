@@ -15,7 +15,7 @@
 #++
 
 require 'openshift-origin-node/utils/shell_exec'
-require 'openshift-origin-node/utils/selinux'
+require 'openshift-origin-node/utils/selinux_context'
 require 'openshift-origin-node/utils/node_logger'
 require 'fileutils'
 require 'etc'
@@ -511,7 +511,7 @@ module OpenShift
             end
 
             FileUtils.mv(filename+"-", filename, :force => true)
-            SELinux::chcon(filename)
+            SelinuxContext.instance.chcon(filename)
 
             r
           end

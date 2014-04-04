@@ -1,5 +1,5 @@
 #--
-# Copyright 2013 Red Hat, Inc.
+# Copyright 2013-2014 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -99,7 +99,10 @@ class NodeTest < OpenShift::NodeTestCase
       @config.stubs(:get_bool).with("no_overcommit_active", anything).returns(scenario[:no_overcommit_active])
       OpenShift::Runtime::Node.stubs(:resource_limits).returns(@config)
 
-      OpenShift::Runtime::Utils::SELinux.stubs(:set_mcs_label).returns nil
+      instance = mock()
+      instance.stubs(:set_mcs_label).returns nil
+      instance.stubs(:get_mcs_label).returns('s0:c0,c501')
+      OpenShift::Runtime::Utils::SelinuxContext.stubs(:instance).returns(instance)
 
       appuids = (501...(501+ (scenario[:max_active_gears].nil? ? scenario[:max_active_apps].to_i : scenario[:max_active_gears].to_i)))
 
