@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.13
+Version: 1.22.14
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Apr 04 2014 Adam Miller <admiller@redhat.com> 1.22.14-1
+- Merge pull request #5162 from bparees/unrevert_restore_state_stage
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5160 from bparees/cleanup_sdk_stage
+  (dmcphers+openshiftbot@redhat.com)
+- Revert "Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore"" (bparees@redhat.com)
+- hide output from pgrep (bparees@redhat.com)
+
 * Thu Apr 03 2014 Adam Miller <admiller@redhat.com> 1.22.13-1
 - Fix graceful shutdown logic (ironcladlou@gmail.com)
 
