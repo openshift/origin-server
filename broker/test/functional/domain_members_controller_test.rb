@@ -10,6 +10,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     @password = "password"
     @owner = CloudUser.new(login: @login)
     @owner.private_ssl_certificates = true
+    @owner.view_global_teams = true
     @owner.save
     Lock.create_lock(@owner.id)
     register_user(@login, @password)

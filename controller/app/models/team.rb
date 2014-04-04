@@ -75,8 +75,13 @@ class Team
     # Remove duplicates
     peer_team_ids = Domain.accessible(to).and({'members.t' => Team.member_type}).map(&:members).flatten(1).select {|m| m.type == 'team'}.map(&:_id).uniq
 
-    # Return teams which would normally be accessible, global or peer teams
-    self.or(super.selector, {:id.in => peer_team_ids}, {:owner_id => nil})
+    if (to.is_a?(CloudUser) && !to.view_global_teams)
+      # Return teams which would normally be accessible or peer teams
+      self.or(super.selector, {:id.in => peer_team_ids})
+    else
+      # Return teams which would normally be accessible, global or peer teams
+      self.or(super.selector, {:id.in => peer_team_ids}, {:owner_id => nil})
+    end
   end
 
   def members_changed(added, removed, changed_roles)

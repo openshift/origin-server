@@ -94,6 +94,7 @@ Broker::Application.configure do
     :syslog_enabled => conf.get_bool('SYSLOG_ENABLED', 'false'),
     :app_template_for => OpenShift::Controller::Configuration.parse_url_hash(conf.get('DEFAULT_APP_TEMPLATES', nil)),
     :default_max_teams => (conf.get("DEFAULT_MAX_TEAMS", "0")).to_i,
+    :default_view_global_teams => conf.get_bool('DEFAULT_VIEW_GLOBAL_TEAMS', 'false'),
     :node_platforms => OpenShift::Controller::Configuration.parse_list(conf.get('NODE_PLATFORMS', 'linux')).map { |platform| platform.downcase }    
   }
 

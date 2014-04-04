@@ -231,7 +231,8 @@ class CloudUser
       "gear_sizes" => Rails.application.config.openshift[:default_gear_capabilities],
       "max_domains" => Rails.application.config.openshift[:default_max_domains],
       "max_gears" => Rails.application.config.openshift[:default_max_gears],
-      "max_teams" => Rails.application.config.openshift[:default_max_teams]
+      "max_teams" => Rails.application.config.openshift[:default_max_teams],
+      "view_global_teams" => Rails.application.config.openshift[:default_view_global_teams]
     }
   end
 
@@ -334,6 +335,14 @@ class CloudUser
 
   def max_teams=(m)
     self._capabilities["max_teams"] = m if capabilities["max_teams"] != m
+  end
+
+  def view_global_teams
+    capabilities["view_global_teams"] || Rails.application.config.openshift[:default_view_global_teams]
+  end
+
+  def view_global_teams=(m)
+    self._capabilities["view_global_teams"] = m if capabilities["view_global_teams"] != m
   end
 
   def plan_upgrade_enabled
