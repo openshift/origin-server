@@ -3,7 +3,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.19.7
+Version: 1.19.8
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -45,6 +45,10 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Fri Apr 04 2014 Adam Miller <admiller@redhat.com> 1.19.8-1
+- Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
+  (mfojtik@redhat.com)
+
 * Thu Apr 03 2014 Adam Miller <admiller@redhat.com> 1.19.7-1
 - Force httpd into its own pgroup (ironcladlou@gmail.com)
 - Fix graceful shutdown logic (ironcladlou@gmail.com)
