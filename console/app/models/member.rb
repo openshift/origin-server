@@ -41,9 +41,14 @@ class Member < RestApi::Base
     [type, name, id] <=> [other.type, other.name, other.id]
   end
 
+  # return the items in the members array corresponding to the team grants this member has
   def teams(members)
     team_ids = from.inject([]) {|ids, f| ids << f[:id] if f[:type] == 'team'; ids }
-    members.select {|m| m.type == 'team' && team_ids.include?(m.id) }
+    if team_ids.present?
+      members.select {|m| m.type == 'team' && team_ids.include?(m.id) }
+    else
+      []
+    end
   end
 
 end

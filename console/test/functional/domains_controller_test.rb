@@ -294,6 +294,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert_response :success
     assert_select "tr.type-team"
     assert_select "tr.type-user", :count => 0
+    assert_select "tr.team-details td:content(?)", /alice/
     assert_select "a:content(?)", "Add users...", :count => 0
     assert_select "a:content(?)", "Add another user..."
     assert_select "a.edit-members:content(?)", "Edit members..."
@@ -317,6 +318,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert_response :success
     assert_select "tr.type-team"
     assert_select "tr.type-team select[name='members[][role]'] option[selected='selected'][value='edit']"
+    assert_select "tr.team-details td:content(?)", /alice/
 
     assert_select "tr.type-user", :count => 2
     # Ensure the explicit role is the one pre-selected in the dropdown for the user
