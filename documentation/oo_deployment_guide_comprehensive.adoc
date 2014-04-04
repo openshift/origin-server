@@ -971,7 +971,6 @@ Replace the contents of the _/etc/mcollective/client.cfg_ with the following inf
 .Fedora
 ----
 cat <<EOF > /etc/mcollective/client.cfg
-topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /usr/libexec/mcollective
@@ -988,13 +987,17 @@ plugin.activemq.pool.1.host = broker.example.com
 plugin.activemq.pool.1.port = 61613
 plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette
+
+plugin.activemq.stomp_1_0_fallback = 0
+plugin.activemq.heartbeat_interval = 30
+plugin.activemq.max_hbread_fails = 2
+plugin.activemq.max_hbrlck_fails = 2
 EOF
 ----
 
 .RHEL
 ----
 cat <<EOF > /opt/rh/ruby193/root/etc/mcollective/client.cfg
-topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /opt/rh/ruby193/root/usr/libexec/mcollective
@@ -1011,6 +1014,11 @@ plugin.activemq.pool.1.host = broker.example.com
 plugin.activemq.pool.1.port = 61613
 plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette
+
+plugin.activemq.stomp_1_0_fallback = 0
+plugin.activemq.heartbeat_interval = 30
+plugin.activemq.max_hbread_fails = 2
+plugin.activemq.max_hbrlck_fails = 2
 EOF
 ----
 
@@ -2036,7 +2044,6 @@ Configure the MCollective client to communicate with the broker application serv
 .Fedora
 ----
 cat <<EOF >/etc/mcollective/server.cfg
-topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /usr/libexec/mcollective
@@ -2057,6 +2064,11 @@ plugin.activemq.pool.1.port = 61613
 plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette
 
+plugin.activemq.stomp_1_0_fallback = 0
+plugin.activemq.heartbeat_interval = 30
+plugin.activemq.max_hbread_fails = 2
+plugin.activemq.max_hbrlck_fails = 2
+
 # Facts
 factsource = yaml
 plugin.yaml = /etc/mcollective/facts.yaml
@@ -2066,7 +2078,6 @@ EOF
 .RHEL6
 ----
 cat <<EOF > /opt/rh/ruby193/root/etc/mcollective/client.cfg
-topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /opt/rh/ruby193/root/usr/libexec/mcollective
@@ -2086,6 +2097,11 @@ plugin.activemq.pool.1.host = broker.example.com
 plugin.activemq.pool.1.port = 61613
 plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette
+
+plugin.activemq.stomp_1_0_fallback = 0
+plugin.activemq.heartbeat_interval = 30
+plugin.activemq.max_hbread_fails = 2
+plugin.activemq.max_hbrlck_fails = 2
 
 # Facts
 factsource = yaml
