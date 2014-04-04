@@ -338,7 +338,7 @@ class CloudUser
   end
 
   def view_global_teams
-    capabilities["view_global_teams"] || false
+    capabilities["view_global_teams"] || Rails.application.config.openshift[:default_view_global_teams]
   end
 
   def view_global_teams=(m)
