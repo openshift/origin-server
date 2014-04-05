@@ -32,6 +32,10 @@ class RestMember < OpenShift::Model
           Param.new("role", "string", "New role for member")]),
         "DELETE" => Link.new("Delete member", "DELETE", URI::join(url, "member/#{id}").to_s + (self.type != "user" ? "?type=#{self.type}" : ""))
       }
+      
+      if membership.class == Team and membership.owner_id.nil?
+        self.links.delete_if {|k, v| ["UPDATE", "DELETE"].include? k}
+      end
     end
   end
 
