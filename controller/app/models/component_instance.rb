@@ -52,7 +52,7 @@ class ComponentInstance
     name
   end
 
-  delegate :is_plugin?, :is_embeddable?, :is_web_proxy?, :is_web_framework?, to: :cartridge
+  delegate :is_plugin?, :is_embeddable?, :is_web_proxy?, :is_external?, :is_web_framework?, to: :cartridge
   delegate :is_sparse?, to: :component
 
   def min

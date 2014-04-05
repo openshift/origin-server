@@ -300,7 +300,15 @@ module AdminHelper
             end
             gi_hash.each do |gi_id, present|
               unless present
-                print_message "Application '#{app['name']}' with Id '#{app['_id']}' has no gears for group instance with Id '#{gi_id}'"
+                # check if this is a group instance created for an external cartridge
+                is_external = begin
+                                a = Application.find_by(:_id => app['_id'].to_s)
+                                ci = a.component_instances.find_by(:group_instance_id => gi_id.to_s)
+                                ci.is_external?
+                              rescue Mongoid::Errors::DocumentNotFound
+                                false
+                              end
+                print_message "Application '#{app['name']}' with Id '#{app['_id']}' has no gears for group instance with Id '#{gi_id}'" unless is_external
               end
             end
           else
