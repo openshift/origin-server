@@ -794,6 +794,8 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
     puts "Finished fixing/deleting unresponsive scalable apps." if $verbose
   end
 
+  # Skip servers if any apps are still referencing it
+  servers_to_delete.delete_if {|server, _, _| Application.where({"gears.server_identity" => server}).exists? }
   unless servers_to_delete.blank?
     puts ""
     print "Do you want to delete unresponsive servers from their respective districts [yes/no]: "

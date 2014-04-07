@@ -152,6 +152,10 @@ class District
       raise OpenShift::OOException.new("Node with server identity: #{server_identity} from district: #{uuid} must be deactivated before it can be removed")
     end
     begin
+      if Application.where({"gears.server_identity" => server_identity}).exists?
+        raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid} " \
+                                         "because some apps in mongo are still using it.")
+      end
       unless server.unresponsive
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed " \

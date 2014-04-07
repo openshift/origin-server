@@ -612,6 +612,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     servers = []
     app.gears.each {|gear| servers << gear.server_identity }
     assert_equal ["s20", "s20", "s21", "s21"], servers.sort
+    app.destroy_app
 
     dist.deactivate_node("s00")
     dist.deactivate_node("s10")
