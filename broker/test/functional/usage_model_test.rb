@@ -42,14 +42,14 @@ class UsageModelTest < ActiveSupport::TestCase
       ue.save!
     end
     ues = Usage.find_all
-    assert(ues.length == 2)
+    assert_equal(2, ues.length)
   end
 
   test "find all usage events by user" do
     ue = usage
     ue.save!
     ue = Usage.find_by_user(ue.user_id)
-    assert(ue.length == 1)
+    assert_equal(1, ue.length)
   end
 
   test "find all user usage events since given time" do
@@ -60,7 +60,7 @@ class UsageModelTest < ActiveSupport::TestCase
     ue2.begin_time = ue1.begin_time + 100
     ue2.save!
     ue = Usage.find_by_user_after_time(ue1.user_id, ue1.begin_time + 10)
-    assert(ue.length == 1)
+    assert_equal(1, ue.length)
   end
 
   test "find latest by user gear" do
@@ -92,11 +92,11 @@ class UsageModelTest < ActiveSupport::TestCase
     ue3.begin_time = cur_tm + 200
     ue3.save!
     ue = Usage.find_by_user_time_range(ue1.user_id, cur_tm + 10, cur_tm + 150)
-    assert(ue.length == 1)
+    assert_equal(1, ue.length)
     ue = Usage.find_by_user_time_range(ue1.user_id, cur_tm + 10, cur_tm + 250)
-    assert(ue.length == 2)
+    assert_equal(2, ue.length)
     ue = Usage.find_by_user_time_range(ue1.user_id, cur_tm -20, cur_tm + 10)
-    assert(ue.length == 2)
+    assert_equal(2, ue.length)
   end
 
   test "find usage by user gear" do
