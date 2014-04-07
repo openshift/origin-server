@@ -122,8 +122,6 @@ class EmbCartController < BaseController
     authorize!(:scale_cartridge, @application) unless scales_from.nil? and scales_to.nil?
     authorize!(:change_gear_quota, @application) unless additional_storage.nil?
 
-    props = {}
-
     if additional_storage
       begin
         additional_storage = Integer(additional_storage)
@@ -171,18 +169,22 @@ class EmbCartController < BaseController
       return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from")
     end
 
+    scaling_props = nil
     if scales_from || scales_to
-      props['scales_from'] = scales_from if scales_from
-      props['previous_scales_from'] = override.min_gears if scales_from
-      props['scales_to'] = scales_to if scales_to
-      props['previous_scales_to'] = override.max_gears if scales_to
-      props['previous_scale'] = instance.gears.count if scales_from
-      props['current_scale'] = [scales_from, instance.gears.count].max if scales_from
+      scaling_props = {}
+      scaling_props['scales_from'] = scales_from if scales_from
+      scaling_props['previous_scales_from'] = override.min_gears if scales_from
+      scaling_props['scales_to'] = scales_to if scales_to
+      scaling_props['previous_scales_to'] = override.max_gears if scales_to
+      scaling_props['previous_scale'] = instance.gears.count if scales_from
+      scaling_props['current_scale'] = [scales_from, instance.gears.count].max if scales_from
     end
 
+    storage_props = nil
     if additional_storage
-      props['addtl_storage_gb'] = additional_storage
-      props['previous_addtl_storage_gb'] = override.additional_filesystem_gb
+      storage_props = {}
+      storage_props['addtl_storage_gb'] = additional_storage
+      storage_props['previous_addtl_storage_gb'] = override.additional_filesystem_gb
     end
 
     result = @application.update_component_limits(instance, scales_from, scales_to, additional_storage)
@@ -190,7 +192,8 @@ class EmbCartController < BaseController
     if @application.scalable && (scales_from || scales_to)
       @analytics_tracker.identify(@cloud_user.reload)
     end
-    @analytics_tracker.track_event("cartridge_update", nil, @application, props)
+    @analytics_tracker.track_event("cartridge_update_scale", nil, @application, scaling_props) if scaling_props
+    @analytics_tracker.track_event("cartridge_update_storage", nil, @application, storage_props) if storage_props
 
     instance = @application.component_instances.find_by(cartridge_name: id)
     cartridge = get_embedded_rest_cartridge(
