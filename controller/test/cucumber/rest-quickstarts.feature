@@ -1,5 +1,5 @@
 @broker_api
-@broker_api2
+@broker_api4
 Feature: quickstarts
   As an API client
   In order to do things with quickstarts
