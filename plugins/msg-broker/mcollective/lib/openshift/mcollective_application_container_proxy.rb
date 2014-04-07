@@ -3105,30 +3105,6 @@ module OpenShift
 
           # Remove the least preferred servers from the list, ensuring there is at least one server remaining
           server_infos.delete_if { |server_info| (server_infos.length > 1) && least_preferred_servers.include?(server_info.name) } if least_preferred_servers.present?
-
-          # Remove any non districted nodes if you prefer districts
-          if prefer_district && !require_district && !districts.empty?
-            has_districted_node = false
-            server_infos.each do |server_info|
-              if server_info.district_id
-                has_districted_node = true
-                break
-              end
-            end
-            server_infos.delete_if { |server_info| !server_info.district_id } if has_districted_node
-          end
-
-          # Prefer zone nodes over non zone nodes when zone is not requested
-          unless require_zone
-            has_zone_node = false
-            server_infos.each do |server_info|
-              if server_info.zone_id
-                has_zone_node = true
-                break
-              end
-            end
-            server_infos.delete_if { |server_info| !server_info.zone_id } if has_zone_node
-          end
         end
 
         return server_infos
@@ -3183,6 +3159,26 @@ module OpenShift
       end
 
       def self.select_best_fit_node_impl(server_infos)
+        # Remove any non-districted nodes when districted nodes are available
+        has_districted_node = false
+        server_infos.each do |server_info|
+          if server_info.district_id
+            has_districted_node = true
+            break
+          end
+        end
+        server_infos.delete_if { |server_info| !server_info.district_id } if has_districted_node
+
+        # Remove any non-zone nodes when zone nodes are available
+        has_zone_node = false
+        server_infos.each do |server_info|
+          if server_info.zone_id
+            has_zone_node = true
+            break
+          end
+        end
+        server_infos.delete_if { |server_info| !server_info.zone_id } if has_zone_node
+
         # Sort by node active capacity (consumed capacity) and take the best half
         server_infos = server_infos.sort_by { |server_info| server_info.node_consumed_capacity }
         # consider the top half and no less than min(4, the actual number of available)
