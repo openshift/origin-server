@@ -3,7 +3,7 @@
 %global import_path github.com/openshift
 
 Name:          openshift-origin-logshifter
-Version:       1.4.3
+Version:       1.4.4
 Release:       1%{?dist}
 Summary:       Log transport for OpenShift gear processes.
 License:       ASL 2.0
@@ -37,6 +37,9 @@ install -p -m 755 _build/bin/logshifter %{buildroot}%{_bindir}/logshifter
 %{_bindir}/logshifter
 
 %changelog
+* Mon Apr 07 2014 Adam Miller <admiller@redhat.com> 1.4.4-1
+- Redirect streams to /dev/null unless verbose enabled (ironcladlou@gmail.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Port cartridges to use logshifter (ironcladlou@gmail.com)
 
