@@ -127,16 +127,16 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     assert_equal(2, UsageRecord.where(gear_id: gear0).count)
     assert_equal(1, Usage.where(gear_id: gear0).count)
     usage = Usage.find_by(gear_id: gear0)
-    assert(usage.begin_time != nil)
-    assert(usage.end_time != nil)
+    assert_not_nil usage.begin_time
+    assert_not_nil usage.end_time
 
     #test_scalable_app_no_ha_framework_down
     assert_equal(0, Application.where(canonical_name: @appnames[1].downcase).count)
     assert_equal(2, UsageRecord.where(gear_id: gear1).count)
     assert_equal(1, Usage.where(gear_id: gear1).count)
     usage = Usage.find_by(gear_id: gear1)
-    assert(usage.begin_time != nil)
-    assert(usage.end_time != nil)
+    assert_not_nil usage.begin_time
+    assert_not_nil usage.end_time
 
     #test_scalable_app_ha_all_frameworks_down
     assert_equal(0, Application.where(canonical_name: @appnames[2].downcase).count)
@@ -150,8 +150,8 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     assert_equal(2, UsageRecord.where(gear_id: gear3).count)
     assert_equal(1, Usage.where(gear_id: gear3).count)
     usage = Usage.find_by(gear_id: gear3)
-    assert(usage.begin_time != nil)
-    assert(usage.end_time != nil)
+    assert_not_nil usage.begin_time
+    assert_not_nil usage.end_time
 
     #test_scalable_app_ha_framework_gear_down
     assert_equal(1, Application.where(canonical_name: @appnames[4].downcase).count)
@@ -162,8 +162,8 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
     assert_equal(2, UsageRecord.where(gear_id: gear4).count)
     assert_equal(1, Usage.where(gear_id: gear4).count)
     usage = Usage.find_by(gear_id: gear4)
-    assert(usage.begin_time != nil)
-    assert(usage.end_time != nil)
+    assert_not_nil usage.begin_time
+    assert_not_nil usage.end_time
 
     #test_scalable_app_ha_framework_gear_down_db_down
     assert_equal(1, Application.where(canonical_name: @appnames[5].downcase).count)
@@ -177,8 +177,8 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
       assert_equal(2, UsageRecord.where(gear_id: gear_id).count)
       assert_equal(1, Usage.where(gear_id: gear_id).count)
       usage = Usage.find_by(gear_id: gear_id)
-      assert(usage.begin_time != nil)
-      assert(usage.end_time != nil)
+      assert_not_nil usage.begin_time
+      assert_not_nil usage.end_time
     end
 
     #test_scalable_app_no_ha_scaled_up_head_gear_down

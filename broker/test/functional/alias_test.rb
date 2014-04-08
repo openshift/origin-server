@@ -33,7 +33,7 @@ class AliasTest < ActiveSupport::TestCase
   test "create and find and and update and delete alias" do
     server_alias = "as.#{@random}"
     @app.add_alias(server_alias)
-    assert(@app.aliases.length == 1)
+    assert_equal(1, @app.aliases.length)
 
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
@@ -48,13 +48,13 @@ class AliasTest < ActiveSupport::TestCase
     assert_equal(true, as.has_private_ssl_certificate)
 
     @app.remove_alias(server_alias)
-    assert(@app.aliases.length == 0)
+    assert_equal(0, @app.aliases.length)
   end
 
   test "create and find and update and delete alias with certificate" do
     server_alias = "as.#{@random}"
     @app.add_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)
-    assert(@app.aliases.length == 1)
+    assert_equal(1, @app.aliases.length)
 
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
@@ -66,13 +66,13 @@ class AliasTest < ActiveSupport::TestCase
     assert_equal(false, as.has_private_ssl_certificate)
 
     @app.remove_alias(server_alias)
-    assert(@app.aliases.length == 0)
+    assert_equal(0, @app.aliases.length)
   end
 
   test "create dulicate alias" do
     server_alias = "as.#{@random}"
     @app.add_alias(server_alias)
-    assert(@app.aliases.length == 1)
+    assert_equal(1, @app.aliases.length)
 
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)

@@ -21,28 +21,20 @@ class UsageModelTest < ActiveSupport::TestCase
     ue = usage
     ue.save!
     ue = Usage.find(ue._id)
-    assert(ue != nil)
+    assert_not_nil ue
     ue.delete
-    begin
-      ue = Usage.find(ue._id)
-    rescue Mongoid::Errors::DocumentNotFound
-      assert true
-    else
-      assert false
-    end
+    assert_raise(Mongoid::Errors::DocumentNotFound) {Usage.find(ue._id)}
   end
 
   test "find all usage events" do
-    ues = Usage.find_all
-    ues.each do |ue|
-      ue.delete
-    end
+    ues = []
     2.times do
       ue = usage
       ue.save!
+      ues << ue
     end
-    ues = Usage.find_all
-    assert_equal(2, ues.length)
+    new_ues = Usage.find_all
+    ues.each {|ue| assert_equal(true, new_ues.include?(ue))}
   end
 
   test "find all usage events by user" do
@@ -103,9 +95,9 @@ class UsageModelTest < ActiveSupport::TestCase
     ue = usage
     ue.save!
     ue1 = Usage.find_by_user_gear(ue.user_id, ue.gear_id)
-    assert(ue1 != nil)
+    assert_not_nil ue1
     ue1 = Usage.find_by_user_gear(ue.user_id, ue.gear_id, ue.begin_time)
-    assert(ue1 != nil)
+    assert_not_nil ue1
   end
 
   test "find user usage summary" do
