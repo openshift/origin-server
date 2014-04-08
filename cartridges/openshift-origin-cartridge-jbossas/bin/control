@@ -268,7 +268,7 @@ function build() {
           fi
           popd > /dev/null
       fi
-      
+
       if [ ! -f ${OPENSHIFT_REPO_DIR}pom.xml ]; then
         echo "Skipping Maven build due to absence of pom.xml"      
       fi

@@ -1065,10 +1065,14 @@ class UpgraderCli < Thor
   def upgrade_node
     if (options.num_upgraders && !options.upgrade_position) || (options.upgrade_position && !options.num_upgraders)
       puts "--num-upgraders and --upgrade-position must be specified together"
-      exit 1
+      exit 255
     end
 
     with_upgrader do |upgrader|
+      if options.upgrade_node && File.exists?(upgrader.cluster_metadata_path)
+        puts "--upgrade-node can't be used with existing queues and cluster metadata.  Running the same command without the --upgrade-node option will pick up where the previous upgrade left off."
+        exit 255
+      end
       args = {
         version: options.version,
         ignore_cartridge_version: options.ignore_cartridge_version?,
