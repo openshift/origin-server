@@ -27,6 +27,7 @@ require 'openshift-origin-node/model/application_container_ext/setup'
 require 'openshift-origin-node/model/application_container_ext/snapshots'
 require 'openshift-origin-node/model/application_container_ext/cartridge_actions'
 require 'openshift-origin-node/model/application_container_ext/deployments'
+require 'openshift-origin-node/model/application_container_ext/metrics'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/environ'
@@ -64,6 +65,7 @@ module OpenShift
       include ApplicationContainerExt::Snapshots
       include ApplicationContainerExt::CartridgeActions
       include ApplicationContainerExt::Deployments
+      include ApplicationContainerExt::Metrics
 
       GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
       DEFAULT_SKEL_DIR = PathUtils.join(OpenShift::Config::CONF_DIR,"skel")
@@ -813,35 +815,6 @@ module OpenShift
         end
 
         @gear_registry
-      end
-
-      #
-      # Invokes all the cartridges bin/metrics + metrics action hook
-      #
-      def metrics
-        start_time = Time.now
-        @cartridge_model.each_cartridge do |cart|
-          # Check if cartridge has a metrics entry in its manifest
-          if cart.metrics != nil
-            begin
-              result, error, _ = self.run_in_container_context(PathUtils.join(cart.path, "bin","metrics"))
-              parsed_result = result.split("/n").map{|line| "type=metric app=#{self.application_uuid} gear=#{self.uuid} cart=#{cart.name} #{line}"}
-              $stdout.write(parsed_result.join("\n"))
-            rescue => e
-              $stderr.write("Error retrieving cartridge metrics: #{e.message}")
-            end
-          end
-        end
-        $stdout.write("type=metric app=#{self.application_uuid} gear=#{self.uuid} cartridge.metric_time=#{Time.now - start_time}\n")
-        begin
-          start_time = Time.now
-          result, error, _ = self.run_in_container_context(PathUtils.join(@container_dir,"app-root","repo",".openshift","action_hooks","metrics"))
-          parsed_result = result.split("/n").map{|line| "type=metric app=#{self.application_uuid} gear=#{self.uuid} #{line}"}
-          $stdout.write(parsed_result.join("\n"))
-          $stdout.write("type=metric app=#{self.application_uuid} gear=#{self.uuid} application.metric_time=#{Time.now - start_time}\n")
-        rescue => e
-          $stderr.write("Error recieving application metrics: #{e.message}")
-        end
       end
 
       protected

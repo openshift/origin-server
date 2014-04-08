@@ -48,3 +48,5 @@ Version-Overrides:
       Mappings:
       - Frontend: '2303'
         Backend: ''
+Metrics:
+- uptime
