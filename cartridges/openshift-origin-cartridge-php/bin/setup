@@ -5,12 +5,20 @@ case "$1" in
     version="$2"
 esac
 
+source ${OPENSHIFT_PHP_DIR}usr/lib/php_module_scan
+
 # Copy the version specific files up to php directory
 shopt -s dotglob
 
-mkdir -p ${OPENSHIFT_PHP_DIR}configuration/etc/
+mkdir -p ${OPENSHIFT_PHP_DIR}configuration/etc/php.d
 cp -Hr ${OPENSHIFT_PHP_DIR}usr/shared/etc/* ${OPENSHIFT_PHP_DIR}configuration/etc/
-cp -Hr ${OPENSHIFT_PHP_DIR}usr/$version/etc/* ${OPENSHIFT_PHP_DIR}configuration/etc/
+if [[ -e ${OPENSHIFT_PHP_DIR}usr/$version/etc/conf.d ]]
+then
+    cp -Hr ${OPENSHIFT_PHP_DIR}usr/$version/etc/conf.d/* ${OPENSHIFT_PHP_DIR}configuration/etc/conf.d
+fi
+cp -Hr ${OPENSHIFT_PHP_DIR}usr/$version/etc/php.d/*.erb ${OPENSHIFT_PHP_DIR}configuration/etc/php.d
+# Make sure this file exists
+echo > ${OPENSHIFT_PHP_DIR}/configuration/etc/php.d/openshift.ini
 
 # Create/truncate gear-editable Apache configuration files
 echo > $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
@@ -20,3 +28,5 @@ echo > $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/performance.conf
 mkdir -p ${OPENSHIFT_PHP_DIR}conf
 cp ${OPENSHIFT_PHP_DIR}usr/shared/etc/conf.d/performance.conf.erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb
 cp ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb.hidden
+
+scan_for_php_modules
