@@ -2,7 +2,7 @@
 require 'getoptlong'
 require 'pp'
 
-CTL_DISTRICT_COMMANDS = %w[add-node remove-node deactivate-node activate-node add-capacity remove-capacity create destroy publish-uids set-region unset-region]
+CTL_DISTRICT_COMMANDS = %w[list-available create add-node set-region unset-region deactivate-node activate-node remove-node add-capacity remove-capacity destroy publish-uids ]
 
 def usage
   puts <<USAGE
@@ -25,7 +25,7 @@ Options:
 -p|--node_profile <gear_size>
     Only needed for create
 -i|--server_identity
-    Node server identity (required)
+    Node server identity (required) (may be a comma-separated list)
 -s|--size
     Size to add or remove (positive number) (required)
 -r|--region <region_name>
@@ -63,7 +63,7 @@ opts = GetoptLong.new(
     ["--node_profile",     "-p", GetoptLong::REQUIRED_ARGUMENT],
     ["--region",           "-r", GetoptLong::REQUIRED_ARGUMENT],
     ["--zone",             "-z", GetoptLong::REQUIRED_ARGUMENT],
-    ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
+    ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -80,7 +80,9 @@ end
 
 uuid     = args["--uuid"]
 command  = args['--command']
-server_identity  = args['--server_identity']
+if server_identity = args['--server_identity']
+  server_identity = server_identity.split /[,;:\s]\s*/
+end
 size     = args['--size'] ? args['--size'].to_i : nil
 region   = args['--region']
 zone     = args['--zone']
@@ -111,7 +113,10 @@ district = nil
 if uuid || name
   district = get_district(uuid, name)
   if !district
-    if command != 'create'
+    if command == 'add-node' && !node_profile
+      puts "District '#{uuid ? uuid : name}' not found, and no profile given to auto-create."
+      exit 1
+    elsif ! %w[create add-node].include?(command)
       puts "District '#{uuid ? uuid : name}' not found."
       exit 1
     end
@@ -119,8 +124,7 @@ if uuid || name
     puts "District '#{name}' already exists"
     exit 1
   end
-  unless server_identity || (command != 'add-node' && command != 'remove-node' && command != 'deactivate-node' &&
-                             command != 'activate-node' && command != 'set-region' && command != 'unset-region')
+  if %w[add-node remove-node deactivate-node activate-node set-region unset-region].include?(command) && !server_identity
     puts "--server_identity is required with command: #{command}"
     exit 1
   end
@@ -145,32 +149,43 @@ elsif command && (command != 'publish-uids')
   exit 1
 end
 
+def collate_errors(servers, reply, &block)
+  servers.each do |server|
+    begin
+      yield(server)
+      reply.resultIO << "Success for node '#{server}'!\n"
+    rescue OpenShift::OOException => e
+      reply.errorIO << "Error for node '#{server}': #{e.message}\n"
+      reply.exitcode = e.code && e.respond_to?('code') ? e.code : 1
+    end
+  end
+end
+
 reply = ResultIO.new
 begin
   case command
   when "add-node"
-    district.add_node(server_identity, region, zone)
-    reply.resultIO << "Success!"
-  when "remove-node"
-    district.remove_node(server_identity)
-    reply.resultIO << "Success!"
+    unless district
+      district = District::create_district(name, node_profile)
+      uuid = district.uuid
+      reply.resultIO.string.empty? && reply.resultIO << "Successfully created district: #{district.uuid}\n"
+    end
+    collate_errors(server_identity, reply) {|server| district.add_node(server, region, zone) }
+  when "set-region"
+    collate_errors(server_identity, reply) {|server| district.set_region(server, region, zone) }
+  when "unset-region"
+    collate_errors(server_identity, reply) {|server| district.unset_region(server) }
   when "deactivate-node"
-    district.deactivate_node(server_identity)
-    reply.resultIO << "Success!"
+    collate_errors(server_identity, reply) {|server| district.deactivate_node(server) }
+  when "remove-node"
+    collate_errors(server_identity, reply) {|server| district.remove_node(server) }
   when "activate-node"
-    district.activate_node(server_identity)
-    reply.resultIO << "Success!"
+    collate_errors(server_identity, reply) {|server| district.activate_node(server) }
   when "add-capacity"
     district.add_capacity(size)
     reply.resultIO << "Success!"
   when "remove-capacity"
     district.remove_capacity(size)
-    reply.resultIO << "Success!"
-  when "set-region"
-    district.set_region(server_identity, region, zone)
-    reply.resultIO << "Success!"
-  when "unset-region"
-    district.unset_region(server_identity)
     reply.resultIO << "Success!"
   when "publish-uids"
     districts = district ? [district] : District.find_all
