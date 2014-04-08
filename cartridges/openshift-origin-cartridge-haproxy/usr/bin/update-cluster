@@ -123,7 +123,7 @@ ratio=${info[0]}
 unset info[0]
 
 echo "Web/Proxy gears ratio $ratio"
-if [ "$ratio" -ge 3 ]; then
+if [ "$ratio" -ge ${OPENSHIFT_HAPROXY_GEAR_RATIO-"3"} ]; then
     echo "Disabling colocated gears ${info[@]}"
     nohup $OPENSHIFT_HAPROXY_DIR/usr/bin/disable-colocated-gears ${info[@]} &
 else
