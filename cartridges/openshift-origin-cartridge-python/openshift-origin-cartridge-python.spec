@@ -89,6 +89,8 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+%exclude %{cartridgedir}/usr/versions/*/template/*.pyc
+%exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
