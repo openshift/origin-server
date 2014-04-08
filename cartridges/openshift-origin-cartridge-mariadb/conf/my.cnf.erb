@@ -34,6 +34,7 @@ innodb_log_file_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS']
 innodb_log_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 8 : 24 %>M
 innodb_flush_log_at_trx_commit = 1
 innodb_lock_wait_timeout = 50
+innodb_use_native_aio = 0
 
 [mysqld_safe]
 pid-file=<%= ENV['OPENSHIFT_MARIADB_DIR'] %>/pid/mariadb.pid
