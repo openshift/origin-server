@@ -792,7 +792,7 @@ Then /^the domain environment variable ([^\"]*) with value '([^\"]*)' is added i
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
-    raise "Error: Failed to add domain env var #{env_var_name}. Exit code: #{exit_code} and Output Message: #{output_buffer}" unless output_buffer[0] == ""
+    raise "Error: Failed to add domain env var #{env_var_name}. Exit code: #{exit_code} and Output Message: #{output_buffer}" if exit_code != 0
 end
 
 Then /^the domain environment variable ([^\"]*) is deleted in the namespace "([^\"]*)"$/ do | env_var_name, namespace_key|
@@ -803,7 +803,7 @@ Then /^the domain environment variable ([^\"]*) is deleted in the namespace "([^
     $logger.info("Executing the command: #{command}")
     output_buffer = []
     exit_code = run(command, output_buffer)
-    raise "Error: Failed to add domain env var #{env_var_name}. Exit code: #{exit_code} and Output Message: #{output_buffer}" unless output_buffer[0] == ""
+    raise "Error: Failed to add domain env var #{env_var_name}. Exit code: #{exit_code} and Output Message: #{output_buffer}" if exit_code != 0
 end 
 
 
