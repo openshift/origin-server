@@ -58,6 +58,7 @@ module OpenShift
       @config.stubs(:get).returns(nil)
       @config.stubs(:get).with("CONTAINERIZATION_PLUGIN").returns('openshift-origin-container-selinux')
       @config.stubs(:get_bool).with("no_overcommit_active", false).returns(false)
+      @config.stubs(:get_bool).with("TRAFFIC_CONTROL_ENABLED", "true").returns(true)
       OpenShift::Config.stubs(:new).returns(@config)
 
       @cgroups_mock = mock('OpenShift::Runtime::Utils::Cgroups')

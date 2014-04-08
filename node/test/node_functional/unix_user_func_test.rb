@@ -46,6 +46,7 @@ class UnixUserModelFunctionalTest < OpenShift::NodeTestCase
     @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
     @config.stubs(:get).with("CLOUD_DOMAIN").returns("rhcloud.com")
     @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns("/tmp")
+    @config.stubs(:get_bool).with("TRAFFIC_CONTROL_ENABLED", "true").returns(true)
     
     @frontend = mock('OpenShift::Runtime::FrontendHttpServer')
     @frontend.stubs(:create)

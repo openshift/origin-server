@@ -17,6 +17,7 @@ module OpenShift
           @container  = application_container
           @config     = ::OpenShift::Config.new
           @gear_shell = @config.get("GEAR_SHELL")    || "/bin/bash"
+          @traffic_control_enabled = @config.get_bool("TRAFFIC_CONTROL_ENABLED", "true")
         end
 
         # Public
@@ -79,7 +80,7 @@ module OpenShift
           end
 
           enable_cgroups
-          enable_traffic_control
+          enable_traffic_control if @traffic_control_enabled
 
           @container.initialize_homedir(@container.base_dir, @container.container_dir, create_initial_deployment_dir)
 
@@ -111,7 +112,7 @@ module OpenShift
           @container.kill_procs
           freeze_fs_limits
           freeze_cgroups
-          disable_traffic_control
+          disable_traffic_control if @traffic_control_enabled
           last_access_dir = @config.get('LAST_ACCESS_DIR')
           ::OpenShift::Runtime::Utils::oo_spawn("rm #{last_access_dir}/#{@container.uuid}")
           @container.kill_procs
