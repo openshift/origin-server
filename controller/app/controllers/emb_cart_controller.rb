@@ -172,12 +172,21 @@ class EmbCartController < BaseController
     scaling_props = nil
     if scales_from || scales_to
       scaling_props = {}
-      scaling_props['scales_from'] = scales_from if scales_from
-      scaling_props['previous_scales_from'] = override.min_gears if scales_from
-      scaling_props['scales_to'] = scales_to if scales_to
-      scaling_props['previous_scales_to'] = override.max_gears if scales_to
-      scaling_props['previous_scale'] = instance.gears.count if scales_from
-      scaling_props['current_scale'] = [scales_from, instance.gears.count].max if scales_from
+      if scales_from
+        scaling_props['scales_from'] = scales_from
+      else
+        scaling_props['scales_from'] = override.min_gears
+      end
+      scaling_props['previous_scales_from'] = override.min_gears
+      if scales_to
+        scaling_props['scales_to'] = scales_to
+      else
+        scaling_props['scales_to'] = override.max_gears
+      end
+      scaling_props['previous_scales_to'] = override.max_gears
+      gear_count = instance.gears.count
+      scaling_props['previous_scale'] = gear_count
+      scaling_props['current_scale'] = scales_from ? [scales_from, gear_count].max : gear_count
     end
 
     storage_props = nil

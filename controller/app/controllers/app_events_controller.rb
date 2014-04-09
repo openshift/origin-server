@@ -47,6 +47,7 @@ class AppEventsController < BaseController
     end
 
     props = {}
+    event_name = nil
     msg = "Sent #{event} to application #{@application.name}"
 
     case event
@@ -77,12 +78,14 @@ class AppEventsController < BaseController
       authorize! :create_alias, @application
       r = @application.add_alias(server_alias)
       props['alias'] = server_alias
+      event_name = 'alias_add'
       msg = "Application #{@application.name} has added alias"
 
     when "remove-alias"
       authorize! :destroy_alias, @application
       r = @application.remove_alias(server_alias)
       props['alias'] = server_alias
+      event_name = 'alias_remove'
       msg = "Application #{@application.name} has removed alias"
 
     when "make-ha"
@@ -146,7 +149,8 @@ class AppEventsController < BaseController
                           r.exitcode)
     end
 
-    @analytics_tracker.track_event("app_#{event.gsub(/-/, '_')}", @domain, @application, props)
+    event_name = "app_#{event.gsub(/-/, '_')}" unless event_name
+    @analytics_tracker.track_event(event_name, @domain, @application, props)
 
     render_success(:ok, "application", app, msg, r)
   end
