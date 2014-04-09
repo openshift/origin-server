@@ -216,7 +216,7 @@
             %ul.unstyled
               - useful.each do |c|
                 %li
-                  %span{:'data-icon' => "\ue021"}
+                  %span{:'data-icon' => "\uee51"}
                   = link_to "Add #{c.display_name}", application_cartridge_type_path(@application, c, :direct => true)
 
       %p= other_cartridges_link((databases or jenkins.present? or builders.present? or useful), @application)
