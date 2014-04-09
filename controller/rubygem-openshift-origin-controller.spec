@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,82 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Use consistent naming on alias_add and more detail on cartridge scale
+  (dmcphers@redhat.com)
+- Fixing error message around submodule repo (dmcphers@redhat.com)
+- Merge pull request #5184 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1071393 - Fix DNSLoginException (rpenta@redhat.com)
+- Bug 1071272 - oo-admin-repair: Only allow node removal from its district when
+  no apps are referencing that node (rpenta@redhat.com)
+- separate scaling and storage tracking events (dmcphers@redhat.com)
+- Use mock cart for testing (dmcphers@redhat.com)
+- Bug 1084054: Check for external cartridge for group instance without gears
+  (abhgupta@redhat.com)
+- Use configured default (jliggitt@redhat.com)
+- Add global_teams capability (jliggitt@redhat.com)
+- Bug 1084419 - Fix tracking for update alias (dmcphers@redhat.com)
+- Merge pull request #5167 from bparees/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5166 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5165 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- remove duplicate test check line (bparees@redhat.com)
+- Formatting fixes (dmcphers@redhat.com)
+- Bug 1084090: Using as_document instead of serializable_hash to add/remove
+  keys (abhgupta@redhat.com)
+- Revert "Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore"" (bparees@redhat.com)
+- Merge pull request #5155 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5137 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5151 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #5152 from
+  pravisankar/dev/ravi/bugs-1081381-1073342-1008654
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1082464 - Do not show links for ADD_MEMBER, UPDATE_MEMBERS, DELETE AND
+  LEAVE for global teams (lnader@redhat.com)
+- Split user errors and internal errors for analytics (dmcphers@redhat.com)
+- Bug 1008654 - oo-admin-chk: Report app gears with out server_identity field
+  set in mongo (rpenta@redhat.com)
+- Bug 1073342 - oo-admin-chk fix: don't print duplicate error messages when
+  login is null/empty (rpenta@redhat.com)
+- Adding user create tracking event (dmcphers@redhat.com)
+- Make non-global search more efficient (jliggitt@redhat.com)
+- Removed global flag - using owner_id=nil as indicator for global team
+  (lnader@redhat.com)
+- Require global flag on search (lnader@redhat.com)
+- changed min length for team name to 2 (lnader@redhat.com)
+- corrected typo - Search string must be at least 2 characters
+  (lnader@redhat.com)
+- fixed validation and tests (lnader@redhat.com)
+- use rest_teams for search count (lnader@redhat.com)
+- changed global=true to owner_id=nil (lnader@redhat.com)
+- modified error message - use same message for leave (lnader@redhat.com)
+- cleaned up team validation (lnader@redhat.com)
+- escape search string (lnader@redhat.com)
+- change validation on globally unique (lnader@redhat.com)
+- remove membership management links if team syncs to group (lnader@redhat.com)
+- added sorting (lnader@redhat.com)
+- moved global checking to before_filter (lnader@redhat.com)
+- Global teams (lnader@redhat.com)
+- Merge pull request #5114 from danmcp/analytics
+  (dmcphers+openshiftbot@redhat.com)
+- Analytics Tracker (dmcphers@redhat.com)
+- Bug 1079844: Fixed error message when removing an invalid cartridge
+  (abhgupta@redhat.com)
+- Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore" (bparees@redhat.com)
+- Fix php file permissions cucumber tests (vvitek@redhat.com)
+- Merge pull request #5099 from liggitt/fix_app_locking_from_team_member_change
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+- Use application.owner_id in unlock_app (jliggitt@redhat.com)
+- Fix app locking from team member change (jliggitt@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
 - Merge pull request #5089 from lnader/master
   (dmcphers+openshiftbot@redhat.com)
