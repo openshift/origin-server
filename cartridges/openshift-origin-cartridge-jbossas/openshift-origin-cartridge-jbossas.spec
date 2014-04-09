@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,14 @@ fi
 
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- Use named pipes for logshifter redirection where appropriate
+  (ironcladlou@gmail.com)
+- Bug 1083663 - Provide better message when upgrade-node is used on a rerun
+  (dmcphers@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.4-1
 - Merge pull request #5086 from VojtechVitek/latest_versions
   (dmcphers+openshiftbot@redhat.com)
