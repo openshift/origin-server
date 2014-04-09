@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.22.0
+Version: 1.22.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -157,6 +157,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- Bug 1081249 - Refactor SELinux module to be SelinuxContext singleton
+  (jhonce@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.21.7-1
 - Bug 1080374 - Failing to remove .../limits.d/*-<uuid>.conf
   (jhonce@redhat.com)
