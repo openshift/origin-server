@@ -1,6 +1,6 @@
 Name: jbosseap
-Image: "goldmann/eap"
-Image-Label: "goldmann/eap"
+Image: "jboss/eap"
+Image-Label: "jboss/eap"
 Cartridge-Short-Name: JBOSSEAP
 Display-Name: JBoss Enterprise Application Platform 6
 Version: '6.0'

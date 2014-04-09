@@ -282,7 +282,8 @@ module OpenShift
           "Image" => image_name,
           "Started" => true,
           "Ports" => [
-          ]
+          ],
+          "Isolate" => true
         }
         gear.component_instances[0].cartridge.endpoints.each do |endpoint|
           post_body["Ports"] << {"internal" => endpoint.private_port} if endpoint.private_port
