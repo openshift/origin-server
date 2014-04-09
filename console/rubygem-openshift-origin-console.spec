@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,19 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- Merge remote-tracking branch 'upstream/master' (sgoodwin@redhat.com)
+- Fixes related to bug 1062499 console/help and console/app/create search field
+  css (sgoodwin@redhat.com)
+- Allow version of jQuery newer than 2.0 (jliggitt@redhat.com)
+- Add comment, test for team member details (jliggitt@redhat.com)
+- Add functional tests for domain member rendering (jliggitt@redhat.com)
+- Handle implicit members and team members on domain page (jliggitt@redhat.com)
+- Bug 1081869 - Console needs a oo-admin-console-cache command. Remove the
+  --console flag from the oo-admin-broker-cache command. (jforrest@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Tue Mar 25 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
 - [origin-dev-ui-162] surface more information in the UI for external
   cartridges (contact@fabianofranz.com)
