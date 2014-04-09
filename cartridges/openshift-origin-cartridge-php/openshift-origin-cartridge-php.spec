@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -55,6 +55,25 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Merge pull request #5205 from danmcp/master (dmcphers@redhat.com)
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- php cartridge: fix php-mcrypt module ini filename (jolamb@redhat.com)
+- Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
+  (mfojtik@redhat.com)
+- Force httpd into its own pgroup (ironcladlou@gmail.com)
+- Fix graceful shutdown logic (ironcladlou@gmail.com)
+- Fix PHP 5.4 apc.stat logic (vvitek@redhat.com)
+- PHP - Development/Production mode (vvitek@redhat.com)
+- PHP APC configurable per gear size / env var (vvitek@redhat.com)
+- PHP - Remove duplicated files on gears & Leverage use of usr/ shared dir
+  (vvitek@redhat.com)
+- Enable mcrypt for PHP 5.4 (vvitek@redhat.com)
+- Copy PHP extensions INI files to the cartridge code for maintainability
+  (vvitek@redhat.com)
+- Make restarts resilient to missing/corrupt pidfiles (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Update Cartridge Versions for Stage Cut (vvitek@redhat.com)
 
