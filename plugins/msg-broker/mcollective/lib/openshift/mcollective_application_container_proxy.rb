@@ -2645,6 +2645,8 @@ module OpenShift
           Rails.logger.debug "DEBUG: rpc_client.custom_request('cartridge_do', #{mc_args.inspect}, #{@id}, {'identity' => #{@id}}) (Request ID: #{Thread.current[:user_action_log_uuid]})"
           result = rpc_client.custom_request('cartridge_do', mc_args, @id, {'identity' => @id})
           Rails.logger.debug "DEBUG: #{mask_user_creds(result.inspect)} (Request ID: #{Thread.current[:user_action_log_uuid]})" if log_debug_output
+        rescue MCollective::DDLValidationError => e
+          Rails.logger.error("Error parsing arguments for custom_request for action #{action}: #{e.message}")
         rescue => e
           Rails.logger.error("Error processing custom_request for action #{action}: #{e.message}")
           Rails.logger.error(e.backtrace)
