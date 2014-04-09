@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.5.1
+Version: 0.5.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,11 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 0.5.2-1
+- httpd conf: set better defaults (lmeyer@redhat.com)
+- apache frontends: refactor logging conf, includes (lmeyer@redhat.com)
+- apache frontends: move directives to global conf (lmeyer@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 0.5.1-1
 - Merge pull request #4850 from vbatts/408-3-rewrite_to_proxypass
   (dmcphers+openshiftbot@redhat.com)
