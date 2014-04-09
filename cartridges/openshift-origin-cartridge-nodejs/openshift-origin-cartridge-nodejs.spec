@@ -63,7 +63,12 @@ find versions/ -name .gitkeep -delete
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%{cartridgedir}
+%{cartridgedir}/env
+%{cartridgedir}/lib
+%{cartridgedir}/logs
+%{cartridgedir}/metadata
+%{cartridgedir}/usr
+%{cartridgedir}/versions
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

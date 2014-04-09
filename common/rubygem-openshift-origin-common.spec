@@ -100,7 +100,8 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_instdir}/Rakefile
 %doc %{gem_instdir}/README.md
 %doc %{gem_instdir}/%{gem_name}.gemspec
-%{gem_instdir}
+%doc %{gem_instdir}/.yardoc
+%{gem_instdir}/test
 %{gem_spec}
 %{gem_libdir}
 
@@ -115,7 +116,7 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %exclude %{gem_cache}
 %exclude %{gem_instdir}/rubygem-%{gem_name}.spec
 
-%files doc 
+%files doc
 %doc %{gem_docdir}
 
 %changelog

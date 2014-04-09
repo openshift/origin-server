@@ -30,7 +30,14 @@ test platform functionality. (Cartridge Format V2)
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%{cartridgedir}
+%{cartridgedir}/conf
+%{cartridgedir}/conf.d
+%{cartridgedir}/env
+%{cartridgedir}/metadata
+%{cartridgedir}/template
+%{cartridgedir}/usr
+%{cartridgedir}/mock.conf
+%{cartridgedir}/.mock_hidden.erb
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

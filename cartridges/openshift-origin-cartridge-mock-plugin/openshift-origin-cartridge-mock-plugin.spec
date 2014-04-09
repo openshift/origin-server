@@ -30,7 +30,12 @@ test platform functionality.
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
-%{cartridgedir}
+%{cartridgedir}/conf
+%{cartridgedir}/conf.d
+%{cartridgedir}/env
+%{cartridgedir}/metadata
+%{cartridgedir}/usr
+%{cartridgedir}/mock-plugin.conf
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

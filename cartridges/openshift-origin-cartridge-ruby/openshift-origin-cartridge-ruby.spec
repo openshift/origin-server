@@ -68,7 +68,12 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%{cartridgedir}
+%{cartridgedir}/env
+%{cartridgedir}/lib
+%{cartridgedir}/logs
+%{cartridgedir}/metadata
+%{cartridgedir}/run
+%{cartridgedir}/versions
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

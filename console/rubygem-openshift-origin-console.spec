@@ -147,7 +147,7 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 
 %files
 %doc %{gem_instdir}/Gemfile
-%doc %{gem_instdir}/LICENSE 
+%doc %{gem_instdir}/LICENSE
 %doc %{gem_instdir}/README.md
 %doc %{gem_instdir}/COPYRIGHT
 %{gem_instdir}

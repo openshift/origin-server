@@ -85,7 +85,11 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %endif
 %attr(0755,-,-) %{cartridgedir}/usr/versions/2.7/bin/*
 %attr(0755,-,-) %{cartridgedir}/usr/versions/3.3/bin/*
-%{cartridgedir}
+%{cartridgedir}/env
+%{cartridgedir}/logs
+%{cartridgedir}/metadata
+%{cartridgedir}/run
+%{cartridgedir}/usr
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
