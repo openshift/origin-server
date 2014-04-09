@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -81,6 +81,18 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
+  (mfojtik@redhat.com)
+- Force httpd into its own pgroup (ironcladlou@gmail.com)
+- Fix graceful shutdown logic (ironcladlou@gmail.com)
+- Make restarts resilient to missing/corrupt pidfiles (ironcladlou@gmail.com)
+- Merge pull request #5097 from dobbymoodge/BZ1066246
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+- ruby cart: Explicitly req. ruby-rdoc dep for rhel (jolamb@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Merge pull request #5086 from VojtechVitek/latest_versions
   (dmcphers+openshiftbot@redhat.com)
