@@ -11,7 +11,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.22.0
+Version: 1.22.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -142,6 +142,11 @@ fi
 %doc README
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- facter ipaddress does not always return the ip that we would want
+  (bparees@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
 - Update tests to not use any installed gems and use source gems only Add
   environment wrapper for running broker util scripts (jforrest@redhat.com)
