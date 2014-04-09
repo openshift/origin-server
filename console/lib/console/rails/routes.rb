@@ -65,6 +65,9 @@ module ActionDispatch::Routing
           match 'members' => 'members#update', :via => :put
           match 'leave' => 'members#leave', :via => [:get, :post]
         end
+
+        resources :teams, :id => id_regex, :only => :index, :singular_resource => true
+        
         resources :keys, :id => id_regex, :only => [:new, :create, :destroy], :singular_resource => true
 
         resources :authorizations, :id => id_regex, :except => :index, :singular_resource => true

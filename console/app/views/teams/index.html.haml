@@ -1,0 +1,16 @@
+- content_for :page_style, 'highlight'
+- content_for :page_title, 'Teams'
+- content_for :top do
+  .grid-wrapper.section-header
+    %nav.span12.teams
+      %h1.icon-heading
+        %span.icon-users{'aria-hidden'=>"true"}
+        Teams
+
+%section
+  .row
+    .span8#team-list
+      - @teams.each do |team|
+        .tile.team
+          %h3.flow
+            = team.name

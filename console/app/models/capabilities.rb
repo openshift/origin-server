@@ -57,7 +57,7 @@ module Capabilities
     end
 
     # Changing this order will break serialization of cached data
-    cache_attribute :max_domains, :max_gears, :consumed_gears, :gear_sizes, :plan_id
+    cache_attribute :max_domains, :max_gears, :consumed_gears, :gear_sizes, :plan_id, :max_teams, :view_global_teams
 
     include Helpers
 
@@ -85,6 +85,12 @@ module Capabilities
     def max_domains
       @max_domains || UnlimitedGears
     end
+    def max_teams
+      @max_teams || 0
+    end
+    def view_global_teams
+      @view_global_teams || false
+    end
 
     protected
       def max_domains=(i)
@@ -92,6 +98,12 @@ module Capabilities
       end
       def max_gears=(i)
         @max_gears = i ? Integer(i) : nil
+      end
+      def max_teams=(i)
+        @max_teams = i ? Integer(i) : nil
+      end
+      def view_global_teams=(b)
+        @view_global_teams = b.nil? ? nil : !!b
       end
       def consumed_gears=(i)
         @consumed_gears = Integer(i)

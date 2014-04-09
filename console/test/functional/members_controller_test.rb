@@ -30,11 +30,11 @@ class MembersControllerTest < ActionController::TestCase
   def test_update_single_member_error
     put :update, {
       :domain_id => @domain,
-      :members => {:role => 'view', :login => 'x'}
+      :members => {:type => 'user', :role => 'view', :login => 'x', :adding => 'true'}
     }
     assert_response :success
     assert_template 'domains/show'
-    assert_equal "Could not update members.", flash[:error]
+    assert_equal "The domain members could not be updated.", flash[:error]
     assert new_members = assigns[:new_members]
     assert_equal 1, new_members.count
     assert new_members[0].errors[:login].to_s =~ /x/
@@ -45,31 +45,39 @@ class MembersControllerTest < ActionController::TestCase
   end
 
   def test_update_multi_member_error
+    Console.config.capabilities_model_class.any_instance.expects(:max_teams).at_least(0).returns(1)
+    
     put :update, {
       :domain_id => @domain,
       :members => [
-        {:role => 'view', :login => 'x'},
-        {:role => 'view', :login => 'y'}
+        {:type => 'user', :role => 'view', :login => 'x', :adding => 'true'},
+        {:type => 'user', :role => 'view', :login => 'y', :adding => 'true'},
+        {:type => 'team', :role => 'view', :name => 'team1', :id => 'tid1', :adding => 'true'}
       ]
     }
     assert_response :success
     assert_template 'domains/show'
-    assert_equal "Could not update members.", flash[:error]
+    assert_equal "The domain members could not be updated.", flash[:error]
     assert new_members = assigns[:new_members]
-    assert_equal 2, new_members.count
+    assert_equal 3, new_members.count
     assert new_members[0].errors[:login].to_s =~ /x/
     assert new_members[1].errors[:login].to_s =~ /y/
+    assert new_members[2].errors[:id].to_s =~ /tid1/
 
     assert_select '.members.editing'
+
     assert_select "input[name='members[][login]']", :count => 3
     assert_select "tr.template input[name='members[][login]']", :count => 1
+
+    assert_select "input[name='members[][name]']", :count => 2
+    assert_select "tr.template input[name='members[][name]']", :count => 1
   end
 
   def test_update_single_member_success
     Domain.any_instance.expects(:update_members).returns(true)
     put :update, {
       :domain_id => @domain,
-      :members => {:role => 'view', :login => 'x'}
+      :members => {:type => 'user', :role => 'view', :login => 'x'}
     }
     assert_redirected_to domain_path(@domain) 
     assert flash[:success]
@@ -80,8 +88,8 @@ class MembersControllerTest < ActionController::TestCase
     put :update, {
       :domain_id => @domain,
       :members => [
-        {:role => 'view', :login => 'x'},
-        {:role => 'none', :login => 'y'}
+        {:type => 'user', :role => 'view', :login => 'x'},
+        {:type => 'user', :role => 'none', :login => 'y'}
       ]
     }
     assert_redirected_to domain_path(@domain) 
