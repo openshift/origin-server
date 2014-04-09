@@ -188,7 +188,7 @@ class Command
           user_names.each do |user_name|
             u = CloudUser.find_by(login: user_name) rescue nil
             if u.nil?
-              puts "ERROR: Could not find user: \"#{params[1]}\". Use --create-new-users option to automatically add new users."
+              puts "ERROR: Could not find user: \"#{params[1]}\""
               next
             end
             members_to_add.push(u)
@@ -354,7 +354,7 @@ class Command
         entries = @ldap.search(:base => base, :attributes => attributes)
       end
       if entries.nil?
-        puts "Could not find any users fro group \"#{group_dn}\""
+        puts "Could not find any users in group \"#{group_dn}\""
         return users
       end
       if entries and entries.count < 1
