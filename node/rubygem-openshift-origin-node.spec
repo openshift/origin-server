@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,49 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Adding new default setting for traffic control (bleanhar@redhat.com)
+- Bug 1075760 - Allow traffic control to be disabled (bleanhar@redhat.com)
+- Merge pull request #5153 from jwhonce/bug/1081249
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5141 from bparees/facter
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5161 from bparees/unrevert_restore_state
+  (dmcphers+openshiftbot@redhat.com)
+- Revert "Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore"" (bparees@redhat.com)
+- Bug 1081249 - Fix up code after reviews (jhonce@redhat.com)
+- hide output from pgrep (bparees@redhat.com)
+- Bug 1081249 - Refactor SELinux module to be SelinuxContext singleton
+  (jhonce@redhat.com)
+- Fix graceful shutdown logic (ironcladlou@gmail.com)
+- Node Platform - Remove ruby version of oo-trap-user (jhonce@redhat.com)
+- Merge pull request #5131 from bparees/revert_restore_state
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5135 from bparees/process_running_check
+  (dmcphers+openshiftbot@redhat.com)
+- fix process running check to use proper return code check
+  (bparees@redhat.com)
+- Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore" (bparees@redhat.com)
+- Adding a function test for outbound traffic control (bleanhar@redhat.com)
+- Adding error checking for outbound tc settings (bleanhar@redhat.com)
+- Bug 1076217 - Making the tc outbound settings configurable
+  (bleanhar@redhat.com)
+- facter ipaddress does not always return the ip that we would want
+  (bparees@redhat.com)
+- Bug 1082488 - Silence error message on node with no gears (jhonce@redhat.com)
+- Merge pull request #5095 from jwhonce/bug/1081249
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5100 from jwhonce/bug/1081441
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+- Bug 1081249 - Synchronize access to selinux matchpath context
+  (jhonce@redhat.com)
+- Bug 1081441 - unprivileged_unidle not updating idler.txt (jhonce@redhat.com)
+- Bug 1081249 - Synchronize access to selinux matchpath context
+  (jhonce@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.10-1
 - Merge pull request #5094 from ironcladlou/binary-deploy-bug
   (dmcphers+openshiftbot@redhat.com)
