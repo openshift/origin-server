@@ -815,6 +815,37 @@ module OpenShift
         @gear_registry
       end
 
+      #
+      # Invokes all the cartridges bin/metrics + metrics action hook
+      #
+      def metrics
+        start_time = Time.now
+        @cartridge_model.each_cartridge do |cart|
+          # Check if cartridge has a metrics entry in its manifest
+          unless cart.metrics.nil?
+            begin
+              result, error, _ = self.run_in_container_context(PathUtils.join(cart.path, "bin","metrics"))
+              result.split("\n").each do |line|
+                $stdout.write "type=metric app=#{self.application_uuid} gear=#{self.uuid} cart=#{cart.name} #{line}"
+              end
+            rescue => e
+              $stderr.write("Error retrieving cartridge metrics: #{e.message}")
+            end
+          end
+        end
+        begin
+          metrics_hook = PathUtils.join(@container_dir,"app-root","repo",".openshift","action_hooks","metrics")
+          if File.exist?(metrics_hook) and File.executable?(metrics_hook)
+            result, error, _ = self.run_in_container_context(metrics_hook)
+            result.split("\n").each do |line|
+              $stdout.write "type=metric app=#{self.application_uuid} gear=#{self.uuid} #{line}"
+            end
+          end
+        rescue => e
+          $stderr.write("Error retrieving application metrics: #{e.message}")
+        end
+      end
+
       protected
 
       def broker_auth_params
@@ -829,6 +860,15 @@ module OpenShift
           params = nil
         end
         params
+      end
+
+      #
+      # Invokes all the cartridges bin/metrics + metrics action hook
+      #
+      def metrics
+        @cartridge_model.each do |cart|
+          result, error, exit_status  = oo_spawn(cart.path + "bin/metrics")
+        end
       end
     end
   end

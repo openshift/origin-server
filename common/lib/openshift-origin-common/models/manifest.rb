@@ -209,7 +209,8 @@ module OpenShift
                   :manifest_path,
                   :install_build_required,
                   :source_url,
-                  :source_md5
+                  :source_md5,
+                  :metrics
 
       # When a cartridge is installed from a URL, we validate the
       # vendor name by matching against VALID_VENDOR_NAME_PATTERN,
@@ -365,6 +366,8 @@ module OpenShift
         end
 
         @endpoints = Endpoint.parse(@short_name, @manifest, @categories)
+
+        @metrics = @manifest['Metrics']
       end
 
       ## obtain all software versions covered in this manifest

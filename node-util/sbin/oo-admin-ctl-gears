@@ -452,3 +452,24 @@ command :listidle do |c|
     end
   end
 end
+
+command :metrics do |c|
+  c.syntax = "#{$name} #{c.name} <gear_uuid>"
+  c.description = %q(run metrics for <gear_uuid>)
+
+  c.action do |args|
+    raise "Requires a gear uuid" if args.empty?
+    OpenShift::Runtime::ApplicationContainer.from_uuid(args[0]).metrics
+  end
+end
+
+command :metricsall do |c|
+  c.syntax = "#{$name} #{c.name}"
+  c.description = %q(run metrics for all gears)
+
+  c.action do
+    Parallel.map(OpenShift::Runtime::ApplicationContainer.all) do |ac|
+      ac.metrics
+    end
+  end
+end
