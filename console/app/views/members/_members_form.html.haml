@@ -73,14 +73,10 @@
                 = member.name
             %td.nowrap
               .read-only
-                - if member.explicit_role == member.role
-                  = Role.description_for(member.role)
-                - elsif member_teams.present?
-                  = Role.description_for(member.role)
+                = Role.description_for(member.role)
+                - if member.explicit_role != member.role && member_teams.present?
                   via 
                   %span.icon-users{:'aria-hidden' => "true", :title => "Has access via these teams:\n#{member_teams.map(&:name).join(", \n")}"}
-                - else
-                  = Role.description_for(member.role)
               .edit-only
                 -# Always start with a common field to make param hashes group correctly
                 = hidden_field_tag('members[][type]', member.type)
