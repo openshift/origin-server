@@ -1,3 +1,5 @@
+@import "twitter/mixins";
+
 .members {
 
   table { 
@@ -11,9 +13,7 @@
     text-overflow: ellipsis;
   }
   table input {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
+    @include box-sizing(border-box);
   }  
   table select { 
     margin-bottom: 0;
@@ -45,13 +45,9 @@
 
   .type-user .icon-user {opacity: .6;}
 
-
-
-
-
-  /* Make typeahead vertically align */
+  // Make typeahead vertically align
   .team-typeahead { margin: 0; }
-  /* Make typeahead fill horizontally */
+  // Make typeahead fill horizontally
   .twitter-typeahead { display: block !important; }
 
 
