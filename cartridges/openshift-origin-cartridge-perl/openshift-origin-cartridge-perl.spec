@@ -40,7 +40,12 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%{cartridgedir}
+%{cartridgedir}/env
+%{cartridgedir}/logs
+%{cartridgedir}/metadata
+%{cartridgedir}/run
+%{cartridgedir}/usr
+%{cartridgedir}/versions
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

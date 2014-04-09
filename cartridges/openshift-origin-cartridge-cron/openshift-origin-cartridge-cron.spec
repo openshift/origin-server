@@ -30,7 +30,8 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%{cartridgedir}
+%{cartridgedir}/configuration
+%{cartridgedir}/metadata
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

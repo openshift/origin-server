@@ -39,7 +39,10 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
-%{cartridgedir}
+%{cartridgedir}/env
+%{cartridgedir}/metadata
+%{cartridgedir}/usr
+%{cartridgedir}/versions
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

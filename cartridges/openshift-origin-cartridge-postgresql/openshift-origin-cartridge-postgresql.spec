@@ -85,7 +85,11 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
-%{cartridgedir}
+%{cartridgedir}/env
+%{cartridgedir}/lib
+%{cartridgedir}/metadata
+%{cartridgedir}/template
+%{cartridgedir}/versions
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

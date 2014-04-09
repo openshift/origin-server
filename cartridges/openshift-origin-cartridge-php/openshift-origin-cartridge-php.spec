@@ -36,6 +36,7 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %setup -q
 
 %build
+%__rm %{name}.spec
 
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
@@ -44,8 +45,11 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 %files
 %attr(0755,-,-) %{cartridgedir}/bin/
-%{cartridgedir}
+%{cartridgedir}/metadata
+%{cartridgedir}/usr
 %doc %{cartridgedir}/README.md
+%doc %{cartridgedir}/COPYRIGHT
+%doc %{cartridgedir}/LICENSE
 %dir %{httpdconfdir}
 %attr(0755,-,-) %{httpdconfdir}
 

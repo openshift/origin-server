@@ -96,7 +96,9 @@ fi
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/versions/7/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
-%{cartridgedir}
+%{cartridgedir}/env
+%{cartridgedir}/metadata
+%{cartridgedir}/versions
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

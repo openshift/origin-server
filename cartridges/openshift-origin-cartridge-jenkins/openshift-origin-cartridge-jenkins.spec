@@ -38,7 +38,9 @@ chkconfig jenkins off
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%{cartridgedir}
+%{cartridgedir}/configuration
+%{cartridgedir}/metadata
+%{cartridgedir}/usr
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

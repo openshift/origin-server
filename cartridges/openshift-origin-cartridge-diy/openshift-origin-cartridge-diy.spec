@@ -32,7 +32,9 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
-%{cartridgedir}
+%{cartridgedir}/configuration
+%{cartridgedir}/metadata
+%{cartridgedir}/usr
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
