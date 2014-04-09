@@ -17,6 +17,12 @@ skip-name-resolve
 bind-address=<%= ENV['OPENSHIFT_MYSQL_DB_HOST'] %>
 # Disabling symbolic-links is recommended to prevent assorted security risks
 symbolic-links=0
+<% if ENV['OPENSHIFT_MYSQL_IDENT'] =~ /:5\.5:/ %>
+# In case AIO subsystem failed to start, users can set the
+# OPENSHIFT_MYSQL_AIO environment variable to '0' to disable it
+# See: http://help.directadmin.com/item.php?id=529
+innodb_use_native_aio = <%= ENV['OPENSHIFT_MYSQL_AIO'] || '1'%>
+<% end %>
 key_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? '32' : (ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i * 0.1).to_i %>M
 max_allowed_packet = 200M
 table_open_cache = <%= ENV['OPENSHIFT_MYSQL_TABLE_OPEN_CACHE'] ? ENV['OPENSHIFT_MYSQL_TABLE_OPEN_CACHE'] : '4' %>
