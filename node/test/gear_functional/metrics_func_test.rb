@@ -68,6 +68,7 @@ module OpenShift
       @model.deconfigure('mock-plugin-0.1') if File.exist?(File.join(@container.container_dir, 'mock-plugin'))
       @model.deconfigure('mock-0.1') if File.exist?(File.join(@container.container_dir, 'mock'))
       FileUtils.rm_rf(File.join(@container.container_dir, 'git'))
+      Mocha::Mockery.instance.stubba.unstub_all
     end
 
     def after_teardown

@@ -29,6 +29,9 @@ module OpenShift
         # Line must be of the form $key1:$env_var1,$key2:$env_var2,...
         #
         # e.g. appName:OPENSHIFT_APP_NAME,gear:OPENSHIFT_GEAR_UUID,app:OPENSHIFT_APP_UUID,ns:OPENSHIFT_NAMESPACE
+        #
+        # The following env vars are explicitly excluded:
+        # - OPENSHIFT_SECRET_TOKEN
         def self.metrics_metadata(config)
           metadata_line = config.get('METRICS_METADATA') || DEFAULT_METADATA
 
@@ -36,8 +39,12 @@ module OpenShift
             pairs = metadata_line.split(',')
 
             pairs.each do |pair|
-              env_var, key = pair.split(':')
-              hash[env_var.strip] = key.strip
+              key, env_var = pair.split(':')
+              env_var.strip!
+
+              next if 'OPENSHIFT_SECRET_TOKEN' == env_var
+
+              hash[key.strip] = env_var
             end
           end
         end

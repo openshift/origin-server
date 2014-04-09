@@ -76,4 +76,16 @@ class MetricsHelperTest < OpenShift::NodeTestCase
 
     assert_equal expected, MetricsHelper.metrics_metadata(@config)
   end
+
+  def test_secret_token_excluded
+    line = "key1:OPENSHIFT_SECRET_TOKEN,key2:VAR2,key3:VAR3"
+    @config.stubs(:get).with("METRICS_METADATA").returns(line)
+
+    expected = {
+      'key2' => 'VAR2',
+      'key3' => 'VAR3'
+    }
+
+    assert_equal expected, MetricsHelper.metrics_metadata(@config)
+  end
 end

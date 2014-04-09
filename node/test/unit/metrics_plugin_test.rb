@@ -104,6 +104,14 @@ class MetricsPluginMetricsTest < OpenShift::NodeTestCase
     assert_equal 123, @metrics.delay
   end
 
+  def test_delay_too_small
+    Syslog.stubs(:info)
+    Syslog.stubs(:warning)
+    @config.stubs(:get).with('WATCHMAN_METRICS_INTERVAL').returns(1)
+    @metrics = OpenShift::Runtime::WatchmanPlugin::Metrics.new(@config)
+    assert_equal 10, @metrics.delay
+  end
+
   def test_gears_updated_adds_gears
     Syslog.stubs(:info)
     @metrics = OpenShift::Runtime::WatchmanPlugin::Metrics.new(@config)
@@ -150,7 +158,8 @@ class MetricsPluginMetricsTest < OpenShift::NodeTestCase
   end
 
   def test_tick_exception
-    Syslog.expects(:info).with("Initializing Watchman metrics plugin, interval=60s")
+    Syslog.expects(:info).with("Initializing Watchman metrics plugin")
+    Syslog.expects(:info).with("Watchman metrics interval = 60s")
     @metrics = OpenShift::Runtime::WatchmanPlugin::Metrics.new(@config)
     update = %w(uuid2)
     @metrics.gears_updated(update)
@@ -226,7 +235,8 @@ class MetricsPluginMetricsTest < OpenShift::NodeTestCase
   end
 
   def test_publish
-    Syslog.expects(:info).with("Initializing Watchman metrics plugin, interval=60s")
+    Syslog.expects(:info).with("Initializing Watchman metrics plugin")
+    Syslog.expects(:info).with("Watchman metrics interval = 60s")
     @config.stubs(:get).with('METRICS_METADATA').returns('app:OPENSHIFT_APP_NAME,gear:OPENSHIFT_GEAR_UUID')
     @metrics = OpenShift::Runtime::WatchmanPlugin::Metrics.new(@config)
     File.expects(:read).with('/var/lib/openshift/uuid1/.env/OPENSHIFT_APP_NAME').returns('appName')

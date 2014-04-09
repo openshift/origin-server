@@ -71,11 +71,20 @@ module OpenShift
             @cgroups_keys = @cgroups_keys.split(',').map(&:strip).join(' -r ')
           end
 
+          Syslog.info "Initializing Watchman metrics plugin"
+
           # Set the sleep time for the metrics thread
           # default to running every 60 seconds if not set in node.conf
           @delay = Integer(@config.get('WATCHMAN_METRICS_INTERVAL')) rescue DEFAULT_INTERVAL
 
-          Syslog.info "Initializing Watchman metrics plugin, interval=#{@delay}s"
+          # must be at least 10s
+          if @delay < 10
+            Syslog.warning "Watchman metrics interval value '#{@delay}' is too small - resetting to 10s"
+            @delay = 10
+          end
+
+          Syslog.info "Watchman metrics interval = #{@delay}s"
+
 
           @mutex = Mutex.new
           @syslog_line_shipper = SyslogLineShipper.new
