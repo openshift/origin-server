@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.22.0
+Version: 1.22.1
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -54,6 +54,14 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
+  (mfojtik@redhat.com)
+- Force httpd into its own pgroup (ironcladlou@gmail.com)
+- Fix graceful shutdown logic (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.21.7-1
 - Update Cartridge Versions for Stage Cut (vvitek@redhat.com)
 
