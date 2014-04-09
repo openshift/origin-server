@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -509,6 +509,13 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Bug 1084094 - provide libgit2-devel and rubygem-rugged (tdawson@redhat.com)
+- Bug 1082696 - Add lua-devel as dependency (tdawson@redhat.com)
+- Enable PHP 5.4 xdebug (vvitek@redhat.com)
+- Enable mcrypt for PHP 5.4 (vvitek@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
 - adding xz-devel to optional-python (tdawson@redhat.com)
 - adding xv-devel to optional-python (tdawson@redhat.com)
