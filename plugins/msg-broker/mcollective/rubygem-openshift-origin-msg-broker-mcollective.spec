@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Moved pruning of non-districted/non-zone nodes(when districted/zone nodes are
+  available) from rpc_find_all_available to select_best_fit_node. Rationale:
+  Node selection plugin should have flexibility to choose any candidate node
+  from non-districted/districted/non-zone/zone nodes. (rpenta@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
 - Merge pull request #5088 from pravisankar/dev/ravi/bug1070884
   (dmcphers+openshiftbot@redhat.com)
