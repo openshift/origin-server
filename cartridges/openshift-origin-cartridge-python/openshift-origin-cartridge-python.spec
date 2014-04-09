@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -97,6 +97,25 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- Use named pipes for logshifter redirection where appropriate
+  (ironcladlou@gmail.com)
+- Bug 1074237 - Exclude python template *.pyc and *.pyo from spec file
+  (jhadvig@redhat.com)
+- Merge pull request #5168 from mfojtik/bugzilla/1084379
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
+  (mfojtik@redhat.com)
+- Bug 1084298 - Fixed typo in python control script (mfojtik@redhat.com)
+- Merge pull request #5157 from ironcladlou/httpd-pgroup-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Force httpd into its own pgroup (ironcladlou@gmail.com)
+- Check the return code before writing PID file in Python start_app()
+  (mfojtik@redhat.com)
+- Fix graceful shutdown logic (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Update Cartridge Versions for Stage Cut (vvitek@redhat.com)
 
