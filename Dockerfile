@@ -55,3 +55,4 @@ RUN cp /var/www/openshift/broker-util/lib/* /usr/local/rvm/rubies/ruby-1.9.3-*/l
 WORKDIR /var/www/openshift/broker
 RUN /bin/bash --login -c "bundle install"
 CMD /bin/bash --login -c "bundle exec rails s puma"
+

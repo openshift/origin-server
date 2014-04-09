@@ -1051,10 +1051,9 @@ module OpenShift
       def get_add_authorized_ssh_keys_job(gear, ssh_keys)
         #WIP
         args = build_base_gear_args(gear)
-        containers = [ {'Id' => gear.uuid} ]
-        repositories = [ {'Id' => gear.uuid}]
+        permissions = [ {"Type" => "container", "With" => gear.uuid}, {"Type" => "repository", "With" => {"Id" => gear.uuid, "Write" => true}}]
         args[:method] = :put        
-        args[:body] = {'Keys' => build_ssh_key_args_with_content(ssh_keys), 'Containers' => containers, 'Repositories' => repositories }
+        args[:body] = {'Keys' => build_ssh_key_args_with_content(ssh_keys), 'Permissions' => permissions }
         RemoteJob.new('openshift-origin-node', 'keys', args)
       end
 
