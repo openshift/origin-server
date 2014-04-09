@@ -1,16 +1,12 @@
 <VirtualHost *:443>
   ServerName <%= server_name %>
-  ServerAdmin openshift-bofh@redhat.com
   DocumentRoot /var/www/html
   DefaultType None
 
   SSLEngine on
   SSLProxyEngine on
+  # SSLOptions merged with server-wide options
   SSLOptions +StdEnvVars +ExportCertData
-
-  SSLProtocol ALL -SSLv2
-  SSLHonorCipherOrder On
-  SSLCipherSuite RC4-SHA:HIGH:MEDIUM:!ADH
 
   SSLCertificateFile <%= ssl_certificate_file %>
   SSLCertificateKeyFile <%= ssl_key_file %>
@@ -23,9 +19,9 @@
   RequestHeader set X-Forwarded-Port "443"
   RequestHeader set X-Forwarded-SSL-Client-Cert %{SSL_CLIENT_CERT}e
 
-  # Should match broker 000002_openshift_origin_broker_proxy.conf:
-  ProxyTimeout 300
-
   include conf.d/openshift_route.include
+
+  # Create this file to customize configuration for all gear vhosts:
+  Include conf.d/openshift-https-vhost.includ[e]
 
 </VirtualHost>
