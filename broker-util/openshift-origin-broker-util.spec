@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -106,6 +106,52 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- ctl-district: add --available and list-available (lmeyer@redhat.com)
+- ctl-district: act on many nodes with one invocation (lmeyer@redhat.com)
+- Bug 1083663 - Provide better message when upgrade-node is used on a rerun
+  (dmcphers@redhat.com)
+- Bug 1071272 - oo-admin-repair: Only allow node removal from its district when
+  no apps are referencing that node (rpenta@redhat.com)
+- Fix indent, oo-admin-ctl-user usage (jliggitt@redhat.com)
+- Add global_teams capability (jliggitt@redhat.com)
+- Merge pull request #5165 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1084090: Using as_document instead of serializable_hash to add/remove
+  keys (abhgupta@redhat.com)
+- Bug 1071272 - Fix oo-admin-repair Details:  - Delete unresponsive node(s)
+  from the district in the end  - Recover app will satisfy group overrides
+  (rpenta@redhat.com)
+- Merge pull request #5152 from
+  pravisankar/dev/ravi/bugs-1081381-1073342-1008654
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1081381 - Validate --gear option in oo-admin-usage (rpenta@redhat.com)
+- Adding user create tracking event (dmcphers@redhat.com)
+- Merge pull request #5142 from pravisankar/dev/ravi/bug1079293
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1079293 - Fix oo-admin-ctl-region add-zone/remove-zone incorrect warning
+  message (rpenta@redhat.com)
+- removed oo-admin-ctl-team to be done in a separate pull request
+  (lnader@redhat.com)
+- Bug 1081975 (lnader@redhat.com)
+- Removed global flag - using owner_id=nil as indicator for global team
+  (lnader@redhat.com)
+- Bug 1079115 - fixed error message (lnader@redhat.com)
+- Bug 1079117 - Require rubygem-net-ldap (lnader@redhat.com)
+- removed ownership from global teams (lnader@redhat.com)
+- added oo-admin-ctl-team (lnader@redhat.com)
+- Merge pull request #5122 from pravisankar/dev/ravi/fix-clear-pending-ops
+  (dmcphers+openshiftbot@redhat.com)
+- Fix oo-admin-clear-pending-ops : With '--time 0' option, ignore pending_ops
+  or pending_op_groups created_at field and process any pending op or op-groups
+  if it exists (rpenta@redhat.com)
+- Bug 1079293 - Fix warning msg in oo-admin-ctl-region remove-zone
+  (rpenta@redhat.com)
+- Fix formatting (dmcphers@redhat.com)
+- Bug 1081869 - Console needs a oo-admin-console-cache command. Remove the
+  --console flag from the oo-admin-broker-cache command. (jforrest@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
 - Bug 1081419 - Move oo-upgrade to /var/log (dmcphers@redhat.com)
 
