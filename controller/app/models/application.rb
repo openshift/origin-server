@@ -2364,32 +2364,40 @@ class Application
       prereq_ids = []
       prereq_ids += (component_ops[config_order[idx-1]][:add_broker_auth_keys] || []).map{|op| op._id.to_s}
       prereq_ids += (component_ops[config_order[idx-1]][:adds] || []).map{|op| op._id.to_s}
-      prereq_ids += (component_ops[config_order[idx-1]][:post_configures] || []).map{|op| op._id.to_s}
 
       component_ops[config_order[idx]][:new_component].prereq += prereq_ids unless component_ops[config_order[idx]][:new_component].nil?
       (component_ops[config_order[idx]][:add_broker_auth_keys] || []).each { |op| op.prereq += prereq_ids }
       (component_ops[config_order[idx]][:adds] || []).each { |op| op.prereq += prereq_ids }
-      (component_ops[config_order[idx]][:post_configures] || []).each { |op| op.prereq += prereq_ids }
     end
 
     if pending_ops.present? and !(pending_ops.length == 1 and SetGroupOverridesOp === pending_ops.first)
-      # FIXME: this could be arbitrarily large - would be better to set a condition that this
-      # operation cannot be skipped
-      all_ops_ids = pending_ops.map{ |op| op._id.to_s }
+      # set all ops as the pre-requisite for execute connections except post_configure ops
+      # FIXME: this could be arbitrarily large
+      all_ops_ids = pending_ops.map{ |op| op._id.to_s }.compact
       execute_connection_op = ExecuteConnectionsOp.new(prereq: all_ops_ids)
       pending_ops << execute_connection_op
     end
 
-    # check to see if there are any deployable carts being configured
-    # if so, then make sure that the post-configure op for it is executed at the end
-    # also, it should not be the prerequisite for any other pending_op
-    component_ops.keys.each do |spec|
-      if spec.cartridge.is_deployable?
-        component_ops[spec][:post_configures].each do |pcop|
+    post_config_order = calculate_post_configure_order(component_ops.keys)
+    post_config_order.each_index do |idx|
+      cur_spec = post_config_order[idx]
+
+      # if this is a deployable cart being configured,
+      # then make sure that the post-configure op for it is executed after execute_connections
+      # also, it should not be the prerequisite for any other pending_op
+      if cur_spec.cartridge.is_deployable?
+        component_ops[cur_spec][:post_configures].each do |pcop|
           pcop.prereq += [execute_connection_op._id.to_s]
           pending_ops.each{ |op| op.prereq.delete_if { |prereq_id| prereq_id == pcop._id.to_s } }
         end
       end
+
+      next if idx == 0
+      
+      prev_spec = post_config_order[idx - 1]
+      prereq_ids = []
+      prereq_ids += (component_ops[prev_spec][:post_configures] || []).map{|op| op._id.to_s}
+      (component_ops[cur_spec][:post_configures] || []).each { |op| op.prereq += prereq_ids }
     end
 
     # update-cluster has to run after all deployable carts have been post-configured
@@ -2660,16 +2668,16 @@ class Application
   def enforce_system_order(order, categories)
     web_carts = Array(categories['web_framework'])
     service_carts = Array(categories['service']) - web_carts
-    plugin_carts = categories.map { |k,v| Array(v) }.flatten - web_carts - service_carts 
+    other_carts = categories.map { |k,v| Array(v) }.flatten - web_carts - service_carts 
 
     web_carts.each do |w|
-      (service_carts+plugin_carts).each do |sp|
-        order.add_component_order([w,sp])
+      (service_carts + other_carts).each do |so|
+        order.add_component_order([w, so])
       end
     end
     service_carts.each do |s|
-      plugin_carts.each do |p|
-        order.add_component_order([s,p])
+      other_carts.each do |o|
+        order.add_component_order([s, o])
       end
     end
   end
@@ -2745,63 +2753,24 @@ class Application
     computed_configure_order.compact
   end
 
-  # Returns the start/stop order specified in the application descriptor or processes the start and stop
+  def calculate_post_configure_order(specs)
+    configure_order = calculate_configure_order(specs)
+    configure_order.select {|spec| !spec.cartridge.is_web_framework?} + configure_order.select {|spec| spec.cartridge.is_web_framework?}
+  end
+
+  # Returns the start/stop order by processing the start and stop
   # orders for each component and returns the final order (topological sort).
   #
   # == Returns:
   # start_order::
-  #   {ComponentInstance} objects ordered by calculated start order
+  #   {ComponentInstance} objects ordered using post-configure order
   # stop_order::
-  #   {ComponentInstance} objects ordered by calculated stop order
+  #   {ComponentInstance} objects ordered using reverse of post-configure order
   def calculate_component_orders
-    start_order = ComponentOrder.new
-    stop_order = ComponentOrder.new
-    comps = []
-    categories = {}
-
-    #build a map of [categories, features, cart name] => component_instance
-    component_instances.each do |instance|
-      cart = instance.cartridge
-
-      comps << instance
-      [[instance.cartridge_name], cart.categories, cart.provides].flatten.each do |cat|
-        categories[cat] = [] if categories[cat].nil?
-        categories[cat] << instance
-      end
-      start_order.add_component_order([instance])
-      stop_order.add_component_order([instance])
-    end
-
-    #use the map to build DAG for order calculation
-    comps.each do |spec|
-      start_order.add_component_order(spec.cartridge.start_order.map{ |c| categories[c] }.flatten)
-      stop_order.add_component_order(spec.cartridge.stop_order.map{ |c| categories[c] }.flatten)
-    end
-
-    # enforce system order of components (web_framework first etc)
-    enforce_system_order(start_order, categories)
-    enforce_system_order(stop_order, categories)
-
-    #calculate start order using tsort
-    begin
-      computed_start_order = start_order.tsort
-    rescue Exception=>e
-      raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-    end
-
-    #calculate stop order using tsort
-    begin
-      computed_stop_order = stop_order.tsort
-    rescue Exception=>e
-      raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-    end
-
-    # start/stop order can have nil if the component is not present in the application
-    # for eg, php is being stopped and haproxy is not present in a non-scalable application
-    computed_start_order.compact!
-    computed_stop_order.compact!
-
-    [computed_start_order, computed_stop_order]
+    start_order = calculate_post_configure_order(self.component_instances)
+    stop_order = start_order.reverse
+    
+    [start_order, stop_order]
   end
 
   def get_ssl_certs(fqdns=[])
