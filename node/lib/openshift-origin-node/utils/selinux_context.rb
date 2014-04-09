@@ -130,7 +130,10 @@ module OpenShift
               @context_mutex.synchronize do
 
                 # @note false wake ups are possible so we sleep until we know there is work queued up
-                while @context.empty?
+                # Also, @context may not be empty, but all the requests may have been handled and we're
+                # just waiting for the callers to pick them up, so make sure we wait if every value's
+                # .context is filled in
+                while @context.empty? or @context.values.all? { |v| not v.context.nil? }
                   # Wait for a +signal+ from a #matchpathcon call if there is no work queued up for us
                   @query.wait(@context_mutex)
                 end
