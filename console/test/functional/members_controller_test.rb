@@ -45,7 +45,7 @@ class MembersControllerTest < ActionController::TestCase
   end
 
   def test_update_multi_member_error
-    OnlineCapabilities.any_instance.expects(:max_teams).at_least(0).returns(1)
+    Console.config.capabilities_model_class.any_instance.expects(:max_teams).at_least(0).returns(1)
     
     put :update, {
       :domain_id => @domain,

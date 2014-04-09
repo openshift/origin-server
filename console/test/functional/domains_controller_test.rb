@@ -269,7 +269,7 @@ class DomainsControllerTest < ActionController::TestCase
 
   test "should render editable members with only owner successfully" do
     with_particular_user
-    OnlineCapabilities.any_instance.expects(:max_teams).at_least(0).returns(1)
+    Console.config.capabilities_model_class.any_instance.expects(:max_teams).at_least(0).returns(1)
     Domain.any_instance.expects(:admin?).at_least(0).returns(true)
     get :show, {:id => @domain.id}
     assert_template :show
@@ -283,7 +283,7 @@ class DomainsControllerTest < ActionController::TestCase
   test "should render editable members with teams and implicit users successfully" do
     with_particular_user
     original_members = @domain.members
-    OnlineCapabilities.any_instance.expects(:max_teams).at_least(0).returns(1)
+    Console.config.capabilities_model_class.any_instance.expects(:max_teams).at_least(0).returns(1)
     Domain.any_instance.expects(:admin?).at_least(0).returns(true)
     Domain.any_instance.expects(:members).at_least(0).returns(
       [
@@ -307,7 +307,7 @@ class DomainsControllerTest < ActionController::TestCase
   test "should render editable members with teams and explicit users successfully" do
     with_particular_user
     original_members = @domain.members
-    OnlineCapabilities.any_instance.expects(:max_teams).at_least(0).returns(1)
+    Console.config.capabilities_model_class.any_instance.expects(:max_teams).at_least(0).returns(1)
     Domain.any_instance.expects(:admin?).at_least(0).returns(true)
     Domain.any_instance.expects(:members).at_least(0).returns(
       [
@@ -339,8 +339,8 @@ class DomainsControllerTest < ActionController::TestCase
   test "should hide team add function in members section" do
     with_particular_user
     Domain.any_instance.expects(:admin?).at_least(0).returns(true)
-    OnlineCapabilities.any_instance.expects(:max_teams).at_least(0).returns(0)
-    OnlineCapabilities.any_instance.expects(:view_global_teams).at_least(0).returns(false)
+    Console.config.capabilities_model_class.any_instance.expects(:max_teams).at_least(0).returns(0)
+    Console.config.capabilities_model_class.any_instance.expects(:view_global_teams).at_least(0).returns(false)
 
     get :show, {:id => @domain.id}
     assert_template :show
