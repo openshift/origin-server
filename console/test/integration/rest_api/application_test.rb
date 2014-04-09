@@ -145,10 +145,10 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     with_configured_user
     setup_domain
 
-    assert_create_app({:include => :cartridges, :initial_git_url => 'https://github.com/openshift/nodejs-example.git', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
+    assert_create_app({:include => :cartridges, :initial_git_url => 'https://github.com/openshift-quickstart/nodejs-example.git', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
       assert_equal ['nodejs-0.6'], app.cartridges.map(&:name)
       loaded_app = Application.find(app.id, :as => @user)
-      assert_equal "https://github.com/openshift/nodejs-example.git", loaded_app.initial_git_url
+      assert_equal "https://github.com/openshift-quickstart/nodejs-example.git", loaded_app.initial_git_url
     end
   end
 
@@ -168,10 +168,10 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     with_configured_user
     setup_domain
 
-    assert_create_app({:include => :cartridges, :initial_git_url => 'git@github.com:openshift/nodejs-example.git#68e54e71e76dac92aa53e46e912cc8c03fa02c12', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
+    assert_create_app({:include => :cartridges, :initial_git_url => 'git@github.com:openshift-quickstart/nodejs-example.git#68e54e71e76dac92aa53e46e912cc8c03fa02c12', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
       assert_equal ['nodejs-0.6'], app.cartridges.map(&:name)
       loaded_app = Application.find(app.id, :as => @user)
-      assert_equal "git@github.com:openshift/nodejs-example.git#68e54e71e76dac92aa53e46e912cc8c03fa02c12", loaded_app.initial_git_url
+      assert_equal "git@github.com:openshift-quickstart/nodejs-example.git#68e54e71e76dac92aa53e46e912cc8c03fa02c12", loaded_app.initial_git_url
     end
   end
 
