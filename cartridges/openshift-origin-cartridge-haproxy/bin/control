@@ -69,7 +69,11 @@ function _start_haproxy_ctld() {
 function _launch_haproxy_bg() {
     [ -n "$1" ]  &&  zopts="-sf $1"
     ping_server_gears
-    nohup /usr/sbin/haproxy -f $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg ${zopts} &> >(/usr/bin/logshifter -tag haproxy) &
+    LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-haproxy
+    rm -f $LOGPIPE && mkfifo $LOGPIPE
+
+    /usr/bin/logshifter -tag haproxy < $LOGPIPE &
+    nohup /usr/sbin/haproxy -f $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg ${zopts} &> $LOGPIPE &
     echo $! > $HAPROXY_PID
 }
 

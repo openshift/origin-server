@@ -22,7 +22,13 @@ export APPDIR=$OPENSHIFT_PYTHON_DIR
 function start_app() {
     echo "Starting Python ${OPENSHIFT_PYTHON_VERSION} cartridge (app.py server)"
     cd "$OPENSHIFT_REPO_DIR"
-    nohup python -u app.py &> >(/usr/bin/logshifter -tag python) &
+
+    LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-python
+    rm -f $LOGPIPE && mkfifo $LOGPIPE
+
+    /usr/bin/logshifter -tag python < $LOGPIPE &
+    nohup python -u app.py &> $LOGPIPE &
+
     if [ "$?" == "0" ]; then
       echo $! > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
     else
