@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version: 1.17.1
+Version: 1.17.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -50,6 +50,11 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- Both env OPENSHIFT_JBOSSEAP_MODULE_PATH and OPENSHIFT_JBOSSAS_MODULE_PATH
+  exist in jbosseap/as (bparees@redhat.com)
+
 * Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.17.1-1
 - bump spec to fix versioning between branches (admiller@redhat.com)
 
