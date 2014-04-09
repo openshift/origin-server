@@ -45,7 +45,11 @@ function start() {
       sed -i "s/^mms_key\s*=.*/${new_mms_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.py
       sed -i "s/^secret_key\s*=.*/${new_secret_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.py
 
-      nohup python ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py &> >(/usr/bin/logshifter -tag 10gen-mms-agent) &
+      LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-10gen-mms-agent
+      rm -f $LOGPIPE && mkfifo $LOGPIPE
+
+      /usr/bin/logshifter -tag 10gen-mms-agent < $LOGPIPE &
+      nohup python ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py &> $LOGPIPE &
       echo $! > ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid
     elif [ -d ${OPENSHIFT_MMS_BASE_DIR} ]
     then
@@ -53,7 +57,11 @@ function start() {
       then
         pushd ${OPENSHIFT_MMS_BASE_DIR} >/dev/null
         sed -i "s/^mmsApiKey\s*=.*/mmsApiKey=${OPENSHIFT_MMS_API_KEY}/g" monitoring-agent.config
-        nohup ${OPENSHIFT_MMS_BASE_DIR}/mongodb-mms-monitoring-agent &> >(/usr/bin/logshifter -tag 10gen-mms-agent) &
+        LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-10gen-mms-agent
+        rm -f $LOGPIPE && mkfifo $LOGPIPE
+
+        /usr/bin/logshifter -tag 10gen-mms-agent < $LOGPIPE &
+        nohup ${OPENSHIFT_MMS_BASE_DIR}/mongodb-mms-monitoring-agent &> $LOGPIPE &
         echo $! > ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid
         popd >/dev/null
       else
