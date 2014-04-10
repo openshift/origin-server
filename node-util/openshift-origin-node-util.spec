@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -157,6 +157,14 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
+- Merge pull request #5200 from ncdc/metrics (dmcphers+openshiftbot@redhat.com)
+- Metrics - code review changes (andy.goldstein@gmail.com)
+- Metrics (andy.goldstein@gmail.com)
+- Metrics work (teddythetwig@gmail.com)
+- Make metrics plugin delay configurable (ironcladlou@gmail.com)
+- Metrics work (teddythetwig@gmail.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - Bug 1081249 - Refactor SELinux module to be SelinuxContext singleton
   (jhonce@redhat.com)
