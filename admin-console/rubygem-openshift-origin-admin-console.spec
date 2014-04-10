@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,11 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Merge pull request #5175 from liggitt/teams_ui
+  (dmcphers+openshiftbot@redhat.com)
+- Update jquery, add typeahead widget (jliggitt@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - Allow version of jQuery newer than 2.0 (jliggitt@redhat.com)
 - bump_minor_versions for sprint 43 (admiller@redhat.com)
