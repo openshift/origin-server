@@ -17,6 +17,9 @@ class District
   index({:gear_size => 1})
   create_indexes
 
+  validates :name, presence: true
+  validates :gear_size, presence: true
+
   DISTRICT_NAME_REGEX = /\A[\w\.\-]+\z/
   def self.check_name!(name)
     if name.blank? or name !~ DISTRICT_NAME_REGEX
@@ -29,11 +32,10 @@ class District
     unless Rails.configuration.msg_broker[:districts][:enabled]
       raise OpenShift::OOException.new("District creation disabled by the platform.")
     end
-    profile = gear_size ? gear_size : Rails.application.config.openshift[:default_gear_size]
     if District.where(name: District.check_name!(name)).exists?
       raise OpenShift::OOException.new("District by name #{name} already exists")
     end
-    dist = District.new(name: name, gear_size: profile)
+    dist = District.new(name: name, gear_size: gear_size)
   end
 
   def self.find_by_name(name)
@@ -74,6 +76,7 @@ class District
     self.max_uid = first_uid + num_uids - 1
     self.max_capacity = num_uids
     self.active_servers_size = 0
+    self.gear_size = Rails.application.config.openshift[:default_gear_size] unless self.gear_size
     save!
   end
 
