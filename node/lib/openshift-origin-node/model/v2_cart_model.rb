@@ -1019,7 +1019,7 @@ module OpenShift
       # This is only called when a cartridge is removed from a cartridge not a gear delete
       def disconnect_frontend(cartridge)
         gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
-        app_dns        = gear_env["OPENSHIFT_APP_DNS"]
+        app_dns        = gear_env["OPENSHIFT_APP_DNS"].to_s.downcase
 
         mappings = []
         cartridge.endpoints.each do |endpoint|
@@ -1048,7 +1048,7 @@ module OpenShift
         frontend       = FrontendHttpServer.new(@container)
         gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         web_proxy_cart = web_proxy
-        app_dns        = gear_env["OPENSHIFT_APP_DNS"]
+        app_dns        = gear_env["OPENSHIFT_APP_DNS"].to_s.downcase
 
         output = ""
         begin
