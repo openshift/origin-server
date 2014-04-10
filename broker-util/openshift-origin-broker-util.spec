@@ -32,7 +32,7 @@ Requires:      openssh-clients
 BuildArch:     noarch
 
 %description
-This package contains a set of utility scripts for the openshift broker.  
+This package contains a set of utility scripts for the openshift broker.
 They must be run on a openshift broker instance.
 
 %prep
