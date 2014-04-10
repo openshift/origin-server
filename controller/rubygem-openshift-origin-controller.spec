@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.23.1
+Version: 1.23.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,24 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- Add support for SSLv2 when downloading cartridges (mfojtik@redhat.com)
+- Merge pull request #5206 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5187 from pravisankar/dev/ravi/fix-testcases
+  (dmcphers+openshiftbot@redhat.com)
+- Add validations to district model and move gear_size initialization from
+  create_district() to initialize(). (rpenta@redhat.com)
+- Fix cucumber test platform-oo-admin.feature: Need to look at exit code and
+  not the output for errors, output can have warning messages
+  (rpenta@redhat.com)
+- Bug 1084542: Fixing Start/Stop order for components  - Start now follows
+  post-configure order  - Stop now follows the reverse of the start order  -
+  post-configure order follows the configure order with the one exception that
+  the web_framework is at the end (abhgupta@redhat.com)
+- Bug 1082464 - do not show member links for update and delete if team in
+  global (lnader@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
 - Use consistent naming on alias_add and more detail on cartridge scale
   (dmcphers@redhat.com)
