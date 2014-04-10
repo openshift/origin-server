@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.23.1
+Version: 1.23.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,20 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- Merge pull request #5212 from ironcladlou/upgrade-error-handling
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5200 from ncdc/metrics (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5207 from ncdc/selinux-turbo-boost
+  (dmcphers+openshiftbot@redhat.com)
+- Handle missing/invalid HTTP response during upgrade validation
+  (ironcladlou@gmail.com)
+- Speed up chcon calls (andy.goldstein@gmail.com)
+- Metrics - code review changes (andy.goldstein@gmail.com)
+- Metrics (andy.goldstein@gmail.com)
+- Metrics work (teddythetwig@gmail.com)
+- Metrics work (teddythetwig@gmail.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
 - Adding new default setting for traffic control (bleanhar@redhat.com)
 - Bug 1075760 - Allow traffic control to be disabled (bleanhar@redhat.com)
