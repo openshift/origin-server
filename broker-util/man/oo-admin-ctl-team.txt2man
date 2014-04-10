@@ -127,7 +127,7 @@ CONFIGURATION
          Attributes: [emailAddress]
        Openshift-Username: emailAddress
 
-Note: The placeholdes <group_cn>, <group_dn> and <user_id> will be replaced by actual values at the time of the script execution.
+Note: The placeholders <group_cn>, <group_dn> and <user_id> will be replaced by actual values at the time of the script execution.
 
 
 EXAMPLE

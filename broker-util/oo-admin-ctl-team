@@ -120,7 +120,7 @@ class Command
     if team
       team.maps_to = options.maps_to
       if team.valid?
-        team.save
+        team.save!
         puts "Team: \"#{options.name}\" updated"
         0
       else
@@ -201,7 +201,7 @@ class Command
           else
             puts "ERROR: Command \"#{command}\" not available for \"#{object_type}\""
           end
-          team.save
+          team.save!
           team.run_jobs
         end
       end
@@ -294,7 +294,7 @@ class Command
           next
         end
       end
-      team.save
+      team.save!
       team.run_jobs
     end
     0
