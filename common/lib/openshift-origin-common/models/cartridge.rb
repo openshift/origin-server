@@ -283,6 +283,7 @@ module OpenShift
       h["Vendor"] = self.vendor if self.vendor and !self.vendor.empty? and self.vendor != "unknown"
       h["Cartridge-Vendor"] = self.cartridge_vendor if self.cartridge_vendor and !self.cartridge_vendor.empty? and self.cartridge_vendor != "unknown"
       h["Obsolete"] = self.obsolete if !self.obsolete.nil? and self.obsolete
+      h["Platform"] = self.platform if !self.platform.nil? and self.platform
 
       if self.endpoints.present?
         h["Endpoints"] = self.endpoints.map(&:to_descriptor)
