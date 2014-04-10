@@ -1113,8 +1113,6 @@ class Application
       "Requires" => self.cartridges(true).map(&:name)
     }
 
-    h["Start-Order"] = @start_order if @start_order.present?
-    h["Stop-Order"] = @stop_order if @stop_order.present?
     h["Group-Overrides"] = self.group_overrides unless self.group_overrides.empty?
 
     h

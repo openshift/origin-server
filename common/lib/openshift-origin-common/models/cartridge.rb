@@ -96,8 +96,7 @@ module OpenShift
                   :endpoints, :cartridge_version, :obsolete, :platform
 
     # Profile information
-    attr_accessor :components, :group_overrides,
-                  :connections, :start_order, :stop_order, :configure_order
+    attr_accessor :components, :group_overrides, :connections, :configure_order
 
     # Available for downloadable cartridges
     attr_accessor :manifest_text, :manifest_url
@@ -197,14 +196,10 @@ module OpenShift
         end
       end
 
-      self.start_order = spec_hash["Start-Order"] || []
-      self.stop_order = spec_hash["Stop-Order"] || []
       self.configure_order = spec_hash["Configure-Order"] || []
 
-      #fixup user data. provides, start_order, start_order, configure_order must be arrays
+      #fixup user data. provides, configure_order must be arrays
       self.provides = [self.provides] if self.provides.class == String
-      self.start_order = [self.start_order] if self.start_order.class == String
-      self.stop_order = [self.stop_order] if self.stop_order.class == String
       self.configure_order = [self.configure_order] if self.configure_order.class == String
 
       if (components = spec_hash["Components"]).is_a? Hash
@@ -288,8 +283,6 @@ module OpenShift
         h["Endpoints"] = self.endpoints.map(&:to_descriptor)
       end
 
-      h["Start-Order"] = @start_order unless @start_order.nil? || @start_order.empty?
-      h["Stop-Order"] = @stop_order unless @stop_order.nil? || @stop_order.empty?
       h["Configure-Order"] = @configure_order unless @configure_order.nil? || @configure_order.empty?
 
       if self.components.length == 1 && self.components.first.generated
