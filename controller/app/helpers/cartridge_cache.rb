@@ -305,6 +305,11 @@ class CartridgeCache
     client.receive_timeout =        cartridge_conf[:max_download_time] || 10
     client.follow_redirect_count =  cartridge_conf[:max_download_redirects] || 2
 
+    # Fix the case when SSL certificate does not support SSLv3 which is default
+    # for HTTPClient.
+    #
+    client.ssl_config.ssl_version = 'SSLv23'
+
     manifest = ""
 
     if URI.parse(url).kind_of? URI::HTTP
