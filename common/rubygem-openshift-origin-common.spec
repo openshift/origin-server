@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
+- Merge pull request #5200 from ncdc/metrics (dmcphers+openshiftbot@redhat.com)
+- Metrics work (teddythetwig@gmail.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - Removing file listed twice warnings (dmcphers@redhat.com)
 - bump_minor_versions for sprint 43 (admiller@redhat.com)
