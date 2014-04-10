@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.23.1
+Version: 1.23.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,21 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- Merge pull request #5211 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5209 from sg00dwin/cart-icon-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5175 from liggitt/teams_ui
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing urls (dmcphers@redhat.com)
+- Switch old cartridge icon to new icon (sgoodwin@redhat.com)
+- Update capability test (jliggitt@redhat.com)
+- Remove unused routes, use configured model class (jliggitt@redhat.com)
+- Simplify role rendering (jliggitt@redhat.com)
+- Use box-sizing mixin (jliggitt@redhat.com)
+- Update jquery, add typeahead widget (jliggitt@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
 - Removing file listed twice warnings (dmcphers@redhat.com)
 - Merge remote-tracking branch 'upstream/master' (sgoodwin@redhat.com)
