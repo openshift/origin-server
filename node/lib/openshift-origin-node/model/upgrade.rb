@@ -765,12 +765,12 @@ module OpenShift
         progress.log "Inspecting gear at #{gear_home}"
 
         progress.step 'inspect_gear_state' do |context, errors|
-        
+
           sanity_check_gear
-          
+
           app_state = File.join(gear_home, 'app-root', 'runtime', '.state')
           save_state = File.join(gear_home, 'app-root', 'runtime', PREUPGRADE_STATE)
-          
+
           if File.exists? app_state
             FileUtils.cp(app_state, save_state)
           else
@@ -790,12 +790,12 @@ module OpenShift
       # Check the gear for broken state before beginning the upgrade process
       #
       def sanity_check_gear
-          @container.cartridge_model.process_cartridges do |cart_path|            
-            ident_path     = Dir.glob(PathUtils.join(cart_path, 'env', "OPENSHIFT_*_IDENT")).first            
+          @container.cartridge_model.process_cartridges do |cart_path|
+            ident_path     = Dir.glob(PathUtils.join(cart_path, 'env', "OPENSHIFT_*_IDENT")).first
             raise MissingCartridgeIdentError, "Cartridge Ident not found in #{cart_path}" unless ident_path
-          end       
-      end 
-      
+          end
+      end
+
       #
       # Stop the gear as the platform and kill gear user processes.
       #
