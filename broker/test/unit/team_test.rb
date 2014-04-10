@@ -46,6 +46,58 @@ class TeamTest < ActiveSupport::TestCase
     assert t.destroy
   end
 
+  def test_remove_single_team
+    Domain.where(:namespace => 'test').delete
+    assert d = Domain_create(:namespace => 'test')
+
+    CloudUser.where(:login => 'team-member-1').delete
+    assert u1 = CloudUser_create(:login => 'team-member-1')
+
+    CloudUser.where(:login => 'explicit-member-1').delete
+    assert u2 = CloudUser_create(:login => 'explicit-member-1')
+
+    Team.where(:name => 'member-team-1').delete
+    assert t1 = Team_create(:name => 'member-team-1')
+    t1.add_members u1, :view
+    t1.save
+    t1.run_jobs
+
+    Team.where(:name => 'member-team-2').delete
+    assert t2 = Team_create(:name => 'member-team-2')
+    t2.add_members u1, :view
+    t2.save
+    t2.run_jobs
+
+    d.add_members t1, :edit
+    d.add_members t2, :view
+    d.add_members u2, :view
+    d.save
+    d.run_jobs
+
+    assert_equal :edit, d.role_for(t1)
+    assert_equal :view, d.role_for(t2)
+    assert_equal :edit, d.role_for(u1)
+    assert_equal :view, d.role_for(u2)
+
+    d.remove_members t1
+    d.save
+    d.run_jobs
+
+    assert_equal nil,   d.role_for(t1)
+    assert_equal :view, d.role_for(t2)
+    assert_equal :view, d.role_for(u1)
+    assert_equal :view, d.role_for(u2)
+
+    d.remove_members t2
+    d.save
+    d.run_jobs
+
+    assert_equal nil,   d.role_for(t1)
+    assert_equal nil,   d.role_for(t2)
+    assert_equal nil,   d.role_for(u1)
+    assert_equal :view, d.role_for(u2)
+  end
+
   def test_add_and_remove_in_single_operation
     # A remove op shouldn't fail because the team member has already been removed
     Domain.where(:namespace => 'test').delete

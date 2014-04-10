@@ -104,23 +104,22 @@ class Member
         self.explicit_role = nil
         false
       end
-    else
+    elsif from
       # remove an implicit grant
-      if from
-        source = to_source(source)
-        from.delete_if{ |f| f[0...-1] == source }
-      end
-      if from.blank?
-        if self.e
-          self.role = explicit_role
-          self.explicit_role = nil
-          false
+      source = to_source(source)
+      if from.reject! { |f| f[0...-1] == source }
+        if from.blank?
+          if self.e
+            self.role = explicit_role
+            self.explicit_role = nil
+            false
+          else
+            true
+          end
         else
-          true
+          self.role = effective_role
+          false
         end
-      else
-        self.role = effective_role
-        false
       end
     end
   end
