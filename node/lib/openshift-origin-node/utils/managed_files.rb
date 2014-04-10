@@ -68,8 +68,8 @@ module OpenShift
         root = "#{PathUtils.join(root,'')}/"
         # TODO: Is it possible to get a cart's full directory path?
         managed_files = PathUtils.join(root, cart.directory, 'metadata', 'managed_files.yml')
-        unless File.exists?(managed_files)
-          logger.info "#{managed_files} is missing"
+        unless File.exists?(managed_files) and YAML.load_file(managed_files, :safe => true, :deserialize_symbols => true)
+          logger.info "#{managed_files} is missing or empty"
           return []
         end
 
