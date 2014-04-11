@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.23.2
+Version: 1.23.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,20 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
+- Merge pull request #5226 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Setting domain op state to completed after updating capabilities
+  (abhgupta@redhat.com)
+- Add domain to analytics tracking (dmcphers@redhat.com)
+- Merge pull request #5218 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5217 from liggitt/team_remove
+  (dmcphers+openshiftbot@redhat.com)
+- Removing Start-Order and Stop-Order from the manifest (abhgupta@redhat.com)
+- Bug 1086370: removing one team removes all explicit members
+  (jliggitt@redhat.com)
+
 * Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
 - Add support for SSLv2 when downloading cartridges (mfojtik@redhat.com)
 - Merge pull request #5206 from lnader/master
