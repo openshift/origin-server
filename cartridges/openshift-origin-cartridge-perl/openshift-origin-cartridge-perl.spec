@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -54,6 +54,10 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
+- Bug 1086609 - Adding $OPENSHIFT_REPO_DIR/libs back into $PERL5LIB for
+  backward compatibility (jhadvig@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - Removing file listed twice warnings (dmcphers@redhat.com)
 - Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
