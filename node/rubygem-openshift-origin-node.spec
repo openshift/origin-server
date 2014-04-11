@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.23.2
+Version: 1.23.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
+- cleanup whitespace (dmcphers@redhat.com)
+- Add platform attribute to cartridge serialization and fixed tests
+  (abhgupta@redhat.com)
+- Merge pull request #5208 from bparees/haproxy_scale
+  (dmcphers+openshiftbot@redhat.com)
+- Add the ability to adjust when haproxy shutsdown the app cart in the lead
+  gear (bparees@redhat.com)
+
 * Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
 - Merge pull request #5212 from ironcladlou/upgrade-error-handling
   (dmcphers+openshiftbot@redhat.com)
