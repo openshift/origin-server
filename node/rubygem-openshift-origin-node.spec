@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.22.15
+Version: 1.22.16
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.22.16-1
+- Merge pull request #5220 from rajatchopra/stg
+  (dmcphers+openshiftbot@redhat.com)
+- DNS may have been stored as mixed case, but should always be used downcased
+  (rchopra@redhat.com)
+
 * Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.22.15-1
 - Handle missing/invalid HTTP response during upgrade validation
   (ironcladlou@gmail.com)
