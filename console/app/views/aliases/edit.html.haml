@@ -124,7 +124,7 @@
     $('.delete-alias').popover({
       content: function() { return $(this).prev('.popover-delete-alias').html(); }
     }).click(function() { return false; });
-    $('.cancel-delete-alias').live('click', function() { 
+    $(document).on('click', '.cancel-delete-alias', function() { 
       $(this).closest('.popover').prev('.delete-alias').popover('hide');
       return false; 
     });
@@ -132,7 +132,7 @@
     $('.delete-certificate').popover({
       content: function() { return $(this).prev('.popover-delete-certificate').html(); }
     }).click(function() { return false; });
-    $('.cancel-delete-certificate').live('click', function() { 
+    $(document).on('click', '.cancel-delete-certificate', function() { 
       $(this).closest('.popover').prev('.delete-certificate').popover('hide');
       return false; 
     });
