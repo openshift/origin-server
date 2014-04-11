@@ -30,15 +30,6 @@ class OutputCapturer
   ensure
     $stdout = old
   end
-
-  def self.capture_stderr(&block)
-    old = $stderr
-    $stderr = fake = StringIO.new
-    block.call
-    fake.string
-  ensure
-    $stderr = old
-  end
 end
 
 class MetricsLineProcessorTest < OpenShift::NodeTestCase
@@ -148,15 +139,11 @@ class MetricsTest < OpenShift::NodeTestCase
   end
 
   def test_no_metrics
-    error = nil
     output = OutputCapturer.capture_stdout do
-      error = OutputCapturer.capture_stderr do
-        @container.metrics
-      end
+      @container.metrics
     end
 
     assert_equal '', output
-    assert_equal '', error
   end
 
   def test_gear_timeout
@@ -171,9 +158,9 @@ class MetricsTest < OpenShift::NodeTestCase
 
 
       # run the method under test
-      err = OutputCapturer.capture_stderr { @container.metrics }
+      err = OutputCapturer.capture_stdout { @container.metrics }
 
-      assert_equal "Gear metrics exceeded timeout of #{timeout} for gear #{@container.uuid}\n", err
+      assert_equal "Gear metrics exceeded timeout of #{timeout}s for gear #{@container.uuid}\n", err
     ensure
       # make sure the hacked method is reverted to its default implementation
       @container.class.send(:alias_method, :cartridge_metrics, :orig_cartridge_metrics)
@@ -259,10 +246,10 @@ class MetricsTest < OpenShift::NodeTestCase
                                                        has_entries(buffer_size: 2000,
                                                                    out: instance_of(BufferedLineParser),
                                                                    timeout: 1.0))
-                                                 .raises('foo')
+                                                 .raises(::OpenShift::Runtime::Utils::ShellExecutionException.new('foo'))
 
-    err = OutputCapturer.capture_stderr { @container.metrics }
-    assert_equal "Error retrieving metrics for cartridge 'cart': foo\n", err
+    err = OutputCapturer.capture_stdout { @container.metrics }
+    assert_equal "Error retrieving metrics for gear #{@container.uuid}, cartridge 'cart': foo\n", err
   end
 
   def test_app_no_metrics_hook
@@ -316,10 +303,10 @@ class MetricsTest < OpenShift::NodeTestCase
                                                        has_entries(buffer_size: 2000,
                                                                    out: instance_of(BufferedLineParser),
                                                                    timeout: 1.0))
-                                                 .raises('foo')
+                                                 .raises(::OpenShift::Runtime::Utils::ShellExecutionException.new('foo'))
 
-    err = OutputCapturer.capture_stderr { @container.metrics }
+    err = OutputCapturer.capture_stdout { @container.metrics }
 
-    assert_equal "Error retrieving application metrics: foo\n", err
+    assert_equal "Error retrieving application metrics for gear #{@container.uuid}: foo\n", err
   end
 end
