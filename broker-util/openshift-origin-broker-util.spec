@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.23.1
+Version: 1.23.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -106,6 +106,13 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 
 
 %changelog
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- Merge pull request #5195 from brenton/BZ1085339
+  (dmcphers+openshiftbot@redhat.com)
+- Cleanup (dmcphers@redhat.com)
+- Bug 1085339, Bug 1085365 - cleaning up the remote user auth configs
+  (bleanhar@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
 - ctl-district: add --available and list-available (lmeyer@redhat.com)
 - ctl-district: act on many nodes with one invocation (lmeyer@redhat.com)
