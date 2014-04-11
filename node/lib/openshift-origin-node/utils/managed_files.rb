@@ -72,6 +72,11 @@ module OpenShift
           logger.info "#{managed_files} is missing"
           return []
         end
+        #safe_yaml returns false if the file is empty or only contains white spaces
+        unless YAML.load_file(managed_files, :safe => true, :deserialize_symbols => true)
+          logger.info "#{managed_files} is empty"
+          return []
+        end
 
         # Ensure the this works with symbols or strings in yml file or argument
         file_patterns = YAML.load_file(managed_files, :safe => true, :deserialize_symbols => true).values_at(*[type.to_s,type.to_sym])
