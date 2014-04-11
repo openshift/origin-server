@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.22.2
+Version: 1.22.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,13 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
+- Merge pull request #5222 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Add platform attribute to cartridge serialization and fixed tests
+  (abhgupta@redhat.com)
+- Removing Start-Order and Stop-Order from the manifest (abhgupta@redhat.com)
+
 * Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
 - Merge pull request #5200 from ncdc/metrics (dmcphers+openshiftbot@redhat.com)
 - Metrics work (teddythetwig@gmail.com)
