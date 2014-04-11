@@ -867,14 +867,18 @@ module OpenShift
 
                 request = Net::HTTP::Get.new(uri.request_uri)
 
+                response_code = 'unknown'
                 begin
                   response = http.request(request)
+                  response_code = response.code
                 rescue Timeout::Error => e
                   timeout = true
+                rescue Exception => e
+                  # ignore it
                 end
 
                 # Give the app a chance to start fully
-                if ((timeout || response.code == '503') && num_tries < 5)
+                if ((timeout || response_code == '503' || response_code == 'unknown') && num_tries < 5)
                   sleep num_tries
                 else
                   break
@@ -882,8 +886,8 @@ module OpenShift
                 num_tries += 1
               end
 
-              progress.log "Post-upgrade response code: #{response.code}"
-              context[:postupgrade_response_code] = response.code
+              progress.log "Post-upgrade response code: #{response_code}"
+              context[:postupgrade_response_code] = response_code
             end
 
             problem, status = cart_model.upgrade_gear_status(itinerary)
