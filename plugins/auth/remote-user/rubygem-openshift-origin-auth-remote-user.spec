@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,12 @@ then
 fi
 
 %changelog
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Merge pull request #5195 from brenton/BZ1085339
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1085339, Bug 1085365 - cleaning up the remote user auth configs
+  (bleanhar@redhat.com)
+
 * Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
 - Fix remote-user auth plugin: Enable broker REST api /api, /environment,
   /cartridges, /quickstarts without authentication (rpenta@redhat.com)
