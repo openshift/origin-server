@@ -78,10 +78,16 @@ class Member
         self.role = other.role
       else
         self.explicit_role = other.role
-        self.role = Role.higher_of(other.role, role)
+        self.role = Role.higher_of(other.role, effective_role)
       end
     else
-      self.explicit_role = role if from.blank?
+      if other.explicit_role?
+        # If the incoming member has an explicit role, it wins
+        self.explicit_role = other.explicit_role 
+      elsif from.blank?
+        # If our only role until now has been explicit, remember it as an explicit role
+        self.explicit_role = role
+      end
       self.from ||= []
       # Put the grants from the merged-in member first, then uniqify based on the sources
       self.from = (Array(other.from) + self.from).uniq{|i| i[0...-1] }

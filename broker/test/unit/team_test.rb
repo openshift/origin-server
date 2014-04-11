@@ -46,6 +46,61 @@ class TeamTest < ActiveSupport::TestCase
     assert t.destroy
   end
 
+  def test_update_explicit_role_of_team_member
+    Domain.where(:namespace => 'test').delete
+    assert d = Domain_create(:namespace => 'test')
+
+    CloudUser.where(:login => 'team-member-1').delete
+    assert u1 = CloudUser_create(:login => 'team-member-1')
+
+    Team.where(:name => 'member-team-1').delete
+    assert t1 = Team_create(:name => 'member-team-1')
+    t1.add_members u1, :view
+    t1.save
+    t1.run_jobs
+
+    d.add_members t1, :edit
+    d.save
+    d.run_jobs
+    d.reload
+
+    assert_equal :edit, d.role_for(t1)
+    assert_equal :edit, d.role_for(u1)
+
+    d.add_members u1, :admin
+    d.save
+    d.run_jobs
+    d.reload
+
+    assert_equal :edit,  d.role_for(t1)
+    assert_equal :admin, d.role_for(u1)
+
+    d.add_members u1, :edit
+    d.save
+    d.run_jobs
+    d.reload
+
+    assert_equal :edit, d.role_for(t1)
+    assert_equal :edit, d.role_for(u1)
+
+    d.remove_members u1
+    d.save
+    d.run_jobs
+    d.reload
+
+    assert_equal :edit, d.role_for(t1)
+    assert_equal :edit, d.role_for(u1)
+
+    d.remove_members t1
+    d.save
+    d.run_jobs
+    d.reload
+
+    assert_equal nil, d.role_for(t1)
+    assert_equal nil, d.role_for(u1)
+  end
+
+
   def test_remove_single_team
     Domain.where(:namespace => 'test').delete
     assert d = Domain_create(:namespace => 'test')
