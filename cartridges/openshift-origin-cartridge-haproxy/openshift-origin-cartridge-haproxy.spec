@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.23.1
+Version: 1.23.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,12 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- Merge pull request #5208 from bparees/haproxy_scale
+  (dmcphers+openshiftbot@redhat.com)
+- Add the ability to adjust when haproxy shutsdown the app cart in the lead
+  gear (bparees@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
 - Removing file listed twice warnings (dmcphers@redhat.com)
 - Use named pipes for logshifter redirection where appropriate
