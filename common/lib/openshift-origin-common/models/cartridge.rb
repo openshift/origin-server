@@ -36,6 +36,10 @@ module OpenShift
       categories.include?('ci_builder')
     end
 
+    def has_scalable_categories?
+      is_web_framework? || is_service?
+    end
+
     alias_method :is_deployable?, :is_web_framework?
     alias_method :is_buildable?, :is_web_framework?
   end
