@@ -23,17 +23,22 @@ class DomainMembersControllerTest < ActionController::TestCase
     team_name = "team#{@random}"
     @team = Team.create(name: team_name, owner_id:@owner._id)
     #create another user to add to team as member
-    team_member_name = "team_member#{@random}"
-    @team_member = CloudUser.new(login: team_member_name)
+    @team_member_name = "team_member#{@random}"
+    @team_member = CloudUser.new(login: @team_member_name)
     @team_member.save
     Lock.create_lock(@team_member.id)
+    register_user(@team_member_login, @password)
+
     @team.add_members(@team_member)
     @team.save
     @team.run_jobs
+
     #create another user to add to domain as member directly
-    member_login = "member#{@random}"
-    @member = CloudUser.new(login: member_login)
+    @member_login = "member#{@random}"
+    @member = CloudUser.new(login: @member_login)
     @member.save
+    Lock.create_lock(@member.id)
+    register_user(@member_login, @password)
 
     #create domain for user
     @namespace = "ns#{@random}"
@@ -59,6 +64,23 @@ class DomainMembersControllerTest < ActionController::TestCase
     rescue
 
     end
+  end
+
+  def as(user)
+    # Back up env info
+    http_authorization = @request.env['HTTP_AUTHORIZATION']
+    remote_user = @request.env['REMOTE_USER']
+
+    @controller = DomainMembersController.new
+    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{user.login}:#{@password}")
+    @request.env['REMOTE_USER'] = user.login
+
+    yield if block_given?
+  ensure
+    # Restore env info
+    @controller = DomainMembersController.new
+    @request.env['HTTP_AUTHORIZATION'] = http_authorization
+    @request.env['REMOTE_USER'] = remote_user
   end
 
   test "user member create show list update and destroy by login" do
@@ -475,6 +497,93 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "remove member with implicit role only" do
+    post :create, {"domain_id" => @domain.namespace, "id" => @team.id, "type" => "team", "role" => "edit"}
+    assert_response :success
+
+    delete :destroy , {"domain_id" => @domain.namespace, "id" => @team_member.id}
+    assert_response :unprocessable_entity
+    assert json = JSON.parse(response.body)
+    assert message = Array(json['messages']).first, response.body
+    assert_equal 'error', message['severity'], message.inspect
+    assert message['text'] =~ /#{@team_member.name} is not a direct member/, message.inspect
+  end
+
+  test "remove member with explicit and implicit role" do
+    post :create, {"domain_id" => @domain.namespace, "id" => @team.id, "type" => "team", "role" => "edit"}
+    assert_response :success
+    post :create, {"domain_id" => @domain.namespace, "id" => @team_member.id, "type" => "user", "role" => "edit"}
+    assert_response :success
+
+    delete :destroy , {"domain_id" => @domain.namespace, "id" => @team_member.id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert message = Array(json['messages']).first, response.body
+    assert_equal 'warn', message['severity'], message.inspect
+    assert message['text'] =~ /#{@team_member.name} is still an indirect member/, message.inspect
+
+    delete :destroy , {"domain_id" => @domain.namespace, "id" => @team_member.id}
+    assert_response :unprocessable_entity
+    assert json = JSON.parse(response.body)
+    assert message = Array(json['messages']).first, response.body
+    assert_equal 'error', message['severity'], message.inspect
+    assert message['text'] =~ /#{@team_member.name} is not a direct member/, message.inspect
+  end
+
+  test "leave domain with explicit role only" do 
+    post :create, {"domain_id" => @domain.namespace, "id" => @member._id, "role" => "edit"}
+    assert_response :success
+
+    as(@member) do
+        delete :leave, {"domain_id" => @domain.namespace}
+        assert_response :success
+        assert json = JSON.parse(response.body)
+        assert message = Array(json['messages']).first, response.body
+        assert_equal 'info', message['severity'], message.inspect
+        assert message['text'] =~ /Removed member/, message.inspect
+    end
+
+  end
+
+  test "leave domain with implicit role only" do
+    post :create, {"domain_id" => @domain.namespace, "id" => @team.id, "type" => "team", "role" => "edit"}
+    assert_response :success
+
+    as(@team_member) do
+        delete :leave, {"domain_id" => @domain.namespace}
+        assert_response :unprocessable_entity
+        assert json = JSON.parse(response.body)
+        assert message = Array(json['messages']).first, response.body
+        assert_equal 'error', message['severity'], message.inspect
+        assert message['text'] =~ /You are not a direct member/, message.inspect
+    end
+
+  end
+
+  test "leave domain with explicit and implicit role" do
+    post :create, {"domain_id" => @domain.namespace, "id" => @team.id, "type" => "team", "role" => "edit"}
+    assert_response :success
+    post :create, {"domain_id" => @domain.namespace, "id" => @team_member.id, "type" => "user", "role" => "edit"}
+    assert_response :success
+
+    as(@team_member) do
+        delete :leave, {"domain_id" => @domain.namespace}
+        assert_response :success
+        assert json = JSON.parse(response.body)
+        assert message = Array(json['messages']).first, response.body
+        assert_equal 'warn', message['severity'], message.inspect
+        assert message['text'] =~ /You are still an indirect member/, message.inspect
+
+        delete :leave, {"domain_id" => @domain.namespace}
+        assert_response :unprocessable_entity
+        assert json = JSON.parse(response.body)
+        assert message = Array(json['messages']).first, response.body
+        assert_equal 'error', message['severity'], message.inspect
+        assert message['text'] =~ /You are not a direct member/, message.inspect
+    end
+
+  end
+  
   test "get member in all versions" do
     post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "view"}
     assert_response :success
