@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.22.5
+Version: 1.22.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,9 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
+- Check haproxyctld pid when trying to stop it (ironcladlou@gmail.com)
+
 * Mon Mar 31 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Bug 1081954 - Prevent killing non-existent haproxy process when force-stopped
   (mfojtik@redhat.com)
