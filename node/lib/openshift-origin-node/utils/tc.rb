@@ -191,7 +191,7 @@ module OpenShift
 
         def tc_exists?(netclass)
           out, _, _ = ::OpenShift::Runtime::Utils.oo_spawn("tc -s class show dev #{@tc_if} classid 1:#{netclass}", :chdir=>"/")
-          !out.empty?
+          out.empty? ? false : out
         end
 
         def with_tc_loaded
@@ -203,11 +203,12 @@ module OpenShift
           end
         end
 
-        def statususer(uuid, pwent, netclass)
-          if !tc_exists?(netclass)
-            raise ArgumentError, "tc not configured for user #{uuid}"
-          else
+        def statususer(uuid, pwent, netclass, verbose=false)
+          if out = tc_exists?(netclass)
             @output << "tc is active for the user #{uuid}"
+            @output << out if verbose
+          else
+            raise ArgumentError, "tc not configured for user #{uuid}"
           end
         end
 
@@ -368,12 +369,12 @@ module OpenShift
           status(uuid)
         end
 
-        def status(uuid=nil)
+        def status(uuid=nil, verbose=false)
           @output << "Bandwidth shaping status: "
           with_tc_loaded do
             if uuid
               parse_valid_user(uuid) do |pwent, netclass|
-                statususer(uuid, pwent, netclass)
+                statususer(uuid, pwent, netclass, verbose)
               end
             else
               out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc -s qdisc show dev #{@tc_if}", :chdir=>"/")
