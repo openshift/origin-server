@@ -121,7 +121,7 @@ module OpenShift
               application_metrics(processor, parser)
             end
           rescue Timeout::Error => e
-            $stderr.puts("Gear metrics exceeded timeout of #{metrics_per_gear_timeout} for gear #{uuid}")
+            puts("Gear metrics exceeded timeout of #{metrics_per_gear_timeout}s for gear #{uuid}")
           end
         end
 
@@ -139,8 +139,11 @@ module OpenShift
                                           out: parser,
                                           timeout: metrics_per_script_timeout)
                 end
-              rescue => e
-                $stderr.puts("Error retrieving metrics for cartridge '#{cart.name}': #{e.message}")
+
+              #FIXME should really be doing 'rescue => e' once ShellExecutionException is modified
+              #to extend StandardError instead of Exception
+              rescue Exception => e
+                puts("Error retrieving metrics for gear #{uuid}, cartridge '#{cart.name}': #{e.message}")
               end
             end
           end
@@ -157,8 +160,11 @@ module OpenShift
                                       out: parser,
                                       timeout: metrics_per_script_timeout)
             end
-          rescue => e
-            $stderr.puts("Error retrieving application metrics: #{e.message}")
+
+          #FIXME should really be doing 'rescue => e' once ShellExecutionException is modified
+          #to extend StandardError instead of Exception
+          rescue Exception => e
+            puts("Error retrieving application metrics for gear #{uuid}: #{e.message}")
           end
         end
       end
