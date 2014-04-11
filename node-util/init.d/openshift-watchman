@@ -10,6 +10,7 @@
 require 'rubygems'
 require 'daemons'
 require 'parseconfig'
+require 'timeout'
 require 'openshift-origin-common/utils/path_utils'
 
 raise 'Watchman must run as root' unless Process.euid == 0
@@ -37,16 +38,27 @@ def daemon_running?
   $?.exitstatus == 0 ? true : false
 end
 
-PathUtils.flock('/var/lock/openshift-watchman.lock') do
-  case ARGV[0]
-    when 'stop'
-      puts 'Stopping Watchman'
-      Daemons.run(Options[:script], Options)
-    when 'start'
-      puts 'Starting Watchman'
-      Daemons.run(Options[:script], Options)
-    when 'restart'
-      $stdout.write %q(Stopping Watchman)
+def locked
+  Timeout::timeout(ENV['LOCK_TIMEOUT'] || 60) do
+    PathUtils.flock('/var/lock/openshift-watchman.lock') do
+      yield
+    end
+  end
+rescue Timeout::Error
+  puts 'Watchman operation timed out'
+  exit! 1
+end
+
+case ARGV[0]
+  when 'stop'
+    puts 'Stopping Watchman'
+    locked { Daemons.run(Options[:script], Options) }
+  when 'start'
+    puts 'Starting Watchman'
+    locked { Daemons.run(Options[:script], Options) }
+  when 'restart'
+    $stdout.write %q(Stopping Watchman)
+    locked do
       loop do
         Daemons.run(Options[:script], Options.merge(ARGV: ['stop']))
         break unless daemon_running?
@@ -56,15 +68,15 @@ PathUtils.flock('/var/lock/openshift-watchman.lock') do
 
       puts %Q(\nStarting Watchman)
       Daemons.run(Options[:script], Options.merge(ARGV: ['start']))
-    when 'status'
-      if daemon_running?
-        puts 'Watchman is running'
-        exit 0
-      else
-        puts 'Watchman is not running'
-        exit 1
-      end
+    end
+  when 'status'
+    if daemon_running?
+      puts 'Watchman is running'
+      exit 0
     else
-      Daemons.run(Options[:script], Options)
-  end
+      puts 'Watchman is not running'
+      exit 1
+    end
+  else
+    locked { Daemons.run(Options[:script], Options) }
 end
