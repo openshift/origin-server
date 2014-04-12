@@ -1962,6 +1962,7 @@ class Application
     end
 
     if deleting_app
+      pending_ops << DeregisterRoutingDnsOp.new(prereq: [pending_ops.last._id.to_s]) if self.ha
       pending_ops << NotifyAppDeleteOp.new(prereq: [pending_ops.last._id.to_s])
     end
 
