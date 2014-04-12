@@ -101,7 +101,7 @@ case "$1" in
         start
         ;;
     reload)
-	# Calling stop could cause an outage.  It's best to simply call start.
+        # Calling stop could cause an outage.  It's best to simply call start.
         start
         ;;
     *)
