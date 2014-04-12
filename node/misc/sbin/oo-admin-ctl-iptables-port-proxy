@@ -32,7 +32,7 @@ start() {
 }
 
 stop() {
-    # Droping the reference from the input chain would needlessly complicate
+    # Dropping the reference from the input chain would needlessly complicate
     # this logic.  For that reason we can't actually drop the chain.  This will
     # allow admins to flush the chain if needed.
     iptables -F rhc-app-comm
