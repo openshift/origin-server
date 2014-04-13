@@ -493,6 +493,11 @@ end
 # Check tc config
 #
 def check_tc_config
+    if $CONF.get('TRAFFIC_CONTROL_ENABLED') == nil || $CONF.get('TRAFFIC_CONTROL_ENABLED') == "false"
+      verbose("traffic control not enabled in /etc/openshift/node.conf, set TRAFFIC_CONTROL_ENABLED=true to enable")
+      return
+    end
+
     verbose("checking presence of tc qdisc")
     qdiscresponse="qdisc htb 1: root"
 
