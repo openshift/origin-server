@@ -41,6 +41,7 @@ chkconfig jenkins off
 %{cartridgedir}/configuration
 %{cartridgedir}/metadata
 %{cartridgedir}/usr
+%{cartridgedir}/env
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

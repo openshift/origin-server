@@ -50,6 +50,7 @@ fi
 %attr(0755,-,-) %{cartridgedir}/hooks/
 %{cartridgedir}/conf
 %{cartridgedir}/metadata
+%{cartridgedir}/env
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

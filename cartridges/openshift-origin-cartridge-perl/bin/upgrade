@@ -14,9 +14,3 @@ if [[ $next == "0.0.11" ]]; then
 	chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID $OPENSHIFT_PERL_DIR/etc/conf.d/openshift.conf
 	chcon -u unconfined_u $OPENSHIFT_PERL_DIR/etc/conf.d/openshift.conf
 fi
-
-if [ -f ${OPENSHIFT_PERL_DIR}/env/OPENSHIFT_PERL_LOG_DIR ] && [ ! -L ${OPENSHIFT_PERL_DIR}/env/OPENSHIFT_PERL_LOG_DIR ]
-then
-    rm ${OPENSHIFT_PERL_DIR}/env/OPENSHIFT_PERL_LOG_DIR
-    ln -s ~/.env/OPENSHIFT_LOG_DIR ${OPENSHIFT_PERL_DIR}/env/OPENSHIFT_PERL_LOG_DIR
-fi

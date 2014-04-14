@@ -40,6 +40,7 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %{cartridgedir}/metadata
 %{cartridgedir}/usr
 %{cartridgedir}/versions
+%{cartridgedir}/env
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
