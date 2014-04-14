@@ -3,6 +3,7 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 export PHPRC="${OPENSHIFT_PHPMYADMIN_DIR}conf/php.ini"
+export PHP_INI_SCAN_DIR="/etc/php.d"
 
 HTTPD_CFG_FILE=${OPENSHIFT_PHPMYADMIN_DIR}conf/httpd_nolog.conf
 HTTPD_PASSENV_FILE=${OPENSHIFT_PHPMYADMIN_DIR}conf.d/passenv.conf
