@@ -24,7 +24,7 @@ module OpenShift
     include OpenShift::Runtime::ManagedFiles
 
     def setup
-      @container_dir = "#{Dir.mktmpdir}/" 
+      @container_dir = "#{Dir.mktmpdir}/"
 
       @cartridge = OpenStruct.new({
         :name =>  'mock',
@@ -79,6 +79,15 @@ module OpenShift
     def test_missing_managed_files
       logger = mock()
       logger.expects(:info).with { |x| x =~ /.yml is missing$/ }
+      ::OpenShift::Runtime::NodeLogger.expects(:logger).returns(logger)
+      assert_empty managed_files(@cartridge, :foo, @container_dir)
+    end
+
+    def test_empty_managed_files
+      FileUtils.mkdir_p(File.join(@container_dir, @cartridge.directory, 'metadata'))
+      IO.write(File.join(@container_dir, @cartridge.directory, 'metadata', 'managed_files.yml'), '')
+      logger = mock()
+      logger.expects(:info).with { |x| x =~ /.yml is empty/ }
       ::OpenShift::Runtime::NodeLogger.expects(:logger).returns(logger)
       assert_empty managed_files(@cartridge, :foo, @container_dir)
     end
