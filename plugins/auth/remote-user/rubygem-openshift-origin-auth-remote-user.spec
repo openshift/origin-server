@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version: 1.19.3
+Version: 1.19.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,10 @@ then
 fi
 
 %changelog
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.19.4-1
+- remote-user auth plugin: Rely on 'user_action_log_identity_id' for username
+  when trusted header is missing until BZ 1086910 is fixed (rpenta@redhat.com)
+
 * Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
 - Merge pull request #5195 from brenton/BZ1085339
   (dmcphers+openshiftbot@redhat.com)
