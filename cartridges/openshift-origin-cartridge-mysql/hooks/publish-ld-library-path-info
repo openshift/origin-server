@@ -9,5 +9,7 @@ source "${OPENSHIFT_MYSQL_DIR}/lib/mysql_context"
 
 if [[ "$(mysql_version)" == "5.5" ]]; then
   ld_path=$(LD_LIBRARY_PATH="" scl enable mysql55 "printenv LD_LIBRARY_PATH")
+  path=$(PATH="" /usr/bin/scl enable mysql55 "/usr/bin/printenv PATH")
   echo "OPENSHIFT_MYSQL_LD_LIBRARY_PATH_ELEMENT=${ld_path}"
+  echo "OPENSHIFT_MYSQL_PATH_ELEMENT=${path}"
 fi
