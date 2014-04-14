@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.23.2
+Version: 1.23.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,15 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
+- Merge pull request #5246 from liggitt/bug_1086567_handle_implicit_leaving
+  (dmcphers+openshiftbot@redhat.com)
+- Fix test case trying to remove owner (jliggitt@redhat.com)
+- Bug 1086567: Handle implicit members leaving (jliggitt@redhat.com)
+- Bug 1086716: Update jquery syntax for live-clicking (jliggitt@redhat.com)
+- Downloadable cartridges are improperly described as getting updates
+  (bparees@redhat.com)
+
 * Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
 - Merge pull request #5211 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
