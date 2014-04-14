@@ -69,7 +69,7 @@
       content: function() { return $(this).next('.popover-delete-certificate').html(); }
     }).click(function() { return false; });
 
-    $('.cancel-delete-certificate').live('click', function() { 
+    $(document).on('click', '.cancel-delete-certificate', function() { 
       $(this).closest('.popover').prev('.delete-certificate').popover('hide');
       return false; 
     });

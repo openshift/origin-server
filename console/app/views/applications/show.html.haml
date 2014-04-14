@@ -4,7 +4,7 @@
 
 - content_for :javascripts do
   :javascript
-    $("a.custom-cartridge-toggle-details").live('click', function(e) {
+    $(document).on('click', "a.custom-cartridge-toggle-details", function(e) {
       e.preventDefault();
       $($(this).toggleClass('collapsed').attr('href')).toggle();
       $(this).find('span').toggle();
