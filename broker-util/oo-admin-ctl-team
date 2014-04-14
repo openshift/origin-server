@@ -393,8 +393,8 @@ class Command
       base = @ldap_config["Get-Group"]["Base"]
       filter = Net::LDAP::Filter.construct(@ldap_config["Get-Group"]["Filter"].gsub("<group_cn>", group_name))
       entries = @ldap.search(:base => base, :filter => filter)
-      raise Exception.new("Could not find an entry matching \"#{group_name}\"") if entries.count < 1
-      raise Exception.new("Found more than one entry matching \"#{group_name}\".  You may need to adjust the Get-Group query in ") if entries.count > 1
+      raise OpenShift::UserException.new("Could not find an entry matching \"#{group_name}\"") if entries.count < 1
+      raise OpenShift::UserException.new("Found more than one entry matching \"#{group_name}\".  You may need to adjust the Get-Group query in ") if entries.count > 1
       entry = entries.first
       puts "Found group dn:\"#{entry.dn}\""
       return entry.dn
@@ -437,18 +437,22 @@ Commands:
   list            - List all teams
     
   create          - Creates a new team
+                  Requires (--name and --maps-to) OR (--groups and --config-file)
+                  
+  update          - Updates an existing team's maps-to value
                   Requires --name, --maps-to
                   
   delete          - Delete team
                   Requires --name
   
   show            - Show team and it's members
-                  Requires --name
+                  Requires --name OR --maps-to
 
   sync            - Syncs with LDAP groups
+                  Requires --config-file
 
   sync-to-file    - Generates a sync file for review.  No changes are made to the teams and their members.
-                  Requires -out-file
+                  Requires -out-file, --config-file
 
   sync-from-file  - Syncs from file.  See sync-to-file
                   Requires --in-file
