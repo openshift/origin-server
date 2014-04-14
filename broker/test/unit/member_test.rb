@@ -54,7 +54,7 @@ class MemberTest < ActiveSupport::TestCase
 
               # The other roles should be used if present
               highest_role = Role.higher_of(*[other_explicit_role || explicit_role, other_from_role || from_role].compact)
-              
+
               assert_equal other_explicit_role || explicit_role, m.explicit_role
               assert_equal highest_role, m.role
               assert_equal 0, Array(m.from).length if from_role.blank? and other_from_role.blank?

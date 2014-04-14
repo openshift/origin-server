@@ -109,7 +109,7 @@ class OauthControllerTest < ActionController::TestCase
 
   test "access_token allows client_id and client_secret to be passed via basic auth" do
     with_token('oauthaccesstoken', 'my_sso_client_id', false)
-    
+
     params = access_token_params('my_sso_client_id', @auth.token)
     with_basic_auth(params.delete(:client_id), params.delete(:client_secret), false)
 
@@ -119,7 +119,7 @@ class OauthControllerTest < ActionController::TestCase
 
   test "access_token responds correctly to malformed basic auth header" do
     with_token('oauthaccesstoken', 'my_sso_client_id', false)
-    
+
     params = access_token_params('my_sso_client_id', @auth.token)
     params.delete(:client_id)
     params.delete(:client_secret)
