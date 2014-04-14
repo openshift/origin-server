@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.23.3
+Version: 1.23.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
+- Bug 1086567: Handle implicit members leaving (jliggitt@redhat.com)
+- BZ1083475 - HA scalable application DNS is not deleted after app is destroyed
+  (calfonso@redhat.com)
+- Merge pull request #5229 from liggitt/bug_1086115_change_explicit_role
+  (dmcphers+openshiftbot@redhat.com)
+- Add test for elevating and lowering the explicit role of a member who also
+  has an implicit grant (jliggitt@redhat.com)
+
 * Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
 - Merge pull request #5226 from abhgupta/abhgupta-scheduler
   (dmcphers+openshiftbot@redhat.com)
