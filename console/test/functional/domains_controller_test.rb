@@ -255,6 +255,39 @@ class DomainsControllerTest < ActionController::TestCase
     assert_raises(RestApi::ResourceNotFound) { Domain.find(@domain.id, :as => unique_user) }
   end
 
+  test "should show domain delete button for owner" do
+    with_particular_user
+    Domain.any_instance.expects(:owner?).at_least(0).returns(true)
+    Domain::Member.any_instance.expects(:explicit_role?).at_least(0).returns(false)
+    get :show, {:id => @domain.id}
+    assert_template :show
+    assert_response :success
+    assert_select "a:content(?)", /Delete this domain/
+    assert_select "a:content(?)", /Leave Domain/, :count => 0
+  end
+
+  test "should show leave domain button for explicit members" do
+    with_particular_user
+    Domain.any_instance.expects(:owner?).at_least(0).returns(false)
+    Domain::Member.any_instance.expects(:explicit_role?).at_least(0).returns(true)
+    get :show, {:id => @domain.id}
+    assert_template :show
+    assert_response :success
+    assert_select "a:content(?)", /Delete this domain/, :count => 0
+    assert_select "a:content(?)", /Leave Domain/
+  end
+
+  test "should hide leave domain button for implicit members" do
+    with_particular_user
+    Domain.any_instance.expects(:owner?).at_least(0).returns(false)
+    Domain::Member.any_instance.expects(:explicit_role?).at_least(0).returns(false)
+    get :show, {:id => @domain.id}
+    assert_template :show
+    assert_response :success
+    assert_select "a:content(?)", /Delete this domain/, :count => 0
+    assert_select "a:content(?)", /Leave Domain/, :count => 0
+  end
+
   test "should render uneditable members successfully" do
     with_particular_user
     Domain.any_instance.expects(:admin?).at_least(0).returns(false)

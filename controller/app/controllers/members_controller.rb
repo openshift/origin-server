@@ -196,10 +196,26 @@ class MembersController < BaseController
 
     def remove_member(id, type="user")
       member = find_existing_member(id, type)
+
+      is_self = type == 'user' && id == current_user._id
+      if !member.explicit_role?
+        if is_self
+          msg = "You are not a direct member of this #{membership.class.model_name.humanize.downcase} and cannot leave."
+        else
+          msg = "The member #{member.name} is not a direct member of this #{membership.class.model_name.humanize.downcase} and cannot be removed."
+        end
+        return render_error(:unprocessable_entity, msg, 1)
+      end
+
       membership.remove_members(member)
       if save_membership(membership)
         if m = members.detect{ |m| m._id === id }
-          render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:info, "The member #{m.name} is no longer directly granted a role.", 132))
+          if is_self
+            msg = "You are still an indirect member of the #{membership.class.model_name.humanize.downcase}."
+          else
+            msg = "The member #{m.name} is still an indirect member of the #{membership.class.model_name.humanize.downcase}."
+          end
+          render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:warn, msg, 132))
         else
           render_success(requested_api_version <= 1.4 ? :no_content : :ok, nil, nil, "Removed member.")
         end
