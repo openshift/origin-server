@@ -14,7 +14,7 @@
       }
     },
 
-    "pidfile": "PID file location - write server pid to this file", 
+    "pidfile": "PID file location - write server pid to this file",
 
     "runas": {
       "description": "Dictionary for configuration of user/group to run as",
@@ -55,7 +55,7 @@
       "description": "Timeout settings in seconds",
       "connect"    : "Connection timeout to backend servers.",
       "check"      : [ "Backend server check interval. Controls how often ",
-                       "we check routing to a previously assumed down ", 
+                       "we check routing to a previously assumed down ",
                        "backend server."
                     ],
       "io"         : "Client IO - really timeouts reading from clients",
@@ -67,7 +67,7 @@
 
   "loggers": {
     "access.log": {
-      "file"    : "/var/log/node-web-proxy/access.log",
+      "file"    : "/var/log/openshift/node/node-web-proxy/access.log",
       "rollover": {
         "frequency"     : "off",
         "suffix"        : "%F",
@@ -76,7 +76,7 @@
     },
 
     "error.log": {
-      "file"    : "/var/log/node-web-proxy/error.log",
+      "file"    : "/var/log/openshift/node/node-web-proxy/error.log",
       "rollover": {
         "max-size-bytes" : "TODO-add-support",
         "frequency"      : "off",
@@ -86,7 +86,7 @@
     },
 
     "websockets.log": {
-      "file"    : "/var/log/node-web-proxy/websockets.log",
+      "file"    : "/var/log/openshift/node/node-web-proxy/websockets.log",
       "rollover": {
         "frequency"     : "off",
         "suffix"        : "%F",
