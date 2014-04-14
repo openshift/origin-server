@@ -34,6 +34,6 @@ func (r *RmRoller) Roll(file *os.File) {
 
 	// close and rename the file
 	file.Close()
-	newFileName := file.Name() + "-" + now.Format("20060201030405")
+	newFileName := file.Name() + "-" + now.Format("20060102030405")
 	os.Rename(file.Name(), newFileName)
 }
