@@ -1,9 +1,3 @@
 #!/bin/bash -eu
 
 sed -i '/server\s*filler/d' $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
-
-if [ -f ${OPENSHIFT_HAPROXY_DIR}/env/OPENSHIFT_HAPROXY_LOG_DIR ]
-then
-    rm ${OPENSHIFT_HAPROXY_DIR}/env/OPENSHIFT_HAPROXY_LOG_DIR
-    ln -s ~/.env/OPENSHIFT_LOG_DIR ${OPENSHIFT_HAPROXY_DIR}/env/OPENSHIFT_HAPROXY_LOG_DIR
-fi

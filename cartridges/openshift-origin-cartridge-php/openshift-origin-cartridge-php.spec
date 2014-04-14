@@ -47,6 +47,7 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %attr(0755,-,-) %{cartridgedir}/bin/
 %{cartridgedir}/metadata
 %{cartridgedir}/usr
+%{cartridgedir}/env
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

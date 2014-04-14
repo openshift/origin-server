@@ -37,9 +37,3 @@ done
 sed -i 's/http\(:\/\/updates.jenkins-ci.org\/update-center.json\)/https\1/' ${OPENSHIFT_DATA_DIR}/hudson.model.UpdateCenter.xml
 
 popd > /dev/null
-
-if [ -f ${OPENSHIFT_JENKINS_DIR}/env/OPENSHIFT_JENKINS_LOG_DIR ] && [ ! -L ${OPENSHIFT_JENKINS_DIR}/env/OPENSHIFT_JENKINS_LOG_DIR ]
-then
-    rm ${OPENSHIFT_JENKINS_DIR}/env/OPENSHIFT_JENKINS_LOG_DIR
-    ln -s ~/.env/OPENSHIFT_LOG_DIR ${OPENSHIFT_JENKINS_DIR}/env/OPENSHIFT_JENKINS_LOG_DIR
-fi
