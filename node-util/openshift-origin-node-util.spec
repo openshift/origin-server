@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.22.2
+Version: 1.22.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -157,6 +157,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.22.3-1
+- BZ1086104 - oo-accept-node needs to read tc setting from node.conf
+  (calfonso@redhat.com)
+- Bug 1086854 - Add timeout when locking operations (jhonce@redhat.com)
+
 * Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
 - Merge pull request #5200 from ncdc/metrics (dmcphers+openshiftbot@redhat.com)
 - Metrics - code review changes (andy.goldstein@gmail.com)
