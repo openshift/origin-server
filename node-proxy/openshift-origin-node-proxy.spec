@@ -8,6 +8,7 @@
   %global webproxymoduledir /opt/rh/nodejs010/root%{nodejs_sitelib}/openshift-node-web-proxy
 %endif
 %{!?scl:%global pkg_name %{name}}
+%global logroot %{_var}/log/openshift/node/node-web-proxy
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
@@ -96,9 +97,9 @@ install -D -p -m 644 lib/plugins/* %{buildroot}%{webproxymoduledir}/lib/plugins
 mkdir -p %{buildroot}%{webproxymoduledir}/bin
 install -D -p -m 644 bin/*  %{buildroot}%{webproxymoduledir}/bin
 
-mkdir -p %{buildroot}%{_var}/log/node-web-proxy
-if [ ! -f %{buildroot}%{_var}/log/node-web-proxy/supervisor.log ]; then
-   /bin/touch %{buildroot}%{_var}/log/node-web-proxy/supervisor.log
+mkdir -p %{buildroot}%{logroot}
+if [ ! -f %{buildroot}%{logroot}/supervisor.log ]; then
+   /bin/touch %{buildroot}%{logroot}/supervisor.log
 fi
 
 
@@ -133,8 +134,8 @@ fi
 %attr(0755,-,-) %{_bindir}/node-find-proxy-route-files
 %attr(0640,-,-) %{_sysconfdir}/openshift/web-proxy-config.json
 %attr(0644,-,-) %{_sysconfdir}/logrotate.d/%{name}
-%ghost %attr(0660,root,root) %{_var}/log/node-web-proxy/supervisor.log
-%dir %attr(0700,apache,apache) %{_var}/log/node-web-proxy
+%ghost %attr(0660,root,root) %{logroot}/supervisor.log
+%dir %attr(0700,apache,apache) %{logroot}
 %dir %attr(0755,-,-) %{webproxymoduledir}
 %{webproxymoduledir}
 

@@ -22,7 +22,7 @@
       "description": "Timeout settings in seconds",
       "connect"    : "Connection timeout to backend servers.",
       "check"      : [ "Backend server check interval. Controls how often ",
-                       "we check routing to a previously assumed down ", 
+                       "we check routing to a previously assumed down ",
                        "backend server."
                     ],
       "io"         : "Client IO - really timeouts reading from clients",
@@ -34,7 +34,7 @@
 
   "activity": {
     "activity.log": {
-      "file"    : "/var/log/node-ws-proxy/activity.log",
+      "file"    : "/var/log/openshift/node/node-ws-proxy/activity.log",
 
       "rollover": {
         "frequency"      : "daily",
