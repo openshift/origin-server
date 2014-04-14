@@ -40,7 +40,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert !d.save
     assert_equal "You are limited to 1 members per domain", d.errors[:members].first, d.errors.to_hash
   end
-  
+
   def test_team_max
     Rails.configuration.stubs(:openshift).returns(:gear_sizes => [:small], :max_members_per_resource => 10, :max_teams_per_resource => 0)
     d = Domain.new

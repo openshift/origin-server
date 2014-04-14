@@ -39,40 +39,40 @@ OPTIONS="-C 'Include $osdir/httpd/broker.conf' -f $osdir/httpd/httpd.conf"
 # when not running is also a failure.  So we just do it the way init scripts
 # are expected to behave here.
 start() {
-        echo -n $"Starting $prog: "
-        pushd $osdir > /dev/null
-          rm -rf Gemfile.lock
-          scl enable ruby193 "bundle install --local > /dev/null"
-          chown apache:apache Gemfile.lock
-          RETVAL=$?
-        popd > /dev/null
-        if [ $RETVAL != 0 ]; then
-          echo $"Bundle failed"
-          echo "Run 'bundle install --local' in $osdir to see the problem."
-	  return $RETVAL
-	fi
-        LANG=$HTTPD_LANG daemon --pidfile=${pidfile} $httpd $OPTIONS
+    echo -n $"Starting $prog: "
+    pushd $osdir > /dev/null
+        rm -rf Gemfile.lock
+        scl enable ruby193 "bundle install --local > /dev/null"
+        chown apache:apache Gemfile.lock
         RETVAL=$?
-        echo
-        [ $RETVAL = 0 ] && touch ${lockfile}
+    popd > /dev/null
+    if [ $RETVAL != 0 ]; then
+        echo $"Bundle failed"
+        echo "Run 'bundle install --local' in $osdir to see the problem."
         return $RETVAL
+    fi
+    LANG=$HTTPD_LANG daemon --pidfile=${pidfile} $httpd $OPTIONS
+    RETVAL=$?
+    echo
+    [ $RETVAL = 0 ] && touch ${lockfile}
+    return $RETVAL
 }
 
 # When stopping httpd a delay of >10 second is required before SIGKILLing the
 # httpd parent; this gives enough time for the httpd parent to SIGKILL any
 # errant children.
 stop() {
-	echo -n $"Stopping $prog: "
-	if [ -e ${pidfile} ]; then
-	  killproc -p ${pidfile} -d 10 $httpd
-	else
-	  # BZ876937
-	  echo -n "(already stopped)"
-	  success
-	fi
-	RETVAL=$?
-	echo
-	[ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+  echo -n $"Stopping $prog: "
+  if [ -e ${pidfile} ]; then
+    killproc -p ${pidfile} -d 10 $httpd
+  else
+    # BZ876937
+    echo -n "(already stopped)"
+    success
+  fi
+  RETVAL=$?
+  echo
+  [ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
 }
 reload() {
     echo -n $"Reloading $prog: "
@@ -97,35 +97,35 @@ reload() {
 # See how we were called.
 case "$1" in
   start)
-	start
-	;;
+    start
+    ;;
   stop)
-	stop
-	;;
+    stop
+    ;;
   status)
-        status -p ${pidfile} $httpd
-	RETVAL=$?
-	;;
+    status -p ${pidfile} $httpd
+    RETVAL=$?
+    ;;
   restart)
-	stop
-	start
-	;;
+    stop
+    start
+    ;;
   condrestart|try-restart)
-	if status -p ${pidfile} $httpd >&/dev/null; then
-		stop
-		start
-	fi
-	;;
+  if status -p ${pidfile} $httpd >&/dev/null; then
+    stop
+    start
+  fi
+  ;;
   force-reload|reload)
-        reload
-	;;
+    reload
+    ;;
   graceful|help|configtest|fullstatus)
-	$apachectl $@
-	RETVAL=$?
-	;;
+    $apachectl $@
+    RETVAL=$?
+    ;;
   *)
-	echo $"Usage: $prog {start|stop|restart|condrestart|try-restart|force-reload|reload|status|fullstatus|graceful|help|configtest}"
-	RETVAL=2
+    echo $"Usage: $prog {start|stop|restart|condrestart|try-restart|force-reload|reload|status|fullstatus|graceful|help|configtest}"
+    RETVAL=2
 esac
 
 exit $RETVAL

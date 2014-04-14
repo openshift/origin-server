@@ -258,7 +258,7 @@ REST_CALLS_V1 = [
                   app_descriptor_get_v1,
                   app_start_post_v1,
                   app_restart_post_v1,
-                  app_stop_post_v1,               
+                  app_stop_post_v1,
                   app_force_stop_post_v1,
                   app_add_alias_post_v1, 
                   app_remove_alias_post_v1, 
