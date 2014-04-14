@@ -316,7 +316,7 @@ class Command
         @ldap.port = @ldap_config["Port"]
         @ldap.auth @ldap_config["Username"], @ldap_config["Password"]
         unless @ldap.bind
-          puts "Could not connect to LDAP server \"#{@ldap.host}\"" 
+          puts "Could not connect to LDAP server \"#{@ldap.host}\": #{@ldap.get_operation_result.message}" 
           exit 1
         end
       end
