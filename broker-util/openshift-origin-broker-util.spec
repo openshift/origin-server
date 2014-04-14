@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.23.2
+Version: 1.23.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -106,6 +106,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 
 
 %changelog
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
+- Bug 1086263 - oo-analytics-export will include applications 'owner_id' field
+  (rpenta@redhat.com)
+
 * Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
 - Merge pull request #5195 from brenton/BZ1085339
   (dmcphers+openshiftbot@redhat.com)
