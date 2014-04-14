@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.23.3
+Version: 1.23.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,28 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
+- Merge pull request #5245 from lnader/bugs (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5234 from brenton/BZ1086691
+  (dmcphers+openshiftbot@redhat.com)
+- Fix formatting (dmcphers@redhat.com)
+- Fix typo (dmcphers@redhat.com)
+- Bug 1086691 - Accessing a Gear by ssh shows "Your application is out of disk
+  space" when "quota" command is missing (bleanhar@redhat.com)
+- Merge pull request #5219 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1086886 - Check for empty managed_files.yml and return a better error
+  message (lnader@redhat.com)
+- Merge pull request #5239 from ncdc/bug/1086549
+  (dmcphers+openshiftbot@redhat.com)
+- DNS may have been stored as mixed case, but should always be used downcased
+  (rchopra@redhat.com)
+- Don't show backtrace when metrics script times out (andy.goldstein@gmail.com)
+- Merge pull request #5231 from mfojtik/bugzilla/1070173
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1070173 - Add '-v' option for oo-admin-ctl-tc to turn verbose output
+  (mfojtik@redhat.com)
+
 * Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
 - cleanup whitespace (dmcphers@redhat.com)
 - Add platform attribute to cartridge serialization and fixed tests
