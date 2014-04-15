@@ -11,7 +11,6 @@ URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-Requires:      libyaml-devel
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      python >= 2.6
 Requires:      python < 2.7

@@ -361,6 +361,7 @@ Requires:  lapack-devel
 Requires:  libcurl-devel
 Requires:  libffi-devel
 Requires:  libjpeg-devel
+Requires:  libyaml-devel
 Requires:  numpy
 Requires:  numpy-f2py
 Requires:  pymongo
