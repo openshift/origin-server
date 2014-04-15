@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.16.1
+Version: 2.16.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,9 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 2.16.2-1
+- Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 2.16.1-1
 - Removing file listed twice warnings (dmcphers@redhat.com)
 - Use named pipes for logshifter redirection where appropriate
