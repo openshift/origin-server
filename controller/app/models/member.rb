@@ -104,25 +104,32 @@ class Member
     if source.nil?
       # remove the explicit grant
       if from.blank?
+        # no implicit grants mean the member should be deleted completely
         true
       elsif explicit_role
-        self.role = effective_role
+        # remove the explicit grant, recalculate the effective role, do not delete the member
         self.explicit_role = nil
+        self.role = effective_role
         false
       end
     elsif from
       # remove an implicit grant
       source = to_source(source)
       if from.reject! { |f| f[0...-1] == source }
+        # this member had a grant from the source being removed
         if from.blank?
+          # this member has no more implicit grants
           if self.e
+            # move their explicit role into the role field
             self.role = explicit_role
             self.explicit_role = nil
             false
           else
+            # no explicit role, so delete the member
             true
           end
         else
+          # the member has other implicit grants, so recalculate their role, do not delete the member
           self.role = effective_role
           false
         end
