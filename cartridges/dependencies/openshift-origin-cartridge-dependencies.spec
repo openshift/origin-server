@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.23.1
+Version: 1.23.2
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -510,6 +510,10 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.2-1
+- move libyaml-devel dependency into python cartridge optional dependencies
+  (bparees@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
 - Bug 1084094 - provide libgit2-devel and rubygem-rugged (tdawson@redhat.com)
 - Bug 1082696 - Add lua-devel as dependency (tdawson@redhat.com)
