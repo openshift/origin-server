@@ -12,7 +12,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.22.1
+Version: 1.22.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,10 @@ fi
 %doc README
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
+- Bug 1083730 - Move node-web-proxy logs to /var/log/openshift/node
+  (jhonce@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
 - facter ipaddress does not always return the ip that we would want
   (bparees@redhat.com)
