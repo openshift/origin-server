@@ -971,6 +971,7 @@ changing the default values for these variables:
 
 |OPENSHIFT_POSTGRESQL_MAX_CONNECTIONS
 |max_connections sets exactly that: the maximum number of client connections allowed.
+|===
 
 For more details, please refer to PostgreSQL
 https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server[wiki page].
