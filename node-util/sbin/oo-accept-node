@@ -187,9 +187,7 @@ end
 
 def load_node_conf
     verbose("loading node configuration file #{OpenShift::Config::NODE_CONF_FILE}")
-    $CONF = OpenShift::Config.new(OpenShift::Config::NODE_CONF_FILE)
-
-    $TC_CHECK = $CONF.get_bool("TRAFFIC_CONTROL_ENABLED", "true")
+    $CONF = OpenShift::Config.new OpenShift::Config::NODE_CONF_FILE
 
     # make sure required values are set in the conf file
     %w[
@@ -493,6 +491,12 @@ end
 # Check tc config
 #
 def check_tc_config
+    # BZ#1087755 TRAFFIC_CONTROL_ENABLED defaults to true not false
+    if 'false' == $CONF.get('TRAFFIC_CONTROL_ENABLED', 'true')
+      verbose("traffic control not enabled in /etc/openshift/node.conf, set TRAFFIC_CONTROL_ENABLED=true to enable")
+      return
+    end
+
     verbose("checking presence of tc qdisc")
     qdiscresponse="qdisc htb 1: root"
 
@@ -913,11 +917,7 @@ if __FILE__ == $0
       check_semaphores
       check_cgroup_config
       check_cgroup_procs
-      if $TC_CHECK
-        check_tc_config
-      else
-        verbose("TRAFFIC_CONTROL_ENABLED set to to false in /etc/openshift/node.conf")
-      end
+      check_tc_config
       check_quotas
       check_users
       check_app_dirs
