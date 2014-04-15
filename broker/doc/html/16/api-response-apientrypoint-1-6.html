@@ -387,6 +387,39 @@
         }
       ]
     },
+    "SEARCH_TEAMS": {
+      "href": "https://openshift.redhat.com/broker/rest/teams",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Search teams by name",
+      "required_params": [
+        {
+          "description": "Search string must be at least 2 characters",
+          "invalid_options": [
+
+          ],
+          "name": "search",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        },
+        {
+          "description": "Search global teams",
+          "invalid_options": [
+
+          ],
+          "name": "global",
+          "type": "boolean",
+          "valid_options": [
+            true,
+            false
+          ]
+        }
+      ]
+    },
     "LIST_APPLICATIONS": {
       "href": "https://openshift.redhat.com/broker/rest/applications",
       "method": "GET",

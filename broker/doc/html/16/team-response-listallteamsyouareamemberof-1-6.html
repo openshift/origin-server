@@ -2,10 +2,71 @@
   "api_version": 1.6,
   "data": [
     {
-      "id": "5333d8b2a9429d1c3e0000ae",
+      "global": true,
+      "id": "534c32722b03e69496000001",
       "links": {
         "GET": {
-          "href": "https://openshift.redhat.com/broker/rest/team/5333d8b2a9429d1c3e0000ae",
+          "href": "https://openshift.redhat.com/broker/rest/team/534c32722b03e69496000001",
+          "method": "GET",
+          "optional_params": [
+
+          ],
+          "rel": "Get team",
+          "required_params": [
+
+          ]
+        },
+        "LIST_MEMBERS": {
+          "href": "https://openshift.redhat.com/broker/rest/team/534c32722b03e69496000001/members",
+          "method": "GET",
+          "optional_params": [
+
+          ],
+          "rel": "list members",
+          "required_params": [
+
+          ]
+        }
+      },
+      "maps_to": "xyz",
+      "name": "abc"
+    },
+    {
+      "global": true,
+      "id": "534c7827b3868d3eb3000001",
+      "links": {
+        "GET": {
+          "href": "https://openshift.redhat.com/broker/rest/team/534c7827b3868d3eb3000001",
+          "method": "GET",
+          "optional_params": [
+
+          ],
+          "rel": "Get team",
+          "required_params": [
+
+          ]
+        },
+        "LIST_MEMBERS": {
+          "href": "https://openshift.redhat.com/broker/rest/team/534c7827b3868d3eb3000001/members",
+          "method": "GET",
+          "optional_params": [
+
+          ],
+          "rel": "list members",
+          "required_params": [
+
+          ]
+        }
+      },
+      "maps_to": "cn=engineering-team,ou=Groups,dc=example,dc=com",
+      "name": "engineering-team"
+    },
+    {
+      "global": false,
+      "id": "534c8017398d1a5cf60000b8",
+      "links": {
+        "GET": {
+          "href": "https://openshift.redhat.com/broker/rest/team/534c8017398d1a5cf60000b8",
           "method": "GET",
           "optional_params": [
 
@@ -16,7 +77,7 @@
           ]
         },
         "ADD_MEMBER": {
-          "href": "https://openshift.redhat.com/broker/rest/team/5333d8b2a9429d1c3e0000ae/members",
+          "href": "https://openshift.redhat.com/broker/rest/team/534c8017398d1a5cf60000b8/members",
           "method": "POST",
           "optional_params": [
             {
@@ -54,7 +115,7 @@
           ]
         },
         "LIST_MEMBERS": {
-          "href": "https://openshift.redhat.com/broker/rest/team/5333d8b2a9429d1c3e0000ae/members",
+          "href": "https://openshift.redhat.com/broker/rest/team/534c8017398d1a5cf60000b8/members",
           "method": "GET",
           "optional_params": [
 
@@ -65,7 +126,7 @@
           ]
         },
         "UPDATE_MEMBERS": {
-          "href": "https://openshift.redhat.com/broker/rest/team/5333d8b2a9429d1c3e0000ae/members",
+          "href": "https://openshift.redhat.com/broker/rest/team/534c8017398d1a5cf60000b8/members",
           "method": "PATCH",
           "optional_params": [
             {
@@ -113,7 +174,7 @@
           ]
         },
         "LEAVE": {
-          "href": "https://openshift.redhat.com/broker/rest/team/5333d8b2a9429d1c3e0000ae/members/self",
+          "href": "https://openshift.redhat.com/broker/rest/team/534c8017398d1a5cf60000b8/members/self",
           "method": "DELETE",
           "optional_params": [
 
@@ -124,7 +185,7 @@
           ]
         },
         "DELETE": {
-          "href": "https://openshift.redhat.com/broker/rest/team/5333d8b2a9429d1c3e0000ae",
+          "href": "https://openshift.redhat.com/broker/rest/team/534c8017398d1a5cf60000b8",
           "method": "DELETE",
           "optional_params": [
 
@@ -135,6 +196,7 @@
           ]
         }
       },
+      "maps_to": null,
       "name": "myteam"
     }
   ],
