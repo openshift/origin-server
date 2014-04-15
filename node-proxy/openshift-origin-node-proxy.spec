@@ -17,7 +17,6 @@ Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      facter
 Requires:      %{?scl:%scl_prefix}nodejs
 Requires:      %{?scl:%scl_prefix}nodejs-async
 Requires:      %{?scl:%scl_prefix}nodejs-optimist
