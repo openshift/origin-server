@@ -5,7 +5,7 @@ class RestEnvironmentVariable < OpenShift::Model
     self.name = env_var['name']
     self.value = env_var['value']
     app_id = app.uuid
-    unless nolinks      
+    unless nolinks
       self.links = {
         "GET" => Link.new("Get environment variable", "GET", URI::join(url, "application/#{app_id}/environment-variable/#{self.name}")),
         "UPDATE" => Link.new("Update environment variable", "PUT", URI::join(url, "application/#{app_id}/environment-variable/#{self.name}"),
