@@ -3,7 +3,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.20.1
+Version: 1.20.2
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -48,6 +48,12 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.20.2-1
+- Merge pull request #5260 from ironcladlou/cart-log-vars
+  (dmcphers+openshiftbot@redhat.com)
+- Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
+- fix phpmyadmin PHP_INI_SCAN_DIR bug (vvitek@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - Removing file listed twice warnings (dmcphers@redhat.com)
 - Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
