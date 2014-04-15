@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 1.23.2
+Version: 1.23.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,9 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
+- Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
+
 * Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
 - Bug 1085282 - Added OPENSHIFT_MYSQL_AIO variable to allow users to disable
   mysql AIO support (mfojtik@redhat.com)
