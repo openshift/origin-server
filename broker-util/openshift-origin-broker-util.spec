@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.23.3
+Version: 1.23.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,14 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
+- Give better error message in case of connection failures. i.e. authentication
+  failure (lnader@redhat.com)
+- Bug 1087593 (lnader@redhat.com)
+- changed save to save! and fixed typo (lnader@redhat.com)
+- Bug 1085669 and 1085685 (lnader@redhat.com)
+- added oo-admin-ctl-team (lnader@redhat.com)
+
 * Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
 - Bug 1086263 - oo-analytics-export will include applications 'owner_id' field
   (rpenta@redhat.com)
