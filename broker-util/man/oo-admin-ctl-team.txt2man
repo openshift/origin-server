@@ -71,8 +71,6 @@ CONFIGURATION
 
        Host: openldap-server.example.com
        Port: 389
-       Username: cn=admin,dc=example,dc=com
-       Password: passw0rd
        Get-Group:
          Base: dc=example,dc=com
          Filter: (cn=<group_cn>)
@@ -115,8 +113,6 @@ CONFIGURATION
 
        Host: directory-server.example.com
        Port: 389
-       Username: cn=admin,dc=example,dc=com
-       Password: passw0rd
        Get-Group:
          Base: dc=example,dc=com
          Filter: (cn=<group_cn>)
@@ -129,6 +125,13 @@ CONFIGURATION
 
 Note: The placeholders <group_cn>, <group_dn> and <user_id> will be replaced by actual values at the time of the script execution.
 
+       An encrypted connection and authentication may be specified in the configuration as well:
+
+       Host: directory-server.example.com
+       Port: 636
+       Encryption: true
+       Username: cn=admin,dc=example,dc=com
+       Password: passw0rd
 
 EXAMPLE
        $ oo-admin-ctl-team -c list

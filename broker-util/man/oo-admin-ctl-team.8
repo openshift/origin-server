@@ -94,10 +94,6 @@ Host: openldap-server.example.com
 .br
 Port: 389
 .br
-Username: cn=admin,dc=example,dc=com
-.br
-Password: passw0rd
-.br
 Get-Group: 
   Base: dc=example,dc=com
   Filter: (cn=<group_name>)
@@ -160,10 +156,6 @@ Host: directory-server.example.com
 .br
 Port: 389
 .br
-Username: cn=admin,dc=example,dc=com
-.br
-Password: passw0rd
-.br
 Get-Group: 
   Base: dc=example,dc=com
   Filter: (cn=<group_cn>)
@@ -178,6 +170,19 @@ Openshift-Username: emailAddress
 .PP
 .B 
 Note: The placeholders <group_cn>, <group_dn> and <user_id> will be replaced by actual values at the time of the script execution.
+.PP
+An encrypted connection and authentication may be specified in the configuration as well:
+.PP
+Host: directory-server.example.com
+.br
+Port: 636
+.br
+Encryption: true
+.br
+Username: cn=admin,dc=example,dc=com
+.br
+Password: passw0rd
+.br
 
 .SH EXAMPLE
 $ oo-admin-ctl-team \fB-c\fP list

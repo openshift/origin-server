@@ -311,10 +311,11 @@ class Command
       require options.broker || PATH
       if options.config_file
         @ldap_config = YAML.load_file(options.config_file)
-        @ldap = Net::LDAP.new
-        @ldap.host = @ldap_config["Host"]
-        @ldap.port = @ldap_config["Port"]
-        @ldap.auth @ldap_config["Username"], @ldap_config["Password"]
+        @ldap = Net::LDAP.new( host: @ldap_config["Host"],
+                               port: @ldap_config["Port"],
+                               encryption: @ldap_config["Encryption"] ? :simple_tls : nil )
+        # if user name given for auth, use it; otherwise anonymous access is used.
+        @ldap.auth @ldap_config["Username"], @ldap_config["Password"] if @ldap_config["Username"]
         unless @ldap.bind
           puts "Could not connect to LDAP server \"#{@ldap.host}\": #{@ldap.get_operation_result.message}" 
           exit 1
