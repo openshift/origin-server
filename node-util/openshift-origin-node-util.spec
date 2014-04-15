@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.22.3
+Version: 1.22.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -157,6 +157,14 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.22.4-1
+- Bug 1087755 - node.conf#TRAFFIC_CONTROL_ENABLED defaults to true
+  (jhonce@redhat.com)
+- Bug 1086104 - improve the setting of TC_CHECK in oo-accept-node
+  (bleanhar@redhat.com)
+- Bug 1083730 - Move node-web-proxy logs to /var/log/openshift/node
+  (jhonce@redhat.com)
+
 * Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.22.3-1
 - BZ1086104 - oo-accept-node needs to read tc setting from node.conf
   (calfonso@redhat.com)
