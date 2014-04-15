@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.23.3
+Version: 1.23.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,11 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
+- Merge pull request #5260 from ironcladlou/cart-log-vars
+  (dmcphers+openshiftbot@redhat.com)
+- Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
+
 * Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
 - Merge pull request #5237 from ironcladlou/haproxyctld-stop-fix
   (dmcphers+openshiftbot@redhat.com)
