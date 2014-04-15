@@ -119,7 +119,11 @@ module OpenShift
 
         with_lock do
           File.open(@registry_file, "r") do |f|
-            raw_json = HashWithIndifferentAccess.new(JSON.load(f))
+            contents = f.read
+            return if contents.nil? || contents.empty?
+
+            # JSON.load is not used to prevent class injection. BZ#1086427
+            raw_json = HashWithIndifferentAccess.new(JSON.parse(contents))
             raw_json.each_pair do |type, entries|
               entries.each_pair do |uuid, entry|
                 add(entry.merge({type: type.to_sym, uuid: uuid}))

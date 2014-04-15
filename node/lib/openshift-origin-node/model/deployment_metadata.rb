@@ -67,8 +67,9 @@ module OpenShift
       end
 
       def load
-        File.open(@file, "r") do |f|
-          @metadata = HashWithIndifferentAccess.new(JSON.load(f))
+        File.open(@file, 'r') do |f|
+          # JSON.load is not used to prevent class injection. BZ#1086427
+          @metadata = HashWithIndifferentAccess.new(JSON.parse(f.read))
         end
       end
 
