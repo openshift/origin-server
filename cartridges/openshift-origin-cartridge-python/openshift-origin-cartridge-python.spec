@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.23.2
+Version: 1.23.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -97,6 +97,13 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
+- move libyaml-devel dependency into python cartridge optional dependencies
+  (bparees@redhat.com)
+- Merge pull request #5260 from ironcladlou/cart-log-vars
+  (dmcphers+openshiftbot@redhat.com)
+- Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
+
 * Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.2-1
 - Python cartridge suddenly stopped installing dependencies
   (bparees@redhat.com)
