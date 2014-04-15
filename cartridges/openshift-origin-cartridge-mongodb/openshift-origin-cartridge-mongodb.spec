@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.19.1
+Version: 1.19.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -56,6 +56,9 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.19.2-1
+- Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
 - Removing file listed twice warnings (dmcphers@redhat.com)
 - Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
