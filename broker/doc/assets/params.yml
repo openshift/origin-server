@@ -1,4 +1,7 @@
-
+API:
+  SEARCH_TEAMS:
+    search: engineering
+    global: true  
 AUTHORIZATION:
   ADD_AUTHORIZATION:
     note: This is a note to myself
@@ -70,6 +73,9 @@ TEAM:
     login: team.member@mycompany.com
     role: view
     type: user
+  SEARCH_TEAMS:
+    search: engineering
+    global: true  
 
 MEMBER:
   ADD_MEMBER:
