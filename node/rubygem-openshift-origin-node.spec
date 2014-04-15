@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.23.4
+Version: 1.23.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,13 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.5-1
+- Improving the inline docs for TRAFFIC_CONTROL_ENABLED in node.conf
+  (bleanhar@redhat.com)
+- Bug 1086427 - JSON.load() allowed empty JSON files (jhonce@redhat.com)
+- Bug 1086427 - Do not use JSON.load() with untrusted JSON (jhonce@redhat.com)
+- Bug 1086886 - Add guard for empty managed_files.yml (jhonce@redhat.com)
+
 * Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
 - Merge pull request #5245 from lnader/bugs (dmcphers+openshiftbot@redhat.com)
 - Merge pull request #5234 from brenton/BZ1086691
