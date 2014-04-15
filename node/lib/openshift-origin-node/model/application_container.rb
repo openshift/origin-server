@@ -73,7 +73,8 @@ module OpenShift
 
       attr_reader :uuid, :application_uuid, :state, :container_name, :application_name, :namespace, :container_dir,
                   :quota_blocks, :quota_files, :base_dir, :gecos, :skel_dir, :supplementary_groups,
-                  :cartridge_model, :container_plugin, :hourglass
+                  :cartridge_model, :container_plugin, :hourglass, :gear_lock
+
       attr_accessor :uid, :gid
 
       containerization_plugin_gem = ::OpenShift::Config.new.get('CONTAINERIZATION_PLUGIN')
@@ -127,6 +128,7 @@ module OpenShift
 
         @state           = ::OpenShift::Runtime::Utils::ApplicationState.new(self)
         @cartridge_model = V2CartridgeModel.new(@config, self, @state, @hourglass)
+        @gear_lock = PathUtils.join %W[#{File::SEPARATOR} var lock gear.#{container_uuid}]
       end
 
       #
@@ -187,7 +189,7 @@ module OpenShift
         output = ''
         notify_observers(:before_container_create)
         # lock to prevent race condition between create and delete of gear
-        PathUtils.flock("/var/lock/oo-create.#{@uuid}") do
+        PathUtils.flock(@gear_lock) do
           resource             = OpenShift::Runtime::Node.resource_limits
           no_overcommit_active = resource.get_bool('no_overcommit_active', false)
           overcommit_lock_file = "/var/lock/oo-create.overcommit"
@@ -249,7 +251,7 @@ module OpenShift
         retcode = -1
 
         # Don't try to delete a gear that is being scaled-up|created|deleted
-        PathUtils.flock("/var/lock/oo-create.#@uuid") do
+        PathUtils.flock(@gear_lock) do
           begin
             @cartridge_model.each_cartridge do |cart|
               env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
@@ -413,15 +415,16 @@ module OpenShift
       # +Note: + stop_lock is created here so Node start up scripts skip idled gears.
       #   stop_lock removed during unidle
       def idle_gear(options={})
-        if not stop_lock? and (state.value != State::STOPPED)
+        return '' if stop_lock? || state.value == State::STOPPED
+
+        PathUtils.flock(@gear_lock) do
           frontend = FrontendHttpServer.new(self)
           frontend.idle
           begin
-            output = stop_gear(force: true, term_delay: 30, init_owned: true)
+            return stop_gear(force: true, term_delay: 30, init_owned: true)
           ensure
             state.value = State::IDLE
           end
-          output
         end
       end
 
@@ -430,18 +433,20 @@ module OpenShift
       # @param options [Hash<>] ignored
       # @return [String] output from starting gear
       def unidle_gear(options={})
-        output = ''
-        OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
-          # When invoked as gear, state may be set to Started before unidle is called
-          frontend = FrontendHttpServer.new(self)
-          frontend.unidle if frontend.idle?
+        PathUtils.flock(@gear_lock) do
+          output = ''
+          OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
+            # When invoked as gear, state may be set to Started before unidle is called
+            frontend = FrontendHttpServer.new(self)
+            frontend.unidle if frontend.idle?
 
-          if state.value == State::IDLE
+            if state.value == State::IDLE
               state.value = State::STARTED
-              output      = start_gear
+              output = start_gear
+            end
           end
+          return output
         end
-        output
       end
 
       ##
