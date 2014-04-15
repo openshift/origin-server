@@ -56,30 +56,6 @@ module OpenShift
           File.exist?(PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id))
         end
 
-        def move_dependencies(deployment_datetime)
-          # move the dependencies from the previous deployment to the one we're about to build
-          out, err, rc = run_in_container_context("set -x; shopt -s dotglob; /bin/mv app-root/runtime/dependencies/* app-deployments/#{deployment_datetime}/dependencies",
-                                                  chdir: @container_dir)
-          # rc may be nonzero if the current dependencies dir is empty
-
-          out, err, rc = run_in_container_context("set -x; shopt -s dotglob; /bin/mv app-root/runtime/build-dependencies/* app-deployments/#{deployment_datetime}/build-dependencies",
-                                                  chdir: @container_dir)
-        end
-
-        def copy_dependencies(deployment_datetime)
-          # FileUtils.cp_r balks when using preserve:true when trying to update the metadata
-          # for a symlink that points to a file that hasn't yet been copied over - resorting
-          # to shelling out to "cp -a" instead
-          out, err, rc = run_in_container_context("/bin/cp -a app-root/runtime/dependencies/. app-deployments/#{deployment_datetime}/dependencies",
-                                                  chdir: @container_dir,
-                                                  expected_exitstatus: 0)
-
-          out, err, rc = run_in_container_context("/bin/cp -a app-root/runtime/build-dependencies/. app-deployments/#{deployment_datetime}/build-dependencies",
-                                                  chdir: @container_dir,
-                                                  expected_exitstatus: 0)
-
-        end
-
         # Removes all files from app-root/runtime/<dirs>
         #
         # options for dirs to delete (all default to false):
