@@ -3,7 +3,7 @@
 %global import_path github.com/openshift
 
 Name:          openshift-origin-logshifter
-Version: 1.5.1
+Version: 1.5.2
 Release:       1%{?dist}
 Summary:       Log transport for OpenShift gear processes.
 License:       ASL 2.0
@@ -37,6 +37,9 @@ install -p -m 755 _build/bin/logshifter %{buildroot}%{_bindir}/logshifter
 %{_bindir}/logshifter
 
 %changelog
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.5.2-1
+- BZ1087545 - Fix filename format for rotated logs (agrimm@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.5.1-1
 - Redirect streams to /dev/null unless verbose enabled (ironcladlou@gmail.com)
 - bump_minor_versions for sprint 43 (admiller@redhat.com)
