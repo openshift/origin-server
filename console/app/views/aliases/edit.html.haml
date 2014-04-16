@@ -64,7 +64,7 @@
     %h2 SSL Certificate
 
     - if !@private_ssl_certificates_supported
-      = render :partial => 'certificate_not_allowed'
+      = render :partial => 'certificate_not_allowed', :locals => { :is_owner => @application.owner? }
 
     = semantic_form_for @alias, :url => application_alias_path(@application, @alias), :html => {:method => :put, :class => 'form-horizontal', :multipart => true} do |f|
 

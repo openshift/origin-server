@@ -1,3 +1,6 @@
 .alert.alert-warning
-  Your account does not allow custom SSL certificates.
-  = link_to 'View your account →', account_path
+  - if is_owner
+    Your account does not allow custom SSL certificates.
+    = link_to 'View your account →', account_path
+  - else
+    Custom SSL certificates are not allowed for this application.

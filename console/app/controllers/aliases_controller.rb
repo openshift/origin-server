@@ -4,30 +4,26 @@ class AliasesController < ConsoleController
     @capabilities = user_capabilities
     @application = Application.find(params[:application_id], :as => current_user)
     redirect_to new_application_alias_path(@application) and return if @application.aliases.blank?
-    @user = User.find :one, :as => current_user
-    @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
+    @private_ssl_certificates_supported = @application.domain.capabilities.private_ssl_certificates
   end
 
   def new
     @capabilities = user_capabilities
     @application = Application.find(params[:application_id], :as => current_user)
     @alias = Alias.new({ :application => @application, :as => current_user })
-    @user = User.find :one, :as => current_user
-    @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
+    @private_ssl_certificates_supported = @application.domain.capabilities.private_ssl_certificates
   end
 
   def edit
     @capabilities = user_capabilities
     @application = Application.find(params[:application_id], :as => current_user)
-    @user = User.find :one, :as => current_user
-    @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
+    @private_ssl_certificates_supported = @application.domain.capabilities.private_ssl_certificates
     @alias = @application.find_alias params[:id]
   end
 
   def create
     @application = Application.find(params[:application_id], :as => current_user)
-    @user = User.find :one, :as => current_user
-    @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
+    @private_ssl_certificates_supported = @application.domain.capabilities.private_ssl_certificates
 
     @alias = Alias.new params[:alias]
     @alias.as = current_user
@@ -62,8 +58,7 @@ class AliasesController < ConsoleController
 
   def update
     @application = Application.find(params[:application_id], :as => current_user)
-    @user = User.find :one, :as => current_user
-    @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
+    @private_ssl_certificates_supported = @application.domain.capabilities.private_ssl_certificates
     @alias = @application.find_alias params[:id]
 
     if params[:alias]

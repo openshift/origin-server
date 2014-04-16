@@ -15,6 +15,7 @@ class Domain < RestApi::Base
     integer :application_count
     integer :available_gears
     integer :max_storage_per_gear
+    boolean :private_ssl_certificates
   end
 
   has_many :allowed_gear_sizes, :class_name => String
@@ -57,14 +58,18 @@ class Domain < RestApi::Base
     { :domain_id => id }
   end
 
+  class Capabilities < OpenStruct
+  end
+
   def capabilities
-    OpenStruct.new({
+    Domain::Capabilities.new({
       :allowed_gear_sizes => allowed_gear_sizes,
       :max_gears => nil,
       :consumed_gears => nil,
       :gears_free => available_gears,
       :gears_free? => available_gears > 0,
-      :max_storage_per_gear => max_storage_per_gear
+      :max_storage_per_gear => max_storage_per_gear,
+      :private_ssl_certificates => !!private_ssl_certificates
     }).tap do |c|
       if !gear_counts.nil?
         c.consumed_gears = gear_counts.values.sum

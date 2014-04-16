@@ -165,6 +165,35 @@ class AliasesControllerTest < ActionController::TestCase
     assert_template :new
   end
 
+  [true,false].each do |owner|
+    [true,false].each do |domain_has_ssl|
+      test "show correct message when domain #{domain_has_ssl ? 'has' : 'does not have'} custom cert capability and user #{owner ? 'is' : 'is not'} the application owner" do
+        Domain::Capabilities.any_instance.expects(:private_ssl_certificates).returns(domain_has_ssl)
+        Application.any_instance.expects(:owner?).returns(owner) if !domain_has_ssl
+
+        get :new, :application_id => with_app
+        assert_response :success
+        assert_template :new
+
+        assert_equal domain_has_ssl, assigns(:private_ssl_certificates_supported)
+        if domain_has_ssl
+          # Should have a cert form
+          assert_select '.alert-warning', :count => 0
+          assert_select '#certificate_file'
+          assert_select '#certificate_file[disabled=disabled]', :count => 0
+        elsif owner
+          # Should have a message about certs not supported on their account
+          assert_select '.alert-warning:content(?)', /Your account.*SSL/
+          assert_select '#certificate_file[disabled=disabled]'
+        else
+          # Should have a message about certs not supported for this application
+          assert_select '.alert-warning:content(?)', /SSL.*this application/
+          assert_select '#certificate_file[disabled=disabled]'
+        end
+      end
+    end
+  end
+
   def get_post_form_without_certificate (alias_id = test_alias)
     {:id => alias_id}
   end

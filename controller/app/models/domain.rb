@@ -54,6 +54,7 @@ class Domain
   attr_accessor :available_gears
   attr_accessor :max_storage_per_gear
   attr_accessor :usage_rates
+  attr_accessor :private_ssl_certificates
 
   validates :namespace,
     #presence: {message: "Namespace is required and cannot be blank."},
@@ -148,6 +149,7 @@ class Domain
         d.available_gears = owner.max_gears - owner.consumed_gears
         d.max_storage_per_gear = owner.max_storage
         d.usage_rates = owner.usage_rates
+        d.private_ssl_certificates = owner.private_ssl_certificates
       end
     end
   end
@@ -190,6 +192,10 @@ class Domain
   end
   def usage_rates
     @usage_rates ||= owner.usage_rates
+  end
+  def private_ssl_certificates
+    @private_ssl_certificates = owner.private_ssl_certificates if @private_ssl_certificates.nil?
+    @private_ssl_certificates
   end
 
   def inherit_membership
