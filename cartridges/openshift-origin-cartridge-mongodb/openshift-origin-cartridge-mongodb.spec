@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.19.2
+Version: 1.19.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -56,6 +56,9 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.19.3-1
+- Bumping cartridge versions for sprint 43 (bparees@redhat.com)
+
 * Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.19.2-1
 - Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
 
