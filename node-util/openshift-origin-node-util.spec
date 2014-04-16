@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.22.4
+Version: 1.22.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -157,6 +157,10 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.22.5-1
+- Bug 1061926 - Use lock file to prevent race between idle/unidle
+  (jhonce@redhat.com)
+
 * Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.22.4-1
 - Bug 1087755 - node.conf#TRAFFIC_CONTROL_ENABLED defaults to true
   (jhonce@redhat.com)
