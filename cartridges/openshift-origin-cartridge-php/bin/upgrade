@@ -27,18 +27,10 @@ if [[ $curr == 0.0.12 ]]; then
     erb ${OPENSHIFT_PHP_DIR}versions/shared/configuration/etc/php.ini.erb > ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
 fi
 
-if [[ $curr == 0.0.13 ]]; then
+if [[ $curr == 0.0.14 ]]; then
     echo "${OPENSHIFT_PHP_DIR}configuration/etc/php.d" > ${OPENSHIFT_PHP_DIR}env/PHP_INI_SCAN_DIR
     # versions/ directory moved from user space (gear) to the shared usr/ directory (root)
     rm -rf ${OPENSHIFT_PHP_DIR}versions
     chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
     chcon -u unconfined_u ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
-fi
-
-if [[ $curr == 0.0.14 ]]; then
-    if [ -e ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/locked-locked-mcrypt.ini ] ; then
-        # Update existing carts with fixed mcrypt ini name
-        rm ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/locked-locked-mcrypt.ini
-        cp ${OPENSHIFT_PHP_DIR}/usr/${OPENSHIFT_PHP_VERSION}/etc/php.d/locked-mcrypt.ini ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/locked-mcrypt.ini
-    fi
 fi
