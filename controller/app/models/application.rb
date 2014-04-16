@@ -775,11 +775,12 @@ class Application
     end
 
     # validate the group overrides for the cartridges being added 
-    specs = component_specs_from(cartridges)
+    # combine the existing carts with the ones being added to get the full proposed group overrides
+    specs = component_specs_from(cartridges) + self.component_instances.map(&:to_component_spec)
     specs.each do |spec|
       spec.cartridge.group_overrides.each do |override|
         if o = GroupOverride.resolve_from(specs, override)
-          non_sparse_carts = []
+          scalable_carts = []
           o.components.each do |component|
             cart = CartridgeCache.find_cartridge(component.cartridge_name, self)
 
@@ -789,13 +790,15 @@ class Application
               cart = specs.map {|s| s.cartridge if s.cartridge.name == component.cartridge_name }.compact.first
             end
 
-            non_sparse_carts << cart if cart.components.any?{ |c| !c.is_sparse? }
+            # checking web_framework/service categories is done to ensure that the cart does not have plugin as well as service categories
+            # checking for is_plugin to ensure that the cart has at least one of these categories
+            scalable_carts << cart if cart.has_scalable_categories? or !cart.is_plugin?
           end
 
           # multiple independently scaling carts are not allowed to co-locate with each other
-          # ensure that there is only one scaling (non-sparse) cartridge in a group
-          if self.scalable and non_sparse_carts.size > 1
-            raise OpenShift::UserException.new("Cartridges #{non_sparse_carts.map {|c| c.name}} cannot be grouped together as they scale individually")
+          # ensure that there is only one scaling (non-sparse; non-plugin) cartridge in a group
+          if self.scalable and scalable_carts.size > 1
+            raise OpenShift::UserException.new("Cartridges #{scalable_carts.map {|c| c.name}} cannot be grouped together as they scale individually")
           end
         end
       end
@@ -986,6 +989,11 @@ class Application
       raise OpenShift::UserException.new("You have requested more additional gear storage than you are allowed (max: #{max_storage} GB)", 166) if additional_filesystem_gb > max_storage
     end
     raise OpenShift::UserException.new("Cannot set the max gear limit to '1' if the application is HA (highly available)") if self.ha and scale_to==1
+
+    if (scale_from or scale_to) and !(component_instance.has_scalable_categories? or component_instance.is_sparse?)
+      raise OpenShift::UserException.new("You can not set scaling policies for #{component_instance.cartridge_name}. Generally, you can set it only for web_framework or service cartridges.")
+    end
+
     Lock.run_in_app_lock(self) do
       op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_component_spec, min: scale_from, max: scale_to, multiplier: multiplier, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
       pending_op_groups << op_group
