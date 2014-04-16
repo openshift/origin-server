@@ -84,7 +84,7 @@ class Team
     end
   end
 
-  def members_changed(added, removed, changed_roles)
+  def members_changed(added, removed, changed_roles, parent_op)
     pending_op = ChangeMembersTeamOp.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence)
     self.pending_ops.push pending_op
   end
