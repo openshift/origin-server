@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 1.23.2
+Version: 1.23.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -95,6 +95,12 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
+- Merge pull request #5283 from bparees/latest_versions (dmcphers@redhat.com)
+- Bumping cartridge versions for sprint 43 (bparees@redhat.com)
+- "postgresql/data/pg_log/postgresql-Mon.log" should not exist on gear
+  (bparees@redhat.com)
+
 * Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.2-1
 - Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
 
