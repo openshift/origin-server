@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.23.6
+Version: 1.23.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,24 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.7-1
+- Merge pull request #5287 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5253 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Adding a config flag in the broker to selectively manage HA DNS entries
+  (abhgupta@redhat.com)
+- Merge pull request #5192 from liggitt/user_email
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1086094: Multiple changes for cartridge colocation We are:  - taking into
+  account the app's complete group overrides  - allowing only plugin carts to
+  colocate with web/service carts  - blocking plugin (except sparse) carts from
+  responding to scaling min/max changes (abhgupta@redhat.com)
+- Merge pull request #5284 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Adding test coverage for to_xml (dmcphers@redhat.com)
+- Add email field to CloudUser (jliggitt@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.6-1
 - Fix formatting (dmcphers@redhat.com)
 
