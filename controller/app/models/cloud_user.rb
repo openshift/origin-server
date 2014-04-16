@@ -36,6 +36,7 @@ class CloudUser
   field :plan_history, type: Array, default: []
   field :usage_account_id, type: String
   field :consumed_gears, type: Integer, default: 0
+  field :email, type: String
 
   embeds_many :ssh_keys, class_name: UserSshKey.name
   embeds_many :pending_op_groups, class_name: PendingUserOpGroup.name, cascade_callbacks: true
