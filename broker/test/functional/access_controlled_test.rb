@@ -617,6 +617,11 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_nil Application.accessible(u3).first
 
     a.add_members(u2, :view)
+    assert a.save
+    assert jobs = a.pending_op_groups
+    assert jobs.length == 1
+    assert_equal ChangeMembersOpGroup, jobs.last.class
+    assert_equal [[u2._id, CloudUser.member_type, :view, 'propagate_test_2']], jobs.last.members_added
 
     assert_equal [u], CloudUser.members_of(a){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, a) }
 
@@ -650,9 +655,10 @@ class AccessControlledTest < ActiveSupport::TestCase
     end
 
     assert jobs = d.applications.first.pending_op_groups
-    assert jobs.length == 1
-    assert_equal ChangeMembersOpGroup, jobs.first.class
-    assert_equal [[u2._id, CloudUser.member_type, :admin, 'propagate_test_2'], [u3._id, CloudUser.member_type, :admin, 'propagate_test_3']], jobs.last.members_added
+    assert jobs.length == 2
+    assert_equal ChangeMembersOpGroup, jobs.last.class
+    assert_equal [[u3._id, CloudUser.member_type, :admin, 'propagate_test_3']], jobs.last.members_added
+    assert_equal [[u2._id, CloudUser.member_type, :view, :admin]], jobs.last.roles_changed
 
     a = d.applications.first
     assert_equal 3, (a.members & d.members).length
@@ -686,7 +692,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     a = Domain.find_by(:namespace => 'test').applications.first
     assert jobs = a.pending_op_groups
 
-    assert jobs.length == 2
+    assert jobs.length == 3
     assert_equal ChangeMembersOpGroup, jobs.last.class
     assert_equal [u3.as_member.to_key], jobs.last.members_removed
 
