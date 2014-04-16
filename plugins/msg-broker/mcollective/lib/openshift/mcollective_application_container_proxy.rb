@@ -3428,12 +3428,12 @@ module OpenShift
         flags = { :options => options, :exit_on_failure => false }
         begin
           rpc_client = rpcclient(agent, flags)
+          return rpc_client
         rescue Exception => e
           Rails.logger.error "Exception raised by rpcclient:#{e.message}"
           Rails.logger.error (e.backtrace)
-          raise OpenShift::NodeException.new(e)
+          raise OpenShift::NodeUnavailableException.new(e)
         end
-        return rpc_client
       end
 
       #
@@ -3563,9 +3563,9 @@ module OpenShift
         return unless handle.present?
 
         start_time = Time.new
+        options = MCollectiveApplicationContainerProxy.rpc_options.merge(custom_options)
+        rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
         begin
-          options = MCollectiveApplicationContainerProxy.rpc_options.merge(custom_options)
-          rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
           identities = handle.keys
           rpc_client.custom_request('execute_parallel', mc_args, identities, {'identity' => identities}).each { |mcoll_reply|
             if mcoll_reply.results[:statuscode] == 0
