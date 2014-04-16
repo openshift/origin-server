@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.23.4
+Version: 1.23.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,9 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.5-1
+- ctl-team: allow anonymous or encrypted LDAP access (lmeyer@redhat.com)
+
 * Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
 - Give better error message in case of connection failures. i.e. authentication
   failure (lnader@redhat.com)
