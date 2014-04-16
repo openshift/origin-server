@@ -38,7 +38,22 @@ LoadModule authz_user_module modules/mod_authz_user.so
 </Location>
 
 # The following APIs do not require auth:
-<LocationMatch /broker/rest/(api*|environment*|cartridges*|cartridges/*|cartridge/*|quickstarts*|quickstarts/*|quickstart/*)>
+#
+# /api
+# /environment
+# /cartridges
+# /quickstarts
+#
+# We want to match requests in the form of:
+#
+# /api
+# /api.json
+# /api/
+#
+# But not:
+#
+# /api_with_auth
+<LocationMatch ^/broker/rest/(api|environment|cartridges|quickstarts)(\.\w+|/?)$>
   <IfVersion >= 2.4>
     Require all granted
   </IfVersion>
