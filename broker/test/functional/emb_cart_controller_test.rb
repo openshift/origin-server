@@ -44,6 +44,10 @@ class EmbCartControllerTest < ActionController::TestCase
 
     get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
     delete :destroy , {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}

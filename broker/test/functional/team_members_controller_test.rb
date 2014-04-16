@@ -58,6 +58,10 @@ class TeamMembersControllerTest < ActionController::TestCase
     assert data['login'] == @member1.login
     get :show, {"team_id" => @team.id, "id" => id}
     assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show, {"team_id" => @team.id, "id" => id}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index , {"team_id" => @team.id}
     assert_response :success
     put :update, {"team_id" => @team.id, "id" => id, "role" => "view"}

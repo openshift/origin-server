@@ -45,6 +45,11 @@ class EnvironmentVariablesControllerTest < ActionController::TestCase
     get :show, {"id" => "foo", "application_id" => @app._id}
     assert_response :success
 
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show, {"id" => "foo", "application_id" => @app._id}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
+
     get :index , {"application_id" => @app._id}
     assert_response :success
 

@@ -30,6 +30,10 @@ class UserControllerTest < ActionController::TestCase
   test "show and delete" do
     get :show
     assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
     delete :destroy
     assert_response :forbidden
   end

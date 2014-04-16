@@ -60,6 +60,11 @@ class TeamsControllerTest < ActionController::TestCase
     assert_response :success
     assert json = JSON.parse(response.body)
     assert_equal team.id.to_s, json['data']['id'], response.body
+
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show, {"id" => team.id}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
   end
 
   test "viewing peer global team does not require capability" do
