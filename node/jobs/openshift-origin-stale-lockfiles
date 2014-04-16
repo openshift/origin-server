@@ -12,7 +12,7 @@
 # Find lock files from unix_user.rb that are over a week old.  The
 # number of files could be well beyond the command line length limit.
 find /var/lock -mindepth 1 -maxdepth 1 -type f -mtime +7 \
-    \( -name 'oo-create.*' -o -name 'oo-modify-ssh-keys.*' \) 2>/dev/null | {
+    \( -name 'gear.*' -o -name 'oo-modify-ssh-keys.*' \) 2>/dev/null | {
         while read lockfile
         do
             (

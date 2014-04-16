@@ -131,7 +131,7 @@ def user_fail(uuid, msg)
 
   # Did a create/destroy hook get modified for the user?
   begin
-    if File.stat("/var/lock/oo-create.#{uuid}").mtime >= $START_TIME
+    if File.stat("/var/lock/gear.#{uuid}").mtime >= $START_TIME
       return
     end
   rescue Errno::ENOENT
