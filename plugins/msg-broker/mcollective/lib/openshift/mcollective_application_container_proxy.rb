@@ -1905,7 +1905,9 @@ module OpenShift
       def move_gear_secure(gear, destination_container, destination_district_uuid, change_district, node_profile)
         app = gear.application
         Lock.run_in_app_lock(app) do
-          move_gear(gear, destination_container, destination_district_uuid, change_district, node_profile)
+          # run_in_app_lock() will reload the app object and any references to its fields need to be recomputed
+          current_gear = app.gears.select {|g| g.uuid == gear.uuid }.first
+          move_gear(current_gear, destination_container, destination_district_uuid, change_district, node_profile)
         end
       end
 
