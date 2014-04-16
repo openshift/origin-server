@@ -7,7 +7,7 @@ Description: MariaDB is a multi-user, multi-threaded SQL database server.
 Version: '5.5'
 Versions:
 - '5.5'
-Cartridge-Version: 0.2.8
+Cartridge-Version: 0.2.9
 Cartridge-Vendor: redhat
 License: GPL
 Vendor: MariaDB Foundation
@@ -56,4 +56,5 @@ Endpoints:
   Protocols:
   - mysql
 Install-Build-Required: false
-Compatible-Versions: []
+Compatible-Versions:
+- 0.2.8
