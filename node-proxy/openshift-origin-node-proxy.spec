@@ -12,7 +12,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.22.2
+Version: 1.22.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -142,6 +142,11 @@ fi
 %doc README
 
 %changelog
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.22.3-1
+- Merge pull request #5266 from jwhonce/bug/1077330
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1077330 - Remove unused dependency on facter (jhonce@redhat.com)
+
 * Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
 - Bug 1083730 - Move node-web-proxy logs to /var/log/openshift/node
   (jhonce@redhat.com)
