@@ -88,6 +88,10 @@ class DomainMembersControllerTest < ActionController::TestCase
     assert_response :success
     assert json = JSON.parse(response.body)
     assert_equal json['data'].length , 1
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :index , {"domain_id" => @domain.namespace}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
     post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "edit"}
     assert_response :success
     assert json = JSON.parse(response.body)

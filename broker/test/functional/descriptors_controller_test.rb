@@ -36,6 +36,11 @@ class DescriptorsControllerTest < ActionController::TestCase
   test "show" do
     get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
   end
 
   test "no app or domain id" do

@@ -7,7 +7,7 @@ class QuickstartsControllerTest < ActionController::TestCase
     @request.env['HTTP_ACCEPT'] = "application/json"
   end
 
-  test "quickstarts show and index" do   
+  test "quickstarts show and index" do
     get :index , {}
     assert_response :success
     get :show, {"id" => 1}

@@ -48,6 +48,11 @@ class DomainsControllerTest < ActionController::TestCase
     assert link = json['data']['links']['ADD_APPLICATION']
     assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'cartridges[][url]' }
 
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show, {"name" => namespace}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
+
     get :show, {"name" => namespace, "include" => 'application_info'}
     assert_response :success
     assert json = JSON.parse(response.body)

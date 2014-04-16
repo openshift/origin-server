@@ -188,7 +188,7 @@ module OpenShift
           end
           params.each_value(&check)
         end
-  
+
         def support_valid_encoding?
           String.new.respond_to?('valid_encoding?')
         end

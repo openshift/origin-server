@@ -40,6 +40,10 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :created
     get :show, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
     put :update, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
     get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}

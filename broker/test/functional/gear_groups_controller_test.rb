@@ -41,6 +41,10 @@ class GearGroupsControllerTest < ActionController::TestCase
     assert_response :success
     body = JSON.parse(@response.body)
     id = body["data"][0]["id"]
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
     get :show, {"id" => id, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
 

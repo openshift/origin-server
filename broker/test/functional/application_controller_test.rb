@@ -85,6 +85,11 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_equal 1, (carts = json['data']['cartridges']).length
     assert_equal [1, 1, 1, 1, 1, 0], carts[0].values_at('scales_from', 'scales_to', 'supported_scales_to', 'supported_scales_from', 'base_gear_storage', 'additional_gear_storage'), carts[0].inspect
 
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace, "include" => "cartridges"}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
+
     get :index, {"domain_id" => @domain.namespace}
     assert_response :success
 
