@@ -5,6 +5,8 @@ class ChangeMembersOpGroup < PendingAppOpGroup
   field :roles_changed, type: Array
 
   def elaborate(app)
+    set :rollback_blocked, true
+    
     added_ids = (members_added || []).select{ |(id, type, role, *_)| (type == nil || type == 'user') && (role = app.role_for(id)) and Ability.has_permission?(id, :ssh_to_gears, Application, role, app) }.map(&:first)
     removed_ids = (members_removed || []).select{ |(id, type, *_)| type == nil || type == 'user' }.map(&:first)
     (roles_changed || []).each do |(id, type, from, to)|

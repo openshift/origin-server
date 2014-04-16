@@ -707,6 +707,78 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert Domain.find_by(:namespace => 'test').pending_ops.empty?
   end
 
+  def test_reentrant_member_change_ops
+    Team.in(:name => 'reentrant_test').delete
+    CloudUser.in(:login => ['propagate_test_1', 'propagate_test_2', 'propagate_test_3']).delete
+    Domain.where(:namespace => ['test1','test2']).delete
+    Application.where(:name => ['propagatetest1', 'propagatetest2']).delete
+
+    assert u = CloudUser_create(:login => 'propagate_test_1')
+    assert u2 = CloudUser_create(:login => 'propagate_test_2')
+    assert u3 = CloudUser_create(:login => 'propagate_test_3')
+
+    assert d1 = Domain_create(:namespace => 'test1', :owner => u)
+    assert d2 = Domain_create(:namespace => 'test2', :owner => u)
+    assert a1 = Application_create(:name => 'propagatetest1', :domain => d1)
+    assert a2 = Application_create(:name => 'propagatetest2', :domain => d2)
+    assert t = Team_create(:name => 'reentrant_test')
+
+    t.add_members u, :view
+    assert_equal 0, t.pending_ops.length
+    t.save
+    assert_equal 1, t.pending_ops.length
+    t.run_jobs
+    assert_equal 0, t.pending_ops.length
+
+    [d1,d2].each do |d|
+      d.add_members t, :view
+      assert_equal 0, d.pending_ops.length
+      d.save
+      assert_equal 1, d.pending_ops.length
+      d.run_jobs
+      assert_equal 0, d.pending_ops.length
+    end
+
+    # An error while running an app pending op leaves the model updated in mongo, with pending ops left on the models
+    Domain.expects(:accessible).at_least(0).returns([d1, d2]) # Make sure we get the domains in the order we expect
+    ChangeMembersOpGroup.any_instance.expects(:execute).raises("Error")
+    t.add_members u2, :view
+    t.save
+    assert_raise(RuntimeError) { t.run_jobs }
+    assert_equal :view, t.reload.role_for(u2)
+    assert_equal :view, d1.reload.role_for(u2)
+    assert_equal :view, a1.reload.role_for(u2)
+    assert_equal nil,   d2.reload.role_for(u2) # D2 didn't run yet
+    assert_equal nil,   a2.reload.role_for(u2) # Change members op didn't run for d2 yet, so membership changes didn't get pushed to a1
+    assert_equal [:queued], t.pending_ops.map(&:state)  # Got put back in init state
+    assert_equal [:queued], d1.pending_ops.map(&:state) # Got put back in init state
+    assert_equal 1,         a1.pending_op_groups.length # Got queued
+    assert_equal [],        d2.pending_ops.map(&:state) # No op queued up for d2 yet
+    assert_equal 0,         a2.pending_op_groups.length # No op queued up for a2 yet
+
+    # Remove the failure
+    ChangeMembersOpGroup.any_instance.unstub(:execute)
+
+    # Simulate oo-admin-clear-pending-ops
+    a1.with_lock { assert a1.run_jobs }
+    d1.pending_ops.each {|op| op.set_state(:init) }
+    assert d1.run_jobs
+    t.pending_ops.each {|op| op.set_state(:init) }
+    assert t.run_jobs
+
+    # Make sure everything propagated correctly
+    assert_equal :view, t.reload.role_for(u2)
+    assert_equal :view, d1.reload.role_for(u2)
+    assert_equal :view, a1.reload.role_for(u2)
+    assert_equal :view, d2.reload.role_for(u2)
+    assert_equal :view, a2.reload.role_for(u2) # Membership got updated for a2
+    assert_equal [], t.pending_ops
+    assert_equal [], d1.pending_ops
+    assert_equal [], a1.pending_op_groups
+    assert_equal [], d2.pending_ops
+    assert_equal [], a2.pending_op_groups
+  end
+
   private
     def Domain_create(opts={})
       add_to_delete(:domains, Domain.create(opts))
