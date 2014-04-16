@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version: 1.19.5
+Version: 1.19.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,10 @@ then
 fi
 
 %changelog
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.19.6-1
+- Bug 1087701 - The remote-user sample configs were incorrectly using regexes
+  (bleanhar@redhat.com)
+
 * Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.19.5-1
 - Merge pull request #5261 from pravisankar/dev/ravi/revert-remote-user-hack
   (dmcphers+openshiftbot@redhat.com)
