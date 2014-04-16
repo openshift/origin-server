@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.22.3
+Version: 1.22.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.22.4-1
+- Bug 1086094: Multiple changes for cartridge colocation We are:  - taking into
+  account the app's complete group overrides  - allowing only plugin carts to
+  colocate with web/service carts  - blocking plugin (except sparse) carts from
+  responding to scaling min/max changes (abhgupta@redhat.com)
+
 * Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
 - Merge pull request #5222 from abhgupta/abhgupta-scheduler
   (dmcphers+openshiftbot@redhat.com)
