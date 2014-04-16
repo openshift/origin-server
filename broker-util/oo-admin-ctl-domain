@@ -185,8 +185,8 @@ when "create"
   reply.resultIO << "Successfully created domain.\n"
 
 when "update"
-  if namespace.blank? || login.blank? || (allowed_gear_sizes.nil? && new_namespace.blank?)
-    print "Please provide login, namespace, and either a new namespace (rename), or a set of allowed gear sizes, to update the domain\n"
+  if namespace.blank? || login.blank? || (allowed_gear_sizes.nil? && new_namespace.blank? && ssh_key.nil?)
+    print "Please provide login, namespace, and either a new namespace (rename), new ssh key, or a set of allowed gear sizes, to update the domain\n"
     exit 1
   end
   user = nil
