@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.23.7
+Version: 1.23.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.8-1
+- Bug 1088941: Exclude non-member global teams from index (jliggitt@redhat.com)
+- Merge pull request #5290 from liggitt/bug_1086920_check_domain_ssl_capability
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1086920: Check ssl certificate capability on domain, not on user
+  (jliggitt@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.7-1
 - Merge pull request #5287 from abhgupta/abhgupta-scheduler
   (dmcphers+openshiftbot@redhat.com)
