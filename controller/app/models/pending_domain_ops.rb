@@ -28,11 +28,11 @@ class PendingDomainOps
   def initialize(attrs = nil, options = nil)
     parent_opid = nil
     if !attrs.nil? and attrs[:parent_op]
-      parent_opid = attrs[:parent_op]._id 
+      parent_opid = attrs[:parent_op]._id
       attrs.delete(:parent_op)
     end
     super
-    self.parent_op_id = parent_opid 
+    self.parent_op_id = parent_opid
   end
 
   def pending_apps

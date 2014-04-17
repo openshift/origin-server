@@ -10,6 +10,7 @@ class UserControllerTest < ActionController::TestCase
     @password = "password"
     @user = CloudUser.new(login: @login)
     @user.private_ssl_certificates = true
+    @user.max_untracked_additional_storage = 1
     @user.save
     Lock.create_lock(@user.id)
     register_user(@login, @password)

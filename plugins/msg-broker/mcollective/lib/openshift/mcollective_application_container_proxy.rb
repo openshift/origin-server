@@ -3295,7 +3295,7 @@ module OpenShift
             Timeout::timeout(failsafe_timeout) do
               client.get_facts(:facts => Array(fact)) do |response|
                 next unless Integer(response[:body][:statuscode]) == 0
-                
+
                 fact_map = response[:body][:data][:output]
                 fact_value = fact_map[fact.to_sym]
                 sender = response[:senderid]
