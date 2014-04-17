@@ -301,7 +301,7 @@ class Domain
   def run_jobs
     wait_ctr = 0
     begin
-      while self.pending_ops.count > 0 and wait_ctr < 10
+      while self.pending_ops.count > 0
         op = self.pending_ops.first
         
         # a stuck op could move to the completed state if its pending applications are deleted
@@ -318,28 +318,28 @@ class Domain
         # try to do an update on the pending_op state and continue ONLY if successful
         op_index = self.pending_ops.index(op)
         t_now = Time.now.to_i
-        timeout = 1800
 
         id_condition = {"_id" => self._id, "pending_ops.#{op_index}._id" => op_id}
         runnable_condition = {"$or" => [
           # The op is not yet running
           {"pending_ops.#{op_index}.state" => "init" },
           # The op is in the running state and has timed out
-          { "pending_ops.#{op_index}.state" => "queued", :"pending_ops.#{op_index}.queued_at".lt => (t_now - timeout) }
+          { "pending_ops.#{op_index}.state" => "queued", :"pending_ops.#{op_index}.queued_at".lt => (t_now - run_jobs_queued_timeout) }
         ]}
  
         queued_values = {"pending_ops.#{op_index}.state" => "queued", "pending_ops.#{op_index}.queued_at" => t_now}
         reset_values  = {"pending_ops.#{op_index}.state" => "init",   "pending_ops.#{op_index}.queued_at" => 0}
  
         retval = Domain.where(id_condition.merge(runnable_condition)).update({"$set" => queued_values})
-
         if retval["updatedExisting"]
           wait_ctr = 0
-        else
+        elsif wait_ctr < run_jobs_max_retries
           self.reload
-          sleep 5
+          sleep run_jobs_retry_sleep
           wait_ctr += 1
           next
+        else
+          raise OpenShift::LockUnavailableException.new("Unable to perform action on domain object. Another operation is already running.", 171)
         end
 
         begin
@@ -368,5 +368,9 @@ class Domain
   end
 
   private
+    def run_jobs_max_retries;    10;    end
+    def run_jobs_retry_sleep;    5;     end
+    def run_jobs_queued_timeout; 30*60; end
+
     extend ActionView::Helpers::TextHelper # for pluralize()
 end
