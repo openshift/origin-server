@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.23.8
+Version: 1.23.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.9-1
+- Bug 1088845: Blocking external carts from adding storage and setting
+  multiplier (abhgupta@redhat.com)
+- Merge pull request #5262 from
+  liggitt/bug_1083544_reentrant_membership_change_ops
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1083544: Make member change ops re-entrant (jliggitt@redhat.com)
+- Allow setting parent op for member changes (jliggitt@redhat.com)
+
 * Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.8-1
 - Bug 1088941: Exclude non-member global teams from index (jliggitt@redhat.com)
 - Merge pull request #5290 from liggitt/bug_1086920_check_domain_ssl_capability
