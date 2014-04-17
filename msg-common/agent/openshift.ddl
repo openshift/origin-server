@@ -336,6 +336,30 @@ action "get_gear_envs", :description => "Returns the gear's env hash" do
            :display_as => "Exit Code"
 end
 
+action "get_gear_uid", :description => "Returns uid for the given gear uuid" do
+    display :always
+
+    input :gear_uuid,
+        :prompt         => "Gear uuid",
+        :description    => "Gear uuid",
+        :type           => :string,
+        :validation     => '^[a-zA-Z0-9]+$',
+        :optional       => false,
+        :maxlength      => 32
+
+    output  :time,
+            :description => "The time as a message",
+            :display_as => "Time"
+
+    output  :output,
+            :description => "Integer output for uid",
+            :display_as => "Output"
+
+    output :exitcode,
+           :description => "Exit code",
+           :display_as => "Exit Code"
+end
+
 action "has_uid_or_gid", :description => "Returns whether this system has already taken the uid or gid" do
     display :always
 
