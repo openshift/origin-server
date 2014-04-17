@@ -97,7 +97,6 @@ def clean_domain(d)
   dlist = d.pending_ops.select { |op| op._type.nil? }
   dlist.each { |op| op.delete }
   d.pending_ops.delete_if { |op| op.nil? }
-  d.pending_ops.each { |op| op.set_state(:init) if op.state == :queued }
   d.run_jobs rescue nil
   d.reload
   dlist = d.pending_ops.select { |op| op.completed? }
@@ -131,7 +130,6 @@ def clean_team(t)
   dlist = t.pending_ops.select { |op| op._type.nil? }
   dlist.each { |op| op.delete }
   t.pending_ops.delete_if { |op| op.nil? }
-  t.pending_ops.each { |op| op.state = :init if op.state==:queued }
   t.save
   t.run_jobs rescue nil
   t.reload
