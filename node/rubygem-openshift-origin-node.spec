@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.23.7
+Version: 1.23.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.8-1
+- Merge pull request #5291 from lnader/bugs (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5296 from jwhonce/bug/1086886
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1086886 - Don't read managed_file.yml twice (jhonce@redhat.com)
+- Bug 1088620 - Check for empty OPENSHIFT_PRIMARY_CARTRIDGE_DIR values
+  (lnader@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.7-1
 - Bug 1061926 - Use lock file to prevent race between idle/unidle
   (jhonce@redhat.com)
