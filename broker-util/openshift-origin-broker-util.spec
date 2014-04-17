@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.23.6
+Version: 1.23.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,12 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.7-1
+- Merge pull request #5297 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1088405 - no error message was being given for invalid keys and silently
+  failing (lnader@redhat.com)
+
 * Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.6-1
 - Bug 1085297 - fixed error message (lnader@redhat.com)
 
