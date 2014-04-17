@@ -98,9 +98,17 @@ class Team
   # == Returns:
   # True on success or false on failure
   def run_jobs
+    wait_ctr = 0
     begin
-      while self.pending_ops.where(state: "init").count > 0
-        op = self.pending_ops.where(state: "init").first
+      while self.pending_ops.count > 0 and wait_ctr < 10
+        op = self.pending_ops.first
+
+        # a stuck op could move to the completed state if its pending domains are deleted
+        if op.completed?
+          op.delete
+          self.reload
+          next
+        end
 
         # store the op._id to load it later after a reload
         # this is required to prevent a reload from replacing it with another one based on position
@@ -108,23 +116,44 @@ class Team
 
         # try to do an update on the pending_op state and continue ONLY if successful
         op_index = self.pending_ops.index(op)
-        retval = Team.where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
+        t_now = Time.now.to_i
+        timeout = 1800
 
-        unless retval["updatedExisting"]
+        id_condition = {"_id" => self._id, "pending_ops.#{op_index}._id" => op_id}
+        runnable_condition = {"$or" => [
+          # The op is not yet running
+          {"pending_ops.#{op_index}.state" => "init" },
+          # The op is in the running state and has timed out
+          { "pending_ops.#{op_index}.state" => "queued", :"pending_ops.#{op_index}.queued_at".lt => (t_now - timeout) }
+        ]}
+ 
+        retval = Team.where(id_condition.merge(runnable_condition)).update({"$set" => queued_values})
+
+        if retval["updatedExisting"]
+          wait_ctr = 0
+        else
           self.reload
+          sleep 5
+          wait_ctr += 1
           next
         end
 
-        op.execute
+        begin
+          op.execute
 
-        # reloading the op reloads the domain and then incorrectly reloads (potentially)
-        # the op based on its position within the pending_ops list
-        # hence, reloading the domain, and then fetching the op using the op_id stored earlier
-        self.reload
-        op = self.pending_ops.find_by(_id: op_id)
-
-        op.close_op
-        op.delete if op.completed?
+          # reloading the op reloads the domain and then incorrectly reloads (potentially)
+          # the op based on its position within the pending_ops list
+          # hence, reloading the domain, and then fetching the op using the op_id stored earlier
+          self.reload
+          op = self.pending_ops.find_by(_id: op_id)
+  
+          op.close_op
+          op.delete if op.completed?
+        rescue Exception => op_ex
+          # doing this in rescue instead of ensure so that the state change happens only in case of exceptions
+          Team.where(id_condition.merge(queued_values)).update({"$set" => reset_values})
+          raise op_ex
+        end
       end
       true
     rescue Exception => e
