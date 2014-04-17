@@ -93,7 +93,7 @@ module OpenShift
         env              = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         primary_cart_dir = env['OPENSHIFT_PRIMARY_CARTRIDGE_DIR']
 
-        raise "No primary cartridge detected in gear #{@container.uuid}" unless primary_cart_dir
+        raise "No primary cartridge detected in gear #{@container.uuid}" unless primary_cart_dir and !primary_cart_dir.empty?
 
         return get_cartridge_from_directory(File.basename(primary_cart_dir))
       end
