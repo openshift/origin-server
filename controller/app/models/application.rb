@@ -994,6 +994,11 @@ class Application
       raise OpenShift::UserException.new("You can not set scaling policies for #{component_instance.cartridge_name}. Generally, you can set it only for web_framework or service cartridges.")
     end
 
+    if component_instance.is_external?
+      raise OpenShift::UserException.new("You can not set the multiplier for an external cartridge.") if multiplier
+      raise OpenShift::UserException.new("You can not add storage for an external cartridge.") if additional_filesystem_gb and additional_filesystem_gb != 0
+    end
+
     Lock.run_in_app_lock(self) do
       op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_component_spec, min: scale_from, max: scale_to, multiplier: multiplier, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
       pending_op_groups << op_group
