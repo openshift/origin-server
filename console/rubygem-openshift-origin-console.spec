@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.23.3
+Version: 1.23.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
+- Bug 1086920: Check ssl certificate capability on domain, not on user
+  (jliggitt@redhat.com)
+
 * Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
 - Merge pull request #5246 from liggitt/bug_1086567_handle_implicit_leaving
   (dmcphers+openshiftbot@redhat.com)
