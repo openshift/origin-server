@@ -21,7 +21,7 @@ class TeamsController < BaseController
       teams =
       case params[:owner]
       when "@self" then Team.accessible(current_user).where(owner: current_user).sort({name: 1})
-      when nil     then Team.accessible(current_user).sort({name: 1})
+      when nil     then Team.accessible(current_user).with_member(current_user).sort({name: 1})
       else return render_error(:unprocessable_entity, "Only @self is supported for the 'owner' argument.", 1)
       end
     end

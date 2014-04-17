@@ -217,6 +217,10 @@ module Membership
     end
 
     def accessible_criteria(to)
+      with_member(to)
+    end
+
+    def with_member(to)
       where(:'members._id' => to.is_a?(String) ? to : to._id, :'members.t' => to.respond_to?(:member_type) ? to.member_type : nil)
     end
 
