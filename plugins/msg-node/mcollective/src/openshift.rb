@@ -1204,6 +1204,18 @@ module MCollective
       end
 
       #
+      # Returns the uid for a given uuid
+      #
+      def get_gear_uid_action
+        validate :gear_uuid, /^[a-zA-Z0-9]+$/
+
+        gear_uuid        = request[:gear_uuid].to_s if request[:gear_uuid]
+        container        = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
+        reply[:output]   = container.uid
+        reply[:exitcode] = 0
+      end
+
+      #
       # Returns whether a uid or gid is already reserved on the system
       #
       def has_uid_or_gid_action
