@@ -91,6 +91,7 @@ mkdir -p %{buildroot}%{_mandir}/man8/
 cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %endif
 
+rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 
 %files
 %dir %{gem_instdir}
@@ -100,7 +101,6 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_instdir}/Rakefile
 %doc %{gem_instdir}/README.md
 %doc %{gem_instdir}/%{gem_name}.gemspec
-%doc %{gem_instdir}/.yardoc
 %{gem_instdir}/test
 %{gem_spec}
 %{gem_libdir}
