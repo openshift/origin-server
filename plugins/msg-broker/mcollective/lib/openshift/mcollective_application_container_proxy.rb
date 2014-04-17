@@ -2782,6 +2782,30 @@ module OpenShift
       end
 
       #
+      # Returns the integer uid as represented in the node (of the given gear's uuid)
+      #
+      # INPUTS:
+      # * gear_uuid: String
+      #
+      # RETURNS:
+      # * Integer
+      #
+      # NOTES:
+      # * uses rpc_exec
+      #
+      def get_gear_uid(gear_uuid = nil)
+        # a non-numeric string is converted to 0 with to_i (which is the uid for root)
+        return -1 if gear_uuid.nil? 
+        MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
+          client.get_gear_uid(:gear_uuid => gear_uuid) do |response|
+            output = response[:body][:data][:output]
+            return output
+          end
+        end
+        return -1
+      end
+
+      #
       # Returns whether this server has already reserved the specified uid as a uid or gid
       #
       # INPUTS:
