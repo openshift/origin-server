@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.22.5
+Version: 1.22.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -157,6 +157,10 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.6-1
+- Bug 1088620 - Add check to oo-accept-node for empty
+  OPENSHIFT_PRIMARY_CARTRIDGE_DIR (jhonce@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.22.5-1
 - Bug 1061926 - Use lock file to prevent race between idle/unidle
   (jhonce@redhat.com)
