@@ -271,7 +271,7 @@ class Domain
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { env_vars: variables }})
   end
 
-  def members_changed(added, removed, changed_roles)
+  def members_changed(added, removed, changed_roles, parent_op)
     pending_op = ChangeMembersDomainOp.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence)
     self.pending_ops.push pending_op
   end

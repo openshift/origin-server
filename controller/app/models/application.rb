@@ -1627,8 +1627,8 @@ class Application
     end
   end
 
-  def members_changed(added, removed, changed_roles)
-    op_group = ChangeMembersOpGroup.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence, user_agent: self.user_agent)
+  def members_changed(added, removed, changed_roles, parent_op)
+    op_group = ChangeMembersOpGroup.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence, user_agent: self.user_agent, parent_op: parent_op)
     self.pending_op_groups << op_group
   end
 
