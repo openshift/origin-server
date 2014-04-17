@@ -188,7 +188,7 @@ class Command
           user_names.each do |user_name|
             u = CloudUser.find_by(login: user_name) rescue nil
             if u.nil?
-              puts "ERROR: Could not find user: \"#{params[1]}\""
+              puts "ERROR: Could not find user: \"#{user_name}\""
               next
             end
             members_to_add.push(u)
