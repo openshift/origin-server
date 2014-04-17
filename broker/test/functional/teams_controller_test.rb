@@ -35,6 +35,21 @@ class TeamsControllerTest < ActionController::TestCase
     end
   end
 
+  test "global teams do not appear in list unless user is a member" do
+    @teams_to_tear_down << (member_team = Team.create(name: "global-team-member-#{@random}"))
+    @teams_to_tear_down << (non_member_team = Team.create(name: "global-team-non-member-#{@random}"))
+
+    member_team.add_members @user
+    member_team.save
+    member_team.run_jobs
+
+    get :index
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal 1, json['data'].length, response.body
+    assert_equal member_team.id.to_s, json['data'][0]['id'], json['data'][0].inspect
+  end
+
   test "global search requires capability" do
     CloudUser.any_instance.stubs(:view_global_teams).returns(false)
     get :index, {"search" => "team", "global" => true}
