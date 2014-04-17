@@ -1916,21 +1916,25 @@ module OpenShift
         reply = ResultIO.new
         state_map = {}
 
+        unless gear.uid
+          gear.uid = get_gear_uid(gear.uuid)
+          raise OpenShift::OOException.new("Could not fetch gear uid for gear #{gear.uuid}, app #{app.name}") if gear.uid == -1
+          res = Application.where({"_id" => app.id, "gears.uuid" => gear.uuid}).update({"$set" => {"gears.$.uid" => gear.uid}})
+          raise OpenShift::OOException.new("Could not set gear uid to #{gear.uid}") if res.nil? or !res["updatedExisting"]
+        end
+
         # resolve destination_container according to district
         destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
 
         source_container = gear.get_proxy
-
         if source_container.id == destination_container.id
           log_debug "Cannot move a gear within the same node. The source container and destination container are the same."
           raise OpenShift::UserException.new("Error moving gear. Destination container same as source container.", 1)
         end
 
-        # Only allow gear move between districted nodes
-        # Move from districted to non-districted nodes and vice versa not allowed: gear uids on non-districted nodes may not be in the range of uids supported by the district
-        # Move between non-districted nodes not allowed:: gear uids are not set in mongo and we can not guarantee same uid for both source and destination
-        if [source_container.get_district_uuid, destination_container.get_district_uuid].include?('NONE')
-          raise OpenShift::UserException.new("Error moving gear. Move gear only allowed between districted nodes.")
+        # Move from districted/non-districted to non-districted nodes not allowed: we can not guarantee source uid on the destination
+        if destination_container.get_district_uuid == 'NONE'
+          raise OpenShift::UserException.new("Error moving gear. Move gear only allowed from non-districted/districted node to districted node.")
         end
 
         destination_node_profile = destination_container.get_node_profile
@@ -2779,6 +2783,29 @@ module OpenShift
             return output == true
           end
         end
+      end
+
+      # Returns the integer uid as represented in the node (of the given gear's uuid)
+      #
+      # INPUTS:
+      # * gear_uuid: String
+      #
+      # RETURNS:
+      # * Integer
+      #
+      # NOTES:
+      # * uses rpc_exec
+      #
+      def get_gear_uid(gear_uuid = nil)
+        # a non-numeric string is converted to 0 with to_i (which is the uid for root)
+        return -1 if gear_uuid.nil? 
+        MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
+          client.get_gear_uid(:gear_uuid => gear_uuid) do |response|
+            output = response[:body][:data][:output]
+            return output
+          end
+        end
+        return -1
       end
 
       #
