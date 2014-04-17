@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.23.8
+Version: 1.23.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.9-1
+- Merge pull request #5299 from bparees/psql_unary
+  (dmcphers+openshiftbot@redhat.com)
+-  Meet "unary operator expected" error when use psql in rhcsh but postgresql
+  is not added to app (bparees@redhat.com)
+
 * Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.8-1
 - Merge pull request #5291 from lnader/bugs (dmcphers+openshiftbot@redhat.com)
 - Merge pull request #5296 from jwhonce/bug/1086886
