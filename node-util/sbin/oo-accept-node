@@ -792,7 +792,9 @@ def check_app_dirs
     primary = File.join(gear_home, '.env', 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR')
     if File.exist? primary
       primary = IO.read(primary).chomp
-      unless File.directory? primary
+      if primary.empty?
+        user_fail(entry, %Q(directory #{entry}/.env has empty OPENSHIFT_PRIMARY_CARTRIDGE_DIR'))
+      elsif !File.directory? primary
         user_fail(entry, %Q(directory #{entry} doesn't have primary cartridge '#{File.basename(primary)}'))
       end
     else
