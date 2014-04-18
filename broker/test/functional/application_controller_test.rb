@@ -90,6 +90,11 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :success
     @request.env['HTTP_ACCEPT'] = 'application/json'
 
+    Domain.any_instance.stubs(:env_vars).returns([{'key' => 'JENKINS_URL'}])
+    OpenShift::Cartridge.any_instance.stubs(:is_ci_server?).returns(true)
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace, "include" => "cartridges"}
+    assert_response :success
+
     get :index, {"domain_id" => @domain.namespace}
     assert_response :success
 
