@@ -324,7 +324,7 @@ class Domain
           # The op is not yet running
           {"pending_ops.#{op_index}.state" => "init" },
           # The op is in the running state and has timed out
-          { "pending_ops.#{op_index}.state" => "queued", :"pending_ops.#{op_index}.queued_at".lt => (t_now - run_jobs_queued_timeout) }
+          { "pending_ops.#{op_index}.state" => "queued", "pending_ops.#{op_index}.queued_at" => {"$lt" => (t_now - run_jobs_queued_timeout)} }
         ]}
  
         queued_values = {"pending_ops.#{op_index}.state" => "queued", "pending_ops.#{op_index}.queued_at" => t_now}
