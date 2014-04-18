@@ -16,6 +16,7 @@ class PendingTeamOps
   embedded_in :team, class_name: Team.name
 
   field :state, type: Symbol, :default => :init
+  field :queued_at, type: Integer, :default => 0
   field :on_completion_method, type: Symbol
 
   def completed?
