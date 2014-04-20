@@ -37,7 +37,7 @@ class RestDomain < OpenShift::Model
     self.usage_rates = domain.usage_rates
     self.private_ssl_certificates = domain.private_ssl_certificates
 
-    if not domain.application_count.nil?
+    unless domain.application_count.nil?
       @application_count = domain.application_count
       @gear_counts = domain.gear_counts || {}
     end
