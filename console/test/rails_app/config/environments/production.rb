@@ -58,7 +58,7 @@ RailsApp::Application.configure do
   config.assets.initialize_on_precompile = false
   config.assets.compress = true
   config.assets.js_compressor = :uglifier
-  config.assets.precompile += %w(common.css origin.css console.js modernizr.min.js)
+  config.assets.precompile += %w(common.css origin.css members_form.css console.js modernizr.min.js)
 
   Console.configure(ENV['CONSOLE_CONFIG_FILE'] || '/etc/openshift/console.conf')
 end
