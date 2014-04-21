@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.23.7
+Version: 1.23.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Mon Apr 21 2014 Adam Miller <admiller@redhat.com> 1.23.8-1
+- Bug 1089019: Ensuring that domain/team pending ops execute in order
+  (abhgupta@redhat.com)
+
 * Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.7-1
 - Merge pull request #5297 from lnader/master
   (dmcphers+openshiftbot@redhat.com)
