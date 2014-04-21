@@ -116,6 +116,12 @@ module Console
       @capabilities_model = name
     end
 
+    def env_bool(sym, default=nil, &block)
+      b = env(sym, default, &block)
+      raise InvalidConfiguration, "#{sym} must be true or false, was #{b.inspect}" unless (b == true || b == false)
+      b
+    end
+
     #
     # Retrieve a configuration value from the default environment
     #
