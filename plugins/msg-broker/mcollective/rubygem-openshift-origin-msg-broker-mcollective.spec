@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.23.2
+Version: 1.23.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Mon Apr 21 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
+- Bug 1087964 - Allow move gear from non-districted/districted node to
+  districted node. (rpenta@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.2-1
 - Merge pull request #5289 from pravisankar/dev/ravi/bug1086566
   (dmcphers+openshiftbot@redhat.com)
