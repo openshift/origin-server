@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.23.9
+Version: 1.23.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Apr 21 2014 Adam Miller <admiller@redhat.com> 1.23.10-1
+- Add run_jobs tests, fix timeout query (jliggitt@redhat.com)
+- Make mongo updates more readable and reusable, externalize retry constants
+  for test, raise exception if exceeding the retry limit (jliggitt@redhat.com)
+- Bug 1089019: Ensuring that domain/team pending ops execute in order
+  (abhgupta@redhat.com)
+
 * Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.9-1
 - Bug 1088845: Blocking external carts from adding storage and setting
   multiplier (abhgupta@redhat.com)
