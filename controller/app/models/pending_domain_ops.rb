@@ -22,6 +22,7 @@ class PendingDomainOps
 
   field :parent_op_id, type: Moped::BSON::ObjectId
   field :state, type: Symbol, :default => :init
+  field :queued_at, type: Integer, :default => 0
   has_and_belongs_to_many :completed_apps, class_name: Application.name, inverse_of: nil
   field :on_completion_method, type: Symbol
 

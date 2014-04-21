@@ -750,20 +750,18 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal :view, a1.reload.role_for(u2)
     assert_equal nil,   d2.reload.role_for(u2) # D2 didn't run yet
     assert_equal nil,   a2.reload.role_for(u2) # Change members op didn't run for d2 yet, so membership changes didn't get pushed to a1
-    assert_equal [:queued], t.pending_ops.map(&:state)  # Got put back in init state
-    assert_equal [:queued], d1.pending_ops.map(&:state) # Got put back in init state
-    assert_equal 1,         a1.pending_op_groups.length # Got queued
-    assert_equal [],        d2.pending_ops.map(&:state) # No op queued up for d2 yet
-    assert_equal 0,         a2.pending_op_groups.length # No op queued up for a2 yet
+    assert_equal [:init], t.pending_ops.map(&:state)      # Got put back in init state
+    assert_equal [0],     t.pending_ops.map(&:queued_at)  # Got its queued_at timer reset
+    assert_equal [:init], d1.pending_ops.map(&:state)     # Got put back in init state
+    assert_equal [0],     d1.pending_ops.map(&:queued_at) # Got its queued_at timer reset
+    assert_equal 1,       a1.pending_op_groups.length # Got queued
+    assert_equal [],      d2.pending_ops.map(&:state) # No op queued up for d2 yet
+    assert_equal 0,       a2.pending_op_groups.length # No op queued up for a2 yet
 
     # Remove the failure
     ChangeMembersOpGroup.any_instance.unstub(:execute)
 
-    # Simulate oo-admin-clear-pending-ops
-    a1.with_lock { assert a1.run_jobs }
-    d1.pending_ops.each {|op| op.set_state(:init) }
-    assert d1.run_jobs
-    t.pending_ops.each {|op| op.set_state(:init) }
+    # Try to rerun the job
     assert t.run_jobs
 
     # Make sure everything propagated correctly
