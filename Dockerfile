@@ -15,7 +15,7 @@
 # Where MONGO_HOST_PORT and AUTH_SALT are the config values as defined in broker.conf
 
 FROM fedora
-RUN yum -y install which gcc-c++ openssl-devel readline libyaml-devel readline-devel zlib zlib-devel
+RUN yum -y install which gcc-c++ openssl-devel readline libyaml-devel readline-devel zlib zlib-devel openssl
 
 # Install and setup ruby 1.9.3 using rvm and install bundler
 RUN curl -L get.rvm.io | bash -s stable
