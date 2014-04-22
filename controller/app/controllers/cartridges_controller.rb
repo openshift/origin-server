@@ -51,6 +51,8 @@ class CartridgesController < BaseController
       end
     else
       carts = carts.active.order_by(:name => 1)
+      #filter out obsolete cartridges for versions >= 1.7
+      carts = carts.not_in(obsolete: true) if requested_api_version >= 1.7
 
       # Legacy support for cartridges/standalone|embedded
       feature = params[:feature].presence
