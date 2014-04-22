@@ -104,6 +104,20 @@ then
   fi
 fi
 
+conf='/etc/httpd/conf.d/000002_openshift_origin_broker_proxy.conf'
+if ! grep  'RequestHeader unset X-Remote-User' $conf 2>&1 > /dev/null
+then
+  cat <<EOF >> $conf
+# Required for the remote-user plugin
+RequestHeader unset X-Remote-User
+EOF
+
+  if service httpd status 2>&1 > /dev/null
+  then
+    service httpd restart
+  fi
+fi
+
 %changelog
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.19.6-1
 - Bug 1087701 - The remote-user sample configs were incorrectly using regexes
