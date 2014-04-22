@@ -903,7 +903,7 @@ module OpenShift
         begin
           resultIO = run_cartridge_command(cart, gear, 'deconfigure', args)
         rescue OpenShift::NodeException => e
-          if has_app_cartridge?(app.uuid, gear.uuid, cart)
+          if has_app_cartridge?(app.uuid, gear.uuid, component.cartridge.send(:short_name))
             raise
           else
             Rails.logger.debug "DEBUG: Cartridge '#{cart}' not found on within application '#{app.name}/#{gear.uuid}'.  Continuing with deconfigure."
