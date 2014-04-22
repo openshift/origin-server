@@ -220,6 +220,7 @@ class AliasControllerTest < ActionController::TestCase
       get :show, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
       assert_response :ok, "Getting alias for version #{version} failed"
     end
+    @request.env['HTTP_ACCEPT'] = "application/json"
   end
 
     def set_certificate_data

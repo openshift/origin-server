@@ -254,5 +254,6 @@ class TeamMembersControllerTest < ActionController::TestCase
       get :show, {"team_id" => @team.id, "id" => id}
       assert_response :ok, "Getting team for version #{version} failed"
     end
+    @request.env['HTTP_ACCEPT'] = "application/json"
   end
 end

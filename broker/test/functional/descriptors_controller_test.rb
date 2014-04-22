@@ -60,5 +60,6 @@ class DescriptorsControllerTest < ActionController::TestCase
       get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
       assert_response :ok, "Getting descriptor for version #{version} failed"
     end
+    @request.env['HTTP_ACCEPT'] = "application/json"
   end
 end

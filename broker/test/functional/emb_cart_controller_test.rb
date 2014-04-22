@@ -366,6 +366,7 @@ class EmbCartControllerTest < ActionController::TestCase
       get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
       assert_response :ok, "Getting embedded cartridge for version #{version} failed"
     end
+    @request.env['HTTP_ACCEPT'] = "application/json"
   end
 
   test "add downloadable embedded cartridge" do

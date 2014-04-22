@@ -587,7 +587,7 @@ class DomainMembersControllerTest < ActionController::TestCase
     end
 
   end
-  
+
   test "get member in all versions" do
     post :create, {"domain_id" => @domain.namespace, "login" => @member.login, "role" => "view"}
     assert_response :success
@@ -599,5 +599,6 @@ class DomainMembersControllerTest < ActionController::TestCase
       get :show, {"domain_id" => @domain.namespace, "id" => id}
       assert_response :ok, "Getting domain for version #{version} failed"
     end
+    @request.env['HTTP_ACCEPT'] = "application/json"
   end
 end

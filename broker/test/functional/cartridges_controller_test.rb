@@ -21,6 +21,7 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     request_via_redirect(:get, "/broker/rest/cartridges/standalone", {}, @headers)
     assert_response :ok
     body1 = JSON.parse(@response.body)
+    supported_api_versions = body1['supported_api_versions']
     cart_count1 = body1["data"].length
     assert cart_count1 > 0
     assert body1['data'].all?{ |c| c['type'] == 'standalone' }
@@ -33,6 +34,13 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     assert cart_count2 > 0
 
     assert body1 == body2
+
+    supported_api_versions.each do |version|
+      @headers["HTTP_ACCEPT"] = "application/xml; version=#{version}"
+      request_via_redirect(:get, "/broker/rest/cartridges/standalone", {}, @headers)
+      assert_response :ok
+    end
+    @headers["HTTP_ACCEPT"] = "application/json"
   end
 
   test "embedded cart list" do
@@ -168,6 +176,7 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
       request_via_redirect(:get, "/broker/rest/cartridges/redhat-#{php_version}", {}, @headers)
       assert_response :ok, "Getting cartridge for version #{version} failed"
     end
+    @headers["HTTP_ACCEPT"] = "application/json"
   end
 
 end
