@@ -10,7 +10,7 @@ production:
         <% config[:host_port].split(',').each do |server| %>
         - <%= server %>
         <% end %>
-      <% if config[:user] != "" %>
+      <% unless config[:user].empty? %>
       username: "<%= config[:user] %>"
       password: "<%= config[:password] %>"
       <% end %>
@@ -35,7 +35,7 @@ development:
         <% config[:host_port].split(',').each do |server| %>
         - <%= server %>
         <% end %>
-      <% if config[:user] != "" %>
+      <% unless config[:user].empty? %>
       username: "<%= config[:user] %>"
       password: "<%= config[:password] %>"
       <% end %>
@@ -60,7 +60,7 @@ test:
         <% config[:host_port].split(',').each do |server| %>
         - <%= server %>
         <% end %>
-      <% if config[:user] != "" %>
+      <% unless config[:user].empty? %>
       username: "<%= config[:user] %>"
       password: "<%= config[:password] %>"
       <% end %>
