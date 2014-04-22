@@ -1135,7 +1135,6 @@ class OODiag
 
   def test_broker_certificate
     skip_test unless @is_broker
-    require 'socket'
 
     # Retrieve the SSL cert from Apache
     response = `curl -k -s -v https://localhost/ -o /dev/null 2>&1`
