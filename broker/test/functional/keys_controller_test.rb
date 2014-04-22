@@ -132,5 +132,6 @@ class KeysControllerTest < ActionController::TestCase
       get :show, {"id" => key_name}
       assert_response :ok, "Getting key for version #{version} failed"
     end
+    @request.env['HTTP_ACCEPT'] = "application/json"
   end
 end

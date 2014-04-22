@@ -49,5 +49,6 @@ class UserControllerTest < ActionController::TestCase
       get :show
       assert_response :ok, "Getting user for version #{version} failed"
     end
+    @request.env['HTTP_ACCEPT'] = "application/json"
   end
 end
