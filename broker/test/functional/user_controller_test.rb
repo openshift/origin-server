@@ -31,24 +31,18 @@ class UserControllerTest < ActionController::TestCase
   test "show and delete" do
     get :show
     assert_response :success
-    @request.env['HTTP_ACCEPT'] = 'application/xml'
-    get :show
-    assert_response :success
-    @request.env['HTTP_ACCEPT'] = 'application/json'
-    delete :destroy
-    assert_response :forbidden
-  end
-
-  test "get user in all versions" do
-    get :show
-    assert_response :success
     assert json = JSON.parse(response.body)
     assert supported_api_versions = json['supported_api_versions']
     supported_api_versions.each do |version|
       @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
       get :show
-      assert_response :ok, "Getting user for version #{version} failed"
+      assert_response :success
+      @request.env['HTTP_ACCEPT'] = "application/xml; version=#{version}"
+      get :show
+      assert_response :success
     end
-    @request.env['HTTP_ACCEPT'] = "application/json"
+    @request.env['HTTP_ACCEPT'] = 'application/json'
+    delete :destroy
+    assert_response :forbidden
   end
 end
