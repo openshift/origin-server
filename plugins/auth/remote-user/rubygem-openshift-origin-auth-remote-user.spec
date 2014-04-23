@@ -104,6 +104,20 @@ then
   fi
 fi
 
+conf='/etc/httpd/conf.d/000002_openshift_origin_broker_proxy.conf'
+if ! grep  'RequestHeader unset X-Remote-User' $conf 2>&1 > /dev/null
+then
+  cat <<EOF >> $conf
+# Required for the remote-user plugin
+RequestHeader unset X-Remote-User
+EOF
+
+  if service httpd status 2>&1 > /dev/null
+  then
+    service httpd restart
+  fi
+fi
+
 %changelog
 * Thu Jan 16 2014 Krishna Raman <kraman@gmail.com> 1.17.1.3-1
 - Bumping version number for rubygem-openshift-origin-auth-remote-user
