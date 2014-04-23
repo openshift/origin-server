@@ -18,7 +18,7 @@ module OpenShift
 #    end
 
     def generated
-      self.min == 1 && self.max == -1 && self.min_managed == 1 && self.multiplier == 1
+      self.min == 1 && self.max == -1 && self.min_managed == 1 && self.multiplier == 1 && self.required == false
     end
 
     def from_descriptor(spec_hash = {})
