@@ -61,7 +61,7 @@ LoadModule auth_kerb_module modules/mod_auth_kerb.so
 # But not:
 #
 # /api_with_auth
-<LocationMatch ^/broker/rest/(api|environment|cartridges|quickstarts)(\.\w+|/?)$>
+<LocationMatch ^/broker/rest/(api|environment|cartridges|quickstarts)(\.\w+|/?|/.*)$>
   <IfVersion >= 2.4>
     Require all granted
   </IfVersion>
