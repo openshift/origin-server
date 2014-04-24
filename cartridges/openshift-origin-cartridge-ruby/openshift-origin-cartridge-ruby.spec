@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.23.3
+Version: 1.23.4
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -81,6 +81,11 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Thu Apr 24 2014 Adam Miller <admiller@redhat.com> 1.23.4-1
+- Remove newlines from env ERBs (ironcladlou@gmail.com)
+- Bug 1090708 - Removing newlines from _LOG_DIR.erb templates
+  (bleanhar@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
 - Bumping cartridge versions for sprint 43 (bparees@redhat.com)
 
