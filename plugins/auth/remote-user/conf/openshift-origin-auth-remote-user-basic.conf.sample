@@ -53,7 +53,7 @@ LoadModule authz_user_module modules/mod_authz_user.so
 # But not:
 #
 # /api_with_auth
-<LocationMatch ^/broker/rest/(api|environment|cartridges|quickstarts)(\.\w+|/?)$>
+<LocationMatch ^/broker/rest/(api|environment|cartridges|quickstarts)(\.\w+|/?|/.*)$>
   <IfVersion >= 2.4>
     Require all granted
   </IfVersion>
