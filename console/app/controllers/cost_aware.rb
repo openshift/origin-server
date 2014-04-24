@@ -4,7 +4,7 @@ module CostAware
 
   included do
     include Console::CostHelper
-    helper_method :user_currency_symbol, :user_currency_cd, :number_to_user_currency, :gear_increase_cost, :gear_types_with_cost, :has_gear_types_with_cost, :gear_sizes_and_rates, :fixup_rate
+    helper_method :user_currency_symbol, :user_currency_cd, :number_to_user_currency, :gear_increase_cost, :gear_types_with_cost, :has_gear_types_with_cost, :gear_sizes_and_rates, :fixup_rate, :cartridges_premium
   end
 
   protected
@@ -54,16 +54,28 @@ module CostAware
       (rate == 0 && units != 0 && amount != 0) ? (amount / units) : rate
     end
 
-    def gear_increase_cost(count, capabilities=nil)
+    # count - number of new gears
+    # capabilities - capabilities from related user or domain
+    # usage_rates - usage_rates from related user or domain
+    def gear_increase_cost(count, capabilities, usage_rates)
       false
     end
 
-    def gear_types_with_cost
+    # usage_rates - usage_rates from related user or domain
+    def gear_types_with_cost(usage_rates)
       []
     end
 
-    def has_gear_types_with_cost(applications)
+    # applications - list of applications to check
+    # usage_rates - usage_rates from related user or domain
+    def has_gear_types_with_cost(applications, usage_rates)
       false
+    end
+
+    # cartridges - list of cartridges
+    # usage_rates - usage_rates from related user or domain
+    def cartridges_premium(cartridges, usage_rates)
+      return cartridges.any?{ |(_, carts)| carts.any?{ |c| c.usage_rates.present? } } if cartridges.is_a? Hash
     end
 
     # sizes: ['size1', 'size2', ...]

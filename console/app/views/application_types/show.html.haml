@@ -214,7 +214,7 @@
     = link_to "Back", application_types_path, :class => 'btn'
     = f.commit_button :button_html => { :disabled => @disabled }
     %span#gear_increase
-      = gear_increase_indicator(@cartridges, @application.scales?, @application.gear_profile, false, @domain_capabilities, @is_domain_owner)
+      = gear_increase_indicator(@cartridges, @application.scales?, @application.gear_profile, false, @domain_capabilities, @domain_usage_rates, @is_domain_owner)
     = f.loading
 
 - if @compact
