@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.19.3
+Version: 1.19.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -56,6 +56,11 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Apr 24 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
+- Remove newlines from env ERBs (ironcladlou@gmail.com)
+- Bug 1090708 - Removing newlines from _LOG_DIR.erb templates
+  (bleanhar@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.19.3-1
 - Bumping cartridge versions for sprint 43 (bparees@redhat.com)
 
