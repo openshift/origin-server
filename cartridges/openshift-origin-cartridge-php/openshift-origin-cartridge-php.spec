@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.23.4
+Version: 1.23.5
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,11 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Thu Apr 24 2014 Adam Miller <admiller@redhat.com> 1.23.5-1
+- Remove newlines from env ERBs (ironcladlou@gmail.com)
+- Bug 1090708 - Removing newlines from _LOG_DIR.erb templates
+  (bleanhar@redhat.com)
+
 * Tue Apr 22 2014 Adam Miller <admiller@redhat.com> 1.23.4-1
 - Bug 1088230 - Remove extra php-tidy.ini file (vvitek@redhat.com)
 - Bug 1088230 - Fix php-pecl-memcache .ini files (vvitek@redhat.com)
