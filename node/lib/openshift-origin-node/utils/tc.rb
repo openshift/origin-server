@@ -45,6 +45,7 @@ module OpenShift
           @output = []
 
           @config    = ::OpenShift::Config.new('/etc/openshift/node.conf')
+          @wrap_around_uid = (@config.get("WRAPAROUND_UID") || 65536).to_i
           @resources = ::OpenShift::Runtime::Utils::Cgroups::Config.new('/etc/openshift/resource_limits.conf')
 
 
@@ -115,7 +116,7 @@ module OpenShift
         def parse_valid_user(uuid)
           pwent = Etc.getpwnam(uuid.to_s)
           if block_given?
-            yield(pwent, pwent.uid.to_s(16))
+            yield(pwent, (pwent.uid % @wrap_around_uid).to_s(16))
           end
         end
 
@@ -123,7 +124,7 @@ module OpenShift
           users=[]
           Etc.passwd do |pwent|
             if pwent.gecos == (@config.get('GEAR_GECOS') or "OO guest")
-              users << [pwent.name, pwent, pwent.uid.to_s(16)]
+              users << [pwent.name, pwent, (pwent.uid % @wrap_around_uid).to_s(16)]
             end
           end
           if block_given?

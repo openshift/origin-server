@@ -50,6 +50,8 @@ module OpenShift
 
             @cgroup_root = self.class.cgroup_root
             @cgroup_path = "#{@cgroup_root}/#{@uuid}"
+            @config      = OpenShift::Config.new
+            @wrap_around_uid = (@config.get("WRAPAROUND_UID") || 65536).to_i
           end
 
           def self.cgroup_root
@@ -321,13 +323,13 @@ module OpenShift
           # Compute the network class id
           # Major = 1
           # Minor = UID
-          # Caveat: 0 <= Minor <= 0xFFFF (65535)
+          # Caveat: 0 <= Minor
           def net_cls
             major = 1
-            if (uid < 1) or (uid > 0xFFFF)
+            if (uid < 1)
               raise RuntimeError, "Cannot assign network class id for: #{uid}"
             end
-            (major << 16) + uid
+            (major << 16) + (uid % @wrap_around_uid)
           end
 
 
