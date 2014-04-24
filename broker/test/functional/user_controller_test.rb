@@ -45,4 +45,21 @@ class UserControllerTest < ActionController::TestCase
     delete :destroy
     assert_response :forbidden
   end
+
+  test "show and delete sub account" do
+    @user.parent_user_id = "1234"
+    @user.save
+    get :show
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert supported_api_versions = json['supported_api_versions']
+    supported_api_versions.each do |version|
+      @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
+      get :show
+      assert_response :success
+    end
+    @request.env['HTTP_ACCEPT'] = 'application/json'
+    delete :destroy
+    assert_response :success
+  end
 end
