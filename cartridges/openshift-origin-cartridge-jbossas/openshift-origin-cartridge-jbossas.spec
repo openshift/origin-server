@@ -16,6 +16,7 @@ Requires:      lsof
 Requires:      java-1.7.0-openjdk
 Requires:      java-1.7.0-openjdk-devel
 Requires:      jboss-as7-modules >= %{jbossver}
+Requires:      jboss-openshift-metrics-module
 Requires:      bc
 %if 0%{?rhel}
 Requires:      jboss-as7 >= %{jbossver}
