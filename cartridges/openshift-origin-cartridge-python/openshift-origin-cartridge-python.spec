@@ -2,8 +2,8 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.24.0
-Release:       2%{?dist}
+Version: 1.24.2
+Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
 License:       ASL 2.0
@@ -97,6 +97,12 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
 * Fri Apr 25 2014 Adam Miller - 1.24.0-2
 - bumpspec to mass fix tags
 
