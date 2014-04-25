@@ -18,7 +18,7 @@ FROM fedora
 RUN yum -y install which gcc-c++ openssl-devel readline libyaml-devel readline-devel zlib zlib-devel openssl
 
 # Install and setup ruby 1.9.3 using rvm and install bundler
-RUN curl -L get.rvm.io | bash -s stable
+RUN curl -L --connect-timeout 30 get.rvm.io | bash -s stable
 RUN /bin/bash --login -c "rvm install 1.9.3"
 RUN /bin/bash --login -c "rvm use 1.9.3 --default"
 RUN /bin/bash --login -c "gem install bundler"
