@@ -67,6 +67,7 @@ $bulk_billing_recs_threshold = 1000
 # Indicates how many records to gather for bulk processing of usage records with-out billing accounts
 $bulk_non_billing_recs_threshold = 1000
 $billing_api = OpenShift::BillingService.instance
+$plans = $billing_api.get_plans
 $cur_time = Time.now.utc
 # User -> billing account# cache
 $user_info_cache = {}
@@ -109,9 +110,10 @@ end
 
 # Cache user_id->login, billing a/c# info
 def populate_user_info
-  $session[:cloud_users].find.select(login: 1, usage_account_id: 1, plan_history: 1).no_timeout.each do |user|
+  $session[:cloud_users].find.select(login: 1, usage_account_id: 1, plan_history: 1, plan_id: 1).no_timeout.each do |user|
+    prepaid = $plans[user['plan_id']][:prepaid] rescue false
     $user_info_cache[user['_id'].to_s] = { 'login' => user['login'], 'acct_no' => user['usage_account_id'],
-                                           'plan_history' => user['plan_history'] }
+                                           'plan_history' => user['plan_history'], 'prepaid' =>  prepaid}
   end
 end
 
@@ -121,6 +123,7 @@ def set_user_info(urec)
     urec['login'] = $user_info_cache[user_id]['login']
     urec['acct_no'] = $user_info_cache[user_id]['acct_no']
     urec['plan_history'] = $user_info_cache[user_id]['plan_history']
+    urec['prepaid'] = $user_info_cache[user_id]['prepaid']
   else
     user_obj = $session[:cloud_users].find(_id: urec['user_id']).select(login: 1).first
     unless user_obj
@@ -156,11 +159,11 @@ def sync_usage
   # Handle users with *NO* billing account
   srecs = []
   $user_srecs.delete_if do |srec|
-    if srec['acct_no']
-      false
-    else
+    if !srec['acct_no'] or srec['prepaid']
       srecs << srec
       true
+    else
+      false
     end
   end
   $billing_api.delete_ended_urecs($session, srecs)
