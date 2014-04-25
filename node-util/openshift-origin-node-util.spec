@@ -7,7 +7,7 @@
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
 Version: 1.23.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -157,6 +157,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Apr 25 2014 Adam Miller - 1.23.0-2
+- bumpspec to mass fix tags
+
 * Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.6-1
 - Bug 1088620 - Add check to oo-accept-node for empty
   OPENSHIFT_PRIMARY_CARTRIDGE_DIR (jhonce@redhat.com)

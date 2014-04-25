@@ -4,7 +4,7 @@
 
 Name:          openshift-origin-cartridge-php
 Version: 1.24.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
 License:       ASL 2.0
@@ -56,6 +56,9 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
 - Merge pull request #5286 from bparees/bug_1088230
   (dmcphers+openshiftbot@redhat.com)

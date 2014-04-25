@@ -3,7 +3,7 @@
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
 Version: 1.19.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://www.openshift.com
@@ -43,6 +43,9 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Apr 25 2014 Adam Miller - 1.19.0-2
+- bumpspec to mass fix tags
+
 * Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.18.2-1
 - Merge pull request #5200 from ncdc/metrics (dmcphers+openshiftbot@redhat.com)
 - Metrics (andy.goldstein@gmail.com)

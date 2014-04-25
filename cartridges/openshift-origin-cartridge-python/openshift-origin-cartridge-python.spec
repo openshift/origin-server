@@ -3,7 +3,7 @@
 
 Name:          openshift-origin-cartridge-python
 Version: 1.24.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
 License:       ASL 2.0
@@ -97,6 +97,9 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
 - Bumping cartridge versions for sprint 43 (bparees@redhat.com)
 

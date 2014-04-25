@@ -10,7 +10,7 @@
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
 Version: 1.23.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -120,6 +120,9 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Fri Apr 25 2014 Adam Miller - 1.23.0-2
+- bumpspec to mass fix tags
+
 * Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.5-1
 - cleanup yardoc (tdawson@redhat.com)
 

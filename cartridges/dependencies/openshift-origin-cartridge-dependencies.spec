@@ -6,7 +6,7 @@
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
 Version: 1.24.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       %{name}-%{version}.tar.gz
@@ -512,6 +512,9 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
 - Bug 1088230 - Fix php-pecl-memcache extension (vvitek@redhat.com)
 

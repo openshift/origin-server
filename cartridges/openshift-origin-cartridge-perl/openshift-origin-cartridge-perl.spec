@@ -3,7 +3,7 @@
 
 Name:          openshift-origin-cartridge-perl
 Version: 1.23.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
 License:       ASL 2.0
@@ -54,6 +54,9 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Fri Apr 25 2014 Adam Miller - 1.23.0-2
+- bumpspec to mass fix tags
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.22.5-1
 - Bumping cartridge versions for sprint 43 (bparees@redhat.com)
 

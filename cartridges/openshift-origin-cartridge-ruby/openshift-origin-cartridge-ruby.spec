@@ -8,7 +8,7 @@
 
 Name:          openshift-origin-cartridge-ruby
 Version: 1.24.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
 License:       ASL 2.0
@@ -81,6 +81,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
 - Bumping cartridge versions for sprint 43 (bparees@redhat.com)
 

@@ -18,7 +18,7 @@
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
 Version: 1.24.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -283,6 +283,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
 * Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.9-1
 - Merge pull request #5299 from bparees/psql_unary
   (dmcphers+openshiftbot@redhat.com)

@@ -10,7 +10,7 @@
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
 Version: 0.6.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -109,6 +109,9 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Apr 25 2014 Adam Miller - 0.6.0-2
+- bumpspec to mass fix tags
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 0.5.2-1
 - httpd conf: set better defaults (lmeyer@redhat.com)
 - apache frontends: refactor logging conf, includes (lmeyer@redhat.com)
