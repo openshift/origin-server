@@ -55,21 +55,6 @@ class ComponentInstance
   delegate :is_plugin?, :is_embeddable?, :is_web_proxy?, :is_external?, :is_web_framework?, :has_scalable_categories?, to: :cartridge
   delegate :is_sparse?, to: :component
 
-  def min
-    raise "Remove me"
-    get_value_from_group_override(:min_gears) || component.scaling.min
-  end
-
-  def max
-    raise "Remove me"
-    get_value_from_group_override(:max_gears) || component.scaling.max
-  end
-
-  def multiplier
-    raise "Remove me"
-    get_value_from_group_override(:multiplier) || component.scaling.multiplier
-  end
-
   def group_instance
     self.application.group_instances.find(self.group_instance_id)
   end
