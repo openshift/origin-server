@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.24.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,16 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- bump_minor_versions for sprint 44 (admiller@redhat.com)
+- Bug 1088583: Sending cartridge name without vendor for has_app_cartridge call
+  (abhgupta@redhat.com)
+- Merge pull request #5306 from pravisankar/dev/ravi/bug1087964
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1087964 - Allow move gear from non-districted/districted node to
+  districted node. (rpenta@redhat.com)
+- Adding test coverage (dmcphers@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.2-1
 - Merge pull request #5289 from pravisankar/dev/ravi/bug1086566
   (dmcphers+openshiftbot@redhat.com)
