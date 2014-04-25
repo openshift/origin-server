@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,10 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- bump_minor_versions for sprint 44 (admiller@redhat.com)
+- Fix generated property for scaling model. (vlad.iovanov@uhurusoftware.com)
+
 * Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.5-1
 - cleanup yardoc (tdawson@redhat.com)
 
