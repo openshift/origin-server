@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.24.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,16 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- bump_minor_versions for sprint 44 (admiller@redhat.com)
+- Bug 1088405 Bugzilla link https://bugzilla.redhat.com/show_bug.cgi?id=1088405
+  The update action will now check to see if a ssh key has been provided before
+  providing the error that not enough parameters were provided. This allows us
+  to use the already-written ssh key addition code.
+  (tiwillia@timdev.usersys.redhat.com)
+- Bug 1089019: Ensuring that domain/team pending ops execute in order
+  (abhgupta@redhat.com)
+
 * Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.7-1
 - Merge pull request #5297 from lnader/master
   (dmcphers+openshiftbot@redhat.com)
