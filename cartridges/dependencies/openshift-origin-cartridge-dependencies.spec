@@ -5,8 +5,8 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.24.0
-Release:       2%{?dist}
+Version: 1.24.2
+Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       %{name}-%{version}.tar.gz
@@ -512,6 +512,12 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
 * Fri Apr 25 2014 Adam Miller - 1.24.0-2
 - bumpspec to mass fix tags
 
