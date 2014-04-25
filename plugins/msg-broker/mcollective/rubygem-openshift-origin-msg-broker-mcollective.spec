@@ -10,8 +10,8 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.24.0
-Release:       2%{?dist}
+Version: 1.24.2
+Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -85,6 +85,12 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
 * Fri Apr 25 2014 Adam Miller - 1.24.0-2
 - bumpspec to mass fix tags
 
