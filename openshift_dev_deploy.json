@@ -1,0 +1,23 @@
+{
+  "containers":[
+    {
+      "name":"origin-broker",
+      "count":1,
+      "image":"openshift-origin-broker",
+      "publicports":[
+        {"internal":443,"external":6060}
+      ],
+      "links":[
+        {"to":"origin-mongodb"}
+      ]
+    },
+    {
+      "name":"origin-mongodb",
+      "count":1,
+      "image":"openshift/ubuntu-mongodb",
+      "publicports":[
+        {"internal":27017}
+      ]
+    }
+  ]
+}
