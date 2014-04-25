@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.25.0
+Version: 1.25.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -74,6 +74,12 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- bump_minor_versions for sprint 44 (admiller@redhat.com)
+- Remove newlines from env ERBs (ironcladlou@gmail.com)
+- Bug 1090708 - Removing newlines from _LOG_DIR.erb templates
+  (bleanhar@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.24.3-1
 - Bumping cartridge versions for sprint 43 (bparees@redhat.com)
 
