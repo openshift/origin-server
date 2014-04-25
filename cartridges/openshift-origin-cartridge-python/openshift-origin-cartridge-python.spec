@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.23.4
+Version: 1.24.0
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
