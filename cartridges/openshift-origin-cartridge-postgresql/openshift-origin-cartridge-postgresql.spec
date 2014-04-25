@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 1.24.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -95,6 +95,12 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- bump_minor_versions for sprint 44 (admiller@redhat.com)
+- Remove newlines from env ERBs (ironcladlou@gmail.com)
+- Bug 1090708 - Removing newlines from _LOG_DIR.erb templates
+  (bleanhar@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
 - Merge pull request #5283 from bparees/latest_versions (dmcphers@redhat.com)
 - Bumping cartridge versions for sprint 43 (bparees@redhat.com)
