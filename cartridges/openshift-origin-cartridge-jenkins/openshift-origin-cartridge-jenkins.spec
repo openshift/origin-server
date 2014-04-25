@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.21.0
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -47,6 +47,14 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- bump_minor_versions for sprint 44 (admiller@redhat.com)
+- Remove newlines from env ERBs (ironcladlou@gmail.com)
+- Bug 1090708 - Removing newlines from _LOG_DIR.erb templates
+  (bleanhar@redhat.com)
+- Set java minimum heap size to 40megs to reduce EAP/AS/EWS footprint.
+  (bparees@redhat.com)
+
 * Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.20.3-1
 - Bumping cartridge versions for sprint 43 (bparees@redhat.com)
 
