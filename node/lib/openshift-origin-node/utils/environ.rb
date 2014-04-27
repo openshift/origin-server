@@ -30,16 +30,24 @@ module OpenShift
         def self.for_gear(gear_dir, *dirs)
           env = load('/etc/openshift/env')
 
+          # Merge gear env vars
           env.merge!(load(
-                         PathUtils.join(gear_dir, '.env'),
-                         PathUtils.join(gear_dir, '*', 'env')))
+                       PathUtils.join(gear_dir, '.env')))
+
+          # Filter user env vars prior to merging cart env vars
+          user_vars = PathUtils.join(gear_dir, '.env', 'user_vars')
+          user_env = load(user_vars) # {} if no file
+          user_env.delete_if { |name, _| name != 'OPENSHIFT_SECRET_TOKEN' and env.has_key?(name) }
+
+          # Merge cart env vars
+          env.merge!(load(
+                       PathUtils.join(gear_dir, '*', 'env')))
 
           # Load environment variables under subdirectories in ~/.env
           Dir[PathUtils.join(gear_dir, '.env', '*')].each do |entry|
             next if entry.end_with?('user_vars')
             env.merge!(load(entry)) if File.directory?(entry)
           end
-
 
           # If we have a primary cartridge make sure it's the last loaded in the environment
           primary = if env.has_key? 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR'
@@ -53,9 +61,8 @@ module OpenShift
 
           env['PATH'] = collect_elements_from(env, 'PATH', primary).join(':')
           env['LD_LIBRARY_PATH'] = collect_elements_from(env, 'LD_LIBRARY_PATH', primary).join(':')
-
-          user_vars = PathUtils.join(gear_dir, '.env', 'user_vars')
-          env.merge!(load(user_vars)) if File.exist?(user_vars)
+          # Merge filtered user env vars last to preserve priority
+          env.merge!(user_env)
           env
         end
 

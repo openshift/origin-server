@@ -79,4 +79,97 @@ class ApplicationContainerFuncTest < OpenShift::NodeTestCase
     env = OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
     assert_equal(token, env['OPENSHIFT_SECRET_TOKEN'])
   end
+
+  def wrap_control_script(cartridge, app_id, control_wrapper=nil)
+    cart_type = cartridge.sub(/(.*?)-.*/,'\1')
+    cart_dir = "/var/lib/openshift/#{app_id}/#{cart_type}"
+    control_wrapper ||= <<-EOS
+      #!/bin/bash
+      case "$1" in
+        start)     env > start_env;;
+        stop)      env > stop_env;;
+        restart)   env > restart_env;;
+      esac
+      #{cart_dir}/bin/wrapped_control $1
+    EOS
+
+    `mv #{cart_dir}/bin/control #{cart_dir}/bin/wrapped_control`
+    File.write("#{cart_dir}/bin/control", control_wrapper)
+    `chmod a+x #{cart_dir}/bin/control`
+    cart_dir
+  end
+
+  def test_override_cartridge_var
+    @container.create(Digest::SHA1.base64digest(SecureRandom.random_bytes(256)))
+    cartridge_name = 'mock-0.1'
+    path           = File.join(@container.container_dir, '.env', 'user_vars', 'OPENSHIFT_MOCK_EXAMPLE')
+    data           = 'override_value'
+
+    # Mock app
+    @container.cartridge_model.configure(cartridge_name)
+    # Control script wrapper captures env
+    cart_dir = wrap_control_script(cartridge_name, @uuid)
+
+    # User env var file isn't created yet
+    refute_path_exist(path)
+
+    env = OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+    # Default value in OPENSHIFT_MOCK_EXAMPLE
+    assert_equal('test_value', env['OPENSHIFT_MOCK_EXAMPLE'])
+
+    @container.cartridge_model.stop_cartridge(cartridge_name)
+    # Check stop_env for default value
+    assert_path_exist("#{cart_dir}/stop_env")
+    if File.exist?("#{cart_dir}/stop_env")
+      test_env_var = open("#{cart_dir}/stop_env").grep(/OPENSHIFT_MOCK_EXAMPLE/).first
+      test_env_var = test_env_var.chomp.split('=').last
+      assert_equal('test_value', test_env_var)
+      File.unlink("#{cart_dir}/stop_env")
+    else
+      flunk("cartridge wrapper script failed to create file stop_env")
+    end
+    @container.cartridge_model.start_cartridge('start', cartridge_name)
+    # Check start_env for default value
+    assert_path_exist("#{cart_dir}/start_env")
+    if File.exist?("#{cart_dir}/start_env")
+      test_env_var = open("#{cart_dir}/start_env").grep(/OPENSHIFT_MOCK_EXAMPLE/).first
+      test_env_var = test_env_var.chomp.split('=').last
+      assert_equal('test_value', test_env_var)
+      File.unlink("#{cart_dir}/start_env")
+    else
+      flunk("cartridge wrapper script failed to create file start_env")
+    end
+
+    # Set user env var to override cart env var
+    @container.user_var_add('OPENSHIFT_MOCK_EXAMPLE' => data)
+
+    # Validate user env var created with correct value
+    assert_path_exist(path)
+    assert_equal(data, IO.read(path), 'User variable corrupt')
+
+    env = OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+    # Validate Environ#for_gear loads user env var override appropriately
+    assert_equal(data, env['OPENSHIFT_MOCK_EXAMPLE'])
+
+    @container.cartridge_model.stop_cartridge(cartridge_name)
+    # Check stop_env for override value
+    assert_path_exist("#{cart_dir}/stop_env")
+    if File.exist?("#{cart_dir}/stop_env")
+      test_env_var = open("#{cart_dir}/stop_env").grep(/OPENSHIFT_MOCK_EXAMPLE/).first
+      test_env_var = test_env_var.chomp.split('=').last
+      assert_equal(data, test_env_var, 'User variable override failed')
+    else
+      flunk("cartridge wrapper script failed to create file stop_env")
+    end
+    @container.cartridge_model.start_cartridge('start', cartridge_name)
+    # Check start_env for override value
+    assert_path_exist("#{cart_dir}/start_env")
+    if File.exist?("#{cart_dir}/start_env")
+      test_env_var = open("#{cart_dir}/start_env").grep(/OPENSHIFT_MOCK_EXAMPLE/).first
+      test_env_var = test_env_var.chomp.split('=').last
+      assert_equal(data, test_env_var, 'User variable override failed')
+    else
+      flunk("cartridge wrapper script failed to create file start_env")
+    end
+  end
 end

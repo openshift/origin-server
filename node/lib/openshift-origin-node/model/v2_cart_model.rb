@@ -748,19 +748,27 @@ module OpenShift
         action         = PathUtils.join(cartridge_home, 'bin', action)
         return "" unless File.exists? action
 
-        gear_env           = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+        # Cache system + scaled env vars + user_vars
+        app_env            = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+        # Cache system env vars
+        gear_env_home      = PathUtils.join(@container.container_dir, '.env')
+        gear_env           = Utils::Environ.load(gear_env_home)
+        # Cache user env vars
+        user_env_home      = PathUtils.join(gear_env_home, 'user_vars')
+        user_env           = Utils::Environ.load(user_env_home)
         cartridge_env_home = PathUtils.join(cartridge_home, 'env')
+        cartridge_env      = Utils::Environ.load(cartridge_env_home)
 
-        cartridge_env = Utils::Environ.load(cartridge_env_home)
+        user_env.delete_if { |name, _| name != 'OPENSHIFT_SECRET_TOKEN' and gear_env.has_key?(name) }
         cartridge_env.delete('PATH')
-        cartridge_env = gear_env.merge(cartridge_env)
+        cartridge_env      = app_env.merge(cartridge_env).merge(user_env)
         if render_erbs
           erbs = Dir.glob(cartridge_env_home + '/*.erb', File::FNM_DOTMATCH).select { |f| File.file?(f) }
           render_erbs(cartridge_env, erbs)
 
           cartridge_env = Utils::Environ.load(cartridge_env_home)
           cartridge_env.delete('PATH')
-          cartridge_env = gear_env.merge(cartridge_env)
+          cartridge_env = app_env.merge(cartridge_env).merge(user_env)
         end
 
         action << " --version #{software_version}"
@@ -1275,13 +1283,24 @@ module OpenShift
 
         logger.debug { "#{@container.uuid} #{action} against '#{cartridge_dir}'" }
         buffer       = ''
-        gear_env     = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
-        gear_env.merge!(options[:env_overrides]) if options[:env_overrides]
-        action_hooks = PathUtils.join(gear_env['OPENSHIFT_REPO_DIR'], %w{.openshift action_hooks})
+        # Cache system + scaled env vars + user_vars
+        app_env     = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+        app_env.merge!(options[:env_overrides]) if options[:env_overrides]
+        action_hooks = PathUtils.join(app_env['OPENSHIFT_REPO_DIR'], %w{.openshift action_hooks})
+
+        # Cache system env vars
+        gear_env_home = PathUtils.join(@container.container_dir, '.env')
+        gear_env      = Utils::Environ.load(gear_env_home)
+        # Cache user env vars
+        user_env_home = PathUtils.join(gear_env_home, 'user_vars')
+        user_env      = Utils::Environ.load(user_env_home)
+
+        # Don't overwrite gear vars when merging cache
+        user_env.delete_if { |name, _| name != 'OPENSHIFT_SECRET_TOKEN' and gear_env.has_key?(name) }
 
         if pre_action_hooks_enabled
           pre_action_hook = prefix_action_hooks ? "pre_#{action}" : action
-          hook_buffer     = do_action_hook(pre_action_hook, gear_env, options)
+          hook_buffer     = do_action_hook(pre_action_hook, app_env, options)
           buffer << hook_buffer if hook_buffer.is_a?(String)
         end
 
@@ -1294,7 +1313,7 @@ module OpenShift
           _, software, software_version, _ = Runtime::Manifest.parse_ident(cartridge_local_env[ident.first])
           hooks                            = cartridge_hooks(action_hooks, action, software, software_version)
 
-          cartridge_env = gear_env.merge(cartridge_local_env)
+          cartridge_env = app_env.merge(cartridge_local_env).merge(user_env)
           control = PathUtils.join(path, 'bin', 'control')
 
           command = []
@@ -1328,7 +1347,7 @@ module OpenShift
 
         if post_action_hooks_enabled
           post_action_hook = prefix_action_hooks ? "post_#{action}" : action
-          hook_buffer      = do_action_hook(post_action_hook, gear_env, options)
+          hook_buffer      = do_action_hook(post_action_hook, app_env, options)
           buffer << hook_buffer if hook_buffer.is_a?(String)
         end
 
