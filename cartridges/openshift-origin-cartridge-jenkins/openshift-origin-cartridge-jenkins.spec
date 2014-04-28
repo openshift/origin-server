@@ -32,7 +32,9 @@ Provides Jenkins cartridge to OpenShift. (Cartridge Format V2)
 %__cp -r * %{buildroot}%{cartridgedir}
 
 %post
-service jenkins stop
+if service jenkins status > /dev/null 2>&1; then
+  service jenkins stop
+fi
 chkconfig jenkins off
 
 %files
