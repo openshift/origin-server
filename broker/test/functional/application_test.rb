@@ -118,6 +118,8 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
   end
 
   test "make an application highly available" do
+    @user.ha=true
+    @user.save
     app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 

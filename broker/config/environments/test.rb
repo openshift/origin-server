@@ -84,7 +84,7 @@ Broker::Application.configure do
     :default_gear_size => conf.get("DEFAULT_GEAR_SIZE", "small"),
     :gear_sizes => conf.get("VALID_GEAR_SIZES", "small").split(","),
     :default_gear_capabilities => conf.get("DEFAULT_GEAR_CAPABILITIES", "small").split(","),
-    :default_allow_ha => conf.get('DEFAULT_ALLOW_HA', "false"),
+    :default_allow_ha => conf.get_bool('DEFAULT_ALLOW_HA', "false"),
     :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Domain', 'Scope::Application', 'Scope::Userinfo', 'Scope::Sso', 'Scope::OauthAccessToken'],
     :default_scope => 'userinfo',
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration("session=1.days|2.days, oauthaccesstoken=10.minutes|10.minutes", 1.month),

@@ -164,6 +164,10 @@ Given /^a quickstart UUID$/ do
   @uuid = quickstarts[0]['quickstart']['id']
 end
 
+Given /^I manually set (.*) to a valid user and User\-Agent to (.*)$/ do |x_remote_user_header, user_agent|
+  @headers = {x_remote_user_header.to_sym => @username, 'User-Agent' => user_agent}
+end
+
 When /^the user has MAX_DOMAINS set to (\d*)$/ do |max_domains|
   set_max_domains(@username,max_domains)
 end

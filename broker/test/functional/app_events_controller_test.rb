@@ -125,6 +125,8 @@ class AppEventsControllerTest < ActionController::TestCase
   end
 
   test "make application HA" do
+    @user.ha=true
+    @user.save
     assert !@app.ha
     post :create, "event" => "make-ha", "application_id" => @app.id
     assert_response :success
