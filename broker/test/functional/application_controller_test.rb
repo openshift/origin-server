@@ -268,6 +268,8 @@ class ApplicationControllerTest < ActionController::TestCase
   end
 
   test "app create available show destroy by domain and app name" do
+    @user.ha=true
+    @user.save
     @app_name = "app#{@random}"
 
     post :create, {"name" => @app_name, "cartridge" => jbosseap_version, "domain_id" => @domain.namespace, "ha" => true}
