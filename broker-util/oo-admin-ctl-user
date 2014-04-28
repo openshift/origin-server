@@ -45,6 +45,8 @@ Options:
     Set the plan for the user
   --setplanexpirationdate <date>
     Set the plan expiration date for the user. Format yyyy-mm-dd
+  --clearplanexpirationdate 
+    Clears the plan expiration date for the user.
   --setplanquantity <number>
     Set the quantity of plan
   --listsubaccounts
@@ -384,7 +386,7 @@ def add_gear_size(user, gear_size)
   puts "Done."
 end
 
-def set_plan(user, plan_id, plan_quantity, plan_expiration_date)
+def set_plan(user, plan_id, plan_quantity, plan_expiration_date, clear_plan_expiration_date)
   print "Updating plan #{plan_id} with quantity #{plan_quantity} with expiration date #{plan_expiration_date} for user #{user.login}... "
   plan_id = plan_id || user.plan_id
   plan_quantity = plan_quantity || user.plan_quantity || 1
@@ -395,6 +397,11 @@ def set_plan(user, plan_id, plan_quantity, plan_expiration_date)
     if plan_expiration_date and plan_expiration_date != user.plan_expiration_date
       Lock.run_in_user_lock(user) do
         user.plan_expiration_date = plan_expiration_date
+        user.save!
+      end
+    elsif clear_plan_expiration_date
+      Lock.run_in_user_lock(user) do
+        user.plan_expiration_date = nil
         user.save!
       end
     end
@@ -478,6 +485,7 @@ opts = GetoptLong.new(
     ["--setmaxteams",      GetoptLong::REQUIRED_ARGUMENT],
     ["--setplan",          GetoptLong::REQUIRED_ARGUMENT],
     ["--setplanexpirationdate", GetoptLong::REQUIRED_ARGUMENT],
+    ["--clearplanexpirationdate", GetoptLong::NO_ARGUMENT],
     ["--setplanquantity", GetoptLong::REQUIRED_ARGUMENT],
     ["--setconsumedgears", GetoptLong::REQUIRED_ARGUMENT],
     ["--listsubaccounts",  GetoptLong::NO_ARGUMENT],
@@ -587,6 +595,16 @@ if args["--setplanexpirationdate"]
     $stderr.puts "ERROR: Could not parse plan expiration date: #{ex.message}"
     exit 1
   end
+end
+
+if args["--clearplanexpirationdate"]
+  if args["--setplanexpirationdate"]
+    $stderr.puts "ERROR: You can either clear the plan expiration date or set it.  You cannot do both"
+    exit 1
+  end
+  clear_plan_expiration_date = true
+else
+  clear_plan_expiration_date = false
 end
 
 if args["--setplanquantity"]
@@ -725,8 +743,8 @@ logins.each do |login|
       changed_user = true
     end
     
-    if plan_to_set or plan_quantity or plan_expiration_date
-      set_plan(user, plan_to_set, plan_quantity, plan_expiration_date)
+    if plan_to_set or plan_quantity or plan_expiration_date or clear_plan_expiration_date
+      set_plan(user, plan_to_set, plan_quantity, plan_expiration_date, clear_plan_expiration_date)
       changed_user = true
     end
 
