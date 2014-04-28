@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.24.2
+Version: 1.24.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Apr 28 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
+- Merge pull request #5288 from dobbymoodge/BZ1088005
+  (dmcphers+openshiftbot@redhat.com)
+- v2_cart_model: guarantee user env vars override (jolamb@redhat.com)
+
 * Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
 - mass bumpspec to fix tags (admiller@redhat.com)
 
