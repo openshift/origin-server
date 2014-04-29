@@ -19,8 +19,8 @@ This is an example structure to which your cartridge is expected to conform when
 ----
 [cartridge name]
  +- bin                        (required) <1>
- |  +- setup                   (optional) <2>
- |  +- install                 (optional)
+ |  +- setup                   (required)
+ |  +- install                 (optional) <2>
  |  +- post-install            (optional)
  |  +- teardown                (optional)
  |  +- control                 (required)
