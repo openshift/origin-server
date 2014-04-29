@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.17.2
+Version: 2.17.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -94,6 +94,9 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Apr 29 2014 Adam Miller <admiller@redhat.com> 2.17.3-1
+- JBoss metrics module (andy.goldstein@gmail.com)
+
 * Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 2.17.2-1
 - mass bumpspec to fix tags (admiller@redhat.com)
 
