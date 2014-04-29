@@ -51,6 +51,7 @@ fi
 %{cartridgedir}/conf
 %{cartridgedir}/metadata
 %{cartridgedir}/env
+%dir %{cartridgedir}/usr/journal-cache/
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
