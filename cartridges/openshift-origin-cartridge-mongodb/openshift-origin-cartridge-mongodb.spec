@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.20.2
+Version: 1.20.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -57,6 +57,9 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Apr 29 2014 Adam Miller <admiller@redhat.com> 1.20.3-1
+- Add journal cache dir to %%files (ironcladlou@gmail.com)
+
 * Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
 - mass bumpspec to fix tags (admiller@redhat.com)
 
