@@ -60,6 +60,7 @@ available through other mirrors worldwide.
 * http://mirror.digmia.com/openshift/ (SK, Europe)
 * http://ftp.inf.utfsm.cl/pub/openshift/ (CL, South America)
 * http://mirror.oss.maxcdn.com/openshift (Zlin, Czech, Europe)
+* http://mirror.getupcloud.com/?prefix=openshift/ (BR, South America)
 
 Copyright
 ----------------------
