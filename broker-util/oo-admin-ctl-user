@@ -387,9 +387,9 @@ def add_gear_size(user, gear_size)
 end
 
 def set_plan(user, plan_id, plan_quantity, plan_expiration_date, clear_plan_expiration_date)
-  print "Updating plan #{plan_id} with quantity #{plan_quantity} with expiration date #{plan_expiration_date} for user #{user.login}... "
   plan_id = plan_id || user.plan_id
   plan_quantity = plan_quantity || user.plan_quantity || 1
+  print "Updating plan #{plan_id} with quantity #{plan_quantity} with expiration date #{plan_expiration_date} for user #{user.login}... "
   begin
     if plan_id != user.plan_id or plan_quantity != user.plan_quantity
       user.update_plan(plan_id, plan_quantity)
