@@ -670,7 +670,7 @@ Your templates will be rendered at http://www.ruby-doc.org/docs/ProgrammingRuby/
 1. Given `env/OPENSHIFT_MONGODB_DB_LOG_DIR.erb` containing:
 
 ----
-erb   <% ENV['OPENSHIFT_HOMEDIR'] + "/mongodb/log/" %>
+<% ENV['OPENSHIFT_HOMEDIR'] + "/mongodb/log/" %>
 ----
 
 becomes `env/OPENSHIFT_MONGODB_DB_LOG_DIR` containing:
@@ -682,7 +682,7 @@ becomes `env/OPENSHIFT_MONGODB_DB_LOG_DIR` containing:
 2. Given `conf/php.ini.erb` containing:
 
 ----
-erb   upload_tmp_dir = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php/tmp/"   session.save_path = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php/sessions/"
+upload_tmp_dir = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php/tmp/"   session.save_path = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php/sessions/"
 ----
 
 becomes `conf/php.ini` containing:
