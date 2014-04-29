@@ -92,6 +92,10 @@ Summary:   Optional user dependencies for DIY OpenShift Cartridges
 BuildArch: noarch
 Requires: %{name}-recommended-diy
 Requires:  lua-devel
+Requires:  cmake
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:  cmake28
+%endif
 
 %description optional-diy
 This package pulls in other packages that a user
