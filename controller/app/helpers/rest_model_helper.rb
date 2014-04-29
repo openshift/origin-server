@@ -77,8 +77,9 @@ module RestModelHelper
   def get_rest_cartridge(cartridge)
     if requested_api_version == 1.0
       RestCartridge10.new(cartridge)
-    else
+    else 
       requires = CartridgeCache.find_requires_for(cartridge)
+      return RestCartridge16.new(cartridge) if requested_api_version <= 1.6
       RestCartridge.new(cartridge)
     end
   end

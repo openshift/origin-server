@@ -79,14 +79,16 @@
 #   @return [Integer] Cartridge supported minimum scale
 # @!attribute [r] supported_scales_from
 #   @return [Integer] Cartridge supported maximum scale
+# @!attribute [r] current_scale
+#   @return [Integer] Current number of gears used to run this cartridge
 # @!attribute [r] scales_with
 #   @return [Array<String>] Names of other cartridges that scale along with this cartridge and run on the same set of gears
 # @!attribute [r] usage_rates
 #   @return [Array<Object>]
-class RestCartridge < OpenShift::Model
+class RestCartridge16 < OpenShift::Model
   attr_accessor :id, :type, :name, :version, :license, :license_url, :tags, :website,
     :help_topics, :properties, :display_name, :description, :scales_from, :scales_to,
-    :supported_scales_to, :supported_scales_from, :scales_with, :usage_rates,
+    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rates,
     :creation_time, :automatic_updates
 
   def initialize(cart)
