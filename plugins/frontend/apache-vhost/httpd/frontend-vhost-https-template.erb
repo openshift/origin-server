@@ -27,6 +27,8 @@
   RequestHeader set X-Client-IP %{X_CLIENT_IP}e
 
   # Log configuration for gear access logs
+  SetEnv APP_UUID <%= app_uuid %>
+  SetEnv GEAR_UUID <%= gear_uuid %>
   Include conf.d/openshift-vhost-logconf.include
 
   # Create this file to customize configuration for all gear vhosts:
