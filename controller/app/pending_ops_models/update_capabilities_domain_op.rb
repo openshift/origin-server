@@ -17,4 +17,9 @@ class UpdateCapabilitiesDomainOp < PendingDomainOps
     set_state(:completed)
   end
 
+  # since this op does not work on pending_apps, override the completed? method to ignore the apps
+  def completed?
+    self.state == :completed
+  end
+
 end
