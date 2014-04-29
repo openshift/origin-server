@@ -27,7 +27,6 @@ Requires:      jbossas-standalone
 Requires:      jbossas-welcome-content-eap
 Requires:      jboss-eap6-modules
 Requires:      jboss-eap6-index
-Requires:      jboss-openshift-metrics-module
 Requires:      bc
 %if 0%{?rhel}
 Requires:      maven3
