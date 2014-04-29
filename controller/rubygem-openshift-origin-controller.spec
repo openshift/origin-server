@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.24.3
+Version: 1.24.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 29 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
+- Adding test coverage for remote-user auth (bleanhar@redhat.com)
+
 * Mon Apr 28 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
 - Merge pull request #5341 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
