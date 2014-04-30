@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.24.4
+Version: 1.24.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 1.24.5-1
+- Annual Online SKU Support (lnader@redhat.com)
+- Making the domain_op complete? method more robust (abhgupta@redhat.com)
+- Merge pull request #5343 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bugs 1084980 and 889947 (lnader@redhat.com)
+
 * Tue Apr 29 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
 - Adding test coverage for remote-user auth (bleanhar@redhat.com)
 
