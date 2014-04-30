@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.24.3
+Version: 1.24.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,9 @@ fi
 
 
 %changelog
+* Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
+- Fix JBoss installation issue (metrics) (andy.goldstein@gmail.com)
+
 * Tue Apr 29 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
 - JBoss metrics module (andy.goldstein@gmail.com)
 
