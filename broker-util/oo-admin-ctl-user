@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'getoptlong'
+require 'date'
 
 def usage
   puts <<USAGE
@@ -40,6 +41,14 @@ Options:
     Set the number of gears a user has consumed (use carefully)
   --setmaxteams <number>
     Set the maximum number of teams a user is allowed to create
+  --setplan <plan_id>
+    Set the plan for the user
+  --setplanexpirationdate <date>
+    Set the plan expiration date for the user. Format yyyy-mm-dd
+  --clearplanexpirationdate 
+    Clears the plan expiration date for the user.
+  --setplanquantity <number>
+    Set the quantity of plan
   --listsubaccounts
     List the subaccounts that have been created under this parent account (login)
     Cannot use this option with --quiet
@@ -377,6 +386,32 @@ def add_gear_size(user, gear_size)
   puts "Done."
 end
 
+def set_plan(user, plan_id, plan_quantity, plan_expiration_date, clear_plan_expiration_date)
+  plan_id = plan_id || user.plan_id
+  plan_quantity = plan_quantity || user.plan_quantity || 1
+  print "Updating plan #{plan_id} with quantity #{plan_quantity} with expiration date #{plan_expiration_date} for user #{user.login}... "
+  begin
+    if plan_id != user.plan_id or plan_quantity != user.plan_quantity
+      user.update_plan(plan_id, plan_quantity)
+    end
+    if plan_expiration_date and plan_expiration_date != user.plan_expiration_date
+      Lock.run_in_user_lock(user) do
+        user.plan_expiration_date = plan_expiration_date
+        user.save!
+      end
+    elsif clear_plan_expiration_date
+      Lock.run_in_user_lock(user) do
+        user.plan_expiration_date = nil
+        user.save!
+      end
+    end
+  rescue Exception=>e
+    $stderr.puts e.message
+    exit 1
+  end
+  puts "Done."
+end
+
 def remove_gear_size(user, gear_size)
   print "Removing gear size #{gear_size} for user #{user.login}... "
 
@@ -448,6 +483,10 @@ opts = GetoptLong.new(
     ["--setmaxtrackedstorage", GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxuntrackedstorage", GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxteams",      GetoptLong::REQUIRED_ARGUMENT],
+    ["--setplan",          GetoptLong::REQUIRED_ARGUMENT],
+    ["--setplanexpirationdate", GetoptLong::REQUIRED_ARGUMENT],
+    ["--clearplanexpirationdate", GetoptLong::NO_ARGUMENT],
+    ["--setplanquantity", GetoptLong::REQUIRED_ARGUMENT],
     ["--setconsumedgears", GetoptLong::REQUIRED_ARGUMENT],
     ["--listsubaccounts",  GetoptLong::NO_ARGUMENT],
     ["--addsubaccount",    GetoptLong::REQUIRED_ARGUMENT],
@@ -545,6 +584,38 @@ if args["--setconsumedgears"]
   consumedgears = args["--setconsumedgears"].to_i
 end
 
+if args["--setplanexpirationdate"]
+  unless args["--setplanexpirationdate"] =~ /^\d{4}-\d{2}-\d{2}$/
+    $stderr.puts "ERROR: Plan expiration date must be in format yyyy-mm-dd"
+    exit 1
+  end
+  begin
+    plan_expiration_date = Date.strptime(args["--setplanexpirationdate"], '%Y-%m-%d')
+  rescue => ex
+    $stderr.puts "ERROR: Could not parse plan expiration date: #{ex.message}"
+    exit 1
+  end
+end
+
+if args["--clearplanexpirationdate"]
+  if args["--setplanexpirationdate"]
+    $stderr.puts "ERROR: You can either clear the plan expiration date or set it.  You cannot do both"
+    exit 1
+  end
+  clear_plan_expiration_date = true
+else
+  clear_plan_expiration_date = false
+end
+
+if args["--setplanquantity"]
+  unless args["--setplanquantity"] =~ /^[0-9]+$/
+    $stderr.puts "ERROR: Plan quantity must be a positive integer"
+    exit 1
+  end
+  plan_quantity = args["--setplanquantity"].to_i
+end
+
+
 if logins.empty? or args["--help"]
   usage
 end
@@ -553,6 +624,8 @@ account_to_add = args["--addsubaccount"]
 account_to_remove = args["--removesubaccount"]
 gear_size_to_add = args["--addgearsize"]
 gear_size_to_remove = args["--removegearsize"]
+plan_to_set = args["--setplan"]
+
 
 if logins.length > 1 and (account_to_add or account_to_remove)
   $stderr.puts "ERROR: Cannot use --addsubaccount or --removesubaccount with multiple logins"
@@ -669,6 +742,11 @@ logins.each do |login|
       allow_ha(user, allowha)
       changed_user = true
     end
+    
+    if plan_to_set or plan_quantity or plan_expiration_date or clear_plan_expiration_date
+      set_plan(user, plan_to_set, plan_quantity, plan_expiration_date, clear_plan_expiration_date)
+      changed_user = true
+    end
 
     if args["--listsubaccounts"]
       subaccount_list = CloudUser.where(parent_user_id: user._id) 
@@ -683,6 +761,8 @@ logins.each do |login|
     # print out the user's current settings
     puts "User #{user.login}:"
     puts "                            plan: #{user.plan_id}"
+    puts "                   plan quantity: #{user.plan_quantity}"
+    puts "            plan expiration date: #{user.plan_expiration_date}"
     puts "                consumed domains: #{user.domains.count}"
     puts "                     max domains: #{user.max_domains}"
     puts "                  consumed gears: #{user.consumed_gears}"
@@ -697,6 +777,7 @@ logins.each do |login|
     puts "private SSL certificates allowed: #{user.private_ssl_certificates}"
     puts "              inherit gear sizes: #{user.inherit_on_subaccounts.include?('gear_sizes')}"
     puts "                      HA allowed: #{user.ha}"
+
     puts 
     if args["--listsubaccounts"] and (not subaccount_list.nil?) and (not subaccount_list.empty?)
       puts "Sub Accounts: #{subaccount_list.length}"

@@ -31,6 +31,8 @@ class CloudUser
   field :parent_user_id, type: Moped::BSON::ObjectId
   field :plan_id, type: String
   field :plan_state, type: String
+  field :plan_expiration_date, type: Date, default: nil
+  field :plan_quantity, type: Integer, default: 1
   field :pending_plan_id, type: String
   field :pending_plan_uptime, type: Time
   field :plan_history, type: Array, default: []
@@ -462,6 +464,15 @@ class CloudUser
     # will need to reload from primary to ensure that mongoid doesn't validate based on its cache
     # and prevent us from deleting this user because of the :dependent :restrict clause
     self.reload.delete
+  end
+  
+  #updates user's plan_id
+  def update_plan(plan_id, plan_quantity=1)
+    Lock.run_in_user_lock(self) do
+      self.plan_id = plan_id
+      self.plan_quantity = plan_quantity
+      self.save!
+    end
   end
 
   # Runs all pending jobs and stops at the first failure.

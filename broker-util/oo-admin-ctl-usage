@@ -109,9 +109,9 @@ end
 
 # Cache user_id->login, billing a/c# info
 def populate_user_info
-  $session[:cloud_users].find.select(login: 1, usage_account_id: 1, plan_history: 1).no_timeout.each do |user|
+  $session[:cloud_users].find.select(login: 1, usage_account_id: 1, plan_history: 1, plan_id: 1).no_timeout.each do |user|
     $user_info_cache[user['_id'].to_s] = { 'login' => user['login'], 'acct_no' => user['usage_account_id'],
-                                           'plan_history' => user['plan_history'] }
+                                           'plan_history' => user['plan_history'], 'plan_id' =>  user['plan_id']}
   end
 end
 
@@ -121,6 +121,7 @@ def set_user_info(urec)
     urec['login'] = $user_info_cache[user_id]['login']
     urec['acct_no'] = $user_info_cache[user_id]['acct_no']
     urec['plan_history'] = $user_info_cache[user_id]['plan_history']
+    urec['plan_id'] = $user_info_cache[user_id]['plan_id']
   else
     user_obj = $session[:cloud_users].find(_id: urec['user_id']).select(login: 1).first
     unless user_obj
