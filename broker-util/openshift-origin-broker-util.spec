@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.24.2
+Version: 1.24.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,11 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
+- Moved srec deletetion to billing plugin (lnader@redhat.com)
+- added -clearplanexpirationdate (lnader@redhat.com)
+- Annual Online SKU Support (lnader@redhat.com)
+
 * Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
 - mass bumpspec to fix tags (admiller@redhat.com)
 
