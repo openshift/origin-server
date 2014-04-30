@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.24.2
+Version: 1.24.3
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -516,6 +516,9 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
+- add cmake/cmake28 to diy-optional dependencies (admiller@redhat.com)
+
 * Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
 - mass bumpspec to fix tags (admiller@redhat.com)
 
