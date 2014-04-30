@@ -44,7 +44,7 @@ class CartridgeTypesController < ConsoleController
     application = Application.find(params[:application_id], :as => current_user)
     cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.cached.find(name)
 
-    render :inline => gear_increase_indicator({'1' => [cartridge_type]}, application.scales?, gear_size, true, application.domain.capabilities, application.owner?)
+    render :inline => gear_increase_indicator({'1' => [cartridge_type]}, application.scales?, gear_size, true, application.domain.capabilities, application.domain.usage_rates, application.owner?)
   rescue => e
     render :inline => e.message, :status => 500
   end

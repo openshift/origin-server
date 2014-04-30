@@ -1,14 +1,14 @@
 module Console::CostHelper
-  def gear_increase_indicator(cartridges, scales, gear_type, existing, capabilities, yours)
+  def gear_increase_indicator(cartridges, scales, gear_type, existing, capabilities, usage_rates, yours)
     range = scales ? gear_estimate_for_scaled_app(cartridges) : (existing ? 0..0 : 1..1)
     min = range.begin
     max = range.end
     increasing = (min > 0 || max > 0)
     owner = yours ? "your" : "the domain owner's"
     cost, title =
-      if gear_increase_cost(min, capabilities)
+      if gear_increase_cost(min, capabilities, usage_rates)
         [true, "This will add #{pluralize(min, 'gear')} to #{owner} account and will result in additional charges."]
-      elsif gear_increase_cost(max, capabilities)
+      elsif gear_increase_cost(max, capabilities, usage_rates)
         [true, "This will add at least #{pluralize(min, 'gear')} to #{owner} account and may result in additional charges."]
       elsif !increasing
         [false, "No gears will be added to #{owner} account."]
@@ -19,11 +19,11 @@ module Console::CostHelper
       else
         [false, "This will add #{pluralize(min, 'gear')} to #{owner} account."]
       end
-    if cartridges_premium(cartridges)
+    if cartridges_premium(cartridges, usage_rates)
       cost = true
       title = "#{title} Additional charges may be accrued for premium cartridges."
     end
-    if increasing && gear_types_with_cost.include?(gear_type)
+    if increasing && gear_types_with_cost(usage_rates).include?(gear_type)
       cost = true
       title = "#{title} The selected gear type will have additional hourly charges."
     end
@@ -43,10 +43,6 @@ module Console::CostHelper
       :class => 'indicator-gear-increase',
       :title => title,
     )
-  end
-
-  def cartridges_premium(cartridges)
-    return cartridges.any?{ |(_, carts)| carts.any?{ |c| c.usage_rates.present? } } if cartridges.is_a? Hash
   end
 
   def gear_estimate_for_scaled_app(cartridges)
