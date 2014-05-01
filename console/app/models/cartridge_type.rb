@@ -33,6 +33,9 @@ class CartridgeType < RestApi::Base
   def initialize(attributes={},persisted=false)
     attributes = attributes.with_indifferent_access
     name = attributes['name'].presence || attributes[:name].presence
+    if attributes[:url]
+      attributes[:url] = self.normalize_url(attributes[:url])
+    end
     if name
       defaults = self.class.defaults(name)
       defaults.keys.each{ |k| attributes.delete(k) if attributes[k].blank? }
@@ -207,8 +210,19 @@ class CartridgeType < RestApi::Base
     display_name <=> other.display_name
   end
 
+  def self.normalize_url(url)
+    return nil if url.blank?
+
+    scheme = URI.parse(url).scheme
+    return nil if scheme =~ /javascript/
+    return "http://#{url}" if scheme.blank?
+    return url
+  rescue
+    nil
+  end
+
   def self.for_url(url)
-    new({:url => url}, true)
+    new({:url => normalize_url(url)}, true)
   end
 
   def self.embedded(*arguments)
