@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.23.10
+Version: 1.23.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 01 2014 Adam Miller <admiller@redhat.com> 1.23.11-1
+- Making the domain_op complete? method more robust (abhgupta@redhat.com)
+
 * Mon Apr 21 2014 Adam Miller <admiller@redhat.com> 1.23.10-1
 - Add run_jobs tests, fix timeout query (jliggitt@redhat.com)
 - Make mongo updates more readable and reusable, externalize retry constants
