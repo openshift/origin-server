@@ -1,6 +1,4 @@
 #!/bin/sh -e
-/usr/bin/centos-ruby-prepare
-
 mkdir -p ~/.openshift
 cp /tmp/src/broker/misc/docker_broker_plugins.rb ~/.openshift/broker_plugins.rb
 mkdir -p /etc/openshift
@@ -12,3 +10,5 @@ cp /tmp/src/plugins/msg-broker/mcollective/conf/openshift-origin-msg-broker-mcol
 cp /tmp/src/broker-util/oo-* /usr/sbin/
 chmod 750 /usr/sbin/oo-*
 cp /tmp/src/broker-util/lib/* /opt/rh/ruby193/root/usr/share/ruby/
+
+exec centos-ruby-prepare
