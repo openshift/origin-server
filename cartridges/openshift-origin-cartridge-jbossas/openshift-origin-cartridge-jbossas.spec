@@ -17,6 +17,7 @@ Requires:      java-1.7.0-openjdk
 Requires:      java-1.7.0-openjdk-devel
 Requires:      jboss-as7-modules >= %{jbossver}
 Requires:      bc
+Requires:      jboss-openshift-metrics-module
 %if 0%{?rhel}
 Requires:      jboss-as7 >= %{jbossver}
 Requires:      maven3
@@ -76,6 +77,10 @@ alternatives --set jbossas-7 /usr/share/jboss-as
 mkdir -p /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main
 ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main
 cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main/module.xml
+
+# link in the metrics module
+mkdir -p /etc/alternatives/jbossas-7/modules/com/openshift
+ln -fs /usr/share/openshift/jboss/modules/com/openshift/metrics /etc/alternatives/jbossas-7/modules/com/openshift/metrics
 
 %postun
 # Cleanup alternatives if uninstall only
