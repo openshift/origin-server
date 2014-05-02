@@ -201,6 +201,13 @@ class Command
           else
             puts "ERROR: Command \"#{command}\" not available for \"#{object_type}\""
           end
+          if team.invalid?
+            err_msgs = []
+            team.errors.each do |key, message|
+              err_msgs.push(message)
+            end
+            raise OpenShift::UserException.new(err_msgs.join(" "))
+          end
           team.save!
           team.run_jobs
         end
@@ -209,6 +216,9 @@ class Command
     0
   rescue ArgumentError
     warn $!
+    1
+  rescue OpenShift::UserException => ex
+    puts "ERROR: Failed to sync-from-file \"#{options.in_file}\": #{ex.message}"
     1
   rescue => e
     exception e, "Failed to sync-from-file \"#{options.in_file}\""
@@ -294,6 +304,13 @@ class Command
           next
         end
       end
+      if team.invalid?
+        err_msgs = []
+        team.errors.each do |key, message|
+          err_msgs.push(message)
+        end
+        raise OpenShift::UserException.new(err_msgs.join(" "))
+      end
       team.save!
       team.run_jobs
     end
@@ -301,8 +318,11 @@ class Command
   rescue ArgumentError
     warn $!
     1
+  rescue OpenShift::UserException => ex
+    puts "ERROR: Failed to sync: #{ex.message}"
+    1
   rescue => e
-    exception e, "Failed to sync groups #{options.groups}"
+    exception e, "Failed to sync: #{e.message}}"
     1
   end
 
