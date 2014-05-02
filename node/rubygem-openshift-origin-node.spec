@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.24.4
+Version: 1.24.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri May 02 2014 Adam Miller <admiller@redhat.com> 1.24.5-1
+- rhcsh: Fix quota check if quotas disabled (miciah.masters@gmail.com)
+
 * Tue Apr 29 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
 - Bug 1092077 - Adding comment for the default PLATFORM_LOG_CLASS.
   (bleanhar@redhat.com)
