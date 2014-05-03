@@ -235,7 +235,9 @@ class CloudUser
       "max_domains" => Rails.application.config.openshift[:default_max_domains],
       "max_gears" => Rails.application.config.openshift[:default_max_gears],
       "max_teams" => Rails.application.config.openshift[:default_max_teams],
-      "view_global_teams" => Rails.application.config.openshift[:default_view_global_teams]
+      "view_global_teams" => Rails.application.config.openshift[:default_view_global_teams],
+      "max_untracked_addtl_storage_per_gear" =>  Rails.application.config.openshift[:default_max_untracked_addtl_storage_per_gear],
+      "max_tracked_addtl_storage_per_gear" =>  Rails.application.config.openshift[:default_max_tracked_addtl_storage_per_gear],
     }
   end
 
@@ -422,7 +424,7 @@ class CloudUser
   end
 
   def max_untracked_additional_storage
-    capabilities['max_untracked_addtl_storage_per_gear'] || 0
+    capabilities['max_untracked_addtl_storage_per_gear'] || Rails.application.config.openshift[:default_max_untracked_addtl_storage_per_gear]
   end
 
   def max_untracked_additional_storage=(m)
@@ -430,7 +432,7 @@ class CloudUser
   end
 
   def max_tracked_additional_storage
-    capabilities['max_tracked_addtl_storage_per_gear'] || 0
+    capabilities['max_tracked_addtl_storage_per_gear'] || Rails.application.config.openshift[:default_max_tracked_addtl_storage_per_gear]
   end
 
   def max_tracked_additional_storage=(m)
