@@ -25,6 +25,7 @@ Requires:      %{?scl:%scl_prefix}rubygem(activemodel)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(safe_yaml)
 Requires:      %{?scl:%scl_prefix}rubygem(bundler)
+Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 %if 0%{?rhel}
 Requires:      openshift-origin-util-scl
 %endif
