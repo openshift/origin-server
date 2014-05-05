@@ -10,6 +10,7 @@ class District
   field :available_uids, type: Array, default: []
   field :available_capacity, type: Integer
   field :active_servers_size, type: Integer
+  field :platform, type: String
   embeds_many :servers, class_name: Server.name
 
   index({:name => 1}, {:unique => true})
@@ -28,14 +29,14 @@ class District
     name
   end
 
-  def self.create_district(name, gear_size=nil)
+  def self.create_district(name, gear_size=nil, platform="Linux")
     unless Rails.configuration.msg_broker[:districts][:enabled]
       raise OpenShift::OOException.new("District creation disabled by the platform.")
     end
     if District.where(name: District.check_name!(name)).exists?
       raise OpenShift::OOException.new("District by name #{name} already exists")
     end
-    dist = District.new(name: name, gear_size: gear_size)
+    dist = District.new({name: name, platform: platform}, gear_size: gear_size)
   end
 
   def self.find_by_name(name)
