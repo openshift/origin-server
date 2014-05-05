@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.21.2
+Version: 1.21.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -49,6 +49,9 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- bz1092161 - conditionally stop jenkins service (admiller@redhat.com)
+
 * Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
 - mass bumpspec to fix tags (admiller@redhat.com)
 
