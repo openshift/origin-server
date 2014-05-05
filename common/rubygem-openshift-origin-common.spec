@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.23.2
+Version: 1.23.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -121,6 +121,11 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
+- Merge pull request #5138 from Miciah/rubygem-openshift-origin-common-require-
+  parseconfig (dmcphers+openshiftbot@redhat.com)
+- rubygem-openshift-origin-common: Req. parseconfig (miciah.masters@gmail.com)
+
 * Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
 - mass bumpspec to fix tags (admiller@redhat.com)
 
