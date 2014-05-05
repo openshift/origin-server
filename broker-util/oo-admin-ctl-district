@@ -35,6 +35,8 @@ Options:
     Zone within the region. Only valid when region is specified
 -s|--size
     Amount of capacity to add or remove (positive number) (required)
+-o|--platform
+    Specify the platform of the district, default value is Linux
 -b|--bypass
     Ignore warnings
 -h|--help
@@ -76,6 +78,7 @@ opts = GetoptLong.new(
     ["--region",           "-r", GetoptLong::REQUIRED_ARGUMENT],
     ["--zone",             "-z", GetoptLong::REQUIRED_ARGUMENT],
     ["--size",             "-s", GetoptLong::REQUIRED_ARGUMENT],
+    ["--platform",         "-o", GetoptLong::REQUIRED_ARGUMENT],
     ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
@@ -103,6 +106,8 @@ zone     = args['--zone']
 size     = args['--size'] ? args['--size'].to_i : nil
 bypass   = args['--bypass']
 node_profile = args['--node_profile']
+platform = args['--platform'] ? args['--platform']:"Linux"
+
 
 if !command && (args.length > 0)
   puts "Error: --command is required with any arguments"
@@ -205,7 +210,14 @@ begin
         reply.exitcode = 1
       end
     end
-    collate_errors(server_identity, reply) {|server| district.add_node(server, region, zone) }
+    collate_errors(server_identity, reply) do |server|
+      kernel = OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("kernel", server) {|_, _|}
+      if kernel.casecmp(district.attributes["platform"]) == 0
+        district.add_node(server, region, zone)
+      else
+        reply.resultIO << "Cannot add a node with platform '#{kernel}' to a district with platform '#{district.attributes["platform"]}'"
+      end
+    end
   when "set-region"
     collate_errors(server_identity, reply) {|server| district.set_region(server, region, zone) }
   when "unset-region"
@@ -236,11 +248,15 @@ begin
       end
     end
   when "create"
-    default_gear_size = Rails.application.config.openshift[:default_gear_size]
-    puts "node_profile not specified.  Using default: #{default_gear_size}" unless node_profile
-    district = District::create_district(name, node_profile)
-    uuid = district.uuid
-    reply.resultIO << "Successfully created district: #{district.uuid}" if reply.resultIO.string.empty?
+    if Rails.application.config.openshift[:node_platforms].include? platform.downcase
+      default_gear_size = Rails.application.config.openshift[:default_gear_size]
+      puts "node_profile not specified.  Using default: #{default_gear_size}" unless node_profile
+      district = District::create_district(name, node_profile, platform.downcase)
+      uuid = district.uuid
+      reply.resultIO << "Successfully created district: #{district.uuid}" if reply.resultIO.string.empty?
+    else
+      reply.resultIO << "The specified platform does not exist in the configuration file"
+    end
   when "destroy"
     unless bypass
       puts <<-WARNING
