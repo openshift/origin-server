@@ -97,7 +97,7 @@ action "cartridge_do", :description => "run a cartridge action" do
     input :args,
         :prompt         => "Args",
         :description    => "Args to pass to cartridge",
-        :type           => :any,
+        :type           => :cartridge_payload,
         :optional       => true
 
     output  :time,
@@ -133,6 +133,7 @@ end
 
 action "execute_parallel", :description => "run commands in parallel" do
     display :always
+
     output  :output,
             :description => "Output from script",
             :display_as => "Output"
@@ -192,10 +193,8 @@ action "set_district", :description => "Set the District of a Node" do
     input :uuid,
         :prompt         => "District uuid",
         :description    => "District uuid",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
+        :type           => :uuid,
+        :optional       => false
 
     input :active,
         :prompt         => "District active boolean",
@@ -262,10 +261,8 @@ action "has_gear", :description => "Does this server contain a specified gear?" 
     input :uuid,
         :prompt         => "Gear uuid",
         :description    => "Gear uuid",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
+        :type           => :uuid,
+        :optional       => false
 
     output  :time,
             :description => "The time as a message",
@@ -286,10 +283,8 @@ action "has_embedded_app", :description => "Does this server contain a specified
     input :uuid,
         :prompt         => "Application uuid",
         :description    => "Application uuid",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
+        :type           => :uuid,
+        :optional       => false
 
     input :embedded_type,
         :prompt         => "Embedded Type",
@@ -318,10 +313,8 @@ action "get_gear_envs", :description => "Returns the gear's env hash" do
     input :uuid,
         :prompt         => "Application uuid",
         :description    => "Application uuid",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
+        :type           => :uuid,
+        :optional       => false
 
     output  :time,
             :description => "The time as a message",
@@ -342,10 +335,8 @@ action "get_gear_uid", :description => "Returns uid for the given gear uuid" do
     input :gear_uuid,
         :prompt         => "Gear uuid",
         :description    => "Gear uuid",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
+        :type           => :uuid,
+        :optional       => false
 
     output  :time,
             :description => "The time as a message",
@@ -388,18 +379,14 @@ action "has_app_cartridge", :description => "Does this application contain the s
     input :app_uuid,
         :prompt         => "Application uuid",
         :description    => "Application uuid",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
+        :type           => :uuid,
+        :optional       => false
 
     input :gear_uuid,
         :prompt         => "Gear uuid",
         :description    => "Gear uuid",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
+        :type           => :uuid,
+        :optional       => false
 
     input :cartridge,
         :prompt         => "Cartridge",
@@ -491,18 +478,14 @@ action "upgrade", :description => "upgrade a gear" do
     input :uuid,
         :prompt         => "Gear uuid",
         :description    => "Gear uuid",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
+        :type           => :uuid,
+        :optional       => false
 
     input :app_uuid,
         :prompt         => "Application uuid",
         :description    => "Application uuid",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
+        :type           => :uuid,
+        :optional       => false
 
     input :namespace,
         :prompt         => "Namespace",

@@ -30,8 +30,13 @@ mkdir -p %{buildroot}%{mco_root}agent
 cp -p agent/* %{buildroot}%{mco_root}agent/
 chmod 644 %{buildroot}%{mco_root}agent/*
 
+mkdir -p %{buildroot}%{mco_root}validator
+cp -p validator/* %{buildroot}%{mco_root}validator/
+chmod 644 %{buildroot}%{mco_root}validator/*
+
 %files
 %{mco_root}agent/*
+%{mco_root}validator/*
 
 %changelog
 * Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.19.4-1

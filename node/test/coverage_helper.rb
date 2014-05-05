@@ -17,9 +17,14 @@ SimpleCov.start do
   add_group 'Models', 'lib/openshift-origin-node/model'
   add_group 'Plugins', 'lib/openshift-origin-node/plugins'
   add_group 'Utils', 'lib/openshift-origin-node/utils'
+  add_group 'Agent', '../../plugins/msg-node/mcollective/src'
 
   # Filters - these files will be ignored.
-  add_filter '/test/'
+  filters.clear # This will remove the :root_filter that comes via simplecov's defaults
+  add_filter do |src|
+    !(src.filename =~ /^#{SimpleCov.root}/) unless src.filename =~ /msg-node/ || src.filename =~ /test/
+  end
+  #add_filter '/test/'
 
   merge_timeout 1000
 end
