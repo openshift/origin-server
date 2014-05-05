@@ -88,9 +88,9 @@ function stop {
 
 function status {
   if is_running; then
-    client_result "MariaDB is running" 
+    client_result "MariaDB is running"
   else
-    client_result "MariaDB is stopped" 
+    client_result "MariaDB is stopped"
   fi
 
   exit 0
@@ -117,6 +117,11 @@ function pre_snapshot {
     warning "Couldn't not dump mariadb! Continuing anyway"
     /bin/rm -rf $OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz
   }
+
+  if ! [ -s $OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz ]; then
+    warning "Insufficient disk space to dump mariadb! Continuing anyway"
+    /bin/rm -rf $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
+  fi
 
   stop
 }
@@ -229,7 +234,7 @@ function tidy() {
   shopt -s dotglob
   rm -rf $OPENSHIFT_LOG_DIR/mariadb.log*
 }
-  
+
 case "$1" in
   start)
     start
