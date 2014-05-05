@@ -55,7 +55,7 @@ function start {
 
     echo "Postgres started"
   else
-    if wait_for_postgres_availability; then    
+    if wait_for_postgres_availability; then
       echo "Postgres already running"
     else
       error "Could not start Postgres" 70
@@ -107,6 +107,11 @@ function pre_snapshot {
   then
     warning "WARNING!  Could not dump Postgres databases!  Continuing anyway"
     rm -f $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz
+  fi
+
+  if ! [ -s $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz ]; then
+    warning "Insufficient disk space to dump Postgres! Continuing anyway"
+    /bin/rm -rf $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
   fi
 
   stop
@@ -166,7 +171,7 @@ function post_restore {
     fi
 
     # Rename old database
-    if [ ${old_db} != ${new_db} ] 
+    if [ ${old_db} != ${new_db} ]
     then
       {
         echo "
@@ -174,7 +179,7 @@ function post_restore {
         " | postgresql_context "psql -U postgres -d postgres"
       } || error "Failed to rename database" 187
     fi
-	
+
     {
       # We want to change the default old user in case the app has its own users
       # We also need to check the UID because v1 creates tables owned by the user
