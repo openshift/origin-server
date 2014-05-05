@@ -28,6 +28,7 @@ Requires:      jbossas-welcome-content-eap
 Requires:      jboss-eap6-modules
 Requires:      jboss-eap6-index
 Requires:      bc
+Requires:      jboss-openshift-metrics-module
 %if 0%{?rhel}
 Requires:      maven3
 %endif
@@ -79,6 +80,10 @@ cp -p %{cartridgedir}/versions/shared/modules/postgresql_module.xml /etc/alterna
 mkdir -p /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main
 ln -fs /usr/share/java/mysql-connector-java.jar /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main
 cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main/module.xml
+
+# link in the metrics module
+mkdir -p /etc/alternatives/jbosseap-6/modules/com/openshift
+ln -fs /usr/share/openshift/jboss/modules/com/openshift/metrics /etc/alternatives/jbosseap-6/modules/com/openshift/metrics
 
 %files
 %dir %{cartridgedir}
