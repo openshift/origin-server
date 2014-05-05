@@ -53,7 +53,9 @@ def load_env(directory):
             continue
 
         with open(entry, 'r') as file:
-            os.environ[env] = file.read().rstrip()
+            contents = file.read().rstrip()
+            # unicodedata.normalize doesn't remove null's which are illegal in environment variables re: python
+            os.environ[env] = ''.join(contents.split('\0'))
 
 
 def gear_env():
@@ -147,14 +149,14 @@ def read_config():
   return config
 
 #  There are two possible command sources:
-#  
+#
 #  1) authenticate with SSH public key, and key has command= section
 #     Get command and args from SSH_ORIGINAL_COMMAND
 #  2) Authenticate with other means (Kerberos or ...)
 #     Get command and args from sys.argv
 #
 # Three possible command conditions exist
-# 
+#
 #  1) user did not specify a remote command to execute
 #     use rhcsh
 #  2) user specified a command which is in commands_map
@@ -179,7 +181,7 @@ if __name__ == '__main__':
         #syslog.syslog(syslog.LOG_DEBUG, "orig_cmd: " + orig_cmd)
         allargs = orig_cmd.split() if orig_cmd else []
     else:
-        # use the command passed by the user through SSH 
+        # use the command passed by the user through SSH
         # be careful not to recurse (ssh adds $SHELL -c)
         allargs = sys.argv
 
@@ -187,7 +189,7 @@ if __name__ == '__main__':
         # the final command is a SINGLE string
         #syslog.syslog(syslog.LOG_DEBUG, "allargs: " + str(allargs))
         allargs = allargs[2].split()
-    
+
     if allargs == ['/usr/bin/oo-trap-user'] or allargs == []:
         # no command, avoid recursion, drop to shell
         #syslog.syslog(syslog.LOG_DEBUG, "no command: drop to rhcsh")
@@ -204,7 +206,7 @@ if __name__ == '__main__':
         #syslog.syslog(syslog.LOG_DEBUG, "cmd = " + cmd)
     except:
         # Catch all, just run the command as is via bash.
-        #syslog.syslog(syslog.LOG_DEBUG, 
+        #syslog.syslog(syslog.LOG_DEBUG,
         #              "executing command with bash: " + ' '.join(allargs))
         cmd = "/bin/bash"
         str = ' '.join(allargs)
