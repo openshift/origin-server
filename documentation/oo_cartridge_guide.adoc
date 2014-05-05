@@ -1074,7 +1074,7 @@ source 'https://rubygems.org'
 with
 +
 ....
-source 'http://mirror.ops.rhcloud.com/mirror/ruby/'
+source 'https://mirror.openshift.com/'
 ....
 . Edit your Gemfile.lock and replace
 +
@@ -1085,7 +1085,7 @@ remote: https://rubygems.org/
 with
 +
 ....
-remote: http://mirror.ops.rhcloud.com/mirror/ruby/
+remote: https://mirror.openshift.com/
 ....
 
 === Rails 3.0
