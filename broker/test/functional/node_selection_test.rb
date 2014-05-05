@@ -19,6 +19,9 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     @@proxy_cart_name = haproxy.name
     @@proxy_comp_name = haproxy.components.first.name
     @@group_overrides = [GroupOverride.new([ComponentOverrideSpec.new(haproxy.to_component_spec, nil, nil, 1)], [ComponentOverrideSpec.new(php.to_component_spec, nil, nil, 1)])]
+    
+    # use this to toggle the response from the node selector plugin
+    @@reurn_invalid_node = false
   end
 
   def self.select_best_fit_node_impl(node_list, app_props, current_gears, comp_list, user_props, request_time)
@@ -43,7 +46,11 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
 
     raise Exception.new("Request time not specified") if request_time.nil?
 
-    return NodeProperties.new("serverid")
+    if @@reurn_invalid_node
+      return "serverid"
+    else
+      return node_list[0]
+    end
   end
 
   test "external node selection plugin" do
@@ -65,8 +72,20 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     app.component_instances.push ci
     app.save
 
+    # test the regular code path
     p = OpenShift::ApplicationContainerProxy.find_available(:node_profile => "small", :gear => new_gear)
-    assert p.id == "serverid", "The expected node was not returned"
+    assert p.id == @@server_id, "The expected node was not returned"
+    
+    # force the plugin to return an invalid node
+    @@reurn_invalid_node = true
+    begin
+      p = OpenShift::ApplicationContainerProxy.find_available(:node_profile => "small", :gear => new_gear)
+      assert true, "The exception was not raised even though the node selector plugin returned an invalid node: #{p.id}"
+    rescue OpenShift::InvalidNodeException
+      assert true, "The expected exception was raised when forcing the node selector plugin to return an invalid node"
+    rescue Exception => ex
+      assert false, "An unexpected exception was raised when forcing the node selector plugin to return an invalid node"
+    end
   end
 
   test "default node selection plugin" do
@@ -140,6 +159,9 @@ class NodeSelectionPluginTest < ActiveSupport::TestCase
     CloudUser.where(login: @@login).delete
     Domain.where(canonical_namespace: @@namespace).delete
     Application.where(domain_namespace: @@namespace, canonical_name: @@appname).delete
+    
+    # reset the flag back to false
+    @@reurn_invalid_node = false
   end
 
 end
