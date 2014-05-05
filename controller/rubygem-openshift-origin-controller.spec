@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.24.5
+Version: 1.24.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.24.6-1
+- Add support for multiple platforms to districts
+  (daniel.carabas@uhurusoftware.com)
+- Bug 1091044 (lnader@redhat.com)
+
 * Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 1.24.5-1
 - Annual Online SKU Support (lnader@redhat.com)
 - Making the domain_op complete? method more robust (abhgupta@redhat.com)
