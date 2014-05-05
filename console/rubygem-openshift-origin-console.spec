@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.24.3
+Version: 1.24.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
+- Update API version to 1.7 (jliggitt@redhat.com)
+
 * Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
 - Fix call to gear_increase_indicator (jliggitt@redhat.com)
 - Add plan attributes (jliggitt@redhat.com)
