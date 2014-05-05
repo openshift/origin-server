@@ -455,6 +455,7 @@ class AccessControlledTest < ActiveSupport::TestCase
         :change_gear_quota => [false, false, true],
         :ssh_to_gears      => [false, false, true],
         :scale_cartridge   => [false, true,  true],
+        :change_state      => [false, true,  true]
       }
       allows.each_pair do |p, expect|
         apps.zip(expect).each do |(a, bool)|
@@ -469,6 +470,7 @@ class AccessControlledTest < ActiveSupport::TestCase
         :change_gear_quota => [true, true, true],
         :ssh_to_gears      => [true, true, true],
         :scale_cartridge   => [true, true, true],
+        :change_state      => [true, true, true]
       }
       allows.each_pair do |p, expect|
         apps.zip(expect).each do |(a, bool)|
