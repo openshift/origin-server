@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.24.5
+Version: 1.24.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,17 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue May 06 2014 Troy Dawson <tdawson@redhat.com> 1.24.6-1
+- Merge pull request #5380 from jwhonce/bug/1093197
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5379 from mrunalp/bug/1052302
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1083197 - remove NULL's from environment variables (jhonce@redhat.com)
+- Bug 1052302: Add windowMemory setting for git repos. (mrunalp@gmail.com)
+- Merge pull request #5375 from ironcladlou/scalable-unidling
+  (dmcphers+openshiftbot@redhat.com)
+- Support unidling scalable apps (ironcladlou@gmail.com)
+
 * Fri May 02 2014 Adam Miller <admiller@redhat.com> 1.24.5-1
 - rhcsh: Fix quota check if quotas disabled (miciah.masters@gmail.com)
 
