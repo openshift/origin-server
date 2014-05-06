@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 1.24.3
+Version: 1.24.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -95,6 +95,10 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue May 06 2014 Troy Dawson <tdawson@redhat.com> 1.24.4-1
+- Bug 1092635 - Assume zero-byte dump file is quota error and report
+  (jhonce@redhat.com)
+
 * Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
 - Sanity check security and improve pg_hba.conf in Postgres cartridge
   (bparees@redhat.com)
