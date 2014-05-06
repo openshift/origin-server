@@ -149,7 +149,7 @@ class Team
           # hence, reloading the domain, and then fetching the op using the op_id stored earlier
           self.reload
           op = self.pending_ops.find_by(_id: op_id)
-  
+
           op.close_op
           op.delete if op.completed?
         rescue Exception => op_ex
@@ -182,5 +182,5 @@ class Team
     def run_jobs_max_retries;    10;    end
     def run_jobs_retry_sleep;    5;     end
     def run_jobs_queued_timeout; 30*60; end
-  
+
 end
