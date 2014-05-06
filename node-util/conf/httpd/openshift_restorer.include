@@ -1,0 +1,10 @@
+LoadModule perl_module modules/mod_perl.so
+
+<Location /restorer/>
+  SetHandler modperl
+  PerlOptions +GlobalRequest
+  PerlResponseHandler OpenShift::Restorer
+  Options +ExecCGI
+  Order allow,deny
+  Allow from all
+</Location>
