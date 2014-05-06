@@ -53,11 +53,14 @@ mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 mkdir -p %{buildroot}/%{_localstatedir}/www/html/
 mkdir -p %{buildroot}%{_mandir}/man8/
+mkdir -p %{buildroot}/%{_sysconfdir}/sysconfig
+
 
 cp -p conf/oddjob/openshift-restorer.conf %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 cp -p conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 cp -p www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
 cp -p www/html/health.txt %{buildroot}/%{_localstatedir}/www/html/
+cp -p conf/sysconfig/watchman %{buildroot}/%{_sysconfdir}/sysconfig
 
 cp -p man8/*.8 %{buildroot}%{_mandir}/man8/
 
@@ -146,6 +149,7 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf
 %attr(0644,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf
+%attr(0644,-,-) %config(noreplace) %{_sysconfdir}/sysconfig/watchman
 
 %{_localstatedir}/www/html/restorer.php
 %{_localstatedir}/www/html/health.txt
