@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.24.6
+Version: 1.24.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue May 06 2014 Troy Dawson <tdawson@redhat.com> 1.24.7-1
+- Merge pull request #5375 from ironcladlou/scalable-unidling
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1093804: Validating the node returned by the gear-placement plugin
+  (abhgupta@redhat.com)
+- Support unidling scalable apps (ironcladlou@gmail.com)
+
 * Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.24.6-1
 - Add support for multiple platforms to districts
   (daniel.carabas@uhurusoftware.com)
