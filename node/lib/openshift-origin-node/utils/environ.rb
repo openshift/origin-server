@@ -108,8 +108,10 @@ module OpenShift
               next unless File.file? file
 
               begin
-                contents = IO.read(file).chomp
-                env[File.basename(file)] = contents
+                contents                 = IO.read(file).chomp
+
+                # String.encode doesn't remove null's which are illegal in environment variables re: ruby
+                env[File.basename(file)] = contents.gsub(/\0/, '')
               rescue => e
                 msg = "Failed to process: #{file}"
                 msg << " [#{contents}]" unless contents.nil?
