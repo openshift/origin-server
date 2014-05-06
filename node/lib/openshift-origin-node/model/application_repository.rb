@@ -327,6 +327,7 @@ git config core.logAllRefUpdates true;
 set -xe;
 git clone --bare --no-hardlinks template <%= @application_name %>.git;
 GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
+GIT_DIR=./<%= @application_name %>.git git config pack.windowMemory "200m";
 GIT_DIR=./<%= @application_name %>.git git repack;
 }
 
