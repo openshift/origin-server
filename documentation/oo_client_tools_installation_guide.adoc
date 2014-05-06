@@ -92,16 +92,10 @@ $ rhc -v
 ----
 
 == Fedora
-To install on Fedora 16 or above, the most reliable solution is to use RubyGems.
+To install on Fedora 19 or above, you can install by yum command.
 
 ----
-$ sudo yum install rubygems
-----
-
-After installing RubyGems, use it to install the OpenShift Origin client tools:
-
-----
-$ sudo gem install rhc
+$ sudo yum install rubygem-rhc
 ----
 
 You will also need to install Git if it is not already installed:
