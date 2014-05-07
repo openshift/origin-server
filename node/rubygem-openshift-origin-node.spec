@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.24.6
+Version: 1.24.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed May 07 2014 Troy Dawson <tdawson@redhat.com> 1.24.7-1
+- Bug 1094541 - check for null values (lnader@redhat.com)
+- Merge pull request #5383 from jwhonce/bug/1091433
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1091433 - Add setting to detune GearStatePlugin (jhonce@redhat.com)
+
 * Tue May 06 2014 Troy Dawson <tdawson@redhat.com> 1.24.6-1
 - Merge pull request #5380 from jwhonce/bug/1093197
   (dmcphers+openshiftbot@redhat.com)
