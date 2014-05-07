@@ -4,7 +4,7 @@ module Console::ErrorsHelper
     if messages.present?
       flashes = {}
       messages.each do |message|
-        text = (message[:text] || message.text).byteslice(0, 4 * 1024)
+        text = (message[:text] || message.text).byteslice(0, 2 * 1024)
         if !defined?(message.severity) || !message.severity || message.severity == 'info'
           flashes[:success] = text
         else
