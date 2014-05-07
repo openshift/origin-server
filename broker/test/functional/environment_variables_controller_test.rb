@@ -91,6 +91,9 @@ class EnvironmentVariablesControllerTest < ActionController::TestCase
 
     post :create, {"name" => "foo", "value" => "bar\255", "application_id" => @app._id}
     assert_response :bad_request
+    
+    post :create, {"name" => "foo", "value" => "\\000TEST", "application_id" => @app._id}
+    assert_response :unprocessable_entity
 
   end
 
