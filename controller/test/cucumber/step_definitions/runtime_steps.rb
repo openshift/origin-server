@@ -337,13 +337,15 @@ Then /^a (.+) process will( not)? be running$/ do | proc_name, negate |
   exit_test = negate ? lambda { |tval| tval == 0 } : lambda { |tval| tval > 0 }
   exit_test_desc = negate ? "0" : ">0"
 
-  num_node_processes = num_procs @gear.uuid, proc_name
+  uuid = current_test_app_uuid
+
+  num_node_processes = num_procs uuid, proc_name
   $logger.info("Expecting #{exit_test_desc} pid(s) named #{proc_name}, found #{num_node_processes}")
   OpenShift::timeout(20) do
     while (not exit_test.call(num_node_processes))
       $logger.info("Waiting for #{proc_name} process count to be #{exit_test_desc}")
       sleep 1 
-      num_node_processes = num_procs @gear.uuid, proc_name
+      num_node_processes = num_procs uuid, proc_name
     end
   end
 
@@ -363,13 +365,15 @@ Then /^a (.+) process for ([^ ]+) will( not)? be running$/ do | proc_name, label
   exit_test = negate ? lambda { |tval| tval == 0 } : lambda { |tval| tval > 0 }
   exit_test_desc = negate ? "0" : ">0"
 
-  num_node_processes = num_procs @gear.uuid, proc_name, label
+  uuid = current_test_app_uuid
+
+  num_node_processes = num_procs uuid, proc_name, label
   $logger.info("Expecting #{exit_test_desc} pid(s) named #{proc_name}, found #{num_node_processes}")
   OpenShift::timeout(20) do
     while (not exit_test.call(num_node_processes))
       $logger.info("Waiting for #{proc_name} process count to be #{exit_test_desc}")
       sleep 1 
-      num_node_processes = num_procs @gear.uuid, proc_name, label
+      num_node_processes = num_procs uuid, proc_name, label
     end
   end
 
@@ -907,7 +911,9 @@ Then /^the ([^ ]+) cartridge status should be (running|stopped)$/ do |cart_name,
 end
 
 Then /^the application stoplock should( not)? be present$/ do |negate|
-  stop_lock = File.join($home_root, @gear.uuid, 'app-root', 'runtime', '.stop_lock')
+  uuid = current_test_app_uuid
+
+  stop_lock = File.join($home_root, uuid, 'app-root', 'runtime', '.stop_lock')
 
   if negate
     refute_file_exist stop_lock
