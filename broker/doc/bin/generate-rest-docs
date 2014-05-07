@@ -11,7 +11,7 @@ require 'yaml'
 def set_up
 
   options = {
-    :version => 1.6,
+    :version => 1.7,
     :server => "localhost",
     :username => "first.last@mycompany.com",
     :password => "password",
