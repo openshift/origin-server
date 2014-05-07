@@ -52,7 +52,7 @@ ENV OPENSHIFT_ENABLE_ENV_CONFIG 1
 ENV APP_ROOT broker
 
 # Add all necessary source from origin-server
-ADD util /usr/sbin
+ADD util-scl /usr/sbin
 ADD common /tmp/src/common
 ADD admin-console /tmp/src/admin-console
 ADD broker-util /tmp/src/broker-util
