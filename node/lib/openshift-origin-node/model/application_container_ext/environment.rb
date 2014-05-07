@@ -299,6 +299,9 @@ module OpenShift
             if value.to_s.length > USER_VARIABLE_VALUE_MAX_SIZE
               return 255, "CLIENT_ERROR: '#{name}' value exceeds maximum size of #{USER_VARIABLE_VALUE_MAX_SIZE}b\n"
             end
+            if value.to_s.include? "\\000"
+              return 255, "CLIENT_ERROR: '#{name}' value cannot contain nullsb\n"
+            end
           end
 
           variables.each_pair do |name, value|
