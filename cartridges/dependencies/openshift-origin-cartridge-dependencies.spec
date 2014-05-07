@@ -439,7 +439,6 @@ Requires:  rubygem-rugged
 Requires:  rubygem-nokogiri
 %endif
 Requires:  %{?scl_prefix}js-devel
-Requires:  %{?scl_prefix}libyaml-devel
 Requires:  %{?scl_prefix}ruby-tcltk
 Requires:  %{?scl_prefix}rubygem-actionmailer
 Requires:  %{?scl_prefix}rubygem-actionpack
