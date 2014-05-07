@@ -9,6 +9,7 @@ cp /tmp/src/plugins/dns/bind/conf/openshift-origin-dns-bind.conf.example /etc/op
 cp /tmp/src/plugins/msg-broker/mcollective/conf/openshift-origin-msg-broker-mcollective.conf.example /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
 
 # Install broker oo-* scripts
+cp /tmp/src/util-scl/oo-* /usr/sbin/
 cp /tmp/src/broker-util/oo-* /usr/sbin/
 chmod 750 /usr/sbin/oo-*
 cp /tmp/src/broker-util/lib/* /opt/rh/ruby193/root/usr/share/ruby/
