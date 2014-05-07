@@ -38,6 +38,9 @@ ENV BROKER_SOURCE 1
 # OPENSHIFT_ENABLE_ENV_CONFIG tells the broker to check for config values as environment variables before checking the broker.conf file
 ENV OPENSHIFT_ENABLE_ENV_CONFIG 1
 
+# Broker is not installed in the previous default location
+ENV OPENSHIFT_BROKER_DIR /opt/ruby/src/broker
+
 # APP_ROOT tells the prepare and run scripts where the Gemfile is located for bundler to install/exec
 ENV APP_ROOT broker
 
