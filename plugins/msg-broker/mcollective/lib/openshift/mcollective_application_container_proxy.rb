@@ -2181,6 +2181,12 @@ module OpenShift
 
         # the ApplicationContainerProxy method is used so that the node selector plugin can be invoked
         destination_container = ApplicationContainerProxy.find_available(opts)
+        
+        # check that the destination district parameter was respected
+        if destination_district_uuid.present? and destination_container.id != destination_district_uuid
+          raise OpenShift::NodeUnavailableException.new("No nodes available within the specified district", 140)
+        end
+        
         log_debug "DEBUG: Destination container: #{destination_container.id}"
         destination_district_uuid = destination_container.get_district_uuid
       else
@@ -3011,7 +3017,7 @@ module OpenShift
 
       node_profile = opts[:node_profile]
       platform = opts[:platform]
-      district_uuid = opts[:disrict_uuid]
+      district_uuid = opts[:district_uuid]
       least_preferred_servers = opts[:least_preferred_servers]
       restricted_servers = opts[:restricted_servers]
       gear = opts[:gear]
