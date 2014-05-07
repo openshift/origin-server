@@ -9,9 +9,8 @@ Version: '6'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
-Cartridge-Version: 0.0.15
-Compatible-Versions:
-- 0.0.14
+Cartridge-Version: 0.0.16
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
 - service
