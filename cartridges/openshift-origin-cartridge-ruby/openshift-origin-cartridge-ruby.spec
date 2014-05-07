@@ -33,7 +33,6 @@ Requires:      %{?scl:%scl_prefix}rubygem-fastthread
 Requires:      %{?scl:%scl_prefix}runtime
 %endif
 Requires:      %{?scl:%scl_prefix}js
-Requires:      %{?scl:%scl_prefix}libyaml
 Requires:      %{?scl:%scl_prefix}mod_passenger
 Requires:      %{?scl:%scl_prefix}ruby
 Requires:      %{?scl:%scl_prefix}ruby-libs
