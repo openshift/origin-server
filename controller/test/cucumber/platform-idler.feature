@@ -1,7 +1,7 @@
 @node_singleton
 Feature: Explicit idle/restore checks
   Scenario Outline: Idle one application
-    Given a new mock-0.1 type application
+    Given a new client created mock-0.1 application
     Then a <ruby_proc> process for mock_server will be running
     And I record the active capacity
 
@@ -15,7 +15,7 @@ Feature: Explicit idle/restore checks
       | ruby      |
 
   Scenario Outline: Restore one application
-    Given a new mock-0.1 type application
+    Given a new client created mock-0.1 application
     Then a <ruby_proc> process for mock_server will be running
     And I record the active capacity
     When I oo-idle the application
@@ -34,7 +34,7 @@ Feature: Explicit idle/restore checks
       | ruby      |
 
   Scenario Outline: Auto-restore one application
-    Given a new mock-0.1 type application
+    Given a new client created mock-0.1 application
     Then a <ruby_proc> process for mock_server will be running
     And I record the active capacity
 

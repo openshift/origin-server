@@ -22,9 +22,30 @@ $embedded_cartridge_root ||= "/usr/libexec/openshift/cartridges/embedded"
 
 $app_registry = {}
 
+# Utilities to facilitate code sharing between runtime_support
+# and app_helper based tests.
+def current_test_app_uuid
+  if defined?(@gear)
+    @gear.uuid
+  elsif defined?(@app) && @app.respond_to?(:uid)
+    @app.uid
+  else
+    raise "Neither @app nor @gear is defined"
+  end
+end
+
+def current_app_namespace
+  if defined?(@account)
+    @account.domain
+  elsif defined?(@app) && @app.respond_to?(:namespace)
+    @app.namespace
+  else
+    raise "Neither @acount nor @app is defined"
+  end
+end
+
 module OpenShift
   TIMEOUT = 120
-
 
   # Represents a user account. A name and domain will be automatically
   # generated upon init,
