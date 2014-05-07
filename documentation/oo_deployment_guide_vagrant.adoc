@@ -20,7 +20,20 @@ Here's what you will need:
 
 Once you're set up, create a working directory for yourself. Call it something like `amazing_code` or `mad_science`, because this is where you will work with Origin's source code. This working directory will also serve as the launch point for your Vagrant-based development system. Once everything is up and running, Vagrant automatically shares this directory with the VM itself.
 
-== Installing the OpenShift Vagrant Module
+== Installing the OpenShift Vagrant Plugin
+There are two ways to install the OpenShift plugin for Vagrant.
+
+=== Option 1: Just use the Ruby Gem
+If you are not interested in doing development work on the OpenShift Vagrant plugin itself, this is the easiest option. From a command prompt, run:
+
+----
+$ vagrant module install vagrant-openshift
+----
+
+Vagrant will pull the plugin down from rubygems.org and install it in the right place.
+
+=== Option 2: Build the Plugin from Source
+Building from source is only necessary if you want to modify the Vagrant OpenShift plugin itself. Otherwise just use the ruby gem as explained above.
 
 In order to make Vagrant "OpenShift-aware", you will need to install the Vagrant OpenShift plugin. Be aware that installing Vagrant plugins from a local source directory presents a http://en.wikipedia.org/wiki/Chicken_or_the_egg[Chicken and Egg] problem with Vagrant, but luckily there is a fairly easy workaround: make sure that your system `bin` directories (`/usr/bin`, `/usr/local/bin`, etc.) come _before_ your gem `bin` directories in your `$PATH` environment variable.
 
