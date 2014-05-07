@@ -1,0 +1,23 @@
+{
+  "containers":[
+    {
+      "name":"origin-broker",
+      "count":1,
+      "image":"origin-broker",
+      "publicports":[
+        {"internal":9292}
+      ],
+      "links":[
+        {"to":"origin-db"}
+      ]
+    },
+    {
+      "name":"origin-db",
+      "count":1,
+      "image":"openshift/centos-mongodb",
+      "publicports":[
+        {"internal":27017}
+      ]
+    }
+  ]
+}
