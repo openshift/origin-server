@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.24.7
+Version: 1.24.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 07 2014 Troy Dawson <tdawson@redhat.com> 1.24.8-1
+- Bug 1094541 - check for null values (lnader@redhat.com)
+- Fix formatting (dmcphers@redhat.com)
+- Bug 1094108 - show obsolete carts if ALLOW_OBSOLETE_CARTRIDGES=true
+  (lnader@redhat.com)
+
 * Tue May 06 2014 Troy Dawson <tdawson@redhat.com> 1.24.7-1
 - Merge pull request #5375 from ironcladlou/scalable-unidling
   (dmcphers+openshiftbot@redhat.com)
