@@ -36,7 +36,7 @@ class District
     if District.where(name: District.check_name!(name)).exists?
       raise OpenShift::OOException.new("District by name #{name} already exists")
     end
-    dist = District.new({name: name, platform: platform}, gear_size: gear_size)
+    dist = District.new(name: name, platform: platform, gear_size: gear_size)
   end
 
   def self.find_by_name(name)
