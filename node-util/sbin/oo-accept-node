@@ -568,7 +568,7 @@ def check_users
     if results.length == 0 ||
         results[0].split[4].to_i == 0 ||
         results[0].split[7].to_i == 0
-      user_fail(user.name, "user #{user.name} does not have quotas imposed")
+      user_fail(user.name, "user #{user.name} does not have quotas imposed. This can be addressed by running: oo-devel-node set-quota --with-container-uuid #{user.name} --blocks 1048576 --inodes 80000")
     end
   end
 end
