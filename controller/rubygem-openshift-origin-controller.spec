@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.24.8
+Version: 1.24.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 07 2014 Adam Miller <admiller@redhat.com> 1.24.9-1
+- Merge pull request #5396 from ironcladlou/scalable-unidling
+  (dmcphers+openshiftbot@redhat.com)
+- Fix idler cucumber tests (ironcladlou@gmail.com)
+- Bug 1095186 - corrected args passed to district (lnader@redhat.com)
+
 * Wed May 07 2014 Troy Dawson <tdawson@redhat.com> 1.24.8-1
 - Bug 1094541 - check for null values (lnader@redhat.com)
 - Fix formatting (dmcphers@redhat.com)
