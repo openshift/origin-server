@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.24.7
+Version: 1.24.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu May 08 2014 Adam Miller <admiller@redhat.com> 1.24.8-1
+- Prevent unwanted syslog message interpolation (ironcladlou@gmail.com)
+
 * Wed May 07 2014 Troy Dawson <tdawson@redhat.com> 1.24.7-1
 - Bug 1094541 - check for null values (lnader@redhat.com)
 - Merge pull request #5383 from jwhonce/bug/1091433
