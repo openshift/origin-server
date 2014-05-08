@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.24.4
+Version: 1.24.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 07 2014 Adam Miller <admiller@redhat.com> 1.24.5-1
+- Bug 1090984 - reduces the max size of flash messages
+  (contact@fabianofranz.com)
+
 * Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
 - Update API version to 1.7 (jliggitt@redhat.com)
 
