@@ -2181,14 +2181,15 @@ module OpenShift
 
         # the ApplicationContainerProxy method is used so that the node selector plugin can be invoked
         destination_container = ApplicationContainerProxy.find_available(opts)
-        
-        # check that the destination district parameter was respected
-        if destination_district_uuid.present? and destination_container.id != destination_district_uuid
-          raise OpenShift::NodeUnavailableException.new("No nodes available within the specified district", 140)
-        end
-        
         log_debug "DEBUG: Destination container: #{destination_container.id}"
-        destination_district_uuid = destination_container.get_district_uuid
+
+        # check that the destination district parameter was respected
+        selected_district_uuid = destination_container.get_district_uuid
+        if destination_district_uuid.present? and selected_district_uuid != destination_district_uuid
+          raise OpenShift::NodeUnavailableException.new("No nodes available within the specified district", 140)
+        else
+          destination_district_uuid = selected_district_uuid
+        end
       else
         if destination_district_uuid
           log_debug "DEBUG: Destination district uuid '#{destination_district_uuid}' is being ignored in favor of destination container #{destination_container.id}"
