@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 1.24.3
+Version: 1.24.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,9 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 07 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
+- Bump cartridge versions for STG cut (vvitek@redhat.com)
+
 * Tue May 06 2014 Troy Dawson <tdawson@redhat.com> 1.24.3-1
 - Bug 1092635 - Assume zero-byte dump file is quota error and report
   (jhonce@redhat.com)
