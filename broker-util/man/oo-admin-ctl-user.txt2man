@@ -9,6 +9,10 @@ SYNOPSIS
   [--setmaxuntrackedstorage max_untracked_storage]
   [--setmaxtrackedstorage max_tracked_storage]
   [--setmaxteams max_teams]
+  [--setplan plan_id]
+  [--setplanquantity plan_quantity]
+  [--setplanexpirationdate date]
+  [--clearplanexpirationdate]
   [--listsubaccounts] [--addsubaccount subaccount_login]
   [--removesubaccount subaccount_login] [--allowsubaccounts true|false]
   [--addgearsize gear_size] [--removegearsize gear_size]
@@ -54,6 +58,18 @@ OPTIONS
     
   --setmaxteams max_teams  
     Set the maximum number of teams a user is allowed to create.
+    
+  --setplan plan_id
+    Set the plan for the user
+    
+  --setplanquantity plan_quantity
+    Set the quantity of plan
+    
+  --setplanexpirationdate date
+    Set the plan expiration date for the user. Format yyyy-mm-dd.
+    
+  --clearplanexpirationdate 
+    Clears the plan expiration date for the user.
  
   --listsubaccounts  
     List the subaccounts that have been created under this parent account.
