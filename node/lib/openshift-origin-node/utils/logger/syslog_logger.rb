@@ -58,28 +58,33 @@ module OpenShift
         end
 
         def info(*args, &block)
-          Syslog.log(Syslog::LOG_INFO, build_entry(*args, &block))
+          dispatch(Syslog::LOG_INFO, *args, &block)
         end
 
         def debug(*args, &block)
-          Syslog.log(Syslog::LOG_DEBUG, build_entry(*args, &block))
+          dispatch(Syslog::LOG_DEBUG, *args, &block)
         end
 
         def warn(*args, &block)
-          Syslog.log(Syslog::LOG_WARNING, build_entry(*args, &block))
+          dispatch(Syslog::LOG_WARNING, *args, &block)
         end
 
         def error(*args, &block)
-          Syslog.log(Syslog::LOG_ERR, build_entry(*args, &block))
+          dispatch(Syslog::LOG_ERR, *args, &block)
         end
 
         def fatal(*args, &block)
-          Syslog.log(Syslog::LOG_CRIT, build_entry(*args, &block))
+          dispatch(Syslog::LOG_CRIT, *args, &block)
         end
 
         def trace(*args, &block)
           return unless @trace_enabled
-          Syslog.log(Syslog::LOG_DEBUG, build_entry(*args, &block))
+          dispatch(Syslog::LOG_DEBUG, *args, &block)
+        end
+
+        private
+        def dispatch(level, *args, &block)
+          Syslog.log(level, '%s', build_entry(*args, &block))
         end
 
         # Callers might send a block rather than a string to log, intending
