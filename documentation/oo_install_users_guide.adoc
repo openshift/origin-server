@@ -104,8 +104,8 @@ $ rpm -Uvh epel-release-6*.rpm
 
 .ruby193 SCL
 ----
-$ cat > /etc/yum.repos.d/openshift-origin-deps.repo <<"EOF"
-[openshift-origin-deps]
+$ cat > /etc/yum.repos.d/openshift-deps.repo <<"EOF"
+[openshift-deps]
 name=OpenShift Origin Dependencies - EL6
 baseurl=https://mirror.openshift.com/pub/openshift-origin/nightly/rhel-6/dependencies/$basearch/
 gpgcheck=0
