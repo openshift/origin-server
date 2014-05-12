@@ -18,3 +18,6 @@
 # Wait at least this number of seconds before checking gears' cgroup state on the Node.
 # Increase this to reduce Watchman's Throttler's impact on the system.
 #THROTTLER_CHECK_PERIOD=5
+
+# Wait at least this number of seconds since last check before looking for gears under OOM.
+#OOM_CHECK_PERIOD=0
