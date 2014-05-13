@@ -196,7 +196,8 @@ EOF
       output = `#{cmd} 2>&1`
       exit_code = $?.exitstatus
       if exit_code != 0
-        raise DNSException.new("error adding app record #{fqdn} - #{exit_code} - #{output}")
+        raise DNSException.new("error adding app record #{fqdn} rc=#{exit_code}")
+        Rails.logger.error "Error adding DNS application record #{fqdn}: #{output}"
       end
     end
 
@@ -218,7 +219,8 @@ EOF
       output = `#{cmd} 2>&1`
       exit_code = $?.exitstatus
       if exit_code != 0
-        raise DNSException.new("error adding app record #{fqdn} - #{exit_code} - #{output}")
+        raise DNSException.new("error adding app record #{fqdn} rc=#{exit_code}")
+        Rails.logger.error "Error adding DNS application record #{fqdn}: #{output}"
       end
     end
 
