@@ -103,6 +103,7 @@ group :development, :test do
   gem 'nokogiri', '1.6.1'
   gem 'capybara', '~> 2.1.0', :require => false
   gem 'poltergeist',   '~> 1.2.0', :require => false
+  gem 'backburner'
 end
 
 # NON-RUNTIME END
