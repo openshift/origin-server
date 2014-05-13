@@ -193,9 +193,10 @@ EOF
       
       cmd = add_cmd(fqdn, public_hostname)
 
-      success = system cmd
-      if not success
-        raise DNSException.new("error adding app record #{fqdn}")
+      output = `#{cmd} 2>&1`
+      exit_code = $?.exitstatus
+      if exit_code != 0
+        raise DNSException.new("error adding app record #{fqdn} - #{exit_code} - #{output}")
       end
     end
 
@@ -214,10 +215,11 @@ EOF
 
       cmd = del_cmd(fqdn)
 
-      success = system cmd
-      if not success
-        raise DNSException.new("error deleting app record #{fqdn}")
-      end  
+      output = `#{cmd} 2>&1`
+      exit_code = $?.exitstatus
+      if exit_code != 0
+        raise DNSException.new("error adding app record #{fqdn} - #{exit_code} - #{output}")
+      end
     end
 
    # Change the published location of an application - Modify DNS record
