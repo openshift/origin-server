@@ -258,7 +258,7 @@ module OpenShift
         output                 = ''
         name, software_version = map_cartridge_name(cartridge_name)
         cartridge              = if manifest
-                                   logger.debug("Loading from manifest...")
+                                   logger.debug("Loading #{cartridge_name} from manifest for #{@container.uuid}")
                                    Runtime::Manifest.new(manifest, software_version)
                                  else
                                    CartridgeRepository.instance.select(name, software_version)
