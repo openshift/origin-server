@@ -20,13 +20,14 @@ require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-common/models/manifest'
 require 'digest'
+require 'securerandom'
 
 module OpenShift
   class CartridgeRepositoryFunctionalTest < NodeTestCase
 
     def before_setup
 
-      @uuid = %x(uuidgen -r).gsub(/-/, '').chomp[0..15]
+      @uuid = SecureRandom.uuid.gsub('-', '')[0..15]
 
       @test_home      = "/data/tests/#{@uuid}"
       @tgz_file       = File.join(@test_home, 'mock_plugin.tar.gz')
@@ -202,6 +203,9 @@ module OpenShift
     def test_instantiate_cartridge_file
       _, cuckoo_source = build_cuckoo_home()
 
+      needs_escape = File.join(cuckoo_source, '; touch test;')
+      FileUtils.touch(needs_escape)
+
       # Point manifest at "remote" repository
       manifest         = IO.read(File.join(cuckoo_source, 'metadata', 'manifest.yml'))
       manifest << ('Source-Url: file://' + cuckoo_source) << "\n"
@@ -216,6 +220,7 @@ module OpenShift
 
       assert_path_exist(cartridge_home)
       assert_path_exist(File.join(cartridge_home, 'bin', 'control'))
+      assert_path_exist(needs_escape)
       refute File.symlink?(File.join(cartridge_home, 'usr'))
     end
 
@@ -338,20 +343,6 @@ module OpenShift
 
       assert_match /Name 'git' is reserved\./, err.message
     end
-
-    #def test_reserved_cartridge_name
-    #  manifest = IO.read(File.join(@cartridge.manifest_path))
-    #  manifest << "Cartridge-Vendor: redhat" << "\n"
-    #  manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
-    #  manifest << "Source-Md5: #{@tgz_hash}"
-    #  manifest = change_cartridge_vendor_of manifest
-    #
-    #  err = assert_raise(::OpenShift::InvalidElementError) do
-    #    cartridge = ::OpenShift::Runtime::Manifest.new(manifest)
-    #  end
-    #
-    #  assert_match 'Cartridge-Vendor', err.message
-    #end
 
     def test_instantiate_cartridge_tgz
       # Point manifest at "remote" URL

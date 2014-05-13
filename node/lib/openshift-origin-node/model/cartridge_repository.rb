@@ -117,7 +117,7 @@ module OpenShift
           load_via_url = directory.nil?
           find_manifests(directory || @path) do |manifest_path|
             logger.debug { "Loading cartridge from #{manifest_path}" }
-            
+
             if File.size(manifest_path) == 0
               logger.warn("Skipping load of #{manifest_path} because manifest appears to be corrupted")
               next
@@ -181,11 +181,12 @@ module OpenShift
           FileUtils.rm_r(entry.repository_path) if File.exist?(entry.repository_path)
           FileUtils.mkpath(entry.repository_path)
 
+          source = Shellwords.escape(directory)
           # We specifically don't want --preserve=context because we want
           # the cartridge relabeled when it is copied into the cartridge
           # repository, and we don't want --preserve=xattr because that
           # implies --preserve=context on some filesystems.
-          Utils.oo_spawn("shopt -s dotglob; /bin/cp --recursive --no-dereference --preserve=mode,ownership,timestamps,links #{directory}/* #{entry.repository_path}",
+          Utils.oo_spawn("shopt -s dotglob; /bin/cp --recursive --no-dereference --preserve=mode,ownership,timestamps,links #{source}/* #{entry.repository_path}",
                          expected_exitstatus: 0)
         end
         entry
@@ -606,7 +607,8 @@ module OpenShift
 
         raise ArgumentError.new('CLIENT_ERROR: No cartridge sources found to install.') if entries.empty?
 
-        Utils.oo_spawn("/bin/cp -ad #{entries.join(' ')} #{target}",
+        source = entries.map {|e| Shellwords.escape(e)}
+        Utils.oo_spawn("/bin/cp -ad #{source.join(' ')} #{target}",
                        expected_exitstatus: 0)
       end
 
