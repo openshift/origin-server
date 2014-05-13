@@ -40,7 +40,7 @@ RUN yum install --enablerepo=openshift-deps-rhel6 --assumeyes \
      ruby193-rubygem-systemu \
      ruby193-rubygem-term-ansicolor \
      ruby193-rubygem-syslog-logger \
-     && yum clean all # Clean up yum cache at the end.
+     && yum update -y && yum clean all # Clean up yum cache at the end.
 
 # BROKER_SOURCE tells the broker to include gems based on source locations
 ENV BROKER_SOURCE 1
