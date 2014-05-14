@@ -1141,10 +1141,19 @@ class OODiag
 
   def test_broker_certificate
     skip_test unless @is_broker
-    require 'socket'
 
     # Retrieve the SSL cert from Apache
     response = `curl -k -s -v https://localhost/ -o /dev/null 2>&1`
+    if $? != 0
+      do_fail <<-CANNOTCONNECT
+        An error arose while trying to connect to the SSL reverse proxy.  curl returned with
+        #{response.strip.empty? ? "no output." : "the following output:\n" + response}
+
+        Please check whether the httpd service is running.
+      CANNOTCONNECT
+      return
+    end
+
     issuer = response.slice(/^\*\s*issuer: .*$/).gsub(/^\*\s*issuer: /,"")
     subject = response.slice(/^\*\s*subject: .*$/).gsub(/^\*\s*subject: /,"")
     commonname = response.slice(/^\*\s*common name: .*$/).gsub(/^\*\s*common name: /,"")
