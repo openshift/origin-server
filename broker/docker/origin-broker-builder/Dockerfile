@@ -1,8 +1,11 @@
-FROM openshift/centos-ruby
+FROM openshift/ruby-19-centos
 MAINTAINER Jessica Forrester <jforrest@redhat.com>
 
 # OpenShift RHEL6 repository to provide additional rubygems
 ADD https://mirror.openshift.com/pub/openshift-origin/nightly/rhel-6/dependencies/openshift-rhel6-dependencies.repo /etc/yum.repos.d/openshift-rhel6-dependencies.repo
+
+# switch to root for yum installs, ruby-19-centos left the user as "ruby"
+USER root
 
 RUN yum install --enablerepo=openshift-deps-rhel6 --assumeyes \
      ruby193-rubygem-bson_ext \
@@ -25,12 +28,13 @@ RUN yum install --enablerepo=openshift-deps-rhel6 --assumeyes \
      ruby193-rubygem-systemu \
      ruby193-rubygem-term-ansicolor \
      ruby193-rubygem-syslog-logger \
+     ruby193 \
      && yum update -y && yum clean all # Clean up yum cache at the end.
 
-RUN mv /usr/bin/prepare /usr/bin/centos-ruby-prepare
-
-ADD ./bin /usr/bin/
-RUN chmod +x /usr/bin/prepare
+# TODO switch back to default "ruby" user
+# currently the assemble script needs root so we can't set the default user to non-root
+# or the sti build will fail.
+#USER ruby
 
 # BROKER_SOURCE tells the broker to include gems based on source locations
 ENV BROKER_SOURCE 1

@@ -1,0 +1,78 @@
+#!/bin/sh -e
+mkdir -p ~/.openshift
+cp /tmp/src/broker/misc/docker_broker_plugins.rb ~/.openshift/broker_plugins.rb
+mkdir -p /etc/openshift
+cp -r /tmp/src/broker/conf/* /etc/openshift/
+cp /tmp/src/plugins/dns/bind/conf/openshift-origin-dns-bind.conf.example /etc/openshift/plugins.d/openshift-origin-dns-bind.conf
+cp /tmp/src/plugins/msg-broker/mcollective/conf/openshift-origin-msg-broker-mcollective.conf.example /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
+
+# Install broker oo-* scripts
+cp /tmp/src/util-scl/oo-* /usr/sbin/
+cp /tmp/src/broker-util/oo-* /usr/sbin/
+chmod 750 /usr/sbin/oo-*
+cp /tmp/src/broker-util/lib/* /opt/rh/ruby193/root/usr/share/ruby/
+
+# Imported from ruby-19-centos assemble
+# Since we are root and not the ruby user, we need to 
+# explicitly point to the ruby user's bashrc
+#[ -f ${HOME}/.bashrc ] && source ${HOME}/.bashrc
+[ -f /opt/ruby/.bashrc ] && source /opt/ruby/.bashrc
+
+function rake_assets_precompile() {
+  [ -f .sti/markers/disable_asset_compilation ] && return
+  [ ! -f Gemfile ] && return
+  [ ! -f Rakefile ] && return
+  ! grep " rails " Gemfile.lock >/dev/null && return
+  ! grep " execjs " Gemfile.lock >/dev/null && return
+  ! bundle exec "rake -T" | grep "assets:precompile" >/dev/null && return
+
+echo "---> Starting asset compilation."
+  bundle exec rake assets:precompile
+}
+
+if [ -e /tmp/artifacts/gems.tgz ]; then
+echo "Restoring build artifacts"
+  pushd ${HOME} >/dev/null
+  tar zxf /tmp/artifacts/gems.tgz
+  popd >/dev/null
+fi
+
+app_runtime_dir="${HOME}/src"
+app_src_dir="/tmp/src"
+
+echo "---> Installing application source"
+mkdir -p ${app_runtime_dir}
+cp -Rf ${app_src_dir}/* ${app_runtime_dir}/
+
+pushd "$app_runtime_dir/${APP_ROOT}" >/dev/null
+echo "---> Building your Ruby application from source"
+
+if [ -f Gemfile ]; then
+  ADDTL_BUNDLE_ARGS=""
+  if [ -f Gemfile.lock ]; then
+    ADDTL_BUNDLE_ARGS="--deployment"
+  fi
+
+if [[ "$RAILS_ENV" == "development" || "$RACK_ENV" == "development" ]]; then
+  BUNDLE_WITHOUT=${BUNDLE_WITHOUT:-"test"}
+  elif [[ "$RAILS_ENV" == "test" || "$RACK_ENV" == "test" ]]; then
+    BUNDLE_WITHOUT=${BUNDLE_WITHOUT:-"development"}
+  else
+    BUNDLE_WITHOUT=${BUNDLE_WITHOUT:-"development:test"}
+  fi
+  # We can't use 'exec' here because it will exit from the script after the
+  # bundle install command finish. Thus the bundle install cannot receive SIGINT
+  # from console (ctrl+c)
+  #
+  echo "---> Running 'bundle install ${ADDTL_BUNDLE_ARGS}'"
+  bundle install --path ${HOME}/bundle ${ADDTL_BUNDLE_ARGS}
+
+  echo "---> Cleaning up unused ruby gems"
+  bundle clean -V
+fi
+
+rake_assets_precompile
+
+# TODO: Add `rake db:migrate` if linked with DB container
+
+popd >/dev/null
