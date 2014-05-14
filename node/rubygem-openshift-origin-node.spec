@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.24.8
+Version: 1.24.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue May 13 2014 Adam Miller <admiller@redhat.com> 1.24.9-1
+- Bug 1096591 - Escape filenames for downloadable cartridges
+  (jhonce@redhat.com)
+
 * Thu May 08 2014 Adam Miller <admiller@redhat.com> 1.24.8-1
 - Prevent unwanted syslog message interpolation (ironcladlou@gmail.com)
 
