@@ -16,7 +16,7 @@ function load_env {
     export $key="$(< $1)"
 }
 
-for f in /etc/openshift/env/* ~/.env/* ~/.env/.uservars/* ~/*/env/*
+for f in /etc/openshift/env/* ~/.env/* ~/*/env/*
 do
   load_env $f
 done
@@ -56,10 +56,10 @@ function welcome {
       echo 1>&2 '
     *********************************************************************
 
-    You are accessing a service that is for use only by authorized users.  
-    If you do not have authorization, discontinue use at once. 
-    Any use of the services is subject to the applicable terms of the 
-    agreement which can be found at: 
+    You are accessing a service that is for use only by authorized users.
+    If you do not have authorization, discontinue use at once.
+    Any use of the services is subject to the applicable terms of the
+    agreement which can be found at:
     https://www.openshift.com/legal
 
     *********************************************************************
