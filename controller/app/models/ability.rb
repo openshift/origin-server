@@ -125,6 +125,13 @@ module Ability
       when :change_plan then resource === actor_or_id
       when :destroy then resource.parent_user_id.present? && resource === actor_or_id
       end
+      
+    elsif JobState <= type
+      case permission
+      when :destroy
+        #TODO grant permission to destroy if has rights to resource
+        resource.owned_by?(actor_or_id)
+      end
     end
   end
 

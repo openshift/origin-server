@@ -116,7 +116,7 @@ module RestModelHelper
     RestTeam.new(team, get_url, nolinks, include_members)
   end
 
-  def get_rest_job(app, job)
-    RestJob.new(app, job, get_url, nolinks)
+  def get_rest_job(job, resource=nil)
+    RestJob.new(job, resource, get_url, nolinks)
   end
 end

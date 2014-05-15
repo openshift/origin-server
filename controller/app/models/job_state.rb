@@ -21,8 +21,10 @@ class JobState
   field :retry_count, type: Integer, default: 0
   field :rollback_retry_count, type: Integer, default: 0
   field :percentage_complete, type: Integer, default: 0
+  field :resource_id, type: Moped::BSON::ObjectId
+  belongs_to :resource_owner, class_name: CloudUser.name, inverse_of: nil
   belongs_to :owner, class_name: CloudUser.name, inverse_of: nil
-  belongs_to :creator, class_name: CloudUser.name, inverse_of: nil
+
   field :object_url, type: String
   
   # result attributes

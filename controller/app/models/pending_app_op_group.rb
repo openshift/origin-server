@@ -378,11 +378,12 @@ class PendingAppOpGroup
       begin
         jstate = JobState.find_by(op_id: self._id)
       rescue Mongoid::Errors::DocumentNotFound
-        jstate = JobState.new(op_id: self._id, op_type: self.class, 
-                              owner: self.application.owner, creator: self.application.owner)
+        jstate = JobState.new(op_id: self._id, op_type: self.class, resource_id: self.application.id,
+                              resource_owner: self.application.owner, owner: self.application.owner)
+
         jstate.save
       end
-  
+
       Application.where(:_id => self.application._id, "pending_op_groups._id" => self._id).update({"$set" => {"pending_op_groups.$.job_state_id" => jstate._id}})
       self.job_state = jstate
     end
