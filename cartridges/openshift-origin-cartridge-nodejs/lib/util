@@ -26,10 +26,11 @@ function set-configuration {
 
   case "$type" in
     scl)
+      local npm_bin=$(echo -n "${OPENSHIFT_REPO_DIR}node_modules/.bin")
       local node_bin=$(echo -n "${OPENSHIFT_HOMEDIR}/.node_modules/.bin")
       local scl_bin=$(dirname $(scl enable $scl_string "which node"))
 
-      echo "${node_bin}:${scl_bin}" >$OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_PATH_ELEMENT
+      echo "${npm_bin}:${node_bin}:${scl_bin}" >$OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_PATH_ELEMENT
 
       local ld_path=$(LD_LIBRARY_PATH="" scl enable $scl_string "printenv LD_LIBRARY_PATH")
       set_env_var 'OPENSHIFT_NODEJS_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
@@ -39,7 +40,7 @@ function set-configuration {
       ;;
     native)
       rm -f $OPENSHIFT_NODEJS_DIR/env/{LD_LIBRARY_PATH,MANPATH}
-      echo -n "${OPENSHIFT_HOMEDIR}/.node_modules/.bin" > $OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_PATH_ELEMENT
+      echo -n "${OPENSHIFT_REPO_DIR}node_modules/.bin/:${OPENSHIFT_HOMEDIR}/.node_modules/.bin" > $OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_PATH_ELEMENT
       ;;
   esac
 }
