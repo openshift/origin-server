@@ -72,13 +72,15 @@ module OpenShift
             @restore_percent  = resource('restore_percent') { |x| Float(x) }
 
             MonitoredGear.intervals = [@interval]
-            MonitoredGear.delay     = 5
+
+            MonitoredGear.delay = 5
+            MonitoredGear.delay = ENV['THROTTLER_CHECK_PERIOD'].to_i unless ENV['THROTTLER_CHECK_PERIOD'].nil?
 
             # Allow us to lazy initialize MonitoredGears
-            @running_apps           = Hash.new { |h, uuid| h[uuid] = MonitoredGear.new(uuid) }
+            @running_apps       = Hash.new { |h, uuid| h[uuid] = MonitoredGear.new(uuid) }
 
             # Need to "escape" the percents here for use in Syslog.info
-            str                     = 'throttle at: %0.2f%%%%, restore at: %0.2f%%%%, period: %d, check_interval: %0.2f' %
+            str                 = 'throttle at: %0.2f%%%%, restore at: %0.2f%%%%, period: %d, check_interval: %0.2fs' %
                 [@throttle_percent, @restore_percent, @interval, MonitoredGear.delay]
             Syslog.info("Starting throttler => #{str}")
 
