@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.25.0
+Version: 1.25.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,11 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- corrected section number (lnader@redhat.com)
+- Bug 1094141 - update oo-admin-ctl-user man pages (lnader@redhat.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
 * Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
 - Merge pull request #5325 from UhuruSoftware/master
   (dmcphers+openshiftbot@redhat.com)
