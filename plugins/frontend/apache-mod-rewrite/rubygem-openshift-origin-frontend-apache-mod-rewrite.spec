@@ -15,7 +15,7 @@
 
 Summary:       OpenShift Apache mod_rewrite frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.7.0
+Version: 0.7.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -133,6 +133,9 @@ mv httpd/frontend-mod-rewrite-https-template.erb %{buildroot}%{appdir}/.httpd.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 0.7.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
 * Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 0.6.2-1
 - mass bumpspec to fix tags (admiller@redhat.com)
 
