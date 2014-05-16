@@ -12,7 +12,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.24.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -142,6 +142,9 @@ fi
 %doc README
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
 * Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
 - mass bumpspec to fix tags (admiller@redhat.com)
 
