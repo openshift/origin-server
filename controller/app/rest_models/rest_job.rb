@@ -1,6 +1,6 @@
 class RestJob < OpenShift::Model
   attr_accessor :id, :state, :completion_state, :retry_count, :rollback_retry_count, 
-                :percentage_complete, :resource_url, :properties, :messages, :info, 
+                :percentage_complete, :properties, :messages, :info, 
                 :data, :user_actionable_error, :exit_code, :links
 
   def initialize(job, resource, url, nolinks=false)
@@ -10,7 +10,6 @@ class RestJob < OpenShift::Model
     self.retry_count = job.retry_count
     self.rollback_retry_count = job.rollback_retry_count
     self.percentage_complete = job.percentage_complete
-    self.resource_url = job.object_url
     self.properties = job.properties
 
     self.messages = {}
@@ -26,9 +25,20 @@ class RestJob < OpenShift::Model
 
  
     unless nolinks
+      resource_url = nil
+      case resource.class
+      when Application
+        resource_url = "application/#{resource._id}"
+      when Domain
+        resource_url = "domain/#{resource._id}"
+      when CloudUser
+        resource_url = "user/#{resource._id}"
+      end
+      
       self.links = {
         "GET" => Link.new("Get job", "GET", URI::join(url, "job/#{self.id}")),
-        "DELETE" => Link.new("Delete job", "DELETE", URI::join(url, "job/#{self.id}"))
+        "DELETE" => Link.new("Delete job", "DELETE", URI::join(url, "job/#{self.id}")),
+        "GET_RESOURCE" => Link.new("Get resource", "GET", URI::join(url, "#{resource_url}"))
       }
     end
   end

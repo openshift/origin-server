@@ -16,17 +16,16 @@ class JobState
   
   has_many :child_jobs, class_name: JobState.name, inverse_of: :parent_job
   belongs_to :parent_job, class_name: JobState.name, inverse_of: :child_jobs
-  field :state, type: String, default: :init
-  field :completion_state, type: String
+  field :state, type: Symbol, default: :init
+  field :completion_state, type: Symbol
   field :retry_count, type: Integer, default: 0
   field :rollback_retry_count, type: Integer, default: 0
   field :percentage_complete, type: Integer, default: 0
   field :resource_id, type: Moped::BSON::ObjectId
+  field :resource_type, type: String
   belongs_to :resource_owner, class_name: CloudUser.name, inverse_of: nil
   belongs_to :owner, class_name: CloudUser.name, inverse_of: nil
 
-  field :object_url, type: String
-  
   # result attributes
   field :output_debug, type: Array, default: []
   field :output_result, type: Array, default: []
@@ -76,5 +75,16 @@ class JobState
     self
   end
 
+  def wait_for_completion
+    interval = 5
+    max_wait = 300
+    wait = 0
+    while true 
+      break if [:complete, :failed].include?(self.state) or wait >= max_wait
+      sleep interval
+      wait += interval
+      self.reload
+    end
+  end
 
 end

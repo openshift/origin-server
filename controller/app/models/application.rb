@@ -1199,8 +1199,8 @@ class Application
     self.pending_op_groups << op_group
 
     
-    op_group.add_scheduler_job
-    ResultIO.new
+    app_job = op_group.add_scheduler_job
+    #ResultIO.new
     
 #    Lock.run_in_app_lock(self) do
 #      result_io = ResultIO.new

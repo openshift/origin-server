@@ -379,6 +379,7 @@ class PendingAppOpGroup
         jstate = JobState.find_by(op_id: self._id)
       rescue Mongoid::Errors::DocumentNotFound
         jstate = JobState.new(op_id: self._id, op_type: self.class, resource_id: self.application.id,
+                              resource_type: self.application.class,
                               resource_owner: self.application.owner, owner: self.application.owner)
 
         jstate.save
