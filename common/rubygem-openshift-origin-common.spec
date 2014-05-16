@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.24.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -121,6 +121,17 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- Merge pull request #5324 from Miciah/oo-diagnostics-test_broker_certificate-
+  fixes (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4983 from Miciah/bug-1077664-oo-diagnostics-
+  test_node_mco_log-fixes (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+- oo-diagnostics: Fix comments for test_node_mco_log (miciah.masters@gmail.com)
+- oo-diagnostics: Better handle curl error (miciah.masters@gmail.com)
+- oo-diagnostics: Drop unneeded require 'socket' (miciah.masters@gmail.com)
+- oo-diagnostics: Fix test_node_mco_log when no log (miciah.masters@gmail.com)
+
 * Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
 - Merge pull request #5138 from Miciah/rubygem-openshift-origin-common-require-
   parseconfig (dmcphers+openshiftbot@redhat.com)
