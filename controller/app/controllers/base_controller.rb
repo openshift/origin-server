@@ -10,6 +10,9 @@ class BaseController < ActionController::Base
                 :check_nolinks,
                 :check_version,
                 :check_outage,
-                :authenticate_user!
+                :authenticate_user!,
+                :set_current_user
+                
+  after_filter  :clear_current_user
 
 end

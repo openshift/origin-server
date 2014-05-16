@@ -192,6 +192,14 @@ module OpenShift
         def support_valid_encoding?
           String.new.respond_to?('valid_encoding?')
         end
+        #This method sets current_user in the current thread to be used by model objects
+        def set_current_user
+          Thread.current[:current_uer] = @cloud_user
+        end
+        
+        def clear_current_user
+          Thread.current[:current_uer] = nil
+        end
     end
   end
 end

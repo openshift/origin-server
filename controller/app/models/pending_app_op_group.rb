@@ -380,7 +380,7 @@ class PendingAppOpGroup
       rescue Mongoid::Errors::DocumentNotFound
         jstate = JobState.new(op_id: self._id, op_type: self.class, resource_id: self.application.id,
                               resource_type: self.application.class,
-                              resource_owner: self.application.owner, owner: self.application.owner)
+                              resource_owner: self.application.owner, owner: current_user)
 
         jstate.save
       end
@@ -411,5 +411,9 @@ class PendingAppOpGroup
       spec.application = application
       application.component_instances.detect{ |i| i.matches_spec?(spec) }
     end
+  end
+  
+  def current_user
+    Thread.current[:current_user]
   end
 end

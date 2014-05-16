@@ -86,5 +86,17 @@ class JobState
       self.reload
     end
   end
+  
+  def self.accessible(to)
+    # Find all accessible domains and applications which the user has access to and show their jobs too
+    app_ids = Application.accessible(to).collect{|a| a.id}
+    domain_ids = Domain.accessible(to).collect{|d| d.id}
+    self.any_of({:resource_type => "Application", :resource_id.in => app_ids}, {:resource_type => "Domain", :resource_id.in => domain_ids})
+  end
+  
+  def owned_by?(actor_or_id)
+    id = actor_or_id.respond_to?(:_id) ? actor_or_id._id : actor_or_id
+    self.owner_id == id or self.resource_owner_id == id
+  end
 
 end

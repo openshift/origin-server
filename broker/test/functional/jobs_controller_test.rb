@@ -16,19 +16,18 @@ class JobsControllerTest < ActionController::TestCase
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['REMOTE_USER'] = @login
     @request.env['HTTP_ACCEPT'] = "application/json"
-    stubber
     @namespace = "ns#{@random}"
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
     @app = Application.create_app(@app_name, cartridge_instances_for(:php), @domain)
     @app.save
+    @app.restart
   end
 
   def teardown
     begin
       @user.force_delete
-      JobState.where(owner_id: @user.id).map{|j| JobState.destroy_all(_id: j.id)}
     rescue Exception => ex
       puts ex.message
       puts ex.backtrace
