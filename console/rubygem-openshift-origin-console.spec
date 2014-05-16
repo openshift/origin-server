@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.25.0
+Version: 1.25.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- Bug 1092066: Prevent javascript links in cartridges (jliggitt@redhat.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
 * Wed May 07 2014 Adam Miller <admiller@redhat.com> 1.24.5-1
 - Bug 1090984 - reduces the max size of flash messages
   (contact@fabianofranz.com)
