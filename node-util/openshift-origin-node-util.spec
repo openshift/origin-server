@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.24.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -161,6 +161,15 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- Bug 1097959 - Add THROTTLER_CHECK_PERIOD to detune Throttler
+  (jhonce@redhat.com)
+- support cygwin in jenkins client shell command detect application platform in
+  jenkins client and use it to determine if builder should be scalable update
+  bash sdk with function to determine node platform (florind@uhurusoftware.com)
+- oo-accept-node: Advise user re: missing user quota (jolamb@redhat.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
 * Wed May 07 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
 - Bug 1091433 - Add setting to detune GearStatePlugin (jhonce@redhat.com)
 
