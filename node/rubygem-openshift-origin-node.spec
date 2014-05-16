@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.25.0
+Version: 1.25.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- Bug 1088623 - Removed unused .uservars directory references
+  (jhonce@redhat.com)
+- Use the local1 facility for Syslog trace logs (ironcladlou@gmail.com)
+- Bug 1096591 - Escape filenames for downloadable cartridges
+  (jhonce@redhat.com)
+- Prevent unwanted syslog message interpolation (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
 * Wed May 07 2014 Troy Dawson <tdawson@redhat.com> 1.24.7-1
 - Bug 1094541 - check for null values (lnader@redhat.com)
 - Merge pull request #5383 from jwhonce/bug/1091433
