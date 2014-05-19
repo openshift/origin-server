@@ -105,6 +105,9 @@ module OpenShift
     # Image information
     attr_accessor :image, :image_label
 
+    # Image information
+    attr_accessor :image, :image_label
+
     # Available for downloadable cartridges
     attr_accessor :manifest_text, :manifest_url
 

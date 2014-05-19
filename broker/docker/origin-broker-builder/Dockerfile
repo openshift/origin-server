@@ -27,6 +27,11 @@ RUN yum install --enablerepo=openshift-deps-rhel6 --assumeyes \
      ruby193-rubygem-syslog-logger \
      && yum update -y && yum clean all # Clean up yum cache at the end.
 
+RUN mv /usr/bin/prepare /usr/bin/centos-ruby-prepare
+
+ADD ./bin /usr/bin/
+RUN chmod +x /usr/bin/prepare
+
 # BROKER_SOURCE tells the broker to include gems based on source locations
 ENV BROKER_SOURCE 1
 

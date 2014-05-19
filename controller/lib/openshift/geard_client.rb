@@ -36,6 +36,8 @@ module OpenShift
         @id = id
         #TODO hardcode to first node in collection for now, otherwise default to localhost
         @hostname = Node.count > 0 ? Node.first.location : "localhost:43273"
+        ## WIP: needed for static invocation of self.execute_paralleljobs_impl
+        @@hostname = @hostname
         @district = district
       end
 
