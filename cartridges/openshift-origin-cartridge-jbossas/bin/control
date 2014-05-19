@@ -268,7 +268,7 @@ function build() {
           fi
           popd > /dev/null
       fi
-      
+
       if [ ! -f ${OPENSHIFT_REPO_DIR}pom.xml ]; then
         echo "Skipping Maven build due to absence of pom.xml"      
       fi
@@ -304,7 +304,11 @@ function start() {
   if isrunning; then
       echo "Application is already running"
   else
-    ${JBOSSAS_BIN_DIR}/standalone.sh &> >(/usr/bin/logshifter -tag jbossas) &
+    LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-jbossas
+    rm -f $LOGPIPE && mkfifo $LOGPIPE
+
+    /usr/bin/logshifter -tag jbossas < $LOGPIPE &
+    ${JBOSSAS_BIN_DIR}/standalone.sh &> $LOGPIPE &
     echo $! > ${JBOSSAS_PID_FILE}
 
     rc=0

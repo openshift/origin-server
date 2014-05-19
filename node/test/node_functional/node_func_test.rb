@@ -40,6 +40,7 @@ module OpenShift
         @config.stubs(:get).with("UID_BEGIN").returns(@uid)
         @config.stubs(:get).with("BROKER_HOST").returns('localhost')
         @config.stubs(:get).with('REPORT_BUILD_ANALYTICS').returns(false)
+        @config.stubs(:get_bool).with("TRAFFIC_CONTROL_ENABLED", "true").returns(true)
 
 
         script_dir     = File.expand_path(File.dirname(__FILE__))

@@ -1,6 +1,6 @@
 class RestMember < OpenShift::Model
   attr_accessor :id, :type, :login, :role, :explicit_role, :from, :owner, :links
-  
+
   def initialize(member, owner, url, membership, nolinks=false)
     self.type = to_type(member.type)
     self.login = member.name if member.type == 'user' # only display login for users
@@ -25,13 +25,17 @@ class RestMember < OpenShift::Model
       when Application
         url = URI::join(url, "application/#{membership.id}/")
       end
-        
+
       self.links = {
         "GET" => Link.new("Get member", "GET", URI::join(url, "member/#{id}").to_s + (self.type != "user" ? "?type=#{self.type}" : "")),
         "UPDATE" => Link.new("Update member", "PUT", URI::join(url, "member/#{id}").to_s + (self.type != "user" ? "?type=#{self.type}" : ""), [
           Param.new("role", "string", "New role for member")]),
         "DELETE" => Link.new("Delete member", "DELETE", URI::join(url, "member/#{id}").to_s + (self.type != "user" ? "?type=#{self.type}" : ""))
       }
+
+      if membership.class == Team and membership.owner_id.nil?
+        self.links.delete_if {|k, v| ["UPDATE", "DELETE"].include? k}
+      end
     end
   end
 

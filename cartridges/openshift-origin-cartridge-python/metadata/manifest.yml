@@ -2,8 +2,8 @@
 Name: python
 Cartridge-Short-Name: PYTHON
 Display-Name: Python 2.6
-Description: ! 'Python is a general-purpose, high-level programming language whose
-  design philosophy emphasizes code readability. Popular development frameworks include:
+Description: 'Python is a general-purpose, high-level programming language whose design
+  philosophy emphasizes code readability. Popular development frameworks include:
   Django, Bottle, Pylons, Zope and TurboGears.'
 Version: '2.6'
 Versions:
@@ -13,8 +13,9 @@ Versions:
 License: The Python License, version 2.6
 License-Url: http://docs.python.org/3/license.html
 Vendor: python.org
-Cartridge-Version: 0.0.14
-Compatible-Versions: []
+Cartridge-Version: 0.0.17
+Compatible-Versions:
+- 0.0.16
 Cartridge-Vendor: redhat
 Categories:
 - service

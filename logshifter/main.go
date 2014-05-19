@@ -42,6 +42,16 @@ func main() {
 	flag.StringVar(&tag, "tag", "", "tag used by outputs for extra message context (e.g. program name)")
 	flag.Parse()
 
+	// Unless verbose mode is enabled, redirect stdout/stderr to /dev/null. This
+	// prevents readers of a pipeline including logshifter from blocking awaiting
+	// output which is never coming.
+	if !verbose {
+		if devnull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0); err == nil {
+			syscall.Dup2(int(devnull.Fd()), int(os.Stdout.Fd()))
+			syscall.Dup2(int(devnull.Fd()), int(os.Stderr.Fd()))
+		}
+	}
+
 	if len(tag) == 0 {
 		fmt.Println("Error: the `tag` argument is required")
 		os.Exit(1)

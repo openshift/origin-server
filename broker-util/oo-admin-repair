@@ -237,6 +237,13 @@ def recover_app(app, framework, db)
       puts "Removed cartridges: #{db[:remove_features].join(',')} from application with id: #{app._id}." if $verbose
     end
     (framework[:unresponsive_gears] + db[:unresponsive_gears]).each { |gear| app.remove_gear(gear._id.to_s) }
+
+    # Fix overrides for the app
+    component_instance = app.component_instances[0]
+    override = app.group_instances_with_overrides.detect{|i| i.instance == component_instance.group_instance }
+    result = app.update_component_limits(component_instance, override.min_gears, override.max_gears, override.additional_filesystem_gb)
+    raise Exception.new(result.errorIO.string) unless result.errorIO.string.empty?
+
     puts "Application with id: #{app._id} fixed." if $verbose
   rescue Exception => e
     print_message "Failed to recover application with id: #{app._id}, error: #{e.message}"
@@ -436,7 +443,7 @@ def repair_stale_keys_vars(domain_ids)
         # fix stale application ssh keys
         app_ssh_keys_to_rm = []
         app.app_ssh_keys.each do |key|
-          app_ssh_keys_to_rm << key.serializable_hash unless app_ref_ids.include? key.component_id.to_s
+          app_ssh_keys_to_rm << key.as_document unless app_ref_ids.include? key.component_id.to_s
         end
 
         if app_ssh_keys_to_rm.present?
@@ -457,7 +464,7 @@ def repair_stale_keys_vars(domain_ids)
 
       # fix stale domain ssh keys
       domain.system_ssh_keys.each do |key|
-        system_ssh_keys_to_rm << key.serializable_hash unless domain_ref_ids.include? key.component_id.to_s
+        system_ssh_keys_to_rm << key.as_document unless domain_ref_ids.include? key.component_id.to_s
       end
 
       if system_ssh_keys_to_rm.present?
@@ -617,35 +624,28 @@ end
 def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
   return if unresponsive_servers.blank?
 
+  servers_to_delete = []
   unless (available_servers.values.uniq - ['NONE']).blank?
-    print "Do you want to delete unresponsive servers from their respective districts [yes/no]: "
-    if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
-      # Remove unresponsive servers from their respective districts
-      unresponsive_servers.each do |server|
-        if available_servers[server] != 'NONE'
-          begin
-            deactivated = false
-            district = District.find_by_name(available_servers[server])
-            district.servers.each do |si|
-              next if si.name != server
-              deactivated = true unless si.active
-              res = District.where(:_id => district._id, "servers.name" => server).update({"$set" => {"servers.$.unresponsive" => true}})
-              raise OpenShift::OOException.new("Could not set unresponsive to true for #{si.name}") if res.nil? or !res["updatedExisting"]
-              break
-            end
-            # reload district object to reflect the above mongo updates
-            district.reload
-            district.deactivate_node(server) unless deactivated
-            district.remove_node(server)
-            puts "Server: #{server} removed from district: #{available_servers[server]}" if $verbose
-          rescue Exception => e
-            puts "Unable to delete server: #{server} from district: #{available_servers[server]}, error: #{e.message}"
+    # Set unresponsive flag for unresponsive-servers in their respective districts
+    unresponsive_servers.each do |server|
+      if available_servers[server] != 'NONE'
+        begin
+          deactivated = false
+          district = District.find_by_name(available_servers[server])
+          district.servers.each do |si|
+            next if si.name != server
+            deactivated = true unless si.active
+            res = District.where(:_id => district._id, "servers.name" => server).update({"$set" => {"servers.$.unresponsive" => true}})
+            raise OpenShift::OOException.new("Could not set unresponsive to true for #{si.name}") if res.nil? or !res["updatedExisting"]
+            break
           end
+          # reload district object to reflect the above mongo updates
+          district.reload
+          servers_to_delete << [server, deactivated, district]
+        rescue Exception => e
+          puts "Unable to set unresponsive flag for server: #{server} from district: #{available_servers[server]}, error: #{e.message}"
         end
       end
-      puts "Finished deleting unresponsive servers from their respective districts." if $verbose
-    else
-      puts "Skipped deleting unresponsive servers from their respective districts." if $verbose
     end
     puts ""
   end
@@ -792,6 +792,28 @@ def repair_removed_nodes(available_servers, unresponsive_servers, auto_confirm)
       puts ""
     end
     puts "Finished fixing/deleting unresponsive scalable apps." if $verbose
+  end
+
+  # Skip servers if any apps are still referencing it
+  servers_to_delete.delete_if {|server, _, _| Application.where({"gears.server_identity" => server}).exists? }
+  unless servers_to_delete.blank?
+    puts ""
+    print "Do you want to delete unresponsive servers from their respective districts [yes/no]: "
+    if auto_confirm or (auto_confirm.nil? and gets.chomp.to_b)
+      # Remove unresponsive servers from their respective districts
+      servers_to_delete.each do |server, deactivated, district|
+        begin
+          district.deactivate_node(server) unless deactivated
+          district.remove_node(server)
+          puts "Server: #{server} removed from district: #{district.name}" if $verbose
+        rescue Exception => e
+          puts "Unable to delete server: #{server} from district: #{district.name}, error: #{e.message}"
+        end
+      end
+      puts "Finished deleting unresponsive servers from their respective districts." if $verbose
+    else
+      puts "Skipped deleting unresponsive servers from their respective districts." if $verbose
+    end
   end
 end
 

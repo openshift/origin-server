@@ -118,6 +118,7 @@ module Ability
       end
     elsif CloudUser <= type
       case permission
+      when :view_global_teams then resource.view_global_teams
       when :create_key, :update_key, :destroy_key, :create_domain, :create_team then resource === actor_or_id
       when :create_authorization, :update_authorization, :destroy_authorization then resource === actor_or_id
       when :create_oauth_access_token then resource === actor_or_id

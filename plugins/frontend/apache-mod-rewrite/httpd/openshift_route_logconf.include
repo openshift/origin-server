@@ -1,17 +1,15 @@
-#
 # Log custom format for OpenShift parsing.
 # Log format is:
+LogFormat "%h %{V_MATCH_HOST}e %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X %{V_ROUTE}e%{V_PATH}e" openshift
+# If the `OpenShiftAnnotateFrontendAccessLog` option is defined, add the app/gear UUIDs to the log msg
 <IfDefine OpenShiftAnnotateFrontendAccessLog>
   LogFormat "%h %{V_MATCH_HOST}e %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X %{V_ROUTE}e%{V_PATH}e %{APP_UUID}e %{GEAR_UUID}e" openshift
 </IfDefine>
-<IfDefine !OpenShiftAnnotateFrontendAccessLog>
-  LogFormat "%h %{V_MATCH_HOST}e %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X %{V_ROUTE}e%{V_PATH}e" openshift
-</IfDefine>
 
+# Log file is used by the autoidler to assess gear (in)activity.
 CustomLog logs/openshift_log openshift env=V_PATH
 #
 # If the `OpenShiftFrontendSyslogEnabled` option is defined, pipe output to syslog in addition to file.
-# File is used by the autoidler to assess gear (in)activity.
 #
 <IfDefine OpenShiftFrontendSyslogEnabled>
   CustomLog "|logger -t openshift-node-frontend" openshift env=V_PATH

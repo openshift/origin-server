@@ -12,8 +12,8 @@ mkdir -p ${OPENSHIFT_MMS_BASE_DIR}
 
 if [ ! -f "${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py" ]
 then
-	if [ ! -f ${OPENSHIFT_REPO_DIR}/.openshift/mms/mongodb-mms-monitoring-agent*.tar.gz ]
-	then
+  if [ ! -f ${OPENSHIFT_REPO_DIR}/.openshift/mms/mongodb-mms-monitoring-agent*.tar.gz ]
+  then
     client_error ""
     client_error "Missing mongodb-mms-monitoring-agent.tar.gz, which needs to be git pushed in the .openshift/mms/ directory in your repository."
     client_error "The tarball is available after registration at https://mms.mongodb.com, in the Settings -> Monitoring Agent section."
@@ -27,21 +27,25 @@ then
       exit 137
     elif [ ! -f "${OPENSHIFT_MMS_BASE_DIR}/monitoring-agent.config" ]
     then
-    	client_error "Extracted archive doesn't contain monitoring-agent.config file."
-    	client_error "Please download the tarball at the https://mms.mongodb.com, in the Settings -> Monitoring Agent section."
-    	exit 137
+      client_error "Extracted archive doesn't contain monitoring-agent.config file."
+      client_error "Please download the tarball at the https://mms.mongodb.com, in the Settings -> Monitoring Agent section."
+      exit 137
     fi
     popd >/dev/null
-	fi
+  fi
 else
-	client_message "The settings.py was deprecated, please check your 10gen-mms-agent cartridge documentation at http://openshift.github.io/documentation/oo_cartridge_guide.html#10gen-mms-agent"
+  if ! grep -q "secret_key" "${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py"
+  then
+    client_error ""
+    client_error "You are using using legacy version of the mms-agent, which is not supported."
+    client_error "Your settings.py file is missing the secret_key variable."
+    exit 137
+  fi
+  client_message "The settings.py was deprecated, please check your 10gen-mms-agent cartridge documentation at http://openshift.github.io/documentation/oo_cartridge_guide.html#10gen-mms-agent"
   shopt -s dotglob
   pushd "$OPENSHIFT_10GENMMSAGENT_DIR" > /dev/null
   cp -r /usr/local/share/mms-agent/* $OPENSHIFT_10GENMMSAGENT_DIR/mms-agent/
   ln -s agent.py $OPENSHIFT_10GENMMSAGENT_DIR/mms-agent/"$OPENSHIFT_GEAR_UUID"_agent.py
   popd > /dev/null
 fi
-
-
-
 

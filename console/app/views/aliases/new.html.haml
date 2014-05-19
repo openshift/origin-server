@@ -28,7 +28,7 @@
         %h2 SSL Certificate
 
         - if !@private_ssl_certificates_supported
-          = render :partial => 'certificate_not_allowed'
+          = render :partial => 'certificate_not_allowed', :locals => { :is_owner => @application.owner? }
         - else 
           %p
             Optionally upload an SSL certificate for your custom domain alias to allow secure HTTPS communication with your app.
@@ -82,7 +82,7 @@
         content: function() { return $(this).next('.popover-delete-certificate').html(); }
       }).click(function() { return false; });
 
-      $('.cancel-delete-certificate').live('click', function() { 
+      $(document).on('click', '.cancel-delete-certificate', function() { 
         $(this).closest('.popover').prev('.delete-certificate').popover('hide');
         return false; 
       });

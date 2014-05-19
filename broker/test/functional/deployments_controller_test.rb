@@ -61,6 +61,11 @@ class DeploymentsControllerTest < ActionController::TestCase
     assert json = JSON.parse(response.body)
     assert_equal id, json['data']['id']
 
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show, {"id" => id, "application_id" => @app._id}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
+
     get :index , {"application_id" => @app._id}
     assert_response :success
   end

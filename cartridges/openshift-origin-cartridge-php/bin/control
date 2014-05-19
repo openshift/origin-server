@@ -32,8 +32,12 @@ function pre_start_httpd_config {
 function start() {
     echo "Starting PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
     pre_start_httpd_config
+    # Force httpd into its own pgroup, as httpd is hard-coded to TERM everything in
+    # its pgroup during shutdown (even while foregrounded)
+    set -m
     php_context "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag php &" \
       && wait_for_pid_file $HTTPD_PID_FILE
+    set +m
     return $?
 }
 
@@ -61,11 +65,11 @@ function restart() {
 
 function stop() {
     echo "Stopping PHP ${OPENSHIFT_PHP_VERSION} cartridge (Apache+mod_php)"
-    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    ensure_valid_httpd_pid_file "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
       # If we still have a PID file, then ensure_valid_httpd_process's call to
       # killall_httpds didn't happen.
-      shutdown_httpd_graceful_pidfile $HTTPD_PID_FILE
+      shutdown_httpd_graceful $HTTPD_PID_FILE
     fi
 }
 

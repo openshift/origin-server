@@ -1,6 +1,6 @@
 Given /^a new ([^ ]+) application with ([^ ]+) process, verify that it can be auto-restored after idling$/ do |cart_name, proc_name|
   steps %{
-    Given a new #{cart_name} type application
+    Given a new client created #{cart_name} application
     Then a #{proc_name} process will be running
     And I record the active capacity
 
@@ -19,11 +19,13 @@ end
 When /^I oo-(idle|restore) the application$/ do |action|
   cmd = nil
 
+  uuid = current_test_app_uuid
+
   case action
     when "idle"
-      cmd = "/usr/sbin/oo-admin-ctl-gears idlegear #{@gear.uuid}"
+      cmd = "/usr/sbin/oo-admin-ctl-gears idlegear #{uuid}"
     when "restore"
-      cmd = "/usr/sbin/oo-restorer -u #{@gear.uuid}"
+      cmd = "/usr/sbin/oo-restorer -u #{uuid}"
   end
 
   exit_code = run cmd

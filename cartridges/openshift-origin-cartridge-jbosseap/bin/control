@@ -303,7 +303,11 @@ function start() {
   else
     echo "Starting $cartridge_type cartridge"
 
-    ${JBOSSEAP_BIN_DIR}/standalone.sh &> >(/usr/bin/logshifter -tag jbosseap) &
+    LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-jbosseap
+    rm -f $LOGPIPE && mkfifo $LOGPIPE
+
+    /usr/bin/logshifter -tag jbosseap < $LOGPIPE &
+    ${JBOSSEAP_BIN_DIR}/standalone.sh &> $LOGPIPE &
     echo $! > ${JBOSSEAP_PID_FILE}
 
     rc=0

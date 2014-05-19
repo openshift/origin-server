@@ -64,7 +64,7 @@
     %h2 SSL Certificate
 
     - if !@private_ssl_certificates_supported
-      = render :partial => 'certificate_not_allowed'
+      = render :partial => 'certificate_not_allowed', :locals => { :is_owner => @application.owner? }
 
     = semantic_form_for @alias, :url => application_alias_path(@application, @alias), :html => {:method => :put, :class => 'form-horizontal', :multipart => true} do |f|
 
@@ -124,7 +124,7 @@
     $('.delete-alias').popover({
       content: function() { return $(this).prev('.popover-delete-alias').html(); }
     }).click(function() { return false; });
-    $('.cancel-delete-alias').live('click', function() { 
+    $(document).on('click', '.cancel-delete-alias', function() { 
       $(this).closest('.popover').prev('.delete-alias').popover('hide');
       return false; 
     });
@@ -132,7 +132,7 @@
     $('.delete-certificate').popover({
       content: function() { return $(this).prev('.popover-delete-certificate').html(); }
     }).click(function() { return false; });
-    $('.cancel-delete-certificate').live('click', function() { 
+    $(document).on('click', '.cancel-delete-certificate', function() { 
       $(this).closest('.popover').prev('.delete-certificate').popover('hide');
       return false; 
     });

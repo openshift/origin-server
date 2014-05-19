@@ -11,7 +11,7 @@ require 'yaml'
 def set_up
 
   options = {
-    :version => 1.6,
+    :version => 1.7,
     :server => "localhost",
     :username => "first.last@mycompany.com",
     :password => "password",
@@ -59,7 +59,9 @@ def set_up
   request = RestClient::Request.new(:method => :get, :url => "https://#{options[:server]}/broker/rest/user", :user => "team.member@mycompany.com", :password => @password, :headers => @headers, :timeout => @timeout, :open_timeout => @timeout)
   response = send_request(request)
   #add private cert capability and additional storage capability
-  system("oo-broker oo-admin-ctl-user -l #{@user} --allowprivatesslcertificates true --setmaxtrackedstorage 20 --setmaxteams 10 --allowha true") if options[:server]=="localhost"
+  system("oo-broker oo-admin-ctl-user -l #{@user} --allowprivatesslcertificates true --setmaxtrackedstorage 20 --setmaxteams 10 --allowha true --allowviewglobalteams true") if options[:server]=="localhost"
+  system("oo-broker oo-admin-ctl-team -c create --name engineering-team --maps-to cn=engineering-team,ou=Groups,dc=example,dc=com")
+  
   if options[:version]
     @headers = {:accept => "application/json; version=#{@version}"}
   else

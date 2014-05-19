@@ -44,15 +44,17 @@ def restore_con(dir, label, verbose = False)
     %x[chcon -l #{label} -R #{dir}* ]
 end
 
+SelinuxContext = OpenShift::Runtime::Utils::SelinuxContext
+
 if options[:all]
     OpenShift::Runtime::ApplicationContainer.all(nil, false).each do |container|
-        mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(container.uid)
+        mcs_label = SelinuxContext.instance.get_mcs_label(container.uid)
         restore_con(container.container_dir, mcs_label, options[:verbose])
     end
 else
     ARGV.each do |contan|
         if OpenShift::Runtime::ApplicationContainer.exists?(contan.to_s)
-            mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(contan.to_s)
+            mcs_label = SelinuxContext.instance.get_mcs_label(contan.to_s)
             restore_con(OpenShift::Runtime::ApplicationContainer.from_uuid(contan.to_s).container_dir, mcs_label, options[:verbose])
         else
             puts "ERROR: Gear #{contan} does not exist!"

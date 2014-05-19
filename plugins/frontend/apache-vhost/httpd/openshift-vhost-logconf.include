@@ -1,0 +1,17 @@
+# Log custom format for OpenShift parsing.
+# Log format is:
+LogFormat "%h %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X" openshift
+# If the `OpenShiftAnnotateFrontendAccessLog` option is defined, add the app/gear UUIDs to the log msg
+<IfDefine OpenShiftAnnotateFrontendAccessLog>
+  LogFormat "%h %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X %{APP_UUID}e %{GEAR_UUID}e" openshift
+</IfDefine>
+
+# Log file is used by the autoidler to assess gear (in)activity.
+CustomLog logs/openshift_log openshift
+#
+# If the `OpenShiftFrontendSyslogEnabled` option is defined, pipe output to syslog in addition to file.
+#
+<IfDefine OpenShiftFrontendSyslogEnabled>
+  CustomLog "|logger -t openshift-node-frontend" openshift
+</IfDefine>
+

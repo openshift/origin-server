@@ -226,7 +226,7 @@ class ActiveSupport::TestCase
   end
 
   def anonymous_json_header(is_post=false, nolinks=true)
-    mime = "application/json#{nolinks ? ';nolinks' : ''};version=1.6"
+    mime = "application/json#{nolinks ? ';nolinks' : ''};version=1.7"
     (is_post ? {'Content-Type' => mime} : {}).merge('Accept' => mime, 'User-Agent' => Console.config.api[:user_agent])
   end
 end

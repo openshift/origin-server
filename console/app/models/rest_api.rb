@@ -1,6 +1,6 @@
 module RestApi
   # The client API version
-  API_VERSION = '1.6'
+  API_VERSION = '1.7'
 
   #
   # An simple credential object exposes:

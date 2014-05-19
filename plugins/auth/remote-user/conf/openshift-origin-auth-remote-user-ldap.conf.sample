@@ -17,37 +17,26 @@ LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
   AuthLDAPURL "ldap://ldap.example.com:389/ou=People,dc=my-domain,dc=com?uid?sub?(objectClass=*)"
   require valid-user
 
+  # Broker handles auth tokens
   SetEnvIfNoCase Authorization Bearer passthrough
 
-  # The node->broker auth is handled in the Ruby code
+  # Console traffic will hit the local port.  mod_proxy will set this header automatically.
+  SetEnvIf X-Forwarded-For "^$" passthrough=1
+  # Turn the Console output header into the Apache environment variable for the broker remote-user plugin
+  SetEnvIf X-Remote-User "(..*)" REMOTE_USER=$1
+
+  # Old-style auth keys are POSTed as parameters. The deployment registration
+  # and snapshot-save use this.
   BrowserMatchNoCase ^OpenShift passthrough
+  # Older-style auth keys are POSTed in a header.  The Jenkins cartridge does
+  # this.
+  SetEnvIf broker_auth_key "^[A-Za-z0-9+/=]+$" passthrough=1
+
   <IfVersion >= 2.4>
     Require env passthrough
   </IfVersion>
   <IfVersion < 2.4>
     Allow from env=passthrough
-  </IfVersion>
-
-  # Console traffic will hit the local port.  mod_proxy will set this header automatically.
-  SetEnvIf X-Forwarded-For "^$" local_traffic=1
-  # Turn the Console output header into the Apache environment variable for the broker remote-user plugin
-  SetEnvIf X-Remote-User "(..*)" REMOTE_USER=$1
-  <IfVersion >= 2.4>
-    Require env local_traffic
-  </IfVersion>
-  <IfVersion < 2.4>
-    Allow from env=local_traffic
-  </IfVersion>
-
-
-  # Broker auth based on iv/token generated and verified by broker
-  SetEnvIf broker_auth_key "^[A-Za-z0-9+/=]+$" BROKER_AUTH=1
-
-  <IfVersion >= 2.4>
-    Require env BROKER_AUTH
-  </IfVersion>
-  <IfVersion < 2.4>
-    Allow from env=BROKER_AUTH
   </IfVersion>
 
   <IfVersion < 2.4>
@@ -58,29 +47,26 @@ LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
 </Location>
 
 # The following APIs do not require auth:
-<Location /broker/rest/cartridges*>
+#
+# /api
+# /environment
+# /cartridges
+# /quickstarts
+#
+# We want to match requests in the form of:
+#
+# /api
+# /api.json
+# /api/
+#
+# But not:
+#
+# /api_with_auth
+<LocationMatch ^/broker/rest/(api|environment|cartridges|quickstarts)(\.\w+|/?|/.*)$>
   <IfVersion >= 2.4>
     Require all granted
   </IfVersion>
   <IfVersion < 2.4>
     Allow from all
   </IfVersion>
-</Location>
-
-<Location /broker/rest/api*>
-  <IfVersion >= 2.4>
-    Require all granted
-  </IfVersion>
-  <IfVersion < 2.4>
-    Allow from all
-  </IfVersion>
-</Location>
-
-<Location /broker/rest/environment*>
-  <IfVersion >= 2.4>
-    Require all granted
-  </IfVersion>
-  <IfVersion < 2.4>
-    Allow from all
-  </IfVersion>
-</Location>
+</LocationMatch>

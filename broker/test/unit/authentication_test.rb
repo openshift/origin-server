@@ -86,7 +86,7 @@ class AuthenticationTest < ActiveSupport::TestCase
       login = login_or_user
       user = CloudUser.new(:login => login)
       user.stubs(:new_record?).returns(false)
-      CloudUser.expects(:find_or_create_by_identity).with(nil, login).returns(user)
+      CloudUser.expects(:find_or_create_by_identity).with(nil, login).returns(user, false)
     else
       user = login_or_user
       login = user.login

@@ -779,11 +779,12 @@ class Application
     end
 
     # validate the group overrides for the cartridges being added 
-    specs = component_specs_from(cartridges)
+    # combine the existing carts with the ones being added to get the full proposed group overrides
+    specs = component_specs_from(cartridges) + self.component_instances.map(&:to_component_spec)
     specs.each do |spec|
       spec.cartridge.group_overrides.each do |override|
         if o = GroupOverride.resolve_from(specs, override)
-          non_sparse_carts = []
+          scalable_carts = []
           o.components.each do |component|
             cart = CartridgeCache.find_cartridge(component.cartridge_name, self)
 
@@ -793,13 +794,15 @@ class Application
               cart = specs.map {|s| s.cartridge if s.cartridge.name == component.cartridge_name }.compact.first
             end
 
-            non_sparse_carts << cart if cart.components.any?{ |c| !c.is_sparse? }
+            # checking web_framework/service categories is done to ensure that the cart does not have plugin as well as service categories
+            # checking for is_plugin to ensure that the cart has at least one of these categories
+            scalable_carts << cart if cart.has_scalable_categories? or !cart.is_plugin?
           end
 
           # multiple independently scaling carts are not allowed to co-locate with each other
-          # ensure that there is only one scaling (non-sparse) cartridge in a group
-          if self.scalable and non_sparse_carts.size > 1
-            raise OpenShift::UserException.new("Cartridges #{non_sparse_carts.map {|c| c.name}} cannot be grouped together as they scale individually")
+          # ensure that there is only one scaling (non-sparse; non-plugin) cartridge in a group
+          if self.scalable and scalable_carts.size > 1
+            raise OpenShift::UserException.new("Cartridges #{scalable_carts.map {|c| c.name}} cannot be grouped together as they scale individually")
           end
         end
       end
@@ -868,9 +871,9 @@ class Application
         self.cartridges
       else
         component_ids = []
-        explicit = cartridges.map do |cart|
-          cart = CartridgeCache.find_cartridge(cart, self) if cart.is_a? String
-          raise OpenShift::UserException.new("The cartridge '#{cart}' can not be found.", 109) if cart.nil?
+        explicit = cartridges.map do |cart_provided|
+          cart = cart_provided.is_a?(String) ? CartridgeCache.find_cartridge(cart_provided, self) : cart_provided
+          raise OpenShift::UserException.new("The cartridge '#{cart_provided}' can not be found.", 109) if cart.nil?
 
           instances = self.component_instances.where(cartridge_name: cart.name)
           raise OpenShift::UserException.new("'#{cart.name}' cannot be removed", 137) if (cart.is_web_proxy? and self.scalable) or cart.is_web_framework?
@@ -990,6 +993,16 @@ class Application
       raise OpenShift::UserException.new("You have requested more additional gear storage than you are allowed (max: #{max_storage} GB)", 166) if additional_filesystem_gb > max_storage
     end
     raise OpenShift::UserException.new("Cannot set the max gear limit to '1' if the application is HA (highly available)") if self.ha and scale_to==1
+
+    if (scale_from or scale_to) and !(component_instance.has_scalable_categories? or component_instance.is_sparse?)
+      raise OpenShift::UserException.new("You can not set scaling policies for #{component_instance.cartridge_name}. Generally, you can set it only for web_framework or service cartridges.")
+    end
+
+    if component_instance.is_external?
+      raise OpenShift::UserException.new("You can not set the multiplier for an external cartridge.") if multiplier
+      raise OpenShift::UserException.new("You can not add storage for an external cartridge.") if additional_filesystem_gb and additional_filesystem_gb != 0
+    end
+
     Lock.run_in_app_lock(self) do
       op_group = UpdateCompLimitsOpGroup.new(comp_spec: component_instance.to_component_spec, min: scale_from, max: scale_to, multiplier: multiplier, additional_filesystem_gb: additional_filesystem_gb, user_agent: self.user_agent)
       pending_op_groups << op_group
@@ -1117,8 +1130,6 @@ class Application
       "Requires" => self.cartridges(true).map(&:name)
     }
 
-    h["Start-Order"] = @start_order if @start_order.present?
-    h["Stop-Order"] = @stop_order if @stop_order.present?
     h["Group-Overrides"] = self.group_overrides unless self.group_overrides.empty?
 
     h
@@ -1625,8 +1636,8 @@ class Application
     end
   end
 
-  def members_changed(added, removed, changed_roles)
-    op_group = ChangeMembersOpGroup.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence, user_agent: self.user_agent)
+  def members_changed(added, removed, changed_roles, parent_op)
+    op_group = ChangeMembersOpGroup.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence, user_agent: self.user_agent, parent_op: parent_op)
     self.pending_op_groups << op_group
   end
 
@@ -1983,6 +1994,7 @@ class Application
     end
 
     if deleting_app
+      pending_ops << DeregisterRoutingDnsOp.new(prereq: [pending_ops.last._id.to_s]) if self.ha and Rails.configuration.openshift[:manage_ha_dns]
       pending_ops << NotifyAppDeleteOp.new(prereq: [pending_ops.last._id.to_s])
     end
 
@@ -2383,32 +2395,40 @@ class Application
       prereq_ids = []
       prereq_ids += (component_ops[config_order[idx-1]][:add_broker_auth_keys] || []).map{|op| op._id.to_s}
       prereq_ids += (component_ops[config_order[idx-1]][:adds] || []).map{|op| op._id.to_s}
-      prereq_ids += (component_ops[config_order[idx-1]][:post_configures] || []).map{|op| op._id.to_s}
 
       component_ops[config_order[idx]][:new_component].prereq += prereq_ids unless component_ops[config_order[idx]][:new_component].nil?
       (component_ops[config_order[idx]][:add_broker_auth_keys] || []).each { |op| op.prereq += prereq_ids }
       (component_ops[config_order[idx]][:adds] || []).each { |op| op.prereq += prereq_ids }
-      (component_ops[config_order[idx]][:post_configures] || []).each { |op| op.prereq += prereq_ids }
     end
 
     if pending_ops.present? and !(pending_ops.length == 1 and SetGroupOverridesOp === pending_ops.first)
-      # FIXME: this could be arbitrarily large - would be better to set a condition that this
-      # operation cannot be skipped
-      all_ops_ids = pending_ops.map{ |op| op._id.to_s }
+      # set all ops as the pre-requisite for execute connections except post_configure ops
+      # FIXME: this could be arbitrarily large
+      all_ops_ids = pending_ops.map{ |op| op._id.to_s }.compact
       execute_connection_op = ExecuteConnectionsOp.new(prereq: all_ops_ids)
       pending_ops << execute_connection_op
     end
 
-    # check to see if there are any deployable carts being configured
-    # if so, then make sure that the post-configure op for it is executed at the end
-    # also, it should not be the prerequisite for any other pending_op
-    component_ops.keys.each do |spec|
-      if spec.cartridge.is_deployable?
-        component_ops[spec][:post_configures].each do |pcop|
+    post_config_order = calculate_post_configure_order(component_ops.keys)
+    post_config_order.each_index do |idx|
+      cur_spec = post_config_order[idx]
+
+      # if this is a deployable cart being configured,
+      # then make sure that the post-configure op for it is executed after execute_connections
+      # also, it should not be the prerequisite for any other pending_op
+      if cur_spec.cartridge.is_deployable?
+        component_ops[cur_spec][:post_configures].each do |pcop|
           pcop.prereq += [execute_connection_op._id.to_s]
           pending_ops.each{ |op| op.prereq.delete_if { |prereq_id| prereq_id == pcop._id.to_s } }
         end
       end
+
+      next if idx == 0
+      
+      prev_spec = post_config_order[idx - 1]
+      prereq_ids = []
+      prereq_ids += (component_ops[prev_spec][:post_configures] || []).map{|op| op._id.to_s}
+      (component_ops[cur_spec][:post_configures] || []).each { |op| op.prereq += prereq_ids }
     end
 
     # update-cluster has to run after all deployable carts have been post-configured
@@ -2679,16 +2699,16 @@ class Application
   def enforce_system_order(order, categories)
     web_carts = Array(categories['web_framework'])
     service_carts = Array(categories['service']) - web_carts
-    plugin_carts = categories.map { |k,v| Array(v) }.flatten - web_carts - service_carts 
+    other_carts = categories.map { |k,v| Array(v) }.flatten - web_carts - service_carts 
 
     web_carts.each do |w|
-      (service_carts+plugin_carts).each do |sp|
-        order.add_component_order([w,sp])
+      (service_carts + other_carts).each do |so|
+        order.add_component_order([w, so])
       end
     end
     service_carts.each do |s|
-      plugin_carts.each do |p|
-        order.add_component_order([s,p])
+      other_carts.each do |o|
+        order.add_component_order([s, o])
       end
     end
   end
@@ -2764,63 +2784,24 @@ class Application
     computed_configure_order.compact
   end
 
-  # Returns the start/stop order specified in the application descriptor or processes the start and stop
+  def calculate_post_configure_order(specs)
+    configure_order = calculate_configure_order(specs)
+    configure_order.select {|spec| !spec.cartridge.is_web_framework?} + configure_order.select {|spec| spec.cartridge.is_web_framework?}
+  end
+
+  # Returns the start/stop order by processing the start and stop
   # orders for each component and returns the final order (topological sort).
   #
   # == Returns:
   # start_order::
-  #   {ComponentInstance} objects ordered by calculated start order
+  #   {ComponentInstance} objects ordered using post-configure order
   # stop_order::
-  #   {ComponentInstance} objects ordered by calculated stop order
+  #   {ComponentInstance} objects ordered using reverse of post-configure order
   def calculate_component_orders
-    start_order = ComponentOrder.new
-    stop_order = ComponentOrder.new
-    comps = []
-    categories = {}
-
-    #build a map of [categories, features, cart name] => component_instance
-    component_instances.each do |instance|
-      cart = instance.cartridge
-
-      comps << instance
-      [[instance.cartridge_name], cart.categories, cart.provides].flatten.each do |cat|
-        categories[cat] = [] if categories[cat].nil?
-        categories[cat] << instance
-      end
-      start_order.add_component_order([instance])
-      stop_order.add_component_order([instance])
-    end
-
-    #use the map to build DAG for order calculation
-    comps.each do |spec|
-      start_order.add_component_order(spec.cartridge.start_order.map{ |c| categories[c] }.flatten)
-      stop_order.add_component_order(spec.cartridge.stop_order.map{ |c| categories[c] }.flatten)
-    end
-
-    # enforce system order of components (web_framework first etc)
-    enforce_system_order(start_order, categories)
-    enforce_system_order(stop_order, categories)
-
-    #calculate start order using tsort
-    begin
-      computed_start_order = start_order.tsort
-    rescue Exception=>e
-      raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-    end
-
-    #calculate stop order using tsort
-    begin
-      computed_stop_order = stop_order.tsort
-    rescue Exception=>e
-      raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
-    end
-
-    # start/stop order can have nil if the component is not present in the application
-    # for eg, php is being stopped and haproxy is not present in a non-scalable application
-    computed_start_order.compact!
-    computed_stop_order.compact!
-
-    [computed_start_order, computed_stop_order]
+    start_order = calculate_post_configure_order(self.component_instances)
+    stop_order = start_order.reverse
+    
+    [start_order, stop_order]
   end
 
   def get_ssl_certs(fqdns=[])
@@ -2847,7 +2828,7 @@ class Application
 
   def get_all_updated_ssh_keys
     ssh_keys = []
-    ssh_keys = self.app_ssh_keys.map {|k| k.serializable_hash } # the app_ssh_keys already have their name "updated"
+    ssh_keys = self.app_ssh_keys.map {|k| k.as_document } # the app_ssh_keys already have their name "updated"
     ssh_keys |= get_updated_ssh_keys(self.domain.system_ssh_keys)
     ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u.ssh_keys) }.flatten(1)
 
@@ -2862,7 +2843,7 @@ class Application
   def get_updated_ssh_keys(keys)
     updated_keys_attrs = []
     keys.flatten.each do |key|
-      key_attrs = key.serializable_hash.deep_dup
+      key_attrs = key.as_document.deep_dup
       case key.class
       when UserSshKey
         key_attrs["name"] = key.cloud_user._id.to_s + "-" + key_attrs["name"]
@@ -2911,6 +2892,7 @@ class Application
         match = /\A([a-zA-Z_][\w]*)\z/.match(name)
         raise OpenShift::UserException.new("Name can only contain letters, digits and underscore and can't begin with a digit.", 188, "environment_variables") if match.nil?
         raise OpenShift::UserException.new("Value must be 512 characters or less.", 190, "environment_variables") if value and value.length > 512
+        raise OpenShift::UserException.new("Value cannot contain null characters.", 190, "environment_variables") if value and value.include? "\\000"
       end
       if no_delete
         set_vars, unset_vars = sanitize_user_env_variables(user_env_vars)

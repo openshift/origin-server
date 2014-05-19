@@ -15,6 +15,7 @@
 #++
 
 require 'openshift-origin-common/config'
+require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/shell_exec'
 require 'tempfile'
 require 'fileutils'
@@ -44,7 +45,8 @@ module OpenShift
           @output = []
 
           @config    = ::OpenShift::Config.new('/etc/openshift/node.conf')
-          @resources = ::OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+          @resources = ::OpenShift::Runtime::Utils::Cgroups::Config.new('/etc/openshift/resource_limits.conf')
+
 
           # ============================================================================
           #  Functions for setting the net class
@@ -91,6 +93,7 @@ module OpenShift
 
           # Where we keep track of throttled/high users
           @tc_user_dir=(@resources.get('tc_user_dir') or File.join(@config.get('GEAR_BASE_DIR'), '.tc_user_dir'))
+          @tc_outbound_htb=@resources.tc_outbound_htb
         end
 
         def output
@@ -167,11 +170,19 @@ module OpenShift
 
           # Specific constraints within the gear's limit
           f.puts %Q[qdisc add dev #{@tc_if} parent 1:#{netclass} handle #{netclass}: htb default 0]
-          f.puts %Q[class add dev #{@tc_if} parent #{netclass}: classid #{netclass}:2 htb rate 128kbit ceil 256kbit quantum #{@tc_min_quantum}]
-          f.puts %Q[class add dev #{@tc_if} parent #{netclass}: classid #{netclass}:3 htb rate  12kbit ceil  24kbit quantum #{@tc_min_quantum}]
-          f.puts %Q[filter add dev #{@tc_if} parent #{netclass}: protocol ip prio 10 u32 match ip dport 587 0xffff flowid #{netclass}:2]
-          f.puts %Q[filter add dev #{@tc_if} parent #{netclass}: protocol ip prio 10 u32 match ip dport  25 0xffff flowid #{netclass}:3]
-          f.puts %Q[filter add dev #{@tc_if} parent #{netclass}: protocol ip prio 10 u32 match ip dport 465 0xffff flowid #{netclass}:3]
+
+          @tc_outbound_htb.each.with_index do |htb_array, i|
+            bandwidth, ports = htb_array
+            rate, ceil = bandwidth
+            # I think 0 and 1 are special in tc.  Before we had support for
+            # configuring outbound htb minor numbers started at 2.
+            minor_number = i+2
+
+            f.puts %Q[class add dev #{@tc_if} parent #{netclass}: classid #{netclass}:#{minor_number} htb rate #{rate} ceil #{ceil} quantum #{@tc_min_quantum}]
+            ports.each do |p|
+              f.puts %Q[filter add dev #{@tc_if} parent #{netclass}: protocol ip prio 10 u32 match ip dport #{p} 0xffff flowid #{netclass}:#{minor_number}]
+            end
+          end
         end
 
         def stopuser_impl(uuid, pwent, netclass, f)
@@ -180,7 +191,7 @@ module OpenShift
 
         def tc_exists?(netclass)
           out, _, _ = ::OpenShift::Runtime::Utils.oo_spawn("tc -s class show dev #{@tc_if} classid 1:#{netclass}", :chdir=>"/")
-          !out.empty?
+          out.empty? ? false : out
         end
 
         def with_tc_loaded
@@ -192,11 +203,12 @@ module OpenShift
           end
         end
 
-        def statususer(uuid, pwent, netclass)
-          if !tc_exists?(netclass)
-            raise ArgumentError, "tc not configured for user #{uuid}"
-          else
+        def statususer(uuid, pwent, netclass, verbose=false)
+          if out = tc_exists?(netclass)
             @output << "tc is active for the user #{uuid}"
+            @output << out if verbose
+          else
+            raise ArgumentError, "tc not configured for user #{uuid}"
           end
         end
 
@@ -357,12 +369,12 @@ module OpenShift
           status(uuid)
         end
 
-        def status(uuid=nil)
+        def status(uuid=nil, verbose=false)
           @output << "Bandwidth shaping status: "
           with_tc_loaded do
             if uuid
               parse_valid_user(uuid) do |pwent, netclass|
-                statususer(uuid, pwent, netclass)
+                statususer(uuid, pwent, netclass, verbose)
               end
             else
               out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc -s qdisc show dev #{@tc_if}", :chdir=>"/")

@@ -1,0 +1,64 @@
+diff --git a/Makefile.am b/Makefile.am
+index 567b876..fea1be0 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -245,6 +245,10 @@ if ENABLE_ORACLE
+ SUBDIRS += plugins/omoracle
+ endif
+ 
++if ENABLE_MMOPENSHIFT
++SUBDIRS += plugins/mmopenshift
++endif
++
+ if ENABLE_GUI
+ SUBDIRS += java
+ endif
+diff --git a/configure.ac b/configure.ac
+index 123ed7e..1d14b39 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1428,6 +1428,28 @@ AM_CONDITIONAL(ENABLE_OMHIREDIS, test x$enable_omhiredis = xyes)
+ 
+ # END HIREDIS SUPPORT
+ 
++# OPENSHIFT SUPPORT
++
++AC_ARG_ENABLE(mmopenshift,
++        [AS_HELP_STRING([--enable-mmopenshift],[Enable building mmopenshift support @<:@default=no@:>@])],
++        [case "${enableval}" in
++         yes) enable_mmopenshift="yes" ;;
++          no) enable_mmopenshift="no" ;;
++           *) AC_MSG_ERROR(bad value ${enableval} for --enable-mmopenshift) ;;
++         esac],
++        [enable_mmopenshift=no]
++)
++if test "x$enable_openshift" = "xyes"; then
++  AC_CHECK_HEADERS(
++    [sys/inotify.h],,
++    [AC_MSG_FAILURE([sys/inotify.h is missing])]
++  )
++  AC_CHECK_FUNCS(inotify_init)
++fi
++AM_CONDITIONAL(ENABLE_MMOPENSHIFT, test x$enable_mmopenshift = xyes)
++
++# END OPENSHIFT SUPPORT
++
+ AC_CONFIG_FILES([Makefile \
+ 		runtime/Makefile \
+ 		compat/Makefile \
+@@ -1483,6 +1505,7 @@ AC_CONFIG_FILES([Makefile \
+ 		plugins/omelasticsearch/Makefile \
+ 		plugins/sm_cust_bindcdr/Makefile \
+ 		plugins/mmsnmptrapd/Makefile \
++		plugins/mmopenshift/Makefile \
+ 		java/Makefile \
+ 		tests/Makefile])
+ AC_OUTPUT
+@@ -1541,6 +1564,7 @@ echo "    mmnormalize module will be compiled:      $enable_mmnormalize"
+ echo "    mmjsonparse module will be compiled:      $enable_mmjsonparse"
+ echo "    mmjaduit module will be compiled:         $enable_mmaudit"
+ echo "    mmsnmptrapd module will be compiled:      $enable_mmsnmptrapd"
++echo "    mmopenshift module will be compiled:      $enable_mmopenshift"
+ echo
+ echo "---{ strgen modules }---"
+ echo "    sm_cust_bindcdr module will be compiled:  $enable_sm_cust_bindcdr"

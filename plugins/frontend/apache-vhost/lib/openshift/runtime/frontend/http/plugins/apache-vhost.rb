@@ -357,7 +357,11 @@ module OpenShift
               with_lock_and_reload do
                 if not File.exists?(alias_path(server_alias))
                   raise PluginException.new("Specified alias #{server_alias} does not exist for the app",
-                                            @container_uuid, @fqdn)
+                                            @container_uuid, @fqdn
+                    # BZ 1090358 in the case of reconstructing the frontend for a moved gear,
+                    # the alias_path is already removed in favor of the vhost ssl_conf_path,
+                    # so just proceed if that is already there:
+                                           ) unless File.exists?(ssl_conf_path(server_alias))
                 end
 
                 ssl_certificate_file = ssl_certificate_path(server_alias)
@@ -386,7 +390,7 @@ module OpenShift
                   f.fsync
                 end
 
-                FileUtils.rm_f(alias_path(server_alias))
+                FileUtils.rm_f(alias_path(server_alias)) if File.exists?(alias_path(server_alias))
               end
             end
 

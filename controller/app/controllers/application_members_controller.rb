@@ -9,7 +9,7 @@ class ApplicationMembersController < MembersController
         super
       end
     end
-    
+
     def allowed_member_types
       ["user"]
     end

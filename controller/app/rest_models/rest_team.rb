@@ -1,11 +1,11 @@
 class RestTeam < OpenShift::Model
-  attr_accessor :id, :name, :links
+  attr_accessor :id, :name, :global, :maps_to, :links
 
   def initialize(team, url, nolinks=false, include_members=false)
-    
-    self.id = team.id
-    self.name = team.name
-    
+    [:id, :name, :maps_to].each{ |sym| self.send("#{sym}=", team.send(sym)) }
+
+    self.global = team.owner_id ? false : true
+
     if include_members
       @members = team.members.map{ |m| RestMember.new(m, team.owner_id == m._id, url, team, nolinks) }
     end
@@ -28,6 +28,10 @@ class RestTeam < OpenShift::Model
           "LEAVE" => Link.new("Leave team", "DELETE", URI::join(url, "team/#{id}/members/self")),
           "DELETE" => Link.new("Delete team", "DELETE", URI::join(url, "team/#{id}"))
         }
+
+      if self.global
+        self.links.delete_if {|k, v| ["ADD_MEMBER", "UPDATE_MEMBERS", "LEAVE", "DELETE"].include? k}
+      end
     end
   end
 

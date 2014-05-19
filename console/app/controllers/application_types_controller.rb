@@ -57,6 +57,7 @@ class ApplicationTypesController < ConsoleController
     @unlock_cartridges = to_boolean(params[:unlock])
 
     @capabilities = user_capabilities :refresh => true
+    @user_usage_rates = current_api_user.usage_rates
 
     @user_writeable_domains = user_writeable_domains :refresh => true
     @user_default_domain = user_default_domain rescue (Domain.new)
@@ -74,7 +75,7 @@ class ApplicationTypesController < ConsoleController
     @application.gear_profile = @gear_sizes.first unless @gear_sizes.include?(@application.gear_profile)
     @application.domain_name = app_params[:domain_name] || app_params[:domain_id] || @user_default_domain.name
 
-    (@domain_capabilities, @is_domain_owner) = estimate_domain_capabilities(@application.domain_name, @user_writeable_domains, @can_create, @capabilities)
+    (@domain_capabilities, @domain_usage_rates, @is_domain_owner) = estimate_domain_capabilities(@application.domain_name, @user_writeable_domains, @can_create, @capabilities, @user_usage_rates)
 
     unless @unlock_cartridges
       begin
@@ -113,14 +114,16 @@ class ApplicationTypesController < ConsoleController
     begin
       domain = Domain.find(app_params[:domain_name], :as => current_user, :params => {:include => :application_info})
       capabilities = domain.capabilities
+      usage_rates = domain.usage_rates
       owner = domain.owner?
     rescue RestApi::ResourceNotFound => e
       # Assume this is a new domain name being entered, so use the user's capabilities
       capabilities = user_capabilities
+      usage_rates = current_api_user.usage_rates
       owner = true
     end
 
-    render :inline => gear_increase_indicator(cartridges, scales, application.gear_profile, false, capabilities, owner)
+    render :inline => gear_increase_indicator(cartridges, scales, application.gear_profile, false, capabilities, usage_rates, owner)
   rescue => e
     render :inline => e.message, :status => 500
   end

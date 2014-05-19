@@ -11,16 +11,16 @@ class MembersController < ConsoleController
     p = params[:members] || []
     p = [p] unless p.is_a? Array
     members = p.map {|m| new_member(m) }
-    # Ignore new member rows without a login specified
+    # Ignore member rows without a login or id specified
     members = members.select {|m| m.login.present? || m.id.present? }
 
     if members.present?
       if @domain.update_members(members)
         flash[:success] = @domain.messages.first.presence || "Updated members"
       else
-        flash.now[:error] = "Could not update members."
+        flash.now[:error] = @domain.errors[:members].first || "Could not update members."
         @capabilities = user_capabilities
-        @new_members = members.select {|m| m.login.present? and m.id.blank? }
+        @new_members = members.select {|m| m.attributes[:adding] }
         render :template => 'domains/show' and return
       end
     end
@@ -31,10 +31,10 @@ class MembersController < ConsoleController
     @domain = get_domain
     if request.post?
       if @domain.leave
-        flash[:success] = "You are no longer a member of the domain '#{@domain.name}'"
+        flash[:success] = @domain.messages.first.presence || "You are no longer a member of the domain '#{@domain.name}'"
         redirect_to console_path
       else
-        flash[:error] = @domain.messages.first.presence || "Could not leave the domain '#{@domain.name}'"
+        flash[:error] = @domain.errors[:base].first.presence || @domain.messages.first.presence || "Could not leave the domain '#{@domain.name}'"
         redirect_to domain_path(@domain)
       end
     end

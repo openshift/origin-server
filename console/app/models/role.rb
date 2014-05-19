@@ -5,7 +5,7 @@ class Role < RestApi::Base
   end
 
   def self.description_for(role)
-    case role
+    case role.to_s
     when 'admin'
       'Can administer'
     when 'edit'
@@ -17,10 +17,17 @@ class Role < RestApi::Base
     end
   end
 
-  def self.role_descriptions(include_blank=false)
-    if include_blank
+  def self.role_descriptions(include_blank=false, has_team_role=false)
+    if include_blank && has_team_role
+      @blank_descriptions_with_team ||= [
+        ['Team access only', 'none'],
+        ['Can view (+ team access)','view'],
+        ['Can edit (+ team access)','edit'],
+        ['Can administer (+ team access)','admin']
+      ]
+    elsif include_blank
       @blank_descriptions ||= [
-        ['No access', 'none'],
+        ['No role', 'none'],
         ['Can view','view'],
         ['Can edit','edit'],
         ['Can administer','admin']
@@ -33,4 +40,13 @@ class Role < RestApi::Base
       ]
     end
   end
+
+  def self.higher_of(*args)
+    ROLES[args.map{ |r| ROLES.index(r.to_s) }.compact.max]
+  rescue
+    nil
+  end
+
+  private
+    ROLES = ['view', 'edit', 'admin'].freeze
 end

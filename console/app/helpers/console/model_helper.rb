@@ -96,15 +96,15 @@ module Console::ModelHelper
     gear_sizes
   end
 
-  def estimate_domain_capabilities(selected_domain_name, writeable_domains, can_create, user_capabilities)
+  def estimate_domain_capabilities(selected_domain_name, writeable_domains, can_create, user_capabilities, user_usage_rates)
     if (selected_domain = writeable_domains.find {|d| d.name == selected_domain_name})
-      [selected_domain.capabilities, selected_domain.owner?]
+      [selected_domain.capabilities, selected_domain.usage_rates, selected_domain.owner?]
     elsif writeable_domains.length == 1
-      [writeable_domains.first.capabilities, writeable_domains.first.owner?]
+      [writeable_domains.first.capabilities, writeable_domains.first.usage_rates, writeable_domains.first.owner?]
     elsif can_create and writeable_domains.length == 0
-      [user_capabilities, true]
+      [user_capabilities, user_usage_rates, true]
     else
-      [nil, nil]
+      [nil, nil, nil]
     end
   end
 

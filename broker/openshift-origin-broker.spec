@@ -49,7 +49,6 @@ Requires:      %{?scl:%scl_prefix}rubygem-passenger
 Requires:      %{?scl:%scl_prefix}rubygem-passenger-native
 Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
 Requires:      %{?scl:%scl_prefix}rubygem-rails
-Requires:      %{?scl:%scl_prefix}rubygem-regin
 Requires:      %{?scl:%scl_prefix}rubygem-rest-client
 Requires:      %{?scl:%scl_prefix}rubygem-systemu
 Requires:      %{?scl:%scl_prefix}rubygem-xml-simple
@@ -86,7 +85,6 @@ Requires:      %{?scl:%scl_prefix}rubygem-rack-test
 Requires:      %{?scl:%scl_prefix}rubygem-rails
 Requires:      %{?scl:%scl_prefix}rubygem-railties
 Requires:      %{?scl:%scl_prefix}rubygem-rdoc
-Requires:      %{?scl:%scl_prefix}rubygem-regin
 Requires:      %{?scl:%scl_prefix}rubygem-sprockets
 Requires:      %{?scl:%scl_prefix}rubygem-state_machine
 Requires:      %{?scl:%scl_prefix}rubygem-stomp

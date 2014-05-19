@@ -81,6 +81,10 @@ if [ -d "$SCRIPTS_DIR" ]; then
               mv -f "$OPENSHIFT_CRON_DIR/log/cron.$freq.log" "$OPENSHIFT_CRON_DIR/log/cron.$freq.log.1"
           fi
 
+          LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-cron-${freq}
+          rm -f $LOGPIPE && mkfifo $LOGPIPE
+          /usr/bin/logshifter -tag cron_${freq} < $LOGPIPE &
+
           separator=$(seq -s_ 75 | tr -d '[:digit:]')
           {
               echo $separator
@@ -99,7 +103,7 @@ if [ -d "$SCRIPTS_DIR" ]; then
               echo $separator
               echo "`date`: END $freq cron run - status=$status"
               echo $separator
-          } &> >(/usr/bin/logshifter -tag cron_${freq})
+          } &> $LOGPIPE
 
       ) 9>&-
 

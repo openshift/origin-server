@@ -40,7 +40,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert !d.save
     assert_equal "You are limited to 1 members per domain", d.errors[:members].first, d.errors.to_hash
   end
-  
+
   def test_team_max
     Rails.configuration.stubs(:openshift).returns(:gear_sizes => [:small], :max_members_per_resource => 10, :max_teams_per_resource => 0)
     d = Domain.new
@@ -455,6 +455,7 @@ class AccessControlledTest < ActiveSupport::TestCase
         :change_gear_quota => [false, false, true],
         :ssh_to_gears      => [false, false, true],
         :scale_cartridge   => [false, true,  true],
+        :change_state      => [false, true,  true]
       }
       allows.each_pair do |p, expect|
         apps.zip(expect).each do |(a, bool)|
@@ -469,6 +470,7 @@ class AccessControlledTest < ActiveSupport::TestCase
         :change_gear_quota => [true, true, true],
         :ssh_to_gears      => [true, true, true],
         :scale_cartridge   => [true, true, true],
+        :change_state      => [true, true, true]
       }
       allows.each_pair do |p, expect|
         apps.zip(expect).each do |(a, bool)|
@@ -617,6 +619,11 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_nil Application.accessible(u3).first
 
     a.add_members(u2, :view)
+    assert a.save
+    assert jobs = a.pending_op_groups
+    assert jobs.length == 1
+    assert_equal ChangeMembersOpGroup, jobs.last.class
+    assert_equal [[u2._id, CloudUser.member_type, :view, 'propagate_test_2']], jobs.last.members_added
 
     assert_equal [u], CloudUser.members_of(a){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, a) }
 
@@ -650,9 +657,10 @@ class AccessControlledTest < ActiveSupport::TestCase
     end
 
     assert jobs = d.applications.first.pending_op_groups
-    assert jobs.length == 1
-    assert_equal ChangeMembersOpGroup, jobs.first.class
-    assert_equal [[u2._id, CloudUser.member_type, :admin, 'propagate_test_2'], [u3._id, CloudUser.member_type, :admin, 'propagate_test_3']], jobs.last.members_added
+    assert jobs.length == 2
+    assert_equal ChangeMembersOpGroup, jobs.last.class
+    assert_equal [[u3._id, CloudUser.member_type, :admin, 'propagate_test_3']], jobs.last.members_added
+    assert_equal [[u2._id, CloudUser.member_type, :view, :admin]], jobs.last.roles_changed
 
     a = d.applications.first
     assert_equal 3, (a.members & d.members).length
@@ -686,7 +694,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     a = Domain.find_by(:namespace => 'test').applications.first
     assert jobs = a.pending_op_groups
 
-    assert jobs.length == 2
+    assert jobs.length == 3
     assert_equal ChangeMembersOpGroup, jobs.last.class
     assert_equal [u3.as_member.to_key], jobs.last.members_removed
 
@@ -699,6 +707,76 @@ class AccessControlledTest < ActiveSupport::TestCase
 
     assert d.pending_ops.empty?
     assert Domain.find_by(:namespace => 'test').pending_ops.empty?
+  end
+
+  def test_reentrant_member_change_ops
+    Team.in(:name => 'reentrant_test').delete
+    CloudUser.in(:login => ['propagate_test_1', 'propagate_test_2', 'propagate_test_3']).delete
+    Domain.where(:namespace => ['test1','test2']).delete
+    Application.where(:name => ['propagatetest1', 'propagatetest2']).delete
+
+    assert u = CloudUser_create(:login => 'propagate_test_1')
+    assert u2 = CloudUser_create(:login => 'propagate_test_2')
+    assert u3 = CloudUser_create(:login => 'propagate_test_3')
+
+    assert d1 = Domain_create(:namespace => 'test1', :owner => u)
+    assert d2 = Domain_create(:namespace => 'test2', :owner => u)
+    assert a1 = Application_create(:name => 'propagatetest1', :domain => d1)
+    assert a2 = Application_create(:name => 'propagatetest2', :domain => d2)
+    assert t = Team_create(:name => 'reentrant_test')
+
+    t.add_members u, :view
+    assert_equal 0, t.pending_ops.length
+    t.save
+    assert_equal 1, t.pending_ops.length
+    t.run_jobs
+    assert_equal 0, t.pending_ops.length
+
+    [d1,d2].each do |d|
+      d.add_members t, :view
+      assert_equal 0, d.pending_ops.length
+      d.save
+      assert_equal 1, d.pending_ops.length
+      d.run_jobs
+      assert_equal 0, d.pending_ops.length
+    end
+
+    # An error while running an app pending op leaves the model updated in mongo, with pending ops left on the models
+    Domain.expects(:accessible).at_least(0).returns([d1, d2]) # Make sure we get the domains in the order we expect
+    ChangeMembersOpGroup.any_instance.expects(:execute).raises("Error")
+    t.add_members u2, :view
+    t.save
+    assert_raise(RuntimeError) { t.run_jobs }
+    assert_equal :view, t.reload.role_for(u2)
+    assert_equal :view, d1.reload.role_for(u2)
+    assert_equal :view, a1.reload.role_for(u2)
+    assert_equal nil,   d2.reload.role_for(u2) # D2 didn't run yet
+    assert_equal nil,   a2.reload.role_for(u2) # Change members op didn't run for d2 yet, so membership changes didn't get pushed to a1
+    assert_equal [:init], t.pending_ops.map(&:state)      # Got put back in init state
+    assert_equal [0],     t.pending_ops.map(&:queued_at)  # Got its queued_at timer reset
+    assert_equal [:init], d1.pending_ops.map(&:state)     # Got put back in init state
+    assert_equal [0],     d1.pending_ops.map(&:queued_at) # Got its queued_at timer reset
+    assert_equal 1,       a1.pending_op_groups.length # Got queued
+    assert_equal [],      d2.pending_ops.map(&:state) # No op queued up for d2 yet
+    assert_equal 0,       a2.pending_op_groups.length # No op queued up for a2 yet
+
+    # Remove the failure
+    ChangeMembersOpGroup.any_instance.unstub(:execute)
+
+    # Try to rerun the job
+    assert t.run_jobs
+
+    # Make sure everything propagated correctly
+    assert_equal :view, t.reload.role_for(u2)
+    assert_equal :view, d1.reload.role_for(u2)
+    assert_equal :view, a1.reload.role_for(u2)
+    assert_equal :view, d2.reload.role_for(u2)
+    assert_equal :view, a2.reload.role_for(u2) # Membership got updated for a2
+    assert_equal [], t.pending_ops
+    assert_equal [], d1.pending_ops
+    assert_equal [], a1.pending_op_groups
+    assert_equal [], d2.pending_ops
+    assert_equal [], a2.pending_op_groups
   end
 
   private

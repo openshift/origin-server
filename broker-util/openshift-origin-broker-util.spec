@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.23.0
+Version: 1.25.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -29,10 +29,11 @@ Requires:      %{?scl:%scl_prefix}mcollective-client
 Requires:      which
 Requires:      tar
 Requires:      openssh-clients
+Requires:      %{?scl:%scl_prefix}rubygem-net-ldap
 BuildArch:     noarch
 
 %description
-This package contains a set of utility scripts for the openshift broker.  
+This package contains a set of utility scripts for the openshift broker.
 They must be run on a openshift broker instance.
 
 %prep
@@ -76,6 +77,7 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-quarantine
 %attr(0750,-,-) %{_sbindir}/oo-register-dns
 %attr(0750,-,-) %{_sbindir}/oo-stats
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-team
 
 %{?scl:%scl_root}%{ruby_libdir}/app_info.rb
 
@@ -103,8 +105,115 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-analytics-export.8.gz
 %{_mandir}/man8/oo-analytics-import.8.gz
 %{_mandir}/man8/oo-quarantine.8.gz
+%{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- corrected section number (lnader@redhat.com)
+- Bug 1094141 - update oo-admin-ctl-user man pages (lnader@redhat.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
+- Merge pull request #5325 from UhuruSoftware/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5368 from Miciah/specify-key-algorithm-in-nsupdate-
+  plugin-del_cmd-and-oo-diagnostics (dmcphers+openshiftbot@redhat.com)
+- Add support for multiple platforms to districts
+  (daniel.carabas@uhurusoftware.com)
+- Bug 1088247 (lnader@redhat.com)
+- Add support for more secure key algorithms (calfonso@redhat.com)
+
+* Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
+- Moved srec deletetion to billing plugin (lnader@redhat.com)
+- added -clearplanexpirationdate (lnader@redhat.com)
+- Annual Online SKU Support (lnader@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.7-1
+- Merge pull request #5297 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1088405 - no error message was being given for invalid keys and silently
+  failing (lnader@redhat.com)
+
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.6-1
+- Bug 1085297 - fixed error message (lnader@redhat.com)
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.5-1
+- ctl-team: allow anonymous or encrypted LDAP access (lmeyer@redhat.com)
+
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
+- Give better error message in case of connection failures. i.e. authentication
+  failure (lnader@redhat.com)
+- Bug 1087593 (lnader@redhat.com)
+- changed save to save! and fixed typo (lnader@redhat.com)
+- Bug 1085669 and 1085685 (lnader@redhat.com)
+- added oo-admin-ctl-team (lnader@redhat.com)
+
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
+- Bug 1086263 - oo-analytics-export will include applications 'owner_id' field
+  (rpenta@redhat.com)
+
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- Merge pull request #5195 from brenton/BZ1085339
+  (dmcphers+openshiftbot@redhat.com)
+- Cleanup (dmcphers@redhat.com)
+- Bug 1085339, Bug 1085365 - cleaning up the remote user auth configs
+  (bleanhar@redhat.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- ctl-district: add --available and list-available (lmeyer@redhat.com)
+- ctl-district: act on many nodes with one invocation (lmeyer@redhat.com)
+- Bug 1083663 - Provide better message when upgrade-node is used on a rerun
+  (dmcphers@redhat.com)
+- Bug 1071272 - oo-admin-repair: Only allow node removal from its district when
+  no apps are referencing that node (rpenta@redhat.com)
+- Fix indent, oo-admin-ctl-user usage (jliggitt@redhat.com)
+- Add global_teams capability (jliggitt@redhat.com)
+- Merge pull request #5165 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1084090: Using as_document instead of serializable_hash to add/remove
+  keys (abhgupta@redhat.com)
+- Bug 1071272 - Fix oo-admin-repair Details:  - Delete unresponsive node(s)
+  from the district in the end  - Recover app will satisfy group overrides
+  (rpenta@redhat.com)
+- Merge pull request #5152 from
+  pravisankar/dev/ravi/bugs-1081381-1073342-1008654
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1081381 - Validate --gear option in oo-admin-usage (rpenta@redhat.com)
+- Adding user create tracking event (dmcphers@redhat.com)
+- Merge pull request #5142 from pravisankar/dev/ravi/bug1079293
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1079293 - Fix oo-admin-ctl-region add-zone/remove-zone incorrect warning
+  message (rpenta@redhat.com)
+- removed oo-admin-ctl-team to be done in a separate pull request
+  (lnader@redhat.com)
+- Bug 1081975 (lnader@redhat.com)
+- Removed global flag - using owner_id=nil as indicator for global team
+  (lnader@redhat.com)
+- Bug 1079115 - fixed error message (lnader@redhat.com)
+- Bug 1079117 - Require rubygem-net-ldap (lnader@redhat.com)
+- removed ownership from global teams (lnader@redhat.com)
+- added oo-admin-ctl-team (lnader@redhat.com)
+- Merge pull request #5122 from pravisankar/dev/ravi/fix-clear-pending-ops
+  (dmcphers+openshiftbot@redhat.com)
+- Fix oo-admin-clear-pending-ops : With '--time 0' option, ignore pending_ops
+  or pending_op_groups created_at field and process any pending op or op-groups
+  if it exists (rpenta@redhat.com)
+- Bug 1079293 - Fix warning msg in oo-admin-ctl-region remove-zone
+  (rpenta@redhat.com)
+- Fix formatting (dmcphers@redhat.com)
+- Bug 1081869 - Console needs a oo-admin-console-cache command. Remove the
+  --console flag from the oo-admin-broker-cache command. (jforrest@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.6-1
 - Bug 1081419 - Move oo-upgrade to /var/log (dmcphers@redhat.com)
 

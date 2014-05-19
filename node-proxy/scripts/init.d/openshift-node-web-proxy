@@ -33,15 +33,11 @@ prog="web-proxy"
 lockfile="/var/lock/subsys/node-web-proxy"
 pidfile="/var/run/openshift-node-web-proxy-supervisor.pid"
 childpidfile="/var/run/openshift-node-web-proxy.pid"
-logfile="/var/log/node-web-proxy/supervisor.log"
-
-# Set public IP on devenv images
-public_ip=$(facter ipaddress_eth0)
-sed -i "s/^\( *\"host\" *:\) *undefined,/\1 \"$public_ip\",/" /etc/openshift/web-proxy-config.json
+logfile="/var/log/openshift/node/node-web-proxy/supervisor.log"
 
 start() {
     echo -n $"Starting node-web-proxy: "
-    chown apache.apache /var/log/node-web-proxy/*.log >/dev/null 2>&1 || :
+    chown apache.apache /var/log/openshift/node/node-web-proxy/*.log >/dev/null 2>&1 || :
     export NODE_PATH="$nodesysmodulespath"
     nohup scl enable nodejs010 "$cmd" &>> $logfile &
 
@@ -59,7 +55,7 @@ start() {
 
 stop() {
     echo -n $"Stopping node-web-proxy: "
-    killproc -p $pidfile $prog 
+    killproc -p $pidfile $prog
     retval=$?
     # If pid's whacked, we need to send a HUP.
     pids=$(/usr/bin/pgrep -f $nodeserver)
@@ -109,7 +105,7 @@ case "$1" in
         status -p $pidfile $prog
         ;;
     condrestart|try-restart)
-  	if [ -f $lockfile ] 
+  	if [ -f $lockfile ]
         then
             restart
         fi

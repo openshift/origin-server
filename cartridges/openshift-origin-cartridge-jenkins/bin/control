@@ -47,6 +47,8 @@ function start() {
     exit 0
   fi
   JENKINS_CMD="/etc/alternatives/jre/bin/java \
+      -XX:+UseSerialGC \
+      -Xms20m \
       -Xmx168m \
       -XX:MaxPermSize=100m \
       -Djava.awt.headless=true"

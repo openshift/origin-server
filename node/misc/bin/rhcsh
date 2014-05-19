@@ -16,7 +16,7 @@ function load_env {
     export $key="$(< $1)"
 }
 
-for f in /etc/openshift/env/* ~/.env/* ~/.env/.uservars/* ~/*/env/*
+for f in /etc/openshift/env/* ~/.env/* ~/*/env/*
 do
   load_env $f
 done
@@ -56,10 +56,10 @@ function welcome {
       echo 1>&2 '
     *********************************************************************
 
-    You are accessing a service that is for use only by authorized users.  
-    If you do not have authorization, discontinue use at once. 
-    Any use of the services is subject to the applicable terms of the 
-    agreement which can be found at: 
+    You are accessing a service that is for use only by authorized users.
+    If you do not have authorization, discontinue use at once.
+    Any use of the services is subject to the applicable terms of the
+    agreement which can be found at:
     https://www.openshift.com/legal
 
     *********************************************************************
@@ -80,22 +80,27 @@ function welcome {
 '
   fi
 
-  # Quota returns nonzero if you are over limit
-  if quota >/dev/null 2>&1
+  if which quota  > /dev/null  2>&1
   then
-    local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f", ($2 / $4 * 100)}')
-    if float_test "$usage > 90.0"
+    # Quota returns nonzero if you are over limit
+    if quota >/dev/null 2>&1
     then
-      echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of disk quota"
-    fi
+      local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f", ($2 / $4 * 100)}')
+      if float_test "${usage:-0} > 90.0"
+      then
+        echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of disk quota"
+      fi
 
-    local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f",  ($5 / $7 * 100)}')
-    if float_test "$usage > 90.0"
-    then
-      echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of inodes allowed"
+      local usage=$(quota -w 2>/dev/null| grep '^.*/dev/' | awk '{printf "%3.1f",  ($5 / $7 * 100)}')
+      if float_test "${usage:-0} > 90.0"
+      then
+        echo "Warning: Gear ${OPENSHIFT_GEAR_UUID} is using ${usage}% of inodes allowed"
+      fi
+    else
+      echo "Your application is out of disk space; please run \"rhc app-tidy $OPENSHIFT_APP_NAME\"" 1>&2
     fi
   else
-    echo "Your application is out of disk space; please run \"rhc app-tidy $OPENSHIFT_APP_NAME\"" 1>&2
+    echo "Command \"quota\" not found for app $OPENSHIFT_APP_NAME, please check the node hosting this app"
   fi
 }
 
@@ -164,7 +169,7 @@ function psql() {
   fi
 
   CMD=`which psql`
-  if [ $OPENSHIFT_POSTGRESQL_VERSION = '9.2' ]; then
+  if [[ ! -z $OPENSHIFT_POSTGRESQL_VERSION && $OPENSHIFT_POSTGRESQL_VERSION = '9.2' ]]; then
     which scl 2>&1 >/dev/null
     if [ $? -eq 0 ]; then
       CMD=`scl enable postgresql92 "which psql"`

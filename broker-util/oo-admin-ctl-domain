@@ -162,10 +162,15 @@ when "create"
 
   # Add the ssh key if it is provided
   if ssh_key
-    user.add_ssh_key(UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
-    unless user.save
-      puts "An error occurred during ssh key addition. Errors: #{user.errors.messages}"
+    key = UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type)
+    if key.invalid?
+      puts "An error occurred during ssh key addition. Errors: #{key.errors.messages}"
       exit 2
+    end
+    if user.ssh_keys.where(name: ssh_name).present?
+      user.update_ssh_key(key)
+    else
+      user.add_ssh_key(key)
     end
   end
 
@@ -185,8 +190,8 @@ when "create"
   reply.resultIO << "Successfully created domain.\n"
 
 when "update"
-  if namespace.blank? || login.blank? || (allowed_gear_sizes.nil? && new_namespace.blank?)
-    print "Please provide login, namespace, and either a new namespace (rename), or a set of allowed gear sizes, to update the domain\n"
+  if namespace.blank? || login.blank? ||  (allowed_gear_sizes.nil? && new_namespace.blank? && ssh_key.nil?)
+    print "Please provide login, namespace, and either a new namespace (rename), new ssh key, or a set of allowed gear sizes, to update the domain\n"
     exit 1
   end
   user = nil
@@ -227,22 +232,18 @@ when "update"
   end
 
   unless ssh_key.nil?
-    has_key = false
-    user.ssh_keys.each do |key|
-      if key.name == ssh_name
-        has_key = true
-        break
-      end
-    end
-    if has_key 
-      user.update_ssh_key(UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
-    else
-      user.add_ssh_key(UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
-    end
-    unless user.save
-      puts "An error occurred during ssh key add/update. Errors: #{user.errors.messages}"
+    key = UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type)
+    if key.invalid?
+      puts "An error occurred during ssh key add/update. Errors: #{key.errors.messages}"
       exit 2
     end
+
+    if user.ssh_keys.where(name: ssh_name).present?
+      user.update_ssh_key(key)
+    else
+      user.add_ssh_key(key)
+    end
+
     reply.resultIO << "Successfully updated user.\n"
   end
 

@@ -2,8 +2,8 @@
 Name: php
 Cartridge-Short-Name: PHP
 Display-Name: PHP 5.4
-Description: ! 'PHP is a general-purpose server-side scripting language originally
-  designed for Web development to produce dynamic Web pages. Popular development frameworks
+Description: 'PHP is a general-purpose server-side scripting language originally designed
+  for Web development to produce dynamic Web pages. Popular development frameworks
   include: CakePHP, Zend, Symfony, and Code Igniter.'
 Version: '5.4'
 Provides:
@@ -21,8 +21,9 @@ Version-Overrides:
 License: The PHP License, version 3.0
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: php.net
-Cartridge-Version: 0.0.13
-Compatible-Versions: []
+Cartridge-Version: 0.0.16
+Compatible-Versions:
+- 0.0.15
 Cartridge-Vendor: redhat
 Categories:
 - service

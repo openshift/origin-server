@@ -32,7 +32,7 @@ start() {
 }
 
 stop() {
-    # Droping the reference from the input chain would needlessly complicate
+    # Dropping the reference from the input chain would needlessly complicate
     # this logic.  For that reason we can't actually drop the chain.  This will
     # allow admins to flush the chain if needed.
     iptables -F rhc-app-comm
@@ -101,7 +101,7 @@ case "$1" in
         start
         ;;
     reload)
-	# Calling stop could cause an outage.  It's best to simply call start.
+        # Calling stop could cause an outage.  It's best to simply call start.
         start
         ;;
     *)

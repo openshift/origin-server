@@ -4,7 +4,7 @@
 # LD_LIBRARY_PATH, PKG_CONFIG_PATH, and MANPATH variables.
 dir=/opt/rh/ruby193/root/usr/bin
 [[ ${PATH}: =~ ^$dir: ]] || export PATH="$dir:${PATH/:$dir}"
-dir=/opt/rh/ruby193/root/usr/lib64
+dir=/opt/rh/ruby193/root/usr/lib64:/opt/rh/v8314/root/usr/lib64
 [[ ${LD_LIBRARY_PATH}: =~ ^$dir: ]] || export LD_LIBRARY_PATH="$dir:${LD_LIBRARY_PATH/:$dir}"
 
 exec "$@"

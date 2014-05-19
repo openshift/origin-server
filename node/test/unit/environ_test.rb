@@ -21,11 +21,14 @@ class EnvironTest < OpenShift::NodeTestCase
   # Called before every test method runs. Can be used
   # to set up fixture information.
   def setup
-    @uuid         = 'f5586d7e690e4a7ea71da1507d60c192'
-    @cart_name    = 'mock'
-    @gear_env     = File.join('/tmp', @uuid, '.env')
-    @cart_env     = File.join('/tmp', @uuid, @cart_name, 'env')
-    FileUtils.mkpath(@gear_env)
+    @uuid      = 'f5586d7e690e4a7ea71da1507d60c192'
+    @gear_env  = File.join('/tmp', @uuid, '.env')
+    @user_env  = File.join(@gear_env, 'user_vars')
+
+    @cart_name = 'mock'
+    @cart_env  = File.join('/tmp', @uuid, @cart_name, 'env')
+
+    FileUtils.mkpath(@user_env)
     FileUtils.mkpath(@cart_env)
   end
 
@@ -42,6 +45,8 @@ class EnvironTest < OpenShift::NodeTestCase
     base = case where
              when :gear
                @gear_env
+             when :user
+               @user_env
              when :cart
                @cart_env
            end
@@ -151,6 +156,15 @@ class EnvironTest < OpenShift::NodeTestCase
 
     OpenShift::Runtime::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
       assert_equal 'VIP', env['DEFAULT_LABEL']
+    end
+  end
+
+  # Verify nulls removed from user variables
+  def test_nulls
+    write_var(:user, 'EMBEDDED_NULL', "This\000is\000a\000test")
+
+    OpenShift::Runtime::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+      assert_equal 'Thisisatest', env['EMBEDDED_NULL']
     end
   end
 end

@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.23.0
+Version: 1.25.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -91,6 +91,11 @@ an OpenShift cartrige.
 Summary:   Optional user dependencies for DIY OpenShift Cartridges
 BuildArch: noarch
 Requires: %{name}-recommended-diy
+Requires:  lua-devel
+Requires:  cmake
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:  cmake28
+%endif
 
 %description optional-diy
 This package pulls in other packages that a user
@@ -292,6 +297,7 @@ Requires:  php-mcrypt
 Requires:  php-pdo
 Requires:  php-pecl-apc
 Requires:  php-pecl-imagick
+Requires:  php-pecl-memcache
 Requires:  php-pecl-xdebug
 Requires:  php-process
 Requires:  php-soap
@@ -308,6 +314,7 @@ Requires:  php54-php-mcrypt
 Requires:  php54-php-pdo
 Requires:  php54-php-pecl-apc
 Requires:  php54-php-pecl-imagick
+Requires:  php54-php-pecl-memcache
 Requires:  php54-php-pecl-xdebug
 Requires:  php54-php-process
 Requires:  php54-php-soap
@@ -360,6 +367,7 @@ Requires:  lapack-devel
 Requires:  libcurl-devel
 Requires:  libffi-devel
 Requires:  libjpeg-devel
+Requires:  libyaml-devel
 Requires:  numpy
 Requires:  numpy-f2py
 Requires:  pymongo
@@ -416,6 +424,7 @@ Requires:  gcc-c++
 Requires:  gmp-devel
 Requires:  ImageMagick-devel
 Requires:  libev-devel
+Requires:  libgit2-devel
 Requires:  libicu-devel
 Requires:  libxml2-devel
 Requires:  libxslt-devel
@@ -425,11 +434,11 @@ Requires:  js
 Requires:  ruby-nokogiri
 Requires:  rubygem-bson_ext
 Requires:  rubygem-rack >= 1.1.0
+Requires:  rubygem-rugged
 %else
 Requires:  rubygem-nokogiri
 %endif
 Requires:  %{?scl_prefix}js-devel
-Requires:  %{?scl_prefix}libyaml-devel
 Requires:  %{?scl_prefix}ruby-tcltk
 Requires:  %{?scl_prefix}rubygem-actionmailer
 Requires:  %{?scl_prefix}rubygem-actionpack
@@ -483,6 +492,7 @@ Requires:  %{?scl_prefix}rubygem-rdoc
 Requires:  %{?scl_prefix}rubygem-rspec
 Requires:  %{?scl_prefix}rubygem-ruby2ruby
 Requires:  %{?scl_prefix}rubygem-ruby_parser
+Requires:  %{?scl_prefix}rubygem-rugged
 Requires:  %{?scl_prefix}rubygem-sass
 Requires:  %{?scl_prefix}rubygem-sass-rails
 Requires:  %{?scl_prefix}rubygem-sexp_processor
@@ -505,6 +515,38 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Wed May 07 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
+- user system libyaml (tdawson@redhat.com)
+
+* Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
+- add cmake/cmake28 to diy-optional dependencies (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
+- Bug 1088230 - Fix php-pecl-memcache extension (vvitek@redhat.com)
+
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.2-1
+- move libyaml-devel dependency into python cartridge optional dependencies
+  (bparees@redhat.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Bug 1084094 - provide libgit2-devel and rubygem-rugged (tdawson@redhat.com)
+- Bug 1082696 - Add lua-devel as dependency (tdawson@redhat.com)
+- Enable PHP 5.4 xdebug (vvitek@redhat.com)
+- Enable mcrypt for PHP 5.4 (vvitek@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
 - adding xz-devel to optional-python (tdawson@redhat.com)
 - adding xv-devel to optional-python (tdawson@redhat.com)

@@ -145,6 +145,14 @@ module Membership
     self
   end
 
+  def with_member_change_parent_op(member_change_parent_op)
+    old_member_change_parent_op = @_member_change_parent_op
+    @_member_change_parent_op = member_change_parent_op
+    yield
+  ensure
+    @_member_change_parent_op = old_member_change_parent_op
+  end
+
   protected
     def parent_membership_relation
       relations.values.find{ |r| r.macro == :belongs_to }
@@ -161,7 +169,7 @@ module Membership
     # The list of member ids that changed on the object.
     # This method needs to be implemented in any class that includes Membership
     #
-    def members_changed(added, removed, changed_roles)
+    def members_changed(added, removed, changed_roles, parent_op)
       Rails.logger.error "The members_changed method needs to be implemented in the specific classes\n  #{caller.join("\n  ")}"
       raise "Membership changes not implemented"
     end
@@ -182,7 +190,7 @@ module Membership
         if has_member_changes?
           changed_roles = members.select{ |m| m.role_changed? && !(@members_added && @members_added.include?(m.to_key)) }.map{ |m| [m._id, m.type].concat(m.role_change) }
           added_roles = members.select{ |m| @members_added && @members_added.include?(m.to_key) }.map{ |m| [m._id, m.type, m.role, m.name] }
-          members_changed(added_roles, @members_removed, changed_roles)
+          members_changed(added_roles, @members_removed, changed_roles, @_member_change_parent_op)
           @original_members, @members_added, @members_removed = nil
         end
       else
@@ -217,6 +225,10 @@ module Membership
     end
 
     def accessible_criteria(to)
+      with_member(to)
+    end
+
+    def with_member(to)
       where(:'members._id' => to.is_a?(String) ? to : to._id, :'members.t' => to.respond_to?(:member_type) ? to.member_type : nil)
     end
 

@@ -2,7 +2,7 @@
 require 'getoptlong'
 require 'pp'
 
-CTL_DISTRICT_COMMANDS = %w[add-node remove-node deactivate-node activate-node add-capacity remove-capacity create destroy publish-uids set-region unset-region]
+CTL_DISTRICT_COMMANDS = %w[list-available create add-node set-region unset-region deactivate-node activate-node remove-node add-capacity remove-capacity destroy publish-uids ]
 
 def usage
   puts <<USAGE
@@ -15,24 +15,28 @@ oo-admin-ctl-district: Control districts
 oo-admin-ctl-district OPTIONS
 
 Options:
--u|--uuid <district uuid>
-    District uuid  (alphanumeric)
 -c|--command <command>
     (#{CTL_DISTRICT_COMMANDS * '|'})
+-u|--uuid <district uuid>
+    District uuid  (alphanumeric)
 -n|--name <district name>
     District name (Used on create or in place of uuid on other commands)
     Allowed chars: alphanumeric, underscore, hyphen, dot
 -p|--node_profile <gear_size>
-    Only needed for create
+    Only required for create
 -i|--server_identity
-    Node server identity (required)
--s|--size
-    Size to add or remove (positive number) (required)
+    Node server identity (required) (may be a comma-separated list)
+-a|--available
+    On add-node, add all available nodes with the right profile
 -r|--region <region_name>
     Region name of the server identitiy.
     Only valid for add-node (optional) and set-region
 -z|--zone <zone_name>
     Zone within the region. Only valid when region is specified
+-s|--size
+    Amount of capacity to add or remove (positive number) (required)
+-o|--platform
+    Specify the platform of the district, default value is Linux
 -b|--bypass
     Ignore warnings
 -h|--help
@@ -54,16 +58,28 @@ def get_district(uuid, name)
   end
 end
 
+def available_nodes
+  return @nodes_for_profile if @nodes_for_profile
+  @nodes_for_profile = Hash.new {|h,k| h[k] = [] }
+  OpenShift::ApplicationContainerProxy.get_details_for_all(%w[node_profile district_uuid]).each do |host,details|
+    next unless details[:district_uuid] == 'NONE'
+    @nodes_for_profile[details[:node_profile]] << host
+  end
+  @nodes_for_profile
+end
+
 opts = GetoptLong.new(
-    ["--uuid",             "-u", GetoptLong::REQUIRED_ARGUMENT],
-    ["--server_identity",  "-i", GetoptLong::REQUIRED_ARGUMENT],
     ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
-    ["--size",             "-s", GetoptLong::REQUIRED_ARGUMENT],
-    ["--name",             "-n", GetoptLong::REQUIRED_ARGUMENT],
+    ["--uuid",             "-u", GetoptLong::REQUIRED_ARGUMENT],
     ["--node_profile",     "-p", GetoptLong::REQUIRED_ARGUMENT],
+    ["--name",             "-n", GetoptLong::REQUIRED_ARGUMENT],
+    ["--server_identity",  "-i", GetoptLong::REQUIRED_ARGUMENT],
+    ["--available",        "-a", GetoptLong::NO_ARGUMENT],
     ["--region",           "-r", GetoptLong::REQUIRED_ARGUMENT],
     ["--zone",             "-z", GetoptLong::REQUIRED_ARGUMENT],
-    ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
+    ["--size",             "-s", GetoptLong::REQUIRED_ARGUMENT],
+    ["--platform",         "-o", GetoptLong::REQUIRED_ARGUMENT],
+    ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -80,13 +96,18 @@ end
 
 uuid     = args["--uuid"]
 command  = args['--command']
-server_identity  = args['--server_identity']
-size     = args['--size'] ? args['--size'].to_i : nil
+if server_identity = args['--server_identity']
+  server_identity = server_identity.split /[,;:\s]\s*/
+end
+name     = args['--name']
+available = args['--available']
 region   = args['--region']
 zone     = args['--zone']
+size     = args['--size'] ? args['--size'].to_i : nil
 bypass   = args['--bypass']
-name     = args['--name']
 node_profile = args['--node_profile']
+platform = args['--platform'] ? args['--platform']:"Linux"
+
 
 if !command && (args.length > 0)
   puts "Error: --command is required with any arguments"
@@ -111,7 +132,10 @@ district = nil
 if uuid || name
   district = get_district(uuid, name)
   if !district
-    if command != 'create'
+    if command == 'add-node' && !node_profile
+      puts "District '#{uuid ? uuid : name}' not found, and no profile given to auto-create."
+      exit 1
+    elsif ! %w[create add-node].include?(command)
       puts "District '#{uuid ? uuid : name}' not found."
       exit 1
     end
@@ -119,9 +143,12 @@ if uuid || name
     puts "District '#{name}' already exists"
     exit 1
   end
-  unless server_identity || (command != 'add-node' && command != 'remove-node' && command != 'deactivate-node' &&
-                             command != 'activate-node' && command != 'set-region' && command != 'unset-region')
+  if %w[remove-node deactivate-node activate-node set-region unset-region].include?(command) && !server_identity
     puts "--server_identity is required with command: #{command}"
+    exit 1
+  end
+  if command == 'add-node' && !(server_identity || available)
+    puts "--server_identity or --available is required with command: #{command}"
     exit 1
   end
   unless region || (command != 'set-region')
@@ -136,7 +163,7 @@ if uuid || name
     puts "--size is required with command: #{command}"
     exit 1
   end
-elsif command && (command != 'publish-uids')
+elsif command && ! %w[list-available publish-uids].include?(command)
   if command != 'create'
     puts "--uuid or --name is required with command: #{command}"
   else
@@ -145,32 +172,67 @@ elsif command && (command != 'publish-uids')
   exit 1
 end
 
+def collate_errors(servers, reply, &block)
+  servers.each do |server|
+    begin
+      yield(server)
+      reply.resultIO << "Success for node '#{server}'!\n"
+    rescue OpenShift::OOException => e
+      reply.errorIO << "Error for node '#{server}': #{e.message}\n"
+      reply.exitcode = e.code && e.respond_to?('code') ? e.code : 1
+    end
+  end
+end
+
 reply = ResultIO.new
 begin
   case command
+  when "list-available"
+    available_nodes.each do |profile, nodes|
+      next if node_profile && profile != node_profile
+      reply.resultIO << "Nodes in profile: #{profile}\n"
+      nodes.each {|node| reply.resultIO << "\t#{node}\n"}
+    end
+    if node_profile && available_nodes[node_profile].empty?
+      reply.resultIO << "No nodes in profile: #{node_profile}\n"
+    end
   when "add-node"
-    district.add_node(server_identity, region, zone)
-    reply.resultIO << "Success!"
-  when "remove-node"
-    district.remove_node(server_identity)
-    reply.resultIO << "Success!"
+    unless district
+      district = District::create_district(name, node_profile)
+      uuid = district.uuid
+      reply.resultIO.string.empty? && reply.resultIO << "Successfully created district: #{district.uuid}\n"
+    end
+    if available
+      node_profile ||= district.gear_size
+      server_identity = available_nodes[node_profile]
+      if server_identity.empty?
+        reply.errorIO << "No available nodes for profile '#{node_profile}'\n"
+        reply.exitcode = 1
+      end
+    end
+    collate_errors(server_identity, reply) do |server|
+      kernel = OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("kernel", server) {|_, _|}
+      if kernel.casecmp(district.attributes["platform"]) == 0
+        district.add_node(server, region, zone)
+      else
+        reply.resultIO << "Cannot add a node with platform '#{kernel}' to a district with platform '#{district.attributes["platform"]}'"
+      end
+    end
+  when "set-region"
+    collate_errors(server_identity, reply) {|server| district.set_region(server, region, zone) }
+  when "unset-region"
+    collate_errors(server_identity, reply) {|server| district.unset_region(server) }
   when "deactivate-node"
-    district.deactivate_node(server_identity)
-    reply.resultIO << "Success!"
+    collate_errors(server_identity, reply) {|server| district.deactivate_node(server) }
+  when "remove-node"
+    collate_errors(server_identity, reply) {|server| district.remove_node(server) }
   when "activate-node"
-    district.activate_node(server_identity)
-    reply.resultIO << "Success!"
+    collate_errors(server_identity, reply) {|server| district.activate_node(server) }
   when "add-capacity"
     district.add_capacity(size)
     reply.resultIO << "Success!"
   when "remove-capacity"
     district.remove_capacity(size)
-    reply.resultIO << "Success!"
-  when "set-region"
-    district.set_region(server_identity, region, zone)
-    reply.resultIO << "Success!"
-  when "unset-region"
-    district.unset_region(server_identity)
     reply.resultIO << "Success!"
   when "publish-uids"
     districts = district ? [district] : District.find_all
@@ -186,11 +248,15 @@ begin
       end
     end
   when "create"
-    default_gear_size = Rails.application.config.openshift[:default_gear_size]
-    puts "node_profile not specified.  Using default: #{default_gear_size}" unless node_profile
-    district = District::create_district(name, node_profile)
-    uuid = district.uuid
-    reply.resultIO << "Successfully created district: #{district.uuid}" if reply.resultIO.string.empty?
+    if Rails.application.config.openshift[:node_platforms].include? platform.downcase
+      default_gear_size = Rails.application.config.openshift[:default_gear_size]
+      puts "node_profile not specified.  Using default: #{default_gear_size}" unless node_profile
+      district = District::create_district(name, node_profile, platform.downcase)
+      uuid = district.uuid
+      reply.resultIO << "Successfully created district: #{district.uuid}" if reply.resultIO.string.empty?
+    else
+      reply.resultIO << "The specified platform does not exist in the configuration file"
+    end
   when "destroy"
     unless bypass
       puts <<-WARNING
@@ -240,7 +306,7 @@ rescue OpenShift::OOException => e
   end
 end
 
-puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty? # unused...
+puts "#{reply.resultIO.string}\n" unless reply.resultIO.string.empty?
 puts "ERROR OUTPUT:\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
-puts "#{reply.resultIO.string}" unless reply.resultIO.string.empty?
 exit reply.exitcode

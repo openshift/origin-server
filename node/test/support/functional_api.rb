@@ -186,9 +186,9 @@ EOFZ
     end
   end
 
-  def up_gears
+  def up_gears(num=5)
     logger.info "Upping gears for #{@login}"
-    logger.info `oo-broker --non-interactive oo-admin-ctl-user -l #{@login} --setmaxgears 5`
+    logger.info `oo-broker --non-interactive oo-admin-ctl-user -l #{@login} --setmaxgears #{num}`
   end
 
   def enable_ha

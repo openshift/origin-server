@@ -8,16 +8,16 @@
   %global webproxymoduledir /opt/rh/nodejs010/root%{nodejs_sitelib}/openshift-node-web-proxy
 %endif
 %{!?scl:%global pkg_name %{name}}
+%global logroot %{_var}/log/openshift/node/node-web-proxy
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.22.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      facter
 Requires:      %{?scl:%scl_prefix}nodejs
 Requires:      %{?scl:%scl_prefix}nodejs-async
 Requires:      %{?scl:%scl_prefix}nodejs-optimist
@@ -96,9 +96,9 @@ install -D -p -m 644 lib/plugins/* %{buildroot}%{webproxymoduledir}/lib/plugins
 mkdir -p %{buildroot}%{webproxymoduledir}/bin
 install -D -p -m 644 bin/*  %{buildroot}%{webproxymoduledir}/bin
 
-mkdir -p %{buildroot}%{_var}/log/node-web-proxy
-if [ ! -f %{buildroot}%{_var}/log/node-web-proxy/supervisor.log ]; then
-   /bin/touch %{buildroot}%{_var}/log/node-web-proxy/supervisor.log
+mkdir -p %{buildroot}%{logroot}
+if [ ! -f %{buildroot}%{logroot}/supervisor.log ]; then
+   /bin/touch %{buildroot}%{logroot}/supervisor.log
 fi
 
 
@@ -133,8 +133,8 @@ fi
 %attr(0755,-,-) %{_bindir}/node-find-proxy-route-files
 %attr(0640,-,-) %{_sysconfdir}/openshift/web-proxy-config.json
 %attr(0644,-,-) %{_sysconfdir}/logrotate.d/%{name}
-%ghost %attr(0660,root,root) %{_var}/log/node-web-proxy/supervisor.log
-%dir %attr(0700,apache,apache) %{_var}/log/node-web-proxy
+%ghost %attr(0660,root,root) %{logroot}/supervisor.log
+%dir %attr(0700,apache,apache) %{logroot}
 %dir %attr(0755,-,-) %{webproxymoduledir}
 %{webproxymoduledir}
 
@@ -142,6 +142,32 @@ fi
 %doc README
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.23.0-2
+- bumpspec to mass fix tags
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.22.3-1
+- Merge pull request #5266 from jwhonce/bug/1077330
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1077330 - Remove unused dependency on facter (jhonce@redhat.com)
+
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.22.2-1
+- Bug 1083730 - Move node-web-proxy logs to /var/log/openshift/node
+  (jhonce@redhat.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- facter ipaddress does not always return the ip that we would want
+  (bparees@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Fri Mar 21 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
 - Update tests to not use any installed gems and use source gems only Add
   environment wrapper for running broker util scripts (jforrest@redhat.com)

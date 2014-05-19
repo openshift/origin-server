@@ -48,14 +48,12 @@ class EmbCartEventsController < BaseController
         result = @application.scale_by(instance.group_instance_id, value)
         msg = "Cartridge #{cartridge} has scaled to #{final}"
 
-      when "scale-down"
-        authorize! :scale_cartridge, @application
-        result = @application.scale_by(instance.group_instance_id, -1)
-        msg = "Cartridge #{cartridge} has been scaled down"
-
+        @analytics_tracker.identify(@cloud_user.reload)
       else
         return render_error(:unprocessable_entity, "Invalid event '#{event}' for embedded cartridge #{cartridge} within application '#{@application.name}'", 126)
     end
+
+    @analytics_tracker.track_event("cartridge_#{event.gsub(/-/, '_')}", @domain, @application, {'cartridge' => cartridge})
 
     app = get_rest_application(@application)
     render_success(:ok, "application", app, msg, result)

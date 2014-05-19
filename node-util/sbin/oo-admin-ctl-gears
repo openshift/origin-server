@@ -222,6 +222,12 @@ module OpenShift
         report_failures(results.select { |h| 0 != h[:exitstatus] })
       end
 
+      def metrics(honor_lock = true)
+        Parallel.map(gears(honor_lock), @options) do |ac|
+          ac.metrics
+        end
+      end
+
       def gears(honor_lock = true)
         Enumerator.new do |yielder|
           if @uuids.nil?
@@ -450,5 +456,24 @@ command :listidle do |c|
       next unless container.stop_lock?
       $stdout.puts "#{container.uuid} is idled" if OpenShift::Runtime::FrontendHttpServer.new(container).idle?
     end
+  end
+end
+
+command :metrics do |c|
+  c.syntax = "#{$name} #{c.name} <gear_uuid>"
+  c.description = %q(run metrics for <gear_uuid>)
+
+  c.action do |args, options|
+    raise "Requires a gear uuid" if args.empty?
+    OpenShift::Runtime::AdminGearsControl.new(options, args).metrics(IGNORE_LOCK)
+  end
+end
+
+command :metricsall do |c|
+  c.syntax = "#{$name} #{c.name}"
+  c.description = %q(run metrics for all gears)
+
+  c.action do |_, options|
+    OpenShift::Runtime::AdminGearsControl.new(options).metrics
   end
 end

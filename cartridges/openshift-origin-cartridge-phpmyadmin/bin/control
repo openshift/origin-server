@@ -3,6 +3,7 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 export PHPRC="${OPENSHIFT_PHPMYADMIN_DIR}conf/php.ini"
+export PHP_INI_SCAN_DIR="/etc/php.d"
 
 HTTPD_CFG_FILE=${OPENSHIFT_PHPMYADMIN_DIR}conf/httpd_nolog.conf
 HTTPD_PASSENV_FILE=${OPENSHIFT_PHPMYADMIN_DIR}conf.d/passenv.conf
@@ -18,21 +19,25 @@ function start {
   echo "Starting PHPMyAdmin cartridge"
   write_httpd_passenv $HTTPD_PASSENV_FILE
   ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+  # Force httpd into its own pgroup, as httpd is hard-coded to TERM everything in
+  # its pgroup during shutdown (even while foregrounded)
+  set -m
   eval "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag phpmyadmin &"
+  set +m
 }
 
 function stop {
   echo "Stopping PHPMyAdmin cartridge"
-  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+  ensure_valid_httpd_pid_file "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   if [ -f "$HTTPD_PID_FILE" ]; then
-      shutdown_httpd_graceful_pidfile $HTTPD_PID_FILE
+      shutdown_httpd_graceful $HTTPD_PID_FILE
   fi
 }
 
 function restart {
   echo "Restarting PHPMyAdmin cartridge"
   write_httpd_passenv $HTTPD_PASSENV_FILE
-  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+  ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   if [ -f "$HTTPD_PID_FILE" ]; then
     httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
     kill -HUP $httpd_pid

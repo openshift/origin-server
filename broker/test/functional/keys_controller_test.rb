@@ -34,6 +34,10 @@ class KeysControllerTest < ActionController::TestCase
     assert_response :created
     get :show, {"id" => key_name}
     assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show, {"id" => key_name}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
     get :index , {}
     assert_response :success
     new_namespace = "xns#{@random}"
@@ -128,5 +132,6 @@ class KeysControllerTest < ActionController::TestCase
       get :show, {"id" => key_name}
       assert_response :ok, "Getting key for version #{version} failed"
     end
+    @request.env['HTTP_ACCEPT'] = "application/json"
   end
 end

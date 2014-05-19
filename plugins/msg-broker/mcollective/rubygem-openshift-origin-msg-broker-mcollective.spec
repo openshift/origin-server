@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.23.0
+Version: 1.25.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,45 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- Bug 1095351: Selected/Requested district uuid now correctly compared
+  (abhgupta@redhat.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Wed May 07 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
+- Bug 1095351: Ensuring that gear moves respect the destination district
+  argument  - This bug was a regression caused by a typo in a recent change
+  (abhgupta@redhat.com)
+
+* Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
+- Add support for multiple platforms to districts
+  (daniel.carabas@uhurusoftware.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.2-1
+- Merge pull request #5289 from pravisankar/dev/ravi/bug1086566
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1086566 - Fix move gear: run_in_app_lock() will reload the app object and
+  any references to its fields (in this case 'gear') need to be recomputed
+  (rpenta@redhat.com)
+- Bug 1065047 - changed exception raised to NodeUnavailableException to
+  indicate retry advisable (503) (lnader@redhat.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Moved pruning of non-districted/non-zone nodes(when districted/zone nodes are
+  available) from rpc_find_all_available to select_best_fit_node. Rationale:
+  Node selection plugin should have flexibility to choose any candidate node
+  from non-districted/districted/non-zone/zone nodes. (rpenta@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.7-1
 - Merge pull request #5088 from pravisankar/dev/ravi/bug1070884
   (dmcphers+openshiftbot@redhat.com)

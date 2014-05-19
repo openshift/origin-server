@@ -21,8 +21,7 @@ module OpenShift
   module Runtime
     module NodeLogger
       #
-      # This NodeLogger implementation is backed by the Ruby stdlib +syslog+ package. Logs
-      # are written using the +Syslog::LOG_LOCAL0+ facility.
+      # This NodeLogger implementation is backed by the Ruby stdlib +syslog+ package.
       #
       # The priority threshold is configured by the +PLATFORM_SYSLOG_THRESHOLD+ config key,
       # which is a string matching one of the log priority values specified in the Ruby
@@ -30,8 +29,13 @@ module OpenShift
       #
       #   http://ruby-doc.org/stdlib-1.9.3/libdoc/syslog/rdoc/Syslog.html#method-c-log
       #
+      # Logs are written using the facility defined by the
+      # +PLATFORM_SYSLOG_FACILITY+ config value (default: LOG_LOCAL0).
+      #
       # If the +PLATFORM_SYSLOG_TRACE_ENABLED+ config value is +1+, +trace+ logs
-      # will be written using the +LOG_DEBUG+ priority.
+      # will be written using the +LOG_DEBUG+ priority and the facility defined
+      # by the +PLATFORM_SYSLOG_TRACE_FACILITY+ config value (default:
+      # LOG_LOCAL1).
       #
       # Note: This implementation does not support deferred log entry evaluation. Any blocks
       # passed to log methods will be immediately evaluated.
@@ -42,44 +46,46 @@ module OpenShift
           @config = config
           @trace_enabled = (@config.get('PLATFORM_SYSLOG_TRACE_ENABLED') || '1').to_i == 1
 
-          threshold_config = @config.get('PLATFORM_SYSLOG_THRESHOLD') || 'LOG_DEBUG'
-          begin
-            @threshold = Syslog.const_get(threshold_config)
-          rescue Exception => e
-            raise "Invalid PLATFORM_SYSLOG_THRESHOLD value '#{threshold_config}': #{e.message}"
-          end
+          @threshold = get_syslog_const('PLATFORM_SYSLOG_THRESHOLD', 'LOG_DEBUG')
+          @facility = get_syslog_const('PLATFORM_SYSLOG_FACILITY', 'LOG_LOCAL0')
+          @trace_facility = get_syslog_const('PLATFORM_SYSLOG_TRACE_FACILITY', 'LOG_LOCAL1')
 
           reinitialize
         end
 
         def reinitialize
-          Syslog.open('openshift-platform', Syslog::LOG_PID, Syslog::LOG_LOCAL0) unless Syslog.opened?
+          Syslog.open('openshift-platform', Syslog::LOG_PID, @facility) unless Syslog.opened?
           Syslog.mask = Syslog::LOG_UPTO(@threshold)
         end
 
         def info(*args, &block)
-          Syslog.log(Syslog::LOG_INFO, build_entry(*args, &block))
+          dispatch(Syslog::LOG_INFO, *args, &block)
         end
 
         def debug(*args, &block)
-          Syslog.log(Syslog::LOG_DEBUG, build_entry(*args, &block))
+          dispatch(Syslog::LOG_DEBUG, *args, &block)
         end
 
         def warn(*args, &block)
-          Syslog.log(Syslog::LOG_WARNING, build_entry(*args, &block))
+          dispatch(Syslog::LOG_WARNING, *args, &block)
         end
 
         def error(*args, &block)
-          Syslog.log(Syslog::LOG_ERR, build_entry(*args, &block))
+          dispatch(Syslog::LOG_ERR, *args, &block)
         end
 
         def fatal(*args, &block)
-          Syslog.log(Syslog::LOG_CRIT, build_entry(*args, &block))
+          dispatch(Syslog::LOG_CRIT, *args, &block)
         end
 
         def trace(*args, &block)
           return unless @trace_enabled
-          Syslog.log(Syslog::LOG_DEBUG, build_entry(*args, &block))
+          dispatch(@trace_facility | Syslog::LOG_DEBUG, *args, &block)
+        end
+
+        private
+        def dispatch(level, *args, &block)
+          Syslog.log(level, '%s', build_entry(*args, &block))
         end
 
         # Callers might send a block rather than a string to log, intending
@@ -94,6 +100,16 @@ module OpenShift
             block.call
           end
           format(entry || '')
+        end
+
+        private
+        def get_syslog_const(key, default)
+          begin
+            value = @config.get(key) || default
+            Syslog.const_get(value)
+          rescue Exception => e
+            raise "Invalid #{key} config value: #{value}"
+          end
         end
       end
     end

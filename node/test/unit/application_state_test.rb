@@ -1,5 +1,5 @@
 #--
-# Copyright 2013 Red Hat, Inc.
+# Copyright 2013-2014 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -81,8 +81,11 @@ class ApplicationStateTest < OpenShift::NodeTestCase
 
   def test_set_value
     PathUtils.expects(:oo_chown).with(@uid, @uid, @state_file).once()
-    OpenShift::Runtime::Utils::SELinux.expects(:get_mcs_label).with(@uid).once().returns("test label")
-    OpenShift::Runtime::Utils::SELinux.expects(:set_mcs_label).with("test label", @state_file).once()
+    instance = mock()
+    instance.expects(:get_mcs_label).with(@uid).once().returns('test label')
+    instance.expects(:set_mcs_label).with('test label', @state_file).once()
+    OpenShift::Runtime::Utils::SelinuxContext.stubs(:instance).returns(instance)
+
     new_state(@uuid).tap { |state|
       state.value = @good_state
     }

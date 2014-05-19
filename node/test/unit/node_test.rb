@@ -1,5 +1,5 @@
 #--
-# Copyright 2013 Red Hat, Inc.
+# Copyright 2013-2014 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ class NodeTest < OpenShift::NodeTestCase
     buffer = OpenShift::Runtime::Node.get_cartridge_list(true, true, true)
     refute_nil buffer
 
-    assert_equal %Q(CLIENT_RESULT: [\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.3'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCategories:\\n- web_framework\\nCartridge-Version: 0.0.1\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.3\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.2'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCategories:\\n- web_framework\\nCartridge-Version: 0.0.1\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.1'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCategories:\\n- web_framework\\nCartridge-Version: 0.0.1\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.1\\n  - web_proxy\\n\"]), buffer
+    assert_equal %Q(CLIENT_RESULT: [\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.3'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCategories:\\n- web_framework\\nCartridge-Version: 0.0.1\\nCartridge-Vendor: redhat\\nPlatform: linux\\nGroup-Overrides:\\n- components:\\n  - crtest-0.3\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.2'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCategories:\\n- web_framework\\nCartridge-Version: 0.0.1\\nCartridge-Vendor: redhat\\nPlatform: linux\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.1'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCategories:\\n- web_framework\\nCartridge-Version: 0.0.1\\nCartridge-Vendor: redhat\\nPlatform: linux\\nGroup-Overrides:\\n- components:\\n  - crtest-0.1\\n  - web_proxy\\n\"]), buffer
   end
 
   def test_node_utilization
@@ -99,7 +99,10 @@ class NodeTest < OpenShift::NodeTestCase
       @config.stubs(:get_bool).with("no_overcommit_active", anything).returns(scenario[:no_overcommit_active])
       OpenShift::Runtime::Node.stubs(:resource_limits).returns(@config)
 
-      OpenShift::Runtime::Utils::SELinux.stubs(:set_mcs_label).returns nil
+      instance = mock()
+      instance.stubs(:set_mcs_label).returns nil
+      instance.stubs(:get_mcs_label).returns('s0:c0,c501')
+      OpenShift::Runtime::Utils::SelinuxContext.stubs(:instance).returns(instance)
 
       appuids = (501...(501+ (scenario[:max_active_gears].nil? ? scenario[:max_active_apps].to_i : scenario[:max_active_gears].to_i)))
 

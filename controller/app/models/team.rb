@@ -16,15 +16,19 @@ class Team
   end
 
   field :name, type: String
+  #only settable via admin script
+  field :maps_to, type: String, default: nil
   belongs_to :owner, class_name: CloudUser.name
   embeds_many :pending_ops, class_name: PendingTeamOps.name
 
   has_members default_role: :view
   member_as :team
-  
-  validates :name, 
+
+  validates :name,
     presence: {message: "Name is required and cannot be blank"},
-    length:   {maximum: 250, minimum: 1, message: "Team name must be a minimum of 1 and maximum of 250 characters."}
+    length:   {maximum: 250, minimum: 2, message: "Team name must be a minimum of 2 and maximum of 250 characters."}
+
+  validates_uniqueness_of :maps_to, message: "There is already a team that maps to this group.", allow_nil: true
 
   index({'owner_id' => 1, 'name' => 1}, {:unique => true})
   create_indexes
@@ -71,11 +75,16 @@ class Team
     # Remove duplicates
     peer_team_ids = Domain.accessible(to).and({'members.t' => Team.member_type}).map(&:members).flatten(1).select {|m| m.type == 'team'}.map(&:_id).uniq
 
-    # Return teams which would normally be accessible or peer teams
-    self.or(super.selector, {:id.in => peer_team_ids})
+    if (to.is_a?(CloudUser) && !to.view_global_teams)
+      # Return teams which would normally be accessible or peer teams
+      self.or(super.selector, {:id.in => peer_team_ids})
+    else
+      # Return teams which would normally be accessible, global or peer teams
+      self.or(super.selector, {:id.in => peer_team_ids}, {:owner_id => nil})
+    end
   end
 
-  def members_changed(added, removed, changed_roles)
+  def members_changed(added, removed, changed_roles, parent_op)
     pending_op = ChangeMembersTeamOp.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence)
     self.pending_ops.push pending_op
   end
@@ -89,9 +98,17 @@ class Team
   # == Returns:
   # True on success or false on failure
   def run_jobs
+    wait_ctr = 0
     begin
-      while self.pending_ops.where(state: "init").count > 0
-        op = self.pending_ops.where(state: "init").first
+      while self.pending_ops.count > 0
+        op = self.pending_ops.first
+
+        # a stuck op could move to the completed state if its pending domains are deleted
+        if op.completed?
+          op.delete
+          self.reload
+          next
+        end
 
         # store the op._id to load it later after a reload
         # this is required to prevent a reload from replacing it with another one based on position
@@ -99,23 +116,47 @@ class Team
 
         # try to do an update on the pending_op state and continue ONLY if successful
         op_index = self.pending_ops.index(op)
-        retval = Team.where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
+        t_now = Time.now.to_i
 
-        unless retval["updatedExisting"]
+        id_condition = {"_id" => self._id, "pending_ops.#{op_index}._id" => op_id}
+        runnable_condition = {"$or" => [
+          # The op is not yet running
+          {"pending_ops.#{op_index}.state" => "init" },
+          # The op is in the running state and has timed out
+          { "pending_ops.#{op_index}.state" => "queued", "pending_ops.#{op_index}.queued_at" => {"$lt" => (t_now - run_jobs_queued_timeout)} }
+        ]}
+ 
+        queued_values = {"pending_ops.#{op_index}.state" => "queued", "pending_ops.#{op_index}.queued_at" => t_now}
+        reset_values  = {"pending_ops.#{op_index}.state" => "init",   "pending_ops.#{op_index}.queued_at" => 0}
+ 
+        retval = Team.where(id_condition.merge(runnable_condition)).update({"$set" => queued_values})
+        if retval["updatedExisting"]
+          wait_ctr = 0
+        elsif wait_ctr < run_jobs_max_retries
           self.reload
+          sleep run_jobs_retry_sleep
+          wait_ctr += 1
           next
+        else
+          raise OpenShift::LockUnavailableException.new("Unable to perform action on team object. Another operation is already running.", 171)
         end
 
-        op.execute
+        begin
+          op.execute
 
-        # reloading the op reloads the domain and then incorrectly reloads (potentially)
-        # the op based on its position within the pending_ops list
-        # hence, reloading the domain, and then fetching the op using the op_id stored earlier
-        self.reload
-        op = self.pending_ops.find_by(_id: op_id)
+          # reloading the op reloads the domain and then incorrectly reloads (potentially)
+          # the op based on its position within the pending_ops list
+          # hence, reloading the domain, and then fetching the op using the op_id stored earlier
+          self.reload
+          op = self.pending_ops.find_by(_id: op_id)
 
-        op.close_op
-        op.delete if op.completed?
+          op.close_op
+          op.delete if op.completed?
+        rescue Exception => op_ex
+          # doing this in rescue instead of ensure so that the state change happens only in case of exceptions
+          Team.where(id_condition.merge(queued_values)).update({"$set" => reset_values})
+          raise op_ex
+        end
       end
       true
     rescue Exception => e
@@ -128,7 +169,7 @@ class Team
   def self.validation_map
     {name: -1}
   end
-  
+
   def self.with_ids(ids)
     if ids.present?
       self.in(_id: ids)
@@ -136,4 +177,10 @@ class Team
       []
     end
   end
+
+  private
+    def run_jobs_max_retries;    10;    end
+    def run_jobs_retry_sleep;    5;     end
+    def run_jobs_queued_timeout; 30*60; end
+
 end

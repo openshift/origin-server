@@ -6,7 +6,7 @@ class RemoveCompOp < PendingAppOp
   def execute
     gear = get_gear
     component_instance = get_component_instance
-    
+
     begin
       result_io = gear.remove_component(component_instance)
     ensure

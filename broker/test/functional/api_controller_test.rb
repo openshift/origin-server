@@ -12,4 +12,11 @@ class ApiControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "show xml" do
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
+  end
+
 end

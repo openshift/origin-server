@@ -169,6 +169,9 @@ class Haproxy
         @stats_sock=stats_sock
         @gear_namespace = ENV['OPENSHIFT_GEAR_DNS'].split('.')[0].split('-')[1]
 
+        # don't buffer log output or it may never make it to logshifter
+        STDOUT.sync=true
+        STDERR.sync=true
         @log = Logger.new(STDOUT)
         if log_debug
           @log.level = Logger::DEBUG

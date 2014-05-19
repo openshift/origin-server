@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.20.0
+Version: 1.22.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -32,18 +32,51 @@ Provides Jenkins cartridge to OpenShift. (Cartridge Format V2)
 %__cp -r * %{buildroot}%{cartridgedir}
 
 %post
-service jenkins stop
+if service jenkins status > /dev/null 2>&1; then
+  service jenkins stop
+fi
 chkconfig jenkins off
 
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%{cartridgedir}
+%{cartridgedir}/configuration
+%{cartridgedir}/metadata
+%{cartridgedir}/usr
+%{cartridgedir}/env
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Wed May 07 2014 Adam Miller <admiller@redhat.com> 1.21.4-1
+- Bump cartridge versions for STG cut (vvitek@redhat.com)
+
+* Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.21.3-1
+- bz1092161 - conditionally stop jenkins service (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.21.0-2
+- bumpspec to mass fix tags
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.20.3-1
+- Bumping cartridge versions for sprint 43 (bparees@redhat.com)
+
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.20.2-1
+- Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.19.4-1
 - Merge pull request #5086 from VojtechVitek/latest_versions
   (dmcphers+openshiftbot@redhat.com)

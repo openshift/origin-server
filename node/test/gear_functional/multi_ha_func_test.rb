@@ -22,7 +22,7 @@ class MultiHaFuncTest < OpenShift::NodeBareTestCase
     @api = FunctionalApi.new
     @namespace = @api.create_domain
 
-    @api.up_gears
+    @api.up_gears(10)
     @api.enable_ha
 
     @framework_cartridge = ENV['CART_TO_TEST'] || 'mock-0.1'
@@ -77,6 +77,13 @@ class MultiHaFuncTest < OpenShift::NodeBareTestCase
     @api.restart_cartridge(app_name, @framework_cartridge)
     assert_proxies_disabled(proxy_entries)
 
+    @api.add_env_vars(app_name,[{name:"OPENSHIFT_HAPROXY_GEAR_RATIO",value:"4"}])
+    @api.assert_scales_to(app_name, @framework_cartridge, 6)
+    assert_proxies_not_disabled(proxy_entries)
+    @api.assert_scales_to(app_name, @framework_cartridge, 7)
+    assert_proxies_disabled(proxy_entries)    
+    
+
   end
 
   def assert_proxies_disabled(proxy_entries)
@@ -84,6 +91,15 @@ class MultiHaFuncTest < OpenShift::NodeBareTestCase
       proxy_entries.values.each do |proxy|
         logger.info "Checking target gear #{target_gear.dns} status from proxy #{proxy.dns}"
         @api.assert_gear_status_in_proxy(proxy, target_gear, 'MAINT')
+      end
+    end
+  end
+
+  def assert_proxies_not_disabled(proxy_entries)
+    proxy_entries.values.each do |target_gear|
+      proxy_entries.values.each do |proxy|
+        logger.info "Checking target gear #{target_gear.dns} status from proxy #{proxy.dns}"
+        @api.assert_gear_status_in_proxy(proxy, target_gear, 'UP')
       end
     end
   end

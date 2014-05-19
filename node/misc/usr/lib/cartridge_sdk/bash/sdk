@@ -251,7 +251,9 @@ function process_running {
     if [ -f $pidfile ]; then
       local error=$(pgrep -F $pidfile 2>&1)
       # pgrep returns 0 with an invalid pidfile, so we need to check the output
-      [ $? ] && ! [[ "${error}" =~ 'pidfile not valid' ]] && return 0
+      # run it again to get the return code of the pgrep, not the assignment
+      pgrep -F $pidfile >& /dev/null
+      [ $? -eq 0 ] && ! [[ "${error}" =~ 'pidfile not valid' ]] && return 0
     fi
   }
 
@@ -438,17 +440,18 @@ function has_web_proxy() {
     return 1
 }
 
-function shutdown_httpd_graceful_pidfile {
+# Performs a graceful shutdown of an httpd process using SIGWINCH.
+#
+# If the process still exists after a timeout period, a client message
+# is displayed containing an explanation of possible causes.
+#
+# $1 the path to a pidfile for the target httpd parent process
+function shutdown_httpd_graceful {
   local pidfile=$1
   local pid=$(cat ${pidfile} 2> /dev/null)
-  shutdown_httpd_graceful ${pid}
-}
-
-function shutdown_httpd_graceful {
-  local pid=$1
 
   # if the pid doesn't exist, there's nothing to do
-  if ! process_running 'httpd' $pid; then
+  if ! process_running 'httpd' $pidfile; then
     client_message "Warning: HTTPD ($pid) not running. Skipping stop."
     return
   fi

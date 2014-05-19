@@ -81,7 +81,7 @@ class MembersController < BaseController
       msg = "#{indirect_members.to_sentence} #{indirect_members.length > 1 ? "are not direct members" : "is not a direct member"} and cannot be removed."
       return render_error(:unprocessable_entity, msg, 1) if singular
       warnings << Message.new(:warning, msg, 1, nil)
-    end    
+    end
 
     count_remove = remove.count
     count_update = (membership.members.map(&:to_key) & new_members.map(&:to_key)).count
@@ -96,6 +96,12 @@ class MembersController < BaseController
         ("removed #{pluralize(count_remove, 'member')}" if count_remove > 0),
         ("ignored #{pluralize(invalid_members.length, 'missing member')} (#{invalid_members.join(', ')})" if invalid_members.present?),
       ].compact.join(", ").humanize + '.'
+
+      props = {'membership_type' => membership.class.name}
+      props['members_added_count'] = count_add if count_add > 0
+      props['members_updated_count'] = count_update if count_update > 0
+      props['members_removed_count'] = count_remove if count_remove > 0
+      @analytics_tracker.track_event('members_modify', membership, nil, props)
 
       if (count_add + count_update == 1) and (count_remove == 0) and (member = members.detect{|m| m._id == new_members.first._id })
         render_success(:ok, "member", get_rest_member(member), msg, nil, warnings)
@@ -116,12 +122,18 @@ class MembersController < BaseController
     type = params[:type].presence || "user"
     return render_error(:unprocessable_entity, "Member type #{type} not supported. Supported types are #{allowed_member_types.map{ |s| "'#{s}'" }.join(', ')}.", 1, "type") unless allowed_member_types.include? (type)
     member = find_existing_member(id, type)
+    props = {'membership_type' => membership.class.name}
     if role.to_sym == :none
       membership.remove_members(member)
+      props['members_removed_count'] = 1
     else
       membership.add_members(member.clone.clear, role.to_sym)
+      props['members_added_count'] = 1
     end
     membership.save!
+
+    @analytics_tracker.track_event('members_modify', membership, nil, props)
+
     member = find_existing_member(id, type) unless role.to_sym == :none
     render_success(:ok, "member", role.to_sym == :none ? nil : get_rest_member(member), "Updated member")
   end
@@ -132,6 +144,8 @@ class MembersController < BaseController
     type = params[:type].presence || "user"
     return render_error(:unprocessable_entity, "Member type #{type} not supported. Supported types are #{allowed_member_types.map{ |s| "'#{s}'" }.join(', ')}.", 1, "type") unless allowed_member_types.include? (type)
     remove_member(id, type)
+
+    @analytics_tracker.track_event('members_modify', membership, nil, {'membership_type' => membership.class.name, 'members_removed_count' => 1})
   end
 
   def destroy_all
@@ -160,6 +174,8 @@ class MembersController < BaseController
     end
 
     if save_membership(membership)
+      @analytics_tracker.track_event('members_modify', membership, nil, {'membership_type' => membership.class.name, 'members_removed_count' => ids.length})
+
       render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, ids.blank? ? "Reverted members to the defaults." : "Removed or reset #{pluralize(ids.length, 'member')}.")
     else
       render_error(:unprocessable_entity, "The members could not be removed due to an error.", 1, nil, nil, get_error_messages(membership))
@@ -170,6 +186,7 @@ class MembersController < BaseController
     authorize! :leave, membership
     return render_error(:unprocessable_entity, "You are the owner of this #{membership.class.model_name.humanize.downcase} and cannot leave.", 1) if membership.owned_by?(current_user)
     remove_member(current_user._id)
+    @analytics_tracker.track_event('members_modify', membership, nil, {'membership_type' => membership.class.name, 'members_removed_count' => 1})
   end
 
   protected
@@ -179,10 +196,26 @@ class MembersController < BaseController
 
     def remove_member(id, type="user")
       member = find_existing_member(id, type)
+
+      is_self = type == 'user' && id == current_user._id
+      if !member.explicit_role?
+        if is_self
+          msg = "You are not a direct member of this #{membership.class.model_name.humanize.downcase} and cannot leave."
+        else
+          msg = "The member #{member.name} is not a direct member of this #{membership.class.model_name.humanize.downcase} and cannot be removed."
+        end
+        return render_error(:unprocessable_entity, msg, 1)
+      end
+
       membership.remove_members(member)
       if save_membership(membership)
         if m = members.detect{ |m| m._id === id }
-          render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:info, "The member #{m.name} is no longer directly granted a role.", 132))
+          if is_self
+            msg = "You are still an indirect member of the #{membership.class.model_name.humanize.downcase}."
+          else
+            msg = "The member #{m.name} is still an indirect member of the #{membership.class.model_name.humanize.downcase}."
+          end
+          render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:warn, msg, 132))
         else
           render_success(requested_api_version <= 1.4 ? :no_content : :ok, nil, nil, "Removed member.")
         end
@@ -245,7 +278,7 @@ class MembersController < BaseController
         team_ids = team_ids.select{ |id, (role, _)| role != :none }
         teams = Team.accessible(current_user).with_ids(team_ids.keys).each.to_a
         missing_team_ids(errors, teams, team_ids)
-        teams = teams.select {|t| is_owner_or_already_exists?(errors, t)}
+        teams = teams.select {|t| is_owner_or_global_or_already_exists?(errors, t)}
         teams.map do |t|
           m = t.as_member
           m.role = (team_ids[t._id.to_s])[0]
@@ -288,8 +321,8 @@ class MembersController < BaseController
       end
     end
 
-    def is_owner_or_already_exists?(errors, team)
-      if team.owner_id == current_user._id or existing_team_member_ids.include?(team.id)
+    def is_owner_or_global_or_already_exists?(errors, team)
+      if team.owner_id == current_user._id or existing_team_member_ids.include?(team.id) or team.owner_id.nil?
         return true
       else
         errors << Message.new(:error, "You cannot add the team '#{team.name}' because you are not the owner.", 132, "id")

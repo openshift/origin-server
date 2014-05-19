@@ -30,12 +30,12 @@
   %section
 
   .row
-    .span8#app-list
+    .span6#app-list
       %h2 Applications
       - @domain.applications.each do |application|
         = render :partial => 'applications/application2', :locals => {:application => application}
 
-    .span4.sidebar
+    .span6.sidebar
       %h2 Settings
       - if @domain.owner?
         - field = 'domain[allowed_gear_sizes][]'
@@ -65,14 +65,13 @@
           %p The owner has disabled creation - no gear sizes allowed
 
       %h2 Members
-      = render :partial => 'members/members_form', :locals => {:domain => @domain, :members => @domain.members, :new_members => @new_members, :editable => @domain.admin?, :editing => @new_members.present?}
-
-      - unless @domain.owner?
-        %div.leave.confirm-container
-          = link_to "Leave Domain", domain_leave_path(@domain), { :class => 'btn btn-small confirm-link', :title => 'Leave Domain', 'data-placement' => 'bottom'}
-          .confirm-popover.hide
-            = render :partial => 'members/leave_domain_form', :locals => {:domain => @domain}
+      = render :partial => 'members/members_form', :locals => {:domain => @domain, :members => @domain.members, :new_members => @new_members, :editable => @domain.admin?, :editing => @new_members.present?, :owned_teams => @capabilities.max_teams > 0, :global_teams => @capabilities.view_global_teams}
 
       - if @domain.owner?
         .btn-toolbar
           = link_to "Delete this domain\u2026", delete_domain_path(@domain), :class => 'btn btn-small'
+      - elsif @domain.me.explicit_role?
+        %div.leave.confirm-container
+          = link_to "Leave Domain", domain_leave_path(@domain), { :class => 'btn btn-small confirm-link', :title => 'Leave Domain', 'data-placement' => 'bottom'}
+          .confirm-popover.hide
+            = render :partial => 'members/leave_domain_form', :locals => {:domain => @domain}

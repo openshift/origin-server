@@ -37,7 +37,11 @@ function start() {
     write_httpd_passenv $HTTPD_PASSENV_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     update_passenger_performance
+    # Force httpd into its own pgroup, as httpd is hard-coded to TERM everything in
+    # its pgroup during shutdown (even while foregrounded)
+    set -m
     ruby_context "umask 002 &>/dev/null ; RAILS_ENV=${RAILS_ENV:-production} nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag ruby &"
+    set +m
     [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
@@ -49,9 +53,9 @@ function stop() {
       fi
     fi
     echo "Stopping Ruby cartridge"
-    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    ensure_valid_httpd_pid_file "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
-      shutdown_httpd_graceful_pidfile $HTTPD_PID_FILE
+      shutdown_httpd_graceful $HTTPD_PID_FILE
     fi
 }
 

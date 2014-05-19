@@ -76,8 +76,6 @@ rescue LoadError => e
   verbose("using default accept-node extensions")
 end
 
-$TC_CHECK=true
-
 $CONF_DIR="/etc/openshift"
 $NODE_CONF_FILE=File.join($CONF_DIR, "/node.conf")
 $RESOURCE_LIMITS_FILE=File.join($CONF_DIR,"/resource_limits.conf")
@@ -133,7 +131,7 @@ def user_fail(uuid, msg)
 
   # Did a create/destroy hook get modified for the user?
   begin
-    if File.stat("/var/lock/oo-create.#{uuid}").mtime >= $START_TIME
+    if File.stat("/var/lock/gear.#{uuid}").mtime >= $START_TIME
       return
     end
   rescue Errno::ENOENT
@@ -493,6 +491,12 @@ end
 # Check tc config
 #
 def check_tc_config
+    # BZ#1087755 TRAFFIC_CONTROL_ENABLED defaults to true not false
+    if 'false' == $CONF.get('TRAFFIC_CONTROL_ENABLED', 'true')
+      verbose("traffic control not enabled in /etc/openshift/node.conf, set TRAFFIC_CONTROL_ENABLED=true to enable")
+      return
+    end
+
     verbose("checking presence of tc qdisc")
     qdiscresponse="qdisc htb 1: root"
 
@@ -564,7 +568,7 @@ def check_users
     if results.length == 0 ||
         results[0].split[4].to_i == 0 ||
         results[0].split[7].to_i == 0
-      user_fail(user.name, "user #{user.name} does not have quotas imposed")
+      user_fail(user.name, "user #{user.name} does not have quotas imposed. This can be addressed by running: oo-devel-node set-quota --with-container-uuid #{user.name} --blocks 1048576 --inodes 80000")
     end
   end
 end
@@ -788,7 +792,9 @@ def check_app_dirs
     primary = File.join(gear_home, '.env', 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR')
     if File.exist? primary
       primary = IO.read(primary).chomp
-      unless File.directory? primary
+      if primary.empty?
+        user_fail(entry, %Q(directory #{entry}/.env has empty OPENSHIFT_PRIMARY_CARTRIDGE_DIR'))
+      elsif !File.directory? primary
         user_fail(entry, %Q(directory #{entry} doesn't have primary cartridge '#{File.basename(primary)}'))
       end
     else
@@ -913,7 +919,7 @@ if __FILE__ == $0
       check_semaphores
       check_cgroup_config
       check_cgroup_procs
-      check_tc_config if $TC_CHECK
+      check_tc_config
       check_quotas
       check_users
       check_app_dirs

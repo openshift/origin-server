@@ -1,0 +1,104 @@
+@import "twitter/mixins";
+
+.members {
+
+  table { 
+    margin-bottom: 0px;
+  }
+  table td {
+    vertical-align: middle;
+  }
+  table td.member {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  table input {
+    @include box-sizing(border-box);
+  }  
+  table select { 
+    margin-bottom: 0;
+    white-space: nowrap;
+    width: 100%;
+  }
+  table input[type="text"] {
+    width: 100%;
+    height: auto;
+  }
+
+  aside {
+    margin-top: 16px
+  }
+
+  tr.error-row td   { padding-top: 0px; }
+  tr.error-row td p { margin-top: 0; }
+  tr.template {display: none !important; }
+  tr.no-role select, tr.no-role a.remove-member { opacity: .4; }
+  tr.collapsed { display: none; }
+  tr.team-details td { white-space: wrap; overflow: hidden; text-overflow: ellipsis; padding-left: 32px; }
+
+  .edit-only { display: none; }
+  &.editing .edit-only { display: block; }
+  &.editing tr.edit-only { display: table-row; }
+  &.editing .read-only { display: none; }
+
+  .hidden-scripted { display: none; }
+
+  .type-user .icon-user {opacity: .6;}
+
+  // Make typeahead vertically align
+  .team-typeahead { margin: 0; }
+  // Make typeahead fill horizontally
+  .twitter-typeahead { display: block !important; }
+
+
+  .tt-dropdown-menu {
+    width: 100%;
+    min-width: 300px;
+    margin-top: 2px;
+    padding: 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .tt-suggestion {
+    padding: 2px 8px 2px 20px;
+    cursor: default;
+  }
+  .tt-suggestion.tt-cursor {
+    color: #fff;
+    background-color: #0097cf;
+  }
+
+  .tt-suggestion p {
+    margin: 0;
+    padding: 3px 0px;
+    font-size: 12px !important;
+    line-height: 16px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .empty-message {
+    padding: 2px 8px 2px 20px;
+    font-size: 12px;
+    line-height: 22px;
+    color: #888;
+  }
+
+  .team-type {
+    font-size: 12px;
+    line-height: 1.3em;
+    margin: 0;
+    padding: 3px 5px;
+    color: #666;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+  }
+
+  .tt-dropdown-menu {
+    max-height: 250px;
+    overflow-y: auto;
+  }
+
+}

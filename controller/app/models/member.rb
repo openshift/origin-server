@@ -78,10 +78,16 @@ class Member
         self.role = other.role
       else
         self.explicit_role = other.role
-        self.role = Role.higher_of(other.role, role)
+        self.role = Role.higher_of(other.role, effective_role)
       end
     else
-      self.explicit_role = role if from.blank?
+      if other.explicit_role?
+        # If the incoming member has an explicit role, it wins
+        self.explicit_role = other.explicit_role 
+      elsif from.blank?
+        # If our only role until now has been explicit, remember it as an explicit role
+        self.explicit_role = role
+      end
       self.from ||= []
       # Put the grants from the merged-in member first, then uniqify based on the sources
       self.from = (Array(other.from) + self.from).uniq{|i| i[0...-1] }
@@ -98,29 +104,35 @@ class Member
     if source.nil?
       # remove the explicit grant
       if from.blank?
+        # no implicit grants mean the member should be deleted completely
         true
       elsif explicit_role
-        self.role = effective_role
+        # remove the explicit grant, recalculate the effective role, do not delete the member
         self.explicit_role = nil
-        false
-      end
-    else
-      # remove an implicit grant
-      if from
-        source = to_source(source)
-        from.delete_if{ |f| f[0...-1] == source }
-      end
-      if from.blank?
-        if self.e
-          self.role = explicit_role
-          self.explicit_role = nil
-          false
-        else
-          true
-        end
-      else
         self.role = effective_role
         false
+      end
+    elsif from
+      # remove an implicit grant
+      source = to_source(source)
+      if from.reject! { |f| f[0...-1] == source }
+        # this member had a grant from the source being removed
+        if from.blank?
+          # this member has no more implicit grants
+          if self.e
+            # move their explicit role into the role field
+            self.role = explicit_role
+            self.explicit_role = nil
+            false
+          else
+            # no explicit role, so delete the member
+            true
+          end
+        else
+          # the member has other implicit grants, so recalculate their role, do not delete the member
+          self.role = effective_role
+          false
+        end
       end
     end
   end

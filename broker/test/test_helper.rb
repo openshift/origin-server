@@ -15,7 +15,7 @@ def register_user(login=nil, password=nil, prod_env=false)
         pid, stdin, stdout, stderr = Open4::popen4(cmd)
         stdin.close
         ignored, status = Process::waitpid2 pid
-#       exitcode = status.exitstatus
+        #exitcode = status.exitstatus
       end
     else
       #ignore

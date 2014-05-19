@@ -10,12 +10,16 @@ class District
   field :available_uids, type: Array, default: []
   field :available_capacity, type: Integer
   field :active_servers_size, type: Integer
+  field :platform, type: String
   embeds_many :servers, class_name: Server.name
 
   index({:name => 1}, {:unique => true})
   index({:uuid => 1}, {:unique => true})
   index({:gear_size => 1})
   create_indexes
+
+  validates :name, presence: true
+  validates :gear_size, presence: true
 
   DISTRICT_NAME_REGEX = /\A[\w\.\-]+\z/
   def self.check_name!(name)
@@ -25,15 +29,14 @@ class District
     name
   end
 
-  def self.create_district(name, gear_size=nil)
+  def self.create_district(name, gear_size=nil, platform="Linux")
     unless Rails.configuration.msg_broker[:districts][:enabled]
       raise OpenShift::OOException.new("District creation disabled by the platform.")
     end
-    profile = gear_size ? gear_size : Rails.application.config.openshift[:default_gear_size]
     if District.where(name: District.check_name!(name)).exists?
       raise OpenShift::OOException.new("District by name #{name} already exists")
     end
-    dist = District.new(name: name, gear_size: profile)
+    dist = District.new(name: name, platform: platform, gear_size: gear_size)
   end
 
   def self.find_by_name(name)
@@ -74,6 +77,7 @@ class District
     self.max_uid = first_uid + num_uids - 1
     self.max_capacity = num_uids
     self.active_servers_size = 0
+    self.gear_size = Rails.application.config.openshift[:default_gear_size] unless self.gear_size
     save!
   end
 
@@ -152,6 +156,10 @@ class District
       raise OpenShift::OOException.new("Node with server identity: #{server_identity} from district: #{uuid} must be deactivated before it can be removed")
     end
     begin
+      if Application.where({"gears.server_identity" => server_identity}).exists?
+        raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid} " \
+                                         "because some apps in mongo are still using it.")
+      end
       unless server.unresponsive
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed " \

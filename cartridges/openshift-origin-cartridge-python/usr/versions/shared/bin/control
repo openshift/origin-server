@@ -22,8 +22,18 @@ export APPDIR=$OPENSHIFT_PYTHON_DIR
 function start_app() {
     echo "Starting Python ${OPENSHIFT_PYTHON_VERSION} cartridge (app.py server)"
     cd "$OPENSHIFT_REPO_DIR"
-    nohup python -u app.py &> >(/usr/bin/logshifter -tag python) &
-    echo $! > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
+
+    LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-python
+    rm -f $LOGPIPE && mkfifo $LOGPIPE
+
+    /usr/bin/logshifter -tag python < $LOGPIPE &
+    nohup python -u app.py &> $LOGPIPE &
+
+    if [ "$?" == "0" ]; then
+      echo $! > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
+    else
+      echo "ERROR: Application failed to start, use 'rhc tail' for more informations."
+    fi
 }
 
 function pre_start_apache_config {
@@ -38,7 +48,11 @@ function start_apache() {
     echo "Starting Python ${OPENSHIFT_PYTHON_VERSION} cartridge (Apache+mod_wsgi)"
     pre_start_apache_config
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    # Force httpd into its own pgroup, as httpd is hard-coded to TERM everything in
+    # its pgroup during shutdown (even while foregrounded)
+    set -m
     eval "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -DFOREGROUND |& /usr/bin/logshifter -tag python &"
+    set +m
     [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
@@ -65,9 +79,9 @@ function stop_app() {
 }
 
 function stop_apache() {
-    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    ensure_valid_httpd_pid_file "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
-        shutdown_httpd_graceful_pidfile $HTTPD_PID_FILE
+        shutdown_httpd_graceful $HTTPD_PID_FILE
     fi
 }
 
@@ -91,7 +105,7 @@ function restart() {
         stop_app
         pre_start_apache_config
         ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-        if [ -f "$HTTPD_PID_FILE"]; then
+        if [ -f "$HTTPD_PID_FILE" ]; then
           httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
           kill -HUP $httpd_pid
         else

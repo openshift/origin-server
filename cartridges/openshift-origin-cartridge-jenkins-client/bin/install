@@ -16,12 +16,23 @@ mv ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration/jenkins_job_template.xml.erb.hi
 
 echo $JENKINS_PASSWORD > "$OPENSHIFT_JENKINS_CLIENT_DIR/.password"
 
+PLATFORM=`oo-gear-registry web|head -n 1|rev|cut -f 1 -d \,|rev`
+if [ -z "$PLATFORM" ]
+then
+    PLATFORM="linux"
+fi
+
 # Maybe allow cartridges to create their own jenkins job
 if [ -f "${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_shell_command" ]
 then
     SHELL_COMMAND="${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_shell_command"
 else
-    SHELL_COMMAND="$OPENSHIFT_JENKINS_CLIENT_DIR/metadata/jenkins_shell_command"
+    if [ $PLATFORM == "windows" ]
+    then
+        SHELL_COMMAND="$OPENSHIFT_JENKINS_CLIENT_DIR/metadata/jenkins_shell_command_windows"
+    else
+        SHELL_COMMAND="$OPENSHIFT_JENKINS_CLIENT_DIR/metadata/jenkins_shell_command"
+    fi
 fi
 
 if [ -f "${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_artifacts_glob" ]
@@ -35,7 +46,7 @@ JOB_NAME=${OPENSHIFT_APP_NAME}-build
 
 BUILDER_TYPE=$(primary_cartridge_name)
 
-if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${OPENSHIFT_CLOUD_DOMAIN}" "$BUILDER_TYPE" "$SHELL_COMMAND" "$ARTIFACTS_GLOB" 2>&1)
+if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${OPENSHIFT_CLOUD_DOMAIN}" "$BUILDER_TYPE" "$SHELL_COMMAND" "$ARTIFACTS_GLOB" "$PLATFORM" 2>&1)
 then
     # Embedding success
     client_result ""

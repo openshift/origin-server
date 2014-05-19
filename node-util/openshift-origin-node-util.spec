@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.22.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -53,11 +53,14 @@ mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 mkdir -p %{buildroot}/%{_localstatedir}/www/html/
 mkdir -p %{buildroot}%{_mandir}/man8/
+mkdir -p %{buildroot}/%{_sysconfdir}/sysconfig
+
 
 cp -p conf/oddjob/openshift-restorer.conf %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 cp -p conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 cp -p www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
 cp -p www/html/health.txt %{buildroot}/%{_localstatedir}/www/html/
+cp -p conf/sysconfig/watchman %{buildroot}/%{_sysconfdir}/sysconfig
 
 cp -p man8/*.8 %{buildroot}%{_mandir}/man8/
 
@@ -146,6 +149,7 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf
 %attr(0644,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf
+%attr(0644,-,-) %config(noreplace) %{_sysconfdir}/sysconfig/watchman
 
 %{_localstatedir}/www/html/restorer.php
 %{_localstatedir}/www/html/health.txt
@@ -157,6 +161,61 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- Bug 1097959 - Add THROTTLER_CHECK_PERIOD to detune Throttler
+  (jhonce@redhat.com)
+- support cygwin in jenkins client shell command detect application platform in
+  jenkins client and use it to determine if builder should be scalable update
+  bash sdk with function to determine node platform (florind@uhurusoftware.com)
+- oo-accept-node: Advise user re: missing user quota (jolamb@redhat.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Wed May 07 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
+- Bug 1091433 - Add setting to detune GearStatePlugin (jhonce@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.23.0-2
+- bumpspec to mass fix tags
+
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.6-1
+- Bug 1088620 - Add check to oo-accept-node for empty
+  OPENSHIFT_PRIMARY_CARTRIDGE_DIR (jhonce@redhat.com)
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.22.5-1
+- Bug 1061926 - Use lock file to prevent race between idle/unidle
+  (jhonce@redhat.com)
+
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.22.4-1
+- Bug 1087755 - node.conf#TRAFFIC_CONTROL_ENABLED defaults to true
+  (jhonce@redhat.com)
+- Bug 1086104 - improve the setting of TC_CHECK in oo-accept-node
+  (bleanhar@redhat.com)
+- Bug 1083730 - Move node-web-proxy logs to /var/log/openshift/node
+  (jhonce@redhat.com)
+
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.22.3-1
+- BZ1086104 - oo-accept-node needs to read tc setting from node.conf
+  (calfonso@redhat.com)
+- Bug 1086854 - Add timeout when locking operations (jhonce@redhat.com)
+
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
+- Merge pull request #5200 from ncdc/metrics (dmcphers+openshiftbot@redhat.com)
+- Metrics - code review changes (andy.goldstein@gmail.com)
+- Metrics (andy.goldstein@gmail.com)
+- Metrics work (teddythetwig@gmail.com)
+- Make metrics plugin delay configurable (ironcladlou@gmail.com)
+- Metrics work (teddythetwig@gmail.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- Bug 1081249 - Refactor SELinux module to be SelinuxContext singleton
+  (jhonce@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Wed Mar 26 2014 Adam Miller <admiller@redhat.com> 1.21.7-1
 - Bug 1080374 - Failing to remove .../limits.d/*-<uuid>.conf
   (jhonce@redhat.com)

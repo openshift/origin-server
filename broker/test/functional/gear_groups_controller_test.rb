@@ -41,6 +41,17 @@ class GearGroupsControllerTest < ActionController::TestCase
     assert_response :success
     body = JSON.parse(@response.body)
     id = body["data"][0]["id"]
+    supported_api_versions = body['supported_api_versions']
+    supported_api_versions.each do |version|
+      @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
+      get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}
+      assert_response :success
+      @request.env['HTTP_ACCEPT'] = "application/xml; version=#{version}"
+      get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}
+      assert_response :success
+    end
+
+    @request.env['HTTP_ACCEPT'] = 'application/json'
     get :show, {"id" => id, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
 
@@ -111,6 +122,7 @@ class GearGroupsControllerTest < ActionController::TestCase
       get :show, {"id" => json["data"][0]["id"], "domain_id" => @domain.namespace, "application_id" => @app.name}
       assert_response :ok, "Getting gear groups for version #{version} failed"
     end
+    @request.env['HTTP_ACCEPT'] = "application/json"
   end
 
 end

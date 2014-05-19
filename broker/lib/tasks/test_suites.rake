@@ -157,4 +157,18 @@ namespace :test do
     ]
   end
 
+  desc "Membership tests"
+  Rake::TestTask.new :membership => ['test:prepare'] do |t|
+    t.verbose = true
+    t.libs << "test"
+    t.test_files = FileList[
+      'test/unit/member_test.rb',
+      'test/unit/team_test.rb',
+      'test/functional/access_controlled_test.rb',
+      'test/functional/domain_members_controller_test.rb',
+      'test/functional/team_members_controller_test.rb',
+      'test/functional/teams_controller_test.rb'
+    ]
+  end
+
 end

@@ -149,8 +149,29 @@ class CartridgeType < RestApi::Base
     @requires || []
   end
 
+  # Override to make sure bad urls don't get used in web UI
   def help_topics
-    @help_topics || {}
+    (@help_topics || {}).inject({}) do |topics, (k,v)|
+      url = CartridgeType.normalize_url(v)
+      topics[k] = url if url
+      topics
+    end
+  end
+
+  def url
+    CartridgeType.normalize_url(super)
+  end
+
+  def website
+    CartridgeType.normalize_url(@website)
+  end
+
+  def license_url
+    CartridgeType.normalize_url(@license_url)
+  end
+
+  def learn_more_url
+    CartridgeType.normalize_url(@learn_more_url)
   end
 
   def priority
@@ -207,8 +228,18 @@ class CartridgeType < RestApi::Base
     display_name <=> other.display_name
   end
 
+  def self.normalize_url(url, default_scheme='http')
+    return nil if url.blank?
+    scheme = URI.parse(url).scheme
+    return nil if scheme =~ /^javascript/i
+    return "#{default_scheme}://#{url}" if scheme.blank? and default_scheme
+    return url
+  rescue
+    nil
+  end
+
   def self.for_url(url)
-    new({:url => url}, true)
+    new({:url => normalize_url(url)}, true)
   end
 
   def self.embedded(*arguments)

@@ -92,6 +92,7 @@ class ApplicationsController < ConsoleController
     @empty_owned_domains = @user_owned_domains.select{ |d| d.application_count == 0 }
     @empty_unowned_domains = @domains.select{ |d| !d.owner? && d.application_count == 0 }
     @capabilities = user_capabilities(:refresh => true)
+    @usage_rates = current_api_user.usage_rates
   end
 
   def destroy
@@ -125,6 +126,7 @@ class ApplicationsController < ConsoleController
       ApplicationType.find(type)
 
     @capabilities = user_capabilities :refresh => true
+    @user_usage_rates = current_api_user.usage_rates
 
     @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
     @application.domain_name = domain_name
@@ -144,7 +146,7 @@ class ApplicationsController < ConsoleController
     @user_default_domain = user_default_domain rescue nil
     @can_create = current_api_user.max_domains > user_owned_domains.length
 
-    (@domain_capabilities, @is_domain_owner) = estimate_domain_capabilities(@application.domain_name, @user_writeable_domains, @can_create, @capabilities)
+    (@domain_capabilities, @domain_usage_rates, @is_domain_owner) = estimate_domain_capabilities(@application.domain_name, @user_writeable_domains, @can_create, @capabilities, @user_usage_rates)
 
     @gear_sizes = new_application_gear_sizes(@user_writeable_domains, @capabilities)
 

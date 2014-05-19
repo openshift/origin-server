@@ -48,6 +48,10 @@ class AuthorizationsControllerTest < ActionController::TestCase
 
     get :show , {"id" =>  id}
     assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/xml'
+    get :show , {"id" =>  id}
+    assert_response :success
+    @request.env['HTTP_ACCEPT'] = 'application/json'
     put :update , {"id" =>  id, "note" => "testing update"}
     assert_response :success
     get :index , {}
@@ -101,6 +105,7 @@ class AuthorizationsControllerTest < ActionController::TestCase
       get :show , {"id" =>  json['data']['id']}
       assert_response :ok, "Getting authorization for version #{version} failed"
     end
+    @request.env['HTTP_ACCEPT'] = "application/json"
   end
 
 end

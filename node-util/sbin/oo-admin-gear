@@ -18,7 +18,6 @@
 require 'etc'
 require 'fileutils'
 require 'openshift-origin-node'
-require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/cgroups/libcgroup'
 
 require 'commander/import'

@@ -675,6 +675,7 @@ OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE: The default storage engine (table type)
 OPENSHIFT_MYSQL_MAX_CONNECTIONS: The maximum permitted number of simultaneous client connections
 OPENSHIFT_MYSQL_FT_MIN_WORD_LEN: The minimum length of the word to be included in a FULLTEXT index.
 OPENSHIFT_MYSQL_FT_MAX_WORD_LEN: The maximum length of the word to be included in a FULLTEXT index.
+OPENSHIFT_MYSQL_AIO:: Controls the 'innodb_use_native_aio' setting value in case the native AIO is broken. See http://help.directadmin.com/item.php?id=529
 
 [[nodejs]]
 == NodeJS
@@ -958,6 +959,23 @@ The `postgresql` cartridge provides several environment variables to reference f
 |PostgreSQL version in the form `X.Y`
 |===
 
+You can fine-tune the PostgreSQL server performance by using the rhc tool and
+changing the default values for these variables:
+
+[options="header"]
+|===
+|Variable |Description
+
+|OPENSHIFT_POSTGRESQL_SHARED_BUFFERS
+|The shared_buffers configuration parameter determines how much memory is dedicated to PostgreSQL to use for caching data.
+
+|OPENSHIFT_POSTGRESQL_MAX_CONNECTIONS
+|max_connections sets exactly that: the maximum number of client connections allowed.
+|===
+
+For more details, please refer to PostgreSQL
+https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server[wiki page].
+
 
 [[python]]
 == Python
@@ -1056,7 +1074,7 @@ source 'https://rubygems.org'
 with
 +
 ....
-source 'http://mirror.ops.rhcloud.com/mirror/ruby/'
+source 'https://mirror.openshift.com/'
 ....
 . Edit your Gemfile.lock and replace
 +
@@ -1067,7 +1085,7 @@ remote: https://rubygems.org/
 with
 +
 ....
-remote: http://mirror.ops.rhcloud.com/mirror/ruby/
+remote: https://mirror.openshift.com/
 ....
 
 === Rails 3.0
