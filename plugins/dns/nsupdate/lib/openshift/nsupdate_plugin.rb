@@ -173,7 +173,26 @@ quit
 EOF
 }
     end
-    
+   
+    #
+    # Run an nsupdate command, returning a detailed error on failure
+    #
+    # @param cmd [String] 
+    #   An nsupdate command sequence
+    # @param addition [Boolean]
+    #   True if adding a record, false if removing a record.
+    #   Default: true
+    #
+    def modify_dns(cmd, addition=true)
+      output = `#{cmd} 2>&1`
+      exit_code = $?.exitstatus
+
+      if exit_code != 0
+        addition ? action = "adding" : action = "removing"
+        raise DNSException.new("error #{action} app record #{fqdn} rc=#{exit_code}")
+        Rails.logger.error "Error #{action} DNS application record #{fqdn}: #{output}"
+      end
+    end
 
     public
     # Publish an application - create DNS record
@@ -192,13 +211,7 @@ EOF
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
       
       cmd = add_cmd(fqdn, public_hostname)
-
-      output = `#{cmd} 2>&1`
-      exit_code = $?.exitstatus
-      if exit_code != 0
-        raise DNSException.new("error adding app record #{fqdn} rc=#{exit_code}")
-        Rails.logger.error "Error adding DNS application record #{fqdn}: #{output}"
-      end
+      modify_dns(cmd, true)
     end
 
     # Unpublish an application - remove DNS record
@@ -215,13 +228,7 @@ EOF
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
 
       cmd = del_cmd(fqdn)
-
-      output = `#{cmd} 2>&1`
-      exit_code = $?.exitstatus
-      if exit_code != 0
-        raise DNSException.new("error adding app record #{fqdn} rc=#{exit_code}")
-        Rails.logger.error "Error adding DNS application record #{fqdn}: #{output}"
-      end
+      modify_dns(cmd, false)
     end
 
    # Change the published location of an application - Modify DNS record
