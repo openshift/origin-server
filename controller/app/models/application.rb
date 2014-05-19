@@ -692,6 +692,10 @@ class Application
       cartridges += dependencies
     end
 
+    unless all.all?{ |c| c.image.present? } || all.none?{ |c| c.image.present? }
+      raise OpenShift::UserException.new("You cannot mix cartridges based on an image with those that do not.")
+    end
+
     cartridges.each do |cart|
       # ensure that the user isn't trying to add multiple versions of the same cartridge
       if cart_name_map.has_key?(cart.original_name)
@@ -1873,9 +1877,14 @@ class Application
                                     app_dns: app_dns, pre_save: (not self.persisted?))
       init_gear_op.prereq << prereq_op._id.to_s unless prereq_op.nil?
 
-      reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, gear_size: gear_size, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
+      if Rails.configuration.geard[:enabled]
+        # TODO rollback op?
+        create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s], retry_rollback_op: nil)
+      else
+        reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, gear_size: gear_size, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
+        create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
+      end
 
-      create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
       # this flag is passed to the node to indicate that an sshkey is required to be generated for this gear
       # currently the sshkey is being generated on the app dns gear if the application is scalable
       # we are assuming that haproxy will also be added to this gear
@@ -1886,9 +1895,15 @@ class Application
                            event: UsageRecord::EVENTS[:begin], usage_type: UsageRecord::USAGE_TYPES[:gear_usage],
                            gear_size: gear_size, prereq: [create_gear_op._id.to_s])
 
-      register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
-
-      ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op)
+      #TODO
+      register_dns_op = nil
+      if Rails.configuration.geard[:enabled]
+        register_dns_op = create_gear_op
+        ops.push(init_gear_op, create_gear_op)
+      else
+        register_dns_op = RegisterDnsOp.new(gear_id: gear_id, prereq: [create_gear_op._id.to_s])
+        ops.push(init_gear_op, reserve_uid_op, create_gear_op, register_dns_op)
+      end
 
       if additional_filesystem_gb != 0
         # FIXME move into CreateGearOp
@@ -1912,9 +1927,11 @@ class Application
     end
 
     # Add broker auth for non scalable apps
-    if app_dns_gear_id && !scalable
-      prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [] : [gear_id_prereqs[app_dns_gear_id]]
-      ops << AddBrokerAuthKeyOp.new(gear_id: app_dns_gear_id, prereq: prereq)
+    unless Rails.configuration.geard[:enabled]
+      if app_dns_gear_id && !scalable
+        prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [] : [gear_id_prereqs[app_dns_gear_id]]
+        ops << AddBrokerAuthKeyOp.new(gear_id: app_dns_gear_id, prereq: prereq)
+      end
     end
 
     # Add and/or push user env vars when this is not an app create or user_env_vars are specified
@@ -1927,13 +1944,15 @@ class Application
     end
 
     prereq_op_id = prereq_op._id.to_s rescue nil
-    # since this component add operation is part of a new gear creation, we can skip rollback for everything other that gear creation
-    is_gear_creation = true
-    add, usage = calculate_add_component_ops(gear_comp_specs, comp_spec_gears, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
-                                             is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
-                                             app_dns_gear_id, is_gear_creation)
-    ops.concat(add)
-    track_usage_ops.concat(usage)
+    unless Rails.configuration.geard[:enabled]
+      # since this component add operation is part of a new gear creation, we can skip rollback for everything other that gear creation
+      is_gear_creation = true
+      add, usage = calculate_add_component_ops(gear_comp_specs, comp_spec_gears, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops,
+                                               is_scale_up, (user_vars_op_id || prereq_op_id), init_git_url,
+                                               app_dns_gear_id, is_gear_creation)
+      ops.concat(add)
+      track_usage_ops.concat(usage)
+    end
 
     [ops, track_usage_ops]
   end
@@ -2094,7 +2113,7 @@ class Application
           prereq_id = add_broker_auth_op._id.to_s
           component_ops[comp_spec][:add_broker_auth_keys] << add_broker_auth_op
           ops << add_broker_auth_op
-        end
+        end  
 
         git_url = nil
 

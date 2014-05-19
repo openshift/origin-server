@@ -63,7 +63,12 @@ class RemoteJob < OpenShift::Model
   #   The parallel job handle
   def self.execute_parallel_jobs(handle)
     begin
-      OpenShift::ApplicationContainerProxy.execute_parallel_jobs(handle)
+      #TODO
+      if Rails.configuration.geard[:enabled]
+        OpenShift::GeardClient.execute_parallel_jobs_impl(handle)
+      else
+        OpenShift::ApplicationContainerProxy.execute_parallel_jobs(handle)
+      end
     rescue Exception=>e
       Rails.logger.error e.message
       Rails.logger.error e.inspect
