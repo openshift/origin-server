@@ -61,7 +61,7 @@ function wait_for_mysqld_availability {
   # when MySQL server fail to start.
   #
   echo "MySQL server failed to start:"
-  cat $OPENSHIFT_LOG_DIR/mysql.log  
+  cat $OPENSHIFT_LOG_DIR/mysql.log
   exit 1
 }
 
@@ -95,9 +95,9 @@ function stop {
 
 function status {
   if is_running; then
-    client_result "MySQL is running" 
+    client_result "MySQL is running"
   else
-    client_result "MySQL is stopped" 
+    client_result "MySQL is stopped"
   fi
 
   exit 0
@@ -124,6 +124,11 @@ function pre_snapshot {
     warning "Couldn't not dump mysql! Continuing anyway"
     /bin/rm -rf $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
   }
+
+  if ! [ -s $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz ]; then
+    warning "Insufficient disk space to dump mysql! Continuing anyway"
+    /bin/rm -rf $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
+  fi
 
   stop
 }

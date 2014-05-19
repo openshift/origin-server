@@ -1,53 +1,18 @@
-:css
-  .members table { 
-    margin-bottom: 0px;
-  }
-  .members .table td {
-    vertical-align: middle;
-  }
-  .members table td.member {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .members table input {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-  }  
-  .members table select { 
-    margin-bottom: 0;
-    white-space: nowrap;
-    width: 100%;
-  }
-  .members table input[type="text"] {
-    width: 100%;
-    height: auto;
-  }
+- content_for :stylesheets do
+  = stylesheet_link_tag 'members_form', :media => :all
 
-  .members aside {
-    margin-top: 16px
-  }
+  %noscript
+    :css
+      .hidden-scripted { display: block; }
+      .script-only { display: none !important; }
+      .members .edit-only { display: block; }
+      .members tr.edit-only, .members tr.collapsed { display: table-row; }
+      .members .read-only { display: none; }
+      .members tr.no-role select, .members tr.no-role a.remove-member { opacity: 1; }
+      .members tr.template.template-user {display: table-row !important; }
 
-  .members tr.error-row td   { padding-top: 0px; }
-  .members tr.error-row td p { margin-top: 0; }
-  .members tr.template {display: none !important; }
-
-  .members .edit-only { display: none; }
-  .members.editing .edit-only { display: block; }
-  .members.editing tr.edit-only { display: table-row; }
-  .members.editing .read-only { display: none; }
-
-  .hidden-scripted { display: none; }
-
-%noscript
-  :css
-    .hidden-scripted { display: block; }
-
-    a.remove-member, a.remove-new-member, a.add-member, .script-only { display: none !important; }
-    .members .edit-only { display: block; }
-    .members tr.edit-only { display: table-row; }
-    .members .read-only { display: none; }
-
+- owner = members.find(&:owner)
+- explicit_members = members.reject(&:owner).select(&:explicit_role?).sort
 - if not editable
   .members
     %table.table.table-condensed.table-fixed
@@ -55,16 +20,22 @@
         %col{:width => "50%"}
         %col{:width => "50%"}
 
-      %tr
-        - owner = members.find(&:owner)
-        %td.nowrap.member{:title => owner.name}
-          = owner.name
-        %td Owner
-
-      - members.reject(&:owner).sort.each do |member|
+      - if owner
         %tr
+          %td.nowrap.member{:title => owner.name}
+            %span.icon-user{:'aria-hidden' => "true"}
+            = owner.name
+          %td Owner
+
+      - explicit_members.each do |member|
+        %tr{:class => "type-#{member.type}"}
           %td.nowrap.member{:title => member.name}
-            = member.name
+            - if member.team?
+              %span.icon-users{:'aria-hidden' => "true"}
+              = member.name
+            - else
+              %span.icon-user{:'aria-hidden' => "true"}
+              = member.name
           %td
             = Role.description_for(member.role)
 
@@ -81,55 +52,94 @@
         %col{:width => "45%"}
         %col.script-only{:width => "30"}
 
-      %tr
-        - owner = members.find(&:owner)
-        %td.nowrap.member{:title => owner.name}
-          = owner.name
-        %td Owner
-        %td.script-only
+      %tbody
+        - if owner
+          %tr
+            %td.nowrap.member{:title => owner.name}
+              %span.icon-user{:'aria-hidden' => "true"}
+              = owner.name
+            %td Owner
+            %td.script-only
 
-      - members.reject(&:owner).sort.each do |member|
-        %tr
-          %td.nowrap.member{:title => member.name}
-            = member.name
-          %td.nowrap
-            .read-only= Role.description_for(member.role)
-            .edit-only
+        - explicit_members.each do |member|
+          - member_teams = member.teams(members)
+          %tr{:class => "type-#{member.type}"}
+            %td.nowrap.member{:title => member.name}
+              - if member.team?
+                %span.icon-users{:'aria-hidden' => "true"}
+                = link_to member.name, "javascript:;", {'data-target' => "#team-#{member.id}", 'data-toggle' => 'team'}
+              - else
+                %span.icon-user{:'aria-hidden' => "true"}
+                = member.name
+            %td.nowrap
+              .read-only
+                = Role.description_for(member.role)
+                - if member.explicit_role != member.role && member_teams.present?
+                  via 
+                  %span.icon-users{:'aria-hidden' => "true", :title => "Has access via these teams:\n#{member_teams.map(&:name).join(", \n")}"}
+              .edit-only
+                -# Always start with a common field to make param hashes group correctly
+                = hidden_field_tag('members[][type]', member.type)
+                = hidden_field_tag('members[][id]', member.id)
+                = select_tag('members[][role]', options_for_select(Role.role_descriptions(true, member_teams.present?), {:selected => member.explicit_role || :none}))
+            %td.script-only
+              .edit-only
+                = link_to('javascript:;', :class => 'script-only remove-member btn btn-mini') do
+                  %span.icon-remove{'aria-hidden'=>"true"}
+          - if member.team?
+            %tr.team-details.collapsed{:id => "team-#{member.id}"}
+              %td{:colspan => 3}
+                - if (team_members = members.select {|m| m.grant_from?('team', member.id)}).present?
+                  Team members: 
+                  = team_members.map(&:name).to_sentence
+                - else
+                  No team members
+
+        :ruby
+          new_members = (new_members || []).dup
+          if new_members.blank? and members.count == 1
+            new_members << (user_initial = Domain::Member.new(:role => :edit, :type => 'user'))
+          end
+          new_members << (user_template = Domain::Member.new(:role => :edit, :type => 'user'))
+          new_members << (team_template = Domain::Member.new(:role => :edit, :type => 'team')) if owned_teams || global_teams
+        - new_members.each do |new_member|
+          - error = Array(new_member.errors[:login]).first || Array(new_member.errors[:id]).first
+          - is_template = (new_member.equal?(user_template) || new_member.equal?(team_template))
+          %tr.edit-only.control-group{:class => "#{'error' if error} #{"template template-#{new_member.type}" if is_template}"}
+            %td
               -# Always start with a common field to make param hashes group correctly
-              = hidden_field_tag('members[][x]', 0)
-              = hidden_field_tag('members[][id]', member.id)
-              = select_tag('members[][role]', options_for_select(Role.role_descriptions(true), {:selected => member.role}))
-          %td.script-only
-            .edit-only
-              = link_to('javascript:;', :class => 'remove-member btn btn-mini') do
+              = hidden_field_tag('members[][type]', new_member.type)
+              = hidden_field_tag('members[][adding]', 'true')
+              - if new_member.type == 'user'
+                = text_field_tag('members[][login]', new_member.login, {:placeholder => 'User Login', :title => 'User Login', :autocomplete => 'off', :class => ('error' if error)})
+              - elsif new_member.type == 'team'
+                = hidden_field_tag('members[][id]', new_member.id)
+                - if new_member.id.present?
+                  = hidden_field_tag('members[][name]', new_member.name)
+                  %span.icon-users{:'aria-hidden' => "true"}
+                  = new_member.name
+                - else
+                  = text_field_tag('members[][name]', new_member.name, {:placeholder => 'Team Name', :title => 'Team Name', :autocomplete => 'off', :class => "team-typeahead #{'error' if error}"})
+            %td
+              = select_tag('members[][role]', options_for_select(Role.role_descriptions(false), new_member.role))
+            %td.script-only
+              = link_to('javascript:;', :class => 'script-only remove-new-member btn btn-mini') do
                 %span.icon-remove{'aria-hidden'=>"true"}
+          - if error
+            %tr.edit-only.control-group.error.error-row.borderless
+              %td{:colspan => 3}
+                %p.help-inline= error
 
-      - new_members = (new_members || []).dup
-      - new_members << Domain::Member.new(:role => :edit) if new_members.blank? and members.count == 1
-      - new_members << (template = Domain::Member.new(:role => :edit))
-      - new_members.each do |new_member|
-        - error = (new_member.errors[:login] || []).first
-        %tr.edit-only.control-group{:class => "#{'error' if error} #{'template' if new_member.equal?(template)}"}
-          %td
-            -# Always start with a common field to make param hashes group correctly
-            = hidden_field_tag('members[][x]', 0)
-            = text_field_tag('members[][login]', new_member.login, {:placeholder => 'User Login', :title => 'User Login', :autocomplete => 'off', :class => ('error' if error)})
-          %td
-            = select_tag('members[][role]', options_for_select(Role.role_descriptions(false), new_member.role))
-          %td.script-only
-            = link_to('javascript:;', :class => 'remove-new-member btn btn-mini') do
-              %span.icon-remove{'aria-hidden'=>"true"}
-        - if error
-          %tr.edit-only.control-group.error.error-row.borderless
-            %td{:colspan => 3}
-              %p.help-inline= error
-
-      %tr.borderless
-        %td{:colspan => 3}
-          .form-actions.edit-only
-            = link_to 'Add another member...', 'javascript:;', :class => 'add-member'
-          .form-actions.read-only.script-only
-            = link_to "Edit members...", "javascript:;", :class => 'edit-members'
+      %tbody
+        %tr.borderless
+          %td{:colspan => 3}
+            .form-actions.edit-only.script-only
+              = link_to 'Add a user...', 'javascript:;', :class => 'add-member add-user'
+              - if owned_teams || global_teams
+                |
+                = link_to 'Add a team...', 'javascript:;', :class => 'add-member add-team'
+            .form-actions.read-only.script-only
+              = link_to "Edit members...", "javascript:;", :class => 'edit-members'
 
     .form-actions.edit-only
       = link_to "Cancel", domain_path(@domain), :class => 'btn btn-small cancel script-only'
@@ -150,14 +160,13 @@
           %strong Administer
           &ndash; Everything except change allowed gear sizes and the domain name.
 
-
   - content_for :javascripts do
     :javascript
       $(function(){
         $('.members').find('select').change(function() {
           var $this = $(this);
           var $tr = $this.closest('tr');
-          $tr.css({opacity: ($this.val() == 'none') ? ".4":"1"});
+          $tr.toggleClass("no-role", $this.val() == 'none');
         }).on('keypress', function(){
           var $this = $(this);
           var was = $this.val();
@@ -178,9 +187,17 @@
           $tr.remove();
         });
 
-        $('a.add-member').click(function() {
-          var $template = $('.members tr.template');
-          $template.clone(true).removeClass('template').insertBefore($template).find('input').focus();
+        $('a.add-user').click(function() {
+          var $template = $('.members tr.template.template-user');
+          $template.clone(true).removeClass('template').appendTo($template.parent()).find('input').focus();
+        });
+
+        $('a.add-team').click(function() {
+          var $template = $('.members tr.template.template-team');
+          var $input = $template.clone(true).removeClass('template').appendTo($template.parent()).find('input.team-typeahead');
+          initializeTypeahead($input);
+          $input.focus();
+          $input.typeahead('val', '');
         });
 
         $('.members a.edit-members').click(function() {
@@ -189,4 +206,116 @@
             $members.find('input[type=text]:visible').first().focus();
           }, 1);
         });
+
+        $("[data-toggle=team]").click(function(){
+          var target = $(this).data("target");
+          if (target) {
+            var $target = $(target);
+            $target.toggleClass("collapsed");
+          }
+        });
+
+
+        var my_teams = new Bloodhound({
+          datumTokenizer: function(d) {
+            // Add a * token to all of the user's teams
+            var retval = ["*"];
+
+            // Add a token for each substring of a word in the team names
+            // Let's us match on substrings like global search
+            var tokens = (d.name || "").split(/\s+/);
+            for (var i=0; i < tokens.length; i++) {
+              var token = tokens[i];
+              var length = token.length;
+              for (var j=0; j < length; j++) {
+                retval.push(token.substring(j));
+              }
+            }
+            return retval;
+          },
+          queryTokenizer: function(q) {
+            if (q) {
+              return Bloodhound.tokenizers.whitespace(q);
+            }
+            else {
+              // Turn an empty query into a query which will match all of the user's teams
+              return ["*"];
+            }
+          },
+          prefetch: {
+            url: '#{teams_path}.json?owner=@self',
+            // Don't save data in localStorage
+            ttl: 0
+          },
+          limit: 100
+        });
+        var global_teams = new Bloodhound({
+          datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+          queryTokenizer: Bloodhound.tokenizers.whitespace,
+          remote: '#{teams_path}.json?global=true&search=%QUERY',
+          limit: 100
+        });
+
+        function initializeTypeahead($input) {
+          var datasets = [];
+          if (#{!!owned_teams}) {
+            my_teams.initialize();
+            datasets.push({
+              name: 'my-teams',
+              displayKey: 'name',
+              source: my_teams.ttAdapter(),
+              templates: {
+                empty: function(d) {
+                  return [
+                    "<div class='empty-message'>",
+                    d.query ? "No matching teams found" : "You do not have any teams",
+                    "</div>"
+                  ].join("");
+                },
+                header: '<div class="team-type">Your Teams</div>'
+              }
+            });
+          }
+
+          if (#{!!global_teams}) {
+            global_teams.initialize();
+            datasets.push({
+              name: 'global-teams',
+              displayKey: 'name',
+              source: global_teams.ttAdapter(),
+              templates: {
+                empty: function(d) {
+                  return [
+                    "<div class='empty-message'>",
+                    (d.query && d.query.length >= 2) ? "No matching shared teams found" : "Type to search shared teams",
+                    "</div>"
+                  ].join("");
+                },
+                header: '<div class="team-type">Shared Teams</div>'
+              }
+            });
+          }
+
+          $id = $input.prev("[name='members[][id]']");
+          $input.parent('td').css('overflow','visible');
+          $input.typeahead(
+            {hint: false, highlight: true, minLength: 0},
+            datasets
+          ).on('typeahead:selected', function(event, team){
+            // Remember the last team name we selected, and store the id
+            this.selected_name = team.name;
+            $id.val(team.id);
+          }).on('typeahead:autocompleted', function(event, team) {
+            // Remember the last team name we selected, and store the id
+            this.selected_name = team.name;
+            $id.val(team.id);
+          }).on('typeahead:closed', function(event){
+            var $this = $(this);
+            if (!this.selected_name || $this.typeahead('val') != this.selected_name) {
+              // Clear the team name field and id input if the current value doesn't match something that was selected from the typeahead
+              $id.val('');
+              $this.typeahead('val','');
+            }
+          });
+        };
       });

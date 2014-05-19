@@ -8,13 +8,13 @@ class RegionTest < ActiveSupport::TestCase
 
   test "create and find and delete region" do
     region_name = "region_" + gen_uuid
-    orig_region = Region.create(region_name) 
+    region1 = Region.create(region_name) 
     cur_region = Region.find_by(name: region_name)
-    assert_equal(orig_region, cur_region)
+    assert_equal(region1, cur_region)
     cur_region.delete
     assert_equal(false, Region.where(name: region_name).exists?)
 
-    region = Region::create("g1")
+    region = Region.create("g1")
     assert_not_nil(region)
     region.destroy
     assert_equal(false, Region.where(name: region.name).exists?)
@@ -22,19 +22,19 @@ class RegionTest < ActiveSupport::TestCase
 
   test "add and remove zones from region" do
     region_name = "region_" + gen_uuid
-    orig_region = Region.create(region_name) 
-    assert(orig_region.zones.size == 0)
-    orig_region.add_zone("z1")
+    region1 = Region.create(region_name) 
+    assert_equal 0, region1.zones.size
+    region1.add_zone("z1")
     region = Region.find_by(name: region_name)
-    assert(region.zones.size == 1)
+    assert_equal 1, region.zones.size
 
     exception_count = 0
     region.delete rescue exception_count += 1
     assert_equal(1, exception_count)
     region.remove_zone("z1")
     cur_region = Region.find_by(name: region_name)
-    assert(cur_region.zones.size == 0)
-    assert_equal(orig_region, cur_region)
+    assert_equal 0, cur_region.zones.size
+    assert_equal(region1, cur_region)
 
     cur_region.delete
     assert_equal(false, Region.where(name: region_name).exists?)
@@ -57,9 +57,5 @@ class RegionTest < ActiveSupport::TestCase
     region1.remove_zone("z1")
     region1.delete
     region2.delete
-  end
-
-  def teardown
-    Region.delete_all
   end
 end

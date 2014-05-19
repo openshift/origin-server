@@ -39,6 +39,13 @@ Facter.add(:public_ip) { setcode { public_ip } }
 Facter.add(:public_hostname) { setcode { public_hostname } }
 
 #
+# public_ip assigned to the config specified NIC (default eth0)
+#
+public_nic = get_node_config_value("PUBLIC_NIC", "eth0").gsub(/['"]/,"")
+host_public_ip = `/sbin/ifconfig #{public_nic} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`.chomp
+Facter.add(:host_ip) { setcode { host_public_ip } }
+
+#
 # Pull node_utilization data from node model
 #
 results = OpenShift::Runtime::Node.node_utilization

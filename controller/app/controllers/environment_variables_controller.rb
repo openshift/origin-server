@@ -41,10 +41,12 @@ class EnvironmentVariablesController < BaseController
       return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless params.has_key?(:value)
       value = params[:value]
       return render_error(:unprocessable_entity, "Value must be 512 characters or less.", 190, "value") if value.length > 512
+      return render_error(:unprocessable_entity, "Value cannot contain null characters.", 190, "value") if value.include? "\\000"
       env_hash = @application.list_user_env_variables([name])
       return render_error(:unprocessable_entity, "Environment variable named '#{name}' already exists in application", 188) if env_hash[name]
 
       env_var = {'name' => name, 'value' => value}
+      Application.validate_user_env_variables([env_var])
       result = @application.patch_user_env_variables([env_var])
       rest_env_var = get_rest_environment_variable(env_var)
       return render_success(:created, "environment-variable", rest_env_var, "Added environment variable '#{name}' to application #{@application.name}", result)
@@ -68,6 +70,7 @@ class EnvironmentVariablesController < BaseController
     return render_error(:not_found, "User environment variable named '#{name}' not found in application", 188) unless env_hash[name]
 
     env_var = {'name' => name, 'value' => value}
+    Application.validate_user_env_variables([env_var])
     result = @application.patch_user_env_variables([env_var])
     rest_env_var = get_rest_environment_variable(env_var)
     render_success(:ok, "environment-variable", rest_env_var, "Updated environment variable '#{name}' in application #{@application.name}", result)

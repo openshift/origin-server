@@ -22,7 +22,7 @@ require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/pub_sub_connector'
 require 'openshift-origin-node/model/gear_registry'
 require 'openshift-origin-node/utils/shell_exec'
-require 'openshift-origin-node/utils/selinux'
+require 'openshift-origin-node/utils/selinux_context'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/sdk'
@@ -93,7 +93,7 @@ module OpenShift
         env              = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         primary_cart_dir = env['OPENSHIFT_PRIMARY_CARTRIDGE_DIR']
 
-        raise "No primary cartridge detected in gear #{@container.uuid}" unless primary_cart_dir
+        raise "No primary cartridge detected in gear #{@container.uuid}" unless primary_cart_dir and !primary_cart_dir.empty?
 
         return get_cartridge_from_directory(File.basename(primary_cart_dir))
       end
@@ -258,7 +258,7 @@ module OpenShift
         output                 = ''
         name, software_version = map_cartridge_name(cartridge_name)
         cartridge              = if manifest
-                                   logger.debug("Loading from manifest...")
+                                   logger.debug("Loading #{cartridge_name} from manifest for #{@container.uuid}")
                                    Runtime::Manifest.new(manifest, software_version)
                                  else
                                    CartridgeRepository.instance.select(name, software_version)
@@ -748,19 +748,27 @@ module OpenShift
         action         = PathUtils.join(cartridge_home, 'bin', action)
         return "" unless File.exists? action
 
-        gear_env           = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+        # Cache system + scaled env vars + user_vars
+        app_env            = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+        # Cache system env vars
+        gear_env_home      = PathUtils.join(@container.container_dir, '.env')
+        gear_env           = Utils::Environ.load(gear_env_home)
+        # Cache user env vars
+        user_env_home      = PathUtils.join(gear_env_home, 'user_vars')
+        user_env           = Utils::Environ.load(user_env_home)
         cartridge_env_home = PathUtils.join(cartridge_home, 'env')
+        cartridge_env      = Utils::Environ.load(cartridge_env_home)
 
-        cartridge_env = Utils::Environ.load(cartridge_env_home)
+        user_env.delete_if { |name, _| name != 'OPENSHIFT_SECRET_TOKEN' and gear_env.has_key?(name) }
         cartridge_env.delete('PATH')
-        cartridge_env = gear_env.merge(cartridge_env)
+        cartridge_env      = app_env.merge(cartridge_env).merge(user_env)
         if render_erbs
           erbs = Dir.glob(cartridge_env_home + '/*.erb', File::FNM_DOTMATCH).select { |f| File.file?(f) }
           render_erbs(cartridge_env, erbs)
 
           cartridge_env = Utils::Environ.load(cartridge_env_home)
           cartridge_env.delete('PATH')
-          cartridge_env = gear_env.merge(cartridge_env)
+          cartridge_env = app_env.merge(cartridge_env).merge(user_env)
         end
 
         action << " --version #{software_version}"
@@ -1019,7 +1027,7 @@ module OpenShift
       # This is only called when a cartridge is removed from a cartridge not a gear delete
       def disconnect_frontend(cartridge)
         gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
-        app_dns        = gear_env["OPENSHIFT_APP_DNS"]
+        app_dns        = gear_env["OPENSHIFT_APP_DNS"].to_s.downcase
 
         mappings = []
         cartridge.endpoints.each do |endpoint|
@@ -1048,7 +1056,7 @@ module OpenShift
         frontend       = FrontendHttpServer.new(@container)
         gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         web_proxy_cart = web_proxy
-        app_dns        = gear_env["OPENSHIFT_APP_DNS"]
+        app_dns        = gear_env["OPENSHIFT_APP_DNS"].to_s.downcase
 
         output = ""
         begin
@@ -1275,13 +1283,24 @@ module OpenShift
 
         logger.debug { "#{@container.uuid} #{action} against '#{cartridge_dir}'" }
         buffer       = ''
-        gear_env     = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
-        gear_env.merge!(options[:env_overrides]) if options[:env_overrides]
-        action_hooks = PathUtils.join(gear_env['OPENSHIFT_REPO_DIR'], %w{.openshift action_hooks})
+        # Cache system + scaled env vars + user_vars
+        app_env     = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+        app_env.merge!(options[:env_overrides]) if options[:env_overrides]
+        action_hooks = PathUtils.join(app_env['OPENSHIFT_REPO_DIR'], %w{.openshift action_hooks})
+
+        # Cache system env vars
+        gear_env_home = PathUtils.join(@container.container_dir, '.env')
+        gear_env      = Utils::Environ.load(gear_env_home)
+        # Cache user env vars
+        user_env_home = PathUtils.join(gear_env_home, 'user_vars')
+        user_env      = Utils::Environ.load(user_env_home)
+
+        # Don't overwrite gear vars when merging cache
+        user_env.delete_if { |name, _| name != 'OPENSHIFT_SECRET_TOKEN' and gear_env.has_key?(name) }
 
         if pre_action_hooks_enabled
           pre_action_hook = prefix_action_hooks ? "pre_#{action}" : action
-          hook_buffer     = do_action_hook(pre_action_hook, gear_env, options)
+          hook_buffer     = do_action_hook(pre_action_hook, app_env, options)
           buffer << hook_buffer if hook_buffer.is_a?(String)
         end
 
@@ -1294,7 +1313,7 @@ module OpenShift
           _, software, software_version, _ = Runtime::Manifest.parse_ident(cartridge_local_env[ident.first])
           hooks                            = cartridge_hooks(action_hooks, action, software, software_version)
 
-          cartridge_env = gear_env.merge(cartridge_local_env)
+          cartridge_env = app_env.merge(cartridge_local_env).merge(user_env)
           control = PathUtils.join(path, 'bin', 'control')
 
           command = []
@@ -1328,7 +1347,7 @@ module OpenShift
 
         if post_action_hooks_enabled
           post_action_hook = prefix_action_hooks ? "post_#{action}" : action
-          hook_buffer      = do_action_hook(post_action_hook, gear_env, options)
+          hook_buffer      = do_action_hook(post_action_hook, app_env, options)
           buffer << hook_buffer if hook_buffer.is_a?(String)
         end
 

@@ -7,8 +7,10 @@ Description: MongoDB is a scalable, high-performance, open source NoSQL database
 Version: '2.4'
 Versions:
 - '2.4'
-Cartridge-Version: 0.2.8
-Compatible-Versions: []
+Cartridge-Version: 0.2.11
+Compatible-Versions:
+- 0.2.9
+- 0.2.10
 Cartridge-Vendor: redhat
 License: ASL 2.0
 Vendor: 10gen

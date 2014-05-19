@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 1.20.0
+Version: 1.22.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,27 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.21.0-2
+- bumpspec to mass fix tags
+
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- Merge pull request #5175 from liggitt/teams_ui
+  (dmcphers+openshiftbot@redhat.com)
+- Update jquery, add typeahead widget (jliggitt@redhat.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
+- Allow version of jQuery newer than 2.0 (jliggitt@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Mon Mar 17 2014 Troy Dawson <tdawson@redhat.com> 1.19.2-1
 - Added User pending-op-group/pending-op functionality Added pending op groups
   for user add_ssh_keys/remove_ssh_keys (rpenta@redhat.com)

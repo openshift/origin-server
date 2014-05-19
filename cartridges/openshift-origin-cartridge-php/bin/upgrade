@@ -23,17 +23,11 @@ if [[ $next == 0.0.12 ]]; then
     chcon -u unconfined_u $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
 fi
 
-if [ -f ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR ] && [ ! -L ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR ]
-then
-    rm ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR
-    ln -s ~/.env/OPENSHIFT_LOG_DIR ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR
-fi
-
 if [[ $curr == 0.0.12 ]]; then
     erb ${OPENSHIFT_PHP_DIR}versions/shared/configuration/etc/php.ini.erb > ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
 fi
 
-if [[ $curr == 0.0.13 ]]; then
+if [[ $curr == 0.0.14 ]]; then
     echo "${OPENSHIFT_PHP_DIR}configuration/etc/php.d" > ${OPENSHIFT_PHP_DIR}env/PHP_INI_SCAN_DIR
     # versions/ directory moved from user space (gear) to the shared usr/ directory (root)
     rm -rf ${OPENSHIFT_PHP_DIR}versions

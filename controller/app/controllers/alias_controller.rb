@@ -31,6 +31,9 @@ class AliasController < BaseController
     end
 
     result = @application.add_alias(server_alias, ssl_certificate, private_key, pass_phrase)
+
+    @analytics_tracker.track_event('alias_add', @domain, @application, {'alias' => server_alias})
+
     rest_alias = get_rest_alias(@application.aliases.find_by(fqdn: server_alias))
     render_success(:created, "alias", rest_alias, "Added #{server_alias} to application #{@application.name}", result)
   end
@@ -48,6 +51,9 @@ class AliasController < BaseController
     end
 
     result = @application.update_alias(server_alias, ssl_certificate, private_key, pass_phrase)
+
+    @analytics_tracker.track_event('alias_update', @domain, @application, {'alias' => server_alias})
+
     al1as = @application.aliases.find_by(fqdn: server_alias)
     rest_alias = get_rest_alias(al1as)
     render_success(:ok, "alias", rest_alias, "Updated #{server_alias} to application #{@application.name}", result)
@@ -58,6 +64,9 @@ class AliasController < BaseController
 
     server_alias = params[:id].downcase if params[:id].presence
     result = @application.remove_alias(server_alias)
+
+    @analytics_tracker.track_event('alias_remove', @domain, @application, {'alias' => server_alias})
+
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "Removed #{server_alias} from application #{@application.name}", result)
   end

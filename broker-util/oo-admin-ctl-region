@@ -73,11 +73,11 @@ if !region_name and command and (command != 'list')
   puts "Error: --region is required with command: #{command}"
   exit 1
 end
-if !zone_name and ((command == 'add-zone') or (command == 'remove-zone'))
+if !zone_name and ['add-zone', 'remove-zone'].include?(command)
   puts "Error: --zone is required with command: #{command}"
   exit 2
 end
-if zone_name and ((command != 'add-zone') or (command == 'remove-zone'))
+if zone_name and !(['add-zone', 'remove-zone'].include?(command))
   puts "Warning: Ignoring --zone, not valid for command: #{command}"
 end
 

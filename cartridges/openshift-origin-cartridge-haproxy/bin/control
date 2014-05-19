@@ -49,7 +49,11 @@ function wait_to_start() {
 function _stop_haproxy_ctld() {
   if [ -f ${HAPROXY_CTLD_PID} ]; then
     pid=$( /bin/cat "${HAPROXY_CTLD_PID}" )
-    kill -TERM $pid
+    if ps --no-headers --pid ${pid} > /dev/null 2>&1; then
+      kill -TERM $pid
+    else
+      rm -f ${HAPROXY_CTLD_PID}
+    fi
   fi
 }
 
@@ -65,7 +69,11 @@ function _start_haproxy_ctld() {
 function _launch_haproxy_bg() {
     [ -n "$1" ]  &&  zopts="-sf $1"
     ping_server_gears
-    nohup /usr/sbin/haproxy -f $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg ${zopts} &> >(/usr/bin/logshifter -tag haproxy) &
+    LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-haproxy
+    rm -f $LOGPIPE && mkfifo $LOGPIPE
+
+    /usr/bin/logshifter -tag haproxy < $LOGPIPE &
+    nohup /usr/sbin/haproxy -f $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg ${zopts} &> $LOGPIPE &
     echo $! > $HAPROXY_PID
 }
 
@@ -298,6 +306,7 @@ function tidy() {
     client_message "Emptying haproxy logs in dir: $OPENSHIFT_LOG_DIR"
     shopt -s dotglob
     rm -rf $OPENSHIFT_LOG_DIR/haproxy.log*
+    rm -rf $OPENSHIFT_LOG_DIR/haproxy_ctld.log*
 }
 
 #

@@ -55,6 +55,6 @@
       = f.commit_button("Add Jenkins")
       - unless @jenkins_server.persisted?
         %span#gear_increase
-          = gear_increase_indicator(nil, false, nil, false, @application.domain.capabilities, @application.owner?)
+          = gear_increase_indicator(nil, false, nil, false, @application.domain.capabilities, @application.domain.usage_rates, @application.owner?)
 
       = f.loading

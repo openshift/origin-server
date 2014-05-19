@@ -54,19 +54,13 @@ module OpenShift
         #   remove_env_var('OPENSHIFT_MONGODB_DB_URL')
         #   # => nil
         #
-        # Returns an nil on success and false on failure.
+        # Returns an true on success and false on failure.
         def remove_env_var(key, prefix_cloud_name=false)
-          status = false
-          [".env", ".env/.uservars"].each do |path|
-            env_dir = PathUtils.join(@container_dir,path)
-            if prefix_cloud_name
-              key = "OPENSHIFT_#{key}"
-            end
-            env_file_path = PathUtils.join(env_dir, key)
-            FileUtils.rm_f env_file_path
-            status = status ? true : (File.exists?(env_file_path) ? false : true)
-          end
-          status
+          key = "OPENSHIFT_#{key}" if prefix_cloud_name
+
+          env_file_path = PathUtils.join(@container_dir, '.env', key)
+          FileUtils.rm_f env_file_path
+          !File.exists?(env_file_path)
         end
 
         # Public: Add broker authorization keys so gear can communicate with
@@ -148,7 +142,7 @@ module OpenShift
 
 
         # Public: Add several SSH keys to a gear
-        # 
+        #
         # Examples
         #   container.add_ssh_keys([{:content => "alongstring", :type => "ssh-rsa", :comment => "a users key"}, {:content => "testuser@EXAMPLE.COM", :type => "krb5-principal"}])
         #
@@ -160,7 +154,7 @@ module OpenShift
             #TODO batch add these type of keys
             if key["type"] == "krb5-principal"
               # create a K5login object and add it
-              self.class.notify_observers(:before_add_krb5_principal, 
+              self.class.notify_observers(:before_add_krb5_principal,
                                         self, key["content"])
               K5login.new(self).add_principal( key["content"], key["comment"])
               self.class.notify_observers(:after_add_krb5_principal,
@@ -196,8 +190,8 @@ module OpenShift
 
           else
             # create an SshAuthorizedKeys file object and add to it.
-            self.class.notify_observers(:before_remove_ssh_key, 
-                                        self, 
+            self.class.notify_observers(:before_remove_ssh_key,
+                                        self,
                                         key_string)
             AuthorizedKeysFile.new(self).remove_key(key_string, key_type, comment)
             self.class.notify_observers(:after_remove_ssh_key, self, key_string)
@@ -215,7 +209,7 @@ module OpenShift
           ssh_authorized_keys = []
           keys.each do |key|
             if key["type"] == "krb5-principal"
-              self.class.notify_observers(:before_remove_krb5_principal, 
+              self.class.notify_observers(:before_remove_krb5_principal,
                                           self, key["content"])
               K5login.new(self).remove_principal(key["content"], key["comment"])
               self.class.notify_observers(:after_remove_krb5_principal, self, key["content"])
@@ -231,11 +225,11 @@ module OpenShift
         # Public: replace all user access by SSH to a gear
         #
         # Examples:
-        # 
+        #
         # Replace all of the existing keys with one SSH and one Kerberos key
         #
-        # a = [{'key' => 'ansshkeystring', 
-        #       'type' => 'ssh-rsa', 
+        # a = [{'key' => 'ansshkeystring',
+        #       'type' => 'ssh-rsa',
         #       'comment' => "app-user-name" },
         #      {'key' => 'testuser@EXAMPLE.COM',
         #       'type' => 'krb5-principal',
@@ -249,11 +243,11 @@ module OpenShift
 
           raise Exception.new('The provided ssh keys do not have the required attributes') unless validate_ssh_keys(ssh_keys)
 
-          # sort the keys into 
+          # sort the keys into
           authorized_keys = ssh_keys.select {|k| k['type'] != 'krb5-principal'}
           krb5_principals = ssh_keys.select {|k| k['type'] == 'krb5-principal'}
 
-          self.class.notify_observers(:before_replace_ssh_keys, self) 
+          self.class.notify_observers(:before_replace_ssh_keys, self)
           AuthorizedKeysFile.new(self).replace_keys(authorized_keys) if authorized_keys.count > 0
           K5login.new(self).replace_principals(krb5_principals) if krb5_principals.count > 0
           self.class.notify_observers(:after_replace_ssh_keys, self)
@@ -298,6 +292,9 @@ module OpenShift
             end
             if value.to_s.length > USER_VARIABLE_VALUE_MAX_SIZE
               return 255, "CLIENT_ERROR: '#{name}' value exceeds maximum size of #{USER_VARIABLE_VALUE_MAX_SIZE}b\n"
+            end
+            if value.to_s.include? "\\000"
+              return 255, "CLIENT_ERROR: '#{name}' value cannot contain nullsb\n"
             end
           end
 

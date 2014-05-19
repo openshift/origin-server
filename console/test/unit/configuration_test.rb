@@ -83,6 +83,32 @@ class ConfigurationTest < ActiveSupport::TestCase
     assert_equal '1234', Console.config.env(:STRING_2)
   end
 
+  test 'Console.config.env checks boolean types' do
+    expects_file_read(<<-FILE.strip_heredoc)
+      BROKER_URL=foo
+      BOOL1 = true
+      BOOL2 = false
+      BAD_BOOL1 = 'true'
+      BAD_BOOL2 = 'false'
+    FILE
+
+    Console.configure('file')
+    assert_equal true, Console.config.env_bool(:BOOL1)
+    assert_equal false, Console.config.env_bool(:BOOL2)
+
+    assert_raise(Console::InvalidConfiguration) { Console.config.env_bool(:MISSING) }
+    assert_raise(Console::InvalidConfiguration) { Console.config.env_bool(:MISSING, 'true') }
+    assert_raise(Console::InvalidConfiguration) { Console.config.env_bool(:MISSING, 'false') }
+    
+    assert_equal true, Console.config.env_bool(:MISSING, true)
+    assert_equal false, Console.config.env_bool(:MISSING, false)
+
+    assert_raise(Console::InvalidConfiguration) { Console.config.env_bool(:BAD_BOOL1) }
+    assert_raise(Console::InvalidConfiguration) { Console.config.env_bool(:BAD_BOOL1, true) }
+    assert_raise(Console::InvalidConfiguration) { Console.config.env_bool(:BAD_BOOL2) }
+    assert_raise(Console::InvalidConfiguration) { Console.config.env_bool(:BAD_BOOL2, false) }
+  end
+
   test 'Console.configure default succeeds' do
     Console.configure(File.expand_path('../../../conf/console.conf.example', __FILE__))
   end

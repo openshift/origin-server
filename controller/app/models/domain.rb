@@ -54,6 +54,7 @@ class Domain
   attr_accessor :available_gears
   attr_accessor :max_storage_per_gear
   attr_accessor :usage_rates
+  attr_accessor :private_ssl_certificates
 
   validates :namespace,
     #presence: {message: "Namespace is required and cannot be blank."},
@@ -148,6 +149,7 @@ class Domain
         d.available_gears = owner.max_gears - owner.consumed_gears
         d.max_storage_per_gear = owner.max_storage
         d.usage_rates = owner.usage_rates
+        d.private_ssl_certificates = owner.private_ssl_certificates
       end
     end
   end
@@ -191,6 +193,10 @@ class Domain
   def usage_rates
     @usage_rates ||= owner.usage_rates
   end
+  def private_ssl_certificates
+    @private_ssl_certificates = owner.private_ssl_certificates if @private_ssl_certificates.nil?
+    @private_ssl_certificates
+  end
 
   def inherit_membership
     members.select(&:user?).map(&:clone)
@@ -201,7 +207,7 @@ class Domain
     ssh_keys.each do |new_key|
       self.system_ssh_keys.each do |cur_key|
         if cur_key.name == new_key.name
-          ssh_keys_to_rm << cur_key.serializable_hash
+          ssh_keys_to_rm << cur_key.as_document
         end
       end
     end
@@ -209,7 +215,7 @@ class Domain
     # if an ssh key being added has the same name as an existing key, then remove the previous keys first
     Domain.where(_id: self.id).update_all({ "$pullAll" => { system_ssh_keys: ssh_keys_to_rm }}) unless ssh_keys_to_rm.empty?
 
-    keys_attrs = ssh_keys.map { |k| k.serializable_hash }
+    keys_attrs = ssh_keys.map { |k| k.as_document }
     pending_op = AddSystemSshKeysDomainOp.new(keys_attrs: keys_attrs)
     pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pushAll" => { system_ssh_keys: keys_attrs }})
@@ -223,7 +229,7 @@ class Domain
       ssh_keys = [ssh_keys].flatten
     end
     return if ssh_keys.empty?
-    keys_attrs = ssh_keys.map { |k| k.serializable_hash }
+    keys_attrs = ssh_keys.map { |k| k.as_document }
     pending_op = RemoveSystemSshKeysDomainOp.new(keys_attrs: keys_attrs)
     pending_op.set_created_at
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { system_ssh_keys: keys_attrs }})
@@ -265,7 +271,7 @@ class Domain
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.as_document }, "$pullAll" => { env_vars: variables }})
   end
 
-  def members_changed(added, removed, changed_roles)
+  def members_changed(added, removed, changed_roles, parent_op)
     pending_op = ChangeMembersDomainOp.new(members_added: added.presence, members_removed: removed.presence, roles_changed: changed_roles.presence)
     self.pending_ops.push pending_op
   end
@@ -293,9 +299,17 @@ class Domain
   # == Returns:
   # True on success or false on failure
   def run_jobs
+    wait_ctr = 0
     begin
-      while self.pending_ops.where(state: "init").count > 0
-        op = self.pending_ops.where(state: "init").first
+      while self.pending_ops.count > 0
+        op = self.pending_ops.first
+        
+        # a stuck op could move to the completed state if its pending applications are deleted
+        if op.completed?
+          op.delete
+          self.reload
+          next
+        end
 
         # store the op._id to load it later after a reload
         # this is required to prevent a reload from replacing it with another one based on position
@@ -303,23 +317,47 @@ class Domain
 
         # try to do an update on the pending_op state and continue ONLY if successful
         op_index = self.pending_ops.index(op)
-        retval = Domain.where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
+        t_now = Time.now.to_i
 
-        unless retval["updatedExisting"]
+        id_condition = {"_id" => self._id, "pending_ops.#{op_index}._id" => op_id}
+        runnable_condition = {"$or" => [
+          # The op is not yet running
+          {"pending_ops.#{op_index}.state" => "init" },
+          # The op is in the running state and has timed out
+          { "pending_ops.#{op_index}.state" => "queued", "pending_ops.#{op_index}.queued_at" => {"$lt" => (t_now - run_jobs_queued_timeout)} }
+        ]}
+ 
+        queued_values = {"pending_ops.#{op_index}.state" => "queued", "pending_ops.#{op_index}.queued_at" => t_now}
+        reset_values  = {"pending_ops.#{op_index}.state" => "init",   "pending_ops.#{op_index}.queued_at" => 0}
+ 
+        retval = Domain.where(id_condition.merge(runnable_condition)).update({"$set" => queued_values})
+        if retval["updatedExisting"]
+          wait_ctr = 0
+        elsif wait_ctr < run_jobs_max_retries
           self.reload
+          sleep run_jobs_retry_sleep
+          wait_ctr += 1
           next
+        else
+          raise OpenShift::LockUnavailableException.new("Unable to perform action on domain object. Another operation is already running.", 171)
         end
 
-        op.execute
+        begin
+          op.execute
 
-        # reloading the op reloads the domain and then incorrectly reloads (potentially)
-        # the op based on its position within the pending_ops list
-        # hence, reloading the domain, and then fetching the op using the op_id stored earlier
-        self.reload
-        op = self.pending_ops.find_by(_id: op_id)
-
-        op.close_op
-        op.delete if op.completed?
+          # reloading the op reloads the domain and then incorrectly reloads (potentially)
+          # the op based on its position within the pending_ops list
+          # hence, reloading the domain, and then fetching the op using the op_id stored earlier
+          self.reload
+          op = self.pending_ops.find_by(_id: op_id)
+  
+          op.close_op
+          op.delete if op.completed?
+        rescue Exception => op_ex
+          # doing this in rescue instead of ensure so that the state change happens only in case of exceptions
+          Domain.where(id_condition.merge(queued_values)).update({"$set" => reset_values})
+          raise op_ex
+        end
       end
       true
     rescue Exception => e
@@ -330,5 +368,9 @@ class Domain
   end
 
   private
+    def run_jobs_max_retries;    10;    end
+    def run_jobs_retry_sleep;    5;     end
+    def run_jobs_queued_timeout; 30*60; end
+
     extend ActionView::Helpers::TextHelper # for pluralize()
 end

@@ -28,7 +28,7 @@ module OpenShift
         def configure(cart_name, template_git_url=nil,  manifest=nil, do_expose_ports=false)
           o = (@cartridge_model.configure(cart_name, template_git_url, manifest) || "")
           if do_expose_ports
-            o += (create_public_endpoints(cart_name) || "") 
+            o += (create_public_endpoints(cart_name) || "")
           end
           o
         end
@@ -175,10 +175,7 @@ module OpenShift
 
           output = ''
 
-          # TODO this is a quick fix because the PUBLIC_IP from the node config
-          # isn't the one we want - the port proxy binds to the 10.x IPs, not
-          # to the public EC2 IP addresses
-          ip_address = `facter ipaddress_eth0`.chomp
+          ip_address = `facter host_ip`.chomp
 
           env  = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
           # TODO: better error handling
@@ -873,7 +870,8 @@ module OpenShift
 
             raise "No result JSON was received from the remote activate call" if out.nil? || out.empty?
 
-            activate_result = HashWithIndifferentAccess.new(JSON.load(out))
+            # JSON.load is not used to prevent class injection. BZ#1086427
+            activate_result = HashWithIndifferentAccess.new(JSON.parse(out))
 
             raise "Invalid result JSON received from remote activate call: #{activate_result.inspect}" unless activate_result.has_key?(:status)
 
@@ -1239,7 +1237,8 @@ module OpenShift
               end
               raise "No result JSON was received from the remote gear restart call" if out.nil? || out.empty?
 
-              result = HashWithIndifferentAccess.new(JSON.load(out))
+              # JSON.load is not used to prevent class injection. BZ#1086427
+              result = HashWithIndifferentAccess.new(JSON.parse(out))
 
               raise "Invalid result JSON received from remote gear restart call: #{result.inspect}" unless result.has_key?(:status)
             end
@@ -1561,7 +1560,8 @@ module OpenShift
 
             raise "No result JSON was received from the remote proxy update call" if out.nil? || out.empty?
 
-            result = HashWithIndifferentAccess.new(JSON.load(out))
+            # JSON.load is not used to prevent class injection. BZ#1086427
+            result = HashWithIndifferentAccess.new(JSON.parse(out))
 
             raise "Invalid result JSON received from remote proxy update call: #{result.inspect}" unless result.has_key?(:status)
           rescue => e

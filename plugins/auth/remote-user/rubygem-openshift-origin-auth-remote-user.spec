@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version: 1.19.1
+Version: 1.21.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,7 +104,56 @@ then
   fi
 fi
 
+conf='/etc/httpd/conf.d/000002_openshift_origin_broker_proxy.conf'
+if ! grep  'RequestHeader unset X-Remote-User' $conf 2>&1 > /dev/null
+then
+  cat <<EOF >> $conf
+# Required for the remote-user plugin
+RequestHeader unset X-Remote-User
+EOF
+
+  if service httpd status 2>&1 > /dev/null
+  then
+    service httpd restart
+  fi
+fi
+
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.20.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.20.0-2
+- bumpspec to mass fix tags
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.19.6-1
+- Bug 1087701 - The remote-user sample configs were incorrectly using regexes
+  (bleanhar@redhat.com)
+
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.19.5-1
+- Merge pull request #5261 from pravisankar/dev/ravi/revert-remote-user-hack
+  (dmcphers+openshiftbot@redhat.com)
+- Revert hack for bug#1086910, other tests are affected (rpenta@redhat.com)
+
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.19.4-1
+- remote-user auth plugin: Rely on 'user_action_log_identity_id' for username
+  when trusted header is missing until BZ 1086910 is fixed (rpenta@redhat.com)
+
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.19.3-1
+- Merge pull request #5195 from brenton/BZ1085339
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1085339, Bug 1085365 - cleaning up the remote user auth configs
+  (bleanhar@redhat.com)
+
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.19.2-1
+- Fix remote-user auth plugin: Enable broker REST api /api, /environment,
+  /cartridges, /quickstarts without authentication (rpenta@redhat.com)
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
 - bump_minor_versions for sprint 41 (admiller@redhat.com)
 

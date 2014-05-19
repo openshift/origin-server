@@ -64,7 +64,7 @@ Broker::Application.configure do
   }
 
   config.analytics = {
-    :enabled => conf.get_bool("ENABLE_ANALYTICS", "false"), # global flag for whether any analytics should be enabled
+    :enabled => conf.get_bool("ENABLE_ANALYTICS", "false") # global flag for whether any analytics should be enabled
   }
 
   config.user_action_logging = {
@@ -85,7 +85,7 @@ Broker::Application.configure do
     :default_gear_size => conf.get("DEFAULT_GEAR_SIZE", "small"),
     :gear_sizes => conf.get("VALID_GEAR_SIZES", "small").split(","),
     :default_gear_capabilities => conf.get("DEFAULT_GEAR_CAPABILITIES", "small").split(","),
-    :default_allow_ha => conf.get('DEFAULT_ALLOW_HA', "false"),
+    :default_allow_ha => conf.get_bool('DEFAULT_ALLOW_HA', "false"),
     :community_quickstarts_url => conf.get('COMMUNITY_QUICKSTARTS_URL'),
     :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Domain', 'Scope::Application', 'Scope::Userinfo', 'Scope::Sso', 'Scope::OauthAccessToken'],
     :default_scope => 'userinfo',
@@ -95,6 +95,7 @@ Broker::Application.configure do
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
     :max_teams_per_resource => conf.get('MAX_TEAMS_PER_RESOURCE', '5').to_i,
     :allow_ha_applications => conf.get_bool('ALLOW_HA_APPLICATIONS', "false"),
+    :manage_ha_dns => conf.get_bool('MANAGE_HA_DNS', "false"),
     :default_ha_multiplier => (conf.get("DEFAULT_HA_MULTIPLIER", "0")).to_i,
     :router_hostname => conf.get('ROUTER_HOSTNAME', "www.example.com"),
     :ha_dns_prefix => conf.get('HA_DNS_PREFIX', "ha-"),
@@ -105,7 +106,10 @@ Broker::Application.configure do
     :syslog_enabled => conf.get_bool('SYSLOG_ENABLED', 'false'),
     :app_template_for => OpenShift::Controller::Configuration.parse_url_hash(conf.get('DEFAULT_APP_TEMPLATES', nil)),
     :default_max_teams => (conf.get("DEFAULT_MAX_TEAMS", "0")).to_i,
-    :node_platforms => OpenShift::Controller::Configuration.parse_list(conf.get('NODE_PLATFORMS', 'linux')).map { |platform| platform.downcase }
+    :default_view_global_teams => conf.get_bool('DEFAULT_VIEW_GLOBAL_TEAMS', 'false'),
+    :node_platforms => OpenShift::Controller::Configuration.parse_list(conf.get('NODE_PLATFORMS', 'linux')).map { |platform| platform.downcase },
+    :default_max_untracked_addtl_storage_per_gear => (conf.get("DEFAULT_MAX_UNTRACKED_ADDTL_STORAGE_PER_GEAR", "0")).to_i,
+    :default_max_tracked_addtl_storage_per_gear => (conf.get("DEFAULT_MAX_TRACKED_ADDTL_STORAGE_PER_GEAR", "0")).to_i,
   }
 
   config.auth = {

@@ -210,6 +210,7 @@ module OpenShift
                   :install_build_required,
                   :source_url,
                   :source_md5,
+                  :metrics,
                   :image,
                   :image_label
 
@@ -369,6 +370,8 @@ module OpenShift
         end
 
         @endpoints = Endpoint.parse(@short_name, @manifest, @categories)
+
+        @metrics = @manifest['Metrics']
       end
 
       ## obtain all software versions covered in this manifest

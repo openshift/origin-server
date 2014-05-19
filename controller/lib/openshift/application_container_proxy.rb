@@ -36,7 +36,7 @@ module OpenShift
       opts ||= {}
       server_infos = @proxy_provider.find_all_available_impl(opts)
       server_id, district = select_best_fit_node(server_infos, opts[:gear])
-      
+
       raise OpenShift::NodeUnavailableException.new("No nodes available", 140) if server_id.nil?
       @proxy_provider.new(server_id, district)
     end
@@ -68,13 +68,19 @@ module OpenShift
         # later, if asynchronous request processing is performed, we will store the request time and pass it along 
         request_time = Time.now
         node = @node_selector.select_best_fit_node_impl(server_infos, app_props, current_gears, comp_list, user_props, request_time)
+
+        # verify that the node was returned by the plugin and is valid
+        unless node.kind_of?(NodeProperties) and server_infos.select {|s| s.name == node.name }.present?
+          raise OpenShift::InvalidNodeException.new("Invalid node selected", 140)
+        end
+
         server_id = node.name
         district = District.find_by(:_id => node.district_id) if node.district_id
       end
 
       return server_id, district
     end
-    
+
     def self.get_blacklisted
       @proxy_provider.get_blacklisted_in_impl
     end

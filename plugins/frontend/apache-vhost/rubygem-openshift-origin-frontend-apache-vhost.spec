@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.5.1
+Version: 0.7.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -94,6 +94,7 @@ mkdir -p %{buildroot}/etc/httpd/conf.d/openshift
 mv httpd/000001_openshift_origin_frontend_vhost.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/frontend-vhost-https-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
 mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
+mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 
 
 %files
@@ -104,9 +105,31 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshif
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_frontend_vhost.conf
 %config(noreplace) /etc/httpd/conf.d/openshift/frontend-vhost-http-template.erb
 %config(noreplace) /etc/httpd/conf.d/openshift/frontend-vhost-https-template.erb
+%config(noreplace) /etc/httpd/conf.d/openshift-vhost-logconf.include
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 0.7.1-1
+- apache-vhost: fix BZ 1090358 on moving custom certs (lmeyer@redhat.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 0.6.3-1
+- vhost frontend: fix annotation logging (lmeyer@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 0.6.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 0.6.0-2
+- bumpspec to mass fix tags
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 0.5.2-1
+- httpd conf: set better defaults (lmeyer@redhat.com)
+- apache frontends: refactor logging conf, includes (lmeyer@redhat.com)
+- apache frontends: move directives to global conf (lmeyer@redhat.com)
+
 * Fri Mar 14 2014 Adam Miller <admiller@redhat.com> 0.5.1-1
 - Merge pull request #4850 from vbatts/408-3-rewrite_to_proxypass
   (dmcphers+openshiftbot@redhat.com)

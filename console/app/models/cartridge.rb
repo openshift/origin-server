@@ -31,6 +31,10 @@ class Cartridge < RestApi::Base
 
   delegate :display_name, :tags, :priority, :database?, :web_framework?, :builder?, :jenkins_client?, :haproxy_balancer?, :to => :cartridge_type, :allow_nil => false
 
+  def url
+    CartridgeType.normalize_url(super)
+  end
+
   def custom?
     url.present?
   end

@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.22.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -25,6 +25,7 @@ Requires:      %{?scl:%scl_prefix}rubygem(activemodel)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(safe_yaml)
 Requires:      %{?scl:%scl_prefix}rubygem(bundler)
+Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 %if 0%{?rhel}
 Requires:      openshift-origin-util-scl
 %endif
@@ -91,6 +92,7 @@ mkdir -p %{buildroot}%{_mandir}/man8/
 cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %endif
 
+rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 
 %files
 %dir %{gem_instdir}
@@ -100,7 +102,7 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_instdir}/Rakefile
 %doc %{gem_instdir}/README.md
 %doc %{gem_instdir}/%{gem_name}.gemspec
-%{gem_instdir}
+%{gem_instdir}/test
 %{gem_spec}
 %{gem_libdir}
 
@@ -115,10 +117,59 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %exclude %{gem_cache}
 %exclude %{gem_instdir}/rubygem-%{gem_name}.spec
 
-%files doc 
+%files doc
 %doc %{gem_docdir}
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- Merge pull request #5324 from Miciah/oo-diagnostics-test_broker_certificate-
+  fixes (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4983 from Miciah/bug-1077664-oo-diagnostics-
+  test_node_mco_log-fixes (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+- oo-diagnostics: Fix comments for test_node_mco_log (miciah.masters@gmail.com)
+- oo-diagnostics: Better handle curl error (miciah.masters@gmail.com)
+- oo-diagnostics: Drop unneeded require 'socket' (miciah.masters@gmail.com)
+- oo-diagnostics: Fix test_node_mco_log when no log (miciah.masters@gmail.com)
+
+* Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
+- Merge pull request #5138 from Miciah/rubygem-openshift-origin-common-require-
+  parseconfig (dmcphers+openshiftbot@redhat.com)
+- rubygem-openshift-origin-common: Req. parseconfig (miciah.masters@gmail.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.23.0-2
+- bumpspec to mass fix tags
+
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.22.5-1
+- cleanup yardoc (tdawson@redhat.com)
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.22.4-1
+- Bug 1086094: Multiple changes for cartridge colocation We are:  - taking into
+  account the app's complete group overrides  - allowing only plugin carts to
+  colocate with web/service carts  - blocking plugin (except sparse) carts from
+  responding to scaling min/max changes (abhgupta@redhat.com)
+
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
+- Merge pull request #5222 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Add platform attribute to cartridge serialization and fixed tests
+  (abhgupta@redhat.com)
+- Removing Start-Order and Stop-Order from the manifest (abhgupta@redhat.com)
+
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
+- Merge pull request #5200 from ncdc/metrics (dmcphers+openshiftbot@redhat.com)
+- Metrics work (teddythetwig@gmail.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.22.1-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.21.6-1
 - Merge pull request #5087 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)

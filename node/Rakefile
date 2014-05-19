@@ -13,7 +13,6 @@ essentials_functionals = [
   'test/node_functional/cartridge_repository_func_test.rb',
   'test/node_functional/cartridge_repository_web_func_test.rb',
   'test/node_functional/node_func_test.rb',
-  'test/node_functional/oo_trap_user_func_test.rb',
   'test/node_functional/path_utils_test.rb',
   'test/node_functional/shell_exec_func_test.rb',
   'test/node_functional/unix_user_func_test.rb'
@@ -91,7 +90,8 @@ Rake::TestTask.new(:ext_gear_func_test3) do |t|
   t.verbose = true
   t.libs << File.expand_path('../../common/lib', __FILE__)
 
-  tests = ['test/gear_functional/platform_deployment_integrity_test.rb']
+  tests = ['test/gear_functional/platform_deployment_integrity_test.rb',
+           'test/gear_functional/metrics_func_test.rb']
 
   ext_gear_functionals += tests
 

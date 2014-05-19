@@ -784,16 +784,22 @@ class OODiag
 
   def test_node_mco_log
     skip_test unless @is_node
-    #
-    # create a tmp file with all of the unique log statements after most recent mcollective start
+
     logfile = "#{@scl_prefix}mcollective.log"
     logfile = [ "/var/log/openshift/node/#{logfile}", "/var/log/#{logfile}" ].find {|f| File.exist? f}
+    if logfile.nil? || logfile.empty?
+      verbose 'No node mcollective log file found.'
+      skip_test
+    end
+
+    # Create a tmp file with all of the unique log statements after most recent mcollective start.
     tmpfile = Tempfile.new("oodiag-mco-#{$$}").path
     system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' #{logfile} | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
-    # if no restart seen, just use the whole thing
+
+    # If no restart seen, just use the whole thing.
     system %Q! sort -u /var/log/#{@scl_prefix}mcollective.log > #{tmpfile} ! unless File.exists? tmpfile
     return unless File.exists? tmpfile
-    #
+
     # Look for the mco timeout warning
     out = `grep 'WARN.*created at [0-9]* is [0-9]* seconds old, TTL is' #{tmpfile}`
     unless out.empty?
@@ -812,8 +818,8 @@ class OODiag
       TIMEOUT
       do_fail errors
     end
-    #
-    # clean up temp file
+
+    # Clean up temp file.
     system "rm #{tmpfile}"
   end
 
@@ -1135,10 +1141,19 @@ class OODiag
 
   def test_broker_certificate
     skip_test unless @is_broker
-    require 'socket'
 
     # Retrieve the SSL cert from Apache
     response = `curl -k -s -v https://localhost/ -o /dev/null 2>&1`
+    if $? != 0
+      do_fail <<-CANNOTCONNECT
+        An error arose while trying to connect to the SSL reverse proxy.  curl returned with
+        #{response.strip.empty? ? "no output." : "the following output:\n" + response}
+
+        Please check whether the httpd service is running.
+      CANNOTCONNECT
+      return
+    end
+
     issuer = response.slice(/^\*\s*issuer: .*$/).gsub(/^\*\s*issuer: /,"")
     subject = response.slice(/^\*\s*subject: .*$/).gsub(/^\*\s*subject: /,"")
     commonname = response.slice(/^\*\s*common name: .*$/).gsub(/^\*\s*common name: /,"")

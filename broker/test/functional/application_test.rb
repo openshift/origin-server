@@ -99,9 +99,9 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.update_configuration(new_config)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
-    assert app.config['auto_deploy'] == true
-    assert app.config['keep_deployments'] == 3
-    assert app.config['deployment_type'] == "binary"
+    assert_equal true, app.config['auto_deploy']
+    assert_equal 3, app.config['keep_deployments']
+    assert_equal "binary",  app.config['deployment_type']
 
     app.destroy_app
   end
@@ -110,24 +110,26 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app = Application.create_app(@appname, cartridge_instances_for(:php, :mysql), @domain, :available => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
-    assert app.scalable
-    assert app.ha
+    assert_equal true, app.scalable
+    assert_equal true, app.ha
     assert_equal 3, app.gears.count
 
     app.destroy_app
   end
 
   test "make an application highly available" do
+    @user.ha=true
+    @user.save
     app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
-    assert app.scalable
-    assert !app.ha
+    assert_equal true, app.scalable
+    assert_not_equal true, app.ha
     assert_equal 1, app.gears.count
 
     app.make_ha
     app.reload
-    assert app.ha
+    assert_equal true, app.ha
     assert_equal 2, app.gears.count
     assert app.gears.all?{ |g| g.sparse_carts.length == 1 }
     assert_equal [app.component_instances.detect{ |i| i.cartridge.is_web_proxy? }._id], app.gears.map(&:sparse_carts).flatten.uniq
@@ -234,7 +236,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     app.config = nil
-    assert app.invalid?, "config validation failed"
+    assert_equal true, app.invalid?, "config validation failed"
 
     app.config = {'auto_deploy' => nil, 'deployment_branch' => nil, 'keep_deployments' => nil, 'deployment_type' => nil}
     assert app.invalid?, "config validation failed"
@@ -270,23 +272,23 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
     [nil, {}, {'bar' => 1}, {'bar' => '1'}, {'bar' => []}, {'bar' => ['1']}, {'bar' => [1]}].each do |value|
       app.meta = value
-      assert app.valid?, "Value #{value.inspect} should be allowed"
+      assert_equal true, app.valid?, "Value #{value.inspect} should be allowed"
     end
 
     app.meta = {:bar => 1}
-    assert app.invalid?, "meta validation failed"
+    assert_equal true, app.invalid?, "meta validation failed"
     assert_equal ['Key bar is not a string'], app.errors.messages[:meta]
 
     app.meta = {'bar' => :baz}
-    assert app.invalid?, "meta validation failed"
+    assert_equal true, app.invalid?, "meta validation failed"
     assert_equal ['Value for \'bar\' must be a string, number, or list of strings and numbers'], app.errors.messages[:meta]
 
     app.meta = {'bar' => [:baz]}
-    assert app.invalid?, "meta validation failed"
+    assert_equal true, app.invalid?, "meta validation failed"
     assert_equal ['The array of values provided for \'bar\' must be strings or numbers'], app.errors.messages[:meta]
 
     app.meta = {'bar' => ['baz'*5000]}
-    assert app.invalid?, "meta validation failed"
+    assert_equal true, app.invalid?, "meta validation failed"
     assert_equal ['Application metadata may not be larger than 10KB - currently 14KB'], app.errors.messages[:meta]
   end
 
@@ -322,7 +324,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     _, updated = app.elaborate(app.cartridges, [])
     changes, moves = app.compute_diffs(app.group_instances_with_overrides, updated, {})
     assert changes.all?{ |c| c.added.empty? && c.removed.empty? && c.gear_change == 0 && c.additional_filesystem_change == 0 }, changes.inspect
-    assert moves.empty?, moves.inspect
+    assert_equal true, moves.empty?, moves.inspect
 
     @user.max_untracked_additional_storage = 5
     @user.save
@@ -406,7 +408,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
   test "application elaborate does not change overrides" do
     app = Application.create_app(@appname, cartridge_instances_for(:ruby), @domain, :scalable => true)
-    assert app.group_overrides.empty?
+    assert_equal true, app.group_overrides.empty?
 
     overrides = [
       GroupOverride.new([app.component_instances.detect{ |i| i.is_web_framework? }]),
@@ -418,7 +420,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
     _, groups = app.elaborate(app.cartridges, overrides)
     assert_equal 1, groups.length
-    assert groups[0].implicit?
+    assert_equal true, groups[0].implicit?
 
     app.reload
 
@@ -433,8 +435,8 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     ops, added, removed = app.update_requirements(app.cartridges, nil, overrides)
     assert_equal 0, added
     assert_equal 0, removed
-    assert ops.empty?
-    assert ops.none?{ |t| SetGroupOverridesOp === t }
+    assert_equal true, ops.empty?
+    assert_equal true, ops.none?{ |t| SetGroupOverridesOp === t }
 
     app.reload
 
@@ -560,7 +562,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_equal app.gears.count, 3
     assert_equal app.group_instances.count, 2
     si1, si2, si3 = nil, nil, nil
-    districts = District.find_all
+    districts = [District.find(dist.id)]
     app.group_instances.each do |gi|
       if gi.gears.count == 2
         si1 = District.find_server(gi.gears.first.server_identity, districts)
@@ -612,6 +614,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     servers = []
     app.gears.each {|gear| servers << gear.server_identity }
     assert_equal ["s20", "s20", "s21", "s21"], servers.sort
+    app.destroy_app
 
     dist.deactivate_node("s00")
     dist.deactivate_node("s10")
@@ -630,15 +633,14 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     region1.delete
     region2.delete
     dist.destroy
-    assert(District.count == 0)
-    assert(Region.count == 0)
+    assert_equal false, District.where(_id: dist.id).exists?
+    assert_equal false, Region.where(_id: region1.id).exists?
+    assert_equal false, Region.where(_id: region2.id).exists?
     Rails.configuration.msg_broker[:regions][:require_zones_for_app_create] = false
   end
 
   def teardown
     @user.force_delete rescue nil
-    District.delete_all
-    Region.delete_all
     Mocha::Mockery.instance.stubba.unstub_all
     Rails.cache.clear
   end

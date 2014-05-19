@@ -60,6 +60,8 @@ end
 module OpenShift
   module Runtime
     class Upgrader
+      SelinuxContext = OpenShift::Runtime::Utils::SelinuxContext
+
       PREUPGRADE_STATE = '.preupgrade_state'
 
       @@gear_extension_present = false
@@ -238,8 +240,9 @@ module OpenShift
           FileUtils.mkpath(runtime_dir)
           FileUtils.chmod_R(0o750, runtime_dir)
           PathUtils.oo_chown_R(uuid, uuid, runtime_dir)
-          mcs_label = OpenShift::Runtime::Utils::SELinux::get_mcs_label(uuid)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, runtime_dir)
+
+          mcs_label = SelinuxContext.instance.get_mcs_label(uuid)
+          SelinuxContext.instance.set_mcs_label_R(mcs_label, runtime_dir)
         end
       end
 
@@ -762,19 +765,19 @@ module OpenShift
         progress.log "Inspecting gear at #{gear_home}"
 
         progress.step 'inspect_gear_state' do |context, errors|
-        
+
           sanity_check_gear
-          
+
           app_state = File.join(gear_home, 'app-root', 'runtime', '.state')
           save_state = File.join(gear_home, 'app-root', 'runtime', PREUPGRADE_STATE)
-          
+
           if File.exists? app_state
             FileUtils.cp(app_state, save_state)
           else
             IO.write(save_state, 'stopped')
-            mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(uuid)
+            mcs_label = SelinuxContext.instance.get_mcs_label(uuid)
             PathUtils.oo_chown(container.uid, container.gid, save_state)
-            OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, save_state)
+            SelinuxContext.instance.set_mcs_label(mcs_label, save_state)
           end
 
           preupgrade_state = OpenShift::Runtime::Utils::UpgradeApplicationState.new(container, PREUPGRADE_STATE)
@@ -787,12 +790,12 @@ module OpenShift
       # Check the gear for broken state before beginning the upgrade process
       #
       def sanity_check_gear
-          @container.cartridge_model.process_cartridges do |cart_path|            
-            ident_path     = Dir.glob(PathUtils.join(cart_path, 'env', "OPENSHIFT_*_IDENT")).first            
+          @container.cartridge_model.process_cartridges do |cart_path|
+            ident_path     = Dir.glob(PathUtils.join(cart_path, 'env', "OPENSHIFT_*_IDENT")).first
             raise MissingCartridgeIdentError, "Cartridge Ident not found in #{cart_path}" unless ident_path
-          end       
-      end 
-      
+          end
+      end
+
       #
       # Stop the gear as the platform and kill gear user processes.
       #
@@ -867,14 +870,18 @@ module OpenShift
 
                 request = Net::HTTP::Get.new(uri.request_uri)
 
+                response_code = 'unknown'
                 begin
                   response = http.request(request)
+                  response_code = response.code
                 rescue Timeout::Error => e
                   timeout = true
+                rescue Exception => e
+                  # ignore it
                 end
 
                 # Give the app a chance to start fully
-                if ((timeout || response.code == '503') && num_tries < 5)
+                if ((timeout || response_code == '503' || response_code == 'unknown') && num_tries < 5)
                   sleep num_tries
                 else
                   break
@@ -882,8 +889,8 @@ module OpenShift
                 num_tries += 1
               end
 
-              progress.log "Post-upgrade response code: #{response.code}"
-              context[:postupgrade_response_code] = response.code
+              progress.log "Post-upgrade response code: #{response_code}"
+              context[:postupgrade_response_code] = response_code
             end
 
             problem, status = cart_model.upgrade_gear_status(itinerary)

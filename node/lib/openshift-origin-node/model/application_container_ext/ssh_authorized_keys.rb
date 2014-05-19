@@ -274,7 +274,7 @@ module OpenShift
                 end
                 PathUtils.oo_chown(0, @container.gid, authorized_keys_file)
                 @container.chcon(authorized_keys_file,
-                                      ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid))
+                                      ::OpenShift::Runtime::Utils::SelinuxContext.instance.get_mcs_label(@container.uid))
               end
             end
             keys

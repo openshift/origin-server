@@ -242,9 +242,8 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert_nil m.explicit_role
     assert_equal 'admin', m.role
 
-    # a second remove is the same - the user no longer has an explicit role still
-    assert owner.destroy
-    assert owner.has_exit_code?(132)
+    # a second remove triggers an error - the user no longer has an explicit role to remove
+    assert_raises(ActiveResource::ResourceInvalid){ owner.destroy }
 
     # remove all members
     assert @domain.reload.delete(:members)

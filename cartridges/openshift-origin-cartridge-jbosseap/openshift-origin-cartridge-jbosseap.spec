@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.16.0
+Version: 2.18.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -28,6 +28,7 @@ Requires:      jbossas-welcome-content-eap
 Requires:      jboss-eap6-modules
 Requires:      jboss-eap6-index
 Requires:      bc
+Requires:      jboss-openshift-metrics-module
 %if 0%{?rhel}
 Requires:      maven3
 %endif
@@ -80,17 +81,59 @@ mkdir -p /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main
 ln -fs /usr/share/java/mysql-connector-java.jar /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main
 cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main/module.xml
 
+# link in the metrics module
+mkdir -p /etc/alternatives/jbosseap-6/modules/com/openshift
+ln -fs /usr/share/openshift/jboss/modules/com/openshift/metrics /etc/alternatives/jbosseap-6/modules/com/openshift/metrics
+
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/versions/shared/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
-%{cartridgedir}
+%{cartridgedir}/env
+%{cartridgedir}/metadata
+%{cartridgedir}/versions
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 2.18.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Wed May 07 2014 Adam Miller <admiller@redhat.com> 2.17.6-1
+- Bump cartridge versions for STG cut (vvitek@redhat.com)
+
+* Tue May 06 2014 Troy Dawson <tdawson@redhat.com> 2.17.5-1
+- Update JBoss cart specs for new metrics location (agoldste@redhat.com)
+
+* Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 2.17.4-1
+- Fix JBoss installation issue (metrics) (andy.goldstein@gmail.com)
+
+* Tue Apr 29 2014 Adam Miller <admiller@redhat.com> 2.17.3-1
+- JBoss metrics module (andy.goldstein@gmail.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 2.17.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 2.17.0-2
+- bumpspec to mass fix tags
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 2.16.3-1
+- Bumping cartridge versions for sprint 43 (bparees@redhat.com)
+
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 2.16.2-1
+- Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 2.16.1-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- Use named pipes for logshifter redirection where appropriate
+  (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 2.15.5-1
 - Merge pull request #5086 from VojtechVitek/latest_versions
   (dmcphers+openshiftbot@redhat.com)

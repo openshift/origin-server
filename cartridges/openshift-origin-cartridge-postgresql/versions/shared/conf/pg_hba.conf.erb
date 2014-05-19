@@ -13,9 +13,9 @@
 local   all         all                                 trust
 
 # Only allow the postgres to connect over the local socket
-host    all         postgres      0.0.0.0/8             reject
+host    all         postgres      0.0.0.0/0             reject
 host    all         postgres      ::/0                  reject
 
 # Allow all users to connect over the network with valid credentials
 host    all         all           0.0.0.0/0             md5
-host    all         all           ::1/128               md5
+host    all         all           ::/0                  md5

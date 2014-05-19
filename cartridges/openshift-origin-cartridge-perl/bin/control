@@ -25,15 +25,19 @@ function start() {
   select_perl_document_root ${OPENSHIFT_REPO_DIR}
   oo-erb ${ERB_HTTPD_CFG_DIR}openshift.conf.erb > ${HTTPD_CFG_DIR}/openshift.conf
   ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+  # Force httpd into its own pgroup, as httpd is hard-coded to TERM everything in
+  # its pgroup during shutdown (even while foregrounded)
+  set -m
   eval "nohup /usr/sbin/httpd $HTTPD_CMD_CONF -D FOREGROUND |& /usr/bin/logshifter -tag perl &"
+  set +m
   [ "$?" == "0" ] && wait_for_pid_file $HTTPD_PID_FILE
 }
 
 function stop() {
   echo "Stopping Perl cartridge"
-  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+  ensure_valid_httpd_pid_file "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   if [ -f "$HTTPD_PID_FILE" ]; then
-    shutdown_httpd_graceful_pidfile $HTTPD_PID_FILE
+    shutdown_httpd_graceful $HTTPD_PID_FILE
   fi
 }
 

@@ -32,50 +32,62 @@ module OpenShift
         # FIXME Handle exceptions more consistently, gracefully recover from misbehaving
         #  services
         def authenticate_user!
-          return @cloud_user if @cloud_user
+          user = @cloud_user
 
-          #
-          # Each authentication type may return nil if no auth info is present,
-          # false if the user failed authentication (may optionally render a response),
-          # or a Hash with the following keys:
-          #
-          #   :user
-          #     If present, use this user as the current request.  The current_identity
-          #     field on the user will be used as the current identity, and will not
-          #     be persisted.
-          #
-          #   :username
-          #   :provider (CURRENTLY IGNORED)
-          #     A user unique identifier, and a scoping provider.  The default provider
-          #     is nil. :username must be unique within the provider scope.
-          #
-          info = authentication_types.find{ |i| not i.nil? }
+          created = false
 
-          return if response_body
-          unless info && (info[:username].present? || info[:user].present?)
-            request_http_basic_authentication
-            return
+          unless user
+
+            #
+            # Each authentication type may return nil if no auth info is present,
+            # false if the user failed authentication (may optionally render a response),
+            # or a Hash with the following keys:
+            #
+            #   :user
+            #     If present, use this user as the current request.  The current_identity
+            #     field on the user will be used as the current identity, and will not
+            #     be persisted.
+            #
+            #   :username
+            #   :provider (CURRENTLY IGNORED)
+            #     A user unique identifier, and a scoping provider.  The default provider
+            #     is nil. :username must be unique within the provider scope.
+            #
+            info = authentication_types.find{ |i| not i.nil? }
+
+            return if response_body
+            unless info && (info[:username].present? || info[:user].present?)
+              request_http_basic_authentication
+              return
+            end
+
+            scopes = info[:scopes] || Scope::SESSION
+            if info[:user]
+              user = info[:user]
+            else
+              user, created = CloudUser.find_or_create_by_identity(info[:provider], info[:username])
+              user = impersonate(user)
+            end
+
+            raise "Service did not set the user login attribute" unless user.login.present?
+
+            user.auth_method = info[:auth_method] || :login
+            user.scopes = @current_user_scopes = scopes
+            @cloud_user = user
+            log_actions_as(user)
+
+            headers['X-OpenShift-Identity'] = user.login
+            headers['X-OpenShift-Identity-Id'] = user._id.to_s
+            headers['X-OAuth-Scopes'] = scopes
+
+            log_action("AUTHENTICATE", nil, true, "Authenticated", 'IP' => request.remote_ip, 'SCOPES' => scopes)
+
+            return unless check_controller_scopes
           end
 
-          scopes = info[:scopes] || Scope::SESSION
-          user = info[:user] ?
-            info[:user] :
-            impersonate(CloudUser.find_or_create_by_identity(info[:provider], info[:username]))
-
-          raise "Service did not set the user login attribute" unless user.login.present?
-
-          user.auth_method = info[:auth_method] || :login
-          user.scopes = @current_user_scopes = scopes
-          @cloud_user = user
-          log_actions_as(user)
-
-          headers['X-OpenShift-Identity'] = user.login
-          headers['X-OpenShift-Identity-Id'] = user._id.to_s
-          headers['X-OAuth-Scopes'] = scopes
-
-          log_action("AUTHENTICATE", nil, true, "Authenticated", 'IP' => request.remote_ip, 'SCOPES' => scopes)
-
-          return unless check_controller_scopes
+          @analytics_tracker = OpenShift::AnalyticsTracker.new(request)
+          @analytics_tracker.identify(user)
+          @analytics_tracker.track_user_event('user_create', user) if created
 
           user
 
@@ -102,7 +114,7 @@ module OpenShift
           if info
             raise "Authentication service must return a username with its response" if info[:username].nil?
 
-            user = CloudUser.find_or_create_by_identity(info[:provider], info[:username])
+            user, _ = CloudUser.find_or_create_by_identity(info[:provider], info[:username])
             log_action("CREDENTIAL_AUTHENTICATE", nil, true, "Authenticated via credentials", {'LOGIN' => username, 'IP' => request.remote_ip})
             user
           end
@@ -250,7 +262,7 @@ module OpenShift
               log_action_for(user.login, user.id, "IMPERSONATE", nil, true, "Failed to impersonate", {'SUBJECT' => other, 'IP' => request.remote_ip, 'FORBID' => 'not_child_account'})
               raise OpenShift::AccessDeniedException, "Account is not associated with impersonate account #{other}"
             end
-          end.tap do |other_user|
+          end.first.tap do |other_user|
             log_action_for(user.login, user.id, "IMPERSONATE", nil, true, "Impersonation successful", {'SUBJECT_ID' => other_user.id})
           end
         end

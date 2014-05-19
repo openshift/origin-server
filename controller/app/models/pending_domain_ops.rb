@@ -22,17 +22,18 @@ class PendingDomainOps
 
   field :parent_op_id, type: Moped::BSON::ObjectId
   field :state, type: Symbol, :default => :init
+  field :queued_at, type: Integer, :default => 0
   has_and_belongs_to_many :completed_apps, class_name: Application.name, inverse_of: nil
   field :on_completion_method, type: Symbol
 
   def initialize(attrs = nil, options = nil)
     parent_opid = nil
     if !attrs.nil? and attrs[:parent_op]
-      parent_opid = attrs[:parent_op]._id 
+      parent_opid = attrs[:parent_op]._id
       attrs.delete(:parent_op)
     end
     super
-    self.parent_op_id = parent_opid 
+    self.parent_op_id = parent_opid
   end
 
   def pending_apps

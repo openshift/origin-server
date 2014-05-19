@@ -26,6 +26,8 @@ class ApplicationsController < BaseController
       end.where(by).sort_by{ |a| a.name }.map { |app| get_rest_application(app, include_cartridges) }
     Domain.find_by(canonical_namespace: domain_id.downcase) if apps.empty? && domain_id.present? # check for a missing domain
 
+    @analytics_tracker.track_event('apps_list', nil, nil, {'domain_namespace' => domain_id})
+
     render_success(:ok, "applications", apps, "Found #{apps.length} applications.")
   end
 
@@ -167,6 +169,9 @@ class ApplicationsController < BaseController
 
     result = app.add_initial_cartridges(cartridges, init_git_url, user_env_vars)
 
+    @analytics_tracker.identify(@cloud_user.reload)
+    @analytics_tracker.track_event('app_create', @domain, @application)
+
     include_cartridges = (params[:include] == "cartridges")
     rest_app = get_rest_application(app, include_cartridges)
 
@@ -235,7 +240,11 @@ class ApplicationsController < BaseController
 
     id = params[:id].downcase if params[:id].presence
 
+    cartridges = @application.cartridges.map(&:name).join(', ')
     result = @application.destroy_app
+
+    @analytics_tracker.identify(@cloud_user.reload)
+    @analytics_tracker.track_event('app_delete', @domain, @application, {'cartridges' => cartridges})
 
     status = requested_api_version <= 1.4 ? :no_content : :ok
     return render_success(status, nil, nil, "Application #{id} is deleted.", result)

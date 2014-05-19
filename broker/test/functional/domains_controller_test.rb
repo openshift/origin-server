@@ -35,18 +35,31 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert_equal 1, domain.members.length
     assert_equal :admin, domain.members.first.role
-
-    get :show, {"name" => namespace}
-    assert_response :success
     assert json = JSON.parse(response.body)
-    assert_nil json['data']['application_count']
-    assert_nil json['data']['gear_counts']
-    assert_equal Array,  json['data']['allowed_gear_sizes'].class
-    assert_equal Fixnum, json['data']['available_gears'].class
-    assert_equal Fixnum, json['data']['max_storage_per_gear'].class
-    assert_equal Hash,   json['data']['usage_rates'].class
-    assert link = json['data']['links']['ADD_APPLICATION']
-    assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'cartridges[][url]' }
+    assert supported_api_versions = json['supported_api_versions']
+    supported_api_versions.each do |version|
+      @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
+
+      get :show, {"name" => namespace}
+      assert_response :success
+      assert json = JSON.parse(response.body)
+      assert_nil json['data']['application_count']
+      assert_nil json['data']['gear_counts']
+      if version >= 1.6
+        assert_equal Array,  json['data']['allowed_gear_sizes'].class
+        assert_equal Fixnum, json['data']['available_gears'].class
+        assert_equal Fixnum, json['data']['max_storage_per_gear'].class
+        assert_equal Hash,   json['data']['usage_rates'].class
+        assert link = json['data']['links']['ADD_APPLICATION']
+        assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'cartridges[][url]' }
+      end
+
+      @request.env['HTTP_ACCEPT'] = "application/xml; version=#{version}"
+      get :show, {"name" => namespace}
+      assert_response :success
+    end
+
+    @request.env['HTTP_ACCEPT'] = 'application/json'
 
     get :show, {"name" => namespace, "include" => 'application_info'}
     assert_response :success
@@ -190,16 +203,4 @@ class DomainsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "get domain in all version" do
-    namespace = "ns#{@random}"
-    post :create, {"name" => namespace}
-    assert_response :created
-    assert json = JSON.parse(response.body)
-    assert supported_api_versions = json['supported_api_versions']
-    supported_api_versions.each do |version|
-      @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
-      get :show, {"name" => namespace}
-      assert_response :ok, "Getting domain for version #{version} failed"
-    end
-  end
 end

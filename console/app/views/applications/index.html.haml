@@ -10,7 +10,7 @@
         %span.font-icon{:'data-icon' => "\uee48", 'aria-hidden'=>"true"}
         Applications
         .flow-block.right
-          = render :partial => 'account_state', :locals => {:capabilities => @capabilities, :applications => @applications}
+          = render :partial => 'account_state', :locals => {:capabilities => @capabilities, :applications => @applications, :usage_rates => @usage_rates}
 
 
 :css

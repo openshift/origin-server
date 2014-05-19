@@ -46,6 +46,8 @@ class AppEventsController < BaseController
       return render_upgrade_in_progress
     end
 
+    props = {}
+    event_name = nil
     msg = "Sent #{event} to application #{@application.name}"
 
     case event
@@ -75,16 +77,21 @@ class AppEventsController < BaseController
     when "add-alias"
       authorize! :create_alias, @application
       r = @application.add_alias(server_alias)
+      props['alias'] = server_alias
+      event_name = 'alias_add'
       msg = "Application #{@application.name} has added alias"
 
     when "remove-alias"
       authorize! :destroy_alias, @application
       r = @application.remove_alias(server_alias)
+      props['alias'] = server_alias
+      event_name = 'alias_remove'
       msg = "Application #{@application.name} has removed alias"
 
     when "make-ha"
       authorize! :make_ha, @application
       r = @application.make_ha
+      @analytics_tracker.identify(@cloud_user.reload)
       msg = "Application #{@application.name} is now ha"
 
     when "scale-up", "scale-down"
@@ -99,6 +106,11 @@ class AppEventsController < BaseController
       final = current + value
 
       r = @application.scale_by(instance.group_instance_id, value)
+      @analytics_tracker.identify(@cloud_user.reload)
+      props['scale_by'] = scale_by if scale_by
+      props['scales_to'] = scale_to if scale_to
+      props['previous_scale'] = current
+      props['current_scale'] = final
       msg = "Application #{@application.name} has scaled to #{final}"
 
     when "thread-dump"
@@ -133,9 +145,13 @@ class AppEventsController < BaseController
     app = get_rest_application(@application)
 
     if !r.errorIO.string.empty?
-      return render_error(r.hasUserActionableError ? :unprocessable_entity : :internal_server_error, "Error occured while processing event '#{event}': #{r.errorIO.string.chomp}",
+      return render_error(r.hasUserActionableError ? :unprocessable_entity : :internal_server_error, "Error occurred while processing event '#{event}': #{r.errorIO.string.chomp}",
                           r.exitcode)
     end
+
+    event_name = "app_#{event.gsub(/-/, '_')}" unless event_name
+    @analytics_tracker.track_event(event_name, @domain, @application, props)
+
     render_success(:ok, "application", app, msg, r)
   end
   protected

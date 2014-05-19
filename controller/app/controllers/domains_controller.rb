@@ -2,7 +2,7 @@
 class DomainsController < BaseController
   include RestModelHelper
 
-  # Retuns list of domains for the current user
+  # Returns list of domains for the current user
   #
   # URL: /domains
   #
@@ -13,7 +13,7 @@ class DomainsController < BaseController
   #
   # @return [RestReply<Array<RestDomain>>] List of domains
   def index
-    domains = 
+    domains =
       case params[:owner]
       when "@self" then Domain.accessible(current_user).where(owner: current_user)
       when nil     then Domain.accessible(current_user)
@@ -28,7 +28,7 @@ class DomainsController < BaseController
     render_success(:ok, "domains", domains.sort_by(&Domain.sort_by_original(current_user)).map{ |d| get_rest_domain(d) })
   end
 
-  # Retuns domain for the current user that match the given parameters.
+  # Returns domain for the current user that match the given parameters.
   #
   # URL: /domain/:name
   #
@@ -69,6 +69,8 @@ class DomainsController < BaseController
     allowed_gear_sizes = Array(params[:allowed_gear_sizes]) if params.has_key? :allowed_gear_sizes
 
     @domain = Domain.create!(namespace: namespace, owner: current_user, allowed_gear_sizes: allowed_gear_sizes, _allowed_domains: allowed_domains)
+
+    @analytics_tracker.track_event('domain_create', @domain, nil)
 
     render_success(:created, "domain", get_rest_domain(@domain), "Created domain with name #{@domain.namespace}")
   end
@@ -114,6 +116,9 @@ class DomainsController < BaseController
     return render_error(:unprocessable_entity, "No changes specified to the domain.", 133) unless domain.changed?
 
     domain.save!
+
+    @analytics_tracker.track_event('domain_update', domain, nil)
+
     render_success(:ok, "domain", get_rest_domain(domain), messages.join(" "), domain)
   end
 
@@ -146,6 +151,9 @@ class DomainsController < BaseController
     # reload the domain so that MongoId does not see any applications
     @domain.reload
     result = @domain.delete
+
+    @analytics_tracker.track_event('domain_delete', @domain, nil)
+
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "Domain #{name} deleted.", result)
   end

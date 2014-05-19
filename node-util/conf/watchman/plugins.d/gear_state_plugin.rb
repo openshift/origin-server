@@ -30,20 +30,28 @@ require 'openshift-origin-node/utils/shell_exec'
 class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
   include OpenShift::Runtime
 
-  attr_accessor :ps_table, :candidates
+  attr_accessor :ps_table, :candidates, :state_change_delay, :state_check_period
 
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] config
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] logger
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] gears
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] operation
-  def initialize(config, logger, gears, operation)
-    super
-    @target_gear = Struct.new 'TargetGear', :target_time
+  # @param [lambda<>] next_update calculates the time for next check
+  # @param [DateTime] epoch is when plugin was object instantiated
+  def initialize(config, logger, gears, operation, next_update = nil, epoch = DateTime.now)
+    super(config, logger, gears, operation)
     @candidates = Hash.new
 
     @state_change_delay = 900
     @state_change_delay = ENV['STATE_CHANGE_DELAY'].to_i unless ENV['STATE_CHANGE_DELAY'].nil?
-    Syslog.info %Q(Starting Gear State Monitoring, #{@state_change_delay}s state change delay)
+
+    @state_check_period = 0
+    @state_check_period = ENV['STATE_CHECK_PERIOD'].to_i unless ENV['STATE_CHECK_PERIOD'].nil?
+
+    @next_update = next_update || lambda { DateTime.now + Rational(@state_check_period, 86400) }
+    @next_check  = epoch
+
+    Syslog.info %Q(Starting Gear State Monitoring, #{@state_change_delay}s state change delay, #{@state_check_period}s check frequency)
   end
 
   # Determine if state and status are out of sync
@@ -64,6 +72,9 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
   #
   # @param [OpenShift::Runtime::WatchmanPluginTemplate::Iteration] iteration not used
   def apply(iteration)
+    return if iteration.current_run < @next_check
+    @next_check = @next_update.call
+
     load_ps_table
     return if @ps_table.empty?
 
@@ -136,7 +147,7 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
       return false
     end
 
-    @candidates[uuid] = @target_gear.new(DateTime.now + Rational(@state_change_delay, 86400))
+    @candidates[uuid] = TargetGear.new(DateTime.now + Rational(@state_change_delay, 86400))
     false
   end
 
@@ -167,5 +178,13 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
   # @return [Array<Fixnum>] Running processes for gear
   def ps(uuid)
     @ps_table[uuid]
+  end
+end
+
+class TargetGear
+  attr_accessor :target_time
+
+  def initialize(target_time)
+    @target_time = target_time
   end
 end

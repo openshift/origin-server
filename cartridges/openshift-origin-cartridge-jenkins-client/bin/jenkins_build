@@ -84,7 +84,7 @@ if job_available?
   # Block until a result shows up
   print "Waiting for job to complete..."
   json = get_job_info(next_build_num)
-  until json["result"]
+  until !json["building"]
     print "."
     sleep 1
     json = get_job_info(next_build_num)

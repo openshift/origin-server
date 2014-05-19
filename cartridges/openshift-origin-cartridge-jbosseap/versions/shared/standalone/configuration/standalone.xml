@@ -32,6 +32,11 @@
 		<extension module="org.jboss.as.web" />
 		<extension module="org.jboss.as.webservices" />
 		<extension module="org.jboss.as.weld" />
+
+		<!-- OpenShift metrics module - disabled by default -->
+		<!--
+		<extension module="com.openshift.metrics"/>
+		-->
 	</extensions>
 	
 	<system-properties>
@@ -505,6 +510,21 @@
 			</endpoint-config>
 		</subsystem>
 		<subsystem xmlns="urn:jboss:domain:weld:1.0" />
+		<!-- OpenShift metrics - disabled by default -->
+		<!--
+		<subsystem xmlns="urn:redhat:openshift:metrics:1.0">
+			<metrics-group cron="*/15 * * * * ?">
+				<source type="jboss" path="core-service=platform-mbean/type=memory-pool/name=Tenured_Gen">
+					<metric source-key="usage.used" publish-key="oldgen.used" />
+					<metric source-key="usage.max" publish-key="oldgen.max" />
+					<metric source-key="usage.committed" publish-key="oldgen.committed" />
+				</source>
+				<source type="mbean" path="java.lang:type=Memory">
+					<metric source-key="HeapMemoryUsage.used" publish-key="jmx.heap.used"/>
+				</source>
+			</metrics-group>
+		</subsystem>
+		-->
 	</profile>
 
 	<interfaces>

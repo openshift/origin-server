@@ -6,25 +6,27 @@ module OpenShift
     module Containerization
       class Plugin
         include OpenShift::Runtime::NodeLogger
-        CONF_DIR = '/etc/openshift/'
+        CONF_DIR         = '/etc/openshift/'
         NODE_PLUGINS_DIR = File.join(CONF_DIR, 'node-plugins.d/')
+
+        SelinuxContext = OpenShift::Runtime::Utils::SelinuxContext
 
         attr_reader :gear_shell, :mcs_label
 
         def self.container_dir(container)
-          File.join(container.base_dir,'gear',container.uuid)
+          File.join(container.base_dir, 'gear', container.uuid)
         end
 
         def initialize(application_container)
-          @container  = application_container
-          @config     = OpenShift::Config.new
-          @container_config     = OpenShift::Config.new(File.join(NODE_PLUGINS_DIR, "openshift-origin-container-libvirt.conf"))
-          @gear_shell = "/usr/bin/nsjoin"
-          @mcs_label  = OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.gid)
+          @container        = application_container
+          @config           = OpenShift::Config.new
+          @container_config = OpenShift::Config.new(File.join(NODE_PLUGINS_DIR, "openshift-origin-container-libvirt.conf"))
+          @gear_shell       = "/usr/bin/nsjoin"
+          @mcs_label        =SelinuxContext.instance.get_mcs_label(@container.gid)
 
-          @port_begin = (@config.get("PORT_BEGIN") || "35531").to_i
-          @ports_per_user = (@config.get("PORTS_PER_USER") || "5").to_i
-          @uid_begin = (@config.get("GEAR_MIN_UID") || "500").to_i
+          @port_begin         = (@config.get("PORT_BEGIN") || "35531").to_i
+          @ports_per_user     = (@config.get("PORTS_PER_USER") || "5").to_i
+          @uid_begin          = (@config.get("GEAR_MIN_UID") || "500").to_i
           @container_metadata = File.join(@container.base_dir, ".container", @container.uuid)
         end
 
@@ -40,9 +42,9 @@ module OpenShift
         #
         # Returns nil on Success or raises on Failure
         def create(create_initial_deployment_dir = true)
-          cmd = %{groupadd -g #{@container.gid} \
+          cmd          = %{groupadd -g #{@container.gid} \
           #{@container.uuid}}
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new(
                     "ERROR: unable to create group for user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                 ) unless rc == 0
@@ -60,7 +62,7 @@ module OpenShift
           if @container.supplementary_groups != ""
             cmd << %{ -G "#{@container.supplementary_groups}"}
           end
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new(
                     "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                 ) unless rc == 0
@@ -77,24 +79,24 @@ module OpenShift
           end
           set_ro_permission_R(@container_metadata)
 
-          security_field = "static,label=unconfined_u:system_r:openshift_t:#{@mcs_label}"
+          security_field   = "static,label=unconfined_u:system_r:openshift_t:#{@mcs_label}"
           external_ip_addr = "#{get_nat_ip_address}/#{get_nat_ip_mask}"
           external_ip_mask = get_nat_ip_mask
           route            = @container_config.get('LIBVIRT_PRIVATE_IP_ROUTE')
           gw               = @container_config.get('LIBVIRT_PRIVATE_IP_GW')
 
-          cmd = "/usr/bin/virt-sandbox-service create " +
+          cmd          = "/usr/bin/virt-sandbox-service create " +
               "-U #{@container.uid} -G #{@container.gid} " +
-              "-p #{File.join(@container.base_dir,'gears')} -s #{security_field} " +
+              "-p #{File.join(@container.base_dir, 'gears')} -s #{security_field} " +
               "-N address=#{external_ip_addr}/#{external_ip_mask}," +
               "route=#{route}%#{gw} " +
               "-f openshift_var_lib_t " +
               "-m host-bind:/dev/container-id=#{@container_metadata}/container-id " +
-                 "host-bind:/proc/meminfo=/proc/meminfo " +
+              "host-bind:/proc/meminfo=/proc/meminfo " +
               " -- " +
               "#{@container.uuid} /usr/sbin/oo-gear-init"
           out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
-          raise ::UserCreationException.new( "Failed to create lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
+          raise ::UserCreationException.new("Failed to create lxc container. rc=#{rc}, out=#{out}, err=#{err}") if rc != 0
 
           container_link = File.join(@container.container_dir, @container.uuid)
           FileUtils.ln_s("/var/lib/openshift/gears", container_link)
@@ -124,7 +126,7 @@ module OpenShift
             out, _, _ = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service list")
             if out.split("\n").include?(@uuid)
               out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service delete #{@uuid}")
-              raise Exception.new( "Failed to delete lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
+              raise Exception.new("Failed to delete lxc container. rc=#{rc}, out=#{out}, err=#{err}") if rc != 0
             end
 
             FileUtils.rm_rf @container_metadata
@@ -164,8 +166,8 @@ module OpenShift
           begin
             user = Etc.getpwnam(@container.uuid)
 
-            cmd = "userdel --remove -f \"#{@container.uuid}\""
-            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+            cmd          = "userdel --remove -f \"#{@container.uuid}\""
+            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
             raise ::OpenShift::Runtime::UserDeletionException.new(
                       "ERROR: unable to delete user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
@@ -176,8 +178,8 @@ module OpenShift
           begin
             group = Etc.getgrnam(@container.uuid)
 
-            cmd = "groupdel \"#{@container.uuid}\""
-            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+            cmd          = "groupdel \"#{@container.uuid}\""
+            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
             raise ::OpenShift::Runtime::UserDeletionException.new(
                       "ERROR: unable to delete group of user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
@@ -205,8 +207,8 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
           # try one last time...
           if File.exists?(@container.container_dir)
-            sleep(5)                    # don't fear the reaper
-            FileUtils.rm_rf(@container.container_dir)   # This is our last chance to nuke the polyinstantiated directories
+            sleep(5) # don't fear the reaper
+            FileUtils.rm_rf(@container.container_dir) # This is our last chance to nuke the polyinstantiated directories
             logger.warn("2nd attempt to remove \'#{@container.container_dir}\' from filesystem failed.") if File.exists?(@container.container_dir)
           end
         end
@@ -227,26 +229,26 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def stop
           @container.kill_procs
           out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service stop #{@uuid}")
-          raise Exception.new( "Failed to stop lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
+          raise Exception.new("Failed to stop lxc container. rc=#{rc}, out=#{out}, err=#{err}") if rc != 0
         end
 
         def start
           out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service start #{@container.uuid} < /dev/null > /dev/null 2> /dev/null &")
-          raise Exception.new( "Failed to start lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
+          raise Exception.new("Failed to start lxc container. rc=#{rc}, out=#{out}, err=#{err}") if rc != 0
 
           #Wait for container to become available
           for i in 1..10
             sleep 1
             begin
-              _,_,rc = run_in_container_context("echo 0")
+              _, _, rc = run_in_container_context("echo 0")
               break if  rc == 0
             rescue => e
               #ignore
             end
           end
 
-          _,_,rc = run_in_container_context("echo 0")
-          raise Exception.new( "Failed to start lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
+          _, _, rc = run_in_container_context("echo 0")
+          raise Exception.new("Failed to start lxc container. rc=#{rc}, out=#{out}, err=#{err}") if rc != 0
 
           reload_network
         end
@@ -268,9 +270,9 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def create_public_endpoint(private_ip, private_port)
-          container_ip   = get_nat_ip_address
-          public_port    = get_open_proxy_port
-          node_ip        = @config.get('PUBLIC_IP')
+          container_ip = get_nat_ip_address
+          public_port  = get_open_proxy_port
+          node_ip      = @config.get('PUBLIC_IP')
 
           create_iptables_rules(:add, public_port, container_ip, node_ip, private_ip, private_port)
 
@@ -336,14 +338,14 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def enable_fs_limits
-          cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} #{@container.quota_blocks ? @container.quota_blocks : ''} #{@container.quota_files ? @container.quota_files : ''}"
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+          cmd          = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} #{@container.quota_blocks ? @container.quota_blocks : ''} #{@container.quota_files ? @container.quota_files : ''}"
+          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs limits for #{@container.name}: stdout -- #{out} stderr -- #{err}") unless rc == 0
         end
 
         def disable_fs_limits
-          cmd = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{@container.uuid}"
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+          cmd          = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{@container.uuid}"
+          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new("Unable to teardown pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
         end
 
@@ -392,7 +394,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
         # responsibility of the caller to correctly handle the resulting data type.
         def run_in_container_context(command, options = {})
-          require 'openshift-origin-node/utils/selinux'
+          require 'openshift-origin-node/utils/selinux_context'
           options[:unsetenv_others] = true
 
           if options[:env].nil? or options[:env].empty?
@@ -410,37 +412,37 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def reset_permission(*paths)
-          OpenShift::Runtime::Utils::SELinux.clear_mcs_label(paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+          SelinuxContext.instance.clear_mcs_label(paths)
+          SelinuxContext.instance.set_mcs_label(@mcs_label, paths)
         end
 
         def reset_permission_R(*paths)
-          OpenShift::Runtime::Utils::SELinux.clear_mcs_label_R(paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+          SelinuxContext.instance.clear_mcs_label_R(paths)
+          SelinuxContext.instance.set_mcs_label_R(@mcs_label, paths)
         end
 
         def set_ro_permission_R(*paths)
           PathUtils.oo_chown_R(0, @container.gid, paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+          SelinuxContext.instance.set_mcs_label_R(@mcs_label, paths)
         end
 
         def set_ro_permission(*paths)
           PathUtils.oo_chown(0, @container.gid, paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+          SelinuxContext.instance.set_mcs_label(@mcs_label, paths)
         end
 
         def set_rw_permission_R(*paths)
           PathUtils.oo_chown_R(@container.uid, @container.gid, paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+          SelinuxContext.instance.set_mcs_label_R(@mcs_label, paths)
         end
 
         def set_rw_permission(*paths)
           PathUtils.oo_chown(@container.uid, @container.gid, paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+          SelinuxContext.instance.set_mcs_label(@mcs_label, paths)
         end
 
         def chcon(path, label = nil, type=nil, role=nil, user=nil)
-          ::OpenShift::Runtime::Utils::SELinux.chcon(path, label, type, role, user)
+          SelinuxContext.instance.chcon(path, label, type, role, user)
         end
 
         # retrieve the default maximum memory limit
@@ -451,9 +453,9 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         private
 
         def set_default_route
-          gw = @container_config.get('LIBVIRT_PRIVATE_IP_GW')
+          gw        = @container_config.get('LIBVIRT_PRIVATE_IP_GW')
           out, _, _ = run_in_container_root_context(%{ip route show})
-          m = out.match(/default via ([\d\.]+) dev eth0 \n/)
+          m         = out.match(/default via ([\d\.]+) dev eth0 \n/)
           if !m || m[1] != gw
             run_in_container_root_context(%{
               ip route del default;
@@ -475,7 +477,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
         # Returns a Range representing the valid proxy port values
         def port_range
-          uid_offset = @container.uid - @uid_begin
+          uid_offset       = @container.uid - @uid_begin
           proxy_port_begin = @port_begin + uid_offset * @ports_per_user
 
           proxy_port_range = (proxy_port_begin ... (proxy_port_begin + @ports_per_user))
@@ -483,8 +485,8 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def get_open_proxy_port
-          endpoints = @container.list_proxy_mappings
-          used_ports = endpoints.map{|entry| entry[:proxy_port]}
+          endpoints  = @container.list_proxy_mappings
+          used_ports = endpoints.map { |entry| entry[:proxy_port] }
           port_range.each do |port|
             return port unless used_ports.include? port
           end
@@ -540,8 +542,8 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def freeze_fs_limits
-          cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} 0 0 0"
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+          cmd          = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} 0 0 0"
+          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
         end
 
@@ -587,8 +589,8 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         # Raises exception on error.
         #
         def purge_sysvipc
-          ['-m', '-q', '-s' ].each do |ipctype|
-            out,err,rc=::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/ipcs -c #{ipctype} 2> /dev/null})
+          ['-m', '-q', '-s'].each do |ipctype|
+            out, err, rc=::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/ipcs -c #{ipctype} 2> /dev/null})
             out.lines do |ipcl|
               next unless ipcl=~/^\d/
               ipcent = ipcl.split
@@ -605,19 +607,19 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def cidr_to_dotted(mask)
-          IPAddr.new( ('1'*mask + '0'*(32-mask)).to_i(2), Socket::AF_INET).to_s
+          IPAddr.new(('1'*mask + '0'*(32-mask)).to_i(2), Socket::AF_INET).to_s
         end
 
         def get_nat_ip_address
           iprange = @container_config.get('LIBVIRT_PRIVATE_IP_RANGE')
 
-          valid_ips = IPAddr.new(iprange).to_range
+          valid_ips  = IPAddr.new(iprange).to_range
           uid_offset = @container.uid.to_i - @uid_begin
-          gw_ip = @container_config.get('LIBVIRT_PRIVATE_IP_GW')
+          gw_ip      = @container_config.get('LIBVIRT_PRIVATE_IP_GW')
 
           #offset to skip address ending in .0
-          nat_ip = valid_ips.first(uid_offset + 2).last.to_s
-          if( nat_ip == gw_ip )
+          nat_ip     = valid_ips.first(uid_offset + 2).last.to_s
+          if (nat_ip == gw_ip)
             nat_ip = valid_ips.first(uid_offset + 3).last.to_s
           end
 
@@ -629,8 +631,8 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
         def get_nat_ip_mask
           iprange = @container_config.get('LIBVIRT_PRIVATE_IP_RANGE')
-          mask = iprange.split('/')[1]
-          mask = dotted_to_cidr(mask) if mask.match('\.')
+          mask    = iprange.split('/')[1]
+          mask    = dotted_to_cidr(mask) if mask.match('\.')
 
           mask
         end

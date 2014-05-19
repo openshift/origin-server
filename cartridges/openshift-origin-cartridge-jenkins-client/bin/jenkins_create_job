@@ -19,6 +19,7 @@ STDERR.sync = true
 @openshift_domain = ARGV[0]
 @job_erb = "#{ENV['OPENSHIFT_JENKINS_CLIENT_DIR']}/configuration/jenkins_job_template.xml.erb"
 @builder_type = ARGV[1]
+@platform = ARGV[4]
 @application_uuid = ENV['OPENSHIFT_APP_UUID']
 ## https://bugzilla.redhat.com/show_bug.cgi?id=952161
 # Encode XML entites in jenkins_shell_command.erb template *after*

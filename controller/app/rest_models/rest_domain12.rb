@@ -27,7 +27,7 @@ class RestDomain12 < OpenShift::Model
     self.id = domain.namespace
     self.suffix = Rails.application.config.openshift[:domain_suffix]
 
-    if not domain.application_count.nil?
+    unless domain.application_count.nil?
       @application_count = domain.application_count
       @gear_counts = domain.gear_counts || {}
     end

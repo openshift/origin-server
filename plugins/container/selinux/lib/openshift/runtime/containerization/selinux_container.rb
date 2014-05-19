@@ -6,6 +6,7 @@ module OpenShift
       class Plugin
         include OpenShift::Runtime::NodeLogger
 
+        SelinuxContext = ::OpenShift::Runtime::Utils::SelinuxContext
         attr_reader :gear_shell
 
         def self.container_dir(container)
@@ -16,6 +17,7 @@ module OpenShift
           @container  = application_container
           @config     = ::OpenShift::Config.new
           @gear_shell = @config.get("GEAR_SHELL")    || "/bin/bash"
+          @traffic_control_enabled = @config.get_bool("TRAFFIC_CONTROL_ENABLED", "true")
         end
 
         # Public
@@ -24,7 +26,7 @@ module OpenShift
         def mcs_label
           if not @mcs_label
             if @container.uid
-              @mcs_label = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
+              @mcs_label = SelinuxContext.instance.get_mcs_label(@container.uid)
             end
           end
           @mcs_label
@@ -78,7 +80,7 @@ module OpenShift
           end
 
           enable_cgroups
-          enable_traffic_control
+          enable_traffic_control if @traffic_control_enabled
 
           @container.initialize_homedir(@container.base_dir, @container.container_dir, create_initial_deployment_dir)
 
@@ -110,7 +112,7 @@ module OpenShift
           @container.kill_procs
           freeze_fs_limits
           freeze_cgroups
-          disable_traffic_control
+          disable_traffic_control if @traffic_control_enabled
           last_access_dir = @config.get('LAST_ACCESS_DIR')
           ::OpenShift::Runtime::Utils::oo_spawn("rm #{last_access_dir}/#{@container.uuid}")
           @container.kill_procs
@@ -343,46 +345,46 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
         # responsibility of the caller to correctly handle the resulting data type.
         def run_in_container_context(command, options = {})
-          require 'openshift-origin-node/utils/selinux'
+          require 'openshift-origin-node/utils/selinux_context'
           options[:unsetenv_others] = true
           options[:uid] = @container.uid
           options[:gid] = @container.gid
-          options[:selinux_context] = ::OpenShift::Runtime::Utils::SELinux.context_from_defaults(mcs_label)
+          options[:selinux_context] = SelinuxContext.instance.from_defaults(mcs_label)
           ::OpenShift::Runtime::Utils::oo_spawn(command, options)
         end
 
         def reset_permission(paths)
-          ::OpenShift::Runtime::Utils::SELinux.clear_mcs_label(paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, paths)
+          SelinuxContext.instance.clear_mcs_label(paths)
+          SelinuxContext.instance.set_mcs_label(mcs_label, paths)
         end
 
         def reset_permission_R(paths)
-          ::OpenShift::Runtime::Utils::SELinux.clear_mcs_label_R(paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, paths)
+          SelinuxContext.instance.clear_mcs_label_R(paths)
+          SelinuxContext.instance.set_mcs_label_R(mcs_label, paths)
         end
 
         def set_ro_permission_R(paths)
           PathUtils.oo_chown_R(0, @container.gid, paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, paths)
+          SelinuxContext.instance.set_mcs_label_R(mcs_label, paths)
         end
 
         def set_ro_permission(paths)
           PathUtils.oo_chown(0, @container.gid, paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, paths)
+          SelinuxContext.instance.set_mcs_label(mcs_label, paths)
         end
 
         def set_rw_permission_R(paths)
           PathUtils.oo_chown_R(@container.uid, @container.gid, paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, paths)
+          SelinuxContext.instance.set_mcs_label_R(mcs_label, paths)
         end
 
         def set_rw_permission(paths)
           PathUtils.oo_chown(@container.uid, @container.gid, paths)
-          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, paths)
+          SelinuxContext.instance.set_mcs_label(mcs_label, paths)
         end
 
         def chcon(path, label = nil, type=nil, role=nil, user=nil)
-          ::OpenShift::Runtime::Utils::SELinux.chcon(path, label, type, role, user)
+          SelinuxContext.instance.chcon(path, label, type, role, user)
         end
 
         # retrieve the default maximum memory limit

@@ -27,6 +27,7 @@ require 'openshift-origin-node/model/application_container_ext/setup'
 require 'openshift-origin-node/model/application_container_ext/snapshots'
 require 'openshift-origin-node/model/application_container_ext/cartridge_actions'
 require 'openshift-origin-node/model/application_container_ext/deployments'
+require 'openshift-origin-node/model/application_container_ext/metrics'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/environ'
@@ -64,6 +65,7 @@ module OpenShift
       include ApplicationContainerExt::Snapshots
       include ApplicationContainerExt::CartridgeActions
       include ApplicationContainerExt::Deployments
+      include ApplicationContainerExt::Metrics
 
       GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
       DEFAULT_SKEL_DIR = PathUtils.join(OpenShift::Config::CONF_DIR,"skel")
@@ -71,7 +73,8 @@ module OpenShift
 
       attr_reader :uuid, :application_uuid, :state, :container_name, :application_name, :namespace, :container_dir,
                   :quota_blocks, :quota_files, :base_dir, :gecos, :skel_dir, :supplementary_groups,
-                  :cartridge_model, :container_plugin, :hourglass
+                  :cartridge_model, :container_plugin, :hourglass, :gear_lock
+
       attr_accessor :uid, :gid
 
       containerization_plugin_gem = ::OpenShift::Config.new.get('CONTAINERIZATION_PLUGIN')
@@ -125,6 +128,7 @@ module OpenShift
 
         @state           = ::OpenShift::Runtime::Utils::ApplicationState.new(self)
         @cartridge_model = V2CartridgeModel.new(@config, self, @state, @hourglass)
+        @gear_lock = PathUtils.join %W[#{File::SEPARATOR} var lock gear.#{container_uuid}]
       end
 
       #
@@ -185,7 +189,7 @@ module OpenShift
         output = ''
         notify_observers(:before_container_create)
         # lock to prevent race condition between create and delete of gear
-        PathUtils.flock("/var/lock/oo-create.#{@uuid}") do
+        PathUtils.flock(@gear_lock) do
           resource             = OpenShift::Runtime::Node.resource_limits
           no_overcommit_active = resource.get_bool('no_overcommit_active', false)
           overcommit_lock_file = "/var/lock/oo-create.overcommit"
@@ -247,7 +251,7 @@ module OpenShift
         retcode = -1
 
         # Don't try to delete a gear that is being scaled-up|created|deleted
-        PathUtils.flock("/var/lock/oo-create.#@uuid") do
+        PathUtils.flock(@gear_lock) do
           begin
             @cartridge_model.each_cartridge do |cart|
               env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
@@ -411,15 +415,16 @@ module OpenShift
       # +Note: + stop_lock is created here so Node start up scripts skip idled gears.
       #   stop_lock removed during unidle
       def idle_gear(options={})
-        if not stop_lock? and (state.value != State::STOPPED)
+        return '' if stop_lock? || state.value == State::STOPPED
+
+        PathUtils.flock(@gear_lock) do
           frontend = FrontendHttpServer.new(self)
           frontend.idle
           begin
-            output = stop_gear(force: true, term_delay: 30, init_owned: true)
+            return stop_gear(force: true, term_delay: 30, init_owned: true)
           ensure
             state.value = State::IDLE
           end
-          output
         end
       end
 
@@ -429,17 +434,41 @@ module OpenShift
       # @return [String] output from starting gear
       def unidle_gear(options={})
         output = ''
-        OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
-          # When invoked as gear, state may be set to Started before unidle is called
-          frontend = FrontendHttpServer.new(self)
-          frontend.unidle if frontend.idle?
 
-          if state.value == State::IDLE
-              state.value = State::STARTED
-              output      = start_gear
+        PathUtils.flock(@gear_lock) do
+          broker_addr = @config.get('BROKER_HOST')
+          gear_env    = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
+          domain      = gear_env['OPENSHIFT_NAMESPACE']
+          app_name    = gear_env['OPENSHIFT_APP_NAME']
+          app_uuid    = gear_env['OPENSHIFT_APP_UUID']
+          url         = "https://#{broker_addr}/broker/rest/domain/#{domain}/application/#{app_name}/events"
+
+          params = broker_auth_params
+          return unless params
+
+          params['event']         = 'start'
+          params[:application_id] = app_uuid
+
+          begin
+            logger.info("Unidling application #{app_uuid}")
+            request = RestClient::Request.new(:method => :post,
+                                              :url => url,
+                                              :timeout => 360,
+                                              :headers => { :accept => 'application/json;version=1.6', :user_agent => 'OpenShift' },
+                                              :payload => params)
+
+            response = request.execute { |response, request, result| response }
+            logger.info("Finished unidling #{app_uuid}")
+          rescue => e
+            logger.error("Failed to start application #{app_uuid} during unidle: #{e.message}")
+          else
+            if 300 <= response.code
+              logger.error("Failed to start application #{app_uuid} during unidle: #{response.body}")
+            end
           end
         end
-        output
+
+        return output
       end
 
       ##

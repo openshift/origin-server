@@ -20,10 +20,28 @@
 
 require 'rubygems'
 require 'openshift-origin-node/utils/tc'
+require 'openshift-origin-common/config'
 
-tc = ::OpenShift::Runtime::Utils::TC.new
+config = OpenShift::Config.new('/etc/openshift/node.conf')
+traffic_control_enabled = config.get_bool("TRAFFIC_CONTROL_ENABLED", "true")
+
+tc = OpenShift::Runtime::Utils::TC.new
+
+verbose = false
+verbose = true if ARGV[1] && ARGV[1] == '-v'
+verbose = true if ARGV[2] && ARGV[2] == '-v'
 
 begin
+  unless traffic_control_enabled
+    unless ARGV[0] == "stop" || ARGV[0] == "show" || ARGV[0] == "status"
+      # If an admin just changed the conf file to disable tc we want to still
+      # allow them to verify that the limits are gone and stop them if they're
+      # still running.
+      $stderr.puts "Error: Traffic Control is disabled in /etc/openshift/node.conf."
+      exit(1)
+    end
+  end
+
   case ARGV[0]
   when "start"
     tc.start
@@ -56,13 +74,13 @@ begin
     tc.deluser(ARGV[1])
 
   when "status"
-    tc.status(ARGV[1])
+    tc.status(ARGV[1], verbose)
 
   when "show"
     tc.show(ARGV[1])
 
   else
-    $stderr.puts "Usage: #{__FILE__} {start|stop|restart|status [username]|startuser <username>|stopuser <username>|restartuser <username>|throttleuser <username>|nothrottleuser <username>|deluser <username>}"
+    $stderr.puts "Usage: #{__FILE__} {start|stop|restart|status [username]|startuser <username>|stopuser <username>|restartuser <username>|throttleuser <username>|nothrottleuser <username>|deluser <username> [-v]}"
     exit(1)
   end
 

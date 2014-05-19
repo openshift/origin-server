@@ -64,7 +64,10 @@ class Scope::Application < Scope::Parameterized
           #:change_members,
         ].include?(permission)
     when :scale
-      resource === Application && resource._id === app_id && :scale_cartridge == permission
+      resource === Application && resource._id === app_id && [
+        :scale_cartridge,
+        :change_state
+      ].include?(permission)
     when :report_deployments
       resource === Application && resource._id === app_id && :update_deployments == permission
     end

@@ -181,7 +181,7 @@ class CartridgeType
   delegate :requires, :get_component, :usage_rates,
            :additional_control_actions, :cart_data_def,
            :components, :connections, :group_overrides,
-           :start_order, :stop_order, :configure_order,
+           :configure_order,
            :specification_hash, :to_descriptor,
            to: :cartridge
 

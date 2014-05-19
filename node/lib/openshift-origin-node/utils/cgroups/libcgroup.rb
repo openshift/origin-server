@@ -15,7 +15,7 @@
 #++
 
 require 'openshift-origin-node/utils/shell_exec'
-require 'openshift-origin-node/utils/selinux'
+require 'openshift-origin-node/utils/selinux_context'
 require 'openshift-origin-node/utils/node_logger'
 require 'fileutils'
 require 'etc'
@@ -146,11 +146,14 @@ module OpenShift
           # Hash[str.scan(/^group\sopenshift\/(.*?)\s(.*?)^}/m).map{|mg| [mg[0], Hash[mg[1].scan(/\s*(#{keys.join('|')})\s*=\s*"(.*)";/).map{|k,v| [k,v.to_i]}]] }]
           def self.usage
             # Retrieve cgroup counters: cpu.stat, cpuacct.usage, cpu.cfs_quota_us
-            expression = '/cgroup/*/openshift/*/cpu*'
-            cmd = %Q(set -e -o pipefail; grep -H ^ #{expression} |sed 's|^/cgroup/[^/]*/openshift/||')
+            expression     = '/cgroup/*/openshift/*/cpu*'
+            cmd            = %Q(set -e -o pipefail; grep -H ^ #{expression} |sed 's|^/cgroup/[^/]*/openshift/||')
             (out, err, rc) = ::OpenShift::Runtime::Utils::oo_spawn(cmd, :quiet => true)
             if 1 < rc
-              NodeLogger.logger.error %Q(Failed to read cgroups counters from #{expression}: #{err} (#{rc}))
+              (count, _, _) = ::OpenShift::Runtime::Utils::oo_spawn(%Q(ls #{expression} |wc -l), :quiet => true)
+              unless count.chomp == '0'
+                NodeLogger.logger.error %Q(Failed to read cgroups counters from #{expression}: #{err} (#{rc}))
+              end
             end
             parse_usage(out)
           end
@@ -508,7 +511,7 @@ module OpenShift
             end
 
             FileUtils.mv(filename+"-", filename, :force => true)
-            SELinux::chcon(filename)
+            SelinuxContext.instance.chcon(filename)
 
             r
           end

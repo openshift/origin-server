@@ -1,0 +1,20 @@
+# Number of restarts to attempt before waiting RETRY_PERIOD
+#GEAR_RETRIES=3
+
+# Number of seconds to wait before accepting another gear restart
+#RETRY_DELAY=300
+
+# Number of seconds to wait before resetting retries
+#RETRY_PERIOD=28800
+
+# Number of seconds a gear must remain inconsistent with it's state before
+#   Watchman attempts to reset state
+#STATE_CHANGE_DELAY=900
+
+# Wait at least this number of seconds since last check before checking gear state on the Node.
+# Increase this to reduce Watchman's GearStatePlugin's impact on the system.
+#STATE_CHECK_PERIOD=0
+
+# Wait at least this number of seconds before checking gears' cgroup state on the Node.
+# Increase this to reduce Watchman's Throttler's impact on the system.
+#THROTTLER_CHECK_PERIOD=5

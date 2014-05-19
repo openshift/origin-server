@@ -10,7 +10,7 @@ require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-node/utils/hourglass'
 require 'openshift-origin-common/utils/path_utils'
 require 'openshift-origin-common/utils/file_needs_sync'
-require 'openshift-origin-node/utils/selinux'
+require 'openshift-origin-node/utils/selinux_context'
 require 'shellwords'
 require 'facter'
 require 'stringio'
@@ -33,10 +33,10 @@ module MCollective
 
         # We need to call this here so the pthread local destructor function that calls matchpathcon_fini is associated
         # with this long lived thread. Otherwise, it will be invoked for every OpenShift mco agent method that ends up
-        # calling OpenShift::Runtime::Utils::SELinux.#chcon
+        # calling OpenShift::Runtime::Utils::SELinux#chcon
         #
         # @see https://bugzilla.redhat.com/show_bug.cgi?id=1081249
-        ::OpenShift::Runtime::Utils::SELinux.matchpathcon_update
+        @@selinux = ::OpenShift::Runtime::Utils::SelinuxContext.instance
 
         PathUtils.flock('/var/lock/oo-cartridge-repository') do
           @@cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
@@ -1200,6 +1200,17 @@ module MCollective
         end
 
         reply[:output]   = gear_map
+        reply[:exitcode] = 0
+      end
+
+      # Returns the uid for a given uuid
+      #
+      def get_gear_uid_action
+        validate :gear_uuid, /^[a-zA-Z0-9]+$/
+
+        gear_uuid        = request[:gear_uuid].to_s if request[:gear_uuid]
+        container        = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
+        reply[:output]   = container.uid
         reply[:exitcode] = 0
       end
 

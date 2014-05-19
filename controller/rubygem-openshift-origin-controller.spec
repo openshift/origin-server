@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.23.0
+Version: 1.25.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,216 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Wed May 07 2014 Adam Miller <admiller@redhat.com> 1.24.9-1
+- Merge pull request #5396 from ironcladlou/scalable-unidling
+  (dmcphers+openshiftbot@redhat.com)
+- Fix idler cucumber tests (ironcladlou@gmail.com)
+- Bug 1095186 - corrected args passed to district (lnader@redhat.com)
+
+* Wed May 07 2014 Troy Dawson <tdawson@redhat.com> 1.24.8-1
+- Bug 1094541 - check for null values (lnader@redhat.com)
+- Fix formatting (dmcphers@redhat.com)
+- Bug 1094108 - show obsolete carts if ALLOW_OBSOLETE_CARTRIDGES=true
+  (lnader@redhat.com)
+
+* Tue May 06 2014 Troy Dawson <tdawson@redhat.com> 1.24.7-1
+- Merge pull request #5375 from ironcladlou/scalable-unidling
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1093804: Validating the node returned by the gear-placement plugin
+  (abhgupta@redhat.com)
+- Support unidling scalable apps (ironcladlou@gmail.com)
+
+* Mon May 05 2014 Adam Miller <admiller@redhat.com> 1.24.6-1
+- Add support for multiple platforms to districts
+  (daniel.carabas@uhurusoftware.com)
+- Bug 1091044 (lnader@redhat.com)
+
+* Wed Apr 30 2014 Adam Miller <admiller@redhat.com> 1.24.5-1
+- Annual Online SKU Support (lnader@redhat.com)
+- Making the domain_op complete? method more robust (abhgupta@redhat.com)
+- Merge pull request #5343 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bugs 1084980 and 889947 (lnader@redhat.com)
+
+* Tue Apr 29 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
+- Adding test coverage for remote-user auth (bleanhar@redhat.com)
+
+* Mon Apr 28 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
+- Merge pull request #5341 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Remove unused code (dmcphers@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.9-1
+- Bug 1088845: Blocking external carts from adding storage and setting
+  multiplier (abhgupta@redhat.com)
+- Merge pull request #5262 from
+  liggitt/bug_1083544_reentrant_membership_change_ops
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1083544: Make member change ops re-entrant (jliggitt@redhat.com)
+- Allow setting parent op for member changes (jliggitt@redhat.com)
+
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.8-1
+- Bug 1088941: Exclude non-member global teams from index (jliggitt@redhat.com)
+- Merge pull request #5290 from liggitt/bug_1086920_check_domain_ssl_capability
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1086920: Check ssl certificate capability on domain, not on user
+  (jliggitt@redhat.com)
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.7-1
+- Merge pull request #5287 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5253 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Adding a config flag in the broker to selectively manage HA DNS entries
+  (abhgupta@redhat.com)
+- Merge pull request #5192 from liggitt/user_email
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1086094: Multiple changes for cartridge colocation We are:  - taking into
+  account the app's complete group overrides  - allowing only plugin carts to
+  colocate with web/service carts  - blocking plugin (except sparse) carts from
+  responding to scaling min/max changes (abhgupta@redhat.com)
+- Merge pull request #5284 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Adding test coverage for to_xml (dmcphers@redhat.com)
+- Add email field to CloudUser (jliggitt@redhat.com)
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.6-1
+- Fix formatting (dmcphers@redhat.com)
+
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.5-1
+- Bug 1087710: Removing explicit role with implicit role present leaves higher
+  role in place (jliggitt@redhat.com)
+- added oo-admin-ctl-team (lnader@redhat.com)
+
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
+- Bug 1086567: Handle implicit members leaving (jliggitt@redhat.com)
+- BZ1083475 - HA scalable application DNS is not deleted after app is destroyed
+  (calfonso@redhat.com)
+- Merge pull request #5229 from liggitt/bug_1086115_change_explicit_role
+  (dmcphers+openshiftbot@redhat.com)
+- Add test for elevating and lowering the explicit role of a member who also
+  has an implicit grant (jliggitt@redhat.com)
+
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
+- Merge pull request #5226 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Setting domain op state to completed after updating capabilities
+  (abhgupta@redhat.com)
+- Add domain to analytics tracking (dmcphers@redhat.com)
+- Merge pull request #5218 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5217 from liggitt/team_remove
+  (dmcphers+openshiftbot@redhat.com)
+- Removing Start-Order and Stop-Order from the manifest (abhgupta@redhat.com)
+- Bug 1086370: removing one team removes all explicit members
+  (jliggitt@redhat.com)
+
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- Add support for SSLv2 when downloading cartridges (mfojtik@redhat.com)
+- Merge pull request #5206 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5187 from pravisankar/dev/ravi/fix-testcases
+  (dmcphers+openshiftbot@redhat.com)
+- Add validations to district model and move gear_size initialization from
+  create_district() to initialize(). (rpenta@redhat.com)
+- Fix cucumber test platform-oo-admin.feature: Need to look at exit code and
+  not the output for errors, output can have warning messages
+  (rpenta@redhat.com)
+- Bug 1084542: Fixing Start/Stop order for components  - Start now follows
+  post-configure order  - Stop now follows the reverse of the start order  -
+  post-configure order follows the configure order with the one exception that
+  the web_framework is at the end (abhgupta@redhat.com)
+- Bug 1082464 - do not show member links for update and delete if team in
+  global (lnader@redhat.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Use consistent naming on alias_add and more detail on cartridge scale
+  (dmcphers@redhat.com)
+- Fixing error message around submodule repo (dmcphers@redhat.com)
+- Merge pull request #5184 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1071393 - Fix DNSLoginException (rpenta@redhat.com)
+- Bug 1071272 - oo-admin-repair: Only allow node removal from its district when
+  no apps are referencing that node (rpenta@redhat.com)
+- separate scaling and storage tracking events (dmcphers@redhat.com)
+- Use mock cart for testing (dmcphers@redhat.com)
+- Bug 1084054: Check for external cartridge for group instance without gears
+  (abhgupta@redhat.com)
+- Use configured default (jliggitt@redhat.com)
+- Add global_teams capability (jliggitt@redhat.com)
+- Bug 1084419 - Fix tracking for update alias (dmcphers@redhat.com)
+- Merge pull request #5167 from bparees/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5166 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5165 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- remove duplicate test check line (bparees@redhat.com)
+- Formatting fixes (dmcphers@redhat.com)
+- Bug 1084090: Using as_document instead of serializable_hash to add/remove
+  keys (abhgupta@redhat.com)
+- Revert "Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore"" (bparees@redhat.com)
+- Merge pull request #5155 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5137 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5151 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #5152 from
+  pravisankar/dev/ravi/bugs-1081381-1073342-1008654
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1082464 - Do not show links for ADD_MEMBER, UPDATE_MEMBERS, DELETE AND
+  LEAVE for global teams (lnader@redhat.com)
+- Split user errors and internal errors for analytics (dmcphers@redhat.com)
+- Bug 1008654 - oo-admin-chk: Report app gears with out server_identity field
+  set in mongo (rpenta@redhat.com)
+- Bug 1073342 - oo-admin-chk fix: don't print duplicate error messages when
+  login is null/empty (rpenta@redhat.com)
+- Adding user create tracking event (dmcphers@redhat.com)
+- Make non-global search more efficient (jliggitt@redhat.com)
+- Removed global flag - using owner_id=nil as indicator for global team
+  (lnader@redhat.com)
+- Require global flag on search (lnader@redhat.com)
+- changed min length for team name to 2 (lnader@redhat.com)
+- corrected typo - Search string must be at least 2 characters
+  (lnader@redhat.com)
+- fixed validation and tests (lnader@redhat.com)
+- use rest_teams for search count (lnader@redhat.com)
+- changed global=true to owner_id=nil (lnader@redhat.com)
+- modified error message - use same message for leave (lnader@redhat.com)
+- cleaned up team validation (lnader@redhat.com)
+- escape search string (lnader@redhat.com)
+- change validation on globally unique (lnader@redhat.com)
+- remove membership management links if team syncs to group (lnader@redhat.com)
+- added sorting (lnader@redhat.com)
+- moved global checking to before_filter (lnader@redhat.com)
+- Global teams (lnader@redhat.com)
+- Merge pull request #5114 from danmcp/analytics
+  (dmcphers+openshiftbot@redhat.com)
+- Analytics Tracker (dmcphers@redhat.com)
+- Bug 1079844: Fixed error message when removing an invalid cartridge
+  (abhgupta@redhat.com)
+- Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore" (bparees@redhat.com)
+- Fix php file permissions cucumber tests (vvitek@redhat.com)
+- Merge pull request #5099 from liggitt/fix_app_locking_from_team_member_change
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+- Use application.owner_id in unlock_app (jliggitt@redhat.com)
+- Fix app locking from team member change (jliggitt@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.8-1
 - Merge pull request #5089 from lnader/master
   (dmcphers+openshiftbot@redhat.com)

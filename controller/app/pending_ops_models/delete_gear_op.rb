@@ -43,7 +43,7 @@ class DeleteGearOp < PendingAppOp
     remove_ssh_keys = application.app_ssh_keys.find_by(component_id: gear_id) rescue []
     remove_ssh_keys = [remove_ssh_keys].flatten
     if remove_ssh_keys.length > 0
-      keys_attrs = remove_ssh_keys.map{|k| k.serializable_hash}
+      keys_attrs = remove_ssh_keys.map{|k| k.as_document}
       op_group = UpdateAppConfigOpGroup.new(remove_keys_attrs: keys_attrs, user_agent: application.user_agent)
       Application.where(_id: application._id).update_all({ "$push" => { pending_op_groups: op_group.as_document }, "$pullAll" => { app_ssh_keys: keys_attrs }})
 

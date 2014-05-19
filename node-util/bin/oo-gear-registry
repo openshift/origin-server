@@ -33,7 +33,6 @@ STDERR.sync = true
 OpenShift::Runtime::NodeLogger.disable
 
 @container = OpenShift::Runtime::ApplicationContainer.from_uuid(ENV['OPENSHIFT_GEAR_UUID'])
-@gear_registry = OpenShift::Runtime::GearRegistry.new(@container)
 
 command :read do |c|
   c.syntax = "#{name} read [options]"
@@ -47,11 +46,18 @@ command :read do |c|
       exit! 3
     end
 
+    unless @container.cartridge_model.web_proxy
+      $stderr.puts "application is not scalable"
+      exit! 4
+    end
+
+    gear_registry = OpenShift::Runtime::GearRegistry.new(@container)
+
     if type != 'all'
-      requested_gears = @gear_registry.entries[type.to_sym]
+      requested_gears = gear_registry.entries[type.to_sym]
     else
       requested_gears = {}
-      @gear_registry.entries.each do |type, gears|
+      gear_registry.entries.each do |type, gears|
         requested_gears.merge!(gears)
       end
     end

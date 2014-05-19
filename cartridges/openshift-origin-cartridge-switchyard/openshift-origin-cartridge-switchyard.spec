@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version: 1.17.1
+Version: 1.19.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -44,12 +44,32 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%{cartridgedir}
+%{cartridgedir}/metadata
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.19.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.18.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.18.0-2
+- bumpspec to mass fix tags
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.17.3-1
+- Bumping cartridge versions for sprint 43 (bparees@redhat.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.17.2-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- Both env OPENSHIFT_JBOSSEAP_MODULE_PATH and OPENSHIFT_JBOSSAS_MODULE_PATH
+  exist in jbosseap/as (bparees@redhat.com)
+
 * Wed Mar 19 2014 Adam Miller <admiller@redhat.com> 1.17.1-1
 - bump spec to fix versioning between branches (admiller@redhat.com)
 

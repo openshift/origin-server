@@ -87,7 +87,11 @@ function start_app() {
         export CATALINA_BASE=$OPENSHIFT_JBOSSEWS_DIR
         export CATALINA_TMPDIR=${OPENSHIFT_JBOSSEWS_DIR}/tmp
 
-        ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat start &> >(/usr/bin/logshifter -tag jbossews) &
+        LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-jbossews
+        rm -f $LOGPIPE && mkfifo $LOGPIPE
+
+        /usr/bin/logshifter -tag jbossews < $LOGPIPE &
+        ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat start &> $LOGPIPE &
         echo $! > $JBOSS_PID_FILE
 
         rc=0

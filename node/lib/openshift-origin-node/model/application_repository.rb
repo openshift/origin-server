@@ -17,7 +17,7 @@ require 'rubygems'
 require 'erb'
 require 'openshift-origin-common'
 require 'openshift-origin-node/utils/shell_exec'
-require 'openshift-origin-node/utils/selinux'
+require 'openshift-origin-node/utils/selinux_context'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-common/utils/path_utils'
 require 'openshift-origin-common/utils/git'
@@ -327,6 +327,7 @@ git config core.logAllRefUpdates true;
 set -xe;
 git clone --bare --no-hardlinks template <%= @application_name %>.git;
 GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
+GIT_DIR=./<%= @application_name %>.git git config pack.windowMemory "200m";
 GIT_DIR=./<%= @application_name %>.git git repack;
 }
 

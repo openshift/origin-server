@@ -21,7 +21,7 @@
 # @!attribute [r] suffix
 #   @return [String] DNS suffix under which the application is created. Eg: rhcloud.com
 class RestDomain < OpenShift::Model
-  attr_accessor :id, :name, :suffix, :members, :allowed_gear_sizes, :creation_time, :links, :available_gears, :max_storage_per_gear, :usage_rates
+  attr_accessor :id, :name, :suffix, :members, :allowed_gear_sizes, :creation_time, :links, :available_gears, :max_storage_per_gear, :usage_rates, :private_ssl_certificates
 
   def initialize(domain, url, nolinks=false)
     self.id = domain._id
@@ -35,8 +35,9 @@ class RestDomain < OpenShift::Model
     self.available_gears = domain.available_gears
     self.max_storage_per_gear = domain.max_storage_per_gear
     self.usage_rates = domain.usage_rates
+    self.private_ssl_certificates = domain.private_ssl_certificates
 
-    if not domain.application_count.nil?
+    unless domain.application_count.nil?
       @application_count = domain.application_count
       @gear_counts = domain.gear_counts || {}
     end

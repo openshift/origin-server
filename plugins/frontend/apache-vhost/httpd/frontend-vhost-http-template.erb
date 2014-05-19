@@ -1,6 +1,5 @@
 <VirtualHost *:80>
   ServerName <%= server_name %>
-  ServerAdmin root@localhost
   DocumentRoot /var/www/html
 
   RewriteEngine              On
@@ -17,25 +16,17 @@
   RewriteRule ^.*$ - [E=X_CLIENT_IP:%1]
   RequestHeader set X-Client-IP %{X_CLIENT_IP}e
 
-  # Log custom format for OpenShift parsing.
-  # Log format is:
-  <IfDefine OpenShiftAnnotateFrontendAccessLog>
-    LogFormat "%h %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X <%= app_uuid %> <%= gear_uuid %>" openshift
-  </IfDefine>
-  <IfDefine !OpenShiftAnnotateFrontendAccessLog>
-    LogFormat "%h %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X" openshift
-  </IfDefine>
+  # Log configuration for gear access logs
+  SetEnv APP_UUID <%= app_uuid %>
+  SetEnv GEAR_UUID <%= gear_uuid %>
+  Include conf.d/openshift-vhost-logconf.include
 
-  CustomLog logs/openshift_log openshift
-  #
-  # If the `OpenShiftFrontendSyslogEnabled` option is defined, pipe output to syslog in addition to file.
-  # File is used by the autoidler to assess gear (in)activity.
-  #
-  <IfDefine OpenShiftFrontendSyslogEnabled>
-    CustomLog "|logger -t openshift-node-frontend" openshift
-  </IfDefine>
+  # Create this file to customize configuration for all gear vhosts:
+  Include conf.d/openshift-http-vhost.includ[e]
 
-  ProxyTimeout 300
-
+  # This file may need to be regenerated from the template,
+  # so put gear-specific customizations in a separate included .conf file:
   Include <%= include_path %>/*.conf
+
+
 </VirtualHost>

@@ -1,4 +1,5 @@
 #!/bin/sh -e
+
 mkdir -p ~/.openshift
 cp /tmp/src/broker/misc/docker_broker_plugins.rb ~/.openshift/broker_plugins.rb
 mkdir -p /etc/openshift

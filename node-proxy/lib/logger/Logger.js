@@ -212,9 +212,9 @@ var getLogger = function(n) {
  *  Constructs a new logger instance.
  *
  *  Examples:
- *    new Logger.Logger('error.log', '/var/log/node-ws-proxy/error.log');
+ *    new Logger.Logger('error.log', '/var/log/openshift/node/node-ws-proxy/error.log');
  *    new Logger.Logger('error.log',
- *                      {'file'    : '/var/log/error.log',
+ *                      {'file'    : '/var/log/openshift/node/node-ws-proxy/error.log',
  *                       'rollover': { 'max-size-bytes': 10485760 }
  *                     );
  *

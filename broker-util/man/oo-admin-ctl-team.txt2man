@@ -1,0 +1,144 @@
+NAME
+       oo-admin-ctl-team
+
+SYNOPSIS
+       oo-admin-ctl-team -c (create|delete|list|show|sync|sync-from-file|sync-to-file) [ --help ]
+
+
+DESCRIPTION
+       This is an administrative utility to manage global teams.
+
+OPTIONS
+       -c|--command COMMAND
+              A command to execute (Required).
+
+               list            - List all teams
+
+               create          - Creates a new team
+               
+               update          - Updates the team's maps-to value
+
+               delete          - Delete team
+
+               show            - Show team and it’s members
+
+               sync            - Syncs with LDAP groups
+
+               sync-to-file    - Generates a sync file for review.  No changes are made to the teams and their members.
+
+               sync-from-file  - Syncs from file.  See sync-to-file
+
+
+
+       --name NAME
+              Team name to create, show or delete.
+              
+       --maps-to MAPS_TO
+              The distinguished name for the LDAP group the team maps to.
+
+       --groups GROUPS
+              A comma separated list of LDAP groups to add
+
+       --config-file CONFIG_FILE
+              Path to file containing LDAP configuration information (Required
+              for sync and sync-to-file). See CONFIGURATION section below.
+
+       --out-file OUT_FILE
+              Path to output file (Required for sync-to-file).
+
+       --in-file IN_FILE
+              Path to input file (Required for sync-from-file).
+
+       --create-new-users
+              Create new users in openshift if they do not exist.
+
+       --remove-old-users
+              Remove members from team that are no longer in the group.
+
+       --broker PATH
+              The  path  to the broker (default /var/www/openshift/broker/con-
+              fig/environment).
+
+       -h|--help
+              Display a simple usage page.
+
+
+
+
+CONFIGURATION
+       This file holds LDAP configuration information. Here’s an example based
+       on a typical OpenLDAP schema.
+
+       Host: openldap-server.example.com
+       Port: 389
+       Get-Group:
+         Base: dc=example,dc=com
+         Filter: (cn=<group_cn>)
+       Get-Group-Users:
+         Base: <group_dn>
+         Attributes: [member]
+       Get-User:
+         Base: dc=example,dc=com
+         Filter: (uid=<user_id>)
+         Attributes: [emailAddress]
+       Openshift-Username: emailAddress
+
+
+       The  above  example works if your user and group entries look something
+       like this:
+
+       dn: cn=mygroup,ou=Groups,dc=example,dc=com
+       cn: mygroup
+       member: uid=jdoe
+       member: uid=fbar
+
+       dn: cn=John Doe,ou=Users,dc=example,dc=com
+       cn: John Doe
+       uid: jdoe
+       emailAddress: jdoe@mycompany.com
+
+       However, if your schema looks something like this:
+       
+       dn: cn=mygroup,ou=Groups,dc=example,dc=com
+       cn: mygroup
+
+
+       dn: cn=John Doe,ou=Users,dc=example,dc=com
+       cn: John Doe
+       uid: jdoe
+       emailAddress: jdoe@mycompany.com
+       memberOf: cn=myteam,ou=Groups,dc=example,dc=com
+
+       Then your config file would look something like this:
+
+       Host: directory-server.example.com
+       Port: 389
+       Get-Group:
+         Base: dc=example,dc=com
+         Filter: (cn=<group_cn>)
+
+       Get-Group-Users:
+         Base: dc=example,dc=com
+         Filter: (memberOf=<group_dn>)
+         Attributes: [emailAddress]
+       Openshift-Username: emailAddress
+
+Note: The placeholders <group_cn>, <group_dn> and <user_id> will be replaced by actual values at the time of the script execution.
+
+       An encrypted connection and authentication may be specified in the configuration as well:
+
+       Host: directory-server.example.com
+       Port: 636
+       Encryption: true
+       Username: cn=admin,dc=example,dc=com
+       Password: passw0rd
+
+EXAMPLE
+       $ oo-admin-ctl-team -c list
+
+AUTHOR
+       Lili Nader <lnader@redhat.com> - man page written for OpenShift Origin
+
+
+
+       

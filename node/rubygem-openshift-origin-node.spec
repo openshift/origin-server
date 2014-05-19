@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.23.0
+Version: 1.25.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,169 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- Bug 1088623 - Removed unused .uservars directory references
+  (jhonce@redhat.com)
+- Use the local1 facility for Syslog trace logs (ironcladlou@gmail.com)
+- Bug 1096591 - Escape filenames for downloadable cartridges
+  (jhonce@redhat.com)
+- Prevent unwanted syslog message interpolation (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Wed May 07 2014 Troy Dawson <tdawson@redhat.com> 1.24.7-1
+- Bug 1094541 - check for null values (lnader@redhat.com)
+- Merge pull request #5383 from jwhonce/bug/1091433
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1091433 - Add setting to detune GearStatePlugin (jhonce@redhat.com)
+
+* Tue May 06 2014 Troy Dawson <tdawson@redhat.com> 1.24.6-1
+- Merge pull request #5380 from jwhonce/bug/1093197
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5379 from mrunalp/bug/1052302
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1083197 - remove NULL's from environment variables (jhonce@redhat.com)
+- Bug 1052302: Add windowMemory setting for git repos. (mrunalp@gmail.com)
+- Merge pull request #5375 from ironcladlou/scalable-unidling
+  (dmcphers+openshiftbot@redhat.com)
+- Support unidling scalable apps (ironcladlou@gmail.com)
+
+* Fri May 02 2014 Adam Miller <admiller@redhat.com> 1.24.5-1
+- rhcsh: Fix quota check if quotas disabled (miciah.masters@gmail.com)
+
+* Tue Apr 29 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
+- Bug 1092077 - Adding comment for the default PLATFORM_LOG_CLASS.
+  (bleanhar@redhat.com)
+
+* Mon Apr 28 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
+- Merge pull request #5288 from dobbymoodge/BZ1088005
+  (dmcphers+openshiftbot@redhat.com)
+- v2_cart_model: guarantee user env vars override (jolamb@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.9-1
+- Merge pull request #5299 from bparees/psql_unary
+  (dmcphers+openshiftbot@redhat.com)
+-  Meet "unary operator expected" error when use psql in rhcsh but postgresql
+  is not added to app (bparees@redhat.com)
+
+* Thu Apr 17 2014 Troy Dawson <tdawson@redhat.com> 1.23.8-1
+- Merge pull request #5291 from lnader/bugs (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5296 from jwhonce/bug/1086886
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1086886 - Don't read managed_file.yml twice (jhonce@redhat.com)
+- Bug 1088620 - Check for empty OPENSHIFT_PRIMARY_CARTRIDGE_DIR values
+  (lnader@redhat.com)
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.7-1
+- Bug 1061926 - Use lock file to prevent race between idle/unidle
+  (jhonce@redhat.com)
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.6-1
+- remove unused code (dmcphers@redhat.com)
+
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.5-1
+- Improving the inline docs for TRAFFIC_CONTROL_ENABLED in node.conf
+  (bleanhar@redhat.com)
+- Bug 1086427 - JSON.load() allowed empty JSON files (jhonce@redhat.com)
+- Bug 1086427 - Do not use JSON.load() with untrusted JSON (jhonce@redhat.com)
+- Bug 1086886 - Add guard for empty managed_files.yml (jhonce@redhat.com)
+
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
+- Merge pull request #5245 from lnader/bugs (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5234 from brenton/BZ1086691
+  (dmcphers+openshiftbot@redhat.com)
+- Fix formatting (dmcphers@redhat.com)
+- Fix typo (dmcphers@redhat.com)
+- Bug 1086691 - Accessing a Gear by ssh shows "Your application is out of disk
+  space" when "quota" command is missing (bleanhar@redhat.com)
+- Merge pull request #5219 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1086886 - Check for empty managed_files.yml and return a better error
+  message (lnader@redhat.com)
+- Merge pull request #5239 from ncdc/bug/1086549
+  (dmcphers+openshiftbot@redhat.com)
+- DNS may have been stored as mixed case, but should always be used downcased
+  (rchopra@redhat.com)
+- Don't show backtrace when metrics script times out (andy.goldstein@gmail.com)
+- Merge pull request #5231 from mfojtik/bugzilla/1070173
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1070173 - Add '-v' option for oo-admin-ctl-tc to turn verbose output
+  (mfojtik@redhat.com)
+
+* Fri Apr 11 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
+- cleanup whitespace (dmcphers@redhat.com)
+- Add platform attribute to cartridge serialization and fixed tests
+  (abhgupta@redhat.com)
+- Merge pull request #5208 from bparees/haproxy_scale
+  (dmcphers+openshiftbot@redhat.com)
+- Add the ability to adjust when haproxy shutsdown the app cart in the lead
+  gear (bparees@redhat.com)
+
+* Thu Apr 10 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- Merge pull request #5212 from ironcladlou/upgrade-error-handling
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5200 from ncdc/metrics (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5207 from ncdc/selinux-turbo-boost
+  (dmcphers+openshiftbot@redhat.com)
+- Handle missing/invalid HTTP response during upgrade validation
+  (ironcladlou@gmail.com)
+- Speed up chcon calls (andy.goldstein@gmail.com)
+- Metrics - code review changes (andy.goldstein@gmail.com)
+- Metrics (andy.goldstein@gmail.com)
+- Metrics work (teddythetwig@gmail.com)
+- Metrics work (teddythetwig@gmail.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Adding new default setting for traffic control (bleanhar@redhat.com)
+- Bug 1075760 - Allow traffic control to be disabled (bleanhar@redhat.com)
+- Merge pull request #5153 from jwhonce/bug/1081249
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5141 from bparees/facter
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5161 from bparees/unrevert_restore_state
+  (dmcphers+openshiftbot@redhat.com)
+- Revert "Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore"" (bparees@redhat.com)
+- Bug 1081249 - Fix up code after reviews (jhonce@redhat.com)
+- hide output from pgrep (bparees@redhat.com)
+- Bug 1081249 - Refactor SELinux module to be SelinuxContext singleton
+  (jhonce@redhat.com)
+- Fix graceful shutdown logic (ironcladlou@gmail.com)
+- Node Platform - Remove ruby version of oo-trap-user (jhonce@redhat.com)
+- Merge pull request #5131 from bparees/revert_restore_state
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5135 from bparees/process_running_check
+  (dmcphers+openshiftbot@redhat.com)
+- fix process running check to use proper return code check
+  (bparees@redhat.com)
+- Revert "Card origin_cartridge_133 - Maintain application state across
+  snapshot/restore" (bparees@redhat.com)
+- Adding a function test for outbound traffic control (bleanhar@redhat.com)
+- Adding error checking for outbound tc settings (bleanhar@redhat.com)
+- Bug 1076217 - Making the tc outbound settings configurable
+  (bleanhar@redhat.com)
+- facter ipaddress does not always return the ip that we would want
+  (bparees@redhat.com)
+- Bug 1082488 - Silence error message on node with no gears (jhonce@redhat.com)
+- Merge pull request #5095 from jwhonce/bug/1081249
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5100 from jwhonce/bug/1081441
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+- Bug 1081249 - Synchronize access to selinux matchpath context
+  (jhonce@redhat.com)
+- Bug 1081441 - unprivileged_unidle not updating idler.txt (jhonce@redhat.com)
+- Bug 1081249 - Synchronize access to selinux matchpath context
+  (jhonce@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.10-1
 - Merge pull request #5094 from ironcladlou/binary-deploy-bug
   (dmcphers+openshiftbot@redhat.com)

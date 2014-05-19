@@ -41,6 +41,9 @@ class AuthorizationsController < BaseController
       a.user = current_user
       a.scopes = scopes.to_s
     end
+
+    @analytics_tracker.track_user_event("authorization_add", current_user)
+
     render_success(:created, "authorization", RestAuthorization.new(auth, get_url, nolinks), "Create authorization", nil, nil, 'TOKEN' => auth.token, 'SCOPE' => auth.scopes, 'EXPIRES' => auth.expired_time, 'IP' => request.remote_ip)
   end
 

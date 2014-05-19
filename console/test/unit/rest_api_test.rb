@@ -1151,6 +1151,21 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal members.select{|m| m.role != 'none'}.map(&:attributes), d.members.map(&:attributes)    
   end
 
+  def test_cartridge_type_normalize_url
+    assert_equal nil, CartridgeType.normalize_url(nil)
+    assert_equal nil, CartridgeType.normalize_url("")
+    assert_equal nil, CartridgeType.normalize_url("\\")
+
+    assert_equal "ftp://test", CartridgeType.normalize_url("ftp://test")
+    assert_equal "http://test", CartridgeType.normalize_url("http://test")
+    assert_equal "https://test", CartridgeType.normalize_url("https://test")
+
+    assert_equal "http://test", CartridgeType.normalize_url("test")
+
+    assert_equal nil, CartridgeType.normalize_url("javascript:test")
+    assert_equal nil, CartridgeType.normalize_url(" javascript:test")
+    assert_equal nil, CartridgeType.normalize_url(" JAVASCRIPT:test")
+  end
 
   def test_cartridge_type_url_basename
     assert_nil CartridgeType.new.url_basename
@@ -1163,6 +1178,15 @@ class RestApiTest < ActiveSupport::TestCase
       'http://foo.bar/?name=other' => 'other',
       'http://foo.bar/test?name=other' => 'other',
       'http://foo.bar?name=other#wow' => 'wow',
+
+      'foo.bar' => 'http://foo.bar',
+      'foo.bar/' => 'http://foo.bar/',
+      'foo.bar/test' => 'test',
+      'foo.bar/test/' => 'test',
+      'foo.bar?name=other' => 'other',
+      'foo.bar/?name=other' => 'other',
+      'foo.bar/test?name=other' => 'other',
+      'foo.bar?name=other#wow' => 'wow',
     }.each do |k,v|
       c = CartridgeType.for_url(k)
       assert_equal v, c.url_basename
@@ -1186,12 +1210,14 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_cartridge_type_init
-    type = CartridgeType.new :name => 'haproxy-1.4', :display_name => 'Test - haproxy', :website => 'test'
+    type = CartridgeType.new :name => 'haproxy-1.4', :display_name => 'Test - haproxy', :website => 'test', :license_url => 'test2', :help_topics => {"Link1" => "test3", "Link2" => "javascript:alert(1)"}
 
     # custom attributes
     assert_equal 'Test - haproxy', type.display_name
     assert_equal 'haproxy-1.4', type.name
-    assert_equal 'test', type.website
+    assert_equal 'http://test', type.website
+    assert_equal 'http://test2', type.license_url
+    assert_equal({"Link1" => "http://test3"}, type.help_topics)
 
     # default values
     assert_equal :embedded, type.type

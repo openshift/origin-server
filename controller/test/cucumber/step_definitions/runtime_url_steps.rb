@@ -17,7 +17,8 @@ Then /^the web console for the phpmyadmin\-([\d\.]+) cartridge is( not)? accessi
 end
 
 When /^I run the health\-check for the ([^ ]+) cartridge$/ do | type |
-  host = "#{@app.name}-#{@account.domain}.#{$cloud_domain}"
+
+  host = "#{@app.name}-#{current_app_namespace}.#{$cloud_domain}"
 
   # Use curl to hit the app, causing restorer to turn it back on.
   command = "/usr/bin/curl -k -H 'Host: #{host}' -s http://localhost/health"

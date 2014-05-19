@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.23.0
+Version: 1.25.1
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -85,12 +85,63 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %endif
 %attr(0755,-,-) %{cartridgedir}/usr/versions/2.7/bin/*
 %attr(0755,-,-) %{cartridgedir}/usr/versions/3.3/bin/*
-%{cartridgedir}
+%{cartridgedir}/env
+%{cartridgedir}/logs
+%{cartridgedir}/metadata
+%{cartridgedir}/run
+%{cartridgedir}/usr
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+%exclude %{cartridgedir}/usr/versions/*/template/*.pyc
+%exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
+* Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- bump_minor_versions for sprint 45 (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller <admiller@redhat.com>
+- mass bumpspec to fix tags (admiller@redhat.com)
+
+* Fri Apr 25 2014 Adam Miller - 1.24.0-2
+- bumpspec to mass fix tags
+
+* Wed Apr 16 2014 Troy Dawson <tdawson@redhat.com> 1.23.4-1
+- Bumping cartridge versions for sprint 43 (bparees@redhat.com)
+
+* Tue Apr 15 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
+- move libyaml-devel dependency into python cartridge optional dependencies
+  (bparees@redhat.com)
+- Merge pull request #5260 from ironcladlou/cart-log-vars
+  (dmcphers+openshiftbot@redhat.com)
+- Re-introduce cartridge-scoped log environment vars (ironcladlou@gmail.com)
+
+* Mon Apr 14 2014 Troy Dawson <tdawson@redhat.com> 1.23.2-1
+- Python cartridge suddenly stopped installing dependencies
+  (bparees@redhat.com)
+
+* Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Removing file listed twice warnings (dmcphers@redhat.com)
+- Use named pipes for logshifter redirection where appropriate
+  (ironcladlou@gmail.com)
+- Bug 1074237 - Exclude python template *.pyc and *.pyo from spec file
+  (jhadvig@redhat.com)
+- Merge pull request #5168 from mfojtik/bugzilla/1084379
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1084379 - Added ensure_httpd_restart_succeed() back into ruby/phpmyadmin
+  (mfojtik@redhat.com)
+- Bug 1084298 - Fixed typo in python control script (mfojtik@redhat.com)
+- Merge pull request #5157 from ironcladlou/httpd-pgroup-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Force httpd into its own pgroup (ironcladlou@gmail.com)
+- Check the return code before writing PID file in Python start_app()
+  (mfojtik@redhat.com)
+- Fix graceful shutdown logic (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 43 (admiller@redhat.com)
+
 * Thu Mar 27 2014 Adam Miller <admiller@redhat.com> 1.22.5-1
 - Update Cartridge Versions for Stage Cut (vvitek@redhat.com)
 

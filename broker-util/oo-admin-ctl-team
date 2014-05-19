@@ -1,0 +1,540 @@
+#!/usr/bin/env oo-ruby
+
+require 'optparse'
+require 'ostruct'
+require 'net-ldap'
+require 'yaml'
+
+PATH = "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/environment"
+
+class Command
+
+  def create(options)
+    if options.name 
+      raise ArgumentError, "Use --maps-to to specify the group the team maps to" if options.maps_to.nil?
+    elsif options.groups
+      raise ArgumentError, "Path to config file required. Use --config-file to specify a file" if options.config_file.nil?
+    else
+      raise ArgumentError, "You must specify either a list of LDAP groups (--groups) or a name for the team (--name)"
+    end
+    env!(options)
+    if options.name
+      team = validate_and_create_team(options.name, options.maps_to)
+    elsif options.groups
+      puts "Creating team for groups #{options.groups}"
+      groups = options.groups
+      groups.each do |group|
+        dn = get_group(group)
+        begin
+          team = validate_and_create_team(group, dn)
+        rescue OpenShift::UserException => ex
+          puts "ERROR: Could not create team: #{ex.message}"
+          next
+        end
+      end 
+    end 
+    exit 0
+  rescue ArgumentError
+    warn $!
+    1
+  rescue OpenShift::UserException => ex
+    puts "Could not create team: #{ex.message}"
+    exit 1
+  rescue => e
+    exception e, "Failed to create team: \"#{options.name}\""
+    1
+  end
+
+  def list(options)
+    env!(options)
+    
+    teams = Team.where(owner_id: nil)
+    teams.each do |team|
+      puts "Name:\"#{team.name}\"  Maps to:#{team.maps_to}  Members:#{team.members.count}"
+    end
+    0
+  rescue => e
+    warn "Failed to list teams"
+    warn e.message
+    warn e.backtrace
+    1
+  end
+  
+  def show(options)
+    raise ArgumentError, "Use --name to specify a name OR --maps-to to specify the group DN" if options.name.nil? and options.maps_to.nil?
+    env!(options)
+    if options.name
+      puts "Getting team: \"#{options.name}\" ..."
+      team = Team.find_by(name: options.name, owner_id: nil) rescue nil
+    elsif options.maps_to
+      puts "Getting team mapping to \"#{options.maps_to}\" ..."
+      team = Team.find_by(maps_to: options.maps_to, owner_id: nil) rescue nil
+    end
+    if team
+      puts "Name: \"#{team.name}\""
+      puts "Maps to: \"#{team.maps_to}\""
+      puts "Members:"
+      team.members.each {|m| puts "\tName:#{m.n}"}
+      0
+    else
+      puts "Team: \"#{options.name}\" not found" if options.name
+      puts "Team mapping to \"#{options.maps_to}\" not found" if options.maps_to
+      1
+    end  
+    0
+  rescue ArgumentError
+    warn $!
+    1
+  rescue => e
+    exception e, "Failed to show team: \"#{options.name}\""
+    1
+  end
+
+  def delete(options)
+    raise ArgumentError, "Use -n or --name to specify a name" if options.name.nil?
+    env!(options)
+    puts "Deleting team: \"#{options.name}\" ..."
+    team = Team.find_by(name: options.name, owner_id: nil) rescue nil
+    if team
+      team.destroy_team
+      puts "Team: \"#{options.name}\" deleted"
+      0
+    else
+      puts "Team: \"#{options.name}\" not found"
+      1
+    end
+  rescue ArgumentError
+    warn $!
+    1
+  rescue => e
+    exception e, "Failed to delete team: \"#{options.name}\""
+    1
+  end
+  
+  def update(options)
+    raise ArgumentError, "Use -n or --name to specify a name" if options.name.nil?
+    raise ArgumentError, "Use --maps-to to specify the group the team maps to" if options.maps_to.nil?
+    env!(options)
+    puts "Updating team: \"#{options.name}\" ..."
+    team = Team.find_by(name: options.name, owner_id: nil) rescue nil
+    if team
+      team.maps_to = options.maps_to
+      if team.valid?
+        team.save!
+        puts "Team: \"#{options.name}\" updated"
+        0
+      else
+        err_msgs = []
+        team.errors.each do |key, message|
+          err_msgs.push(message)
+        end
+        raise OpenShift::UserException.new(err_msgs.join(" "))
+      end
+    else
+      puts "Team: \"#{options.name}\" not found"
+      1
+    end
+  rescue ArgumentError
+    warn $!
+    1
+  rescue OpenShift::UserException => ex
+    puts "Could not update team: #{ex.message}"
+    exit 1
+  rescue => e
+    exception e, "Failed to delete team: \"#{options.name}\""
+    1
+  end
+  
+  def sync_from_file(options)
+    raise ArgumentError, "Input file required. Use -i or --in-file to specify a file" if options.in_file.nil?
+    env!(options)
+    in_file = File.open("#{options.in_file}", "r")
+    while (line = in_file.gets)
+      object_type, command, *params = line.split("|").map(&:strip)
+      puts "#{object_type} #{command} #{params}"
+      case object_type
+      when "TEAM"
+        if command == "ADD"
+          begin
+            team = validate_and_create_team(params[0], params[1])
+          rescue OpenShift::UserException => ex
+            puts "ERROR: Could not create team: #{ex.message}"
+          end
+        elsif command == "REMOVE"
+          begin
+            team = Team.find_by(name: params[0], owner_id: nil)
+            team.destroy_team
+          rescue Exception => ex
+            puts "ERROR: Could not delete team: #{ex.message}"
+          end
+        else
+          puts "ERROR: Command \"#{command}\" not available for \"#{object_type}\""
+        end
+      when "USER"
+        if command == "ADD"
+          user = CloudUser.find_or_create_by(login: params[0])
+        else
+          puts "ERROR: Command #{command} not available for #{object_type}"
+        end
+      when "MEMBER"
+        team = Team.where(name: params[0], owner_id: nil).first
+        if team.nil?
+          puts "ERROR: Could not find team: \"#{params[0]}\"" if team.nil?
+          next
+        end
+        user_names = params[1] ? params[1].split(",") : nil
+        if user_names
+          members_to_add = []
+          user_names.each do |user_name|
+            u = CloudUser.find_by(login: user_name) rescue nil
+            if u.nil?
+              puts "ERROR: Could not find user: \"#{user_name}\""
+              next
+            end
+            members_to_add.push(u)
+          end
+          if command == "ADD"      
+            team.add_members(members_to_add)
+          elsif command == "REMOVE"
+            members_to_remove = team.members.select {|m| user_names.include? m.n}
+            team.remove_members(members_to_remove) 
+          else
+            puts "ERROR: Command \"#{command}\" not available for \"#{object_type}\""
+          end
+          if team.invalid?
+            err_msgs = []
+            team.errors.each do |key, message|
+              err_msgs.push(message)
+            end
+            raise OpenShift::UserException.new(err_msgs.join(" "))
+          end
+          team.save!
+          team.run_jobs
+        end
+      end
+    end
+    0
+  rescue ArgumentError
+    warn $!
+    1
+  rescue OpenShift::UserException => ex
+    puts "ERROR: Failed to sync-from-file \"#{options.in_file}\": #{ex.message}"
+    1
+  rescue => e
+    exception e, "Failed to sync-from-file \"#{options.in_file}\""
+    1
+  end
+
+  def sync_to_file(options)
+    raise ArgumentError, "Path to config file required. Use --config-file to specify a file" if options.config_file.nil?
+    raise ArgumentError, "Path to output file required. Use -o or --out-file to specify a file" if options.out_file.nil?
+    out_file = File.open("#{options.out_file}", "w")
+    env!(options)
+    puts "Syncing to file #{options.out_file} ..."
+    
+    teams_to_sync = Team.where(onwer_id: nil).select{|t| t.maps_to}
+    teams_to_sync.each do |team|
+      users = get_users_in_group(team.maps_to)
+      members_to_add = []
+      user_ids = []
+      users.each do |user_name|
+        user = CloudUser.find_by(login: user_name) rescue nil
+        if user.nil?
+          if options.create_new_users
+            out_file.puts "USER|ADD|#{user_name}"
+            members_to_add.push(user_name)
+          else
+            puts "User: \"#{user_name}\" does not exist skipping. Use --create-new-users option to automatically add new users."
+          end
+        else
+          user_ids.push(user._id)
+          members_to_add.push(user.login)
+        end
+      end
+      out_file.puts "MEMBER|ADD|#{team.name}|#{members_to_add.join(",")}"
+      if options.remove_old_users
+        members_to_remove = team.members.select(&:explicit_role?).reject {|m| user_ids.include? m._id}
+        if members_to_remove.count > 0
+          puts "Removing members #{members_to_remove.collect {|m| m.n}} from team: #{team.name}"
+          out_file.puts "MEMBER|REMOVE|#{team.name}|#{members_to_remove.collect {|m| m.n}.join(",")}"
+        end
+      end
+    end
+    0
+  rescue ArgumentError
+    warn $!
+    1
+  rescue => e
+    exception e, "Failed to sync to file \"#{options.out_file}\""
+    1
+  end
+
+
+  def sync(options)
+    raise ArgumentError, "Path to config file required. Use --config-file to specify a file" if options.config_file.nil?
+    env!(options)
+    
+    teams_to_sync = Team.where(owner_id: nil).select{|t| t.maps_to}
+    teams_to_sync.each do |team|
+      users = get_users_in_group(team.maps_to)
+      user_ids = []
+      if users.count > 0
+        members_to_add = CloudUser.where(:login.in => users)
+        if members_to_add and members_to_add.count > 0
+          user_ids = members_to_add.collect{|u| u._id}
+          puts "Adding members #{members_to_add.collect{|m| m.login}} to team: \"#{team.name}\""
+          team.add_members(members_to_add)
+        end
+      end
+      
+      if options.remove_old_users
+        members_to_remove = team.members.select(&:explicit_role?).reject {|m| user_ids.include? m._id}
+        puts "Removing members #{members_to_remove.collect {|m| m.n}} from team: \"#{team.name}\""
+        team.remove_members(members_to_remove) 
+      end
+        
+      new_users = users.reject {|user| team.members.collect{|m| m.n }.include? user}
+      new_users.each do |user_name|
+        if options.create_new_users
+          puts "Adding new user: \"#{user_name}\""
+          user = CloudUser.create(:login => user_name)
+          team.add_members(user)
+        else
+          puts "ERROR: User with username: \"#{user_name}\" does not exist. Use --create-new-users option to automatically add new users."
+          next
+        end
+      end
+      if team.invalid?
+        err_msgs = []
+        team.errors.each do |key, message|
+          err_msgs.push(message)
+        end
+        raise OpenShift::UserException.new(err_msgs.join(" "))
+      end
+      team.save!
+      team.run_jobs
+    end
+    0
+  rescue ArgumentError
+    warn $!
+    1
+  rescue OpenShift::UserException => ex
+    puts "ERROR: Failed to sync: #{ex.message}"
+    1
+  rescue => e
+    exception e, "Failed to sync: #{e.message}}"
+    1
+  end
+
+  protected
+    def env!(options)
+      require options.broker || PATH
+      if options.config_file
+        @ldap_config = YAML.load_file(options.config_file)
+        @ldap = Net::LDAP.new( host: @ldap_config["Host"],
+                               port: @ldap_config["Port"],
+                               encryption: @ldap_config["Encryption"] ? :simple_tls : nil )
+        # if user name given for auth, use it; otherwise anonymous access is used.
+        @ldap.auth @ldap_config["Username"], @ldap_config["Password"] if @ldap_config["Username"]
+        unless @ldap.bind
+          puts "Could not connect to LDAP server \"#{@ldap.host}\": #{@ldap.get_operation_result.message}" 
+          exit 1
+        end
+      end
+    end
+    
+    def normalize(dn)
+      return dn.gsub(",", "_").gsub("=", "_")
+    end
+    
+    def validate_and_create_team(name, maps_to=nil)
+      puts "Creating team name: \"#{name}\""
+      team = Team.new(name: name, maps_to: maps_to)
+      if team.valid?
+        team.save_with_duplicate_check!
+      else
+        err_msgs = []
+        team.errors.each do |key, message|
+          err_msgs.push(message)
+        end
+        raise OpenShift::UserException.new(err_msgs.join(" "))
+      end
+      team  
+    end
+    
+    def get_users_in_group(group_dn)
+      puts "Getting users in group: \"#{group_dn}\""
+      users = []
+      base = @ldap_config["Get-Group-Users"]["Base"].gsub("<group_dn>", group_dn)
+      attributes = @ldap_config["Get-Group-Users"]["Attributes"]
+      
+      if @ldap_config["Get-Group-Users"]["Filter"]
+        filter = Net::LDAP::Filter.construct(@ldap_config["Get-Group-Users"]["Filter"].gsub("<group_dn>", group_dn)) 
+        entries = @ldap.search(:base => base, :filter => filter, :attributes => attributes)
+      else
+        entries = @ldap.search(:base => base, :attributes => attributes)
+      end
+      if entries.nil?
+        puts "Could not find any users in group \"#{group_dn}\""
+        return users
+      end
+      if entries and entries.count < 1
+        puts "Did not find any users in \"#{group_dn}\""
+      else
+        if entries.count > Rails.configuration.openshift[:max_members_per_resource]
+          puts "Too many users in group: #{group_dn}.  Maximum allowed: #{Rails.configuration.openshift[:max_members_per_resource]}"
+          exit 1
+        end
+        entries.each do |entry|
+          # if the Get-Group-Users contains the Openshift-Username and there's no Get-User query configured then use the value of the attribute
+          if entry.attribute_names.include? @ldap_config["Openshift-Username"] and @ldap_config["Get-User"].nil?
+            users.push(entry[@ldap_config["Openshift-Username"]])
+          else
+            values = entry[@ldap_config["Get-Group-Users"]["Attributes"].first]
+            if values.count > Rails.configuration.openshift[:max_members_per_resource]
+              puts "Too many users in group: \"#{group_dn}\".  Maximum allowed: #{Rails.configuration.openshift[:max_members_per_resource]}"
+              exit 1
+            end
+            values.each do |value|
+              if @ldap_config["Get-User"]
+                users.push(get_user(value))
+              else
+                users.push(value)
+              end
+            end
+          end
+        end
+        puts "Found users: #{users}"
+      end
+      return users
+    end
+    
+    def get_group(group_name)
+      puts "Getting group: \"#{group_name}\""
+      base = @ldap_config["Get-Group"]["Base"]
+      filter = Net::LDAP::Filter.construct(@ldap_config["Get-Group"]["Filter"].gsub("<group_cn>", group_name))
+      entries = @ldap.search(:base => base, :filter => filter)
+      raise OpenShift::UserException.new("Could not find an entry matching \"#{group_name}\"") if entries.count < 1
+      raise OpenShift::UserException.new("Found more than one entry matching \"#{group_name}\".  You may need to adjust the Get-Group query in ") if entries.count > 1
+      entry = entries.first
+      puts "Found group dn:\"#{entry.dn}\""
+      return entry.dn
+    end
+    
+    def get_user(user_id)
+      puts "Getting user: \"#{user_id}\""
+      user_id = user_id.split("=")[1] if user_id.include? "="
+      base = @ldap_config["Get-User"]["Base"]
+      filter = Net::LDAP::Filter.construct(@ldap_config["Get-User"]["Filter"].gsub("<user_id>", user_id))
+      attributes = @ldap_config["Get-User"]["Attributes"]
+      entries = @ldap.search(:base => base, :filter => filter, :attributes => attributes)
+      raise Exception.new("Could not find an entry matching \"#{user_id}\"") if entries.count < 1
+      raise Exception.new("Found more than one entry matching \"#{user_id}\"") if entries.count > 1
+      entry = entries.first
+      puts "Found user dn:\"#{entry.dn}\""
+      return entry[@ldap_config["Openshift-Username"]].first
+    end
+
+    def warn(*args)
+      $stderr.puts(*args)
+    end
+
+    def exception(e, *args)
+      $stderr.puts(*args)
+      $stderr.puts e.message
+      $stderr.puts "  #{e.backtrace.join("  \n")}"
+    end
+end
+
+methods = (Command.instance_methods(false) & Command.new.public_methods).map{ |s| s.to_s.gsub('_', '-')}.sort
+options = OpenStruct.new
+p = OptionParser.new do |opts|
+  opts.banner = "
+== Synopsis
+
+#{File.basename $0}: Manage global teams
+
+Commands:
+  list            - List all teams
+    
+  create          - Creates a new team
+                  Requires (--name and --maps-to) OR (--groups and --config-file)
+                  
+  update          - Updates an existing team's maps-to value
+                  Requires --name, --maps-to
+                  
+  delete          - Delete team
+                  Requires --name
+  
+  show            - Show team and it's members
+                  Requires --name OR --maps-to
+
+  sync            - Syncs with LDAP groups
+                  Requires --config-file
+
+  sync-to-file    - Generates a sync file for review.  No changes are made to the teams and their members.
+                  Requires -out-file, --config-file
+
+  sync-from-file  - Syncs from file.  See sync-to-file
+                  Requires --in-file
+  
+
+== Usage: oo-admin-ctl-team -c (#{methods.join('|')})"
+
+  opts.separator ''
+  opts.on('-c', '--command COMMAND',
+          methods.map(&:to_s),
+          [],
+          "A command to execute (Required)") do |command|
+    options.command = command
+  end
+  
+  opts.on('--broker PATH', "The path to the broker",
+          "(default #{PATH})") do |path|
+    options.broker = path
+  end
+
+  opts.on('--name NAME', "Team name to create, show or delete") do |name|
+    options.name = name
+  end
+  
+  opts.on('--maps-to MAPS_TO', "The distinguished name for the LDAP group that this team should sync with") do |maps_to|
+    options.maps_to = maps_to
+  end
+
+  opts.on('--groups GROUPS', "A comma separated list of LDAP groups to add") do |groups|
+    options.groups = groups.split(",").map(&:strip)
+  end
+  
+  opts.on('--config-file CONFIG_FILE', "Path to file containing LDAP configuration information. See man pages for more information.") do |config_file|
+    options.config_file = config_file
+  end
+  
+  opts.on('--out-file OUT_FILE', "Path to output file.") do |out_file|
+    options.out_file = out_file
+  end
+  
+  opts.on('--in-file IN_FILE', "Path to input file.") do |in_file|
+    options.in_file = in_file
+  end
+  
+  opts.on('--create-new-users', "Create new users in openshift if they do not exist.") do |create_new_users|
+    options.create_new_users = create_new_users
+  end
+  
+  opts.on('--remove-old-users', "Remove members from team that are no longer in the group.") do |remove_old_users|
+    options.remove_old_users = remove_old_users
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit 0
+  end
+end
+p.parse!(ARGV)
+
+if options.command.nil?
+  puts p
+  exit 0
+end
+exit Command.new.send(options.command.downcase.gsub(/[\-]/,'_'), options)
