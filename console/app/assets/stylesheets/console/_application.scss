@@ -221,7 +221,43 @@ h1.applications .flow-block.right .gear-icon {
   //display: inline-block; // makes empty array unbalanced
 }
 
-.team, .domain {
+
+
+#team-list {
+  .team { 
+    @include flex;
+    @include align-items(baseline);
+  }
+  .team h3 {
+    @include flex-basis(1.3em);
+    @include flex-grow(1);
+    @include align-self(flex-start);
+    line-height: 1.3em !important;
+  }
+  .team span {
+    @include align-self(flex-start);
+    padding-left: 15px;
+    display: block;
+  }
+
+  @media (max-width: 979px) {
+    .team {
+      @include flex-direction(column);
+    }
+    .team h3 {
+      @include flex-basis(auto);
+      @include box-sizing(content-box);
+      max-width: 100%;
+    }
+    .team span {
+      padding-left: 0px;
+      padding-top: 10px;
+    }
+  }
+}
+
+
+.domain {
   .flow .flow-block.right {
     font-weight: 300;
   }
@@ -237,7 +273,7 @@ h1.applications .flow-block.right .gear-icon {
 }
 
 @media (max-width: 320px) {
-  .team, .domain {
+  .domain {
     &.tile-click {
       .flow .flow-block.right {
         span {

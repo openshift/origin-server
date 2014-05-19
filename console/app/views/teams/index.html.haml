@@ -23,18 +23,17 @@
 
         - teams.each do |team|
           .tile.team.tile-click
-            %h3.flow
+            %h3
               = link_to team.name, team_path(team), :class => 'tile-target'
 
-              %span.flow-block.right
-                - if team.global?
-                  %span{:title => 'Owner'}
-                    Shared team
-                - elsif owner = team.members.find(&:owner?)
-                  %span{:title => 'Owner'}
-                    Owned by #{owner.name}
-              
-                %span{:title => 'Members'}= pluralize(team.members.count, 'member')
+            - if team.global?
+              %span{:title => 'Owner'}
+                Shared team
+            - elsif owner = team.members.find(&:owner?)
+              %span{:title => 'Owner'}
+                Owned by #{owner.name}
+          
+            %span{:title => 'Members'}= pluralize(team.members.count, 'member')
 
       - if @can_create
         .btn-toolbar.base
