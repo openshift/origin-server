@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.23.3
+Version: 1.23.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -161,6 +161,10 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Mon May 19 2014 Adam Miller <admiller@redhat.com> 1.23.4-1
+- Bug 1097959 - Add THROTTLER_CHECK_PERIOD to detune Throttler
+  (jhonce@redhat.com)
+
 * Wed May 07 2014 Troy Dawson <tdawson@redhat.com> 1.23.3-1
 - Bug 1091433 - Add setting to detune GearStatePlugin (jhonce@redhat.com)
 
