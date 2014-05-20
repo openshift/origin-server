@@ -33,7 +33,6 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] logger
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] gears
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] operation
-  # @param log_file [String] location of cgroups output
   def initialize(config, logger, gears, operation)
     super(config, logger, gears, operation)
     # TODO: Make this configurable?
