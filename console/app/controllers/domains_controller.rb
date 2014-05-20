@@ -23,7 +23,7 @@ class DomainsController < ConsoleController
     @referrer = valid_referrer(params[:then])
 
     if @domain.save
-      if @referrer and (domain_param = params[:domain_param])
+      if @referrer and (domain_param = params[:domain_param]).present?
         @referrer = rewrite_url(@referrer, { domain_param => @domain.name }) rescue nil
       end
       redirect_to @referrer || settings_path, :flash => {:success => "The domain '#{@domain.name}' has been created"}
