@@ -290,7 +290,7 @@
                 empty: function(d) {
                   return [
                     "<div class='empty-message'>",
-                    d.query ? "No matching teams found" : "You do not have any teams. <a href='#{new_team_path(:then => url_for(membership))}'>Create a new team</a>",
+                    (d.query ? "No matching teams found." : "You do not have any teams.") + " <a href='#{new_team_path(:then => url_for(membership))}'>Create a new team</a>",
                     "</div>"
                   ].join("");
                 },

@@ -43,7 +43,7 @@ class TeamsController < ConsoleController
     @referrer = valid_referrer(params[:then])
 
     if @team.save
-      if @referrer and (team_param = params[:team_param])
+      if @referrer and (team_param = params[:team_param]).present?
         @referrer = rewrite_url(@referrer, { team_param => @team.id }) rescue nil
       end
       redirect_to @referrer || team_path(@team), :flash => {:success => "The team '#{@team.name}' has been created"}
