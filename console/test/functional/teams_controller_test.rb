@@ -26,11 +26,33 @@ class TeamsControllerTest < ActionController::TestCase
   end
 
   test "should return json for owned teams" do
-    # TODO
+    with_team
+
+    Team.expects(:find).with() do |*args|
+      args[0] == :all && args[1][:params] == {:owner => "@self"}
+    end.returns([@team])
+
+    @request.env['HTTP_ACCEPT'] = "application/json"
+    get :index, {:owner => "@self"}
+
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal [{'id' => @team.id, 'name' => @team.name}], json
   end
 
   test "should return json for global team search" do
-    # TODO
+    with_team
+
+    Team.expects(:find).with() do |*args|
+      args[0] == :all && args[1][:params] == {:search => "My Search", :global => true}
+    end.returns([])
+
+    @request.env['HTTP_ACCEPT'] = "application/json"
+    get :index, {:search => "My Search", :global => "true"}
+
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal [], json
   end
 
   test "should display team list" do
