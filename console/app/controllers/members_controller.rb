@@ -1,12 +1,10 @@
 class MembersController < ConsoleController
 
   def index
-    redirect_to domain_path(params[:domain_id])
+    redirect_to url_for(membership)
   end
 
   def update
-    @domain = get_domain
-
     # Support :members as hash or array
     p = params[:members] || []
     p = [p] unless p.is_a? Array
@@ -15,40 +13,46 @@ class MembersController < ConsoleController
     members = members.select {|m| m.login.present? || m.id.present? }
 
     if members.present?
-      if @domain.update_members(members)
-        flash[:success] = @domain.messages.first.presence || "Updated members"
+      if membership.update_members(members)
+        flash[:success] = membership.messages.first.presence || "Updated members"
       else
-        flash.now[:error] = @domain.errors[:members].first || "Could not update members."
-        @capabilities = user_capabilities
-        @new_members = members.select {|m| m.attributes[:adding] }
-        render :template => 'domains/show' and return
+        flash.now[:error] = membership.errors[:members].first || "Could not update members."
+        show_edit_with_errors(members)
+        return
       end
     end
-    redirect_to domain_path(@domain)
+    redirect_to url_for(membership)
   end
 
   def leave
-    @domain = get_domain
     if request.post?
-      if @domain.leave
-        flash[:success] = @domain.messages.first.presence || "You are no longer a member of the domain '#{@domain.name}'"
-        redirect_to console_path
+      if membership.leave
+        flash[:success] = membership.messages.first.presence || "You are no longer a member of '#{membership.name}'"
+        redirect_to left_path
       else
-        flash[:error] = @domain.errors[:base].first.presence || @domain.messages.first.presence || "Could not leave the domain '#{@domain.name}'"
-        redirect_to domain_path(@domain)
+        flash[:error] = membership.errors[:base].first.presence || membership.messages.first.presence || "Could not leave '#{membership.name}'"
+        redirect_to url_for(membership)
       end
+    else
+      render "leave_#{membership.class.model_name.downcase}"
     end
   end
 
   protected
-    def get_domain
-      @domain ||= Domain.find(params[:domain_id], :params => {:include => :application_info}, :as => current_user)
+    def show_edit_with_errors(members)
+      raise "unimplemented"
+    end
+
+    def left_path
+      raise "unimplemented"
+    end
+
+    def membership
+      raise "unimplemented"
     end
 
     def new_member(params={})
-      member = Domain::Member.new(params)
-      member.domain = get_domain
-      member
+      raise "unimplemented"
     end
 
 end

@@ -1,6 +1,6 @@
 require File.expand_path('../../test_helper', __FILE__)
 
-class MembersControllerTest < ActionController::TestCase
+class DomainMembersControllerTest < ActionController::TestCase
 
   def setup
     @user = with_unique_user

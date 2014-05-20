@@ -217,7 +217,7 @@ class MembersController < BaseController
           end
           render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:warn, msg, 132))
         else
-          render_success(requested_api_version <= 1.4 ? :no_content : :ok, nil, nil, "Removed member.")
+          render_success(requested_api_version <= 1.4 ? :no_content : :ok, nil, nil, is_self ? "You are no longer a member." : "Removed member.")
         end
       else
         render_error(:unprocessable_entity, "The member could not be removed due to an error.", 1, nil, nil, get_error_messages(membership))

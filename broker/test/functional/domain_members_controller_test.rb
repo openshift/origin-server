@@ -544,7 +544,7 @@ class DomainMembersControllerTest < ActionController::TestCase
         assert json = JSON.parse(response.body)
         assert message = Array(json['messages']).first, response.body
         assert_equal 'info', message['severity'], message.inspect
-        assert message['text'] =~ /Removed member/, message.inspect
+        assert message['text'] =~ /You are no longer a member/, message.inspect
     end
 
   end

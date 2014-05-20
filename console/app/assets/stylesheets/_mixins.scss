@@ -234,3 +234,76 @@
        -o-transition: $transition;
           transition: $transition;
 }
+
+
+@mixin flex {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+@mixin align-items($align: stretch) {
+  @if $align == flex-start {
+    -webkit-box-align: start;
+    -ms-flex-align: start;
+  } @else if $align == flex-end {
+    -webkit-box-align: end;
+    -ms-flex-align: end;
+  } @else {
+    -webkit-box-align: $align;
+    -ms-flex-align: $align;
+  }
+  -webkit-align-items: $align;
+  -moz-align-items: $align;
+  align-items: $align;
+}
+
+@mixin align-self($value: auto) {
+  -webkit-align-self: $value;
+  -moz-align-self: $value;
+  @if $value == flex-start {
+    -ms-flex-item-align: start;
+  } @else if $value == flex-end {
+    -ms-flex-item-align: end;
+  } @else {
+    -ms-flex-item-align: $value;
+  }
+  align-self: $value;
+}
+
+@mixin flex-basis($basis: auto) {
+  -webkit-flex-basis: $basis;
+  -moz-flex-basis: $basis;
+  -ms-flex-preferred-size: $basis;
+  flex-basis: $basis;
+}
+
+@mixin flex-grow($amount: 0) {
+  -webkit-box-flex: $amount;
+  -webkit-flex-grow: $amount;
+  -moz-flex-grow: $amount;
+  -ms-flex-positive: $amount;
+  flex-grow: $amount;
+}
+
+@mixin flex-direction($direction: row) {
+  @if $direction == row-reverse {
+    -webkit-box-direction: reverse;
+    -webkit-box-orient: horizontal;
+  } @else if $direction == column {
+    -webkit-box-direction: normal;
+    -webkit-box-orient: vertical;
+  } @else if $direction == column-reverse {
+    -webkit-box-direction: reverse;
+    -webkit-box-orient: vertical;
+  } @else {
+    -webkit-box-direction: normal;
+    -webkit-box-orient: horizontal;
+  }
+  -webkit-flex-direction: $direction;
+  -moz-flex-direction: $direction;
+  -ms-flex-direction: $direction;
+  flex-direction: $direction;
+}

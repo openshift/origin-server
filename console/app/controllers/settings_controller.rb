@@ -1,11 +1,13 @@
 class SettingsController < ConsoleController
   include AsyncAware
   include DomainAware
+  include TeamAware
 
   def show
     @user = current_user
 
     @domains = user_domains(:refresh => true)
+    @teams = user_teams
     
     async{ @capabilities = user_capabilities }
     async{ @keys = Key.all :as => @user }

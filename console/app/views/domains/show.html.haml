@@ -65,7 +65,7 @@
           %p The owner has disabled creation - no gear sizes allowed
 
       %h2 Members
-      = render :partial => 'members/members_form', :locals => {:domain => @domain, :members => @domain.members, :new_members => @new_members, :editable => @domain.admin?, :editing => @new_members.present?, :owned_teams => @capabilities.max_teams > 0, :global_teams => @capabilities.view_global_teams}
+      = render :partial => 'members/members_form', :locals => {:membership => @domain, :new_members => @new_members, :editable => @domain.admin?, :owned_teams => @capabilities.max_teams > 0, :global_teams => @capabilities.view_global_teams, :show_help => true}
 
       - if @domain.owner?
         .btn-toolbar

@@ -1,0 +1,13 @@
+= form_tag team_leave_path(team), :method => :post do
+  %p
+    Once you remove yourself, you will not have access to this team.
+  %p
+    Confirm leaving the team
+    %strong
+      '#{team.name}'?
+
+  = hidden_field_tag(:id, team.me.id)
+  = hidden_field_tag(:role, :none)
+  .form-actions
+    = link_to 'Cancel', team_path(team), :class => 'btn cancel'
+    = submit_tag "Leave Team", :class => 'btn btn-danger'

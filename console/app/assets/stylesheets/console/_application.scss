@@ -69,7 +69,9 @@ h1.applications .flow-block.right .gear-icon {
 
 .section-body {
   #app-list,
-  #app-cartridges {
+  #app-cartridges,
+  #team-list,
+  #team-member-list {
     > h2 {
       font-size: $h4FontSize;
       line-height: $h4LineHeight;
@@ -218,6 +220,42 @@ h1.applications .flow-block.right .gear-icon {
   max-width: 65%;
   //display: inline-block; // makes empty array unbalanced
 }
+
+
+
+#team-list {
+  .team { 
+    @include flex;
+    @include align-items(baseline);
+  }
+  .team h3 {
+    @include flex-basis(1.3em);
+    @include flex-grow(1);
+    @include align-self(flex-start);
+    line-height: 1.3em !important;
+  }
+  .team span {
+    @include align-self(flex-start);
+    padding-left: 15px;
+    display: block;
+  }
+
+  @media (max-width: 979px) {
+    .team {
+      @include flex-direction(column);
+    }
+    .team h3 {
+      @include flex-basis(auto);
+      @include box-sizing(content-box);
+      max-width: 100%;
+    }
+    .team span {
+      padding-left: 0px;
+      padding-top: 10px;
+    }
+  }
+}
+
 
 .domain {
   .flow .flow-block.right {

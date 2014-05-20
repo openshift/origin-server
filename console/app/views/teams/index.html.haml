@@ -4,13 +4,46 @@
   .grid-wrapper.section-header
     %nav.span12.teams
       %h1.icon-heading
-        %span.icon-users{'aria-hidden'=>"true"}
+        %span.font-icon.icon-users{'aria-hidden'=>"true"}
         Teams
 
 %section
   .row
     .span8#team-list
-      - @teams.each do |team|
-        .tile.team
-          %h3.flow
-            = team.name
+      - if @teams.blank?
+        You are not a member of any teams
+
+      - groups = @teams.sort_by{ |t| [t.owner? ? 0 : 1, t.global? ? 0 : 1, t.name] }.group_by{ |t| t.owner? }
+      - groups.each_pair do |owned, teams|
+        %h2.owner
+          - if owned
+            Teams you own
+          - else
+            Teams you are a member of
+
+        - teams.each do |team|
+          .tile.team.tile-click
+            %h3
+              = link_to team.name, team_path(team), :class => 'tile-target'
+
+            - if team.global?
+              %span{:title => 'Owner'}
+                Shared team
+            - elsif owner = team.members.find(&:owner?)
+              %span{:title => 'Owner'}
+                Owned by #{owner.name}
+          
+            %span{:title => 'Members'}= pluralize(team.members.count, 'member')
+
+      - if @can_create
+        .btn-toolbar.base
+          = link_to new_team_path, :class => 'btn btn-primary' do
+            Add
+            %strong Team&hellip;
+            %i.icon-add
+
+    .span4#team-member-list.sidebar
+      %p
+        People who typically share the same role can be added to a team. The team can then be added as a member of a domain, and all of the people in the team will inherit the team's role on the domain.
+      %p
+        If a person is a member of multiple teams which are members of a domain, or is also added as a domain member individually, their effective role is the higher of their individual role or their teams' roles on the domain.

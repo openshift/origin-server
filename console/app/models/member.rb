@@ -51,4 +51,33 @@ class Member < RestApi::Base
     end
   end
 
+  def self.default_role
+    'edit'
+  end
+
+  def allowed_roles
+    ['view','edit','admin']
+  end
+
+  def role_description(role=role)
+    in_team = from.any? {|f| f[:type] == 'team' }
+
+    case role.to_s
+    when 'admin'
+      in_team ? 'Can administer (+ team access)' : 'Can administer'
+    when 'edit'
+      in_team ? 'Can edit (+ team access)' : 'Can edit'
+    when 'view'
+      in_team ? 'Can view (+ team access)' : 'Can view'
+    when 'none'
+      in_team ? 'Team access only' : 'No role'
+    else
+      role.to_s.humanize
+    end
+  end
+
+  def allowed_role_descriptions(include_blank=false)
+    ((include_blank ? ['none'] : []) + allowed_roles).map {|r| [role_description(r), r] }
+  end
+
 end

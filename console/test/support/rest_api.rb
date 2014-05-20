@@ -37,6 +37,11 @@ class ActiveSupport::TestCase
     new_user(:login => name, :password => 'foo')
   end
 
+  def with_user_with_allowed_teams
+    set_user(new_named_user('user_with_allowed_teams@test.com'))
+    @controller.stubs(:current_user).returns(set_user(new_named_user('user_with_allowed_teams@test.com')))
+  end
+
   def with_user_with_multiple_gear_sizes
     set_user(new_named_user('user_with_multiple_gear_sizes@test.com'))
     @controller.stubs(:current_user).returns(set_user(new_named_user('user_with_multiple_gear_sizes@test.com')))

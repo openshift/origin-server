@@ -1,0 +1,24 @@
+%h2 Teams
+%p
+  Organize users into teams to make domain member management easier.
+
+- if @teams.present?
+  %table.table.table-condensed.table-fixed
+    - @teams.first(3).each do |t|
+      %tr
+        %td= link_to t.name, team_path(t)
+        %td
+          - if t.members.count > 1
+            = pluralize(t.members.count - 1, 'other member')
+          - else
+            No other members
+        %td
+          - if t.global?
+            = "Shared team"
+          - if !t.owner?
+            = "Owned by #{t.members.find(&:owner?).name}" rescue ""
+
+- if @teams.length > 3
+  %p= link_to "See other teams", teams_path
+- elsif @teams.count(&:owner?) < @capabilities.max_teams
+  %p= link_to "Create a new team", new_team_path
