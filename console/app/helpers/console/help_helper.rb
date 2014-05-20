@@ -51,7 +51,7 @@ module Console::HelpHelper
   end
 
   def openshift_blog_url
-    community_base_url 'blogs'
+    community_base_url 'blog'
   end
 
   def openshift_twitter_url
@@ -175,7 +175,7 @@ module Console::HelpHelper
   end
 
   def blog_post_url(post)
-    community_base_url "blogs/#{post}"
+    community_base_url "blog/#{post}"
   end
 
   def community_document_url(file)
@@ -304,6 +304,6 @@ module Console::HelpHelper
   end
 
   def alias_docs_url
-    community_base_url 'blogs/custom-url-names-for-your-paas-applications-host-forwarding-and-cnames-the-openshift-way'
+    community_base_url 'blog/custom-url-names-for-your-paas-applications-host-forwarding-and-cnames-the-openshift-way'
   end
 end
