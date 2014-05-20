@@ -1,0 +1,32 @@
+#!/bin/bash
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+function update_configuration {
+    set +u
+    local path_tail="/root/usr/bin"
+    local pe=""
+    local scls=( $(mongodb_context "printenv X_SCLS") )
+    local env_dir="${OPENSHIFT_MONGODB_DIR}/env"
+
+    for collection in ${scls[*]}
+    do
+        pe+="$(cat /etc/scl/prefixes/${collection})/${collection}${path_tail}"
+        if [[ $collection != ${scls[${#scls[@]}-1]} ]]
+        then
+            pe+=":"
+        fi
+    done
+    set_env_var 'OPENSHIFT_MONGODB_PATH_ELEMENT' $pe $env_dir
+
+    local ld_path=$(LD_LIBRARY_PATH="" scl enable mongodb24 "printenv LD_LIBRARY_PATH")
+    set_env_var 'OPENSHIFT_MONGODB_LD_LIBRARY_PATH_ELEMENT' ${ld_path:-:} $env_dir
+
+    local man_path=$(MANPATH="" scl enable mongodb24 "printenv MANPATH")
+    path_append ${MANPATH:-:} ${man_path:-:} > ${env_dir}/MANPATH
+
+}
+
+function mongodb_context {
+    /usr/bin/scl enable mongodb24 "$1"
+}
