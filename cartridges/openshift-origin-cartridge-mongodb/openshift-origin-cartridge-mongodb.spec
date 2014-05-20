@@ -8,10 +8,10 @@ Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      mongodb-server
-Requires:      mongodb-devel
-Requires:      libmongodb
-Requires:      mongodb
+Requires:      mongodb24-mongodb-server
+Requires:      mongodb24-mongodb-devel
+Requires:      mongodb24-libmongodb
+Requires:      mongodb24-mongodb
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Provides:      openshift-origin-cartridge-mongodb-2.2 = 2.0.0
@@ -47,6 +47,7 @@ fi
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
+%attr(0755,-,-) %{cartridgedir}/lib/
 %attr(0755,-,-) %{cartridgedir}/hooks/
 %{cartridgedir}/conf
 %{cartridgedir}/metadata

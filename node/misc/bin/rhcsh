@@ -197,6 +197,7 @@ function psql() {
 }
 
 function mongo() {
+   local mongo_bin=$(which mongo)
    if test $# -gt 0; then
       uopt=""
       popt=""
@@ -215,7 +216,7 @@ function mongo() {
       fi
    fi
 
-   ( unset LD_LIBRARY_PATH; /usr/bin/mongo ${hopt} ${uopt} ${popt} "$@" )
+   ${mongo_bin} ${hopt} ${uopt} ${popt} "$@"
 }
 
 # The mco command shouldn't be run by gears
