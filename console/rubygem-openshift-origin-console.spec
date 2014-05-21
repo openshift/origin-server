@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.25.1
+Version: 1.25.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,18 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 21 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
+- Merge pull request #5430 from liggitt/improve_team_creation
+  (dmcphers+openshiftbot@redhat.com)
+- Add create link when no team matches are found (jliggitt@redhat.com)
+- Merge pull request #5428 from ShalomPisteuo/bug_1065154
+  (dmcphers+openshiftbot@redhat.com)
+- Updating file paths from blogs to blog (shalompisteuo@gmail.com)
+- Test JSON endpoints for typeahead (jliggitt@redhat.com)
+- Remove Typo (jliggitt@redhat.com)
+- Bug 1098903: Fix team name truncation (jliggitt@redhat.com)
+- Add Team management UI (jliggitt@redhat.com)
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
 - Bug 1092066: Prevent javascript links in cartridges (jliggitt@redhat.com)
 - bump_minor_versions for sprint 45 (admiller@redhat.com)
