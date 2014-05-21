@@ -1,4 +1,12 @@
 #!/bin/sh -e
+
+cp /opt/ruby/.bashrc ~/.bashrc
+
+# Copy puma.cfg
+cp -r /opt/ruby/etc /root/etc
+source ~/.bashrc
+mkdir -p /root/run
+
 mkdir -p ~/.openshift
 cp /tmp/src/broker/misc/docker_broker_plugins.rb ~/.openshift/broker_plugins.rb
 mkdir -p /etc/openshift
@@ -13,10 +21,6 @@ chmod 750 /usr/sbin/oo-*
 cp /tmp/src/broker-util/lib/* /opt/rh/ruby193/root/usr/share/ruby/
 
 # Imported from ruby-19-centos assemble
-# Since we are root and not the ruby user, we need to 
-# explicitly point to the ruby user's bashrc
-#[ -f ${HOME}/.bashrc ] && source ${HOME}/.bashrc
-[ -f /opt/ruby/.bashrc ] && source /opt/ruby/.bashrc
 
 function rake_assets_precompile() {
   [ -f .sti/markers/disable_asset_compilation ] && return
