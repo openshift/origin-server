@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.24.1
+Version: 1.24.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -161,6 +161,14 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed May 21 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- Merge pull request #5434 from jwhonce/bug/1099772
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1099772 - Add message for unidle on secondary gear (jhonce@redhat.com)
+- Add OOM_CHECK_PERIOD to oo-watchman man page (agrimm@redhat.com)
+- Remove an incorrect comment line in oom_plugin (agrimm@redhat.com)
+- Introduce oom plugin and disable syslog plugin (agrimm@redhat.com)
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
 - Bug 1097959 - Add THROTTLER_CHECK_PERIOD to detune Throttler
   (jhonce@redhat.com)
