@@ -103,7 +103,7 @@ module OpenShift
       # @param reason [String] reason for failure
       def failed(msg, reason)
         NodeLogger.logger.error %Q((#{Process.pid}) #{msg}[ FAILED ]\n  #{reason})
-        $stdout.puts %Q(#{msg}[ #{$stdout.tty? ? RED : ''} FAILED #{$stdout.tty? ? NORMAL : ''}]\n #{reason}])
+        $stdout.puts %Q(#{msg}[ #{$stdout.tty? ? RED : ''} FAILED #{$stdout.tty? ? NORMAL : ''}]\n #{reason})
       end
 
       # For a given gear monitor some operation
@@ -217,7 +217,10 @@ module OpenShift
       def unidlegear
         results = Parallel.map(gears(IGNORE_LOCK), @options) do |gear|
           msg = "Unidling gear #{gear.uuid} ... "
-          gear_action(gear, msg) { |g| g.unidle_gear }
+          gear_action(gear, msg) do |g|
+            output = g.unidle_gear
+            raise RuntimeError, output unless output.empty?
+          end
         end
         report_failures(results.select { |h| 0 != h[:exitstatus] })
       end
