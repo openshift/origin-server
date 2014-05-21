@@ -521,23 +521,7 @@ class Application
       # Cartridges can contribute overrides
       spec.cartridge.group_overrides.each do |override|
         if o = GroupOverride.resolve_from(specs, override)
-          platforms = o.components.map do |component|
-            cart = CartridgeCache.find_cartridge(component.cartridge_name, self)
-
-            unless cart
-              # check inside specs for the cartridge object,
-              # since d/l carts are not stored in the application yet
-              cart = specs.map {|s| s.cartridge if s.cartridge.name == component.cartridge_name }.compact.first
-            end
-
-            cart ? cart.platform : nil
-          end
-
-          # only allow grouping if we're working with a single platform
-          # compact will remove nils from the array, to exclude carts that have not been found
-          if platforms.compact.uniq.size == 1
-            overrides << o.implicit
-          end
+          overrides << o.implicit
         end
       end
 
@@ -611,7 +595,7 @@ class Application
       end
     end
 
-    overrides
+    split_platform_overrides(overrides)
   end
 
   ##
@@ -2562,6 +2546,8 @@ class Application
     # use a new set of group overrides
     overrides.concat(group_overrides)
 
+    overrides = split_platform_overrides(overrides)
+
     # Calculate connections and add any shared placement rules
     connections, connection_overrides = connections_from_component_specs(specs)
     overrides.concat(connection_overrides)
@@ -2572,6 +2558,35 @@ class Application
     end
 
     [connections, groups]
+  end
+
+  # Replaces group overrides that contain components with more than one platform
+  #
+  # == Parameters:
+  # overrides::
+  #   An array of GroupOverride instances
+  #
+  # == Returns:
+  #   An array of GroupOverride instances that do not contain components with more that one platform.
+  def split_platform_overrides(overrides)
+    return overrides unless overrides
+    split_overrides = []
+
+    overrides.each do |group_override|
+      next unless group_override
+
+      # only allow grouping if we're working with a single platform
+      if group_override.components.map {|c| c.cartridge.platform rescue nil }.compact.uniq.count > 1
+        group_override.components.each do |c|
+          split_overrides << GroupOverride.new([c], group_override.min_gears, group_override.max_gears,
+                                               group_override.gear_size, group_override.additional_filesystem_gb).implicit
+        end
+      else
+        split_overrides << group_override
+      end
+    end
+
+    split_overrides
   end
 
   def component_specs_from(cartridges)
