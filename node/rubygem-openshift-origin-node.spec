@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.25.1
+Version: 1.25.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed May 21 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
+- Merge pull request #5434 from jwhonce/bug/1099772
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5433 from jwhonce/bug/1099835
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1099772 - Add message for unidle on secondary gear (jhonce@redhat.com)
+- Bug 1099835 - Add missing require (jhonce@redhat.com)
+- Disable OOM kills for gear cgroups (agrimm@redhat.com)
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
 - Bug 1088623 - Removed unused .uservars directory references
   (jhonce@redhat.com)
