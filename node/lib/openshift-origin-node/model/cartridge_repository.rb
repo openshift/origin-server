@@ -70,6 +70,8 @@ require 'open-uri'
 require 'uri'
 require 'rubygems/package'
 require 'openssl'
+require 'shellwords'
+
 
 $OpenShift_CartridgeRepository_SEMAPHORE = Mutex.new
 
