@@ -49,6 +49,9 @@ Default: 0 seconds
 Wait at least this number of seconds before checking gears' cgroup state on the Node.
 Increase this to reduce \fBWatchman\fR's impact on the system.
 Default: 5 seconds
+.B  OOM_CHECK_PERIOD
+Wait at least this number of seconds since last check before looking for gears under OOM.
+Default: 0 seconds
 .SH FILES
 .TP
 .FN /etc/sysconfig/watchman
