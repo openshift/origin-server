@@ -35,6 +35,7 @@ RUN yum install --enablerepo=openshift-deps-rhel6 --assumeyes \
 # currently the assemble script needs root so we can't set the default user to non-root
 # or the sti build will fail.
 #USER ruby
+ENV HOME /root
 
 # BROKER_SOURCE tells the broker to include gems based on source locations
 ENV BROKER_SOURCE 1
