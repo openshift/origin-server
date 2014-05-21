@@ -433,8 +433,6 @@ module OpenShift
       # @param options [Hash<>] ignored
       # @return [String] output from starting gear
       def unidle_gear(options={})
-        output = ''
-
         PathUtils.flock(@gear_lock) do
           broker_addr = @config.get('BROKER_HOST')
           gear_env    = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
@@ -444,7 +442,9 @@ module OpenShift
           url         = "https://#{broker_addr}/broker/rest/domain/#{domain}/application/#{app_name}/events"
 
           params = broker_auth_params
-          return unless params
+          unless params
+            return "Cannot unidle application using gear #{@uuid}. Head gear must be used to unidle applications."
+          end
 
           params['event']         = 'start'
           params[:application_id] = app_uuid
@@ -468,7 +468,7 @@ module OpenShift
           end
         end
 
-        return output
+        return ''
       end
 
       ##
