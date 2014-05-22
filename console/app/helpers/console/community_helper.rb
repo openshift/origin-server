@@ -1,7 +1,7 @@
 module Console::CommunityHelper
 
   def irc_web_url
-    'http://webchat.freenode.net/?randomnick=1&channels=openshift&uio=d4'
+    Console.config.env(:IRC_WEB_URL, 'http://webchat.freenode.net/?randomnick=1&channels=openshift&uio=d4')
   end
 
   def link_to_irc
@@ -9,27 +9,27 @@ module Console::CommunityHelper
   end
 
   def openshift_twitter_hashtag_url
-    'http://twitter.com/search/%23OpenShift'
+    Console.config.env(:OPENSHIFT_TWITTER_HASHTAG_URL, 'http://twitter.com/search/%23OpenShift')
   end
 
   def openshift_twitter_url
-    'http://twitter.com/openshift'
+    Console.config.env(:OPENSHIFT_TWITTER_URL, 'http://twitter.com/openshift')
   end
 
   def openshift_ops_twitter_url
-    'http://twitter.com/openshift_ops'
+    Console.config.env(:OPENSHIFT_OPS_TWITTER_URL, 'http://twitter.com/openshift_ops')
   end
 
   def open_bug_url
-    'https://bugzilla.redhat.com/enter_bug.cgi?product=OpenShift%20Origin'
+    Console.config.env(:OPEN_BUG_URL, 'https://bugzilla.redhat.com/enter_bug.cgi?product=OpenShift%20Origin')
   end
 
   def openshift_github_url
-    'https://github.com/openshift'
+    Console.config.env(:OPENSHIFT_GITHUB_URL, 'https://github.com/openshift')
   end
 
   def stack_overflow_url
-    'http://stackoverflow.com/questions/tagged/openshift/'
+    Console.config.env(:STACK_OVERFLOW_URL, 'http://stackoverflow.com/questions/tagged/openshift/')
   end
 
   def stack_overflow_link
@@ -37,11 +37,11 @@ module Console::CommunityHelper
   end
 
   def client_tools_url
-    openshift_github_project_url 'rhc'
+    openshift_github_project_url Console.config.env(:GITHUB_CLIENT_TOOLS_REPO, 'rhc')
   end
 
   def origin_server_url
-    openshift_github_project_url 'origin-server'
+    openshift_github_project_url Console.config.env(:GITHUB_ORIGIN_SERVER_REPO, 'origin-server')
   end
 
   def origin_server_source_path_url(path)
@@ -53,23 +53,27 @@ module Console::CommunityHelper
   end
 
   def origin_server_srpm_url
-   "http://mirror.openshift.com/pub/openshift-origin/nightly/fedora-latest/latest/SRPMS/"
+   Console.config.env(:ORIGIN_SERVER_SRPM_URL, 'http://mirror.openshift.com/pub/openshift-origin/nightly/fedora-latest/latest/SRPMS/')
   end
 
   def openshift_github_project_url(project)
-    "https://github.com/openshift/#{project}"
+    "#{openshift_github_url}/#{project}"  
   end
 
   def red_hat_account_url
-    'https://www.redhat.com/wapps/ugc'
+    Console.config.env(:RED_HAT_ACCOUNT_URL, 'https://www.redhat.com/wapps/ugc')
   end
 
+  def contact_mail
+    Console.config.env(:CONTACT_MAIL, 'openshift@redhat.com')
+  end 
+
   def mailto_openshift_url
-    'mailto:openshift@redhat.com'
+    'mailto:'+contact_mail
   end
 
   def link_to_account_mailto
-    link_to "openshift@redhat.com", mailto_openshift_url
+    link_to contact_mail, mailto_openshift_url
   end
 
   def status_jsonp_url(id)
