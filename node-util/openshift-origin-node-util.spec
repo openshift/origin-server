@@ -1,3 +1,7 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %global with_systemd 1
 %else
@@ -15,6 +19,7 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      oddjob
 Requires:      rng-tools
 Requires:      rubygem-openshift-origin-node
+Requires:      %{?scl:%scl_prefix}rubygem-daemons
 Requires:      httpd
 Requires:      php >= 5.3.2
 Requires:      lsof
