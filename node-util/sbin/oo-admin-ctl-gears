@@ -45,6 +45,7 @@ end
 
 global_option('-n', '--processes COUNT', Integer, 'Number of processes to use')
 global_option('-w', '--timeout SECONDS', Integer, 'Number of seconds to wait for operation')
+default_command :help
 
 HONOR_LOCK  = true
 IGNORE_LOCK = false

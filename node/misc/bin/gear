@@ -22,6 +22,7 @@ require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/utils/node_logger'
 
+# Always keep this last for performance
 require 'commander/import'
 
 name="#{__FILE__}"
@@ -94,6 +95,7 @@ def do_command(command, options)
 end
 
 global_option('--trace', 'Enable stack traces when reporting errors')
+default_command :help
 
 command :prereceive do |c|
   c.syntax = "#{name} prereceive"

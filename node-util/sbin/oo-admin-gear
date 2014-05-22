@@ -20,6 +20,7 @@ require 'fileutils'
 require 'openshift-origin-node'
 require 'openshift-origin-node/utils/cgroups/libcgroup'
 
+# Always keep this last for performance
 require 'commander/import'
 $name = File.basename __FILE__
 
@@ -37,6 +38,7 @@ unless 'root' == Etc.getpwuid(Process::uid).name
 end
 
 global_option('-c', '--with-container-uuid UUID', 'Unique identifier for the gear, if provided must be first argument')
+default_command :help
 
 def usage(message, details = nil)
   $stderr.puts details + "\n\n" if details
