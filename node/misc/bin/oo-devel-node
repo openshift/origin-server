@@ -24,6 +24,8 @@ require 'openshift-origin-node'
 require 'securerandom'
 require 'digest/sha1'
 require 'json'
+
+# Always keep this last for performance
 require 'commander/import'
 
 # Don't buffer output to the client
@@ -44,6 +46,7 @@ end
 
 global_option('-c', '--with-container-uuid UUID', 'Unique identifier for the gear, if provided must be first argument')
 global_option('-t', '--trace', 'Enable stack traces when reporting errors and additional diagnostic output') { $trace = true }
+default_command :help
 
 def execute
   begin

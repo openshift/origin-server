@@ -1,12 +1,15 @@
 #!/usr/bin/env oo-ruby
 
-require 'commander/import'
 require 'openshift-origin-common/config'
 require 'fileutils'
+
+# Always keep this last for performance
+require 'commander/import'
 
 program :name, "OpenShift Node Repair Kit"
 program :version, "1.0.0"
 program :description, "An assortment of node and gear repair utilities"
+default_command :help
 
 name = "#{__FILE__}"
 
@@ -72,11 +75,11 @@ end
 
 command :'gear-clean-upgrade' do |c|
   c.syntax = "#{name} gear-clean-upgrade [options]"
-  
+
   c.description = "Clean upgrade metadata from the specified gear"
   c.option "--gear UUID", "UUID or homedir of gear to clean"
   c.action do |args, options|
-    config = OpenShift::Config.new 
+    config = OpenShift::Config.new
     gear_option = options.gear
 
     gear_home = if gear_option =~ /\//

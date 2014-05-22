@@ -2,16 +2,20 @@
 require 'rubygems'
 require 'logger'
 require 'date'
-require 'commander/import'
 require 'openshift-origin-common'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-common/utils/file_needs_sync'
 require 'set'
 
+# Always keep this last for performance
+require 'commander/import'
+
 name = "#{__FILE__}"
 program :name, "OpenShift Auto Idler"
 program :version, "1.0.0"
 program :description, "Utility to idle gears"
+
+default_command :help
 
 IDLER_IGNORELIST = "/etc/openshift/node/idler_ignorelist.conf"
 $config = OpenShift::Config.new
@@ -98,7 +102,7 @@ end
 def gear_stale?(gear_dir, gear_uuid, interval)
   $log.debug "Evaluating #{gear_uuid}"
   status = ( has_frontend?(gear_dir) and not code_committed?(gear_dir, interval) )
-  app_access_status, last_access =  app_accessed?(gear_uuid, interval) 
+  app_access_status, last_access =  app_accessed?(gear_uuid, interval)
   status = ( status and (not app_access_status) and is_head_gear?(gear_dir) )
   return [status,last_access]
 end
@@ -145,7 +149,7 @@ def idle_gears(interval, list_only)
       next
     end
     is_stale, recent_access = gear_stale?(gear_dir, gear_uuid, interval)
-    if recent_access != -1 
+    if recent_access != -1
       most_recent_last_access = ( ( most_recent_last_access==-1 || most_recent_last_access>recent_access ) ? recent_access : most_recent_last_access )
     end
     if is_stale
