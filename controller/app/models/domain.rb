@@ -112,6 +112,16 @@ class Domain
     domain
   end
 
+  def self.accessible_criteria(to)
+    # Find all accessible apps
+    # Select only the domain_id field
+    # Remove duplicates
+    domain_ids = Application.accessible(to).map(&:domain_id).uniq
+
+    # Return normally accessible domains, or domains containing accessible apps
+    self.or(super.selector, {:id.in => domain_ids})
+  end
+
   def self.sort_by_original(user)
     lambda{ |d| [user._id == d.owner_id ? 0 : 1, d.created_at] }
   end

@@ -36,7 +36,7 @@ class Team
   # Invoke save! with a rescue for a duplicate exception
   #
   # == Returns:
-  #   True if the domain was saved.
+  #   True if the team was saved.
   def save_with_duplicate_check!
     self.save!
   rescue Moped::Errors::OperationFailure => e
@@ -46,7 +46,9 @@ class Team
 
   # Hook to prevent accidental deletion of MongoID model before all related {Gear}s are removed
   before_destroy do |team|
-    raise "Please call destroy_team to remove from all domains before deleting this team" if Domain.accessible(team).count > 0
+    if Domain.accessible(team).count > 0 || Application.accessible(team).count > 0
+      raise "Please call destroy_team to remove from all domains and applications before deleting this team"
+    end
   end
 
   def destroy_team
@@ -55,6 +57,13 @@ class Team
       d.save!
       d.run_jobs
     end
+
+    Application.accessible(self).each do |a|
+      a.remove_members(self)
+      a.save!
+      a.with_lock { a.run_jobs }
+    end
+
     destroy
   end
 
@@ -67,13 +76,16 @@ class Team
   end
 
   def self.accessible_criteria(to)
-    # Find all accessible domains which also have teams as members
+    # Find all accessible domains and apps which also have teams as members
     # Select only the members field
     # Flatten the list of members
     # Limit to members of type 'team'
     # Select ids
     # Remove duplicates
-    peer_team_ids = Domain.accessible(to).and({'members.t' => Team.member_type}).map(&:members).flatten(1).select {|m| m.type == 'team'}.map(&:_id).uniq
+    peer_team_ids = []
+    peer_team_ids += Domain.accessible(to).and({'members.t' => Team.member_type}).map(&:members).flatten(1).select {|m| m.type == 'team'}.map(&:_id)
+    peer_team_ids += Application.accessible(to).and({'members.t' => Team.member_type}).map(&:members).flatten(1).select {|m| m.type == 'team'}.map(&:_id)
+    peer_team_ids.uniq!
 
     if (to.is_a?(CloudUser) && !to.view_global_teams)
       # Return teams which would normally be accessible or peer teams

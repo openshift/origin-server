@@ -211,6 +211,14 @@ class RestApplication < OpenShift::Model
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
         "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "application/#{@id}/aliases")),
         "LIST_MEMBERS" => Link.new("List members of this application", "GET", URI::join(url, "application/#{@id}/members")),
+        "UPDATE_MEMBERS" => Link.new("Add or remove one or more members to this team.", "PATCH", URI::join(url, "application/#{@id}/members"),
+          [Param.new("role", "string", "The role the member should have on the application", Role.all)],
+          [OptionalParam.new("type", "string", "The member's type. i.e. user or team", ["user", "team"], "user"),
+          OptionalParam.new("id", "string", "Unique identifier of the member for the given member type (user or team ID)"),
+          OptionalParam.new("login", "string", "The user's login attribute"),
+          OptionalParam.new("members", "Array", "An array of members to add with corresponding type and role. e.g. {'members': [{'login': 'foo', 'type': 'user', 'role': 'view'}, {'id': '5326534e2046fde9d3000001', 'type': 'team', 'role': 'none'}]}")]
+        ),
+        "LEAVE" => Link.new("Remove yourself as a member of the application", "DELETE", URI::join(url, "application/#{@id}/members/self")),
         "ADD_ENVIRONMENT_VARIABLE" => Link.new("Add an environment variable", "POST", URI::join(url, "application/#{@id}/environment-variables"), [
           Param.new("name", "string", "Name of the environment variable"),
           Param.new("value", "string", "Value of the environment variable")

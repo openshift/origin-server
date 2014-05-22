@@ -17,6 +17,17 @@ class ChangeMembersTeamOp < PendingTeamOps
           d.run_jobs
         end
       end
+
+      Application.accessible(team).each do |a|
+        if team_role = a.role_for(team)
+          a.remove_members(members_removed || [], from)
+          a.add_members((members_added || []).map{ |m| Team.to_member(m).tap {|member| member.role = team_role } }, from)
+          if a.has_member_changes?
+            a.save!
+          end
+          a.with_lock { a.run_jobs }
+        end
+      end
     end
     set_state(:completed)
   end
