@@ -254,25 +254,20 @@ module Console::ModelHelper
     end
   end
 
-  def in_groups_by_tag(ary, tags)
-    groups = {}
-    other = ary.reject do |t|
-      tags.any? do |tag|
-        (groups[tag] ||= []) << t if t.tags.include?(tag)
+  def in_groups_by_tag(types, tags)
+    categorized = []
+    uncategorized = types
+
+    tags.each do |tag|
+      matches, uncategorized = uncategorized.partition {|type| type.tags.include?(tag)}
+      if matches.length > 1
+        categorized << [tag, matches]
+      else
+        uncategorized.concat matches
       end
     end
-    groups = tags.map do |tag|
-      types = groups[tag]
-      if types
-        if types.length < 2
-          other.concat(types)
-          nil
-        else
-          [tag, types]
-        end
-      end
-    end.compact
-    [groups, other]
+
+    [categorized, uncategorized]
   end
 
   def common_tags_for(ary)
