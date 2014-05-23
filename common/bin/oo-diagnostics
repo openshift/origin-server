@@ -1271,17 +1271,23 @@ class OODiag
     unreadable = []
     broker_unreadable = node_unreadable = []
     if @is_broker
-      dirs = "/etc/openshift /etc/httpd/conf.d /var/www/openshift/{broker,console}/httpd/"
+      # many files in /etc/openshift are read by apache, others are not
+      dirs = "/etc/openshift"
       names = %w[*.conf *.pem htpasswd quickstarts.json].map {|n| "-name '#{n}'" }
       names = '\( ' +  names * ' -o ' + ' \)'
-      broker_ok = %w[express node resource_limits].map {|f| "/etc/openshift/#{f}.conf" }
-      broker_unreadable = %x[find #{dirs} #{names} #{query} 2> /dev/null].split(/\n/) - broker_ok
-      dirs = "/etc/httpd/conf.d"
-      broker_unreadable += %x[find #{dirs} #{query}].split(/\n/)
+      broker_unreadable = %x[find #{dirs} #{names} #{query} 2> /dev/null].split(/\n/) -
+               # ignore these, broker/console do not read them
+               %w[express node resource_limits].map {|f| "/etc/openshift/#{f}.conf" }
+
+      # basically everything under broker/console should be apache-readable
+      # except httpd config (which is read by root)
+      dirs = "/var/www/openshift/broker"
+      dirs += " /var/www/openshift/console" if Dir.exists? "/var/www/openshift/console"
+      broker_unreadable += %x[find #{dirs} #{query} ! -wholename '*/httpd/*' ].split(/\n/)
     end
     if @is_node
-      dirs = "/etc/httpd/conf.d /var/lib/openshift/.httpd.d "
-      node_unreadable = %x[find #{dirs} #{query}].split(/\n/)
+      dirs = "/var/lib/openshift/.httpd.d/*.db" # only present for mod-rewrite frontend
+      node_unreadable = %x[find #{dirs} #{query}].split(/\n/) unless Dir.glob(dirs).empty?
     end
     unreadable = (broker_unreadable + node_unreadable).uniq
     unless unreadable.empty?
