@@ -67,14 +67,11 @@ def gear_env():
 
     primary = ''
     if 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR' in os.environ:
-        primary = os.path.basename(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'].rstrip('/'))
+        primary = os.path.basename(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'].rstrip('/')).upper()
         load_env(os.path.join(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'], 'env'))
 
-    os.environ['PATH'] = ':'.join(collect_elements_from(os.environ,
-            'PATH', primary))
-
-    os.environ['LD_LIBRARY_PATH'] = ':'.join(collect_elements_from(os.environ,
-            'LD_LIBRARY_PATH', primary))
+    os.environ['PATH'] = ':'.join(collect_elements_from(os.environ, 'PATH', primary))
+    os.environ['LD_LIBRARY_PATH'] = ':'.join(collect_elements_from(os.environ, 'LD_LIBRARY_PATH', primary))
 
     load_env('~/.env/user_vars')
 
@@ -93,10 +90,9 @@ def collect_elements_from(env, var_name, primary):
                 gear_env.pop(k)
 
     elements = []
-
     for name in gear_env.keys():
         regex = re.compile(r'OPENSHIFT_.*_%s_ELEMENT' % var_name)
-        if regex.search(name) and primary_path!=name:
+        if regex.search(name) and primary_path != name:
             elements.append(gear_env[name])
 
     if primary_path in gear_env:
