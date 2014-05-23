@@ -23,7 +23,7 @@ SafeYAML::OPTIONS[:default_mode] = :unsafe
 
 module OpenShift
 
-  # FIXME, exceptions should be changed to be a subclass of a generic 
+  # FIXME, exceptions should be changed to be a subclass of a generic
   #   InvalidManifestError
 
   # Manifest is invalid
@@ -134,8 +134,26 @@ module OpenShift
             end
             endpoint_index += 1
 
-            # TODO: validation
+            # TODO: more validation
             begin
+              if entry.key?('Private-IP-Name') || entry.key?('Private-Port-Name') || entry.key?('Private-Port')
+                unless entry['Private-IP-Name'] && !entry['Private-IP-Name'].empty?
+                  raise MissingElementError.new('Private-IP-Name')
+                end
+
+                unless entry['Private-Port-Name'] && !entry['Private-Port-Name'].empty?
+                  raise MissingElementError.new('Private-Port-Name')
+                end
+
+                unless entry['Private-Port']
+                  raise MissingElementError.new('Private-Port')
+                end
+
+                unless entry['Private-Port'].is_a?(Fixnum)
+                  raise InvalidElementError.new('Private-Port')
+                end
+              end
+
               endpoint                     = Endpoint.new
               endpoint.private_ip_name     = build_name(tag, entry['Private-IP-Name'])
               endpoint.private_port_name   = build_name(tag, entry['Private-Port-Name'])
@@ -533,7 +551,7 @@ module OpenShift
 
         def copy_manifest_if_equal(to)
           if @manifest.equal?(to)
-            @manifest = Marshal.load(Marshal.dump(@manifest)) 
+            @manifest = Marshal.load(Marshal.dump(@manifest))
           end
         end
     end

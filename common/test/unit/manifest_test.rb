@@ -34,10 +34,10 @@ class ManifestTest < Test::Unit::TestCase
     components = cart.manifest['Group-Overrides'].first['components']
 
     assert_equal 'mock', cart.name
-    assert_equal '0.1',  cart.version
+    assert_equal '0.1', cart.version
     assert_equal 'MOCK', cart.short_name
-    assert_equal 5,      cart.endpoints.length
-    assert_equal 1,      components.length
+    assert_equal 5, cart.endpoints.length
+    assert_equal 1, components.length
     assert_equal "mock", components[0]
   end
 
@@ -48,29 +48,29 @@ class ManifestTest < Test::Unit::TestCase
     cart       = OpenShift::Runtime::Manifest.new('mock_manifest', '0.2', :file)
     components = cart.manifest['Group-Overrides'].first['components']
 
-    assert_equal 'mock',      cart.name
-    assert_equal '0.2',       cart.version
-    assert_equal 'MOCK',      cart.short_name
-    assert_equal 5,           cart.endpoints.length
-    assert_equal 2,           components.length
-    assert_equal "mock",      components[0]
+    assert_equal 'mock', cart.name
+    assert_equal '0.2', cart.version
+    assert_equal 'MOCK', cart.short_name
+    assert_equal 5, cart.endpoints.length
+    assert_equal 2, components.length
+    assert_equal "mock", components[0]
     assert_equal "web_proxy", components[1]
   end
 
   def test_manifest_url_good
-    manifest = YAML.load(MANIFEST)
-    url = 'http://www.example.com/killer-cartridge.zip'
+    manifest               = YAML.load(MANIFEST)
+    url                    = 'http://www.example.com/killer-cartridge.zip'
     manifest['Source-Url'] = url
 
-    cart     = OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    cart = OpenShift::Runtime::Manifest.new(manifest.to_yaml)
 
-    refute_nil   cart
+    refute_nil cart
     assert_equal url, cart.source_url
   end
 
 
   def test_manifest_url_bad
-    manifest = YAML.load(MANIFEST)
+    manifest               = YAML.load(MANIFEST)
     manifest['Source-Url'] = 'Bad Url'
 
     assert_raise OpenShift::InvalidElementError do
@@ -79,7 +79,7 @@ class ManifestTest < Test::Unit::TestCase
   end
 
   def test_autocorrect_frontend
-    manifest = YAML.load(MANIFEST)
+    manifest               = YAML.load(MANIFEST)
     manifest['Source-Url'] = 'http://www.example.com/killer-cartridge.zip'
 
     manifest['Endpoints'] = \
@@ -98,6 +98,96 @@ class ManifestTest < Test::Unit::TestCase
     actual = OpenShift::Runtime::Manifest.new(manifest.to_yaml)
     assert_equal '/front1a', actual.endpoints.first.mappings.first.frontend
     assert_equal '/back1a', actual.endpoints.first.mappings.first.backend
+  end
+
+  def test_missing_ip_name
+    manifest               = YAML.load(MANIFEST)
+    manifest['Source-Url'] = 'http://www.example.com/killer-cartridge.zip'
+
+    manifest['Endpoints'] = \
+    [
+        {
+            'Private-Port-Name' => 'EXAMPLE_PORT1',
+            'Private-Port'      => 8080,
+        }
+    ]
+    error                 = assert_raises RuntimeError do
+      OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    end
+    assert_match(/Private-IP-Name is a required element/, error.message)
+
+    manifest['Endpoints'] = \
+    [
+        {
+            'Private-IP-Name'   => '',
+            'Private-Port-Name' => 'EXAMPLE_PORT1',
+            'Private-Port'      => 8080,
+        }
+    ]
+    error                 = assert_raises RuntimeError do
+      OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    end
+    assert_match(/Private-IP-Name is a required element/, error.message)
+  end
+
+  def test_missing_port_name
+    manifest               = YAML.load(MANIFEST)
+    manifest['Source-Url'] = 'http://www.example.com/killer-cartridge.zip'
+
+    manifest['Endpoints'] = \
+    [
+        {'Private-IP-Name' => 'EXAMPLE_IP1',
+         'Private-Port'    => 8080,
+        }
+    ]
+    error                 = assert_raises RuntimeError do
+      OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    end
+    assert_match(/Private-Port-Name is a required element/, error.message)
+
+    manifest['Endpoints'] = \
+    [
+        {
+            'Private-IP-Name'   => 'EXAMPLE_IP1',
+            'Private-Port-Name' => '',
+            'Private-Port'      => 8080,
+        }
+    ]
+    error                 = assert_raises RuntimeError do
+      OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    end
+    assert_match(/Private-Port-Name is a required element/, error.message)
+  end
+
+  def test_missing_port
+    manifest               = YAML.load(MANIFEST)
+    manifest['Source-Url'] = 'http://www.example.com/killer-cartridge.zip'
+
+    manifest['Endpoints'] = \
+    [
+        {
+            'Private-IP-Name'   => 'EXAMPLE_IP1',
+            'Private-Port-Name' => 'EXAMPLE_PORT1',
+        }
+    ]
+    error                 = assert_raises RuntimeError do
+      OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    end
+    assert_match(/Private-Port is a required element/, error.message)
+
+    manifest['Endpoints'] = \
+    [
+        {
+            'Private-IP-Name'   => 'EXAMPLE_IP1',
+            'Private-Port-Name' => 'EXAMPLE_PORT1',
+            'Private-Port'      => '',
+
+        }
+    ]
+    error                 = assert_raises RuntimeError do
+      OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    end
+    assert_match(/Private-Port is not valid/, error.message)
   end
 
   MANIFEST = %q{#
