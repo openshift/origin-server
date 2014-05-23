@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.25.2
+Version: 1.25.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri May 23 2014 Adam Miller <admiller@redhat.com> 1.25.3-1
+- Merge pull request #5359 from worldline/improving_config_files
+  (dmcphers+openshiftbot@redhat.com)
+- adding console community helper parameters in /etc/openshift/console.conf
+  (thierry.forli@worldline.com)
+
 * Wed May 21 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
 - Merge pull request #5430 from liggitt/improve_team_creation
   (dmcphers+openshiftbot@redhat.com)
