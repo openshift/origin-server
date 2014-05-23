@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.24.1
+Version: 1.24.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -121,6 +121,9 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Fri May 23 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- diagnostics: fix errant warning on httpd conf (lmeyer@redhat.com)
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
 - Merge pull request #5324 from Miciah/oo-diagnostics-test_broker_certificate-
   fixes (dmcphers+openshiftbot@redhat.com)
