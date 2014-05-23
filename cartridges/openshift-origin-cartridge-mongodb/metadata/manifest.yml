@@ -46,6 +46,8 @@ Provides:
 Publishes:
   publish-nosql-db-connection-info:
     Type: ENV:NET_TCP:nosqldb:connection-info
+  publish-ld-library-path-info:
+    Type: ENV:NET_TCP:db:ld-library-path-info
 Scaling:
   Min: 1
   Max: 1
