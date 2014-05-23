@@ -100,6 +100,56 @@ class ManifestTest < Test::Unit::TestCase
     assert_equal '/back1a', actual.endpoints.first.mappings.first.backend
   end
 
+  def test_missing_ip_name
+    manifest              = YAML.load(MANIFEST)
+    manifest['Source-Url'] = 'http://www.example.com/killer-cartridge.zip'
+
+    manifest['Endpoints'] = \
+    [
+        {
+            'Private-Port-Name' => 'EXAMPLE_PORT1',
+            'Private-Port'      => 8080,
+        }
+    ]
+    error                 = assert_raises RuntimeError do
+      OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    end
+    assert_match(/Private-IP-Name is a required element/, error.message)
+  end
+
+  def test_missing_port_name
+    manifest              = YAML.load(MANIFEST)
+    manifest['Source-Url'] = 'http://www.example.com/killer-cartridge.zip'
+
+    manifest['Endpoints'] = \
+    [
+        {'Private-IP-Name' => 'EXAMPLE_IP1',
+         'Private-Port'    => 8080,
+        }
+    ]
+    error                 = assert_raises RuntimeError do
+      OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    end
+    assert_match(/Private-Port-Name is a required element/, error.message)
+  end
+
+  def test_missing_port
+    manifest               = YAML.load(MANIFEST)
+    manifest['Source-Url'] = 'http://www.example.com/killer-cartridge.zip'
+
+    manifest['Endpoints'] = \
+    [
+        {
+            'Private-IP-Name'   => 'EXAMPLE_IP1',
+            'Private-Port-Name' => 'EXAMPLE_PORT1',
+        }
+    ]
+    error                 = assert_raises RuntimeError do
+      OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    end
+    assert_match(/Private-Port is a required element/, error.message)
+  end
+
   MANIFEST = %q{#
 Name: mock
 Cartridge-Short-Name: MOCK
