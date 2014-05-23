@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.24.2
+Version: 1.24.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -166,6 +166,12 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri May 23 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
+- Merge pull request #5439 from jwhonce/bug/1100372
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1100372 - Add missing spec file dependency (jhonce@redhat.com)
+- Bug 1099754 - Set default_command to help (jhonce@redhat.com)
+
 * Wed May 21 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
 - Merge pull request #5434 from jwhonce/bug/1099772
   (dmcphers+openshiftbot@redhat.com)
