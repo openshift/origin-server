@@ -137,9 +137,21 @@ module OpenShift
             # TODO: more validation
             begin
               if entry.key?('Private-IP-Name') || entry.key?('Private-Port-Name') || entry.key?('Private-Port')
-                raise MissingElementError.new('Private-IP-Name') unless entry['Private-IP-Name']
-                raise MissingElementError.new('Private-Port-Name') unless entry['Private-Port-Name']
-                raise MissingElementError.new('Private-Port') unless entry['Private-Port']
+                unless entry['Private-IP-Name'] && !entry['Private-IP-Name'].empty?
+                  raise MissingElementError.new('Private-IP-Name')
+                end
+
+                unless entry['Private-Port-Name'] && !entry['Private-Port-Name'].empty?
+                  raise MissingElementError.new('Private-Port-Name')
+                end
+
+                unless entry['Private-Port']
+                  raise MissingElementError.new('Private-Port')
+                end
+
+                unless entry['Private-Port'].is_a?(Fixnum)
+                  raise InvalidElementError.new('Private-Port')
+                end
               end
 
               endpoint                     = Endpoint.new
