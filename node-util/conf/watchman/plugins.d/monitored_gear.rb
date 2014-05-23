@@ -131,7 +131,7 @@ module OpenShift
           # quota and period at the time of each measurement in case it changes
           def elapsed_usage(hashes)
             # These are keys we don't want to include in our calculations
-            util_keys = [:cfs_quota_us, :nr_periods, :cfs_period_us]
+            util_keys = [:cfs_quota_us, :nr_periods, :cfs_period_us, :ts]
             # Collect all of the values into a single hash
             values = collapse_hashes(hashes)
             # Calculate the differences across values
@@ -140,14 +140,17 @@ module OpenShift
             # Disregard the first quota, so we can align with the differences
             (quotas = values[:cfs_quota_us]).shift
             periods = differences[:nr_periods]
+            time_deltas = differences[:ts]
 
-            # Find the max utils by multiplying the quotas and number of elapsed periods
-            quota_periods = quotas.mult(periods)
+            # Find the max possible cpu usage by the following:
+            # time_delta * 1 billion * quota/period
+            # The 1 billion is because throttled_time and cpuacct.usage are in nanoseconds
+            quota_periods = quotas.mult(time_deltas).mult(1_000_000_000).divide(values[:cfs_period_us])
 
             differences.inject({}) do |h,(k,vals)|
               unless util_keys.include?(k) || vals.empty?
                 # Calculate the values as a percentage of the max utilization for a period
-                percentage = vals.divide(quota_periods)#.mult(100)
+                percentage = vals.divide(quota_periods).mult(100)
                 per_period = vals.divide(periods)
                 {
                   nil          => vals.average,
