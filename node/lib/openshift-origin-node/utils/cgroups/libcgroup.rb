@@ -155,11 +155,11 @@ module OpenShift
                 NodeLogger.logger.error %Q(Failed to read cgroups counters from #{expression}: #{err} (#{rc}))
               end
             end
-            parse_usage(out)
+            parse_usage(out, Time.now.to_f)
           end
 
-          def self.parse_usage(info)
-            info.lines.to_a.inject(Hash.new{|h,k| h[k] = {}} ) do |h,line|
+          def self.parse_usage(info, ts)
+            info.lines.to_a.inject(Hash.new{|h,k| h[k] = { :ts => ts }} ) do |h,line|
               (uuid, key, val) = line.split(/\W/).values_at(0,-2,-1)
               h[uuid][key.to_sym] = val.to_i
               h

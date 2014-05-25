@@ -62,7 +62,7 @@ module OpenShift
 
             # Make sure we create a MonitoredGear for the root OpenShift cgroup
             # Keys for information we want from cgroups
-            @wanted_keys      = [:usage, :throttled_time, :nr_periods, :cfs_quota_us, :cfs_period_us]
+            @wanted_keys      = [:usage, :throttled_time, :nr_periods, :cfs_quota_us, :cfs_period_us, :ts]
 
             # Set the interval to save
             @interval         = resource('apply_period') { |x| Integer(x) }
@@ -165,11 +165,7 @@ module OpenShift
           # update gear usage values
           def tick
             vals = Libcgroup.usage
-            # This is a little ugly, but we need a timestamp from close to
-            # when usage was gathered, and I don't know if it's appropriate
-            # to put that in Libcgroup.usage
-            current_time = Time.now.to_f
-            vals = Hash[vals.map { |uuid, hash| [uuid, hash.select { |k, _| @wanted_keys.include? k }.merge({:ts => current_time})] }]
+            vals = Hash[vals.map { |uuid, hash| [uuid, hash.select { |k, _| @wanted_keys.include? k }] }]
 
             update(vals)
           rescue Exception => e
