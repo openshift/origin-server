@@ -5,8 +5,7 @@ class GroupOverrideTest < ActiveSupport::TestCase
   test "remove empty specs" do
     assert_equal [], GroupOverride.reduce([
       nil,
-      GroupOverride.new([ComponentSpec.new('a', 'a')]),
-      GroupOverride.new([ComponentSpec.new('a', 'a')]),
+      GroupOverride.new([]),
     ])
   end
 

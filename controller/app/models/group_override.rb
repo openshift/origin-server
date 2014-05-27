@@ -132,7 +132,7 @@ class GroupOverride
 
   def empty?
     @min_gears.nil? && @max_gears.nil? && @gear_size.blank? && @additional_filesystem_gb.blank? &&
-      (@components.blank? || (@components.all?{ |s| s.nil? || s.default? } && @components.length < 2))
+      (@components.blank? || (@components.all?{ |s| s.nil? || s.default? } && @components.length < 1))
   end
 
   def inspect
