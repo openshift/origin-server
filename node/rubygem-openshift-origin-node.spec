@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.25.4
+Version: 1.25.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue May 27 2014 Adam Miller <admiller@redhat.com> 1.25.5-1
+- Merge pull request #5447 from jwhonce/bug/1100619
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1100619 - Uppercase primary cartridge name for use in env vars
+  (jhonce@redhat.com)
+
 * Fri May 23 2014 Adam Miller <admiller@redhat.com> 1.25.4-1
 - Merge pull request #5438 from jwhonce/bug/1099754
   (dmcphers+openshiftbot@redhat.com)
