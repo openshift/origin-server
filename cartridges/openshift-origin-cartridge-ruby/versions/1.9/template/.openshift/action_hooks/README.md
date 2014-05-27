@@ -1,1 +1,0 @@
-../../../../shared/template/.openshift/action_hooks/README.md
