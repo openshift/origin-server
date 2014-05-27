@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.24.3
+Version: 1.24.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -166,6 +166,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue May 27 2014 Adam Miller <admiller@redhat.com> 1.24.4-1
+- Merge pull request #5446 from jwhonce/bug/1100648
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1100648 - Fixed formatting of man page (jhonce@redhat.com)
+
 * Fri May 23 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
 - Merge pull request #5439 from jwhonce/bug/1100372
   (dmcphers+openshiftbot@redhat.com)
