@@ -53,9 +53,14 @@ Gears combine the partitioning capabilities of control groups with the security 
 │   └── runtime
 │       ├── data
 │       └── repo <3>
-│           ├── deplist.txt <4>
-│           ├── README
 │           └── ...deployed application code
+├── app-deployments <4>
+│   ├── current
+│   │   ├── build-dependencies
+│   │   ├── dependencies
+│   │   ├── metadata.json
+│   │   └── repo
+│   └── ...application deployements
 ├── git
 │   └── [APP_NAME].git
 │       ├── hooks <5>
@@ -68,7 +73,7 @@ Gears combine the partitioning capabilities of control groups with the security 
 <1> Environment variable value storage
 <2> The persistent data directory available from $OPENSHIFT_DATA_DIR
 <3> The repo directory available from $OPENSHIFT_REPO_DIR
-<4> Platform support for dependency management (for cartridges such as php which don't have their own)
+<4> The application deployments directory
 <5> The hooks directory is owned by root to prevent users from modifying it
 <6> The post-receive hook invokes the build and deployment
 
