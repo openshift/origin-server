@@ -1,5 +1,7 @@
 #!/bin/bash
 echo "Importing cartridges from disk..."
 find /opt/ruby/src/docker -iname manifest.yml | oo-admin-ctl-cartridge -c import --activate
-echo "Adding the default node..."
-oo-admin-ctl-node -c create -n node1 -i 172.17.42.1:43273
+if ! oo-admin-ctl-node | grep node1 >/dev/null; then
+  echo "Adding the default node..."
+  oo-admin-ctl-node -c create -n node1 -i 172.17.42.1:43273
+fi
