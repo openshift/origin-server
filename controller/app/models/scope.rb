@@ -246,7 +246,7 @@ module Scope
       if c.options.delete(:visible) == false
         c = c.where(1 => 0)
       else
-        c = c.or(*other) if other.present?
+        c = c.and({"$or" => other}) if other.present?
       end
       c
     end
