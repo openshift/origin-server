@@ -14,10 +14,14 @@ class UpdateCompLimitsOpGroup < PendingAppOpGroup
     found = false
     if instance.is_sparse?
       overrides.each do |override|
-        if component = override.components.find{ |c| c == spec } && ComponentOverrideSpec === component
+        if component = override.components.find{ |c| c == spec }
           found = true
-          component.reset(min || component.min_gears, max || component.max_gears, multiplier || component.multiplier)
-          override.reset(override.min_gears, override.max_gears, override.gear_size, additional_filesystem_gb || override.additional_filesystem_gb)
+          if ComponentOverrideSpec === component
+            component.reset(min || component.min_gears, max || component.max_gears, multiplier || component.multiplier)
+            override.reset(override.min_gears, override.max_gears, override.gear_size, additional_filesystem_gb || override.additional_filesystem_gb)
+          else
+            override.reset(min || override.min_gears, max || override.max_gears, override.gear_size, additional_filesystem_gb || override.additional_filesystem_gb)
+          end
         end
       end
       unless found
