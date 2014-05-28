@@ -41,7 +41,7 @@ class Scope::Domain < Scope::Parameterized
 
   def limits_access(criteria)
     case criteria.klass
-    when Application then criteria = criteria.where(:domain_id => @id)
+    when Application then (criteria.options[:conditions] ||= []).concat([{:domain_id => @id}])
     when Domain then (criteria.options[:for_ids] ||= []) << @id
     when CloudUser then (criteria.options[:visible] ||= domain_scope == :admin)
     when Team then (criteria.options[:visible] ||= domain_scope == :admin)

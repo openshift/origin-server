@@ -421,6 +421,13 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert CloudUser.accessible(u).empty?
     assert Authorization.accessible(u).empty?
 
+    # Make sure multiple scopes don't stomp each other's conditions
+    u.scopes = Scope.list!("domain/#{d._id}/view domain/#{d2._id}/view")
+    assert_equal [a._id, a2._id].sort, Application.accessible(u).map(&:_id).sort
+    assert_equal [d._id, d2._id].sort, Domain.accessible(u).map(&:_id).sort
+    assert CloudUser.accessible(u).empty?
+    assert Authorization.accessible(u).empty?
+
     assert Application.find_by_user(u, 'scopetest2')
   end
 
