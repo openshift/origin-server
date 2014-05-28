@@ -2,8 +2,8 @@
 
 .members {
 
-  table { 
-    margin-bottom: 0px;
+  table {
+    margin-bottom: 0;
   }
   table td {
     vertical-align: middle;
@@ -14,8 +14,8 @@
   }
   table input {
     @include box-sizing(border-box);
-  }  
-  table select { 
+  }
+  table select {
     margin-bottom: 0;
     white-space: nowrap;
     width: 100%;
@@ -29,7 +29,7 @@
     margin-top: 16px
   }
 
-  tr.error-row td   { padding-top: 0px; }
+  tr.error-row td   { padding-top: 0; }
   tr.error-row td p { margin-top: 0; }
   tr.template {display: none !important; }
   tr.no-role select, tr.no-role a.remove-member { opacity: .4; }
@@ -72,7 +72,7 @@
 
   .tt-suggestion p {
     margin: 0;
-    padding: 3px 0px;
+    padding: 3px 0;
     font-size: 12px !important;
     line-height: 16px !important;
     overflow: hidden;

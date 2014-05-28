@@ -1,5 +1,5 @@
 /* Twitter Bootstrap Customizations
------------------------------------------------- 
+------------------------------------------------
 ------------------------------------------------ */
 
 #content {
@@ -12,11 +12,11 @@
 
 
 // form overrides
-input, 
+input,
 textarea {
   @include box-shadow(0);
 	}
-input:focus, 
+input:focus,
 textarea:focus {
   @include box-shadow(0);
 	}
@@ -33,10 +33,10 @@ textarea:focus {
 .hero-unit {
   background-color: #f2f2f2;
   @include border-radius(3px);
-  box-shadow: 1px 3px 0px rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 3px 0 rgba(0, 0, 0, 0.1);
   margin-bottom: 25px;
   padding: 20px 25px;
-  
+
   h1 {
     margin-bottom: 0;
     font-size: 35px; // special case
@@ -54,7 +54,7 @@ textarea:focus {
 .wizard-steps {
 	margin: 5px 0 13px;
 	overflow: hidden;
-	}  
+	}
 .wizard-steps li {
   font-size: $tinyFontSize;
   font-weight: 600;
@@ -153,7 +153,7 @@ ul.inline, ol.inline {
 		}
 }
 
-@media (min-width: 768px) and (max-width: 980px) {	
+@media (min-width: 768px) and (max-width: 980px) {
 }
 
 @media (min-width: 1200px) {
