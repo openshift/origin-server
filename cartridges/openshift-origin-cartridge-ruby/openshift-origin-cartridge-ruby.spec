@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.25.2
+Version: 1.25.3
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -86,6 +86,9 @@ done
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Wed May 28 2014 Adam Miller <admiller@redhat.com> 1.25.3-1
+- Fix bug 1101779 (vvitek@redhat.com)
+
 * Tue May 27 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
 - Make READMEs in template repos more obvious (vvitek@redhat.com)
 
