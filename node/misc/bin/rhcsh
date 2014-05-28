@@ -196,26 +196,33 @@ function psql() {
   return $CMD_RC
 }
 
-function mongo() {
-   if test $# -gt 0; then
-      uopt=""
-      popt=""
-   else
-      uopt="--username ${OPENSHIFT_MONGODB_DB_USERNAME:-'admin'}"
-      [ -n "$OPENSHIFT_MONGODB_DB_PASSWORD" ]  &&  popt="--password $OPENSHIFT_MONGODB_DB_PASSWORD"
-   fi
-
-   if echo "$@" | egrep "\-\-host|$OPENSHIFT_MONGODB_DB_HOST" > /dev/null; then
-      hopt=""  #  Do not override if --host is passed.
-   else
-      if [ -n "$OPENSHIFT_MONGODB_DB_GEAR_DNS" ]; then
-         hopt="${OPENSHIFT_MONGODB_DB_GEAR_DNS:-'127.0.0.1'}:${OPENSHIFT_MONGODB_DB_PORT:-27017}/admin"
-      else
-         hopt="${OPENSHIFT_MONGODB_DB_HOST:-'127.0.0.1'}:${OPENSHIFT_MONGODB_DB_PORT:-27017}/admin"
-      fi
-   fi
-
-   scl enable mongodb24 "mongo ${hopt} ${uopt} ${popt} $@"
+function mongo () {
+    local -a cmdline=("mongo");
+    if [[ $# -eq 0 ]]
+    then
+        cmdline+=("--username" "${OPENSHIFT_MONGODB_DB_USERNAME:-'admin'}")
+        [[ -n "$OPENSHIFT_MONGODB_DB_PASSWORD" ]] && cmdline+=("--password" "$OPENSHIFT_MONGODB_DB_PASSWORD")
+    fi
+    if ! [[ "$@" =~ --host|"$OPENSHIFT_MONGODB_DB_HOST" ]]
+    then
+        local port_db="${OPENSHIFT_MONGODB_DB_PORT:-27017}/admin"
+        if [[ -n "$OPENSHIFT_MONGODB_DB_GEAR_DNS" ]]
+        then
+            cmdline+=("${OPENSHIFT_MONGODB_DB_GEAR_DNS:-'127.0.0.1'}:${port_db}")
+        else
+            cmdline+=("${OPENSHIFT_MONGODB_DB_HOST:-'127.0.0.1'}:${port_db}")
+        fi
+    fi
+    cmdline+=("$@")
+    # If scl mongo is installed and the app uses mongo, assume scl
+    # mongo. If scl mongo is installed but the app doesn't have a mongo
+    # cart, assume "system" mongo
+    if [[ -n "${OPENSHIFT_MONGODB_DB_GEAR_DNS}" ]] && scl -l | grep -q mongodb24
+    then
+        scl enable mongodb24 "$(printf %q\  "${cmdline[@]}")"
+    else
+        command "${cmdline[@]}"
+    fi
 }
 
 # The mco command shouldn't be run by gears
