@@ -59,6 +59,12 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %__rm logs/.gitkeep
 %__rm run/.gitkeep
 
+%pretrans
+# Bug 1101779 (RPM Bug 447156) - directories replaced by symlinks
+for dir in %{cartridgedir}/versions/{1.8,1.9}/template/.openshift; do
+  [ -d $dir -a ! -L $dir ] && rm -rf $dir || :
+done
+
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
