@@ -5,7 +5,7 @@ class ApplicationJob
   include Backburner::Queue
   
   queue "application" # defaults to 'application-job'
-  queue_priority 1000 # most urgent priority is 0
+  queue_priority 100 # most urgent priority is 0
   
   # Performs the backgrounded job.
   def self.execute_job(app_id)
