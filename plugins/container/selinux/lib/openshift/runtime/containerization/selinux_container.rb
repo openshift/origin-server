@@ -1,4 +1,5 @@
 require 'openshift-origin-node/utils/node_logger'
+require 'openshift-origin-common/utils/path_utils'
 
 module OpenShift
   module Runtime
@@ -10,7 +11,7 @@ module OpenShift
         attr_reader :gear_shell
 
         def self.container_dir(container)
-          File.join(container.base_dir, container.uuid)
+          PathUtils.join(container.base_dir, container.uuid)
         end
 
         def initialize(application_container)
@@ -310,7 +311,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
             else
               command << " -i @#{addr[:ip]}:#{addr[:port]}"
             end
-            
+
           end
 
           _, _, rc = Utils.oo_spawn(command, timeout: hourglass.remaining)

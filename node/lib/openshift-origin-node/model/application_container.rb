@@ -92,18 +92,18 @@ module OpenShift
 
       def initialize(application_uuid, container_uuid, user_uid = nil, application_name = nil, container_name = nil,
                      namespace = nil, quota_blocks = nil, quota_files = nil, hourglass = nil)
-        @config           = ::OpenShift::Config.new
-        @uuid             = container_uuid
-        @application_uuid = application_uuid
-        @container_name   = container_name
-        @application_name = application_name
-        @namespace        = namespace
-        @quota_blocks     = quota_blocks
-        @quota_files      = quota_files
-        @base_dir         = @config.get("GEAR_BASE_DIR")
-        @skel_dir         = @config.get("GEAR_SKEL_DIR") || DEFAULT_SKEL_DIR
+        @config               = ::OpenShift::Config.new
+        @uuid                 = container_uuid
+        @application_uuid     = application_uuid
+        @container_name       = container_name
+        @application_name     = application_name
+        @namespace            = namespace
+        @quota_blocks         = quota_blocks
+        @quota_files          = quota_files
+        @base_dir             = @config.get("GEAR_BASE_DIR")
+        @skel_dir             = @config.get("GEAR_SKEL_DIR") || DEFAULT_SKEL_DIR
         @supplementary_groups = @config.get("GEAR_SUPPLEMENTARY_GROUPS")
-        @hourglass        = hourglass || ::OpenShift::Runtime::Utils::Hourglass.new(3600)
+        @hourglass            = hourglass || ::OpenShift::Runtime::Utils::Hourglass.new(3600)
 
         begin
           user_info = user_uid
@@ -113,22 +113,21 @@ module OpenShift
               break
             end
           end
-          @uid              = user_info.uid
-          @gid              = user_info.gid
-          @gecos            = user_info.gecos
-          @container_dir    = "#{user_info.dir}/"
-          @container_plugin = Containerization::Plugin.new(self)
-        rescue ArgumentError => e
-          @uid              = user_uid
-          @gid              = user_uid
-          @gecos            = @config.get("GEAR_GECOS") || "OO application container"
-          @container_dir    = Containerization::Plugin.container_dir(self)
-          @container_plugin = nil
+          @uid           = user_info.uid
+          @gid           = user_info.gid
+          @gecos         = user_info.gecos
+          @container_dir = "#{user_info.dir}/"
+        rescue ArgumentError
+          @uid           = user_uid
+          @gid           = user_uid
+          @gecos         = @config.get('GEAR_GECOS') || 'OpenShift guest'
+          @container_dir = Containerization::Plugin.container_dir(self)
         end
 
-        @state           = ::OpenShift::Runtime::Utils::ApplicationState.new(self)
-        @cartridge_model = V2CartridgeModel.new(@config, self, @state, @hourglass)
-        @gear_lock = PathUtils.join %W[#{File::SEPARATOR} var lock gear.#{container_uuid}]
+        @container_plugin = Containerization::Plugin.new(self)
+        @state            = ::OpenShift::Runtime::Utils::ApplicationState.new(self)
+        @cartridge_model  = V2CartridgeModel.new(@config, self, @state, @hourglass)
+        @gear_lock        = PathUtils.join %W[#{File::SEPARATOR} var lock gear.#{container_uuid}]
       end
 
       #

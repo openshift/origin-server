@@ -1258,4 +1258,8 @@
       @container.expects(:stopped_status_attr).returns('attr')
       @container.stop_gear(options)
     end
+
+    def test_plugin
+      refute_nil @container.container_plugin
+    end
   end
