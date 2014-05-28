@@ -8,5 +8,5 @@
 source "${OPENSHIFT_MONGODB_DIR}/lib/mongodb_context"
 
 ld_path=$(LD_LIBRARY_PATH="" mongodb_context "printenv LD_LIBRARY_PATH")
-echo "OPENSHIFT_MONGODB_LD_LIBRARY_PATH_ELEMENT=${ld_path}"
-
+[[ -n "${ld_path}" ]] && echo "OPENSHIFT_MONGODB_LD_LIBRARY_PATH_ELEMENT=${ld_path}"
+[[ -n "${OPENSHIFT_MONGODB_PATH_ELEMENT}" ]] && echo "OPENSHIFT_MONGODB_PATH_ELEMENT=${OPENSHIFT_MONGODB_PATH_ELEMENT}"

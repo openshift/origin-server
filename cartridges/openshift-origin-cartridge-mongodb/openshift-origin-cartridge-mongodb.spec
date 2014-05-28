@@ -1,3 +1,11 @@
+%if 0%{?rhel} <= 6
+    %global scl mongodb24
+    %global scl_prefix mongodb24-
+    %global scl_context /usr/bin/scl enable %{scl}
+%else
+    %global scl_context eval
+%endif
+
 %global cartridgedir %{_libexecdir}/openshift/cartridges/mongodb
 
 Summary:       Embedded mongodb support for OpenShift
@@ -8,10 +16,10 @@ Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      mongodb24-mongodb-server
-Requires:      mongodb24-mongodb-devel
-Requires:      mongodb24-libmongodb
-Requires:      mongodb24-mongodb
+Requires:      %{?scl:%scl_prefix}mongodb-server
+Requires:      %{?scl:%scl_prefix}mongodb-devel
+Requires:      %{?scl:%scl_prefix}libmongodb
+Requires:      %{?scl:%scl_prefix}mongodb
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Provides:      openshift-origin-cartridge-mongodb-2.2 = 2.0.0
@@ -35,7 +43,7 @@ Provides mongodb cartridge support to OpenShift
 
 
 %post
-%{cartridgedir}/bin/mkjournal %{cartridgedir}/usr/journal-cache/journal.tar.gz
+%{?scl_context} "%{cartridgedir}/bin/mkjournal %{cartridgedir}/usr/journal-cache/journal.tar.gz"
 
 
 %preun

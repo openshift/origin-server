@@ -23,14 +23,14 @@ tmpdir=$(mktemp -d)
 trap "rm -rf $tmpdir $tmpfile" EXIT
 
 touch $tmpdir/mongodb.conf
-scl enable mongodb24 "mongod \
+mongod \
     --dbpath ${tmpdir} \
     --journal \
     --noprealloc \
     --smallfiles \
     --bind_ip 127.0.0.2 \
     --port 27017 \
-    -f ${tmpdir}/mongodb.conf" 2>&1 > ${tmpdir}/mongodb.log &
+    -f ${tmpdir}/mongodb.conf 2>&1 > ${tmpdir}/mongodb.log &
 
 mongopid=$!
 
