@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.8.1
+Version: 0.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,9 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu May 29 2014 Adam Miller <admiller@redhat.com> 0.8.2-1
+- Bug 1101156 - Always initialize container_plugin (jhonce@redhat.com)
+
 * Wed Apr 09 2014 Adam Miller <admiller@redhat.com> 0.8.1-1
 - Bug 1075760 - Allow traffic control to be disabled (bleanhar@redhat.com)
 - Bug 1081249 - Refactor SELinux module to be SelinuxContext singleton
