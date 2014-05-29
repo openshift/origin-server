@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.25.5
+Version: 1.25.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,18 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.25.6-1
+- Merge pull request #5443 from a13m/bz1100518
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5126 from mmahut/handle_zombie
+  (dmcphers+openshiftbot@redhat.com)
+- oo-admin-gear: error out if we're not able to move the cgroup pid into the
+  default group because the process does not exist or is a zombie process
+  (mmahut@redhat.com)
+- Fix throttler math in monitored_gear_test (agrimm@redhat.com)
+- Move cgroup sample timestamp insertion and fix unit test (agrimm@redhat.com)
+- Bug 1101156 - Always initialize container_plugin (jhonce@redhat.com)
+
 * Tue May 27 2014 Adam Miller <admiller@redhat.com> 1.25.5-1
 - Merge pull request #5447 from jwhonce/bug/1100619
   (dmcphers+openshiftbot@redhat.com)
