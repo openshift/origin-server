@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 1.24.2
+Version: 1.24.3
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -54,6 +54,9 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
+- Bump cartridge versions (agoldste@redhat.com)
+
 * Tue May 27 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
 - Make READMEs in template repos more obvious (vvitek@redhat.com)
 
