@@ -62,7 +62,7 @@ module OpenShift
 
             # Make sure we create a MonitoredGear for the root OpenShift cgroup
             # Keys for information we want from cgroups
-            @wanted_keys      = [:usage, :throttled_time, :nr_periods, :cfs_quota_us]
+            @wanted_keys      = [:usage, :throttled_time, :nr_periods, :cfs_quota_us, :cfs_period_us, :ts]
 
             # Set the interval to save
             @interval         = resource('apply_period') { |x| Integer(x) }

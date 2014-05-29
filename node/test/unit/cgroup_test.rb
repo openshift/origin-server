@@ -61,14 +61,17 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
     @clsany = @cls.any_instance
     @cgroups = @cls.new(@uuid)
 
+    @mock_ts = 1234567890.123456
     @mock_usage = {
       "good" => {
+        ts: @mock_ts,
         usage: 1,
         throttled_time: 2,
         nr_periods: 3,
         cfs_quota_us: 4
       },
       "bad" => {
+        ts: @mock_ts,
         usage: 5,
         throttled_time: 6,
         nr_periods: 7,
@@ -249,7 +252,7 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
   end
 
   def test_parse_usage
-    usage = OpenShift::Runtime::Utils::Cgroups::Libcgroup.parse_usage(@mock_usage_str)
+    usage = OpenShift::Runtime::Utils::Cgroups::Libcgroup.parse_usage(@mock_usage_str, @mock_ts)
     assert_equal @mock_usage, usage
   end
 
