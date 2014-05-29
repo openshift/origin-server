@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.25.3
+Version: 1.25.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.25.4-1
+- Ensure at least one scope's conditions are met, even when combined with
+  complex queries (jliggitt@redhat.com)
+- Bug 1102273: Make domain scopes additive (jliggitt@redhat.com)
+
 * Wed May 28 2014 Adam Miller <admiller@redhat.com> 1.25.3-1
 - Change GroupOverride.empty? so group overrides with 1 component is not
   considered empty. Change logic that splits group overrides up if their
