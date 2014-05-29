@@ -96,6 +96,9 @@ Requires:      %{?scl:%scl_prefix}rubygem-treetop
 Requires:      %{?scl:%scl_prefix}rubygem-tzinfo
 Requires:      %{?scl:%scl_prefix}rubygem-xml-simple
 Requires:      %{?scl:%scl_prefix}rubygem-syslog-logger
+Requires:      %{?scl:%scl_prefix}ruby193-rubygem-backburner
+Requires:      %{?scl:%scl_prefix}ruby193-rubygem-beaneater
+Requires:      %{?scl:%scl_prefix}ruby193-rubygem-dante
 
 %if %{with_systemd}
 Requires:      systemd-units

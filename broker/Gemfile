@@ -12,6 +12,7 @@ gem 'mongoid'
 gem 'bson'
 gem 'bson_ext'
 gem 'httpclient'
+gem 'backburner'
 gem 'pry', :require => 'pry' if ENV['PRY']
 gem 'syslog-logger', '~> 1.6.8', :require => false
 # Fedora 19 splits psych out into its own gem.
@@ -103,7 +104,6 @@ group :development, :test do
   gem 'nokogiri', '1.6.1'
   gem 'capybara', '~> 2.1.0', :require => false
   gem 'poltergeist',   '~> 1.2.0', :require => false
-  gem 'backburner'
 end
 
 # NON-RUNTIME END
