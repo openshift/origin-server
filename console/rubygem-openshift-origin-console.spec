@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.25.3
+Version: 1.25.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.25.4-1
+- Revert "Updating file paths from blogs to blog" (shalompisteuo@gmail.com)
+
 * Fri May 23 2014 Adam Miller <admiller@redhat.com> 1.25.3-1
 - Merge pull request #5359 from worldline/improving_config_files
   (dmcphers+openshiftbot@redhat.com)
