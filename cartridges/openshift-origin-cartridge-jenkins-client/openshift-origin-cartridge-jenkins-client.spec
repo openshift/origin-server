@@ -7,7 +7,7 @@
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -49,6 +49,9 @@ Provides plugin jenkins client support. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.21.2-1
+- Bump cartridge versions (agoldste@redhat.com)
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.21.1-1
 - support cygwin in jenkins client shell command detect application platform in
   jenkins client and use it to determine if builder should be scalable update
