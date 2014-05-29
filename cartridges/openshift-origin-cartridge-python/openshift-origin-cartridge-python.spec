@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.25.2
+Version: 1.25.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -97,6 +97,11 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
+* Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.25.3-1
+- Merge pull request #5465 from ncdc/python-3.3-pip (admiller@redhat.com)
+- Add pip installer to the python cartridge (agoldste@redhat.com)
+- Bump cartridge versions (agoldste@redhat.com)
+
 * Tue May 27 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
 - Make READMEs in template repos more obvious (vvitek@redhat.com)
 
