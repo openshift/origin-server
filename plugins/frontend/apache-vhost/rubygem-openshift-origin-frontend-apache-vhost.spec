@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.7.1
+Version: 0.7.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -109,6 +109,10 @@ mv httpd/openshift-vhost-logconf.include %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Thu May 29 2014 Adam Miller <admiller@redhat.com> 0.7.2-1
+- Bug 1101836: Apache shouldn't disable backend when it can't connect to it.
+  (mrunalp@gmail.com)
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 0.7.1-1
 - apache-vhost: fix BZ 1090358 on moving custom certs (lmeyer@redhat.com)
 - bump_minor_versions for sprint 45 (admiller@redhat.com)
