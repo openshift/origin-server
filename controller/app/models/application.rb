@@ -1190,18 +1190,23 @@ class Application
   end
 
   def restart(feature=nil)
-    Lock.run_in_app_lock(self) do
-      result_io = ResultIO.new
-      op_group = nil
-      if feature.nil?
-        op_group = RestartAppOpGroup.new(user_agent: self.user_agent)
-      else
-        op_group = RestartFeatureOpGroup.new(feature: feature, user_agent: self.user_agent)
-      end
-      self.pending_op_groups << op_group
-      self.run_jobs(result_io)
-      result_io
+    op_group = nil
+    if feature.nil?
+      op_group = RestartAppOpGroup.new(user_agent: self.user_agent)
+    else
+      op_group = RestartFeatureOpGroup.new(feature: feature, user_agent: self.user_agent)
     end
+    self.pending_op_groups << op_group
+
+    
+    app_job = op_group.add_scheduler_job
+    #ResultIO.new
+    
+#    Lock.run_in_app_lock(self) do
+#      result_io = ResultIO.new
+#      self.run_jobs(result_io)
+#      result_io
+#    end
   end
 
   def restart_component(component_name, cartridge_name)
@@ -1708,6 +1713,48 @@ class Application
     nil
   end
 
+  def run_job(result_io = nil)
+    result_io = ResultIO.new if result_io.nil?
+    if self.pending_op_groups.count > 0
+      op_group = self.pending_op_groups.first
+      self.user_agent = op_group.user_agent
+      
+      op_group.elaborate(self) if op_group.pending_ops.count == 0
+      self.save
+      attempts = 0
+      while (attempts < 10)
+        attempts += 1
+        self.reload
+        begin
+          if op_group.execute_ops?
+            op_group.execute(result_io)
+            op_group.unreserve_gears(op_group.num_gears_removed, self)
+            op_group.update_job_completion_state(:success)
+            op_group.delete
+          elsif op_group.retry_ops?
+            failed_ops = op_group.pending_ops.where(:state => :failed)
+            op_group.rollback_ops_for_retry(failed_ops, result_io)
+            op_group.execute(result_io)
+          elsif op_group.rollback_ops?
+            op_group.execute_rollback(result_io)
+            num_gears_recovered = op_group.num_gears_added - op_group.num_gears_created + op_group.num_gears_rolled_back + op_group.num_gears_destroyed
+            op_group.unreserve_gears(num_gears_recovered, self)
+            op_group.update_job_completion_state(:failed)
+            op_group.delete
+          end
+          break
+        rescue Exception => ex
+          # a delay of 0 indicates that the op can be retried immediately
+          if ( delay = op_group.reschedule_delay() ) > 0
+            ApplicationJob.async(:queue => "application", :delay => delay).execute_job(self._id)
+            break
+          end
+        end
+      end
+    end
+    result_io
+  end
+
   # Runs all pending jobs and stops at the first failure.
   #
   # IMPORTANT: Callers should take the application lock prior to calling run_jobs
@@ -1738,6 +1785,7 @@ class Application
 
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
+        op_group.update_job_completion_state(:success)
         op_group.delete
       rescue Exception => e_orig
         Rails.logger.error "Encountered error during execute '#{e_orig.message}'"
@@ -1753,6 +1801,7 @@ class Application
           op_group.delete
           num_gears_recovered = op_group.num_gears_added - op_group.num_gears_created + op_group.num_gears_rolled_back + op_group.num_gears_destroyed
           op_group.unreserve_gears(num_gears_recovered, self)
+          op_group.update_job_completion_state(:failed)
 
           rollback_successful = true
         rescue Mongoid::Errors::DocumentNotFound

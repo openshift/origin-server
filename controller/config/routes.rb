@@ -40,6 +40,7 @@ Rails.application.routes.draw do
         match 'environment-variables' => 'environment_variables#create', :via => :patch
         match 'environment_variables' => 'environment_variables#create', :via => :patch
         resources :deployments, :only => [:index, :show, :create], :controller => :deployments, :id => id_with_format
+        resources :jobs, :only => [:index, :show, :destroy], :controller => :application_jobs, :id => id_with_format
       end
 
       # Allow restful update of the domain name via the standard id parameter
@@ -67,9 +68,12 @@ Rails.application.routes.draw do
           match 'environment-variables' => 'environment_variables#create', :via => :patch
           match 'environment_variables' => 'environment_variables#create', :via => :patch
           resources :deployments, :only => [:index, :show, :create], :controller => :deployments, :id => id_with_format
+          resources :jobs, :only => [:index, :show, :destroy], :controller => :application_jobs, :id => id_with_format
         end
       end
       
+      resources :jobs, :only => [:index, :show, :destroy], :id => id_with_format 
+            
       resources :teams, :only => [:index, :show, :create, :destroy], :id => id_with_format do
         resources :members, :only => [:index, :show, :create, :update, :destroy], :controller => :team_members, :id => id_with_format
         match 'members' => 'team_members#create', :via => :patch

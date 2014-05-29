@@ -12,6 +12,7 @@ gem 'mongoid'
 gem 'bson'
 gem 'bson_ext'
 gem 'httpclient'
+gem 'backburner'
 gem 'pry', :require => 'pry' if ENV['PRY']
 gem 'syslog-logger', '~> 1.6.8', :require => false
 # Fedora 19 splits psych out into its own gem.

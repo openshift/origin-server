@@ -69,7 +69,12 @@ class AppEventsController < BaseController
     when "restart"
       authorize! :change_state, @application
       r = @application.restart
-      msg = "Application #{@application.name} has restarted"
+      
+      if requested_api_version <= 1.7
+        msg = "Application #{@application.name} has restarted"
+      else
+        msg = "Application #{@application.name} restart request received"
+      end
 
     when "show-port", "expose-port", "conceal-port"
       return render_error(:gone, "This event (#{event}) is no longer supported.", 112)
@@ -144,7 +149,7 @@ class AppEventsController < BaseController
     @application.reload
     app = get_rest_application(@application)
 
-    if !r.errorIO.string.empty?
+    if r.is_a?(ResultIO) and r.errorIO.string.present?
       return render_error(r.hasUserActionableError ? :unprocessable_entity : :internal_server_error, "Error occurred while processing event '#{event}': #{r.errorIO.string.chomp}",
                           r.exitcode)
     end
@@ -152,8 +157,23 @@ class AppEventsController < BaseController
     event_name = "app_#{event.gsub(/-/, '_')}" unless event_name
     @analytics_tracker.track_event(event_name, @domain, @application, props)
 
-    render_success(:ok, "application", app, msg, r)
+    if requested_api_version <= 1.7
+      if r.is_a? JobState
+        r.wait_for_completion
+        if r.completion_state == :success
+          render_success(:ok, "application", app, msg)
+        else
+          return render_error(r.hasUserActionableError ? :unprocessable_entity : :internal_server_error, 
+                              "Error occurred while processing event '#{event}': #{r.output_error}", r.exitcode)
+        end
+      else
+        render_success(:ok, "application", app, msg, r)
+      end
+    else
+      render_accepted(get_rest_job(r, @application), msg)
+    end
   end
+
   protected
     def action_log_tag_action
       if event = params[:event].presence

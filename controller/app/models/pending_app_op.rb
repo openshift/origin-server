@@ -7,12 +7,18 @@ class PendingAppOp
   include Mongoid::Document
   include Mongoid::Timestamps::Created
 
+  MAX_ATTEMPTS = 4
+  MAX_ROLLBACK_ATTEMPTS = 4
+  RETRY_DELAY = 10
+  
   embedded_in :pending_app_op_group, class_name: PendingAppOpGroup.name
-  field :state,             type: Symbol,   default: :init
-  field :prereq,            type: Array
-  field :retry_count,       type: Integer,  default: 0
-  field :retry_rollback_op, type: Moped::BSON::ObjectId
+  field :state,              type: Symbol, default: :init
+  field :prereq,             type: Array
+  field :execution_attempts, type: Integer, default: 0
+  field :rollback_attempts,  type: Integer, default: 0
+  field :retry_rollback_op,  type: Moped::BSON::ObjectId
 
+  
   def prereq
     self.attributes["prereq"] || []
   end
@@ -57,6 +63,41 @@ class PendingAppOp
 
   def add_parallel_rollback_job(handle)
     Rails.logger.debug "Parallel rollback not implemented: #{self.class.to_s}"
+  end
+
+  def max_attempts
+    return MAX_ATTEMPTS
+  end
+
+  def max_rollback_attempts
+    return MAX_ROLLBACK_ATTEMPTS
+  end
+
+  def retry_delay
+    return RETRY_DELAY
+  end
+
+  def atomic_update(set_hash = {}, increment_hash = {})
+    if pending_app_op_group.application.persisted?
+      failure_message = "Failed to atomically update pending_op #{self._id.to_s} in application #{self.pending_app_op_group.application.name}"
+      updated_op = update_with_retries(5, failure_message) do |current_app, current_op_group, current_op, op_group_index, op_index|
+        update_hash = {}
+        update_hash["$set"] = {} if set_hash.present?
+        set_hash.each { |k, v| update_hash["$set"]["pending_op_groups.#{op_group_index}.pending_ops.#{op_index}.#{k}"] = v }
+
+        update_hash["$inc"] = {} if increment_hash.present?
+        increment_hash.each { |k, v| update_hash["$inc"]["pending_op_groups.#{op_group_index}.pending_ops.#{op_index}.#{k}"] = v }
+
+        Application.where({ "_id" => current_app._id, "pending_op_groups.#{op_group_index}._id" => current_op_group._id, "pending_op_groups.#{op_group_index}.pending_ops.#{op_index}._id" => current_op._id }).update(update_hash)
+      end
+      # set the attributes in the object in mongoid memory for access by the caller
+      set_hash.each { |k, v| self.send("#{k}=", updated_op.send("#{k}")) }
+      increment_hash.each { |k, v| self.send("#{k}=", updated_op.send("#{k}")) }
+    else
+      # if the document is not persisted, then just set the values directly
+      set_hash.each { |k, v| self.send("#{k}=", v) }
+      increment_hash.each { |k, v| self.send("#{k}=", (self.send("#{k}") + v)) }
+    end
   end
 
   # the new_state needs to be a symbol

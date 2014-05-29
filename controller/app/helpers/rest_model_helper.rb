@@ -115,4 +115,13 @@ module RestModelHelper
   def get_rest_team(team, include_members)
     RestTeam.new(team, get_url, nolinks, include_members)
   end
+
+  def get_rest_job(job, resource=nil)
+    begin
+      resource = job.resource_type.constantize.find_by(_id: job.resource_id)
+    rescue Mongoid::Errors::DocumentNotFound
+    end if resource.nil?
+    
+    RestJob.new(job, resource, get_url, nolinks)
+  end
 end

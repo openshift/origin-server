@@ -4,7 +4,7 @@ module OpenShift
       extend ActiveSupport::Concern
 
       API_VERSION = 1.7
-      SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7]
+      SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8]
 
       included do
         before_filter ->{ Mongoid.identity_map_enabled = true }
@@ -191,6 +191,14 @@ module OpenShift
 
         def support_valid_encoding?
           String.new.respond_to?('valid_encoding?')
+        end
+        #This method sets current_user in the current thread to be used by model objects
+        def set_current_user
+          Thread.current[:current_uer] = @cloud_user
+        end
+        
+        def clear_current_user
+          Thread.current[:current_uer] = nil
         end
     end
   end

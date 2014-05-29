@@ -239,7 +239,8 @@ class RestApplication < OpenShift::Model
           OptionalParam.new("deployment_type", "string", "Indicates whether the app is setup for binary or git based deployments", ['git', 'binary']),
           OptionalParam.new("deployment_branch", "string", "Indicates which branch should trigger an automatic deployment, if automatic deployment is enabled."),
           OptionalParam.new("keep_deployments", "integer", "Indicates how many total deployments to preserve. Must be greater than 0"),
-        ])
+        ]),
+        "LIST_JOBS" => Link.new("List all deployments", "GET", URI::join(url, "application/#{@id}/jobs"))
       }
       self.links["MAKE_HA"] = Link.new("Make the application Highly Available (HA)", "POST", URI::join(url, "application/#{@id}/events"), [
           Param.new("event", "string", "event", "make-ha")

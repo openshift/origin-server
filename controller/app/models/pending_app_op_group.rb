@@ -22,6 +22,8 @@ class PendingAppOpGroup
   field :user_agent, type: String, default: ""
   field :rollback_blocked, type: Boolean, default: false
 
+  belongs_to :job_state, class_name: JobState.name, inverse_of: nil
+
   def initialize(attrs = nil, options = nil)
     parent_opid = nil
     if !attrs.nil? and attrs[:parent_op]
@@ -32,6 +34,68 @@ class PendingAppOpGroup
     self.parent_op_id = parent_opid 
   end
 
+  def execute_ops?
+    execute_ops = true
+    if pending_ops.where(:state.nin => [:init, :completed]).count == 0
+      pending_ops.where(:state => :init).each do |op|
+        if op.execution_attempts > 0 || op.rollback_attempts > 0
+          execute_ops = false
+          break
+        end
+      end
+    else
+      execute_ops = false
+    end
+    execute_ops
+  end
+
+  def retry_ops?
+    retry_ops = true
+    if pending_ops.where(:state => :rolledback).count > 0
+      retry_ops = false
+    else
+      pending_ops.where(:state.in => [:init, :queued, :failed]).each do |op|
+        if op.execution_attempts >= op.max_attempts
+          retry_ops = false
+          break
+        end
+      end
+    end
+    retry_ops
+  end
+
+  def rollback_ops?
+    if pending_ops.where(:state => :rolledback).count == 0
+      rollback_ops = false
+      pending_ops.where(:state.in => [:init, :queued, :failed]).each do |op|
+        if op.execution_attempts >= op.max_attempts
+          rollback_ops = true
+          break
+        end
+      end
+    else
+      rollback_ops = true
+      pending_ops.where(:state.in => [:queued, :completed, :failed]).each do |op|
+        if op.rollback_attempts >= op.max_rollback_attempts
+          rollback_ops = false
+          break
+        end
+      end
+    end
+    rollback_ops
+  end
+
+  def reschedule_delay
+    delay = 0
+    pending_ops.where(:state.ne => :rolledback).each do |op|
+      if op.execution_attempts > 1 || op.rollback_attempts > 1
+        new_delay = op.retry_delay * [op.execution_attempts, op.rollback_attempts].max
+        delay = [delay, new_delay].max 
+      end
+    end
+    delay
+  end
+
   def eligible_rollback_ops
     # reloading the op_group reloads the application and then incorrectly reloads (potentially)
     # the op_group based on its position within the :pending_op_groups list
@@ -39,7 +103,7 @@ class PendingAppOpGroup
     reloaded_app = Application.find_by(_id: application._id)
     op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
     self.pending_ops = op_group.pending_ops
-    pending_ops.where(:state.in => [:completed, :queued]).select{|op| (pending_ops.where(:prereq => op._id.to_s, :state.in => [:completed, :queued]).count == 0)}
+    pending_ops.where(:state.nin => [:init, :rolledback]).select{|op| (pending_ops.where(:prereq => op._id.to_s, :state.nin => [:init, :rolledback]).count == 0)}
   end
 
   def eligible_ops
@@ -64,6 +128,33 @@ class PendingAppOpGroup
     end
 
     pending_ops.where(:state.ne => :completed, :pre_save => true).select{ |op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0 }
+  end
+
+  def eligible_retry_rollback_ops(rollback_ops = [])
+    return [] if rollback_ops.blank?
+
+    # reloading the op_group reloads the application and then incorrectly reloads (potentially)
+    # the op_group based on its position within the :pending_op_groups list
+    # hence, reloading the application, and then fetching the op_group using the _id
+    if application.persisted?
+      reloaded_app = Application.find_by(_id: application._id)
+      op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
+      
+      rollback_op_ids = rollback_ops.map(&:_id)
+      rollback_ops = op_group.pending_ops.select {|op| rollback_op_ids.include?(op._id) }
+    end
+
+    rollback_ops.select! {|op| ![:init, :rolledback].include?(op.state)}
+    rollback_ops.select { |o_op| rollback_ops.select{|i_op| i_op.prereq.include?(o_op._id.to_s)}.count == 0 }
+  end
+
+  def get_rollback_ops(retry_ops = [])
+    attempted_ops = pending_ops.where(:state.nin => [:init, :rolledback])
+    ops = retry_ops
+    ops |= attempted_ops.select {|a_op| (retry_ops.map(&:_id).map(&:to_s) & a_op.prereq).count > 0 }
+    ops |= attempted_ops.select {|a_op| retry_ops.map(&:retry_rollback_op).compact.include?(a_op._id) }
+    ops |= get_rollback_ops(ops) if ops.count > retry_ops.count
+    ops
   end
 
   # The pre_execute method does not handle parallel executions
@@ -93,41 +184,36 @@ class PendingAppOpGroup
 
         eligible_ops.each do|op|
           Rails.logger.debug "Execute #{op.to_log_s}"
-
-          # set the pending_op state to queued
-          op.set_state(:queued)
-
           if op.is_parallel_executable
             op.add_parallel_execute_job(handle)
             parallel_job_ops.push op
           else
-            return_val = op.execute
-            result_io.append return_val if return_val.is_a? ResultIO
-            if result_io.exitcode != 0
-              op.set_state(:failed)
-              if result_io.hasUserActionableError
-                raise OpenShift::UserException.new("Unable to execute #{op.to_log_s}", result_io.exitcode, nil, result_io) 
-              else
-                raise OpenShift::NodeException.new("Unable to execute #{op.to_log_s}", result_io.exitcode, result_io)
-              end
-            else
-              op.set_state(:completed)
-            end
+            handle_op_execution(op, result_io)
           end
         end
 
         if parallel_job_ops.length > 0
-          RemoteJob.execute_parallel_jobs(handle)
+          parallel_job_ops.each { |op| op.atomic_update({"state" => :queued}, {"execution_attempts" => 1}) }
+
+          begin
+            RemoteJob.execute_parallel_jobs(handle)
+          rescue Exception => ex
+            parallel_job_ops.each { |op| op.atomic_update({"state" => :failed}) }
+            raise ex
+          end
+
           failed_ops = []
           RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
-            result_io.append ResultIO.new(status, output, gear_id)
+            op_result = ResultIO.new(status, output, gear_id)
+            result_io.append(op_result)
+            update_job_status(op_result)
             failed_ops << tag["op_id"] if status != 0
           end
           parallel_job_ops.each do |op|
             if failed_ops.include? op._id.to_s
-              op.set_state(:failed)
+              op.atomic_update({"state" => :failed})
             else
-              op.set_state(:completed)
+              op.atomic_update({"state" => :completed, "execution_attempts" => 0})
             end
           end
           self.application.save!
@@ -159,7 +245,7 @@ class PendingAppOpGroup
   def execute_rollback(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
 
-    while(pending_ops.where(:state => :completed).count > 0) do
+    while (pending_ops.where(:state => :completed).count > 0) do
       handle = RemoteJob.create_parallel_job
       parallel_job_ops = []
 
@@ -181,6 +267,70 @@ class PendingAppOpGroup
         parallel_job_ops.each{ |op| op.set_state(:rolledback) }
         self.application.save!
       end
+    end
+  end
+
+  def rollback_ops_for_retry(failed_ops=[], result_io=nil)
+    result_io = ResultIO.new if result_io.nil?
+
+    rollback_ops = get_rollback_ops(failed_ops)
+    while (eligible_rollback_ops = eligible_retry_rollback_ops(rollback_ops)).present? do
+      handle = RemoteJob.create_parallel_job
+      parallel_job_ops = []
+
+      eligible_rollback_ops.each do |op|
+        Rails.logger.debug "Rollback #{op.to_log_s}"
+
+        if op.is_parallel_executable
+          op.add_parallel_rollback_job(handle)
+          parallel_job_ops.push op
+        else
+          handle_op_rollback(op, result_io)
+        end
+      end
+
+      if parallel_job_ops.length > 0
+        RemoteJob.execute_parallel_jobs(handle)
+        parallel_job_ops.each{ |op| op.atomic_update({"state" => :rolledback}) }
+        self.application.save!
+      end
+    end
+  end
+
+  def handle_op_execution(op, result_io)
+    op.atomic_update({"state" => :queued}, {"execution_attempts" => 1})
+    begin
+      return_val = op.execute
+      if return_val.is_a? ResultIO
+        result_io.append(return_val)
+        update_job_status(return_val)
+      end
+      if result_io.exitcode != 0
+        if result_io.hasUserActionableError
+          raise OpenShift::UserException.new("Unable to execute #{op.to_log_s}", result_io.exitcode, nil, result_io) 
+        else
+          raise OpenShift::NodeException.new("Unable to execute #{op.to_log_s}", result_io.exitcode, result_io)
+        end
+      else
+        op.atomic_update({"state" => :completed, "execution_attempts" => 0})
+      end
+    rescue Exception => ex
+      op.atomic_update({"state" => :failed})
+      raise ex
+    end
+  end
+
+  def handle_op_rollback(op, result_io)
+    begin
+      return_val = op.rollback
+      if return_val.is_a? ResultIO
+        result_io.append(return_val)
+        update_job_status(return_val)
+      end
+      op.atomic_update({"state" => :rolledback})
+    rescue Exception => ex
+      op.atomic_update({"state" => :failed})
+      raise ex
     end
   end
 
@@ -217,10 +367,53 @@ class PendingAppOpGroup
     end
   end
 
+  def add_scheduler_job
+    ApplicationJob.async(:queue => "application").execute_job(self.application._id)
+    find_or_create_job_state
+  end
+
+  def find_or_create_job_state
+    unless self.job_state
+      jstate = nil
+      begin
+        jstate = JobState.find_by(op_id: self._id)
+      rescue Mongoid::Errors::DocumentNotFound
+        jstate = JobState.new(op_id: self._id, op_type: self.class, resource_id: self.application.id,
+                              resource_type: self.application.class,
+                              resource_owner: self.application.owner, owner: current_user)
+
+        jstate.save
+      end
+
+      Application.where(:_id => self.application._id, "pending_op_groups._id" => self._id).update({"$set" => {"pending_op_groups.$.job_state_id" => jstate._id}})
+      self.job_state = jstate
+    end
+    self.job_state
+  end
+
+  def update_job_status(result_io = nil)
+    if result_io
+      jstate = find_or_create_job_state
+      jstate.append_result(result_io)
+      jstate.save
+    end
+  end
+
+  def update_job_completion_state(completion_state = :success)
+    jstate = find_or_create_job_state
+    jstate.state = :complete
+    jstate.completion_state = completion_state
+    jstate.save
+  end
+
   def get_component_instance
     if spec = comp_spec
       spec.application = application
       application.component_instances.detect{ |i| i.matches_spec?(spec) }
     end
+  end
+  
+  def current_user
+    Thread.current[:current_user]
   end
 end

@@ -28,6 +28,9 @@ RUN yum install --enablerepo=openshift-deps-rhel6 --assumeyes \
      ruby193-rubygem-systemu \
      ruby193-rubygem-term-ansicolor \
      ruby193-rubygem-syslog-logger \
+     ruby193-rubygem-backburner \
+     ruby193-rubygem-beaneater \
+     ruby193-rubygem-dante \
      ruby193 \
      && yum update -y && yum clean all # Clean up yum cache at the end.
 

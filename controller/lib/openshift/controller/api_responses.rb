@@ -228,6 +228,20 @@ module OpenShift
           respond_with reply
         end
 
+        # Renders a REST response for a request that is scheduled for execution.
+        #
+        # == Parameters:
+        #  rest_job::
+        #    Request status object
+        #  message::
+        #    Message to be returned to REST response and logged
+        def render_accepted(rest_job, message=nil)
+          reply = new_rest_reply(:accepted, "job", rest_job)
+          reply.messages.push(Message.new(:info, message)) if message
+          log_action(action_log_tag, status, true, message, get_log_args)
+          respond_with reply
+        end
+
         # Process all validation errors on a model and returns an array of message objects.
         #
         # == Parameters:
