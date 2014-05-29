@@ -252,23 +252,25 @@ class MonitoredGearTest < OpenShift::NodeTestCase
   def test_utilization
     values = [
       {
-        cfs_quota_us:  1000,
-        cfs_period_us: 1000,
+        cfs_quota_us:  100000,
+        cfs_period_us: 100000,
         nr_periods: 0,
+        ts: 1234567890.000000,
         foo: 0
       },
       {
-        cfs_quota_us:  1000,
-        cfs_period_us: 1000,
+        cfs_quota_us:  100000,
+        cfs_period_us: 100000,
         nr_periods: 1,
-        foo: 1000
+        ts: 1234567891.000000,
+        foo: 1000000
       },
     ]
 
     correct = {
-      foo: 1000,
-      foo_per_period: 1000,
-      foo_percent: 1
+      foo: 1000000,
+      foo_per_period: 1000000.0,
+      foo_percent: 0.1
     }
 
     check_elapsed_usage(values, correct)
@@ -280,26 +282,29 @@ class MonitoredGearTest < OpenShift::NodeTestCase
         cfs_quota_us:  1000,
         cfs_period_us: 1000,
         nr_periods: 0,
+        ts: 1234567890.000000,
         foo: 0
       },
       {
         cfs_quota_us:  1000,
         cfs_period_us: 1000,
         nr_periods: 1,
-        foo: 1000
+        ts: 1234567891.000000,
+        foo: 1000000
       },
       {
         cfs_quota_us:  2000,
         cfs_period_us: 1000,
         nr_periods: 2,
-        foo: 3000
+        ts: 1234567892.000000,
+        foo: 3000000
       },
     ]
 
     correct = {
-      foo: 1500,
-      foo_per_period: 1500,
-      foo_percent: 1
+      foo: 1500000,
+      foo_per_period: 1500000.0,
+      foo_percent: 0.1
     }
 
     check_elapsed_usage(values, correct)
@@ -308,22 +313,24 @@ class MonitoredGearTest < OpenShift::NodeTestCase
   def test_utilization_3
     values = [
       {
-        cfs_quota_us:  1000,
-        cfs_period_us: 1000,
+        cfs_quota_us:  100000,
+        cfs_period_us: 100000,
         nr_periods: 0,
+        ts: 1234567890.0,
         foo: 0
       },
       {
-        cfs_quota_us:  1000,
-        cfs_period_us: 1000,
+        cfs_quota_us:  100000,
+        cfs_period_us: 100000,
         nr_periods: 7,
-        foo: 700
+        ts: 1234567897.0,
+        foo: 7000000
       },
     ]
 
     correct = {
-      foo: 700,
-      foo_per_period: 100,
+      foo: 7000000,
+      foo_per_period: 1000000.0,
       foo_percent: 0.1
     }
 
@@ -377,12 +384,13 @@ class MonitoredGearTest < OpenShift::NodeTestCase
       cfs_quota_us:  10,
       cfs_period_us: 10,
       nr_periods: 0,
+      ts: 1234567890.000000,
       foo: 0
     }
 
     times = (0..max).step(@@impl.delay).inject({}) do |h,i|
       with_time(i) do |t|
-        h[t] = defaults.merge({nr_periods: i, foo: i * 10})
+        h[t] = defaults.merge({nr_periods: i, foo: i * 10000, ts: 1234567890.0 + i})
       end
       h
     end
