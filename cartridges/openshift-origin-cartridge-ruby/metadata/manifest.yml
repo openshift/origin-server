@@ -11,7 +11,7 @@ Versions:
 License: Ruby BSDL
 License-Url: http://www.ruby-lang.org/en/about/license.txt
 Vendor: ruby.org
-Cartridge-Version: 0.0.18
+Cartridge-Version: 0.0.19
 Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
@@ -50,7 +50,7 @@ Endpoints:
     Backend: ''
     Options:
       websocket: true
-  - Frontend: /health
+  - Frontend: "/health"
     Backend: ''
     Options:
       health: true

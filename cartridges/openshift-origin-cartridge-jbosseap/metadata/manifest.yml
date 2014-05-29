@@ -9,8 +9,9 @@ Version: '6'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
-Cartridge-Version: 0.0.16
-Compatible-Versions: []
+Cartridge-Version: 0.0.17
+Compatible-Versions:
+- 0.0.16
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -62,7 +63,7 @@ Endpoints:
     Backend: ''
     Options:
       websocket: true
-  - Frontend: /health
+  - Frontend: "/health"
     Backend: ''
     Options:
       health: true

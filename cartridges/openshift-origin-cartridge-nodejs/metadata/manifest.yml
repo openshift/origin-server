@@ -13,10 +13,11 @@ License: MIT License
 License-Url: https://raw.github.com/joyent/node/v0.10/LICENSE
 Vendor: www.nodejs.org
 Website: http://www.nodejs.org/
-Cartridge-Version: 0.0.17
+Cartridge-Version: 0.0.18
 Compatible-Versions:
 - 0.0.15
 - 0.0.16
+- 0.0.17
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -59,7 +60,7 @@ Endpoints:
     Backend: ''
     Options:
       websocket: true
-  - Frontend: /health
+  - Frontend: "/health"
     Backend: ''
     Options:
       health: true
