@@ -18,3 +18,7 @@ locked_files:
 - env/PASSENGER_TEMP_DIR
 processed_templates:
 - 'etc/conf.d/*.erb'
+setup_rewritten:
+# This can be safely removed in Sprint 46+
+- versions/1.8/template/.openshift
+- versions/1.9/template/.openshift
