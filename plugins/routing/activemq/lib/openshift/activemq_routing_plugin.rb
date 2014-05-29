@@ -16,11 +16,15 @@ module OpenShift
           end
         end.new
       else
-        @conn = Stomp::Connection.open Rails.application.config.routing_activemq[:username],
-                                       Rails.application.config.routing_activemq[:password],
-                                       Rails.application.config.routing_activemq[:host],
-                                       Rails.application.config.routing_activemq[:port],
-                                       true
+        @conn = Stomp::Connection.open({
+          :hosts => Rails.application.config.routing_activemq[:hosts].map do |host|
+            host.merge({
+              :login => Rails.application.config.routing_activemq[:username],
+              :passcode => Rails.application.config.routing_activemq[:password],
+            })
+          end,
+          :reliable => true,
+        })
       end
     end
 
