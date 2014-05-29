@@ -1245,7 +1245,7 @@ The compatible upgrade process for a cartridge is as follows:
 === Incompatible Upgrades
 The incompatible upgrade process for a cartridge is as follows:
 
-. The files and directories declared in the `Setup-Rewritten` section of the cartridge's `managed_files.yml` are removed.
+. The files and directories declared in the `setup_rewritten` section of the cartridge's `managed_files.yml` are removed.
 . The new version of the cartridge is overlaid in the gear.
 . The cartridge directory is unlocked.
 . The cartridge directory is secured.
