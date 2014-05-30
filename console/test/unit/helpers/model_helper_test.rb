@@ -53,6 +53,7 @@ class Console::ModelHelperTest < ActionView::TestCase
   def test_in_groups_by_tag
     t1 = Tagged.new([:ruby, :php])
     t2 = Tagged.new([:ruby])
+    t3 = Tagged.new([:ruby, :php, :java])
 
     groups, others = in_groups_by_tag([t1], [:ruby])
     assert_equal [t1], others
@@ -60,6 +61,10 @@ class Console::ModelHelperTest < ActionView::TestCase
 
     groups, others = in_groups_by_tag([t1, t2], [:ruby])
     assert_equal [[:ruby, [t1, t2]]], groups
+    assert others.empty?
+
+    groups, others = in_groups_by_tag([t1, t3], [:java, :php, :ruby])
+    assert_equal [[:php, [t1, t3]]], groups
     assert others.empty?
   end
 end
