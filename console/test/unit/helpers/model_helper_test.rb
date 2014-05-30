@@ -55,14 +55,19 @@ class Console::ModelHelperTest < ActionView::TestCase
     t2 = Tagged.new([:ruby])
     t3 = Tagged.new([:ruby, :php, :java])
 
+    # If only one type matches a given tag, the type should go under others.
     groups, others = in_groups_by_tag([t1], [:ruby])
     assert_equal [t1], others
     assert groups.empty?
 
+    # If two types match a given tag, the types should be grouped together.
     groups, others = in_groups_by_tag([t1, t2], [:ruby])
     assert_equal [[:ruby, [t1, t2]]], groups
     assert others.empty?
 
+    # If a type matches more than one tag, but it is the only type that matches
+    # the first matching tag, and multiple types match a subsequent tag, then
+    # the type should be grouped under the first such subsequent tag.
     groups, others = in_groups_by_tag([t1, t3], [:java, :php, :ruby])
     assert_equal [[:php, [t1, t3]]], groups
     assert others.empty?
