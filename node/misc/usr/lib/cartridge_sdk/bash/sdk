@@ -236,11 +236,11 @@ function print_user_running_processes {
     echo ""
 }
 
-# Check is a process is running
+# Check if a process is running
 # Arguments:
-#  - Process name
-#  - Pidfile
-#  - UID to check (optional)
+#  $1 - Process name
+#  $2 - Pidfile
+#  $3 - UID to check (optional)
 function process_running {
   local process=$1
   local pidfile=$2
@@ -264,49 +264,59 @@ function process_running {
   return 1
 }
 
+# Check if PID belongs to httpd process
+# Argument(s):
+#  $1 - Process ID
 function pid_is_httpd() {
     ps --no-headers -p "$1" 2> /dev/null | grep httpd > /dev/null
 }
 
+# Kill all matching processes
+# Argument(s):
+#  $1 - Process ID
+#     - or Substring of Process command including its arguments
 function killall_matching_httpds() {
    [ -z "$1" ]  &&  return 1
    ps -u `id -u` -o pid,command | grep "$1" | grep -v "grep" |    \
        awk '{ print $1 }' |  xargs kill -9  > /dev/null 2>&1  || :
 }
 
-# Attempt to resurrect the Apache PID file if its corrupt.
-#  Caution: there may be multiple Apache processes on the gear.
+# Remove/repair Apache's corrupted Pidfile
+#  Caution: there may be multiple Apache processes on the gear
+# Arguments:
+#  $1 - Full path to Apache Pidfile (httpd.pid)
+#  $2 - Full path to Apache config file (httpd.conf)
 function ensure_valid_httpd_pid_file() {
     local pid_file="$1"
     local cfg_file="$2"
 
     local force_rebuild=""
     local pid_contents=""
-    local pid_regex='^[1-9][0-9]+$'
     local real_pid=""
 
     if [ -e "$pid_file" ]
     then
-        # Is it a file, owned by me and readable?
+        # Is it NOT a file, owned by me and readable?
         if ! [ -f "$pid_file" -a -O "$pid_file" -a -r "$pid_file" ]
         then
             force_rebuild="true"
         else
-            # The pid file must contain one and only one number, nothing else or be blank.
+            # Does NOT the Pidfile containt one and only one number?
             pid_contents=$(cat "$pid_file" 2>/dev/null || :)
-            if ! [[ "$pid_contents" =~ $pid_regex ]]
+            if ! [[ "$pid_contents" =~ ^[1-9][0-9]+$ ]]
             then
                 force_rebuild="true"
             fi
         fi
     fi
 
-    # If we are very lucky, we can find a valid PID to replace corrupt data.
+    # Remove the Pidfile and try to repair it
     if [ -n "$force_rebuild" ]
     then
         rm -rf "$pid_file"  # Could be a corrupt inode, a dir, symlink, context or ownership problems, etc...
         if [ "$cfg_file" ]
         then
+            # Get PID of oldest process owned by me, whose command matches "-f /full/path/to/httpd.conf" string
             real_pid=$(pgrep -o -u `id -u` -f -- "-f $cfg_file" )
             if [ -n "$real_pid" ]
             then
@@ -316,9 +326,12 @@ function ensure_valid_httpd_pid_file() {
     fi
 }
 
+# Repair Apache's corrupted Pidfile or kill it all
+#  Caution: there may be multiple Apache processes on the gear
+# Arguments:
+#  $1 - Full path to Apache Pidfile (httpd.pid)
+#  $2 - Full path to Apache config file (httpd.conf)
 function ensure_valid_httpd_process() {
-    # $1 == pidfile.
-    # $2 == httpd config file.
     ensure_valid_httpd_pid_file "$1" "$2"
     [ -n "$1" ]  &&  [ -f "$1" ]  &&  pid_is_httpd `cat "$1"`  &&  return 0
     [ -n "$1" ]  &&  rm -f "$1"
@@ -330,8 +343,10 @@ function hot_deploy_marker_is_present() {
     hot_deploy_enabled_for_latest_deployment
 }
 
-# return 'start' instead of restart if the HTTPD pid file is corrupted and the
-# HTTPD is not running
+# Remove Apache's invalid/corrupted Pidfile
+# Arguments:
+#  $1 - Full path to Apache Pidfile (httpd.pid)
+#  $2 - Full path to Apache config file (httpd.conf)
 function ensure_httpd_restart_succeed() {
     local pid_file="$1"
     local cfg_file="$2"
