@@ -12,7 +12,6 @@ class TeamsController < BaseController
 
     if search
       if get_bool(global)
-        authorize! :view_global_teams, current_user
         teams = Team.accessible(current_user).where(owner_id: nil, name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1})
       else
         teams = Team.accessible(current_user).where(:owner_id.exists => true, :owner_id.ne => "", name: /.*#{Regexp.escape(search)}.*/i).sort({name: 1})
