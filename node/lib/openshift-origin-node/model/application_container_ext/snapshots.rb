@@ -206,7 +206,11 @@ module OpenShift
           # Revert to the pre-restore state of the currently restored gear
           #
           if @state.value != pre_restore_state
-            (@state.value != State::STARTED) ? start_gear : stop_gear
+            if (@state.value != State::STARTED)
+              start_gear
+            else
+              scalable_restore ? post_restore_stop_gears(gear_groups, gear_env) : stop_gear
+            end
           end
 
           result[:status] = RESULT_SUCCESS
@@ -309,6 +313,14 @@ module OpenShift
                                       err: $stderr,
                                       timeout: @hourglass.remaining,
                                       expected_exitstatus: 0)
+          end
+        end
+
+        def post_restore_stop_gears(gear_groups, gear_env)
+          $stderr.puts "Stopping gears after restore "
+          gear_groups['data'][0]['gears'].each do |gear|
+              ssh_coords = gear['ssh_url'].sub(/^ssh:\/\//, '')
+            run_in_container_context("#{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'gear stop'", env: gear_env )
           end
         end
       end
