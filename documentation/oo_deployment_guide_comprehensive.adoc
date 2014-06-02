@@ -1030,7 +1030,7 @@ EOF
 
 Update the _plugin.activemq.pool.1.password_ password to match what you set up in the active configuration.
 
-Now you have configured the MCollective client to connect to ActiveMQ running on the local host. In a typical deployment, you will configure MCollective to connect to ActiveMQ running on a remote server by putting the appropriate hostname for the plugin.stomp.host setting.
+Now you have configured the MCollective client to connect to ActiveMQ running on the local host. In a typical deployment, you will configure MCollective to connect to ActiveMQ running on a remote server by putting the appropriate hostname for the plugin.activemq.pool.1.host setting.
 
 == The Broker
 
