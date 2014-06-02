@@ -961,8 +961,14 @@ For communication between the broker host and the gear nodes, OpenShift Origin u
 === Installation
 In order to use MCollective, first install it via yum:
 
+.Fedora
 ----
 yum install -y mcollective-client
+----
+
+.RHEL
+----
+yum install -y ruby193-mcollective-client
 ----
 
 === Configuration
@@ -2036,7 +2042,7 @@ In order to install MCollective on the node host, you will need to install the _
 yum install -y openshift-origin-msg-node-mcollective
 ----
 
-NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
+NOTE: Depending on your connection and speed of your node host, this installation make take several minutes.
 
 === Configure MCollective
 Configure the MCollective client to communicate with the broker application service. In order to accomplish this, replace the contents of the MCollective server.cfg configuration file to point to your correct stomp host. Edit the _/etc/mcollective/server.cfg_ file and add the following information. If you used a different hostname for your broker application host, ensure that you provide the correct stomp host. You also need to ensure that you use the same username and password that you specified in your ActiveMQ configuration.
@@ -2205,7 +2211,7 @@ yum install -y rubygem-openshift-origin-node \
                rubygem-openshift-origin-container-selinux
 ----
 
-NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
+NOTE: Depending on your connection and speed of your node host, this installation make take several minutes.
 
 ==== Install front-end plugins
 
