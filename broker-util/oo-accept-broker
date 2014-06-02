@@ -185,6 +185,20 @@ function check_logfile_perms() {
     fi
 }
 
+function check_mcollective_client_perms() {
+    MCOLLECTIVE_CFG="/opt/rh/ruby193/root/etc/mcollective/client.cfg"
+    if ! stat -c %U:%G $MCOLLECTIVE_CFG | grep apache:apache 2>&1 > /dev/null
+    then
+      fail "ERROR: $MCOLLECTIVE_CFG should be owned by apache:apache"
+    fi
+
+    if ! stat -c %a $MCOLLECTIVE_CFG | grep "0$" 2>&1 > /dev/null
+    then
+      fail "ERROR: $MCOLLECTIVE_CFG should not be world accessible"
+    fi
+}
+
+
 function check_missing_and_insecure_secrets() {
     if [ "${APP_VALUES[AUTH_SALT]}" = "ClWqe5zKtEW4CJEMyjzQ" ]
     then
@@ -968,6 +982,7 @@ STATUS=0
 
 probe_version
 check_packages $PACKAGES
+check_mcollective_client_perms
 check_ruby_requirements $OSO_RUBY_LIBS
 if [ -z "$container" ]; then 
   #Can't check selinux/iptables if we are running inside a container
