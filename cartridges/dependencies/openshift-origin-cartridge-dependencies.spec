@@ -338,6 +338,8 @@ BuildArch: noarch
 Requires:  libcurl
 Requires:  libjpeg
 Requires:  MySQL-python
+Requires:  pymongo
+Requires:  pymongo-gridfs
 Requires:  python-magic
 Requires:  python-psycopg2
 Requires:  redhat-lsb-core
@@ -346,6 +348,7 @@ Requires:  symlinks
 Requires:  python27-MySQL-python
 Requires:  python27-python-psycopg2
 Requires:  python33-python-psycopg2
+Requires:  python33-python-pymongo
 %endif
 
 %description recommended-python
@@ -370,14 +373,11 @@ Requires:  libjpeg-devel
 Requires:  libyaml-devel
 Requires:  numpy
 Requires:  numpy-f2py
-Requires:  pymongo
-Requires:  pymongo-gridfs
 Requires:  ta-lib-devel
 Requires:  xz-devel
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:  python27-numpy
 Requires:  python33-numpy
-Requires:  python33-python-pymongo
 %endif
 
 %description optional-python
@@ -397,9 +397,10 @@ BuildArch: noarch
 Requires:  mysql-devel
 Requires:  sqlite-devel
 Requires:  %{?scl_prefix}ruby-devel
+Requires:  %{?scl_prefix}rubygem-mongo
+Requires:  %{?scl_prefix}rubygem-sqlite3
 Requires:  %{?scl_prefix}ruby-irb
 Requires:  %{?scl_prefix}ruby-mysql
-Requires:  %{?scl_prefix}rubygem-sqlite3
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:  ruby-devel
 Requires:  ruby-mysql
@@ -476,7 +477,6 @@ Requires:  %{?scl_prefix}rubygem-metaclass
 Requires:  %{?scl_prefix}rubygem-mime-types
 Requires:  %{?scl_prefix}rubygem-minitest
 Requires:  %{?scl_prefix}rubygem-mocha
-Requires:  %{?scl_prefix}rubygem-mongo
 Requires:  %{?scl_prefix}rubygem-multi_json
 Requires:  %{?scl_prefix}rubygem-open4
 Requires:  %{?scl_prefix}rubygem-pg
