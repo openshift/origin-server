@@ -129,7 +129,7 @@ module OpenShift
       zonestring = @zone ? "zone #{@zone}" : ""
 
       # compose the nsupdate add command
-      cmd += %{nsupdate <<EOF
+      cmd += %{nsupdate 2>&1 <<EOF
 #{keystring}
 server #{@server} #{@port}
 #{zonestring}
@@ -163,7 +163,7 @@ EOF
       zonestring = @zone ? "zone #{@zone}" : ""
 
       # compose the nsupdate add command
-      cmd += %{nsupdate <<EOF
+      cmd += %{nsupdate 2>&1 <<EOF
 #{keystring}
 server #{@server} #{@port}
 #{zonestring}
@@ -179,16 +179,17 @@ EOF
     #
     # @param cmd [String] 
     #   An nsupdate command sequence
-    # @param addition [String]
+    # @param action [String]
     #   Action to be reported in log message ("adding" or "removing")
-    #
-    def modify_dns(cmd, action)
-      output = `#{cmd} 2>&1`
+    # @param fqdn
+    #   FQDN of the application
+    def modify_dns(cmd, action, fqdn)
+      output = `#{cmd}`
       exit_code = $?.exitstatus
 
       if exit_code != 0
-        raise DNSException.new("error #{action} app record #{fqdn} rc=#{exit_code}")
         Rails.logger.error "Error #{action} DNS application record #{fqdn}: #{output}"
+        raise DNSException.new("Error #{action} DNS application record #{fqdn} rc=#{exit_code}")
       end
     end
 
@@ -209,7 +210,7 @@ EOF
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
       
       cmd = add_cmd(fqdn, public_hostname)
-      modify_dns(cmd, "adding")
+      modify_dns(cmd, "adding", fqdn)
     end
 
     # Unpublish an application - remove DNS record
@@ -226,7 +227,7 @@ EOF
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
 
       cmd = del_cmd(fqdn)
-      modify_dns(cmd, "removing")
+      modify_dns(cmd, "removing", fqdn)
     end
 
    # Change the published location of an application - Modify DNS record
