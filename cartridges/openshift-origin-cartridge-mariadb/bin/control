@@ -3,7 +3,7 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_MARIADB_DIR}/lib/mysql_context"
 
-export STOPTIMEOUT=10
+export STOPTIMEOUT=30
 
 # Run mariadb commands
 function run_sql {
