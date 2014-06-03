@@ -289,7 +289,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
         def disable_fs_limits
           ::OpenShift::Runtime::Node.remove_pam_limits(@container.uuid)
-          ::OpenShift::Runtime::Node.remove_quota(@container.uuid)
+          ::OpenShift::Runtime::Node.remove_quota(@container.uid.to_s, false)
         end
 
         # Returns true if the given IP and port are currently bound
