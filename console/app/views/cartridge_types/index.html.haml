@@ -16,6 +16,8 @@
           .span4
             = render :collection => types, :partial => 'cartridge_types/cartridge_type', :locals => {:application => @application}
 
+      = render :partial => 'cartridge_types/external_cartridges_info'
+
       - if RestApi.download_cartridges_enabled?
         %h3 Install your own cartridge
         %form.form-inline{:method => :get, :action => application_cartridge_type_path(@application, 'custom')}
