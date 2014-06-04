@@ -8,5 +8,7 @@
 
 if [[ "${OPENSHIFT_POSTGRESQL_VERSION}" != "8.4" ]]; then
   ld_path=$(LD_LIBRARY_PATH="" scl enable postgresql92 "printenv LD_LIBRARY_PATH")
+  path=$(PATH="" /usr/bin/scl enable postgresql92 "/usr/bin/printenv PATH")
   echo "OPENSHIFT_POSTGRESQL_LD_LIBRARY_PATH_ELEMENT=${ld_path}"
+  echo "OPENSHIFT_POSTGRESQL_PATH_ELEMENT=${path}"
 fi
