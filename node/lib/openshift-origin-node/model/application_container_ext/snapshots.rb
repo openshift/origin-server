@@ -318,9 +318,11 @@ module OpenShift
 
         def post_restore_stop_gears(gear_groups, gear_env)
           $stderr.puts "Stopping gears after restore "
-          gear_groups['data'][0]['gears'].each do |gear|
+          gear_groups['data'].each do |group|
+            group['gears'].each do |gear|
               ssh_coords = gear['ssh_url'].sub(/^ssh:\/\//, '')
-            run_in_container_context("#{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'gear stop'", env: gear_env )
+              run_in_container_context("#{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'gear stop'", env: gear_env )
+            end
           end
         end
       end
