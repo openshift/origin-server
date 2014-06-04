@@ -34,7 +34,10 @@ Rails.application.routes.draw do
         resources :events, :controller => :app_events, :only => :create
         resource  :dns_resolvable, :only => :show, :controller => :dns_resolvable
         resources :aliases, :only => [:index, :show, :create, :update, :destroy], :controller => :alias, :id => id_with_format
-        resources :members, :only => :index, :controller => :application_members, :id => id_with_format
+        resources :members, :only => [:index, :show, :create, :update, :destroy], :controller => :application_members, :id => id_with_format
+        match 'members' => 'application_members#create', :via => :patch
+        match 'members' => 'application_members#destroy_all', :via => :delete
+        match 'members/self' => 'application_members#leave', :via => :delete
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
         resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format
         match 'environment-variables' => 'environment_variables#create', :via => :patch

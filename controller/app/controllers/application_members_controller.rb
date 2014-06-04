@@ -5,12 +5,13 @@ class ApplicationMembersController < MembersController
     end
 
     def save_membership(resource)
-      resource.with_lock do 
-        super
+      # Save before locking, since locking can reload
+      if resource.save
+        resource.with_lock do 
+          resource.run_jobs
+        end
+        true
       end
     end
 
-    def allowed_member_types
-      ["user"]
-    end
 end

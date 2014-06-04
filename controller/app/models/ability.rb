@@ -80,9 +80,11 @@ module Ability
            :create_deployment
         Role.in?(:edit, role)
 
-      when :change_members,
-           :leave
-        false
+      when :change_members
+        Role.in?(:admin, role)
+
+      when :leave
+        Role.in?(:view, role)
 
       when :update_deployments
         true

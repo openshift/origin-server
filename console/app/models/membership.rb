@@ -34,6 +34,18 @@ module Membership
     roles.present? and me and roles.include?(me.role)
   end
 
+  def can_delete?
+    owner?
+  end
+
+  def can_edit_membership?
+    admin?
+  end
+
+  def can_leave?
+    me && me.explicit_role?
+  end
+
   def leave
     self.errors.clear
     self.messages.clear
