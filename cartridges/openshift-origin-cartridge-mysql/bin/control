@@ -3,7 +3,7 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_MYSQL_DIR}/lib/mysql_context"
 
-export STOPTIMEOUT=10
+export STOPTIMEOUT=30
 export OPENSHIFT_MYSQL_VERSION=$(mysql_version)
 
 # Run mysql commands
