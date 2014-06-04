@@ -4,7 +4,7 @@
 
 h1.applications .flow-block.right .gear-icon {
   color: #aaa;
-  font-size: $h1FontSize - 3; 
+  font-size: $h1FontSize - 3;
 }
 
 .application {
@@ -108,7 +108,7 @@ h1.applications .flow-block.right .gear-icon {
         font-size: $tinyFontSize;
       }
       span[data-icon] {
-        color: #bbb; 
+        color: #bbb;
       }
     }
   }
@@ -166,7 +166,7 @@ h1.applications .flow-block.right .gear-icon {
       cursor: inherit;
       @include box-sizing(border-box);
       width: 100%;
-      height: 28px; 
+      height: 28px;
     }
     p {
       margin-bottom: 0;
@@ -224,7 +224,7 @@ h1.applications .flow-block.right .gear-icon {
 
 
 #team-list {
-  .team { 
+  .team {
     @include flex;
     @include align-items(baseline);
   }
@@ -250,7 +250,7 @@ h1.applications .flow-block.right .gear-icon {
       max-width: 100%;
     }
     .team span {
-      padding-left: 0px;
+      padding-left: 0;
       padding-top: 10px;
     }
   }
@@ -280,7 +280,7 @@ h1.applications .flow-block.right .gear-icon {
           margin-left: 15px;
         }
         span:first-child {
-          margin-left: 0px;
+          margin-left: 0;
         }
       }
     }
@@ -292,8 +292,8 @@ h1.applications .flow-block.right .gear-icon {
   .btn:first-child {
     border-radius: 0;
   }
-  span.dropdown { 
-    display: inline-block; 
+  span.dropdown {
+    display: inline-block;
   }
   .btn .caret {
     border-top-color: white;
@@ -301,8 +301,8 @@ h1.applications .flow-block.right .gear-icon {
   .dropdown-toggle {
     @include box-shadow;
   }
-  &.open .dropdown-menu { 
-    border-radius: 0; 
+  &.open .dropdown-menu {
+    border-radius: 0;
   }
 }
 
@@ -314,10 +314,10 @@ h1.applications .flow-block.right .gear-icon {
   font-size: 36px;
   width: 1px;
   white-space: normal;
-  > .empty { 
+  > .empty {
     opacity: 0.3;
   }
-  > .fill  { 
+  > .fill  {
     opacity: 1.0;
   }
 }
