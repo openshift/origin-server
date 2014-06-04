@@ -429,6 +429,7 @@ Requires:  libicu-devel
 Requires:  libxml2-devel
 Requires:  libxslt-devel
 Requires:  ruby-RMagick
+Requires:  subversion
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:  js
 Requires:  ruby-nokogiri
