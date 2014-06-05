@@ -117,7 +117,7 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
         begin
           cgroup.store(MEMSW_LIMIT, orig_memsw_limit)
         rescue
-          Syslog.warn %Q(#{PLUGIN_NAME}: Failed to lower memsw limit for gear #{uuid} from #{increased} to #{orig_memsw_limit})
+          Syslog.warning %Q(#{PLUGIN_NAME}: Failed to lower memsw limit for gear #{uuid} from #{increased} to #{orig_memsw_limit})
         end
 
         # Finally, restart
