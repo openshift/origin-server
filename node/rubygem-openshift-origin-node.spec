@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.26.0
+Version: 1.26.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
+- Bug 1101499: Adjusting logic of gear state restoration (jhadvig@redhat.com)
+- Merge pull request #5466 from jhadvig/post_restore_stop
+  (dmcphers+openshiftbot@redhat.com)
+- Document bash SDK httpd helper functions (vvitek@redhat.com)
+- Bug 1101499: Stopping secondary gear after restore snapshot for scaleable app
+  (jhadvig@redhat.com)
+- bump_minor_versions for sprint 46 (admiller@redhat.com)
+
 * Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.25.6-1
 - Merge pull request #5443 from a13m/bz1100518
   (dmcphers+openshiftbot@redhat.com)
