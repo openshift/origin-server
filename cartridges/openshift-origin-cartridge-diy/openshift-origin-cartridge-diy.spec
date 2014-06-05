@@ -2,7 +2,7 @@
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy
-Version: 1.24.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -41,6 +41,9 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- bump_minor_versions for sprint 46 (admiller@redhat.com)
+
 * Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
 - Bump cartridge versions (agoldste@redhat.com)
 
