@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.26.0
+Version: 1.26.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
+- Bug 1103131: Remove authorize! check and let Team.accessible() limit which
+  global teams a user can see (jliggitt@redhat.com)
+- bump_minor_versions for sprint 46 (admiller@redhat.com)
+
 * Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.25.4-1
 - Ensure at least one scope's conditions are met, even when combined with
   complex queries (jliggitt@redhat.com)
