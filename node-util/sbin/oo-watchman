@@ -240,6 +240,29 @@ module OpenShift
         end
       end
 
+      # Conditionally start gear
+      # Don't start if already running
+      #
+      # @param uuid [String] gear identifier
+      # @param retries [Fixnum] number of retries for start
+      def start(uuid, retries)
+        start_gear = lambda do
+          out, err, rc = Utils.oo_spawn(%Q{#{OO_ADMIN_CTL_GEARS} startgear #{uuid}}, timeout: OP_TIMEOUT)
+
+          Syslog.info("watchman started user #{uuid}: application #{gear_name(uuid)} (retries: #{retries})")
+          unless 0 == rc
+            Syslog.warning("watchman results for #{uuid} start: exitcode: #{rc}\nstdout: #{out}\nstderr: #{err}")
+          end
+        end
+
+        begin
+          start_gear.call unless @gears.running?(uuid)
+        rescue Errno::ENOENT
+          # .state file missing is there a stop_lock?
+          start_gear.call unless @gears.stop_lock?(uuid)
+        end
+      end
+
       # Conditionally stop gear
       # Don't kill off ssh and bash sessions
       #

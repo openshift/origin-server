@@ -121,7 +121,7 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
         end
 
         # Finally, restart
-        restart(uuid)
+        start(uuid)
       end
     end
   end
