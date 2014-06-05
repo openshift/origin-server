@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -49,6 +49,9 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- bump_minor_versions for sprint 46 (admiller@redhat.com)
+
 * Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.22.3-1
 - Bump cartridge versions (agoldste@redhat.com)
 
