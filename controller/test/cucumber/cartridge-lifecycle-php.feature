@@ -13,6 +13,9 @@ Feature: Cartridge Lifecycle PHP Verification Tests
     When the application is aliased
     Then the application should respond to the alias
 
+  #Given an existing <cart_name> application, verify standard module "gd" is available
+    And the php module gd will be loaded
+
   #Given an existing <cart_name> application, verify code updates
     When the application is changed
     Then it should be updated successfully
@@ -61,6 +64,9 @@ Feature: Cartridge Lifecycle PHP Verification Tests
     And I create index.php file in the ./ repo directory
     Then the application should be accessible
 
+  #Set up dynamic PHP module test
+    When a new environment variable key=OPENSHIFT_PHP_GD_ENABLED value=false is added
+
   #Given an existing <cart_name> application, verify it can be stopped
     When the application is stopped
     Then the application should not be accessible
@@ -68,6 +74,10 @@ Feature: Cartridge Lifecycle PHP Verification Tests
   #Given an existing <cart_name> application, verify it can be started
     When the application is started
     Then the application should be accessible
+
+  #Verify PHP module "gd" is disabled after stop/start by user env var
+  # OPENSHIFT_PHP_GD_ENABLED=false
+    Then the php module gd will not be loaded
 
   #Given an existing <cart_name> application, verify it can be tidied
     When I tidy the application

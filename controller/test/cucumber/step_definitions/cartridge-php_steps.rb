@@ -104,3 +104,18 @@ Then /^the (.*) url[s]? should( not)? be accessible$/ do | urls, negate |
       raise "Invalid HTTP CODE #{http_code} for #{url}" unless (http_code == "200") ^ negate
     end
 end
+
+
+Then /^the php module ([^\"]*) will (not )?be loaded$/ do |php_module, negate|
+  command = "ssh 2>/dev/null -o BatchMode=yes -o StrictHostKeyChecking=no -tt #{@app.uid}@#{@app.name}-#{@app.namespace}.#{$domain} " +  "php -m"
+  $logger.info("About to execute command:'#{command}'")
+  output_buffer=[]
+  exit_code = run(command,output_buffer)
+  raise "Cannot ssh into the application with #{@app.uid}. Running command: '#{command}' returns: \n Exit code: #{exit_code} \nOutput message:\n #{output_buffer[0]}" unless exit_code == 0
+  pattern="\n#{php_module}[\r\n]"
+  if negate
+    output_buffer[0].should_not match(/#{pattern}/)
+  else
+    output_buffer[0].should match(/#{pattern}/)
+  end
+end
