@@ -5,7 +5,7 @@
 
 Summary:       User dependencies for OpenShift Cartridges
 Name:          openshift-origin-cartridge-dependencies
-Version: 1.25.1
+Version: 1.25.2
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -516,6 +516,9 @@ an OpenShift cartrige.
 %files optional-ruby
 
 %changelog
+* Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
+- Bug 1103772 - Add svn client to support Redmine (jhonce@redhat.com)
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
 - bump_minor_versions for sprint 45 (admiller@redhat.com)
 
