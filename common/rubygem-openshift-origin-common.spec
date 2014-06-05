@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.25.0
+Version: 1.25.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -121,6 +121,9 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- bump_minor_versions for sprint 46 (admiller@redhat.com)
+
 * Tue May 27 2014 Adam Miller <admiller@redhat.com> 1.24.3-1
 - Merge pull request #5449 from jwhonce/bug/1100743
   (dmcphers+openshiftbot@redhat.com)
