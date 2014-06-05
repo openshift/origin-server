@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.26.0
+Version: 1.26.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,20 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
+- console_helper.rb:   - replace hard-coded value of product logo and product
+  title by     dynamic value from Console.config.env console.conf:   - add
+  PRODUCT_LOGO and PRODUCT_TITLE parameters (thierry@tfserver.no-ip.org)
+- Merge pull request #5453 from pivanov/css-small-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Add a section to inject information about external cartridges
+  (jforrest@redhat.com)
+- Comment test_in_groups_by_tag (miciah.masters@gmail.com)
+- model_helper_tests.rb: Add test for bug 1100508 (miciah.masters@gmail.com)
+- Console: Improve grouping of application types (miciah.masters@gmail.com)
+- bump_minor_versions for sprint 46 (admiller@redhat.com)
+- [stylesheets] - remove unit after 0 length. (pivanov@mozilla.com)
+
 * Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.25.4-1
 - Revert "Updating file paths from blogs to blog" (shalompisteuo@gmail.com)
 
