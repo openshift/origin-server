@@ -115,7 +115,7 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
           app.kill_procs()
           sleep 5
           retries -= 1
-          current = cgroup.fetch(MEMSW_USAGE)[MEMSW_LIMIT].to_i
+          current = cgroup.fetch(MEMSW_USAGE)[MEMSW_USAGE].to_i
         end
       ensure
         # Reset memory limit
