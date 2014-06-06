@@ -14,6 +14,9 @@ else
   cp /tmp/src/plugins/dns/bind/conf/openshift-origin-dns-bind.conf.example /etc/openshift/plugins.d/openshift-origin-dns-bind.conf
   cp /tmp/src/plugins/msg-broker/mcollective/conf/openshift-origin-msg-broker-mcollective.conf.example /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
   cp /tmp/src/broker-util/oo-* /opt/ruby/bin
+
+  #TODO this is temporary, we do not have an rpm for this
+  gem install mcollective-client --version 2.2.3
 fi
 
 # Install utils for oo-* scripts and make oo-* executable
