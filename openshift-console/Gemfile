@@ -12,6 +12,8 @@ gem 'pry', :require => 'pry' if ENV['PRY']
 gem 'perftools.rb', :require => 'perftools' if ENV['PERFTOOLS']
 gem 'syslog-logger', '~> 1.6.8', :require => false
 
+gem 'puma' if ENV['PUMA']
+
 # NON-RUNTIME BEGIN
 
 # To simplify the packaging burden for distro maintainers it's important to
@@ -19,7 +21,8 @@ gem 'syslog-logger', '~> 1.6.8', :require => false
 # during package build time to avoid having to ship/support development-only
 # packages.
 group :test do
-  gem 'ci_reporter',   '>= 1.7.0', :require => false
+  #TODO this rpm doesn't exist in our public repo
+  #gem 'ci_reporter',   '>= 1.7.0', :require => false
   gem 'minitest',      '>= 3.5.0', :require => false
 end
 

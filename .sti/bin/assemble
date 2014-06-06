@@ -2,15 +2,22 @@
 
 source ~/.bashrc
 
-mkdir -p ~/.openshift
-cp /tmp/src/broker/misc/docker_broker_plugins.rb ~/.openshift/broker_plugins.rb
-cp -r /tmp/src/broker/conf/* /etc/openshift/
-cp /tmp/src/plugins/dns/bind/conf/openshift-origin-dns-bind.conf.example /etc/openshift/plugins.d/openshift-origin-dns-bind.conf
-cp /tmp/src/plugins/msg-broker/mcollective/conf/openshift-origin-msg-broker-mcollective.conf.example /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
+if [[ -n "$CONSOLE_PATH" ]]; then
+  # Misc console only install stuff
+  cp -r /tmp/src/console/conf/console.conf.example /etc/openshift/console.conf
+  cp /tmp/src/console/bin/oo-* /opt/ruby/bin
+else
+  # Misc broker only install stuff
+  mkdir -p ~/.openshift
+  cp /tmp/src/broker/misc/docker_broker_plugins.rb ~/.openshift/broker_plugins.rb
+  cp -r /tmp/src/broker/conf/* /etc/openshift/
+  cp /tmp/src/plugins/dns/bind/conf/openshift-origin-dns-bind.conf.example /etc/openshift/plugins.d/openshift-origin-dns-bind.conf
+  cp /tmp/src/plugins/msg-broker/mcollective/conf/openshift-origin-msg-broker-mcollective.conf.example /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
+  cp /tmp/src/broker-util/oo-* /opt/ruby/bin
+fi
 
-# Install broker oo-* scripts
+# Install utils for oo-* scripts and make oo-* executable
 cp /tmp/src/util-scl/oo-* /opt/ruby/bin
-cp /tmp/src/broker-util/oo-* /opt/ruby/bin
 chmod 750 /opt/ruby/bin/oo-*
 
 # TODO fix oo-app-info
@@ -56,8 +63,8 @@ if [ -f Gemfile ]; then
     ADDTL_BUNDLE_ARGS="--deployment"
   fi
 
-if [[ "$RAILS_ENV" == "development" || "$RACK_ENV" == "development" ]]; then
-  BUNDLE_WITHOUT=${BUNDLE_WITHOUT:-"test"}
+  if [[ "$RAILS_ENV" == "development" || "$RACK_ENV" == "development" ]]; then
+    BUNDLE_WITHOUT=${BUNDLE_WITHOUT:-"test"}
   elif [[ "$RAILS_ENV" == "test" || "$RACK_ENV" == "test" ]]; then
     BUNDLE_WITHOUT=${BUNDLE_WITHOUT:-"development"}
   else
@@ -67,11 +74,8 @@ if [[ "$RAILS_ENV" == "development" || "$RACK_ENV" == "development" ]]; then
   # bundle install command finish. Thus the bundle install cannot receive SIGINT
   # from console (ctrl+c)
   #
-  echo "---> Running 'bundle install ${ADDTL_BUNDLE_ARGS}'"
-  bundle install --path ${HOME}/bundle ${ADDTL_BUNDLE_ARGS}
-
-  echo "---> Cleaning up unused ruby gems"
-  bundle clean -V
+  echo "---> Running 'bundle install ${ADDTL_BUNDLE_ARGS} --local'"
+  bundle install ${ADDTL_BUNDLE_ARGS} --local
 fi
 
 rake_assets_precompile
