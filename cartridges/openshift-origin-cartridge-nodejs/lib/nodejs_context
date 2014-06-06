@@ -6,13 +6,13 @@
 function nodejs_context {
   case "$OPENSHIFT_NODEJS_VERSION" in
     0.6)  eval $1 ;;
-    0.10) /usr/bin/scl enable nodejs010 "$1" ;;
+    0.10) /usr/bin/scl enable v8314 nodejs010 "$1" ;;
   esac
 }
 
 function update-configuration {
   case "$1" in
     0.6) set-configuration $1 native ;;
-    0.10) set-configuration $1 scl nodejs010 ;;
+    0.10) set-configuration $1 scl v8314 nodejs010 ;;
   esac
 }
