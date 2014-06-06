@@ -199,7 +199,7 @@ module OpenShift
           delta = DateTime.now - @incidents[uuid][:last_updated]
 
           # Have we tried to restart in the last @retry_delay seconds?
-          if delta < @retry_delay && op != 'stop'
+          if delta < @retry_delay && op != :stop
             Syslog.info("gear #{uuid} (re)started under retry_delay (#{@retry_delay})")
             return
           end
@@ -208,7 +208,7 @@ module OpenShift
           @incidents[uuid][:retries] = (delta > @retry_period) ? 0 : @incidents[uuid][:retries].succ
 
           # Have we tried to restart more that @gear_retries times?
-          if @incidents[uuid][:retries] > @gear_retries && op != 'stop'
+          if @incidents[uuid][:retries] > @gear_retries && op != :stop
             Syslog.info("gear #{uuid} (re)started more than #{@gear_retries} times")
             return
           end
