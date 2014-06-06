@@ -693,7 +693,7 @@ module OpenShift
         #   :err             : an IO to which any stderr should be written (default: nil)
         #
         def distribute(options={})
-          result = { status: RESULT_SUCCESS, gear_results: {}}
+          result = { status: RESULT_SUCCESS, gear_results: {}, messages: [], errors: []}
 
           # initial build - don't do anything because we don't have a gear registry yet
           # and distribution + activation will happen when update-cluster is called
@@ -714,6 +714,8 @@ module OpenShift
           gear_results.each do |gear_result|
             result[:gear_results][gear_result[:gear_uuid]] = gear_result
             result[:status] = RESULT_FAILURE unless gear_result[:status] == RESULT_SUCCESS
+            result[:messages].push(*gear_result[:messages])
+            result[:errors].push(*gear_result[:errors])
           end
 
           result
@@ -752,12 +754,19 @@ module OpenShift
 
           rsync_options = remote_rsync_options(result[:gear_uuid])
 
-          out, err, rc = run_in_container_context("rsync #{rsync_options} --rsh=/usr/bin/oo-ssh --delete-before --exclude=current ./ #{gear}:app-deployments/",
-                                                  env: gear_env,
-                                                  chdir: deployments_dir)
+          command = "rsync #{rsync_options} --rsh=/usr/bin/oo-ssh --delete-before --exclude=current ./ #{gear}:app-deployments/"
+          out, err, rc = run_in_container_context(command, env: gear_env, chdir: deployments_dir)
 
-          result[:messages] += out.split("\n") if out
-          result[:errors] += err.split("\n") if err
+          if out && !out.empty?
+            result[:messages] << command
+            result[:messages] += out.split("\n")
+          end
+
+          if err && !err.empty?
+            result[:errors] << command
+            result[:errors] += err.split("\n")
+          end
+
           return result unless rc == 0
 
           result[:status] = RESULT_SUCCESS if rc == 0

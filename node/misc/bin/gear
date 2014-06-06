@@ -300,16 +300,18 @@ end
 command :distribute do |c|
   c.syntax = "#{name} distribute <deployment id>"
 
-  c.description = "Distribute a build"
+  c.description = 'Distribute a build'
   c.action do |args, options|
     do_command(c, options) do
-      raise UsageException.new("You must specify a deployment id") if args.count == 0
+      raise UsageException.new('You must specify a deployment id') if args.count == 0
 
       unless @container.deployment_exists?(args[0])
         raise "Deployment id #{args[0]} is invalid"
       end
 
-      @container.distribute(out: $stdout, err: $stderr, deployment_id: args[0])
+      results = @container.distribute(out: $stdout, err: $stderr, deployment_id: args[0])
+      puts "Errors:\n  #{results[:errors].join("\n  ")}" if results[:status] == 'failure' || options.trace
+      puts "Messages:\n  #{results[:messages].join("\n  ")}" if options.trace
     end
   end
 end
