@@ -95,7 +95,7 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
             # the gear is under OOM?
             # NB: memory reset and gear restart happen in the "ensure" block
             next unless rc != 0
-            Syslog.info %Q(#{PLUGIN_NAME}: Force stop failed for gear #{uuid} , rc=#{rc}")
+            Syslog.info %Q(#{PLUGIN_NAME}: Force stop failed for gear #{uuid} , rc=#{rc}, stderr=#{err}")
           rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
             Syslog.info %Q(#{PLUGIN_NAME}: Force stop failed for gear #{uuid}: #{e.message}")
             # This is primarily to catch timeouts
