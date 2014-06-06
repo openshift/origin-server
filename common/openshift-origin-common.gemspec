@@ -3,6 +3,14 @@ lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
 spec_file = "rubygem-openshift-origin-common.spec"
 
+# Check for rails version, default to 3
+begin
+  require 'rails'
+  rails_ver = Rails.version.to_i
+rescue
+  rails_ver = 3
+end
+
 Gem::Specification.new do |s|
   spec_file = IO.read(File.expand_path("../rubygem-#{File.basename(__FILE__, '.gemspec')}.spec", __FILE__))
 
@@ -21,6 +29,8 @@ Gem::Specification.new do |s|
   s.add_dependency("json")
   s.add_dependency('safe_yaml')
   s.add_dependency("activemodel")
+  s.add_dependency("rails-observers") if rails_ver > 3
+
 
   s.add_development_dependency('rspec', "1.1.12")
   s.add_development_dependency('mocha', "0.9.8")
