@@ -31,7 +31,6 @@ gem 'mongo'
 if ENV['BROKER_SOURCE'] || ENV['BROKER_PLUGINS_FILE']
   gem 'openshift-origin-common', :path => '../common'
   gem 'openshift-origin-controller', :path => '../controller'
-  gem 'netrc' # rest-client has an undeclared prereq on netrc
 
   # Load broker plugins according to local file, but keep paths relative to ./
   eval IO.read(File.expand_path(ENV['BROKER_PLUGINS_FILE'] || '~/.openshift/broker_plugins.rb'))
@@ -94,13 +93,18 @@ end
 group :development, :test do
   # The require part from http://tinyurl.com/3pf68ho
   gem 'rest-client', '>= 1.6.1', '<= 1.6.7', :require => 'rest-client'
+
+  if ENV['BROKER_SOURCE'] || ENV['BROKER_PLUGINS_FILE']
+    gem 'netrc' # rest-client has an undeclared prereq on netrc
+  end
+
   gem 'mocha', '~> 0.13.1', :require => false
   gem 'rake', '>= 0.8.7'
   gem 'simplecov'
   gem 'cucumber'
   gem 'minitest', '>= 3.5', '< 5.0'
   # Version 1.6.2 has errors building in Dockerfile, mandating 1.6.1 for now
-  gem 'nokogiri', '1.6.1'
+  gem 'nokogiri', '<= 1.6.1'
   gem 'capybara', '~> 2.1.0', :require => false
   gem 'poltergeist',   '~> 1.2.0', :require => false
 end

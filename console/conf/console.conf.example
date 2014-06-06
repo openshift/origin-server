@@ -6,7 +6,7 @@
 #
 # Required
 #
-BROKER_URL=https://localhost/broker/rest
+BROKER_URL=http://localhost/broker/rest
 
 
 #

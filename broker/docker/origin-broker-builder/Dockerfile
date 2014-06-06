@@ -28,6 +28,16 @@ RUN yum install --enablerepo=openshift-deps-rhel6 --assumeyes \
      ruby193-rubygem-systemu \
      ruby193-rubygem-term-ansicolor \
      ruby193-rubygem-syslog-logger \
+     ruby193-rubygem-puma \
+     ruby193-rubygem-poltergeist \
+     ruby193-rubygem-httpclient \
+     ruby193-rubygem-netrc \
+     ruby193-rubygem-mocha \
+     ruby193-rubygem-simplecov \
+     ruby193-rubygem-minitest \
+     ruby193-rubygem-nokogiri \
+     ruby193-rubygem-safe_yaml \
+     ruby193-rubygem-state_machine \
      ruby193 \
      && yum update -y && yum clean all # Clean up yum cache at the end.
 
