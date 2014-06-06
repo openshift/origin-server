@@ -116,7 +116,7 @@ module OpenShift
       end
 
       def gear_retries=(retries)
-        Syslog.info("Watchman gear_retries #{retries}s")
+        Syslog.info("Watchman gear_retries #{retries}")
         @gear_retries = retries
       end
 
@@ -199,13 +199,19 @@ module OpenShift
           delta = DateTime.now - @incidents[uuid][:last_updated]
 
           # Have we tried to restart in the last @retry_delay seconds?
-          return if delta < @retry_delay && op != 'stop'
+          if delta < @retry_delay && op != 'stop'
+            Syslog.info("gear #{uuid} (re)started under retry_delay (#{@retry_delay})")
+            return
+          end
 
           # If we haven't attempted to restart in last 8 hours, do so...
           @incidents[uuid][:retries] = (delta > @retry_period) ? 0 : @incidents[uuid][:retries].succ
 
           # Have we tried to restart more that @gear_retries times?
-          return if @incidents[uuid][:retries] > @gear_retries && op != 'stop'
+          if @incidents[uuid][:retries] > @gear_retries && op != 'stop'
+            Syslog.info("gear #{uuid} (re)started more than #{@gear_retries} times")
+            return
+          end
 
           # Either repeat death or failed start...
           send(op, uuid, @incidents[uuid][:retries])
@@ -257,7 +263,11 @@ module OpenShift
         end
 
         begin
-          start_gear.call unless @gears.running?(uuid)
+          if @gears.running?(uuid)
+            Syslog.info("Gear #{uuid} still running; not starting")
+          else
+            start_gear.call
+          end
         rescue Errno::ENOENT
           # .state file missing is there a stop_lock?
           start_gear.call unless @gears.stop_lock?(uuid)
