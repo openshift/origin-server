@@ -22,6 +22,7 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(activemodel)
+Requires:      %{?scl:%scl_prefix}rubygem(rails-observers)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(safe_yaml)
 Requires:      %{?scl:%scl_prefix}rubygem(bundler)
