@@ -199,13 +199,13 @@ module OpenShift
           delta = DateTime.now - @incidents[uuid][:last_updated]
 
           # Have we tried to restart in the last @retry_delay seconds?
-          return if delta < @retry_delay
+          return if delta < @retry_delay && op != 'stop'
 
           # If we haven't attempted to restart in last 8 hours, do so...
           @incidents[uuid][:retries] = (delta > @retry_period) ? 0 : @incidents[uuid][:retries].succ
 
           # Have we tried to restart more that @gear_retries times?
-          return if @incidents[uuid][:retries] > @gear_retries
+          return if @incidents[uuid][:retries] > @gear_retries && op != 'stop'
 
           # Either repeat death or failed start...
           send(op, uuid, @incidents[uuid][:retries])
@@ -247,6 +247,7 @@ module OpenShift
       # @param retries [Fixnum] number of retries for start
       def start(uuid, retries)
         start_gear = lambda do
+          Syslog.info("starting #{uuid}")
           out, err, rc = Utils.oo_spawn(%Q{#{OO_ADMIN_CTL_GEARS} startgear #{uuid}}, timeout: OP_TIMEOUT)
 
           Syslog.info("watchman started user #{uuid}: application #{gear_name(uuid)} (retries: #{retries})")
