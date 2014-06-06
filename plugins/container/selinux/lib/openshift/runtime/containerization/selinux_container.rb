@@ -19,6 +19,12 @@ module OpenShift
           @config     = ::OpenShift::Config.new
           @gear_shell = @config.get("GEAR_SHELL")    || "/bin/bash"
           @traffic_control_enabled = @config.get_bool("TRAFFIC_CONTROL_ENABLED", "true")
+          @wrap_around_uid = (@config.get("WRAPAROUND_UID") || 65536).to_i
+          @ip_offset = (@config.get("IP_ADDRESS_WRAPAROUND_OFFSET") || 1).to_i
+
+          if @ip_offset >= 1000
+            raise "IP_ADDRESS_WRAPAROUND_OFFSET should be less than #{1000}"
+          end
         end
 
         # Public
@@ -203,22 +209,30 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         # host identifier (LSB of the IP). The host identifier must be a value between 1-127
         # inclusive.
         #
-        # The global user IP range begins at 0x7F000000.
+        # The global user IP range begins at 0x7F000000 (127.0.0.0) for all
+        # UIDs under 65536.  For UIDs over that the range begins at
+        # 127.0.0.0 + (WRAPAROUND_IP_ADDRESS_OFFSET << 7)
         #
         # Returns an IP address string in dotted-quad notation.
         def get_ip_addr(host_id)
           raise "Invalid host_id specified" unless host_id && host_id.is_a?(Integer)
 
-          if @container.uid.to_i < 0 || @container.uid.to_i > 262143
-            raise "User uid #{@container.uid} is outside the working range 0-262143"
+          if @container.uid.to_i < 0 || @container.uid.to_i > (2 << 31)
+            raise "User uid #{@container.uid} must be unsigned 32 bit integers."
           end
 
           if host_id < 1 || host_id > 127
             raise "Supplied host identifier #{host_id} must be between 1 and 127"
           end
 
+          # Can't do this in the constructor because sometimes #uid isn't set.
+          if @container.uid.to_i < @wrap_around_uid
+            @ip_offset = 0
+          end
+
           # Generate an IP (32-bit unsigned) in the user's range
-          ip = 0x7F000000 + (@container.uid.to_i << 7)  + host_id
+          loopback_start = 0x7F000000
+          ip = loopback_start + (@ip_offset << 7) + ((@container.uid.to_i % @wrap_around_uid) << 7) + host_id
 
           # Return the IP in dotted-quad notation
           "#{ip >> 24}.#{ip >> 16 & 0xFF}.#{ip >> 8 & 0xFF}.#{ip & 0xFF}"
