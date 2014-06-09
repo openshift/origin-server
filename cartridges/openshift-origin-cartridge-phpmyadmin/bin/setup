@@ -7,6 +7,7 @@ esac
 
 # Create/truncate Apache PassEnv configuration file
 echo > $OPENSHIFT_PHPMYADMIN_DIR/conf.d/passenv.conf
+echo > $OPENSHIFT_PHPMYADMIN_DIR/conf.d/server-status.conf
 
 mkdir -p $OPENSHIFT_PHPMYADMIN_DIR/{run,sessions,tmp,conf,conf.d}
 

@@ -401,6 +401,20 @@ function path_remove {
   echo -n "$results"
 }
 
+# Set if apache server-status is enabled
+#
+# $1 full path to server-status.conf
+function write_server_status(){
+  local retval=""
+  if marker_present "enable_public_server_status"; then
+    retval+="<Location /server-status>\n"
+    retval+="  SetHandler server-status\n"
+    retval+="</Location>\n"
+    retval+="ExtendedStatus On\n"
+  fi
+  echo -e "$retval" > $1
+}
+
 # Update the PassEnv directives in the httpd configuration file
 #
 # $1 full path to httpd.conf file

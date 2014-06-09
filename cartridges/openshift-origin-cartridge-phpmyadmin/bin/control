@@ -17,6 +17,7 @@ done
 
 function start {
   echo "Starting PHPMyAdmin cartridge"
+  write_server_status ${OPENSHIFT_PHPMYADMIN_DIR}/conf.d/server-status.conf
   write_httpd_passenv $HTTPD_PASSENV_FILE
   ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   # Force httpd into its own pgroup, as httpd is hard-coded to TERM everything in

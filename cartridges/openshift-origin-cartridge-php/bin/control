@@ -56,6 +56,7 @@ function enable_modules {
 }
 
 function pre_start_httpd_config {
+    write_server_status ${HTTPD_CFG_DIR}/server-status.conf
     write_httpd_passenv $HTTPD_PASSENV_FILE
     select_php_document_root ${OPENSHIFT_REPO_DIR}
     oo-erb ${ERB_HTTPD_CFG_DIR}openshift.conf.erb > ${HTTPD_CFG_DIR}/openshift.conf

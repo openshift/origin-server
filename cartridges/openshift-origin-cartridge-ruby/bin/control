@@ -33,6 +33,7 @@ function start() {
       fi
     fi
     echo "Starting Ruby cartridge"
+    write_server_status ${HTTPD_CFG_DIR}/server-status.conf
     mkdir -p ${OPENSHIFT_REPO_DIR}public
     write_httpd_passenv $HTTPD_PASSENV_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
