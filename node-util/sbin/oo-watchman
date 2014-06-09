@@ -116,7 +116,7 @@ module OpenShift
       end
 
       def gear_retries=(retries)
-        Syslog.info("Watchman gear_retries #{retries}s")
+        Syslog.info("Watchman gear_retries #{retries}")
         @gear_retries = retries
       end
 
@@ -199,13 +199,19 @@ module OpenShift
           delta = DateTime.now - @incidents[uuid][:last_updated]
 
           # Have we tried to restart in the last @retry_delay seconds?
-          return if delta < @retry_delay
+          if delta < @retry_delay && op != :stop
+            Syslog.info("gear #{uuid} (re)started under retry_delay (#{@retry_delay})")
+            return
+          end
 
           # If we haven't attempted to restart in last 8 hours, do so...
           @incidents[uuid][:retries] = (delta > @retry_period) ? 0 : @incidents[uuid][:retries].succ
 
           # Have we tried to restart more that @gear_retries times?
-          return if @incidents[uuid][:retries] > @gear_retries
+          if @incidents[uuid][:retries] > @gear_retries && op != :stop
+            Syslog.info("gear #{uuid} (re)started more than #{@gear_retries} times")
+            return
+          end
 
           # Either repeat death or failed start...
           send(op, uuid, @incidents[uuid][:retries])
@@ -237,6 +243,34 @@ module OpenShift
         rescue Errno::ENOENT
           # .state file missing is there a stop_lock?
           restart_gear.call unless @gears.stop_lock?(uuid)
+        end
+      end
+
+      # Conditionally start gear
+      # Don't start if already running
+      #
+      # @param uuid [String] gear identifier
+      # @param retries [Fixnum] number of retries for start
+      def start(uuid, retries)
+        start_gear = lambda do
+          Syslog.info("starting #{uuid}")
+          out, err, rc = Utils.oo_spawn(%Q{#{OO_ADMIN_CTL_GEARS} startgear #{uuid}}, timeout: OP_TIMEOUT)
+
+          Syslog.info("watchman started user #{uuid}: application #{gear_name(uuid)} (retries: #{retries})")
+          unless 0 == rc
+            Syslog.warning("watchman results for #{uuid} start: exitcode: #{rc}\nstdout: #{out}\nstderr: #{err}")
+          end
+        end
+
+        begin
+          if @gears.running?(uuid)
+            Syslog.info("Gear #{uuid} still running; not starting")
+          else
+            start_gear.call
+          end
+        rescue Errno::ENOENT
+          # .state file missing is there a stop_lock?
+          start_gear.call unless @gears.stop_lock?(uuid)
         end
       end
 

@@ -42,8 +42,9 @@ module OpenShift
     # @abstract Subclass for Watchman plugins. Override {#apply} to implement your plugin
     # @api watchman plugin
     #
-    # There are two helper methods provided, for your use:
-    #   {#restart} to start/restart a gear, and
+    # There are three helper methods provided, for your use:
+    #   {#restart} to restart a gear,
+    #   {#start} to start a gear, and
     #   {#stop} to shutdown the gear's cartridge's daemons
     #
     # @!attribute [r] logger
@@ -77,6 +78,13 @@ module OpenShift
       # @return void
       def restart(uuid)
         @operation.call(:restart, uuid)
+      end
+
+      # Execute start on gear
+      # @param [String] uuid of gear to start
+      # @return void
+      def start(uuid)
+        @operation.call(:start, uuid)
       end
 
       # Execute stop on gear

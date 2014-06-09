@@ -18,6 +18,7 @@ require 'date'
 require 'set'
 require 'openshift-origin-node/model/watchman/watchman_plugin'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/cgroups/libcgroup'
 require 'openshift-origin-node/model/application_container'
 
@@ -65,6 +66,9 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
       # the problem.
 
       #store memory limit
+      # Should we infer the template from the current values?
+      cg = OpenShift::Runtime::Utils::Cgroups.new(uuid)
+      restore_memsw_limit = cg.templates[:default][MEMSW_LIMIT].to_i
       orig_memsw_limit = cgroup.fetch(MEMSW_LIMIT)[MEMSW_LIMIT].to_i
 
       # Increase limit by 10% in order to clean up processes. Trying to
@@ -91,8 +95,9 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
             # the gear is under OOM?
             # NB: memory reset and gear restart happen in the "ensure" block
             next unless rc != 0
-          rescue ::OpenShift::Runtime::Utils::ShellExecutionException
-            Syslog.info %Q(#{PLUGIN_NAME}: Force stop failed for gear #{uuid} , rc=#{rc}")
+            Syslog.info %Q(#{PLUGIN_NAME}: Force stop failed for gear #{uuid} , rc=#{rc}, stderr=#{err}")
+          rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+            Syslog.info %Q(#{PLUGIN_NAME}: Force stop failed for gear #{uuid}: #{e.message}")
             # This is primarily to catch timeouts
           end
         end
@@ -101,27 +106,31 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
 
         # Verify that we are ready to reset to the old limit
         retries = 3
-        current = cgroup.fetch(MEMSW_USAGE)[MEMSW_LIMIT].to_i
-        app = ApplicationContainer.from_uuid(uuid)
-        while current > orig_memsw_limit && retries > 0
+        current = cgroup.fetch(MEMSW_USAGE)[MEMSW_USAGE].to_i
+        app = ::OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
+        while current > restore_memsw_limit && retries > 0
           increased = (increased * @memsw_multiplier).round(0)
           Syslog.info %Q(#{PLUGIN_NAME}: Increasing memory for gear #{uuid} to #{increased} and killing processes)
           cgroup.store(MEMSW_LIMIT, increased)
           app.kill_procs()
           sleep 5
           retries -= 1
-          current = cgroup.fetch(MEMSW_USAGE)[MEMSW_LIMIT].to_i
+          current = cgroup.fetch(MEMSW_USAGE)[MEMSW_USAGE].to_i
         end
       ensure
         # Reset memory limit
         begin
-          cgroup.store(MEMSW_LIMIT, orig_memsw_limit)
+          cgroup.store(MEMSW_LIMIT, restore_memsw_limit)
         rescue
-          Syslog.warn %Q(#{PLUGIN_NAME}: Failed to lower memsw limit for gear #{uuid} from #{increased} to #{orig_memsw_limit})
+          Syslog.warning %Q(#{PLUGIN_NAME}: Failed to lower memsw limit for gear #{uuid} from #{increased} to #{orig_memsw_limit})
         end
 
         # Finally, restart
-        restart(uuid)
+        begin
+          start(uuid)
+        rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+          Syslog.info %Q(#{PLUGIN_NAME}: Start failed for gear #{uuid}: #{e.message}")
+        end
       end
     end
   end
