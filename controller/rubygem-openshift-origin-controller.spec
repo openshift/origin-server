@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.26.1
+Version: 1.26.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jun 09 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
+- Merge pull request #5307 from dobbymoodge/test_php_env_scan
+  (dmcphers+openshiftbot@redhat.com)
+- php cart: dynamic, controllable php.d seeding (jolamb@redhat.com)
+
 * Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
 - Bug 1103131: Remove authorize! check and let Team.accessible() limit which
   global teams a user can see (jliggitt@redhat.com)
