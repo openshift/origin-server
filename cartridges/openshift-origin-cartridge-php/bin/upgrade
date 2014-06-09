@@ -43,4 +43,6 @@ if [[ $curr == 0.0.17 ]]; then
     source $OPENSHIFT_CARTRIDGE_SDK_BASH
     source ${OPENSHIFT_PHP_DIR}usr/lib/php_context
     update_configuration
+    mkdir -p ${OPENSHIFT_HOMEDIR}.composer
+    chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_HOMEDIR}.composer
 fi

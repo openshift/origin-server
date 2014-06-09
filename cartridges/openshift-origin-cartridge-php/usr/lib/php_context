@@ -21,5 +21,8 @@ function update_configuration {
       ;;
   esac
 
+  # Composer
+  path=$(path_append $path ${OPENSHIFT_PHP_DIR}usr/bin)
+
   echo $path > ${OPENSHIFT_PHP_DIR}env/OPENSHIFT_PHP_PATH_ELEMENT
 }

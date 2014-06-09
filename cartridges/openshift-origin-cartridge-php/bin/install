@@ -29,7 +29,8 @@ mkdir -p ${OPENSHIFT_PHP_DIR}conf
 ln -s /etc/httpd/conf/magic $OPENSHIFT_PHP_DIR/conf/magic
 
 # Create a writable directory for Drush settings
-mkdir -p $OPENSHIFT_HOMEDIR/.drush
+mkdir -p ${OPENSHIFT_HOMEDIR}{.drush,.composer}
+chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_HOMEDIR}{.drush,.composer}
 
 # Pear setup
 rm -f $OPENSHIFT_HOMEDIR/.pearrc
