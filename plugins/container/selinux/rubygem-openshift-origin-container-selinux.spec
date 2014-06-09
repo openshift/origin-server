@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.9.1
+Version: 0.9.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,12 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Jun 09 2014 Adam Miller <admiller@redhat.com> 0.9.2-1
+- Merge pull request #5470 from brenton/BZ1064631
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1064631 - Wrap UID-based ip addresses and netclasses calculations
+  (bleanhar@redhat.com)
+
 * Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 0.9.1-1
 - bump_minor_versions for sprint 46 (admiller@redhat.com)
 
