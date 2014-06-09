@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.26.1
+Version: 1.26.2
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,11 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Mon Jun 09 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
+- Merge pull request #5307 from dobbymoodge/test_php_env_scan
+  (dmcphers+openshiftbot@redhat.com)
+- php cart: dynamic, controllable php.d seeding (jolamb@redhat.com)
+
 * Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
 - bump_minor_versions for sprint 46 (admiller@redhat.com)
 
