@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.26.3
+Version: 1.26.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -74,6 +74,10 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 09 2014 Adam Miller <admiller@redhat.com> 1.26.4-1
+- Bug 1104922 - Add v8314 collection list of enabled SCL for nodejs cart
+  (mfojtik@redhat.com)
+
 * Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
 - Bump cartridge versions (agoldste@redhat.com)
 
