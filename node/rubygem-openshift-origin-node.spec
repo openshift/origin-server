@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.26.1
+Version: 1.26.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Jun 09 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
+- Merge pull request #5470 from brenton/BZ1064631
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5481 from jwhonce/bug/1105232
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1105232 - Output rsync results from gear distribute (jhonce@redhat.com)
+- Bug 1064631 - Wrap UID-based ip addresses and netclasses calculations
+  (bleanhar@redhat.com)
+
 * Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
 - Bug 1101499: Adjusting logic of gear state restoration (jhadvig@redhat.com)
 - Merge pull request #5466 from jhadvig/post_restore_stop
