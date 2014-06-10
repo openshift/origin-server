@@ -1,6 +1,22 @@
 {
   "containers":[
     {
+      "name":"origin-console",
+      "count":1,
+      "image":"origin-console",
+      "publicports":[
+        {"internal":9292, "external": 80}
+      ],
+      "links":[
+        {
+          "to":"origin-broker",
+          "aliasports": [
+            {"internal":9292, "external":80}
+          ]
+        }
+      ]
+    },  
+    {
       "name":"origin-broker",
       "count":1,
       "image":"origin-broker",
