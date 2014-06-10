@@ -35,9 +35,12 @@ if [[ $curr == 0.0.14 ]]; then
     chcon -u unconfined_u ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
 fi
 
-if [[ $curr == 0.0.16 ]]; then
+if [[ $curr == 0.0.17 ]]; then
     source ${OPENSHIFT_PHP_DIR}usr/lib/php_module_scan
     rm -f ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/locked-*.ini
     OPENSHIFT_PHP_VERSION=$php_version
     scan_for_php_modules
+    source $OPENSHIFT_CARTRIDGE_SDK_BASH
+    source ${OPENSHIFT_PHP_DIR}usr/lib/php_context
+    update_configuration
 fi
