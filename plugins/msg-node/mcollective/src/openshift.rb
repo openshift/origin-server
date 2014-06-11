@@ -137,6 +137,7 @@ module MCollective
         args   = request[:args] ||= {}
 
         args['--with-hourglass'] = OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout)
+        args['--with-reference-id'] = request.uniqid
 
         # Do the action execution
         exitcode, output, addtl_params = execute_action(action, args)
@@ -152,6 +153,7 @@ module MCollective
         reply[:output]       = output
         reply[:addtl_params] = addtl_params
         args.delete('--with-hourglass')
+        args.delete('--with-reference-id')
 
         if exitcode != 0
           reply.fail! "cartridge_do_action failed #{exitcode}. Output #{output}"
@@ -162,7 +164,6 @@ module MCollective
       #
       # Returns [exitcode, output] from the resulting action execution.
       def execute_action(action, args)
-        start = Time.now
         action_method = "oo_#{action.gsub('-', '_')}"
 
         exitcode = 0
@@ -177,7 +178,7 @@ module MCollective
             output   = "Unsupported action: #{action}/#{action_method}"
           end
         rescue Exception => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           exitcode = 127
           output   = "An internal exception occurred processing action #{action}: #{e.message}\n#{e.backtrace.join("\n")}"
         end
@@ -271,7 +272,7 @@ module MCollective
           upgrader = OpenShift::Runtime::Upgrader.new(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, scalable,
                                                       OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout))
         rescue Exception => e
-          report_exception e
+          report_exception(request.uniqid, uuid, e)
           exitcode = 1
           error_message = "Failed to instantiate the upgrader; this is typically due to the gear being corrupt or missing its UNIX account.\n"\
                           "Exception: #{e.message}\n#{e.backtrace.join("\n")}"
@@ -279,16 +280,16 @@ module MCollective
           begin
             result = upgrader.execute
           rescue LoadError => e
-            report_exception e
+            report_exception(request.uniqid, uuid, e)
             exitcode = 127
             error_message = "Upgrade not supported: #{e.message}"
           rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-            report_exception e
+            report_exception(request.uniqid, uuid, e)
             exitcode = 2
             error_message = "Gear failed to upgrade due to an unhandled shell execution: #{e.message}\n#{e.backtrace.join("\n")}\n"\
                             "Stdout: #{e.stdout}\nStderr: #{e.stderr}"
           rescue Exception => e
-            report_exception e
+            report_exception(request.uniqid, uuid, e)
             exitcode = 3
             error_message = "Gear failed to upgrade due to an unhandled internal exception: #{e.message}\n#{e.backtrace.join("\n")}"
           end
@@ -342,14 +343,14 @@ module MCollective
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
           # Removed reporting exception, stdout and stderr carry the necessary information to the user from cartridge
           # https://bugzilla.redhat.com/show_bug.cgi?id=1101169
-          # report_exception e
+          # report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           output << "\n" unless output.empty?
           output << "#{e.message}" if e.message
           output << "\n#{e.stdout}" if e.stdout.is_a?(String)
           output << "\n#{e.stderr}" if e.stderr.is_a?(String)
           return e.rc, output
         rescue Exception => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 1, e.message
         end
       end
@@ -364,13 +365,13 @@ module MCollective
           container = get_app_container_from_args(args)
           return 0, container.create(token, generate_app_key, create_initial_deployment_dir)
         rescue OpenShift::Runtime::UserCreationException => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 129, e.message
         rescue OpenShift::Runtime::GearCreationException => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 146, e.message
         rescue Exception => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
@@ -386,7 +387,7 @@ module MCollective
           output << err
           return rc, output
         rescue Exception => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
@@ -480,7 +481,7 @@ module MCollective
           container = get_app_container_from_args(args)
           container.replace_ssh_keys(ssh_keys)
         rescue Exception => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         else
           return 0, ""
@@ -572,7 +573,7 @@ module MCollective
           list      = container.user_var_list(keys)
           return 0, 'CLIENT_RESULT: ' + list.to_json
         rescue Exception => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
@@ -584,7 +585,7 @@ module MCollective
         begin
           return 0, OpenShift::Runtime::Node.get_cartridge_list(list_descriptors, porcelain, false)
         rescue Exception => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
@@ -606,7 +607,7 @@ module MCollective
             q[:inodes_used].to_s, q[:inodes_quota].to_s, q[:inodes_limit].to_s
           ]
         rescue Exception => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
@@ -619,7 +620,7 @@ module MCollective
         begin
           return 0, OpenShift::Runtime::Node.set_quota(uuid, blocks, inodes)
         rescue Exception => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
@@ -640,15 +641,15 @@ module MCollective
         begin
           yield(output)
         rescue OpenShift::Runtime::FrontendHttpServerExecException => e
-          report_exception e
+          report_exception(nil, nil, e)
           OpenShift::Runtime::NodeLogger.logger.error("#{e.message}\n#{e.backtrace.join("\n")}")
           return e.rc, e.message + e.stdout + e.stderr
         rescue OpenShift::Runtime::FrontendHttpServerException => e
-          report_exception e
+          report_exception(nil, nil, e)
           OpenShift::Runtime::NodeLogger.logger.error("#{e.message}\n#{e.backtrace.join("\n")}")
           return 129, e.message
         rescue Exception => e
-          report_exception e
+          report_exception(nil, nil, e)
           OpenShift::Runtime::NodeLogger.logger.error("#{e.message}\n#{e.backtrace.join("\n")}")
           return 1, e.message
         else
@@ -1020,11 +1021,11 @@ module MCollective
           container = get_app_container_from_args(args)
           return 0, container.threaddump(cart_name)
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           OpenShift::Runtime::NodeLogger.logger.error "#{e.message}\n#{e.backtrace}\n#{e.stderr}"
           return e.rc, "CLIENT_ERROR: action 'threaddump' failed #{e.message} #{e.stderr}"
         rescue Exception => e
-          report_exception e
+          report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
           return 1, "#{e.message}\n#{e.backtrace.join("\n")}"
         end
       end
@@ -1080,7 +1081,7 @@ module MCollective
           reply[:output]   = "created/updated district #{uuid} with active = #{active}, first_uid = #{first_uid}, max_uid = #{max_uid}"
           reply[:exitcode] = 0
         rescue Exception => e
-          report_exception e
+          report_exception(request.uniqid, args['--with-container-uuid'], e)
           reply[:output]   = e.message
           reply[:exitcode] = 255
           reply.fail! "set_district failed #{reply[:exitcode]}.  Output #{reply[:output]}"
@@ -1253,7 +1254,7 @@ module MCollective
           reply[:output]   = false
           reply[:exitcode] = 0
         rescue Exception => e
-          report_exception e
+          report_exception(request.uniqid, gear_uuid, e)
           OpenShift::Runtime::NodeLogger.logger.error("#{e.message}\n#{e.backtrace.join("\n")}")
           reply[:output]   = false
           reply[:exitcode] = 1
@@ -1357,14 +1358,14 @@ module MCollective
               return
           end
         rescue Exception => e
-          report_exception e
+          report_exception(request.uniqid, nil, e)
           reply.fail!("#{action} failed for #{path} #{e.message}", 4)
         end
       end
 
       protected
         # No-op by default
-        def report_exception(e)
+        def report_exception(reference_id, uuid, exception)
         end
     end
   end
