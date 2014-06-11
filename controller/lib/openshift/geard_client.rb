@@ -462,8 +462,8 @@ module OpenShift
       # * String: the public hostname of a node
       #
       def get_public_hostname
-        #TODO
-        return nil
+        # TODO hardcoded for now, need a value from some long term source of config
+        "dev.example.com"
       end
 
       # <<accessor>>
