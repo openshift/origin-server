@@ -1296,9 +1296,11 @@ module OpenShift
 
         def generate_update_cluster_control_args(entries)
           entries ||= gear_registry.entries
-          args = []
-          entries[:web].each_value do |entry|
-            args << "#{entry.dns}|#{entry.proxy_hostname}:#{entry.proxy_port}"
+          args    = []
+          if entries.has_key?(:web)
+            entries[:web].each_value do |entry|
+              args << "#{entry.dns}|#{entry.proxy_hostname}:#{entry.proxy_port}"
+            end
           end
           args.join(' ')
         end
@@ -1465,9 +1467,8 @@ module OpenShift
             @cartridge_model.do_control('update-cluster', proxy_cart, args: args)
           rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
             logger.info "BZ1025043: Gear #{self.uuid} - got exception running update-cluster for the proxy: #{e.message}"
-            logger.info "BZ1025043: Gear #{self.uuid} - directory listing of primary cartridge directory:"
             listing, _, _ = Utils.oo_spawn("ls -laZ #{gear_env['OPENSHIFT_PRIMARY_CARTRIDGE_DIR']}/metadata")
-            logger.info "BZ1025043: Gear #{self.uuid} - #{listing}"
+            logger.info "BZ1025043: Gear #{self.uuid} - directory listing of primary cartridge directory:\n#{listing}"
             raise
           end
         end
