@@ -33,12 +33,14 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] logger
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] gears
   # @param [see OpenShift::Runtime::WatchmanPlugin#initialize] operation
-  def initialize(config, logger, gears, operation)
+  # @param [Fixnum] number of seconds to wait after calling forcestop
+  def initialize(config, logger, gears, operation, stop_wait_seconds = 10)
     super(config, logger, gears, operation)
     # TODO: Make this configurable?
     @memsw_multiplier = 1.1
     @last_check = 0
     @check_interval = ENV['OOM_CHECK_PERIOD'].nil? ? 0 : ENV['OOM_CHECK_PERIOD'].to_i
+    @stop_wait_seconds = stop_wait_seconds
   end
 
   # Search for gears under_oom
@@ -97,12 +99,12 @@ class OomPlugin < OpenShift::Runtime::WatchmanPlugin
           end
         end
 
-        sleep 10
+        sleep @stop_wait_seconds
 
         # Verify that we are ready to reset to the old limit
         retries = 3
         current = cgroup.fetch(MEMSW_USAGE)[MEMSW_LIMIT].to_i
-        app = ApplicationContainer.from_uuid(uuid)
+        app = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
         while current > orig_memsw_limit && retries > 0
           increased = (increased * @memsw_multiplier).round(0)
           Syslog.info %Q(#{PLUGIN_NAME}: Increasing memory for gear #{uuid} to #{increased} and killing processes)
