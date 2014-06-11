@@ -183,7 +183,9 @@ function psql() {
     PGDATABASE=$pgdatabase \
     $CMD $extra_args "$@"
 
-  if [ $? -eq 2 ]; then
+  CMD_RC=$?
+
+  if [ $CMD_RC -eq 2 ]; then
     lines=(
       "psql: could not connect to server: Connection refused",
       "        Is the server running on host \"${pghost}\" and accepting",
@@ -191,6 +193,7 @@ function psql() {
     )
     errmsg=$(printf -- '%s\n' "${lines[@]}")
   fi
+  return $CMD_RC
 }
 
 function mongo() {
