@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.26.2
+Version: 1.26.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,16 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Jun 11 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
+- Merge pull request #5496 from jwhonce/bug/1101164
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1101164 - Support gear registry with no web framework (jhonce@redhat.com)
+- Merge pull request #5494 from jwhonce/wip/oom_plugin_test
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1106413: psql wrapper always return zero even if psql command is already
+  failed (jhadvig@redhat.com)
+- WIP Node Platform - Add tests for OOM Plugin (jhonce@redhat.com)
+
 * Mon Jun 09 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
 - Merge pull request #5470 from brenton/BZ1064631
   (dmcphers+openshiftbot@redhat.com)
