@@ -11,7 +11,7 @@ else
   mkdir -p ~/.openshift
   cp /tmp/src/broker/misc/docker_broker_plugins.rb ~/.openshift/broker_plugins.rb
   cp -r /tmp/src/broker/conf/* /etc/openshift/
-  cp /tmp/src/plugins/dns/bind/conf/openshift-origin-dns-bind.conf.example /etc/openshift/plugins.d/openshift-origin-dns-bind.conf
+  cp -f /tmp/src/plugins/dns/bind/conf/openshift-origin-dns-bind.conf /etc/openshift/plugins.d/openshift-origin-dns-bind.conf
   cp /tmp/src/plugins/msg-broker/mcollective/conf/openshift-origin-msg-broker-mcollective.conf.example /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
   cp /tmp/src/broker-util/oo-* /opt/ruby/bin
 
