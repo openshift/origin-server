@@ -179,7 +179,7 @@ module MCollective
         rescue Exception => e
           report_exception e
           exitcode = 127
-          output   = "An internal exception occurred processing action #{action}: #{e.message}\n#{e.backtrace.join("\n")}"         
+          output   = "An internal exception occurred processing action #{action}: #{e.message}\n#{e.backtrace.join("\n")}"
         end
 
         return exitcode, output, addtl_params
@@ -340,7 +340,9 @@ module MCollective
           yield(container, output)
           return 0, output
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-          report_exception e
+          # Removed reporting exception, stdout and stderr carry the necessary information to the user from cartridge
+          # https://bugzilla.redhat.com/show_bug.cgi?id=1101169
+          # report_exception e
           output << "\n" unless output.empty?
           output << "#{e.message}" if e.message
           output << "\n#{e.stdout}" if e.stdout.is_a?(String)
@@ -554,7 +556,7 @@ module MCollective
         wrapper_rc, wrapper_output = with_container_from_args(args) do |container|
           cmd_rc, cmd_output = container.user_var_remove(keys, gears)
         end
-        
+
         if wrapper_rc == 0
           return cmd_rc, cmd_output
         else
