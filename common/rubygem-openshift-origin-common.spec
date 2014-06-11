@@ -26,6 +26,9 @@ Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(safe_yaml)
 Requires:      %{?scl:%scl_prefix}rubygem(bundler)
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
+%if %{?scl_ror:1}%{!?scl_ror:0} || 0%{?fedora} >= 20
+Requires:      %{?scl:%scl_prefix}rubygem(rails-observers)
+%endif
 %if 0%{?rhel}
 Requires:      openshift-origin-util-scl
 %endif
