@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.26.2
+Version: 1.26.3
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,11 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Wed Jun 11 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
+- Merge pull request #5484 from VojtechVitek/bug_1104228
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1104228 - missing php-5.4 scl in PATH (vvitek@redhat.com)
+
 * Mon Jun 09 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
 - Merge pull request #5307 from dobbymoodge/test_php_env_scan
   (dmcphers+openshiftbot@redhat.com)
