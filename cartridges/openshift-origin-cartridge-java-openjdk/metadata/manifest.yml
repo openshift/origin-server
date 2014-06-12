@@ -1,0 +1,33 @@
+---
+Name: java-openjdk
+Cartridge-Short-Name: OPENJDK8
+Display-Name: OpenJDK 8
+Description: ! 'OpenJDK8 is a reference implementation of the Java SE 8 
+                specification'
+Version: 1.8.0
+License: GPLV2 + Classpath Exception
+License-Url: http://openjdk.java.net/legal/gplv2+ce.html
+Vendor: openjdk.java.net
+Cartridge-Version: '1.0'
+Cartridge-Vendor: redhat
+Categories:
+- service
+- openjdk8
+- java8
+Website: http://openjdk.java.net
+Help-Topics:
+  Developer Center: https://www.openshift.com/developers
+Cart-Data:
+- Key: OPENSHIFT_OPENJDK8_JAVA_HOME
+  Type: environment
+  Description: JAVA_HOME directory for OpenJDK8
+Provides:
+- openjdk8
+- openjdk
+- java
+Publishes:
+Subscribes:
+Scaling:
+  Min: 1
+  Max: -1
+Endpoints:
