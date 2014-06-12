@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.25.1
+Version: 1.25.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -124,6 +124,10 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Thu Jun 12 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
+- add conditional inclusion of rails-observers which is it's own gem in rails4
+  (admiller@redhat.com)
+
 * Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
 - bump_minor_versions for sprint 46 (admiller@redhat.com)
 
