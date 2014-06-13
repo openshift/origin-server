@@ -77,7 +77,7 @@ env['HOME']    = passwd.dir
 mcs            = OpenShift::Runtime::Utils::SelinuxContext.instance.get_mcs_label(uuid)
 context        = %Q{unconfined_u:system_r:openshift_t:#{mcs}}
 
-command = %Q{/sbin/runuser -m -s /bin/sh #{passwd.name} -c "exec /usr/bin/runcon '#{context}' #{command}"}
+command = %Q{/sbin/runuser -m -s /bin/sh #{passwd.name} --session-command "exec /usr/bin/runcon '#{context}' #{command}"}
 $stderr.puts "command: #{command}" if $DEBUG
 
 Kernel.exec(env, command,
