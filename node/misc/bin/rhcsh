@@ -196,6 +196,13 @@ function psql() {
   return $CMD_RC
 }
 
+function node() {
+  case "$OPENSHIFT_NODEJS_VERSION" in
+    0.6)  `which node` $@ ;;
+    0.10) /usr/bin/scl enable nodejs010 "`which node` $@" ;;
+  esac
+}
+
 function mongo() {
    if test $# -gt 0; then
       uopt=""
@@ -274,6 +281,7 @@ ps              list running applications
 kill            kill running applications
 mysql           interactive MySQL shell
 mongo           interactive MongoDB shell
+node            interactive NodeJS shell
 psql            interactive PostgreSQL shell
 quota           list disk usage
 
