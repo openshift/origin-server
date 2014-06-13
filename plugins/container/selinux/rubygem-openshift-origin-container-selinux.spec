@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.9.2
+Version: 0.9.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,11 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Jun 13 2014 Adam Miller <admiller@redhat.com> 0.9.3-1
+- Merge pull request #5503 from a13m/bz1103849
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1103849 - Remove quota for deleted gear by uid (agrimm@redhat.com)
+
 * Mon Jun 09 2014 Adam Miller <admiller@redhat.com> 0.9.2-1
 - Merge pull request #5470 from brenton/BZ1064631
   (dmcphers+openshiftbot@redhat.com)
