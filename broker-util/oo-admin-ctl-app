@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'getoptlong'
 
-CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear|remove-cartridge|run-connection-hooks|set-multiplier|update-cluster)"
+CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear|remove-cartridge|run-connection-hooks|set-multiplier|update-cluster|add-alias|remove-alias)"
 
 def usage
   puts <<USAGE
@@ -28,6 +28,8 @@ Options:
     Gear uuid to operate on
 --cartridge
     Cartridge to operate on
+--alias 
+    Alias to operate on
 --multiplier
     Multiplier factor to be set for the cartridge
 -h|--help
@@ -42,6 +44,7 @@ opts = GetoptLong.new(
     ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--gear_uuid",              GetoptLong::REQUIRED_ARGUMENT],
     ["--cartridge",              GetoptLong::REQUIRED_ARGUMENT],
+    ["--alias",                  GetoptLong::REQUIRED_ARGUMENT],
     ["--multiplier",             GetoptLong::REQUIRED_ARGUMENT],
     ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
@@ -60,6 +63,7 @@ command  = args['--command']
 bypass   = args['--bypass']
 gear_uuid = args['--gear_uuid']
 cartridge = args['--cartridge']
+server_alias = args['--alias'].dup
 multiplier = args['--multiplier']
 
 if login.nil? or app_name.nil? or command.nil? or args["--help"]
@@ -226,6 +230,22 @@ begin
     app.update_component_limits(ci, nil, nil, nil, multiplier)
   when "update-cluster"
     app.update_cluster
+  when "remove-alias"
+    unless server_alias
+      puts "Alias is required. Use --alias to pass an alias."
+      exit 1
+    end
+    begin
+      app.remove_alias(server_alias)
+    rescue Mongoid::Errors::DocumentNotFound => e
+      raise OpenShift::UserException.new("Alias #{server_alias} not found")
+    end
+  when "add-alias"
+    unless server_alias
+      puts "Alias is required. Use --alias to pass an alias."
+      exit 1
+    end
+    app.add_alias(server_alias)
   else
     puts "Command must be one of: #{CTL_APP_COMMANDS}"
     usage
