@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.25.2
+Version: 1.25.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -166,6 +166,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Jun 13 2014 Adam Miller <admiller@redhat.com> 1.25.3-1
+- oo-accept-node: check_user: use configured quotas (misalunk@redhat.com)
+
 * Wed Jun 11 2014 Adam Miller <admiller@redhat.com> 1.25.2-1
 - WIP Node Platform - Add tests for OOM Plugin (jhonce@redhat.com)
 
