@@ -2,18 +2,14 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source ${OPENSHIFT_PHP_DIR}usr/lib/php_context
-source ${OPENSHIFT_PHP_DIR}usr/lib/php_module_scan
+source ${OPENSHIFT_PHP_DIR}usr/lib/php_module_prepare
 source ${OPENSHIFT_PHP_DIR}usr/lib/php_config
 
 HTTPD_CFG_FILE=$OPENSHIFT_PHP_DIR/configuration/etc/conf/httpd_nolog.conf
 HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/configuration/etc/conf.d
 ERB_HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/usr/shared/etc/conf.d/
-ERB_PHPRC=$OPENSHIFT_PHP_DIR/usr/shared/etc/php.ini.erb
-ERB_PHP_INI_SCAN_DIR=$OPENSHIFT_PHP_DIR/usr/${OPENSHIFT_PHP_VERSION}/etc/php.d
 HTTPD_PASSENV_FILE=$HTTPD_CFG_DIR/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_PHP_DIR/run/httpd.pid
-SYSTEM_PHP_D_DIR=$(system_php_dir)
-PHP_MODULES_INI=${PHP_INI_SCAN_DIR}/openshift.ini
 
 # construct the configuration directives for httpd
 HTTPD_CMD_CONF="-C 'Include $HTTPD_CFG_DIR/*.conf' -f $HTTPD_CFG_FILE"
@@ -21,48 +17,11 @@ for dir in /etc/openshift/cart.conf.d/httpd{,/php} ; do
     [ -d $dir ] && HTTPD_CMD_CONF="$HTTPD_CMD_CONF -c 'Include $dir/*.conf'"
 done
 
-function copy_inifile {
-    local modvar="$1"
-    local srcdir="$2"
-    if [[ "${!modvar,,}" == "true" ]]
-    then
-        if [[ -e ${srcdir}/${inifile} ]]
-        then
-            cat ${srcdir}/${inifile} >> ${PHP_MODULES_INI}
-        fi
-    fi
-}
-
-function enable_modules {
-    echo > ${PHP_MODULES_INI}
-    for inifile in ${ERB_PHP_INI_SCAN_DIR}/*.ini
-    do
-        inifile=${inifile##*/}
-        local module=${inifile%.ini}
-        local modvar="OPENSHIFT_PHP_${module^^}_ENABLED"
-        copy_inifile "${modvar}" "${ERB_PHP_INI_SCAN_DIR}"
-    done
-    for inifile in ${SYSTEM_PHP_D_DIR}/*.ini
-    do
-        inifile=${inifile##*/}
-        if [[ -e ${ERB_PHP_INI_SCAN_DIR}/${inifile} || -e ${ERB_PHP_INI_SCAN_DIR}/${inifile}.erb ]]
-        then
-            continue
-        fi
-        local module=${inifile%.ini}
-        local modvar="OPENSHIFT_PHP_${module^^}_ENABLED"
-        copy_inifile "${modvar}" "${SYSTEM_PHP_D_DIR}"
-    done
-}
-
 function pre_start_httpd_config {
     write_httpd_passenv $HTTPD_PASSENV_FILE
     select_php_document_root ${OPENSHIFT_REPO_DIR}
     oo-erb ${ERB_HTTPD_CFG_DIR}openshift.conf.erb > ${HTTPD_CFG_DIR}/openshift.conf
     oo-erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb.hidden > $HTTPD_CFG_DIR/performance.conf
-    oo-erb ${ERB_PHPRC} > ${PHPRC}
-    oo-erb ${ERB_PHP_INI_SCAN_DIR}/apc.ini.erb > ${PHP_INI_SCAN_DIR}/apc.ini
-    oo-erb ${ERB_PHP_INI_SCAN_DIR}/xdebug.ini.erb > ${PHP_INI_SCAN_DIR}/xdebug.ini
     enable_modules
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
 }
