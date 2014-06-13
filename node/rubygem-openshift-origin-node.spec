@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.26.3
+Version: 1.26.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Jun 13 2014 Adam Miller <admiller@redhat.com> 1.26.4-1
+- Merge pull request #5503 from a13m/bz1103849
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1103849 - Remove quota for deleted gear by uid (agrimm@redhat.com)
+
 * Wed Jun 11 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
 - Merge pull request #5496 from jwhonce/bug/1101164
   (dmcphers+openshiftbot@redhat.com)
