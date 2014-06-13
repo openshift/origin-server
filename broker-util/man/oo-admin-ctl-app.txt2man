@@ -28,6 +28,9 @@ OPTIONS
     
   --cartridge cart  
     Cartridge to operate on.
+    
+  --alias alias  
+    Alias to operate on.
   
   -b|--bypass  
     Ignore all warnings.
