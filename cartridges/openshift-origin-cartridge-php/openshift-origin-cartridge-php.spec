@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.26.3
+Version: 1.26.4
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,11 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Fri Jun 13 2014 Adam Miller <admiller@redhat.com> 1.26.4-1
+- Merge pull request #5500 from VojtechVitek/composer
+  (dmcphers+openshiftbot@redhat.com)
+- Add Composer, the PHP dependency manager (vvitek@redhat.com)
+
 * Wed Jun 11 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
 - Merge pull request #5484 from VojtechVitek/bug_1104228
   (dmcphers+openshiftbot@redhat.com)
