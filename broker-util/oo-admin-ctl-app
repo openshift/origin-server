@@ -116,6 +116,10 @@ begin
   when "restart"
     reply.append app.restart  
   when "status"
+    puts "Application UUID is #{app._id}"
+    app.gears.each do |gear|
+      puts "GEAR UUID is #{gear.uuid}"
+    end
     app.cartridges.each do |cart|
       reply.append app.status(cart.name)
     end
