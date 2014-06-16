@@ -63,7 +63,9 @@ command  = args['--command']
 bypass   = args['--bypass']
 gear_uuid = args['--gear_uuid']
 cartridge = args['--cartridge']
-server_alias = args['--alias'].dup
+# dup is required here since the alias valiadation in add_alias calls a downcase! 
+# the string here seems to be frozen and cannot be modified, hence a dup is passed
+server_alias = args['--alias'].dup if args['--alias']
 multiplier = args['--multiplier']
 
 if login.nil? or app_name.nil? or command.nil? or args["--help"]
