@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.25.3
+Version: 1.25.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -166,6 +166,11 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Mon Jun 16 2014 Troy Dawson <tdawson@redhat.com> 1.25.4-1
+- Merge pull request #5508 from jwhonce/bug/1109324
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1109324 - Enable job control in oo-su (jhonce@redhat.com)
+
 * Fri Jun 13 2014 Adam Miller <admiller@redhat.com> 1.25.3-1
 - oo-accept-node: check_user: use configured quotas (misalunk@redhat.com)
 
