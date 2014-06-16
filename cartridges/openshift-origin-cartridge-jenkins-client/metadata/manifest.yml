@@ -3,8 +3,8 @@ Name: jenkins-client
 Cartridge-Short-Name: JENKINS_CLIENT
 Display-Name: Jenkins Client
 Description: The Jenkins client connects to your Jenkins application and enables builds
-  and testing of your application. Requires the Jenkins Application to be created
-  via the new application page. Based on Jenkins Client 1.509+
+  and testing of your application. Requires a Jenkins Server application exists in your 
+  domain.  This can be created via the new application page. Based on Jenkins Client 1.509+
 Version: '1'
 License: ASL 2.0
 Cartridge-Version: 0.0.9

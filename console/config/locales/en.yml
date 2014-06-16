@@ -9,5 +9,5 @@ en:
     errors:
       '116': Your SSH public key appears to be invalid.  Keys should start with a type (usually ssh-rsa or ssh-dss), a blank space, and then a long string of numbers and letters.
       '121': You have already saved this public key with a different name. Provide a different key here.
-      '151': You must create a Jenkins application (to act as a build server) before you can add the Jenkins cartridge to an application.
+      '151': You must create a Jenkins Server application in your domain (to act as a build server) before you can add the Jenkins cartridge to an application.
       '153': You are currently using more gears than the new plan would allow.  Please scale down or delete applications before downgrading.
