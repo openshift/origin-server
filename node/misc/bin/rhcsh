@@ -199,7 +199,7 @@ function psql() {
 function node() {
   case "$OPENSHIFT_NODEJS_VERSION" in
     0.6)  `which node` $@ ;;
-    0.10) /usr/bin/scl enable nodejs010 "`which node` $@" ;;
+    0.10) /usr/bin/scl enable nodejs010 "node $@" ;;
   esac
 }
 
