@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.25.1
+Version: 1.25.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,13 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Mon Jun 16 2014 Troy Dawson <tdawson@redhat.com> 1.25.2-1
+- Merge pull request #5507 from miheer/bug-1007454-oo-admin-ctl-app-status-
+  shows-app-and-gear-uuid (dmcphers+openshiftbot@redhat.com)
+- oo-admin-ctl-app: show app/gear UUID with status (misalunk@redhat.com)
+- Bug 1105843 - added add/remove alias functionality to oo-admin-ctl-app
+  (lnader@redhat.com)
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
 - corrected section number (lnader@redhat.com)
 - Bug 1094141 - update oo-admin-ctl-user man pages (lnader@redhat.com)
