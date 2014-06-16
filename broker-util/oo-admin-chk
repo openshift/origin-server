@@ -101,13 +101,29 @@ current_time = Time.now.utc
 puts "Started at: #{current_time}\n\n"
 start_time = (current_time.to_f * 1000).to_i
 
+current_time = Time.now
 populate_user_hash
-populate_domain_hash
-populate_district_hash
-populate_app_hash
-populate_usage_hash
+puts "User data populated in #{(Time.now - current_time).to_i} seconds\n\n"
 
+current_time = Time.now
+populate_domain_hash
+puts "Domain data populated in #{(Time.now - current_time).to_i} seconds\n\n"
+
+current_time = Time.now
+populate_district_hash
+puts "District data populated in #{(Time.now - current_time).to_i} seconds\n\n"
+
+current_time = Time.now
+populate_app_hash
+puts "Application data populated in #{(Time.now - current_time).to_i} seconds\n\n"
+
+current_time = Time.now
+populate_usage_hash
+puts "Usage data populated in #{(Time.now - current_time).to_i} seconds\n\n"
+
+current_time = Time.now
 node_hash, gear_hash = OpenShift::ApplicationContainerProxy.get_all_gears
+puts "Fetched all gears in #{(Time.now - current_time).to_i} seconds"
 puts "Total gears found on the nodes: #{node_hash.length}"
 puts "Total nodes that responded: #{gear_hash.length}"
 
@@ -138,12 +154,15 @@ $datastore_hash.each do |gear_uuid, gear_info|
   end
 end
 
+puts "Checked application gears on nodes in #{(Time.now - current_time).to_i} seconds\n\n"
+
 # print error messages for any non-responding nodes
 non_responding_nodes.each do |server_identity, gear_count|
   print_message "The node #{server_identity} expected to contain #{gear_count} gears wasn't returned from mcollective for the gear list"
 end
 
 puts "Checking node gears in application database" if $verbose
+current_time = Time.now
 node_hash.each do |gear_uuid, gear_info|
   datastore_gear_info = $datastore_hash[gear_uuid]
   if !datastore_gear_info
@@ -163,17 +182,45 @@ node_hash.each do |gear_uuid, gear_info|
   end
 end
 
-if level >= 1
-  run :find_consumed_gears_inconsistencies
-  run :find_ssh_key_inconsistencies
-  run :find_stale_sshkeys_and_envvars
-  run :find_district_inconsistencies
+puts "Checked application gears on nodes (reverse match) in #{(Time.now - current_time).to_i} seconds\n\n"
 
+if level >= 1
+  current_time = Time.now
+  run :find_consumed_gears_inconsistencies
+  puts "Checked consumed gears inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
+
+  current_time = Time.now
+  run :find_ssh_key_inconsistencies
+  puts "Checked ssh keys inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
+
+  current_time = Time.now
+  run :find_stale_sshkeys_and_envvars
+  puts "Checked stale ssh keys in #{(Time.now - current_time).to_i} seconds\n\n"
+
+  current_time = Time.now
+  run :find_district_inconsistencies
+  puts "Checked district inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
+
+
+  current_time = Time.now
   run :find_app_gear_usage_record_inconsistencies
+  puts "Checked gear usage inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
+
+  current_time = Time.now
   run :find_app_storage_usage_record_inconsistencies
+  puts "Checked storage usage inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
+
+  current_time = Time.now
   run :find_app_premium_cart_usage_record_inconsistencies
+  puts "Checked premium cart usage inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
+
+  current_time = Time.now
   run :find_usage_record_usage_inconsistencies
+  puts "Checked usage record inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
+
+  current_time = Time.now
   run :find_user_plan_inconsistencies 
+  puts "Checked user plan inconsistencies in #{(Time.now - current_time).to_i} seconds\n\n"
 end
 
 end_time = Time.now.utc
