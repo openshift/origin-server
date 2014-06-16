@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.26.4
+Version: 1.26.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Jun 16 2014 Troy Dawson <tdawson@redhat.com> 1.26.5-1
+- Merge pull request #5509 from pmorie/bugs/1108951
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1108951: add rhcsh wrapper for nodejs (pmorie@gmail.com)
+
 * Fri Jun 13 2014 Adam Miller <admiller@redhat.com> 1.26.4-1
 - Merge pull request #5503 from a13m/bz1103849
   (dmcphers+openshiftbot@redhat.com)
