@@ -106,7 +106,6 @@ class ApplicationsController < ConsoleController
 
   def delete
     @application = Application.find(params[:id], :as => current_user)
-
     @referer = application_path(@application)
   end
 

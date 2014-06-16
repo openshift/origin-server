@@ -5,7 +5,7 @@
 = semantic_form_for @application, :html => {:method => :delete, :class => 'form'} do |f|
   %p 
     Are you sure you want to delete the application 
-    <strong>'#{@application.name}'?</strong>
+    <strong>'#{@application.name}'</strong> from domain <strong>'#{@application.domain_name}'</strong>?
 
   %p 
     This will delete all the code and data associated with 
