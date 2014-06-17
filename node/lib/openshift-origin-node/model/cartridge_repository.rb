@@ -227,9 +227,9 @@ module OpenShift
       end
 
       def installed_in_base_path?(cartridge_name, version, cartridge_version)
-        config = OpenShift::Config.new
+        config              = OpenShift::Config.new
         cartridge_base_path = config.get('CARTRIDGE_BASE_PATH')
-        cartridge_path = PathUtils.join(cartridge_base_path, cartridge_name)
+        cartridge_path      = PathUtils.join(cartridge_base_path, cartridge_name)
 
         unless File.exists?(cartridge_path)
           return false
@@ -329,7 +329,7 @@ module OpenShift
 
           if latest_cartridge_version
             logger.debug("Resetting default for (#{cartridge_name}, #{version}) to #{latest_cartridge_version}")
-            manifest = @index[cartridge_name][version][latest_cartridge_version]
+            manifest                             = @index[cartridge_name][version][latest_cartridge_version]
             @index[cartridge_name][version]['_'] = manifest
           end
         end
@@ -343,7 +343,7 @@ module OpenShift
       #
       #   CartridgeRepository.instance.insert(cartridge) -> Cartridge
       def insert(cartridge) # :nodoc:
-        name = cartridge.name
+        name              = cartridge.name
         cartridge_version = cartridge.cartridge_version
 
         Manifest.sort_versions(cartridge.versions).each do |version|
@@ -494,8 +494,10 @@ module OpenShift
         end
 
         if downloadable
-          uri       = URI(cartridge.source_url)
-          temporary = PathUtils.join(File.dirname(target), File.basename(cartridge.source_url))
+          uri         = URI(cartridge.source_url)
+          safe_source = Shellwords.escape(cartridge.source_url)
+
+          temporary = PathUtils.join(File.dirname(target), File.basename(safe_source))
           cartridge.validate_vendor_name
           cartridge.check_reserved_vendor_name
           cartridge.validate_cartridge_name
@@ -503,7 +505,7 @@ module OpenShift
           case
             when 'git' == uri.scheme || cartridge.source_url.end_with?('.git')
               Utils::oo_spawn(%Q(set -xe;
-                               git clone #{cartridge.source_url} #{cartridge.name};
+                               git clone #{safe_source} #{cartridge.name};
                                GIT_DIR=./#{cartridge.name}/.git git repack),
                               chdir:               Pathname.new(target).parent.to_path,
                               expected_exitstatus: 0)
@@ -609,24 +611,20 @@ module OpenShift
 
         raise ArgumentError.new('CLIENT_ERROR: No cartridge sources found to install.') if entries.empty?
 
-        source = entries.map {|e| Shellwords.escape(e)}
+        source = entries.map { |e| Shellwords.escape(e) }
         Utils.oo_spawn("/bin/cp -ad #{source.join(' ')} #{target}",
                        expected_exitstatus: 0)
       end
 
       def self.extract(method, source, target)
+        src = Shellwords.escape(source)
         case method
           when :zip
-            Utils.oo_spawn("/usr/bin/unzip -d #{target} #{source}",
-                           expected_exitstatus: 0)
+            Utils.oo_spawn("/usr/bin/unzip -d #{target} #{src}", expected_exitstatus: 0)
           when :tgz
-            Utils.oo_spawn("/bin/tar -C #{target} -zxpf #{source}",
-                           expected_exitstatus: 0)
-
+            Utils.oo_spawn("/bin/tar -C #{target} -zxpf #{src}", expected_exitstatus: 0)
           when :tar
-            Utils.oo_spawn("/bin/tar -C #{target} -xpf #{source}",
-                           expected_exitstatus: 0)
-
+            Utils.oo_spawn("/bin/tar -C #{target} -xpf #{src}", expected_exitstatus: 0)
           else
             raise "Packaging method #{method} not yet supported."
         end
