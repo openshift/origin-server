@@ -10,7 +10,7 @@ extension = apc.so
 apc.enable_opcode_cache=0
 
 ; This can be set to 0 to disable APC. 
-apc.enabled=<%= (ENV['OPENSHIFT_PHP_APC_ENABLED'] == "false") ? "0" : "1" %>
+apc.enabled=1
 
 ; The size of each shared memory segment, with M/G suffix
 apc.shm_size=<%= (ENV['OPENSHIFT_PHP_APC_SHM_SIZE'] =~ /^[0-9]+[MG]$/) ? ENV['OPENSHIFT_PHP_APC_SHM_SIZE'] : ((ENV['OPENSHIFT_GEAR_MEMORY_MB'].to_i/8).to_i.to_s+"M") %>
