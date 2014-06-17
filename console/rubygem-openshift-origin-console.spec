@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.26.1
+Version: 1.26.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,17 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jun 17 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
+- Merge pull request #5510 from developercorey/fix_delete_application_namespace
+  (dmcphers+openshiftbot@redhat.com)
+- Replacing the short app name on the delete application page with the full
+  application url to help negate confusion when deleting applications when you
+  have access to multiple domains.  Similar to how github does it when you
+  delete a repository, they show the user or organization name plus the repo
+  name.  if this format is not appropriate, let me know what format would make
+  more sense maybe domain/app_name? (cdaley@redhat.com)
+- https://bugzilla.redhat.com/show_bug.cgi?id=1109026 (bparees@redhat.com)
+
 * Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
 - console_helper.rb:   - replace hard-coded value of product logo and product
   title by     dynamic value from Console.config.env console.conf:   - add
