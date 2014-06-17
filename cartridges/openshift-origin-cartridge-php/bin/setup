@@ -5,7 +5,9 @@ case "$1" in
     version="$2"
 esac
 
-source ${OPENSHIFT_PHP_DIR}usr/lib/php_module_scan
+export OPENSHIFT_PHP_VERSION=${version}
+
+source ${OPENSHIFT_PHP_DIR}usr/lib/php_module_prepare
 
 # Copy the version specific files up to php directory
 shopt -s dotglob
