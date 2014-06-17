@@ -41,7 +41,7 @@ function enable_modules {
         module=${module%.erb}
         module=${module%.ini}
         modvar="OPENSHIFT_PHP_${module^^}_ENABLED"
-        if [[ $modvar != "false" && $testcmd != *${module}\.so* ]]; then
+        if [[ "${!modvar,,}" != "false" && $testcmd != *${module}\.so* ]]; then
             testcmd+="@dl('${module}.so') and printf(' ${file}');"
         fi
     done
