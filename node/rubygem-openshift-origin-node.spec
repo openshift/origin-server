@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.25.6
+Version: 1.25.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jun 17 2014 Adam Miller <admiller@redhat.com> 1.25.7-1
+- Bug 1110283 - Escape Source-Url during clone/copy (jhonce@redhat.com)
+
 * Thu May 29 2014 Adam Miller <admiller@redhat.com> 1.25.6-1
 - Merge pull request #5443 from a13m/bz1100518
   (dmcphers+openshiftbot@redhat.com)
