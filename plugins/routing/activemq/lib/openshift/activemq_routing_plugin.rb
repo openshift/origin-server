@@ -8,11 +8,11 @@ module OpenShift
   class ActiveMQPlugin < OpenShift::RoutingService
     def initialize
       Rails.logger.debug("Listening for routing events")
-      @topic = Rails.application.config.routing_activemq[:topic]
+      @dest = Rails.application.config.routing_activemq[:destination]
       if Rails.application.config.routing_activemq[:debug]
         @conn = Class.new(Object) do
-          def publish(topic, msg)
-            Rails.logger.debug("Topic #{topic} gets message:\n#{msg}")
+          def publish(dest, msg)
+            Rails.logger.debug("Destination #{dest} gets message:\n#{msg}")
           end
         end.new
       else
@@ -29,7 +29,7 @@ module OpenShift
     end
 
     def send_msg(msg)
-      @conn.publish @topic, msg
+      @conn.publish @dest, msg
     end
 
     def notify_ssl_cert_add(app, fqdn, ssl_cert, pvt_key, passphrase)
