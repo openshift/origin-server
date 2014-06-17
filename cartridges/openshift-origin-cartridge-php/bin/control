@@ -1,8 +1,5 @@
 #!/bin/bash -e
 
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
-source ${OPENSHIFT_PHP_DIR}usr/lib/php_context
-source ${OPENSHIFT_PHP_DIR}usr/lib/php_module_prepare
 source ${OPENSHIFT_PHP_DIR}usr/lib/php_config
 
 HTTPD_CFG_FILE=$OPENSHIFT_PHP_DIR/configuration/etc/conf/httpd_nolog.conf

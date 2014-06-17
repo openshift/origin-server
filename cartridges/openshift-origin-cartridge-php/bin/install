@@ -14,10 +14,7 @@ esac
 echo "$version" > ${OPENSHIFT_PHP_DIR}env/OPENSHIFT_PHP_VERSION
 export OPENSHIFT_PHP_VERSION="$version"
 
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
-source ${OPENSHIFT_PHP_DIR}usr/lib/php_context
-source ${OPENSHIFT_PHP_DIR}usr/lib/php_module_prepare
-
+source ${OPENSHIFT_PHP_DIR}usr/lib/php_config
 enable_modules
 
 # Create additional directories required by PHP

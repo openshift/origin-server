@@ -36,12 +36,9 @@ if [[ $curr == 0.0.14 ]]; then
 fi
 
 if [[ $curr == 0.0.17 ]]; then
-    source ${OPENSHIFT_PHP_DIR}usr/lib/php_module_prepare
+    source ${OPENSHIFT_PHP_DIR}usr/lib/php_config
     rm -f ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/locked-*.ini
     OPENSHIFT_PHP_VERSION=$php_version
-    scan_for_php_modules
-    source $OPENSHIFT_CARTRIDGE_SDK_BASH
-    source ${OPENSHIFT_PHP_DIR}usr/lib/php_context
     update_configuration
     mkdir -p ${OPENSHIFT_HOMEDIR}.composer
     chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_HOMEDIR}.composer

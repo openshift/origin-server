@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source ${OPENSHIFT_PHP_DIR}usr/lib/php_context
+
 function select_php_document_root {
     for dir in php public public_html web www; do
         if [ -d "$1/$dir" -o -h "$1/$dir" ]; then
@@ -10,4 +13,48 @@ function select_php_document_root {
     done
     export OPENSHIFT_PHP_DOCUMENT_ROOT="$1"
     echo "Application directory \"/\" selected as DocumentRoot"
+}
+
+function system_php_dir {
+    local phpscl=$(expr "$(php_context 'echo ${X_SCLS:-}')" : '.*\(php[^ ]\+\).*')
+    [ -n "${phpscl}" ] && echo "/opt/rh/${phpscl}/root/etc/php.d" \
+        || echo "/etc/php.d"
+}
+
+function enable_modules {
+    local phprc=${OPENSHIFT_PHP_DIR}usr/shared/etc/php.ini.erb
+    local phpd=${OPENSHIFT_PHP_DIR}usr/${OPENSHIFT_PHP_VERSION}/etc/php.d
+    local testcmd=
+    local module=
+    local modvar=
+
+    # Generate OpenShift php.ini
+    oo-erb ${phprc} > ${PHPRC}
+
+    # Add test for php modules (ignore duplicates and disabled modules) in order:
+    #   1. OpenShift php.d/*.ini.erb
+    #   2. OpenShift php.d/*.ini
+    #   3. system php.d/*.ini
+    # Note: Module can be disabled using `$OPENSHIFT_PHP_<MODULE>_ENABLED=false'
+    for file in ${phpd}/{*.ini.erb,*.ini} $(system_php_dir)/*.ini; do
+        module=${file##*/}
+        module=${module%.erb}
+        module=${module%.ini}
+        modvar="OPENSHIFT_PHP_${module^^}_ENABLED"
+        if [[ $modvar != "false" && $testcmd != *${module}\.so* ]]; then
+            testcmd+="@dl('${module}.so') and printf(' ${file}');"
+        fi
+    done
+
+    # Clear openshift.ini
+    echo > ${PHP_INI_SCAN_DIR}/openshift.ini
+
+    # Run test -> Copy settings of modules whose test passed into openshift.ini
+    for file in $(php_context "php -n -r \"${testcmd}\"" 2>/dev/null); do
+        if [[ $file == *\.erb ]]; then
+            oo-erb $file >> ${PHP_INI_SCAN_DIR}/openshift.ini
+        else
+            cat $file >> ${PHP_INI_SCAN_DIR}/openshift.ini
+        fi
+    done
 }
