@@ -39,7 +39,7 @@ start() {
     echo -n $"Starting node-web-proxy: "
     chown apache.apache /var/log/openshift/node/node-web-proxy/*.log >/dev/null 2>&1 || :
     export NODE_PATH="$nodesysmodulespath"
-    scl enable nodejs010 "nohup $cmd &>> $logfile &"
+    setsid scl enable nodejs010 "nohup $cmd &>> $logfile &"
 
     for i in {1..30}; do
       pgrep -u 0 -f bin/node-supervisor > $pidfile
