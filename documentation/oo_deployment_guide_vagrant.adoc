@@ -27,7 +27,7 @@ There are two ways to install the OpenShift plugin for Vagrant.
 If you are not interested in doing development work on the OpenShift Vagrant plugin itself, this is the easiest option. From a command prompt, run:
 
 ----
-$ vagrant module install vagrant-openshift
+$ vagrant plugin install vagrant-openshift
 ----
 
 Vagrant will pull the plugin down from rubygems.org and install it in the right place.
