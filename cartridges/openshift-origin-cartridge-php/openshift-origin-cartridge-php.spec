@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.26.4
+Version: 1.26.5
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,13 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Wed Jun 18 2014 Adam Miller <admiller@redhat.com> 1.26.5-1
+- Dereference variable name in $modvar for comparison (jolamb@redhat.com)
+- Remove extra conditions from APC module (vvitek@redhat.com)
+- Fix PHP migration (vvitek@redhat.com)
+- Refactor enable_php_modules; remove extra ENV VARs (vvitek@redhat.com)
+- Bug 1108017: Load .ini modules on php setup (jhadvig@redhat.com)
+
 * Fri Jun 13 2014 Adam Miller <admiller@redhat.com> 1.26.4-1
 - Merge pull request #5500 from VojtechVitek/composer
   (dmcphers+openshiftbot@redhat.com)
