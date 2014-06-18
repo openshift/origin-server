@@ -44,5 +44,5 @@ if [[ $curr == 0.0.17 ]]; then
     update_configuration
     mkdir -p ${OPENSHIFT_HOMEDIR}.composer
     chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_HOMEDIR}.composer
-    chcon -u unconfined_u $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_HOMEDIR}.composer
+    chcon -u ${OPENSHIFT_HOMEDIR}.composer
 fi
