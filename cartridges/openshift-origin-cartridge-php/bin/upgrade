@@ -24,7 +24,7 @@ if [[ $next == 0.0.12 ]]; then
 fi
 
 if [[ $curr == 0.0.12 ]]; then
-    erb ${OPENSHIFT_PHP_DIR}versions/shared/configuration/etc/php.ini.erb > ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
+    oo-erb ${OPENSHIFT_PHP_DIR}versions/shared/configuration/etc/php.ini.erb > ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
 fi
 
 if [[ $curr == 0.0.14 ]]; then
@@ -36,13 +36,13 @@ if [[ $curr == 0.0.14 ]]; then
 fi
 
 if [[ $curr == 0.0.17 ]]; then
-    source ${OPENSHIFT_PHP_DIR}usr/lib/php_module_scan
-    rm -f ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/locked-*.ini
-    OPENSHIFT_PHP_VERSION=$php_version
-    scan_for_php_modules
-    source $OPENSHIFT_CARTRIDGE_SDK_BASH
-    source ${OPENSHIFT_PHP_DIR}usr/lib/php_context
+    source ${OPENSHIFT_PHP_DIR}usr/lib/php_config
+    rm -f ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/*
+    echo > ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/openshift.ini
+    chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/openshift.ini
+    chcon -u unconfined_u ${OPENSHIFT_PHP_DIR}configuration/etc/php.d/openshift.ini
     update_configuration
     mkdir -p ${OPENSHIFT_HOMEDIR}.composer
     chown $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_HOMEDIR}.composer
+    chcon -u unconfined_u $OPENSHIFT_GEAR_UUID:$OPENSHIFT_GEAR_UUID ${OPENSHIFT_HOMEDIR}.composer
 fi

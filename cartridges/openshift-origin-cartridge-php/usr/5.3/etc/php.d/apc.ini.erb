@@ -5,7 +5,7 @@ extension = apc.so
 ; See http://www.php.net/manual/en/apc.configuration.php
 
 ; This can be set to 0 to disable APC. 
-apc.enabled=<%= (ENV['OPENSHIFT_PHP_APC_ENABLED'] == "false") ? "0" : "1" %>
+apc.enabled=1
 ; The number of shared memory segments to allocate for the compiler cache. 
 apc.shm_segments=1
 ; The size of each shared memory segment, with M/G suffix
