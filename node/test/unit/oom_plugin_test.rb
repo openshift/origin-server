@@ -18,7 +18,6 @@ require_relative '../test_helper'
 
 require 'date'
 
-# if File.exist? '../../../node-util/conf/watchman/plugins.d/oom_plugin.rb'
 require_relative '../../../node-util/conf/watchman/plugins.d/oom_plugin'
 
 class OomPluginTest < OpenShift::NodeBareTestCase
@@ -30,18 +29,26 @@ class OomPluginTest < OpenShift::NodeBareTestCase
     @gears.stubs(:ids).returns @uuids
     @gears.stubs(:empty?).returns @uuids.empty?
 
-    @operation = mock
+    @operation = mock('operation')
+
+    templates = {
+        default: {'foo' => '1', 'bar' => '2', 'baz' => '3', 'a' => 'c'},
+    }
+
+    parameters = templates[:default]
+
+    @libcgroup_mock = mock('OpenShift::Runtime::Utils::Cgroups::Libcgroup')
+    @libcgroup_mock.stubs(:parameters).returns(parameters)
   end
 
   def test_no_oom_control
-    cgroup = mock
-    cgroup.expects(:fetch).
+    @libcgroup_mock.expects(:fetch).
         with('memory.oom_control').
         returns({'memory.oom_control' => {'under_oom' => '0'}}).
         times(@uuids.length)
     OpenShift::Runtime::Utils::Cgroups::Libcgroup.expects(:new).
         with(any_of(*@uuids)).
-        returns(cgroup).
+        returns(@libcgroup_mock).
         times(@uuids.length)
     @operation.expects(:call).never
 
@@ -49,30 +56,26 @@ class OomPluginTest < OpenShift::NodeBareTestCase
   end
 
   def test_oom_control
-    cgroup = mock
-    cgroup.expects(:fetch).
+    @libcgroup_mock.expects(:fetch).
         with('memory.oom_control').
         returns({'memory.oom_control' =>
                      {'under_oom'        => '1',
                       'oom_kill_disable' => '0'}}).
         times(@uuids.length)
-    cgroup.expects(:fetch).with(OomPlugin::MEMSW_LIMIT).returns({OomPlugin::MEMSW_LIMIT => 1024}).times(3)
-    cgroup.expects(:fetch).with(OomPlugin::MEMSW_USAGE).returns({OomPlugin::MEMSW_LIMIT => 1024}).times(3)
-    cgroup.expects(:store).with(OomPlugin::MEMSW_LIMIT, kind_of(Fixnum)).times(@uuids.length * 2)
+    @libcgroup_mock.expects(:fetch).with(OomPlugin::MEMSW_LIMIT).returns({OomPlugin::MEMSW_LIMIT => 1024}).times(3)
+    @libcgroup_mock.expects(:fetch).with(OomPlugin::MEMSW_USAGE).returns({OomPlugin::MEMSW_LIMIT => 1024}).times(3)
+    @libcgroup_mock.expects(:store).with(OomPlugin::MEMSW_LIMIT, kind_of(Fixnum)).times(@uuids.length * 2)
 
-    OpenShift::Runtime::ApplicationContainer.expects(:from_uuid).
+    OpenShift::Runtime::ApplicationContainer.stubs(:from_uuid).
         with(any_of(*@uuids)).
-        returns(nil).
-        times(@uuids.length)
+        returns(nil)
 
-    OpenShift::Runtime::Utils::Cgroups::Libcgroup.expects(:new).
+    OpenShift::Runtime::Utils::Cgroups::Libcgroup.stubs(:new).
         with(any_of(*@uuids)).
-        returns(cgroup).
-        times(@uuids.length)
+        returns(@libcgroup_mock)
 
-    @operation.expects(:call).with(:restart, any_of(*@uuids)).times(3)
+    @operation.expects(:call).with(:start, any_of(*@uuids)).times(3)
 
     OomPlugin.new(nil, nil, @gears, @operation, 0).apply(nil)
   end
 end
-# end
