@@ -23,6 +23,7 @@ echo > ${OPENSHIFT_PHP_DIR}/configuration/etc/php.d/openshift.ini
 echo > $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/openshift.conf
 echo > $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/passenv.conf
 echo > $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/performance.conf
+echo > $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/server-status.conf
 
 mkdir -p ${OPENSHIFT_PHP_DIR}conf
 cp ${OPENSHIFT_PHP_DIR}usr/shared/etc/conf.d/performance.conf.erb ${OPENSHIFT_PHP_DIR}conf/performance.conf.erb

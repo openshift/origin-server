@@ -37,6 +37,7 @@ function start_app() {
 }
 
 function pre_start_apache_config {
+    write_server_status ${HTTPD_CFG_DIR}/server-status.conf
     write_httpd_passenv $HTTPD_PASSENV_FILE
     select_python_document_root ${OPENSHIFT_REPO_DIR}
     select_python_wsgi_application ${OPENSHIFT_REPO_DIR}
