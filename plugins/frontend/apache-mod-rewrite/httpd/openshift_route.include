@@ -65,6 +65,7 @@ RewriteCond %{ENV:FORCEHTTPS} ^(.+)$
 RewriteRule ^(.*)$ - [E=STSHEADER:%1,NS]
 
 Header set Strict-Transport-Security "max-age=%{STSHEADER}e" env=STSHEADER
+Header set Accept-Ranges none
 
 
 # Route resolution.
