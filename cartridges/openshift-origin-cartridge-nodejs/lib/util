@@ -111,7 +111,7 @@ function node_bin() {
 # Need to combine double slashes in case our PATH contains them
 #
 function node_pids() {
-  ps -u $(id -u) -o pid= -o cmd= | grep -e '[0-9]\{1,\}\snode\s' | replace '//' '/'
+  ps -u $(id -u) -o pid= -o cmd= | grep -e '[0-9]\{1,\}\snode\s' | sed -e 's#//#/#g'
 }
 
 # Only PIDs with node running supervisor
@@ -150,7 +150,7 @@ function is_node_running() {
     nodepid=$(cat "${OPENSHIFT_NODEJS_PID_DIR}/cartridge.pid")
     [ -n "$nodepid" ]  ||  return 1
 
-    node_command=$(ps --no-heading -ocmd -p $nodepid | replace '//' '/')
+    node_command=$(ps --no-heading -ocmd -p $nodepid | sed -e 's#//#/#g')
 
     # Ensure this is not a supervisor process
     if [[ -n "$node_command" && ! "${node_command}" =~ $(supervisor_bin) ]]; then
@@ -167,7 +167,7 @@ function is_supervisor_running() {
     [ -n "$nodepid" ]  ||  return 1
 
     #  Is the pid a supervisor process.
-    if [[ $(ps --no-heading -ocmd -p $nodepid | replace '//' '/') =~ $(supervisor_bin) ]]; then
+    if [[ $(ps --no-heading -ocmd -p $nodepid | sed -e 's#//#/#g') =~ $(supervisor_bin) ]]; then
        #  Yes, the app server is a supervisor process.
        return 0
     fi
