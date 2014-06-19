@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.26.1
+Version: 1.26.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -86,6 +86,18 @@ done
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Thu Jun 19 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
+- Merge pull request #5533 from pmorie/latest_versions (admiller@redhat.com)
+- Bump cartridge versions for 2.0.46 (pmorie@gmail.com)
+- Merge pull request #5526 from jhadvig/BZ_1109645
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5523 from jhadvig/status
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1110287: Removing thread-dump dependency from ruby-1.8 cunfig.ru template
+  (jhadvig@redhat.com)
+- Bug 1109645: Setting mysql2 variable for bundler (jhadvig@redhat.com)
+- Making apache server-status optional with a marker (jhadvig@redhat.com)
+
 * Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
 - bump_minor_versions for sprint 46 (admiller@redhat.com)
 
