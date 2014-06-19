@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.26.5
+Version: 1.26.6
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,17 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Thu Jun 19 2014 Adam Miller <admiller@redhat.com> 1.26.6-1
+- Merge pull request #5533 from pmorie/latest_versions (admiller@redhat.com)
+- Bump cartridge versions for 2.0.46 (pmorie@gmail.com)
+- Fix Composer - bug 1110268 (vvitek@redhat.com)
+- Merge pull request #5523 from jhadvig/status
+  (dmcphers+openshiftbot@redhat.com)
+- Making apache server-status optional with a marker (jhadvig@redhat.com)
+- Merge pull request #5525 from pmorie/upgrade
+  (dmcphers+openshiftbot@redhat.com)
+- Fix php upgrade for 0.0.17 (pmorie@gmail.com)
+
 * Wed Jun 18 2014 Adam Miller <admiller@redhat.com> 1.26.5-1
 - Dereference variable name in $modvar for comparison (jolamb@redhat.com)
 - Remove extra conditions from APC module (vvitek@redhat.com)
