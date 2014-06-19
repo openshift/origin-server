@@ -892,6 +892,7 @@ automatically searched when calling require(), include() and other file I/O func
 - vendors/
 ----
 
+[[php-markers]]
 === Markers
 Adding marker files to `.openshift/markers` will have the following effects:
 
@@ -900,13 +901,16 @@ Adding marker files to `.openshift/markers` will have the following effects:
 |Marker |Effect
 
 |force_clean_build
-|Will remove all previous deps and start installing required deps from scratch
+|Will remove all previous deps and start installing required deps from scratch.
 
 |hot_deploy
-|Will prevent the apache process from being restarted during build/deployment
+|Will prevent the Apache process from being restarted and will skip checking for Pear and Composer dependencies during build/deployment.
 
 |disable_auto_scaling
 |Will prevent scalable applications from scaling up or down according to application load.
+
+|use_composer
+|Will enable running `composer install` on each build automatically. See the https://getcomposer.org/doc/[Composer docs].
 
 |enable_public_server_status
 |Will enable server-status application path to be publicly available.
