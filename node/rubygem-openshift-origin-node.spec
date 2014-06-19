@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.26.7
+Version: 1.26.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,15 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Jun 19 2014 Adam Miller <admiller@redhat.com> 1.26.8-1
+- Merge pull request #5523 from jhadvig/status
+  (dmcphers+openshiftbot@redhat.com)
+- Making apache server-status optional with a marker (jhadvig@redhat.com)
+- Merge pull request #5478 from a13m/bz1104902
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1104902 - Fix unit tests (jhonce@redhat.com)
+- Bug 1104902 - Fix several bugs in OOM Plugin app restarts (agrimm@redhat.com)
+
 * Wed Jun 18 2014 Adam Miller <admiller@redhat.com> 1.26.7-1
 - Merge pull request #5522 from pmorie/bugs/1108951
   (dmcphers+openshiftbot@redhat.com)
