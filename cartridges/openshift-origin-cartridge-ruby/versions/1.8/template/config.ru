@@ -1,5 +1,4 @@
 require 'rack/lobster'
-require 'thread-dump'
 
 map '/health' do
   health = proc do |env|
@@ -21,7 +20,7 @@ map '/' do
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>Welcome to OpenShift</title>
-  
+
 
 <style>
 
