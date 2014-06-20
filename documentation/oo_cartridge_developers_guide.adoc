@@ -21,7 +21,7 @@ This is an example structure to which your cartridge is expected to conform when
  +- bin                        (required) <1>
  |  +- setup                   (optional) <2>
  |  +- install                 (optional)
- |  +- post-install            (optional)
+ |  +- post_install            (optional)
  |  +- teardown                (optional)
  |  +- control                 (required)
  |- hooks                      (optional)
@@ -637,7 +637,7 @@ A cartridge may implement the following scripts:
 |install
 |Prepare this instance of cartridge to be operational for the initial install
 
-|post-install
+|post_install
 |An opportunity for configuration after the cartridge has been started for the initial install
 |===
 
@@ -727,14 +727,14 @@ The `install` script is responsible for creating and/or configuring the files th
 
 Lock Context:: `unlocked`
 
-=== bin/post-install
-Synopsis:: `post-install [--version <version>]`
+=== bin/post_install
+Synopsis:: `post_install [--version <version>]`
 
 Options::
 `--version <version>`: Selects which version of cartridge to install. If no version is provided, the version denoted by the `Version` element from `manifest.yml` will be installed.
 
 Description::
-The `post-install` script is an opportunity to configure your cartridge after the cartridge has been started and is only called for the initial install of the cartridge.
+The `post_install` script is an opportunity to configure your cartridge after the cartridge has been started and is only called for the initial install of the cartridge.
 
 Lock Context:: `locked`
 
