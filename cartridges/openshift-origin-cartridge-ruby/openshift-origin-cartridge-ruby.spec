@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.26.2
+Version: 1.27.0
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
