@@ -38,5 +38,21 @@ if [ $version == '1.9' ]; then
 
 fi
 
+if [ $version == '2.0' ]; then
+    env_dir="${OPENSHIFT_RUBY_DIR}/env"
+
+    [ -f $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT ] && rm -f $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
+    [ -f $OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH ] && rm -f $OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH
+    [ -f $OPENSHIFT_RUBY_DIR/env/MANPATH ] && rm -f $OPENSHIFT_RUBY_DIR/env/MANPATH
+
+    dirname $(scl enable ruby200 ror40 "which ruby")    > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
+
+    ld_path=$(LD_LIBRARY_PATH="" scl enable ruby200 ror40 "printenv LD_LIBRARY_PATH")
+    set_env_var 'OPENSHIFT_RUBY_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
+    scl enable ruby200 ror40 "printenv MANPATH"         > $OPENSHIFT_RUBY_DIR/env/MANPATH
+
+
+fi
+
 cp versions/shared/etc/conf.d/performance.conf.erb conf/performance.conf.erb
 cp conf/performance.conf.erb conf/performance.conf.erb.hidden

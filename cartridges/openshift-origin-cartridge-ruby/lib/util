@@ -113,6 +113,18 @@ function update-configuration {
         path_append $MANPATH $man_path >$OPENSHIFT_RUBY_DIR/env/MANPATH
         ;;
 
+      2.0)
+        echo -n "${GEM_HOME}/bin:" >$OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
+        dirname $(scl enable ruby200 ror40 "which ruby") >>$OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
+
+        local env_dir="${OPENSHIFT_RUBY_DIR}/env"
+        local ld_path=$(LD_LIBRARY_PATH="" scl enable ruby200 ror40 "printenv LD_LIBRARY_PATH")
+        set_env_var 'OPENSHIFT_RUBY_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
+
+        local man_path=$(MANPATH="" scl enable ruby200 ror40 "printenv MANPATH")
+        path_append $MANPATH $man_path >$OPENSHIFT_RUBY_DIR/env/MANPATH
+        ;;
+
       1.8)
         rm -f \
             $OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH \

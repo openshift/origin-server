@@ -6,12 +6,13 @@ Description: Ruby is a dynamic, reflective, general-purpose object-oriented prog
   language. Popular development frameworks include Ruby on Rails and Sinatra.
 Version: '1.9'
 Versions:
+- '2.0'
 - '1.9'
 - '1.8'
 License: Ruby BSDL
 License-Url: http://www.ruby-lang.org/en/about/license.txt
 Vendor: ruby.org
-Cartridge-Version: 0.0.20
+Cartridge-Version: 0.0.21
 Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
@@ -33,6 +34,7 @@ Scaling:
   Min: 1
   Max: -1
 Provides:
+- ruby-2.0
 - ruby-1.9
 - ruby
 Endpoints:
@@ -63,3 +65,9 @@ Version-Overrides:
     - ruby-1.8
     - ruby
     - ruby(version) = 1.8
+  '2.0':
+    Display-Name: Ruby 2.0
+    Provides:
+    - ruby-2.0
+    - ruby
+    - ruby(version) = 2.0
