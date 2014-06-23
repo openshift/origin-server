@@ -146,7 +146,14 @@ function build() {
       pushd ${OPENSHIFT_REPO_DIR} 1> /dev/null
       SAVED_GIT_DIR=$GIT_DIR
       unset GIT_DIR
+
+      # FIXME: This is a workaround for the bug in MySQL 5.5 SCL where the
+      #        libmysqlclient is not shipped with SCL and we need to manually
+      #        override the location of it for bundler.
+      #
       export BUNDLE_BUILD__MYSQL2="--with-mysql-config=/usr/bin/mysql_config"
+      export BUNDLE_BUILD__MYSQL="--with-mysql-config=/usr/bin/mysql_config"
+
       # You can tell bundler to skip installing certain gem group by using
       # $ rhc env set BUNDLE_WITHOUT="group1 group2 ..."
       #
