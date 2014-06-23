@@ -1788,6 +1788,7 @@ module OpenShift
         start_order, stop_order = app.calculate_component_orders
         source_container = gear.get_proxy
         start_order.each do |cinst|
+          next unless gear_components.include? cinst
           cart = cinst.cartridge_name
           idle, leave_stopped = state_map[cart]
           unless leave_stopped
