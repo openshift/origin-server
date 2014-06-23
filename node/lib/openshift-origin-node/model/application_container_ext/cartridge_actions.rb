@@ -668,7 +668,7 @@ module OpenShift
             deployment_metadata.checksum = calculate_deployment_checksum(deployment_id)
             deployment_metadata.save
 
-            # this is needed so the distribute and activate steps down the line can work
+            # this is needed so the activate step down the line can work
             options[:deployment_id] = deployment_id
 
             out = "Deployment id is #{deployment_id}"
@@ -687,12 +687,8 @@ module OpenShift
         # options: hash
         #   :out             : an IO to which any stdout should be written (default: nil)
         #   :err             : an IO to which any stderr should be written (default: nil)
-        #   :deployment_id   : previously built/prepared deployment
         #
         def distribute(options={})
-          deployment_id = options[:deployment_id]
-          raise ArgumentError.new("deployment_id must be supplied") unless deployment_id
-
           result = { status: RESULT_SUCCESS, gear_results: {}}
 
           # initial build - don't do anything because we don't have a gear registry yet
@@ -705,12 +701,10 @@ module OpenShift
 
           options[:out].puts "Distributing deployment to child gears" if options[:out]
 
-          deployment_datetime = get_deployment_datetime_for_deployment_id(deployment_id)
-          deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
           gear_results = Parallel.map(gears, :in_threads => MAX_THREADS) do |gear|
-            gear_result = distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+            gear_result = distribute_to_gear(gear, gear_env)
           end
 
           gear_results.each do |gear_result|
@@ -721,7 +715,7 @@ module OpenShift
           result
         end
 
-        def distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+        def distribute_to_gear(gear, gear_env)
           result = {
             gear_uuid: gear.split('@')[0],
             status: RESULT_FAILURE,
@@ -731,7 +725,7 @@ module OpenShift
 
           3.times do
             begin
-              result = attempt_distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+              result = attempt_distribute_to_gear(gear, gear_env)
             rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
               next
             end
@@ -742,7 +736,7 @@ module OpenShift
           result
         end
 
-        def attempt_distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+        def attempt_distribute_to_gear(gear, gear_env)
           result = {
             gear_uuid: gear.split('@')[0],
             status: RESULT_FAILURE,
@@ -750,21 +744,15 @@ module OpenShift
             errors: []
           }
 
-          out, err, rc = run_in_container_context("rsync -avz --rsh=/usr/bin/oo-ssh ./ #{gear}:app-deployments/#{deployment_datetime}/",
+          deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
+          out, err, rc = run_in_container_context("rsync -avz --rsh=/usr/bin/oo-ssh --delete-before --exclude=current ./ #{gear}:app-deployments/",
                                                   env: gear_env,
-                                                  chdir: deployment_dir)
+                                                  chdir: deployments_dir)
 
           result[:messages] += out.split("\n") if out
           result[:errors] += err.split("\n") if err
           return result unless rc == 0
 
-          # create by-id symlink
-          out, err, rc = run_in_container_context("rsync -avz --rsh=/usr/bin/oo-ssh #{deployment_id} #{gear}:app-deployments/by-id/#{deployment_id}",
-                                                  env: gear_env,
-                                                  chdir: PathUtils.join(@container_dir, 'app-deployments', 'by-id'))
-
-          result[:messages] += out.split("\n") if out
-          result[:errors] += err.split("\n") if err
           result[:status] = RESULT_SUCCESS if rc == 0
 
           result
