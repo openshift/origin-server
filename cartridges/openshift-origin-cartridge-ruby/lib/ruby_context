@@ -6,6 +6,7 @@ function ruby_context {
   case $OPENSHIFT_RUBY_VERSION in
     1.8) eval $1 ;;
     1.9) /usr/bin/scl enable ruby193 "$1" ;;
+    2.0) /usr/bin/scl enable ruby200 ror40 "$1" ;;
   esac
 }
 
@@ -26,5 +27,6 @@ function ruby_with_nodejs_context {
   case $OPENSHIFT_RUBY_VERSION in
     1.8) $cmd "$1" ;;
     1.9) $cmd ruby193 "$1" ;;
+    2.0) $cmd ruby200 ror40 "$1" ;;
   esac
 }
