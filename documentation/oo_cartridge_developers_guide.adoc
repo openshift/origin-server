@@ -610,15 +610,12 @@ chmod +x bin/*
 
 NOTE: On Windows, you can achieve this by running `git update-index --chmod=+x bin/*` in the cartridge directory.
 
-=== Mandatory Scripts
-A cartridge must implement the following scripts:
+=== Mandatory Script
+A cartridge must implement the following script:
 
 [options="header,autowidth"]
 |===
 |Script Name |Usage
-
-|setup
-|Prepare this instance of cartridge to be operational for the initial install and each incompatible upgrade
 
 |control
 |Command cartridge to report or change state
@@ -631,14 +628,17 @@ A cartridge may implement the following scripts:
 |===
 |Script Name |Usage
 
-|teardown
-|Prepare this instance of cartridge to be removed
+|setup
+|Prepare this instance of cartridge to be operational for the initial install and each incompatible upgrade
 
 |install
 |Prepare this instance of cartridge to be operational for the initial install
 
 |post_install
 |An opportunity for configuration after the cartridge has been started for the initial install
+
+|teardown
+|Prepare this instance of cartridge to be removed
 |===
 
 === Exit Status Codes
@@ -1250,7 +1250,7 @@ The incompatible upgrade process for a cartridge is as follows:
 . The cartridge directory is unlocked.
 . The cartridge directory is secured.
 . If the cartridge provides an `upgrade` script, that script is executed.
-. The cartridge `setup` script is run.
+. If the cartridge provides a `setup` script, that script is executed.
 . The erb templates for the cartridge are processed.
 . The cartridge directory is locked.
 . New endpoints for the cartridge are created.
