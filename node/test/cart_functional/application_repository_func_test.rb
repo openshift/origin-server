@@ -39,6 +39,7 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     @config.stubs(:get).with("UID_BEGIN").returns(@uid)
     @config.stubs(:get).with("BROKER_HOST").returns('localhost')
     @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns('.')
+    @config.stubs(:get).with('REPORT_BUILD_ANALYTICS').returns(false)
 
     @uuid = SecureRandom.uuid.gsub(/-/, '')
 

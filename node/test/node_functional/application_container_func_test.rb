@@ -37,6 +37,7 @@ class ApplicationContainerFuncTest < OpenShift::NodeTestCase
     @config.stubs(:get).with("PORTS_PER_USER").returns(5)
     @config.stubs(:get).with("UID_BEGIN").returns(@uid)
     @config.stubs(:get).with("BROKER_HOST").returns('localhost')
+    @config.stubs(:get).with('REPORT_BUILD_ANALYTICS').returns(false)
 
     begin
       %x(userdel -f #{Etc.getpwuid(@uid).name})

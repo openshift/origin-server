@@ -612,6 +612,8 @@ module OpenShift
       # Send a fire-and-forget request to the broker to report build analytics.
       #
       def report_build_analytics
+        return unless @config.get_bool('REPORT_BUILD_ANALYTICS', true)
+
         broker_addr = @config.get('BROKER_HOST')
         url         = "https://#{broker_addr}/broker/analytics"
 
