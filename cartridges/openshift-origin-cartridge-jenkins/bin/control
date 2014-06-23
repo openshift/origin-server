@@ -54,10 +54,14 @@ function start() {
       -Dcom.sun.akuma.Daemon=daemonized \
       -Djava.awt.headless=true"
 
-  if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_debugging" ]; then
-      JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
+  if marker_present "disable_jenkins_udp_broadcast"; then
+      JENKINS_CMD="${JENKINS_CMD} -Dhudson.udp=-1"
   fi
 
+  if marker_present "enable_debugging"; then
+      JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
+  fi
+  
   if [ -z "$JENKINS_WAR_PATH" ]; then
     JENKINS_WAR_PATH=/usr/lib/jenkins/jenkins.war
   fi
