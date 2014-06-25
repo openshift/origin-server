@@ -1,0 +1,12 @@
+#!/bin/bash -eu
+
+phpmyadmin_version=$1
+curr=$2
+next=$3
+
+if [[ $next == "0.0.14" ]]; then
+if [ -f ${OPENSHIFT_PHPMYADMIN_DIR}env/OPENSHIFT_PHPMYADMIN_LOG_DIR.erb ]; then
+    oo-erb ${OPENSHIFT_PHPMYADMIN_DIR}env/OPENSHIFT_PHPMYADMIN_LOG_DIR.erb > ${OPENSHIFT_PHPMYADMIN_DIR}env/OPENSHIFT_PHPMYADMIN_LOG_DIR
+    rm -f ${OPENSHIFT_PHPMYADMIN_DIR}env/OPENSHIFT_PHPMYADMIN_LOG_DIR.erb
+  fi
+fi
