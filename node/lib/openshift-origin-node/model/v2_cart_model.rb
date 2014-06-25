@@ -1613,15 +1613,6 @@ module OpenShift
           return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user\n"
         end
 
-        # Ensure frontend and state file are in sync (BZ#1111077)
-        # Do not call unidle_gear() as Broker calls stop_gear() on each gear in application
-        if options[:user_initiated] && @container.state.value == State::IDLE
-          options[:out].puts("#{@container.uuid} state #{@container.state.value}") if options[:out]
-
-          frontend = FrontendHttpServer.new(@container)
-          frontend.unprivileged_unidle
-        end
-
         if cartridge.name == primary_cartridge.name
           create_stop_lock if options[:user_initiated]
           @state.value = State::STOPPED
