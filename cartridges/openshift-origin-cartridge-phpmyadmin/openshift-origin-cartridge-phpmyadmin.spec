@@ -3,7 +3,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.23.0
+Version: 1.23.1
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -48,6 +48,13 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
+- Revert "Bug 1112522: Getting rid of OPENSHIFT_PHPMYADMIN_LOG_DIR.erb in the
+  gear env/ directory" (jhadvig@redhat.com)
+- Bug 1112522: Getting rid of OPENSHIFT_PHPMYADMIN_LOG_DIR.erb in the gear env/
+  directory (jhadvig@redhat.com)
+- bump_minor_versions for sprint 47 (admiller@redhat.com)
+
 * Thu Jun 19 2014 Adam Miller <admiller@redhat.com> 1.22.2-1
 - Bump cartridge versions for 2.0.46 (pmorie@gmail.com)
 - Making apache server-status optional with a marker (jhadvig@redhat.com)
