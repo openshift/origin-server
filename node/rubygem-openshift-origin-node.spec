@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.27.0
+Version: 1.27.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,11 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
+- Revert "Bug 1111077 - Ensure frontend and state in sync" (jhonce@redhat.com)
+- Bug 1111077 - Ensure frontend and state in sync (jhonce@redhat.com)
+- bump_minor_versions for sprint 47 (admiller@redhat.com)
+
 * Thu Jun 19 2014 Adam Miller <admiller@redhat.com> 1.26.8-1
 - Merge pull request #5523 from jhadvig/status
   (dmcphers+openshiftbot@redhat.com)
