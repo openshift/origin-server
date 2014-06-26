@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.26.0
+Version: 1.26.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -166,6 +166,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
+- bump_minor_versions for sprint 47 (admiller@redhat.com)
+
 * Thu Jun 19 2014 Adam Miller <admiller@redhat.com> 1.25.5-1
 - Bug 1104902 - Fix several bugs in OOM Plugin app restarts (agrimm@redhat.com)
 
