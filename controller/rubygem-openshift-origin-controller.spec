@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.27.0
+Version: 1.27.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
+- bump_minor_versions for sprint 47 (admiller@redhat.com)
+
 * Tue Jun 17 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
 - Bug 1067404: Handling additional storage correctly at the group level
   (abhgupta@redhat.com)
