@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.28.0
+Version: 1.28.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -74,6 +74,14 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
+- Merge pull request #5419 from ryanj/npm-globals
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 47 (admiller@redhat.com)
+- Include npm CLI scripts in the user's PATH -
+  https://trello.com/c/eTwC7UbD/174-support-for-javascript-cli-build-tools-
+  from-npm (ryan.jarvinen@gmail.com)
+
 * Thu Jun 19 2014 Adam Miller <admiller@redhat.com> 1.27.4-1
 - Bug 1111314 - Remove mysql-server dependency from nodejs cartridge
   (jdetiber@redhat.com)
