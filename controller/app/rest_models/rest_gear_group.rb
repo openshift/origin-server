@@ -67,7 +67,7 @@
 class RestGearGroup < OpenShift::Model
   attr_accessor :id, :name, :gear_profile, :cartridges, :gears, :scales_from, :scales_to, :base_gear_storage, :additional_gear_storage
 
-  def initialize(override, gear_states = {}, app, url, nolinks, include_endpoints)
+  def initialize(override, gear_states = {}, app, url, nolinks, include_endpoints, servers)
     group_instance = override.instance
     self.id         = group_instance._id.to_s
     self.name         = self.id
@@ -75,10 +75,15 @@ class RestGearGroup < OpenShift::Model
     self.gears        = group_instance.gears.map{ |gear|
       ghash = { :id => gear.uuid,
         :state => gear_states[gear.uuid] || 'unknown',
-        :ssh_url => "ssh://#{app.ssh_uri(gear.app_dns ? nil: gear.uuid)}",
+        :ssh_url => "ssh://#{app.ssh_uri(gear.app_dns ? nil: gear.uuid)}"
       }
       if include_endpoints
         ghash[:endpoints] = gear.port_interfaces.map { |pi| pi.to_hash }
+      end
+
+      if servers
+        ghash[:region] = servers[gear.server_identity].region_name rescue nil
+        ghash[:zone] = servers[gear.server_identity].region_name rescue nil
       end
       ghash
     }
