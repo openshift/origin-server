@@ -101,11 +101,17 @@ class AppEventsController < BaseController
 
       scale_by = Integer(params[:by]) rescue nil
       scale_to = Integer(params[:to]) rescue nil
+      gear_uuids = params[:gear_uuids].split(",") rescue nil
       current = instance.gears.count
-      value = scale_to ? (scale_to - current) : (scale_by || 1)*(event == 'scale-down' ? -1 : 1)
+      unless gear_uuids.present? and scale_by.nil? and scale_to.nil?
+        value = scale_to ? (scale_to - current) : (scale_by || 1)*(event == 'scale-down' ? -1 : 1)
+      else
+        value = -gear_uuids.count
+      end
       final = current + value
 
-      r = @application.scale_by(instance.group_instance_id, value)
+      r = @application.scale_by(instance.group_instance_id, value, gear_uuids)
+      final = instance.gears.count if gear_uuids.present? and scale_by.nil? and scale_to.nil?
       @analytics_tracker.identify(@cloud_user.reload)
       props['scale_by'] = scale_by if scale_by
       props['scales_to'] = scale_to if scale_to

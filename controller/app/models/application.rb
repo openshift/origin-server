@@ -1051,7 +1051,7 @@ class Application
   #   A positive value will trigger a scale up and a negative value a scale down
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if request cannot be completed
-  def scale_by(group_instance_id, scale_by)
+  def scale_by(group_instance_id, scale_by, gear_uuids=nil)
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
 
     override = group_instances_with_overrides.detect{ |i| i.instance._id === group_instance_id}
@@ -1060,7 +1060,7 @@ class Application
     raise OpenShift::UserException.new("Cannot scale up above maximum gear limit of #{override.max_gears}.", 168) if (scale_by > 0) && (current+scale_by) > override.max_gears && override.max_gears != -1
 
     Lock.run_in_app_lock(self) do
-      op_group = ScaleOpGroup.new(group_instance_id: group_instance_id, scale_by: scale_by, user_agent: self.user_agent)
+      op_group = ScaleOpGroup.new(group_instance_id: group_instance_id, scale_by: scale_by, user_agent: self.user_agent, gear_uuids: gear_uuids)
       self.pending_op_groups << op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -2161,7 +2161,7 @@ class Application
   #
   # connections::
   #   An array of connections. (Output of {#elaborate})
-  def calculate_ops(changes, moves=[], connections=nil, group_overrides=nil, init_git_url=nil, user_env_vars=nil)
+  def calculate_ops(changes, moves=[], connections=nil, group_overrides=nil, init_git_url=nil, user_env_vars=nil, gear_uuids=nil)
     add_gears = 0
     remove_gears = 0
     pending_ops = []
@@ -2345,7 +2345,7 @@ class Application
             remove_gears += -scale_change
             group = change.from.instance
             gears = get_sparse_scaledown_gears(group, scale_change)
-            remove_ids = gears.map{ |g| g._id.to_s }
+            remove_ids = gear_uuids || gears.map{ |g| g._id.to_s }
             ops = calculate_gear_destroy_ops(change.existing_instance_id.to_s, remove_ids, change.from.additional_filesystem_gb)
             pending_ops.concat(ops)
           end
