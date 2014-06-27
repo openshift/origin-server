@@ -179,4 +179,99 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     @headers["HTTP_ACCEPT"] = "application/json"
   end
 
+  test "listing carts with valid_gear_sizes configuration" do
+    ## create a mock cartridge that does not support a small gear size
+    restricted_cart_name = "mock-no-small"
+    CartridgeType.where(:name => restricted_cart_name).delete
+    restricted_cart = CartridgeType.new(
+        :base_name => restricted_cart_name,
+        :cartridge_vendor => 'mock',
+        :name => restricted_cart_name,
+        :text => {'Name' => restricted_cart_name}.to_json,
+        :version => '1.0',
+        :categories => [ "mock", "web_framework"],
+        :manifest_url => "",
+        :display_name => restricted_cart_name,
+        :description => "This is a test",
+        :obsolete => false
+        )
+    restricted_cart.provides = restricted_cart.names
+    assert restricted_cart.activate!
+
+    ## create users with different gear size capabilities
+    users = {}
+    users["small"] = create_test_user_with_gear_sizes(['small'])
+    users["medium"] = create_test_user_with_gear_sizes(['medium'])
+    users["all"] = create_test_user_with_gear_sizes(['small', 'medium', 'large'])
+
+    ## create auth headers for each corresponding user
+    auth_headers = {}
+    users.keys.each { |key| auth_headers[key] = create_basic_auth_headers(users[key])}
+
+    # setup cache
+    Rails.cache.clear
+    Rails.configuration.action_controller.perform_caching = true
+
+    ## test anonymous access returns the new cart (i.e. no filter of carts)
+    mock_cart = assert_cart_present_in_index(@headers, restricted_cart_name, true)
+    assert(mock_cart["valid_gear_sizes"].is_a? Array)    
+    assert(mock_cart["valid_gear_sizes"].include?("medium"))
+    assert(!mock_cart["valid_gear_sizes"].include?("small"))
+
+    ## validate user with only small gear capability does not get cart back
+    assert_cart_present_in_index(auth_headers["small"], restricted_cart_name, false)
+
+    ## validate user with medium gear capability does get cart back
+    assert_cart_present_in_index(auth_headers["medium"], restricted_cart_name, true)
+
+    ## validate user with all gear capabilities [small, medium, large] does get cart back
+    assert_cart_present_in_index(auth_headers["all"], restricted_cart_name, true)
+
+    ## add user with small only gear capability to a domain with all gear sizes capability
+    random = rand(1000000000)
+    namespace = "gearns#{random}"
+    domain = Domain.new(namespace: namespace, owner: users["all"], allowed_gear_sizes: ["small", "medium", "large"])
+    member = Member.new(_id: users["small"].id, n: users["small"].login)
+    domain.add_members([member])
+    assert domain.save
+
+    ## validate user with small gear, but domain membership to medium capability can now see cart
+    assert_cart_present_in_index(auth_headers["small"], restricted_cart_name, true)
+
+  end
+
+  def assert_cart_present_in_index(auth_headers, cart_name, not_nil)
+    request_via_redirect(:get, "/broker/rest/cartridges", {}, auth_headers)
+    assert_response :ok
+    assert (body = JSON.parse(@response.body))["data"].is_a? Array
+    value = nil
+    body["data"].each { |cart| value = cart if cart["name"] == cart_name }
+    assert_not_nil(value) if not_nil
+    assert(value == nil) unless not_nil
+    value
+  end
+
+  def create_basic_auth_headers(user)
+      basic_headers = {}
+      basic_headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{user.login}:password")
+      basic_headers["HTTP_ACCEPT"] = "application/json"
+      basic_headers
+  end
+
+  def create_test_user_with_gear_sizes(gear_sizes)
+    random = rand(1000000000)
+    login = "gearuser#{random}"
+    password = "password"
+    user = CloudUser.new(login: login)
+    user.private_ssl_certificates = true
+    user.capabilities["gear_sizes"] = gear_sizes
+    user.save
+    Lock.create_lock(user.id)
+    namespace = "ns#{random}"
+    domain = Domain.new(namespace: namespace, owner:user)
+    domain.save
+    register_user(login, password)
+    user
+  end
+
 end

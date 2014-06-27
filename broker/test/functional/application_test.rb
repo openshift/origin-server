@@ -30,6 +30,47 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     container.stubs(:set_district)
   end
 
+  test "create application valid gear size configuration" do
+    restricted_cart_name = "mock-no-small"
+    CartridgeType.where(:name => restricted_cart_name).delete
+    restricted_cart = CartridgeType.new(
+        :base_name => restricted_cart_name,
+        :cartridge_vendor => 'redhat',
+        :name => restricted_cart_name,
+        :text => {'Name' => restricted_cart_name}.to_json,
+        :version => '1.0'
+        )
+    restricted_cart.provides = restricted_cart.names
+    assert restricted_cart.activate!
+    restricted_cart_instances = [CartridgeInstance.new(restricted_cart)]
+
+    unrestricted_cart_instances = try_cartridge_instances_for(:php)
+    assert(unrestricted_cart_instances.size == 1, "Expected a single cartridge")
+    unrestricted_cart_name = unrestricted_cart_instances[0].name
+
+    valid_gear_sizes = Rails.application.config.openshift[:cartridge_gear_sizes]
+    user_valid_gear_sizes = @user.capabilities["gear_sizes"]
+    assert(user_valid_gear_sizes.include?("small"))
+
+    unrestricted_cart_valid_gear_sizes = valid_gear_sizes[unrestricted_cart_name]
+    assert_equal(unrestricted_cart_valid_gear_sizes, [])
+
+    restricted_cart_valid_gear_sizes = valid_gear_sizes[restricted_cart_name]
+    assert(!restricted_cart_valid_gear_sizes.empty? && !restricted_cart_valid_gear_sizes.include?("small"))
+
+    blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
+    @appname = blacklisted_words.first if blacklisted_words.present?
+    Gear.any_instance.expects(:publish_routing_info).never
+    Gear.any_instance.expects(:unpublish_routing_info).never
+
+    opts = {:default_gear_size => "small"}
+    assert_raise(OpenShift::UserException){ Application.create_app(@appname, restricted_cart_instances, @domain, opts) }
+
+    app = Application.create_app(@appname, unrestricted_cart_instances, @domain, opts)
+    app.destroy_app
+    assert_equal(false, Application.where(canonical_name: @appname.downcase).exists?)
+  end
+
   test "create update and destroy application" do
     blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
     @appname = blacklisted_words.first if blacklisted_words.present?

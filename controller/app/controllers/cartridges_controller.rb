@@ -53,7 +53,6 @@ class CartridgesController < BaseController
       carts = carts.active.order_by(:name => 1)
       #filter out obsolete cartridges for versions >= 1.7
       carts = carts.not_in(obsolete: true) if requested_api_version >= 1.7 and !Rails.configuration.openshift[:allow_obsolete_cartridges]
-
       # Legacy support for cartridges/standalone|embedded
       feature = params[:feature].presence
       category = params[:category].presence || params[:id].presence
@@ -66,7 +65,6 @@ class CartridgesController < BaseController
       if category == "embedded"
         searching = true
         carts = carts.not_in(categories: 'web_framework')
-
       elsif category
         searching = true
         carts = carts.in(categories: category)
@@ -76,8 +74,34 @@ class CartridgesController < BaseController
       end
     end
 
+    carts = filter_carts_by_user_capability(carts)
     carts = carts.sort_by(&OpenShift::Cartridge::NAME_PRECEDENCE_ORDER)
 
     render_success(:ok, "cartridges", carts.map{ |c| get_rest_cartridge(c) }, "#{searching ? "Searching" : "Listing"} cartridges")
   end
+
+  ##
+  # Filter list of cartridges to omit cartridges that the user cannot use based on system configuration
+  # If the user is not known, no filter is applied
+  # @return [<Cartridge>] Array of cartridge objects
+  def filter_carts_by_user_capability(carts)
+    filtered_carts = carts
+    current_user = optionally_authenticate_user!(false)
+    if current_user
+      allowed_gear_sizes = current_user.capabilities["gear_sizes"]
+      Domain.accessible(current_user).each do |domain|
+        allowed_gear_sizes = allowed_gear_sizes | domain.allowed_gear_sizes
+      end
+      filtered_carts = []
+      carts.each do |cart|
+        valid_gear_sizes = Rails.application.config.openshift[:cartridge_gear_sizes][cart.name]
+        filtered_carts.push(cart) if valid_gear_sizes.empty?
+        filtered_carts.push(cart) if !(valid_gear_sizes & allowed_gear_sizes).empty?
+      end
+    end
+    filtered_carts
+  end
+
+  private :filter_carts_by_user_capability
+
 end
