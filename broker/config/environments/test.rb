@@ -106,8 +106,9 @@ Broker::Application.configure do
     :default_max_teams => (conf.get("DEFAULT_MAX_TEAMS", "100")).to_i,
     :default_view_global_teams => conf.get_bool('DEFAULT_VIEW_GLOBAL_TEAMS', 'true'),
     :node_platforms => OpenShift::Controller::Configuration.parse_list(conf.get('NODE_PLATFORMS', 'linux')).map { |platform| platform.downcase },
-     :default_max_untracked_addtl_storage_per_gear => (conf.get("DEFAULT_MAX_UNTRACKED_ADDTL_STORAGE_PER_GEAR", "0")).to_i,
+    :default_max_untracked_addtl_storage_per_gear => (conf.get("DEFAULT_MAX_UNTRACKED_ADDTL_STORAGE_PER_GEAR", "0")).to_i,
     :default_max_tracked_addtl_storage_per_gear => (conf.get("DEFAULT_MAX_TRACKED_ADDTL_STORAGE_PER_GEAR", "0")).to_i,
+    :default_region_id => conf.get("DEFAULT_REGION_ID", nil)
   }
 
   config.auth = {

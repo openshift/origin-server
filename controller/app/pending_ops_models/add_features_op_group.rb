@@ -6,6 +6,7 @@ class AddFeaturesOpGroup < PendingAppOpGroup
   field :group_overrides, type: TypedArray[GroupOverride]
   field :init_git_url, type: String
   field :user_env_vars, type: Array
+  field :region_id, type: Moped::BSON::ObjectId 
 
   def elaborate(app)
     # use the newer versions of a cartridge
@@ -14,7 +15,7 @@ class AddFeaturesOpGroup < PendingAppOpGroup
     app.cartridges.each{ |c| carts[c.name] = c unless carts.has_key?(c.name) }
 
     overrides = (app.group_overrides || []) + (group_overrides || [])
-    ops, gears_added, gears_removed = app.update_requirements(carts.values, nil, overrides, init_git_url, user_env_vars)
+    ops, gears_added, gears_removed = app.update_requirements(carts.values, nil, overrides, init_git_url, user_env_vars, region_id)
     try_reserve_gears(gears_added, gears_removed, app, ops)
   end
 

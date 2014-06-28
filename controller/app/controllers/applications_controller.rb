@@ -59,7 +59,20 @@ class ApplicationsController < BaseController
     available = get_bool(params[:ha])
     default_gear_size = (params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]).downcase
     config = (params[:config].is_a?(Hash) and params[:config])
-
+    
+    # Use the region user has specified, use default region if specified else leave as nil
+    region_name = params[:region].presence
+    region = nil
+    if region_name
+      region = Region.find_by(name: region_name) rescue nil
+      raise OpenShift::UserException.new("Could not find region '#{region_name}'.  Available regions are #{Region.where({}).collect{|r| r.name}.join(",")}") if region.nil?
+    elsif Rails.application.config.openshift[:default_region_id]
+      region = Region.find(Rails.application.config.openshift[:default_region_id]) rescue nil
+      Rails.logger.warn "The default region ID #{Rails.application.config.openshift[:default_region_id]} does not exist.  Proceeding to create app without specific region" if region.nil?
+    end
+    
+    region_id = region ? region.id : nil
+    
     if OpenShift::ApplicationContainerProxy.blacklisted? app_name
       return render_error(:forbidden, "Application name is not allowed.  Please choose another.", 105)
     end
@@ -118,7 +131,8 @@ class ApplicationsController < BaseController
       ha: available,
       builder_id: builder_id,
       user_agent: request.user_agent,
-      init_git_url: init_git_url,
+      init_git_url: init_git_url, 
+      region_id: region_id 
     )
     if config.present?
       app.config.each do |k, default|
