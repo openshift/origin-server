@@ -3017,6 +3017,7 @@ module OpenShift
       gear_exists_in_district = false
 
       node_profile = opts[:node_profile]
+      region_id = opts[:region_id]
       platform = opts[:platform]
       district_uuid = opts[:district_uuid]
       least_preferred_servers = opts[:least_preferred_servers]
@@ -3100,12 +3101,13 @@ module OpenShift
           # - server is not active
           # - server can not accomodate any more gears
           # - server not part of any zone when user requested zone
+          # - if request region is not available
           next if required_uid and !district.available_uids.include?(required_uid)
           if district.servers.where(name: server_identity).exists?
           server = district.servers.find_by(name: server_identity)
           if (gear_exists_in_district || district.available_capacity > 0) &&
-              server.active && (!require_zone || server.zone_id)
-            server_infos << NodeProperties.new(server_identity, capacity.to_f, district, server)
+              server.active && (!require_zone || server.zone_id) 
+            server_infos << NodeProperties.new(server_identity, capacity.to_f, district, server) unless (region_id and server.region_id != region_id)
           end
           found_district = true
           break

@@ -12,6 +12,7 @@ Rails.application.routes.draw do
       resources :cartridges, :only => [:index, :show], :id => id_with_format
       resources :quickstarts, :only => [:index, :show]
       resources :estimates, :id => id_with_format, :only => [:index, :show]
+      resources :regions, :only => [:index, :show], :id => id_with_format
 
       get "oauth/authorize" => "oauth#authorize"
       post "oauth/access_token" => "oauth#access_token"

@@ -131,7 +131,7 @@ class Application
   # non-persisted field used to store user agent of current request
   attr_accessor :user_agent
   attr_accessor :connections
-
+  attr_accessor :region_id
   #
   # Return a count of the gears for each application identified by the current query.  Returns
   # an array of hashes including:
@@ -803,7 +803,8 @@ class Application
         features: cartridges.map(&:name), # For old data support
         cartridges: cartridges.map(&:specification_hash), # Replaces features
         group_overrides: group_overrides, init_git_url: init_git_url,
-        user_env_vars: user_env_vars, user_agent: self.user_agent
+        user_env_vars: user_env_vars, user_agent: self.user_agent, 
+        region_id: region_id
       )
       self.pending_op_groups << op_group
 
@@ -1785,7 +1786,7 @@ class Application
     self.component_instances.map {|comp| comp.get_cartridge.platform }.uniq.size == 1
   end
 
-  def update_requirements(cartridges, replacements, overrides, init_git_url=nil, user_env_vars=nil)
+  def update_requirements(cartridges, replacements, overrides, init_git_url=nil, user_env_vars=nil, region_id=nil)
     current = group_instances_with_overrides
     connections, updated = elaborate(cartridges, overrides)
 
@@ -1794,7 +1795,7 @@ class Application
     if moves.present?
       raise OpenShift::UserException.new("Moving cartridges from one gear group to another is not supported.")
     end
-    calculate_ops(changes, moves, connections, updated, init_git_url, user_env_vars)
+    calculate_ops(changes, moves, connections, updated, init_git_url, user_env_vars, region_id)
   end
 
   def calculate_remove_group_instance_ops(comp_specs, group_instance, additional_filesystem_gb)
@@ -1814,7 +1815,7 @@ class Application
   end
 
   def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size,
-                                prereq_op=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil, user_env_vars=nil)
+                                prereq_op=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil, user_env_vars=nil, region_id=nil)
     ops = []
     track_usage_ops = []
 
@@ -1857,7 +1858,7 @@ class Application
                                     app_dns: app_dns, pre_save: (not self.persisted?))
       init_gear_op.prereq << prereq_op._id.to_s unless prereq_op.nil?
 
-      reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, gear_size: gear_size, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
+      reserve_uid_op = ReserveGearUidOp.new(gear_id: gear_id, gear_size: gear_size, region_id: region_id, prereq: maybe_notify_app_create_op + [init_gear_op._id.to_s])
 
       create_gear_op = CreateGearOp.new(gear_id: gear_id, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
       # this flag is passed to the node to indicate that an sshkey is required to be generated for this gear
@@ -2161,7 +2162,7 @@ class Application
   #
   # connections::
   #   An array of connections. (Output of {#elaborate})
-  def calculate_ops(changes, moves=[], connections=nil, group_overrides=nil, init_git_url=nil, user_env_vars=nil)
+  def calculate_ops(changes, moves=[], connections=nil, group_overrides=nil, init_git_url=nil, user_env_vars=nil, region_id=nil)
     add_gears = 0
     remove_gears = 0
     pending_ops = []
@@ -2203,7 +2204,7 @@ class Application
       end
 
       ops, usage_ops = calculate_gear_create_ops(change.to_instance_id.to_s, gear_ids, deploy_gear_id, change.added, component_ops, additional_filesystem_gb,
-                                      gear_size, prereq_op, false, app_dns, init_git_url, user_env_vars)
+                                      gear_size, prereq_op, false, app_dns, init_git_url, user_env_vars, region_id)
       pending_ops.concat(ops)
       begin_usage_ops.concat(usage_ops)
     end

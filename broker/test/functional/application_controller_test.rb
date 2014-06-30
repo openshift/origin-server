@@ -1245,5 +1245,10 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => [php_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
     assert_response :success
   end
+  
+  test "invalid region" do
+    post :create, {"domain_id" => @domain.namespace, "name" => "invlidregion#{@random}", "cartridge" => php_version, "region" => "bogus"}
+    assert_response :unprocessable_entity
+  end
 
 end

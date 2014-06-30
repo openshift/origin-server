@@ -100,11 +100,11 @@ module RestModelHelper
     end
   end
 
-  def get_rest_gear_group(group_inst, gear_states, application, get_url, nolinks, include_endpoints)
+  def get_rest_gear_group(group_inst, gear_states, application, get_url, nolinks, include_endpoints, servers)
     if requested_api_version <= 1.5
       RestGearGroup15.new(group_inst, gear_states, application, get_url, nolinks)
     else
-      RestGearGroup.new(group_inst, gear_states, application, get_url, nolinks, include_endpoints)
+      RestGearGroup.new(group_inst, gear_states, application, get_url, nolinks, include_endpoints, servers)
     end
   end
 
