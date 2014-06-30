@@ -141,8 +141,21 @@ function cartridge_pid() {
   fi
 }
 
+# check if the pidfile exists.
+# if it does not exist, look for the node or supervisor process 
+# and recreate the pidfile if the process exists
 function cartridge_pidfile_exists() {
-  [ -f "$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid" ]
+  if [ -f "$OPENSHIFT_NODEJS_PID_DIR/cartridge.pid" ]; then
+    return 0
+  else
+    cart_pid=$(cartridge_pid)
+    if [ -n "${cart_pid}" ]; then
+      echo ${cart_pid} > $OPENSHIFT_NODEJS_PID_DIR/cartridge.pid
+      return 0
+    else
+      return 1
+    fi
+  fi
 }
 
 function is_node_running() {
