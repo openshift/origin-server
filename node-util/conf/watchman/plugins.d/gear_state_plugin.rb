@@ -92,6 +92,17 @@ class GearStatePlugin < OpenShift::Runtime::WatchmanPlugin
             restart(uuid) if change_state?(uuid)
 
           when State::STOPPED
+            # If node idles gear then user does $(gear stop), frontend cannot be updated.
+            # This forces frontend to match .state file
+            # https://bugzilla.redhat.com/show_bug.cgi?id=1111077
+            frontend = OpenShift::Runtime::FrontendHttpServer.new(
+                OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
+            )
+            if frontend.idle?
+              @logger.info %Q(watchman gear #{uuid} httpd frontend server updated to reflect 'stopped' state)
+              frontend.unidle
+            end
+
             if pids.empty?
               reset_state(uuid)
             else

@@ -67,6 +67,11 @@ class GearStatePluginTest < OpenShift::NodeBareTestCase
   end
 
   def test_stopped
+    OpenShift::Runtime::ApplicationContainer.expects(:from_uuid).returns nil
+    container = mock("ApplicationContainer")
+    container.expects(:idle?).returns false
+    OpenShift::Runtime::FrontendHttpServer.expects(:new).with(nil).returns container
+
     @op.expects(:call).never
     plugin = GearStatePlugin.new(nil, @no_logger, @gears, @op)
     setup_mocks(plugin, OpenShift::Runtime::State::STOPPED, [])
@@ -74,6 +79,11 @@ class GearStatePluginTest < OpenShift::NodeBareTestCase
   end
 
   def test_stopped_pids
+    OpenShift::Runtime::ApplicationContainer.expects(:from_uuid).returns nil
+    container = mock("ApplicationContainer")
+    container.expects(:idle?).returns false
+    OpenShift::Runtime::FrontendHttpServer.expects(:new).with(nil).returns container
+
     @op.expects(:call).with(:stop, @uuid).once
 
     plugin = GearStatePlugin.new(nil, @no_logger, @gears, @op)
