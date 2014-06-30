@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.27.1
+Version: 1.27.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Jun 30 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
+- Merge pull request #5499 from jwhonce/wip/mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Node Platform - Add reference_id and container_uuid to New Relic report
+  (jhonce@redhat.com)
+
 * Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
 - Revert "Bug 1111077 - Ensure frontend and state in sync" (jhonce@redhat.com)
 - Bug 1111077 - Ensure frontend and state in sync (jhonce@redhat.com)
