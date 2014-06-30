@@ -1,0 +1,20 @@
+#!/bin/bash
+# Utility functions for use in the cartridge scripts.
+
+function appserver_pid() {
+	pgrep -f "python -u app.py"
+}
+
+function appserver_pidfile_exists() {
+  if [ -f "$OPENSHIFT_PYTHON_DIR/run/appserver.pid" ]; then
+    return 0
+  else
+    app_pid=$(appserver_pid)
+    if [ -n "${app_pid}" ]; then
+      echo ${app_pid} > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
+      return 0
+    else
+      return 1
+    fi
+  fi
+}
