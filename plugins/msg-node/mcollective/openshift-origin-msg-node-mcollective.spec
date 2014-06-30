@@ -12,7 +12,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.24.1
+Version: 1.24.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -53,6 +53,12 @@ cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Mon Jun 30 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
+- Merge pull request #5499 from jwhonce/wip/mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Node Platform - Add reference_id and container_uuid to New Relic report
+  (jhonce@redhat.com)
+
 * Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
 - bump_minor_versions for sprint 47 (admiller@redhat.com)
 
