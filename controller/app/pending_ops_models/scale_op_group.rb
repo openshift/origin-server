@@ -13,7 +13,7 @@ class ScaleOpGroup < PendingAppOpGroup
       changes << GroupChange.new(from, to)
     end
 
-    ops, gears_added, gears_removed = app.calculate_ops(changes, [], nil, app.group_overrides)
+    ops, gears_added, gears_removed = app.calculate_ops(changes, [], nil, app.group_overrides, gear_uuids)
     try_reserve_gears(gears_added, gears_removed, app, ops)
   end
 
