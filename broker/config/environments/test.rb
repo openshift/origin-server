@@ -79,6 +79,7 @@ Broker::Application.configure do
   config.openshift = {
     :domain_suffix => conf.get("CLOUD_DOMAIN", "example.com"),
     :allow_alias_in_domain => conf.get_bool("ALLOW_ALIAS_IN_DOMAIN", "false"),
+    :prevent_alias_collision => conf.get_bool("PREVENT_ALIAS_COLLISION", "true"), # almost always want this. https://trello.com/c/ASq1CXyv
     :default_max_domains => (conf.get("DEFAULT_MAX_DOMAINS", "10")).to_i,
     :default_max_gears => (conf.get("DEFAULT_MAX_GEARS", "100")).to_i,
     :default_gear_size => conf.get("DEFAULT_GEAR_SIZE", "small"),
