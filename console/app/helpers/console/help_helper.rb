@@ -125,6 +125,10 @@ module Console::HelpHelper
   def post_to_forum_url
     community_base_url 'forums/openshift'
   end
+  
+  def ask_questions_url
+    'http://stackoverflow.com/questions/ask/advice?tags=openshift'
+  end
 
   def events_url
     community_base_url 'events'
