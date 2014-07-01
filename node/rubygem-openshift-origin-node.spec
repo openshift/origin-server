@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.27.2
+Version: 1.27.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jul 01 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
+- Merge pull request #5561 from jwhonce/bug/1111077
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1111077 - Enforce FrontendHttpServer state to match .state file
+  (jhonce@redhat.com)
+
 * Mon Jun 30 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
 - Merge pull request #5499 from jwhonce/wip/mcollective
   (dmcphers+openshiftbot@redhat.com)
