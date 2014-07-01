@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.27.1
+Version: 1.27.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jul 01 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
+- Enables user to specify a region when creating an application
+  (lnader@redhat.com)
+- Expose region and zones of gears in REST API (lnader@redhat.com)
+
 * Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
 - bump_minor_versions for sprint 47 (admiller@redhat.com)
 
