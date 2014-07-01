@@ -32,6 +32,14 @@ module OpenShift
         # FIXME Handle exceptions more consistently, gracefully recover from misbehaving
         #  services
         def authenticate_user!
+          optionally_authenticate_user!(true)
+        end
+
+        #
+        # Optionally authenticates user for a given request
+        # Params:
+        # +require_auth+:: if true, force authentication if none provided.  if false, determine user if authorization information provided.
+        def optionally_authenticate_user!(require_auth)
           user = @cloud_user
 
           created = false
@@ -57,7 +65,7 @@ module OpenShift
 
             return if response_body
             unless info && (info[:username].present? || info[:user].present?)
-              request_http_basic_authentication
+              request_http_basic_authentication if require_auth
               return
             end
 
@@ -92,8 +100,9 @@ module OpenShift
           user
 
         rescue OpenShift::AccessDeniedException => e
-          render_error(:unauthorized, e.message, 1)
+          render_error(:unauthorized, e.message, 1) if require_auth
         end
+
 
         #
         # Attempt to locate a user by their credentials. No impersonation 

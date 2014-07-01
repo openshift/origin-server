@@ -51,5 +51,25 @@ module OpenShift::Controller
       url_hash
     end
 
+    # Parses a whitespace-separated string of the following form:
+    # <first>|<val1>,<val2>,<val3> | <second>|<val1> | <third>|<val1>,<val2>
+    # into a hash of the following form:
+    # { "first" => ["val1", "val2", "val3"], "second" => ["val1"], "third" => ["val1", "val2"]}
+    # The hash returns an empty list when looking up an undefined key.
+    # Nil/empty input returns empty hash.
+    def self.parse_tokens_hash(str)
+      token_hash = Hash.new([])
+      unless str.nil? || str.empty?
+        missing_values = []
+        str.split(/\s+/).each do |el|
+          name, value_str = el.split '|'
+          value_str.nil? and missing_values.push(%Q[#{el} defines no value;  it will be skipped from token hash]) and next
+          values = value_str.split(",")
+          token_hash[name] = values
+        end
+        missing_values.empty? or raise %Q[Invalid token hash configured:\n#{missing_values.join "\n"}]
+      end
+      token_hash
+    end
   end
 end

@@ -83,6 +83,8 @@
 #   @return [Array<String>] Names of other cartridges that scale along with this cartridge and run on the same set of gears
 # @!attribute [r] usage_rates
 #   @return [Array<Object>]
+# @!attribute [r] valid_gear_sizes
+#   @return [Array<String>]
 class RestCartridge < OpenShift::Model
   attr_accessor :id, :type, :name, :version, :license, :license_url, :tags, :website,
     :help_topics, :properties, :display_name, :description, :scales_from, :scales_to,
@@ -125,6 +127,8 @@ class RestCartridge < OpenShift::Model
 
     @obsolete = true if cart.is_obsolete?
     @url = cart.manifest_url if cart.manifest_url.present?
+    @valid_gear_sizes = Rails.application.config.openshift[:cartridge_gear_sizes][cart.name] if Rails.application.config.openshift[:cartridge_gear_sizes][cart.name].any?
+
   end
 
   def to_xml(options={})

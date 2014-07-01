@@ -1797,6 +1797,19 @@ class Application
 
     upgrades = compute_upgrades(replacements)
     changes, moves = compute_diffs(current, updated, upgrades)
+    # ensure that the cart is assigned to a group that is valid
+    changes.each do |change|
+      if change.to
+        change.to.components.each do |component|
+          valid_gear_sizes = Rails.application.config.openshift[:cartridge_gear_sizes][component.cartridge.name]
+          if !valid_gear_sizes.empty? && !valid_gear_sizes.include?(change.to.gear_size)
+            error_message = "The cartridge, #{component.cartridge.name}, cannot run on a gear with size: #{change.to.gear_size}.  Per configuration, the cartridge can only run on the following gear sizes: #{valid_gear_sizes.join ', '}."
+            raise OpenShift::UserException.new(error_message)
+          end
+        end
+      end
+    end
+
     if moves.present?
       raise OpenShift::UserException.new("Moving cartridges from one gear group to another is not supported.")
     end
