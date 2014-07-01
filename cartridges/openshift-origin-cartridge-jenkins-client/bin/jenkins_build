@@ -5,6 +5,7 @@ require 'json'
 
 STDOUT.sync = true
 STDERR.sync = true
+Encoding.default_external = "utf-8"
 
 @hostname = ENV['JENKINS_URL'].split("/")[-1]
 @job_url = "/job/#{ENV['OPENSHIFT_APP_NAME']}-build"
