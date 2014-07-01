@@ -1311,7 +1311,10 @@ class Application
     validate_certificate(ssl_certificate, private_key, pass_phrase)
 
     Lock.run_in_app_lock(self) do
-      raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140, "id") if Application.where("aliases.fqdn" => server_alias).count > 0
+      # Normally, do not allow two apps to register the same alias. Unless configured.
+      raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140, "id") if
+        Rails.configuration.openshift[:prevent_alias_collision] and Application.where("aliases.fqdn" => server_alias).count > 0
+
       op_group = AddAliasOpGroup.new(fqdn: server_alias, user_agent: self.user_agent)
       self.pending_op_groups << op_group
       if ssl_certificate.present?
@@ -1330,10 +1333,12 @@ class Application
     return false if fqdn =~ /^\d+\.\d+\.\d+\.\d+$/
     return false if fqdn =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/
     return false if not fqdn =~ /\A[a-z0-9]+([\.]?[\-a-z0-9]+)+\z/
-    if fqdn.end_with?(cloud_domain = Rails.configuration.openshift[:domain_suffix])
-      return false if ! Rails.configuration.openshift[:allow_alias_in_domain]
-      # still exclude those that could conflict with app names.
-      return false if fqdn.chomp(cloud_domain) =~ /\A\w+-\w+\.\z/
+    conf = Rails.configuration.openshift
+    if fqdn.end_with?(cloud_domain = conf[:domain_suffix])
+      # Normally, do not allow creating an alias in the cloud domain. Unless configured.
+      return false unless conf[:allow_alias_in_domain]
+      # Even then, still exclude those that could conflict with app names. Unless configured.
+      return false if fqdn.chomp(cloud_domain) =~ /\A\w+-\w+\.\z/ and conf[:prevent_alias_collision]
     end
     return fqdn
   end
