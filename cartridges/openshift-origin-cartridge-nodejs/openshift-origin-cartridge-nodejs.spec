@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.28.1
+Version: 1.28.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -74,6 +74,9 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 01 2014 Adam Miller <admiller@redhat.com> 1.28.2-1
+- multiple nodejs processes running in a gear (bparees@redhat.com)
+
 * Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
 - Merge pull request #5419 from ryanj/npm-globals
   (dmcphers+openshiftbot@redhat.com)
