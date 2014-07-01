@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.23.1
+Version: 1.23.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -49,6 +49,10 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 01 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- "WARNING: Failed to broadcast over UDP" appears in jenkins.log
+  (bparees@redhat.com)
+
 * Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
 - bump_minor_versions for sprint 46 (admiller@redhat.com)
 
