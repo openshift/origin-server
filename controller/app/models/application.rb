@@ -396,7 +396,7 @@ class Application
   # Updates the configuration of the application.
   # @return [ResultIO] Output from cartridges
   def update_configuration(new_config={})
-    # set the new config in the application object without persisting for validation 
+    # set the new config in the application object without persisting for validation
     self.config['auto_deploy'] = new_config['auto_deploy'] unless new_config['auto_deploy'].nil?
     self.config['deployment_branch'] = new_config['deployment_branch'] unless new_config['deployment_branch'].nil?
     self.config['keep_deployments'] = new_config['keep_deployments'] unless new_config['keep_deployments'].nil?
@@ -758,7 +758,7 @@ class Application
       end
     end
 
-    # validate the group overrides for the cartridges being added 
+    # validate the group overrides for the cartridges being added
     # combine the existing carts with the ones being added to get the full proposed group overrides
     specs = component_specs_from(cartridges) + self.component_instances.map(&:to_component_spec)
     specs.each do |spec|
@@ -803,7 +803,7 @@ class Application
         features: cartridges.map(&:name), # For old data support
         cartridges: cartridges.map(&:specification_hash), # Replaces features
         group_overrides: group_overrides, init_git_url: init_git_url,
-        user_env_vars: user_env_vars, user_agent: self.user_agent, 
+        user_env_vars: user_env_vars, user_agent: self.user_agent,
         region_id: region_id
       )
       self.pending_op_groups << op_group
@@ -2041,8 +2041,8 @@ class Application
     false
   end
 
-  def calculate_add_component_ops(gear_comp_specs, comp_spec_gears, group_instance_id, deploy_gear_id, 
-                                  gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil, 
+  def calculate_add_component_ops(gear_comp_specs, comp_spec_gears, group_instance_id, deploy_gear_id,
+                                  gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil,
                                   app_dns_gear_id=nil, is_gear_creation=false)
     ops = []
     usage_ops = []
@@ -2087,7 +2087,7 @@ class Application
           git_url = init_git_url
         end
 
-        add_component_op = AddCompOp.new(gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, 
+        add_component_op = AddCompOp.new(gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url,
                                          skip_rollback: is_gear_creation, prereq: new_component_op_id + [prereq_id])
         ops << add_component_op
         component_ops[comp_spec][:adds] << add_component_op
@@ -2095,13 +2095,13 @@ class Application
 
         # if this is a web_proxy, send any existing alias and SSL cert information to it
         if cartridge.is_web_proxy? and self.aliases.present?
-          resend_aliases_op = ResendAliasesOp.new(gear_id: gear_id, fqdns: self.aliases.map {|app_alias| app_alias.fqdn}, 
+          resend_aliases_op = ResendAliasesOp.new(gear_id: gear_id, fqdns: self.aliases.map {|app_alias| app_alias.fqdn},
                                                   skip_rollback: is_gear_creation, prereq: [add_component_op._id.to_s])
           ops.push resend_aliases_op
 
           aliases_with_certs = self.aliases.select {|app_alias| app_alias.has_private_ssl_certificate}
           if aliases_with_certs.present?
-            resend_ssl_certs_op = ResendSslCertsOp.new(gear_id: gear_id, ssl_certs: get_ssl_certs(), 
+            resend_ssl_certs_op = ResendSslCertsOp.new(gear_id: gear_id, ssl_certs: get_ssl_certs(),
                                                        skip_rollback: is_gear_creation, prereq: [resend_aliases_op._id.to_s])
             ops.push resend_ssl_certs_op
           end
@@ -2390,7 +2390,7 @@ class Application
       end
 
       next if idx == 0
-      
+
       prev_spec = post_config_order[idx - 1]
       prereq_ids = []
       prereq_ids += (component_ops[prev_spec][:post_configures] || []).map{|op| op._id.to_s}
@@ -2696,7 +2696,7 @@ class Application
   def enforce_system_order(order, categories)
     web_carts = Array(categories['web_framework'])
     service_carts = Array(categories['service']) - web_carts
-    other_carts = categories.map { |k,v| Array(v) }.flatten - web_carts - service_carts 
+    other_carts = categories.map { |k,v| Array(v) }.flatten - web_carts - service_carts
 
     web_carts.each do |w|
       (service_carts + other_carts).each do |so|
@@ -2797,7 +2797,7 @@ class Application
   def calculate_component_orders
     start_order = calculate_post_configure_order(self.component_instances)
     stop_order = start_order.reverse
-    
+
     [start_order, stop_order]
   end
 
