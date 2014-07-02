@@ -17,6 +17,7 @@
 require_relative '../test_helper'
 require 'securerandom'
 require 'digest/sha1'
+require 'openshift-origin-node/model/ident'
 
 class ApplicationContainerFuncTest < OpenShift::NodeTestCase
   GEAR_BASE_DIR = '/var/lib/openshift'
@@ -105,8 +106,9 @@ class ApplicationContainerFuncTest < OpenShift::NodeTestCase
     path           = File.join(@container.container_dir, '.env', 'user_vars', 'OPENSHIFT_MOCK_EXAMPLE')
     data           = 'override_value'
 
+    ident = OpenShift::Runtime::Ident.new('redhat', 'mock', '0.1')
     # Mock app
-    @container.cartridge_model.configure(cartridge_name)
+    @container.cartridge_model.configure(ident)
     # Control script wrapper captures env
     cart_dir = wrap_control_script(cartridge_name, @uuid)
 

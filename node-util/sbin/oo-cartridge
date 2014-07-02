@@ -33,7 +33,8 @@ def usage
 == List of arguments
        -a|--action                             One of <add|delete>
        -c|--with-container-uuid     gear_uuid  Unique identifier for the gear
-       -n|--with-cartridge-name     name       Unique identifier for the cartridge
+       -n|--with-cartridge-vendor   vendor     Cartridge vendor for the cartridge. default: redhat
+       -n|--with-cartridge-name     name       Identifier for the cartridge by vendor
        -u|--with-template-url                  override default application template
        -v|--verbose                            show output from cartridge setup
        -d|--debug                              enable additional output
@@ -48,6 +49,7 @@ require "getoptlong"
 opts = GetoptLong.new(
     ['--action', '-a', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-container-uuid', '-c', GetoptLong::REQUIRED_ARGUMENT],
+    ['--with-cartridge-vendor', '-v', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-cartridge-name', '-n', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-template-url', '-u', GetoptLong::REQUIRED_ARGUMENT],
     ['--verbose', '-v', GetoptLong::NO_ARGUMENT],
@@ -55,11 +57,12 @@ opts = GetoptLong.new(
     ['--help', '-h', GetoptLong::NO_ARGUMENT],
 )
 
-action            = nil
-uuid              = nil
-cartridge_name    = nil
-template_url      = nil
-verbose           = nil
+action         = nil
+uuid           = nil
+cartridge_name = nil
+template_url   = nil
+verbose        = nil
+vendor         = 'redhat'
 
 opts.each do |opt, arg|
   case opt
@@ -69,6 +72,8 @@ opts.each do |opt, arg|
       uuid = arg
     when '--action'
       action = arg
+    when '--with-cartridge-vendor'
+      vendor = arg
     when '--with-cartridge-name'
       cartridge_name = arg
     when '--with-template-url'
@@ -87,33 +92,35 @@ end
 
 # load all this after args parsed; failure is faster
 require 'openshift-origin-node'
+require 'openshift-origin-node/model/ident'
 require 'openshift-origin-node/utils/environ'
 require "etc"
 
 begin
-  # TODO; Will need to be refactored when broker gives separate pieces
-  c = cartridge_name.to_s
-  #c << "-#{software_version}" if software_version
+  name      = cartridge_name.to_s
   output = ''
 
   container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
+  tokens    = name.split(/\-([0-9\.]+)$/)
+  ident     = OpenShift::Runtime::Ident.new(vendor, tokens[0], tokens[1])
+
   case action
     when 'add'
-      output = container.configure(c, template_url)
-      output << container.post_configure(c, template_url)
+      output = container.configure(ident, template_url)
+      output << container.post_configure(name, template_url)
     when 'delete'
       found = false
       container.cartridge_model.each_cartridge do |cart|
-        if "#{cart.name}-#{cart.version}" == c
+        if "#{cart.name}-#{cart.version}" == ident.to_name
           found = true
           break
         end
       end
       unless found
-        $stderr.puts "Cartridge '#{c}' is not installed in gear with uuid: #{uuid}"
+        $stderr.puts "Cartridge '#{ident}' is not installed in gear with uuid: #{uuid}"
         exit 1
       end
-      container.deconfigure(c)
+      container.deconfigure(ident)
     else
       usage
       raise NotImplementedError.new(action)
