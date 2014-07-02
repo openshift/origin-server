@@ -7,7 +7,7 @@ def upgrade_gear(name, login, gear_uuid)
   assert_equal 0, $?.exitstatus
 end
 
-Then /^the upgrade metadata will be cleaned up$/ do 
+Then /^the upgrade metadata will be cleaned up$/ do
   assert_metadata_cleaned(@app)
 end
 
@@ -32,7 +32,7 @@ end
 
 def assert_unprocessed_erbs(negate, app)
   glob = Dir.glob(File.join($home_root, app.uid, '**', '**', '*.erb'))
-  
+
   if negate
     assert glob.empty?
   else
@@ -45,7 +45,7 @@ Given /^the ([\d\.]+) version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/
   cart_manifest_from_package = %x(/bin/rpm -ql openshift-origin-cartridge-#{cart_name} | /bin/grep 'manifest.yml$').strip
   # Fall back to current RPM installation path
   if cart_manifest_from_package.empty?
-    cart_manifest_from_package = "/usr/libexec/openshift/cartridges/#{cart_name}/metadata/manifest.yml" 
+    cart_manifest_from_package = "/usr/libexec/openshift/cartridges/#{cart_name}/metadata/manifest.yml"
   end
 
   rpm_manifest = YAML.load_file(cart_manifest_from_package)
@@ -68,7 +68,7 @@ Given /^the ([\d\.]+) version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/
 
   # Ensure that the specified (cart_name, version, cartridge_version) is available and the latest
   # in the repository
-  assert cart_repo.latest_cartridge_version?(cart_name, rpm_version, rpm_cartridge_version), "(#{cart_name},#{software_version},#{cartridge_version}) must be the latest in the repository"
+  assert cart_repo.latest_cartridge_version?('redhat', cart_name, rpm_version, rpm_cartridge_version), "(redhat,#{cart_name},#{software_version},#{cartridge_version}) must be the latest in the repository"
 end
 
 Given /^a compatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_name, component_version|
@@ -186,7 +186,7 @@ end
 def rewrite_and_install(current_manifest, path, new_hooks = nil)
   cart_name = current_manifest.name
   manifest = YAML.load_file(@manifest_path)
-  
+
   current_version = current_manifest.cartridge_version
   current_version =~ /(\d+)$/
   current_minor_version = $1.to_i
@@ -283,7 +283,7 @@ end
 
 def clear_invocation_markers(cartridge_name, app)
   state_dir_name = ".#{cartridge_name.sub('-', '_')}_cartridge_state"
-  Dir.glob(File.join($home_root, app.uid, 'app-root', 'data', state_dir_name, '*')).each { |x| 
+  Dir.glob(File.join($home_root, app.uid, 'app-root', 'data', state_dir_name, '*')).each { |x|
     FileUtils.rm_f(x) unless x.end_with?('_process')
   }
 end
@@ -314,7 +314,7 @@ def assert_invocation_markers_exist(type, negate, app)
   when 'compatible'
     %w(setup_called control_start)
   when 'incompatible'
-    # The control_stop marker is deleted during the mock cartridge setup, 
+    # The control_stop marker is deleted during the mock cartridge setup,
     # so we expect it _not_ to exist after an incompatible upgrade.
     %w(setup_failure control_stop)
   end
@@ -395,7 +395,7 @@ Given /^a gear level upgrade extension to map the updated software version exist
 module OpenShift
   class GearUpgradeExtension
 
-    VERSION_MAP = { 
+    VERSION_MAP = {
       'mock-0.1'      => '99',
     }
 

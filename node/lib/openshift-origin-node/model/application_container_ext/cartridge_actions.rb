@@ -21,14 +21,14 @@ module OpenShift
         # is the responsibility of the broker.
         #
         # context: root -> gear user -> root
-        # @param cart_name         cartridge name
+        # @param [OpenShift::Runtime::Ident] ident cartridge identifier
         # @param template_git_url  URL for template application source/bare repository
         # @param manifest          Broker provided manifest
         # @param do_expose_ports   Flag to suggest whether cartridge's public endpoints should be exposed out or not
-        def configure(cart_name, template_git_url=nil,  manifest=nil, do_expose_ports=false)
-          o = (@cartridge_model.configure(cart_name, template_git_url, manifest) || "")
+        def configure(ident, template_git_url=nil,  manifest=nil, do_expose_ports=false)
+          o = (@cartridge_model.configure(ident, template_git_url, manifest) || '')
           if do_expose_ports
-            o += (create_public_endpoints(cart_name) || "")
+            o += (create_public_endpoints(ident.to_name) || "")
           end
           o
         end
@@ -123,9 +123,9 @@ module OpenShift
         # Remove cartridge from gear
         #
         # context: root -> gear user -> root
-        # @param cart_name   cartridge name
-        def deconfigure(cart_name)
-          @cartridge_model.deconfigure(cart_name)
+        # @param [OpenShift::Runtime::Ident] ident   cartridge identifier
+        def deconfigure(ident)
+          @cartridge_model.deconfigure(ident)
         end
 
         # Unsubscribe from a cart

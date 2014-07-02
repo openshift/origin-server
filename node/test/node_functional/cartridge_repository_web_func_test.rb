@@ -44,7 +44,7 @@ class CartridgeRepositoryWebFunctionalTest < OpenShift::NodeTestCase
 
     cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
-    @cartridge = cr.select('mock-plugin', '0.1')
+    @cartridge = cr.select('redhat', 'mock-plugin', '0.1')
     puts %x(shopt -s dotglob;
          cd #{@cartridge.repository_path};
          tar zcf #{@tgz_file} ./*;

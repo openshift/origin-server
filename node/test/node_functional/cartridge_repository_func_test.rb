@@ -37,7 +37,7 @@ module OpenShift
 
       FileUtils.mkpath(@test_home)
       ::OpenShift::Runtime::CartridgeRepository.instance.load()
-      @cartridge = ::OpenShift::Runtime::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      @cartridge = ::OpenShift::Runtime::CartridgeRepository.instance.select('redhat', 'mock-plugin', '0.1')
       %x(shopt -s dotglob;
          cd #{@cartridge.repository_path};
          zip -r #{@zip_file} *;
@@ -116,14 +116,14 @@ module OpenShift
       assert(File.directory?(bin_path), "Directory missing: #{bin_path}")
 
       # Will raise exception if missing...
-      cr.select(@name, '0.3')
+      cr.select('redhat', @name, '0.3')
 
       assert_raise(KeyError) do
-        cr.select('crftest', '0.4')
+        cr.select('redhat', 'crftest', '0.4')
       end
 
       # Will raise exception if missing...
-      cr.erase(@name, '0.3', '1.2')
+      cr.erase('redhat', @name, '0.3', '1.2')
 
       bin_path = @repo_dir + '/1.2'
       assert(!File.directory?(bin_path), "Directory not deleted: #{bin_path}")
@@ -138,7 +138,7 @@ module OpenShift
       assert(File.directory?(bin_path), "Directory missing: #{bin_path}")
 
       # Will raise exception if missing...
-      cr.select(@name, '0.3')
+      cr.select('redhat', @name, '0.3')
 
       FileUtils.rm_r(File.join(@source_dir, 'bin'))
       cr.clear
@@ -152,9 +152,9 @@ module OpenShift
       cr.clear
       cr.install(@source_dir)
 
-      cr.select(@name, '0.3')
-      cr.select(@name, '0.2')
-      cr.select(@name, '0.1')
+      cr.select('redhat', @name, '0.3')
+      cr.select('redhat', @name, '0.2')
+      cr.select('redhat', @name, '0.1')
 
       manifest_path = @repo_dir + '/1.2/metadata/manifest.yml'
       File.truncate(manifest_path, 0)  # YAML.load does not like zero-size files and will return 'false'
@@ -163,15 +163,15 @@ module OpenShift
       cr.load()
 
       assert_raise(KeyError) do
-        cr.select(@name, '0.3')
+        cr.select('redhat', @name, '0.3')
       end
 
       assert_raise(KeyError) do
-        cr.select(@name, '0.2')
+        cr.select('redhat', @name, '0.2')
       end
 
       assert_raise(KeyError) do
-        cr.select(@name, '0.1')
+        cr.select('redhat', @name, '0.1')
       end
     end
 
@@ -388,11 +388,11 @@ module OpenShift
       cr.clear
 
       cr.install(@source_dir + '/2')
-      m = cr.select(name, '0.3')
+      m = cr.select('redhat', name, '0.3')
       assert_equal '0.0.2', m.cartridge_version
 
       cr.install(@source_dir + '/3')
-      m = cr.select(name, '0.3')
+      m = cr.select('redhat', name, '0.3')
       assert_equal '0.0.3', m.cartridge_version
     end
 
