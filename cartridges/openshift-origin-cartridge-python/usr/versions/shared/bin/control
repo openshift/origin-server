@@ -3,6 +3,7 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_PYTHON_DIR}usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/create-virtenv"
 source "${OPENSHIFT_PYTHON_DIR}usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/python_config"
+source "${OPENSHIFT_PYTHON_DIR}usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/util"
 
 HTTPD_CFG_FILE=${OPENSHIFT_PYTHON_DIR}etc/conf/httpd_nolog.conf
 HTTPD_CFG_DIR=${OPENSHIFT_PYTHON_DIR}etc/conf.d/
@@ -21,6 +22,12 @@ export APPDIR=$OPENSHIFT_PYTHON_DIR
 
 function start_app() {
     echo "Starting Python ${OPENSHIFT_PYTHON_VERSION} cartridge (app.py server)"
+
+    if appserver_pidfile_exists; then
+      echo "Application is already running"
+      return 0
+    fi
+
     cd "$OPENSHIFT_REPO_DIR"
 
     LOGPIPE=${OPENSHIFT_HOMEDIR}/app-root/runtime/logshifter-python
@@ -29,8 +36,18 @@ function start_app() {
     /usr/bin/logshifter -tag python < $LOGPIPE &
     nohup python -u app.py &> $LOGPIPE &
 
-    if [ "$?" == "0" ]; then
-      echo $! > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
+    retries=3
+    while [ $retries -gt 0 ]; do
+      app_pid=$(appserver_pid)
+      [ -n "${app_pid}" ] && break
+      sleep 1
+      let retries=${retries}-1
+    done
+
+    sleep 2
+
+    if [ -n "${app_pid}" ]; then
+      echo "$app_pid" > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
     else
       echo "ERROR: Application failed to start, use 'rhc tail' for more informations."
     fi
