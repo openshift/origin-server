@@ -1137,7 +1137,7 @@ class RestApiTest < ActiveSupport::TestCase
       mock.post '/broker/rest/domain/1/members.json', json_header(true), members.to_json
     end
     d.update_members(members)
-    assert_equal members.map(&:attributes), d.members.map(&:attributes)    
+    assert_equal members.map(&:attributes), d.members.map(&:attributes)
 
     # 1 members, remove 1 member
     members = [
@@ -1148,7 +1148,7 @@ class RestApiTest < ActiveSupport::TestCase
       mock.post '/broker/rest/domain/1/members.json', json_header(true), members.select{|m| m.role != 'none'}.to_json
     end
     d.update_members(members)
-    assert_equal members.select{|m| m.role != 'none'}.map(&:attributes), d.members.map(&:attributes)    
+    assert_equal members.select{|m| m.role != 'none'}.map(&:attributes), d.members.map(&:attributes)
   end
 
   def test_cartridge_type_normalize_url
@@ -1197,14 +1197,14 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_cartridge_usage_rates_default
-    type = CartridgeType.new :name => 'nodejs-0.6', :display_name => 'Node.js', :website => 'test'
+    type = CartridgeType.new :name => 'nodejs-0.10', :display_name => 'Node.js', :website => 'test'
 
     assert_empty type.usage_rates
   end
 
   def test_cartridge_usage_rates
     rates = ['usd' => 0.04, 'duration' => 'hour']
-    type = CartridgeType.new :name => 'nodejs-0.6', :display_name => 'Node.js', :website => 'test', :usage_rates => rates
+    type = CartridgeType.new :name => 'nodejs-0.10', :display_name => 'Node.js', :website => 'test', :usage_rates => rates
 
     assert_equal rates, type.usage_rates
   end
@@ -1226,7 +1226,7 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_cartridge_type_scalable_check
-    assert scalable_type = CartridgeType.new(:name => 'nodejs-0.6', :display_name => 'Node.JS scalable', :website => 'test')
+    assert scalable_type = CartridgeType.new(:name => 'nodejs-0.10', :display_name => 'Node.JS scalable', :website => 'test')
     scalable_type.attributes['supported_scales_from'] = 1
     scalable_type.attributes['supported_scales_to'] = 2
 

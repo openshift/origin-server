@@ -14,8 +14,3 @@ Feature: Node.js Cartridge
     Scenarios: RHEL SCL
       | nodejs_version |
       |  0.10          |
-
-    @not-enterprise
-    Scenarios: RHEL non-SCL
-      | nodejs_version |
-      |  0.6           |
