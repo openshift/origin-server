@@ -247,25 +247,27 @@ module OpenShift
         end
       end
 
-      # configure(cartridge_name, template_git_url, manifest) -> stdout
+      # configure(Ident, template_git_url, manifest) -> stdout
       #
       # Add a cartridge to a gear
       #
-      # configure('php-5.3')
-      # configure('php-666', 'git://')
-      # configure('php-666', 'git://', 'git://')
-      def configure(cartridge_name, template_git_url = nil, manifest = nil)
+      # configure(ident)
+      # configure(ident, 'git://')
+      # configure(ident, 'git://', 'git://')
+      def configure(ident, template_git_url = nil, manifest = nil)
         output                 = ''
-        name, software_version = map_cartridge_name(cartridge_name)
         cartridge              = if manifest
-                                   logger.debug("Loading #{cartridge_name} from manifest for #{@container.uuid}")
-                                   Runtime::Manifest.new(manifest, software_version)
+                                   logger.debug("Loading #{ident.name} from manifest for #{@container.uuid}")
+                                   Runtime::Manifest.new(manifest, ident.software_version)
                                  else
-                                   CartridgeRepository.instance.select(name, software_version)
+                                   CartridgeRepository.instance.select(
+                                       ident.cartridge_vendor,
+                                       ident.name,
+                                       ident.software_version)
                                  end
 
         ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
-          create_cartridge_directory(cartridge, software_version)
+          create_cartridge_directory(cartridge, ident.software_version)
           # Note: the following if statement will check the following criteria long-term:
           # 1. Is the app scalable?
           # 2. Is this the head gear?
@@ -285,9 +287,9 @@ module OpenShift
 
             create_dependency_directories(cartridge)
 
-            output << cartridge_action(cartridge, 'setup', software_version, true)
+            output << cartridge_action(cartridge, 'setup', ident.software_version, true)
             output << process_erb_templates(c)
-            output << cartridge_action(cartridge, 'install', software_version)
+            output << cartridge_action(cartridge, 'install', ident.software_version)
 
             actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
             illegal_entries = actual_entries - expected_entries
@@ -357,7 +359,7 @@ module OpenShift
         raise ::OpenShift::Runtime::Utils::Sdk.translate_shell_ex_for_client(e, 157)
       end
 
-      # deconfigure(cartridge_name) -> nil
+      # deconfigure(Ident) -> nil
       #
       # Remove cartridge from gear with the following workflow:
       #
@@ -371,39 +373,37 @@ module OpenShift
       # captured, but the frontend will still be disconnect and the cartridge directory
       # will be deleted.
       #
-      # deconfigure('php-5.3')
-      def deconfigure(cartridge_name)
+      # deconfigure(ident)
+      def deconfigure(ident)
         teardown_output = ''
 
         cartridge = nil
         begin
-          cartridge = get_cartridge(cartridge_name)
+          cartridge = get_cartridge(ident.to_name)
         rescue
-          teardown_output << "CLIENT_ERROR: Corrupted cartridge #{cartridge_name} removed. There may be extraneous data left on system.\n"
-          logger.warn("Corrupted cartridge #{@container.uuid}/#{cartridge_name} removed. There may be extraneous data left on system.")
+          teardown_output << "CLIENT_ERROR: Corrupted cartridge #{ident} removed. There may be extraneous data left on system.\n"
+          logger.warn("Corrupted cartridge #{@container.uuid}/#{ident} removed. There may be extraneous data left on system.")
 
           name, software_version = map_cartridge_name(cartridge_name)
           begin
-            logger.warn("Corrupted cartridge #{@container.uuid}/#{cartridge_name}. Attempting to auto-correct for deconfigure using local manifest.yml.")
-            cartridge = get_cartridge_fallback(cartridge_name)
+            logger.warn("Corrupted cartridge #{@container.uuid}/#{ident}. Attempting to auto-correct for deconfigure using local manifest.yml.")
+            cartridge = get_cartridge_fallback(ident.to_name)
           rescue
-            logger.warn("Corrupted cartridge #{@container.uuid}/#{cartridge_name}. Attempting to auto-correct for deconfigure resorting to CartridgeRepository.")
+            logger.warn("Corrupted cartridge #{@container.uuid}/#{ident}. Attempting to auto-correct for deconfigure resorting to CartridgeRepository.")
             begin
-              cartridge = CartridgeRepository.instance.select(name, software_version)
+              cartridge = CartridgeRepository.instance.select(ident.cartridge_vendor,
+                                                              ident.name,
+                                                              ident.software_version)
             rescue
-              logger.warn("Cartridge #{cartridge_name} not found in CartridgeRepostory.")
-              teardown_output << "Cartridge #{cartridge_name} not found on the gear or in the CartridgeRepository. It is most likely a downloaded cartridge that failed to configure and was removed."
+              logger.warn("Cartridge #{ident} not found in CartridgeRepostory.")
+              teardown_output << "Cartridge #{ident} not found on the gear or in the CartridgeRepository. It is most likely a downloaded cartridge that failed to configure and was removed."
               return teardown_output
             end
           end
 
-          ident = Runtime::Manifest.build_ident(cartridge.cartridge_vendor,
-                                                cartridge.name,
-                                                software_version,
-                                                cartridge.cartridge_version)
           write_environment_variables(
               PathUtils.join(@container.container_dir, cartridge.directory, 'env'),
-              {"#{cartridge.short_name}_IDENT" => ident})
+              {"#{cartridge.short_name}_IDENT" => ident.to_s})
         end
 
         delete_private_endpoints(cartridge)
@@ -501,11 +501,11 @@ module OpenShift
         end
       end
 
-      # create_cartridge_directory(cartridge name) -> nil
+      # create_cartridge_directory(Manifest, version) -> nil
       #
       # Create the cartridges home directory
       #
-      #   v2_cart_model.create_cartridge_directory('php-5.3')
+      #   v2_cart_model.create_cartridge_directory(manifest, '5.3')
       def create_cartridge_directory(cartridge, software_version)
         logger.info("Creating cartridge directory #{@container.uuid}/#{cartridge.directory}")
 

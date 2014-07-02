@@ -20,6 +20,7 @@
 require_relative '../test_helper'
 require 'fileutils'
 require 'yaml'
+require 'openshift-origin-node/model/ident'
 
 module OpenShift
   ;
@@ -50,6 +51,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     @frontend = mock('OpenShift::Runtime::FrontendHttpServer')
     OpenShift::Runtime::FrontendHttpServer.stubs(:new).returns(@frontend)
+
+    @ident = OpenShift::Runtime::Ident.new('redhat', 'mock', '0.1')
   end
 
   def test_pre_receive_default_builder
@@ -583,18 +586,16 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_configure_defaults
-    cart_name = 'mock-0.1'
-    @cartridge_model.expects(:configure).with(cart_name, nil, nil)
-    @container.configure(cart_name)
+    @cartridge_model.expects(:configure).with(@ident, nil, nil)
+    @container.configure(@ident)
   end
 
   def test_configure_with_args
-    cart_name = 'mock-0.1'
     template_git_url = 'url'
     manifest = 'manifest'
-    @cartridge_model.expects(:configure).with(cart_name, template_git_url, manifest)
-    @container.expects(:create_public_endpoints).with(cart_name)
-    @container.configure(cart_name, template_git_url, manifest, true)
+    @cartridge_model.expects(:configure).with(@ident, template_git_url, manifest)
+    @container.expects(:create_public_endpoints).with(@ident.to_name)
+    @container.configure(@ident, template_git_url, manifest, true)
   end
 
   # new gear
