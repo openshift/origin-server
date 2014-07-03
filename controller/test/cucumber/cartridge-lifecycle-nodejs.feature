@@ -35,8 +35,3 @@ Feature: Cartridge Lifecycle NodeJS Verification Tests
     Scenarios: RHEL SCL scenarios
       |  cart_name  |
       | nodejs-0.10 |
-
-    @not-enterprise
-    Scenarios: RHEL non-SCL scenarios
-      |  cart_name  |
-      | nodejs-0.6  |
