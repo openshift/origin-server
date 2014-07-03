@@ -3,7 +3,7 @@ class RestRegion < OpenShift::Model
 
   def initialize(region)
     [:id, :name, :zones].each{ |sym| self.send("#{sym}=", region.send(sym)) }
-    self.default = region.name ==  Rails.configuration.openshift[:default_region_name] ? true : false
+    self.default = (region.name == Rails.configuration.openshift[:default_region_name])
   end
 
   def to_xml(options={})
