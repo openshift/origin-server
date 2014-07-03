@@ -48,7 +48,7 @@ class RestDomain < OpenShift::Model
       self.links = {
         "GET" => Link.new("Get domain", "GET", URI::join(url, "domain/#{name}")),
         "ADD_APPLICATION" => Link.new("Create new application", "POST", URI::join(url, "domain/#{name}/applications"),
-          [Param.new("name", "string", "Name of the application",nil,blacklisted_words)],
+          [Param.new("name", "string", "Name of the application", nil, blacklisted_words)],
           [OptionalParam.new("cartridges", "array", "Array of one or more cartridge names"),
           OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),
           OptionalParam.new("gear_size", "string", "The size of the gear", allowed_gear_sizes, allowed_gear_sizes[0]),
@@ -56,7 +56,8 @@ class RestDomain < OpenShift::Model
           OptionalParam.new("cartridges[][name]", "string", "Name of a cartridge."),
           OptionalParam.new("cartridges[][gear_size]", "string", "Gear size for the cartridge.", allowed_gear_sizes, allowed_gear_sizes[0]),
           (OptionalParam.new("cartridges[][url]", "string", "A URL to a downloadable cartridge. You may specify an multiple urls via {'cartridges' : [{'url':'http://...'}, ...]}") if Rails.application.config.openshift[:download_cartridges_enabled]),
-          OptionalParam.new("environment_variables", "array", "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]")
+          OptionalParam.new("environment_variables", "array", "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]"),
+          OptionalParam.new("region", "string", "Restrict application to the given region")
         ].compact),
         "LIST_APPLICATIONS" => Link.new("List applications for a domain", "GET", URI::join(url, "domain/#{name}/applications")),
         "LIST_MEMBERS" => Link.new("List members of this domain", "GET", URI::join(url, "domain/#{name}/members")),
