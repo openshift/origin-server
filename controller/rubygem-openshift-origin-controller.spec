@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.27.2
+Version: 1.27.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,22 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jul 03 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
+- Bug 1115309 - Default region will be selected when optional param 'region' is
+  not set during app creation. (rpenta@redhat.com)
+- Bug 1115274 - Fix 'default' field in /regions REST api (rpenta@redhat.com)
+- Bug 1115244 - Add 'region' as optional param to ADD_APPLICATION link
+  (rpenta@redhat.com)
+- Bug 1115321 - Fix zone name in gear_groups rest api responsew
+  (rpenta@redhat.com)
+- Merge pull request #5559 from derekwaynecarr/restrict_cart_gear_size
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5564 from sosiouxme/relax-alias-validation
+  (dmcphers+openshiftbot@redhat.com)
+- broker: add PREVENT_ALIAS_COLLISION option. (lmeyer@redhat.com)
+- application.rb: allow vim to fix whitespace (lmeyer@redhat.com)
+- Restrict carts to set of gear sizes (decarr@redhat.com)
+
 * Tue Jul 01 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
 - Enables user to specify a region when creating an application
   (lnader@redhat.com)
