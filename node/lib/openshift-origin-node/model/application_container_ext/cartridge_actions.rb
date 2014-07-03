@@ -171,13 +171,10 @@ module OpenShift
         # Returns nil on success, or raises an exception if any errors occur: all errors here
         # are considered fatal.
         def create_public_endpoints(cart_name)
-          cart = @cartridge_model.get_cartridge(cart_name)
-
           output = ''
+          cart   = @cartridge_model.get_cartridge(cart_name)
 
-          ip_address = `facter host_ip`.chomp
-
-          env  = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
+          env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
           # TODO: better error handling
           cart.public_endpoints.each do |endpoint|
             # Load the private IP from the gear
