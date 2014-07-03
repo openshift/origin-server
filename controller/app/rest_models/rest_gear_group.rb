@@ -83,7 +83,7 @@ class RestGearGroup < OpenShift::Model
 
       if servers
         ghash[:region] = servers[gear.server_identity].region_name rescue nil
-        ghash[:zone] = servers[gear.server_identity].region_name rescue nil
+        ghash[:zone] = servers[gear.server_identity].zone_name rescue nil
       end
       ghash
     }

@@ -66,15 +66,15 @@ class ApplicationsController < BaseController
     if region_name
       region = Region.find_by(name: region_name) rescue nil
       raise OpenShift::UserException.new("Could not find region '#{region_name}'.  Available regions are #{Region.where({}).collect{|r| r.name}.join(",")}") if region.nil?
-    elsif Rails.application.config.openshift[:default_region_id]
-      region = Region.find(Rails.application.config.openshift[:default_region_id]) rescue nil
-      Rails.logger.warn "The default region ID #{Rails.application.config.openshift[:default_region_id]} does not exist.  Proceeding to create app without specific region" if region.nil?
+    elsif Rails.application.config.openshift[:default_region_name].present?
+      region = Region.find_by(name: Rails.application.config.openshift[:default_region_name]) rescue nil
+      Rails.logger.warn "The default region #{Rails.application.config.openshift[:default_region_name]} does not exist. Proceeding to create app without specific region" if region.nil?
     end
     
     region_id = region ? region.id : nil
     
     if OpenShift::ApplicationContainerProxy.blacklisted? app_name
-      return render_error(:forbidden, "Application name is not allowed.  Please choose another.", 105)
+      return render_error(:forbidden, "Application name is not allowed. Please choose another.", 105)
     end
 
     if init_git_url = String(params[:initial_git_url]).presence
