@@ -12,22 +12,22 @@ require 'optparse'
 options = {}
 
 optparse = OptionParser.new do|opts|
-       opts.banner = "Usage: #{$0} [options] [UUIDs]"
+  opts.banner = "Usage: #{$0} [options] [UUIDs]"
 
-       options[:verbose] = false
-       opts.on('-v', '--verbose', 'Verbose output') do
-            options[:verbose] = true
-       end
+  options[:verbose] = false
+  opts.on('-v', '--verbose', 'Verbose output') do
+    options[:verbose] = true
+  end
 
-       options[:all] = false
-       opts.on('-a', '--all', 'Chcon all gears') do
-            options[:all] = true
-       end
+  options[:all] = false
+  opts.on('-a', '--all', 'Chcon all gears') do
+    options[:all] = true
+  end
 
-       opts.on('-h', '--help', 'Display help') do
-            puts opts
-            exit
-       end
+  opts.on('-h', '--help', 'Display help') do
+    puts opts
+    exit
+  end
 end
 
 optparse.parse!
@@ -38,32 +38,32 @@ if ARGV.empty? and options[:all] == false
 end
 
 def restore_con(dir, label, verbose = False)
-    puts "restorecon -R -v #{dir}" if verbose
-    result = %x[restorecon -R -v #{dir} ]
-    unless result.empty? && verbose
-        puts result if verbose
-    end
-    puts "chcon -l #{label} -R #{dir}*" if verbose
-    result = %x[chcon -l #{label} -R #{dir}* ]
-    unless result.empty? && verbose
-        puts result if verbose
-    end
+  puts "restorecon -R -v #{dir}" if verbose
+  result = %x[restorecon -R -v #{dir} ]
+  unless result.empty? && verbose
+    puts result if verbose
+  end
+  puts "chcon -l #{label} -R #{dir}*" if verbose
+  result = %x[chcon -l #{label} -R #{dir}* ]
+  unless result.empty? && verbose
+    puts result if verbose
+  end
 end
 
 SelinuxContext = OpenShift::Runtime::Utils::SelinuxContext
 
 if options[:all]
-    OpenShift::Runtime::ApplicationContainer.all(nil, false).each do |container|
-        mcs_label = SelinuxContext.instance.get_mcs_label(container.uid)
-        restore_con(container.container_dir, mcs_label, options[:verbose])
-    end
+  OpenShift::Runtime::ApplicationContainer.all(nil, false).each do |container|
+    mcs_label = SelinuxContext.instance.get_mcs_label(container.uid)
+    restore_con(container.container_dir, mcs_label, options[:verbose])
+  end
 else
-    ARGV.each do |contan|
-        if OpenShift::Runtime::ApplicationContainer.exists?(contan.to_s)
-            mcs_label = SelinuxContext.instance.get_mcs_label(contan.to_s)
-            restore_con(OpenShift::Runtime::ApplicationContainer.from_uuid(contan.to_s).container_dir, mcs_label, options[:verbose])
-        else
-            puts "ERROR: Gear #{contan} does not exist!"
-        end
+  ARGV.each do |contan|
+    if OpenShift::Runtime::ApplicationContainer.exists?(contan.to_s)
+      mcs_label = SelinuxContext.instance.get_mcs_label(contan.to_s)
+      restore_con(OpenShift::Runtime::ApplicationContainer.from_uuid(contan.to_s).container_dir, mcs_label, options[:verbose])
+    else
+      puts "ERROR: Gear #{contan} does not exist!"
     end
+  end
 end
