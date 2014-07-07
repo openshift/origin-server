@@ -108,6 +108,9 @@ typedef struct _instanceData {
   // thread for using inotify to watch for gear directory deletions
   pthread_t watchThread;
 
+  // 0=not started, non-0=started
+  int watchThreadStarted;
+
   // mutex to use for thread safety when modifying the 2 maps
   pthread_mutex_t lock;
 
@@ -290,14 +293,15 @@ ENDisCompatibleWithFeature
 
 BEGINfreeInstance
 CODESTARTfreeInstance
-  // shut down inotify thread by writing 1 character to the write end of the pipe fd pair
-  int rc = -1;
-  rc = write(pData->pipeFds[1], "x", 1);
+  if(pData->watchThreadStarted) {
+    // shut down inotify thread by writing 1 character to the write end of the pipe fd pair
+    (void)write(pData->pipeFds[1], "x", 1);
 
-  // wait for watchThread to shut down
-  DBGPRINTF("mmopenshift: joining watchThread\n");
-  pthread_join(pData->watchThread, NULL);
-  DBGPRINTF("mmopenshift: watchThread stopped\n");
+    // wait for watchThread to shut down
+    DBGPRINTF("mmopenshift: joining watchThread\n");
+    pthread_join(pData->watchThread, NULL);
+    DBGPRINTF("mmopenshift: watchThread stopped\n");
+  }
 
   // lock the mutex for the 2 maps
   pthread_mutex_lock(&pData->lock);
@@ -640,14 +644,14 @@ CODESTARTnewActInst
   // create the uid->gearInfo map
   pData->uidMap = create_hashtable(runModConf->maxCacheSize, uidHash, uidKeyEquals, hashtable_freeGearInfo);
   if(NULL == pData->uidMap) {
-    errmsg.LogError(0, RS_RET_ERR, "error: could not create uidMap, cannot activate action");
+    errmsg.LogError(0, RS_RET_ERR, "mmopenshift: error: could not create uidMap, cannot activate action");
     ABORT_FINALIZE(RS_RET_ERR);
   }
 
   // create the uuid->uid map
   pData->uuidMap = create_hashtable(runModConf->maxCacheSize, stringHash, stringKeyEquals, NULL);
   if(NULL == pData->uidMap) {
-    errmsg.LogError(0, RS_RET_ERR, "error: could not create uuidMap, cannot activate action");
+    errmsg.LogError(0, RS_RET_ERR, "mmopenshift: error: could not create uuidMap, cannot activate action");
     ABORT_FINALIZE(RS_RET_ERR);
   }
 
@@ -656,37 +660,16 @@ CODESTARTnewActInst
   pData->sentinel->prev = pData->sentinel;
   pData->sentinel->next = pData->sentinel;
 
-  // create the pipe which we'll use to signal the inotify thread to stop
-  pipe(pData->pipeFds);
-
-  // set up inotify
-  pData->inotifyFd = inotify_init();
-  if(-1 == pData->inotifyFd) {
-    errmsg.LogError(0, RS_RET_ERR, "error: could not initialize inotify");
-    ABORT_FINALIZE(RS_RET_ERR);
-  }
-
-  // watch for deletions in the gear base dir
-  pData->inotifyWatchFd = inotify_add_watch(pData->inotifyFd, runModConf->gearBaseDir, IN_DELETE);
-  if(-1 == pData->inotifyWatchFd) {
-    errmsg.LogError(0, RS_RET_ERR, "error: could not add inotify watch");
-    ABORT_FINALIZE(RS_RET_ERR);
-  }
 
   // set up our mutex
   rc = pthread_mutex_init(&pData->lock, NULL);
   if(rc != 0) {
-    errmsg.LogError(0, RS_RET_ERR, "error: could not create mutex, rc=%d", rc);
+    errmsg.LogError(0, RS_RET_ERR, "mmopenshift: error: could not create mutex, rc=%d", rc);
     ABORT_FINALIZE(RS_RET_ERR);
   }
 
-  // create the inotify watch thread
-  DBGPRINTF("mmopenshift: creating watchThread\n");
-  rc = pthread_create(&pData->watchThread, NULL, (void*)&watchThread, pData);
-  if(rc != 0) {
-    errmsg.LogError(0, RS_RET_ERR, "error: could not create thread, rc=%d", rc);
-    ABORT_FINALIZE(RS_RET_ERR);
-  }
+  pData->watchThreadStarted = 0;
+
 
   pData->getpwuidBufferSize = sysconf(_SC_GETPW_R_SIZE_MAX);
   if (pData->getpwuidBufferSize == (size_t)-1) {
@@ -775,6 +758,35 @@ BEGINdoAction
   struct passwd* pwdataResult;
   unsigned int i;
 CODESTARTdoAction
+  if(!pData->watchThreadStarted) {
+    // create the pipe which we'll use to signal the inotify thread to stop
+    pipe(pData->pipeFds);
+
+    // set up inotify
+    pData->inotifyFd = inotify_init();
+    if(-1 == pData->inotifyFd) {
+      errmsg.LogError(0, RS_RET_ERR, "mmopenshift: error: could not initialize inotify");
+      ABORT_FINALIZE(RS_RET_ERR);
+    }
+
+    // watch for deletions in the gear base dir
+    pData->inotifyWatchFd = inotify_add_watch(pData->inotifyFd, runModConf->gearBaseDir, IN_DELETE);
+    if(-1 == pData->inotifyWatchFd) {
+      errmsg.LogError(0, RS_RET_ERR, "mmopenshift: error: could not add inotify watch");
+      ABORT_FINALIZE(RS_RET_ERR);
+    }
+    //
+    // create the inotify watch thread
+    DBGPRINTF("mmopenshift: creating watchThread\n");
+    int rc = pthread_create(&pData->watchThread, NULL, (void*)&watchThread, pData);
+    if(rc != 0) {
+      errmsg.LogError(0, RS_RET_ERR, "mmopenshift: error: could not create thread, rc=%d", rc);
+      ABORT_FINALIZE(RS_RET_ERR);
+    }
+
+    pData->watchThreadStarted = 1;
+  }
+
   pMsg = (msg_t*) ppString[0];
 
   DBGPRINTF("mmopenshift: looking for !uid\n");
@@ -807,7 +819,7 @@ CODESTARTdoAction
       DBGPRINTF("mmopenshift: create gearInfo metadata hashtable\n");
       gear->metadata = create_hashtable(runModConf->metadataCount, stringHash, stringKeyEquals, NULL);
       if(NULL == pData->uidMap) {
-        errmsg.LogError(0, RS_RET_ERR, "error: could not create gear metadata map, unable to proceed");
+        errmsg.LogError(0, RS_RET_ERR, "mmopenshift: error: could not create gear metadata map, unable to proceed");
         pthread_mutex_unlock(&pData->lock);
         // don't do any additional processing
         FINALIZE
