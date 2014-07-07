@@ -86,17 +86,19 @@ class CartridgesController < BaseController
   # @return [<Cartridge>] Array of cartridge objects
   def filter_carts_by_user_capability(carts)
     filtered_carts = carts
-    current_user = optionally_authenticate_user!(false)
-    if current_user
-      allowed_gear_sizes = current_user.capabilities["gear_sizes"]
-      Domain.accessible(current_user).each do |domain|
-        allowed_gear_sizes = allowed_gear_sizes | domain.allowed_gear_sizes
-      end
-      filtered_carts = []
-      carts.each do |cart|
-        valid_gear_sizes = Rails.application.config.openshift[:cartridge_gear_sizes][cart.name]
-        filtered_carts.push(cart) if valid_gear_sizes.empty?
-        filtered_carts.push(cart) if !(valid_gear_sizes & allowed_gear_sizes).empty?
+    cart_config = Rails.application.config.openshift[:cartridge_gear_sizes]
+    if cart_config.any?
+      current_user = optionally_authenticate_user!(false)
+      if current_user
+        allowed_gear_sizes = current_user.capabilities["gear_sizes"]
+        Domain.accessible(current_user).each do |domain|
+          allowed_gear_sizes = allowed_gear_sizes | domain.allowed_gear_sizes
+        end
+        filtered_carts = []
+        carts.each do |cart|
+          valid_gear_sizes = cart_config[cart.name]
+          filtered_carts.push(cart) if valid_gear_sizes.empty? || (valid_gear_sizes & allowed_gear_sizes).any?
+        end
       end
     end
     filtered_carts

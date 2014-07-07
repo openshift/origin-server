@@ -202,7 +202,7 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     users = {}
     users["small"] = create_test_user_with_gear_sizes(['small'])
     users["medium"] = create_test_user_with_gear_sizes(['medium'])
-    users["all"] = create_test_user_with_gear_sizes(['small', 'medium', 'large'])
+    users["all"] = create_test_user_with_gear_sizes(['small', 'medium'])
 
     ## create auth headers for each corresponding user
     auth_headers = {}
@@ -230,7 +230,7 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     ## add user with small only gear capability to a domain with all gear sizes capability
     random = rand(1000000000)
     namespace = "gearns#{random}"
-    domain = Domain.new(namespace: namespace, owner: users["all"], allowed_gear_sizes: ["small", "medium", "large"])
+    domain = Domain.new(namespace: namespace, owner: users["all"], allowed_gear_sizes: ["small", "medium"])
     member = Member.new(_id: users["small"].id, n: users["small"].login)
     domain.add_members([member])
     assert domain.save
@@ -246,16 +246,17 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     assert (body = JSON.parse(@response.body))["data"].is_a? Array
     value = nil
     body["data"].each { |cart| value = cart if cart["name"] == cart_name }
-    assert_not_nil(value) if not_nil
-    assert(value == nil) unless not_nil
+    assert_not_nil(value, "User #{auth_headers}") if not_nil
+    assert(value == nil, "User #{auth_headers}") unless not_nil
     value
   end
 
   def create_basic_auth_headers(user)
-      basic_headers = {}
-      basic_headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{user.login}:password")
-      basic_headers["HTTP_ACCEPT"] = "application/json"
-      basic_headers
+    basic_headers = {}
+    basic_headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{user.login}:password").gsub(/\n/,'')
+    basic_headers["HTTP_ACCEPT"] = "application/json"
+    basic_headers['REMOTE_USER'] = user.login
+    basic_headers
   end
 
   def create_test_user_with_gear_sizes(gear_sizes)
