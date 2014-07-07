@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.27.3
+Version: 1.27.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Jul 07 2014 Adam Miller <admiller@redhat.com> 1.27.4-1
+- Bug 1116135 - Add -u to bash sdk pgrep calls (jhonce@redhat.com)
+- Bug 1116062 - Remove spurious call to facter (jhonce@redhat.com)
+
 * Tue Jul 01 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
 - Merge pull request #5561 from jwhonce/bug/1111077
   (dmcphers+openshiftbot@redhat.com)
