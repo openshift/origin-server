@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.27.2
+Version: 1.27.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jul 07 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
+- Merge pull request #5566 from soltysh/card224
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_cartridge_224 - Upgrading nodejs quickstarts to version 0.10
+  (maszulik@redhat.com)
+
 * Thu Jul 03 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
 - Merge pull request #5565 from developercorey/add-stack-url
   (dmcphers+openshiftbot@redhat.com)
