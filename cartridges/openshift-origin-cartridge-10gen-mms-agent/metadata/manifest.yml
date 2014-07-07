@@ -12,6 +12,7 @@ Cartridge-Vendor: redhat
 Vendor: 10gen.com
 Categories:
 - embedded
+- plugin
 - database-support
 Website: https://mms.mongodb.com/
 Help-Topics:
@@ -33,3 +34,7 @@ Scaling:
 Configure-Order:
 - mongodb
 - 10gen-mms-agent
+Group-Overrides:
+- components:
+  - 10gen-mms-agent
+  - web_framework
