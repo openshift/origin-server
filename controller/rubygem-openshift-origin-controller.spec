@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.27.3
+Version: 1.27.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jul 07 2014 Adam Miller <admiller@redhat.com> 1.27.4-1
+- Merge pull request #5566 from soltysh/card224
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_cartridge_224 - Upgrading nodejs quickstarts to version 0.10
+  (maszulik@redhat.com)
+
 * Thu Jul 03 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
 - Bug 1115309 - Default region will be selected when optional param 'region' is
   not set during app creation. (rpenta@redhat.com)
