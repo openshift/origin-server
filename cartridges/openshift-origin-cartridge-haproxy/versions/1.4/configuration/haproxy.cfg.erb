@@ -64,6 +64,6 @@ listen express <%= "#{ENV['OPENSHIFT_HAPROXY_IP']}:#{ENV['OPENSHIFT_HAPROXY_PORT
     option tcplog
 <% else %>
     cookie GEAR insert indirect nocache
-    option httpchk GET /
+    option httpchk GET <%= ENV['OPENSHIFT_HAPROXY_STATUS_URL'] || "/" %>
 <% end %>
     balance leastconn

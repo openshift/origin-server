@@ -7,6 +7,8 @@ HAPROXY_CART="haproxy-1.4"
 export HAPROXY_PID="${OPENSHIFT_HAPROXY_DIR}/run/haproxy.pid"
 export HAPROXY_CTLD_PID="${OPENSHIFT_HAPROXY_DIR}/run/haproxy_ctld.pid"
 
+oo-erb ${OPENSHIFT_HAPROXY_DIR}/conf/haproxy.cfg.erb.hidden > ${OPENSHIFT_HAPROXY_DIR}/conf/haproxy.cfg
+
 if ! [ $# -gt 0 ]
 then
     echo "Usage: \$0 [start|restart|stop|status|deploy]"
