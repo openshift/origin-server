@@ -26,7 +26,7 @@ if [ $max_permgen -gt 256 ]; then
 	max_permgen=256
 fi
 
-memory_options="-XX:+UseSerialGC -Xms40m -Xmx${max_heap}m -XX:MaxPermSize=${max_permgen}m -XX:+AggressiveOpts" 
+memory_options="-Xms40m -Xmx${max_heap}m -XX:MaxPermSize=${max_permgen}m -XX:+AggressiveOpts -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90"
 
 #
 # Specify options to pass to the Java VM.
