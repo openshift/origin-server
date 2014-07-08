@@ -46,6 +46,7 @@ BuildRequires: %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
+BuildRequires: %{?scl:%scl_prefix}rubygem-rails
 # For the prereq_domain_resolves check in oo-diagnostics:
 Requires:      bind-utils
 BuildArch:     noarch
