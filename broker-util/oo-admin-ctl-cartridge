@@ -164,7 +164,7 @@ class Command
         puts "#{cart._id} # now the active cartridge for #{cart.name}"
       else
         warn "Unable to activate #{options.id}"
-        type.errors.full_messages.each do |m|
+        cart.errors.full_messages.each do |m|
           warn "  #{m}"
         end
         code = 1
