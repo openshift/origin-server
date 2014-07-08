@@ -1,0 +1,6 @@
+[openshift-origin-nightly-deps]
+name=openshift-origin-nightly-deps
+baseurl=https://mirror.openshift.com/pub/origin-server/nightly/rhel-6/dependencies/x86_64/
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
