@@ -576,7 +576,7 @@ end
 # Verify that the user has a cgroup in all subsystems and no others
 def check_user_cgroups(username)
   user_cgroup="/openshift/#{username}"
-  test_subsystems = Set.new(['cpu', 'cpuacct', 'memory', 'freezer', 'net_cls'])
+  test_subsystems = Set.new($CONF.get('OPENSHIFT_CGROUP_SUBSYSTEMS', 'cpu,cpuacct,memory,freezer,net_cls').split(','))
   if not test_subsystems == $CGROUP_DATA[username]
     user_fail(username, "user #{username} must have all cgroup subsystems.")
   end
