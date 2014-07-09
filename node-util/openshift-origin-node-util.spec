@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.26.2
+Version: 1.26.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -166,6 +166,12 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Jul 09 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
+- Merge pull request #5545 from a13m/bz1112378
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1112378 - Respect OPENSHIFT_CGROUP_SUBSYSTEMS in oo-accept-node
+  (agrimm@redhat.com)
+
 * Tue Jul 01 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
 - Bug 1111077 - Enforce FrontendHttpServer state to match .state file
   (jhonce@redhat.com)
