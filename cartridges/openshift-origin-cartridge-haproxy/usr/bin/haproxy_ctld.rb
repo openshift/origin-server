@@ -617,7 +617,12 @@ else
   end
 
   begin
-    File.delete(PID_FILE)
+    # Due to the sleep above, it's possible the TERM signal was received
+    # up to @check_interval seconds earlier, and another haproxy_ctld.rb 
+    # has been launched and overwritten the pid_file, so do not remove the
+    # pid_file unless it contains our pid.
+    pid=File.read(PID_FILE)
+    File.delete(PID_FILE) unless pid.to_i != Process.pid
   rescue
     # ignore
   end

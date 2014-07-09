@@ -86,14 +86,21 @@ function _start_haproxy_service() {
     else
         echo "HAProxy already running" 1>&2
         wait_to_start
-
         # support auto reloading of this action hook on git push
         if [ -x "$OPENSHIFT_REPO_DIR/.openshift/action_hooks/haproxy_ctld.rb" ]; then
             echo "Action hook haproxy_ctld.rb detected"
             _stop_haproxy_ctld || :
             _start_haproxy_ctld
             echo "Action hook haproxy_ctld.rb restarted"
-        fi
+        elif pgrep -f "action_hooks/haproxy_ctld.rb" >& /dev/null; then
+            # previous running an action hook haproxy_ctld.rb but the
+            # action hook file was removed, so restart w/ the normal cart
+            # haproxy_ctld.rb
+            echo "Action hook haproxy_ctld.rb removed"
+            _stop_haproxy_ctld || :
+            _start_haproxy_ctld
+            echo "Action hook haproxy_ctld.rb restarted"
+        fi                        
     fi
 }
 
