@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.28.3
+Version: 1.28.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -74,6 +74,9 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 09 2014 Adam Miller <admiller@redhat.com> 1.28.4-1
+- Edit nodejs upgrade script for latest version (jhadvig@redhat.com)
+
 * Mon Jul 07 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
 - Card origin_cartridge_224 - Upgrading nodejs quickstarts to version 0.10
   (maszulik@redhat.com)
