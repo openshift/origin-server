@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for kerberos auth service
 Name:          rubygem-%{gem_name}
-Version:       1.16.0
+Version:       1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,23 @@ cp conf/openshift-origin-auth-kerberos.conf.example %{buildroot}/etc/openshift/p
 %doc %{gem_docdir}
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.16.1-1
+- bump necessary spec versions for Origin v4 (admiller@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4242 from mscherer/fix/kerberos/requires
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Also fix the spec file for extranous Requires (misc@zarb.org)
+- nothing in the module use or requires json and mocha, so no need to have it
+  in gemspec (misc@zarb.org)
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+- Updating tests to register mongo-auth based user in the correct database
+  based on Rails environment. (kraman@gmail.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Bump up version (tdawson@redhat.com)
 - <broker> re-base the broker URI from /broker => / (lmeyer@redhat.com)
