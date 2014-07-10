@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.26.3
+Version: 1.26.3.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.26.3.1-1
+- 
+
 * Thu Jun 19 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
 - Fix bug 1111009: Typo on app scaling page (jliggitt@redhat.com)
 
