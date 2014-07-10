@@ -5,7 +5,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util
-Version:       1.16.0
+Version:       1.16.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -38,5 +38,13 @@ chmod 0755 %{buildroot}%{_bindir}/*
 
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.16.1-1
+- bump necessary spec versions for Origin v4 (admiller@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #3622 from brenton/ruby193-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- Adding oo-mco and updating oo-diagnostics to support the SCL'd mcollective
+  (bleanhar@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Adding lsof dependency (kraman@gmail.com)
