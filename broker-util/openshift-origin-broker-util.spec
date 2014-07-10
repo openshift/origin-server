@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.25.3
+Version: 1.25.3.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,9 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.25.3.1-1
+- 
+
 * Tue Jun 17 2014 Adam Miller <admiller@redhat.com> 1.25.3-1
 - Measuring time for each operation inside oo-admin-chk (abhgupta@redhat.com)
 - Bug 1109646: dup was being called on nil (abhgupta@redhat.com)
