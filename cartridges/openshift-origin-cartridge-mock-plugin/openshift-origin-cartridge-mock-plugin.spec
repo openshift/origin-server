@@ -2,7 +2,7 @@
 
 Summary:       Mock plugin cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock-plugin
-Version: 1.20.1
+Version: 1.20.1.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -41,6 +41,9 @@ test platform functionality.
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.20.1.1-1
+- 
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.20.1-1
 - bump_minor_versions for sprint 45 (admiller@redhat.com)
 
