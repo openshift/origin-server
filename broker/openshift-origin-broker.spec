@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.16.1
+Version:       1.16.1.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -276,6 +276,10 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.16.1.1-1
+- Automatic commit of package [openshift-origin-broker] release [1.16.1-1].
+  (admiller@redhat.com)
+
 * Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.16.1-1
 - bump origin-broker version for origin v4 release (admiller@redhat.com)
 - Updated REST API docs (lnader@redhat.com)
