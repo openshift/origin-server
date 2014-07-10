@@ -7,7 +7,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.26.3
+Version: 1.26.3.1
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -86,6 +86,9 @@ done
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.26.3.1-1
+- 
+
 * Mon Jun 23 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
 - Bug 1109645 - Fix the wrong path of libmysqlclient for Ruby 1.8
   (mfojtik@redhat.com)
