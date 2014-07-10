@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.25.1
+Version: 1.25.1.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,9 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.25.1.1-1
+- 
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
 - bump_minor_versions for sprint 45 (admiller@redhat.com)
 
