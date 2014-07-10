@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for DNS update service using Avahi
 Name:          rubygem-%{gem_name}
-Version:       1.10.3
+Version:       1.10.3.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -82,6 +82,10 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.10.3.1-1
+- Automatic commit of package [rubygem-openshift-origin-dns-avahi] release
+  [1.10.3-1]. (admiller@redhat.com)
+
 * Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.10.3-1
 - Cleaning specs (dmcphers@redhat.com)
 - Merge pull request #4149 from mfojtik/fixes/bundler
