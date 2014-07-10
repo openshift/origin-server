@@ -5,7 +5,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util
-Version:       1.15.1
+Version:       1.16.0
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
