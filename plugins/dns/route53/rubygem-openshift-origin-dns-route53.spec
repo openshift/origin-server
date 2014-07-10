@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for AWS Route53 service
 Name:          rubygem-%{gem_name}
-Version:       1.11.0
+Version:       1.11.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,5 +85,15 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump necessary spec versions for Origin v4 (admiller@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - Bug 928675 (asari.ruby@gmail.com)
