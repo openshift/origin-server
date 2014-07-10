@@ -83,29 +83,36 @@ tito build --builder mock --arg mock=epel-6-x86_64-openshift-nightly --rpm --tes
 #       nightly builds as well as the mock config.
 ```
 
-However, if we would like to build the entire package set this can be scripted out (somewhat crudely) as follows:
+However, if we would like to build the entire package set this has been scripted out using the build_openshift_origin.sh script in this directory:
+
+This command should be run from the "root" of your local origin-server git clone.
+
+For general usage of the script:
+```
+./rel-eng/build_instructions/build_openshift_origin.sh -h
+```
 
 For OpenShift V4 builds, use the following commands:
 ```
-mkdir /var/tmp/completed_builds/
-declare -a failed_builds
-spec_dirs=( $(find origin-server/ -name \*.spec) )
-for spec in ${spec_dirs[@]}
-do
-  pushd $(dirname $spec)
-    tito build --builder mock --arg mock=epel-6-x86_64-openshiftv4 --rpm 
-    if [[ $? -ne "0"]]; then
-      failed_builds+=( "$spec" )
-    else
-      mv /var/lib/mock/epel-6-x86_64/*.rpm /var/tmp/completed_builds/
-    fi
-  popd
-done
-if [[ ${#failed_builds[@]} -ne "0" ]]; then
-  echo "Failed builds: ${failed_builds[@]}"
-fi
+./rel-eng/build_instructions/build_openshift_origin.sh \
+                        -m epel-6-x86_64-openshiftv4 \
+                        -r v4 \
+                        -s /var/tmp/origin-v4-srpms
 ```
-At the end of this build task, you should have all the rpms and srpms in /var/tmp/completed_builds/ and we can now create a yum repository out of it with the `createrepo` or use them how ever you please.
+
+For OpenShift nightly builds, use the following commands:
+```
+./rel-eng/build_instructions/build_openshift_origin.sh \
+                        -m epel-6-x86_64-openshift-nightly \
+                        -r nightly \
+                        -s /var/tmp/origin-v4-srpms
+```
+
+At the end of this build task, you should have all the built rpms in a directory under `/var/tmp/`, the information will be output at the end of the script from the mockchain command.
+
+We can now create a yum repository out of it with the `createrepo` or use them how ever we please.
+
 
 ## Using Fedora 
 `#FIXME - add content here later`
+Technically the instructions above will also work on Fedora since we use mock to perform the actual builds but the resulting rpms will not function on Fedora at this time. This is something we're targeting with a later release of OpenShift Origin.
