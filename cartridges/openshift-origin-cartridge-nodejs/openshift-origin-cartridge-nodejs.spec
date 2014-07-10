@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.27.4
+Version: 1.27.4.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -74,6 +74,9 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.27.4.1-1
+- 
+
 * Thu Jun 19 2014 Adam Miller <admiller@redhat.com> 1.27.4-1
 - Bug 1111314 - Remove mysql-server dependency from nodejs cartridge
   (jdetiber@redhat.com)
