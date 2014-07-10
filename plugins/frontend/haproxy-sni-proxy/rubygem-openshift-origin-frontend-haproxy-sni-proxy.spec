@@ -10,7 +10,7 @@
 
 Summary:       OpenShift HAProxy SNI Proxy frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.3.1
+Version: 0.3.1.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -113,6 +113,9 @@ fi
 %attr(0644,root,root) %config(noreplace) /etc/openshift/node-plugins.d/openshift-origin-frontend-haproxy-sni-proxy.conf
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 0.3.1.1-1
+- 
+
 * Thu Feb 27 2014 Adam Miller <admiller@redhat.com> 0.3.1-1
 - bump_minor_versions for sprint 41 (admiller@redhat.com)
 
