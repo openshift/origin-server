@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.26.1
+Version: 1.26.1.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.26.1.1-1
+- 
+
 * Thu Jun 05 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
 - bump_minor_versions for sprint 46 (admiller@redhat.com)
 
