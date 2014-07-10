@@ -3,7 +3,7 @@
 %global import_path github.com/openshift
 
 Name:          openshift-origin-logshifter
-Version: 1.7.1
+Version: 1.7.1.1
 Release:       1%{?dist}
 Summary:       Log transport for OpenShift gear processes.
 License:       ASL 2.0
@@ -37,6 +37,9 @@ install -p -m 755 _build/bin/logshifter %{buildroot}%{_bindir}/logshifter
 %{_bindir}/logshifter
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.7.1.1-1
+- 
+
 * Fri May 16 2014 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 45 (admiller@redhat.com)
 
