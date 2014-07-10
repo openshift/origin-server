@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mongo auth service
 Name:          rubygem-%{gem_name}
-Version:       1.16.0
+Version:       1.16.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -99,6 +99,19 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{b
 %doc %{gem_docdir}
 
 %changelog
+* Thu Jul 10 2014 Adam Miller <admiller@redhat.com> 1.16.1-1
+- bump necessary spec versions for Origin v4 (admiller@redhat.com)
+- Cleaning specs (dmcphers@redhat.com)
+- Merge pull request #4149 from mfojtik/fixes/bundler
+  (dmcphers+openshiftbot@redhat.com)
+- Allow gemspecs to be parsed on non RPM systems (like the rest of cartridges)
+  (ccoleman@redhat.com)
+- Switch to use https in Gemfile to get rid of bundler warning.
+  (mfojtik@redhat.com)
+- Add config value (jliggitt@redhat.com)
+- Updating tests to register mongo-auth based user in the correct database
+  based on Rails environment. (kraman@gmail.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
 - Bump up version (tdawson@redhat.com)
 - <broker> re-base the broker URI from /broker => / (lmeyer@redhat.com)
