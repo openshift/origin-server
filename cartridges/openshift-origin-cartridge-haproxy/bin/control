@@ -101,7 +101,7 @@ function _start_haproxy_service() {
             echo "Action hook haproxy_ctld.rb removed"
             _stop_haproxy_ctld || :
             _start_haproxy_ctld
-            echo "Action hook haproxy_ctld.rb restarted"
+            echo "Cartridge haproxy_ctld.rb started"
         fi                        
     fi
 }
