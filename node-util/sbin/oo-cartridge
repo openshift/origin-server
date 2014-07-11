@@ -33,7 +33,7 @@ def usage
 == List of arguments
        -a|--action                             One of <add|delete>
        -c|--with-container-uuid     gear_uuid  Unique identifier for the gear
-       -n|--with-cartridge-vendor   vendor     Cartridge vendor for the cartridge. default: redhat
+       -o|--with-cartridge-vendor   vendor     Cartridge vendor for the cartridge. default: redhat
        -n|--with-cartridge-name     name       Identifier for the cartridge by vendor
        -u|--with-template-url                  override default application template
        -v|--verbose                            show output from cartridge setup
@@ -49,7 +49,7 @@ require "getoptlong"
 opts = GetoptLong.new(
     ['--action', '-a', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-container-uuid', '-c', GetoptLong::REQUIRED_ARGUMENT],
-    ['--with-cartridge-vendor', '-v', GetoptLong::REQUIRED_ARGUMENT],
+    ['--with-cartridge-vendor', '-o', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-cartridge-name', '-n', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-template-url', '-u', GetoptLong::REQUIRED_ARGUMENT],
     ['--verbose', '-v', GetoptLong::NO_ARGUMENT],
