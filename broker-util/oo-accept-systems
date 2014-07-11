@@ -144,14 +144,15 @@ def check_nodes_cartridges
     [node,
      OpenShift::ApplicationContainerProxy.instance(node)
     .get_available_cartridges
-    .map {|cart| cart.name}]
+    .map {|cart| cart.name}
+    .sort]
   end.instance_eval {|ary| Hash[*ary.flatten(1)]}
 
   carts_for.each do |node, carts|
     if carts.empty?
       do_fail "host #{node} does not have any cartridges installed"
     else
-      verbose "cartridges for #{node}: #{carts}"
+      verbose "cartridges for #{node}: #{carts.join ', '}"
     end
   end
 
@@ -169,7 +170,7 @@ def check_nodes_cartridges
   any_missing = false
   carts_for.each do |node,carts|
     missing = all_carts - carts
-    missing.empty? or do_fail "node #{node} cartridge list is missing #{missing.join ','}"
+    missing.empty? or do_fail "node #{node} cartridge list is missing #{missing.join ', '}"
     any_missing ||= !missing.empty?
   end
   #
@@ -182,15 +183,15 @@ def check_nodes_cartridges
   begin
     require 'json'
     api_carts = JSON.parse(RestClient.get('http://localhost:8080/broker/rest/cartridges.json'))
-    api_carts = api_carts["data"].map {|cart| cart["name"]}
-    verbose "API reports carts: #{api_carts.join '|'}"
+    api_carts = api_carts["data"].map {|cart| cart["name"]}.sort
+    verbose "API reports carts: #{api_carts.join ', '}"
 
-    do_fail <<-"MISMATCH" unless api_carts.sort == all_carts.sort
+    do_fail <<-"MISMATCH" unless api_carts == all_carts
       The broker's list of cartridges does not match what is available on
       the node hosts.
 
-      Broker is missing: #{(all_carts - api_carts).join ", "}
-      Broker has extra: #{(api_carts - all_carts).join ", "}
+      Broker is missing: #{(all_carts - api_carts).join ', '}
+      Broker has extra: #{(api_carts - all_carts).join ', '}
 
       You can instruct the broker to pull an updated list of cartridges from a node
       and clear the management console's cache using the following commands:
