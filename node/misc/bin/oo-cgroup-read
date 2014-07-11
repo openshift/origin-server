@@ -147,8 +147,8 @@ def report_cgroup_attributes(username)
 
   top_key = nil
   stdout.each do |line|
-    if line.include?(':')
-      top_key, values  = line.split(':').map { |e| e.strip }
+    if line.include?(':') && !line.start_with?("\t")
+      top_key, values  = line.split(':', 2).map { |e| e.strip }
       values           = values.split(' ')
 
       results[top_key] = case
@@ -156,14 +156,23 @@ def report_cgroup_attributes(username)
                              nil
                            when values.length == 1
                              values.first
-                           when values.length.even? && values.first =~ /\A\D+.*/
+                           when values.length.even? && (values.first =~ /\A\D+.*/ || values.first.include?(':'))
                              Hash[*values]
+                           when values.length == 3 && values.first.include?(':')
+                             h = Hash.new {|h,k| h[k] = Hash.new }
+                             h[values[0]][values[1]] = values[2]
+                             h
                            else
                              values
                          end
     else
-      key, value            = line.strip.split(' ')
-      results[top_key][key] = value
+      values           = line.strip.split(' ')
+      case
+        when values.length == 2
+          results[top_key][values[0]] = values[1]
+        when values.length == 3 && values.first.include?(':')
+          results[top_key][values[0]][values[1]] = values[2]
+      end
     end
   end
   results
