@@ -3,6 +3,7 @@ require 'getoptlong'
 require 'pp'
 
 CTL_DISTRICT_COMMANDS = %w[list-available create add-node set-region unset-region deactivate-node activate-node remove-node add-capacity remove-capacity destroy publish-uids ]
+DEFAULT_PLATFORM = "Linux"
 
 def usage
   puts <<USAGE
@@ -106,7 +107,7 @@ zone     = args['--zone']
 size     = args['--size'] ? args['--size'].to_i : nil
 bypass   = args['--bypass']
 node_profile = args['--node_profile']
-platform = args['--platform'] ? args['--platform']:"Linux"
+platform = args['--platform'] ? args['--platform'] : DEFAULT_PLATFORM
 
 
 if !command && (args.length > 0)
@@ -211,11 +212,12 @@ begin
       end
     end
     collate_errors(server_identity, reply) do |server|
-      kernel = OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("kernel", server) {|_, _|}
-      if kernel.casecmp(district.attributes["platform"]) == 0
+      node_platform = OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("kernel", server) {|_, _|}
+      district_platform = district.attributes["platform"] || DEFAULT_PLATFORM
+      if node_platform.casecmp(district_platform) == 0
         district.add_node(server, region, zone)
       else
-        reply.resultIO << "Cannot add a node with platform '#{kernel}' to a district with platform '#{district.attributes["platform"]}'"
+        reply.resultIO << "Cannot add a node with platform '#{node_platform}' to a district with platform '#{district_platform}'"
       end
     end
   when "set-region"
