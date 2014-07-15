@@ -98,8 +98,8 @@ OpenShift Enterprise installations require access to Red Hat Subscription Manage
 === Portable Installer
 You can download a version of the online installer for use on a CD or USB drive. The latest versions of the portable packages are available at:
 
-* OpenShift Origin Portable: https://install.openshift.com/portable/oo-install-origin.zip
-* OpenShift Enterprise Portable: https://install.openshift.com/portable/oo-install-ose.zip
+* OpenShift Origin Portable: https://install.openshift.com/portable/oo-install-origin.tgz
+* OpenShift Enterprise Portable: https://install.openshift.com/portable/oo-install-ose.tgz
 
 To use these portable installers:
 
