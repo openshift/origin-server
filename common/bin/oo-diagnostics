@@ -1058,9 +1058,8 @@ class OODiag
     # Under certain circumstances they would not have the dominating MCS label
     # (s0-s0:c0.c1023) and not be able to affect gears.
     scl_root = @scl_prefix.empty? ? "" : "/opt/rh/ruby193/root"
-    context = `ps -o label= $(pgrep -f "ruby[^[:space:]]*[[:space:]]#{scl_root}/usr/sbin/mcollectived([[:space:]]|$)")`.chomp.split ":"
-    context.shift
-    context = context.join ":"
+    pid = `pgrep -f "ruby[^[:space:]]*[[:space:]]#{scl_root}/usr/sbin/mcollectived([[:space:]]|$)"`.chomp
+    context = File.read("/proc/#{pid}/attr/current").chomp("\0").split(':').drop(1).join(':')
     expected = "system_r:openshift_initrc_t:s0-s0:c0.c1023"
     unless context == expected
       do_fail <<-CONTEXT
