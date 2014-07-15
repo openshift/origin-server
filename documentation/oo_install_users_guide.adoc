@@ -27,105 +27,40 @@ The locations for the source code of this document and the `oo-install` utility 
 == Before You Begin
 This section covers some topics that will help you to have a successful OpenShift deployment. If you have jumped straight in with https://install.openshift.com/ and are having problems, look over this section to make sure you've got the basics covered.
 
-=== The Base OS Setup
-When you install Fedora, Red Hat Enterprise Linux or CentOS, you will be given the option to select a starting set of packages:
+Note that it is not necessary to run oo-install on your target system(s) for the OpenShift installation. For instance, it is completely possible to run oo-install from your dekstop system against servers that you have provisioned in the cloud. Consequently the pre-requisities are split between the "installer host" requirements and the "target host" requirements.
+
+=== Installer System Prerequisites
+The list of utilities required by the installer is as follows:
+
+* `curl`
+* `ruby` (1.8.7 or greater)
+* `ssh` (if you are deploying OpenShift to systems other than the installer host)
+* `tar`
+
+Most operating systems that provide a bash shell will include these utilities (with the possible exception of Ruby).
+
+=== Target System Prerequisties
+The follow sections describe the system requirements for a host that will be part of an OpenShift deployment.
+
+==== Supported OSes
+OpenShift Origin version 4 is supported on Red Hat Enterprise Linux (RHEL) 6.4 or higher and CentOS 6.4 or higher, 64 bit architecture only. This version is not supported on Fedora, RHEL 7.x or CentOS 7.x.
+
+When you install Red Hat Enterprise Linux or CentOS, you will be given the option to select a starting set of packages:
 
 image:os_minimal_install.png[image]
 
 *Be sure to select the "Minimal" installation.* This will ensure that the system does not contain any package incompatibilities with OpenShift.
 
-=== Utility Prerequisites
-This section explains the utilities that you will need to install on the various hosts that may be involved in your OpenShift installation. Install these before you run `oo-install` to avoid having to go back and set them up later.
-
-If you find a host system that is missing one of these required utilities, you can use `yum` to search for an appropriate RPM by running:
-
-----
-$ yum provides '*/<utility>'
-----
-
-Where "$$<utility>$$" is the name of the utility that you are looking to install.
-
-IMPORTANT: If you are using a Linux distribution that does not ship with `yum` and can't do software updates with `yum`, then chances are good this installer is not going to work for you.
-
-==== On the `oo-install` Host
-You can run the OpenShift installer from any computer that has the following utilities installed:
-
-* ruby (1.8.7 or greater)
-* curl
-* unzip
+There are no other utility prerequisites; oo-install will check for and offer to install the other utilities that it needs.
 
 [NOTE]
 ====
-The installer itself is designed to run pretty much anywhere, but if you are running the installer on the same host where you will be installing OpenShift, make sure you also look at the link:#on-the-target-hosts[Target Host requirements]. If you are doing an OpenShift Origin installation, also be sure to check out the link:#origin-specific-utilities[Origin-specific requirements].
+*Deployment Mechanisms* + 
+For the curious, OpenShift Origin uses a https://forge.puppetlabs.com/openshift/openshift_origin[Puppet module] for deployments while OpenShift Enterprise uses a https://github.com/openshift/openshift-extras/blob/enterprise-2.1/enterprise/install-scripts/generic/openshift.sh[kickstart script]. `oo-install`'s job is to take your input and translate it into configuration files that drive these tools.
 ====
 
-On most systems, you can install the base installer requirements by running:
-
-----
-$ yum install ruby unzip curl
-----
-
-If you want to run `oo-install` against a remote target host, you will also need the `ssh` client.
-
-==== On the Target Hosts
-The host systems where you will be installing OpenShift will need to have the following utilities:
-
-* yum
-* getenforce (part of http://en.wikipedia.org/wiki/Security-Enhanced_Linux[SELinux])
-
-NOTE: SELinux must be running in _Enforcing_ mode or _Permissive_ mode on every host system where OpenShift components will be installed.
-
-==== Origin-Specific Utilities
-If you are installing OpenShift Origin, you will also need to install the following utilities on your target host systems:
-
-* On all target hosts:
-** http://puppetlabs.com/[puppet]
-** augtool
-* On your Broker host:
-** dnssec-keygen
-** htpasswd
-
-NOTE: Additionally you will need to _remove_ `firewalld`. Origin uses a proxy that is incompatible with firewalld.
-
-*OpenShift Origin on RHEL and Derivatives* +
-If you are installing OpenShift Origin on RHEL6 or a derivative distribution (such as CentOS, Scientific Linux, etc.), you will need to set up two additional requirements on those host systems:
-
-* The https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F[EPEL yum repository]
-* The ruby193 http://developerblog.redhat.com/2013/01/28/software-collections-on-red-hat-enterprise-linux/[software collection (SCL)]
-
-To manually add the yum repos for EPEL and the ruby193 SCL, you can run the following commands as root on your target hosts.
-
-.EPEL
-----
-$ wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm <1>
-$ rpm -Uvh epel-release-6*.rpm
-----
-<1> Replace `x86_64` with `i386` for 32-bit systems
-
-.ruby193 SCL
-----
-$ cat > /etc/yum.repos.d/openshift-deps.repo <<"EOF"
-[openshift-deps]
-name=OpenShift Origin Dependencies - EL6
-baseurl=https://mirror.openshift.com/pub/openshift-origin/nightly/rhel-6/dependencies/$basearch/
-gpgcheck=0
-EOF
-----
-
-With the OpenShift Origin Dependencies repo set up, you can now install ruby 1.9.3 as follows and the oo-install script will utilize it where necessary.
-
-----
-$ yum install ruby193-ruby
-----
-
-=== Where Should I Run This?
-The `oo-install` utility can run on _any_ system that meets the minimum prerequisites link:#on-the-code-oo-install-code-host[mentioned above]. This is important to understand, because while you _can_ run the installer from your intended Broker host, you could just as easily run it from your own computer (as long as you have SSH access to the target host). As you are answering the installer's questions about where your Broker lives, it is actually useful to think of it the way that other hosts would see it, even if you are running the installer from the system where an OpenShift component will live.
-
-[TIP]
-====
-*Remote Installation* +
+==== Remote Installation
 If you are running the installer locally, but your OpenShift deployment will be installed on a remote system, you will need passwordless SSH access to your target host(s). "Passwordless" here means that either you are using an SSH key pair that was generated without a password, or that you are using a password manager like http://en.wikipedia.org/wiki/Ssh-agent[ssh-agent] to provide the password as necessary.
-====
 
 == Running the Installer
 The `oo-install` utility has been developed to function as a standalone application. However, the easiest way to run it is by using a "curl-to-shell" command to download and execute the latest version of the installer in a single step. This section describes running the curl-to-shell command and also how to run the installer from the source code.
@@ -194,11 +129,13 @@ The complete list of options is as follows:
 -a, --advanced-mode              Enable access to message server and db server customization.
 -c, --config-file FILEPATH       The path to an alternate config file
 -w, --workflow WORKFLOW_ID       The installer workflow for unattended deployment.
--l, --list-workflows             List workflow IDs available for use with unattended deployment.
+    --force                      Ignore workflow warnings and automatically install missing RPMs.
+-l, --list-workflows             List the workflow IDs for use with unattended deployment.
 -e, --enterprise-mode            Show OpenShift Enterprise options (ignored in unattended mode)
 -s, --subscription-type TYPE     The software source for installation packages.
 -u, --username USERNAME          Red Hat Login username
 -p, --password PASSWORD          Red Hat Login password
+    --use-existing-puppet        For Origin; do not attempt to install the Puppet module
 -d, --debug                      Enable debugging messages
 ----
 
@@ -216,6 +153,9 @@ $ sh <(curl -s https://install.openshift.com/) -w origin_deploy
 ----
 
 When you run the command this way, the installer will sanity check your deployment configuration, and if everything looks good it will run the specified workflow automatically.
+
+*--force* + 
+When you are using the `-w` flag, you can also include the `--force` flag; this tells oo-install to automatically install required RPMs (like `puppet` for Origin deployments) without asking the user.
 
 ==== -l / --list-workflows
 In order to use the `-w` option, you will need to see a list of the valid workflow IDs that are available. When you run the installer with this flag, it will print out the valid list of IDs and descriptions of each associated workflow.
@@ -245,10 +185,10 @@ See the comments on the '-u' option; this option would only be used under the sa
 Enabling 'debug' mode will cause the installer to periodically dump out large volumes of information about the SSH sessions that it attempts to establish as it runs. This can be useful for debugging remote deployments.
 
 == Configuring Your Deployment
-When you run the installer for the first time, you will be asked to describe a number of items related to the OpenShift deployment that you want to set up. This whole process should be pretty self-explanatory, but here are some notes about the three main facets of the configuration process.
+When you run the installer for the first time, you will be asked to describe a number of items related to the OpenShift deployment that you want to set up. This whole process should be pretty self-explanatory, but here are some notes about the main facets of the configuration process.
 
 === DNS
-When you use `oo-install` to deploy OpenShift, the installer configures a http://en.wikipedia.org/wiki/BIND[BIND] server to run on the same host where the Broker will run. The primary function of this BIND instance is to provide lookup information for applications that are created by the users of your OpenShift system.
+When you use `oo-install` to deploy OpenShift, the installer offers to configure a http://en.wikipedia.org/wiki/BIND[BIND] server to run on one of the same hosts where a Broker will run. The primary function of this BIND instance is to provide lookup information for applications that are created by the users of your OpenShift system, but it can also be configured to support a separate zone for the openshift hosts themselves.
 
 ==== Registering OpenShift Hosts with the OpenShift DNS Instance
 Depending on your lab setup, you may already have a DNS solution in place for your host systems. If not, you can opt to register your OpenShift hosts with the Broker's BIND server. This enables the hosts to look each other up by name in an environment where they may not be able to do name lookups otherwise.
@@ -273,30 +213,30 @@ For instance, if your domain is "mycompany.com", you might use:
 * `openshift.mycompany.com` for your OpenShift hosts domain
 
 ==== Interacting with the OpenShift DNS Instance
-After installation, the Broker-based DNS server can be used separately from a larger DNS infrastructure, or easily configured to work in concert with one. See the link:#post-install-tasks[Post-Install Tasks] section for more on this.
+After installation, the Broker-based DNS server can be used separately from a larger DNS infrastructure, or easily configured to work in concert with one. See the link:#appendix-tying-in-openshift-dns-with-upstream-dns[Appendix] for more on this.
 
 === Host and Roles
 After you have set the DNS configuration, you will be guided through the process of describing the hosts where OpenShift will be installed.
 
-`oo-install` sees OpenShift deployments as a collection of hosts that have been assigned to certain roles. All of the roles can be assigned to a single host (an "all-in-one" deployment), or they can be distributed each to a different host.
+`oo-install` sees OpenShift deployments as a collection of hosts that have been assigned to certain roles. All of the roles can be assigned to a single host (an "all-in-one" deployment), or they can be distributed to different hosts. Furthermore, all of the roles can be assigned to _more than one host_ to configure a High Availability deployment. See the High Availability Deployments topic for more on this.
 
 ==== Roles Summarized
 There are four roles that a host can perform in an OpenShift deployment: Broker, DBServer, MsgServer and Node.
 
 ===== Broker
-The Broker role consists of the OpenShift Broker RPMs, an MCollective client, and a BIND DNS service. The host where the Broker is installed is the central hub of the OpenShift deployment, and provides a web interface where users can manage their hosted applications. Currently, one Broker per deployment is supported by `oo-install`.
+The Broker role consists of the OpenShift Broker RPMs and an MCollective client. The Broker serves as a central hub of the OpenShift deployment, and provides a web interface where users can manage their hosted applications.
 
 ===== DBServer
-This role consists of the MongoDB database that the Broker uses to track users and applications. Currently, one DBServer per deployment is supported by `oo-install`.
+This role consists of the MongoDB database that the Broker uses to track users and applications.
 
 ===== MsgServer
-The MsgServer role comprises the ActiveMQ server plus an MCollective client. Currently, one MsgServer per deployment is supported by `oo-install`.
+The MsgServer role comprises the ActiveMQ server plus an MCollective client.
 
 ===== Node
-The Node role is assigned to any host that will actually be used to store and serve OpenShift-hosted applications. `oo-install` supports the deployment of multiple Nodes during an installation, and a separate workflow supports the ability to add a new Node to an existing OpenShift deployment.
+The Node role is assigned to any host that will actually be used to store and serve OpenShift-hosted applications. `oo-install` supports the deployment of Nodes as part of an initial installation and as part of a workflow to add a new Node to an existing OpenShift deployment.
 
 ==== OpenShift Hosts
-The installer is going to guide you through the process of gathering the following information about each host that you are going to use in your deployment.
+The installer guides you through the process of gathering the following information about each host that you are going to use in your deployment.
 
 ===== Host Name
 This should be pretty self-explanatory. The installer is looking for the fully qualified domain name (FQDN) of the host. If you provided an OpenShift hosts domain during link:#dns[DNS] configuration, you can get away with typing just the hostname here and the installer will append the rest for you.
@@ -404,14 +344,72 @@ Which will additionally provide each interfaces current IP address assignment (i
     link/ether f1:f1:f1:f1:f1:f1 brd ff:ff:ff:ff:ff:ff
 ----
 
+===== Service Accounts
+Finally, all hosts get configured with service account information. Unlike other settings that are unique to each host, `oo-install` ensures that the service account parameters are identical across the deployment. The following items comprise the service account settings and their default values:
+
+* `mcollective_user`: mcollective
+* `mcollective_password`: (randomly generated)
+* `mongodb_broker_user`: openshift
+* `mongodb_broker_password`: (randomly generated)
+* `mongodb_admin_user`: admin
+* `mongodb_admin_password`: (randomly generated)
+* `openshift_user`: demo
+* `openshift_password`: (randomly generated)
+
+Any time you modify a host in your deployment, `oo-install` gives you an opportunity to revisit these values. Note however that once you have done an initial deployment, `oo-install` is not capable of _changing_ the values.
+
 ==== Basic and Advanced Role Deployment
-By default, the installer runs in 'basic' mode. In basic mode, the installer automatically assigns the link:#dbserver[DBServer] and link:#msgserver[MsgServer] roles to the same host where the Broker is assigned. If you need more flexibility, you can be override 'basic' mode by passing the link:#a-advanced-mode[-a] argument to the installer command.
+By default, the installer runs in 'basic' mode. In basic mode, the installer automatically assigns the link:#dbserver[DBServer] and link:#msgserver[MsgServer] roles to the same host where the Broker is assigned. If you need more flexibility, you can override 'basic' mode by passing the link:#a-advanced-mode[-a] argument to the installer command.
 
 [NOTE]
 ====
 *Moving Roles Between Hosts* +
-Up until the point where you actually deploy the OpenShift configuration that you are describing, you will have the opportunity to move roles between the host instances that you have defined. In 'basic' mode, moving the Broker role implicitly moves the DBServer and MsgServer roles, as well.
+Up until the point where you actually deploy the OpenShift configuration that you are describing, you will have the opportunity to move roles between the host instances that you have defined. In 'basic' mode, moving a Broker role implicitly moves a DBServer and MsgServer role, as well.
 ====
+
+=== High Availability Deployments
+For low-volume and Proof-of-Concept Origin deployments, you can deploy OpenShift with a single Broker, DBServer and MsgServer role. However, `oo-install` also supports thedeployment and configuration of High Availibility options for each of these roles. During your deployment configuration, if you specify more than one host as a Broker, DBServer or MsgServer, `oo-install` will automatically configure the additional services and settings necessary for high availability.
+
+[TIP]
+====
+*Best Practices: The Rule of Three* + 
+While `oo-install` will allow you to deploy HA services with any number of members, the most predictable results are had with _three instances_ of the Broker, DBServer and MsgServer roles. An openshift deployment that uses three of each of these roles can scale to a very large number of supported Nodes and a significantly larger number of applications while adding a powerful but manageable amount of fault-tolerance.
+====
+
+==== HA Brokers
+When you use `oo-install` to deploy OpenShift Enterprise, it is up to you to decide how to coordinate the Brokers to act as a highly available cluster. OpenShift Origin deployments solve this by deploying and configuring a simple web proxy to dynamically dispatch Broker requests to one of your Brokers.
+
+===== Web Proxy Configuration (Origin Only)
+You will be asked to provide a virtual Broker hostname and virtual Broker IP address to use. These values are used by an http://www.haproxy.org/[HAProxy] server that is installed on the Broker host of your choice. If you are also using OpenShift's DNS to do name resolution for your host systems, this virtual name / IP combination will be added to that configuration as well.
+
+[NOTE]
+====
+*Picking a Virtual IP Address That Will Work* + 
+If you are just experimenting with high-availability Brokers, then the easiest way to ensure that your Broker virtual IP address is going to work is to make sure that it is part of the same _subnet_ as the rest of your OpenShift hosts. Adding custom IP routes to handle a virtual IP address that is not part of the same subnet is outside of the scope of this document.
+====
+
+===== Coordinating Authentication
+Installations that are deployed with `oo-install` use basic HTTP-based authentication, which is driven by the `/etc/openshift/htpasswd` file on the Broker host system. If you are deploying multiple Brokers, you will either need to ensure that all Broker `htpasswd` files are kept in sync, or you may want to switch to a different authentication option after the installation is done. If you want a different authentication method from the outset, consider using the OpenShift Origin Puppet module directly.
+
+==== HA DBServers
+OpenShift uses MongoDB to manage user and host application information. MongoDB has native replica set support, which `oo-install` can configure for you. When you declare more than one DBServer system in an OpenShift deployment, the installer will ask you to choose which host will be the primary, and the rest of the work is done for you.
+
+==== HA MsgServers
+OpenShift uses ActiveMQ to handle inter-host messaging, and ActiveMQ has native support for failover clustering. This doesn't require any special configuration input from user. If you specify more than one MsgServer host, failover clustering is automatically instantiated.
+
+=== Gear Sizes
+The installer will ask about three settings related to gear sizes. If you are not familiar with this concept, refer to the http://openshift.github.io/documentation/oo_administration_guide.html#set-default-gear-quotas-and-sizes[User Resource Management] section of the Administrators Guide.
+
+The installer configures these settings with the indicated defaults:
+
+* `valid_gear_sizes` - specifies _all_ gear sizes that the current OpenShift Origin installation supports: "small,medium,large"
+* `user_default_gear_sizes` - specifies the sizes of gears available to all users upon user creation: "small,medium"
+* `default_gear_size` - specifies the size of gear that a new hosted app will get by default: "small"
+
+The actual specifics about what each "gear size" means can be adjusted after installation is completed.
+
+=== Node Districts
+The installer also gathers information about the http://openshift.github.io/documentation/oo_administration_guide.html#capacity-planning-and-districts[Node Districts] that you would like to deploy. As of Origin version 4, it is no longer possible to deploy a Node host without associating it with a Node District. By default, the install will create a single Node District called "Default" that is associated with the "small" gear size.
 
 === Subscription
 At this point, all that remains to configure your OpenShift deployment is to tell `oo-install` where you would like to get your OpenShift RPMs from. Refer to the notes on the link:#s-subscription-type-type[-s / --subscription-type] command-line argument for an explanation of your options.
@@ -432,23 +430,12 @@ After the installer gives you the opportunity to work with subscription settings
 ==== Subscription Notes for OpenShift Origin
 The most common subscription method for Origin is `yum`, and the current known good repos to use are these:
 
-* The base URL for the OpenShift repositories:
-** For Fedora target systems: `https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-19`
-** For RHEL6 target systems: `https://mirror.openshift.com/pub/openshift-origin/nightly/rhel-6`
-* The base URL for a Jenkins repository: `http://pkg.jenkins-ci.org/redhat`
+* `repos_base` - The base URL for the OpenShift repositories: https://mirror.openshift.com/pub/origin-server/release/4/rhel-6/
+* `jenkins_repo_base` - The base URL for the Jenkins repository: http://pkg.jenkins-ci.org/redhat
+* `os_optional_repo` - The EPEL repo: http://download.fedoraproject.org/pub/epel/6/$basearch
+* `puppet_repo_rpm` - The Puppet Labs repo RPM: http://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm
 
-[WARNING]
-====
-The installer provides the *Fedora* repo for the base URL in new configuration files. If you are:
-
-* Installing OpenShift Origin onto RHEL hosts +
-+
-and +
-+
-* Using the "yum" subscription method
-
-...then you will need to explicitily change your base URL value to the *RHEL* repo provided above.
-====
+These values are provided by default in the configuration file that ships with the installer.
 
 == Pre-flight Checking and Installation
 Once you've configured DNS, Hosts and Roles, and Subscription information, the installer will do a sanity check of the entire deployment. Specifically, for each host that you've described, the installer checks the following:
@@ -458,31 +445,44 @@ Once you've configured DNS, Hosts and Roles, and Subscription information, the i
 * Is the host's system type supported by the installer?
 * Does the host have the necessary utilities installed for the selected installation task? (see link:#utility-prerequisites[Utility Prerequisites])
 
+The installer will offer to install missing packages that are required for deployment. Most notably for OpenShift Origin, the installer will offer to install Puppet if puppet is not found on the target system(s).
+
 === Failing Pre-Flight?
 If your deployment fails pre-flight, don't panic. Have a look at what the error messages are telling you about missing utilities and SSH connection issues (these are the largest causes of preflight failure).
 
 TIP: It is completely safe to rerun the installer if it fails preflight, and if you are totally stumped, link:index.html#discussion-forums[get in touch with us so that we can help!]
 
 === Installing (Grab Some Tea)
-Once the pre-flight inspection is complete, the installer hands control of the installation off to a $$'workflow executable'$$. The workflow executable's job is to transform the configuration that you've described into instructions for deploying your OpenShift. The entire installation process can take anywhere from 10 to 45 minutes. During the process, you will see a fairly constant stream of information scrolling by in your command terminal.
+Once the pre-flight inspection is complete, the installer hands control of the installation off to a $$'workflow executable'$$. The workflow executable's job is to transform the configuration that you've described into instructions for deploying your OpenShift. The entire installation process can take anywhere from 10 to 45 minutes. During the process, you will see a fairly constant stream of information scrolling by in your command terminal. Additionally, once the installation work begins on each host, you can watch the progress from their perspective by tailing the installer log file:
 
-=== Reboot
-When the process is completed, you will need to manually reboot the server(s) where you've deployed it. The recommended order is:
-
-* DBServer
-* MsgServer
-* Broker
-* Node(s)
-
-In situations where more than one role resides on a given host, you only need to reboot that host once.
-
-*Why doesn't `oo-install` reboot for me?* +
-The main reason is that the installer was built to be mindful of production environments. If you happen to be installing OpenShift on hosts that are providing other mission-critical services, you probably want to defer that reboot until you can set up a low-impact maintenance window.
-
-NOTE: Be aware that OpenShift will not work properly until the OpenShift hosts are rebooted.
+----
+$ tail -f /tmp/openshift-deploy.log
+----
 
 == Post-Install Tasks
-After the OpenShift installation is complete, you will need to make some DNS changes to interact with any OpenShift-hosted applications that you create. Here you have two options: a temporary, per-client solution or a permanent system-wide solution.
+After the OpenShift installation is complete, the installer will attempt to perform several necessary post-install tasks for you:
+
+1. Restarting services in the necessary order for inter-host communication
+2. If appropriate, preforming the MongoDB replica set configuration on your speficied master DBServer
+3. Configuring the Node District(s) that you sepcified
+4. Registering the supported cartridges with your Broker(s)
+
+If the installer encounters any failures at this point, they are most likely due to http://en.wikipedia.org/wiki/Race_condition[race conditions] between services on separate hosts. In these cases the installer will instruct you about what post-install steps remain.
+
+TIP: Rebooting OpenShift hosts is no longer necessary as a post-install action. `oo-install` has been improved to handle service restarts in a dependency-based order.
+
+== Using and Administering Your New OpenShift System
+Once your system is up and running, your work with `oo-install` is complete. You cannot use `oo-install` to reconfigure your deployment, though you _can_ use it to add Node hosts to your deployment.
+
+From here, you can learn more about the management and operation of OpenShift from the following guides:
+
+* link:oo_administration_guide.html[OpenShift Administration Guide]
+* link:oo_cartridge_guide.html[OpenShift Cartridge Guide]
+* link:oo_troubleshooting_guide.html[OpenShift Troubleshooting Guide]
+
+And don't be afraid to reach out to link:index.html#discussion-forums[the community] for more help!
+
+== Appendix: Tying in OpenShift DNS with upstream DNS
 
 === Temporary DNS Integration
 These instructions will enable you to set up temporary DNS integration on a Linux system. You can use this information as a guideline for accomplishing similar results on client systems running other operating systems.
@@ -553,13 +553,3 @@ NOTE: Between you and us, we don't know why you couldn't just put the IP in the 
 
 The OpenShift nameserver can then go on to define subdomains, for instance `hosts.openshift.example.com` and `apps.openshift.example.com`, as it is the master of this (sub)domain.
 
-== Using and Administering Your New OpenShift System
-Once your system is up and running, your work with `oo-install` is complete. You cannot use `oo-install` to reconfigure your deployment, though you _can_ use it to add Node hosts to your deployment.
-
-From here, you can learn more about the management and operation of OpenShift from the following guides:
-
-* link:oo_administration_guide.html[OpenShift Administration Guide]
-* link:oo_cartridge_guide.html[OpenShift Cartridge Guide]
-* link:oo_troubleshooting_guide.html[OpenShift Troubleshooting Guide]
-
-And don't be afraid to reach out to link:index.html#discussion-forums[the community] for more help!
