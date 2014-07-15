@@ -440,7 +440,7 @@ action 'cartridge_repository', :description => 'perform given operation on a car
         :optional    => true,
         :maxlength   => 2056
 
-  input :name,
+  input :cartridge_vendor,
         :prompt      => 'Cartridge Vendor',
         :description => 'Cartridge Vendor of Cartridge to Remove',
         :type        => :string,
@@ -471,6 +471,13 @@ action 'cartridge_repository', :description => 'perform given operation on a car
         :validation  => '^\d+[\\.\d]*$',
         :optional    => true,
         :maxlength   => 64
+
+  input :force,
+        :prompt      => 'Force erase',
+        :description => 'Force erasing cartridge',
+        :type        => :list,
+        :optional    => true,
+        :list        => %w(true false)
 end
 
 action "echo", :description => "echo's a string back" do

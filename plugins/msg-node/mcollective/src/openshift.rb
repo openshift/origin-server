@@ -1339,29 +1339,31 @@ module MCollective
       def cartridge_repository_action
         action            = request[:action]
         path              = request[:path]
-        vendor            = request[:vendor]
+        vendor            = request[:cartridge_vendor] || 'redhat'
         name              = request[:name]
         version           = request[:version]
         cartridge_version = request[:cartridge_version]
+        force             = request[:force] == 'true' ? true : false
 
-        reply[:output] = "#{action} succeeded for #{path}"
         begin
           case action
             when 'install'
               ::OpenShift::Runtime::CartridgeRepository.instance.install(path)
+              reply[:output] = "#{action} succeeded for #{path}"
             when 'erase'
-              ::OpenShift::Runtime::CartridgeRepository.instance.erase(vendor, name, version, cartridge_version)
+              ::OpenShift::Runtime::CartridgeRepository.instance.erase(vendor, name, version, cartridge_version, force)
+              reply[:output] = "#{action} succeeded for (#{vendor}, #{name}, #{version}, #{cartridge_version})"
             when 'list'
               reply[:output] = ::OpenShift::Runtime::CartridgeRepository.instance.to_s
             else
-              reply.fail(
-                  "#{action} is not implemented. openshift.ddl may be out of date.",
-                  2)
+              reply.fail("#{action} is not implemented. openshift.ddl may be out of date.", 2)
               return
           end
         rescue Exception => e
           report_exception(request.uniqid, nil, e)
-          reply.fail!("#{action} failed for #{path} #{e.message}", 4)
+          reply.fail!(
+              "#{action} failed for #{path ? path : %Q[(#{vendor}, #{name}, #{version}, #{cartridge_version})]} #{e.message}",
+              4)
         end
       end
 
