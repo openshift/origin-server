@@ -38,13 +38,14 @@
 # @!attribute [r] usage_account_id
 #   @return [String] Account ID
 class RestUser < OpenShift::Model
-  attr_accessor :id, :login, :email, :consumed_gears, :capabilities, :plan_id, :plan_state, :plan_expiration_date, :plan_quantity, :usage_account_id, :links, :max_gears, :max_domains, :created_at, :usage_rates, :max_teams
+  attr_accessor :id, :login, :email, :consumed_gears, :capabilities, :plan_id, :plan_state, :plan_expiration_date, :plan_quantity, :usage_account_id, :links, :max_gears, :max_domains, :created_at, :usage_rates, :currency_cd, :max_teams
 
   def initialize(cloud_user, url, nolinks=false)
     [:id, :login, :email, :consumed_gears, :plan_id, :plan_state, :plan_expiration_date, :plan_quantity, :usage_account_id, :created_at].each{ |sym| self.send("#{sym}=", cloud_user.send(sym)) }
 
     self.capabilities = cloud_user.capabilities.serializable_hash
     self.usage_rates = cloud_user.usage_rates
+    self.currency_cd = cloud_user.currency_cd
     self.max_gears = cloud_user.max_gears
     self.max_domains = cloud_user.max_domains
     self.max_teams = cloud_user.max_teams
