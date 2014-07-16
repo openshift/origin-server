@@ -148,10 +148,10 @@ task :package do
       :include_hangouts => false,
       :docs_version => 'Version Latest'
     },
-    { :branch => 'openshift-origin-release-3',
+    { :branch => 'master',
       :site_dir => 'documentation',
       :include_hangouts => true,
-      :doc_version => 'Version 3.0'
+      :doc_version => 'Version 4.0'
     },
   ]
 
