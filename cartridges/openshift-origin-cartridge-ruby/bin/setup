@@ -49,6 +49,8 @@ if [ $version == '2.0' ]; then
 
     ld_path=$(LD_LIBRARY_PATH="" scl enable ruby200 ror40 "printenv LD_LIBRARY_PATH")
     set_env_var 'OPENSHIFT_RUBY_LD_LIBRARY_PATH_ELEMENT' $ld_path $env_dir
+    # Standard ENV var for the SECRET > rails 4.0
+    set_env_var 'SECRET_KEY_BASE' $OPENSHIFT_SECRET_TOKEN $env_dir
     scl enable ruby200 ror40 "printenv MANPATH"         > $OPENSHIFT_RUBY_DIR/env/MANPATH
 
 
