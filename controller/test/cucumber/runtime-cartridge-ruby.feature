@@ -16,3 +16,7 @@ Feature: Ruby Cartridge
     Scenarios: r1.9
       | cart_version | label     | proc_name |
       |      1.9     | Passenger | ruby      |
+
+    Scenarios: r2.0
+      | cart_version | label     | proc_name |
+      |      2.0     | Passenger | ruby      |
