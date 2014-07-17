@@ -1,6 +1,8 @@
 %if 0%{?fedora}%{?rhel} <= 6
-    %global scl ruby193
-    %global scl_prefix ruby193-
+    %global scl19 ruby193
+    %global scl19_prefix ruby193-
+    %global scl20 ruby200
+    %global scl20_prefix ruby200-
 %endif
 
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
@@ -29,21 +31,42 @@ Requires:      rubygems
 # need to declare the dependency here
 Requires:      ruby-rdoc
 Requires:      rubygem-thread-dump
-Requires:      %{?scl:%scl_prefix}rubygem-fastthread
-Requires:      %{?scl:%scl_prefix}runtime
+Requires:      %{?scl19:%scl19_prefix}rubygem-fastthread
+Requires:      %{?scl19:%scl19_prefix}runtime
 %endif
-Requires:      %{?scl:%scl_prefix}js
-Requires:      %{?scl:%scl_prefix}mod_passenger
-Requires:      %{?scl:%scl_prefix}ruby
-Requires:      %{?scl:%scl_prefix}ruby-libs
-Requires:      %{?scl:%scl_prefix}rubygem-bundler
-Requires:      %{?scl:%scl_prefix}rubygem-passenger
-Requires:      %{?scl:%scl_prefix}rubygem-passenger-devel
-Requires:      %{?scl:%scl_prefix}rubygem-passenger-native
-Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
-Requires:      %{?scl:%scl_prefix}rubygems
+
+# For ruby-2.0.0 SCL
+Requires:      %{?scl20:%scl20_prefix}ruby
+Requires:      %{?scl20:%scl20_prefix}ruby-libs
+Requires:      %{?scl20:%scl20_prefix}ruby-devel
+Requires:      %{?scl20:%scl20_prefix}runtime
+Requires:      %{?scl20:%scl20_prefix}rubygems
+# 'ror40' collection is needed to get the rubygems in ruby 2.0
+Requires:      ror40
+#
+Requires:      %{?scl20:%scl20_prefix}rubygem-passenger
+Requires:      %{?scl20:%scl20_prefix}rubygem-passenger-devel
+Requires:      %{?scl20:%scl20_prefix}rubygem-passenger-native
+Requires:      %{?scl20:%scl20_prefix}rubygem-passenger-native-libs
+Requires:      %{?scl20:%scl20_prefix}mod_passenger
+
+# For ruby-1.9.3 SCL
+Requires:      %{?scl19:%scl19_prefix}js
+Requires:      %{?scl19:%scl19_prefix}mod_passenger
+Requires:      %{?scl19:%scl19_prefix}ruby
+Requires:      %{?scl19:%scl19_prefix}ruby-libs
+Requires:      %{?scl19:%scl19_prefix}rubygem-bundler
+Requires:      %{?scl19:%scl19_prefix}rubygem-passenger
+Requires:      %{?scl19:%scl19_prefix}rubygem-passenger-devel
+Requires:      %{?scl19:%scl19_prefix}rubygem-passenger-native
+Requires:      %{?scl19:%scl19_prefix}rubygem-passenger-native-libs
+Requires:      %{?scl19:%scl19_prefix}rubygems
+
+
 Provides:      openshift-origin-cartridge-ruby-1.8 = 2.0.0
 Provides:      openshift-origin-cartridge-ruby-1.9-scl = 2.0.0
+Provides:      openshift-origin-cartridge-ruby-2.0-scl = 2.0.0
+
 Obsoletes:     openshift-origin-cartridge-ruby-1.8 <= 1.99.9
 Obsoletes:     openshift-origin-cartridge-ruby-1.9-scl <= 1.99.9
 BuildArch:     noarch

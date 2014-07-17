@@ -48,3 +48,4 @@ Feature: Cartridge Lifecycle Ruby Verification Tests
       | cart_name |
       | ruby-1.8  |
       | ruby-1.9  |
+      | ruby-2.0  |

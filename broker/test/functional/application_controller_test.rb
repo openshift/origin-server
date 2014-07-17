@@ -198,7 +198,7 @@ class ApplicationControllerTest < ActionController::TestCase
 
     post :create, {"name" => @app_name, "cartridges" => CartridgeCache.find_all_cartridges('ruby').map(&:name), "domain_id" => @domain.namespace, "scale" => true}
     assert_response :unprocessable_entity
-    json_messages{ |ms| assert ms.any?{ |m| m['text'].include? "ruby-1.8 cannot co-exist with ruby-1.9 in the same application" }, ms.inspect }
+    json_messages{ |ms| assert ms.any?{ |m| /ruby-(1.8|1.9|2.0) cannot co-exist with ruby-(1.8|1.9|2.0) in the same application/.match(m['text'])  }, ms.inspect }
   end
 
   test "set app configuration on create" do
@@ -1245,7 +1245,7 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"name" => @app_name, "cartridge" => [php_version, {"url" => "manifest://test"}], "domain_id" => @domain.namespace, "scale" => true}
     assert_response :success
   end
-  
+
   test "invalid region" do
     post :create, {"domain_id" => @domain.namespace, "name" => "invlidregion#{@random}", "cartridge" => php_version, "region" => "bogus"}
     assert_response :unprocessable_entity

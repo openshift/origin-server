@@ -1,8 +1,10 @@
-LoadModule passenger_module modules/mod_passenger.so
+LoadModule passenger_module /usr/lib64/httpd/modules/ruby200-mod_passenger.so
+
 <IfModule mod_passenger.c>
-   PassengerRoot NativelyPackaged
-   PassengerRuby /usr/bin/ruby
-   PassengerSpawnMethod conservative
+   PassengerRoot /opt/rh/ruby200/root/usr/share/gems/gems/passenger-4.0.18/lib/phusion_passenger/locations.ini
+   PassengerRuby /opt/rh/ruby200/root/usr/bin/ruby
+   # As of Phusion Passenger 4.0, conservative spawning was renamed to direct
+   PassengerSpawnMethod direct
 </IfModule>
 
 ServerRoot "<%= ENV['OPENSHIFT_RUBY_DIR'] %>"
@@ -19,9 +21,12 @@ CustomLog "|tee" combined
 
 PassengerUser <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>/
-PassengerSpawnIPAddress <%= ENV['OPENSHIFT_RUBY_IP'] %>
-PassengerUseGlobalQueue off
 PassengerTempDir /tmp/passenger
+
+<% if ENV['RAILS_ENV'] == "development" %>
+PassengerLogLevel 1
+<% end %>
+
 <Directory <%= ENV['OPENSHIFT_REPO_DIR'] %>/public/>
     AllowOverride All
     Options -Multiviews
