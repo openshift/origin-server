@@ -1,10 +1,10 @@
 NAME
-  oo-admin-cartridge 
-  
+  oo-admin-cartridge
+
 SYNOPSIS
   oo-admin-cartridge --action install [--recursive] [--mco] [--source directory]
-  oo-admin-cartridge --action erase   [--mco] --name NAME --version VERSION --cartridge_version VERSION
-  oo-admin-cartridge --action list    [--mco] 
+  oo-admin-cartridge --action erase   [--mco] --cartridge_vendor VENDOR --name NAME --version VERSION --cartridge_version VERSION [--force]
+  oo-admin-cartridge --action list    [--mco]
 
 DESCRIPTION
   oo-admin-cartridge provides OpenShift Operators the ability to update and maintain a Cartridge Repository
@@ -15,41 +15,45 @@ DESCRIPTION
   all the cartridge in /usr/libexec/openshift/cartridges to be installed in the cartridge repository.
 
 OPTIONS
-  -h|--help  
+  -h|--help
     Display a simple help menu.
 
-  -d|--debug  
+  -d|--debug
     Provide additional output.
 
 COMMANDS
-  --action ACTION  
+  --action ACTION
     install copies the cartridge source found at the directory provided by --source into the cartridge repository
     erase   removes the named version of the cartridge from the cartridge repository. It is up to the OpenShift Operator
             to determine the version of the cartridge is not being used in any gear.
     list    list the cartridge versions installed in the cartridge repository
 
-  --recursive  
+  --recursive
     The source directory provided contains cartridge source directories, rather than pointing to one cartridge
 
-  --mco  
+  --mco
     Use the mcollective mco agent to update the cartridge repository.
 
-  --name NAME --version VERSION --cartridge_version VERSION  
-    When erasing a cartridge from the cartridge repository you must provide the exact version to remove.
+  --cartridge_vendor VENDOR --name NAME --version VERSION --cartridge_version VERSION
+    When erasing a cartridge from the cartridge repository you must provide the exact version to remove. 'redhat' is the
+    default VENDOR.
+
+  --force
+    Override verifications before erasing cartridge from repository
 
 CONFIGURATION
-  /usr/libexec/openshift/cartridges  
+  /usr/libexec/openshift/cartridges
     default source directory
-  /var/lib/openshift/.cartridge_repository  
+  /var/lib/openshift/.cartridge_repository
     directory for storing cartridge repository
 
 EXAMPLE
-  # oo-admin-cartridge --action install --recursive --source /usr/libexec/openshift/cartridges  
+  # oo-admin-cartridge --action install --recursive --source /usr/libexec/openshift/cartridges
     Install all current cartridges into cartridge repository
-  # oo-admin-cartridge --action list  
+  # oo-admin-cartridge --action list
     List all versions of all cartridges install in cartridge repository
-  
+
 SEE ALSO
 
 AUTHOR
-  Jhon Honce <jhonce@redhat.com> - man page written for OpenShift Origin 
+  Jhon Honce <jhonce@redhat.com> - man page written for OpenShift Origin
