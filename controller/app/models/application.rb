@@ -1911,7 +1911,10 @@ class Application
 
     gear_id_prereqs.each_key do |gear_id|
       prereq = gear_id_prereqs[gear_id].nil? ? [] : [gear_id_prereqs[gear_id]]
-      ops << UpdateAppConfigOp.new(gear_id: gear_id, prereq: prereq, recalculate_sshkeys: true, add_env_vars: env_vars, config: (self.config || {}))
+      op = UpdateAppConfigOp.new(gear_id: gear_id, prereq: prereq, recalculate_sshkeys: true, add_env_vars: env_vars, config: (self.config || {}))
+      ops << op
+      update_app_config_op_id = op._id.to_s
+      gear_id_prereqs[gear_id] = update_app_config_op_id
     end
 
     # Add broker auth for non scalable apps
@@ -1924,7 +1927,8 @@ class Application
     user_vars_op_id = nil
     # FIXME this condition should be stronger (only fired when env vars are specified OR other gears already exist)
     if maybe_notify_app_create_op.empty? || user_env_vars.present?
-      op = PatchUserEnvVarsOp.new(group_instance_id: ginst_id, user_env_vars: user_env_vars, push_vars: true, prereq: [ops.last._id.to_s])
+      prereq = gear_id_prereqs[app_dns_gear_id].nil? ? [ops.last._id.to_s] : [gear_id_prereqs[app_dns_gear_id]]
+      op = PatchUserEnvVarsOp.new(group_instance_id: ginst_id, user_env_vars: user_env_vars, push_vars: true, prereq: prereq)
       ops << op
       user_vars_op_id = op._id.to_s
     end
