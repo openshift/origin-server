@@ -30,6 +30,7 @@ module OpenShift
   autoload :Syslog,                    'openshift/syslog'
 
   autoload :UserActionLog,             'openshift/user_action_log'
+  autoload :Username,                  'openshift/username'
   autoload :UsageAuditLog,             'openshift/usage_audit_log'
 end
 

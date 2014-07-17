@@ -34,7 +34,7 @@ class MembersController < BaseController
         if m[:id].present?
           user_ids[m[:id].to_s] = [role, i]
         elsif m[:login].present?
-          user_logins[m[:login].to_s] = [role, i]
+          user_logins[CloudUser.normalize_login(m[:login])] = [role, i]
         else
           errors << Message.new(:error, "Each user being changed must have an id or a login.", 1, nil, i)
         end
@@ -157,7 +157,7 @@ class MembersController < BaseController
         if m[:id].present?
           ids << m[:id].to_s
         elsif m[:login].present?
-          logins << m[:login].to_s
+          logins << CloudUser.normalize_login(m[:login])
         else
           return render_error(:unprocessable_entity, "Each member must have an id or a login.", 1)
         end
