@@ -58,7 +58,7 @@ class CloudUser
   index({:login => 1}, {:unique => true})
   index({'pending_op_groups.created_at' => 1})
 
-  scope :with_identity_id, lambda{ |id| where(login: id) }
+  scope :with_identity_id, lambda{ |id| where(login: normalize_login(id)) }
   scope :with_identity, lambda{ |provider, uid| with_identity_id(uid) }
   # Will become as follows when identities are present
   #
@@ -146,13 +146,17 @@ class CloudUser
     end.find_by
   end
 
+  def self.normalize_login(login)
+    OpenShift::Username.normalize(login.to_s)
+  end
+
   #
   # Identity support will introduce a provider attribute that is used to
   # identify the source of a particular login.  Until then, users are only
   # identified by their login and provider is ignored.
   #
   def self.find_or_create_by_identity(provider, login, create_attributes={}, &block)
-    login = login.to_s
+    login = normalize_login(login)
     provider = provider.to_s if provider
     user = find_by_identity(nil, login)
     #identity = user.current_identity!(provider, login)
@@ -177,6 +181,7 @@ class CloudUser
   end
 
   def self.with_ids_or_logins(ids, logins)
+    logins.map! {|login| normalize_login(login)}
     if ids.present?
       if logins.present?
         self.or({:_id.in => ids}, {:login.in => logins})

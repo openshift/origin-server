@@ -111,7 +111,8 @@ Broker::Application.configure do
     :default_max_untracked_addtl_storage_per_gear => (conf.get("DEFAULT_MAX_UNTRACKED_ADDTL_STORAGE_PER_GEAR", "0")).to_i,
     :default_max_tracked_addtl_storage_per_gear => (conf.get("DEFAULT_MAX_TRACKED_ADDTL_STORAGE_PER_GEAR", "0")).to_i,
     :default_region_name => conf.get("DEFAULT_REGION_NAME", ""),
-    :allow_region_selection => conf.get_bool("ALLOW_REGION_SELECTION", 'true')
+    :allow_region_selection => conf.get_bool("ALLOW_REGION_SELECTION", 'true'),
+    :normalize_username_method => conf.get("NORMALIZE_USERNAME_METHOD", "noop"),
   }
 
   config.auth = {
