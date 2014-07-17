@@ -2411,8 +2411,6 @@ After you have authenticated, you should be presented with the OpenShift web con
 
 image:console.png[image]
 
-If you do not see the expected content, consult the troubleshooting section at the end of this manual.
-
 == Post-Install Tasks
 Now that you have a correctly configured installation, there are two important final steps to be done. These steps assume that your Broker and Node(s) are running and able to communicate with each other as described in this guide.
 
@@ -2507,4 +2505,22 @@ $ ping node.example.com
 ----
 
 == Appendix: High Availability Deployments
+There are a number of ways to deploy OpenShift components in High Availabilty configurations. The https://forge.puppetlabs.com/openshift/openshift_origin[OpenShift Origin Puppet module], in concert with the link:oo_install_users_guide.html[oo-install utility], uses the approach described here. For more hands-on information, look to the documentation of these components for specific deployment and configuration steps.
 
+=== Broker Load-Balancing
+Broker clustering is accomplished in the Puppet module by using HAProxy and a virtual host / IP address as a front for an arbitrary number of Broker instances. One Broker host also serves as the HAProxy host, and calls to the "virtual Broker" are resolved here and directed via HAProxy to one of the real Brokers. Be aware, however, that the HAProxy instance in this scenario represents a single point of failure. As a failsafe, individual Broker instances can still be addressed using their own hostnames and IP addresses.
+
+=== Datastore Replicasets
+The backend MongoDB instance that the Broker uses to manage hosted applications can be replicated using MongoDB's native support. One MongoDB service is identified as the master instance and the others must be registered to it as slave instances.
+
+In the Broker config file, located on each Broker host at `/etc/openshift/broker.conf`, the following two settings must be modified to make OpenShift aware of the replication:
+
+----
+MONGO_REPLICA_SETS=true <1>
+MONGO_HOST_PORT="db1.domain.com:27017,db2.domain.com:27017,db3.domain.com:27017" <2>
+----
+<1> Change this from false to true
+<2> Change this from a single host:port value to a comma-delimited list
+
+=== Message Server Failover
+For message server redundancy, OpenShift makes use of ActiveMQ’s native clustering capability. This does not require any special configuration in OpenShift. Refer to http://activemq.apache.org/failover-transport-reference.html[ActiveMQ's documentation] for details on setting this up.
