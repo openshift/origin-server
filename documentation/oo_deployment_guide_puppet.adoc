@@ -6,341 +6,268 @@ LATEST DOC UPDATES
 :icons:
 :numbered:
 
-This guide will walk you through configuring a basic puppet script to install OpenShift Origin from RPMs.
+This guide will walk you through configuring puppet scripts to install and configure OpenShift Origin.
 
-The OpenShift Origin RPMs can be available from:
+[float]
+=== Configuring Puppet for a complex deployment?
+OpenShift is, by its nature, a multi-host system. While Puppet works well on a host-by-host basis, synchronizing the deployment of OpenShift across even two hosts requires some extra work that Puppet alone cannot do. If you are interested in a multi-host deployment, be aware that `oo-install` can help you. Using the `oo-install` utility, you can either:
 
-* Your local repository - link:oo_notes_building_rpms_from_source.html[Building OpenShift Origin RPMs]
-* OpenShift Origin nightly mirrors repository.
-** https://mirror.openshift.com/pub/origin-server/nightly/fedora-19/latest/x86_64[Fedora 19 repository^]
-** https://mirror.openshift.com/pub/origin-server/nightly/rhel-6/latest/x86_64/[RHEL 6.4 repository^]
+* Have `oo-install` generate your per-host Puppet config files for you _or_
+* Automatically perform the whole deployment
 
-NOTE: For OpenShift Origin broker/nodes to be configured properly you will need the host to be configured with a DNS resolvable hostname and static IP Address.
+So even if you ultimately want to run Puppet by hand, consider using `oo-install` to help you generate your puppet config files. You can learn more about it at https://install.openshift.com[install.openshift.com].
 
-== Puppet Setup
-
-=== Enterprise Prerequisites
-
-NOTE: For Enterprise Linux systems you will need some extra repositories to install the necessary version of puppet. This is unnecessary for Fedora 19 systems.
-
-* http://fedoraproject.org/wiki/EPEL[EPEL repository] - install the latest http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[epel-release package].
-+
-----
-yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
-----
-+
-* http://docs.puppetlabs.com/guides/puppetlabs_package_repositories.html[PuppetLabs enterprise repository] - install the latest http://yum.puppetlabs.com/el/6/products/i386/[puppetlabs-release package].
-+
-----
-yum install -y --nogpgcheck ${url_of_the_latest_puppet-release_rpm}
-----
-+
-Add `exclude=*mcollective* activemq` to the puppet repo entries in the file `/etc/yum.repos.d/puppetlabs.repo`
-+
-* "Optional" repository - enable according to your source:
-** yum config manasger: `yum-config-manager --enable rhel-6-server-optional-rpms`
-** RHN classic: enable the `rhel-x86_64-server-optional-6` channel
-
-=== Install Puppet
-
-Run the following to install puppet and facter
+== System Prerequisites
+Before you can succesfully run a puppet deployment, you will need to install the `puppet` RPM, and possibly also the `bind` RPM, on your target system. The PuppetLabs site has more information on http://docs.puppetlabs.com/guides/puppetlabs_package_repositories.html#for-red-hat-enterprise-linux-and-derivatives[installing puppet from the PuppetLabs repo], and `bind` can be installed using the following command:
 
 ----
-yum install -y puppet facter tar
+$ yum install bind -y
 ----
 
-Create the puppet module directory:
+TIP: The bind installation is only necessary if you want the OpenShift host to act as the nameserver for OpenShift-hosted applications.
+
+=== "Optional" Repository for RHEL
+If you are deploying to a Red Hat Enterprise Linux host, you will also need to enable the Optional repository for some necessary RPMs:
+
+* Via yum config manasger: `yum-config-manager --enable rhel-6-server-optional-rpms`
+* Via RHN classic: enable the `rhel-x86_64-server-optional-6` channel
+
+=== Installing the OpenShift Origin Puppet Module
+Once puppet has been installed on the target system, you can install the OpenShift Origin module by running this command:
 
 ----
-mkdir -p /etc/puppet/modules
+$ puppet module install openshift/openshift_origin
 ----
 
-Install the openshift puppet module into this directory:
+If you would like to work from the puppet module source instead, you can clone the puppet-openshift_origin repository into the target system as follows:
 
 ----
-puppet module install openshift/openshift_origin
+$ git clone https://github.com/openshift/puppet-openshift_origin.git /etc/puppet/modules/openshift_origin
 ----
 
-NOTE: If you would like to work from the puppet module source instead, you can just clone the github repository into the same directory:
-----
-git clone https://github.com/openshift/puppet-openshift_origin.git /etc/puppet/modules/openshift_origin
-----
-
-== Generating BIND TSIG Key
-
-This key will be used to update DNS records in the BIND server that will be installed,
-both for managing application DNS and (by default) for creating host DNS records.
-
-Install the BIND package
-
-----
-yum install -y bind
-----
-
-Generate a TSIG Key
+=== Generating a BIND TSIG Key
+If you want OpenShift to manage DNS for hosted applications, you will need to generate a TSIG key for the OpenShift `bind` instance. This key will be used to update DNS records in the BIND server that will be installed,
+both for managing application DNS and (by default) for creating host DNS records:
 
 ----
 #Using example.com as the cloud domain
-/usr/sbin/dnssec-keygen -a HMAC-MD5 -b 512 -n USER -r /dev/urandom -K /var/named example.com
-cat /var/named/Kexample.com.*.key  | awk '{print $8}'
+$ /usr/sbin/dnssec-keygen -a HMAC-MD5 -b 512 -n USER -r /dev/urandom -K /var/named example.com
+$ cat /var/named/Kexample.com.*.key  | awk '{print $8}'
 ----
 
 The TSIG key should look like `CNk+wjszKi9da9nL/1gkMY7H+GuUng==`. We will use this in the following steps.
 
-== Update the Host's Name
+=== Update the Hostname
+You may also want to change the hostname of the target system before you deploy; here's how.
 
 Choose a hostname and substitute it where needed for "broker.example.com" below.
 This sets the host's name locally, not in DNS. For nodes, this is used as the server identity.
 Generally it is best to use a name that matches how the host will resolve in DNS.
 
-.Fedora
 ----
-echo "broker.example.com" > /etc/hostname
-hostname broker.example.com
-----
-
-.RHEL
-----
-cat<<EOF>/etc/sysconfig/network
+$ cat<<EOF>/etc/sysconfig/network
 NETWORKING=yes
 HOSTNAME=broker.example.com
 EOF
 
-hostname broker.example.com
+$ hostname broker.example.com
 ----
 
-== Puppet Configuration
+== Puppet Configurations
+With Puppet installed, now you can create a file for puppet's installation parameters for this host. This file will define one class (`openshift_origin`) that tells Puppet which OpenShift components to install and configure on the host. If you are new to Puppet, you can learn more about how this works in the http://docs.puppetlabs.com/guides/parameterized_classes.html[PuppetLabs documentation].
 
-You will create a file for puppet's installation parameters for this host.
-This file will define one class (`openshift_origin`) to install any component(s) of OpenShift Origin on the host.
-
-http://docs.puppetlabs.com/guides/parameterized_classes.html[Using Parameterized Classes]
-
-=== Configuring an all-in-one host
-
-Create a puppet configuration file `configure_origin.pp` using the following template (more examples follow):
-
-.Example: Single host (broker+console+node) with local BIND DNS and the htpasswd file Auth plugin:
-
-----
-    class { 'openshift_origin' :
-      # Components to install on this host:
-      roles			 => ['broker','named','activemq','datastore','node'],
-    
-      # The FQDNs of the OpenShift component hosts; for a single-host
-      # system, make all values identical.
-      broker_hostname            => 'broker.example.com',
-      node_hostname              => 'broker.example.com',
-      named_hostname             => 'broker.example.com',
-      datastore_hostname         => 'broker.example.com',
-      activemq_hostname          => 'broker.example.com',
-
-      # BIND / named config
-      # This is the key for updating the OpenShift BIND server
-      bind_key                   => 'CNk+wjszKi9da9nL/1gkMY7H+GuUng==',
-      # The domain under which applications should be created.
-      domain                     => 'example.com',
-      # Apps would be named <app>-<namespace>.example.com
-      # This also creates hostnames for local components under our domain
-      register_host_with_named   => true,
-      # Forward requests for other domains (to Google by default)
-      conf_named_upstream_dns    => ['8.8.8.8'],
-    
-      # Auth OpenShift users created with htpasswd tool in /etc/openshift/htpasswd
-      broker_auth_plugin         => 'htpasswd',
-      # Username and password for initial openshift user
-      openshift_user1            => 'openshift',
-      openshift_password1        => 'password',
-    
-      # To enable installing the Jenkins cartridge:
-      install_method             => 'yum',
-      jenkins_repo_base          => 'http://pkg.jenkins-ci.org/redhat',
-
-      #Enable development mode for more verbose logs
-      development_mode           => true,
-    
-      # Set if using an external-facing ethernet device other than eth0
-      #conf_node_external_eth_dev => 'eth0',
-    
-      #If using with GDM, or have users with UID 500 or greater, put in this list
-      #node_unmanaged_users       => ['user1'],
-    }
-----
-
-In this configuration, the host will run the broker, node, ActiveMQ, MongoDB and BIND servers.
-You will need to substitute the BIND DNS key that was generated above; you may wish to adjust
-other parameters as well, such as the domain, host names, and initial user.
-
-Execute the puppet script:
+For all of these examples, the indicated configuration is written to a file called `configure_origin.pp`. The the puppet utility is run as follows:
 
 ----
 puppet apply --verbose configure_origin.pp
 ----
 
-Assuming everything runs cleanly, installation is complete. Otherwise, you can resolve the errors shown (warnings can often be ignored) and re-run puppet until it runs cleanly.
+The deployment process may take up to an hour. After it is completed, refer to the Post-Install Steps below for information on how to finish the OpenShift Origin setup.
 
-Puppet is supposed to register the host DNS entries for you, but you may find this isn't working. If you have not already arranged for the DNS resolution of this host, you can now use the oo-register-dns tool to do so:
+=== All-in-One
 
-----
-# oo-register-dns --domain example.com --with-node-hostname broker --with-node-ip <broker IP>
-# ping broker.example.com
-PING broker.example.com (172.x.x.x) 56(84) bytes of data.
-64 bytes from 172.x.x.x: icmp_seq=1 ttl=64 time=0.020 ms
-----
+This configuration will deploy the entire OpenShift system on a single host. This configuration includes an OpenShift-hosted DNS server that handles both the hosted application domain and a separate zone for the OpenShift host.
 
-Assuming everything runs cleanly and host DNS resolves, reboot the system for all settings and services to go into effect.
-
-=== Configuring separate hosts for broker/node
-
-A single host is nice for just getting started with OpenShift; but a more representative
-deployment would at least separate out the node onto a different host as below. For this
-example, prepare at least two hosts to configure with puppet.
-
-==== Broker host
-
-In this configuration, the first host will run the broker, ActiveMQ, MongoDB, and BIND servers.
-
-Create a file configure_origin.pp with the following template.
-As with the all-in-one host configuration file, parameters should be modified as necessary,
-particularly the bind_key.
-
-----
-    class { 'openshift_origin' :
-      # Components to install on this host:
-      roles			 => ['broker','named','activemq','datastore'],
-    
-      # BIND / named config
-      # This is the key for updating the OpenShift BIND server
-      bind_key                   => 'CNk+wjszKi9da9nL/1gkMY7H+GuUng==',
-      # The domain under which applications should be created.
-      domain                     => 'example.com',
-      # Apps would be named <app>-<namespace>.example.com
-      # This also creates hostnames for local components under our domain
-      register_host_with_named   => true,
-      # Forward requests for other domains (to Google by default)
-      conf_named_upstream_dns    => ['8.8.8.8'],
-    
-      # The FQDNs of the OpenShift component hosts
-      broker_hostname            => 'broker.example.com',
-      named_hostname             => 'broker.example.com',
-      datastore_hostname         => 'broker.example.com',
-      activemq_hostname          => 'broker.example.com',
-    
-      # Auth OpenShift users created with htpasswd tool in /etc/openshift/htpasswd
-      broker_auth_plugin         => 'htpasswd',
-      # Username and password for initial openshift user
-      openshift_user1            => 'openshift',
-      openshift_password1        => 'password',
-    
-      #Enable development mode for more verbose logs
-      development_mode           => true,
-    }
-----
-
-Execute the puppet script:
-
-----
-puppet apply --verbose configure_origin.pp
-----
-As with the all-in-one host, ensure puppet runs cleanly and the host DNS resolves, then reboot.
-
-==== Node host
-
-The second host will be configured as a node, which is where applications actually run.
-Be sure to set the local hostname differently; in our example it should be "node1.example.com".
-
-----
-    class { 'openshift_origin' :
-      # Components to install on this host:
-      roles			 => ['node'],
-    
-      # BIND / named config
-      # This is the IP address for OpenShift BIND server - here, the broker.
-      named_ip_addr              => '<broker IP address>',
-      # This is the key for updating the OpenShift BIND server
-      bind_key                   => 'CNk+wjszKi9da9nL/1gkMY7H+GuUng==',
-      # The domain under which applications should be created.
-      domain                     => 'example.com',
-      # Apps would be named <app>-<namespace>.example.com
-      # This also creates hostnames for local components under our domain
-      register_host_with_named   => true,
-    
-      # The FQDNs of the OpenShift component hosts we will need
-      broker_hostname            => 'broker.example.com',
-      activemq_hostname          => 'broker.example.com',
-      node_hostname              => 'node1.example.com',
-    
-      # To enable installing the Jenkins cartridge:
-      install_method             => 'yum',
-      jenkins_repo_base          => 'http://pkg.jenkins-ci.org/redhat',
-    
-      #Enable development mode for more verbose logs
-      development_mode           => true,
-    
-      # Set if using an external-facing ethernet device other than eth0
-      #conf_node_external_eth_dev => 'eth0',
-    
-      #If using with GDM, or have users with UID 500 or greater, put in this list
-      #node_unmanaged_users       => ['user1'],
-    }
-----
-
-Execute the puppet script:
-
-----
-puppet apply --verbose configure_origin.pp
-----
-
-If you have not already arranged for the DNS resolution of this host, you can now use the oo-register-dns tool on the broker host to do so:
-
-oo-register-dns --with-node-hostname broker --with-node-ip <broker IP> --domain example.com
-
-As with the all-in-one host, ensure puppet runs cleanly and the host DNS resolves, then reboot.
-
-This should give you a working OpenShift deployment separated into two hosts, one for broker components and one for a node.
-You may add as many more node hosts as you like.
-
-=== Different plugins: mDNS and Mongo auth
-
-This is just an example configuration demonstrating using the mDNS plugin
-(so that hosts on the same LAN can resolve the host and applications without altering resolv.conf)
-and the Mongo auth plugin (which stores user credentials in MongoDB).
-
-.Example: Single host (broker+console+node) using Avahi mDNS and Mongo auth plugins:
 ----
 class { 'openshift_origin' :
-  domain                     => 'openshift.local',
-  register_host_with_named   => true,
-  conf_named_upstream_dns    => ['8.8.8.8'],
-  install_method             => 'yum',
-  jenkins_repo_base          => 'http://pkg.jenkins-ci.org/redhat',
-  broker_auth_plugin         => 'mongo',
-  broker_dns_plugin          => 'avahi',
-  development_mode           => true,
+  roles => ['msgserver','datastore','nameserver','broker','node'],
+
+  # Hostname values (all identical)
+  broker_hostname     => 'broker.openshift.local',
+  datastore_hostname  => 'broker.openshift.local',
+  msgserver_hostname  => 'broker.openshift.local',
+  nameserver_hostname => 'broker.openshift.local',
+  node_hostname       => 'broker.openshift.local',
+
+  # IP address values (all identical)
+  broker_ip_addr     => '10.10.10.24',
+  nameserver_ip_addr => '10.10.10.24',
+  node_ip_addr       => '10.10.10.24',
   conf_node_external_eth_dev => 'eth0',
-  node_unmanaged_users       => ['root'],
+
+  # RPM sources
+  install_method    => 'yum',
+  repos_base        => 'https://mirror.openshift.com/pub/origin-server/nightly/rhel-6',
+  jenkins_repo_base => 'http://pkg.jenkins-ci.org/redhat',
+  optional_repo     => 'http://download.fedoraproject.org/pub/epel/6/$basearch',
+
+  # OpenShift Config
+  domain                         => 'example.com',
+  openshift_user1                => 'demo',
+  openshift_password1            => 'sMwNUIUqRkV9he1zRfFiAA',
+  conf_valid_gear_sizes          => 'small,medium,large',
+  conf_default_gear_capabilities => 'small,medium',
+  conf_default_gear_size         => 'small',
+
+  # Datastore config
+  mongodb_port            => 27017,
+  mongodb_replicasets     => false,
+  mongodb_broker_user     => 'openshift',
+  mongodb_broker_password => '9Km0vPS9U9v0h5IowgCyw',
+  mongodb_admin_user      => 'admin',
+  mongodb_admin_password  => 'NnZqfvTetXoSqfEWaYNzw',
+
+  # MsgServer config
+  msgserver_cluster    => false,
+  mcollective_user     => 'mcollective',
+  mcollective_password => 'pv5bDYXFDkYSLRdI5ywQ',
+
+  # DNS config
+  dns_infrastructure_zone  => 'openshift.local',
+  dns_infrastructure_names => [{ hostname => 'broker.openshift.local', ipaddr => '10.10.10.24' }],
+  dns_infrastructure_key   => 'UjCNCJgnqJPx6dFaQcWVwDjpEAGQY4Sc2H/llwJ6Rt+0iN8CP0Bm5j5pZsvvhZq7mxx7/MdTBBMWJIA9/yLQYg==',
+  bind_key                 => 'SgUfFVngIN3M2MfmYpfybJGr0VJ8ldBxY3/xtEQLwBSnJZjCmAeudf0cfmPVPSPYgV8657mDFDOg9KPIyyztzw==',
 }
 ----
 
-Apply the puppet config and reboot as before.
+=== Two Hosts: "Basic" Broker and Node
 
-You may access the broker at broker.openshift.local; the initial user/pass is admin/admin.
+This configuration puts most of the OpenShift components on one host, but configures a second host as a dedicated node. This is a good template for a basic production-capable OpenShift deployment as you can add Node hosts as needed to increase capacity.
+
+==== Broker Host Configuration
+
+----
+class { 'openshift_origin' :
+  roles => ['msgserver','datastore','nameserver','broker'],
+
+  # Hostname values
+  broker_hostname     => 'broker.openshift.local',
+  datastore_hostname  => 'broker.openshift.local',
+  nameserver_hostname => 'broker.openshift.local',
+  msgserver_hostname  => 'broker.openshift.local',
+  node_hostname       => 'node.openshift.local',
+
+  # IP address values
+  broker_ip_addr     => '10.10.10.24',
+  nameserver_ip_addr => '10.10.10.24',
+  node_ip_addr       => '10.10.10.27',
+  conf_node_external_eth_dev => 'eth0',
+
+  # RPM Sources
+  install_method    => 'yum',
+  repos_base        => 'https://mirror.openshift.com/pub/origin-server/nightly/rhel-6',
+  jenkins_repo_base => 'http://pkg.jenkins-ci.org/redhat',
+  optional_repo     => 'http://download.fedoraproject.org/pub/epel/6/$basearch',
+
+  # OpenShift Config
+  domain                         => 'example.com',
+  conf_valid_gear_sizes          => 'small,medium,large',
+  conf_default_gear_capabilities => 'small,medium',
+  conf_default_gear_size         => 'small',
+  openshift_user1                => 'demo',
+  openshift_password1            => 'IZPmHrdxOgqjqB0TMNDGQ',
+
+  # Datastore Config
+  mongodb_port            => 27017,
+  mongodb_replicasets     => false,
+  mongodb_broker_user     => 'openshift',
+  mongodb_broker_password => 'brFZGRCiOlmAqrMbj0OYgg',
+  mongodb_admin_user      => 'admin',
+  mongodb_admin_password  => 'BbMsrtPxsmSi5SY1zerN5A',
+
+  # MsgServer config
+  msgserver_cluster    => false,
+  mcollective_user     => 'mcollective',
+  mcollective_password => 'eLMRLsAcytKAJmuYOPE6Q',
+
+  # DNS Config
+  dns_infrastructure_zone => 'openshift.local',
+  dns_infrastructure_names =>
+  [
+   { hostname => 'broker.openshift.local',
+     ipaddr   => '10.10.10.24'
+   },
+   { hostname => 'node.openshift.local',
+     ipaddr   => '10.10.10.27'
+   }
+  ],
+  bind_key               => 'yV9qIn/KuCqvnu7SNtRKU3oZQMMxF1ET/GjkXt5pf5JBcHSKY8tqRagiocCbUX56GOM/iuP//D0TteLc3f1N2g==',
+  dns_infrastructure_key => 'UjCNCJgnqJPx6dFaQcWVwDjpEAGQY4Sc2H/llwJ6Rt+0iN8CP0Bm5j5pZsvvhZq7mxx7/MdTBBMWJIA9/yLQYg==',
+}
+----
+
+==== Node Host Configuration
+
+----
+class { 'openshift_origin' :
+  roles => ['node'],
+
+  # Hostname values
+  broker_hostname     => 'broker.openshift.local',
+  datastore_hostname  => 'broker.openshift.local',
+  msgserver_hostname  => 'broker.openshift.local',
+  nameserver_hostname => 'broker.openshift.local',
+  node_hostname       => 'node.openshift.local',
+
+  # IP Address values
+  broker_ip_addr     => '10.10.10.24',
+  nameserver_ip_addr => '10.10.10.24',
+  node_ip_addr       => '10.10.10.27',
+  conf_node_external_eth_dev => 'eth0',
+
+  # RPM Sources
+  install_method    => 'yum',
+  repos_base        => 'https://mirror.openshift.com/pub/origin-server/nightly/rhel-6',
+  jenkins_repo_base => 'http://pkg.jenkins-ci.org/redhat',
+  optional_repo     => 'http://download.fedoraproject.org/pub/epel/6/$basearch',
+
+  # OpenShift Config
+  domain                         => 'example.com',
+  openshift_user1                => 'demo',
+  openshift_password1            => 'IZPmHrdxOgqjqB0TMNDGQ',
+  conf_valid_gear_sizes          => 'small,medium,large',
+  conf_default_gear_capabilities => 'small,medium',
+  conf_default_gear_size         => 'small',
+
+  # Datastore config
+  mongodb_port => 27017,
+  mongodb_replicasets => false,
+  mongodb_broker_user => 'openshift',
+  mongodb_broker_password => 'brFZGRCiOlmAqrMbj0OYgg',
+  mongodb_admin_user => 'admin',
+  mongodb_admin_password => 'BbMsrtPxsmSi5SY1zerN5A',
+
+  # MsgServer Config
+  mcollective_user     => 'mcollective',
+  mcollective_password => 'eLMRLsAcytKAJmuYOPE6Q',
+
+  # DNS Config
+  bind_key => 'yV9qIn/KuCqvnu7SNtRKU3oZQMMxF1ET/GjkXt5pf5JBcHSKY8tqRagiocCbUX56GOM/iuP//D0TteLc3f1N2g==',
+  dns_infrastructure_key => 'UjCNCJgnqJPx6dFaQcWVwDjpEAGQY4Sc2H/llwJ6Rt+0iN8CP0Bm5j5pZsvvhZq7mxx7/MdTBBMWJIA9/yLQYg==',
+}
+----
 
 === Different plugins: Kerberos auth and DNS
 
 This example uses Kerberos for user authentication,
 and a Kerberos keytab for making authenticated updates to a remote nameserver.
 
-.Example: Single host (broker+console+node) which uses the **Kerberos** Auth plugin and GSS-TSIG.
+
 ----
 class { 'openshift_origin' :
-  domain                     => 'example.com',
-  install_method             => 'yum',
-  jenkins_repo_base          => 'http://pkg.jenkins-ci.org/redhat',
-  development_mode           => true,
-  conf_node_external_eth_dev => 'eth0',
-  node_unmanaged_users       => ['root'],
-  
+  # Other settings as appropriate per above examples
+  ...
+
   # broker authenticates updates to BIND server with keytab
   broker_dns_plugin          => 'named',
   named_ip_addr              => '<BIND server IP address>',
@@ -382,307 +309,715 @@ Use the Rails console on the broker to access the DNS plugin and test that it cr
 ----
 For any errors, on the Broker, check `/var/log/openshift/broker/httpd/error_log`.
 
-=== Puppet Parameters
+=== High Availability Deployments
+The broker, msgserver and datastore roles can be deployed in high availability (HA) configurations.
+
+==== HA Broker
+Broker clustering is accomplished by using HAProxy and a virtual host / IP address as a front for an arbitrary number of Broker instances. This means that you will assign an additional IP address to OpenShift to serve as the virtual IP address and that all OpenShift hosts will use this virtual broker hostname and IP address to communicate with the Broker cluster.
+
+In addition to selecting a virtual broker hostname and IP address, you must elect a Broker host to additionally serve the "load_balancer" role. This Broker will host the HAProxy service that front-ends the cluster.
+
+Here are the variations that you will need to make to your basic configurations:
+
+.Non-Broker host configurations
+----
+class { 'openshift_origin' :
+  # Other settings as appropriate per above examples
+  ...
+
+  # Use the *virtual* broker info for these values on hosts that are not Brokers
+  broker_hostname => 'virtbroker.openshift.local',
+  broker_ip_addr  => '10.10.20.250',
+
+  ...
+}
+----
+
+.Broker host configurations
+----
+class { 'openshift_origin' :
+  # Other settings as appropriate per above examples
+  ...
+
+  # One and only one of the brokers must include the load_balancer role
+  roles => [...,'load_balancer'],
+
+  # Use the actual target host info for these values on hosts that are Brokers
+  broker_hostname => <target_hostname>,
+  broker_ip_addr  => <target_ip_addr>,
+
+  # Provide the cluster info
+  broker_cluster_members      => ['broker1.openshift.local','broker2.openshift.local','broker3.openshift.local'],
+  broker_cluster_ip_addresses => ['10.10.20.24','10.10.20.25','10.10.20.26'],
+  broker_virtual_hostname     => 'virtbroker.openshift.local',
+  broker_virtual_ip_address   => '10.10.20.250',
+
+  # Indicate if this Broker is also the load balancer; if this host includes
+  # the load_baancer role, then set this to 'true'
+  load_balancer_master => true|false,
+
+  ...
+}
+----
+
+...And if OpenShift is also handling DNS your you, use this info one the host where you are deploying the 'nameserver' role:
+
+.Nameserver configuration
+----
+class { 'openshift_origin' :
+  # Other settings as appropriate per above examples
+  ...
+
+  # Use the *virtual* broker info for these values
+  broker_virtual_hostname => 'virtbroker.openshift.local',
+  broker_virtual_ip_addr  => '10.10.20.250',
+
+  # Additionally if you are using this nameserver to serve the domain for
+  # OpenShift host systems, include the virtual host info in the infrastructure
+  # list:
+  dns_infrastructure_names =>
+  [
+   ...
+   { hostname => 'virtbroker.openshift.local',
+     ipaddr   => '10.10.10.250'
+   },
+  ],
+
+  ...
+}
+----
+
+==== HA Datastore
+The OpenShift Origin puppet module will configure multiple 'datastore' instances into a MongoDB replica set.
+
+Hosts that will include the Broker role should have this additional information:
+
+.Broker host configuration
+----
+class { 'openshift_origin' :
+  # Other settings as appropriate per above examples
+  ...
+
+  # Include the MongoDB replica set information for Brokers
+  mongodb_replicasets         => true,
+  mongodb_replicasets_members => ['10.10.20.30:27071','10.10.20.31:27071','10.10.20.32:27071'],
+}
+----
+
+Hosts that include the datastore role should have this information:
+
+.Datastore configuration
+----
+class { 'openshift_origin' :
+  # Other settings as appropriate per above examples
+  ...
+
+  # Set the datastore_hostname value to the current datastore host's name
+  datastore_hostname => <this_datastore_hostname>,
+
+  # Include the MongoDB replica set information
+  mongodb_replicasets         => true,
+  mongodb_replicasets_members => ['10.10.20.30:27071','10.10.20.31:27071','10.10.20.32:27071'],
+
+  # One and only of the datastore hosts will be the primary
+  mongodb_replica_primary => true|false,
+
+  # All datastore hosts will know the primary's IP address and a
+  # common replica key value
+  mongodb_replica_primary_ip_addr = <primary_datastore_ip_addr>,
+  mongodb_key                     = <replica_key_value>,
+}
+----
+
+==== HA MsgServer
+For message server redundancy, OpenShift makes use of ActiveMQ's native clustering capability.
+
+.MsgServer configuration
+----
+class { 'openshift_origin' :
+  # Other settings as appropriate per above examples
+  ...
+
+  # Set the msgserver_hostname to the current msgserver host
+  msgserver_hostname => <this_msgserver_hostname>,
+
+  # Set the shared password that the cluster members will use
+  msgserver_password => <shared_cluster_password>,
+
+  # Specify the hostnames of all of the cluster members.
+  msgserver_cluster         => true,
+  msgserver_cluster_members => ['msgserver1.openshift.local','msgserver2.openshift.local','msgserver3.openshift.local'],
+}
+----
+
+Brokers and Nodes need some of this information even they arent's MsgServer hosts as well:
+
+.Broker and Node configuration
+----
+class { 'openshift_origin' :
+  # Other settings as appropriate per above examples
+  ...
+
+  # Specify the hostnames of the msgserver cluster members.
+  msgserver_cluster         => true,
+  msgserver_cluster_members => ['msgserver1.openshift.local','msgserver2.openshift.local','msgserver3.openshift.local'],
+}
+----
+
+== Manual Tasks
+
+This script attempts to automate as many tasks as it reasonably can.
+Unfortunately, it is constrained to setting up only a single host at a
+time. In an assumed multi-host setup, you will need to do the 
+following after the script has completed.
+
+1. *Set up DNS entries for hosts.* + 
+If you installed BIND with the script, then any other components installed with the script on the same host received DNS entries. Other hosts must all be defined manually, including at least your node hosts. oo-register-dns may prove useful for this.
+
+2. *Copy public rsync key to enable moving gears.* + 
+The broker rsync public key needs to go on nodes, but there is no good way to script that generically. Nodes should not have password-less access to brokers to copy the .pub key, so this must be performed manually on each node host: + 
++ 
+----
+# scp root@broker:/etc/openshift/rsync_id_rsa.pub /root/.ssh/
+(above step will ask for the root password of the broker machine)
+# cat /root/.ssh/rsync_id_rsa.pub >> /root/.ssh/authorized_keys
+# rm /root/.ssh/rsync_id_rsa.pub
+----
++ 
+If you skip this, each gear move will require typing root passwords for each of the node hosts involved.
+
+3. *Copy ssh host keys between the node hosts.* + 
+All node hosts should identify with the same host keys, so that when gears are moved between hosts, ssh and git don't give developers spurious warnings about the host keys changing. So, copy /etc/ssh/ssh_* from one node host to all the rest (or, if using the same image for all hosts, just keep the keys from the image).
+
+4. *Perform the Post-Install tasks.* +
+The Comprehensive Deployment guide includes information on the link:oo_deployment_guide_comprehensive.html#post-install-tasks[steps needed to complete a new OpenShift Origin deployment]. These steps incude creating districts and registering gear types, and they are necessary for the proper operation of the system.
+
+== Puppet Parameters
 
 An exhaustive list of the parameters you can specify with puppet configuration follows.
 
-==== roles
-
+=== roles
 Choose from the following roles to be configured on this node.
 
-* broker    - Installs the broker and console.
-* node      - Installs the node and cartridges.
-* activemq  - Installs activemq message broker.
-* datastore - Installs MongoDB (not sharded/replicated)
-* named     - Installs a BIND dns server configured with a TSIG key for updates.
+* broker        - Installs the broker and console.
+* node          - Installs the node and cartridges.
+* msgserver     - Installs ActiveMQ message broker.
+* datastore     - Installs MongoDB (not sharded/replicated)
+* nameserver    - Installs a BIND dns server configured with a TSIG key for updates.
+* load_balancer - Installs HAProxy and Keepalived for Broker API high-availability.
 
-Default: ['broker','node','activemq','datastore','named']
+Default: ["broker","node","msgserver","datastore","nameserver"]
 
-==== install_method
+NOTE: Multiple servers are required when using the load_balancer role.
+
+=== install_method
 Choose from the following ways to provide packages:
 
-1. none - install sources are already set up when the script executes (default)
-1. yum - set up yum repos manually
-  * repos_base
-  * os_repo
-  * os_updates_repo
-  * jboss_repo_base
-  * jenkins_repo_base
-  * optional_repo
+* none - install sources are already set up when the script executes (default)
+* yum - set up yum repos manually
+** repos_base
+** os_repo
+** os_updates_repo
+** jboss_repo_base
+** jenkins_repo_base
+** optional_repo
 
 Default: yum
 
-==== repos_base
+=== parallel_deployment
+This flag is used to control some module behaviors when an outside utility
+(like oo-install) is managing the deployment of OpenShift across multiple
+hosts simultaneously. Some configuration tasks can"t be performed during
+a multi-host parallel installation and this boolean enables the user to
+indicate whether or not thos tasks should be attempted.
+
+Default: false
+
+=== repos_base
 Base path to repository for OpenShift Origin
 
-* Nightlies:
-** Fedora: https://mirror.openshift.com/pub/origin-server/nightly/fedora-19
-** RHEL:   https://mirror.openshift.com/pub/origin-server/nightly/rhel-6
-* Release-2:
-** Fedora: https://mirror.openshift.com/pub/origin-server/release/2/fedora-19
-** RHEL:   https://mirror.openshift.com/pub/origin-server/release/2/rhel-6
+Nightlies: https://mirror.openshift.com/pub/origin-server/nightly/rhel-6 + 
+Release (currently v4): https://mirror.openshift.com/pub/origin-server/release/4/rhel-6
 
-Default: Fedora-19 Nightlies
+Default: Nightlies
 
-==== override_install_repo
-Repository path override. Uses dependencies from repos_base but uses 
+=== architecture
+CPU Architecture to use for the definition OpenShift Origin yum repositories
+
+Defaults to $::architecture
+
+NOTE: Currently only the `x86_64` architecutre is supported.
+
+=== override_install_repo
+Repository path override. Uses dependencies from repos_base but uses
 override_install_repo path for OpenShift RPMs. Used when doing local builds.
 
 Default: none
-  
-==== os_repo
+
+=== os_repo
 The URL for a Fedora 19/RHEL 6 yum repository used with the "yum" install method.
 Should end in x86_64/os/.
 
 Default: no change
-  
-==== os_updates
+
+=== os_updates
 The URL for a Fedora 19/RHEL 6 yum updates repository used with the "yum" install method.
 Should end in x86_64/.
 
 Default: no change
-  
-==== jboss_repo_base
+
+=== jboss_repo_base
 The URL for a JBoss repositories used with the "yum" install method.
 Does not install repository if not specified.
-  
-==== jenkins_repo_base
+
+=== jenkins_repo_base
 The URL for a Jenkins repositories used with the "yum" install method.
 Does not install repository if not specified.
 
-==== optional_repo
+=== optional_repo
 The URL for a EPEL or optional repositories used with the "yum" install method.
 Does not install repository if not specified.
 
-==== domain
+=== domain
+Default: example.com
 The network domain under which apps and hosts will be placed.
 
-Default: example.com
-
-==== broker_hostname
-==== node_hostname
-==== named_hostname
-==== activemq_hostname
-==== datastore_hostname
-Default: the root plus the domain, e.g. broker.example.com.
+=== broker_hostname
+=== node_hostname
+=== nameserver_hostname
+=== msgserver_hostname
+=== datastore_hostname
+Default: the root plus the domain, e.g. broker.example.com - except
+nameserver=ns1.example.com
 
 These supply the FQDN of the hosts containing these components. Used
-for configuring the host's name at install, and also for configuring
+for configuring the host"s name at install, and also for configuring
 the broker application to reach the services needed.
 
-NOTE: if installing a nameserver, the script will create
-DNS entries for the hostnames of the other components being 
+[NOTE]
+====
+if installing a nameserver, the script will create
+DNS entries for the hostnames of the other components being
 installed on this host as well. If you are using a nameserver set
 up separately, you are responsible for all necessary DNS entries.
+====
 
-==== named_ip_addr
-Default: IP of a named instance or current IP if installing on this 
-host. This is used by every host to configure its primary name server.
+=== nameserver_ip_addr
+IP of a nameserver instance or current IP if installing on this
+node. This is used by every node to configure its primary name server.
 
-Default: the current IP (at install)  
+Default: the current IP (at install)
 
-==== bind_key
+=== bind_key
 When the nameserver is remote, use this to specify the HMAC-MD5 key
 for updates. This is the "Key:" field from the .private key file
-generated by dnssec-keygen. This field is required on all nodes. 
+generated by dnssec-keygen. This field is required on all nodes.
 
-==== bind_krb_keytab
+=== bind_krb_keytab
 When the nameserver is remote, Kerberos keytab together with principal
 can be used instead of the HMAC-MD5 key for updates.
 
-==== bind_krb_principal
+=== bind_krb_principal
 When the nameserver is remote, this Kerberos principal together with
 Kerberos keytab can be used instead of the HMAC-MD5 key for updates.
 
-==== conf_named_upstream_dns
-List of upstream DNS servers to use when installing named on this node.
+=== aws_access_key_id
+This and the next value are Amazon AWS security credentials.
+The aws_access_key_id is a string which identifies an access credential.
 
-Default: ['8.8.8.8']
+For more info see http://docs.aws.amazon.com/AWSSecurityCredentials/1.0/AboutAWSCredentials.html#AccessCredentials.
 
-==== broker_ip_addr
+=== aws_secret_key
+This is the secret portion of AWS Access Credentials indicated by the
+aws_access_key_id
+
+=== aws_zone_id
+This is the ID string for an AWS Hosted zone which will contain the
+OpenShift application records.
+
+For more info see http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html
+
+=== conf_nameserver_upstream_dns
+List of upstream DNS servers to use when installing nameserver on this node.
+These DNS servers are also appended to the resolv.conf for all configured hosts
+
+Default: ["8.8.8.8"]
+
+=== broker_ip_addr
 This is used for the node to record its broker. Also is the default
 for the nameserver IP if none is given.
 
 Default: the current IP (at install)
 
-==== node_ip_addr
+=== broker_cluster_members
+An array of broker hostnames that will be load-balanced for high-availability.
+
+Default: undef
+
+=== broker_cluster_ip_addresses
+An array of Broker IP addresses within the load-balanced cluster.
+
+Default: undef
+
+=== broker_virtual_ip_address
+The virtual IP address that will front-end the Broker cluster.
+
+Default: undef
+
+=== broker_virtual_hostname
+The hostame that represents the Broker API cluster.  This name is associated
+to broker_virtual_ip_address and added to Named for DNS resolution.
+
+Default: "broker.${domain}"
+
+=== load_balancer_master
+Sets the state of the load-balancer.  Valid options are true or false.
+true sets load_balancer_master as the active listener for the Broker Cluster
+Virtual IP address.
+
+Default: false
+
+=== load_balancer_auth_password
+The password used to secure communication between the load-balancers
+within a Broker cluster.
+
+Default: "changeme"
+
+=== node_ip_addr
 This is used for the node to give a public IP, if different from the
 one on its NIC.
 
 Default: the current IP (at install)
 
-==== configure_ntp
-Enabling this configures NTP.  It is important that the time be 
-synchronized across hosts because MCollective messages have a TTL 
-of 60 seconds and may be dropped if the clocks are too far out 
-of synch.  However, NTP is not necessary if the clock will be kept 
-in synch by some other means.
+=== configure_ntp
+Enabling this option configures NTP.  It is important that the time
+be synchronized across hosts because MCollective messages have a TTL
+of 60 seconds and may be dropped if the clocks are too far out of
+synch.  However, NTP is not necessary if the clock will be kept in
+synch by some other means.
 
 Default: true
 
-NOTE: Passwords used to secure various services. You are advised to specify
-only alphanumeric values in this script as others may cause syntax
-errors depending on context. If non-alphanumeric values are required,
-update them separately after installation.
+=== ntp_servers
+Specifies one or more servers for NTP clock syncronization.
 
-==== activemq_admin_password
+Default: ["time.apple.com iburst", "pool.ntp.org iburst", "clock.redhat.com iburst"]
+
+NOTE: Use iburst after every ntp server definition to speed up the initial synchronization.
+
+=== msgserver_cluster
+Set to true to cluster ActiveMQ for high-availability and scalability
+of OpenShift message queues.
+
+Default: false
+
+=== msgserver_cluster_members
+An array of ActiveMQ server hostnames.  Required when parameter
+msgserver_cluster is set to true.
+
+Default: undef
+
+=== mcollective_cluster_members
+An array of ActiveMQ server hostnames.  Required when parameter
+msgserver_cluster is set to true.
+
+Default: $msgserver_cluster_members
+
+=== msgserver_password
+Password used by ActiveMQ"s amquser.  The amquser is used to authenticate
+ActiveMQ inter-cluster communication.  Only used when msgserver_cluster
+is true.
+
+Default "changeme"
+
+=== msgserver_admin_password
 This is the admin password for the ActiveMQ admin console, which is
 not needed by OpenShift but might be useful in troubleshooting.
 
 Default: scrambled
 
-==== mcollective_user
-==== mcollective_password
+=== mcollective_user
+=== mcollective_password
 This is the user and password shared between broker and node for
 communicating over the mcollective topic channels in ActiveMQ. Must
 be the same on all broker and node hosts.
 
 Default: mcollective/marionette
 
-==== mongodb_admin_user
-==== mongodb_admin_password
+=== mongodb_admin_user
+=== mongodb_admin_password
 These are the username and password of the administrative user that
 will be created in the MongoDB datastore. These credentials are not
 used by in this script or by OpenShift, but an administrative user
 must be added to MongoDB in order for it to enforce authentication.
+
 Default: admin/mongopass
 
-==== mongodb_broker_user
-==== mongodb_broker_password
+NOTE: The administrative user will not be created if CONF_NO_DATASTORE_AUTH_FOR_LOCALHOST is enabled.
+
+=== mongodb_broker_user
+=== mongodb_broker_password
 These are the username and password of the normal user that will be
 created for the broker to connect to the MongoDB datastore. The
-broker application's MongoDB plugin is also configured with these
+broker application"s MongoDB plugin is also configured with these
 values.
 
 Default: openshift/mongopass
-  
-==== mongodb_name
+
+=== mongodb_name
 This is the name of the database in MongoDB in which the broker will
 store data.
 
 Default: openshift_broker
 
-==== openshift_user1
-==== openshift_password1
+=== mongodb_port
+The TCP port used for MongoDB to listen on.
+
+Default: "27017"
+
+=== mongodb_replicasets
+Enable/disable MongoDB replica sets for database high-availability.
+
+Default: false
+
+=== mongodb_replica_name
+The MongoDB replica set name when $mongodb_replicasets is true.
+
+Default: "openshift"
+
+=== mongodb_replica_primary
+Set the host as the primary with true or secondary with false.
+
+Default: undef
+
+=== mongodb_replica_primary_ip_addr
+The IP address of the Primary host within the MongoDB replica set.
+
+Default: undef
+
+=== mongodb_replicasets_members
+An array of [host:port] of replica set hosts. Example:
+["10.10.10.10:27017", "10.10.10.11:27017", "10.10.10.12:27017"]
+
+Default: undef
+
+=== mongodb_keyfile
+The file containing the $mongodb_key used to authenticate MongoDB
+replica set members.
+
+Default: "/etc/mongodb.keyfile"
+
+=== mongodb_key
+The key used by members of a MongoDB replica set to authenticate
+one another.
+
+Default: "changeme"
+
+=== openshift_user1
+=== openshift_password1
 This user and password are entered in the /etc/openshift/htpasswd
 file as a demo/test user. You will likely want to remove it after
 installation (or just use a different auth method).
 
 Default: demo/changeme
 
-==== conf_broker_auth_salt
-==== conf_broker_auth_public_key
-==== conf_broker_auth_private_key
-==== conf_broker_auth_key_password
-Salt, public and private keys used when generating secure authentication 
-tokens for Application to Broker communication. Requests like scale up/down 
-and jenkins builds use these authentication tokens. This value must be the 
+=== conf_broker_auth_salt
+=== conf_broker_auth_public_key
+=== conf_broker_auth_private_key
+=== conf_broker_auth_key_password
+Salt, public and private keys used when generating secure authentication
+tokens for Application to Broker communication. Requests like scale up/down
+and jenkins builds use these authentication tokens. This value must be the
 same on all broker nodes.
 
-Default:  Self signed keys are generated. Will not work with multi-broker 
-          setup.
-  
-==== conf_broker_session_secret
-==== conf_console_session_secret
-Session secrets used to encode cookies used by console and broker. This 
+Default: Self signed keys are generated. Will not work with multi-broker setup.
+
+=== conf_broker_multi_haproxy_per_node
+This setting is applied on a per-scalable-application basis. When set to true,
+OpenShift will allow multiple instances of the HAProxy gear for a given
+scalable app to be established on the same node. Otherwise, on a
+per-scalable-application basis, a maximum of one HAProxy gear can be created
+for every node in the deployment (this is the default behavior, which protects
+scalable apps from single points of failure at the Node level).
+
+Default: false
+
+=== conf_broker_session_secret
+=== conf_console_session_secret
+Session secrets used to encode cookies used by console and broker. This
 value must be the same on all broker nodes.
-  
-==== conf_valid_gear_sizes
+
+=== conf_valid_gear_sizes
 List of all gear sizes this will be used in this OpenShift installation.
 
-Default: ['small']
+Default: ["small"]
 
-==== broker_dns_plugin
+=== conf_default_gear_size
+Default gear size if one is not specified
 
+Default: "small"
+
+=== conf_default_gear_capabilities
+List of all gear sizes that newly created users will be able to create
+
+Default: ["small"]
+
+=== broker_dns_plugin
 DNS plugin used by the broker to register application DNS entries.
 Options:
 
-* nsupdate - nsupdate based plugin. Supports TSIG and GSS-TSIG based 
-             authentication. Uses bind_key for TSIG and bind_krb_keytab, 
-             bind_krb_principal for GSS_TSIG auth.
-* avahi    - sets up a MDNS based DNS resolution. Works only for 
-             all-in-one installations.
+* nsupdate - nsupdate based plugin. Supports TSIG and GSS-TSIG based authentication. Uses bind_key for TSIG and bind_krb_keytab, bind_krb_principal for GSS_TSIG auth.
+* avahi    - sets up a MDNS based DNS resolution. Works only for all-in-one installations.
+* route53  - use AWS Route53 for dynamic DNS service. Requires AWS key ID and secret and a delegated zone ID
 
-==== broker_auth_plugin
+=== broker_auth_plugin
 Authentication setup for users of the OpenShift service.
 Options:
 
-* mongo       - Stores username and password in mongo.
-* kerberos    - Kerberos based authentication. Uses 
-                broker_krb_service_name, broker_krb_auth_realms,
-                broker_krb_keytab values.
-* htpasswd    - Stores username/password in a htaccess file.
-* ldap        - LDAP based authentication. Uses broker_ldap_uri.
+* mongo         - Stores username and password in mongo.
+* kerberos      - Kerberos based authentication. Uses broker_krb_service_name, broker_krb_auth_realms, broker_krb_keytab values.
+* htpasswd      - Stores username/password in a htaccess file.
+* ldap          - LDAP based authentication. Uses broker_ldap_uri
 
 Default: htpasswd
 
-==== broker_krb_service_name
+=== broker_krb_service_name
 The KrbServiceName value for mod_auth_kerb configuration
 
-==== broker_krb_auth_realms
+=== broker_krb_auth_realms
 The KrbAuthRealms value for mod_auth_kerb configuration
 
-==== broker_krb_keytab
+=== broker_krb_keytab
 The Krb5KeyTab value of mod_auth_kerb is not configurable -- the keytab
 is expected in /var/www/openshift/broker/httpd/conf.d/http.keytab
 
-==== broker_ldap_uri
-URI to the LDAP server (e.g. ldap://ldap.example.com:389/ou=People,dc=my-domain,dc=com).
+=== broker_ldap_uri
+URI to the LDAP server (e.g. ldap://ldap.example.com:389/ou=People,dc=my-domain,dc=com?uid?sub?(objectClass=*)).
 Set <code>broker_auth_plugin</code> to <code>ldap</code> to enable
 this feature.
 
-==== node_container_plugin
+=== broker_ldap_bind_dn
+LDAP DN (Distinguished name) of user to bind to the directory with. (e.g. cn=administrator,cn=Users,dc=domain,dc=com)
+Default is anonymous bind.
+
+=== broker_ldap_bind_password
+Password of bind user set in broker_ldap_bind_dn.
+Default is anonymous bind with a blank password.
+
+=== node_shmmax
+kernel.shmmax sysctl setting for /etc/sysctl.conf
+
+This setting should work for most deployments but if this is desired to be
+tuned higher, the general recommendations are as follows:
+
+----
+shmmax = shmall * PAGE_SIZE
+- PAGE_SIZE = getconf PAGE_SIZE
+- shmall = cat /proc/sys/kernel/shmall
+----
+
+shmmax is not recommended to be a value higher than 80% of total available RAM on the system (expressed in BYTES).
+
+Default: kernel.shmmax = 68719476736
+
+=== node_shmall
+kernel.shmall sysctl setting for /etc/sysctl.conf, this defaults to 2097152 BYTES
+
+This parameter sets the total amount of shared memory pages that can be
+used system wide. Hence, SHMALL should always be at least
+ceil(shmmax/PAGE_SIZE).
+
+Default: kernel.shmall = 4294967296
+
+=== node_container_plugin
 Specify the container type to use on the node.
 Options:
 
-  * selinux - This is the default OpenShift Origin container type.
+* selinux - This is the default OpenShift Origin container type.
 
-==== node_frontend_plugins
-Specify one or more plugins to use register HTTP and web-socket connections 
+=== node_frontend_plugins
+Specify one or more plugins to use register HTTP and web-socket connections
 for applications.
 Options:
 
-* apache-mod-rewrite  - Mod-Rewrite based plugin for HTTP and HTTPS 
-    requests. Well suited for installations with a lot of 
-    creates/deletes/scale actions.
-* apache-vhost        - VHost based plugin for HTTP and HTTPS. Suited for 
-    installations with less app create/delete activity. Easier to 
-    customize.
+* apache-mod-rewrite  - Mod-Rewrite based plugin for HTTP and HTTPS requests. Well suited for installations with a lot of creates/deletes/scale actions.
+* apache-vhost        - VHost based plugin for HTTP and HTTPS. Suited for installations with less app create/delete activity. Easier to customize.  If apache-mod-rewrite is also selected, apache-vhost will be ignored
 * nodejs-websocket    - Web-socket proxy listening on ports 8000/8444
-* haproxy-sni-proxy   - TLS proxy using SNI routing on ports 2303 through 2308
-    requires /usr/sbin/haproxy15 (haproxy-1.5-dev19 or later).
+* haproxy-sni-proxy   - TLS proxy using SNI routing on ports 2303 through 2308 requires /usr/sbin/haproxy15 (haproxy-1.5-dev19 or later).
 
-Default: ['apache-mod-rewrite','nodejs-websocket']
-  
-==== node_unmanaged_users
-List of user names who have UIDs in the range of OpenShift gears but must be 
+Default: ["apache-mod-rewrite","nodejs-websocket"]
+
+=== node_unmanaged_users
+List of user names who have UIDs in the range of OpenShift gears but must be
 excluded from OpenShift gear setups.
 
 Default: []
 
-==== conf_node_external_eth_dev
+=== conf_node_external_eth_dev
 External facing network device. Used for routing and traffic control setup.
 
 Default: eth0
 
-==== conf_node_supplementary_posix_groups
+=== conf_node_supplementary_posix_groups
 Name of supplementary UNIX group to add a gear to.
 
-==== development_mode
-Set development mode and extra logging. 
+=== development_mode
+Set development mode and extra logging.
 
 Default: false
 
-==== install_login_shell
-Install a Getty shell which displays DNS, IP and login information. Used for 
+=== install_login_shell
+Install a Getty shell which displays DNS, IP and login information. Used for
 all-in-one VM installation.
 
-==== register_host_with_named
-Setup DNS entries for this host in a locally installed BIND DNS instance.
+=== register_host_with_nameserver
+Setup DNS entries for this host in a locally installed bind DNS instance.
 
 Default: false
 
-==== install_cartridges
+=== dns_infrastructure_zone
+The name of a zone to create which will contain OpenShift infrastructure. If this is unset then no infrastructure zone or other artifacts will be created.
+
+Default: ""
+
+=== dns_infrastructure_key
+An HMAC-MD5 dnssec symmetric key which will grant update access to the
+infrastucture zone resource records.
+
+This is ignored unless _dns_infrastructure_zone_ is set.
+
+Default: ""
+
+=== dns_infrastructure_names
+An array of hashes containing hostname and IP Address pairs to populate
+the infrastructure zone.
+
+This value is ignored unless _dns_infrastructure_zone_ is set.
+
+Hostnames can be simple names or fully qualified domain name (FQDN).
+
+Simple names will be placed in the _dns_infrastructure_zone_.
+Matching FQDNs will be placed in the _dns_infrastructure_zone.
+Hostnames anchored with a dot (.) will be added verbatim.
+
+Default: []
+
+.Example
+----
+$dns_infrastructure_names = [
+  {hostname => "10.0.0.1", ipaddr => "broker1"},
+  {hostname => "10.0.0.2", ipaddr => "data1"},
+  {hostname => "10.0.0.3", ipaddr => "message1"},
+  {hostname => "10.0.0.11", ipaddr => "node1"},
+  {hostname => "10.0.0.12", ipaddr => "node2"},
+  {hostname => "10.0.0.13", ipaddr => "node3"},
+]
+----
+
+=== manage_firewall
+Indicate whether or not this module will configure the firewall for you
+
+=== install_cartridges
 List of cartridges to be installed on the node. Options:
 
 * 10gen-mms-agent
@@ -699,50 +1034,9 @@ List of cartridges to be installed on the node. Options:
 * ruby
 * jenkins
 * jenkins-client
-* mariadb         (will install mysql on RHEL)
+* mariadb (will install mysql on RHEL)
 * jbossews
 * jbossas
 * jbosseap
 
-Default: ['10gen-mms-agent','cron','diy','haproxy','mongodb',
-          'nodejs','perl','php','phpmyadmin','postgresql',
-          'python','ruby','jenkins','jenkins-client','mariadb']
-
-== Manual Tasks
-
-This script attempts to automate as many tasks as it reasonably can.
-Unfortunately, it is constrained to setting up only a single host at a
-time. In an assumed multi-host setup, you will need to do the 
-following after the script has completed.
-
-1. Set up DNS entries for hosts.
-
-If you installed BIND with the script, then any other components
-installed with the script on the same host received DNS entries.
-Other hosts must all be defined manually, including at least your
-node hosts. oo-register-dns may prove useful for this.
-
-2. Copy public rsync key to enable moving gears.
-
-The broker rsync public key needs to go on nodes, but there is no
-good way to script that generically. Nodes should not have
-password-less access to brokers to copy the .pub key, so this must
-be performed manually on each node host:
-
-----
-# scp root@broker:/etc/openshift/rsync_id_rsa.pub /root/.ssh/
-(above step will ask for the root password of the broker machine)
-# cat /root/.ssh/rsync_id_rsa.pub >> /root/.ssh/authorized_keys
-# rm /root/.ssh/rsync_id_rsa.pub
-----
-
-If you skip this, each gear move will require typing root passwords
-for each of the node hosts involved.
-
-3. Copy ssh host keys between the node hosts.
-
-All node hosts should identify with the same host keys, so that when gears
-are moved between hosts, ssh and git don't give developers spurious
-warnings about the host keys changing. So, copy /etc/ssh/ssh_* from
-one node host to all the rest (or, if using the same image for all
-hosts, just keep the keys from the image).
+Default: ["10gen-mms-agent","cron","diy","haproxy","mongodb","nodejs","perl","php","phpmyadmin","postgresql","python","ruby","jenkins","jenkins-client","mariadb"]
