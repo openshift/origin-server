@@ -3104,17 +3104,20 @@ module OpenShift
           # - if request region is not available
           next if required_uid and !district.available_uids.include?(required_uid)
           if district.servers.where(name: server_identity).exists?
-          server = district.servers.find_by(name: server_identity)
-          if (gear_exists_in_district || district.available_capacity > 0) &&
-              server.active && (!require_zone || server.zone_id) 
-            server_infos << NodeProperties.new(server_identity, capacity.to_f, district, server) unless (region_id and server.region_id != region_id)
-          end
-          found_district = true
-          break
+            server = district.servers.find_by(name: server_identity)
+            if (gear_exists_in_district || district.available_capacity > 0) &&
+                server.active && (!require_zone || server.zone_id) 
+              server_infos << NodeProperties.new(server_identity, capacity.to_f, district, server) unless (region_id and server.region_id != region_id)
+            end
+            found_district = true
+            break
           end
         end
-        if !found_district && !require_district # Districts aren't required in this case
-          server_infos << NodeProperties.new(server_identity, capacity.to_f)
+        if !found_district
+          # Add node info if districts aren't required
+          server_infos << NodeProperties.new(server_identity, capacity.to_f) if !require_district
+          # log an error if region is specified and no districted nodes are available
+          Rails.logger.warn "Specified region will be ignored since there are no districted nodes available" if region_id.present?
         end
       end
       if server_infos.empty?
