@@ -46,11 +46,15 @@ function start() {
     echo "Application is already running!" 1>&2
     exit 0
   fi
+
   JENKINS_CMD="/etc/alternatives/jre/bin/java \
-      -XX:+UseSerialGC \
       -Xms20m \
       -Xmx168m \
       -XX:MaxPermSize=100m \
+      -XX:MinHeapFreeRatio=20 \
+      -XX:MaxHeapFreeRatio=40 \
+      -XX:GCTimeRatio=4 \
+      -XX:AdaptiveSizePolicyWeight=90 \
       -Djava.awt.headless=true"
 
   if marker_present "disable_jenkins_udp_broadcast"; then
