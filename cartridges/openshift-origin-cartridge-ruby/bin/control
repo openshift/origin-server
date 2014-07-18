@@ -234,7 +234,7 @@ function _threaddump() {
       exit 1
   fi
 
-  PID=$(ps -u $(id -u $1) -o pid,command | grep -v grep | grep 'Rack:.*'$1 | awk 'BEGIN {FS=" "}{print $1}')
+  PID=$(ps -u $(id -u $1) -o pid,command | grep -v grep | grep 'Rack.*'$1 | awk 'BEGIN {FS=" "}{print $1}')
 
   if [ -z "$PID" ]; then
     echo "Unable to detect application PID. Check the application's availability by accessing http://${OPENSHIFT_GEAR_DNS}"
