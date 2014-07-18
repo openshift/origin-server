@@ -236,7 +236,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
     proxy.system_proxy_delete(1, 2, 3)
 
     OpenShift::Runtime::Utils.expects(:oo_spawn).with(regexp_matches(/^oo-iptables-port-proxy/)).never
-    assert_equal [0,nil,nil], proxy.system_proxy_delete()
+    assert_equal [nil,nil,0], proxy.system_proxy_delete()
   end
 
   # Verify the command line constructed by the system proxy add command
@@ -258,7 +258,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
       )
 
     OpenShift::Runtime::Utils.expects(:oo_spawn).with(regexp_matches(/^oo-iptables-port-proxy/)).never
-    assert_equal [0,nil,nil], proxy.system_proxy_set()
+    assert_equal [nil,nil,0], proxy.system_proxy_set()
   end
 
   # Verify the command line constructed by the system proxy show
