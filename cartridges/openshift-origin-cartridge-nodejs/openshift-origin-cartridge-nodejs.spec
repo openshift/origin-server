@@ -9,7 +9,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.29.0
+Version: 1.29.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -74,6 +74,9 @@ find versions/ -name .gitkeep -delete
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
+- bump_minor_versions for sprint 48 (admiller@redhat.com)
+
 * Wed Jul 09 2014 Adam Miller <admiller@redhat.com> 1.28.5-1
 - Merge pull request #5584 from jhadvig/latest_versions
   (dmcphers+openshiftbot@redhat.com)
