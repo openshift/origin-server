@@ -9,7 +9,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.27.1
+Version: 1.27.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -109,6 +109,13 @@ done
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
+- Bug 1120467: Fixing wrong grep format for threaddump in ruby-2.0
+  (j.hadvig@gmail.com)
+- Added SECRET_KEY_BASE environment variable to support rails4
+  (mfojtik@redhat.com)
+- Initial support for Ruby 2.0 (mfojtik@redhat.com)
+
 * Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
 - Bug 1109645 - Fix the wrong path of libmysqlclient for Ruby 1.8
   (mfojtik@redhat.com)
