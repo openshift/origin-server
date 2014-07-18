@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.27.0
+Version: 1.27.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -125,6 +125,10 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
+- oo-diagnostics: Read /proc instead of using ps (miciah.masters@gmail.com)
+- bump_minor_versions for sprint 48 (admiller@redhat.com)
+
 * Wed Jul 09 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
 - add rails as a BuildRequires for the rpm build, the gemspec now requires it
   (admiller@redhat.com)
