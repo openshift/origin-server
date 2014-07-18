@@ -224,6 +224,19 @@ def find_ext_net_dev
   end
 end
 
+def check_ext_net_dev_addr
+  verbose("checking that external network device has a globally scoped IPv4 address")
+
+  begin
+    output = %x[/sbin/ip -o -f inet addr show dev #{$EXTERNAL_ETH_DEV} scope global]
+    if not $?.success? or not output.match(/(?:\S+\s+){3}[0-9.\\]+\s/)
+      do_fail("SEVERE: #{$EXTERNAL_ETH_DEV} has no globally scoped IPv4 address")
+    end
+  rescue Errno::ENOENT
+    do_fail("SEVERE: could not find ip command (/sbin/ip).")
+  end
+end
+
 def load_users
   # Narrow the window where USERS, TC_DATA and ALL_QUOTAS can reflect
 # the system in different states.
@@ -905,6 +918,7 @@ if __FILE__ == $0
     $STATUS=0
     load_node_conf
     find_ext_net_dev
+    check_ext_net_dev_addr
     load_users
 
     if $OPTIONS[:'run-upgrade-checks']
