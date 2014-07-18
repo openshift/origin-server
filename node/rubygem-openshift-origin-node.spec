@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.28.0
+Version: 1.28.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
+- Bug 1118588 - Fix oo-cgroup-read for parsing blkio stats (agrimm@redhat.com)
+- bump_minor_versions for sprint 48 (admiller@redhat.com)
+
 * Mon Jul 07 2014 Adam Miller <admiller@redhat.com> 1.27.4-1
 - Bug 1116135 - Add -u to bash sdk pgrep calls (jhonce@redhat.com)
 - Bug 1116062 - Remove spurious call to facter (jhonce@redhat.com)
