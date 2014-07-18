@@ -10,51 +10,45 @@ LATEST DOC UPDATES
 This document describes the process of setting up a VM running an
 OpenShift development environment inside VirtualBox.
 
-You need to have a virtualization application such as KVM, or VirtuaBox installed on your
-workstation and you will need at least 25GB of free disk space. The compressed download is 
-about 1.3GB and when you unpack it the resulting image file is almost 4GB vmdk file or 20 GB
-uncompressed RAW disk file (Linux only).
+[float]
+=== Prerequisites
+You need to have a virtualization application such as KVM, or VirtuaBox installed on your workstation and you will need at least 25GB of free disk space. The compressed download is about 1.3GB and when you unpack it the resulting image file is almost 4GB vmdk file or 20 GB uncompressed RAW disk file (Linux only).
 
 == Download VM
 
 Download the VM from the OpenShift "mirrors" site:
 
 ----
-$ wget https://mirror.openshift.com/pub/origin-server/release/3/images/openshift-origin.zip
+$ wget https://mirror.openshift.com/pub/origin-server/release/4/images/openshift-origin.tgz
 ----
 
 == Unpack VM files
 
-The download package is a ZIP archive. Unpack it with `unzip`or your system's archive utility.
+The download package is a compressed tar archive. Unpack it with `tar xzf openshift-origin.tgz` or your system's archive utility. This can take a while, as the files being uncompressed are pretty large.
+
+Once unpacked, you will find an "OpenShift Origin v4" directory with these contents:
 
 ----
-$ unzip openshift-origin.zip
-----
-
-This can take quite a while.  The files being uncompressed are pretty
-large. The result will be the creation of four additional files:
-
-----
-$ ls -1t
-openshift-origin.tbz2
-openshift-origin.ovf
-openshift-origin.tdl
-openshift-origin.vmdk
-openshift-origin.vmx
+$ ls -1t OpenShift\ Origin\ v4/
+OpenShift Origin v4.vbox
+origin-vm.vmdk
+OpenShift Origin v4.vmx
+OpenShift Origin v4.nvram
+OpenShift Origin v4.vmsd
+OpenShift Origin v4.vmxf
 ----
 
 == Configure mDNS
 
-The VM image is configured to use link:http://en.wikipedia.org/wiki/MDNS[mDNS] to provide DNS name resolution so that
-your browser and RHC client can resolve the URL of the broker and applications running on the VM. mDNS services are built-in
-on MacOSX (bonjour) and Windows (zeroconf) system, but require a few addition steps on Fedora 19 or other linux based systems.
+The VM image is configured to use link:http://en.wikipedia.org/wiki/MDNS[mDNS] to provide DNS name resolution so that your browser and RHC client can resolve the URL of the broker and applications running on the VM. mDNS services are built-in
+on MacOSX (bonjour) and Windows (zeroconf) system, but require a few addition steps on Fedora and other Linux-based systems.
 
 1. Install the mDNS resolver RPM:
 +
 ----
 $ yum install -y nss-mdns
 ----
-2. Edit your _/etc/nsswitch.conf_ file. Search for a list beginning with *"hosts:"* and add *mdns4* to the end of the line. 
+2. Edit your `/etc/nsswitch.conf` file. Search for a list beginning with *"hosts:"* and add *mdns4* to the end of the line. 
 After the edit, it should look like:
 +
 ----
@@ -160,20 +154,18 @@ When the VM has finished booting. It will go through some initialization and the
 
 image:virt_manager_vm_running.png[image]
 
-[[virtualbox]]
 === VirtualBox
+If Virtualbox is installed on your system, you should be able to click on the `Openshift Origin v4.vbox` file from a window manager to automatically register the VM and launch it.
 
+If this doesn't work, or if you would like to modify the VM configuration, read on.
 
-VirtualBox is a process based virtual machine system.
-
+==== Create New VM
 You can start VirtualBox either by clicking on the desktop item in the
 startup menus or from the command line:
 
 ----
 $ virtualbox &
 ----
-
-==== Create New VM
 
 When you start VirtualBox and you should see the welcome page. Click
 the New button in the upper left to begin the process of creating
@@ -260,6 +252,9 @@ show me again" box when you do.
 When the VM has finished booting. It will go through some initialization and then present you with the URL a menu where you can start working with your VM.
 
 image:virt_manager_vm_running.png[image]
+
+=== VMWare
+Provided with the VM is a file called `OpenShift Origin 4.vmx`. If VMWare is installed on your system, you should be able to double-click this vbox file from within a file manager and VMWare will automatically register the VM for you.
 
 == Accessing the Virtual Machine
 
