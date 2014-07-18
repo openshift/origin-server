@@ -315,7 +315,12 @@ def check_node_public_resolution
     # but we can check PUBLIC_HOSTNAME resolves to either a NIC on this host or PUBLIC_IP.
     # in EC2, hostname resolves differently internal vs. external, so will match NIC.
     # in most places, PUBLIC_HOSTNAME will resolve to PUBLIC_IP
-    my_ips = %x[/sbin/ip addr show scope global].scan(/^\s+inet\s+([\d\.]+)/).flatten.push(pubip).uniq
+    begin
+      my_ips = %x[/sbin/ip addr show scope global].scan(/^\s+inet\s+([\d\.]+)/).flatten.push(pubip).uniq
+    rescue Errno::ENOENT
+      do_fail("SEVERE: could not find ip command (/sbin/ip).")
+      return
+    end
     do_fail("#{$NODE_CONF_FILE}: PUBLIC_HOSTNAME #{pubhost} resolves to #{resolved_host}; expected #{my_ips.join '|'}") unless my_ips.member? resolved_host
 end
 
