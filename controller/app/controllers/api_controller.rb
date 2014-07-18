@@ -59,7 +59,8 @@ class ApiController < BaseController
       "SEARCH_TEAMS" => Link.new("Search teams by name", "GET", URI::join(get_url, "teams"), [
         Param.new("search", "string", "Search string must be at least 2 characters"),
         Param.new("global", "boolean", "Search global teams", [true, false])
-      ])
+      ]),
+      "LIST_REGIONS" => Link.new("List all regions", "GET", URI::join(get_url, "regions"))
     }
 
     links.merge!({
