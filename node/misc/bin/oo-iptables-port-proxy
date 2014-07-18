@@ -14,7 +14,8 @@ function getaddr() {
     dev="${EXTERNAL_ETH_DEV:-eth0}"
     read _ _ _ ipaddr _ < \
       <(ip -o -f inet addr show dev $dev scope global)
-    echo -n "${ipaddr%/*}"
+    ipaddr="${ipaddr%/*}"
+    echo -n "${ipaddr:?$dev has no globally scoped IPv4 address}"
 }
 
 # Fix up the IP Address in the config if the assigned node IP Address has changed.
