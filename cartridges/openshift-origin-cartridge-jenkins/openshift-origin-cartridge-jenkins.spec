@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.24.0
+Version: 1.24.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -49,6 +49,13 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.24.1-1
+- Merge pull request #5585 from
+  vbalazs/bvarga/origin_cartridge_214_jvm_heap_opts
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 48 (admiller@redhat.com)
+- JVM heap optimization settings and remove SerialGC (bvarga@redhat.com)
+
 * Wed Jul 09 2014 Adam Miller <admiller@redhat.com> 1.23.3-1
 - Bump cartridge versions for 2.0.47 (jhadvig@gmail.com)
 
