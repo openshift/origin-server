@@ -1303,6 +1303,46 @@ class OODiag
     end
   end
 
+  test_node_clock_in_synch_with_broker
+    skip_test unless @is_node
+    require 'time'
+    warning_threshold = 5
+    drop_threshold = 60
+    host = OpenShift::Config.new.get('BROKER_HOST')
+    response = `curl -sI http://#{host}/`
+    local = Time.now
+    unless $?.success?
+      do_warn "Could not get date from #{host}:80."
+      skip_test
+    end
+    remote = response.match(/Date: (.*)/) {|date| Time.httpdate(date[1])}
+    unless remote
+      do_warn "Could not parse response from #{host}:80."
+      skip_test
+    end
+    diff = (local - remote).abs
+    if diff >= warning_threshold
+      msg = <<-"CLOCK"
+        The local host's clock is #{local > remote ? "ahead of" : "behind"} #{host}'s
+        by #{diff.to_i} seconds.  Note that a host will drop messages that it receives
+        over MCollective if the sender's timestamp on those messages is more
+        than #{drop_threshold} seconds in the past by the recipient's clock.  This means that
+        if a node's clock is too far off from the broker's, the node will
+        effectively be invisible to the broker.
+
+        Please ensure that all hosts' clocks are synchronized, and consider
+        configuring ntpd to keep their clocks synchronized.
+      CLOCK
+      # Subtract 5 from the actual threshold because if we're that close
+      # to it, we're dangerously close.
+      if diff >= drop_threshold - 5
+        do_fail msg
+      else
+        do_warn msg
+      end
+    end
+  end
+
 end #class OODiag
 
 
