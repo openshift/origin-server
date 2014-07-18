@@ -226,7 +226,7 @@ module OpenShift
           out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           return out, err, rc
         else
-          return 0, nil, nil
+          return nil, nil, 0
         end
       end
 
@@ -252,7 +252,7 @@ module OpenShift
           out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           return out, err, rc
         else
-          return 0, nil, nil
+          return nil, nil, 0
         end
       end
 
