@@ -281,11 +281,18 @@ function enable-server() {
         info=($(app_web_to_proxy_ratio_and_colocated_gears))
         ratio=${info[0]}
         unset info[0]
+        
         declare -i proxy_gear_ttl="${OPENSHIFT_HAPROXY_PROXY_GEAR_TTL:-3}"
         if [ "$proxy_gear_ttl" -ge 0 -a "$proxy_gear_ttl" -lt 3 ]; then
             proxy_gear_ttl=3
         fi
-        if [ "$proxy_gear_ttl" -gt -1 -a "$ratio" -ge "$proxy_gear_ttl" ]; then
+
+        # For backwards compatibility, use the OPENSHIFT_HAPROXY_PROXY_GEAR_TTL value if it was
+        # defined.  Note that the OPENSHIFT_HAPROXY_PROXY_GEAR_TTL value is subject to the rule
+        # that if it is less than 3, it is set to 3.
+        OPENSHIFT_HAPROXY_GEAR_RATIO="${OPENSHIFT_HAPROXY_GEAR_RATIO:-$proxy_gear_ttl}"
+
+        if [ "$OPENSHIFT_HAPROXY_GEAR_RATIO" -gt -1 -a "$ratio" -ge "$OPENSHIFT_HAPROXY_GEAR_RATIO" ]; then
             declare -A map
             for uuid in ${info[@]}; do
                 map["$uuid"]=1

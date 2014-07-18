@@ -122,8 +122,17 @@ ratio=${info[0]}
 
 unset info[0]
 
+# For backwards compatibility, use the OPENSHIFT_HAPROXY_PROXY_GEAR_TTL value if it was
+# defined.  Note that the OPENSHIFT_HAPROXY_PROXY_GEAR_TTL value is subject to the rule
+# that if it is less than 3, it is set to 3.
+declare -i proxy_gear_ttl="${OPENSHIFT_HAPROXY_PROXY_GEAR_TTL:-3}"
+if [ "$proxy_gear_ttl" -ge 0 -a "$proxy_gear_ttl" -lt 3 ]; then
+    proxy_gear_ttl=3
+fi
+OPENSHIFT_HAPROXY_GEAR_RATIO="${OPENSHIFT_HAPROXY_GEAR_RATIO:-$proxy_gear_ttl}"
+
 echo "Web/Proxy gears ratio $ratio"
-if [ "$ratio" -ge ${OPENSHIFT_HAPROXY_GEAR_RATIO-"3"} ]; then
+if [  "$OPENSHIFT_HAPROXY_GEAR_RATIO" -gt -1 -a "$ratio" -ge ${OPENSHIFT_HAPROXY_GEAR_RATIO:-"3"} ]; then
     echo "Disabling colocated gears ${info[@]}"
     nohup $OPENSHIFT_HAPROXY_DIR/usr/bin/disable-colocated-gears ${info[@]} &
 else
