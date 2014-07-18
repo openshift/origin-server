@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.28.0
+Version: 1.28.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,16 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
+- Merge pull request #5613 from derekwaynecarr/bug_1120413
+  (dmcphers+openshiftbot@redhat.com)
+- Added LIST_REGIONS (lnader@redhat.com)
+- Ensure domain environment variables are passed to cartridge install scripts
+  (decarr@redhat.com)
+- Added ruby-2.0 test cases (mfojtik@redhat.com)
+- Add currency_cd field to CloudUser (jliggitt@redhat.com)
+- bump_minor_versions for sprint 48 (admiller@redhat.com)
+
 * Tue Jul 08 2014 Adam Miller <admiller@redhat.com> 1.27.5-1
 - Do not attempt to filter if no conf is provided (decarr@redhat.com)
 
