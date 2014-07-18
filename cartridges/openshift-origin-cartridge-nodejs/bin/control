@@ -213,7 +213,7 @@ function build() {
 
     nodejs_context /bin/bash
     if [ -f "${OPENSHIFT_REPO_DIR}"/package.json ]; then
-        (cd "${OPENSHIFT_REPO_DIR}"; nodejs_context "npm install -d")
+        (cd "${OPENSHIFT_REPO_DIR}"; nodejs_context "npm install -d --production")
     fi
 }
 
