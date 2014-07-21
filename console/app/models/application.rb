@@ -17,6 +17,7 @@ class Application < RestApi::Base
     string :gear_profile, :scale
     string :building_with, :build_job_url, :building_app
     string :framework
+    string :region
     boolean :auto_deploy
     string :deployment_branch, :deployment_type, :keep_deployments
   end
@@ -100,7 +101,7 @@ class Application < RestApi::Base
 
   has_members :as => Application::Member
 
-  attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch
+  attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch, :region
 
   def find_cartridge(name)
     Cartridge.find name, child_options

@@ -124,6 +124,8 @@ class ApplicationsController < ConsoleController
       ApplicationType.custom(type) :
       ApplicationType.find(type)
 
+    @regions = Region.cached.all
+
     @capabilities = user_capabilities :refresh => true
     @user_usage_rates = current_api_user.usage_rates
 

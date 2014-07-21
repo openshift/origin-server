@@ -141,9 +141,9 @@
       %h3.control-label Gears
       .controls.first
         - if @gear_sizes.length > 1
-          = f.select :gear_profile, @gear_sizes.map{ |size| [size.to_s.titleize, size]}, {}
+          = f.select :gear_profile, @gear_sizes.map{ |size| [size.to_s, size]}, {}
         - else
-          %h3= @gear_sizes.first.to_s.titleize
+          %h3= @gear_sizes.first.to_s
           = f.hidden_field :gear_profile, :value => @gear_sizes.first.to_s
         = f.inline_errors_for :gear_profile
 
@@ -209,6 +209,8 @@
             %span.text-warning= scale_reason
 
         = render :partial => 'application_types/application_type_notifications', :locals => { :type => @application_type }
+
+    = render :partial => 'application_types/regions', :locals => { :f=>f}
 
   = f.buttons do
     = link_to "Back", application_types_path, :class => 'btn'
