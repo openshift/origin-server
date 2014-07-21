@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 1.26.1
+Version: 1.26.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,12 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jul 21 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
+- Merge pull request #5626 from bparees/fix_haproxy_ratio
+  (dmcphers+openshiftbot@redhat.com)
+-  Haproxy gear ratio is only considered when adding a gear, not when start an
+  existing application (bparees@redhat.com)
+
 * Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.26.1-1
 - Wrong message when starting catridge haproxy_ctld.rb (bparees@redhat.com)
 - bump_minor_versions for sprint 48 (admiller@redhat.com)
