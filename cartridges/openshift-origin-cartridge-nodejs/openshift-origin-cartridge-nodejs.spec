@@ -40,6 +40,7 @@ Requires:      nodejs-node-static
 Requires:      nodejs-pg
 Requires:      nodejs-supervisor
 Requires:      nodejs-options
+Requires:      v8341-runtime
 Provides:      openshift-origin-cartridge-nodejs-0.6 = 2.0.0
 Obsoletes:     openshift-origin-cartridge-nodejs-0.6 <= 1.99.9
 BuildArch:     noarch
