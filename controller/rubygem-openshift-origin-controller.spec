@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.28.1
+Version: 1.28.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jul 21 2014 Adam Miller <admiller@redhat.com> 1.28.2-1
+- Card origin_node_401 - Support Vendor in CartridgeRepository
+  (jhonce@redhat.com)
+
 * Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
 - Merge pull request #5613 from derekwaynecarr/bug_1120413
   (dmcphers+openshiftbot@redhat.com)
