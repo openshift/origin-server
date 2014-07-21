@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.28.1
+Version: 1.28.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Jul 21 2014 Adam Miller <admiller@redhat.com> 1.28.2-1
+- Card origin_node_401 - Support Vendor in CartridgeRepository
+  (jhonce@redhat.com)
+
 * Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
 - Bug 1118588 - Fix oo-cgroup-read for parsing blkio stats (agrimm@redhat.com)
 - bump_minor_versions for sprint 48 (admiller@redhat.com)
