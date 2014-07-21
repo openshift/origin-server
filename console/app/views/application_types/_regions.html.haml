@@ -1,0 +1,11 @@
+- unless @regions.empty?
+  .control-group.control-group-important
+    %h3.control-label Region
+    .controls.first
+      - if @regions.size == 1
+        %h3= @regions.first.name
+      - else
+        = f.select :region, @regions.collect{|r|[r.name, r.name]}, :selected=>default_region(@regions)
+    .controls
+      %p.help-block
+        Gears within your application will run on servers in the specified region.

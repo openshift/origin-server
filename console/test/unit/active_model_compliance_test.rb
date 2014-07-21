@@ -13,6 +13,7 @@ module ActiveModelComplianceTest
     Embedded,
     Gear,
     GearGroup,
+    Region,
     User,
   ].each do |klass|
     const_set("#{klass.to_s.gsub(':','')}Test", Class.new(ActiveModel::TestCase) do

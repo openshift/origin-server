@@ -63,6 +63,8 @@
       %p.created
         Created #{time_ago_in_words(@application.creation_time)} ago in domain
         #{link_to @application.domain_id, domain_path(@application.domain_id)}
+        - if (@assigned_region = assigned_region(@gear_groups))
+          = " and the #{@assigned_region} region"
 
 .row
 
