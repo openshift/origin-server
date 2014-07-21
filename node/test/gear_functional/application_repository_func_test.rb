@@ -16,6 +16,7 @@
 require_relative '../test_helper'
 require 'pathname'
 require 'securerandom'
+require 'openshift-origin-node/model/ident'
 
 # Deploy cannot be testing in this manner. SELinux requires a valid UID or the tests fail.
 # See cucumber test application_repository.feature
@@ -65,7 +66,8 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     @cartridge_name      = 'mock-0.1'
     @cartridge_directory = 'mock'
     @cartridge_home      = File.join(@container.container_dir, @cartridge_directory)
-    @model.configure(@cartridge_name)
+    ident = OpenShift::Runtime::Ident.new('redhat', 'mock', '0.1')
+    @model.configure(ident)
     teardown
   end
 
@@ -213,7 +215,7 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     cartridge_template_git = File.join(@cartridge_home, 'template.git')
     assert_path_exist cartridge_template_git
     refute_path_exist File.join(@cartridge_home, 'template')
-    cartridge_template_url = "file://#{cartridge_template_git}##{branch}"    
+    cartridge_template_url = "file://#{cartridge_template_git}##{branch}"
 
     expected_path = File.join(@container.container_dir, 'git', @container.application_name + '.git')
 

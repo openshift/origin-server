@@ -57,7 +57,7 @@ module OpenShift
             return options.verbose ? repository.inspect : repository.to_s
           when :erase
             begin
-              repository.erase(options.name, options.version, options.cartridge_version)
+              repository.erase(options.cartridge_vendor, options.name, options.version, options.cartridge_version, options.force)
             rescue KeyError => e
               abort "requested cartridge does not exist: (#{e.message})"
             rescue => e
@@ -89,7 +89,7 @@ module OpenShift
                                                                  expected_exitstatus: 0)
           when :erase
             command      = %Q(oo-mco rpc openshift cartridge_repository action=erase \
-                       name="#{options.name}" version="#{options.version}" cartridge_version="#{options.cartridge_version}")
+                       cartridge_vendor="#{options.cartridge_vendor}" name="#{options.name}" version="#{options.version}" cartridge_version="#{options.cartridge_version}" force="#{options.force}")
             buffer, _, _ = ::OpenShift::Runtime::Utils.oo_spawn(command,
                                                                  expected_exitstatus: 0)
         end
@@ -100,9 +100,9 @@ module OpenShift
   end
 end
 
-options = OpenStruct.new(verbose: false, recursive: false)
+options = OpenStruct.new(verbose: false, recursive: false, force: false, cartridge_vendor: 'redhat')
 parser  = OptionParser.new do |opts|
-  opts.banner = 'Usage: --action ACTION [--recursive] [--mco] [--source directory] [--name NAME --version VERSION --cartridge_version VERSION]'
+  opts.banner = 'Usage: --action ACTION [--recursive] [--mco] [--source directory] [<--cartridge-vendor vendor> --name NAME --version VERSION --cartridge_version VERSION]'
   opts.separator ''
   opts.separator 'Options:'
 
@@ -115,9 +115,11 @@ parser  = OptionParser.new do |opts|
   end
 
   opts.on('-l', '--list', 'List cartridges in repository') { options.action ||= :list }
+  opts.on('-o', '--cartridge_vendor VENDOR', 'Cartridge vendor of cartridge to erase. default: redhat') { |o| options.cartridge_vendor = o }
   opts.on('-n', '--name NAME', 'Name of cartridge to erase') { |o| options.name = o }
   opts.on('-v', '--version VERSION', 'Version of packaged software to erase') { |o| options.version = o }
   opts.on('-c', '--cartridge_version VERSION', 'Version of cartridge to erase') { |o| options.cartridge_version = o }
+  opts.on('-f', '--force', 'Force erase of cartridge') {|o| options.force = true}
 
   opts.on_tail('-d', '--debug', 'enable additional output') { options.verbose = true }
   opts.on('--offline', 'ignored') {}
@@ -134,7 +136,7 @@ end
 mandatory = {
     install: [:source],
     list:    [],
-    erase:   [:name, :version, :cartridge_version]
+    erase:   [:cartridge_vendor, :name, :version, :cartridge_version]
 }
 
 missing = mandatory[options.action].select { |o| not options.respond_to? o }

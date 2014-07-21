@@ -7,6 +7,7 @@ require 'base64'
 require 'etc'
 require 'openshift-origin-node'
 require 'openshift-origin-node/model/cartridge_repository'
+require 'openshift-origin-node/model/ident'
 require 'openshift-origin-node/utils/hourglass'
 require 'openshift-origin-common/utils/path_utils'
 require 'openshift-origin-common/utils/file_needs_sync'
@@ -23,13 +24,13 @@ module MCollective
 
       # Maps NodeLogger context keys to request data "args" keys
       LOGGER_CONTEXT_ENTRIES = {
-        request_id: '--with-request-id',
-        container_uuid: '--with-container-uuid',
-        app_uuid: '--with-app-uuid'
+          request_id:     '--with-request-id',
+          container_uuid: '--with-container-uuid',
+          app_uuid:       '--with-app-uuid'
       }
 
       activate_when do
-        @@config = ::OpenShift::Config.new
+        @@config  = ::OpenShift::Config.new
 
         # We need to call this here so the pthread local destructor function that calls matchpathcon_fini is associated
         # with this long lived thread. Otherwise, it will be invoked for every OpenShift mco agent method that ends up
@@ -82,7 +83,7 @@ module MCollective
 
         # Set up the NodeLogger context for the duration of this request
         args = request.data[:args] ||= {}
-        LOGGER_CONTEXT_ENTRIES.each {|k, v| OpenShift::Runtime::NodeLogger.context[k] = args[v].to_s if args[v]}
+        LOGGER_CONTEXT_ENTRIES.each { |k, v| OpenShift::Runtime::NodeLogger.context[k] = args[v].to_s if args[v] }
 
         OpenShift::Runtime::NodeLogger.logger.info("openshift-agent: request start: action=#{request.action} requestid=#{request.uniqid}, "\
                                                    "senderid=#{request.sender}, data=#{request.data}")
@@ -93,7 +94,7 @@ module MCollective
                                                    "senderid=#{request.sender}, statuscode=#{reply.statuscode}, data=#{reply.data}")
 
         # Clear the NodeLogger context for the request
-        LOGGER_CONTEXT_ENTRIES.each {|k, v| OpenShift::Runtime::NodeLogger.context.delete(k)}
+        LOGGER_CONTEXT_ENTRIES.each { |k, v| OpenShift::Runtime::NodeLogger.context.delete(k) }
       end
 
 
@@ -107,7 +108,7 @@ module MCollective
       end
 
       def get_facts_action
-        hg = OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout)
+        hg  = OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout)
         max = hg.remaining
 
         reply[:output] = {}
@@ -136,8 +137,8 @@ module MCollective
         action = request[:action]
         args   = request[:args] ||= {}
 
-        args['--with-hourglass'] = OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout)
-        args['--with-reference-id'] = request.uniqid
+        args['--with-hourglass']       = OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout)
+        args['--with-reference-id']    = request.uniqid
 
         # Do the action execution
         exitcode, output, addtl_params = execute_action(action, args)
@@ -166,8 +167,8 @@ module MCollective
       def execute_action(action, args)
         action_method = "oo_#{action.gsub('-', '_')}"
 
-        exitcode = 0
-        output   = ""
+        exitcode     = 0
+        output       = ""
         addtl_params = nil
 
         begin
@@ -256,16 +257,16 @@ module MCollective
         validate :app_uuid, /^[a-zA-Z0-9]+$/
         validate :version, /^.+$/
         validate :namespace, /^.+$/
-        uuid = request[:uuid]
-        application_uuid = request[:app_uuid]
-        namespace = request[:namespace]
-        version = request[:version]
+        uuid                     = request[:uuid]
+        application_uuid         = request[:app_uuid]
+        namespace                = request[:namespace]
+        version                  = request[:version]
         ignore_cartridge_version = request[:ignore_cartridge_version] == 'true' ? true : false
-        scalable = request[:scalable]
-        hostname = Facter.value(:hostname)
+        scalable                 = request[:scalable]
+        hostname                 = Facter.value(:hostname)
 
         error_message = nil
-        exitcode = 0
+        exitcode      = 0
 
         begin
           require 'openshift-origin-node/model/upgrade'
@@ -273,7 +274,7 @@ module MCollective
                                                       OpenShift::Runtime::Utils::Hourglass.new(@@hourglass_timeout))
         rescue Exception => e
           report_exception(request.uniqid, uuid, e)
-          exitcode = 1
+          exitcode      = 1
           error_message = "Failed to instantiate the upgrader; this is typically due to the gear being corrupt or missing its UNIX account.\n"\
                           "Exception: #{e.message}\n#{e.backtrace.join("\n")}"
         else
@@ -281,22 +282,22 @@ module MCollective
             result = upgrader.execute
           rescue LoadError => e
             report_exception(request.uniqid, uuid, e)
-            exitcode = 127
+            exitcode      = 127
             error_message = "Upgrade not supported: #{e.message}"
           rescue OpenShift::Runtime::Utils::ShellExecutionException => e
             report_exception(request.uniqid, uuid, e)
-            exitcode = 2
+            exitcode      = 2
             error_message = "Gear failed to upgrade due to an unhandled shell execution: #{e.message}\n#{e.backtrace.join("\n")}\n"\
                             "Stdout: #{e.stdout}\nStderr: #{e.stderr}"
           rescue Exception => e
             report_exception(request.uniqid, uuid, e)
-            exitcode = 3
+            exitcode      = 3
             error_message = "Gear failed to upgrade due to an unhandled internal exception: #{e.message}\n#{e.backtrace.join("\n")}"
           end
         end
 
-        reply[:output] = error_message
-        reply[:exitcode] = exitcode
+        reply[:output]              = error_message
+        reply[:exitcode]            = exitcode
         reply[:upgrade_result_json] = JSON.dump(result) if result
         reply.fail! "upgrade_action failed with exit code #{exitcode}. Output: #{error_message}" unless exitcode == 0
       end
@@ -314,11 +315,11 @@ module MCollective
       # configured MCollective agent timeout.
       #
       def get_app_container_from_args(args)
-        app_uuid     = args['--with-app-uuid'].to_s       if args['--with-app-uuid']
-        app_name     = args['--with-app-name'].to_s       if args['--with-app-name']
+        app_uuid     = args['--with-app-uuid'].to_s if args['--with-app-uuid']
+        app_name     = args['--with-app-name'].to_s if args['--with-app-name']
         gear_uuid    = args['--with-container-uuid'].to_s if args['--with-container-uuid']
         gear_name    = args['--with-container-name'].to_s if args['--with-container-name']
-        namespace    = args['--with-namespace'].to_s      if args['--with-namespace']
+        namespace    = args['--with-namespace'].to_s if args['--with-namespace']
         quota_blocks = args['--with-quota-blocks']
         quota_files  = args['--with-quota-files']
         uid          = args['--with-uid']
@@ -358,8 +359,8 @@ module MCollective
       def oo_app_create(args)
         output = ''
         begin
-          token = args.key?('--with-secret-token') ? args['--with-secret-token'].to_s : nil
-          generate_app_key = args.key?('--with-generate-app-key') ? args['--with-generate-app-key'] : false
+          token                         = args.key?('--with-secret-token') ? args['--with-secret-token'].to_s : nil
+          generate_app_key              = args.key?('--with-generate-app-key') ? args['--with-generate-app-key'] : false
           create_initial_deployment_dir = args.key?('--with-initial-deployment-dir') ? args['--with-initial-deployment-dir'] : true
 
           container = get_app_container_from_args(args)
@@ -393,11 +394,11 @@ module MCollective
       end
 
       def oo_update_configuration(args)
-        config  = args['--with-config']
-        auto_deploy = config['auto_deploy']
+        config            = args['--with-config']
+        auto_deploy       = config['auto_deploy']
         deployment_branch = config['deployment_branch']
-        keep_deployments = config['keep_deployments']
-        deployment_type = config['deployment_type']
+        keep_deployments  = config['keep_deployments']
+        deployment_type   = config['deployment_type']
 
         with_container_from_args(args) do |container|
           container.set_auto_deploy(auto_deploy)
@@ -408,13 +409,13 @@ module MCollective
       end
 
       def oo_deploy(args)
-        hot_deploy = args['--with-hot-deploy']
+        hot_deploy        = args['--with-hot-deploy']
         force_clean_build = args['--with-force-clean-build']
-        ref = args['--with-ref']
-        artifact_url = args['--with-artifact-url']
-        out = StringIO.new
-        err = StringIO.new
-        addtl_params = nil
+        ref               = args['--with-ref']
+        artifact_url      = args['--with-artifact-url']
+        out               = StringIO.new
+        err               = StringIO.new
+        addtl_params      = nil
 
         rc, output = with_container_from_args(args) do |container|
           container.deploy(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url, out: out, err: err)
@@ -425,10 +426,10 @@ module MCollective
       end
 
       def oo_activate(args)
-        deployment_id  = args['--with-deployment-id']
-        out = StringIO.new
-        err = StringIO.new
-        addtl_params = nil
+        deployment_id = args['--with-deployment-id']
+        out           = StringIO.new
+        err           = StringIO.new
+        addtl_params  = nil
 
         rc, output = with_container_from_args(args) do |container|
           container.activate(deployment_id: deployment_id, out: out, err: err)
@@ -449,7 +450,7 @@ module MCollective
       end
 
       def oo_authorized_ssh_key_batch_add(args)
-        ssh_keys  = args['--with-ssh-keys']
+        ssh_keys = args['--with-ssh-keys']
 
         with_container_from_args(args) do |container|
           container.add_ssh_keys(ssh_keys)
@@ -457,9 +458,9 @@ module MCollective
       end
 
       def oo_authorized_ssh_key_remove(args)
-        ssh_key = args['--with-ssh-key']
+        ssh_key  = args['--with-ssh-key']
         key_type = args['--with-ssh-key-type']
-        comment = args['--with-ssh-comment']
+        comment  = args['--with-ssh-comment']
 
         with_container_from_args(args) do |container|
           container.remove_ssh_key(ssh_key, key_type, comment)
@@ -467,7 +468,7 @@ module MCollective
       end
 
       def oo_authorized_ssh_key_batch_remove(args)
-        ssh_keys  = args['--with-ssh-keys']
+        ssh_keys = args['--with-ssh-keys']
 
         with_container_from_args(args) do |container|
           container.remove_ssh_keys(ssh_keys)
@@ -475,7 +476,7 @@ module MCollective
       end
 
       def oo_authorized_ssh_keys_replace(args)
-        ssh_keys  = args['--with-ssh-keys'] || []
+        ssh_keys = args['--with-ssh-keys'] || []
 
         begin
           container = get_app_container_from_args(args)
@@ -523,7 +524,7 @@ module MCollective
       def oo_user_var_add(args)
         variables = {}
         if args['--with-variables']
-          JSON.parse(args['--with-variables']).each {|env| variables[env['name']] = env['value']}
+          JSON.parse(args['--with-variables']).each { |env| variables[env['name']] = env['value'] }
         end
         gears = args['--with-gears'] ? args['--with-gears'].split(';') : []
 
@@ -580,7 +581,7 @@ module MCollective
 
       def oo_cartridge_list(args)
         list_descriptors = true if args['--with-descriptors']
-        porcelain = true if args['--porcelain']
+        porcelain        = true if args['--porcelain']
 
         begin
           return 0, OpenShift::Runtime::Node.get_cartridge_list(list_descriptors, porcelain, false)
@@ -602,9 +603,9 @@ module MCollective
         begin
           q = OpenShift::Runtime::Node.get_quota(uuid)
           return 0, [
-            q[:device],
-            q[:blocks_used].to_s, q[:blocks_quota].to_s, q[:blocks_limit].to_s,
-            q[:inodes_used].to_s, q[:inodes_quota].to_s, q[:inodes_limit].to_s
+              q[:device],
+              q[:blocks_used].to_s, q[:blocks_quota].to_s, q[:blocks_limit].to_s,
+              q[:inodes_used].to_s, q[:inodes_quota].to_s, q[:inodes_limit].to_s
           ]
         rescue Exception => e
           report_exception(args['--with-reference-id'], args['--with-container-uuid'], e)
@@ -613,7 +614,7 @@ module MCollective
       end
 
       def oo_set_quota(args)
-        uuid = args['--uuid'].to_s if args['--uuid']
+        uuid   = args['--uuid'].to_s if args['--uuid']
         blocks = args['--blocks']
         inodes = args['--inodes']
 
@@ -889,11 +890,11 @@ module MCollective
       end
 
       def oo_connector_execute(args)
-        cart_name        = args['--cart-name']
-        pub_cart_name    = args['--publishing-cart-name']
-        hook_name        = args['--hook-name']
-        connection_type  = args['--connection-type']
-        input_args       = args['--input-args']
+        cart_name       = args['--cart-name']
+        pub_cart_name   = args['--publishing-cart-name']
+        hook_name       = args['--hook-name']
+        connection_type = args['--connection-type']
+        input_args      = args['--input-args']
 
         with_container_from_args(args) do |container, output|
           output << container.connector_execute(cart_name, pub_cart_name, connection_type, hook_name, input_args)
@@ -901,13 +902,13 @@ module MCollective
       end
 
       def oo_configure(args)
-        cart_name        = args['--cart-name']
+        ident            = build_ident(args)
         template_git_url = args['--with-template-git-url']
         manifest         = args['--with-cartridge-manifest']
         do_expose_ports  = !!args['--with-expose-ports']
 
         with_container_from_args(args) do |container, output|
-          output << container.configure(cart_name, template_git_url, manifest, do_expose_ports)
+          output << container.configure(ident, template_git_url, manifest, do_expose_ports)
         end
       end
 
@@ -931,10 +932,10 @@ module MCollective
       end
 
       def oo_deconfigure(args)
-        cart_name = args['--cart-name']
+        ident = build_ident(args)
 
         with_container_from_args(args) do |container, output|
-          output << container.deconfigure(cart_name)
+          output << container.deconfigure(ident)
         end
       end
 
@@ -988,9 +989,9 @@ module MCollective
       end
 
       def oo_restart(args)
-        cart_name = args['--cart-name']
-        options = {}
-        options[:all] = true if args['--all']
+        cart_name                            = args['--cart-name']
+        options                              = {}
+        options[:all]                        = true if args['--all']
         options[:parallel_concurrency_ratio] = args['--parallel_concurrency_ratio'].to_f if args['--parallel_concurrency_ratio']
 
         with_container_from_args(args) do |container, output|
@@ -1038,10 +1039,10 @@ module MCollective
 
       def oo_update_proxy_status(args)
         with_container_from_args(args) do |container|
-          container.update_proxy_status(action: args['--action'],
+          container.update_proxy_status(action:    args['--action'],
                                         gear_uuid: args['--gear_uuid'],
                                         cartridge: args['--cart-name'],
-                                        persist: args['--persist'])
+                                        persist:   args['--persist'])
         end
       end
 
@@ -1050,10 +1051,10 @@ module MCollective
       #
       def set_district_action
         validate :uuid, /^[a-zA-Z0-9]+$/
-        uuid = request[:uuid].to_s if request[:uuid]
-        active = request[:active]
+        uuid      = request[:uuid].to_s if request[:uuid]
+        active    = request[:active]
         first_uid = request[:first_uid]
-        max_uid = request[:max_uid]
+        max_uid   = request[:max_uid]
 
         begin
           district_home = PathUtils.join(@@config.get('GEAR_BASE_DIR'), '.settings')
@@ -1093,23 +1094,23 @@ module MCollective
       #
       def set_district_uid_limits_action
         first_uid = request[:first_uid]
-        max_uid = request[:max_uid]
+        max_uid   = request[:max_uid]
 
         begin
           district_home = PathUtils.join(@@config.get('GEAR_BASE_DIR'), '.settings')
           PathUtils.flock('/var/lock/oo-district-info') do
             district_info = PathUtils.join(district_home, 'district.info')
-            text = File.read(district_info)
+            text          = File.read(district_info)
 
             new_first_uid = "first_uid=#{first_uid}"
-            result = text.gsub!(/first_uid=\d+/, new_first_uid)
+            result        = text.gsub!(/first_uid=\d+/, new_first_uid)
             text << "#{new_first_uid}\n" if result.nil?
 
             new_max_uid = "max_uid=#{max_uid}"
-            result = text.gsub!(/max_uid=\d+/, new_max_uid)
+            result      = text.gsub!(/max_uid=\d+/, new_max_uid)
             text << "#{new_max_uid}\n" if result.nil?
 
-            File.open(district_info, 'w') {|f| f.puts text}
+            File.open(district_info, 'w') { |f| f.puts text }
           end
 
           Facter.add(:district_first_uid) do
@@ -1221,7 +1222,7 @@ module MCollective
       # Returns whether a uid or gid is already reserved on the system
       #
       def has_uid_or_gid_action
-        uid  = request[:uid]
+        uid = request[:uid]
 
         begin
           Etc.getpwuid(uid)
@@ -1338,35 +1339,45 @@ module MCollective
       def cartridge_repository_action
         action            = request[:action]
         path              = request[:path]
+        vendor            = request[:cartridge_vendor] || 'redhat'
         name              = request[:name]
         version           = request[:version]
         cartridge_version = request[:cartridge_version]
+        force             = request[:force] == 'true' ? true : false
 
-        reply[:output] = "#{action} succeeded for #{path}"
         begin
           case action
             when 'install'
               ::OpenShift::Runtime::CartridgeRepository.instance.install(path)
+              reply[:output] = "#{action} succeeded for #{path}"
             when 'erase'
-              ::OpenShift::Runtime::CartridgeRepository.instance.erase(name, version, cartridge_version)
+              ::OpenShift::Runtime::CartridgeRepository.instance.erase(vendor, name, version, cartridge_version, force)
+              reply[:output] = "#{action} succeeded for (#{vendor}, #{name}, #{version}, #{cartridge_version})"
             when 'list'
               reply[:output] = ::OpenShift::Runtime::CartridgeRepository.instance.to_s
             else
-              reply.fail(
-                  "#{action} is not implemented. openshift.ddl may be out of date.",
-                  2)
+              reply.fail("#{action} is not implemented. openshift.ddl may be out of date.", 2)
               return
           end
         rescue Exception => e
           report_exception(request.uniqid, nil, e)
-          reply.fail!("#{action} failed for #{path} #{e.message}", 4)
+          reply.fail!(
+              "#{action} failed for #{path ? path : %Q[(#{vendor}, #{name}, #{version}, #{cartridge_version})]} #{e.message}",
+              4)
         end
       end
 
+      def build_ident(args)
+        # TODO: --component-name should not contain the software version
+
+        name = args['--cart-name'].gsub(/-#{args['--with-software-version']}$/, '')
+        OpenShift::Runtime::Ident.new(args['--cartridge-vendor'], name, args['--with-software-version'])
+      end
+
       protected
-        # No-op by default
-        def report_exception(reference_id, uuid, exception)
-        end
+      # No-op by default
+      def report_exception(reference_id, uuid, exception)
+      end
     end
   end
 end

@@ -10,6 +10,7 @@
 
 require 'openshift-origin-node'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/model/ident'
 require 'etc'
 require 'timeout'
 require 'json'
@@ -86,7 +87,7 @@ module OpenShift
     end
   end
 
-  # Represents an application associated with an account. The name and 
+  # Represents an application associated with an account. The name and
   # UUID for the application is automatically generated upon init.
   class TestApplication
     attr_reader :name, :uuid, :account, :gears
@@ -161,7 +162,7 @@ module OpenShift
     end
 
     # Collects and returns the PIDs for every cartridge associated
-    # with this application as determined by the PID file in the 
+    # with this application as determined by the PID file in the
     # cartridge instance run directory. The result is a Hash:
     #
     #   PID file basename => PID
@@ -194,7 +195,7 @@ module OpenShift
   # sure to call TestGear.create before performing cartridge operations.
   class TestGear
     include CommandHelper
-    
+
     attr_reader :uuid, :carts, :app, :container
 
     def initialize(app)
@@ -213,7 +214,7 @@ module OpenShift
     # cartridge operations.
     def create(cli = false)
       $logger.info("Creating new gear #{@uuid} for application #{@app.name}")
-      
+
       if cli
         command = %Q(oo-devel-node app-create -c #{uuid} -a #{@app.uuid} --with-namespace #{@app.account.domain} --with-app-name #{@app.name} --with-secret-token=DEADBEEFDEADBEEFDEADBEEFDEADBEEF)
         $logger.info(%Q(Running #{command}))
@@ -267,8 +268,8 @@ module OpenShift
 
     # Creates a new TestCartridge and associates it with this gear.
     #
-    # NOTE: The cartridge is instantiated, but no hooks (such as 
-    # configure) are executed. 
+    # NOTE: The cartridge is instantiated, but no hooks (such as
+    # configure) are executed.
     def add_cartridge(cart_name)
       cart = OpenShift::TestCartridge.new(cart_name, self)
       @carts[cart.name] = cart
@@ -313,8 +314,10 @@ module OpenShift
         output = `oo-cartridge -a add -c #{@gear.uuid} -n #{@name} -v`
       else
         with_container do |container|
-          output = container.configure(@name)
-          output << container.post_configure(@name)
+          tokens =  @name.split(/\-([0-9\.]+)$/)
+          ident = OpenShift::Runtime::Ident.new('redhat', tokens[0], tokens[1])
+          output = container.configure(ident)
+          output << container.post_configure(ident.to_name)
         end
       end
 
@@ -400,7 +403,7 @@ module OpenShift
   # can be used to provide steps with cartridge specific context.
   #
   # Currently supported event patterns a listener may receive:
-  #   
+  #
   #   {hook_name}_hook_completed(cart, exitcode, output)
   #     - invoked after a successful hook execution in the cartridge
   module TestCartridgeListeners
@@ -415,7 +418,7 @@ module OpenShift
       def configure_hook_completed(args)
         if args.key?(:output) && ! args[:output].empty?
           homedir = args[:cart].gear.container.container_dir
- 
+
           args[:output].split(/\n/).each { |line|
             case line
               when /^ENV_VAR_ADD: .*/
@@ -442,7 +445,7 @@ module OpenShift
         attr_accessor :username, :password, :ip, :port
       end
 
-      # Processes the output of the cartridge configure script and scrapes 
+      # Processes the output of the cartridge configure script and scrapes
       # it for connectivity details (such as IP and credentials).
       #
       # Adds a new attribute 'db' of type DbConnection to the cart with the
@@ -492,7 +495,7 @@ module OpenShift
       end
     rescue Timeout::Error
       raise if dflt.instance_of? Timeout::Error
-      dflt 
+      dflt
     end
   end
 end

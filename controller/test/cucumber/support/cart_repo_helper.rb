@@ -1,6 +1,6 @@
 require 'openshift-origin-node/model/cartridge_repository'
 
-Before('@manipulates_cart_repo') do 
+Before('@manipulates_cart_repo') do
   clean_cart_repo
 end
 
@@ -19,13 +19,13 @@ def clean_cart_repo
     manifest_path        = File.join(%W(/ usr libexec openshift cartridges #{cart} metadata manifest.yml))
     manifest_backup_path = manifest_path + '~'
 
-    if cart_repo.exist?(cart, '0.1', '0.0.2')
+    if cart_repo.exist?('redhat', cart, '0.1', '0.0.2')
       $logger.info("Erasing test-generated version #{cart}-0.1 (0.0.2)")
-      cart_repo.erase(cart, '0.1', '0.0.2', true)
+      cart_repo.erase('redhat', cart, '0.1', '0.0.2', true)
 
-      if cart_repo.exist?(cart, '0.2', '0.0.2')
+      if cart_repo.exist?('redhat', cart, '0.2', '0.0.2')
         $logger.info("Erasing test-generated version #{cart}-0.2 (0.0.2)")
-        cart_repo.erase(cart, '0.2', '0.0.2', true)
+        cart_repo.erase('redhat', cart, '0.2', '0.0.2', true)
       end
 
       if File.exist?(manifest_backup_path)
