@@ -111,7 +111,7 @@ function pre_snapshot {
 
   if ! [ -s $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz ]; then
     warning "Insufficient disk space to dump Postgres! Continuing anyway"
-    /bin/rm -rf $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
+    /bin/rm -rf $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz
   fi
 
   stop
