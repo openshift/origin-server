@@ -1,0 +1,50 @@
+Git tagging procedure for OpenShift Origin
+
+At the point in time the Origin Release is to happen, it will branch from
+current stage. 
+
+NOTE: These packages (and possibly others) are not currently included in
+OpenShift Online and therefore are not increased in version by the Online
+Release Engineering scripts.
+
+These will need version incrementing either by hand or scripted.
+FIXME: Script this.
+
+rubygem-openshift-origin-dns-bind
+rubygem-openshift-origin-dns-route53
+openshift-origin-cartridge-mariadb
+rubygem-openshift-origin-auth-kerberos
+rubygem-openshift-origin-auth-mongo
+openshift-origin-util
+
+Increment the spec files by a significant digit to avoid git/tito tag conflicts.
+#FIXME: Should probably make this more safe so that subsequent runs
+#       won't accidently add another significant digit.
+
+    find . -name \*.spec -exec sed -i 's/^\(Version\: .*\)$/\1.0/g' {} \;
+
+Verify this looks good
+
+    git diff
+
+Tag everything
+
+    declare -a failed_tags 
+    for i in $(find . -name \*.spec); do   
+        pushd $(dirname $i) &> /dev/null
+            tito tag --accept-auto-changelog
+            if [[ $? -ne 0 ]]; then
+                failed_tags+=( "$i" )
+            fi
+        popd &> /dev/null
+    done
+    printf "Failed tags: \n $i \n"
+
+Need to push everything up to the openshift-origin-release-$num branch
+as well as the tags.
+
+    git push origin openshift-origin-release-$num
+    git push --tags
+
+From here, you can build.
+
