@@ -151,9 +151,9 @@ class ApplicationsController < BaseController
 
     raise OpenShift::ApplicationValidationException.new(app) unless app.valid?
 
-    if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
+    if (@domain.owner.consumed_gears >= @domain.owner.max_gears)
       return render_error(:unprocessable_entity,
-                          "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
+                          "#{@cloud_user.login} has already reached the gear limit of #{@domain.owner.max_gears}",
                           104)
     end
 
@@ -162,9 +162,9 @@ class ApplicationsController < BaseController
 
     cartridges = CartridgeCache.find_and_download_cartridges(specs, "cartridge", true)
 
-    if (cartridges.map(&:additional_gear_storage).compact.map(&:to_i).max || 0) > @cloud_user.max_storage
+    if (cartridges.map(&:additional_gear_storage).compact.map(&:to_i).max || 0) > @domain.owner.max_storage
       return render_error(:unprocessable_entity,
-                          "#{@cloud_user.login} has requested more additional gear storage than allowed (max: #{@cloud_user.max_storage} GB)",
+                          "#{@cloud_user.login} has requested more additional gear storage than allowed (max: #{@domain.owner.max_storage} GB)",
                           166)
     end
 
