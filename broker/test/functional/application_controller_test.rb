@@ -45,6 +45,39 @@ class ApplicationControllerTest < ActionController::TestCase
     end.returns(afog)
   end
 
+  test "validates gear usage and storage capabilities of domain owner" do
+    @other_login = "otheruser#{@random}"
+    @other_user = CloudUser.new(login: @other_login)
+    @other_user.capabilities["gear_sizes"] = ['small', 'medium', 'large']
+    @other_user.max_untracked_additional_storage = 5
+    @other_user.max_gears = 3
+    @other_user.save!
+    Lock.create_lock(@other_user.id)
+    register_user(@other_login, @password)
+
+    @other_namespace = "otherns#{@random}"
+    @other_domain = Domain.new(namespace: @other_namespace, owner:@other_user)
+    @other_domain.save
+    @other_domain.add_members @user, :edit
+    @other_domain.save
+    @other_domain.run_jobs
+
+    begin
+      @app_name = "app#{@random}"
+      @user.max_untracked_additional_storage = 0
+      @user.max_gears = 0
+      @user.save!
+
+      post :create, {"name" => @app_name, "cartridges" => [
+        {"name" => php_version, "gear_size" => "medium", "scales_from" => 2, "scales_to" => 3},
+        {"name" => mysql_version, "gear_size" => "medium", "additional_gear_storage" => 2}
+      ], "domain_id" => @other_domain.namespace, "scale" => true}
+      assert_response :created
+    ensure
+      @other_user.force_delete rescue nil
+    end
+  end
+
   test "app created with admin-defined default initial_git_url" do
     default_git_url_setup
     # try it with no git URL provided
