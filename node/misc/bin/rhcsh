@@ -217,7 +217,7 @@ function mongo () {
     # If scl mongo is installed and the app uses mongo, assume scl
     # mongo. If scl mongo is installed but the app doesn't have a mongo
     # cart, assume "system" mongo
-    if [[ -n "${OPENSHIFT_MONGODB_DB_GEAR_DNS}" ]] && scl -l | grep -q mongodb24
+    if [[ -n "${OPENSHIFT_MONGODB_DB_GEAR_DNS}" ]] && [[ $(/usr/bin/scl -l) =~ mongodb24 ]]
     then
         scl enable mongodb24 "$(printf %q\  "${cmdline[@]}")"
     else
