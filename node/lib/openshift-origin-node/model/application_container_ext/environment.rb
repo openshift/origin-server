@@ -346,7 +346,7 @@ module OpenShift
                 gear_dns = fqdn
                 retries  = 2
                 begin
-                  command = "/usr/bin/rsync -rp0 --delete -e '/usr/bin/oo-ssh' #{source}/ #{fqdn}:#{target}"
+                  command = "/usr/bin/rsync -rp0S --delete -e '/usr/bin/oo-ssh' #{source}/ #{fqdn}:#{target}"
                   env = OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
                   ::OpenShift::Runtime::Utils::oo_spawn(command, expected_exitstatus: 0, uid: @uid, env: env)
                 rescue Exception => e

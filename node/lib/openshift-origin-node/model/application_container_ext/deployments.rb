@@ -200,7 +200,7 @@ module OpenShift
         end
 
         def sync_files(from, to)
-          out, err, rc = run_in_container_context("/usr/bin/rsync -av --delete #{from}/ #{to}/",
+          out, err, rc = run_in_container_context("/usr/bin/rsync -avS --delete #{from}/ #{to}/",
                                                   expected_exitstatus: 0)
         end
 

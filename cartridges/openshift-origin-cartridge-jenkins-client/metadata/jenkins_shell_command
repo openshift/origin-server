@@ -1,6 +1,6 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
+alias rsync="rsync --delete-after -azS -e '$GIT_SSH'"
 
 upstream_ssh="UPSTREAM_SSH"
 
