@@ -2255,7 +2255,7 @@ module OpenShift
           #Rsync arguments had to be changed for windows to move the gear with full rights and reset them correctly in the post move method
           log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync --perms -rltgoD0v --chmod=Du=rwx,Dg=rwx,Do=rwx,Fu=rww,Fg=rwx,Fo=rwx -p --exclude 'profile' -e 'ssh -o StrictHostKeyChecking=no' /cygdrive/c/openshift/gears/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/cygdrive/c/openshift/gears/#{gear.uuid}/"; exit_code=$?; ssh-agent -k;exit $exit_code`
         else
-          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAXS -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; exit_code=$?; ssh-agent -k; exit $exit_code`
       end
 
       if $?.exitstatus != 0
@@ -2268,7 +2268,7 @@ module OpenShift
           #Rsync arguments changed, preserving extended attributes and ACLs cannot be used on windows
           log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -rltgoD0v -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{gear.name}-#{app.domain.namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /cygdrive/c/openshift/gears/ root@#{destination_container.get_ip_address}:/cygdrive/c/openshift/gears/"; exit_code=$?; ssh-agent -k; exit $exit_code`
         else
-          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{gear.name}-#{app.domain_namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /var/lib/openshift/ root@#{destination_container.get_ip_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAXS -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{gear.name}-#{app.domain_namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /var/lib/openshift/ root@#{destination_container.get_ip_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
       end
 
       if $?.exitstatus != 0
@@ -3106,7 +3106,7 @@ module OpenShift
           if district.servers.where(name: server_identity).exists?
             server = district.servers.find_by(name: server_identity)
             if (gear_exists_in_district || district.available_capacity > 0) &&
-                server.active && (!require_zone || server.zone_id) 
+                server.active && (!require_zone || server.zone_id)
               server_infos << NodeProperties.new(server_identity, capacity.to_f, district, server) unless (region_id and server.region_id != region_id)
             end
             found_district = true

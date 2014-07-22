@@ -1,6 +1,6 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-alias rsync="rsync --exclude-from='${OPENSHIFT_PYTHON_DIR}/metadata/rsync.excludes' --delete-after -az -e '$GIT_SSH'"
+alias rsync="rsync --exclude-from='${OPENSHIFT_PYTHON_DIR}/metadata/rsync.excludes' --delete-after -azS -e '$GIT_SSH'"
 
 upstream_ssh="<%= ENV['OPENSHIFT_GEAR_UUID'] %>@<%= ENV['OPENSHIFT_APP_NAME'] %>-${OPENSHIFT_NAMESPACE}.<%= ENV['OPENSHIFT_CLOUD_DOMAIN'] %>"
 
