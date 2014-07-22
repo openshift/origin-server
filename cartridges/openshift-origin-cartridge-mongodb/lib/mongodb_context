@@ -2,35 +2,44 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
+function using_scl_mongo {
+    [[ -n "${OPENSHIFT_MONGODB_PATH_ELEMENT}" ]] ||
+    [[ -f /usr/bin/scl ]] && [[ $(/usr/bin/scl -l) =~ mongodb24 ]]
+}
+
+function get_path_element {
+    using_scl_mongo && echo -n $(PATH= /usr/bin/scl enable mongodb24 'echo $PATH')
+}
+
+function get_ld_library_path_element {
+    if using_scl_mongo
+    then
+        echo -n $(LD_LIBRARY_PATH="" /usr/bin/scl enable mongodb24 "printenv LD_LIBRARY_PATH")
+    fi
+}
+
 function update_configuration {
     set +u
-    if [[ -f /usr/bin/scl ]] && /usr/bin/scl -l | grep -q 'mongodb24'
+    local env_dir="${OPENSHIFT_MONGODB_DIR}/env"
+    if using_scl_mongo
     then
-        local path_tail="/root/usr/bin"
-        local pe=""
-        local scls=( $(/usr/bin/scl enable mongodb24 "printenv X_SCLS") )
-        local env_dir="${OPENSHIFT_MONGODB_DIR}/env"
-
-        for collection in ${scls[*]}
-        do
-            pe+="$(cat /etc/scl/prefixes/${collection})/${collection}${path_tail}"
-            if [[ $collection != ${scls[${#scls[@]}-1]} ]]
-            then
-                pe+=":"
-            fi
-        done
-        set_env_var 'OPENSHIFT_MONGODB_PATH_ELEMENT' $pe $env_dir
-
-        local ld_path=$(LD_LIBRARY_PATH="" /usr/bin/scl enable mongodb24 "printenv LD_LIBRARY_PATH")
-        set_env_var 'OPENSHIFT_MONGODB_LD_LIBRARY_PATH_ELEMENT' ${ld_path:-:} $env_dir
-
+        local pe="$(get_path_element)"
+        if [[ -n "${pe}" ]]
+        then
+            set_env_var 'OPENSHIFT_MONGODB_PATH_ELEMENT' "${pe}" $env_dir
+        fi
+        local ld_path="$(get_ld_library_path_element)"
+        if [[ -n "${ld_path}" ]]
+        then
+            set_env_var 'OPENSHIFT_MONGODB_LD_LIBRARY_PATH_ELEMENT' "${ld_path}" $env_dir
+        fi
         local man_path=$(MANPATH="" /usr/bin/scl enable mongodb24 "printenv MANPATH")
         path_append ${MANPATH:-:} ${man_path:-:} > ${env_dir}/MANPATH
     fi
 }
 
 function mongodb_context {
-    if [[ -n "${OPENSHIFT_MONGODB_PATH_ELEMENT}" ]] # SCL mongo is installed
+    if using_scl_mongo
     then
         /usr/bin/scl enable mongodb24 "$1"
     else
