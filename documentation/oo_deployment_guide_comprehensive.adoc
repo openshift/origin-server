@@ -838,7 +838,7 @@ For communication between the broker host and the gear nodes, OpenShift Origin u
 In order to use MCollective, first install it via yum:
 
 ----
-yum install -y mcollective-client
+yum install -y ruby193-mcollective-client
 ----
 
 === Configuration
