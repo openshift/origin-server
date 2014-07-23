@@ -17,9 +17,12 @@ module RestApi
 
       attr_reader :oauth_endpoint_uri, :oauth_consumer_key, :oauth_consumer_secret, :oauth_token, :oauth_token_secret, :oauth_nonce
 
-      def oauth(endpoint_url, consumer_key, consumer_secret, token, token_secret, method='GET')
+      def oauth(endpoint_url, consumer_key, consumer_secret, token=nil, token_secret=nil, method='GET')
         @oauth_endpoint_uri = URI(endpoint_url)
-        @oauth_consumer_key, @oauth_consumer_secret, @oauth_token, @oauth_token_secret = consumer_key, consumer_secret, token, token_secret
+        @oauth_consumer_key = consumer_key
+        @oauth_consumer_secret = consumer_secret
+        @oauth_token = token
+        @oauth_token_secret = token_secret
         @oauth_nonce = generate_oauth_nonce
         @timestamp = timestamp
         @oauth_request_method = method
@@ -31,14 +34,15 @@ module RestApi
 
       private
         def oauth_parameters
-          {
+          params = {
             'oauth_consumer_key' => @oauth_consumer_key,
             'oauth_nonce' => @oauth_nonce,
             'oauth_signature_method' => SIGNATURE_METHOD,
             'oauth_timestamp' => @timestamp,
-            'oauth_token' => @oauth_token,
-            'oauth_version' => OAUTH_VERSION
+            'oauth_version' => OAUTH_VERSION,
           }
+          params['oauth_token'] = @oauth_token if @oauth_token.present?
+          params
         end
 
         def oauth_authorization_header
@@ -70,7 +74,7 @@ module RestApi
         end
 
         def percent_encode(string)
-          CGI.escape string
+          CGI.escape(string || "")
         end
     end
   end
