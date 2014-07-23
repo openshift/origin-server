@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.27.2
+Version: 1.27.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -166,6 +166,14 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Wed Jul 23 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
+- Merge pull request #5624 from Miciah/bug-1121224-oo-accept-node-handle-non-
+  existence-of-slash-sbin-slash-ip (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5623 from Miciah/bug-1121206-oo-accept-node-add-
+  check_ext_net_dev_addr (dmcphers+openshiftbot@redhat.com)
+- oo-accept-node: Handle non-existence of /sbin/ip (miciah.masters@gmail.com)
+- oo-accept-node: Add check_ext_net_dev_addr (miciah.masters@gmail.com)
+
 * Mon Jul 21 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
 - Bug 1120463 - Update man pages (jhonce@redhat.com)
 - Bug 1119609 - Support vendor in oo-admin-cartridge (jhonce@redhat.com)
