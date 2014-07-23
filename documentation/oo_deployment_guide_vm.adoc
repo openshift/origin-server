@@ -253,6 +253,44 @@ When the VM has finished booting. It will go through some initialization and the
 
 image:virt_manager_vm_running.png[image]
 
+==== Odd Behavior on VirtualBox?
+During testing we stumbled into a problem while running the OpenShift VM on VirtualBox. Specifically, VirtualBox chose a NAT subnet that our local network was already using. This led to a lot of confusion until we realized that requests to our VM were never reaching it; instead they were going out through the host's network interface and getting lost in the digital wilderness. You may be encountering the same problem if:
+
+* You can't connect from your host system to the VM via `ssh root@<VM_IP_ADDR>`
+* The VM's welcome screen doesn't list an IP address
+* App creations always time out in the console
+
+So if you think this is affecting you, you can try an alternate network interface configuration in VirtualBox.
+
+WARNING: This configuration will prevent you from reaching the network beyond your host machine. Among other things, that means that you will not be able to create quickstart applications, even though they show up as options in the console.
+
+1. If the OpenShift Origin v4 VM is running, shut it down.
+2. In the main VirtualBox app, go to File => Preferences (or VirtualBox => Preferences on OS X). The Preferences window will appear. + 
++ 
+image:virtualbox_workaround_1.png[image] + 
+
+3. In the Preferences window, click on the Network tab, and once on the Network tab, choose the Host-only Networks subtab. + 
++ 
+image:virtualbox_workaround_2.png[image] + 
+
+4. If no host-only networks are listed, create one by pressing the "+" icon. A new host-only network will appear with a name like "vboxnet0". + 
++ 
+image:virtualbox_workaround_3.png[image] + 
+
+5. Now press OK to close the Preferences window. Then, in the VirtualBox Manager main window, select the OpenShift Origin v4 VM and press the Settings button. The VM settings will appear. + 
++ 
+image:virtualbox_workaround_4.png[image] + 
+
+6. Click on the Network tab. The Adapter 1 tab should be selected. From the Attached to: pulldown, select Host-only Adapter. Below that pulldown, the Name pulldown should automatically populate with the name of the Host-only adapter that you created. + 
++ 
+image:virtualbox_workaround_5.png[image] + 
+
+7. Now change to the Adapter 2 tab, and if the Enable Network Adapter checkbox is checked for Adapter 2, uncheck it. Finally, press OK to close the machine Settings window. + 
++ 
+image:virtualbox_workaround_6.png[image] + 
+
+Now you should be able to launch the VM and work with it as described.
+
 === VMWare
 Provided with the VM is a file called `OpenShift Origin 4.vmx`. If VMWare is installed on your system, you should be able to double-click this vbox file from within a file manager and VMWare will automatically register the VM for you.
 
