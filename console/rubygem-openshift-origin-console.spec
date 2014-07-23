@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.28.1
+Version: 1.28.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jul 23 2014 Adam Miller <admiller@redhat.com> 1.28.2-1
+- Allow for 2-leg oauth where there is no token or token_secret
+  (jforrest@redhat.com)
+
 * Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
 - Update Rest API Integration test for ruby-2.0 cartridge (j.hadvig@gmail.com)
 - OAuth - should be able to specify what HTTP method is being used when signing
