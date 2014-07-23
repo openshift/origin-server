@@ -99,7 +99,7 @@ $ yum install -y qemu-img
 Run _qemu-img_ to convert the image file and then copy it into the libvirt directory.
 
 ----
-$ qemu-img convert -O raw origin-release-3.vmdk /var/lib/libvirt/images/origin-release-3.dsk
+$ qemu-img convert -O raw origin-vm.vmdk /var/lib/libvirt/images/origin-vm.dsk
 ----
 
 ==== Create New VM
@@ -126,11 +126,11 @@ image:virt_manager_step_1.png[image]
 
 ==== Select VM Disk Image
 
-Select "Linux" as the "OS Type" and "Fedora 19" as the version then click "Browse..." to select the disk image.
+Select "Linux" as the "OS Type" and "Red Hat Enterprise Linux 6" as the version then click "Browse..." to select the disk image.
 
 image:virt_manager_step_2.png[image]
 
-Select the "openshift-origin.dsk" image and click "Choose Volume"
+Select the "origin-vm.dsk" image and click "Choose Volume"
 
 image:virt_manager_select_image.png[image]
 
