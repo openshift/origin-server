@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.28.2
+Version: 1.28.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jul 23 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
+- use ident instead of name in deconfigure invocation (bparees@redhat.com)
+- Bug 1121971: Validate based on domain owner capabilities during app create
+  (jliggitt@redhat.com)
+
 * Mon Jul 21 2014 Adam Miller <admiller@redhat.com> 1.28.2-1
 - Card origin_node_401 - Support Vendor in CartridgeRepository
   (jhonce@redhat.com)
