@@ -65,7 +65,10 @@ class ApplicationsController < BaseController
     region = nil
     if region_name
       region = Region.find_by(name: region_name) rescue nil
-      raise OpenShift::UserException.new("Could not find region '#{region_name}'.  Available regions are #{Region.where({}).collect{|r| r.name}.join(",")}") if region.nil?
+      if region.nil?
+        available_regions = Region.where({}).collect{|r| r.name}
+        raise OpenShift::UserException.new(available_regions.empty? ? "Server does not support explicit regions." : "Could not find region '#{region_name}'. Available regions are: #{available_regions.join(", ")}.")
+      end
     elsif Rails.application.config.openshift[:default_region_name].present?
       region = Region.find_by(name: Rails.application.config.openshift[:default_region_name]) rescue nil
       Rails.logger.warn "The default region #{Rails.application.config.openshift[:default_region_name]} does not exist. Proceeding to create app without specific region" if region.nil?
