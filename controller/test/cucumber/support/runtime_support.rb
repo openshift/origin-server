@@ -332,7 +332,9 @@ module OpenShift
 
     def deconfigure
       with_container do |container|
-        container.deconfigure(@name)
+          tokens =  @name.split(/\-([0-9\.]+)$/)
+          ident = OpenShift::Runtime::Ident.new('redhat', tokens[0], tokens[1])
+          container.deconfigure(ident)
       end
     end
 
