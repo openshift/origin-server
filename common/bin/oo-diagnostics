@@ -1303,7 +1303,7 @@ class OODiag
     end
   end
 
-  test_node_clock_in_synch_with_broker
+  def test_node_clock_in_synch_with_broker
     skip_test unless @is_node
     require 'time'
     warning_threshold = 5
