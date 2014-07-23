@@ -384,7 +384,6 @@ module OpenShift
           teardown_output << "CLIENT_ERROR: Corrupted cartridge #{ident} removed. There may be extraneous data left on system.\n"
           logger.warn("Corrupted cartridge #{@container.uuid}/#{ident} removed. There may be extraneous data left on system.")
 
-          name, software_version = map_cartridge_name(cartridge_name)
           begin
             logger.warn("Corrupted cartridge #{@container.uuid}/#{ident}. Attempting to auto-correct for deconfigure using local manifest.yml.")
             cartridge = get_cartridge_fallback(ident.to_name)
