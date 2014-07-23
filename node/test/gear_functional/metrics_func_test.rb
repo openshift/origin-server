@@ -65,8 +65,12 @@ module OpenShift
     end
 
     def teardown
-      @model.deconfigure('mock-plugin-0.1') if File.exist?(File.join(@container.container_dir, 'mock-plugin'))
-      @model.deconfigure('mock-0.1') if File.exist?(File.join(@container.container_dir, 'mock'))
+      ident = OpenShift::Runtime::Ident.new('redhat', 'mock-plugin', '0.1')
+      @model.deconfigure(ident) if File.exist?(File.join(@container.container_dir, 'mock-plugin'))
+
+      ident = OpenShift::Runtime::Ident.new('redhat', 'mock', '0.1')
+      @model.deconfigure(ident) if File.exist?(File.join(@container.container_dir, 'mock'))
+
       FileUtils.rm_rf(File.join(@container.container_dir, 'git'))
       Mocha::Mockery.instance.stubba.unstub_all
     end
@@ -86,7 +90,11 @@ module OpenShift
     end
 
     def test_metrics
-      %w(mock-0.1 mock-plugin-0.1).each { |cart| @model.configure(cart) }
+      ident = OpenShift::Runtime::Ident.new('redhat', 'mock-plugin', '0.1')
+      @model.configure(ident)
+
+      ident = OpenShift::Runtime::Ident.new('redhat', 'mock', '0.1')
+      @model.configure(ident)
 
       hooks_dir = PathUtils.join(@container.container_dir, %w(app-root runtime repo .openshift action_hooks))
       FileUtils.mkdir_p(hooks_dir)

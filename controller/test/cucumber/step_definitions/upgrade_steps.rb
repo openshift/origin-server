@@ -131,7 +131,7 @@ def prepare_cart_for_rewrite(cart_name, component_version)
 
   FileUtils.copy(@manifest_path, @manifest_backup_path)
   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
-  cart_repo.select(cart_name, component_version)
+  cart_repo.select('redhat', cart_name, component_version)
 end
 
 def create_upgrade_script(target)
@@ -220,7 +220,7 @@ end
 def assert_successful_install(next_version, current_manifest)
   OpenShift::Runtime::CartridgeRepository.instance.install(@cartridge_path)
   observed_latest_version = OpenShift::Runtime::CartridgeRepository.instance.
-      select(current_manifest.name, current_manifest.version).
+      select('redhat', current_manifest.name, current_manifest.version).
       cartridge_version
 
   $logger.info "Observed latest version: #{observed_latest_version}"
