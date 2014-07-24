@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.28.3
+Version: 1.28.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jul 24 2014 Adam Miller <admiller@redhat.com> 1.28.4-1
+- Merge pull request #5649 from jwhonce/origin_node_401
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5644 from fabianofranz/bugs/1122413
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_node_401 - Fix extended tests (jhonce@redhat.com)
+- Bug 1122413 - handle server without explicit regions
+  (contact@fabianofranz.com)
+
 * Wed Jul 23 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
 - use ident instead of name in deconfigure invocation (bparees@redhat.com)
 - Bug 1121971: Validate based on domain owner capabilities during app create
