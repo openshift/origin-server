@@ -120,7 +120,13 @@ begin
         $stderr.puts "Cartridge '#{ident}' is not installed in gear with uuid: #{uuid}"
         exit 1
       end
+
       container.deconfigure(ident)
+
+      primary = container.cartridge_model.primary_cartridge
+      if primary.name == ident.name
+        FileUtils.rm PathUtils.join(container.container_dir, '.env', 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR')
+      end
     else
       usage
       raise NotImplementedError.new(action)
