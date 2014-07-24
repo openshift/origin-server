@@ -120,13 +120,19 @@ begin
         $stderr.puts "Cartridge '#{ident}' is not installed in gear with uuid: #{uuid}"
         exit 1
       end
+
       container.deconfigure(ident)
+
+      primary = container.cartridge_model.primary_cartridge
+      if primary.name == ident.name
+        FileUtils.rm PathUtils.join(container.container_dir, '.env', 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR')
+      end
     else
       usage
       raise NotImplementedError.new(action)
   end
 rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-  $stderr.puts "Cartridge #{action} failed"
+  $stderr.puts "Cartridge #{action} finished with error. (Cartridge left in situ)"
   $stderr.puts "#{e.message}: rc(#{e.rc}"
 
   if $OO_CART_DEBUG
@@ -136,7 +142,7 @@ rescue OpenShift::Runtime::Utils::ShellExecutionException => e
 
   exit -1
 rescue => e
-  $stderr.puts "Cartridge #{action} failed"
+  $stderr.puts "Cartridge #{action} finished with error. (Cartridge left in situ)"
   $stderr.puts e.message
   $stderr.puts e.backtrace.join("\n") if $OO_CART_DEBUG
   exit 1
