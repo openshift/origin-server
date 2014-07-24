@@ -136,6 +136,8 @@ function _restart_haproxy_service() {
 }
 
 function _reload_service() {
+    exec 200>/tmp/haproxy_reload.lock
+    flock 200
     [ -f $HAPROXY_PID ]  &&  zpid=$( /bin/cat "${HAPROXY_PID}" )
     i=0
     while (! _launch_haproxy_bg "$zpid" )  && [ $i -lt 60 ]; do
@@ -143,7 +145,7 @@ function _reload_service() {
         i=$(($i + 1))
         echo "`date`: Retrying HAProxy service reload - attempt #$((i+1)) ... "
     done
-
+    flock -u 200
     wait_to_start
 }
 
