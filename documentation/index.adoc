@@ -12,7 +12,7 @@ https://openshift.redhat.com/community/open-source[OpenShift Origin] is Red Hat'
 * https://openshift.redhat.com/community/wiki/learning-openshift-origin[Learning OpenShift Origin]
 * link:origin_hangouts.html[Origin On-Air Hangouts]
 * link:oo_system_architecture_guide.html[Architecture Overview]
-* link:changelog.html[OpenShift Origin Change Log]
+* https://www.openshift.com/blogs/announcing-the-release-of-openshift-origin-v4[OpenShift v4 Release Info]
 
 == Documentation
 
