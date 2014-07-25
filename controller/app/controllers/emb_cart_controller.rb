@@ -212,6 +212,6 @@ class EmbCartController < BaseController
       @application.group_instances_with_overrides.detect{ |i| i.instance == instance.group_instance }
     )
 
-    render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@application.domain_namespace}", result)
+    render_success(:ok, "cartridge", cartridge, "Updated cartridge #{id} for application #{@application.name} under domain #{@application.domain_namespace}", result)
   end
 end
