@@ -8,7 +8,15 @@ module AdminConsole
         @suggestions = Admin::Suggestion::Advisor.subclass_test_instances.
                        slice(0, n.to_i).compact
       end
-      @suggestions.sort_by!{ |s| [s.important? ? 0 : 1, s.is_a?(Class) ? s.to_s : s.class.to_s] }
+      @suggestions.sort_by! do |s| 
+        # Sort by importance first, then bubble up config errors
+        # finally sort by class name to group similar types of errors together
+        [
+          s.important? ? 0 : 1,
+          (defined?(Admin::Suggestion::Config) && s.is_a?(Admin::Suggestion::Config)) ? 0 : 1,
+          s.is_a?(Class) ? s.to_s : s.class.to_s
+        ]
+      end
 
       @config = Rails.application.config.admin_console
       @cache_timeout = @config[:stats][:cache_timeout]
