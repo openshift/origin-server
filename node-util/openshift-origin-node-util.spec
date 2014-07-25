@@ -10,7 +10,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.27.3
+Version: 1.27.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -166,6 +166,10 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Jul 25 2014 Troy Dawson <tdawson@redhat.com> 1.27.4-1
+- Bug 1121864 - Cleanup OPENSHIFT_PRIMARY_CARTRIDGE_DIR (jhonce@redhat.com)
+- Bug 1121067 - Updated error messages (jhonce@redhat.com)
+
 * Wed Jul 23 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
 - Merge pull request #5624 from Miciah/bug-1121224-oo-accept-node-handle-non-
   existence-of-slash-sbin-slash-ip (dmcphers+openshiftbot@redhat.com)
