@@ -1991,37 +1991,49 @@ class Application
 
   def get_sparse_scaledown_gears(ginst, scale_down_factor)
     scaled_gears = ginst.gears.select { |g| g.app_dns==false }
-    sparse_components = ginst.component_instances.select(&:is_sparse?)
+    sparse_components = ginst.all_component_instances.select(&:is_sparse?)
+    gi_overrides = group_instances_with_overrides.select {|o| o.instance._id == ginst._id}
+    specs ||= component_instances.map(&:to_component_spec)
     gears = []
     if sparse_components.length > 0
       (scale_down_factor...0).each do |i|
         # iterate through sparse components to see which ones need a definite scale-down
-        relevant_sparse_components = sparse_components.select do |ci|
-          min = ci.min rescue ci.get_component.scaling.min
-          multiplier = ci.multiplier rescue ci.get_component.scaling.multiplier
-          cur_sparse_gears = (ci.gears - gears)
-          cur_total_gears = (gi.gears - gears)
+        surplus_sparse_components = sparse_components.select do |ci|
+          comp_spec = nil
+          gi_overrides.each {|o| o.components.each {|c| comp_spec = c if c.cartridge_name == ci.cartridge_name}}
+          min = comp_spec.min_gears rescue ci.get_component.scaling.min
+          multiplier = comp_spec.multiplier rescue ci.get_component.scaling.multiplier
+          cur_sparse_gears = ( ci.gears - gears.select {|g| g.component_instances.include?(ci)} ).count
+          cur_total_gears = (ginst.gears - gears).count
           status = false
-          if cur_sparse_gears <= min or multiplier<=0
+          if cur_sparse_gears <= min
             status = false
+          # if the multiplier is -1, 0, or 1, then any gears that are in addition to the minimum value can be removed
+          elsif multiplier <= 1
+            status = true
           else
-            status = cur_total_gears/(cur_sparse_gears*1.0)>multiplier ? false : true
+            # does removing a gear with this sparse cart still maintain the multiplier?
+            # ensuring a float arithmetic to make correct comparisons 
+            status = (cur_total_gears -1) / ((cur_sparse_gears - 1) * 1.0) <= multiplier
           end
           status
         end
-        # each of relevant_sparse_components want a gear removed that has them contained in the gear
+        # each of surplus_sparse_components want a gear removed that has them contained in the gear
         # if its empty, then remove a gear which does not have any of sparse_components in them (non-sparse gears)
-        if relevant_sparse_components.length > 0
-          relevant_sparse_comp_ids = relevant_sparse_components.map { |sp_ci| ci._id }
-          gear = scaled_gears.find do |g|
-             (relevant_sparse_comp_ids - g.sparse_carts).empty?
-          end
-        else
-          gear = scaled_gears.find { |g| g.sparse_carts.empty? }
+        gear = nil
+        if surplus_sparse_components.length > 0
+          surplus_sparse_comp_ids = surplus_sparse_components.map(&:_id)
+          # try to find a gear that has all the (and only those) sparse carts that need to be scaled down
+          # doing a reverse on the gears list ensures that the last possible gear is picked for scaledown
+          gear = scaled_gears.reverse.find { |g| g.sparse_carts.sort == surplus_sparse_comp_ids.sort }
+          # if the above fails, try to find a gear that has sparse carts that are all part of those that need to be scaled down
+          gear = scaled_gears.reverse.find { |g| g.sparse_carts.count > 0 && (g.sparse_carts - surplus_sparse_comp_ids).empty? } if gear.nil?
         end
+        # if a gear is not found, just try to find one without any sparse carts
+        gear = scaled_gears.reverse.find { |g| g.sparse_carts.empty? } if gear.nil?
         if gear.nil?
           # this may mean that some sparse_component's min limit is being violated
-          gear = scaled_gears.last
+          raise OpenShift::UserException.new("Cannot scale down by #{scale_down_factor.abs} as it violates the minimum gear restrictions for sparse cartridges.")
         end
         gears << gear
         scaled_gears.delete(gear)
@@ -2057,7 +2069,8 @@ class Application
     return false if multiplier <= 0
 
     # for max, and cases where multiplier has been changed in apps mid-life
-    should_be_sparse_cart_count = [total/multiplier, (max==-1 ? (total/multiplier) : max)].min
+    multiplier_gears = ( total / ( multiplier * 1.0 ) ).ceil
+    should_be_sparse_cart_count = [multiplier_gears, (max == -1 ? multiplier_gears : max)].min
     return true if gears < should_be_sparse_cart_count
 
     false

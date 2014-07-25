@@ -168,14 +168,15 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     assert_not_equal true, app.ha
     assert_equal 1, app.gears.count
 
-    app.make_ha
+    # scale up, get 1 more php instance
+    app.scale_by(app.group_instances.first._id, 1)
     app.reload
-    assert_equal true, app.ha
     assert_equal 2, app.gears.count
-    assert app.gears.all?{ |g| g.sparse_carts.length == 1 }
+    assert_equal 1, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
     assert_equal [app.component_instances.detect{ |i| i.cartridge.is_web_proxy? }._id], app.gears.map(&:sparse_carts).flatten.uniq
 
-    # scale up, get 1 more php instance
+    # make app ha and scale up, get 1 more php instance
+    app.make_ha
     app.scale_by(app.group_instances.first._id, 1)
     app.reload
     assert_equal 3, app.gears.count
@@ -195,18 +196,25 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
 
     app.scale_by(app.group_instances.first._id, -1)
 
-    # alter multiplier to 2, expect 4 new php gears
+    # alter multiplier to 2
     stubs_config(:openshift, default_ha_multiplier: 2)
     app.scale_by(app.group_instances.first._id, 3)
     assert_equal 5, app.gears.count
-    assert_equal 2, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+    assert_equal 3, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
 
+    # scale up, get 1 more haproxy instance
     app.scale_by(app.group_instances.first._id, 1)
     assert_equal 6, app.gears.count
     assert_equal 3, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
 
+    # scale down, haproxy instances should remain the same
     app.scale_by(app.group_instances.first._id, -1)
     assert_equal 5, app.gears.count
+    assert_equal 3, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
+
+    # scale down, 1 haproxy instance should get removed
+    app.scale_by(app.group_instances.first._id, -1)
+    assert_equal 4, app.gears.count
     assert_equal 2, app.gears.inject(0){ |c, g| c + (g.sparse_carts.present? ? 1 : 0) }
 
     app.destroy_app
