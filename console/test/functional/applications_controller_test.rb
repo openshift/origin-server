@@ -45,6 +45,20 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_equal 1, app.errors[:name].length
   end
 
+  test "should assign errors on empty git url when branch is set" do
+    with_domain
+    app_params = get_post_form
+    app_params[:initial_git_url] = ''
+    app_params[:initial_git_branch] = 'test'
+    post(:create, {:application => app_params})
+
+    assert_template 'application_types/show'
+    assert app = assigns(:application)
+    assert !app.errors.empty?
+    assert app.errors[:initial_git_url].present?, app.errors.inspect
+    assert_equal 1, app.errors[:initial_git_url].length
+  end
+
   test "should assign errors when advanced form" do
     with_domain
     app_params = get_post_form

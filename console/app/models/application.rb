@@ -79,10 +79,14 @@ class Application < RestApi::Base
     valid = super
     if id.blank? and domain_name.blank? and errors[:domain_name].blank?
       errors.add(:domain_name, 'Namespace is required')
-      false
-    else
-      valid
+      valid = false
     end
+
+    if initial_git_branch.present? && initial_git_url.blank?
+      errors.add(:initial_git_url, 'Git URL is required when branch/tag is specified')
+      valid = false
+    end
+    valid
   end
 
   singular_resource
