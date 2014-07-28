@@ -422,6 +422,45 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
     app.destroy_app
   end
 
+  test "multiplier events on application" do
+    app = Application.create_app(@appname, cartridge_instances_for(:php), @domain, :scalable => true)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+
+    web_instance = app.web_component_instance
+    proxy_instance = app.component_instances.detect(&:is_web_proxy?)
+
+    assert_equal [], app.group_overrides
+
+    app.update_component_limits(proxy_instance, 1, 2, nil, nil)
+    app.reload
+    assert_equal 1, app.group_overrides.count
+    proxy_go = app.group_overrides[0].components.find {|c| c.name == proxy_instance.component_name}
+    assert_equal ComponentOverrideSpec, proxy_go.class
+    assert_equal 1, proxy_go.min_gears
+    assert_equal 2, proxy_go.max_gears
+    assert_equal nil, proxy_go.multiplier
+
+    app.update_component_limits(proxy_instance, nil, nil, nil, 2)
+    app.reload
+    assert_equal 1, app.group_overrides.count
+    proxy_go = app.group_overrides[0].components.find {|c| c.name == proxy_instance.component_name}
+    assert_equal ComponentOverrideSpec, proxy_go.class
+    assert_equal 1, proxy_go.min_gears
+    assert_equal 2, proxy_go.max_gears
+    assert_equal 2, proxy_go.multiplier
+
+    app.update_component_limits(proxy_instance, nil, nil, nil, 3)
+    app.reload
+    assert_equal 1, app.group_overrides.count
+    proxy_go = app.group_overrides[0].components.find {|c| c.name == proxy_instance.component_name}
+    assert_equal ComponentOverrideSpec, proxy_go.class
+    assert_equal 1, proxy_go.min_gears
+    assert_equal 2, proxy_go.max_gears
+    assert_equal 3, proxy_go.multiplier
+
+    app.destroy_app
+  end
+
   test "application events through internal rest" do
     app = Application.create_app(@appname, cartridge_instances_for(:ruby, :mysql), @domain, :scalable => true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
@@ -480,14 +519,12 @@ class ApplicationsTest < ActionDispatch::IntegrationTest
       GroupOverride.new([nil]),
       GroupOverride.new([ComponentSpec.new("test", "other")]),
     ]
-    app.group_overrides.concat(overrides)
+
     ops, added, removed = app.update_requirements(app.cartridges, nil, overrides)
     assert_equal 0, added
     assert_equal 0, removed
-    assert_equal true, ops.empty?
-    assert_equal true, ops.none?{ |t| SetGroupOverridesOp === t }
-
-    app.reload
+    assert_equal 1, ops.count
+    assert_equal [], ops.first.group_overrides
 
     app.destroy_app
   end
