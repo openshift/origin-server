@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.28.3
+Version: 1.28.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,13 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Jul 28 2014 Adam Miller <admiller@redhat.com> 1.28.4-1
+- Merge pull request #5625 from Miciah/bug-1121238-fix-frontend-
+  system_proxy_delete-and-system_proxy_set-methods-return-value-ordering
+  (dmcphers+openshiftbot@redhat.com)
+- Fix typo (dmcphers@redhat.com)
+- Fix frontend system_proxy_delete/system_proxy_set (miciah.masters@gmail.com)
+
 * Thu Jul 24 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
 - Card origin_node_401 - Fix extended tests (jhonce@redhat.com)
 
