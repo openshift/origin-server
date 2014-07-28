@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.28.4
+Version: 1.28.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jul 28 2014 Adam Miller <admiller@redhat.com> 1.28.5-1
+- Bug 1122657: Fixing logic to select gear for scaledown (abhgupta@redhat.com)
+
 * Thu Jul 24 2014 Adam Miller <admiller@redhat.com> 1.28.4-1
 - Merge pull request #5649 from jwhonce/origin_node_401
   (dmcphers+openshiftbot@redhat.com)
