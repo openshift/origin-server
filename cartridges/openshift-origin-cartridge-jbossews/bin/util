@@ -27,7 +27,7 @@ function print_sed_exp_replace_env_var {
   sed_exp="${sed_exp} -e s/\${env.OPENSHIFT_INTERNAL_PORT}/${OPENSHIFT_JBOSSEWS_HTTP_PORT}/g"
   sed_exp="${sed_exp} -e s/\${OPENSHIFT_INTERNAL_IP}/${OPENSHIFT_JBOSSEWS_IP}/g"
   sed_exp="${sed_exp} -e s/\${OPENSHIFT_INTERNAL_PORT}/${OPENSHIFT_JBOSSEWS_HTTP_PORT}/g"
-  
+
   printf "%s\n" "$sed_exp"
 }
 
@@ -35,8 +35,8 @@ function relink_config {
   rm ${OPENSHIFT_JBOSSEWS_DIR}/conf/$1
   if [ ! -f ${OPENSHIFT_REPO_DIR}/.openshift/config/$1 ]
   then
-      ln -sf template/.openshift/config/$1 ${OPENSHIFT_JBOSSEWS_DIR}/conf
+      ln -sf ${OPENSHIFT_JBOSSEWS_DIR}/template/.openshift/config/$1 ${OPENSHIFT_JBOSSEWS_DIR}/conf
   else
-      ln -sf ${OPENSHIFT_REPO_DIR}/.openshift/config/$1 ${OPENSHIFT_JBOSSEWS_DIR}/conf            
+      ln -sf ${OPENSHIFT_REPO_DIR}/.openshift/config/$1 ${OPENSHIFT_JBOSSEWS_DIR}/conf
   fi
 }

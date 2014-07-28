@@ -67,7 +67,6 @@ function start_app() {
         echo "The jbossews cartridge is already running" 1>&2
     else
         echo "Starting jbossews cartridge"
-        
         # Setup the config directory (for --from-code path where the code repository did
         # not provide config files, link to the template config files)
         conf_files=(
@@ -78,10 +77,10 @@ function start_app() {
           "catalina.policy"
           "logging.properties"
         )
-        for conf_file in "${replacement_conf_files[@]}"; do
+        for conf_file in "${conf_files[@]}"; do
           relink_config $conf_file
         done
-        
+
         # Start
         export CATALINA_HOME=$OPENSHIFT_JBOSSEWS_DIR
         export CATALINA_BASE=$OPENSHIFT_JBOSSEWS_DIR
@@ -114,7 +113,7 @@ function stop_app() {
         pid=$(cat $JBOSS_PID_FILE);
         echo "Sending SIGTERM to jboss:$pid ..." 1>&2
         killtree $pid
-    else 
+    else
         echo "Failed to locate JBOSS PID File" 1>&2
     fi
 }
@@ -128,9 +127,9 @@ function threaddump() {
         java_pid=`ps h --ppid $pid -o '%p'`
         kill -3 $java_pid
         client_result "Success"
-        client_result ""        
+        client_result ""
         client_result "The thread dump file will be available via: rhc tail $OPENSHIFT_APP_NAME -g $OPENSHIFT_GEAR_UUID -f ${OPENSHIFT_LOG_DIR}${cartridge_type}.log -o '-n 250'"
-    else 
+    else
         echo "Failed to locate JBOSS PID File"
     fi
 }
