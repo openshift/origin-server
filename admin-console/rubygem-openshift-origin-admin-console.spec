@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 1.23.1
+Version: 1.23.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,14 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Mon Jul 28 2014 Adam Miller <admiller@redhat.com> 1.23.2-1
+- Merge pull request #5633 from jcantrill/190_expose_region_and_zones
+  (dmcphers+openshiftbot@redhat.com)
+- Origin UI 190 - Expose region for app create and show, region and zone on
+  gear page for admin-console (jcantril@redhat.com)
+- Bubble up config suggestions compared to other the suggestions of the same
+  level of importance (jforrest@redhat.com)
+
 * Thu Jun 26 2014 Adam Miller <admiller@redhat.com> 1.23.1-1
 - bump_minor_versions for sprint 47 (admiller@redhat.com)
 
