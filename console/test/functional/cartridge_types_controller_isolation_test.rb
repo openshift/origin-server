@@ -30,6 +30,7 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
       mock.get '/broker/rest/domain/test.json?include=application_info', json_header, domain.to_json
       mock.get '/broker/rest/application/testid.json', json_header, app.to_json
       mock.get '/broker/rest/application/testid.json?include=cartridges', json_header, app(true).to_json
+      mock.get '/broker/rest/cartridges.json', json_header, [{:name => 'fake-cart-1', :type => :embedded}].to_json
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [{:name => 'fake-cart-1', :type => :embedded}].to_json
       mock.get '/broker/rest/environment.json', anonymous_json_header, {:download_cartridges_enabled => true}.to_json
     end

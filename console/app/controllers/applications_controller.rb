@@ -149,7 +149,7 @@ class ApplicationsController < ConsoleController
 
     (@domain_capabilities, @domain_usage_rates, @is_domain_owner) = estimate_domain_capabilities(@application.domain_name, @user_writeable_domains, @can_create, @capabilities, @user_usage_rates)
 
-    @gear_sizes = new_application_gear_sizes(@user_writeable_domains, @capabilities)
+    @gear_sizes = new_application_gear_sizes(@user_writeable_domains, @capabilities, @application_type)
 
     flash.now[:error] = out_of_gears_message unless @capabilities.gears_free? or @user_writeable_domains.find(&:can_create_application?)
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
