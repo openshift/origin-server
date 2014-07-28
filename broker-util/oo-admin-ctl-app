@@ -176,6 +176,7 @@ begin
       end
     end
     reply.resultIO << "Successfully deleted application: #{app.name}" if reply.resultIO.string.empty?
+    Rails.logger.info "Successfully deleted application: #{app.name} with id: #{app._id} on behalf of user: #{login}"
   when "remove-cartridge"
     unless cartridge
       puts "Cartridge is required to remove-dependency"
