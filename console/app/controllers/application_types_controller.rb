@@ -27,17 +27,17 @@ class ApplicationTypesController < ConsoleController
     ]
 
     if @tag = params[:tag].presence
-      types = ApplicationType.tagged(@tag)
+      types = ApplicationType.tagged(@tag, :as => current_user)
       @type_groups = [["Tagged with #{Array(@tag).to_sentence}", types.sort!]]
 
       render :search
     elsif @search = params[:search].presence
-      types = ApplicationType.search(@search)
+      types = ApplicationType.search(@search, :as => current_user)
       @type_groups = [["Matches search '#{@search}'", types]]
 
       render :search
     else
-      types = ApplicationType.all
+      types = ApplicationType.all(:as => current_user)
       @featured_types = types.select{ |t| t.tags.include?(:featured) }.sample(3).sort!
       groups, other = in_groups_by_tag(types, [:instant_app, :xpaas, :java, :php, :ruby, :python])
       groups.each do |g|
@@ -63,13 +63,17 @@ class ApplicationTypesController < ConsoleController
     @user_default_domain = user_default_domain rescue (Domain.new)
     @can_create = @capabilities.max_domains > user_owned_domains.length
 
-    @gear_sizes = new_application_gear_sizes(@user_writeable_domains, @capabilities)
-
     @compact = false # @domain.persisted?
 
     @application_type = params[:id] == 'custom' ?
       ApplicationType.custom(app_type_params) :
       ApplicationType.find(params[:id])
+
+    @gear_sizes = new_application_gear_sizes(@user_writeable_domains, @capabilities, @application_type)
+
+    if @application_type.valid_gear_sizes? && (@gear_sizes & @application_type.valid_gear_sizes).empty?
+      flash.now[:error] = "Your account doesn't support gear sizes compatible with this cartridge. #{@application_type.display_name} can only run on the following gear sizes: #{@application_type.valid_gear_sizes.map(&:to_s).join(', ')}."
+    end
 
     @regions = Region.cached.all
 

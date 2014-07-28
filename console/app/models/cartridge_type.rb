@@ -24,6 +24,7 @@ class CartridgeType < RestApi::Base
   attr_accessor :help_topics
   attr_accessor :priority
   attr_accessor :usage_rates
+  attr_accessor :valid_gear_sizes
 
   has_many :properties, :class_name => as_indifferent_hash
   has_many :usage_rate, :class_name => as_indifferent_hash
@@ -180,6 +181,14 @@ class CartridgeType < RestApi::Base
 
   def usage_rates
     @usage_rates || []
+  end
+
+  def valid_gear_sizes?
+    !@valid_gear_sizes.nil?
+  end
+
+  def valid_gear_sizes
+    valid_gear_sizes? ? Array(@valid_gear_sizes).map(&:to_sym) : nil
   end
 
   def scalable

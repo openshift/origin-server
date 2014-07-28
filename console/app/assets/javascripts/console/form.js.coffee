@@ -22,6 +22,12 @@ $ ->
       return true
   )
 
+  $.validator.addMethod "in_arrays", ((value, element, arrays) ->
+    if $.isArray(arrays)
+      return false for array in arrays when $.isArray(array) && $.inArray(value, array) == -1
+    return true
+  )
+
   $.validator.setDefaults
     onsubmit:     true
     onkeyup:      false
@@ -112,21 +118,47 @@ $ ->
         rangelength: [1,16]
         alpha_numeric: true
       "application[gear_profile]":
-        in_array: (element) ->
-          $sizes = $(element).closest('form').find('select#application_domain_name option:selected').data('gear-sizes')
-          if $sizes == ""
-            []
-          else if !$sizes
-            null
-          else 
-            $sizes.split(',')
+        in_arrays: (element) ->
+          $domain_sizes = $(element).closest('form').find('select#application_domain_name option:selected').data('gear-sizes')
+          
+          $cartridge_sizes = application_type_valid_gear_sizes ? null
+
+          $quickstart_sizes = has_multiple_cartridge_types ? null
+          if $quickstart_sizes
+            $cart_sizes = []
+            $(element)
+              .closest('form')
+              .find('#application_cartridges select option:selected, #application_cartridges input[type=hidden]')
+              .each((i) ->
+                if $(this).data('gear-sizes')
+                  $.each $(this).data('gear-sizes').split(','), ((i, item) ->
+                    $cart_sizes.push(item)
+                  )
+              )
+              if $cart_sizes.length > 0
+                $quickstart_sizes = $cart_sizes.filter((e, pos) ->
+                  return $cart_sizes.indexOf(e) == pos
+                ) 
+              else 
+                $quickstart_sizes = null
+          
+          if $domain_sizes == ""
+            [[], $quickstart_sizes ? $cartridge_sizes]
+          else if !$domain_sizes
+            [null, $quickstart_sizes ? $cartridge_sizes]
+          else
+            [$domain_sizes.split(','), $quickstart_sizes ? $cartridge_sizes]
+
     messages:
       "application[gear_profile]":
-        in_array: (params, element) ->
+        in_arrays: (params, element) ->
           if $.isArray(params)
-            if params.length == 0
+            if $.isArray(params[0]) && params[0].length == 0
               "The owner of the selected domain has disabled all gear sizes from being created. You will not be able to create an application in this domain."
             else
-              jQuery.format("The gear size '{0}' is not valid for the selected domain. Allowed sizes: {1}.", $(element).val(), params.join(', '))
+              if $.isArray(params[1]) && $.inArray($(element).val(), params[1]) == -1
+                jQuery.format("The gear size <strong>{0}</strong> is not supported by this <strong>cartridge</strong>. Allowed for cartridge: {1}.", $(element).val(), params[1].join(', '))
+              else
+                jQuery.format("The gear size <strong>{0}</strong> is not valid for the selected <strong>domain</strong>. Allowed for domain: {1}.", $(element).val(), params[0].join(', '))
 
   $(document).activateForms()

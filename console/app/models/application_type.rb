@@ -30,6 +30,7 @@ class ApplicationType
   attr_accessor :provider
   attr_accessor :source
   attr_accessor :usage_rates
+  attr_accessor :valid_gear_sizes
 
   attr_accessible :initial_git_url, :cartridges, :initial_git_branch, :scalable, :may_not_scale
   alias_attribute :categories, :tags
@@ -59,6 +60,14 @@ class ApplicationType
 
   def usage_rates?
     !(usage_rates.nil? || usage_rates.empty?)
+  end
+
+  def valid_gear_sizes?
+    !@valid_gear_sizes.nil?
+  end
+
+  def valid_gear_sizes
+    valid_gear_sizes? ? Array(@valid_gear_sizes).map(&:to_sym) : nil
   end
 
   def cartridge_specs
@@ -228,23 +237,24 @@ class ApplicationType
 
     def self.find_every(opts={})
       source = opts[:source].nil? ? nil : Array(opts[:source])
+      as = opts[:as]
 
       types = []
       case
       when opts[:search]
         query = opts[:search].downcase
-        types.concat CartridgeType.cached.standalone
+        types.concat CartridgeType.standalone(({:as => as} if as.present?))
         types.keep_if &LOCAL_SEARCH.curry[query]
         types.concat Quickstart.cached.search(query) rescue handle_error($!)
       when opts[:tag]
         tag = opts[:tag].to_sym rescue (return [])
-        types.concat CartridgeType.cached.standalone
+        types.concat CartridgeType.standalone(({:as => as} if as.present?))
         if tag != :cartridge
           types.keep_if &TAG_FILTER.curry[[tag]]
           types.concat Quickstart.cached.search(tag.to_s) rescue handle_error($!)
         end
       else
-        types.concat CartridgeType.cached.standalone
+        types.concat CartridgeType.standalone(({:as => as} if as.present?))
         types.concat Quickstart.cached.promoted rescue handle_error($!)
       end
       raise "nil types" unless types
@@ -261,7 +271,7 @@ class ApplicationType
 
     def self.from_cartridge_type(type)
       attrs = {:id => "cart!#{type.name}", :source => :cartridge}
-      [:display_name, :tags, :description, :website, :version, :license, :license_url, :help_topics, :priority, :scalable, :usage_rates].each do |m|
+      [:display_name, :tags, :description, :website, :version, :license, :license_url, :help_topics, :priority, :scalable, :usage_rates, :valid_gear_sizes].each do |m|
         attrs[m] = type.send(m)
       end
       attrs[:provider] = type.support_type
