@@ -1,5 +1,25 @@
 module Console::ModelHelper
 
+  ##
+  # Retrieve the assigned region from a list of GearGroups
+  #
+  # @param  (Array)  gear_groups   A list of gear groups
+  # @return (String)               Formatted region or nil
+  def assigned_region(gear_groups)
+    gear_groups.first.gears.first.region unless gear_groups.blank?
+  end
+
+  ##
+  # Retrieve the first region marked as the default
+  #
+  # @param  (Array)  regions     A list of Regions
+  #
+  def default_region(regions)
+    defaulted_regions = regions.select{|r|r.default}
+    return '' if defaulted_regions.empty?
+    return defaulted_regions.first.name
+  end
+
   def other_cartridges_link(has_suggestions, application)
     if has_suggestions
       link_to "Or, see the entire list of cartridges you can add", application_cartridge_types_path(application)

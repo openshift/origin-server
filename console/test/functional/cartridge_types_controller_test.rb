@@ -40,7 +40,7 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert assigns(:application)
     assert assigns(:gear_sizes)
     assert_select ".indicator-gear-increase", "+0"
-    assert_select ".cartridge_gear_size", "Small"
+    assert_select ".cartridge_gear_size", "small"
   end
 
   test "should show type page for scalable" do
@@ -53,7 +53,7 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert assigns(:application)
     assert assigns(:gear_sizes)
     assert_select ".indicator-gear-increase", /\+1\b/
-    assert_select ".cartridge_gear_size", "Small"
+    assert_select ".cartridge_gear_size", "small"
   end
 
   test "should show type page for scalable with gear sizes" do
@@ -66,7 +66,7 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert assigns(:gear_sizes)
     assert_select ".indicator-gear-increase", /\+1\b/
     assert_select "#cartridge_gear_size" do
-      assert_select 'option', gear_sizes.delete_at(0).titleize
+      assert_select 'option', gear_sizes.delete_at(0)
     end
   end
 

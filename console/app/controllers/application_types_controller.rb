@@ -71,6 +71,8 @@ class ApplicationTypesController < ConsoleController
       ApplicationType.custom(app_type_params) :
       ApplicationType.find(params[:id])
 
+    @regions = Region.cached.all
+
     @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
     @application.gear_profile = @gear_sizes.first unless @gear_sizes.include?(@application.gear_profile)
     @application.domain_name = app_params[:domain_name] || app_params[:domain_id] || @user_default_domain.name

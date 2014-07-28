@@ -107,6 +107,46 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     ApplicationType.all.select{ |t| t.cartridge? }.sample(1).first.id
   end
 
+  test "should show select list for gear region where there is more than 1" do
+    Region.stub :all, [Region.new(:name => 'west'), Region.new(:name => 'east', :default => true)] do
+      with_unique_user
+      get :show, :id => random_application_type_id
+
+      assert_response :success
+      assert assigns(:regions)
+      assert select = css_select('select#application_region').first
+
+      selected = ""
+      if option = css_select('select#application_region option[selected=selected]').first
+        selected = option.attributes["value"]
+      end
+      assert_equal 'east', selected
+    end
+  end
+
+  test "should show label of default gear region when there is only 1" do
+    Region.stub :all, [Region.new(:name => 'west')] do
+      with_unique_user
+      get :show, :id => random_application_type_id
+      assert_response :success
+      assert assigns(:regions)
+      assert_select 'h3.control-label', {:text => 'Region', :count => 1}, 'Exp. the Region block to not be displayed'
+      assert_nil css_select('input#application_region').first, 'Exp. no input tag since we are relying on the broker functionality'
+      assert_select 'div.controls.first > h3', {:text => 'west', :count => 1}, 'Exp. the default region to be displayed'
+    end
+  end
+
+  test "should not show region info when there are no regions configured" do
+    Region.stub :all, [] do
+      with_unique_user
+      get :show, :id => random_application_type_id
+      assert_response :success, 'Exp. the get call to return successfully'
+      assert assigns(:regions), 'Exp. the regions variable to be assigned'
+      assert_nil css_select('input#application_region').first, 'Exp. no input tag since regions are empty'
+      assert_nil css_select('select#application_region').first, 'Exp. no select list  since regions are empty'
+      assert_select 'h3.control-label', {:text => 'Region', :count => 0}, 'Exp. the Region block to not be displayed'
+    end
+  end
 
   test "should show text field for domain with no default" do
     with_unique_user

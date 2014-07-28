@@ -29,9 +29,9 @@
       .control-label Using Gear Size
       .controls.cartridge_gear_size
         - if @gear_sizes.length > 1
-          = f.select :gear_size, @gear_sizes.map{ |size| [size.to_s.titleize, size]}, {}
+          = f.select :gear_size, @gear_sizes.map{ |size| [size.to_s, size]}, {}
         - else
-          .inline= @gear_sizes.first.to_s.titleize
+          .inline= @gear_sizes.first.to_s
 
   %p
     Do you want to add the

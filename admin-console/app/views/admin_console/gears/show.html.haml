@@ -31,3 +31,17 @@
           - cartridges.each do |cartridge|
             %li
               = cartridge[:display_name]
+    - if @server && @server.region_name.present?
+      %tr
+        %th
+          Region
+        %td
+          %ul.unstyled
+            = @server.region_name
+    - if @server && @server.zone_name.present?
+      %tr
+        %th
+          Zone
+        %td
+          %ul.unstyled
+            = @server.zone_name
