@@ -2204,12 +2204,13 @@ class Application
     begin_usage_ops = []
 
     overrides = GroupOverride.remove_defaults_from(group_overrides, 1, -1, default_gear_size, 0)
-    if overrides != self.group_overrides
-      pending_ops << SetGroupOverridesOp.new(group_overrides: overrides,
-                                             saved_group_overrides: self.group_overrides,
-                                             pre_save: !self.persisted?)
-      prereq_op = pending_ops.last
-    end
+
+    # we are not comparing the old and new group overrides since it ignores the multiplier
+    # refer bug for details --> https://bugzilla.redhat.com/show_bug.cgi?id=1123371
+    pending_ops << SetGroupOverridesOp.new(group_overrides: overrides,
+                                           saved_group_overrides: self.group_overrides,
+                                           pre_save: !self.persisted?)
+    prereq_op = pending_ops.last
 
     deploy_gear_id = nil
     component_ops = {}
@@ -2433,7 +2434,7 @@ class Application
     end
 
     # update-cluster has to run after all deployable carts have been post-configured
-    if scalable && pending_ops.present?
+    if scalable && pending_ops.present? && !(pending_ops.length == 1 and SetGroupOverridesOp === pending_ops.first)
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
       pending_ops << UpdateClusterOp.new(prereq: all_ops_ids)
     end
