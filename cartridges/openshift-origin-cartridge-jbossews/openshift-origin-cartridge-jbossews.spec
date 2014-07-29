@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.26.2
+Version: 1.26.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -79,6 +79,11 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 29 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
+- Bug 1123105 - Fixed binary jbossews binary deployment, currently when no
+  config files are specified inside archive, then template's one are taken as
+  the default (maszulik@redhat.com)
+
 * Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
 - JVM heap optimization settings and remove SerialGC (bvarga@redhat.com)
 
