@@ -49,7 +49,7 @@ module OpenShift
     # (commit/branch/treeish/relative) or nil otherwise.
     #
     def self.safe_clone_ref_spec(ref)
-      ref && !ref.empty? && ref =~ %r(\A[\w\d\-_\.\^~]+\Z) ? ref : nil
+      ref && !ref.empty? && ref =~ %r(\A[\w\d\/\-_\.\^~]+\Z) ? ref : nil
     end
 
     #
