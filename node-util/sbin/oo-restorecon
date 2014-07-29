@@ -41,12 +41,12 @@ def restore_con(dir, label, verbose = False)
   puts "restorecon -R -v #{dir}" if verbose
   result = %x[restorecon -R -v #{dir} ]
   if verbose && !result.empty?
-    puts result if verbose
+    puts result
   end
   puts "chcon -l #{label} -R #{dir}*" if verbose
   result = %x[chcon -l #{label} -R #{dir}* ]
   if verbose && !result.empty?
-    puts result if verbose
+    puts result
   end
 end
 
