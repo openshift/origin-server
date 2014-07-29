@@ -1487,7 +1487,7 @@ module OpenShift
           ssh_dir        = PathUtils.join(container_dir, '.openshift_ssh')
           ssh_key        = PathUtils.join(ssh_dir, 'id_rsa')
           OpenShift::Runtime::Threads::Parallel.map(ssh_urls, :in_threads => MAX_THREADS) do |gear|
-            out, err, rc = run_in_container_context("rsync -aAX --rsh=/usr/bin/oo-ssh #{ssh_key}{,.pub} #{gear}:.openshift_ssh/",
+            out, err, rc = run_in_container_context("rsync -aAXS --rsh=/usr/bin/oo-ssh #{ssh_key}{,.pub} #{gear}:.openshift_ssh/",
                                                     env: gear_env,
                                                     chdir: container_dir,
                                                     expected_exitstatus: 0)
@@ -1712,7 +1712,7 @@ module OpenShift
             when 'windows'
               '-rltgoDOv'
             else
-              '-avz'
+              '-avzS'
           end
         end
       end

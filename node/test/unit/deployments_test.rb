@@ -151,7 +151,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
       deployment_datetime = 'now'
       from = PathUtils.join(@container.container_dir, 'app-root', 'runtime', dir)
       to = PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, dir)
-      command = "/usr/bin/rsync -av --delete #{from}/ #{to}/"
+      command = "/usr/bin/rsync -avS --delete #{from}/ #{to}/"
       @container.expects(:run_in_container_context).with(command, expected_exitstatus: 0)
 
       @container.send("sync_runtime_#{dir.gsub(/-/, '_')}_dir_to_deployment".to_sym, deployment_datetime)
@@ -163,7 +163,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
       deployment_datetime = 'now'
       from = PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, dir)
       to = PathUtils.join(@container.container_dir, 'app-root', 'runtime', dir)
-      command = "/usr/bin/rsync -av --delete #{from}/ #{to}/"
+      command = "/usr/bin/rsync -avS --delete #{from}/ #{to}/"
       @container.expects(:run_in_container_context).with(command, expected_exitstatus: 0)
 
       @container.send("sync_deployment_#{dir.gsub(/-/, '_')}_dir_to_runtime".to_sym, deployment_datetime)
