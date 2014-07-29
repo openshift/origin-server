@@ -2001,15 +2001,15 @@ class Application
         surplus_sparse_components = sparse_components.select do |ci|
           comp_spec = nil
           gi_overrides.each {|o| o.components.each {|c| comp_spec = c if c.cartridge_name == ci.cartridge_name}}
-          min = comp_spec.min_gears rescue ci.get_component.scaling.min
+          min = (comp_spec.min_gears rescue ci.get_component.scaling.min) || 1
           multiplier = comp_spec.multiplier rescue ci.get_component.scaling.multiplier
           cur_sparse_gears = ( ci.gears - gears.select {|g| g.component_instances.include?(ci)} ).count
           cur_total_gears = (ginst.gears - gears).count
           status = false
           if cur_sparse_gears <= min
             status = false
-          # if the multiplier is -1, 0, or 1, then any gears that are in addition to the minimum value can be removed
-          elsif multiplier <= 1
+          # if the multiplier is nil, -1, 0, or 1, then any gears that are in addition to the minimum value can be removed
+          elsif multiplier.nil? || multiplier <= 1
             status = true
           else
             # does removing a gear with this sparse cart still maintain the multiplier?
