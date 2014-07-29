@@ -11,7 +11,11 @@ function help() {
 
 function getaddr() {
     # External due to using DNS for gear->gear
-    ip -4 addr show dev ${EXTERNAL_ETH_DEV:-eth0} scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
+    dev="${EXTERNAL_ETH_DEV:-eth0}"
+    read _ _ _ ipaddr _ < \
+      <(ip -o -f inet addr show dev $dev scope global)
+    ipaddr="${ipaddr%/*}"
+    echo -n "${ipaddr:?$dev has no globally scoped IPv4 address}"
 }
 
 # Fix up the IP Address in the config if the assigned node IP Address has changed.
