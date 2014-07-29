@@ -60,7 +60,7 @@ module OpenShift
     class Watchman
 
       attr_reader :logger, :config, :gears, :incidents, :epoch
-      attr_accessor :retry_delay, :gear_retries, :retry_period
+      attr_accessor :retry_delay, :gear_retries, :retry_period, :debug
 
       # @param config [Config] elements from node.conf
       # @param gears [CachedGears] collection of running gears on node
@@ -74,6 +74,7 @@ module OpenShift
         @retry_delay  = 300
         @gear_retries = 3
         @retry_period = 28800
+        @debug        = false
         @logger       = logger(config)
         @incidents    = {}
 
@@ -115,6 +116,13 @@ module OpenShift
         @retry_period = seconds.instance_of?(Rational) ? seconds : Rational(seconds, 86400)
       end
 
+      # Override the watchman debug value
+      # @param value [Boolean]
+      def debug=(value)
+        Syslog.info("Watchman debug is set to #{value}")
+        @debug = value
+      end
+
       def gear_retries=(retries)
         Syslog.info("Watchman gear_retries #{retries}")
         @gear_retries = retries
@@ -129,6 +137,21 @@ module OpenShift
         name
       end
 
+
+      # Print memory consumed by the process along with the plugin name
+      # Useful for debugging memory leaks
+      # @param plugin [WatchmanPlugin] derived class object
+      # @return none
+      def print_memory(plugin)
+        #mem = `ps -o rss= -p #{Process.pid}`.to_i rescue 0
+        out, err, rc = Utils.oo_spawn(%Q{ps -o rss= -p #{Process.pid}}, timeout: OP_TIMEOUT)
+        if rc==0
+          mem = out.to_i
+          msg = "Memory : #{mem}, Plugin : #{plugin.class.to_s}"
+          Syslog.info(msg)
+        end
+      end
+
       # loop through plugins until stopped
       # @param daemon [true, false] Loop more than once?
       def apply(daemon = true)
@@ -139,6 +162,7 @@ module OpenShift
           @plugins.each do |plugin|
             begin
               plugin.apply(iteration)
+              print_memory(plugin) if @debug
             rescue SystemExit => e
               msg = "SystemExit raised from Watchman plugin #{plugin}:\n#{e.backtrace.join("\n")}"
               Syslog.notice(msg)
@@ -467,6 +491,7 @@ if ENV['DAEMONS_ARGV']
     watcher.gear_retries = ENV['GEAR_RETRIES'].to_i unless ENV['GEAR_RETRIES'].nil?
     watcher.retry_delay  = ENV['RETRY_DELAY'].to_i unless ENV['RETRY_DELAY'].nil?
     watcher.retry_period = ENV['RETRY_PERIOD'].to_i unless ENV['RETRY_PERIOD'].nil?
+    watcher.debug        = ENV['WATCHMAN_DEBUG'] unless ENV['WATCHMAN_DEBUG'].nil?
     watcher.apply
   end
 end
