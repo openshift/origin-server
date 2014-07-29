@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.28.5
+Version: 1.28.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jul 29 2014 Adam Miller <admiller@redhat.com> 1.28.6-1
+- Bug 1123371: Fixing issue with setting the cartridge multiplier
+  (abhgupta@redhat.com)
+
 * Mon Jul 28 2014 Adam Miller <admiller@redhat.com> 1.28.5-1
 - Bug 1122657: Fixing logic to select gear for scaledown (abhgupta@redhat.com)
 
