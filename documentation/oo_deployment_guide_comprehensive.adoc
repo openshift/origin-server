@@ -173,29 +173,13 @@ yum install -y lokkit
 ----
 
 ==== Setting up the Ruby Environment (Software Collections)
+OpenShift makes use of http://docs.fedoraproject.org/en-US/Fedora_Contributor_Documentation/1/html/Software_Collections_Guide/[Software Collections] (SCLs) to enable alternate versions of some software packages. The specific packages that OpenShift requires are already expressed as RPM dependencies, so it should not be necessary for you to explicitly install SCLs on your host.
 
-In order to use Ruby 1.9.3, you will need to install and setup the https://access.redhat.com/site/documentation/en-US/Red_Hat_Developer_Toolset/1/html-single/Software_Collections_Guide/index.html[ruby193 SCL]. This will provide you with a ruby environment which we will use for the rest of the setup.
+Additionally, most of the oo- utilities that are part of the OpenShift system use wrappers to invoke these collections without any additional effort on the part of the user. However, if you attempt to run any of the embedded ruby utilities directly (like for `rake` tasks), you will need to explicitly invoke the SCL environment:
 
 ----
-yum install -y ruby193
-
-cat <<'EOF' > /etc/profile.d/scl193.sh
-# Setup PATH, LD_LIBRARY_PATH and MANPATH for ruby-1.9
-ruby19_dir=$(dirname `scl enable ruby193 "which ruby"`)
-export PATH=$ruby19_dir:$PATH
-
-ruby19_ld_libs=$(scl enable ruby193 "printenv LD_LIBRARY_PATH")
-export LD_LIBRARY_PATH=$ruby19_ld_libs:$LD_LIBRARY_PATH
-
-ruby19_manpath=$(scl enable ruby193 "printenv MANPATH")
-export MANPATH=$ruby19_manpath:$MANPATH
-EOF
-
-cp -f /etc/profile.d/scl193.sh /etc/sysconfig/mcollective
-chmod 0644 /etc/profile.d/scl193.sh /etc/sysconfig/mcollective
+scl enable ruby193 v8314 "<your command here>"
 ----
-
-Log out and log back into the machine to pick up the new Ruby environment.
 
 == Preparing the Broker Host System
 
@@ -1551,22 +1535,6 @@ The broker proxy configuration itself can be found in _/etc/httpd/conf.d/*opensh
 </VirtualHost>
 ----
 <1> In order for icons to show up correctly on the web console, you should ensure that the VirtualHost definition in that file contains the _ProxyPass_ and _ProxyPassReverse_ lines.
-
-=== Verify the Ruby Bundler
-The console Rails application depends on several gem files in order to operate correctly. You need to ensure that the Ruby bundler can find the appropriate gem files.
-
-----
-cd /var/www/openshift/console
-bundle --local
-rake assets:precompile
-chown -R apache:apache Gemfile.lock tmp
-----
-
-You should see a lot of information scroll by letting you know what gem files the system is actually using. The last line of output should be:
-
-----
-Your bundle is complete! Use `bundle show [gemname]` to see where a bundled gem is installed.
-----
 
 === Configure SELinux
 SELinux has several variables that we want to ensure are set correctly. These variables include the following:
