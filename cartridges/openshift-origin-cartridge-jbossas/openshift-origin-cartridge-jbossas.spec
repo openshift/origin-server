@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.26.2
+Version: 1.26.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -110,6 +110,10 @@ fi
 
 
 %changelog
+* Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
+- Bug 1122166 - Preserve sparse files during rsync operations
+  (agrimm@redhat.com)
+
 * Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.26.2-1
 - JVM heap optimization settings and remove SerialGC (bvarga@redhat.com)
 
