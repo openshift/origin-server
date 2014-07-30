@@ -54,6 +54,11 @@ Default: 5 seconds
 .B  OOM_CHECK_PERIOD
 Wait at least this number of seconds since last check before looking for gears under OOM.
 Default: 0 seconds
+.TP
+.B  WATCHMAN_DEBUG
+Boolean value to suggest printing debug messages in log. 
+e.g. printing memory usage after invocation of each plugin (logged in /var/log/messages)
+Default: false
 .SH FILES
 .TP
 .FN /etc/sysconfig/watchman
