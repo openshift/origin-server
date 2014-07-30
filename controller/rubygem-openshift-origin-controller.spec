@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.28.6
+Version: 1.28.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.28.7-1
+- Merge pull request #5669 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5666 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1124306: Handling nil min/max scale values for cartridge
+  (abhgupta@redhat.com)
+- Bug 1122809 (lnader@redhat.com)
+
 * Tue Jul 29 2014 Adam Miller <admiller@redhat.com> 1.28.6-1
 - Bug 1123371: Fixing issue with setting the cartridge multiplier
   (abhgupta@redhat.com)
