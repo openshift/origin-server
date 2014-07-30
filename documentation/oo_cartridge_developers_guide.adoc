@@ -675,6 +675,7 @@ The initial install process for a cartridge is as follows:
 . The `start` script is run.
 . The frontend is connected.
 . If the cartridge provides a `post_install` script, that script is executed.
+. The cartridge is started.
 
 === ERB Processing
 In order to provide flexible configuration and environment variables, you may provide some values as http://ruby-doc.org/stdlib-1.9.3/libdoc/erb/rdoc/ERB.html[ERB templates].
@@ -1264,6 +1265,7 @@ The compatible upgrade process for a cartridge is as follows:
 === Incompatible Upgrades
 The incompatible upgrade process for a cartridge is as follows:
 
+. The cartridge is stopped.
 . The files and directories declared in the `setup_rewritten` section of the cartridge's `managed_files.yml` are removed.
 . The new version of the cartridge is overlaid in the gear.
 . The cartridge directory is unlocked.
@@ -1274,6 +1276,7 @@ The incompatible upgrade process for a cartridge is as follows:
 . The cartridge directory is locked.
 . New endpoints for the cartridge are created.
 . The frontend is connected.
+. The cartridge is started.
 
 === Cartridge Upgrade Script
 A cartridge may provide an `upgrade` script in the `bin` directory which will be executed during the upgrade process.  The purpose of this script is to allow for arbitrary actions to occur during the upgrade process which are not accounted for by the compatible or incompatible processes.  If the `upgrade` script is provided, it will be passed the following arguments:
