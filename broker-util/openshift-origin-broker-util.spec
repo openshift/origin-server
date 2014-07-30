@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.27.2
+Version: 1.27.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,10 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
+- oo-accept-systems: Warn about obsolete cartridges (miciah.masters@gmail.com)
+- oo-accept-systems: Drop obsolete/downloaded carts (miciah.masters@gmail.com)
+
 * Tue Jul 29 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
 - Add log message when deleting app (decarr@redhat.com)
 
