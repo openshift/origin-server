@@ -21,8 +21,9 @@ Version-Overrides:
 License: The PHP License, version 3.0
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: php.net
-Cartridge-Version: 0.0.20
-Compatible-Versions: []
+Cartridge-Version: 0.0.21
+Compatible-Versions:
+- 0.0.20
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -59,7 +60,7 @@ Endpoints:
     Backend: ''
     Options:
       websocket: true
-  - Frontend: "/health"
+  - Frontend: /health
     Backend: ''
     Options:
       health: true
