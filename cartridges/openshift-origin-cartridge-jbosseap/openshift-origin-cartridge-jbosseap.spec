@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.19.2
+Version: 2.19.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -98,6 +98,10 @@ ln -fs /usr/share/openshift/jboss/modules/com/openshift/metrics /etc/alternative
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 2.19.3-1
+- Bug 1122166 - Preserve sparse files during rsync operations
+  (agrimm@redhat.com)
+
 * Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 2.19.2-1
 - JVM heap optimization settings and remove SerialGC (bvarga@redhat.com)
 
