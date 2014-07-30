@@ -100,6 +100,10 @@ class LastAccessUpdater
         output.each do |line|
           parts = line.split("=")
           timestamp = parts[1].delete("[").delete("]").strip
+          t_array = timestamp.split(' ')
+          if t_array.length==2 and t_array[1][0]!='+' and t_array[1][0]!='-'
+            timestamp = t_array[0] + " +" + t_array[1]
+          end
           hostname = parts[0].strip
           # puts "#{hostname}-->#{timestamp}"
           # Virtual host is same as app dns
