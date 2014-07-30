@@ -2,7 +2,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/python
 
 Name:          openshift-origin-cartridge-python
-Version: 1.28.1
+Version: 1.28.2
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -97,6 +97,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %exclude %{cartridgedir}/usr/versions/*/template/*.pyo
 
 %changelog
+* Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.28.2-1
+- Bug 1122166 - Preserve sparse files during rsync operations
+  (agrimm@redhat.com)
+
 * Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
 - bump_minor_versions for sprint 48 (admiller@redhat.com)
 
