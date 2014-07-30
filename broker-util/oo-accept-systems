@@ -140,13 +140,12 @@ def check_nodes_cartridges
   # get the list of cartridges from every node
   #
   nodes = OpenShift::MCollectiveApplicationContainerProxy.known_server_identities
+  obsolete_carts = []
   carts_for = nodes.map do |node|
-    [node,
-     OpenShift::ApplicationContainerProxy.instance(node)
-    .get_available_cartridges
-    .reject {|cart| cart.is_obsolete?}
-    .map {|cart| cart.name}
-    .sort]
+    carts = OpenShift::ApplicationContainerProxy.instance(node).get_available_cartridges
+    obs_carts, non_obs_carts = carts.partition {|cart| cart.is_obsolete?}
+    obsolete_carts |= obs_carts.map {|cart| cart.name}
+    [node, non_obs_carts.map {|cart| cart.name}.sort]
   end.instance_eval {|ary| Hash[*ary.flatten(1)]}
 
   carts_for.each do |node, carts|
@@ -156,6 +155,8 @@ def check_nodes_cartridges
       verbose "cartridges for #{node}: #{carts.join ', '}"
     end
   end
+
+  verbose "In addition, some nodes have obsolete cartridges installed: #{obsolete_carts.uniq.sort.join(', ')}" if obsolete_carts.present?
 
   carts_for.empty? and return #nothing to do...
 
