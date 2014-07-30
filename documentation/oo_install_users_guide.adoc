@@ -62,6 +62,45 @@ For the curious, OpenShift Origin uses a https://forge.puppetlabs.com/openshift/
 ==== Remote Installation
 If you are running the installer locally, but your OpenShift deployment will be installed on a remote system, you will need passwordless SSH access to your target host(s). "Passwordless" here means that either you are using an SSH key pair that was generated without a password, or that you are using a password manager like http://en.wikipedia.org/wiki/Ssh-agent[ssh-agent] to provide the password as necessary.
 
+=== Working With Proxies
+During the installation process, oo-install will attempt to download the `openshift/openshift_origin` puppet module from https://forge.puppetlabs.com/openshift/openshift_origin[PuppetForge] and onto your target system(s). If your target system(s) must use a proxy server to reach PuppetForge, here are some target host configuration steps that may help you:
+
+1. Add the proxy configuration to the file `/etc/yum.conf`: + 
++ 
+----
+proxy=http://proxy.example.com:3128
+----
+2. Create a file in `/etc/profile.d/proxy.sh` and add the information about your proxy server. This will cause any commands run from the target host command line to honor the proxy server:
++ 
+----
+#!/bin/bash
+export http_proxy="http://proxy.example.com:3128"
+export https_proxy="http://proxy.example.com:3128"
+----
++ 
+Also make sure that the file is executable: +
++ 
+----
+chmod +x /etc/profile.d/proxy.sh
+----
+3. Now do a `yum update` to ensure that the yum proxy settings are working.
+4. Install puppet manually. Normally `oo-install` does this for you, but you will need to add some proxy info to the puppet configuration: +
++ 
+----
+$ rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-6.noarch.rpm
+$ yum install puppet
+----
+5. Go to the file `/etc/puppet/puppet.conf` and add the lines as shown below: + 
++ 
+----
+http_proxy_host=proxy.example.com
+http_proxy_port=3128
+https_proxy_host=proxy.example.com
+https_proxy_port=3128
+----
+
+Repeat this for every target host that must use a proxy server. Now you should be able to run oo-install and your target host(s) will use your proxy server correctly.
+
 == Running the Installer
 The `oo-install` utility has been developed to function as a standalone application. However, the easiest way to run it is by using a "curl-to-shell" command to download and execute the latest version of the installer in a single step. This section describes running the curl-to-shell command and also how to run the installer from the source code.
 
