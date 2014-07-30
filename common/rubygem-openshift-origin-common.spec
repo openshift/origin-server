@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.27.3
+Version: 1.27.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -125,6 +125,9 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc*
 %doc %{gem_docdir}
 
 %changelog
+* Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.27.4-1
+- Bug 1122515 (lnader@redhat.com)
+
 * Wed Jul 23 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
 - Fix syntax error in oo-diagnostics (decarr@redhat.com)
 
