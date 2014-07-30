@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.28.4
+Version: 1.28.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,16 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.28.5-1
+- Merge pull request #5622 from Miciah/bug-1121200-oo-iptables-port-proxy-
+  getaddr-check-ipaddr (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #5640 from a13m/bz1122166
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1122166 - Preserve sparse files during rsync operations
+  (agrimm@redhat.com)
+- oo-iptables-port-proxy: getaddr: check ipaddr (miciah.masters@gmail.com)
+- oo-iptables-port-proxy: Rewrite getaddr (miciah.masters@gmail.com)
+
 * Mon Jul 28 2014 Adam Miller <admiller@redhat.com> 1.28.4-1
 - Merge pull request #5625 from Miciah/bug-1121238-fix-frontend-
   system_proxy_delete-and-system_proxy_set-methods-return-value-ordering
