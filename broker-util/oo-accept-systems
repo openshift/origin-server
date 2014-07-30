@@ -144,6 +144,7 @@ def check_nodes_cartridges
     [node,
      OpenShift::ApplicationContainerProxy.instance(node)
     .get_available_cartridges
+    .reject {|cart| cart.is_obsolete?}
     .map {|cart| cart.name}
     .sort]
   end.instance_eval {|ary| Hash[*ary.flatten(1)]}
@@ -183,7 +184,9 @@ def check_nodes_cartridges
   begin
     require 'json'
     api_carts = JSON.parse(RestClient.get('http://localhost:8080/broker/rest/cartridges.json'))
-    api_carts = api_carts["data"].map {|cart| cart["name"]}.sort
+    api_carts = api_carts["data"].reject {|cart| cart["url"].present?}
+                                 .map {|cart| cart["name"]}
+                                 .sort
     verbose "API reports carts: #{api_carts.join ', '}"
 
     do_fail <<-"MISMATCH" unless api_carts == all_carts
