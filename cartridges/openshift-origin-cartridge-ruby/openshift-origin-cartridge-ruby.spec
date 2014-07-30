@@ -9,7 +9,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 1.27.2
+Version: 1.27.3
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -109,6 +109,9 @@ done
 %attr(0755,-,-) %{httpdconfdir}
 
 %changelog
+* Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
+- bump cart versions for sprint 48 (bparees@redhat.com)
+
 * Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
 - Bug 1120467: Fixing wrong grep format for threaddump in ruby-2.0
   (j.hadvig@gmail.com)
