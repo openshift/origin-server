@@ -9,10 +9,8 @@ Description: Jenkins is a continuous integration (CI) build server that is deepl
 Version: '1'
 License: MIT license
 License-Url: https://jenkins-ci.org/mit-license
-Cartridge-Version: 0.0.15
-Compatible-Versions:
-- 0.0.13
-- 0.0.14
+Cartridge-Version: 0.0.16
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
 - web_framework
@@ -48,7 +46,7 @@ Endpoints:
     Backend: ''
     Options:
       tohttps: true
-  - Frontend: "/health"
+  - Frontend: /health
     Backend: ''
     Options:
       health: true
