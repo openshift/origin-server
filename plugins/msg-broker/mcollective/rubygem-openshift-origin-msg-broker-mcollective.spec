@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.27.1
+Version: 1.27.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,10 @@ sed -i -e "s|\(/etc/mcollective/client.cfg\)|%{scl_root}/\1|" %{buildroot}/etc/o
 %attr(0644,-,-) %ghost %{?scl:%scl_root}/etc/mcollective/client.cfg
 
 %changelog
+* Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.27.2-1
+- Bug 1122166 - Preserve sparse files during rsync operations
+  (agrimm@redhat.com)
+
 * Fri Jul 18 2014 Adam Miller <admiller@redhat.com> 1.27.1-1
 - Logging error if region is specified but no districted nodes available
   (abhgupta@redhat.com)
