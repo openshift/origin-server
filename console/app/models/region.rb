@@ -1,6 +1,6 @@
 class Region < RestApi::Base
   schema do
-    string :id, :name
+    string :id, :name, :description
     boolean :default
   end
 

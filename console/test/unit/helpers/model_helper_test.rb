@@ -198,13 +198,13 @@ describe Console::ModelHelper do
 
   describe '#default_region' do
 
-    it 'should return empty string for an empty list' do
-      default_region([]).must_be_empty
+    it 'should return nil for an empty list' do
+      default_region([]).must_be_nil
     end
 
-    it 'should return empty string for no defaults' do
+    it 'should return nil for no defaults' do
       @regions.each {|r| r.default = false}
-      default_region(@regions).must_be_empty
+      default_region(@regions).must_be_nil
     end
 
     it 'should return the name for the default region' do

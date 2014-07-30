@@ -3,9 +3,19 @@
     %h3.control-label Region
     .controls.first
       - if @regions.size == 1
-        %h3= @regions.first.name
+        %label.region
+          .region-name.single= @regions.first.name
+          .region-description.single= @regions.first.description
       - else
-        = f.select :region, @regions.collect{|r|[r.name, r.name]}, :selected=>default_region(@regions)
+        - default_region = default_region(@regions)
+        %label.region
+          = f.radio_button :region, '', :checked=>default_region.blank?
+          .region-name No preference
+        - @regions.each do |r|
+          %label.region
+            = f.radio_button :region, r.name, :checked=>default_region == r.name
+            .region-name= r.name
+            .region-description= r.description
     .controls
       %p.help-block
         Gears within your application will run on servers in the specified region.
