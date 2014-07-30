@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.26.3
+Version: 1.26.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -79,6 +79,12 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.26.4-1
+- Merge pull request #5640 from a13m/bz1122166
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1122166 - Preserve sparse files during rsync operations
+  (agrimm@redhat.com)
+
 * Tue Jul 29 2014 Adam Miller <admiller@redhat.com> 1.26.3-1
 - Bug 1123105 - Fixed binary jbossews binary deployment, currently when no
   config files are specified inside archive, then template's one are taken as
