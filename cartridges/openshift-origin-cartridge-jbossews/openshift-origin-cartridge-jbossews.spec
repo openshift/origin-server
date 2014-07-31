@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 1.26.5
+Version: 1.26.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -79,6 +79,10 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jul 31 2014 Adam Miller <admiller@redhat.com> 1.26.6-1
+- always meet control error when restartstop a jbossews scalable app with
+  medium or large gear size (bparees@redhat.com)
+
 * Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.26.5-1
 - Merge pull request #5673 from bparees/latest_versions
   (dmcphers+openshiftbot@redhat.com)
