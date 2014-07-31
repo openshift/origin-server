@@ -21,7 +21,7 @@ killtree() {
         killtree ${_child}
     done
     echo kill -9 ${_pid}
-    kill -9 ${_pid}
+    kill -9 ${_pid} || :
 }
 
 # Check if the jbossas process is running
