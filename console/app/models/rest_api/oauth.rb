@@ -17,7 +17,7 @@ module RestApi
 
       attr_reader :oauth_endpoint_uri, :oauth_consumer_key, :oauth_consumer_secret, :oauth_token, :oauth_token_secret, :oauth_nonce
 
-      def oauth(endpoint_url, consumer_key, consumer_secret, token=nil, token_secret=nil, method='GET')
+      def oauth(endpoint_url, consumer_key, consumer_secret, token=nil, token_secret=nil, method='GET', content_type=CONTENT_TYPE, accept_type=ACCEPT)
         @oauth_endpoint_uri = URI(endpoint_url)
         @oauth_consumer_key = consumer_key
         @oauth_consumer_secret = consumer_secret
@@ -26,8 +26,8 @@ module RestApi
         @oauth_nonce = generate_oauth_nonce
         @timestamp = timestamp
         @oauth_request_method = method
-        headers['Content-Type'] = CONTENT_TYPE
-        headers['Accept'] = ACCEPT
+        headers['Content-Type'] = content_type
+        headers['Accept'] = accept_type
         headers['Authorization'] = oauth_authorization_header
         headers
       end
