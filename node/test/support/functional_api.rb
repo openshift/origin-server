@@ -1,3 +1,19 @@
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
 require 'test/unit/assertions'
 require 'restclient/request'
 require 'fileutils'
@@ -11,22 +27,60 @@ class FunctionalApi
 
   attr_reader :login, :namespace, :url_base, :tmp_dir
 
-  CART_TO_INDEX = {
-    'jbossas-7'    => 'src/main/webapp/index.html',
-    'jbosseap-6'   => 'src/main/webapp/index.html',
-    'jbossews-1.0' => 'src/main/webapp/index.html',
-    'jbossews-2.0' => 'src/main/webapp/index.html',
-    'mock-0.1'     => 'index.html',
-    'nodejs-0.6'   => 'index.html',
-    'nodejs-0.10'   => 'index.html',
-    'perl-5.10'    => 'perl/index.pl',
-    'php-5.3'      => 'index.php',
-    'python-2.6'   => 'wsgi.py',
-    'python-2.7'   => 'wsgi.py',
-    'python-3.3'   => 'wsgi.py',
-    'ruby-1.8'     => 'config.ru',
-    'ruby-1.9'     => 'config.ru',
-    'zend-5.6'     => 'php/index.php',
+  CARTS = {
+    'jbossas-7' => {
+      :index =>'src/main/webapp/index.html',
+      :app_dir => 'deployments',
+      :container_dir => 'jbossas',
+    },
+    'jbosseap-6' => {
+      :index =>'src/main/webapp/index.html',
+      :app_dir => 'deployments',
+      :container_dir => 'jbosseap',
+    },
+    'jbossews-1.0' => {
+      :index => 'src/main/webapp/index.html',
+      :app_dir => 'webapps',
+      :container_dir => 'jbossews',
+    },
+    'jbossews-2.0' =>  {
+      :index => 'src/main/webapp/index.html',
+      :app_dir => 'webapps',
+      :container_dir => 'jbossews',
+    },
+    'mock-0.1' => {
+      :index =>'index.html',
+    },
+    'nodejs-0.6' => {
+      :index => 'index.html',
+    },
+    'nodejs-0.10' => {
+      :index =>'index.html',
+    },
+    'perl-5.10' => {
+      :index => 'perl/index.pl',
+    },
+    'php-5.3' => {
+      :index => 'index.php',
+    },
+    'python-2.6' => {
+      :index => 'wsgi.py',
+    },
+    'python-2.7' => {
+      :index => 'wsgi.py',
+    },
+    'python-3.3' => {
+      :index => 'wsgi.py',
+    },
+    'ruby-1.8' => {
+      :index => 'config.ru',
+    },
+    'ruby-1.9' => {
+      :index => 'config.ru',
+    },
+    'zend-5.6' => {
+      :index =>'php/index.php',
+    },
   }
 
   def initialize
@@ -179,9 +233,9 @@ EOFZ
     logger.info("Modifying the title to #{title} and pushing change")
     Dir.chdir(@tmp_dir) do
       Dir.chdir(app_name) do
-        `sed -i "s,<title>.*</title>,<title>#{title}</title>," #{CART_TO_INDEX[framework]}`
+        `sed -i "s,<title>.*</title>,<title>#{title}</title>," #{CARTS[framework][:index]}`
         `git commit -am 'test1'`
-        `git push`
+        `git push origin master`
       end
     end
   end
@@ -234,7 +288,7 @@ EOFZ
       end
 
       content =~ /<title>(.+)<\/title>/
-      title = $~[1]
+      title = $~[1] if $~
 
       if ((tries < max_tries) && (title =~ /^503|404 / || title != expected))
         logger.info("Not the response we wanted; retrying #{url}")
@@ -279,30 +333,20 @@ EOFZ
     `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost #{command}`
   end
 
-  def archive_deployment(app_id)
-    ssh_command(app_id, "\"gear archive-deployment\" > #{@tmp_dir}/#{app_id}_archive.tar.gz")
-
-    "#{@tmp_dir}/#{app_id}_archive.tar.gz"
-  end
-
   def save_deployment_snapshot_for_app(app_id, tgz_file_name="test.tgz")
-    temp_artifact_file_name="#{@tmp_dir}/#{tgz_file_name}"
-    logger.info("Saving Deployment Snapshot Application(#{app_id}) as File(#{temp_artifact_file_name})")
-    ssh_command(app_id, "\"gear archive-deployment\" > #{temp_artifact_file_name}")
-    logger.info("Done Deployment Snapshot Application(#{app_id}) as File(#{temp_artifact_file_name})")
+    logger.info("Saving Deployment Snapshot Application(#{app_id}) as File(#{tgz_file_name})")
+    ssh_command(app_id, "\"gear archive-deployment\" > #{tgz_file_name}")
+    logger.info("Done Deployment Snapshot Application(#{app_id}) as File(#{tgz_file_name})")
   end
 
   def copy_file_to_apache(tgz_file_name="test.tgz")
-    temp_artifact_file_name="#{@tmp_dir}/#{tgz_file_name}"
     logger.info("Copying File(#{tgz_file_name}) to /var/www/html/binaryartifacts")
-    logger.info `mkdir -p /var/www/html/binaryartifacts ; cp #{temp_artifact_file_name} /var/www/html/binaryartifacts/`
+    `mkdir -p /var/www/html/binaryartifacts ; cp #{tgz_file_name} /var/www/html/binaryartifacts/`
     logger.info("Done Copying File(#{tgz_file_name}) to /var/www/html/binaryartifacts")
   end
 
   def deploy_binary_artifact_using_rest_api(app_name, artifact_url, hot_deploy=true)
-
     logger.info("Starting Deploy Binary Artifact Using REST API")
-
     url_endpoint = "#{@url_base}/domains/#{@namespace}/applications/#{app_name}/deployments"
     logger.info("Posting to URL(#{url_endpoint}) to Deploy with the Downloadable Artifact URL(#{artifact_url})")
 
@@ -317,18 +361,43 @@ EOFZ
     end
 
     response = JSON.parse(response)
-
     logger.info("Got Response(#{response})")
-
     logger.info("Done Deploy Binary Artifact Using REST API")
-
   end
-
 
   def deploy_artifact(app_id, app_name, file, hot_deploy=false)
     logger.info("Deploying #{file} to app #{app_name}")
-    hot=hot_deploy ? '--hot-deploy' : ''
-    logger.info `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary-deploy #{hot}`
+    hot = hot_deploy ? '--hot-deploy' : ''
+    result = `cat #{file} | ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear binary-deploy #{hot}`
+    logger.info(result)
+  end
+
+  def clean_binary_archive(file, framework)
+    if !CARTS[framework][:app_dir] && !CARTS[framework][:container_dir]
+      delete_openshift_dir(file)
+    else
+      recreate_archive(file, framework)
+    end
+  end
+
+  def recreate_archive(file, framework)
+    logger.info("Recreating archive #{file}")
+    ext_tmp_dir = "/tmp/#{Time.now.to_i}"
+    FileUtils.mkdir_p(ext_tmp_dir)
+    `tar -xzf #{file} -C #{ext_tmp_dir}`
+    # repo/[deployments|webapps]/*
+    src = File.join(ext_tmp_dir, "repo", CARTS[framework][:app_dir])
+    # dependencies/[jbossas|jbossews]
+    dst = File.join(ext_tmp_dir, "dependencies", CARTS[framework][:container_dir], CARTS[framework][:app_dir])
+    `mv -f #{src}/* #{dst}/`
+    FileUtils.rm_rf(File.join(ext_tmp_dir, "repo"))
+    `cd #{ext_tmp_dir} && tar -czf #{file} * && cd $HOME`
+    FileUtils.rm_rf(ext_tmp_dir)
+  end
+
+  def delete_openshift_dir(file)
+     logger.info("Removing .openshift dir from #{file}")
+    `gunzip -c #{file} | tar --delete "./repo/.openshift" | gzip > #{file}2 && mv #{file}2 #{file}`
   end
 
   def cloud_domain

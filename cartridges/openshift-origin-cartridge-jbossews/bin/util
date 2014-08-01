@@ -31,6 +31,22 @@ function print_sed_exp_replace_env_var {
   printf "%s\n" "$sed_exp"
 }
 
+function relink_configs {
+  # Setup the config directory (for --from-code path where the code repository did
+  # not provide config files, link to the template config files)
+  conf_files=(
+    "web.xml"
+    "tomcat-users.xml"
+    "postgresql_module.xml"
+    "catalina.properties"
+    "catalina.policy"
+    "logging.properties"
+  )
+  for conf_file in "${conf_files[@]}"; do
+    relink_config $conf_file
+  done
+}
+
 function relink_config {
   rm ${OPENSHIFT_JBOSSEWS_DIR}/conf/$1
   if [ ! -f ${OPENSHIFT_REPO_DIR}/.openshift/config/$1 ]
