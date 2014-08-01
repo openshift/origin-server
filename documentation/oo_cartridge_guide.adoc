@@ -655,6 +655,9 @@ The `mongodb` cartridge provides several environment variables to reference for 
 
 OPENSHIFT_MONGODB_DB_HOST:: The MongoDB IP address
 OPENSHIFT_MONGODB_DB_PORT:: The MongoDB port
+OPENSHIFT_MONGODB_DB_USERNAME:: The MongoDB username
+OPENSHIFT_MONGODB_DB_PASSWORD:: The MongoDB password
+OPENSHIFT_MONGODB_DB_URL:: The MongoDB connection URL (e.g. mongodb://<username>:<password>@<hostname>:<port>/
 OPENSHIFT_MONGODB_DB_LOG_DIR:: The path to the MongoDB log directory
 
 
