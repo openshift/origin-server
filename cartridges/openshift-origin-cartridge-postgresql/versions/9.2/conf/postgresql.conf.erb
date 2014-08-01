@@ -70,7 +70,7 @@ effective_cache_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS']
 #------------------------------------------------------------------------------
 # - Locale and Formatting -
 
-datestyle = 'iso, mdy'
+datestyle = '<%= ENV['OPENSHIFT_POSTGRESQL_DATESTYLE'] || 'iso, mdy'%>'
 lc_messages = '<%= ENV['OPENSHIFT_POSTGRESQL_LOCALE'] || 'en_US.utf8'%>'
 lc_monetary = '<%= ENV['OPENSHIFT_POSTGRESQL_LOCALE'] || 'en_US.utf8'%>'
 lc_numeric = '<%= ENV['OPENSHIFT_POSTGRESQL_LOCALE'] || 'en_US.utf8'%>'
