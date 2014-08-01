@@ -66,7 +66,7 @@ Rake::TestTask.new(:ext_gear_func_test1) do |t|
   t.verbose = true
   t.libs << File.expand_path('../../common/lib', __FILE__)
 
-  tests = ['test/gear_functional/platform_binary_deploy_test.rb']
+  tests = ['test/gear_functional/platform_deploy_ext_test.rb']
 
   ext_gear_functionals += tests
 
@@ -78,18 +78,6 @@ Rake::TestTask.new(:ext_gear_func_test2) do |t|
   t.verbose = true
   t.libs << File.expand_path('../../common/lib', __FILE__)
 
-  tests = ['test/gear_functional/platform_deploy_ext_test.rb']
-
-  ext_gear_functionals += tests
-
-  t.test_files = tests
-end
-
-desc "Extended gear functional tests 3"
-Rake::TestTask.new(:ext_gear_func_test3) do |t|
-  t.verbose = true
-  t.libs << File.expand_path('../../common/lib', __FILE__)
-
   tests = ['test/gear_functional/platform_deployment_integrity_test.rb',
            'test/gear_functional/metrics_func_test.rb']
 
@@ -98,8 +86,8 @@ Rake::TestTask.new(:ext_gear_func_test3) do |t|
   t.test_files = tests
 end
 
-desc "Extended gear functional tests 4"
-Rake::TestTask.new(:ext_gear_func_test4) do |t|
+desc "Extended gear functional tests 3"
+Rake::TestTask.new(:ext_gear_func_test3) do |t|
   t.verbose = true
   t.libs << File.expand_path('../../common/lib', __FILE__)
 
