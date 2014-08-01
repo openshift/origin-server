@@ -110,12 +110,21 @@ function build() {
     fi
     if [ -f ${OPENSHIFT_REPO_DIR}${pear_file} ]; then
         echo "Checking ${pear_file} for PEAR dependency..."
+        local show_cleanbuild_msg=0
+
         for f in $(cat ${OPENSHIFT_REPO_DIR}${pear_file}); do
             echo -e "Checking PEAR: $f\n"
-            if ! php_context "pear info '$f' &>/dev/null"; then
-                php_context "pear install --alldeps '$f'"
+
+            if php_context "pear info '$f' &>/dev/null"; then # package is already installed
+
+                local current_version=$(pear info "$f" | awk '$0$1 ~/Release Version/ {print $3;}')
+                local desired_version=$(echo "$f" | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
+
+                if [ "$current_version" != "$desired_version" ]; then
+                    php_context "pear upgrade --alldeps '$f'" || show_cleanbuild_msg=1
+                fi
             else
-                php_context "pear upgrade --alldeps '$f'" || :
+                php_context "pear install --alldeps '$f'"
             fi
             echo
             # Remove gear-specific absolute paths from the generated PEAR
@@ -123,6 +132,11 @@ function build() {
             find ${OPENSHIFT_PHP_DIR}phplib/pear/pear/ -type f \( ! -regex '.*/\..*' \) \
               -exec sed -i "s|${OPENSHIFT_HOMEDIR}|~/|g" {} \;
         done
+
+        if [ $show_cleanbuild_msg -eq 1 ]; then
+            echo -e "Tip: Use the .openshift/markers/force_clean_build marker file to do a clean build.\n"
+            exit 1
+        fi
     fi
 
     # Composer
