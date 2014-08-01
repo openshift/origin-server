@@ -135,6 +135,7 @@ function build() {
 
         if [ $show_cleanbuild_msg -eq 1 ]; then
             echo -e "Tip: Use the .openshift/markers/force_clean_build marker file to do a clean build.\n"
+            exit 1
         fi
     fi
 
