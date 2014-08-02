@@ -1,5 +1,4 @@
 @cartridge_extended3
-@not-enterprise
 Feature: MongoDB Application Sub-Cartridge
 
   Scenario: Create Delete one application with a MongoDB database
