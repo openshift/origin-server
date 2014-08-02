@@ -16,7 +16,6 @@ class RemovedNodesAppFixupTest < ActionDispatch::IntegrationTest
 
     @domain = Domain.new(namespace: @namespace, owner: @cu)
     @domain.save!
-    Rails.configuration.msg_broker[:districts][:enabled] = false
     Rails.configuration.openshift[:allow_ha_applications] = true
     @appnames = []
     for i in 0..20

@@ -22,6 +22,13 @@ module AdminConsole
           end unless @domain
         end
 
+        MiniTest::Unit.after_tests do
+          begin
+            @user.force_delete
+          rescue
+          end
+        end
+
         test "should search users by id" do
           get :index, :id => @user.id, :format => :json
           assert_response :success
