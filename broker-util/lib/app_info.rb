@@ -87,7 +87,7 @@ class AppInfo
 end
 
 class AppQuery
-  FQDN_REGEX = /(http:\/\/)?(\w+)-(\w+)(\.\w+)?\.rhcloud.com\Z/
+  FQDN_REGEX = /(http:\/\/)?(\w+)-(\w+)(\.\w+)?\.#{Regexp.escape(Rails.application.config.openshift[:domain_suffix])}\Z/
 
   #
   # Entrypoint for openshift application query methods
