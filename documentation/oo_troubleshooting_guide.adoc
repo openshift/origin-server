@@ -43,7 +43,7 @@ Third, write and run custom checks that utilize the above services to verify tha
 Installing and configuring an OpenShift Origin PaaS can often fail due to simple mistakes in configuration files. Fortunately, the OpenShift team provides an unsupported troubleshooting script that can diagnose most problems with an installation. The most updated version of this script is available at:
 
 ----
-https://raw.github.com/openshift/origin-server/master/util/oo-diagnostics
+https://raw.githubusercontent.com/openshift/origin-server/master/common/bin/oo-diagnostics
 ----
 
 This script can be run on any OpenShift Origin broker or node host. Once you have the script downloaded, change the permission to enable execution of the script:
