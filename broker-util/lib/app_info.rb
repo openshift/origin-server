@@ -87,18 +87,18 @@ class AppInfo
 end
 
 class AppQuery
-  FQDN_REGEX = /(http:\/\/)?(\w+)-(\w+)(\.\w+)?\.rhcloud.com\Z/
+  FQDN_REGEX = /(http:\/\/)?(\w+)-(\w+)(\.\w+)?\.#{Regexp.escape(Rails.application.config.openshift[:domain_suffix])}\Z/
 
-  # 
+  #
   # Entrypoint for openshift application query methods
-  # 
+  #
   # Parameters:
   #   query - app query string or regex
   #   qtype - query type (app_name|domain_name|fqdn|login|uuid)
   #   check_deleted - boolean to toggle searching Applications or Usage
-  # 
+  #
   # Returns: AppInfo or Array of AppInfo
-  # 
+  #
   def self.get(query, qtype, check_deleted=false)
     if check_deleted
       line, method = __LINE__, "get_deleted_by_#{qtype}"
@@ -117,9 +117,9 @@ class AppQuery
     end
   end
 
-  # 
+  #
   # Returns: Array of AppInfo
-  # 
+  #
   def self.get_by_app_name(appname)
     retval = []
 
@@ -129,9 +129,9 @@ class AppQuery
     return retval
   end
 
-  # 
+  #
   # Returns: Array of AppInfo
-  # 
+  #
   def self.get_by_domain_name(namespace)
     retval = []
 
@@ -145,9 +145,9 @@ class AppQuery
     return retval
   end
 
-  # 
+  #
   # Returns: AppInfo
-  # 
+  #
   def self.get_by_fqdn(fqdn)
     fqdn.match(AppQuery::FQDN_REGEX)
     app_name  = $2
@@ -164,9 +164,9 @@ class AppQuery
     return retval
   end
 
-  # 
+  #
   # Returns: Array of AppInfo
-  # 
+  #
   def self.get_by_login(login)
     retval = []
 
@@ -180,9 +180,9 @@ class AppQuery
     return retval
   end
 
-  # 
+  #
   # Returns: AppInfo
-  # 
+  #
   def self.get_by_uuid(uuid)
     retval = []
 
@@ -202,9 +202,9 @@ class AppQuery
     return retval
   end
 
-  # 
+  #
   # Returns: Array of AppInfo
-  # 
+  #
   def self.get_deleted_by_app_name(appname)
     retval       = []
     current_apps = Application.where(name: appname).collect { |app| app.name } || Array.new
@@ -224,9 +224,9 @@ class AppQuery
     return retval
   end
 
-  # 
+  #
   # Returns: Array of AppInfo
-  # 
+  #
   def self.get_deleted_by_domain_name(namespace)
     retval = []
 
@@ -246,9 +246,9 @@ class AppQuery
     return retval
   end
 
-  # 
+  #
   # Returns: AppInfo
-  # 
+  #
   def self.get_deleted_by_fqdn(fqdn)
     retval = []
 
@@ -272,9 +272,9 @@ class AppQuery
     return retval
   end
 
-  # 
+  #
   # Returns: Array of AppInfo
-  # 
+  #
   def self.get_deleted_by_login(login)
     retval = []
 
@@ -294,9 +294,9 @@ class AppQuery
     return retval
   end
 
-  # 
+  #
   # Returns: AppInfo
-  # 
+  #
   def self.get_deleted_by_uuid(uuid)
     retval = []
 
@@ -310,10 +310,10 @@ class AppQuery
     return retval
   end
 
-  # 
+  #
   # Purpose: mock up the app structure, because there isn't one.
   # Returns: Mocked AppInfo for deleted app.
-  # 
+  #
   def self.reconstruct(usage, user, domain)
     dummy  = Struct.new(:name, :uuid, :created_at, :group_instances)
     app    = dummy.new(usage.app_name, usage.gear_id, usage.created_at, Array.new)
