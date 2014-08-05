@@ -3,6 +3,7 @@ class Region
   include Mongoid::Timestamps
 
   field :name, type: String
+  field :description, type: String
   embeds_many :zones, class_name: Zone.name
 
   validates :name, :presence => true
@@ -18,11 +19,11 @@ class Region
     name
   end
 
-  def self.create(name)
+  def self.create(name, description=nil)
     if Region.where(name: Region.check_name!(name)).exists?
       raise OpenShift::OOException.new("Region by name '#{name}' already exists")
     end
-    Region.create!(name: name)
+    Region.create!(name: name, description: description)
   end
 
   def delete
