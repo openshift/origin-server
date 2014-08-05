@@ -2,7 +2,7 @@
 require 'rubygems'
 require 'getoptlong'
 
-CTL_REGION_COMMANDS = %w[create destroy add-zone remove-zone list]
+CTL_REGION_COMMANDS = %w[create update destroy add-zone remove-zone list]
 
 def usage
   puts <<"USAGE"
@@ -19,6 +19,9 @@ Options:
     (#{CTL_REGION_COMMANDS * '|'})
 -r|--region <region_name>
     Region name (alphanumeric, underscore, hyphen, dot)
+-d|--description <region_description>
+    Region description to apply on create or update
+    Only valid on create (optional) and update (required) commands
 -z|--zone <zone_name>
     Zone name within the given region (alphanumeric, underscore, hyphen, dot)
     Only valid for add-zone and remove-zone commands
@@ -42,6 +45,7 @@ opts = GetoptLong.new(
     ["--command",   "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--region",    "-r", GetoptLong::REQUIRED_ARGUMENT],
     ["--zone",      "-z", GetoptLong::REQUIRED_ARGUMENT],
+    ["--description", "-d", GetoptLong::REQUIRED_ARGUMENT],    
     ["--bypass",    "-b", GetoptLong::NO_ARGUMENT],    
     ["--help",      "-h", GetoptLong::NO_ARGUMENT]
 )
@@ -58,6 +62,7 @@ command     = args['--command']
 region_name = args['--region']
 zone_name   = args['--zone']
 bypass      = args['--bypass']
+region_desc = args['--description']
 
 if !command && (args.length > 0)
   puts "Error: --command is required with any arguments"
@@ -80,6 +85,10 @@ end
 if zone_name and !(['add-zone', 'remove-zone'].include?(command))
   puts "Warning: Ignoring --zone, not valid for command: #{command}"
 end
+if !region_desc and ['update'].include?(command)
+  puts "Error: --description is required with command: #{command}"
+  exit 2
+end
 
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
@@ -90,8 +99,13 @@ reply = ResultIO.new
 begin
   case command
   when "create"
-    region = Region.create(region_name) 
+    region = Region.create(region_name, region_desc)
     reply.resultIO << "Successfully created region: #{region_name}" if reply.resultIO.string.empty?
+  when "update"
+    region = get_region(region_name)
+    region.description = region_desc
+    region.save!
+    reply.resultIO << "Successfully updated region: #{region_name}" if reply.resultIO.string.empty?
   when "destroy"
     region = get_region(region_name)
     unless bypass
