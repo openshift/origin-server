@@ -62,7 +62,7 @@ module OpenShift
 
             # Make sure we create a MonitoredGear for the root OpenShift cgroup
             # Keys for information we want from cgroups
-            @wanted_keys      = [:usage, :throttled_time, :nr_periods, :cfs_quota_us, :cfs_period_us, :ts]
+            @wanted_keys      = %w(usage throttled_time nr_periods cfs_quota_us cfs_period_us ts)
 
             # Set the interval to save
             @interval         = resource('apply_period') { |x| Integer(x) }
@@ -110,7 +110,7 @@ module OpenShift
             (bad_gears, cur_util) = find(period: @interval, usage: @throttle_percent)
 
             util           = cur_util.inject({}) do |h, (uuid, vals)|
-              h[uuid] = (vals.map { |_, v| v[:usage_percent] }.first || '???')
+              h[uuid] = (vals.map { |_, v| v['usage_percent'] }.first || '???')
               h
             end
 
@@ -243,10 +243,10 @@ module OpenShift
               # Find any gears over the threshold
               over_usage  = with_period.select do |k, v|
                 begin
-                  percent = v[:usage_percent]
+                  percent = v['usage_percent']
                   percent && percent >= usage
                 rescue
-                  Syslog.log(:info, "Throttler: problem in find for #{k} (#{v[:usage_percent]})")
+                  Syslog.log(:info, "Throttler: problem in find for #{k} (#{v['usage_percent']})")
                   return false
                 end
               end.keys
