@@ -6,7 +6,7 @@ require_relative '../../../node-util/conf/watchman/plugins.d/monitored_gear'
 # This will sanity test some Array math helpers
 class ArrayTest < OpenShift::NodeTestCase
   def test_average
-    x = [1,2,3]
+    x = [1, 2, 3]
 
     assert_equal 2, x.average
   end
@@ -18,8 +18,8 @@ class ArrayTest < OpenShift::NodeTestCase
   end
 
   def test_divide_array
-    x = [10,20,30,50]
-    y = [2,4,3,20]
+    x = [10, 20, 30, 50]
+    y = [2, 4, 3, 20]
 
     correct = [5.0, 5.0, 10.0, 2.5]
 
@@ -27,7 +27,7 @@ class ArrayTest < OpenShift::NodeTestCase
   end
 
   def test_divide_zero
-    x = [10,20,30,50]
+    x = [10, 20, 30, 50]
     y = 0
 
     correct = [0, 0, 0, 0]
@@ -45,8 +45,8 @@ class ArrayTest < OpenShift::NodeTestCase
   end
 
   def test_mult_array
-    x = [1,2,3,5]
-    y = [2,4,3,20]
+    x = [1, 2, 3, 5]
+    y = [2, 4, 3, 20]
 
     correct = [2, 8, 9, 100]
 
@@ -54,10 +54,10 @@ class ArrayTest < OpenShift::NodeTestCase
   end
 
   def test_mult_const
-    x = [1,2,3,5]
+    x = [1, 2, 3, 5]
     y = 5
 
-    correct = [5,10,15,25]
+    correct = [5, 10, 15, 25]
 
     assert_equal correct, x.mult(y)
   end
@@ -68,9 +68,9 @@ class OpenShift::Runtime::Utils::Cgroups::MonitoredGear
   class << self
     def __clear
       @@intervals = [10.seconds, 30.seconds]
-      @@delay = nil
-      @@max = nil
-      @@_delay = nil
+      @@delay     = nil
+      @@max       = nil
+      @@_delay    = nil
     end
   end
 end
@@ -83,14 +83,14 @@ class MonitoredGearInstanceTest < OpenShift::NodeTestCase
 
   def test_max
     @@impl.expects(:delay).once.returns(10)
-    @@impl.expects(:intervals).once.returns([50,100])
+    @@impl.expects(:intervals).once.returns([50, 100])
 
     # Max should be (intervals.max + (delay * 2))
     assert_equal 120, @@impl.max
   end
 
   def test_delay
-    @@impl.expects(:intervals).once.returns([50,100])
+    @@impl.expects(:intervals).once.returns([50, 100])
 
     # Delay should be (intervals.min / 4)
     assert_equal 12.5, @@impl.delay
@@ -143,38 +143,38 @@ class MonitoredGearTest < OpenShift::NodeTestCase
 
   def test_collapse_hashes
     hash = [
-      {
-        foo: "foo_a",
-        bar: "bar_a",
-        baz: "baz_a"
-      },
-      {
-        foo: "foo_b",
-        bar: "bar_b",
-        zing: "zing_b"
-      }
+        {
+            'foo' => 'foo_a',
+            'bar' => 'bar_a',
+            'baz' => 'baz_a'
+        },
+        {
+            'foo'  => 'foo_b',
+            'bar'  => 'bar_b',
+            'zing' => 'zing_b'
+        }
     ]
 
     correct = {
-      foo: %w(foo_a foo_b),
-      bar: %w(bar_a bar_b),
-      baz: %w(baz_a),
-      zing: %w(zing_b)
+        'foo'  => %w(foo_a foo_b),
+        'bar'  => %w(bar_a bar_b),
+        'baz'  => %w(baz_a),
+        'zing' => %w(zing_b)
     }
     assert_equal correct, @gear.collapse_hashes(hash)
   end
 
   def test_calculate_difference
     hash = {
-      a: [1,2,3,4,5],
-      b: [0,0,0,0,0],
-      c: [1,3,5,7,10]
+        'a' => [1, 2, 3, 4, 5],
+        'b' => [0, 0, 0, 0, 0],
+        'c' => [1, 3, 5, 7, 10]
     }
 
     correct = {
-      a: [1,1,1,1],
-      b: [0,0,0,0],
-      c: [2,2,2,3]
+        'a' => [1, 1, 1, 1],
+        'b' => [0, 0, 0, 0],
+        'c' => [2, 2, 2, 3]
     }
 
     assert_equal correct, @gear.calculate_differences(hash)
@@ -182,19 +182,19 @@ class MonitoredGearTest < OpenShift::NodeTestCase
 
   def test_value_storage
     assert_empty @gear.times
-    val_1 = {:foo => 1}
-    val_2 = {:foo => 2}
-    val_3 = {:foo => 3}
-    val_4 = {:foo => 4}
+    val_1 = {'foo' => 1}
+    val_2 = {'foo' => 2}
+    val_3 = {'foo' => 3}
+    val_4 = {'foo' => 4}
 
     max = @@impl.max
 
     times = [
-      0,
-      max - 1,
-      max + 1,
-      max + 100000
-    ].map{|x| Time.at(x)}
+        0,
+        max - 1,
+        max + 1,
+        max + 100000
+    ].map { |x| Time.at(x) }
 
     # The first update should only include that value
     with_time(times[0]) do |now|
@@ -251,26 +251,26 @@ class MonitoredGearTest < OpenShift::NodeTestCase
 
   def test_utilization
     values = [
-      {
-        cfs_quota_us:  100000,
-        cfs_period_us: 100000,
-        nr_periods: 0,
-        ts: 1234567890.000000,
-        foo: 0
-      },
-      {
-        cfs_quota_us:  100000,
-        cfs_period_us: 100000,
-        nr_periods: 1,
-        ts: 1234567891.000000,
-        foo: 1000000
-      },
+        {
+            'cfs_quota_us'  => 100000,
+            'cfs_period_us' => 100000,
+            'nr_periods'    => 0,
+            'ts'            => 1234567890.000000,
+            'foo'           => 0
+        },
+        {
+            'cfs_quota_us'  => 100000,
+            'cfs_period_us' => 100000,
+            'nr_periods'    => 1,
+            'ts'            => 1234567891.000000,
+            'foo'           => 1000000
+        },
     ]
 
     correct = {
-      foo: 1000000,
-      foo_per_period: 1000000.0,
-      foo_percent: 0.1
+        'foo'            => 1000000,
+        'foo_per_period' => 1000000.0,
+        'foo_percent'    => 0.1
     }
 
     check_elapsed_usage(values, correct)
@@ -278,33 +278,33 @@ class MonitoredGearTest < OpenShift::NodeTestCase
 
   def test_utilization_2
     values = [
-      {
-        cfs_quota_us:  1000,
-        cfs_period_us: 1000,
-        nr_periods: 0,
-        ts: 1234567890.000000,
-        foo: 0
-      },
-      {
-        cfs_quota_us:  1000,
-        cfs_period_us: 1000,
-        nr_periods: 1,
-        ts: 1234567891.000000,
-        foo: 1000000
-      },
-      {
-        cfs_quota_us:  2000,
-        cfs_period_us: 1000,
-        nr_periods: 2,
-        ts: 1234567892.000000,
-        foo: 3000000
-      },
+        {
+            'cfs_quota_us'  => 1000,
+            'cfs_period_us' => 1000,
+            'nr_periods'    => 0,
+            'ts'            => 1234567890.000000,
+            'foo'           => 0
+        },
+        {
+            'cfs_quota_us'  => 1000,
+            'cfs_period_us' => 1000,
+            'nr_periods'    => 1,
+            'ts'            => 1234567891.000000,
+            'foo'           => 1000000
+        },
+        {
+            'cfs_quota_us'  => 2000,
+            'cfs_period_us' => 1000,
+            'nr_periods'    => 2,
+            'ts'            => 1234567892.000000,
+            'foo'           => 3000000
+        },
     ]
 
     correct = {
-      foo: 1500000,
-      foo_per_period: 1500000.0,
-      foo_percent: 0.1
+        'foo'            => 1500000,
+        'foo_per_period' => 1500000.0,
+        'foo_percent'    => 0.1
     }
 
     check_elapsed_usage(values, correct)
@@ -312,26 +312,26 @@ class MonitoredGearTest < OpenShift::NodeTestCase
 
   def test_utilization_3
     values = [
-      {
-        cfs_quota_us:  100000,
-        cfs_period_us: 100000,
-        nr_periods: 0,
-        ts: 1234567890.0,
-        foo: 0
-      },
-      {
-        cfs_quota_us:  100000,
-        cfs_period_us: 100000,
-        nr_periods: 7,
-        ts: 1234567897.0,
-        foo: 7000000
-      },
+        {
+            'cfs_quota_us'  => 100000,
+            'cfs_period_us' => 100000,
+            'nr_periods'    => 0,
+            'ts'            => 1234567890.0,
+            'foo'           => 0
+        },
+        {
+            'cfs_quota_us'  => 100000,
+            'cfs_period_us' => 100000,
+            'nr_periods'    => 7,
+            'ts'            => 1234567897.0,
+            'foo'           => 7000000
+        },
     ]
 
     correct = {
-      foo: 7000000,
-      foo_per_period: 1000000.0,
-      foo_percent: 0.1
+        'foo'            => 7000000,
+        'foo_per_period' => 1000000.0,
+        'foo_percent'    => 0.1
     }
 
     check_elapsed_usage(values, correct)
@@ -354,7 +354,7 @@ class MonitoredGearTest < OpenShift::NodeTestCase
 
   def test_update_utilization
     @@impl.intervals = [10, 20]
-    @@impl.delay = 5
+    @@impl.delay     = 5
 
     # Since we don't have enough values, we should not have any stats
     with_values(5) do
@@ -381,16 +381,16 @@ class MonitoredGearTest < OpenShift::NodeTestCase
 
   def with_values(max = @@impl.max, delay = @@impl.delay)
     defaults = {
-      cfs_quota_us:  10,
-      cfs_period_us: 10,
-      nr_periods: 0,
-      ts: 1234567890.000000,
-      foo: 0
+        'cfs_quota_us'  => 10,
+        'cfs_period_us' => 10,
+        'nr_periods'    => 0,
+        'ts'            => 1234567890.000000,
+        'foo'           => 0
     }
 
-    times = (0..max).step(@@impl.delay).inject({}) do |h,i|
+    times = (0..max).step(@@impl.delay).inject({}) do |h, i|
       with_time(i) do |t|
-        h[t] = defaults.merge({nr_periods: i, foo: i * 10000, ts: 1234567890.0 + i})
+        h[t] = defaults.merge({'nr_periods' => i, 'foo' => i * 10000, 'ts' => 1234567890.0 + i})
       end
       h
     end
