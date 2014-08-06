@@ -69,14 +69,14 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
         throttled_time: 2,
         nr_periods: 3,
         cfs_quota_us: 4
-      },
+        },
       "bad" => {
         ts: @mock_ts,
         usage: 5,
         throttled_time: 6,
         nr_periods: 7,
         cfs_quota_us: 8
-      }
+        }
     }
     @mock_usage_str = fake_usage(@mock_usage)
   end
@@ -252,8 +252,16 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
   end
 
   def test_parse_usage
-    usage = OpenShift::Runtime::Utils::Cgroups::Libcgroup.parse_usage(@mock_usage_str, @mock_ts)
-    assert_equal @mock_usage, usage
+    expected = Hash.new
+    @mock_usage.each_key do |nature|
+      expected[nature] = Hash.new
+      @mock_usage[nature].each do |key, value|
+        expected[nature][key.to_s] = value
+      end
+    end
+
+    actual = OpenShift::Runtime::Utils::Cgroups::Libcgroup.parse_usage(@mock_usage_str, @mock_ts)
+    assert_equal expected, actual
   end
 
   protected
