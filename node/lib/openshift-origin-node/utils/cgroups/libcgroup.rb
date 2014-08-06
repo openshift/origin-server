@@ -161,9 +161,9 @@ module OpenShift
           end
 
           def self.parse_usage(info, ts)
-            info.lines.to_a.inject(Hash.new{|h,k| h[k] = { :ts => ts }} ) do |h,line|
+            info.lines.to_a.inject(Hash.new{|h,k| h[k] = { 'ts' => ts }} ) do |h,line|
               (uuid, key, val) = line.split(/\W/).values_at(0,-2,-1)
-              h[uuid][key.to_sym] = val.to_i
+              h[uuid][key] = val.to_i
               h
             end
           end

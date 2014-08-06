@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-
 require 'active_support/core_ext/numeric/time'
 require 'openshift-origin-node/utils/cgroups'
 
@@ -42,7 +41,7 @@ class Array
   # - If provided with an array, will multiply all values
   # - If provided with an integer, will multiply all values by that value
   def mult(arr)
-    do_math(arr) do |a,b|
+    do_math(arr) do |a, b|
       a * b
     end
   end
@@ -52,7 +51,7 @@ class Array
     unless arr.is_a?(Array)
       arr = [arr] * length
     end
-    zip(arr).map{|x| yield x.first,x.last }
+    zip(arr).map { |x| yield x.first, x.last }
   end
 end
 
@@ -62,27 +61,27 @@ module OpenShift
       class Cgroups
         class MonitoredGear
           @@intervals = [10.seconds, 30.seconds]
-          @@delay = nil
-          @@max = nil
-          @@_delay = nil
-          MIN_DELAY = 5
+          @@delay     = nil
+          @@max       = nil
+          @@_delay    = nil
+          MIN_DELAY   = 5
 
           attr_accessor :thread, :times
           attr_reader :gear
 
           def initialize(uuid)
-            @gear = OpenShift::Runtime::Utils::Cgroups.new(uuid)
+            @gear  = OpenShift::Runtime::Utils::Cgroups.new(uuid)
             @times = {}
           end
 
           # Get the current values and remove any expired values
           # Then make sure our intervals are updated
           def update(vals)
-            time = Time.now
+            time         = Time.now
             @times[time] = vals
             @utilization = nil
-            cutoff = time - MonitoredGear.max
-            @times.delete_if{|k,v| k < cutoff }
+            cutoff       = time - MonitoredGear.max
+            @times.delete_if { |k, v| k < cutoff }
           end
 
           def oldest
@@ -105,13 +104,13 @@ module OpenShift
           def update_utilization
             utilization = {}
             unless times.empty?
-              cur = newest
+              cur     = newest
               # Go through each interval we want
               threads = MonitoredGear.intervals.map do |i|
                 Thread.new do
                   if age.to_i >= i
                     # Find any values at or after our cutoff
-                    vals = times.select{|k,v| k >= (cur - i)}
+                    vals = times.select { |k, v| k >= (cur - i) }
                     # Make sure we have enough sample points for this dataset
                     if vals.length > 0
                       # Calculate the elapsed usage for our values
@@ -131,33 +130,34 @@ module OpenShift
           # quota and period at the time of each measurement in case it changes
           def elapsed_usage(hashes)
             # These are keys we don't want to include in our calculations
-            util_keys = [:cfs_quota_us, :nr_periods, :cfs_period_us, :ts]
+            util_keys   = %w(cfs_quota_us nr_periods cfs_period_us ts)
             # Collect all of the values into a single hash
-            values = collapse_hashes(hashes)
+            values      = collapse_hashes(hashes)
             # Calculate the differences across values
             differences = calculate_differences(values)
 
             # Disregard the first quota, so we can align with the differences
-            (quotas = values[:cfs_quota_us]).shift
-            periods = differences[:nr_periods]
-            time_deltas = differences[:ts]
+            (quotas       = values['cfs_quota_us']).shift
+            periods       = differences['nr_periods']
+            time_deltas   = differences['ts']
 
             # Find the max possible cpu usage by the following:
             # time_delta * 1 billion * quota/period
             # The 1 billion is because throttled_time and cpuacct.usage are in nanoseconds
-            quota_periods = quotas.mult(time_deltas).mult(1_000_000_000).divide(values[:cfs_period_us])
+            quota_periods = quotas.mult(time_deltas).mult(1_000_000_000).divide(values['cfs_period_us'])
 
-            differences.inject({}) do |h,(k,vals)|
+            differences.inject({}) do |h, (k, vals)|
               unless util_keys.include?(k) || vals.empty?
                 # Calculate the values as a percentage of the max utilization for a period
                 percentage = vals.divide(quota_periods).mult(100)
                 per_period = vals.divide(periods)
                 {
-                  nil          => vals.average,
-                  "per_period" => per_period.average.round(3),
-                  "percent"    => percentage.average.round(3),
-                }.each do |k2,v|
-                  key = [k,k2].compact.join('_').to_sym
+                    nil          => vals.average,
+                    'per_period' => per_period.average.round(3),
+                    'percent'    => percentage.average.round(3),
+                }.each do |k2, v|
+                  # skip _ if either 'k' is nil
+                  key    = [k, k2].compact.join('_')
                   h[key] = v
                 end
               end
@@ -168,15 +168,15 @@ module OpenShift
           class << self
             def intervals=(intervals)
               @@intervals = intervals
-              @@delay = nil
-              @@max = nil
+              @@delay     = nil
+              @@max       = nil
             end
 
             def delay=(delay)
-              @@delay = delay
+              @@delay  = delay
               # Store this explicit delay so that it doesn't get overwritten
               @@_delay = delay
-              @@max = nil
+              @@max    = nil
             end
 
             def max
@@ -200,12 +200,12 @@ module OpenShift
 
           # Collapse multiple hashes into a single hash with the values from corresponding keys combined
           def collapse_hashes(hashes)
-            hashes.inject(Hash.new{|h,k| h[k] = []}){|h,vals| vals.each{|k,v| h[k] << v}; h}
+            hashes.inject(Hash.new { |h, k| h[k] = [] }) { |h, vals| vals.each { |k, v| h[k] << v }; h }
           end
 
           # For each value in the hash, calculate the difference between elements
           def calculate_differences(values)
-            values.inject({}){|h,(k,v)| h[k] = v.each_cons(2).map { |a,b| b-a }; h}
+            values.inject({}) { |h, (k, v)| h[k] = v.each_cons(2).map { |a, b| b-a }; h }
           end
         end
       end
