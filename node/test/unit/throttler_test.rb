@@ -22,18 +22,18 @@ class ThrottlerTest < OpenShift::NodeTestCase
     @throttler = @@impl.new
 
     @mock_usage = {
-      "good" => {
-        usage: 1,
-        throttled_time: 2,
-        nr_periods: 3,
-        cfs_quota_us: 4
-      },
-      "bad" => {
-        usage: 5,
-        throttled_time: 6,
-        nr_periods: 7,
-        cfs_quota_us: 8
-      }
+        'good' => {
+            'usage'          => 1,
+            'throttled_time' => 2,
+            'nr_periods'     => 3,
+            'cfs_quota_us'   => 4
+        },
+        'bad'  => {
+            'usage'          => 5,
+            'throttled_time' => 6,
+            'nr_periods'     => 7,
+            'cfs_quota_us'   => 8
+        }
     }
 
     @mock_apps = {
@@ -147,53 +147,53 @@ class ThrottlerTest < OpenShift::NodeTestCase
 
   def test_find
     mock_utilization = {
-      "A" => {
-        utilization: {
-          10  => {
-            usage_percent: 1.0
-          },
-          20 => {
-            usage_percent: 2.0
-          }
-        }
-      },
-      "B" => {
-        state: :throttled,
-        utilization: {
-          10  => {
-            usage_percent: 2.0
-          },
-          30 => {
-            usage_percent: 2.0
-          }
-        }
-      },
-      "C" => {
-        utilization: {
-          10  => {
-            usage_percent: 2.0
-          },
-          20 => {
-            usage_percent: 1.0
-          },
-          30 => {
-            usage_percent: 1.0
-          }
-        }
-      },
+        'A' => {
+            utilization: {
+                10 => {
+                    'usage_percent' => 1.0
+                },
+                20 => {
+                    'usage_percent' => 2.0
+                }
+            }
+        },
+        'B' => {
+            state:       :throttled,
+            utilization: {
+                10 => {
+                    'usage_percent' => 2.0
+                },
+                30 => {
+                    'usage_percent' => 2.0
+                }
+            }
+        },
+        'C' => {
+            utilization: {
+                10 => {
+                    'usage_percent' => 2.0
+                },
+                20 => {
+                    'usage_percent' => 1.0
+                },
+                30 => {
+                    'usage_percent' => 1.0
+                }
+            }
+        },
     }
 
     # Test finding apps by state only
     with_mock_apps(mock_utilization) do |mock_apps, mock_util|
       {
-        default:    {"A" => mock_apps['A'], "C" => mock_apps["C"]},
-        throttled:  {"B" => mock_apps['B']}
-      }.each do |state,correct|
+          default:   {"A" => mock_apps['A'], "C" => mock_apps["C"]},
+          throttled: {"B" => mock_apps['B']}
+      }.each do |state, correct|
         @throttler.expects(:running_apps).returns(mock_apps)
         @throttler.expects(:utilization).returns(mock_util)
 
         (gears, _) = @throttler.find(state: state)
-        assert_equal correct, gears, 'Throttler: find with state'
+        assert_equal correct, gears, 'Throttler: find with state only'
       end
     end
 
@@ -206,26 +206,26 @@ class ThrottlerTest < OpenShift::NodeTestCase
       apps['A'].gear.expects(:profile).raises(RuntimeError)
 
       (gears, _) = @throttler.find(state: :default)
-      assert_equal ({'C' => apps['C']}), gears, 'Throttler: find with state'
+      assert_equal ({'C' => apps['C']}), gears, 'Throttler: find failing apps'
     end
 
     # Test finding apps by usage only
     with_mock_apps(mock_utilization) do |mock_apps, mock_util|
       {
-        {period: 10, usage: 2.0} => %w(B C),
-        {period: 20, usage: 2.0} => %w(A),
-        {usage: 2.0} => %w(B)
-      }.each do |opts,uuids|
+          {period: 10, usage: 2.0} => %w(B C),
+          {period: 20, usage: 2.0} => %w(A),
+          {usage: 2.0}             => %w(B)
+      }.each do |opts, uuids|
         begin
           @throttler.expects(:running_apps).returns(mock_apps)
           @throttler.expects(:utilization).returns(mock_util)
 
-          unless opts.has_key?(:period)
+          unless opts.has_key?('period')
             @@mg.expects(:intervals).returns([30])
           end
 
           (gears, _) = @throttler.find(opts)
-          assert_equal uuids, gears.keys, 'Throttler: find with usage'
+          assert_equal uuids, gears.keys, 'Throttler: find with usage only'
         ensure
           @@mg.unstub(:intervals)
         end
@@ -235,8 +235,8 @@ class ThrottlerTest < OpenShift::NodeTestCase
     # Test combined find
     with_mock_apps(mock_utilization) do |mock_apps, mock_util|
       {
-        {period: 10, usage: 2.0, state: :throttled} => %w(B),
-      }.each do |opts,uuids|
+          {period: 10, usage: 2.0, state: :throttled} => %w(B),
+      }.each do |opts, uuids|
         @throttler.expects(:running_apps).returns(mock_apps)
         @throttler.expects(:utilization).returns(mock_util)
 
@@ -248,35 +248,35 @@ class ThrottlerTest < OpenShift::NodeTestCase
 
   def test_throttle
     mock_apps = {
-      "A" => {
+      'A' => {
         expects: {
           boosted?: false
         },
       },
-      "B" => {
+      'B' => {
         expects: {
           boosted?: true
         },
       },
-      "C" => {
+      'C' => {
         utilization: {
           10  => {
-            usage_percent: 0
+              'usage_percent' => 0
           },
         },
       },
-      "D" => {
+      'D' => {
         utilization: {
           10  => {
-            usage_percent: 1000000
+              'usage_percent' => 1000000
           },
         },
       },
-      "E" => {},
-      "F" => {
+      'E' => {},
+      'F' => {
         utilization: {
           10  => {
-            usage_percent: 1000000
+              'usage_percent' => 1000000
           },
         },
       },
@@ -365,28 +365,6 @@ class ThrottlerTest < OpenShift::NodeTestCase
     assert_equal %w(B),   @throttler.instance_variable_get('@old_bad_gears').keys
   end
 
-
-  def test_apply_action_failure
-    mock_apps = {
-      "A" => { },
-      "B" => { },
-    }
-
-    with_mock_apps(mock_apps) do |mock_apps, mock_util|
-      @throttler.instance_eval{
-        @old_bad_gears = {}
-        @bad_gears = {}
-      }
-
-      a = mock_apps['A']
-      b = mock_apps['B']
-
-      a.gear.expects(:throttle).raises(RuntimeError)
-      b.gear.expects(:throttle)
-
-      @throttler.expects(:failed_action).with(:throttle,"A","RuntimeError")
-    end
-  end
 
   def test_apply_action_failure
     mock_apps = {
