@@ -3,8 +3,9 @@ require 'test_helper'
 class RegionsControllerTest < ActionController::TestCase
 
   def setup
+    Region.delete_all
     @random = rand(1000000000)
-    @region = Region.create("region_#{@random}") 
+    @region = Region.create("region_#{@random}")
     @controller = RegionsController.new
     @login = "user#{@random}"
     @password = "password"
@@ -32,19 +33,34 @@ class RegionsControllerTest < ActionController::TestCase
     assert json = JSON.parse(response.body)
     assert_equal 1, json['data'].length, response.body
     assert_equal @region.id.to_s, json['data'][0]['id'], json['data'][0].inspect
-    
+
     get :show, {"id" => @region.id}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert_equal @region.name, json['data']['name'], json['data'].inspect
   end
-  
+
   test "test invalid id" do
-   
+
     get :show, {"id" => "bogus"}
     assert_response :not_found
 
   end
 
+  test "region selection flag true" do
+    os = Rails.configuration.openshift
+    Rails.configuration.stubs(:openshift).returns(os.merge(:allow_region_selection => true))
+    get :index
+    json = JSON.parse(response.body)
+    assert_equal true, json['data'][0]['allow_selection']
+  end
+
+  test "region selection flag false" do
+    os = Rails.configuration.openshift
+    Rails.configuration.stubs(:openshift).returns(os.merge(:allow_region_selection => false))
+    get :index
+    json = JSON.parse(response.body)
+    assert_equal false, json['data'][0]['allow_selection']
+  end
 
 end
