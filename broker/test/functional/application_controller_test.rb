@@ -1284,4 +1284,22 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
   end
 
+  test "no error on specified region when region selection allowed" do
+    region = Region.create("region_#{@random}")
+    os = Rails.configuration.openshift
+    Rails.configuration.stubs(:openshift).returns(os.merge(:allow_region_selection => true))
+    post :create, {"domain_id" => @domain.namespace, "name" => "app#{@random}", "cartridge" => php_version, "region" => region.name}
+    assert_response :success
+    region.delete
+  end
+
+  test "error on specified region when region selection not allowed" do
+    region = Region.create("region_#{@random}")
+    os = Rails.configuration.openshift
+    Rails.configuration.stubs(:openshift).returns(os.merge(:allow_region_selection => false))
+    post :create, {"domain_id" => @domain.namespace, "name" => "app#{@random}", "cartridge" => php_version, "region" => region.name}
+    assert_response :unprocessable_entity
+    region.delete
+  end
+
 end

@@ -18,11 +18,11 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id].presence
 
     by = domain_id.present? ? {domain_namespace: Domain.check_name!(domain_id).downcase} : {}
-    apps = 
+    apps =
       case params[:owner]
       when "@self" then Application.includes(:domain).accessible(current_user).where(owner: current_user)
       when nil     then Application.includes(:domain).accessible(current_user)
-      else return render_error(:bad_request, "Only @self is supported for the 'owner' argument.") 
+      else return render_error(:bad_request, "Only @self is supported for the 'owner' argument.")
       end.where(by).sort_by{ |a| a.name }.map { |app| get_rest_application(app, include_cartridges) }
     Domain.find_by(canonical_namespace: domain_id.downcase) if apps.empty? && domain_id.present? # check for a missing domain
 
@@ -59,11 +59,14 @@ class ApplicationsController < BaseController
     available = get_bool(params[:ha])
     default_gear_size = (params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]).downcase
     config = (params[:config].is_a?(Hash) and params[:config])
-    
+
     # Use the region user has specified, use default region if specified else leave as nil
     region_name = params[:region].presence
     region = nil
     if region_name
+      unless Rails.application.config.openshift[:allow_region_selection] then
+        raise OpenShift::UserException.new("Specifying a region on application creation has been disabled. A region may be automatically assigned for you.")
+      end
       region = Region.find_by(name: region_name) rescue nil
       if region.nil?
         available_regions = Region.where({}).collect{|r| r.name}
@@ -73,9 +76,9 @@ class ApplicationsController < BaseController
       region = Region.find_by(name: Rails.application.config.openshift[:default_region_name]) rescue nil
       Rails.logger.warn "The default region #{Rails.application.config.openshift[:default_region_name]} does not exist. Proceeding to create app without specific region" if region.nil?
     end
-    
+
     region_id = region ? region.id : nil
-    
+
     if OpenShift::ApplicationContainerProxy.blacklisted? app_name
       return render_error(:forbidden, "Application name is not allowed. Please choose another.", 105)
     end
@@ -134,8 +137,8 @@ class ApplicationsController < BaseController
       ha: available,
       builder_id: builder_id,
       user_agent: request.user_agent,
-      init_git_url: init_git_url, 
-      region_id: region_id 
+      init_git_url: init_git_url,
+      region_id: region_id
     )
     if config.present?
       app.config.each do |k, default|
