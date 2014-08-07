@@ -22,5 +22,5 @@
 # Wait at least this number of seconds since last check before looking for gears under OOM.
 #OOM_CHECK_PERIOD=0
 
-# Watchman debug - prints debug messages like memory usage after each plugin call
-#WATCHMAN_DEBUG
+# Watchman debug - prints debug messages like memory usage
+#WATCHMAN_DEBUG=true
