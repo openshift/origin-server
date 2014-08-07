@@ -1,3 +1,6 @@
 #!/bin/bash -e
+source "${OPENSHIFT_MONGODB_DIR}/lib/mongodb_context"
 
 mkdir -p $OPENSHIFT_MONGODB_DIR/{pid,socket,data,run}
+
+update_configuration

@@ -4,6 +4,8 @@ snapshot_exclusions:
 locked_files:
 - bin/
 - bin/*
+- lib/
+- lib/*
 - env/
 - env/*
 - metadata/

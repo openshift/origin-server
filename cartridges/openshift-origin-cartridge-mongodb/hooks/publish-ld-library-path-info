@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# For SCL based carts we need publish LD_LIBRARY_PATH
+# to web framework, so application can find the correct versions
+# of client libraries.
+#
+#
+source "${OPENSHIFT_MONGODB_DIR}/lib/mongodb_context"
+
+ld_library_path_element="$(get_ld_library_path_element)"
+[[ -n "${ld_library_path_element}" ]] && echo "OPENSHIFT_MONGODB_LD_LIBRARY_PATH_ELEMENT=${ld_library_path_element}"
+path_element="$(get_path_element)"
+[[ -n "${path_element}" ]] && echo "OPENSHIFT_MONGODB_PATH_ELEMENT=${path_element}"
