@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.28.5
+Version: 1.28.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 07 2014 Troy Dawson <tdawson@redhat.com> 1.28.6-1
+- Bug 1121217 - Symbol leak in Throttler cgroup code (jhonce@redhat.com)
+- Bug 1121217 - Symbol leak in Throttler cgroup code (jhonce@redhat.com)
+
 * Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.28.5-1
 - Merge pull request #5622 from Miciah/bug-1121200-oo-iptables-port-proxy-
   getaddr-check-ipaddr (dmcphers+openshiftbot@redhat.com)
