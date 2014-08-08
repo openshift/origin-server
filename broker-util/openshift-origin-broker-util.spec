@@ -2,6 +2,7 @@
     %global scl ruby193
     %global scl_prefix ruby193-
     %global scl_root /opt/rh/ruby193/root
+    %global ruby_libdir /usr/share/ruby
 %endif
 %global rubyabi 1.9.1
 
