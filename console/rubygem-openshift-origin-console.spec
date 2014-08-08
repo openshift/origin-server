@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.29.0
+Version: 1.29.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -166,6 +166,11 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.29.1-1
+- bump_minor_versions for sprint 49 (admiller@redhat.com)
+- Allow customizing the content-type and accept headers for oauth calls
+  (jforrest@redhat.com)
+
 * Mon Jul 28 2014 Adam Miller <admiller@redhat.com> 1.28.3-1
 - Origin UI 190 - Expose region for app create and show, region and zone on
   gear page for admin-console (jcantril@redhat.com)
