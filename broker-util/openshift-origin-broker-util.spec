@@ -7,7 +7,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.28.0
+Version: 1.28.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -108,6 +108,14 @@ cp -p man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-team.8.gz
 
 %changelog
+* Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.28.1-1
+- bump_minor_versions for sprint 49 (admiller@redhat.com)
+- Merge pull request #5689 from derekwaynecarr/region_description
+  (dmcphers+openshiftbot@redhat.com)
+- Add support for description on region object (decarr@redhat.com)
+- oo-app-info: don't assume rhcloud.com app domain (lmeyer@redhat.com)
+- app_info.rb: fix whitespace (lmeyer@redhat.com)
+
 * Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
 - oo-accept-systems: Warn about obsolete cartridges (miciah.masters@gmail.com)
 - oo-accept-systems: Drop obsolete/downloaded carts (miciah.masters@gmail.com)
