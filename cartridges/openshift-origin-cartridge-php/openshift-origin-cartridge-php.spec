@@ -3,7 +3,7 @@
 %global httpdconfdir /etc/openshift/cart.conf.d/httpd/php
 
 Name:          openshift-origin-cartridge-php
-Version: 1.27.3
+Version: 1.27.4
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -56,6 +56,12 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.27.4-1
+- BZ1047469 - PHP cart pear downgrade enhancement: exit when it's failed
+  (bvarga@redhat.com)
+- BZ1047469 - PHP cart: fixes pear package upgrade and downgrade messages
+  (bvarga@redhat.com)
+
 * Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.27.3-1
 - bump cart versions for sprint 48 (bparees@redhat.com)
 
