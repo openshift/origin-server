@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.25.0
+Version: 1.25.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -49,6 +49,9 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 08 2014 Adam Miller <admiller@redhat.com> 1.25.1-1
+- bump_minor_versions for sprint 49 (admiller@redhat.com)
+
 * Wed Jul 30 2014 Adam Miller <admiller@redhat.com> 1.24.2-1
 - bump cart versions for sprint 48 (bparees@redhat.com)
 
